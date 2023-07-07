@@ -1,0 +1,4 @@
+public partial class OnKeyUpMethod : osu.Framework.Graphics.Drawable
+{
+    protected override void OnKeyUp(object e) { }
+}

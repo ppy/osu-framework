@@ -5,13 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.Veldrid.Buffers;
 using osu.Framework.Platform;
 using osuTK.Graphics;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Veldrid;
 using PixelFormat = Veldrid.PixelFormat;
@@ -49,8 +51,10 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         private readonly bool manualMipmaps;
 
+        private readonly List<RectangleI> uploadedRegions = new List<RectangleI>();
+
         private readonly SamplerFilter filteringMode;
-        private readonly Color4 initialisationColour;
+        private readonly Color4? initialisationColour;
 
         public ulong BindCount { get; protected set; }
 
@@ -79,9 +83,9 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         /// <param name="height">The height of the texture.</param>
         /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
         /// <param name="filteringMode">The filtering mode.</param>
-        /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads).</param>
+        /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads). If null, no initialisation is provided out-of-the-box.</param>
         public VeldridTexture(VeldridRenderer renderer, int width, int height, bool manualMipmaps = false, SamplerFilter filteringMode = SamplerFilter.MinLinear_MagLinear_MipLinear,
-                              Color4 initialisationColour = default)
+                              Color4? initialisationColour = null)
         {
             this.manualMipmaps = manualMipmaps;
             this.filteringMode = filteringMode;
@@ -166,7 +170,13 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             set => resourcesArray[0] = value;
         }
 
-        public virtual IReadOnlyList<VeldridTextureResources> GetResourceList() => resourcesArray!;
+        public virtual IReadOnlyList<VeldridTextureResources> GetResourceList()
+        {
+            if (resources == null)
+                return Array.Empty<VeldridTextureResources>();
+
+            return resourcesArray!;
+        }
 
         public void FlushUploads()
         {
@@ -210,7 +220,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             // We should never run raw Veldrid calls on another thread than the draw thread due to race conditions.
             ThreadSafety.EnsureDrawThread();
 
-            List<RectangleI> uploadedRegions = new List<RectangleI>();
+            uploadedRegions.Clear();
 
             while (tryGetNextUpload(out ITextureUpload? upload))
             {
@@ -427,6 +437,9 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         /// <summary>
         /// The maximum number of mip levels provided by an <see cref="ITextureUpload"/>.
         /// </summary>
+        /// <remarks>
+        /// This excludes automatic generation of mipmaps via the graphics backend.
+        /// </remarks>
         private int maximumUploadedLod;
 
         private Sampler createSampler()
@@ -452,7 +465,6 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         {
             Texture? texture = resources?.Texture;
             Sampler? sampler = resources?.Sampler;
-            bool newTexture = false;
 
             if (texture == null || texture.Width != Width || texture.Height != Height)
             {
@@ -460,49 +472,59 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
                 var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)CalculateMipmapLevels(Width, Height), 1, PixelFormat.R8_G8_B8_A8_UNorm, Usages);
                 texture = Renderer.Factory.CreateTexture(ref textureDescription);
-                newTexture = true;
+
+                // todo: we may want to look into not having to allocate chunks of zero byte region for initialising textures
+                // similar to how OpenGL allows calling glTexImage2D with null data pointer.
+                initialiseLevel(texture, 0, Width, Height);
 
                 maximumUploadedLod = 0;
             }
 
             int lastMaximumUploadedLod = maximumUploadedLod;
 
-            if (!upload.Data.IsEmpty && upload.Level > maximumUploadedLod)
-                maximumUploadedLod = upload.Level;
-
-            if (sampler == null || maximumUploadedLod > lastMaximumUploadedLod)
-                sampler = createSampler();
-
-            resources = new VeldridTextureResources(texture, sampler);
-
-            if (newTexture)
-            {
-                for (int i = 0; i < texture.MipLevels; i++)
-                    initialiseLevel(i, Width >> i, Height >> i);
-            }
-
             if (!upload.Data.IsEmpty)
             {
+                // ensure all mip levels up to the target level are initialised.
+                // generally we always upload at level 0, so this won't run.
+                if (upload.Level > maximumUploadedLod)
+                {
+                    for (int i = maximumUploadedLod + 1; i <= upload.Level; i++)
+                        initialiseLevel(texture, i, Width >> i, Height >> i);
+
+                    maximumUploadedLod = upload.Level;
+                }
+
                 Renderer.UpdateTexture(texture, upload.Bounds.X >> upload.Level, upload.Bounds.Y >> upload.Level, upload.Bounds.Width >> upload.Level, upload.Bounds.Height >> upload.Level,
                     upload.Level, upload.Data);
             }
+
+            if (sampler == null || maximumUploadedLod > lastMaximumUploadedLod)
+            {
+                sampler?.Dispose();
+                sampler = createSampler();
+            }
+
+            resources = new VeldridTextureResources(texture, sampler);
         }
 
-        private unsafe void initialiseLevel(int level, int width, int height)
+        private unsafe void initialiseLevel(Texture texture, int level, int width, int height)
         {
-            updateMemoryUsage(level, (long)width * height * sizeof(Rgba32));
+            if (initialisationColour == null)
+                return;
 
-            using var commands = Renderer.Factory.CreateCommandList();
-            using var frameBuffer = new VeldridFrameBuffer(Renderer, this, level);
+            var rgbaColour = new Rgba32(new Vector4(initialisationColour.Value.R, initialisationColour.Value.G, initialisationColour.Value.B, initialisationColour.Value.A));
 
-            commands.Begin();
+            using var image = initialisationColour == default
+                ? new Image<Rgba32>(width, height)
+                : new Image<Rgba32>(width, height, rgbaColour);
 
-            // Initialize texture to solid color
-            commands.SetFramebuffer(frameBuffer.Framebuffer);
-            commands.ClearColorTarget(0, new RgbaFloat(initialisationColour.R, initialisationColour.G, initialisationColour.B, initialisationColour.A));
+            using (var pixels = image.CreateReadOnlyPixelSpan())
+            {
+                updateMemoryUsage(level, (long)width * height * sizeof(Rgba32));
+                Renderer.UpdateTexture(texture, 0, 0, width, height, level, pixels.Span);
+            }
 
-            commands.End();
-            Renderer.Device.SubmitCommands(commands);
+            // it is faster to initialise without a background specification if transparent black is all that's required.
         }
 
         // todo: should this be limited to MAX_MIPMAP_LEVELS or was that constant supposed to be for automatic mipmap generation only?

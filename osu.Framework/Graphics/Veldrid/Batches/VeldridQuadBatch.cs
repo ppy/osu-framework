@@ -4,7 +4,6 @@
 using System;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Veldrid.Buffers;
-using BufferUsage = Veldrid.BufferUsage;
 
 namespace osu.Framework.Graphics.Veldrid.Batches
 {
@@ -18,6 +17,6 @@ namespace osu.Framework.Graphics.Veldrid.Batches
                 throw new OverflowException($"Attempted to initialise a {nameof(VeldridQuadBuffer<T>)} with more than {nameof(VeldridQuadBuffer<T>)}.{nameof(VeldridQuadBuffer<T>.MAX_QUADS)} quads ({VeldridQuadBuffer<T>.MAX_QUADS}).");
         }
 
-        protected override VeldridVertexBuffer<T> CreateVertexBuffer(VeldridRenderer renderer) => new VeldridQuadBuffer<T>(renderer, Size, BufferUsage.Dynamic);
+        protected override VeldridVertexBuffer<T> CreateVertexBuffer(VeldridRenderer renderer) => new VeldridQuadBuffer<T>(renderer, Size);
     }
 }

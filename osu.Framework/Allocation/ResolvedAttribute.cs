@@ -9,10 +9,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
-using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Statistics;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Allocation
 {
@@ -114,17 +114,8 @@ namespace osu.Framework.Allocation
             };
         }
 
-        private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls, CacheInfo info) => dc =>
-        {
-            object val = dc.Get(type, info);
-            if (val == null && !permitNulls)
-                throw new DependencyNotRegisteredException(requestingType, type);
-
-            if (val is IBindable bindableVal)
-                return bindableVal.GetBoundCopy();
-
-            return val;
-        };
+        private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls, CacheInfo info)
+            => dc => SourceGeneratorUtils.GetDependency(dc, type, requestingType, info.Name, info.Parent, permitNulls, true);
     }
 
     public class PropertyNotWritableException : Exception

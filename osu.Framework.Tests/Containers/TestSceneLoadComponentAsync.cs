@@ -35,7 +35,7 @@ namespace osu.Framework.Tests.Containers
                 return result;
             });
 
-            AddStep("clear all children", () => Clear());
+            AddStep("clear all children", Clear);
 
             AddStep("load async", () => LoadComponentsAsync(composite, AddRange));
 

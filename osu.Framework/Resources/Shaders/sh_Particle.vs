@@ -1,3 +1,6 @@
+#ifndef PARTICLE_VS
+#define PARTICLE_VS
+
 layout(location = 0) in vec2 m_Position;
 layout(location = 1) in vec2 m_TexCoord;
 layout(location = 2) in float m_Time;
@@ -23,3 +26,5 @@ void main(void)
 	v_Colour = vec4(1.0, 1.0, 1.0, 1.0 - clamp(g_FadeClock / m_Time, 0.0, 1.0));
 	v_TexCoord = m_TexCoord;
 }
+
+#endif

@@ -204,6 +204,8 @@ namespace osu.Framework.Input.Bindings
             {
                 // if the current key pressed was a modifier, only handle modifier-only bindings.
                 // lambda expression is used so that the delegate is cached (see: https://github.com/dotnet/roslyn/issues/5835)
+                // TODO: remove when we switch to .NET 7.
+                // ReSharper disable once ConvertClosureToMethodGroup
                 newlyPressed = newlyPressed.Where(b => b.KeyCombination.Keys.All(key => KeyCombination.IsModifierKey(key)));
             }
 

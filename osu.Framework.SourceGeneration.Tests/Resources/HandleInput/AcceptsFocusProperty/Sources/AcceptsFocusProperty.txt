@@ -1,0 +1,4 @@
+public partial class AcceptsFocusProperty : osu.Framework.Graphics.Drawable
+{
+    protected override bool AcceptsFocus => false;
+}

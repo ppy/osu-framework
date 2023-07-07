@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -126,7 +124,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         private partial class TestTextureAnimation : TextureAnimation
         {
             [Resolved]
-            private FontStore fontStore { get; set; }
+            private FontStore fontStore { get; set; } = null!;
 
             public TestTextureAnimation()
             {

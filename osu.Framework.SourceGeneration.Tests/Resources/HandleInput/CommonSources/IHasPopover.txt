@@ -1,0 +1,6 @@
+namespace osu.Framework.Graphics.Cursor
+{
+    public interface IHasPopover
+    {
+    }
+}

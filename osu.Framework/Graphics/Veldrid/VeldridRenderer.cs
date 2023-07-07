@@ -15,6 +15,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Veldrid.Batches;
 using osu.Framework.Platform;
 using osu.Framework.Graphics.Veldrid.Buffers;
+using osu.Framework.Graphics.Veldrid.Buffers.Staging;
 using osu.Framework.Graphics.Veldrid.Shaders;
 using osu.Framework.Graphics.Veldrid.Textures;
 using osu.Framework.Statistics;
@@ -62,7 +63,7 @@ namespace osu.Framework.Graphics.Veldrid
         public VeldridIndexData SharedLinearIndex { get; }
         public VeldridIndexData SharedQuadIndex { get; }
 
-        private readonly List<IVeldridUniformBuffer> uniformBufferResetList = new List<IVeldridUniformBuffer>();
+        private readonly HashSet<IVeldridUniformBuffer> uniformBufferResetList = new HashSet<IVeldridUniformBuffer>();
         private readonly Dictionary<int, VeldridTextureResources> boundTextureUnits = new Dictionary<int, VeldridTextureResources>();
         private readonly Dictionary<string, IVeldridUniformBuffer> boundUniformBuffers = new Dictionary<string, IVeldridUniformBuffer>();
         private IGraphicsSurface graphicsSurface = null!;
@@ -571,8 +572,8 @@ namespace osu.Framework.Graphics.Veldrid
         protected override IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType)
             => new VeldridShaderPart(rawData, partType, store);
 
-        protected override IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
-            => new VeldridShader(this, name, parts.Cast<VeldridShaderPart>().ToArray(), globalUniformBuffer);
+        protected override IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer, ShaderCompilationStore compilationStore)
+            => new VeldridShader(this, name, parts.Cast<VeldridShaderPart>().ToArray(), globalUniformBuffer, compilationStore);
 
         public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
             => new VeldridFrameBuffer(this, renderBufferFormats?.ToPixelFormats(), filteringMode.ToSamplerFilter());
@@ -593,11 +594,43 @@ namespace osu.Framework.Graphics.Veldrid
             => new VeldridUniformBuffer<TData>(this);
 
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
-                                                              Color4 initialisationColour = default)
+                                                              Color4? initialisationColour = null)
             => new VeldridTexture(this, width, height, manualMipmaps, filteringMode.ToSamplerFilter(), initialisationColour);
 
         protected override INativeTexture CreateNativeVideoTexture(int width, int height)
             => new VeldridVideoTexture(this, width, height);
+
+        internal IStagingBuffer<T> CreateStagingBuffer<T>(uint count)
+            where T : unmanaged
+        {
+            switch (FrameworkEnvironment.StagingBufferType)
+            {
+                case 0:
+                    return new ManagedStagingBuffer<T>(this, count);
+
+                case 1:
+                    return new PersistentStagingBuffer<T>(this, count);
+
+                case 2:
+                    return new DeferredStagingBuffer<T>(this, count);
+
+                default:
+                    switch (Device.BackendType)
+                    {
+                        case GraphicsBackend.Direct3D11:
+                        case GraphicsBackend.Vulkan:
+                            return new PersistentStagingBuffer<T>(this, count);
+
+                        default:
+                        // Metal uses a more optimal path that elides a Blit Command Encoder.
+                        case GraphicsBackend.Metal:
+                        // OpenGL backends need additional work to support coherency and persistently mapped buffers.
+                        case GraphicsBackend.OpenGL:
+                        case GraphicsBackend.OpenGLES:
+                            return new ManagedStagingBuffer<T>(this, count);
+                    }
+            }
+        }
 
         protected override void SetUniformImplementation<T>(IUniformWithValue<T> uniform)
         {

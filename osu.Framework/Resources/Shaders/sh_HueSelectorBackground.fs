@@ -1,3 +1,7 @@
+#ifndef HUE_SELECTOR_BACKGROUND_FS
+#define HUE_SELECTOR_BACKGROUND_FS
+
+#undef HIGH_PRECISION_VERTEX
 #define HIGH_PRECISION_VERTEX
 
 #include "sh_Utils.h"
@@ -12,3 +16,5 @@ void main(void)
     highp float hueValue = v_TexCoord.x / (v_TexRect[2] - v_TexRect[0]);
     o_Colour = getRoundedColor(hsv2rgb(vec4(hueValue, 1, 1, 1)), v_TexCoord);
 }
+
+#endif

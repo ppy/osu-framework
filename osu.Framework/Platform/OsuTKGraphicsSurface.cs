@@ -11,7 +11,7 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Platform
 {
-    public class OsuTKGraphicsSurface : IGraphicsSurface, IOpenGLGraphicsSurface
+    internal class OsuTKGraphicsSurface : IGraphicsSurface, IOpenGLGraphicsSurface
     {
         private readonly OsuTKWindow window;
 

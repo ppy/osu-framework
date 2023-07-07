@@ -1,0 +1,4 @@
+public partial class OnTabletAuxiliaryButtonReleaseMethod : osu.Framework.Graphics.Drawable
+{
+    protected override void OnTabletAuxiliaryButtonRelease(object e) { }
+}

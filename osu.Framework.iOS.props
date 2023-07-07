@@ -1,14 +1,19 @@
 ﻿<Project>
   <PropertyGroup>
     <CodesignKey>iPhone Developer</CodesignKey>
-    <!-- Mono Interpreter resolves many AOT issues occuring on runtime,
-         and will be enabled by default on .NET 8+: https://github.com/dotnet/maui/issues/13019 -->
-    <UseInterpreter>true</UseInterpreter>
     <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
     <!-- MT7091 occurs when referencing a .framework bundle that consists of a static library.
          It only warns about not copying the library to the app bundle to save space,
          so there's nothing to be worried about. -->
     <NoWarn>$(NoWarn);MT7091</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <!-- On debug configurations, we use Mono interpreter for faster compilation. -->
+    <UseInterpreter>true</UseInterpreter>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <!-- On release configurations, we use AOT compiler for optimal performance. -->
+    <UseInterpreter>false</UseInterpreter>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Platform)' == 'iPhone'">
     <RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
@@ -45,9 +50,11 @@
   <!-- OpenTabletDriver contains P/Invokes to the "Quartz" framework for native macOS code.
        This leads iOS linker into attempting to include that framework, despite not existing on such platform.
        See: https://github.com/OpenTabletDriver/OpenTabletDriver/issues/2524 / https://github.com/xamarin/xamarin-macios/issues/15118#issuecomment-1141893683 -->
-  <Target Name="OsuFrameworkIOSRemoveQuartz" BeforeTargets="_ComputeLinkNativeExecutableInputs" AfterTargets="_LoadLinkerOutput">
+  <!-- There's also P/Invokes for "ApplicationServices" framework somewhere in the referenced libraries... -->
+  <Target Name="OsuFrameworkIOSRemoveMacOSFrameworks" BeforeTargets="_ComputeLinkNativeExecutableInputs" AfterTargets="_LoadLinkerOutput">
     <ItemGroup>
       <_LinkerFrameworks Remove="Quartz"/>
+      <_LinkerFrameworks Remove="ApplicationServices"/>
     </ItemGroup>
   </Target>
 </Project>

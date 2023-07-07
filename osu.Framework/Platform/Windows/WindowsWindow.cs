@@ -15,7 +15,7 @@ using Icon = osu.Framework.Platform.Windows.Native.Icon;
 namespace osu.Framework.Platform.Windows
 {
     [SupportedOSPlatform("windows")]
-    public class WindowsWindow : SDL2DesktopWindow
+    internal class WindowsWindow : SDL2DesktopWindow
     {
         private const int seticon_message = 0x0080;
         private const int icon_big = 1;
@@ -49,14 +49,31 @@ namespace osu.Framework.Platform.Windows
                     break;
             }
 
+            if (!declareDpiAwareV2())
+                declareDpiAware();
+        }
+
+        private bool declareDpiAwareV2()
+        {
             try
             {
-                // SDL doesn't handle DPI correctly on windows, but this brings things mostly in-line with expectations. (https://bugzilla.libsdl.org/show_bug.cgi?id=3281)
-                SetProcessDpiAwareness(ProcessDpiAwareness.Process_Per_Monitor_DPI_Aware);
+                return SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT.DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
             }
             catch
             {
-                // API doesn't exist on Windows 7 so it needs to be allowed to fail silently.
+                return false;
+            }
+        }
+
+        private bool declareDpiAware()
+        {
+            try
+            {
+                return SetProcessDpiAwareness(ProcessDpiAwareness.Process_Per_Monitor_DPI_Aware);
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -284,6 +301,20 @@ namespace osu.Framework.Platform.Windows
             Process_DPI_Unaware = 0,
             Process_System_DPI_Aware = 1,
             Process_Per_Monitor_DPI_Aware = 2
+        }
+
+        [DllImport("User32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT value);
+
+        // ReSharper disable once InconsistentNaming
+        internal enum DPI_AWARENESS_CONTEXT
+        {
+            DPI_AWARENESS_CONTEXT_UNAWARE = -1,
+            DPI_AWARENESS_CONTEXT_SYSTEM_AWARE = -2,
+            DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE = -3,
+            DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = -4,
+            DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED = -5,
         }
 
         [DllImport("user32.dll", SetLastError = true)]

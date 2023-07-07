@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using NUnit.Framework;
@@ -44,7 +42,6 @@ namespace osu.Framework.Tests.Bindables
 
         [TestCase(1.1f)]
         [TestCase("Not a value")]
-        [TestCase("")]
         public void TestUnparsaebles(object value)
         {
             var bindable = new Bindable<TestEnum>();
@@ -52,6 +49,18 @@ namespace osu.Framework.Tests.Bindables
 
             Assert.Throws<ArgumentException>(() => bindable.Parse(value));
             Assert.Throws<ArgumentException>(() => nullable.Parse(value));
+        }
+
+        [Test]
+        public void TestEmptyString()
+        {
+            var bindable = new Bindable<TestEnum>();
+            var nullable = new Bindable<TestEnum?>();
+
+            Assert.Throws<ArgumentException>(() => bindable.Parse(string.Empty));
+            nullable.Parse(string.Empty);
+
+            Assert.That(nullable.Value, Is.Null);
         }
 
         public enum TestEnum
