@@ -8,7 +8,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Performance
 {
-    public partial class TestSceneBlendingPerformance : TestSceneFillRate
+    public partial class TestSceneBlendingPerformance : TestSceneBoxPerformance
     {
         private readonly BindableFloat alpha = new BindableFloat();
         private readonly Bindable<BlendingParameters> blendingParameters = new Bindable<BlendingParameters>();

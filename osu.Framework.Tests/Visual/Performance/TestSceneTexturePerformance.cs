@@ -11,7 +11,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Tests.Visual.Performance
 {
-    public partial class TestSceneTexturePerformance : TestSceneFillRate
+    public partial class TestSceneTexturePerformance : TestSceneBoxPerformance
     {
         private readonly BindableBool disableMipmaps = new BindableBool();
         private readonly BindableBool uniqueTextures = new BindableBool();

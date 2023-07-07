@@ -14,7 +14,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Performance
 {
-    public partial class TestSceneFillRate : PerformanceTestScene
+    public partial class TestSceneBoxPerformance : PerformanceTestScene
     {
         protected readonly BindableFloat FillWidth = new BindableFloat();
         protected readonly BindableFloat FillHeight = new BindableFloat();
@@ -50,6 +50,14 @@ namespace osu.Framework.Tests.Visual.Performance
                 for (int i = v.OldValue; i < v.NewValue; i++)
                     Flow.Add(CreateDrawable());
             }, true);
+        }
+
+        protected void Recreate()
+        {
+            Flow.Clear();
+
+            for (int i = 0; i < SpritesCount.Value; i++)
+                Flow.Add(CreateDrawable());
         }
 
         protected virtual Drawable CreateDrawable() => new TestBox

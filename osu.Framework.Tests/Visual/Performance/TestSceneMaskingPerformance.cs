@@ -9,7 +9,7 @@ using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Framework.Tests.Visual.Performance
 {
-    public partial class TestSceneMaskingPerformance : TestSceneFillRate
+    public partial class TestSceneMaskingPerformance : TestSceneBoxPerformance
     {
         private readonly BindableFloat cornerRadius = new BindableFloat();
         private readonly BindableFloat cornerExponent = new BindableFloat(2f);
