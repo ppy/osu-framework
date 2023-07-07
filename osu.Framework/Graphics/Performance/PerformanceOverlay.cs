@@ -90,6 +90,7 @@ namespace osu.Framework.Graphics.Performance
                         Add(infoText = new TextFlowContainer(cp => cp.Font = FrameworkFont.Condensed)
                         {
                             Alpha = 0.75f,
+                            Anchor = Anchor.TopRight,
                             Origin = Anchor.TopRight,
                             TextAnchor = Anchor.TopRight,
                             AutoSizeAxes = Axes.Both,
@@ -98,7 +99,14 @@ namespace osu.Framework.Graphics.Performance
                         updateInfoText();
 
                         foreach (GameThread t in host.Threads)
-                            Add(new FrameStatisticsDisplay(t, uploadPool) { State = state });
+                        {
+                            Add(new FrameStatisticsDisplay(t, uploadPool)
+                            {
+                                Anchor = Anchor.TopRight,
+                                Origin = Anchor.TopRight,
+                                State = state
+                            });
+                        }
                     }
 
                     this.FadeIn(100);

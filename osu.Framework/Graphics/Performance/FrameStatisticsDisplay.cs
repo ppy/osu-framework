@@ -19,6 +19,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Graphics.Pooling;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Input.Events;
 using osuTK;
@@ -59,6 +60,8 @@ namespace osu.Framework.Graphics.Performance
         private readonly Container timeBarsContainer;
 
         private readonly ArrayPool<Rgba32> uploadPool;
+
+        private readonly DrawablePool<GCBox> gcBoxPool;
 
         private readonly Drawable[] legendMapping = new Drawable[FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES];
         private readonly Dictionary<StatisticsCounterType, CounterBar> counterBars = new Dictionary<StatisticsCounterType, CounterBar>();
@@ -118,7 +121,6 @@ namespace osu.Framework.Graphics.Performance
 
             this.uploadPool = uploadPool;
 
-            Origin = Anchor.TopRight;
             AutoSizeAxes = Axes.Both;
             Alpha = alpha_when_active;
 
@@ -182,8 +184,9 @@ namespace osu.Framework.Graphics.Performance
                     mainContainer = new Container
                     {
                         Size = new Vector2(WIDTH, HEIGHT),
-                        Children = new[]
+                        Children = new Drawable[]
                         {
+                            gcBoxPool = new DrawablePool<GCBox>(20, 20),
                             timeBarsContainer = new Container
                             {
                                 Masking = true,
@@ -277,15 +280,34 @@ namespace osu.Framework.Graphics.Performance
 
         private void addEvent(int type)
         {
-            Box b = new Box
+            if (gcBoxPool.CountAvailable == 0)
             {
-                Origin = Anchor.TopCentre,
-                Position = new Vector2(timeBarX, type * 3),
-                Colour = garbage_collect_colors[type],
-                Size = new Vector2(3, 3)
-            };
+                // If we've run out of pooled boxes, remove earlier usages.
+                //
+                // This is to avoid a runaway situation where more boxes being displayed causes more overhead,
+                // causing slower progression of the time bars causing more dense boxes causing more overhead...
+                for (int i = 0; i < timeBars.Length; i++)
+                {
+                    // Offset to check the previous time bar first.
+                    var timeBar = timeBars[(timeBarIndex + i + 1) % timeBars.Length];
 
-            timeBars[timeBarIndex].Add(b);
+                    var firstBox = timeBar.OfType<GCBox>().FirstOrDefault();
+
+                    if (firstBox != null)
+                    {
+                        timeBar.RemoveInternal(firstBox, false);
+                        break;
+                    }
+                }
+            }
+
+            var box = gcBoxPool.Get(b =>
+            {
+                b.Position = new Vector2(timeBarX, type * 3);
+                b.Colour = garbage_collect_colors[type];
+            });
+
+            timeBars[timeBarIndex].Add(box);
         }
 
         private bool running = true;
@@ -626,6 +648,25 @@ namespace osu.Framework.Graphics.Performance
 
                 if (expanded)
                     text.Text = $@"{Label}: {NumberFormatter.PrintWithSiSuffix(value)}";
+            }
+        }
+
+        private partial class GCBox : PoolableDrawable
+        {
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                Origin = Anchor.TopCentre;
+                Size = new Vector2(3, 3);
+
+                InternalChildren = new Drawable[]
+                {
+                    new Box
+                    {
+                        Colour = Color4.White,
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                };
             }
         }
     }
