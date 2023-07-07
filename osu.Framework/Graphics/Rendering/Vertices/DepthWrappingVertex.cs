@@ -2,13 +2,15 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Rendering.Vertices
 {
     [StructLayout(LayoutKind.Sequential)]
-    internal struct DepthWrappingVertex<TVertex> : IVertex, IEquatable<DepthWrappingVertex<TVertex>>
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+    public struct DepthWrappingVertex<TVertex> : IVertex, IEquatable<DepthWrappingVertex<TVertex>>
         where TVertex : unmanaged, IVertex, IEquatable<TVertex>
     {
         public TVertex Vertex;
