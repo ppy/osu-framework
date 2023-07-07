@@ -23,6 +23,7 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Utils;
 using osuTK;
@@ -255,6 +256,8 @@ namespace osu.Framework
 
             if (shouldUseBuffer)
             {
+                Logger.Log("Adding top-level render scale application frame buffer");
+
                 RemoveInternal(content, false);
                 base.AddInternal(scaledRenderBuffer = new BufferedContainer
                 {
@@ -266,6 +269,8 @@ namespace osu.Framework
             }
             else
             {
+                Logger.Log("Removing top-level render scale application frame buffer");
+
                 Debug.Assert(scaledRenderBuffer != null);
 
                 scaledRenderBuffer.Remove(content, false);
