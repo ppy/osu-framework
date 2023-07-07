@@ -5,7 +5,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Effects;
-using osuTK;
 using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Framework.Tests.Visual.Performance
