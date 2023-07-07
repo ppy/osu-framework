@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.ComponentModel;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Rendering;
@@ -14,12 +13,8 @@ namespace osu.Framework.Tests.Visual.Performance
 {
     public partial class TestSceneTexturePerformance : TestSceneFillRate
     {
-        private float fillWidth;
-        private float fillHeight;
         private bool disableMipmaps;
         private bool uniqueTextures;
-        private bool gradientColour;
-        private bool randomiseColour;
 
         private Texture nonMipmappedSampleTexture = null!;
         private Texture mipmappedSampleTexture = null!;
@@ -64,25 +59,6 @@ namespace osu.Framework.Tests.Visual.Performance
                 sprite.Texture = disableMipmaps ? nonMipmappedSampleTexture : mipmappedSampleTexture;
 
             return sprite;
-        }
-
-        private partial class TestSprite : Sprite
-        {
-            protected override DrawNode CreateDrawNode() => new TestSpriteDrawNode(this);
-
-            private class TestSpriteDrawNode : SpriteDrawNode
-            {
-                public TestSpriteDrawNode(Sprite source)
-                    : base(source)
-                {
-                }
-
-                public override void Draw(IRenderer renderer)
-                {
-                    base.Draw(renderer);
-                    renderer.FlushCurrentBatch(null);
-                }
-            }
         }
     }
 }

@@ -32,7 +32,7 @@ namespace osu.Framework.Tests.Visual.Performance
             var size = sprite.Size;
             sprite.Size = new Vector2(1f);
 
-            return new BufferedContainer(cachedFrameBuffer: cachedFrameBuffers)
+            return new BufferedContainer(cachedFrameBuffer: cachedFrameBuffers, pixelSnapping: pixelSnapping)
             {
                 BlurSigma = new Vector2(blurSigma),
                 RelativeSizeAxes = Axes.Both,
