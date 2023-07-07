@@ -39,6 +39,8 @@ namespace osu.Framework.Configuration
             this.storage = storage;
             InputHandlers = inputHandlers;
 
+            return;
+
             Load();
 
             bindToHandlersBindables();
