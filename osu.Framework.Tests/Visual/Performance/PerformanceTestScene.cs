@@ -3,7 +3,7 @@
 
 namespace osu.Framework.Tests.Visual.Performance
 {
-    public partial class PerformanceTestScene : FrameworkTestScene
+    public abstract partial class PerformanceTestScene : FrameworkTestScene
     {
         protected override void LoadComplete()
         {
