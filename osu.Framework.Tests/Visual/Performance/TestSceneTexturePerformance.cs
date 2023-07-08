@@ -89,15 +89,15 @@ namespace osu.Framework.Tests.Visual.Performance
             public readonly IBindable<bool> DisableMipmaps = new BindableBool();
             public readonly IBindable<bool> UniqueTextures = new BindableBool();
 
-            private readonly Texture mipmapped;
-            private readonly Texture nonMipmapped;
+            private readonly Texture mipmappedTexture;
+            private readonly Texture nonMipmappedTexture;
 
-            private TextureStore? store;
+            private TextureStore? spriteLocalStore;
 
-            public TestSprite(Texture mipmapped, Texture nonMipmapped)
+            public TestSprite(Texture mipmappedTexture, Texture nonMipmappedTexture)
             {
-                this.mipmapped = mipmapped;
-                this.nonMipmapped = nonMipmapped;
+                this.mipmappedTexture = mipmappedTexture;
+                this.nonMipmappedTexture = nonMipmappedTexture;
             }
 
             [BackgroundDependencyLoader]
@@ -105,17 +105,21 @@ namespace osu.Framework.Tests.Visual.Performance
             {
                 DisableMipmaps.BindValueChanged(v =>
                 {
-                    Texture = v.NewValue ? nonMipmapped : mipmapped;
+                    spriteLocalStore?.Dispose();
+                    spriteLocalStore = new TextureStore(renderer, host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(game.Resources, @"Textures")), manualMipmaps: v.NewValue);
 
-                    store?.Dispose();
-                    store = new TextureStore(renderer, host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(game.Resources, @"Textures")), manualMipmaps: v.NewValue);
+                    updateTexture();
                 }, true);
 
-                UniqueTextures.BindValueChanged(v =>
-                {
-                    if (v.NewValue)
-                        Texture = store!.Get("sample-texture");
-                }, true);
+                UniqueTextures.BindValueChanged(v => updateTexture(), true);
+            }
+
+            private void updateTexture()
+            {
+                if (UniqueTextures.Value)
+                    Texture = spriteLocalStore!.Get(@"sample-texture");
+                else
+                    Texture = DisableMipmaps.Value ? nonMipmappedTexture : mipmappedTexture;
             }
         }
 
