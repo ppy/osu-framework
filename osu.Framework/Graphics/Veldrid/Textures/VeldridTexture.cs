@@ -514,6 +514,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
             var rgbaColour = new Rgba32(new Vector4(initialisationColour.Value.R, initialisationColour.Value.G, initialisationColour.Value.B, initialisationColour.Value.A));
 
+            // it is faster to initialise without a background specification if transparent black is all that's required.
             using var image = initialisationColour == default
                 ? new Image<Rgba32>(width, height)
                 : new Image<Rgba32>(width, height, rgbaColour);
@@ -523,8 +524,6 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 updateMemoryUsage(level, (long)width * height * sizeof(Rgba32));
                 Renderer.UpdateTexture(texture, 0, 0, width, height, level, pixels.Span);
             }
-
-            // it is faster to initialise without a background specification if transparent black is all that's required.
         }
 
         // todo: should this be limited to MAX_MIPMAP_LEVELS or was that constant supposed to be for automatic mipmap generation only?
