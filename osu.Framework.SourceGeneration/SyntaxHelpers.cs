@@ -100,6 +100,9 @@ namespace osu.Framework.SourceGeneration
         public static bool IsCachedAttribute(AttributeData? attribute)
             => IsCachedAttribute(attribute?.AttributeClass);
 
+        public static bool IsLongRunningLoadAttribute(AttributeData? attribute)
+            => IsLongRunningLoadAttribute(attribute?.AttributeClass);
+
         public static bool IsBackgroundDependencyLoaderAttribute(ITypeSymbol? type)
             => type != null && GetFullyQualifiedTypeName(type) == "osu.Framework.Allocation.BackgroundDependencyLoaderAttribute";
 
@@ -108,6 +111,9 @@ namespace osu.Framework.SourceGeneration
 
         public static bool IsCachedAttribute(ITypeSymbol? type)
             => type != null && GetFullyQualifiedTypeName(type) == "osu.Framework.Allocation.CachedAttribute";
+
+        public static bool IsLongRunningLoadAttribute(ITypeSymbol? type)
+            => type != null && GetFullyQualifiedTypeName(type) == "osu.Framework.Allocation.LongRunningLoadAttribute";
 
         public static bool IsIDependencyInjectionCandidateInterface(ITypeSymbol? type)
             => type != null && GetFullyQualifiedTypeName(type) == "osu.Framework.Allocation.IDependencyInjectionCandidate";

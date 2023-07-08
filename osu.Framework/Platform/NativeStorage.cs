@@ -1,13 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using JetBrains.Annotations;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Utils;
 
@@ -15,9 +12,9 @@ namespace osu.Framework.Platform
 {
     public class NativeStorage : Storage
     {
-        private readonly GameHost host;
+        private readonly GameHost? host;
 
-        public NativeStorage(string path, GameHost host = null)
+        public NativeStorage(string path, GameHost? host = null)
             : base(path)
         {
             this.host = host;
@@ -85,7 +82,7 @@ namespace osu.Framework.Platform
         public override bool PresentFileExternally(string filename) =>
             host?.PresentFileExternally(GetFullPath(filename)) == true;
 
-        public override Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate)
+        public override Stream? GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate)
         {
             path = GetFullPath(path, access != FileAccess.Read);
 
@@ -110,7 +107,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        public override Storage GetStorageForDirectory([NotNull] string path)
+        public override Storage GetStorageForDirectory(string path)
         {
             ArgumentNullException.ThrowIfNull(path);
 
@@ -120,7 +117,7 @@ namespace osu.Framework.Platform
             // create non-existing path.
             string fullPath = GetFullPath(path, true);
 
-            return (Storage)Activator.CreateInstance(GetType(), fullPath, host);
+            return new NativeStorage(fullPath, host);
         }
     }
 }

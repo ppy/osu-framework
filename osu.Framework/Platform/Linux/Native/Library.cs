@@ -4,17 +4,12 @@
 #nullable disable
 
 using System;
-using System.Diagnostics;
-using System.IO;
 using System.Runtime.InteropServices;
 
 namespace osu.Framework.Platform.Linux.Native
 {
     public static class Library
     {
-        [DllImport("libdl.so.2", EntryPoint = "dlopen")]
-        private static extern IntPtr dlopen(string library, LoadFlags flags);
-
         /// <summary>
         /// Loads a library with flags to use with dlopen. Uses <see cref="LoadFlags"/> for the flags
         ///
@@ -22,17 +17,7 @@ namespace osu.Framework.Platform.Linux.Native
         /// </summary>
         /// <param name="library">Full name of the library</param>
         /// <param name="flags">See 'man dlopen' for more information.</param>
-        public static void Load(string library, LoadFlags flags)
-        {
-            string paths = (string)AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES");
-            Debug.Assert(paths != null);
-
-            foreach (string path in paths.Split(':'))
-            {
-                if (dlopen(Path.Combine(path, library), flags) != IntPtr.Zero)
-                    break;
-            }
-        }
+        public static void Load(string library, LoadFlags flags) => NativeLibrary.Load(library, typeof(Library).Assembly, DllImportSearchPath.AssemblyDirectory);
 
         [Flags]
         public enum LoadFlags

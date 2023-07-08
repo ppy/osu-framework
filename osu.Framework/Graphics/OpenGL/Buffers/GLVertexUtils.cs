@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using osu.Framework.Graphics.Rendering.Vertices;
@@ -14,7 +15,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     /// <summary>
     /// Helper method that provides functionality to enable and bind GL vertex attributes.
     /// </summary>
-    internal static class GLVertexUtils<T>
+    internal static class GLVertexUtils<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>
         where T : unmanaged, IVertex
     {
         /// <summary>
@@ -30,7 +31,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             addAttributesRecursive(typeof(T), 0);
         }
 
-        private static void addAttributesRecursive(Type type, int currentOffset)
+        private static void addAttributesRecursive(
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+            Type type, int currentOffset)
         {
             foreach (FieldInfo field in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
             {
@@ -38,9 +41,12 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
                 if (typeof(IVertex).IsAssignableFrom(field.FieldType))
                 {
+                    // Todo: We can't pass field.FieldType down here...
+                    addAttributesRecursive(typeof(TexturedVertex2D), fieldOffset);
+
                     // Vertices may contain others, but the attributes of contained vertices belong to the parent when marshalled, so they are recursively added for their parent
                     // Their field offsets must be adjusted to reflect the position of the child attribute in the parent vertex
-                    addAttributesRecursive(field.FieldType, fieldOffset);
+                    // addAttributesRecursive(field.FieldType, fieldOffset);
                 }
                 else if (field.IsDefined(typeof(VertexMemberAttribute), true))
                 {
