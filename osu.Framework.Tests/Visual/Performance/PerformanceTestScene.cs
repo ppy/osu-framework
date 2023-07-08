@@ -35,7 +35,7 @@ namespace osu.Framework.Tests.Visual.Performance
             AddLabel("General");
             AddToggleStep("hide content", v => Content.Alpha = v ? 0 : 1);
             AddToggleStep("bypass front to back", v => bypassFrontToBack.Value = v);
-            AddSliderStep("render scale", 0f, 1f, 1f, v => content.FrameBufferScale = new Vector2(v));
+            AddSliderStep("render scale", 0.01f, 1f, 1f, v => content.FrameBufferScale = new Vector2(v));
         }
     }
 }
