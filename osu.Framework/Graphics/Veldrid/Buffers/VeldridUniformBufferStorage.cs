@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using osu.Framework.Graphics.Veldrid.Buffers.Staging;
 using osu.Framework.Platform;
 using Veldrid;
 
@@ -12,35 +13,37 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         where TData : unmanaged, IEquatable<TData>
     {
         private readonly VeldridRenderer renderer;
-        private readonly DeviceBuffer buffer;
         private readonly NativeMemoryTracker.NativeMemoryLease memoryLease;
 
+        private readonly IStagingBuffer<TData> stagingBuffer;
+        private readonly DeviceBuffer gpuBuffer;
+
         private ResourceSet? set;
-        private TData data;
 
         public VeldridUniformBufferStorage(VeldridRenderer renderer)
         {
             this.renderer = renderer;
 
-            buffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(default(TData)), BufferUsage.UniformBuffer));
-            memoryLease = NativeMemoryTracker.AddMemory(this, buffer.SizeInBytes);
+            stagingBuffer = renderer.CreateStagingBuffer<TData>(1);
+            gpuBuffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(default(TData)), BufferUsage.UniformBuffer | stagingBuffer.CopyTargetUsageFlags));
+            memoryLease = NativeMemoryTracker.AddMemory(this, gpuBuffer.SizeInBytes);
         }
 
         public TData Data
         {
-            get => data;
+            get => stagingBuffer.Data[0];
             set
             {
-                data = value;
-                renderer.BufferUpdateCommands.UpdateBuffer(buffer, 0, ref data);
+                stagingBuffer.Data[0] = value;
+                stagingBuffer.CopyTo(gpuBuffer, 0, 0, 1);
             }
         }
 
-        public ResourceSet GetResourceSet(ResourceLayout layout) => set ??= renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, buffer));
+        public ResourceSet GetResourceSet(ResourceLayout layout) => set ??= renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, gpuBuffer));
 
         public void Dispose()
         {
-            buffer.Dispose();
+            gpuBuffer.Dispose();
             memoryLease.Dispose();
             set?.Dispose();
         }
