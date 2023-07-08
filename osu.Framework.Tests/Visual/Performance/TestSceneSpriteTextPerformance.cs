@@ -49,7 +49,7 @@ namespace osu.Framework.Tests.Visual.Performance
                     for (int c = 0; c < wordLength; c++)
                     {
                         char character = (char)RNG.Next('a', 'z');
-                        character = c == 0 ? char.ToUpperInvariant(character) : char.ToLowerInvariant(character);
+                        character = c == 0 ? char.ToUpperInvariant(character) : character;
                         text.Append(character);
                     }
 
