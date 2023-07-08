@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         /// </summary>
         private readonly List<VeldridVertexBuffer<T>>[] vertexBuffers = new List<VeldridVertexBuffer<T>>[FrameworkEnvironment.VertexBufferCount ?? vertex_buffer_count];
 
-        private List<VeldridVertexBuffer<T>> currentVertexBuffers => vertexBuffers[renderer.ResetId % (ulong)vertexBuffers.Length];
+        private List<VeldridVertexBuffer<T>> currentVertexBuffers => vertexBuffers[renderer.FrameIndex % (ulong)vertexBuffers.Length];
 
         private VeldridVertexBuffer<T> currentVertexBuffer => currentVertexBuffers[currentBufferIndex];
 
