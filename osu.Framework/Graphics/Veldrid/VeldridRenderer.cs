@@ -60,8 +60,12 @@ namespace osu.Framework.Graphics.Veldrid
         public CommandList Commands { get; private set; } = null!;
         public CommandList BufferUpdateCommands { get; private set; } = null!;
 
+        private readonly List<CommandsCompletionFence> commandsCompletionFences = new List<CommandsCompletionFence>();
+
         public VeldridIndexData SharedLinearIndex { get; }
         public VeldridIndexData SharedQuadIndex { get; }
+
+        private readonly VeldridStagingTexturePool stagingTexturePool;
 
         private readonly HashSet<IVeldridUniformBuffer> uniformBufferResetList = new HashSet<IVeldridUniformBuffer>();
         private readonly Dictionary<int, VeldridTextureResources> boundTextureUnits = new Dictionary<int, VeldridTextureResources>();
@@ -82,6 +86,7 @@ namespace osu.Framework.Graphics.Veldrid
         {
             SharedLinearIndex = new VeldridIndexData(this);
             SharedQuadIndex = new VeldridIndexData(this);
+            stagingTexturePool = new VeldridStagingTexturePool(this);
         }
 
         protected override void Initialise(IGraphicsSurface graphicsSurface)
@@ -218,6 +223,28 @@ namespace osu.Framework.Graphics.Veldrid
             Commands.Begin();
             BufferUpdateCommands.Begin();
 
+            ulong? latestCompletedFrame = null;
+
+            for (int i = 0; i < commandsCompletionFences.Count; i++)
+            {
+                var fence = commandsCompletionFences[i];
+
+                // we could optimise this further by iterating until the first non-signaled fence,
+                // but apparently there's a chance for one fence to remain non-signaled while subsequent fences are already set.
+                if (fence.Fence.Signaled)
+                {
+                    latestCompletedFrame = fence.FrameIndex;
+
+                    fence.Fence.Dispose();
+                    commandsCompletionFences.RemoveAt(i--);
+                }
+            }
+
+            if (latestCompletedFrame != null)
+                stagingTexturePool.ReturnTextures(latestCompletedFrame.Value);
+
+            stagingTexturePool.CleanupUnusedTextures();
+
             base.BeginFrame(windowSize);
         }
 
@@ -228,8 +255,12 @@ namespace osu.Framework.Graphics.Veldrid
             BufferUpdateCommands.End();
             Device.SubmitCommands(BufferUpdateCommands);
 
+            var fence = Factory.CreateFence(false);
+
             Commands.End();
-            Device.SubmitCommands(Commands);
+            Device.SubmitCommands(Commands, fence);
+
+            commandsCompletionFences.Add(new CommandsCompletionFence(fence, FrameIndex));
         }
 
         protected internal override void SwapBuffers() => Device.SwapBuffers();
@@ -292,7 +323,7 @@ namespace osu.Framework.Graphics.Veldrid
         public void UpdateTexture<T>(global::Veldrid.Texture texture, int x, int y, int width, int height, int level, ReadOnlySpan<T> data)
             where T : unmanaged
         {
-            using var staging = Factory.CreateTexture(TextureDescription.Texture2D((uint)width, (uint)height, 1, 1, texture.Format, TextureUsage.Staging));
+            var staging = stagingTexturePool.Get(width, height, texture.Format);
             Device.UpdateTexture(staging, data, 0, 0, 0, (uint)width, (uint)height, 1, (uint)level, 0);
             BufferUpdateCommands.CopyTexture(staging, 0, 0, 0, 0, 0, texture, (uint)x, (uint)y, 0, (uint)level, 0, (uint)width, (uint)height, 1, 1);
         }
@@ -310,7 +341,7 @@ namespace osu.Framework.Graphics.Veldrid
         /// <param name="rowLengthInBytes">The number of bytes per row of the image to read from <paramref name="data"/>.</param>
         public void UpdateTexture(global::Veldrid.Texture texture, int x, int y, int width, int height, int level, IntPtr data, int rowLengthInBytes)
         {
-            using var staging = Factory.CreateTexture(TextureDescription.Texture2D((uint)width, (uint)height, 1, 1, texture.Format, TextureUsage.Staging));
+            var staging = stagingTexturePool.Get(width, height, texture.Format);
 
             unsafe
             {
@@ -644,5 +675,7 @@ namespace osu.Framework.Graphics.Veldrid
         }
 
         public void BindTextureResource(VeldridTextureResources resource, int unit) => boundTextureUnits[unit] = resource;
+
+        public record struct CommandsCompletionFence(Fence Fence, ulong FrameIndex);
     }
 }
