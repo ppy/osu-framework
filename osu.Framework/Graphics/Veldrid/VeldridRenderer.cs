@@ -223,9 +223,13 @@ namespace osu.Framework.Graphics.Veldrid
             {
                 var fence = pendingFramesFences[i];
 
-                // we could optimise this further by iterating until the first non-signaled fence,
-                // but apparently there's a chance for one fence to remain non-signaled while subsequent fences are already set.
+                // Frame usages are assumed to be sequential and linear.
+                //
+                // Therefore to cover any edge cases where signal may not return, or return too late, we
+                // check all and take on the frame index of the latest fence rather than breaking at the first.
                 if (!fence.Fence.Signaled) continue;
+
+                Debug.Assert(fence.FrameIndex > LatestCompletedFrameIndex);
 
                 LatestCompletedFrameIndex = fence.FrameIndex;
 
