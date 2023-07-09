@@ -65,7 +65,11 @@ namespace osu.Framework.Graphics.Veldrid
         public CommandList Commands { get; private set; } = null!;
         public CommandList BufferUpdateCommands { get; private set; } = null!;
 
-        private readonly List<CommandsCompletionFence> commandsCompletionFences = new List<CommandsCompletionFence>();
+        /// <summary>
+        /// A list of fences which tracks in-flight frames for the purpose of knowing the last completed frame.
+        /// This is tracked for the purpose of exposing <see cref="LatestCompletedFrameIndex"/>.
+        /// </summary>
+        private readonly List<FrameCompletionFence> pendingFramesFences = new List<FrameCompletionFence>();
 
         public VeldridIndexData SharedLinearIndex { get; }
         public VeldridIndexData SharedQuadIndex { get; }
@@ -215,19 +219,18 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected internal override void BeginFrame(Vector2 windowSize)
         {
-            for (int i = 0; i < commandsCompletionFences.Count; i++)
+            for (int i = 0; i < pendingFramesFences.Count; i++)
             {
-                var fence = commandsCompletionFences[i];
+                var fence = pendingFramesFences[i];
 
                 // we could optimise this further by iterating until the first non-signaled fence,
                 // but apparently there's a chance for one fence to remain non-signaled while subsequent fences are already set.
-                if (fence.Fence.Signaled)
-                {
-                    LatestCompletedFrameIndex = fence.FrameIndex;
+                if (!fence.Fence.Signaled) continue;
 
-                    fence.Fence.Dispose();
-                    commandsCompletionFences.RemoveAt(i--);
-                }
+                LatestCompletedFrameIndex = fence.FrameIndex;
+
+                fence.Fence.Dispose();
+                pendingFramesFences.RemoveAt(i--);
             }
 
             if (windowSize != currentSize)
@@ -260,7 +263,7 @@ namespace osu.Framework.Graphics.Veldrid
             Commands.End();
             Device.SubmitCommands(Commands, fence);
 
-            commandsCompletionFences.Add(new CommandsCompletionFence(fence, FrameIndex));
+            pendingFramesFences.Add(new FrameCompletionFence(fence, FrameIndex));
         }
 
         protected internal override void SwapBuffers() => Device.SwapBuffers();
@@ -676,6 +679,6 @@ namespace osu.Framework.Graphics.Veldrid
 
         public void BindTextureResource(VeldridTextureResources resource, int unit) => boundTextureUnits[unit] = resource;
 
-        public record struct CommandsCompletionFence(Fence Fence, ulong FrameIndex);
+        private record struct FrameCompletionFence(Fence Fence, ulong FrameIndex);
     }
 }
