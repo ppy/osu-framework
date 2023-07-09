@@ -44,8 +44,6 @@ namespace osu.Framework.iOS
                 defaultOverrides.Add(FrameworkSetting.ExecutionMode, ExecutionMode.SingleThread);
 
             base.SetupConfig(defaultOverrides);
-
-            DebugConfig.SetValue(DebugSetting.BypassFrontToBackPass, true);
         }
 
         public override bool OnScreenKeyboardOverlapsGameWindow => true;

@@ -174,11 +174,14 @@ namespace osu.Framework.Platform
         [UsedImplicitly]
         private SDL.SDL_EventFilter? eventFilterDelegate;
 
-        private ObjectHandle<SDL2Window> objectHandle;
+        /// <summary>
+        /// Represents a handle to this <see cref="SDL2Window"/> instance, used for unmanaged callbacks.
+        /// </summary>
+        protected ObjectHandle<SDL2Window> ObjectHandle { get; private set; }
 
         protected SDL2Window(GraphicsSurfaceType surfaceType)
         {
-            objectHandle = new ObjectHandle<SDL2Window>(this, GCHandleType.Normal);
+            ObjectHandle = new ObjectHandle<SDL2Window>(this, GCHandleType.Normal);
 
             if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER) < 0)
             {
@@ -250,7 +253,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public void Run()
         {
-            SDL.SDL_SetEventFilter(eventFilterDelegate = eventFilter, objectHandle.Handle);
+            SDL.SDL_SetEventFilter(eventFilterDelegate = eventFilter, ObjectHandle.Handle);
 
             RunMainLoop();
         }
@@ -614,7 +617,7 @@ namespace osu.Framework.Platform
             Close();
             SDL.SDL_Quit();
 
-            objectHandle.Dispose();
+            ObjectHandle.Dispose();
         }
     }
 }

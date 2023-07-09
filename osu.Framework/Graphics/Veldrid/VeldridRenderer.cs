@@ -594,7 +594,7 @@ namespace osu.Framework.Graphics.Veldrid
             => new VeldridUniformBuffer<TData>(this);
 
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
-                                                              Color4 initialisationColour = default)
+                                                              Color4? initialisationColour = null)
             => new VeldridTexture(this, width, height, manualMipmaps, filteringMode.ToSamplerFilter(), initialisationColour);
 
         protected override INativeTexture CreateNativeVideoTexture(int width, int height)

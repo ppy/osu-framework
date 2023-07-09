@@ -70,8 +70,6 @@ namespace osu.Framework.Graphics
 
         private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), "Total constructed");
 
-        internal bool IsLongRunning => GetType().GetCustomAttribute<LongRunningLoadAttribute>() != null;
-
         /// <summary>
         /// Disposes this drawable.
         /// </summary>

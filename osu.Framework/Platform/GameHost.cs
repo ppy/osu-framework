@@ -1060,15 +1060,19 @@ namespace osu.Framework.Platform
 
         private void windowUpdate()
         {
-            inputPerformanceCollectionPeriod?.Dispose();
-            inputPerformanceCollectionPeriod = null;
+            outsideRunLoopCollectionPeriod?.Dispose();
+            outsideRunLoopCollectionPeriod = null;
 
             if (suspended)
                 return;
 
             threadRunner.RunMainLoop();
 
-            inputPerformanceCollectionPeriod = inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
+            outsideRunLoopCollectionPeriod = RuntimeInfo.OS == RuntimeInfo.Platform.iOS
+                // in iOS, the game loop is wrapped around CADisplayLink which waits for the next V-Sync point before processing next frame,
+                // therefore we should mark this as "sleep" time in draw thread instead.
+                ? drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep)
+                : inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
         }
 
         /// <summary>
@@ -1142,7 +1146,7 @@ namespace osu.Framework.Platform
             Root = root;
         }
 
-        private InvokeOnDisposal inputPerformanceCollectionPeriod;
+        private InvokeOnDisposal outsideRunLoopCollectionPeriod;
 
         private Bindable<bool> bypassFrontToBackPass;
 

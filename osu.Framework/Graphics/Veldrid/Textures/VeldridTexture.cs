@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         private readonly List<RectangleI> uploadedRegions = new List<RectangleI>();
 
         private readonly SamplerFilter filteringMode;
-        private readonly Color4 initialisationColour;
+        private readonly Color4? initialisationColour;
 
         public ulong BindCount { get; protected set; }
 
@@ -83,9 +83,9 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         /// <param name="height">The height of the texture.</param>
         /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
         /// <param name="filteringMode">The filtering mode.</param>
-        /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads).</param>
+        /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads). If null, no initialisation is provided out-of-the-box.</param>
         public VeldridTexture(VeldridRenderer renderer, int width, int height, bool manualMipmaps = false, SamplerFilter filteringMode = SamplerFilter.MinLinear_MagLinear_MipLinear,
-                              Color4 initialisationColour = default)
+                              Color4? initialisationColour = null)
         {
             this.manualMipmaps = manualMipmaps;
             this.filteringMode = filteringMode;
@@ -485,6 +485,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             if (!upload.Data.IsEmpty)
             {
                 // ensure all mip levels up to the target level are initialised.
+                // generally we always upload at level 0, so this won't run.
                 if (upload.Level > maximumUploadedLod)
                 {
                     for (int i = maximumUploadedLod + 1; i <= upload.Level; i++)
@@ -508,20 +509,21 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         private unsafe void initialiseLevel(Texture texture, int level, int width, int height)
         {
-            using (var image = createBackingImage(width, height))
+            if (initialisationColour == null)
+                return;
+
+            var rgbaColour = new Rgba32(new Vector4(initialisationColour.Value.R, initialisationColour.Value.G, initialisationColour.Value.B, initialisationColour.Value.A));
+
+            // it is faster to initialise without a background specification if transparent black is all that's required.
+            using var image = initialisationColour == default
+                ? new Image<Rgba32>(width, height)
+                : new Image<Rgba32>(width, height, rgbaColour);
+
             using (var pixels = image.CreateReadOnlyPixelSpan())
             {
                 updateMemoryUsage(level, (long)width * height * sizeof(Rgba32));
                 Renderer.UpdateTexture(texture, 0, 0, width, height, level, pixels.Span);
             }
-        }
-
-        private Image<Rgba32> createBackingImage(int width, int height)
-        {
-            // it is faster to initialise without a background specification if transparent black is all that's required.
-            return initialisationColour == default
-                ? new Image<Rgba32>(width, height)
-                : new Image<Rgba32>(width, height, new Rgba32(new Vector4(initialisationColour.R, initialisationColour.G, initialisationColour.B, initialisationColour.A)));
         }
 
         // todo: should this be limited to MAX_MIPMAP_LEVELS or was that constant supposed to be for automatic mipmap generation only?
