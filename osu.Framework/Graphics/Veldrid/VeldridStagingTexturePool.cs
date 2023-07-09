@@ -23,6 +23,14 @@ namespace osu.Framework.Graphics.Veldrid
             this.renderer = renderer;
         }
 
+        /// <summary>
+        /// Retrieves a staging texture to use as an intermediate storage for uploading textures to the GPU.
+        /// This should be written once by the CPU as it is handed over to the GPU for copying its data to the target texture,
+        /// once the GPU has finished copying, the staging texture will eventually return back to the pool for reuse.
+        /// </summary>
+        /// <param name="width">The minimum width of the texture required for uploading.</param>
+        /// <param name="height">The minimum height of the texture required for uploading.</param>
+        /// <param name="format">The pixel format of the texture.</param>
         public Texture Get(int width, int height, PixelFormat format)
         {
             foreach (var existing in available)
@@ -45,13 +53,21 @@ namespace osu.Framework.Graphics.Veldrid
             return texture;
         }
 
-        public void ReturnTextures(ulong latestFrame)
+        /// <summary>
+        /// Updates the state of the resources in this pool in two steps:
+        /// <list type="bullet">
+        /// <item>Returns all textures that the GPU has finished from back to the pool.</item>
+        /// <item>Frees any texture that has not been used for a while, specifically after <see cref="Renderer.RESOURCE_FREE_CHECK_INTERVAL"/> number of frames.</item>
+        /// </list>
+        /// </summary>
+        public void NewFrame()
         {
+            // return any resource that the GPU has finished from.
             for (int i = 0; i < used.Count; i++)
             {
                 var texture = used[i];
 
-                if (texture.FrameUsageIndex <= latestFrame)
+                if (texture.FrameUsageIndex <= renderer.LatestCompletedFrameIndex)
                 {
                     available.Add(texture);
                     stat_available.Value++;
@@ -60,23 +76,21 @@ namespace osu.Framework.Graphics.Veldrid
                     stat_used.Value--;
                 }
             }
-        }
 
-        public void CleanupUnusedTextures()
-        {
-            if (renderer.FrameIndex % Renderer.RESOURCE_FREE_CHECK_INTERVAL != 0)
-                return;
-
-            for (int i = 0; i < available.Count; i++)
+            // dispose of any resource that we haven't used for a while.
+            if (renderer.FrameIndex % Renderer.RESOURCE_FREE_CHECK_INTERVAL == 0)
             {
-                var texture = available[i];
+                for (int i = 0; i < available.Count; i++)
+                {
+                    var texture = available[i];
 
-                if (renderer.FrameIndex - texture.FrameUsageIndex < Renderer.RESOURCE_FREE_CHECK_INTERVAL)
-                    break;
+                    if (renderer.FrameIndex - texture.FrameUsageIndex < Renderer.RESOURCE_FREE_CHECK_INTERVAL)
+                        break;
 
-                texture.Texture.Dispose();
-                available.Remove(texture);
-                stat_available.Value--;
+                    texture.Texture.Dispose();
+                    available.Remove(texture);
+                    stat_available.Value--;
+                }
             }
         }
 

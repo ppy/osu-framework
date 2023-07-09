@@ -53,6 +53,11 @@ namespace osu.Framework.Graphics.Veldrid
         public override bool IsUvOriginTopLeft => Device.IsUvOriginTopLeft;
         public override bool IsClipSpaceYInverted => Device.IsClipSpaceYInverted;
 
+        /// <summary>
+        /// Represents the <see cref="Renderer.FrameIndex"/> of the latest frame that has completed rendering by the GPU.
+        /// </summary>
+        public ulong LatestCompletedFrameIndex { get; private set; }
+
         public GraphicsDevice Device { get; private set; } = null!;
 
         public ResourceFactory Factory => Device.ResourceFactory;
@@ -210,6 +215,21 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected internal override void BeginFrame(Vector2 windowSize)
         {
+            for (int i = 0; i < commandsCompletionFences.Count; i++)
+            {
+                var fence = commandsCompletionFences[i];
+
+                // we could optimise this further by iterating until the first non-signaled fence,
+                // but apparently there's a chance for one fence to remain non-signaled while subsequent fences are already set.
+                if (fence.Fence.Signaled)
+                {
+                    LatestCompletedFrameIndex = fence.FrameIndex;
+
+                    fence.Fence.Dispose();
+                    commandsCompletionFences.RemoveAt(i--);
+                }
+            }
+
             if (windowSize != currentSize)
             {
                 Device.ResizeMainWindow((uint)windowSize.X, (uint)windowSize.Y);
@@ -220,30 +240,10 @@ namespace osu.Framework.Graphics.Veldrid
                 ubo.ResetCounters();
             uniformBufferResetList.Clear();
 
+            stagingTexturePool.NewFrame();
+
             Commands.Begin();
             BufferUpdateCommands.Begin();
-
-            ulong? latestCompletedFrame = null;
-
-            for (int i = 0; i < commandsCompletionFences.Count; i++)
-            {
-                var fence = commandsCompletionFences[i];
-
-                // we could optimise this further by iterating until the first non-signaled fence,
-                // but apparently there's a chance for one fence to remain non-signaled while subsequent fences are already set.
-                if (fence.Fence.Signaled)
-                {
-                    latestCompletedFrame = fence.FrameIndex;
-
-                    fence.Fence.Dispose();
-                    commandsCompletionFences.RemoveAt(i--);
-                }
-            }
-
-            if (latestCompletedFrame != null)
-                stagingTexturePool.ReturnTextures(latestCompletedFrame.Value);
-
-            stagingTexturePool.CleanupUnusedTextures();
 
             base.BeginFrame(windowSize);
         }
