@@ -258,6 +258,7 @@ namespace osu.Framework.Graphics.Veldrid
             BufferUpdateCommands.End();
             Device.SubmitCommands(BufferUpdateCommands);
 
+            // This is disposed via the end-of-lifetime tracking in pendingFrameFences.
             var fence = Factory.CreateFence(false);
 
             Commands.End();
