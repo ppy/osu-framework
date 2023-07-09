@@ -51,7 +51,9 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
                     indices[j + 5] = (ushort)(i + 1);
                 }
 
-                renderer.BufferUpdateCommands.UpdateBuffer(renderer.SharedQuadIndex.Buffer, 0, indices);
+                var staging = renderer.GetFreeStagingBuffer(renderer.SharedQuadIndex.Buffer.SizeInBytes);
+                renderer.Device.UpdateBuffer(staging, 0, indices);
+                renderer.BufferUpdateCommands.CopyBuffer(staging, 0, renderer.SharedQuadIndex.Buffer, 0, staging.SizeInBytes);
             }
         }
 
