@@ -17,15 +17,14 @@ namespace osu.Framework.Graphics.Veldrid
         private readonly List<StagingResourceCache> available = new List<StagingResourceCache>();
         private readonly List<StagingResourceCache> used = new List<StagingResourceCache>();
 
-        private readonly GlobalStatistic<int> statAvailable;
-        private readonly GlobalStatistic<int> statUsed;
+        private readonly GlobalStatistic<ResourcePoolUsageStatistic> usageStat;
 
         protected VeldridStagingResourcePool(VeldridRenderer renderer, string name)
         {
             Renderer = renderer;
 
-            statAvailable = GlobalStatistics.Get<int>(nameof(VeldridRenderer), $"Total {name} available");
-            statUsed = GlobalStatistics.Get<int>(nameof(VeldridRenderer), $"Total {name} used");
+            usageStat = GlobalStatistics.Get<ResourcePoolUsageStatistic>(nameof(VeldridRenderer), $"{name} usage");
+            usageStat.Value = new ResourcePoolUsageStatistic();
         }
 
         protected bool TryGet(Predicate<T> match, [NotNullWhen(true)] out T? resource)
@@ -35,10 +34,10 @@ namespace osu.Framework.Graphics.Veldrid
                 if (match(existing.Resource))
                 {
                     available.Remove(existing);
-                    statAvailable.Value--;
+                    usageStat.Value.CurrentPoolSize--;
 
                     used.Add(existing with { FrameUsageIndex = Renderer.FrameIndex });
-                    statUsed.Value++;
+                    usageStat.Value.CountInUse++;
 
                     resource = existing.Resource;
                     return true;
@@ -52,7 +51,7 @@ namespace osu.Framework.Graphics.Veldrid
         protected void AddNewResource(T resource)
         {
             used.Add(new StagingResourceCache(resource, Renderer.FrameIndex));
-            statUsed.Value++;
+            usageStat.Value.CountInUse++;
         }
 
         /// <summary>
@@ -72,10 +71,10 @@ namespace osu.Framework.Graphics.Veldrid
                 if (texture.FrameUsageIndex <= Renderer.LatestCompletedFrameIndex)
                 {
                     available.Add(texture);
-                    statAvailable.Value++;
+                    usageStat.Value.CurrentPoolSize++;
 
                     used.RemoveAt(i--);
-                    statUsed.Value--;
+                    usageStat.Value.CountInUse--;
                 }
             }
 
@@ -91,11 +90,26 @@ namespace osu.Framework.Graphics.Veldrid
 
                     texture.Resource.Dispose();
                     available.Remove(texture);
-                    statAvailable.Value--;
+                    usageStat.Value.CurrentPoolSize--;
                 }
             }
         }
 
         private record struct StagingResourceCache(T Resource, ulong FrameUsageIndex);
+
+        private class ResourcePoolUsageStatistic
+        {
+            /// <summary>
+            /// Total number of drawables available for use (in the pool).
+            /// </summary>
+            public int CurrentPoolSize;
+
+            /// <summary>
+            /// Total number of drawables currently in use.
+            /// </summary>
+            public int CountInUse;
+
+            public override string ToString() => $"{CountInUse}/{CurrentPoolSize}";
+        }
     }
 }

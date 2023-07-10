@@ -8,7 +8,7 @@ namespace osu.Framework.Graphics.Veldrid
     internal class VeldridStagingBufferPool : VeldridStagingResourcePool<DeviceBuffer>
     {
         public VeldridStagingBufferPool(VeldridRenderer renderer)
-            : base(renderer, "staging buffers")
+            : base(renderer, nameof(VeldridStagingBufferPool))
         {
         }
 
