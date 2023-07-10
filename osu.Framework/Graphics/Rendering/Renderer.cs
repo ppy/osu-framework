@@ -36,10 +36,9 @@ namespace osu.Framework.Graphics.Rendering
     public abstract class Renderer : IRenderer
     {
         /// <summary>
-        /// The interval (in frames) before checking whether VBOs should be freed.
-        /// VBOs may remain unused for at most double this length before they are recycled.
+        /// The length of no usage (in frames) before freeing unused resources.
         /// </summary>
-        internal const int RESOURCE_FREE_CHECK_INTERVAL = 300;
+        internal const int RESOURCE_FREE_NO_USAGE_LENGTH = 300;
 
         protected internal abstract bool VerticalSync { get; set; }
         protected internal abstract bool AllowTearing { get; set; }
@@ -105,6 +104,7 @@ namespace osu.Framework.Graphics.Rendering
         private readonly GlobalStatistic<int> statTextureUploadsQueued;
         private readonly GlobalStatistic<int> statTextureUploadsDequeued;
         private readonly GlobalStatistic<int> statTextureUploadsPerformed;
+        private readonly GlobalStatistic<int> vboInUse;
 
         private readonly ConcurrentQueue<ScheduledDelegate> expensiveOperationQueue = new ConcurrentQueue<ScheduledDelegate>();
         private readonly ConcurrentQueue<INativeTexture> textureUploadQueue = new ConcurrentQueue<INativeTexture>();
@@ -156,6 +156,7 @@ namespace osu.Framework.Graphics.Rendering
             statTextureUploadsDequeued = GlobalStatistics.Get<int>(GetType().Name, "Texture uploads dequeued");
             statTextureUploadsQueued = GlobalStatistics.Get<int>(GetType().Name, "Texture upload queue length");
             statExpensiveOperationsQueued = GlobalStatistics.Get<int>(GetType().Name, "Expensive operation queue length");
+            vboInUse = GlobalStatistics.Get<int>(GetType().Name, "VBOs in use");
 
             whitePixel = new Lazy<TextureWhitePixel>(() =>
                 new TextureAtlas(this, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, true).WhitePixel);
@@ -268,6 +269,7 @@ namespace osu.Framework.Graphics.Rendering
             Clear(new ClearInfo(Color4.Black));
 
             freeUnusedVertexBuffers();
+            vboInUse.Value = vertexBuffersInUse.Count;
 
             statTextureUploadsQueued.Value = textureUploadQueue.Count;
             statTextureUploadsDequeued.Value = 0;
@@ -817,13 +819,13 @@ namespace osu.Framework.Graphics.Rendering
 
         private void freeUnusedVertexBuffers()
         {
-            if (FrameIndex % RESOURCE_FREE_CHECK_INTERVAL != 0)
-                return;
-
             foreach (var buf in vertexBuffersInUse)
             {
-                if (buf.InUse && FrameIndex - buf.LastUseFrameIndex > RESOURCE_FREE_CHECK_INTERVAL)
+                if (buf.InUse && FrameIndex - buf.LastUseFrameIndex > RESOURCE_FREE_NO_USAGE_LENGTH)
+                {
+                    // Calling Free will mark InUse as false internally, which allows the cleanup below to work.
                     buf.Free();
+                }
             }
 
             vertexBuffersInUse.RemoveAll(b => !b.InUse);
