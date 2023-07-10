@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -93,9 +91,9 @@ namespace osu.Framework.Platform.MacOS.Native
         private static readonly IntPtr sel_c_string_using_encoding = Selector.Get("cStringUsingEncoding:");
         private static readonly IntPtr sel_tiff_representation = Selector.Get("TIFFRepresentation");
 
-        public static string FromNSString(IntPtr handle) => Marshal.PtrToStringUni(SendIntPtr(handle, sel_c_string_using_encoding, (uint)NSStringEncoding.Unicode));
+        public static string? FromNSString(IntPtr handle) => Marshal.PtrToStringUni(SendIntPtr(handle, sel_c_string_using_encoding, (uint)NSStringEncoding.Unicode));
 
-        public static Image<TPixel> FromNSImage<TPixel>(IntPtr handle)
+        public static Image<TPixel>? FromNSImage<TPixel>(IntPtr handle)
             where TPixel : unmanaged, IPixel<TPixel>
         {
             if (handle == IntPtr.Zero)
@@ -105,7 +103,7 @@ namespace osu.Framework.Platform.MacOS.Native
             return Image.Load<TPixel>(tiffRepresentation.ToBytes());
         }
 
-        public static unsafe IntPtr ToNSString(string str)
+        public static unsafe IntPtr ToNSString(string? str)
         {
             if (str == null)
                 return IntPtr.Zero;
@@ -117,7 +115,7 @@ namespace osu.Framework.Platform.MacOS.Native
             }
         }
 
-        public static IntPtr ToNSImage(Image image)
+        public static IntPtr ToNSImage(Image? image)
         {
             if (image == null)
                 return IntPtr.Zero;

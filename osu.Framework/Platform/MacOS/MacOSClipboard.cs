@@ -11,9 +11,9 @@ namespace osu.Framework.Platform.MacOS
     {
         private readonly NSPasteboard generalPasteboard = NSPasteboard.GeneralPasteboard();
 
-        public override string GetText() => Cocoa.FromNSString(getFromPasteboard(Class.Get("NSString")));
+        public override string? GetText() => Cocoa.FromNSString(getFromPasteboard(Class.Get("NSString")));
 
-        public override Image<TPixel> GetImage<TPixel>() => Cocoa.FromNSImage<TPixel>(getFromPasteboard(Class.Get("NSImage")));
+        public override Image<TPixel>? GetImage<TPixel>() => Cocoa.FromNSImage<TPixel>(getFromPasteboard(Class.Get("NSImage")));
 
         public override void SetText(string selectedText) => setToPasteboard(Cocoa.ToNSString(selectedText));
 

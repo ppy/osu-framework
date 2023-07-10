@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions;
@@ -20,15 +18,15 @@ namespace osu.Framework.Tests.Visual.Platform
     public partial class TestSceneClipboard : FrameworkTestScene
     {
         [Resolved]
-        private IRenderer renderer { get; set; }
+        private IRenderer renderer { get; set; } = null!;
 
         [Resolved]
-        private GameHost host { get; set; }
+        private GameHost host { get; set; } = null!;
 
-        private Image<Rgba32> originalImage;
-        private Image<Rgba32> clipboardImage;
+        private Image<Rgba32>? originalImage;
+        private Image<Rgba32>? clipboardImage;
 
-        private Clipboard clipboard => host.GetClipboard();
+        private Clipboard clipboard => host.GetClipboard()!;
 
         [Test]
         public void TestImage()
@@ -49,13 +47,13 @@ namespace osu.Framework.Tests.Visual.Platform
 
             AddStep("copy image to clipboard", () =>
             {
-                clipboard.SetImage(originalImage);
+                clipboard.SetImage(originalImage!);
             });
 
             AddStep("retrieve image from clipboard", () =>
             {
                 var image = clipboard.GetImage<Rgba32>();
-                clipboardImage = image.Clone();
+                clipboardImage = image!.Clone();
 
                 var texture = renderer.CreateTexture(image.Width, image.Height);
                 texture.SetData(new TextureUpload(image));
@@ -74,7 +72,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             AddAssert("compare images", () =>
             {
-                if (originalImage.Width != clipboardImage.Width || originalImage.Height != clipboardImage.Height)
+                if (originalImage!.Width != clipboardImage!.Width || originalImage.Height != clipboardImage.Height)
                     return false;
 
                 for (int x = 0; x < originalImage.Width; x++)

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -16,7 +14,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Retrieve text from the clipboard
         /// </summary>
-        public abstract string GetText();
+        public abstract string? GetText();
 
         /// <summary>
         /// Copy text to the clipboard
@@ -30,7 +28,7 @@ namespace osu.Framework.Platform
         /// <remarks>
         /// Currently only supported on Windows.
         /// </remarks>
-        public abstract Image<TPixel> GetImage<TPixel>()
+        public abstract Image<TPixel>? GetImage<TPixel>()
             where TPixel : unmanaged, IPixel<TPixel>;
 
         /// <summary>
