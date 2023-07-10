@@ -85,22 +85,15 @@ namespace osu.Framework.Allocation
 
             lock (buffers)
             {
-                // re-fetch the original pendingCompletedWriteIndex inside the lock in case there's a newer index available.
-                if (pendingCompletedWriteIndex > -1)
-                {
-                    var buffer = buffers[pendingCompletedWriteIndex];
-                    pendingCompletedWriteIndex = -1;
+                var buffer = buffers[pendingWrite];
 
-                    Debug.Assert(lastReadIndex != buffer.Index);
-                    lastReadIndex = buffer.Index;
+                Debug.Assert(lastReadIndex != buffer.Index);
+                lastReadIndex = buffer.Index;
 
-                    Debug.Assert(buffer.Usage == UsageType.None);
-                    buffer.Usage = UsageType.Read;
-                    return buffer;
-                }
+                Debug.Assert(buffer.Usage == UsageType.None);
+                buffer.Usage = UsageType.Read;
+                return buffer;
             }
-
-            return null;
         }
 
         private ObjectUsage<T> getNextWriteBuffer()
