@@ -104,6 +104,7 @@ namespace osu.Framework.Graphics.Rendering
         private readonly GlobalStatistic<int> statTextureUploadsQueued;
         private readonly GlobalStatistic<int> statTextureUploadsDequeued;
         private readonly GlobalStatistic<int> statTextureUploadsPerformed;
+        private readonly GlobalStatistic<int> vboInUse;
 
         private readonly ConcurrentQueue<ScheduledDelegate> expensiveOperationQueue = new ConcurrentQueue<ScheduledDelegate>();
         private readonly ConcurrentQueue<INativeTexture> textureUploadQueue = new ConcurrentQueue<INativeTexture>();
@@ -155,6 +156,7 @@ namespace osu.Framework.Graphics.Rendering
             statTextureUploadsDequeued = GlobalStatistics.Get<int>(GetType().Name, "Texture uploads dequeued");
             statTextureUploadsQueued = GlobalStatistics.Get<int>(GetType().Name, "Texture upload queue length");
             statExpensiveOperationsQueued = GlobalStatistics.Get<int>(GetType().Name, "Expensive operation queue length");
+            vboInUse = GlobalStatistics.Get<int>(GetType().Name, "VBOs in use");
 
             whitePixel = new Lazy<TextureWhitePixel>(() =>
                 new TextureAtlas(this, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, true).WhitePixel);
@@ -267,6 +269,7 @@ namespace osu.Framework.Graphics.Rendering
             Clear(new ClearInfo(Color4.Black));
 
             freeUnusedVertexBuffers();
+            vboInUse.Value = vertexBuffersInUse.Count;
 
             statTextureUploadsQueued.Value = textureUploadQueue.Count;
             statTextureUploadsDequeued.Value = 0;
