@@ -14,8 +14,8 @@ namespace osu.Framework.Graphics.Veldrid
     {
         protected readonly VeldridRenderer Renderer;
 
-        private readonly List<StagingResourceCache> available = new List<StagingResourceCache>();
-        private readonly List<StagingResourceCache> used = new List<StagingResourceCache>();
+        private readonly List<PooledUsage> available = new List<PooledUsage>();
+        private readonly List<PooledUsage> used = new List<PooledUsage>();
 
         private readonly GlobalStatistic<ResourcePoolUsageStatistic> usageStat;
 
@@ -36,7 +36,9 @@ namespace osu.Framework.Graphics.Veldrid
                     available.Remove(existing);
                     usageStat.Value.CurrentPoolSize--;
 
-                    used.Add(existing with { FrameUsageIndex = Renderer.FrameIndex });
+                    existing.FrameUsageIndex = Renderer.FrameIndex;
+
+                    used.Add(existing);
                     usageStat.Value.CountInUse++;
 
                     resource = existing.Resource;
@@ -50,7 +52,7 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected void AddNewResource(T resource)
         {
-            used.Add(new StagingResourceCache(resource, Renderer.FrameIndex));
+            used.Add(new PooledUsage(resource, Renderer.FrameIndex));
             usageStat.Value.CountInUse++;
         }
 
@@ -95,7 +97,24 @@ namespace osu.Framework.Graphics.Veldrid
             }
         }
 
-        private record struct StagingResourceCache(T Resource, ulong FrameUsageIndex);
+        private class PooledUsage
+        {
+            /// <summary>
+            /// The tracked resource.
+            /// </summary>
+            public T Resource { get; set; }
+
+            /// <summary>
+            /// The draw frame at which the usage occurred.
+            /// </summary>
+            public ulong FrameUsageIndex { get; set; }
+
+            public PooledUsage(T resource, ulong frameUsageIndex)
+            {
+                Resource = resource;
+                FrameUsageIndex = frameUsageIndex;
+            }
+        }
 
         private class ResourcePoolUsageStatistic
         {
