@@ -14,7 +14,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
-    [Ignore("This test should not be run in headless mode, as it mutates the clipboard.")]
+    [Ignore("This test cannot run in headless mode (a window instance is required).")]
     public partial class TestSceneClipboard : FrameworkTestScene
     {
         [Resolved]
@@ -28,6 +28,17 @@ namespace osu.Framework.Tests.Visual.Platform
 
         private Image<Rgba32>? originalImage;
         private Image<Rgba32>? clipboardImage;
+
+        // empty text doesn't really matter, since it doesn't actually make sense (text editors generally don't allow copying nothing)
+        // it's here to just show how it behaves
+        [TestCase("")]
+        [TestCase("hello!")]
+        public void TestText(string text)
+        {
+            AddStep("set clipboard text", () => clipboard.SetText(text));
+            AddAssert("clipboard text is expected", () => clipboard.GetText(), () => Is.EqualTo(text));
+            AddAssert("clipboard image is null", () => clipboard.GetImage<Rgba32>(), () => Is.Null);
+        }
 
         [Test]
         public void TestImage()
@@ -50,6 +61,8 @@ namespace osu.Framework.Tests.Visual.Platform
             {
                 clipboard.SetImage(originalImage!);
             });
+
+            AddAssert("clipboard text is null", () => clipboard.GetText(), () => Is.Null);
 
             AddStep("retrieve image from clipboard", () =>
             {
