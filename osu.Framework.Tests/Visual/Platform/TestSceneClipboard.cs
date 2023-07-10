@@ -3,6 +3,7 @@
 
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Development;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Rendering;
@@ -14,7 +15,6 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
-    [Ignore("This test cannot run in headless mode (a window instance is required).")]
     public partial class TestSceneClipboard : FrameworkTestScene
     {
         [Resolved]
@@ -43,6 +43,9 @@ namespace osu.Framework.Tests.Visual.Platform
         [Test]
         public void TestImage()
         {
+            if (DebugUtils.IsNUnitRunning)
+                Assert.Ignore("This test cannot run in headless mode (a window instance is required).");
+
             AddStep("clear previous screenshots", Clear);
 
             AddStep("screenshot screen", () =>
