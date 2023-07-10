@@ -77,8 +77,15 @@ namespace osu.Framework.Allocation
 
         private ObjectUsage<T>? getPendingReadBuffer()
         {
+            // Avoid locking to see if there's a pending write.
+            int pendingWrite = Interlocked.Exchange(ref pendingCompletedWriteIndex, -1);
+
+            if (pendingWrite == -1)
+                return null;
+
             lock (buffers)
             {
+                // re-fetch the original pendingCompletedWriteIndex inside the lock in case there's a newer index available.
                 if (pendingCompletedWriteIndex > -1)
                 {
                     var buffer = buffers[pendingCompletedWriteIndex];
