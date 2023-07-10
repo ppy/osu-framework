@@ -221,23 +221,7 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected internal override void BeginFrame(Vector2 windowSize)
         {
-            for (int i = 0; i < pendingFramesFences.Count; i++)
-            {
-                var fence = pendingFramesFences[i];
-
-                // Frame usages are assumed to be sequential and linear.
-                //
-                // Therefore to cover any edge cases where signal may not return, or return too late, we
-                // check all and take on the frame index of the latest fence rather than breaking at the first.
-                if (!fence.Fence.Signaled) continue;
-
-                Debug.Assert(fence.FrameIndex > LatestCompletedFrameIndex);
-
-                LatestCompletedFrameIndex = fence.FrameIndex;
-
-                fence.Fence.Dispose();
-                pendingFramesFences.RemoveAt(i--);
-            }
+            updateLastCompletedFrameIndex();
 
             if (windowSize != currentSize)
             {
@@ -256,6 +240,41 @@ namespace osu.Framework.Graphics.Veldrid
             BufferUpdateCommands.Begin();
 
             base.BeginFrame(windowSize);
+        }
+
+        private void updateLastCompletedFrameIndex()
+        {
+            int? lastSignalledFenceIndex = null;
+
+            // We have a sequential list of all fences which are in flight.
+            // Frame usages are assumed to be sequential and linear.
+            //
+            // Iterate backwards to find the last signalled fence, which can be considered the last completed frame index.
+            for (int i = pendingFramesFences.Count - 1; i >= 0; i--)
+            {
+                var fence = pendingFramesFences[i];
+
+                if (!fence.Fence.Signaled)
+                {
+                    Debug.Assert(lastSignalledFenceIndex == null, "A non-signalled fence was detected before the latest signalled frame.");
+                    continue;
+                }
+
+                lastSignalledFenceIndex ??= i;
+                fence.Fence.Dispose();
+            }
+
+            if (lastSignalledFenceIndex != null)
+            {
+                ulong frameIndex = pendingFramesFences[lastSignalledFenceIndex.Value].FrameIndex;
+
+                Debug.Assert(frameIndex > LatestCompletedFrameIndex);
+                LatestCompletedFrameIndex = frameIndex;
+
+                pendingFramesFences.RemoveRange(0, lastSignalledFenceIndex.Value + 1);
+            }
+
+            Debug.Assert(pendingFramesFences.Count < 16, "Completion frame fence leak detected");
         }
 
         protected internal override void FinishFrame()

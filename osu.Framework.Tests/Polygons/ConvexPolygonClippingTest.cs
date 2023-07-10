@@ -300,12 +300,12 @@ namespace osu.Framework.Tests.Polygons
         }
 
         private Span<Vector2> clip(SimpleConvexPolygon clipPolygon, SimpleConvexPolygon subjectPolygon)
-            => new ConvexPolygonClipper<SimpleConvexPolygon, SimpleConvexPolygon>(ref clipPolygon, ref subjectPolygon).Clip();
+            => new ConvexPolygonClipper<SimpleConvexPolygon, SimpleConvexPolygon>(clipPolygon, subjectPolygon).Clip();
 
         private Span<Vector2> clip<TClip, TSubject>(TClip clipPolygon, TSubject subjectPolygon)
             where TClip : IConvexPolygon
             where TSubject : IConvexPolygon
-            => new ConvexPolygonClipper<TClip, TSubject>(ref clipPolygon, ref subjectPolygon).Clip();
+            => new ConvexPolygonClipper<TClip, TSubject>(clipPolygon, subjectPolygon).Clip();
 
         private void assertPolygonEquals(IPolygon expected, IPolygon actual, bool reverse)
             => Assert.That(Vector2Extensions.GetOrientation(actual.GetVertices()),
