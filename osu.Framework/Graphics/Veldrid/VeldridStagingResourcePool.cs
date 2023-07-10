@@ -59,40 +59,41 @@ namespace osu.Framework.Graphics.Veldrid
         /// <summary>
         /// Updates the state of the resources in this pool in two steps:
         /// <list type="bullet">
-        /// <item>Returns all textures that the GPU has finished from back to the pool.</item>
-        /// <item>Frees any texture that has not been used for a while, specifically after <see cref="Rendering.Renderer.RESOURCE_FREE_CHECK_INTERVAL"/> number of frames.</item>
+        /// <item>Returns all textures that the GPU has finished using back to the pool.</item>
+        /// <item>Frees any textures that have not been used for <see cref="Rendering.Renderer.RESOURCE_FREE_NO_USAGE_LENGTH"/> frames.</item>
         /// </list>
         /// </summary>
         public void NewFrame()
         {
-            // return any resource that the GPU has finished from.
+            // return any resource that the GPU has finished using in the last frame.
             for (int i = 0; i < used.Count; i++)
             {
                 var texture = used[i];
 
-                if (texture.FrameUsageIndex <= Renderer.LatestCompletedFrameIndex)
-                {
-                    available.Add(texture);
-                    usageStat.Value.CurrentPoolSize++;
+                // Usages are sequential so we can stop checking after the first non-completed usage.
+                if (texture.FrameUsageIndex > Renderer.LatestCompletedFrameIndex)
+                    break;
 
-                    used.RemoveAt(i--);
-                    usageStat.Value.CountInUse--;
-                }
+                available.Add(texture);
+                usageStat.Value.CurrentPoolSize++;
+
+                used.RemoveAt(i--);
+                usageStat.Value.CountInUse--;
             }
 
-            // dispose of any resource that we haven't used for a while.
-            if (Renderer.FrameIndex % Rendering.Renderer.RESOURCE_FREE_CHECK_INTERVAL == 0)
+            // free any resource that hasn't been used for a while.
+            for (int i = 0; i < available.Count; i++)
             {
-                for (int i = 0; i < available.Count; i++)
+                var texture = available[i];
+
+                ulong framesSinceUsage = Renderer.LatestCompletedFrameIndex - texture.FrameUsageIndex;
+
+                if (framesSinceUsage >= Rendering.Renderer.RESOURCE_FREE_NO_USAGE_LENGTH)
                 {
-                    var texture = available[i];
-
-                    if (Renderer.FrameIndex - texture.FrameUsageIndex < Rendering.Renderer.RESOURCE_FREE_CHECK_INTERVAL)
-                        break;
-
                     texture.Resource.Dispose();
                     available.Remove(texture);
                     usageStat.Value.CurrentPoolSize--;
+                    break;
                 }
             }
         }
@@ -102,7 +103,7 @@ namespace osu.Framework.Graphics.Veldrid
             /// <summary>
             /// The tracked resource.
             /// </summary>
-            public T Resource { get; set; }
+            public T Resource { get; }
 
             /// <summary>
             /// The draw frame at which the usage occurred.

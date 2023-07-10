@@ -36,10 +36,9 @@ namespace osu.Framework.Graphics.Rendering
     public abstract class Renderer : IRenderer
     {
         /// <summary>
-        /// The interval (in frames) before checking whether VBOs should be freed.
-        /// VBOs may remain unused for at most double this length before they are recycled.
+        /// The length of no usage (in frames) before freeing unused resources.
         /// </summary>
-        internal const int RESOURCE_FREE_CHECK_INTERVAL = 300;
+        internal const int RESOURCE_FREE_NO_USAGE_LENGTH = 300;
 
         protected internal abstract bool VerticalSync { get; set; }
         protected internal abstract bool AllowTearing { get; set; }
@@ -817,16 +816,15 @@ namespace osu.Framework.Graphics.Rendering
 
         private void freeUnusedVertexBuffers()
         {
-            if (FrameIndex % RESOURCE_FREE_CHECK_INTERVAL != 0)
-                return;
-
             foreach (var buf in vertexBuffersInUse)
             {
-                if (buf.InUse && FrameIndex - buf.LastUseFrameIndex > RESOURCE_FREE_CHECK_INTERVAL)
+                if (buf.InUse && FrameIndex - buf.LastUseFrameIndex > RESOURCE_FREE_NO_USAGE_LENGTH)
+                {
                     buf.Free();
+                    vertexBuffersInUse.Remove(buf);
+                    break;
+                }
             }
-
-            vertexBuffersInUse.RemoveAll(b => !b.InUse);
         }
 
         #endregion
