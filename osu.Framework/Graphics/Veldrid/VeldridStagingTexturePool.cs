@@ -12,11 +12,6 @@ namespace osu.Framework.Graphics.Veldrid
         {
         }
 
-        /// <summary>
-        /// Retrieves a staging texture to use as an intermediate storage for uploading textures to the GPU.
-        /// This should be written once by the CPU as it is handed over to the GPU for copying its data to the target texture,
-        /// once the GPU has finished copying, the staging texture will eventually return back to the pool for reuse.
-        /// </summary>
         public Texture Get(int width, int height, PixelFormat format)
         {
             if (TryGet(t => t.Width >= width && t.Height >= height && t.Format == format, out var texture))
