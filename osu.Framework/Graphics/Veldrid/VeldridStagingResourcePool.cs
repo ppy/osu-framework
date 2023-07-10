@@ -33,15 +33,14 @@ namespace osu.Framework.Graphics.Veldrid
             {
                 if (match(existing.Resource))
                 {
-                    available.Remove(existing);
-                    usageStat.Value.CurrentPoolSize--;
-
                     existing.FrameUsageIndex = Renderer.FrameIndex;
 
+                    available.Remove(existing);
                     used.Add(existing);
-                    usageStat.Value.CountInUse++;
 
                     resource = existing.Resource;
+
+                    updateStats();
                     return true;
                 }
             }
@@ -53,7 +52,7 @@ namespace osu.Framework.Graphics.Veldrid
         protected void AddNewResource(T resource)
         {
             used.Add(new PooledUsage(resource, Renderer.FrameIndex));
-            usageStat.Value.CountInUse++;
+            updateStats();
         }
 
         /// <summary>
@@ -75,7 +74,6 @@ namespace osu.Framework.Graphics.Veldrid
                     break;
 
                 available.Add(texture);
-                usageStat.Value.CurrentPoolSize++;
 
                 used.RemoveAt(i--);
                 usageStat.Value.CountInUse--;
@@ -92,10 +90,17 @@ namespace osu.Framework.Graphics.Veldrid
                 {
                     texture.Resource.Dispose();
                     available.Remove(texture);
-                    usageStat.Value.CurrentPoolSize--;
                     break;
                 }
             }
+
+            updateStats();
+        }
+
+        private void updateStats()
+        {
+            usageStat.Value.CountAvailable = available.Count;
+            usageStat.Value.CountInUse = used.Count;
         }
 
         private class PooledUsage
@@ -122,14 +127,14 @@ namespace osu.Framework.Graphics.Veldrid
             /// <summary>
             /// Total number of drawables available for use (in the pool).
             /// </summary>
-            public int CurrentPoolSize;
+            public int CountAvailable;
 
             /// <summary>
             /// Total number of drawables currently in use.
             /// </summary>
             public int CountInUse;
 
-            public override string ToString() => $"{CountInUse}/{CurrentPoolSize}";
+            public override string ToString() => $"{CountInUse}/{CountAvailable + CountInUse}";
         }
     }
 }
