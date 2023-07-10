@@ -823,11 +823,12 @@ namespace osu.Framework.Graphics.Rendering
             {
                 if (buf.InUse && FrameIndex - buf.LastUseFrameIndex > RESOURCE_FREE_NO_USAGE_LENGTH)
                 {
+                    // Calling Free will mark InUse as false internally, which allows the cleanup below to work.
                     buf.Free();
-                    vertexBuffersInUse.Remove(buf);
-                    break;
                 }
             }
+
+            vertexBuffersInUse.RemoveAll(b => !b.InUse);
         }
 
         #endregion
