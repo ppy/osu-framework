@@ -37,9 +37,18 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
                 for (ushort i = 0; i < amountVertices; i++)
                     indices[i] = i;
 
-                var staging = renderer.GetFreeStagingBuffer(renderer.SharedLinearIndex.Buffer.SizeInBytes);
-                renderer.Device.UpdateBuffer(staging, 0, indices);
-                renderer.BufferUpdateCommands.CopyBuffer(staging, 0, renderer.SharedLinearIndex.Buffer, 0, staging.SizeInBytes);
+                // These pathways are faster on respective platforms.
+                // Test using TestSceneVertexUploadPerformance.
+                if (renderer.Device.BackendType == GraphicsBackend.Metal)
+                {
+                    var staging = renderer.GetFreeStagingBuffer(renderer.SharedLinearIndex.Buffer.SizeInBytes);
+                    renderer.Device.UpdateBuffer(staging, 0, indices);
+                    renderer.BufferUpdateCommands.CopyBuffer(staging, 0, renderer.SharedLinearIndex.Buffer, 0, staging.SizeInBytes);
+                }
+                else
+                {
+                    renderer.BufferUpdateCommands.UpdateBuffer(renderer.SharedLinearIndex.Buffer, 0, indices);
+                }
             }
         }
 
