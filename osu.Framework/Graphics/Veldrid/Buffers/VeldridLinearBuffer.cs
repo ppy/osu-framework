@@ -37,6 +37,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
                 for (ushort i = 0; i < amountVertices; i++)
                     indices[i] = i;
 
+                // These pathways are faster on respective platforms.
+                // Test using TestSceneVertexUploadPerformance.
                 if (renderer.Device.BackendType == GraphicsBackend.Metal)
                 {
                     var staging = renderer.GetFreeStagingBuffer(renderer.SharedQuadIndex.Buffer.SizeInBytes);

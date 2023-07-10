@@ -33,6 +33,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             {
                 data = value;
 
+                // These pathways are faster on respective platforms.
+                // Test using TestSceneVertexUploadPerformance.
                 if (renderer.Device.BackendType == GraphicsBackend.Metal)
                 {
                     var staging = renderer.GetFreeStagingBuffer(buffer.SizeInBytes);
