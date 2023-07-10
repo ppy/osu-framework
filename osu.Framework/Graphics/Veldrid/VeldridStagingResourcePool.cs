@@ -79,9 +79,7 @@ namespace osu.Framework.Graphics.Veldrid
                     break;
 
                 available.Add(item);
-
                 used.RemoveAt(i--);
-                usageStat.Value.CountInUse--;
             }
 
             // free any resource that hasn't been used for a while.
