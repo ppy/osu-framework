@@ -67,13 +67,13 @@ namespace osu.Framework.Graphics.Veldrid
             // return any resource that the GPU has finished using in the last frame.
             for (int i = 0; i < used.Count; i++)
             {
-                var texture = used[i];
+                var item = used[i];
 
                 // Usages are sequential so we can stop checking after the first non-completed usage.
-                if (texture.FrameUsageIndex > Renderer.LatestCompletedFrameIndex)
+                if (item.FrameUsageIndex > Renderer.LatestCompletedFrameIndex)
                     break;
 
-                available.Add(texture);
+                available.Add(item);
 
                 used.RemoveAt(i--);
                 usageStat.Value.CountInUse--;
@@ -82,14 +82,14 @@ namespace osu.Framework.Graphics.Veldrid
             // free any resource that hasn't been used for a while.
             for (int i = 0; i < available.Count; i++)
             {
-                var texture = available[i];
+                var item = available[i];
 
-                ulong framesSinceUsage = Renderer.LatestCompletedFrameIndex - texture.FrameUsageIndex;
+                ulong framesSinceUsage = Renderer.LatestCompletedFrameIndex - item.FrameUsageIndex;
 
                 if (framesSinceUsage >= Rendering.Renderer.RESOURCE_FREE_NO_USAGE_LENGTH)
                 {
-                    texture.Resource.Dispose();
-                    available.Remove(texture);
+                    item.Resource.Dispose();
+                    available.Remove(item);
                     break;
                 }
             }
