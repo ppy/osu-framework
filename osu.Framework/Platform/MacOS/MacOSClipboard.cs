@@ -15,7 +15,7 @@ namespace osu.Framework.Platform.MacOS
 
         public override Image<TPixel>? GetImage<TPixel>() => Cocoa.FromNSImage<TPixel>(getFromPasteboard(Class.Get("NSImage")));
 
-        public override void SetText(string selectedText) => setToPasteboard(Cocoa.ToNSString(selectedText));
+        public override void SetText(string text) => setToPasteboard(Cocoa.ToNSString(text));
 
         public override bool SetImage(Image image) => setToPasteboard(Cocoa.ToNSImage(image));
 

@@ -10,7 +10,7 @@ namespace osu.Framework.Platform.SDL2
     {
         public override string? GetText() => SDL.SDL_GetClipboardText();
 
-        public override void SetText(string selectedText) => SDL.SDL_SetClipboardText(selectedText);
+        public override void SetText(string text) => SDL.SDL_SetClipboardText(text);
 
         public override Image<TPixel>? GetImage<TPixel>()
         {
