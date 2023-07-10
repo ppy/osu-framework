@@ -29,8 +29,13 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected bool TryGet(Predicate<T> match, [NotNullWhen(true)] out T? resource)
         {
-            foreach (var existing in available)
+            // Reverse iteration is important to prefer reusing recently returned textures.
+            // This avoids the case of a large pool being constantly cycled and therefore never
+            // freed.
+            for (int i = available.Count - 1; i >= 0; i--)
             {
+                var existing = available[i];
+
                 if (match(existing.Resource))
                 {
                     existing.FrameUsageIndex = Renderer.FrameIndex;
