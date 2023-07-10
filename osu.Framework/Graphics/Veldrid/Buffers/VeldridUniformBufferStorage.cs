@@ -33,9 +33,16 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             {
                 data = value;
 
-                var staging = renderer.GetFreeStagingBuffer(buffer.SizeInBytes);
-                renderer.Device.UpdateBuffer(staging, 0, ref data);
-                renderer.BufferUpdateCommands.CopyBuffer(staging, 0, buffer, 0, buffer.SizeInBytes);
+                if (renderer.Device.BackendType == GraphicsBackend.Metal)
+                {
+                    renderer.BufferUpdateCommands.UpdateBuffer(buffer, 0, data);
+                }
+                else
+                {
+                    var staging = renderer.GetFreeStagingBuffer(buffer.SizeInBytes);
+                    renderer.Device.UpdateBuffer(staging, 0, ref data);
+                    renderer.BufferUpdateCommands.CopyBuffer(staging, 0, buffer, 0, buffer.SizeInBytes);
+                }
             }
         }
 
