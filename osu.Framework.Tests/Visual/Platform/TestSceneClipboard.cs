@@ -23,10 +23,11 @@ namespace osu.Framework.Tests.Visual.Platform
         [Resolved]
         private GameHost host { get; set; } = null!;
 
+        [Resolved]
+        private Clipboard clipboard { get; set; } = null!;
+
         private Image<Rgba32>? originalImage;
         private Image<Rgba32>? clipboardImage;
-
-        private Clipboard clipboard => host.GetClipboard()!;
 
         [Test]
         public void TestImage()

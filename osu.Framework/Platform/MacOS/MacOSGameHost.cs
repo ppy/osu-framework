@@ -41,7 +41,7 @@ namespace osu.Framework.Platform.MacOS
             }
         }
 
-        public override Clipboard GetClipboard() => new MacOSClipboard();
+        protected override Clipboard CreateClipboard() => new MacOSClipboard();
 
         protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new MacOSReadableKeyCombinationProvider();
 
