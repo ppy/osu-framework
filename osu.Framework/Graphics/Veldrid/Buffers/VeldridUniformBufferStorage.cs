@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
                 }
                 else
                 {
-                    renderer.BufferUpdateCommands.UpdateBuffer(buffer, 0, data);
+                    renderer.BufferUpdateCommands.UpdateBuffer(buffer, 0, ref data);
                 }
             }
         }
