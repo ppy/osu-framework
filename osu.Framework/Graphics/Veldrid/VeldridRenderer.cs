@@ -220,9 +220,6 @@ namespace osu.Framework.Graphics.Veldrid
             BufferUpdateCommands = Factory.CreateCommandList();
 
             pipeline.Outputs = Device.SwapchainFramebuffer.OutputDescription;
-
-            for (int i = 0; i < 16; i++)
-                perFrameFencePool.Enqueue(Factory.CreateFence(false));
         }
 
         private Vector2 currentSize;
@@ -296,7 +293,8 @@ namespace osu.Framework.Graphics.Veldrid
 
             // This is returned via the end-of-lifetime tracking in `pendingFrameFences`.
             // See `updateLastCompletedFrameIndex`.
-            Fence fence = perFrameFencePool.Dequeue();
+            if (!perFrameFencePool.TryDequeue(out Fence? fence))
+                fence = Factory.CreateFence(false);
 
             Commands.End();
             Device.SubmitCommands(Commands, fence);
