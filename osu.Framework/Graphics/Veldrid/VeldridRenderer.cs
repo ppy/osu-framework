@@ -71,6 +71,11 @@ namespace osu.Framework.Graphics.Veldrid
         /// </summary>
         private readonly List<FrameCompletionFence> pendingFramesFences = new List<FrameCompletionFence>();
 
+        /// <summary>
+        /// We are using fences every frame. Construction can be expensive, so let's pool some.
+        /// </summary>
+        private readonly Queue<Fence> perFrameFencePool = new Queue<Fence>();
+
         public VeldridIndexData SharedLinearIndex { get; }
         public VeldridIndexData SharedQuadIndex { get; }
 
@@ -91,11 +96,6 @@ namespace osu.Framework.Graphics.Veldrid
         };
 
         private static readonly GlobalStatistic<int> stat_graphics_pipeline_created = GlobalStatistics.Get<int>(nameof(VeldridRenderer), "Total pipelines created");
-
-        /// <summary>
-        /// We are using fences every frame. Construction can be expensive, so let's pool some.
-        /// </summary>
-        private readonly Queue<Fence> finishFrameFences = new Queue<Fence>();
 
         public VeldridRenderer()
         {
@@ -222,7 +222,7 @@ namespace osu.Framework.Graphics.Veldrid
             pipeline.Outputs = Device.SwapchainFramebuffer.OutputDescription;
 
             for (int i = 0; i < 16; i++)
-                finishFrameFences.Enqueue(Factory.CreateFence(false));
+                perFrameFencePool.Enqueue(Factory.CreateFence(false));
         }
 
         private Vector2 currentSize;
@@ -271,7 +271,7 @@ namespace osu.Framework.Graphics.Veldrid
                 lastSignalledFenceIndex ??= i;
 
                 Device.ResetFence(fence.Fence);
-                finishFrameFences.Enqueue(fence.Fence);
+                perFrameFencePool.Enqueue(fence.Fence);
             }
 
             if (lastSignalledFenceIndex != null)
@@ -296,7 +296,7 @@ namespace osu.Framework.Graphics.Veldrid
 
             // This is returned via the end-of-lifetime tracking in `pendingFrameFences`.
             // See `updateLastCompletedFrameIndex`.
-            Fence fence = finishFrameFences.Dequeue();
+            Fence fence = perFrameFencePool.Dequeue();
 
             Commands.End();
             Device.SubmitCommands(Commands, fence);
