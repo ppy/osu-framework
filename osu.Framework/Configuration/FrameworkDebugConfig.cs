@@ -1,13 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 namespace osu.Framework.Configuration
 {
     public class FrameworkDebugConfigManager : IniConfigManager<DebugSetting>
     {
-        protected override string Filename => null;
+        protected override string Filename => string.Empty;
 
         public FrameworkDebugConfigManager()
             : base(null)
@@ -18,7 +16,7 @@ namespace osu.Framework.Configuration
         {
             base.InitialiseDefaults();
 
-            SetDefault(DebugSetting.BypassFrontToBackPass, false);
+            SetDefault(DebugSetting.BypassFrontToBackPass, true);
         }
     }
 

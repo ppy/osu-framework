@@ -44,7 +44,7 @@ namespace osu.Framework.Platform.Linux
                 if (!string.IsNullOrEmpty(xdg))
                     yield return xdg;
 
-                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), ".local", "share");
+                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share");
 
                 foreach (string path in base.UserStoragePaths)
                     yield return path;

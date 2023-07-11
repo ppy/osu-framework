@@ -27,7 +27,7 @@
     <PackageReference Include="ppy.ManagedBass" Version="2022.1216.0" />
     <PackageReference Include="ppy.ManagedBass.Fx" Version="2022.1216.0" />
     <PackageReference Include="ppy.ManagedBass.Mix" Version="2022.1216.0" />
-    <PackageReference Include="ppy.Veldrid" Version="4.9.3-gf4e09bb395" />
+    <PackageReference Include="ppy.Veldrid" Version="4.9.3-g9be64ed651" />
     <PackageReference Include="ppy.Veldrid.SPIRV" Version="1.0.15-g3e4b9f196a" />
     <PackageReference Include="SharpFNT" Version="2.0.0" />
     <!-- Preview version of ImageSharp causes NU5104. -->
@@ -38,8 +38,8 @@
     <PackageReference Include="JetBrains.Annotations" Version="2022.3.1" />
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.211" />
     <PackageReference Include="StbiSharp" Version="1.1.0" />
-    <PackageReference Include="ppy.SDL2-CS" Version="1.0.669-alpha" />
-    <PackageReference Include="ppy.osu.Framework.SourceGeneration" Version="2023.619.0" />
+    <PackageReference Include="ppy.SDL2-CS" Version="1.0.671-alpha" />
+    <PackageReference Include="ppy.osu.Framework.SourceGeneration" Version="2023.709.0" />
 
     <!-- DO NOT use ProjectReference for native packaging project.
          See https://github.com/NuGet/Home/issues/4514 and https://github.com/dotnet/sdk/issues/765 . -->

@@ -30,9 +30,7 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         /// </summary>
         private readonly List<VeldridVertexBuffer<T>>[] vertexBuffers = new List<VeldridVertexBuffer<T>>[FrameworkEnvironment.VertexBufferCount ?? vertex_buffer_count];
 
-        private List<VeldridVertexBuffer<T>> currentVertexBuffers => vertexBuffers[renderer.ResetId % (ulong)vertexBuffers.Length];
-
-        private VeldridVertexBuffer<T> currentVertexBuffer => currentVertexBuffers[currentBufferIndex];
+        private List<VeldridVertexBuffer<T>> currentVertexBuffers => vertexBuffers[renderer.FrameIndex % (ulong)vertexBuffers.Length];
 
         /// <summary>
         /// The number of vertices in each VertexBuffer.
@@ -44,6 +42,7 @@ namespace osu.Framework.Graphics.Veldrid.Batches
 
         private int currentBufferIndex;
         private int currentVertexIndex;
+        private int currentDrawIndex;
 
         private readonly VeldridRenderer renderer;
 
@@ -85,6 +84,7 @@ namespace osu.Framework.Graphics.Veldrid.Batches
             changeBeginIndex = -1;
             currentBufferIndex = 0;
             currentVertexIndex = 0;
+            currentDrawIndex = 0;
         }
 
         protected abstract VeldridVertexBuffer<T> CreateVertexBuffer(VeldridRenderer renderer);
@@ -97,17 +97,23 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         {
             renderer.SetActiveBatch(this);
 
-            if (currentBufferIndex < currentVertexBuffers.Count && currentVertexIndex >= currentVertexBuffer.Size)
+            var buffers = currentVertexBuffers;
+
+            if (buffers.Count > 0 && currentVertexIndex >= buffers[currentBufferIndex].Size)
             {
                 Draw();
                 FrameStatistics.Increment(StatisticsCounterType.VBufOverflow);
+
+                currentBufferIndex++;
+                currentVertexIndex = 0;
+                currentDrawIndex = 0;
             }
 
             // currentIndex will change after Draw() above, so this cannot be in an else-condition
-            while (currentBufferIndex >= currentVertexBuffers.Count)
-                currentVertexBuffers.Add(CreateVertexBuffer(renderer));
+            if (currentBufferIndex >= buffers.Count)
+                buffers.Add(CreateVertexBuffer(renderer));
 
-            if (currentVertexBuffer.SetVertex(currentVertexIndex, v))
+            if (buffers[currentBufferIndex].SetVertex(currentVertexIndex, v))
             {
                 if (changeBeginIndex == -1)
                     changeBeginIndex = currentVertexIndex;
@@ -126,20 +132,25 @@ namespace osu.Framework.Graphics.Veldrid.Batches
 
         public int Draw()
         {
-            if (currentVertexIndex == 0)
+            if (currentVertexIndex == currentDrawIndex)
                 return 0;
 
-            VeldridVertexBuffer<T> vertexBuffer = currentVertexBuffer;
+            var buffers = currentVertexBuffers;
+
+            if (buffers.Count == 0)
+                return 0;
+
+            VeldridVertexBuffer<T> buffer = buffers[currentBufferIndex];
+
             if (changeBeginIndex >= 0)
-                vertexBuffer.UpdateRange(changeBeginIndex, changeEndIndex);
+                buffer.UpdateRange(changeBeginIndex, changeEndIndex);
 
-            vertexBuffer.DrawRange(0, currentVertexIndex);
+            buffer.DrawRange(currentDrawIndex, currentVertexIndex);
 
-            int count = currentVertexIndex;
+            int count = currentVertexIndex - currentDrawIndex;
 
             // When using multiple buffers we advance to the next one with every draw to prevent contention on the same buffer with future vertex updates.
-            currentBufferIndex++;
-            currentVertexIndex = 0;
+            currentDrawIndex = currentVertexIndex;
             changeBeginIndex = -1;
 
             FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
