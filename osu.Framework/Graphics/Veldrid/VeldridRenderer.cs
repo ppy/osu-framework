@@ -30,7 +30,6 @@ using Veldrid.OpenGLBinding;
 using Image = SixLabors.ImageSharp.Image;
 using PixelFormat = Veldrid.PixelFormat;
 using PrimitiveTopology = Veldrid.PrimitiveTopology;
-using Texture = osu.Framework.Graphics.Textures.Texture;
 
 namespace osu.Framework.Graphics.Veldrid
 {
