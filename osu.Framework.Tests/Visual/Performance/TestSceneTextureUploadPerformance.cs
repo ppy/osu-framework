@@ -52,7 +52,6 @@ namespace osu.Framework.Tests.Visual.Performance
             Child = fill = new FillFlowContainer<Sprite>
             {
                 RelativeSizeAxes = Axes.X,
-                Width = 0.5f,
                 AutoSizeAxes = Axes.Y,
                 Direction = FillDirection.Full,
                 Anchor = Anchor.Centre,
