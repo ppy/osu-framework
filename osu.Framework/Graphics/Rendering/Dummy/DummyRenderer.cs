@@ -53,6 +53,8 @@ namespace osu.Framework.Graphics.Rendering.Dummy
             WhitePixel = new TextureWhitePixel(new Texture(new DummyNativeTexture(this), WrapMode.None, WrapMode.None));
         }
 
+        public ulong FrameIndex => 1;
+
         bool IRenderer.VerticalSync { get; set; } = true;
 
         bool IRenderer.AllowTearing { get; set; }

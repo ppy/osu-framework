@@ -34,6 +34,8 @@ namespace osu.Framework.Graphics.Rendering
 
         public const int INDICES_PER_QUAD = VERTICES_PER_QUAD + 2;
 
+        public ulong FrameIndex { get; }
+
         /// <summary>
         /// Maximum number of vertices in a linear vertex buffer.
         /// </summary>
