@@ -40,7 +40,7 @@ namespace osu.Framework.Tests.Visual.Performance
         {
             base.LoadComplete();
 
-            AddSliderStep("count", 1, 100, 1, v =>
+            AddSliderStep("count", 1, 100, 10, v =>
             {
                 count = v;
                 recreate();
@@ -69,14 +69,20 @@ namespace osu.Framework.Tests.Visual.Performance
             }
         }
 
+        private ulong lastUploadedFrame;
+
         protected override void Update()
         {
             base.Update();
 
             if (fill == null) return;
 
-            foreach (var sprite in fill)
-                sprite.Texture.SetData(sampleTextureUpload);
+            if (lastUploadedFrame != renderer.FrameIndex)
+            {
+                foreach (var sprite in fill)
+                    sprite.Texture.SetData(sampleTextureUpload);
+                lastUploadedFrame = renderer.FrameIndex;
+            }
         }
 
         protected override void Dispose(bool isDisposing)
