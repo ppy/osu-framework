@@ -92,6 +92,11 @@ namespace osu.Framework.Graphics.Veldrid
 
         private static readonly GlobalStatistic<int> stat_graphics_pipeline_created = GlobalStatistics.Get<int>(nameof(VeldridRenderer), "Total pipelines created");
 
+        /// <summary>
+        /// We are using fences every frame. Construction can be expensive, so let's pool some.
+        /// </summary>
+        private readonly Queue<Fence> finishFrameFences = new Queue<Fence>();
+
         public VeldridRenderer()
         {
             SharedLinearIndex = new VeldridIndexData(this);
@@ -215,6 +220,9 @@ namespace osu.Framework.Graphics.Veldrid
             BufferUpdateCommands = Factory.CreateCommandList();
 
             pipeline.Outputs = Device.SwapchainFramebuffer.OutputDescription;
+
+            for (int i = 0; i < 16; i++)
+                finishFrameFences.Enqueue(Factory.CreateFence(false));
         }
 
         private Vector2 currentSize;
@@ -261,7 +269,9 @@ namespace osu.Framework.Graphics.Veldrid
                 }
 
                 lastSignalledFenceIndex ??= i;
-                fence.Fence.Dispose();
+
+                Device.ResetFence(fence.Fence);
+                finishFrameFences.Enqueue(fence.Fence);
             }
 
             if (lastSignalledFenceIndex != null)
@@ -284,8 +294,9 @@ namespace osu.Framework.Graphics.Veldrid
             BufferUpdateCommands.End();
             Device.SubmitCommands(BufferUpdateCommands);
 
-            // This is disposed via the end-of-lifetime tracking in pendingFrameFences.
-            var fence = Factory.CreateFence(false);
+            // This is returned via the end-of-lifetime tracking in `pendingFrameFences`.
+            // See `updateLastCompletedFrameIndex`.
+            Fence fence = finishFrameFences.Dequeue();
 
             Commands.End();
             Device.SubmitCommands(Commands, fence);
