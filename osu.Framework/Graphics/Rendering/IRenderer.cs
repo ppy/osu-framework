@@ -34,8 +34,6 @@ namespace osu.Framework.Graphics.Rendering
 
         public const int INDICES_PER_QUAD = VERTICES_PER_QUAD + 2;
 
-        public ulong FrameIndex { get; }
-
         /// <summary>
         /// Maximum number of vertices in a linear vertex buffer.
         /// </summary>
@@ -57,6 +55,11 @@ namespace osu.Framework.Graphics.Rendering
         /// A <see cref="Storage"/> that can be used to cache objects.
         /// </summary>
         protected internal Storage? CacheStorage { set; }
+
+        /// <summary>
+        /// The current frame index.
+        /// </summary>
+        ulong FrameIndex { get; }
 
         /// <summary>
         /// The maximum allowed texture size.

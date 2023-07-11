@@ -53,7 +53,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
             WhitePixel = new TextureWhitePixel(new Texture(new DummyNativeTexture(this), WrapMode.None, WrapMode.None));
         }
 
-        public ulong FrameIndex => 1;
+        public ulong FrameIndex { get; private set; }
 
         bool IRenderer.VerticalSync { get; set; } = true;
 
@@ -68,6 +68,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 
         void IRenderer.BeginFrame(Vector2 windowSize)
         {
+            FrameIndex++;
         }
 
         void IRenderer.FinishFrame()
