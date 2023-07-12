@@ -57,6 +57,11 @@ namespace osu.Framework.Graphics.Rendering
         protected internal Storage? CacheStorage { set; }
 
         /// <summary>
+        /// The current frame index.
+        /// </summary>
+        ulong FrameIndex { get; }
+
+        /// <summary>
         /// The maximum allowed texture size.
         /// </summary>
         int MaxTextureSize { get; }
