@@ -4,7 +4,6 @@
 #nullable disable
 
 using osuTK.Graphics;
-using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
@@ -21,7 +20,6 @@ using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Graphics.Pooling;
 using osu.Framework.Graphics.Rendering;
-using osu.Framework.Input.Events;
 using osuTK;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -347,38 +345,6 @@ namespace osu.Framework.Graphics.Performance
                 foreach (CounterBar bar in counterBars.Values)
                     bar.Expanded = expanded;
             }
-        }
-
-        protected override bool OnKeyDown(KeyDownEvent e)
-        {
-            switch (e.Key)
-            {
-                case Key.ControlLeft:
-                    Expanded = true;
-                    break;
-
-                case Key.ShiftLeft:
-                    Running = false;
-                    break;
-            }
-
-            return base.OnKeyDown(e);
-        }
-
-        protected override void OnKeyUp(KeyUpEvent e)
-        {
-            switch (e.Key)
-            {
-                case Key.ControlLeft:
-                    Expanded = false;
-                    break;
-
-                case Key.ShiftLeft:
-                    Running = true;
-                    break;
-            }
-
-            base.OnKeyUp(e);
         }
 
         protected override void Update()

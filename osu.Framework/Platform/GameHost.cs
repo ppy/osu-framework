@@ -174,8 +174,10 @@ namespace osu.Framework.Platform
         /// </summary>
         protected abstract IWindow CreateWindow(GraphicsSurfaceType preferredSurface);
 
-        [CanBeNull]
-        public virtual Clipboard GetClipboard() => null;
+        [Obsolete($"Resolve {nameof(Clipboard)} via DI.")] // can be removed 20231010
+        public Clipboard GetClipboard() => Dependencies.Get<Clipboard>();
+
+        protected abstract Clipboard CreateClipboard();
 
         protected virtual ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new ReadableKeyCombinationProvider();
 
@@ -737,6 +739,7 @@ namespace osu.Framework.Platform
 
                 Dependencies.CacheAs(readableKeyCombinationProvider = CreateReadableKeyCombinationProvider());
                 Dependencies.CacheAs(CreateTextInput());
+                Dependencies.CacheAs(CreateClipboard());
 
                 ExecutionState = ExecutionState.Running;
                 threadRunner.Start();
