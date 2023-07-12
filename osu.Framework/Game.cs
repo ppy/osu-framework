@@ -9,6 +9,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Development;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Performance;
@@ -19,6 +20,7 @@ using osu.Framework.Graphics.Visualisation.Audio;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
+using osu.Framework.Input.StateChanges;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
@@ -263,6 +265,18 @@ namespace osu.Framework
             }, overlayContent.Add);
 
             FrameStatistics.BindValueChanged(e => performanceOverlay.State = e.NewValue, true);
+
+            if (FrameworkEnvironment.FrameStatisticsViaTouch || DebugUtils.IsDebugBuild)
+            {
+                base.AddInternal(new FrameStatisticsTouchReceptor(this)
+                {
+                    Depth = float.MaxValue,
+                    Anchor = Anchor.BottomRight,
+                    Origin = Anchor.BottomRight,
+                    RelativeSizeAxes = Axes.Both,
+                    Size = new Vector2(0.5f),
+                });
+            }
         }
 
         protected readonly Bindable<FrameStatisticsMode> FrameStatistics = new Bindable<FrameStatisticsMode>();
@@ -285,22 +299,7 @@ namespace osu.Framework
             switch (e.Action)
             {
                 case FrameworkAction.CycleFrameStatistics:
-
-                    switch (FrameStatistics.Value)
-                    {
-                        case FrameStatisticsMode.None:
-                            FrameStatistics.Value = FrameStatisticsMode.Minimal;
-                            break;
-
-                        case FrameStatisticsMode.Minimal:
-                            FrameStatistics.Value = FrameStatisticsMode.Full;
-                            break;
-
-                        case FrameStatisticsMode.Full:
-                            FrameStatistics.Value = FrameStatisticsMode.None;
-                            break;
-                    }
-
+                    CycleFrameStatistics();
                     return true;
 
                 case FrameworkAction.ToggleDrawVisualiser:
@@ -399,6 +398,24 @@ namespace osu.Framework
                 => new Vector2(100 + index * (TitleBar.HEIGHT + 10));
         }
 
+        protected void CycleFrameStatistics()
+        {
+            switch (FrameStatistics.Value)
+            {
+                case FrameStatisticsMode.None:
+                    FrameStatistics.Value = FrameStatisticsMode.Minimal;
+                    break;
+
+                case FrameStatisticsMode.Minimal:
+                    FrameStatistics.Value = FrameStatisticsMode.Full;
+                    break;
+
+                case FrameStatisticsMode.Full:
+                    FrameStatistics.Value = FrameStatisticsMode.None;
+                    break;
+            }
+        }
+
         private void toggleOverlay(OverlayContainer overlay)
         {
             overlay.ToggleVisibility();
@@ -481,6 +498,24 @@ namespace osu.Framework
 
             Localisation?.Dispose();
             Localisation = null;
+        }
+
+        private partial class FrameStatisticsTouchReceptor : Drawable
+        {
+            private readonly Game game;
+
+            public FrameStatisticsTouchReceptor(Game game)
+            {
+                this.game = game;
+            }
+
+            protected override bool OnClick(ClickEvent e) => e.CurrentState.Mouse.LastSource is ISourcedFromTouch;
+
+            protected override bool OnDoubleClick(DoubleClickEvent e)
+            {
+                game.CycleFrameStatistics();
+                return base.OnDoubleClick(e);
+            }
         }
     }
 }
