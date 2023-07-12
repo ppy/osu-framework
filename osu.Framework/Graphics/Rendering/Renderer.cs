@@ -57,9 +57,6 @@ namespace osu.Framework.Graphics.Rendering
         public abstract bool IsUvOriginTopLeft { get; }
         public abstract bool IsClipSpaceYInverted { get; }
 
-        /// <summary>
-        /// The current frame index.
-        /// </summary>
         public ulong FrameIndex { get; private set; }
 
         public ref readonly MaskingInfo CurrentMaskingInfo => ref currentMaskingInfo;
