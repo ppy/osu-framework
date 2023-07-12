@@ -27,7 +27,7 @@ namespace osu.Framework.Tests.Visual.Performance
 
             bypassFrontToBack = debugConfig.GetBindable<bool>(DebugSetting.BypassFrontToBackPass);
 
-            base.Content.Child = content = new BufferedContainer
+            base.Content.Child = content = new BufferedContainer(pixelSnapping: true)
             {
                 RelativeSizeAxes = Axes.Both,
             };
