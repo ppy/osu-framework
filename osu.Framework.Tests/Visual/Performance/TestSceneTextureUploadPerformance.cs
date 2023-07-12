@@ -19,33 +19,33 @@ namespace osu.Framework.Tests.Visual.Performance
 {
     public partial class TestSceneTextureUploadPerformance : PerformanceTestScene
     {
-        private FillFlowContainer<Sprite>? fill;
+        private FillFlowContainer<Sprite> fill = null!;
 
         [Resolved]
         private IRenderer renderer { get; set; } = null!;
 
-        private PersistentTextureUpload sampleTextureUpload = null!;
+        private ReusableTextureUpload sampleTextureUpload = null!;
 
         [BackgroundDependencyLoader]
         private void load(Game game, GameHost host)
         {
             var textureLoaderStore = host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(game.Resources, @"Textures"));
 
-            sampleTextureUpload = new PersistentTextureUpload(textureLoaderStore.Get(@"sample-texture"));
+            sampleTextureUpload = new ReusableTextureUpload(textureLoaderStore.Get(@"sample-texture"));
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            Child = fill = new FillFlowContainer<Sprite>
+            Add(fill = new FillFlowContainer<Sprite>
             {
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y,
                 Direction = FillDirection.Full,
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-            };
+            });
 
             AddSliderStep("count", 1, 100, 10, newCount =>
             {
@@ -69,8 +69,8 @@ namespace osu.Framework.Tests.Visual.Performance
         {
             base.Update();
 
-            if (fill == null) return;
-
+            // Ensure we don't hit a runaway scenario where too many uploads are queued
+            // due to the update loop running at a higher rate than draw loop.
             if (lastUploadedFrame != renderer.FrameIndex)
             {
                 foreach (var sprite in fill)
@@ -85,7 +85,7 @@ namespace osu.Framework.Tests.Visual.Performance
             base.Dispose(isDisposing);
         }
 
-        private class PersistentTextureUpload : ITextureUpload
+        private class ReusableTextureUpload : ITextureUpload
         {
             private readonly ITextureUpload upload;
 
@@ -101,7 +101,7 @@ namespace osu.Framework.Tests.Visual.Performance
 
             public PixelFormat Format => upload.Format;
 
-            public PersistentTextureUpload(ITextureUpload upload)
+            public ReusableTextureUpload(ITextureUpload upload)
             {
                 this.upload = upload;
             }
