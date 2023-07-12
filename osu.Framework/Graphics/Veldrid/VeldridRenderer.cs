@@ -77,6 +77,11 @@ namespace osu.Framework.Graphics.Veldrid
         /// </summary>
         private readonly List<FrameCompletionFence> pendingFramesFences = new List<FrameCompletionFence>();
 
+        /// <summary>
+        /// We are using fences every frame. Construction can be expensive, so let's pool some.
+        /// </summary>
+        private readonly Queue<Fence> perFrameFencePool = new Queue<Fence>();
+
         public VeldridIndexData SharedLinearIndex { get; }
         public VeldridIndexData SharedQuadIndex { get; }
 
@@ -268,7 +273,9 @@ namespace osu.Framework.Graphics.Veldrid
                 }
 
                 lastSignalledFenceIndex ??= i;
-                fence.Fence.Dispose();
+
+                Device.ResetFence(fence.Fence);
+                perFrameFencePool.Enqueue(fence.Fence);
             }
 
             if (lastSignalledFenceIndex != null)
@@ -291,8 +298,10 @@ namespace osu.Framework.Graphics.Veldrid
             BufferUpdateCommands.End();
             Device.SubmitCommands(BufferUpdateCommands);
 
-            // This is disposed via the end-of-lifetime tracking in pendingFrameFences.
-            var fence = Factory.CreateFence(false);
+            // This is returned via the end-of-lifetime tracking in `pendingFrameFences`.
+            // See `updateLastCompletedFrameIndex`.
+            if (!perFrameFencePool.TryDequeue(out Fence? fence))
+                fence = Factory.CreateFence(false);
 
             Commands.End();
             Device.SubmitCommands(Commands, fence);
