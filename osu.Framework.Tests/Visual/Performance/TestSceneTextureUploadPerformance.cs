@@ -2,8 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
@@ -22,6 +22,9 @@ namespace osu.Framework.Tests.Visual.Performance
         private IRenderer renderer { get; set; } = null!;
 
         private ReusableTextureUpload sampleTextureUpload = null!;
+        private ReusableTextureUpload sampleTextureUpload2 = null!;
+
+        public readonly BindableInt UploadsPerFrame = new BindableInt();
 
         [BackgroundDependencyLoader]
         private void load(Game game, GameHost host)
@@ -29,6 +32,16 @@ namespace osu.Framework.Tests.Visual.Performance
             var textureLoaderStore = host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(game.Resources, @"Textures"));
 
             sampleTextureUpload = new ReusableTextureUpload(textureLoaderStore.Get(@"sample-texture"));
+            sampleTextureUpload2 = new ReusableTextureUpload(textureLoaderStore.Get(@"sample-texture-2"));
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            AddLabel("Upload");
+
+            AddSliderStep("uploads per frame", 1, 256, 10, v => UploadsPerFrame.Value = v);
         }
 
         protected override Drawable CreateBox()
@@ -40,16 +53,27 @@ namespace osu.Framework.Tests.Visual.Performance
 
         private ulong lastUploadedFrame;
 
+        private int updateOffset;
+
         protected override void Update()
         {
             base.Update();
 
             // Ensure we don't hit a runaway scenario where too many uploads are queued
             // due to the update loop running at a higher rate than draw loop.
-            if (lastUploadedFrame != renderer.FrameIndex)
+            if (lastUploadedFrame != renderer.FrameIndex && Flow.Count > 0)
             {
-                foreach (var sprite in Flow.OfType<Sprite>())
-                    sprite.Texture.SetData(sampleTextureUpload);
+                for (int i = 0; i < UploadsPerFrame.Value; i++)
+                {
+                    var sprite = Flow[updateOffset++ % Flow.Count];
+
+                    var upload = (int)(renderer.FrameIndex / ((float)SpritesCount.Value / UploadsPerFrame.Value)) % 2 == 0
+                        ? sampleTextureUpload
+                        : sampleTextureUpload2;
+
+                    ((Sprite)sprite).Texture.SetData(upload);
+                }
+
                 lastUploadedFrame = renderer.FrameIndex;
             }
         }
@@ -57,6 +81,7 @@ namespace osu.Framework.Tests.Visual.Performance
         protected override void Dispose(bool isDisposing)
         {
             sampleTextureUpload.Dispose();
+            sampleTextureUpload2.Dispose();
             base.Dispose(isDisposing);
         }
 
