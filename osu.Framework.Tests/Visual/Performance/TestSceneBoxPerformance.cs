@@ -38,7 +38,10 @@ namespace osu.Framework.Tests.Visual.Performance
 
             Child = Flow = new FillFlowContainer
             {
-                RelativeSizeAxes = Axes.Both,
+                RelativeSizeAxes = Axes.X,
+                AutoSizeAxes = Axes.Y,
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
                 Padding = new MarginPadding(20f),
                 Spacing = new Vector2(5f),
             };
