@@ -266,7 +266,7 @@ namespace osu.Framework
 
             FrameStatistics.BindValueChanged(e => performanceOverlay.State = e.NewValue, true);
 
-            if (Environment.GetEnvironmentVariable("OSU_FRAME_STATISTICS_VIA_TOUCH") == "1" || DebugUtils.IsDebugBuild)
+            if (FrameworkEnvironment.FrameStatisticsViaTouch || DebugUtils.IsDebugBuild)
             {
                 base.AddInternal(new FrameStatisticsTouchReceptor(this)
                 {
