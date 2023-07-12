@@ -33,6 +33,9 @@ namespace osu.Framework.Tests.Visual.Performance
             };
 
             AddLabel("General");
+
+            AddStep("do nothing", () => { });
+
             AddToggleStep("hide content", v => Content.Alpha = v ? 0 : 1);
             AddToggleStep("enable front to back", v => bypassFrontToBack.Value = !v);
             AddSliderStep("render scale", 0.01f, 1f, 1f, v => content.FrameBufferScale = new Vector2(v));
