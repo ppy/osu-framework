@@ -13,6 +13,7 @@ namespace osu.Framework.Tests.Visual.Performance
         private int wordLength;
         private int wordsCount;
         private int paragraphsCount;
+        private int characterVariance;
 
         protected override void LoadComplete()
         {
@@ -25,15 +26,21 @@ namespace osu.Framework.Tests.Visual.Performance
                 recreate();
             });
 
-            AddSliderStep("words count", 1, 100, 20, v =>
+            AddSliderStep("words count", 1, 1000, 256, v =>
             {
                 wordsCount = v;
                 recreate();
             });
 
-            AddSliderStep("paragraphs count", 1, 20, 1, v =>
+            AddSliderStep("paragraphs count", 1, 20, 2, v =>
             {
                 paragraphsCount = v;
+                recreate();
+            });
+
+            AddSliderStep("character variance", 1, 26, 26, v =>
+            {
+                characterVariance = v;
                 recreate();
             });
         }
@@ -48,8 +55,7 @@ namespace osu.Framework.Tests.Visual.Performance
                 {
                     for (int c = 0; c < wordLength; c++)
                     {
-                        char character = (char)RNG.Next('a', 'z');
-                        character = c == 0 ? char.ToUpperInvariant(character) : character;
+                        char character = (char)RNG.Next('a', 'a' + characterVariance);
                         text.Append(character);
                     }
 

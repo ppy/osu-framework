@@ -5,11 +5,12 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Effects;
+using osu.Framework.Graphics.Shapes;
 using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Framework.Tests.Visual.Performance
 {
-    public partial class TestSceneMaskingPerformance : TestSceneBoxPerformance
+    public partial class TestSceneMaskingPerformance : RepeatedDrawablePerformanceTestScene
     {
         private readonly BindableFloat cornerRadius = new BindableFloat();
         private readonly BindableFloat cornerExponent = new BindableFloat(2f);
@@ -30,7 +31,7 @@ namespace osu.Framework.Tests.Visual.Performance
             AddToggleStep("edge effect hollow", v => edgeEffectParameters.Value = edgeEffectParameters.Value with { Hollow = v });
         }
 
-        protected override Drawable CreateDrawable() => new TestContainer(base.CreateDrawable())
+        protected override Drawable CreateDrawable() => new TestContainer
         {
             CornerRadiusBindable = { BindTarget = cornerRadius },
             CornerExponentBindable = { BindTarget = cornerExponent },
@@ -43,43 +44,31 @@ namespace osu.Framework.Tests.Visual.Performance
             public readonly Bindable<float> CornerExponentBindable = new BindableFloat();
             public readonly Bindable<EdgeEffectParameters> EdgeEffectParameters = new Bindable<EdgeEffectParameters>();
 
-            private readonly Drawable child;
+            private readonly Drawable box;
 
-            public TestContainer(Drawable child)
+            public TestContainer()
             {
-                this.child = child;
+                Child = box = new Box
+                {
+                    RelativeSizeAxes = Axes.Both,
+                };
             }
 
             [BackgroundDependencyLoader]
             private void load()
             {
                 Masking = true;
-                RelativeSizeAxes = Axes.Both;
 
                 CornerRadiusBindable.BindValueChanged(v => CornerRadius = v.NewValue, true);
                 CornerExponentBindable.BindValueChanged(v => CornerExponent = v.NewValue, true);
                 EdgeEffectParameters.BindValueChanged(v => EdgeEffect = v.NewValue, true);
-
-                Child = child;
             }
 
             protected override void Update()
             {
                 base.Update();
 
-                if (child.Width < 1f)
-                {
-                    Width = child.Width;
-                    child.Width = 1f;
-                }
-
-                if (child.Height < 1f)
-                {
-                    Height = child.Height;
-                    child.Height = 1f;
-                }
-
-                EdgeEffect = EdgeEffect with { Colour = child.Colour.AverageColour };
+                EdgeEffect = EdgeEffect with { Colour = box.Colour.AverageColour };
             }
         }
     }

@@ -4,11 +4,12 @@
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Shapes;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.Performance
 {
-    public partial class TestSceneBlendingPerformance : TestSceneBoxPerformance
+    public partial class TestSceneBlendingPerformance : RepeatedDrawablePerformanceTestScene
     {
         private readonly BindableFloat alpha = new BindableFloat();
         private readonly Bindable<BlendingParameters> blendingParameters = new Bindable<BlendingParameters>();
@@ -18,7 +19,7 @@ namespace osu.Framework.Tests.Visual.Performance
             base.LoadComplete();
 
             AddLabel("Blending");
-            AddSliderStep("spacing", -100f, 100f, -20f, v => Flow.Spacing = new Vector2(v));
+            AddSliderStep("spacing", -20, 20f, -1f, v => Flow.Spacing = new Vector2(v));
             AddSliderStep("alpha", 0f, 1f, 0.9f, v => alpha.Value = v);
             AddStep("disable blending", () => blendingParameters.Value = BlendingParameters.None);
             AddStep("set additive blending", () => blendingParameters.Value = BlendingParameters.Additive);
@@ -27,15 +28,11 @@ namespace osu.Framework.Tests.Visual.Performance
 
         protected override Drawable CreateDrawable() => new TestBlendingBox
         {
-            FillWidth = { BindTarget = FillWidth },
-            FillHeight = { BindTarget = FillHeight },
-            GradientColour = { BindTarget = GradientColour },
-            RandomiseColour = { BindTarget = RandomiseColour },
             BlendingParameters = { BindTarget = blendingParameters },
             AlphaBindable = { BindTarget = alpha },
         };
 
-        private partial class TestBlendingBox : TestBox
+        private partial class TestBlendingBox : Box
         {
             public readonly IBindable<BlendingParameters> BlendingParameters = new Bindable<BlendingParameters>();
             public readonly IBindable<float> AlphaBindable = new Bindable<float>();

@@ -3,28 +3,31 @@
 
 using System;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
-using osuTK;
+using osuTK.Graphics;
+using osuTK.Graphics.ES30;
 using SixLabors.ImageSharp.PixelFormats;
-using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
 
 namespace osu.Framework.Tests.Visual.Performance
 {
-    public partial class TestSceneTextureUploadPerformance : PerformanceTestScene
+    public partial class TestSceneTextureUploadPerformance : RepeatedDrawablePerformanceTestScene
     {
-        private FillFlowContainer<Sprite> fill = null!;
-
         [Resolved]
         private IRenderer renderer { get; set; } = null!;
 
         private ReusableTextureUpload sampleTextureUpload = null!;
+        private ReusableTextureUpload sampleTextureUpload2 = null!;
+
+        public readonly BindableInt UploadsPerFrame = new BindableInt();
+
+        public readonly BindableBool Mipmaps = new BindableBool();
 
         [BackgroundDependencyLoader]
         private void load(Game game, GameHost host)
@@ -32,38 +35,29 @@ namespace osu.Framework.Tests.Visual.Performance
             var textureLoaderStore = host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(game.Resources, @"Textures"));
 
             sampleTextureUpload = new ReusableTextureUpload(textureLoaderStore.Get(@"sample-texture"));
+            sampleTextureUpload2 = new ReusableTextureUpload(textureLoaderStore.Get(@"sample-texture-2"));
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            Add(fill = new FillFlowContainer<Sprite>
-            {
-                RelativeSizeAxes = Axes.X,
-                AutoSizeAxes = Axes.Y,
-                Direction = FillDirection.Full,
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-            });
+            AddLabel("Upload");
 
-            AddSliderStep("count", 1, 100, 10, newCount =>
-            {
-                for (int i = fill.Count - 1; i >= newCount; i--)
-                    fill.Remove(fill.Children[i], true);
+            AddToggleStep("mipmap generation", v => Mipmaps.Value = v);
+            AddSliderStep("uploads per frame", 1, 256, 50, v => UploadsPerFrame.Value = v);
 
-                for (int i = fill.Count; i < newCount; i++)
-                    fill.Add(createSprite());
-            });
+            Mipmaps.BindValueChanged(_ => Recreate());
         }
 
-        private Sprite createSprite() => new Sprite
+        protected override Drawable CreateDrawable() => new Sprite
         {
-            Size = new Vector2(64),
-            Texture = renderer.CreateTexture(512, 512)
+            Texture = renderer.CreateTexture(512, 512, manualMipmaps: !Mipmaps.Value, initialisationColour: Color4.Black),
         };
 
         private ulong lastUploadedFrame;
+
+        private int updateOffset;
 
         protected override void Update()
         {
@@ -71,10 +65,19 @@ namespace osu.Framework.Tests.Visual.Performance
 
             // Ensure we don't hit a runaway scenario where too many uploads are queued
             // due to the update loop running at a higher rate than draw loop.
-            if (lastUploadedFrame != renderer.FrameIndex)
+            if (lastUploadedFrame != renderer.FrameIndex && Flow.Count > 0)
             {
-                foreach (var sprite in fill)
-                    sprite.Texture.SetData(sampleTextureUpload);
+                for (int i = 0; i < UploadsPerFrame.Value; i++)
+                {
+                    var sprite = Flow[updateOffset++ % Flow.Count];
+
+                    var upload = (int)(renderer.FrameIndex / ((float)DrawableCount.Value / UploadsPerFrame.Value)) % 2 == 0
+                        ? sampleTextureUpload
+                        : sampleTextureUpload2;
+
+                    ((Sprite)sprite).Texture.SetData(upload);
+                }
+
                 lastUploadedFrame = renderer.FrameIndex;
             }
         }
@@ -82,6 +85,7 @@ namespace osu.Framework.Tests.Visual.Performance
         protected override void Dispose(bool isDisposing)
         {
             sampleTextureUpload.Dispose();
+            sampleTextureUpload2.Dispose();
             base.Dispose(isDisposing);
         }
 

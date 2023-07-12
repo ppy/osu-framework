@@ -5,6 +5,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.Performance
@@ -34,7 +35,7 @@ namespace osu.Framework.Tests.Visual.Performance
             AddSliderStep("blur sigma", 0f, 100f, 0f, v => blurSigma.Value = v);
         }
 
-        protected override Drawable CreateDrawable() => new TestBufferedContainer(base.CreateDrawable(), cachedFrameBuffer, pixelSnapping)
+        protected override Drawable CreateDrawable() => new TestBufferedContainer(cachedFrameBuffer, pixelSnapping)
         {
             BlurSigmaBindable = { BindTarget = blurSigma },
         };
@@ -43,40 +44,37 @@ namespace osu.Framework.Tests.Visual.Performance
         {
             public readonly Bindable<float> BlurSigmaBindable = new BindableFloat();
 
-            private readonly Drawable child;
+            private readonly Drawable box;
 
-            public TestBufferedContainer(Drawable child, bool cachedFramebuffer, bool pixelSnapping)
+            public TestBufferedContainer(bool cachedFramebuffer, bool pixelSnapping)
                 : base(cachedFrameBuffer: cachedFramebuffer, pixelSnapping: pixelSnapping)
             {
-                this.child = child;
+                Child = box = new Box { RelativeSizeAxes = Axes.Both };
             }
 
             [BackgroundDependencyLoader]
             private void load()
             {
-                RelativeSizeAxes = Axes.Both;
                 BlurSigmaBindable.BindValueChanged(v => BlurSigma = new Vector2(v.NewValue), true);
-
-                Child = child;
             }
 
             protected override void Update()
             {
                 base.Update();
 
-                if (child.Width < 1f)
+                if (box.Width < 1f)
                 {
-                    Width = child.Width;
-                    child.Width = 1f;
+                    Width = box.Width;
+                    box.Width = 1f;
                 }
 
-                if (child.Height < 1f)
+                if (box.Height < 1f)
                 {
-                    Height = child.Height;
-                    child.Height = 1f;
+                    Height = box.Height;
+                    box.Height = 1f;
                 }
 
-                EdgeEffect = EdgeEffect with { Colour = child.Colour.AverageColour };
+                EdgeEffect = EdgeEffect with { Colour = box.Colour.AverageColour };
             }
         }
     }
