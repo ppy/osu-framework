@@ -5,13 +5,14 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Tests.Visual.Performance
 {
-    public partial class TestSceneTexturePerformance : TestSceneBoxPerformance
+    public partial class TestSceneTexturePerformance : RepeatedDrawablePerformanceTestScene
     {
         private readonly BindableBool disableMipmaps = new BindableBool();
         private readonly BindableBool uniqueTextures = new BindableBool();
@@ -44,13 +45,13 @@ namespace osu.Framework.Tests.Visual.Performance
 
         protected override double TimePerAction => 100;
 
-        protected override Drawable CreateBox() => new TestSprite(mipmappedSampleTexture, nonMipmappedSampleTexture)
+        protected override Drawable CreateDrawable() => new TestSprite(mipmappedSampleTexture, nonMipmappedSampleTexture)
         {
             DisableMipmaps = { BindTarget = disableMipmaps },
             UniqueTextures = { BindTarget = uniqueTextures },
         };
 
-        private partial class TestSprite : TestBox
+        private partial class TestSprite : Sprite
         {
             public readonly IBindable<bool> DisableMipmaps = new BindableBool();
             public readonly IBindable<bool> UniqueTextures = new BindableBool();

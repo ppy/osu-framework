@@ -4,11 +4,12 @@
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Shapes;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.Performance
 {
-    public partial class TestSceneBlendingPerformance : TestSceneBoxPerformance
+    public partial class TestSceneBlendingPerformance : RepeatedDrawablePerformanceTestScene
     {
         private readonly BindableFloat alpha = new BindableFloat();
         private readonly Bindable<BlendingParameters> blendingParameters = new Bindable<BlendingParameters>();
@@ -25,13 +26,13 @@ namespace osu.Framework.Tests.Visual.Performance
             AddStep("set mixture blending", () => blendingParameters.Value = BlendingParameters.Mixture);
         }
 
-        protected override Drawable CreateBox() => new TestBlendingBox
+        protected override Drawable CreateDrawable() => new TestBlendingBox
         {
             BlendingParameters = { BindTarget = blendingParameters },
             AlphaBindable = { BindTarget = alpha },
         };
 
-        private partial class TestBlendingBox : TestBox
+        private partial class TestBlendingBox : Box
         {
             public readonly IBindable<BlendingParameters> BlendingParameters = new Bindable<BlendingParameters>();
             public readonly IBindable<float> AlphaBindable = new Bindable<float>();

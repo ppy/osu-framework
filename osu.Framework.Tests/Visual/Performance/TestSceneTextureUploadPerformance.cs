@@ -16,7 +16,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.Performance
 {
-    public partial class TestSceneTextureUploadPerformance : TestSceneBoxPerformance
+    public partial class TestSceneTextureUploadPerformance : RepeatedDrawablePerformanceTestScene
     {
         [Resolved]
         private IRenderer renderer { get; set; } = null!;
@@ -44,12 +44,10 @@ namespace osu.Framework.Tests.Visual.Performance
             AddSliderStep("uploads per frame", 1, 256, 10, v => UploadsPerFrame.Value = v);
         }
 
-        protected override Drawable CreateBox()
+        protected override Drawable CreateDrawable() => new Sprite
         {
-            var drawable = base.CreateBox();
-            ((Sprite)drawable).Texture = renderer.CreateTexture(512, 512);
-            return drawable;
-        }
+            Texture = renderer.CreateTexture(512, 512),
+        };
 
         private ulong lastUploadedFrame;
 
@@ -67,7 +65,7 @@ namespace osu.Framework.Tests.Visual.Performance
                 {
                     var sprite = Flow[updateOffset++ % Flow.Count];
 
-                    var upload = (int)(renderer.FrameIndex / ((float)SpritesCount.Value / UploadsPerFrame.Value)) % 2 == 0
+                    var upload = (int)(renderer.FrameIndex / ((float)DrawableCount.Value / UploadsPerFrame.Value)) % 2 == 0
                         ? sampleTextureUpload
                         : sampleTextureUpload2;
 

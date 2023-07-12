@@ -8,9 +8,9 @@ using osu.Framework.Utils;
 
 namespace osu.Framework.Tests.Visual.Performance
 {
-    public partial class TestSceneVertexUploadPerformance : TestSceneBoxPerformance
+    public partial class TestSceneVertexUploadPerformance : RepeatedDrawablePerformanceTestScene
     {
-        protected override Drawable CreateBox() => new CircularProgress();
+        protected override Drawable CreateDrawable() => new CircularProgress();
 
         protected override void Update()
         {
