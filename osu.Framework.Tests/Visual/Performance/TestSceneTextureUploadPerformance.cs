@@ -19,8 +19,6 @@ namespace osu.Framework.Tests.Visual.Performance
 {
     public partial class TestSceneTextureUploadPerformance : PerformanceTestScene
     {
-        private int count;
-
         private FillFlowContainer<Sprite>? fill;
 
         [Resolved]
@@ -40,15 +38,6 @@ namespace osu.Framework.Tests.Visual.Performance
         {
             base.LoadComplete();
 
-            AddSliderStep("count", 1, 100, 10, v =>
-            {
-                count = v;
-                recreate();
-            });
-        }
-
-        private void recreate()
-        {
             Child = fill = new FillFlowContainer<Sprite>
             {
                 RelativeSizeAxes = Axes.X,
@@ -58,15 +47,21 @@ namespace osu.Framework.Tests.Visual.Performance
                 Origin = Anchor.Centre,
             };
 
-            for (int i = 0; i < count; i++)
+            AddSliderStep("count", 1, 100, 10, newCount =>
             {
-                fill.Add(new Sprite
-                {
-                    Size = new Vector2(128),
-                    Texture = renderer.CreateTexture(512, 512)
-                });
-            }
+                for (int i = fill.Count - 1; i >= newCount; i--)
+                    fill.Remove(fill.Children[i], true);
+
+                for (int i = fill.Count; i < newCount; i++)
+                    fill.Add(createSprite());
+            });
         }
+
+        private Sprite createSprite() => new Sprite
+        {
+            Size = new Vector2(64),
+            Texture = renderer.CreateTexture(512, 512)
+        };
 
         private ulong lastUploadedFrame;
 
