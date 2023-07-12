@@ -77,7 +77,7 @@ namespace osu.Framework.Tests.Visual.Performance
             [BackgroundDependencyLoader]
             private void load(IRenderer renderer)
             {
-                Texture = renderer.WhitePixel;
+                Texture ??= renderer.WhitePixel;
 
                 BoxSize.BindValueChanged(v => Size = new Vector2(v.NewValue), true);
 

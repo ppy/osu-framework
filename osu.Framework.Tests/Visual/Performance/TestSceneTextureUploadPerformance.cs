@@ -2,25 +2,22 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
-using osuTK;
+using osuTK.Graphics.ES30;
 using SixLabors.ImageSharp.PixelFormats;
-using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
 
 namespace osu.Framework.Tests.Visual.Performance
 {
-    public partial class TestSceneTextureUploadPerformance : PerformanceTestScene
+    public partial class TestSceneTextureUploadPerformance : TestSceneBoxPerformance
     {
-        private FillFlowContainer<Sprite> fill = null!;
-
         [Resolved]
         private IRenderer renderer { get; set; } = null!;
 
@@ -34,34 +31,12 @@ namespace osu.Framework.Tests.Visual.Performance
             sampleTextureUpload = new ReusableTextureUpload(textureLoaderStore.Get(@"sample-texture"));
         }
 
-        protected override void LoadComplete()
+        protected override Drawable CreateBox()
         {
-            base.LoadComplete();
-
-            Add(fill = new FillFlowContainer<Sprite>
-            {
-                RelativeSizeAxes = Axes.X,
-                AutoSizeAxes = Axes.Y,
-                Direction = FillDirection.Full,
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-            });
-
-            AddSliderStep("count", 1, 100, 10, newCount =>
-            {
-                for (int i = fill.Count - 1; i >= newCount; i--)
-                    fill.Remove(fill.Children[i], true);
-
-                for (int i = fill.Count; i < newCount; i++)
-                    fill.Add(createSprite());
-            });
+            var drawable = base.CreateBox();
+            ((Sprite)drawable).Texture = renderer.CreateTexture(512, 512);
+            return drawable;
         }
-
-        private Sprite createSprite() => new Sprite
-        {
-            Size = new Vector2(64),
-            Texture = renderer.CreateTexture(512, 512)
-        };
 
         private ulong lastUploadedFrame;
 
@@ -73,7 +48,7 @@ namespace osu.Framework.Tests.Visual.Performance
             // due to the update loop running at a higher rate than draw loop.
             if (lastUploadedFrame != renderer.FrameIndex)
             {
-                foreach (var sprite in fill)
+                foreach (var sprite in Flow.OfType<Sprite>())
                     sprite.Texture.SetData(sampleTextureUpload);
                 lastUploadedFrame = renderer.FrameIndex;
             }
