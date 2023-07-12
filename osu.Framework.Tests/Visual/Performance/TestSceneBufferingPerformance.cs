@@ -49,12 +49,13 @@ namespace osu.Framework.Tests.Visual.Performance
                 : base(cachedFrameBuffer: cachedFramebuffer, pixelSnapping: pixelSnapping)
             {
                 this.child = child;
+
+                child.RelativeSizeAxes = Axes.Both;
             }
 
             [BackgroundDependencyLoader]
             private void load()
             {
-                AutoSizeAxes = Axes.Both;
                 BlurSigmaBindable.BindValueChanged(v => BlurSigma = new Vector2(v.NewValue), true);
 
                 Child = child;

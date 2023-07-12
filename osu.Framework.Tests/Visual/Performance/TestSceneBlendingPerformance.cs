@@ -27,9 +27,6 @@ namespace osu.Framework.Tests.Visual.Performance
 
         protected override Drawable CreateBox() => new TestBlendingBox
         {
-            BoxSize = { BindTarget = BoxSize },
-            GradientColour = { BindTarget = GradientColour },
-            RandomiseColour = { BindTarget = RandomiseColour },
             BlendingParameters = { BindTarget = blendingParameters },
             AlphaBindable = { BindTarget = alpha },
         };

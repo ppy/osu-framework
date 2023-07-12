@@ -48,13 +48,14 @@ namespace osu.Framework.Tests.Visual.Performance
             public TestContainer(Drawable child)
             {
                 this.child = child;
+
+                child.RelativeSizeAxes = Axes.Both;
             }
 
             [BackgroundDependencyLoader]
             private void load()
             {
                 Masking = true;
-                AutoSizeAxes = Axes.Both;
 
                 CornerRadiusBindable.BindValueChanged(v => CornerRadius = v.NewValue, true);
                 CornerExponentBindable.BindValueChanged(v => CornerExponent = v.NewValue, true);
@@ -66,18 +67,6 @@ namespace osu.Framework.Tests.Visual.Performance
             protected override void Update()
             {
                 base.Update();
-
-                if (child.Width < 1f)
-                {
-                    Width = child.Width;
-                    child.Width = 1f;
-                }
-
-                if (child.Height < 1f)
-                {
-                    Height = child.Height;
-                    child.Height = 1f;
-                }
 
                 EdgeEffect = EdgeEffect with { Colour = child.Colour.AverageColour };
             }

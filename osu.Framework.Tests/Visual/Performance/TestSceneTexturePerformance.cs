@@ -46,9 +46,6 @@ namespace osu.Framework.Tests.Visual.Performance
 
         protected override Drawable CreateBox() => new TestSprite(mipmappedSampleTexture, nonMipmappedSampleTexture)
         {
-            BoxSize = { BindTarget = BoxSize },
-            GradientColour = { BindTarget = GradientColour },
-            RandomiseColour = { BindTarget = RandomiseColour },
             DisableMipmaps = { BindTarget = disableMipmaps },
             UniqueTextures = { BindTarget = uniqueTextures },
         };

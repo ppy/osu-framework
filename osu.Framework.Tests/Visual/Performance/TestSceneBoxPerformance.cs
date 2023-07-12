@@ -47,6 +47,10 @@ namespace osu.Framework.Tests.Visual.Performance
             };
 
             SpritesCount.BindValueChanged(_ => adjustBoxCount(), true);
+
+            BoxSize.BindValueChanged(_ => updateMetrics());
+            GradientColour.BindValueChanged(_ => updateMetrics());
+            RandomiseColour.BindValueChanged(_ => updateMetrics());
         }
 
         protected void Recreate()
@@ -55,56 +59,54 @@ namespace osu.Framework.Tests.Visual.Performance
             adjustBoxCount();
         }
 
+        protected virtual Drawable CreateBox() => new TestBox();
+
         private void adjustBoxCount()
         {
             while (Flow.Count > SpritesCount.Value)
                 Flow.Remove(Flow.Children.Last(), true);
 
             while (Flow.Count < SpritesCount.Value)
-                Flow.Add(CreateBox());
+            {
+                var drawable = CreateBox();
+                updateMetrics(drawable);
+                Flow.Add(drawable);
+            }
         }
 
-        protected virtual Drawable CreateBox() => new TestBox
+        private void updateMetrics()
         {
-            BoxSize = { BindTarget = BoxSize },
-            GradientColour = { BindTarget = GradientColour },
-            RandomiseColour = { BindTarget = RandomiseColour },
-        };
+            foreach (var b in Flow)
+                updateMetrics(b);
+        }
+
+        private void updateMetrics(Drawable drawable)
+        {
+            drawable.Size = new Vector2(BoxSize.Value);
+
+            if (GradientColour.Value)
+            {
+                drawable.Colour = new ColourInfo
+                {
+                    TopLeft = RandomiseColour.Value ? getRandomColour() : Color4.Red,
+                    TopRight = RandomiseColour.Value ? getRandomColour() : Color4.Blue,
+                    BottomLeft = RandomiseColour.Value ? getRandomColour() : Color4.Green,
+                    BottomRight = RandomiseColour.Value ? getRandomColour() : Color4.Yellow
+                };
+            }
+            else
+                drawable.Colour = RandomiseColour.Value ? getRandomColour() : Color4.White;
+        }
+
+        private Colour4 getRandomColour() => new Colour4(RNG.NextSingle(), RNG.NextSingle(), RNG.NextSingle(), 1f);
 
         protected partial class TestBox : Sprite
         {
-            public readonly IBindable<float> BoxSize = new BindableFloat();
-            public readonly IBindable<bool> GradientColour = new BindableBool();
-            public readonly IBindable<bool> RandomiseColour = new BindableBool();
-
             [BackgroundDependencyLoader]
             private void load(IRenderer renderer)
             {
                 Texture ??= renderer.WhitePixel;
-
-                BoxSize.BindValueChanged(v => Size = new Vector2(v.NewValue), true);
-
-                RandomiseColour.BindValueChanged(_ => updateColour());
-                GradientColour.BindValueChanged(_ => updateColour(), true);
-
-                void updateColour()
-                {
-                    if (GradientColour.Value)
-                    {
-                        Colour = new ColourInfo
-                        {
-                            TopLeft = RandomiseColour.Value ? getRandomColour() : Color4.Red,
-                            TopRight = RandomiseColour.Value ? getRandomColour() : Color4.Blue,
-                            BottomLeft = RandomiseColour.Value ? getRandomColour() : Color4.Green,
-                            BottomRight = RandomiseColour.Value ? getRandomColour() : Color4.Yellow
-                        };
-                    }
-                    else
-                        Colour = RandomiseColour.Value ? getRandomColour() : Color4.White;
-                }
             }
-
-            private Colour4 getRandomColour() => new Colour4(RNG.NextSingle(), RNG.NextSingle(), RNG.NextSingle(), 1f);
         }
     }
 }
