@@ -44,10 +44,9 @@ namespace osu.Framework.Tests.Visual.Performance
 
         protected override double TimePerAction => 100;
 
-        protected override Drawable CreateDrawable() => new TestSprite(mipmappedSampleTexture, nonMipmappedSampleTexture)
+        protected override Drawable CreateBox() => new TestSprite(mipmappedSampleTexture, nonMipmappedSampleTexture)
         {
-            FillWidth = { BindTarget = FillWidth },
-            FillHeight = { BindTarget = FillHeight },
+            BoxSize = { BindTarget = BoxSize },
             GradientColour = { BindTarget = GradientColour },
             RandomiseColour = { BindTarget = RandomiseColour },
             DisableMipmaps = { BindTarget = disableMipmaps },

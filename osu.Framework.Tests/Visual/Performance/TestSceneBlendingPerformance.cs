@@ -18,17 +18,16 @@ namespace osu.Framework.Tests.Visual.Performance
             base.LoadComplete();
 
             AddLabel("Blending");
-            AddSliderStep("spacing", -100f, 100f, -20f, v => Flow.Spacing = new Vector2(v));
+            AddSliderStep("spacing", -20, 20f, -1f, v => Flow.Spacing = new Vector2(v));
             AddSliderStep("alpha", 0f, 1f, 0.9f, v => alpha.Value = v);
             AddStep("disable blending", () => blendingParameters.Value = BlendingParameters.None);
             AddStep("set additive blending", () => blendingParameters.Value = BlendingParameters.Additive);
             AddStep("set mixture blending", () => blendingParameters.Value = BlendingParameters.Mixture);
         }
 
-        protected override Drawable CreateDrawable() => new TestBlendingBox
+        protected override Drawable CreateBox() => new TestBlendingBox
         {
-            FillWidth = { BindTarget = FillWidth },
-            FillHeight = { BindTarget = FillHeight },
+            BoxSize = { BindTarget = BoxSize },
             GradientColour = { BindTarget = GradientColour },
             RandomiseColour = { BindTarget = RandomiseColour },
             BlendingParameters = { BindTarget = blendingParameters },

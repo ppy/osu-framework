@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.Visual.Performance
             AddToggleStep("edge effect hollow", v => edgeEffectParameters.Value = edgeEffectParameters.Value with { Hollow = v });
         }
 
-        protected override Drawable CreateDrawable() => new TestContainer(base.CreateDrawable())
+        protected override Drawable CreateBox() => new TestContainer(base.CreateBox())
         {
             CornerRadiusBindable = { BindTarget = cornerRadius },
             CornerExponentBindable = { BindTarget = cornerExponent },
@@ -54,7 +54,7 @@ namespace osu.Framework.Tests.Visual.Performance
             private void load()
             {
                 Masking = true;
-                RelativeSizeAxes = Axes.Both;
+                AutoSizeAxes = Axes.Both;
 
                 CornerRadiusBindable.BindValueChanged(v => CornerRadius = v.NewValue, true);
                 CornerExponentBindable.BindValueChanged(v => CornerExponent = v.NewValue, true);

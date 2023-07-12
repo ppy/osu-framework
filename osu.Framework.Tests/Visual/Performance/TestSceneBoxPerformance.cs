@@ -16,8 +16,7 @@ namespace osu.Framework.Tests.Visual.Performance
 {
     public partial class TestSceneBoxPerformance : PerformanceTestScene
     {
-        protected readonly BindableFloat FillWidth = new BindableFloat();
-        protected readonly BindableFloat FillHeight = new BindableFloat();
+        protected readonly BindableFloat BoxSize = new BindableFloat();
         protected readonly BindableInt SpritesCount = new BindableInt();
         protected readonly BindableBool GradientColour = new BindableBool();
         protected readonly BindableBool RandomiseColour = new BindableBool();
@@ -29,9 +28,10 @@ namespace osu.Framework.Tests.Visual.Performance
             base.LoadComplete();
 
             AddLabel("Boxes");
-            AddSliderStep("fill width", 0.01f, 1.0f, 0.1f, v => FillWidth.Value = v);
-            AddSliderStep("fill height", 0.01f, 1.0f, 0.1f, v => FillHeight.Value = v);
-            AddSliderStep("sprites count", 1, 1000, 100, v => SpritesCount.Value = v);
+
+            AddSliderStep("size", 1f, 128f, 20f, v => BoxSize.Value = v);
+            AddSliderStep("count", 1, 10000, 1000, v => SpritesCount.Value = v);
+
             AddToggleStep("gradient colour", v => GradientColour.Value = v);
             AddToggleStep("randomise colour", v => RandomiseColour.Value = v);
 
@@ -39,7 +39,7 @@ namespace osu.Framework.Tests.Visual.Performance
             {
                 RelativeSizeAxes = Axes.Both,
                 Padding = new MarginPadding(20f),
-                Spacing = new Vector2(20f),
+                Spacing = new Vector2(5f),
             };
 
             SpritesCount.BindValueChanged(v =>
@@ -48,41 +48,35 @@ namespace osu.Framework.Tests.Visual.Performance
                     Flow.Remove(Flow.Children[i], true);
 
                 for (int i = v.OldValue; i < v.NewValue; i++)
-                    Flow.Add(CreateDrawable());
+                    Flow.Add(CreateBox());
             }, true);
         }
 
         protected void Recreate()
         {
             Flow.Clear();
-
-            for (int i = 0; i < SpritesCount.Value; i++)
-                Flow.Add(CreateDrawable());
+            SpritesCount.TriggerChange();
         }
 
-        protected virtual Drawable CreateDrawable() => new TestBox
+        protected virtual Drawable CreateBox() => new TestBox
         {
-            FillWidth = { BindTarget = FillWidth },
-            FillHeight = { BindTarget = FillHeight },
+            BoxSize = { BindTarget = BoxSize },
             GradientColour = { BindTarget = GradientColour },
             RandomiseColour = { BindTarget = RandomiseColour },
         };
 
         protected partial class TestBox : Sprite
         {
-            public readonly IBindable<float> FillWidth = new BindableFloat();
-            public readonly IBindable<float> FillHeight = new BindableFloat();
+            public readonly IBindable<float> BoxSize = new BindableFloat();
             public readonly IBindable<bool> GradientColour = new BindableBool();
             public readonly IBindable<bool> RandomiseColour = new BindableBool();
 
             [BackgroundDependencyLoader]
             private void load(IRenderer renderer)
             {
-                RelativeSizeAxes = Axes.Both;
                 Texture = renderer.WhitePixel;
 
-                FillWidth.BindValueChanged(v => Width = v.NewValue, true);
-                FillHeight.BindValueChanged(v => Height = v.NewValue, true);
+                BoxSize.BindValueChanged(v => Size = new Vector2(v.NewValue), true);
 
                 RandomiseColour.BindValueChanged(_ => updateColour());
                 GradientColour.BindValueChanged(_ => updateColour(), true);

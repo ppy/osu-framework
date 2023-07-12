@@ -34,7 +34,7 @@ namespace osu.Framework.Tests.Visual.Performance
             AddSliderStep("blur sigma", 0f, 100f, 0f, v => blurSigma.Value = v);
         }
 
-        protected override Drawable CreateDrawable() => new TestBufferedContainer(base.CreateDrawable(), cachedFrameBuffer, pixelSnapping)
+        protected override Drawable CreateBox() => new TestBufferedContainer(base.CreateBox(), cachedFrameBuffer, pixelSnapping)
         {
             BlurSigmaBindable = { BindTarget = blurSigma },
         };
@@ -54,7 +54,7 @@ namespace osu.Framework.Tests.Visual.Performance
             [BackgroundDependencyLoader]
             private void load()
             {
-                RelativeSizeAxes = Axes.Both;
+                AutoSizeAxes = Axes.Both;
                 BlurSigmaBindable.BindValueChanged(v => BlurSigma = new Vector2(v.NewValue), true);
 
                 Child = child;
