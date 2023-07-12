@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
@@ -18,6 +19,7 @@ using osu.Framework.Graphics.Veldrid.Buffers;
 using osu.Framework.Graphics.Veldrid.Buffers.Staging;
 using osu.Framework.Graphics.Veldrid.Shaders;
 using osu.Framework.Graphics.Veldrid.Textures;
+using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics;
@@ -608,7 +610,12 @@ namespace osu.Framework.Graphics.Veldrid
                     commands.CopyTexture(texture, staging);
                     commands.End();
                     Device.SubmitCommands(commands, fence);
-                    Device.WaitForFence(fence);
+
+                    if (!waitForFence(fence, 5000))
+                    {
+                        Logger.Log("Failed to capture swapchain framebuffer content within reasonable time.", level: LogLevel.Important);
+                        return new Image<Rgba32>((int)width, (int)height);
+                    }
 
                     var resource = Device.Map(staging, MapMode.Read);
                     var span = new Span<Bgra32>(resource.Data.ToPointer(), (int)(resource.SizeInBytes / Marshal.SizeOf<Bgra32>()));
@@ -630,6 +637,23 @@ namespace osu.Framework.Graphics.Veldrid
                     return image.CloneAs<Rgba32>();
                 }
             }
+        }
+
+        private bool waitForFence(Fence fence, int millisecondsTimeout)
+        {
+            // todo: Metal doesn't support WaitForFence due to lack of implementation and bugs with supporting MTLSharedEvent.notifyListener,
+            // until that is fixed in some way or another, poll on the signal state.
+            if (graphicsSurface.Type == GraphicsSurfaceType.Metal)
+            {
+                const int sleep_time = 10;
+
+                while (!fence.Signaled && (millisecondsTimeout -= sleep_time) > 0)
+                    Thread.Sleep(sleep_time);
+
+                return fence.Signaled;
+            }
+
+            return Device.WaitForFence(fence, (ulong)(millisecondsTimeout * 1_000_000));
         }
 
         protected override IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType)
