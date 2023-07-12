@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Utils;
 using osuTK;
@@ -11,44 +10,14 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Performance
 {
-    public partial class TestSceneVertexUploadPerformance : PerformanceTestScene
+    public partial class TestSceneVertexUploadPerformance : TestSceneBoxPerformance
     {
-        private int count;
-
-        private FillFlowContainer<CircularProgress>? fill;
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-
-            AddSliderStep("count", 1, 1000, 400, v =>
+        protected override Drawable CreateBox() =>
+            new CircularProgress
             {
-                count = v;
-                recreate();
-            });
-        }
-
-        private void recreate()
-        {
-            Child = fill = new FillFlowContainer<CircularProgress>
-            {
-                RelativeSizeAxes = Axes.X,
-                Width = 0.5f,
-                AutoSizeAxes = Axes.Y,
-                Direction = FillDirection.Full,
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
+                Size = new Vector2(10),
+                Current = { Value = 1 }
             };
-
-            for (int i = 0; i < count; i++)
-            {
-                fill.Add(new CircularProgress
-                {
-                    Size = new Vector2(10),
-                    Current = { Value = 1 }
-                });
-            }
-        }
 
         protected override void Update()
         {
@@ -56,11 +25,7 @@ namespace osu.Framework.Tests.Visual.Performance
 
             var col = Interpolation.ValueAt((MathF.Sin((float)Time.Current / 1000) + 1) / 2, Color4.Red, Color4.SkyBlue, 0f, 1f);
 
-            if (fill != null)
-            {
-                fill.Colour = col;
-                fill.Rotation += (float)Time.Elapsed * 0.001f;
-            }
+            Flow.Colour = col;
         }
     }
 }
