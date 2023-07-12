@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
+using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -25,6 +26,8 @@ namespace osu.Framework.Tests.Visual.Performance
         private ReusableTextureUpload sampleTextureUpload2 = null!;
 
         public readonly BindableInt UploadsPerFrame = new BindableInt();
+
+        public readonly BindableBool Mipmaps = new BindableBool();
 
         [BackgroundDependencyLoader]
         private void load(Game game, GameHost host)
@@ -41,12 +44,15 @@ namespace osu.Framework.Tests.Visual.Performance
 
             AddLabel("Upload");
 
-            AddSliderStep("uploads per frame", 1, 256, 10, v => UploadsPerFrame.Value = v);
+            AddToggleStep("mipmap generation", v => Mipmaps.Value = v);
+            AddSliderStep("uploads per frame", 1, 256, 50, v => UploadsPerFrame.Value = v);
+
+            Mipmaps.BindValueChanged(_ => Recreate());
         }
 
         protected override Drawable CreateDrawable() => new Sprite
         {
-            Texture = renderer.CreateTexture(512, 512),
+            Texture = renderer.CreateTexture(512, 512, manualMipmaps: !Mipmaps.Value, initialisationColour: Color4.Black),
         };
 
         private ulong lastUploadedFrame;
