@@ -1,10 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Development;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Rendering;
@@ -16,23 +15,37 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
-    [Ignore("This test should not be run in headless mode, as it mutates the clipboard.")]
     public partial class TestSceneClipboard : FrameworkTestScene
     {
         [Resolved]
-        private IRenderer renderer { get; set; }
+        private IRenderer renderer { get; set; } = null!;
 
         [Resolved]
-        private GameHost host { get; set; }
+        private GameHost host { get; set; } = null!;
 
-        private Image<Rgba32> originalImage;
-        private Image<Rgba32> clipboardImage;
+        [Resolved]
+        private Clipboard clipboard { get; set; } = null!;
 
-        private Clipboard clipboard => host.GetClipboard();
+        private Image<Rgba32>? originalImage;
+        private Image<Rgba32>? clipboardImage;
+
+        // empty text doesn't really matter, since it doesn't actually make sense (text editors generally don't allow copying nothing)
+        // it's here to just show how it behaves
+        [TestCase("")]
+        [TestCase("hello!")]
+        public void TestText(string text)
+        {
+            AddStep("set clipboard text", () => clipboard.SetText(text));
+            AddAssert("clipboard text is expected", () => clipboard.GetText(), () => Is.EqualTo(text));
+            AddAssert("clipboard image is null", () => clipboard.GetImage<Rgba32>(), () => Is.Null);
+        }
 
         [Test]
         public void TestImage()
         {
+            if (DebugUtils.IsNUnitRunning)
+                Assert.Ignore("This test cannot run in headless mode (a window instance is required).");
+
             AddStep("clear previous screenshots", Clear);
 
             AddStep("screenshot screen", () =>
@@ -49,13 +62,15 @@ namespace osu.Framework.Tests.Visual.Platform
 
             AddStep("copy image to clipboard", () =>
             {
-                clipboard.SetImage(originalImage);
+                clipboard.SetImage(originalImage!);
             });
+
+            AddAssert("clipboard text is null", () => clipboard.GetText(), () => Is.Null);
 
             AddStep("retrieve image from clipboard", () =>
             {
                 var image = clipboard.GetImage<Rgba32>();
-                clipboardImage = image.Clone();
+                clipboardImage = image!.Clone();
 
                 var texture = renderer.CreateTexture(image.Width, image.Height);
                 texture.SetData(new TextureUpload(image));
@@ -74,7 +89,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             AddAssert("compare images", () =>
             {
-                if (originalImage.Width != clipboardImage.Width || originalImage.Height != clipboardImage.Height)
+                if (originalImage!.Width != clipboardImage!.Width || originalImage.Height != clipboardImage.Height)
                     return false;
 
                 for (int x = 0; x < originalImage.Width; x++)

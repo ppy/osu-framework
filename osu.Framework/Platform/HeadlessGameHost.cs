@@ -49,6 +49,8 @@ namespace osu.Framework.Platform
 
         protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => null;
 
+        protected override Clipboard CreateClipboard() => new HeadlessClipboard();
+
         protected override void ChooseAndSetupRenderer() => SetupRendererAndWindow(new DummyRenderer(), GraphicsSurfaceType.OpenGL);
 
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)

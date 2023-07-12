@@ -43,6 +43,8 @@ namespace osu.Framework.Android
 
         protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new AndroidGameWindow(gameView);
 
+        protected override Clipboard CreateClipboard() => new AndroidClipboard(gameView);
+
         public override bool CanExit => false;
 
         public override bool CanSuspendToBackground => true;

@@ -69,10 +69,10 @@ namespace osu.Framework.Platform.Windows
             return getClipboard(cf_unicodetext, bytes => Encoding.Unicode.GetString(bytes).TrimEnd('\0'));
         }
 
-        public override void SetText(string selectedText)
+        public override void SetText(string text)
         {
-            int bytes = (selectedText.Length + 1) * 2;
-            var source = Marshal.StringToHGlobalUni(selectedText);
+            int bytes = (text.Length + 1) * 2;
+            var source = Marshal.StringToHGlobalUni(text);
 
             setClipboard(source, bytes, cf_unicodetext);
         }
