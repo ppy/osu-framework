@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -42,20 +43,22 @@ namespace osu.Framework.Tests.Visual.Performance
                 Spacing = new Vector2(5f),
             };
 
-            SpritesCount.BindValueChanged(v =>
-            {
-                for (int i = v.OldValue - 1; i >= v.NewValue; i--)
-                    Flow.Remove(Flow.Children[i], true);
-
-                for (int i = v.OldValue; i < v.NewValue; i++)
-                    Flow.Add(CreateBox());
-            }, true);
+            SpritesCount.BindValueChanged(_ => adjustBoxCount(), true);
         }
 
         protected void Recreate()
         {
             Flow.Clear();
-            SpritesCount.TriggerChange();
+            adjustBoxCount();
+        }
+
+        private void adjustBoxCount()
+        {
+            while (Flow.Count > SpritesCount.Value)
+                Flow.Remove(Flow.Children.Last(), true);
+
+            while (Flow.Count < SpritesCount.Value)
+                Flow.Add(CreateBox());
         }
 
         protected virtual Drawable CreateBox() => new TestBox
