@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using osu.Framework.Graphics.Veldrid.Buffers.Staging;
 using osu.Framework.Platform;
 using Veldrid;
 
@@ -18,28 +19,38 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         private ResourceSet? set;
         private TData data;
 
+        private readonly IStagingBuffer<TData>? stagingBuffer;
+
         public VeldridUniformBufferStorage(VeldridRenderer renderer)
         {
             this.renderer = renderer;
 
-            buffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(default(TData)), BufferUsage.UniformBuffer));
+            // These pathways are faster on respective platforms.
+            // Test using TestSceneVertexUploadPerformance.
+            if (renderer.Device.BackendType == GraphicsBackend.Metal)
+            {
+                buffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(default(TData)), BufferUsage.UniformBuffer | BufferUsage.Dynamic));
+                stagingBuffer = renderer.CreateStagingBuffer<TData>(1);
+            }
+            else
+            {
+                buffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(default(TData)), BufferUsage.UniformBuffer));
+            }
+
             memoryLease = NativeMemoryTracker.AddMemory(this, buffer.SizeInBytes);
         }
 
         public TData Data
         {
-            get => data;
+            get => stagingBuffer?.Data[0] ?? data;
             set
             {
                 data = value;
 
-                // These pathways are faster on respective platforms.
-                // Test using TestSceneVertexUploadPerformance.
-                if (renderer.Device.BackendType == GraphicsBackend.Metal)
+                if (stagingBuffer != null)
                 {
-                    var staging = renderer.GetFreeStagingBuffer(buffer.SizeInBytes);
-                    renderer.Device.UpdateBuffer(staging, 0, ref data);
-                    renderer.BufferUpdateCommands.CopyBuffer(staging, 0, buffer, 0, buffer.SizeInBytes);
+                    stagingBuffer.Data[0] = value;
+                    stagingBuffer.CopyTo(buffer, 0, 0, 1);
                 }
                 else
                 {
