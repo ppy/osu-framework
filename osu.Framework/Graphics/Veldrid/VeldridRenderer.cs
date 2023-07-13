@@ -295,6 +295,8 @@ namespace osu.Framework.Graphics.Veldrid
         {
             base.FinishFrame();
 
+            flushTextureUploadCommands();
+
             BufferUpdateCommands.End();
             Device.SubmitCommands(BufferUpdateCommands);
 
