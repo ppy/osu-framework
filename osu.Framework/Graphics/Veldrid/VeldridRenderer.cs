@@ -268,7 +268,11 @@ namespace osu.Framework.Graphics.Veldrid
 
                 if (!fence.Fence.Signaled)
                 {
-                    Debug.Assert(lastSignalledFenceIndex == null, "A non-signalled fence was detected before the latest signalled frame.");
+                    // this rule is broken on metal, if a new command buffer has been submitted while a previous fence wasn't signalled yet,
+                    // then the previous fence will be thrown away and will never be signalled. keep iterating regardless of signal on metal.
+                    if (graphicsSurface.Type != GraphicsSurfaceType.Metal)
+                        Debug.Assert(lastSignalledFenceIndex == null, "A non-signalled fence was detected before the latest signalled frame.");
+
                     continue;
                 }
 
