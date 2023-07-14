@@ -17,13 +17,13 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         /// <summary>
         /// Most documentation recommends that three buffers are used to avoid contention.
         ///
-        /// We already have a triple buffer (see <see cref="GameHost.DrawRoots"/>) at a higher level which guarantees one extra previous buffer,
-        /// so setting this to two here is ample to guarantee we don't hit any weird edge cases (gives a theoretical buffer count of 4, in the worst scenario).
+        /// We already have a triple buffer (see <see cref="GameHost.DrawRoots"/>) governing draw nodes.
+        /// In theory we could set this to two, but there's also a global usage of a vertex batch in <see cref="VeldridRenderer"/> (see <see cref="VeldridRenderer.DefaultQuadBatch"/>).
         ///
-        /// Note that due to the higher level triple buffer, the actual number of buffers we are storing is three times as high as this constant.
-        /// Maintaining this many buffers is a cause of concern from an memory alloc / GPU upload perspective.
+        /// So this is for now an unfortunate memory overhead. Further work could be done to provide
+        /// these in a way they were not created per draw-node, reducing buffer overhead from 9 to 3.
         /// </summary>
-        private const int vertex_buffer_count = 2;
+        private const int vertex_buffer_count = 3;
 
         /// <summary>
         /// Multiple VBOs in a swap chain to try our best to avoid GPU contention.

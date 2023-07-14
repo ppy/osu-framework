@@ -86,7 +86,6 @@ namespace osu.Framework.Graphics.Veldrid
         public VeldridIndexData SharedQuadIndex { get; }
 
         private readonly VeldridStagingTexturePool stagingTexturePool;
-        private readonly VeldridStagingBufferPool stagingBufferPool;
 
         private readonly HashSet<IVeldridUniformBuffer> uniformBufferResetList = new HashSet<IVeldridUniformBuffer>();
         private readonly Dictionary<int, VeldridTextureResources> boundTextureUnits = new Dictionary<int, VeldridTextureResources>();
@@ -108,7 +107,6 @@ namespace osu.Framework.Graphics.Veldrid
             SharedLinearIndex = new VeldridIndexData(this);
             SharedQuadIndex = new VeldridIndexData(this);
             stagingTexturePool = new VeldridStagingTexturePool(this);
-            stagingBufferPool = new VeldridStagingBufferPool(this);
         }
 
         protected override void Initialise(IGraphicsSurface graphicsSurface)
@@ -246,7 +244,6 @@ namespace osu.Framework.Graphics.Veldrid
             uniformBufferResetList.Clear();
 
             stagingTexturePool.NewFrame();
-            stagingBufferPool.NewFrame();
 
             Commands.Begin();
             BufferUpdateCommands.Begin();
@@ -377,6 +374,11 @@ namespace osu.Framework.Graphics.Veldrid
         {
             ensureTextureUploadCommandsBegan();
 
+            // This code is doing the same as the simpler approach of:
+            //
+            // Device.UpdateTexture(texture, data, (uint)x, (uint)y, 0, (uint)width, (uint)height, 1, (uint)level, 0);
+            //
+            // Except we are using a staging texture pool to avoid the alloc overhead of each staging texture.
             var staging = stagingTexturePool.Get(width, height, texture.Format);
             Device.UpdateTexture(staging, data, 0, 0, 0, (uint)width, (uint)height, 1, (uint)level, 0);
             TextureUpdateCommands.CopyTexture(staging, 0, 0, 0, 0, 0, texture, (uint)x, (uint)y, 0, (uint)level, 0, (uint)width, (uint)height, 1, 1);
@@ -771,8 +773,6 @@ namespace osu.Framework.Graphics.Veldrid
         protected override void SetUniformImplementation<T>(IUniformWithValue<T> uniform)
         {
         }
-
-        public DeviceBuffer GetFreeStagingBuffer(uint sizeInBytes) => stagingBufferPool.Get(sizeInBytes);
 
         public void RegisterUniformBufferForReset(IVeldridUniformBuffer buffer)
         {
