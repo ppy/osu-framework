@@ -374,6 +374,11 @@ namespace osu.Framework.Graphics.Veldrid
         {
             ensureTextureUploadCommandsBegan();
 
+            // This code is doing the same as the simpler approach of:
+            //
+            // Device.UpdateTexture(texture, data, (uint)x, (uint)y, 0, (uint)width, (uint)height, 1, (uint)level, 0);
+            //
+            // Except we are using a staging texture pool to avoid the alloc overhead of each staging texture.
             var staging = stagingTexturePool.Get(width, height, texture.Format);
             Device.UpdateTexture(staging, data, 0, 0, 0, (uint)width, (uint)height, 1, (uint)level, 0);
             TextureUpdateCommands.CopyTexture(staging, 0, 0, 0, 0, 0, texture, (uint)x, (uint)y, 0, (uint)level, 0, (uint)width, (uint)height, 1, 1);
