@@ -492,14 +492,14 @@ namespace osu.Framework.Graphics.Veldrid
             pipeline.Outputs = framebuffer.OutputDescription;
         }
 
-        public void BindVertexBuffer<T>(VeldridVertexBuffer<T> buffer)
+        public void BindVertexBuffer<T>(IVeldridVertexBuffer<T> buffer)
             where T : unmanaged, IEquatable<T>, IVertex
         {
             if (buffer == boundVertexBuffer)
                 return;
 
             Commands.SetVertexBuffer(0, buffer.Buffer);
-            pipeline.ShaderSet.VertexLayouts[0] = buffer.Layout;
+            pipeline.ShaderSet.VertexLayouts[0] = IVeldridVertexBuffer<T>.LAYOUT;
 
             FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
 

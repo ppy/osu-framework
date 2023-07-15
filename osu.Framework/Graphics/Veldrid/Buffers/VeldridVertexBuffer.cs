@@ -7,7 +7,6 @@ using osu.Framework.Development;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Veldrid.Buffers.Staging;
-using osu.Framework.Graphics.Veldrid.Vertices;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using Veldrid;
@@ -15,28 +14,30 @@ using BufferUsage = Veldrid.BufferUsage;
 
 namespace osu.Framework.Graphics.Veldrid.Buffers
 {
-    internal class VeldridVertexBuffer<T> : IVertexBuffer
+    internal class VeldridVertexBuffer<T> : IVeldridVertexBuffer<T>
         where T : unmanaged, IEquatable<T>, IVertex
     {
-        protected static readonly int STRIDE = VeldridVertexUtils<DepthWrappingVertex<T>>.STRIDE;
-
         private readonly VeldridRenderer renderer;
 
         private NativeMemoryTracker.NativeMemoryLease? memoryLease;
         private IStagingBuffer<DepthWrappingVertex<T>>? stagingBuffer;
 
-        public DeviceBuffer? Buffer { get; private set; }
+        private DeviceBuffer? buffer;
 
-        public VertexLayoutDescription Layout { get; }
+        DeviceBuffer IVeldridVertexBuffer<T>.Buffer => buffer ?? throw new InvalidOperationException("The buffer is not initialised yet.");
 
         private int lastWrittenVertexIndex = -1;
+
+        /// <summary>
+        /// Gets the number of vertices in this <see cref="VeldridVertexBuffer{T}"/>.
+        /// </summary>
+        public int Size { get; }
 
         public VeldridVertexBuffer(VeldridRenderer renderer, int amountVertices)
         {
             this.renderer = renderer;
 
             Size = amountVertices;
-            Layout = VeldridVertexUtils<DepthWrappingVertex<T>>.Layout;
         }
 
         /// <summary>
@@ -61,23 +62,44 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             return isNewVertex;
         }
 
-        /// <summary>
-        /// Gets the number of vertices in this <see cref="VeldridVertexBuffer{T}"/>.
-        /// </summary>
-        public int Size { get; }
+        public void UpdateRange(int startIndex, int endIndex)
+        {
+            if (buffer == null)
+                initialiseGpuBuffer();
 
-        /// <summary>
-        /// Initialises this <see cref="VeldridVertexBuffer{T}"/>. Guaranteed to be run on the draw thread.
-        /// </summary>
-        protected virtual void Initialise()
+            Debug.Assert(stagingBuffer != null);
+            Debug.Assert(buffer != null);
+
+            int countVertices = endIndex - startIndex;
+            stagingBuffer.CopyTo(buffer, (uint)startIndex, (uint)startIndex, (uint)countVertices);
+
+            FrameStatistics.Add(StatisticsCounterType.VerticesUpl, countVertices);
+        }
+
+        private void initialiseGpuBuffer()
         {
             ThreadSafety.EnsureDrawThread();
 
             getMemory();
             Debug.Assert(stagingBuffer != null);
 
-            Buffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)(Size * STRIDE), BufferUsage.VertexBuffer | stagingBuffer.CopyTargetUsageFlags));
-            memoryLease = NativeMemoryTracker.AddMemory(this, Buffer.SizeInBytes);
+            buffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)(Size * IVeldridVertexBuffer<T>.STRIDE), BufferUsage.VertexBuffer | stagingBuffer.CopyTargetUsageFlags));
+            memoryLease = NativeMemoryTracker.AddMemory(this, buffer.SizeInBytes);
+        }
+
+        private Span<DepthWrappingVertex<T>> getMemory()
+        {
+            ThreadSafety.EnsureDrawThread();
+
+            if (!InUse)
+            {
+                stagingBuffer = renderer.CreateStagingBuffer<DepthWrappingVertex<T>>((uint)Size);
+                renderer.RegisterVertexBufferUse(this);
+            }
+
+            LastUseFrameIndex = renderer.FrameIndex;
+
+            return stagingBuffer!.Data;
         }
 
         ~VeldridVertexBuffer()
@@ -103,35 +125,6 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             IsDisposed = true;
         }
 
-        internal void UpdateRange(int startIndex, int endIndex)
-        {
-            if (Buffer == null)
-                Initialise();
-
-            Debug.Assert(stagingBuffer != null);
-            Debug.Assert(Buffer != null);
-
-            int countVertices = endIndex - startIndex;
-            stagingBuffer.CopyTo(Buffer, (uint)startIndex, (uint)startIndex, (uint)countVertices);
-
-            FrameStatistics.Add(StatisticsCounterType.VerticesUpl, countVertices);
-        }
-
-        private Span<DepthWrappingVertex<T>> getMemory()
-        {
-            ThreadSafety.EnsureDrawThread();
-
-            if (!InUse)
-            {
-                stagingBuffer = renderer.CreateStagingBuffer<DepthWrappingVertex<T>>((uint)Size);
-                renderer.RegisterVertexBufferUse(this);
-            }
-
-            LastUseFrameIndex = renderer.FrameIndex;
-
-            return stagingBuffer!.Data;
-        }
-
         public ulong LastUseFrameIndex { get; private set; }
 
         public bool InUse => LastUseFrameIndex > 0;
@@ -144,8 +137,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             stagingBuffer?.Dispose();
             stagingBuffer = null;
 
-            Buffer?.Dispose();
-            Buffer = null;
+            buffer?.Dispose();
+            buffer = null;
 
             LastUseFrameIndex = 0;
         }

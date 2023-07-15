@@ -29,17 +29,19 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         /// <summary>
         /// Multiple VBOs in a swap chain to try our best to avoid GPU contention.
         /// </summary>
-        private readonly List<VeldridVertexBuffer<T>>[] vertexBuffers = new List<VeldridVertexBuffer<T>>[FrameworkEnvironment.VertexBufferCount ?? vertex_buffer_count];
+        private readonly List<IVeldridVertexBuffer<T>>[] vertexBuffers = new List<IVeldridVertexBuffer<T>>[FrameworkEnvironment.VertexBufferCount ?? vertex_buffer_count];
 
-        private List<VeldridVertexBuffer<T>> currentVertexBuffers => vertexBuffers[renderer.FrameIndex % (ulong)vertexBuffers.Length];
+        private List<IVeldridVertexBuffer<T>> currentVertexBuffers => vertexBuffers[renderer.FrameIndex % (ulong)vertexBuffers.Length];
 
         /// <summary>
         /// The number of vertices in each VertexBuffer.
         /// </summary>
         public int Size { get; }
 
-        private int changeBeginIndex = -1;
-        private int changeEndIndex = -1;
+        // this represents the range of vertices that require synchronisation with the GPU before issuing a draw call.
+        // this is left unused on VBO implementations that don't require synchronisation.
+        private int synchronisationBeginIndex = -1;
+        private int synchronisationEndIndex = -1;
 
         private int currentBufferIndex;
         private int currentVertexIndex;
@@ -57,7 +59,7 @@ namespace osu.Framework.Graphics.Veldrid.Batches
             AddAction = Add;
 
             for (int i = 0; i < vertexBuffers.Length; i++)
-                vertexBuffers[i] = new List<VeldridVertexBuffer<T>>();
+                vertexBuffers[i] = new List<IVeldridVertexBuffer<T>>();
         }
 
         #region Disposal
@@ -74,7 +76,7 @@ namespace osu.Framework.Graphics.Veldrid.Batches
             {
                 for (int i = 0; i < vertexBuffers.Length; i++)
                 {
-                    foreach (VeldridVertexBuffer<T> vbo in vertexBuffers[i])
+                    foreach (IVeldridVertexBuffer<T> vbo in vertexBuffers[i])
                         vbo.Dispose();
                 }
             }
@@ -84,13 +86,13 @@ namespace osu.Framework.Graphics.Veldrid.Batches
 
         void IVertexBatch.ResetCounters()
         {
-            changeBeginIndex = -1;
+            synchronisationBeginIndex = -1;
             currentBufferIndex = 0;
             currentVertexIndex = 0;
             currentDrawIndex = 0;
         }
 
-        protected VeldridVertexBuffer<T> CreateVertexBuffer(VeldridRenderer renderer) => new VeldridVertexBuffer<T>(renderer, Size);
+        protected IVeldridVertexBuffer<T> CreateVertexBuffer(VeldridRenderer renderer) => new VeldridVertexBuffer<T>(renderer, Size);
 
         /// <summary>
         /// Adds a vertex to this <see cref="VeldridVertexBatch{T}"/>.
@@ -118,10 +120,10 @@ namespace osu.Framework.Graphics.Veldrid.Batches
 
             if (buffers[currentBufferIndex].SetVertex(currentVertexIndex, v))
             {
-                if (changeBeginIndex == -1)
-                    changeBeginIndex = currentVertexIndex;
+                if (synchronisationBeginIndex == -1)
+                    synchronisationBeginIndex = currentVertexIndex;
 
-                changeEndIndex = currentVertexIndex + 1;
+                synchronisationEndIndex = currentVertexIndex + 1;
             }
 
             ++currentVertexIndex;
@@ -145,10 +147,10 @@ namespace osu.Framework.Graphics.Veldrid.Batches
 
             int verticesCount = currentVertexIndex - currentDrawIndex;
 
-            VeldridVertexBuffer<T> buffer = buffers[currentBufferIndex];
+            IVeldridVertexBuffer<T> buffer = buffers[currentBufferIndex];
 
-            if (changeBeginIndex >= 0)
-                buffer.UpdateRange(changeBeginIndex, changeEndIndex);
+            if (synchronisationBeginIndex >= 0)
+                buffer.UpdateRange(synchronisationBeginIndex, synchronisationEndIndex);
 
             renderer.BindVertexBuffer(buffer);
             renderer.BindIndexBuffer(VeldridIndexLayout.Quad, Size);
@@ -156,7 +158,7 @@ namespace osu.Framework.Graphics.Veldrid.Batches
 
             // When using multiple buffers we advance to the next one with every draw to prevent contention on the same buffer with future vertex updates.
             currentDrawIndex = currentVertexIndex;
-            changeBeginIndex = -1;
+            synchronisationBeginIndex = -1;
 
             FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
             FrameStatistics.Add(StatisticsCounterType.VerticesDraw, verticesCount);
