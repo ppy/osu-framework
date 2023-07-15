@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Veldrid.Buffers;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
+using PrimitiveTopology = Veldrid.PrimitiveTopology;
 
 namespace osu.Framework.Graphics.Veldrid.Batches
 {
@@ -45,11 +46,13 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         private int currentDrawIndex;
 
         private readonly VeldridRenderer renderer;
+        private readonly PrimitiveTopology primitiveType;
 
-        protected VeldridVertexBatch(VeldridRenderer renderer, int bufferSize)
+        protected VeldridVertexBatch(VeldridRenderer renderer, int size, PrimitiveTopology primitiveType)
         {
-            Size = bufferSize;
+            Size = size;
             this.renderer = renderer;
+            this.primitiveType = primitiveType;
 
             AddAction = Add;
 
@@ -87,7 +90,7 @@ namespace osu.Framework.Graphics.Veldrid.Batches
             currentDrawIndex = 0;
         }
 
-        protected abstract VeldridVertexBuffer<T> CreateVertexBuffer(VeldridRenderer renderer);
+        protected VeldridVertexBuffer<T> CreateVertexBuffer(VeldridRenderer renderer) => new VeldridVertexBuffer<T>(renderer, Size);
 
         /// <summary>
         /// Adds a vertex to this <see cref="VeldridVertexBatch{T}"/>.
@@ -140,23 +143,25 @@ namespace osu.Framework.Graphics.Veldrid.Batches
             if (buffers.Count == 0)
                 return 0;
 
+            int verticesCount = currentVertexIndex - currentDrawIndex;
+
             VeldridVertexBuffer<T> buffer = buffers[currentBufferIndex];
 
             if (changeBeginIndex >= 0)
                 buffer.UpdateRange(changeBeginIndex, changeEndIndex);
 
-            buffer.DrawRange(currentDrawIndex, currentVertexIndex);
-
-            int count = currentVertexIndex - currentDrawIndex;
+            renderer.BindVertexBuffer(buffer);
+            renderer.BindIndexBuffer(VeldridIndexLayout.Quad, Size);
+            renderer.DrawVertices(primitiveType, currentDrawIndex, verticesCount);
 
             // When using multiple buffers we advance to the next one with every draw to prevent contention on the same buffer with future vertex updates.
             currentDrawIndex = currentVertexIndex;
             changeBeginIndex = -1;
 
             FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
-            FrameStatistics.Add(StatisticsCounterType.VerticesDraw, count);
+            FrameStatistics.Add(StatisticsCounterType.VerticesDraw, verticesCount);
 
-            return count;
+            return verticesCount;
         }
     }
 }

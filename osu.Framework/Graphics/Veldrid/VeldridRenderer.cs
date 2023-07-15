@@ -11,6 +11,7 @@ using System.Threading;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Veldrid.Batches;
@@ -82,8 +83,8 @@ namespace osu.Framework.Graphics.Veldrid
         /// </summary>
         private readonly Queue<Fence> perFrameFencePool = new Queue<Fence>();
 
-        public VeldridIndexData SharedLinearIndex { get; }
-        public VeldridIndexData SharedQuadIndex { get; }
+        private VeldridIndexBuffer? linearIndexBuffer;
+        private VeldridIndexBuffer? quadIndexBuffer;
 
         private readonly VeldridStagingTexturePool stagingTexturePool;
 
@@ -91,7 +92,9 @@ namespace osu.Framework.Graphics.Veldrid
         private readonly Dictionary<int, VeldridTextureResources> boundTextureUnits = new Dictionary<int, VeldridTextureResources>();
         private readonly Dictionary<string, IVeldridUniformBuffer> boundUniformBuffers = new Dictionary<string, IVeldridUniformBuffer>();
         private IGraphicsSurface graphicsSurface = null!;
-        private DeviceBuffer? boundVertexBuffer;
+
+        private IVertexBuffer? boundVertexBuffer;
+        private VeldridIndexBuffer? boundIndexBuffer;
 
         private GraphicsPipelineDescription pipeline = new GraphicsPipelineDescription
         {
@@ -104,8 +107,6 @@ namespace osu.Framework.Graphics.Veldrid
 
         public VeldridRenderer()
         {
-            SharedLinearIndex = new VeldridIndexData(this);
-            SharedQuadIndex = new VeldridIndexData(this);
             stagingTexturePool = new VeldridStagingTexturePool(this);
         }
 
@@ -491,20 +492,35 @@ namespace osu.Framework.Graphics.Veldrid
             pipeline.Outputs = framebuffer.OutputDescription;
         }
 
-        public void BindVertexBuffer(DeviceBuffer buffer, VertexLayoutDescription layout)
+        public void BindVertexBuffer<T>(VeldridVertexBuffer<T> buffer)
+            where T : unmanaged, IEquatable<T>, IVertex
         {
             if (buffer == boundVertexBuffer)
                 return;
 
-            Commands.SetVertexBuffer(0, buffer);
-            pipeline.ShaderSet.VertexLayouts[0] = layout;
+            Commands.SetVertexBuffer(0, buffer.Buffer);
+            pipeline.ShaderSet.VertexLayouts[0] = buffer.Layout;
 
             FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
 
             boundVertexBuffer = buffer;
         }
 
-        public void BindIndexBuffer(DeviceBuffer buffer, IndexFormat format) => Commands.SetIndexBuffer(buffer, format);
+        public void BindIndexBuffer(VeldridIndexLayout layout, int verticesCount)
+        {
+            ref var indexBuffer = ref layout == VeldridIndexLayout.Quad
+                ? ref quadIndexBuffer
+                : ref linearIndexBuffer;
+
+            if (indexBuffer == null || indexBuffer.VertexCapacity < verticesCount)
+            {
+                indexBuffer?.Dispose();
+                indexBuffer = new VeldridIndexBuffer(this, layout, verticesCount);
+            }
+
+            Commands.SetIndexBuffer(indexBuffer.Buffer, VeldridIndexBuffer.FORMAT);
+            boundIndexBuffer = indexBuffer;
+        }
 
         public void BindUniformBuffer(string blockName, IVeldridUniformBuffer veldridBuffer)
         {
@@ -512,7 +528,7 @@ namespace osu.Framework.Graphics.Veldrid
             boundUniformBuffers[blockName] = veldridBuffer;
         }
 
-        public void DrawVertices(PrimitiveTopology type, int indexStart, int indicesCount)
+        public void DrawVertices(PrimitiveTopology type, int vertexStart, int verticesCount)
         {
             // normally we would flush/submit all texture upload commands at the end of the frame, since no actual rendering by the GPU will happen until then,
             // but turns out on macOS with non-apple GPU, this results in rendering corruption.
@@ -569,6 +585,10 @@ namespace osu.Framework.Graphics.Veldrid
                 Commands.SetGraphicsResourceSet((uint)layout.Set, buffer.GetResourceSet(layout.Layout));
             }
 
+            Debug.Assert(boundIndexBuffer != null);
+
+            int indexStart = boundIndexBuffer.TranslateToIndex(vertexStart);
+            int indicesCount = boundIndexBuffer.TranslateToIndex(verticesCount);
             Commands.DrawIndexed((uint)indicesCount, 1, (uint)indexStart, 0, 0);
         }
 

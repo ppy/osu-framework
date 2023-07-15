@@ -12,11 +12,10 @@ using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using Veldrid;
 using BufferUsage = Veldrid.BufferUsage;
-using PrimitiveTopology = Veldrid.PrimitiveTopology;
 
 namespace osu.Framework.Graphics.Veldrid.Buffers
 {
-    internal abstract class VeldridVertexBuffer<T> : IVertexBuffer
+    internal class VeldridVertexBuffer<T> : IVertexBuffer
         where T : unmanaged, IEquatable<T>, IVertex
     {
         protected static readonly int STRIDE = VeldridVertexUtils<DepthWrappingVertex<T>>.STRIDE;
@@ -25,15 +24,19 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         private NativeMemoryTracker.NativeMemoryLease? memoryLease;
         private IStagingBuffer<DepthWrappingVertex<T>>? stagingBuffer;
-        private DeviceBuffer? gpuBuffer;
+
+        public DeviceBuffer? Buffer { get; private set; }
+
+        public VertexLayoutDescription Layout { get; }
 
         private int lastWrittenVertexIndex = -1;
 
-        protected VeldridVertexBuffer(VeldridRenderer renderer, int amountVertices)
+        public VeldridVertexBuffer(VeldridRenderer renderer, int amountVertices)
         {
             this.renderer = renderer;
 
             Size = amountVertices;
+            Layout = VeldridVertexUtils<DepthWrappingVertex<T>>.Layout;
         }
 
         /// <summary>
@@ -73,8 +76,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             getMemory();
             Debug.Assert(stagingBuffer != null);
 
-            gpuBuffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)(Size * STRIDE), BufferUsage.VertexBuffer | stagingBuffer.CopyTargetUsageFlags));
-            memoryLease = NativeMemoryTracker.AddMemory(this, gpuBuffer.SizeInBytes);
+            Buffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)(Size * STRIDE), BufferUsage.VertexBuffer | stagingBuffer.CopyTargetUsageFlags));
+            memoryLease = NativeMemoryTracker.AddMemory(this, Buffer.SizeInBytes);
         }
 
         ~VeldridVertexBuffer()
@@ -100,48 +103,16 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             IsDisposed = true;
         }
 
-        public virtual void Bind()
-        {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not bind disposed vertex buffers.");
-
-            if (gpuBuffer == null)
-                Initialise();
-
-            Debug.Assert(gpuBuffer != null);
-            renderer.BindVertexBuffer(gpuBuffer, VeldridVertexUtils<DepthWrappingVertex<T>>.Layout);
-        }
-
-        public virtual void Unbind()
-        {
-        }
-
-        protected virtual int ToElements(int vertices) => vertices;
-
-        protected virtual int ToElementIndex(int vertexIndex) => vertexIndex;
-
-        protected abstract PrimitiveTopology Type { get; }
-
-        public void DrawRange(int startIndex, int endIndex)
-        {
-            Bind();
-
-            int countVertices = endIndex - startIndex;
-            renderer.DrawVertices(Type, ToElementIndex(startIndex), ToElements(countVertices));
-
-            Unbind();
-        }
-
         internal void UpdateRange(int startIndex, int endIndex)
         {
-            if (gpuBuffer == null)
+            if (Buffer == null)
                 Initialise();
 
             Debug.Assert(stagingBuffer != null);
-            Debug.Assert(gpuBuffer != null);
+            Debug.Assert(Buffer != null);
 
             int countVertices = endIndex - startIndex;
-            stagingBuffer.CopyTo(gpuBuffer, (uint)startIndex, (uint)startIndex, (uint)countVertices);
+            stagingBuffer.CopyTo(Buffer, (uint)startIndex, (uint)startIndex, (uint)countVertices);
 
             FrameStatistics.Add(StatisticsCounterType.VerticesUpl, countVertices);
         }
@@ -173,8 +144,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             stagingBuffer?.Dispose();
             stagingBuffer = null;
 
-            gpuBuffer?.Dispose();
-            gpuBuffer = null;
+            Buffer?.Dispose();
+            Buffer = null;
 
             LastUseFrameIndex = 0;
         }
