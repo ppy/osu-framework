@@ -92,7 +92,12 @@ namespace osu.Framework.Graphics.Veldrid.Batches
             currentDrawIndex = 0;
         }
 
-        protected IVeldridVertexBuffer<T> CreateVertexBuffer(VeldridRenderer renderer) => new VeldridVertexBuffer<T>(renderer, Size);
+        protected IVeldridVertexBuffer<T> CreateVertexBuffer(VeldridRenderer renderer)
+        {
+            return renderer.SurfaceType == GraphicsSurfaceType.Metal
+                ? new VeldridMetalVertexBuffer<T>(renderer, Size)
+                : new VeldridVertexBuffer<T>(renderer, Size);
+        }
 
         /// <summary>
         /// Adds a vertex to this <see cref="VeldridVertexBatch{T}"/>.
