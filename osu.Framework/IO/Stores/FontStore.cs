@@ -5,6 +5,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Rendering;
@@ -27,7 +28,7 @@ namespace osu.Framework.IO.Stores
         /// A local cache to avoid string allocation overhead. Can be changed to (string,char)=>string if this ever becomes an issue,
         /// but as long as we directly inherit <see cref="TextureStore"/> this is a slight optimisation.
         /// </summary>
-        private readonly ConcurrentDictionary<(string, char), ITexturedCharacterGlyph> namespacedGlyphCache = new ConcurrentDictionary<(string, char), ITexturedCharacterGlyph>();
+        private readonly ConcurrentDictionary<(string, Rune), ITexturedCharacterGlyph> namespacedGlyphCache = new ConcurrentDictionary<(string, Rune), ITexturedCharacterGlyph>();
 
         /// <summary>
         /// Construct a font store to be added to a parent font store via <see cref="AddStore"/>.
@@ -131,7 +132,7 @@ namespace osu.Framework.IO.Stores
             base.RemoveStore(store);
         }
 
-        public ITexturedCharacterGlyph Get(string fontName, char character)
+        public ITexturedCharacterGlyph Get(string fontName, Rune character)
         {
             var key = (fontName, character);
 
@@ -156,6 +157,6 @@ namespace osu.Framework.IO.Stores
             return namespacedGlyphCache[key] = null;
         }
 
-        public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => Task.Run(() => Get(fontName, character));
+        public Task<ITexturedCharacterGlyph> GetAsync(string fontName, Rune character) => Task.Run(() => Get(fontName, character));
     }
 }

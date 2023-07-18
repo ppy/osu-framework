@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
@@ -66,7 +68,7 @@ namespace osu.Framework.Graphics.Sprites
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
 
             // Pre-cache the characters in the texture store
-            foreach (char character in localisedText.Value)
+            foreach (var character in localisedText.Value.EnumerateRunes())
             {
                 var unused = store.Get(font.FontName, character) ?? store.Get(null, character);
             }
@@ -554,7 +556,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <returns>The <see cref="TextBuilder"/>.</returns>
         protected virtual TextBuilder CreateTextBuilder(ITexturedGlyphLookupStore store)
         {
-            char[] excludeCharacters = FixedWidthExcludeCharacters ?? default_never_fixed_width_characters;
+            Rune[] excludeCharacters = (FixedWidthExcludeCharacters ?? default_never_fixed_width_characters).Select(c => new Rune(c)).ToArray();
 
             float builderMaxWidth = requiresAutoSizedWidth
                 ? MaxWidth
