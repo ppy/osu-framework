@@ -628,6 +628,31 @@ namespace osu.Framework.Tests.Text
             Assert.That(builder.Bounds, Is.EqualTo(Vector2.Zero));
         }
 
+        [Test]
+        public void TestSupplementaryCharactersAreOneCharacter()
+        {
+            var builder = new TextBuilder(fontStore, normal_font);
+
+            builder.AddText("🙂"); // 🙂 is U+1F642, which is greater than char.MaxValue (0xFFFF)
+
+            Assert.That(builder.Characters, Has.Count.EqualTo(1));
+        }
+
+        [Test]
+        public void TestMalformedUtf16()
+        {
+            const char fallback_character = '?';
+            // surrogate character without a pair is invalid
+            const string malformed_utf16 = "abc\uD800xyz";
+
+            Assume.That(char.IsSurrogate(malformed_utf16, 3));
+
+            var builder = new TextBuilder(fontStore, normal_font, fallbackCharacter: fallback_character);
+            builder.AddText(malformed_utf16);
+
+            Assert.That(builder.Characters[3].Character, Is.EqualTo(fallback_character));
+        }
+
         [TearDown]
         public void TearDown()
         {
