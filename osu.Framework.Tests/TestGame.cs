@@ -16,6 +16,7 @@ namespace osu.Framework.Tests
         private void load()
         {
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(TestGame).Assembly), "Resources"));
+            AddFont(Resources, @"Fonts/NotoEmoji/NotoEmoji");
         }
 
         protected override bool OnExiting() => BlockExit.Value;
