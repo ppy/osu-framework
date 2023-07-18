@@ -128,6 +128,8 @@ namespace osu.Framework.IO.Stores
 
             var bmCharacter = Font.GetCharacter(character);
 
+            Debug.Assert(bmCharacter != null);
+
             return new CharacterGlyph(character, bmCharacter.XOffset, bmCharacter.YOffset, bmCharacter.XAdvance, Baseline.Value, this);
         }
 
