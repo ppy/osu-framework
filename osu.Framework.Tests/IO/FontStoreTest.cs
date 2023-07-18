@@ -51,7 +51,7 @@ namespace osu.Framework.Tests.IO
             using (var glyphStore = new RawCachingGlyphStore(fontResourceStore, "DoesntExist") { CacheStorage = storage })
             using (var fontStore = new FontStore(new DummyRenderer(), glyphStore, 100))
             {
-                Assert.That(glyphStore.Get((Rune)'a'), Is.Null);
+                Assert.That(glyphStore.Get(new Rune('a')), Is.Null);
 
                 Assert.That(fontStore.Get("DoesntExist", new Rune('a')), Is.Null);
                 Assert.That(fontStore.Get("OtherAttempt", new Rune('a')), Is.Null);
