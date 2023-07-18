@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System.Text;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Rendering.Dummy;
@@ -33,10 +34,10 @@ namespace osu.Framework.Tests.IO
             {
                 fontStore.AddStore(nestedFontStore);
 
-                var normalGlyph = (TexturedCharacterGlyph)fontStore.Get("Roboto-Regular", 'a');
+                var normalGlyph = (TexturedCharacterGlyph)fontStore.Get("Roboto-Regular", new Rune('a'));
                 Assert.That(normalGlyph, Is.Not.Null);
 
-                var boldGlyph = (TexturedCharacterGlyph)fontStore.Get("Roboto-Bold", 'a');
+                var boldGlyph = (TexturedCharacterGlyph)fontStore.Get("Roboto-Bold", new Rune('a'));
                 Assert.That(boldGlyph, Is.Not.Null);
 
                 Assert.That(normalGlyph.Scale, Is.EqualTo(1f / 100));
@@ -50,10 +51,10 @@ namespace osu.Framework.Tests.IO
             using (var glyphStore = new RawCachingGlyphStore(fontResourceStore, "DoesntExist") { CacheStorage = storage })
             using (var fontStore = new FontStore(new DummyRenderer(), glyphStore, 100))
             {
-                Assert.That(glyphStore.Get('a'), Is.Null);
+                Assert.That(glyphStore.Get((Rune)'a'), Is.Null);
 
-                Assert.That(fontStore.Get("DoesntExist", 'a'), Is.Null);
-                Assert.That(fontStore.Get("OtherAttempt", 'a'), Is.Null);
+                Assert.That(fontStore.Get("DoesntExist", new Rune('a')), Is.Null);
+                Assert.That(fontStore.Get("OtherAttempt", new Rune('a')), Is.Null);
             }
         }
 
