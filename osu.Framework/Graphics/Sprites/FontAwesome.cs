@@ -9,11 +9,13 @@
 // ReSharper disable MemberHidesStaticFromOuterClass
 // ReSharper disable InvalidXmlDocComment
 
+using System.Text;
+
 namespace osu.Framework.Graphics.Sprites
 {
     public static class FontAwesome
     {
-        public static IconUsage Get(int icon) => new IconUsage((char)icon, "FontAwesome");
+        public static IconUsage Get(int icon) => new IconUsage(new Rune(icon), "FontAwesome");
 
         public static class Brands
         {

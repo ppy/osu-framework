@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
@@ -26,8 +27,8 @@ namespace osu.Framework.Text
         public readonly List<TextBuilderGlyph> Characters;
 
         private readonly char[] neverFixedWidthCharacters;
-        private readonly char fallbackCharacter;
-        private readonly char fixedWidthReferenceCharacter;
+        private readonly Rune fallbackCharacter;
+        private readonly Rune fixedWidthReferenceCharacter;
         private readonly ITexturedGlyphLookupStore store;
         private readonly FontUsage font;
         private readonly bool useFontSizeAsHeight;
@@ -82,8 +83,8 @@ namespace osu.Framework.Text
 
             Characters = characterList ?? new List<TextBuilderGlyph>();
             this.neverFixedWidthCharacters = neverFixedWidthCharacters ?? Array.Empty<char>();
-            this.fallbackCharacter = fallbackCharacter;
-            this.fixedWidthReferenceCharacter = fixedWidthReferenceCharacter;
+            this.fallbackCharacter = new Rune(fallbackCharacter);
+            this.fixedWidthReferenceCharacter = new Rune(fixedWidthReferenceCharacter);
 
             currentPos = startOffset;
         }
@@ -113,7 +114,7 @@ namespace osu.Framework.Text
         /// <param name="text">The text to append.</param>
         public void AddText(string text)
         {
-            foreach (char c in text)
+            foreach (var c in text.EnumerateRunes())
             {
                 if (!AddCharacter(c))
                     break;
@@ -125,7 +126,7 @@ namespace osu.Framework.Text
         /// </summary>
         /// <param name="character">The character to append.</param>
         /// <returns>Whether characters can still be added.</returns>
-        public bool AddCharacter(char character)
+        public bool AddCharacter(Rune character)
         {
             if (!CanAddCharacters)
                 return false;
@@ -332,7 +333,7 @@ namespace osu.Framework.Text
 
         private float getConstantWidth() => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getTexturedGlyph(fixedWidthReferenceCharacter)?.Width ?? 0;
 
-        private bool tryCreateGlyph(char character, out TextBuilderGlyph glyph)
+        private bool tryCreateGlyph(Rune character, out TextBuilderGlyph glyph)
         {
             var fontStoreGlyph = getTexturedGlyph(character);
 
@@ -343,7 +344,7 @@ namespace osu.Framework.Text
             }
 
             // Array.IndexOf is used to avoid LINQ
-            if (font.FixedWidth && Array.IndexOf(neverFixedWidthCharacters, character) == -1)
+            if (font.FixedWidth && Array.IndexOf(neverFixedWidthCharacters, (char)character.Value) == -1)
                 glyph = new TextBuilderGlyph(fontStoreGlyph, font.Size, getConstantWidth(), useFontSizeAsHeight);
             else
                 glyph = new TextBuilderGlyph(fontStoreGlyph, font.Size, useFontSizeAsHeight: useFontSizeAsHeight);
@@ -351,7 +352,7 @@ namespace osu.Framework.Text
             return true;
         }
 
-        private ITexturedCharacterGlyph? getTexturedGlyph(char character)
+        private ITexturedCharacterGlyph? getTexturedGlyph(Rune character)
         {
             return store.Get(font.FontName, character)
                    ?? store.Get(string.Empty, character)

@@ -13,6 +13,7 @@ namespace osu.Framework.Tests.Visual
         private void load()
         {
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(FrameworkTestScene).Assembly), "Resources"));
+            AddFont(Resources, @"Fonts/NotoEmoji/NotoEmoji");
         }
     }
 }
