@@ -52,7 +52,7 @@ namespace osu.Framework.Testing
         /// <remarks>
         /// Defaults to <c>true</c>. Should be set to <c>false</c> if the first step in the first <see cref="TestAttribute">test</see> has unwanted-by-default behaviour.
         /// </remarks>
-        public virtual bool RunFirstActualStepOnLoad => true;
+        public virtual bool AutomaticallyRunFirstStep => true;
 
         private GameHost host;
         private Task runTask;

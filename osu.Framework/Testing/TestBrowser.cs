@@ -598,7 +598,7 @@ namespace osu.Framework.Testing
                     actualStepCount++;
 
                     // immediately stop if the test scene has requested it.
-                    if (!CurrentTest.RunFirstActualStepOnLoad)
+                    if (!CurrentTest.AutomaticallyRunFirstStep)
                         return true;
                 }
 

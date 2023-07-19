@@ -11,7 +11,7 @@ namespace osu.Framework.Tests.Visual.Platform
     [Ignore("This test cannot be run in headless mode (a window instance is required).")]
     public partial class TestSceneRaiseWindow : FrameworkTestScene
     {
-        public override bool RunFirstActualStepOnLoad => false;
+        public override bool AutomaticallyRunFirstStep => false;
 
         private IWindow window = null!;
 

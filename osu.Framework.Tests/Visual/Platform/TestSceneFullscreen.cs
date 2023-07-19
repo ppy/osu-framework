@@ -24,7 +24,7 @@ namespace osu.Framework.Tests.Visual.Platform
 {
     public partial class TestSceneFullscreen : FrameworkTestScene
     {
-        public override bool RunFirstActualStepOnLoad => false;
+        public override bool AutomaticallyRunFirstStep => false;
 
         private readonly SpriteText currentActualSize = new SpriteText();
         private readonly SpriteText currentDisplayMode = new SpriteText();

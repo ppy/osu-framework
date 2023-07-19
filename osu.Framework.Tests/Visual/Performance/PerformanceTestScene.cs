@@ -17,7 +17,7 @@ namespace osu.Framework.Tests.Visual.Performance
     {
         protected override Container<Drawable> Content => content;
 
-        public override bool RunFirstActualStepOnLoad => false;
+        public override bool AutomaticallyRunFirstStep => false;
 
         private Container content = null!;
 

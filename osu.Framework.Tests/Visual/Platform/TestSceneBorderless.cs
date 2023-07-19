@@ -17,7 +17,7 @@ namespace osu.Framework.Tests.Visual.Platform
     [Ignore("This test cannot run in headless mode (a window instance is required).")]
     public partial class TestSceneBorderless : FrameworkTestScene
     {
-        public override bool RunFirstActualStepOnLoad => false;
+        public override bool AutomaticallyRunFirstStep => false;
 
         private readonly SpriteText currentActualSize = new SpriteText();
         private readonly SpriteText currentClientSize = new SpriteText();
