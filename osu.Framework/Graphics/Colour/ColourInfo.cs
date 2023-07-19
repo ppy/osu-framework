@@ -95,6 +95,29 @@ namespace osu.Framework.Graphics.Colour
             (1 - interp.Y) * ((1 - interp.X) * TopLeft.ToVector() + interp.X * TopRight.ToVector()) +
             interp.Y * ((1 - interp.X) * BottomLeft.ToVector() + interp.X * BottomRight.ToVector()));
 
+        /// <summary>
+        /// Interpolates this <see cref="ColourInfo"/> across a quad.
+        /// </summary>
+        /// <remarks>
+        /// This method is especially useful when working with multi-colour <see cref="ColourInfo"/>s.
+        /// When such a colour is interpolated across a quad that is a subset of the unit quad (0, 0, 1, 1),
+        /// the resulting colour can be thought of as the the original colour but "cropped" to the bounds of the subquad.
+        /// </remarks>
+        public readonly ColourInfo Interpolate(Quad quad)
+        {
+            if (HasSingleColour)
+                return this;
+
+            return new ColourInfo
+            {
+                TopLeft = Interpolate(quad.TopLeft),
+                TopRight = Interpolate(quad.TopRight),
+                BottomLeft = Interpolate(quad.BottomLeft),
+                BottomRight = Interpolate(quad.BottomRight),
+                HasSingleColour = false
+            };
+        }
+
         public void ApplyChild(ColourInfo childColour)
         {
             if (!HasSingleColour)
@@ -207,10 +230,10 @@ namespace osu.Framework.Graphics.Colour
         {
             get
             {
-                float max = TopLeft.Linear.A;
-                if (TopRight.Linear.A > max) max = TopRight.Linear.A;
-                if (BottomLeft.Linear.A > max) max = BottomLeft.Linear.A;
-                if (BottomRight.Linear.A > max) max = BottomRight.Linear.A;
+                float max = TopLeft.Alpha;
+                if (TopRight.Alpha > max) max = TopRight.Alpha;
+                if (BottomLeft.Alpha > max) max = BottomLeft.Alpha;
+                if (BottomRight.Alpha > max) max = BottomRight.Alpha;
 
                 return max;
             }
@@ -223,10 +246,10 @@ namespace osu.Framework.Graphics.Colour
         {
             get
             {
-                float min = TopLeft.Linear.A;
-                if (TopRight.Linear.A < min) min = TopRight.Linear.A;
-                if (BottomLeft.Linear.A < min) min = BottomLeft.Linear.A;
-                if (BottomRight.Linear.A < min) min = BottomRight.Linear.A;
+                float min = TopLeft.Alpha;
+                if (TopRight.Alpha < min) min = TopRight.Alpha;
+                if (BottomLeft.Alpha < min) min = BottomLeft.Alpha;
+                if (BottomRight.Alpha < min) min = BottomRight.Alpha;
 
                 return min;
             }

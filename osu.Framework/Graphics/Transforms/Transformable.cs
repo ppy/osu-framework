@@ -382,8 +382,7 @@ namespace osu.Framework.Graphics.Transforms
         {
             EnsureTransformMutationAllowed();
 
-            if (transform == null)
-                throw new ArgumentNullException(nameof(transform));
+            ArgumentNullException.ThrowIfNull(transform);
 
             if (!ReferenceEquals(transform.TargetTransformable, this))
             {

@@ -184,6 +184,11 @@ __bold with underscore__
 *__italic with asterisk, bold with underscore__*
 _**italic with underscore, bold with asterisk**_";
             });
+
+            AddStep("Wiki notice", () =>
+            {
+                markdownContainer.Text = @"*Notice: We are still figuring out game balance and mechanics. For now, **scores set on lazer should not be considered permanent**.*";
+            });
         }
 
         [Test]
@@ -314,6 +319,17 @@ soft break with '\'";
         {
             AddStep("set empty fenced block", () => markdownContainer.Text = @"```
 ```");
+        }
+
+        [Test]
+        public void TestFootnotes()
+        {
+            AddStep("set content", () => markdownContainer.Text = @"This text has a footnote[^test].
+
+Here's some more text[^test2] with another footnote!
+
+[^test]: This is a **footnote**.
+[^test2]: This is another footnote [with a link](https://google.com/)!");
         }
 
         private partial class TestMarkdownContainer : MarkdownContainer

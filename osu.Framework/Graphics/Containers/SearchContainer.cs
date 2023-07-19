@@ -81,9 +81,9 @@ namespace osu.Framework.Graphics.Containers
         private readonly Cached filterValid = new Cached();
         private readonly ICollection<IBindable<bool>> canBeShownBindables = new List<IBindable<bool>>();
 
-        protected override void InvalidateLayout()
+        protected override void AddInternal(Drawable drawable)
         {
-            base.InvalidateLayout();
+            base.AddInternal(drawable);
             filterValid.Invalidate();
         }
 
@@ -92,12 +92,30 @@ namespace osu.Framework.Graphics.Containers
             base.Update();
 
             if (!filterValid.IsValid)
-            {
-                canBeShownBindables.Clear();
-                performFilter();
-                filterValid.Validate();
-                FilterCompleted?.Invoke();
-            }
+                Filter();
+        }
+
+        /// <summary>
+        /// Immediately filter <see cref="IFilterable"/> children based on the current <see cref="SearchTerm"/>.
+        /// </summary>
+        /// <remarks>
+        /// Filtering is done automatically after a change to <see cref="SearchTerm"/>, on new drawables being added, and on certain changes to
+        /// searchable children (like <see cref="IConditionalFilterable.CanBeShown"/> changing).
+        ///
+        /// However, if <see cref="SearchContainer{T}"/> or any of its parents are hidden this will not be run.
+        /// If an implementation relies on filtering to become present / visible, this method can be used to force a filter.
+        ///
+        /// Note that this will only run if the current filter is not in an already valid state.
+        /// </remarks>
+        protected void Filter()
+        {
+            if (filterValid.IsValid)
+                return;
+
+            canBeShownBindables.Clear();
+            performFilter();
+            filterValid.Validate();
+            FilterCompleted?.Invoke();
         }
 
         private void performFilter()

@@ -72,12 +72,11 @@ namespace osu.Framework.Audio.Track
         internal TrackBass(Stream data, string name, bool quick = false)
             : base(name)
         {
-            if (data == null)
-                throw new ArgumentNullException(nameof(data));
+            ArgumentNullException.ThrowIfNull(data);
 
             relativeFrequencyHandler = new BassRelativeFrequencyHandler
             {
-                FrequencyChangedToZero = () => stopInternal(),
+                FrequencyChangedToZero = stopInternal,
                 FrequencyChangedFromZero = () =>
                 {
                     // Do not resume the track if a play wasn't requested at all or has been paused via Stop().

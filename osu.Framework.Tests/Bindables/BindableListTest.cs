@@ -53,7 +53,19 @@ namespace osu.Framework.Tests.Bindables
 
         #endregion
 
-        #region BindTarget
+        #region Bind
+
+        /// <summary>
+        /// Tests binding to a bindable that has already been bound.
+        /// </summary>
+        [Test]
+        public void TestBindToAlreadyBound()
+        {
+            BindableList<int> bindable1 = new BindableList<int>();
+            BindableList<int> bindable2 = bindable1.GetBoundCopy();
+
+            Assert.Throws<ArgumentException>(() => bindable1.BindTo(bindable2));
+        }
 
         /// <summary>
         /// Tests binding via the various <see cref="BindableList{T}.BindTarget"/> methods.
@@ -1051,6 +1063,36 @@ namespace osu.Framework.Tests.Bindables
 
             Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
             Assert.That(triggeredArgs.OldItems, Is.EquivalentTo(new[] { "0", "0" }));
+        }
+
+        #endregion
+
+        #region .ReplaceRange(index, count, newItems)
+
+        [Test]
+        public void TestReplaceRangeNotifiesBoundLists()
+        {
+            string[] items = { "A", "B" };
+
+            bindableStringList.Add("0");
+            bindableStringList.Add("1");
+
+            var list = new BindableList<string>();
+            list.BindTo(bindableStringList);
+
+            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            list.CollectionChanged += (_, args) => triggeredArgs = args;
+
+            bindableStringList.ReplaceRange(0, 1, items);
+
+            Assert.That(list, Is.EquivalentTo(bindableStringList));
+            Assert.That(list, Is.EquivalentTo(new[] { "A", "B", "1" }));
+
+            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Replace));
+            Assert.That(triggeredArgs.NewItems, Is.EquivalentTo(items));
+            Assert.That(triggeredArgs.NewStartingIndex, Is.EqualTo(0));
+            Assert.That(triggeredArgs.OldItems, Has.One.Items.EqualTo("0"));
+            Assert.That(triggeredArgs.OldStartingIndex, Is.EqualTo(0));
         }
 
         #endregion

@@ -1,29 +1,16 @@
-﻿varying highp vec2 v_MaskingPosition;
-varying lowp vec4 v_Colour;
+﻿#ifndef MASKING_H
+#define MASKING_H
+
+layout(location = 0) in highp vec2 v_MaskingPosition;
+layout(location = 1) in lowp vec4 v_Colour;
 
 #ifdef HIGH_PRECISION_VERTEX
-	varying highp vec4 v_TexRect;
+	layout(location = 3) in highp vec4 v_TexRect;
 #else
-	varying mediump vec4 v_TexRect;
+	layout(location = 3) in mediump vec4 v_TexRect;
 #endif
 
-varying mediump vec2 v_BlendRange;
-
-uniform highp float g_CornerRadius;
-uniform highp float g_CornerExponent;
-uniform bool g_IsMasking;
-uniform highp vec4 g_MaskingRect;
-uniform highp float g_BorderThickness;
-uniform lowp mat4 g_BorderColour;
-
-uniform mediump float g_MaskingBlendRange;
-
-uniform lowp float g_AlphaExponent;
-
-uniform highp vec2 g_EdgeOffset;
-
-uniform bool g_DiscardInner;
-uniform highp float g_InnerCornerRadius;
+layout(location = 4) in mediump vec2 v_BlendRange;
 
 highp float distanceFromRoundedRect(highp vec2 offset, highp float radius)
 {
@@ -78,7 +65,7 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 {
 	if (!g_IsMasking && v_BlendRange == vec2(0.0))
 	{
-		return toSRGB(v_Colour * texel);
+		return v_Colour * texel;
 	}
 
 	highp float dist = distanceFromRoundedRect(vec2(0.0), g_CornerRadius);
@@ -126,15 +113,19 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 	highp float borderStart = 1.0 + fadeStart - g_BorderThickness;
 	lowp float colourWeight = min(borderStart - dist, 1.0);
 
+	lowp vec4 contentColour = v_Colour * texel;
+
+	if (colourWeight == 1.0)
+		return vec4(contentColour.rgb, contentColour.a * alphaFactor);
+
 	lowp vec4 borderColour = getBorderColour();
 
 	if (colourWeight <= 0.0)
-	{
-		return toSRGB(vec4(borderColour.rgb, borderColour.a * alphaFactor));
-	}
+		return vec4(borderColour.rgb, borderColour.a * alphaFactor);
 
-	lowp vec4 dest = vec4(v_Colour.rgb, v_Colour.a * alphaFactor) * texel;
-	lowp vec4 src = vec4(borderColour.rgb, borderColour.a * (1.0 - colourWeight));
-
-	return blend(toSRGB(src), toSRGB(dest));
+	contentColour.a *= alphaFactor;
+	borderColour.a *= 1.0 - colourWeight;
+	return blend(borderColour, contentColour);
 }
+
+#endif

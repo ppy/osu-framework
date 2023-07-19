@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using osu.Framework.Configuration;
+using osu.Framework.Graphics.Rendering.Dummy;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Logging;
 using osu.Framework.Timing;
@@ -46,16 +47,22 @@ namespace osu.Framework.Platform
             this.realtime = realtime;
         }
 
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => null;
+
+        protected override Clipboard CreateClipboard() => new HeadlessClipboard();
+
+        protected override void ChooseAndSetupRenderer() => SetupRendererAndWindow(new DummyRenderer(), GraphicsSurfaceType.OpenGL);
+
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {
             defaultOverrides[FrameworkSetting.AudioDevice] = "No sound";
 
             base.SetupConfig(defaultOverrides);
 
-            if (Enum.TryParse<ExecutionMode>(Environment.GetEnvironmentVariable("OSU_EXECUTION_MODE"), out var mode))
+            if (FrameworkEnvironment.StartupExecutionMode != null)
             {
-                Config.SetValue(FrameworkSetting.ExecutionMode, mode);
-                Logger.Log($"Startup execution mode set to {mode} from envvar");
+                Config.SetValue(FrameworkSetting.ExecutionMode, FrameworkEnvironment.StartupExecutionMode.Value);
+                Logger.Log($"Startup execution mode set to {FrameworkEnvironment.StartupExecutionMode} from envvar");
             }
         }
 

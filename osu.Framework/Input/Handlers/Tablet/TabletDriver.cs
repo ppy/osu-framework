@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#if NET6_0_OR_GREATER
 using System;
 using System.Linq;
 using System.Threading;
@@ -97,4 +96,3 @@ namespace osu.Framework.Input.Handlers.Tablet
         }
     }
 }
-#endif

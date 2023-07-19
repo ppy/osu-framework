@@ -67,7 +67,7 @@ namespace osu.Framework.Tests.Exceptions
                         runGameWithLogic(g =>
                         {
                             g.Scheduler.Add(() => Task.Run(() => throw new InvalidOperationException()));
-                            g.Scheduler.AddDelayed(() => collect(), 1, true);
+                            g.Scheduler.AddDelayed(collect, 1, true);
 
                             if (loggedException != null)
                                 throw loggedException;

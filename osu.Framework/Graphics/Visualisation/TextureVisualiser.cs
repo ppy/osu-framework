@@ -6,6 +6,7 @@
 using System;
 using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -13,6 +14,7 @@ using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Localisation;
 using osu.Framework.Utils;
 using osuTK;
@@ -24,6 +26,8 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private readonly FillFlowContainer<TexturePanel> atlasFlow;
         private readonly FillFlowContainer<TexturePanel> textureFlow;
+
+        private readonly BindableInt visualisedMipLevel = new BindableInt(-1) { MinValue = -1, MaxValue = IRenderer.MAX_MIPMAP_LEVELS };
 
         [Resolved]
         private IRenderer renderer { get; set; }
@@ -65,6 +69,27 @@ namespace osu.Framework.Graphics.Visualisation
                     }
                 }
             };
+
+            SpriteText mipLevelText;
+
+            ToolbarContent.AddRange(new Drawable[]
+            {
+                new SpriteText { Text = "Mip level" },
+                new BasicSliderBar<int>
+                {
+                    Height = 20,
+                    Width = 250,
+                    Current = visualisedMipLevel,
+                },
+                mipLevelText = new SpriteText(),
+            });
+
+            visualisedMipLevel.BindValueChanged(val =>
+            {
+                mipLevelText.Text = val.NewValue == -1 ? "Auto" : $"{val.NewValue}";
+                atlasFlow.Invalidate();
+                textureFlow.Invalidate();
+            }, true);
         }
 
         protected override void PopIn()
@@ -94,7 +119,7 @@ namespace osu.Framework.Graphics.Visualisation
             if (target.Any(p => p.Texture == texture))
                 return;
 
-            target.Add(new TexturePanel(texture));
+            target.Add(new TexturePanel(texture, visualisedMipLevel));
         });
 
         private partial class TexturePanel : CompositeDrawable
@@ -108,7 +133,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             private readonly UsageBackground usage;
 
-            public TexturePanel(Texture texture)
+            public TexturePanel(Texture texture, BindableInt visualisedMipLevel)
             {
                 textureReference = new WeakReference<Texture>(texture);
 
@@ -135,7 +160,7 @@ namespace osu.Framework.Graphics.Visualisation
                             AutoSizeAxes = Axes.Y,
                             Children = new Drawable[]
                             {
-                                usage = new UsageBackground(textureReference)
+                                usage = new UsageBackground(textureReference, visualisedMipLevel)
                                 {
                                     Size = new Vector2(100)
                                 },
@@ -175,14 +200,16 @@ namespace osu.Framework.Graphics.Visualisation
         private partial class UsageBackground : Box, IHasTooltip
         {
             private readonly WeakReference<Texture> textureReference;
+            private readonly IBindable<int> visualisedMipLevel;
 
             private ulong lastBindCount;
 
             public float AverageUsagesPerFrame { get; private set; }
 
-            public UsageBackground(WeakReference<Texture> textureReference)
+            public UsageBackground(WeakReference<Texture> textureReference, BindableInt visualisedMipLevel)
             {
                 this.textureReference = textureReference;
+                this.visualisedMipLevel = visualisedMipLevel.GetBoundCopy();
             }
 
             protected override DrawNode CreateDrawNode() => new UsageBackgroundDrawNode(this);
@@ -195,6 +222,8 @@ namespace osu.Framework.Graphics.Visualisation
 
                 private WeakReference<Texture> textureReference;
 
+                private int visualisedMipLevel;
+
                 public UsageBackgroundDrawNode(Box source)
                     : base(source)
                 {
@@ -205,6 +234,7 @@ namespace osu.Framework.Graphics.Visualisation
                     base.ApplyState();
 
                     textureReference = Source.textureReference;
+                    visualisedMipLevel = Source.visualisedMipLevel.Value;
                 }
 
                 public override void Draw(IRenderer renderer)
@@ -263,9 +293,21 @@ namespace osu.Framework.Graphics.Visualisation
                         shrunkenQuad.Width = newWidth;
                     }
 
+                    renderer.FlushCurrentBatch(null);
+
                     // texture
                     texture.Bind();
+
+                    if (visualisedMipLevel != -1)
+                        texture.MipLevel = visualisedMipLevel;
+
                     renderer.DrawQuad(texture, shrunkenQuad, Color4.White);
+
+                    if (visualisedMipLevel != -1)
+                    {
+                        renderer.FlushCurrentBatch(null);
+                        texture.MipLevel = null;
+                    }
                 }
 
                 protected internal override bool CanDrawOpaqueInterior => false;

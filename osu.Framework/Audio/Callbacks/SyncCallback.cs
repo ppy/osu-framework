@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Runtime.CompilerServices;
 using ManagedBass;
 using osu.Framework.Allocation;
 using osu.Framework.Platform;
@@ -13,7 +14,7 @@ namespace osu.Framework.Audio.Callbacks
     /// </summary>
     public class SyncCallback : BassCallback
     {
-        public SyncProcedure Callback => RuntimeInfo.SupportsJIT ? Sync : syncCallback;
+        public SyncProcedure Callback => RuntimeFeature.IsDynamicCodeSupported ? Sync : syncCallback;
 
         public readonly SyncProcedure Sync;
 

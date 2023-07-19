@@ -333,6 +333,5 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             [Resolved]
             public Bindable<int> Obj { get; private set; } = null!;
         }
-#nullable disable
     }
 }

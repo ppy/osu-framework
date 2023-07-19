@@ -30,7 +30,6 @@ using Logger = osu.Framework.Logging.Logger;
 
 namespace osu.Framework.Testing
 {
-    [ExcludeFromDynamicCompile]
     [TestFixture]
     public abstract partial class TestScene : Container
     {
@@ -66,7 +65,7 @@ namespace osu.Framework.Testing
         /// <param name="game">The game to add.</param>
         protected void AddGame([NotNull] Game game)
         {
-            if (game == null) throw new ArgumentNullException(nameof(game));
+            ArgumentNullException.ThrowIfNull(game);
 
             exitNestedGame();
 
@@ -470,7 +469,7 @@ namespace osu.Framework.Testing
             runner.RunTestBlocking(this);
             checkForErrors();
 
-            if (Environment.GetEnvironmentVariable("OSU_TESTS_FORCED_GC") == "1")
+            if (FrameworkEnvironment.ForceTestGC)
             {
                 // Force any unobserved exceptions to fire against the current test run.
                 // Without this they could be delayed until a future test scene is running, making tracking down the cause difficult.

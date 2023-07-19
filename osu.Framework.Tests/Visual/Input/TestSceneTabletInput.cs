@@ -1,9 +1,6 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
-#if NET6_0_OR_GREATER
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -50,7 +47,7 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Resolved]
-        private GameHost host { get; set; }
+        private GameHost host { get; set; } = null!;
 
         protected override void LoadComplete()
         {
@@ -163,4 +160,3 @@ namespace osu.Framework.Tests.Visual.Input
         }
     }
 }
-#endif

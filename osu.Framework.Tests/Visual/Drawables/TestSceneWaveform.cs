@@ -27,7 +27,9 @@ namespace osu.Framework.Tests.Visual.Drawables
         private Track track;
         private Waveform waveform;
         private Container<Drawable> waveformContainer;
-        private readonly Bindable<float> zoom = new BindableFloat(1) { MinValue = 0.1f, MaxValue = 20 };
+        private readonly BindableFloat zoom = new BindableFloat(1) { MinValue = 0.1f, MaxValue = 2000 };
+
+        private ScrollContainer<Drawable> scroll;
 
         private ITrackStore store;
 
@@ -75,7 +77,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                             },
                         },
                     },
-                    new BasicScrollContainer(Direction.Horizontal)
+                    scroll = new BasicScrollContainer(Direction.Horizontal)
                     {
                         RelativeSizeAxes = Axes.Both,
                         Child = waveformContainer = new FillFlowContainer
@@ -106,6 +108,26 @@ namespace osu.Framework.Tests.Visual.Drawables
         public void SetUpSteps()
         {
             AddStep("Load stereo track", () => loadTrack(true));
+        }
+
+        /// <summary>
+        /// When zooming in very close – or even zooming in a normal amount on a very long track – the number of points in the waveform
+        /// can become very high (in the millions).
+        ///
+        /// In this case, we need to be careful no iteration is performed over the point data. This tests the case of being scrolled to the
+        /// far end of the waveform, which is the worse-case-scenario and requires special consideration.
+        /// </summary>
+        [Test]
+        public void TestHighZoomEndOfTrackPerformance()
+        {
+            TestWaveform graph = null;
+
+            AddStep("create waveform", () => waveformContainer.Child = graph = new TestWaveform(track, 1) { Waveform = waveform });
+            AddUntilStep("wait for load", () => graph.Regenerated);
+
+            AddStep("set zoom to highest", () => zoom.Value = zoom.MaxValue);
+
+            AddStep("seek to end", () => scroll.ScrollToEnd());
         }
 
         [Test]
