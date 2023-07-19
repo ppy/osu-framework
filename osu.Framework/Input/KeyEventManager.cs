@@ -29,7 +29,7 @@ namespace osu.Framework.Input
             PropagateButtonEvent(drawables, new KeyDownEvent(state, Button, true));
         }
 
-        protected override Drawable HandleButtonDown(InputState state, List<Drawable> targets) => PropagateButtonEvent(targets, new KeyDownEvent(state, Button));
+        protected override Drawable? HandleButtonDown(InputState state, List<Drawable> targets) => PropagateButtonEvent(targets, new KeyDownEvent(state, Button));
 
         protected override void HandleButtonUp(InputState state, List<Drawable> targets) =>
             PropagateButtonEvent(targets, new KeyUpEvent(state, Button));
