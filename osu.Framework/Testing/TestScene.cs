@@ -40,6 +40,11 @@ namespace osu.Framework.Testing
 
         protected virtual ITestSceneTestRunner CreateRunner() => new TestSceneTestRunner();
 
+        /// <summary>
+        /// Delay between invoking two <see cref="StepButton"/>s in automatic runs.
+        /// </summary>
+        protected virtual double TimePerAction => 200;
+
         private GameHost host;
         private Task runTask;
         private ITestSceneTestRunner runner;
@@ -187,8 +192,6 @@ namespace osu.Framework.Testing
         }
 
         private StepButton loadableStep => actionIndex >= 0 ? StepsContainer.Children.ElementAtOrDefault(actionIndex) as StepButton : null;
-
-        protected virtual double TimePerAction => 200;
 
         private void runNextStep(Action onCompletion, Action<Exception> onError, Func<StepButton, bool> stopCondition)
         {
