@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         protected override void LoadComplete()
         {
-            ((Container)InputManager.Parent).Add(new StateTracker(0));
+            ((Container)InputManager.Parent!).Add(new StateTracker(0));
         }
 
         private void initTestScene()
@@ -236,6 +236,21 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Test]
+        public void MouseDownMouseUpWithDrawableRemoved()
+        {
+            initTestScene();
+
+            AddStep("press left button", () => InputManager.PressButton(MouseButton.Left));
+            checkEventCount(mouse_down, 1);
+
+            AddStep("Remove drawable", Clear);
+
+            AddStep("release left button", () => InputManager.ReleaseButton(MouseButton.Left));
+
+            checkEventCount(mouse_up, 0);
+        }
+
+        [Test]
         public void DragWithDraggedDrawableRemovedMidDrag()
         {
             initTestScene();
@@ -249,7 +264,7 @@ namespace osu.Framework.Tests.Visual.Input
             checkEventCount(drag, 1);
             checkIsDragged(true);
 
-            AddStep("Remove drawable", () => Clear());
+            AddStep("Remove drawable", Clear);
 
             checkEventCount(drag, 0);
             checkEventCount(drag_end, 0);
