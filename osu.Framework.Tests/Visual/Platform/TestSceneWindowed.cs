@@ -19,6 +19,8 @@ namespace osu.Framework.Tests.Visual.Platform
     [SupportedOSPlatform("macos")]
     public partial class TestSceneWindowed : FrameworkTestScene
     {
+        public override bool AutomaticallyRunFirstStep => false;
+
         [Resolved]
         private GameHost host { get; set; }
 

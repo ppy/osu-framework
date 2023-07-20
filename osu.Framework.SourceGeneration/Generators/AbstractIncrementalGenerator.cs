@@ -14,6 +14,11 @@ namespace osu.Framework.SourceGeneration.Generators
     {
         public readonly GeneratorEventDriver EventDriver = new GeneratorEventDriver();
 
+        /// <summary>
+        /// Whether the generator should be forcefully run, even if building as debug.
+        /// </summary>
+        public bool ForceRun;
+
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
             // Stage 1: Create SyntaxTarget objects for all classes.
@@ -22,6 +27,9 @@ namespace osu.Framework.SourceGeneration.Generators
                            (n, _) => isSyntaxTarget(n),
                            (ctx, _) => returnWithEvent(new IncrementalSyntaxTarget((ClassDeclarationSyntax)ctx.Node, ctx.SemanticModel), EventDriver.OnSyntaxTargetCreated))
                        .Select((t, _) => t.WithName())
+                       .Combine(context.CompilationProvider)
+                       .Where(c => ForceRun || c.Right.Options.OptimizationLevel == OptimizationLevel.Release)
+                       .Select((t, _) => t.Item1)
                        .Select((t, _) => returnWithEvent(t.WithSemanticTarget(CreateSemanticTarget), EventDriver.OnSemanticTargetCreated));
 
             // Stage 2: Separate out the old and new syntax targets for the same class object.

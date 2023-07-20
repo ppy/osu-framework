@@ -594,7 +594,13 @@ namespace osu.Framework.Testing
                     return true;
 
                 if (!s.IsSetupStep && !(s is LabelStep))
+                {
                     actualStepCount++;
+
+                    // immediately stop if the test scene has requested it.
+                    if (!CurrentTest.AutomaticallyRunFirstStep)
+                        return true;
+                }
 
                 return false;
             });
