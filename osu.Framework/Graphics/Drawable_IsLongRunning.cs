@@ -12,6 +12,7 @@ namespace osu.Framework.Graphics
         {
             get
             {
+                // ReSharper disable once SuspiciousTypeConversion.Global (this is used by source generators, but only in release builds).
                 if (this is ISourceGeneratedLongRunningLoadCache sgCache && sgCache.KnownType == GetType())
                     return sgCache.IsLongRunning;
 
