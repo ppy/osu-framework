@@ -34,6 +34,9 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
             {
                 driver = CSharpGeneratorDriver.Create(generator = new TSourceGenerator());
                 driver = driver.WithUpdatedParseOptions(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion));
+
+                generator.ForceRun = true;
+
                 this.commonSources = commonSources;
                 this.commonGenerated = commonGenerated;
                 this.multiPhaseSources = multiPhaseSources;
