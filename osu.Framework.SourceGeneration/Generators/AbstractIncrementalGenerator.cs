@@ -22,6 +22,9 @@ namespace osu.Framework.SourceGeneration.Generators
                            (n, _) => isSyntaxTarget(n),
                            (ctx, _) => returnWithEvent(new IncrementalSyntaxTarget((ClassDeclarationSyntax)ctx.Node, ctx.SemanticModel), EventDriver.OnSyntaxTargetCreated))
                        .Select((t, _) => t.WithName())
+                       .Combine(context.CompilationProvider)
+                       .Where(c => c.Right.Options.OptimizationLevel == OptimizationLevel.Release)
+                       .Select((t, _) => t.Item1)
                        .Select((t, _) => returnWithEvent(t.WithSemanticTarget(CreateSemanticTarget), EventDriver.OnSemanticTargetCreated));
 
             // Stage 2: Separate out the old and new syntax targets for the same class object.
