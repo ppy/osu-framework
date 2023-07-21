@@ -144,22 +144,24 @@ namespace osu.Framework.IO.Stores
         {
             if (Font == null) return null;
 
-            if (name.EnumerateRunes().Count() > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
+            // name is expected to be in the format "{Rune}" or "{FontName}/{Rune}" where {Rune} is UTF-16 sequence of 1 or 2 `char`s.
+            // Length > 2 is just a shorthand to check if there is a font name in the lookup
+            if (name.Length > 2 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                 return null;
 
-            return Font.Characters.TryGetValue(name.EnumerateRunes().Last().Value, out Character c) ? LoadCharacter(c) : null;
+            Rune.DecodeLastFromUtf16(name, out var rune, out int _);
+            return Font.Characters.TryGetValue(rune.Value, out Character c) ? LoadCharacter(c) : null;
         }
 
         public virtual async Task<TextureUpload> GetAsync(string name, CancellationToken cancellationToken = default)
         {
-            if (name.EnumerateRunes().Count() > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
+            if (name.Length > 2 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                 return null;
 
             var bmFont = await completionSource.Task.ConfigureAwait(false);
 
-            return bmFont.Characters.TryGetValue(name.EnumerateRunes().Last().Value, out Character c)
-                ? LoadCharacter(c)
-                : null;
+            Rune.DecodeLastFromUtf16(name, out var rune, out int _);
+            return bmFont.Characters.TryGetValue(rune.Value, out Character c) ? LoadCharacter(c) : null;
         }
 
         protected int LoadedGlyphCount;
