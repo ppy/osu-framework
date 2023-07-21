@@ -4,6 +4,7 @@
 using System;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
+using osu.Framework.Graphics.Veldrid.Buffers;
 using PrimitiveTopology = Veldrid.PrimitiveTopology;
 
 namespace osu.Framework.Graphics.Veldrid.Batches
@@ -12,7 +13,7 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         where T : unmanaged, IEquatable<T>, IVertex
     {
         public VeldridQuadBatch(VeldridRenderer renderer, int quads)
-            : base(renderer, quads * IRenderer.VERTICES_PER_QUAD, PrimitiveTopology.TriangleList)
+            : base(renderer, quads * IRenderer.VERTICES_PER_QUAD, PrimitiveTopology.TriangleList, VeldridIndexLayout.Quad)
         {
             if (quads > IRenderer.MAX_QUADS)
                 throw new OverflowException($"Attempted to initialise a {nameof(VeldridQuadBatch<T>)} with more than {nameof(IRenderer)}.{nameof(IRenderer.MAX_QUADS)} quads ({IRenderer.MAX_QUADS}).");

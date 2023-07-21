@@ -49,12 +49,14 @@ namespace osu.Framework.Graphics.Veldrid.Batches
 
         private readonly VeldridRenderer renderer;
         private readonly PrimitiveTopology primitiveType;
+        private readonly VeldridIndexLayout indexLayout;
 
-        protected VeldridVertexBatch(VeldridRenderer renderer, int size, PrimitiveTopology primitiveType)
+        protected VeldridVertexBatch(VeldridRenderer renderer, int size, PrimitiveTopology primitiveType, VeldridIndexLayout indexLayout)
         {
             Size = size;
             this.renderer = renderer;
             this.primitiveType = primitiveType;
+            this.indexLayout = indexLayout;
 
             AddAction = Add;
 
@@ -158,7 +160,7 @@ namespace osu.Framework.Graphics.Veldrid.Batches
                 buffer.UpdateRange(synchronisationBeginIndex, synchronisationEndIndex);
 
             renderer.BindVertexBuffer(buffer);
-            renderer.BindIndexBuffer(VeldridIndexLayout.Quad, Size);
+            renderer.BindIndexBuffer(indexLayout, Size);
             renderer.DrawVertices(primitiveType, currentDrawIndex, verticesCount);
 
             // When using multiple buffers we advance to the next one with every draw to prevent contention on the same buffer with future vertex updates.

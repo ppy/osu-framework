@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Graphics.Rendering.Vertices;
+using osu.Framework.Graphics.Veldrid.Buffers;
 using Veldrid;
 
 namespace osu.Framework.Graphics.Veldrid.Batches
@@ -11,7 +12,7 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         where T : unmanaged, IEquatable<T>, IVertex
     {
         public VeldridLinearBatch(VeldridRenderer renderer, int size, PrimitiveTopology type)
-            : base(renderer, size, type)
+            : base(renderer, size, type, VeldridIndexLayout.Linear)
         {
         }
     }
