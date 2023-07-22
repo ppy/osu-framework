@@ -45,7 +45,8 @@
     <ItemGroup>
       <StubFiles Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\stubs\*" />
     </ItemGroup>
-    <Copy SourceFiles="@(StubFiles)" DestinationFolder="obj\$(Platform)\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\linked\" />
+    <Copy Condition="'$(Platform)' == 'AnyCPU'" SourceFiles="@(StubFiles)" DestinationFolder="obj\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\linked\" />
+    <Copy Condition="'$(Platform)' != 'AnyCPU'" SourceFiles="@(StubFiles)" DestinationFolder="obj\$(Platform)\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\linked\" />
   </Target>
   <!-- OpenTabletDriver contains P/Invokes to the "Quartz" framework for native macOS code.
        This leads iOS linker into attempting to include that framework, despite not existing on such platform.
