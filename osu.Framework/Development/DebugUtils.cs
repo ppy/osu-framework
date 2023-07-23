@@ -19,9 +19,11 @@ namespace osu.Framework.Development
             {
                 var entry = EntryAssembly;
 
+                string? assemblyName = entry?.GetName().Name;
+
                 // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
                 // when running under nunit + Rider > 2020.2 EAP6, entry assembly becomes ReSharperTestRunner[32|64], which isn't what we want.
-                bool entryIsKnownTestAssembly = entry != null && (entry.Location.Contains("testhost") || entry.Location.Contains("ReSharperTestRunner"));
+                bool entryIsKnownTestAssembly = entry != null && (assemblyName!.Contains("testhost") || assemblyName.Contains("ReSharperTestRunner"));
 
                 // null assembly can indicate nunit, but it can also indicate native code (e.g. android).
                 // to distinguish nunit runs from android launches, check the class name of the current test.
