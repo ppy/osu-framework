@@ -7,29 +7,33 @@ using osu.Framework.Development;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Veldrid.Buffers.Staging;
-using osu.Framework.Graphics.Veldrid.Vertices;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using Veldrid;
 using BufferUsage = Veldrid.BufferUsage;
-using PrimitiveTopology = Veldrid.PrimitiveTopology;
 
 namespace osu.Framework.Graphics.Veldrid.Buffers
 {
-    internal abstract class VeldridVertexBuffer<T> : IVertexBuffer
+    internal class VeldridVertexBuffer<T> : IVeldridVertexBuffer<T>
         where T : unmanaged, IEquatable<T>, IVertex
     {
-        protected static readonly int STRIDE = VeldridVertexUtils<DepthWrappingVertex<T>>.STRIDE;
-
         private readonly VeldridRenderer renderer;
 
         private NativeMemoryTracker.NativeMemoryLease? memoryLease;
         private IStagingBuffer<DepthWrappingVertex<T>>? stagingBuffer;
-        private DeviceBuffer? gpuBuffer;
+
+        private DeviceBuffer? buffer;
+
+        DeviceBuffer IVeldridVertexBuffer<T>.Buffer => buffer ?? throw new InvalidOperationException("The buffer is not initialised yet.");
 
         private int lastWrittenVertexIndex = -1;
 
-        protected VeldridVertexBuffer(VeldridRenderer renderer, int amountVertices)
+        /// <summary>
+        /// Gets the number of vertices in this <see cref="VeldridVertexBuffer{T}"/>.
+        /// </summary>
+        public int Size { get; }
+
+        public VeldridVertexBuffer(VeldridRenderer renderer, int amountVertices)
         {
             this.renderer = renderer;
 
@@ -58,23 +62,44 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             return isNewVertex;
         }
 
-        /// <summary>
-        /// Gets the number of vertices in this <see cref="VeldridVertexBuffer{T}"/>.
-        /// </summary>
-        public int Size { get; }
+        public void UpdateRange(int startIndex, int endIndex)
+        {
+            if (buffer == null)
+                initialiseGpuBuffer();
 
-        /// <summary>
-        /// Initialises this <see cref="VeldridVertexBuffer{T}"/>. Guaranteed to be run on the draw thread.
-        /// </summary>
-        protected virtual void Initialise()
+            Debug.Assert(stagingBuffer != null);
+            Debug.Assert(buffer != null);
+
+            int countVertices = endIndex - startIndex;
+            stagingBuffer.CopyTo(buffer, (uint)startIndex, (uint)startIndex, (uint)countVertices);
+
+            FrameStatistics.Add(StatisticsCounterType.VerticesUpl, countVertices);
+        }
+
+        private void initialiseGpuBuffer()
         {
             ThreadSafety.EnsureDrawThread();
 
             getMemory();
             Debug.Assert(stagingBuffer != null);
 
-            gpuBuffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)(Size * STRIDE), BufferUsage.VertexBuffer | stagingBuffer.CopyTargetUsageFlags));
-            memoryLease = NativeMemoryTracker.AddMemory(this, gpuBuffer.SizeInBytes);
+            buffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)(Size * IVeldridVertexBuffer<T>.STRIDE), BufferUsage.VertexBuffer | stagingBuffer.CopyTargetUsageFlags));
+            memoryLease = NativeMemoryTracker.AddMemory(this, buffer.SizeInBytes);
+        }
+
+        private Span<DepthWrappingVertex<T>> getMemory()
+        {
+            ThreadSafety.EnsureDrawThread();
+
+            if (!InUse)
+            {
+                stagingBuffer = renderer.CreateStagingBuffer<DepthWrappingVertex<T>>((uint)Size);
+                renderer.RegisterVertexBufferUse(this);
+            }
+
+            LastUseFrameIndex = renderer.FrameIndex;
+
+            return stagingBuffer!.Data;
         }
 
         ~VeldridVertexBuffer()
@@ -100,67 +125,6 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             IsDisposed = true;
         }
 
-        public virtual void Bind()
-        {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not bind disposed vertex buffers.");
-
-            if (gpuBuffer == null)
-                Initialise();
-
-            Debug.Assert(gpuBuffer != null);
-            renderer.BindVertexBuffer(gpuBuffer, VeldridVertexUtils<DepthWrappingVertex<T>>.Layout);
-        }
-
-        public virtual void Unbind()
-        {
-        }
-
-        protected virtual int ToElements(int vertices) => vertices;
-
-        protected virtual int ToElementIndex(int vertexIndex) => vertexIndex;
-
-        protected abstract PrimitiveTopology Type { get; }
-
-        public void DrawRange(int startIndex, int endIndex)
-        {
-            Bind();
-
-            int countVertices = endIndex - startIndex;
-            renderer.DrawVertices(Type, ToElementIndex(startIndex), ToElements(countVertices));
-
-            Unbind();
-        }
-
-        internal void UpdateRange(int startIndex, int endIndex)
-        {
-            if (gpuBuffer == null)
-                Initialise();
-
-            Debug.Assert(stagingBuffer != null);
-            Debug.Assert(gpuBuffer != null);
-
-            int countVertices = endIndex - startIndex;
-            stagingBuffer.CopyTo(gpuBuffer, (uint)startIndex, (uint)startIndex, (uint)countVertices);
-
-            FrameStatistics.Add(StatisticsCounterType.VerticesUpl, countVertices);
-        }
-
-        private Span<DepthWrappingVertex<T>> getMemory()
-        {
-            ThreadSafety.EnsureDrawThread();
-
-            if (!InUse)
-            {
-                stagingBuffer = renderer.CreateStagingBuffer<DepthWrappingVertex<T>>((uint)Size);
-                renderer.RegisterVertexBufferUse(this);
-            }
-
-            LastUseFrameIndex = renderer.FrameIndex;
-
-            return stagingBuffer!.Data;
-        }
-
         public ulong LastUseFrameIndex { get; private set; }
 
         public bool InUse => LastUseFrameIndex > 0;
@@ -173,8 +137,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             stagingBuffer?.Dispose();
             stagingBuffer = null;
 
-            gpuBuffer?.Dispose();
-            gpuBuffer = null;
+            buffer?.Dispose();
+            buffer = null;
 
             LastUseFrameIndex = 0;
         }
