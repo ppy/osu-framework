@@ -92,7 +92,7 @@ namespace osu.Framework.Testing.Drawables.Steps
             var value = Current.Value;
 
             ValueChanged?.Invoke(value);
-            spriteText.Text = $"{text}: {Convert.ToDouble(value):G3}";
+            spriteText.Text = $"{text}: {Convert.ToDouble(value):#,0.##}";
             selection.ResizeWidthTo(normalizedValue);
         }
 

@@ -3,6 +3,7 @@
 
 using System;
 using System.Drawing;
+using System.Runtime.Versioning;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Input.StateChanges;
@@ -18,6 +19,7 @@ namespace osu.Framework.Platform.Windows
     /// A windows specific mouse input handler which overrides the SDL2 implementation of raw input.
     /// This is done to better handle quirks of some devices.
     /// </summary>
+    [SupportedOSPlatform("windows")]
     internal unsafe class WindowsMouseHandler : MouseHandler
     {
         private const int raw_input_coordinate_space = 65535;

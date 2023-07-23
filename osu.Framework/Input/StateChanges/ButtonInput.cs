@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using osu.Framework.Input.StateChanges.Events;
@@ -43,7 +41,7 @@ namespace osu.Framework.Input.StateChanges
         /// </remarks>
         /// <param name="current">The newer <see cref="ButtonStates{TButton}"/>.</param>
         /// <param name="previous">The older <see cref="ButtonStates{TButton}"/>.</param>
-        protected ButtonInput(ButtonStates<TButton> current, ButtonStates<TButton> previous)
+        protected ButtonInput(ButtonStates<TButton>? current, ButtonStates<TButton>? previous)
         {
             var difference = (current ?? new ButtonStates<TButton>()).EnumerateDifference(previous ?? new ButtonStates<TButton>());
 

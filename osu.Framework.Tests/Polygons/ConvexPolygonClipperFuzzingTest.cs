@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -106,7 +104,7 @@ namespace osu.Framework.Tests.Polygons
 
         private static Vector2[] clip(SimpleConvexPolygon poly1, SimpleConvexPolygon poly2)
         {
-            var clipper = new ConvexPolygonClipper<SimpleConvexPolygon, SimpleConvexPolygon>(ref poly1, ref poly2);
+            var clipper = new ConvexPolygonClipper<SimpleConvexPolygon, SimpleConvexPolygon>(poly1, poly2);
 
             Span<Vector2> buffer = stackalloc Vector2[clipper.GetClipBufferSize()];
 

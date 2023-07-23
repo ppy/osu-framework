@@ -4,12 +4,14 @@
 using System;
 using osu.Framework.Graphics.Textures;
 using osuTK;
-using SixLabors.ImageSharp.PixelFormats;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
+using osuTK.Graphics;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp;
 
 namespace osu.Framework.Graphics.Rendering
 {
@@ -47,6 +49,18 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         protected internal bool VerticalSync { get; set; }
 
+        protected internal bool AllowTearing { get; set; }
+
+        /// <summary>
+        /// A <see cref="Storage"/> that can be used to cache objects.
+        /// </summary>
+        protected internal Storage? CacheStorage { set; }
+
+        /// <summary>
+        /// The current frame index.
+        /// </summary>
+        ulong FrameIndex { get; }
+
         /// <summary>
         /// The maximum allowed texture size.
         /// </summary>
@@ -63,6 +77,21 @@ namespace osu.Framework.Graphics.Rendering
         /// Defaults to 2 megapixels (8mb alloc).
         /// </summary>
         int MaxPixelsUploadedPerFrame { get; set; }
+
+        /// <summary>
+        /// Whether the depth is in the range [0, 1] (i.e. Reversed-Z). If <c>false</c>, depth is in the range [-1, 1].
+        /// </summary>
+        bool IsDepthRangeZeroToOne { get; }
+
+        /// <summary>
+        /// Whether the texture coordinates begin in the top-left of the texture. If <c>false</c>, (0, 0) corresponds to the bottom-left texel of the texture.
+        /// </summary>
+        bool IsUvOriginTopLeft { get; }
+
+        /// <summary>
+        /// Whether the y-coordinate ranges from -1 (top) to 1 (bottom). If <c>false</c>, the y-coordinate ranges from -1 (bottom) to 1 (top).
+        /// </summary>
+        bool IsClipSpaceYInverted { get; }
 
         /// <summary>
         /// The current masking parameters.
@@ -164,6 +193,11 @@ namespace osu.Framework.Graphics.Rendering
         protected internal void WaitUntilIdle();
 
         /// <summary>
+        /// Waits until the GPU signals that the next frame is ready to be rendered.
+        /// </summary>
+        protected internal void WaitUntilNextFrameReady();
+
+        /// <summary>
         /// Invoked when the rendering thread is active and commands will be enqueued.
         /// This is mainly required for OpenGL renderers to mark context as current before performing GL calls.
         /// </summary>
@@ -174,6 +208,12 @@ namespace osu.Framework.Graphics.Rendering
         /// This is mainly required for OpenGL renderers to mark context as current before performing GL calls.
         /// </summary>
         protected internal void ClearCurrent();
+
+        /// <summary>
+        /// Flushes the currently active vertex batch.
+        /// </summary>
+        /// <param name="source">The source performing the flush, for profiling purposes.</param>
+        internal void FlushCurrentBatch(FlushBatchSource? source);
 
         /// <summary>
         /// Binds a texture.
@@ -306,14 +346,19 @@ namespace osu.Framework.Graphics.Rendering
         void ScheduleDisposal<T>(Action<T> disposalAction, T target);
 
         /// <summary>
+        /// Returns an image containing the current content of the backbuffer, i.e. takes a screenshot.
+        /// </summary>
+        protected internal Image<Rgba32> TakeScreenshot();
+
+        /// <summary>
         /// Creates a new <see cref="IShaderPart"/>.
         /// </summary>
-        /// <param name="manager">The shader manager to load headers with.</param>
+        /// <param name="store">The shader store to load headers with.</param>
         /// <param name="name">The name of the shader part.</param>
         /// <param name="rawData">The content of the shader part.</param>
         /// <param name="partType">The type of the shader part.</param>
         /// <returns>The <see cref="IShaderPart"/>.</returns>
-        protected internal IShaderPart CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType);
+        protected internal IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType);
 
         /// <summary>
         /// Creates a new <see cref="IShader"/>.
@@ -321,7 +366,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="name">The name of the shader.</param>
         /// <param name="parts">The <see cref="IShaderPart"/>s associated with this shader.</param>
         /// <returns>The <see cref="IShader"/>.</returns>
-        protected internal IShader CreateShader(string name, params IShaderPart[] parts);
+        protected internal IShader CreateShader(string name, IShaderPart[] parts);
 
         /// <summary>
         /// Creates a new <see cref="IFrameBuffer"/>.
@@ -332,10 +377,18 @@ namespace osu.Framework.Graphics.Rendering
         IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear);
 
         /// <summary>
-        /// Creates a new texture.
+        /// Creates a new <see cref="Texture"/>.
         /// </summary>
+        /// <param name="width">The width of the texture.</param>
+        /// <param name="height">The height of the texture.</param>
+        /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
+        /// <param name="filteringMode">The filtering mode.</param>
+        /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads). If null, no initialisation is provided out-of-the-box.</param>
+        /// <param name="wrapModeS">The texture's horizontal wrap mode.</param>
+        /// <param name="wrapModeT">The texture's vertex wrap mode.</param>
+        /// <returns>The <see cref="Texture"/>.</returns>
         Texture CreateTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, WrapMode wrapModeS = WrapMode.None,
-                              WrapMode wrapModeT = WrapMode.None, Rgba32 initialisationColour = default);
+                              WrapMode wrapModeT = WrapMode.None, Color4? initialisationColour = null);
 
         /// <summary>
         /// Creates a new video texture.
@@ -356,6 +409,12 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="size">Number of quads.</param>
         /// <param name="maxBuffers">Maximum number of vertex buffers.</param>
         IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) where TVertex : unmanaged, IEquatable<TVertex>, IVertex;
+
+        /// <summary>
+        /// Creates a buffer that stores data for a uniform block of a <see cref="IShader"/>.
+        /// </summary>
+        /// <typeparam name="TData">The type of data in the buffer.</typeparam>
+        IUniformBuffer<TData> CreateUniformBuffer<TData>() where TData : unmanaged, IEquatable<TData>;
 
         /// <summary>
         /// Sets the value of a uniform.

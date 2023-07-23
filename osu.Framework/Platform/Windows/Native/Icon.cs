@@ -3,9 +3,11 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 namespace osu.Framework.Platform.Windows.Native
 {
+    [SupportedOSPlatform("windows")]
     internal class Icon : IDisposable
     {
         [DllImport("user32.dll", SetLastError = true)]

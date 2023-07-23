@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         private readonly IFrameBuffer[] effectBuffers;
 
-        private readonly RenderBufferFormat[] formats;
+        private readonly RenderBufferFormat[] mainBufferFormats;
         private readonly TextureFilteringMode filterMode;
 
         private IRenderer renderer;
@@ -60,17 +60,17 @@ namespace osu.Framework.Graphics
         /// Creates a new <see cref="BufferedDrawNodeSharedData"/> with a specific amount of effect buffers.
         /// </summary>
         /// <param name="effectBufferCount">The number of effect buffers.</param>
-        /// <param name="formats">The render buffer formats to attach to each frame buffer.</param>
+        /// <param name="mainBufferFormats">The render buffer formats to attach to the main frame buffer.</param>
         /// <param name="pixelSnapping">Whether the frame buffer position should be snapped to the nearest pixel when blitting.
         /// This amounts to setting the texture filtering mode to "nearest".</param>
         /// <param name="clipToRootNode">Whether the frame buffer should be clipped to be contained in the root node..</param>
         /// <exception cref="ArgumentOutOfRangeException">If <paramref name="effectBufferCount"/> is less than 0.</exception>
-        public BufferedDrawNodeSharedData(int effectBufferCount, RenderBufferFormat[] formats = null, bool pixelSnapping = false, bool clipToRootNode = false)
+        public BufferedDrawNodeSharedData(int effectBufferCount, RenderBufferFormat[] mainBufferFormats = null, bool pixelSnapping = false, bool clipToRootNode = false)
         {
             if (effectBufferCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(effectBufferCount), "Must be positive.");
 
-            this.formats = formats;
+            this.mainBufferFormats = mainBufferFormats;
             PixelSnapping = pixelSnapping;
             ClipToRootNode = clipToRootNode;
             filterMode = PixelSnapping ? TextureFilteringMode.Nearest : TextureFilteringMode.Linear;
@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The <see cref="IFrameBuffer"/> which contains the original version of the rendered <see cref="Drawable"/>.
         /// </summary>
-        public IFrameBuffer MainBuffer => mainBuffer ??= renderer.CreateFrameBuffer(formats, filterMode);
+        public IFrameBuffer MainBuffer => mainBuffer ??= renderer.CreateFrameBuffer(mainBufferFormats, filterMode);
 
         public void Initialise(IRenderer renderer)
         {
@@ -111,7 +111,7 @@ namespace osu.Framework.Graphics
             return getEffectBufferAtIndex(currentEffectBuffer);
         }
 
-        private IFrameBuffer getEffectBufferAtIndex(int index) => effectBuffers[index] ??= renderer.CreateFrameBuffer(formats, filterMode);
+        private IFrameBuffer getEffectBufferAtIndex(int index) => effectBuffers[index] ??= renderer.CreateFrameBuffer(filteringMode: filterMode);
 
         /// <summary>
         /// Resets <see cref="CurrentEffectBuffer"/>.

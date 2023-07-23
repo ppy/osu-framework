@@ -24,6 +24,8 @@ namespace osu.Framework.Tests.Visual.Platform
 {
     public partial class TestSceneFullscreen : FrameworkTestScene
     {
+        public override bool AutomaticallyRunFirstStep => false;
+
         private readonly SpriteText currentActualSize = new SpriteText();
         private readonly SpriteText currentDisplayMode = new SpriteText();
         private readonly SpriteText currentWindowMode = new SpriteText();
@@ -108,9 +110,6 @@ namespace osu.Framework.Tests.Visual.Platform
                 return;
             }
 
-            // so the test case doesn't change fullscreen size just when you enter it
-            AddStep("nothing", () => { });
-
             var initialWindowMode = windowMode.Value;
 
             // if we support windowed mode, switch to it and test resizing the window
@@ -128,7 +127,7 @@ namespace osu.Framework.Tests.Visual.Platform
             if (window.SupportedWindowModes.Contains(WindowMode.Fullscreen))
             {
                 AddStep("change to fullscreen", () => windowMode.Value = WindowMode.Fullscreen);
-                AddAssert("window position updated", () => ((SDL2DesktopWindow)window).Position, () => Is.EqualTo(window.CurrentDisplayBindable.Value.Bounds.Location));
+                AddAssert("window position updated", () => ((SDL2Window)window).Position, () => Is.EqualTo(window.CurrentDisplayBindable.Value.Bounds.Location));
                 testResolution(1920, 1080);
                 testResolution(1280, 960);
                 testResolution(9999, 9999);

@@ -7,10 +7,12 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
 using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Graphics
 {
@@ -20,18 +22,50 @@ namespace osu.Framework.Tests.Visual.Graphics
         private void load(TextureStore textures)
         {
             Container circlesContainer;
+            Container circlesContainerBuffered;
 
-            Child = new StencilDrawable
+            Children = new Drawable[]
             {
-                RelativeSizeAxes = Axes.Both,
-                Background = new Sprite
+                new StencilDrawable
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Texture = textures.Get("sample-texture")
+                    Width = 0.5f,
+                    Background = new Sprite
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Texture = textures.Get("sample-texture")
+                    },
+                    Stencil = circlesContainer = new Container
+                    {
+                        RelativeSizeAxes = Axes.Both
+                    }
                 },
-                Stencil = circlesContainer = new Container
+                new BufferedContainer(new[] { RenderBufferFormat.D32S8 })
                 {
-                    RelativeSizeAxes = Axes.Both
+                    RelativeSizeAxes = Axes.Both,
+                    Anchor = Anchor.TopRight,
+                    Origin = Anchor.TopRight,
+                    Width = 0.5f,
+                    BlurSigma = new Vector2(10),
+                    Child = new StencilDrawable
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Background = new Sprite
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Texture = textures.Get("sample-texture")
+                        },
+                        Stencil = circlesContainerBuffered = new Container
+                        {
+                            RelativeSizeAxes = Axes.Both
+                        }
+                    }
+                },
+                new Label("Container"),
+                new Label("BufferedContainer")
+                {
+                    Anchor = Anchor.TopRight,
+                    Origin = Anchor.TopRight
                 }
             };
 
@@ -43,6 +77,15 @@ namespace osu.Framework.Tests.Visual.Graphics
                 for (float yPos = 0; yPos < 1; yPos += circle_radius + spacing)
                 {
                     circlesContainer.Add(new CircularProgress
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Size = new Vector2(circle_radius),
+                        RelativePositionAxes = Axes.Both,
+                        Position = new Vector2(xPos, yPos),
+                        Current = { Value = 1 }
+                    });
+
+                    circlesContainerBuffered.Add(new CircularProgress
                     {
                         RelativeSizeAxes = Axes.Both,
                         Size = new Vector2(circle_radius),
@@ -147,6 +190,28 @@ namespace osu.Framework.Tests.Visual.Graphics
             public List<DrawNode>? Children { get; set; } = new List<DrawNode>();
 
             public bool AddChildDrawNodes => true;
+        }
+
+        private partial class Label : Container
+        {
+            public Label(string text)
+            {
+                AutoSizeAxes = Axes.Both;
+                Margin = new MarginPadding(10);
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = Color4.Black
+                    },
+                    new SpriteText
+                    {
+                        Text = text,
+                        Margin = new MarginPadding(10)
+                    }
+                };
+            }
         }
     }
 }

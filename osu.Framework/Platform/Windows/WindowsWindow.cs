@@ -4,6 +4,7 @@
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
@@ -13,7 +14,8 @@ using Icon = osu.Framework.Platform.Windows.Native.Icon;
 
 namespace osu.Framework.Platform.Windows
 {
-    public class WindowsWindow : SDL2DesktopWindow
+    [SupportedOSPlatform("windows")]
+    internal class WindowsWindow : SDL2DesktopWindow
     {
         private const int seticon_message = 0x0080;
         private const int icon_big = 1;
@@ -47,14 +49,31 @@ namespace osu.Framework.Platform.Windows
                     break;
             }
 
+            if (!declareDpiAwareV2())
+                declareDpiAware();
+        }
+
+        private bool declareDpiAwareV2()
+        {
             try
             {
-                // SDL doesn't handle DPI correctly on windows, but this brings things mostly in-line with expectations. (https://bugzilla.libsdl.org/show_bug.cgi?id=3281)
-                SetProcessDpiAwareness(ProcessDpiAwareness.Process_Per_Monitor_DPI_Aware);
+                return SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT.DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
             }
             catch
             {
-                // API doesn't exist on Windows 7 so it needs to be allowed to fail silently.
+                return false;
+            }
+        }
+
+        private bool declareDpiAware()
+        {
+            try
+            {
+                return SetProcessDpiAwareness(ProcessDpiAwareness.Process_Per_Monitor_DPI_Aware);
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -62,31 +81,36 @@ namespace osu.Framework.Platform.Windows
         {
             base.Create();
 
+            // disable all pen and touch feedback as this causes issues when running "optimised" fullscreen under Direct3D11.
+            foreach (var feedbackType in Enum.GetValues<FeedbackType>())
+                Native.Input.SetWindowFeedbackSetting(WindowHandle, feedbackType, false);
+
             // enable window message events to use with `OnSDLEvent` below.
             SDL.SDL_EventState(SDL.SDL_EventType.SDL_SYSWMEVENT, SDL.SDL_ENABLE);
-
-            OnSDLEvent += handleSDLEvent;
         }
 
-        private void handleSDLEvent(SDL.SDL_Event e)
+        protected override void HandleEventFromFilter(SDL.SDL_Event e)
         {
-            if (e.type != SDL.SDL_EventType.SDL_SYSWMEVENT) return;
-
-            var wmMsg = Marshal.PtrToStructure<SDL2Structs.SDL_SysWMmsg>(e.syswm.msg);
-            var m = wmMsg.msg.win;
-
-            switch (m.msg)
+            if (e.type == SDL.SDL_EventType.SDL_SYSWMEVENT)
             {
-                case wm_killfocus:
-                    warpCursorFromFocusLoss();
-                    break;
+                var wmMsg = Marshal.PtrToStructure<SDL2Structs.SDL_SysWMmsg>(e.syswm.msg);
+                var m = wmMsg.msg.win;
 
-                case Imm.WM_IME_STARTCOMPOSITION:
-                case Imm.WM_IME_COMPOSITION:
-                case Imm.WM_IME_ENDCOMPOSITION:
-                    handleImeMessage(m.hwnd, m.msg, m.lParam);
-                    break;
+                switch (m.msg)
+                {
+                    case wm_killfocus:
+                        warpCursorFromFocusLoss();
+                        break;
+
+                    case Imm.WM_IME_STARTCOMPOSITION:
+                    case Imm.WM_IME_COMPOSITION:
+                    case Imm.WM_IME_ENDCOMPOSITION:
+                        handleImeMessage(m.hwnd, m.msg, m.lParam);
+                        break;
+                }
             }
+
+            base.HandleEventFromFilter(e);
         }
 
         /// <summary>
@@ -277,6 +301,20 @@ namespace osu.Framework.Platform.Windows
             Process_DPI_Unaware = 0,
             Process_System_DPI_Aware = 1,
             Process_Per_Monitor_DPI_Aware = 2
+        }
+
+        [DllImport("User32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT value);
+
+        // ReSharper disable once InconsistentNaming
+        internal enum DPI_AWARENESS_CONTEXT
+        {
+            DPI_AWARENESS_CONTEXT_UNAWARE = -1,
+            DPI_AWARENESS_CONTEXT_SYSTEM_AWARE = -2,
+            DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE = -3,
+            DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = -4,
+            DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED = -5,
         }
 
         [DllImport("user32.dll", SetLastError = true)]

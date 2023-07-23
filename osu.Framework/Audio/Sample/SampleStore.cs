@@ -18,7 +18,7 @@ namespace osu.Framework.Audio.Sample
 {
     internal class SampleStore : AudioCollectionManager<AdjustableAudioComponent>, ISampleStore
     {
-        private readonly IResourceStore<byte[]> store;
+        private readonly ResourceStore<byte[]> store;
         private readonly AudioMixer mixer;
 
         private readonly Dictionary<string, SampleBassFactory> factories = new Dictionary<string, SampleBassFactory>();
@@ -27,12 +27,14 @@ namespace osu.Framework.Audio.Sample
 
         internal SampleStore([NotNull] IResourceStore<byte[]> store, [NotNull] AudioMixer mixer)
         {
-            this.store = store;
+            this.store = new ResourceStore<byte[]>(store);
             this.mixer = mixer;
 
-            (store as ResourceStore<byte[]>)?.AddExtension(@"wav");
-            (store as ResourceStore<byte[]>)?.AddExtension(@"mp3");
+            AddExtension(@"wav");
+            AddExtension(@"mp3");
         }
+
+        public void AddExtension(string extension) => store.AddExtension(extension);
 
         public Sample Get(string name)
         {

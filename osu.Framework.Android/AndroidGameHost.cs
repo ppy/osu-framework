@@ -18,6 +18,7 @@ using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.IO.Stores;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using Uri = Android.Net.Uri;
 
@@ -41,6 +42,8 @@ namespace osu.Framework.Android
         }
 
         protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new AndroidGameWindow(gameView);
+
+        protected override Clipboard CreateClipboard() => new AndroidClipboard(gameView);
 
         public override bool CanExit => false;
 
@@ -79,12 +82,18 @@ namespace osu.Framework.Android
             if (!url.CheckIsValidUrl())
                 throw new ArgumentException("The provided URL must be one of either http://, https:// or mailto: protocols.", nameof(url));
 
-            if (gameView.Activity.PackageManager == null) return;
-
             using (var intent = new Intent(Intent.ActionView, Uri.Parse(url)))
             {
-                if (intent.ResolveActivity(gameView.Activity.PackageManager) != null)
+                // Recommended way to open URLs on Android 11+
+                // https://developer.android.com/training/package-visibility/use-cases#open-urls-browser-or-other-app
+                try
+                {
                     gameView.Activity.StartActivity(intent);
+                }
+                catch (ActivityNotFoundException e)
+                {
+                    Logger.Error(e, $"Failed to start intent: {intent}");
+                }
             }
         }
 

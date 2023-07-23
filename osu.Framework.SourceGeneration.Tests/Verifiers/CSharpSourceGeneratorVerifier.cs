@@ -4,13 +4,13 @@
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using osu.Framework.SourceGeneration.Generators;
 
 namespace osu.Framework.SourceGeneration.Tests.Verifiers
 {
     public partial class CSharpSourceGeneratorVerifier<TSourceGenerator>
-        where TSourceGenerator : IIncrementalGenerator, new()
+        where TSourceGenerator : AbstractIncrementalGenerator, new()
     {
         public static async Task VerifyAsync(
             (string filename, string content)[] commonSources,

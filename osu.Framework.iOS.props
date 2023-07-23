@@ -5,7 +5,15 @@
     <!-- MT7091 occurs when referencing a .framework bundle that consists of a static library.
          It only warns about not copying the library to the app bundle to save space,
          so there's nothing to be worried about. -->
-    <NoWarn>MT7091</NoWarn>
+    <NoWarn>$(NoWarn);MT7091</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <!-- On debug configurations, we use Mono interpreter for faster compilation. -->
+    <UseInterpreter>true</UseInterpreter>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <!-- On release configurations, we use AOT compiler for optimal performance. -->
+    <UseInterpreter>false</UseInterpreter>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Platform)' == 'iPhone'">
     <RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
@@ -28,6 +36,8 @@
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libavutil.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libswresample.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libswscale.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
+    <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\veldrid-spirv.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
+    <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\metal-mono-workaround.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
   </ItemGroup>
   <!-- Veldrid references libraries which cannot be AOT'd on iOS, replace them with stub assemblies.
        See: https://github.com/mellinoe/veldrid/issues/472#issuecomment-1356461410 -->
@@ -35,14 +45,17 @@
     <ItemGroup>
       <StubFiles Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\stubs\*" />
     </ItemGroup>
-    <Copy SourceFiles="@(StubFiles)" DestinationFolder="obj\$(Platform)\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\linked\" />
+    <Copy Condition="'$(Platform)' == 'AnyCPU'" SourceFiles="@(StubFiles)" DestinationFolder="obj\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\linked\" />
+    <Copy Condition="'$(Platform)' != 'AnyCPU'" SourceFiles="@(StubFiles)" DestinationFolder="obj\$(Platform)\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\linked\" />
   </Target>
   <!-- OpenTabletDriver contains P/Invokes to the "Quartz" framework for native macOS code.
        This leads iOS linker into attempting to include that framework, despite not existing on such platform.
        See: https://github.com/OpenTabletDriver/OpenTabletDriver/issues/2524 / https://github.com/xamarin/xamarin-macios/issues/15118#issuecomment-1141893683 -->
-  <Target Name="OsuFrameworkIOSRemoveQuartz" BeforeTargets="_ComputeLinkNativeExecutableInputs" AfterTargets="_LoadLinkerOutput">
+  <!-- There's also P/Invokes for "ApplicationServices" framework somewhere in the referenced libraries... -->
+  <Target Name="OsuFrameworkIOSRemoveMacOSFrameworks" BeforeTargets="_ComputeLinkNativeExecutableInputs" AfterTargets="_LoadLinkerOutput">
     <ItemGroup>
       <_LinkerFrameworks Remove="Quartz"/>
+      <_LinkerFrameworks Remove="ApplicationServices"/>
     </ItemGroup>
   </Target>
 </Project>

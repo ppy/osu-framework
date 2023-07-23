@@ -13,6 +13,7 @@ using osuTK.Platform;
 using osuTK.Input;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
@@ -22,7 +23,7 @@ using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Platform
 {
-    public abstract class OsuTKWindow : IWindow, IGameWindow
+    internal abstract class OsuTKWindow : IWindow, IGameWindow
     {
         private readonly IGraphicsSurface graphicsSurface;
         IGraphicsSurface IWindow.GraphicsSurface => graphicsSurface;
@@ -49,8 +50,20 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Action Resized;
 
+        /// <inheritdoc cref="IWindow.Suspended"/>
+        public event Action Suspended { add { } remove { } }
+
+        /// <inheritdoc cref="IWindow.Resumed"/>
+        public event Action Resumed { add { } remove { } }
+
+        /// <inheritdoc cref="IWindow.LowOnMemory"/>
+        public event Action LowOnMemory { add { } remove { } }
+
         /// <inheritdoc cref="IWindow.KeymapChanged"/>
         public event Action KeymapChanged { add { } remove { } }
+
+        /// <inheritdoc cref="IWindow.DragDrop"/>
+        public event Action<string> DragDrop { add { } remove { } }
 
         /// <summary>
         /// Invoked when any key has been pressed.
@@ -74,6 +87,10 @@ namespace osu.Framework.Platform
         public Bindable<WindowMode> WindowMode { get; } = new Bindable<WindowMode>();
 
         public void OnDraw()
+        {
+        }
+
+        public void Raise()
         {
         }
 
@@ -136,8 +153,6 @@ namespace osu.Framework.Platform
 
             MouseEnter += (_, _) => cursorInWindow.Value = true;
             MouseLeave += (_, _) => cursorInWindow.Value = false;
-
-            supportedWindowModes.AddRange(DefaultSupportedWindowModes);
 
             UpdateFrame += (_, _) => UpdateFrameScheduler.Update();
 
@@ -244,13 +259,9 @@ namespace osu.Framework.Platform
         /// </summary>
         public virtual BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
-        private readonly BindableList<WindowMode> supportedWindowModes = new BindableList<WindowMode>();
-
-        public IBindableList<WindowMode> SupportedWindowModes => supportedWindowModes;
+        public abstract IEnumerable<WindowMode> SupportedWindowModes { get; }
 
         public virtual WindowMode DefaultWindowMode => SupportedWindowModes.First();
-
-        protected abstract IEnumerable<WindowMode> DefaultSupportedWindowModes { get; }
 
         public virtual VSyncMode VSync { get; set; }
 
@@ -403,6 +414,9 @@ namespace osu.Framework.Platform
         public void Close() => OsuTKGameWindow.Close();
 
         public void ProcessEvents() => OsuTKGameWindow.ProcessEvents();
+
+        public void SetIconFromStream(Stream imageStream) => throw new NotSupportedException($@"{nameof(SetIconFromStream)} is not supported.");
+
         public Point PointToClient(Point point) => OsuTKGameWindow.PointToClient(point);
         public Point PointToScreen(Point point) => OsuTKGameWindow.PointToScreen(point);
 

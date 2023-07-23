@@ -29,7 +29,7 @@ namespace osu.Framework.Tests.Shaders
         {
             AddStep("setup manager", () =>
             {
-                manager = new TestShaderManager(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources/Shaders"));
+                manager = new ShaderManager(new TestGLRenderer(), new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources/Shaders"));
                 shader = (GLShader)manager.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
                 shaderRef = new WeakReference<IShader>(shader);
 
@@ -58,33 +58,24 @@ namespace osu.Framework.Tests.Shaders
             });
         }
 
-        private class TestShaderManager : ShaderManager
+        private class TestGLRenderer : GLRenderer
         {
-            public TestShaderManager(IResourceStore<byte[]> store)
-                : base(new GLRenderer(), store)
-            {
-            }
-
-            internal override IShader CreateShader(IRenderer renderer, string name, params IShaderPart[] parts)
-                => new TestGLShader((GLRenderer)renderer, name, parts.Cast<GLShaderPart>().ToArray());
+            protected override IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer, ShaderCompilationStore compilationStore)
+                => new TestGLShader(this, name, parts.Cast<GLShaderPart>().ToArray(), globalUniformBuffer, compilationStore);
 
             private class TestGLShader : GLShader
             {
-                private readonly GLRenderer renderer;
-
-                internal TestGLShader(GLRenderer renderer, string name, GLShaderPart[] parts)
-                    : base(renderer, name, parts)
+                internal TestGLShader(GLRenderer renderer, string name, GLShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer, ShaderCompilationStore compilationStore)
+                    : base(renderer, name, parts, globalUniformBuffer, compilationStore)
                 {
-                    this.renderer = renderer;
                 }
 
                 private protected override int CreateProgram() => 1337;
 
                 private protected override bool CompileInternal() => true;
 
-                private protected override void SetupUniforms()
+                public override void BindUniformBlock(string blockName, IUniformBuffer buffer)
                 {
-                    Uniforms.Add("test", new Uniform<int>(renderer, this, "test", 1));
                 }
 
                 private protected override string GetProgramLog() => string.Empty;

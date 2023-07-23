@@ -1,5 +1,13 @@
-﻿#define PI 3.1415926536
+﻿#ifndef CIRCULAR_PROGRESS_UTILS_H
+#define CIRCULAR_PROGRESS_UTILS_H
+
+#undef PI
+#define PI 3.1415926536
+
+#undef HALF_PI
 #define HALF_PI 1.57079632679
+
+#undef TWO_PI
 #define TWO_PI 6.28318530718
 
 highp float dstToLine(highp vec2 start, highp vec2 end, highp vec2 pixelPos)
@@ -57,3 +65,5 @@ lowp float progressAlphaAt(highp vec2 pixelPos, mediump float progress, mediump 
     
     return smoothstep(texelSize, 0.0, distanceToProgress(pixelPos, progress, innerRadius, roundedCaps, texelSize)) * subAAMultiplier;
 }
+
+#endif

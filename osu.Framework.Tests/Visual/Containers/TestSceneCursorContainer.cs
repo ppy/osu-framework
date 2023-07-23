@@ -28,8 +28,8 @@ namespace osu.Framework.Tests.Visual.Containers
         public void TestPositionalUpdates()
         {
             AddStep("Move cursor to centre", () => InputManager.MoveMouseTo(container.ScreenSpaceDrawQuad.Centre));
-            AddAssert("Cursor is centered", () => cursorCenteredInContainer());
-            AddAssert("Cursor at mouse position", () => cursorAtMouseScreenSpace());
+            AddAssert("Cursor is centered", cursorCenteredInContainer);
+            AddAssert("Cursor at mouse position", cursorAtMouseScreenSpace);
         }
 
         [Test]
@@ -37,11 +37,11 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             AddStep("Hide cursor container", () => cursorContainer.Alpha = 0f);
             AddStep("Move cursor to centre", () => InputManager.MoveMouseTo(Content.ScreenSpaceDrawQuad.Centre));
-            AddAssert("Cursor is centered", () => cursorCenteredInContainer());
-            AddAssert("Cursor at mouse position", () => cursorAtMouseScreenSpace());
+            AddAssert("Cursor is centered", cursorCenteredInContainer);
+            AddAssert("Cursor at mouse position", cursorAtMouseScreenSpace);
             AddStep("Show cursor container", () => cursorContainer.Alpha = 1f);
-            AddAssert("Cursor is centered", () => cursorCenteredInContainer());
-            AddAssert("Cursor at mouse position", () => cursorAtMouseScreenSpace());
+            AddAssert("Cursor is centered", cursorCenteredInContainer);
+            AddAssert("Cursor at mouse position", cursorAtMouseScreenSpace);
         }
 
         [Test]
@@ -50,9 +50,9 @@ namespace osu.Framework.Tests.Visual.Containers
             AddStep("Move cursor to centre", () => InputManager.MoveMouseTo(container.ScreenSpaceDrawQuad.Centre));
             AddStep("Move container", () => container.Y += 50);
             AddAssert("Cursor no longer centered", () => !cursorCenteredInContainer());
-            AddAssert("Cursor at mouse position", () => cursorAtMouseScreenSpace());
+            AddAssert("Cursor at mouse position", cursorAtMouseScreenSpace);
             AddStep("Resize container", () => container.Size *= new Vector2(1.4f, 1));
-            AddAssert("Cursor at mouse position", () => cursorAtMouseScreenSpace());
+            AddAssert("Cursor at mouse position", cursorAtMouseScreenSpace);
         }
 
         /// <summary>
@@ -63,8 +63,8 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             AddStep("Move cursor to centre", () => InputManager.MoveMouseTo(Content.ScreenSpaceDrawQuad.Centre));
             AddStep("Recreate container with mouse already in place", createContent);
-            AddAssert("Cursor is centered", () => cursorCenteredInContainer());
-            AddAssert("Cursor at mouse position", () => cursorAtMouseScreenSpace());
+            AddAssert("Cursor is centered", cursorCenteredInContainer);
+            AddAssert("Cursor at mouse position", cursorAtMouseScreenSpace);
         }
 
         private bool cursorCenteredInContainer() =>
