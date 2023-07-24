@@ -88,10 +88,10 @@ namespace osu.Framework.Platform.MacOS.Native
             AppKitLibrary = dlopen(LIB_APPKIT, RTLD_NOW);
         }
 
-        private static readonly IntPtr sel_c_string_using_encoding = Selector.Get("cStringUsingEncoding:");
+        private static readonly IntPtr sel_utf8_string = Selector.Get("UTF8String");
         private static readonly IntPtr sel_tiff_representation = Selector.Get("TIFFRepresentation");
 
-        public static string? FromNSString(IntPtr handle) => Marshal.PtrToStringUni(SendIntPtr(handle, sel_c_string_using_encoding, (uint)NSStringEncoding.Unicode));
+        public static string? FromNSString(IntPtr handle) => Marshal.PtrToStringUTF8(SendIntPtr(handle, sel_utf8_string));
 
         public static Image<TPixel>? FromNSImage<TPixel>(IntPtr handle)
             where TPixel : unmanaged, IPixel<TPixel>
