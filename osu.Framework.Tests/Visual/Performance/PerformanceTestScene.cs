@@ -17,6 +17,8 @@ namespace osu.Framework.Tests.Visual.Performance
     {
         protected override Container<Drawable> Content => content;
 
+        public override bool AutomaticallyRunFirstStep => false;
+
         private Container content = null!;
 
         private bool rotation;
@@ -47,8 +49,6 @@ namespace osu.Framework.Tests.Visual.Performance
             };
 
             AddLabel("General");
-
-            AddStep("do nothing", () => { });
 
             AddToggleStep("hide content", v => Content.Alpha = v ? 0 : 1);
             AddToggleStep("enable front to back", v => bypassFrontToBack.Value = !v);

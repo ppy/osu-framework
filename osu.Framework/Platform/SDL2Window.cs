@@ -174,6 +174,9 @@ namespace osu.Framework.Platform
         [UsedImplicitly]
         private SDL.SDL_EventFilter? eventFilterDelegate;
 
+        [UsedImplicitly]
+        private SDL.SDL_EventFilter? eventWatchDelegate;
+
         /// <summary>
         /// Represents a handle to this <see cref="SDL2Window"/> instance, used for unmanaged callbacks.
         /// </summary>
@@ -254,6 +257,7 @@ namespace osu.Framework.Platform
         public void Run()
         {
             SDL.SDL_SetEventFilter(eventFilterDelegate = eventFilter, ObjectHandle.Handle);
+            SDL.SDL_AddEventWatch(eventWatchDelegate = eventWatch, ObjectHandle.Handle);
 
             RunMainLoop();
         }
@@ -326,7 +330,13 @@ namespace osu.Framework.Platform
                 case SDL.SDL_EventType.SDL_APP_LOWMEMORY:
                     LowOnMemory?.Invoke();
                     break;
+            }
+        }
 
+        protected void HandleEventFromWatch(SDL.SDL_Event evt)
+        {
+            switch (evt.type)
+            {
                 case SDL.SDL_EventType.SDL_WINDOWEVENT:
                     // polling via SDL_PollEvent blocks on resizes (https://stackoverflow.com/a/50858339)
                     if (evt.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED && !updatingWindowStateAndSize)
@@ -342,6 +352,16 @@ namespace osu.Framework.Platform
             var handle = new ObjectHandle<SDL2Window>(userdata);
             if (handle.GetTarget(out SDL2Window window))
                 window.HandleEventFromFilter(Marshal.PtrToStructure<SDL.SDL_Event>(eventPtr));
+
+            return 1;
+        }
+
+        [MonoPInvokeCallback(typeof(SDL.SDL_EventFilter))]
+        private static int eventWatch(IntPtr userdata, IntPtr eventPtr)
+        {
+            var handle = new ObjectHandle<SDL2Window>(userdata);
+            if (handle.GetTarget(out SDL2Window window))
+                window.HandleEventFromWatch(Marshal.PtrToStructure<SDL.SDL_Event>(eventPtr));
 
             return 1;
         }

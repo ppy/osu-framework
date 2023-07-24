@@ -40,6 +40,20 @@ namespace osu.Framework.Testing
 
         protected virtual ITestSceneTestRunner CreateRunner() => new TestSceneTestRunner();
 
+        /// <summary>
+        /// Delay between invoking two <see cref="StepButton"/>s in automatic runs.
+        /// </summary>
+        protected virtual double TimePerAction => 200;
+
+        /// <summary>
+        /// Whether to automatically run the the first actual <see cref="StepButton"/> (one that is not part of <see cref="SetUpAttribute">[SetUp]</see> or <see cref="SetUpStepsAttribute">[SetUpSteps]</see>)
+        /// when the test is first loaded.
+        /// </summary>
+        /// <remarks>
+        /// Defaults to <c>true</c>. Should be set to <c>false</c> if the first step in the first <see cref="TestAttribute">test</see> has unwanted-by-default behaviour.
+        /// </remarks>
+        public virtual bool AutomaticallyRunFirstStep => true;
+
         private GameHost host;
         private Task runTask;
         private ITestSceneTestRunner runner;
@@ -187,8 +201,6 @@ namespace osu.Framework.Testing
         }
 
         private StepButton loadableStep => actionIndex >= 0 ? StepsContainer.Children.ElementAtOrDefault(actionIndex) as StepButton : null;
-
-        protected virtual double TimePerAction => 200;
 
         private void runNextStep(Action onCompletion, Action<Exception> onError, Func<StepButton, bool> stopCondition)
         {
