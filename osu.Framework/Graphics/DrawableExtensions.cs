@@ -53,6 +53,8 @@ namespace osu.Framework.Graphics
         /// <returns>Whether the drawable was rooted.</returns>
         internal static bool IsRootedAt(this Drawable drawable, Drawable root)
         {
+            if (drawable == root) return true;
+
             while ((drawable = drawable.Parent) != null)
             {
                 if (drawable == root)
