@@ -442,9 +442,7 @@ namespace osu.Framework.Platform
             Scale = (float)drawableW / w;
             Size = new Size(w, h);
 
-            // This function may be invoked before the SDL internal states are all changed. (as documented here: https://wiki.libsdl.org/SDL_SetEventFilter)
-            // Scheduling the store to config until after the event poll has run will ensure the window is in the correct state.
-            EventScheduler.AddOnce(storeWindowSizeToConfig);
+            storeWindowSizeToConfig();
         }
 
         #region SDL Event Handling
