@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Rendering.Vertices
         public Vector2 BlendRange;
 
         [VertexMember(1, VertexAttribPointerType.Float)]
-        private float backbufferDrawDepth;
+        private readonly float backbufferDrawDepth;
 
         [Obsolete("Initialise this type with an IRenderer instead", true)]
         public TexturedVertex2D()
