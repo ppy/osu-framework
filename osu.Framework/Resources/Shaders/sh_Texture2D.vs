@@ -8,6 +8,7 @@ layout(location = 1) in lowp vec4 m_Colour;
 layout(location = 2) in highp vec2 m_TexCoord;
 layout(location = 3) in highp vec4 m_TexRect;
 layout(location = 4) in mediump vec2 m_BlendRange;
+layout(location = 5) in highp float m_BackbufferDrawDepth;
 
 layout(location = 0) out highp vec2 v_MaskingPosition;
 layout(location = 1) out lowp vec4 v_Colour;
@@ -27,6 +28,9 @@ void main(void)
 	v_BlendRange = m_BlendRange;
 
 	gl_Position = g_ProjMatrix * vec4(m_Position, 1.0, 1.0);
+
+    if (g_BackbufferDraw)
+        gl_Position.z = m_BackbufferDrawDepth;
 }
 
 #endif
