@@ -350,7 +350,7 @@ namespace osu.Framework.Input.Bindings
             {
                 pressedBindings.Remove(binding);
 
-                PropagateReleased(getInputQueue(binding), state, binding.GetAction<T>());
+                PropagateReleased(getInputQueue(binding).Where(d => d.IsRootedAt(this)), state, binding.GetAction<T>());
                 keyBindingQueues[binding].Clear();
             }
         }
