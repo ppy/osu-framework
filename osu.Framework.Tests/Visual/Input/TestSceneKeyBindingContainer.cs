@@ -349,6 +349,43 @@ namespace osu.Framework.Tests.Visual.Input
                 AddAssert("container did not receive input", () => !containerReceivedInput);
         }
 
+        [Test]
+        public void TestReleaseKeyAfterReceptorRemovedFromHierarchy()
+        {
+            TestKeyBindingContainer container = null!;
+            TestKeyBindingReceptor receptor = null!;
+            List<TestAction> pressedActions = new List<TestAction>();
+            List<TestAction> releasedActions = new List<TestAction>();
+
+            AddStep("add container", () =>
+            {
+                pressedActions.Clear();
+                releasedActions.Clear();
+
+                Child = container = new TestKeyBindingContainer
+                {
+                    Child = receptor = new TestKeyBindingReceptor
+                    {
+                        Pressed = a => pressedActions.Add(a),
+                        Released = a => releasedActions.Add(a)
+                    }
+                };
+            });
+
+            AddStep("press key A", () => InputManager.PressKey(Key.A));
+            AddAssert("only one action triggered", () => pressedActions, () => Has.Count.EqualTo(1));
+            AddAssert("ActionA triggered", () => pressedActions[0], () => Is.EqualTo(TestAction.ActionA));
+            AddAssert("no actions released", () => releasedActions, () => Is.Empty);
+
+            AddStep("remove receptor", () => container.Remove(receptor, disposeImmediately: false));
+
+            AddStep("release key A", () => InputManager.ReleaseKey(Key.A));
+            AddAssert("only one action triggered", () => pressedActions, () => Has.Count.EqualTo(1));
+            AddAssert("no actions released", () => releasedActions, () => Is.Empty);
+
+            AddStep("dispose of receptor", () => receptor.Dispose());
+        }
+
         private partial class TestKeyBindingReceptor : Drawable, IKeyBindingHandler<TestAction>
         {
             public Action<TestAction>? Pressed;
