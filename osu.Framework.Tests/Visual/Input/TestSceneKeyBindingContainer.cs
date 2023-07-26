@@ -71,14 +71,14 @@ namespace osu.Framework.Tests.Visual.Input
             });
 
             AddStep("press key A", () => InputManager.PressKey(Key.A));
-            AddAssert("only one action triggered", () => pressedActions.Count == 1);
-            AddAssert("ActionA triggered", () => pressedActions[0] == TestAction.ActionA);
-            AddAssert("no actions released", () => releasedActions.Count == 0);
+            AddAssert("only one action triggered", () => pressedActions, () => Has.Count.EqualTo(1));
+            AddAssert("ActionA triggered", () => pressedActions[0], () => Is.EqualTo(TestAction.ActionA));
+            AddAssert("no actions released", () => releasedActions, () => Is.Empty);
 
             AddStep("release key A", () => InputManager.ReleaseKey(Key.A));
-            AddAssert("only one action triggered", () => pressedActions.Count == 1);
-            AddAssert("only one action released", () => releasedActions.Count == 1);
-            AddAssert("ActionA released", () => releasedActions[0] == TestAction.ActionA);
+            AddAssert("only one action triggered", () => pressedActions, () => Has.Count.EqualTo(1));
+            AddAssert("only one action released", () => releasedActions, () => Has.Count.EqualTo(1));
+            AddAssert("ActionA released", () => releasedActions[0], () => Is.EqualTo(TestAction.ActionA));
         }
 
         [Test]
@@ -126,8 +126,8 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("release enter", () => InputManager.ReleaseKey(Key.Enter));
             AddStep("release mouse button", () => InputManager.ReleaseButton(MouseButton.Left));
 
-            AddAssert("no pressed actions", () => pressedActions.Count == 0);
-            AddAssert("no released actions", () => releasedActions.Count == 0);
+            AddAssert("no pressed actions", () => pressedActions, () => Is.Empty);
+            AddAssert("no released actions", () => releasedActions, () => Is.Empty);
         }
 
         [Test]
@@ -196,18 +196,18 @@ namespace osu.Framework.Tests.Visual.Input
             });
 
             AddStep("press A", () => InputManager.PressKey(Key.A));
-            AddAssert("press received", () => pressedReceived == 1);
+            AddAssert("press received", () => pressedReceived, () => Is.EqualTo(1));
 
             for (int i = 0; i < 10; i++)
             {
                 int localI = i + 1;
-                AddUntilStep($"repeat #{1 + i} received", () => repeatedReceived >= localI);
+                AddUntilStep($"repeat #{1 + i} received", () => repeatedReceived, () => Is.GreaterThanOrEqualTo(localI));
             }
 
             AddStep("release A", () => InputManager.ReleaseKey(Key.A));
             AddAssert("release received", () => releasedReceived);
 
-            AddAssert("only one press received", () => pressedReceived == 1);
+            AddAssert("only one press received", () => pressedReceived, () => Is.EqualTo(1));
         }
 
         [Test]
@@ -236,18 +236,18 @@ namespace osu.Framework.Tests.Visual.Input
             });
 
             AddStep("press A", () => InputManager.PressKey(Key.A));
-            AddUntilStep("wait for non-zero repeated", () => repeatedReceived > 0);
+            AddUntilStep("wait for non-zero repeated", () => repeatedReceived, () => Is.GreaterThan(0));
 
             AddStep("hide receptor", () => receptor.Hide());
 
             int stopReceivingCheck = 0;
             AddStep("store count", () => stopReceivingCheck = repeatedReceived);
             AddWaitStep("wait some", 5);
-            AddAssert("ensure not incrementing", () => stopReceivingCheck == repeatedReceived);
+            AddAssert("ensure not incrementing", () => stopReceivingCheck, () => Is.EqualTo(repeatedReceived));
 
             AddStep("release A", () => InputManager.ReleaseKey(Key.A));
             AddAssert("release received", () => releasedReceived);
-            AddAssert("only one press received", () => pressedReceived == 1);
+            AddAssert("only one press received", () => pressedReceived, () => Is.EqualTo(1));
         }
 
         [Test]
