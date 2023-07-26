@@ -93,7 +93,7 @@ namespace osu.Framework.Tests.Audio
         public void Dispose()
         {
             allComponents.Dispose();
-            allComponents.Update(); // Actually runs the disposal.
+            Update(); // Actually runs the disposal.
             Bass.Free();
         }
     }
