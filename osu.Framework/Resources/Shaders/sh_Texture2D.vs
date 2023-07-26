@@ -1,3 +1,6 @@
+#ifndef TEXTURE2D_VS
+#define TEXTURE2D_VS
+
 #include "sh_Utils.h"
 
 layout(location = 0) in highp vec2 m_Position;
@@ -25,3 +28,5 @@ void main(void)
 
 	gl_Position = g_ProjMatrix * vec4(m_Position, 1.0, 1.0);
 }
+
+#endif

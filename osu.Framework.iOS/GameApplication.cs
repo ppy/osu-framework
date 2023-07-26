@@ -32,6 +32,7 @@ namespace osu.Framework.iOS
 
             game = target;
 
+            SDL.PrepareLibraryForIOS();
             SDL.SDL_UIKitRunApp(0, IntPtr.Zero, main);
         }
 

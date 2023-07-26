@@ -195,6 +195,16 @@ namespace osu.Framework.Android
             RequestFocus();
 
             LayoutChange += (_, _) => updateSafeArea();
+
+            Activity.IsActive.BindValueChanged(active =>
+            {
+                // When rotating device 180 degrees in the background,
+                // LayoutChange doesn't trigger after returning to game.
+                // So update safe area once active again.
+                if (active.NewValue)
+                    updateSafeArea();
+            });
+
             updateSafeArea();
 
             Host = new AndroidGameHost(this);

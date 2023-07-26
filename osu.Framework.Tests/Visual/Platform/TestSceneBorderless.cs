@@ -17,6 +17,8 @@ namespace osu.Framework.Tests.Visual.Platform
     [Ignore("This test cannot run in headless mode (a window instance is required).")]
     public partial class TestSceneBorderless : FrameworkTestScene
     {
+        public override bool AutomaticallyRunFirstStep => false;
+
         private readonly SpriteText currentActualSize = new SpriteText();
         private readonly SpriteText currentClientSize = new SpriteText();
         private readonly SpriteText currentWindowMode = new SpriteText();
@@ -68,9 +70,6 @@ namespace osu.Framework.Tests.Visual.Platform
             const string desc2 = "Check whether the window size is one pixel wider than the screen in each direction";
 
             Point originalWindowPosition = Point.Empty;
-
-            // so the test doesn't switch to windowed on startup.
-            AddStep("nothing", () => { });
 
             foreach (var display in window.Displays)
             {

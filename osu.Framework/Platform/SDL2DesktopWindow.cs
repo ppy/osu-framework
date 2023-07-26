@@ -5,7 +5,7 @@ using SDL2;
 
 namespace osu.Framework.Platform
 {
-    public class SDL2DesktopWindow : SDL2Window
+    internal class SDL2DesktopWindow : SDL2Window
     {
         public SDL2DesktopWindow(GraphicsSurfaceType surfaceType)
             : base(surfaceType)

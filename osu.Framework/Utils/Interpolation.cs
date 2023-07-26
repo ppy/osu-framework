@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Runtime.Serialization;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
@@ -200,7 +199,14 @@ namespace osu.Framework.Utils
 
         public static TValue ValueAt<TValue, TEasing>(double time, TValue startValue, TValue endValue, double startTime, double endTime, in TEasing easing)
             where TEasing : IEasingFunction
-            => GenericInterpolation<TValue, TEasing>.FUNCTION(time, startValue, endValue, startTime, endTime, easing);
+        {
+            // this is explicitly moved here rather than being included in GenericInterpolation<TValue, TEasing>.FUNCTION to avoid potential runtime issues on iOS,
+            // see: https://github.com/dotnet/runtime/issues/89359.
+            if (startValue is IInterpolable<TValue> interpolable)
+                return interpolable.ValueAt(time, startValue, endValue, startTime, endTime, easing);
+
+            return GenericInterpolation<TValue, TEasing>.FUNCTION(time, startValue, endValue, startTime, endTime, easing);
+        }
 
         public static double ApplyEasing(Easing easing, double time)
             => ApplyEasing(new DefaultEasingFunction(easing), time);
@@ -412,8 +418,6 @@ namespace osu.Framework.Utils
                     FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<Vector2, TEasing>)GenericInterpolation<TEasing>.ValueAt;
                 else if (typeof(TValue) == typeof(RectangleF))
                     FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<RectangleF, TEasing>)GenericInterpolation<TEasing>.ValueAt;
-                else if (FormatterServices.GetSafeUninitializedObject(typeof(TValue)) is IInterpolable<TValue> typeRef)
-                    FUNCTION = typeRef.ValueAt;
                 else
                     throw new NotSupportedException($"Type {typeof(TValue)} has no interpolation function. Implement the interface {typeof(IInterpolable<TValue>)} interface on the object.");
             }

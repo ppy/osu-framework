@@ -1,8 +1,12 @@
+#ifndef BLUR_FS
+#define BLUR_FS
+
 #include "sh_Utils.h"
 
+#undef INV_SQRT_2PI
 #define INV_SQRT_2PI 0.39894
 
-layout(location = 0) in mediump vec2 v_TexCoord;
+layout(location = 2) in mediump vec2 v_TexCoord;
 
 layout(std140, set = 0, binding = 0) uniform m_BlurParameters
 {
@@ -50,3 +54,5 @@ void main(void)
 {
 	o_Colour = blur(g_Radius, g_BlurDirection, v_TexCoord, g_TexSize, g_Sigma);
 }
+
+#endif

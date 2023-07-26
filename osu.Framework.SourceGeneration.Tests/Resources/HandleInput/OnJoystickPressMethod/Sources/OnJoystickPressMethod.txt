@@ -1,0 +1,4 @@
+public partial class OnJoystickPressMethod : osu.Framework.Graphics.Drawable
+{
+    protected override void OnJoystickPress(object e) { }
+}

@@ -463,6 +463,5 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             {
             }
         }
-#nullable disable
     }
 }

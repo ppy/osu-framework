@@ -13,6 +13,7 @@ using osuTK.Platform;
 using osuTK.Input;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
@@ -22,7 +23,7 @@ using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Platform
 {
-    public abstract class OsuTKWindow : IWindow, IGameWindow
+    internal abstract class OsuTKWindow : IWindow, IGameWindow
     {
         private readonly IGraphicsSurface graphicsSurface;
         IGraphicsSurface IWindow.GraphicsSurface => graphicsSurface;
@@ -60,6 +61,9 @@ namespace osu.Framework.Platform
 
         /// <inheritdoc cref="IWindow.KeymapChanged"/>
         public event Action KeymapChanged { add { } remove { } }
+
+        /// <inheritdoc cref="IWindow.DragDrop"/>
+        public event Action<string> DragDrop { add { } remove { } }
 
         /// <summary>
         /// Invoked when any key has been pressed.
@@ -410,6 +414,9 @@ namespace osu.Framework.Platform
         public void Close() => OsuTKGameWindow.Close();
 
         public void ProcessEvents() => OsuTKGameWindow.ProcessEvents();
+
+        public void SetIconFromStream(Stream imageStream) => throw new NotSupportedException($@"{nameof(SetIconFromStream)} is not supported.");
+
         public Point PointToClient(Point point) => OsuTKGameWindow.PointToClient(point);
         public Point PointToScreen(Point point) => OsuTKGameWindow.PointToScreen(point);
 

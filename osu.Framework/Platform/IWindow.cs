@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
@@ -70,6 +71,11 @@ namespace osu.Framework.Platform
         /// Invoked when the system keyboard layout has changed.
         /// </summary>
         event Action? KeymapChanged;
+
+        /// <summary>
+        /// Invoked when the user drops a file into the window.
+        /// </summary>
+        public event Action<string>? DragDrop;
 
         /// <summary>
         /// Whether the OS cursor is currently contained within the game window.
@@ -174,6 +180,11 @@ namespace osu.Framework.Platform
         /// Whether the window currently has focus.
         /// </summary>
         bool Focused { get; }
+
+        /// <summary>
+        /// Sets the window icon to the provided <paramref name="imageStream"/>.
+        /// </summary>
+        public void SetIconFromStream(Stream imageStream);
 
         /// <summary>
         /// Convert a screen based coordinate to local window space.

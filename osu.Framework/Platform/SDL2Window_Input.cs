@@ -20,7 +20,7 @@ using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Platform
 {
-    public partial class SDL2Window
+    internal partial class SDL2Window
     {
         private void setupInput(FrameworkConfigManager config)
         {
