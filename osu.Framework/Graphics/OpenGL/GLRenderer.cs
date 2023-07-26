@@ -44,6 +44,8 @@ namespace osu.Framework.Graphics.OpenGL
         public override bool IsUvOriginTopLeft => false;
         public override bool IsClipSpaceYInverted => false;
 
+        public bool UseStructuredBuffers { get; private set; }
+
         /// <summary>
         /// The maximum allowed render buffer size.
         /// </summary>
@@ -80,12 +82,16 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Disable(EnableCap.StencilTest);
             GL.Enable(EnableCap.Blend);
 
+            string extensions = GetExtensions();
+
             Logger.Log($@"GL Initialized
                         GL Version:                 {GL.GetString(StringName.Version)}
                         GL Renderer:                {GL.GetString(StringName.Renderer)}
                         GL Shader Language version: {GL.GetString(StringName.ShadingLanguageVersion)}
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
-                        GL Extensions:              {GetExtensions()}");
+                        GL Extensions:              {extensions}");
+
+            UseStructuredBuffers = extensions.Contains(@"GL_ARB_shader_storage_buffer_object") && !FrameworkEnvironment.NoStructuredBuffers;
 
             openGLSurface.ClearCurrent();
         }
@@ -431,7 +437,11 @@ namespace osu.Framework.Graphics.OpenGL
             return new GLFrameBuffer(this, glFormats, glFilteringMode);
         }
 
-        protected override IUniformBuffer<TData> CreateUniformBuffer<TData>() => new GLUniformBuffer<TData>(this);
+        protected override IUniformBuffer<TData> CreateUniformBuffer<TData>()
+            => new GLUniformBuffer<TData>(this);
+
+        protected override IShaderStorageBufferObject<TData> CreateShaderStorageBufferObject<TData>(int uboSize, int ssboSize)
+            => new GLShaderStorageBufferObject<TData>(this, uboSize, ssboSize);
 
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
                                                               Color4? initialisationColour = null)

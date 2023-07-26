@@ -16,6 +16,7 @@ namespace osu.Framework
         public static string? PreferredGraphicsRenderer { get; }
         public static int? StagingBufferType { get; }
         public static int? VertexBufferCount { get; }
+        public static bool NoStructuredBuffers { get; }
 
         static FrameworkEnvironment()
         {
@@ -31,6 +32,8 @@ namespace osu.Framework
 
             if (int.TryParse(Environment.GetEnvironmentVariable("OSU_GRAPHICS_STAGING_BUFFER_TYPE"), out int stagingBufferImplementation))
                 StagingBufferType = stagingBufferImplementation;
+
+            NoStructuredBuffers = Environment.GetEnvironmentVariable("OSU_GRAPHICS_NO_SSBO") == "1";
         }
     }
 }
