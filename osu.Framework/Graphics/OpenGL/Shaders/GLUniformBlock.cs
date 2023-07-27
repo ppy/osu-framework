@@ -19,6 +19,17 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
         /// <param name="index">The index (location) of this block in the GL shader.</param>
         /// <param name="binding">A unique index for this block to bound to in the GL program.</param>
         public GLUniformBlock(GLShader shader, int index, int binding)
+            : this((int)shader, index, binding)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new uniform block.
+        /// </summary>
+        /// <param name="shader">The shader.</param>
+        /// <param name="index">The index (location) of this block in the GL shader.</param>
+        /// <param name="binding">A unique index for this block to bound to in the GL program.</param>
+        public GLUniformBlock(int shader, int index, int binding)
         {
             Binding = binding;
 

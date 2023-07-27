@@ -138,9 +138,8 @@ namespace osu.Framework.Graphics.OpenGL
                     if (linkResult != 1)
                         throw new GLShader.PartCompilationFailedException("Failed to link compute mipmap shader", GL.GetShaderInfoLog(shader));
 
-                    // todo: broke
-                    // computeMipmapParametersBlock = new GLUniformBlock(this, computeMipmapShader.Value, 0, 0);
-                    // computeMipmapParametersBlock.Assign(computeMipmapParametersBuffer = new GLUniformBuffer<ComputeMipmapGenerationParameters>(this));
+                    computeMipmapParametersBlock = new GLUniformBlock(shader, 0, 0);
+                    computeMipmapParametersBuffer = new GLUniformBuffer<ComputeMipmapGenerationParameters>(this);
                 }
                 else
                 {
@@ -302,8 +301,7 @@ namespace osu.Framework.Graphics.OpenGL
                 else
                     osuTK.Graphics.OpenGL.GL.BindImageTexture(2, texture.TextureId, level, false, 0, osuTK.Graphics.OpenGL.TextureAccess.WriteOnly, osuTK.Graphics.OpenGL.SizedInternalFormat.Rgba8);
 
-                // todo: broke
-                // computeMipmapParametersBlock!.Bind();
+                GL.BindBufferBase(BufferRangeTarget.UniformBuffer, computeMipmapParametersBlock!.Binding, computeMipmapParametersBuffer!.Id);
 
                 for (int i = 0; i < regions.Count; i++)
                 {
