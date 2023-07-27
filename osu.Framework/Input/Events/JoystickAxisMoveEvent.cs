@@ -1,9 +1,6 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
-using JetBrains.Annotations;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Input.States;
 
@@ -29,7 +26,7 @@ namespace osu.Framework.Input.Events
         /// </summary>
         public float Delta => Axis.Value - LastValue;
 
-        public JoystickAxisMoveEvent([NotNull] InputState state, JoystickAxis axis, float lastValue)
+        public JoystickAxisMoveEvent(InputState state, JoystickAxis axis, float lastValue)
             : base(state)
         {
             LastValue = lastValue;

@@ -230,13 +230,13 @@ namespace osu.Framework.Graphics
         /// Returns a new <see cref="Colour4"/> with an SRGB->Linear conversion applied
         /// to each of its chromatic components. Alpha is unchanged.
         /// </summary>
-        public Colour4 ToLinear() => new Colour4((float)toLinear(R), (float)toLinear(G), (float)toLinear(B), A);
+        public Colour4 ToLinear() => new Colour4(toLinear(R), toLinear(G), toLinear(B), A);
 
         /// <summary>
         /// Returns a new <see cref="Colour4"/> with a Linear->SRGB conversion applied
         /// to each of its chromatic components. Alpha is unchanged.
         /// </summary>
-        public Colour4 ToSRGB() => new Colour4((float)toSRGB(R), (float)toSRGB(G), (float)toSRGB(B), A);
+        public Colour4 ToSRGB() => new Colour4(toSRGB(R), toSRGB(G), toSRGB(B), A);
 
         /// <summary>
         /// Returns the <see cref="Colour4"/> as a 32-bit unsigned integer in the format RGBA.
@@ -552,9 +552,21 @@ namespace osu.Framework.Graphics
 
         private const double gamma = 2.4;
 
-        private static double toLinear(double color) => color <= 0.04045 ? color / 12.92 : Math.Pow((color + 0.055) / 1.055, gamma);
+        private static float toLinear(float color)
+        {
+            if (color == 1)
+                return 1;
 
-        private static double toSRGB(double color) => color < 0.0031308 ? 12.92 * color : 1.055 * Math.Pow(color, 1.0 / gamma) - 0.055;
+            return color <= 0.04045f ? color / 12.92f : MathF.Pow((color + 0.055f) / 1.055f, (float)gamma);
+        }
+
+        private static float toSRGB(float color)
+        {
+            if (color == 1)
+                return 1;
+
+            return color < 0.0031308f ? 12.92f * color : 1.055f * MathF.Pow(color, 1.0f / (float)gamma) - 0.055f;
+        }
 
         #endregion
 

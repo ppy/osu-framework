@@ -2,8 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Linq;
-using System.Runtime.Serialization;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
@@ -201,7 +199,14 @@ namespace osu.Framework.Utils
 
         public static TValue ValueAt<TValue, TEasing>(double time, TValue startValue, TValue endValue, double startTime, double endTime, in TEasing easing)
             where TEasing : IEasingFunction
-            => GenericInterpolation<TValue, TEasing>.FUNCTION(time, startValue, endValue, startTime, endTime, easing);
+        {
+            // this is explicitly moved here rather than being included in GenericInterpolation<TValue, TEasing>.FUNCTION to avoid potential runtime issues on iOS,
+            // see: https://github.com/dotnet/runtime/issues/89359.
+            if (startValue is IInterpolable<TValue> interpolable)
+                return interpolable.ValueAt(time, startValue, endValue, startTime, endTime, easing);
+
+            return GenericInterpolation<TValue, TEasing>.FUNCTION(time, startValue, endValue, startTime, endTime, easing);
+        }
 
         public static double ApplyEasing(Easing easing, double time)
             => ApplyEasing(new DefaultEasingFunction(easing), time);
@@ -377,26 +382,44 @@ namespace osu.Framework.Utils
 
             static GenericInterpolation()
             {
-                const string interpolation_method = nameof(GenericInterpolation<TEasing>.ValueAt);
-
-                var parameters = typeof(InterpolationFunc<TValue, TEasing>)
-                                 .GetMethod(nameof(InterpolationFunc<TValue, TEasing>.Invoke))
-                                 ?.GetParameters().Select(p => p.ParameterType).ToArray()
-                                 ?? Array.Empty<Type>();
-
-                var valueAtMethod = typeof(GenericInterpolation<TEasing>).GetMethod(interpolation_method, parameters);
-
-                if (valueAtMethod != null)
-                    FUNCTION = valueAtMethod.CreateDelegate<InterpolationFunc<TValue, TEasing>>();
+                if (typeof(TValue) == typeof(ColourInfo))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<ColourInfo, TEasing>)GenericInterpolation<TEasing>.ValueAt;
+                else if (typeof(TValue) == typeof(EdgeEffectParameters))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<EdgeEffectParameters, TEasing>)GenericInterpolation<TEasing>.ValueAt;
+                else if (typeof(TValue) == typeof(SRGBColour))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<SRGBColour, TEasing>)GenericInterpolation<TEasing>.ValueAt;
+                else if (typeof(TValue) == typeof(Color4))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<Color4, TEasing>)GenericInterpolation<TEasing>.ValueAt;
+                else if (typeof(TValue) == typeof(Colour4))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<Colour4, TEasing>)GenericInterpolation<TEasing>.ValueAt;
+                else if (typeof(TValue) == typeof(byte))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<byte, TEasing>)GenericInterpolation<TEasing>.ValueAt;
+                else if (typeof(TValue) == typeof(sbyte))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<sbyte, TEasing>)GenericInterpolation<TEasing>.ValueAt;
+                else if (typeof(TValue) == typeof(short))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<short, TEasing>)GenericInterpolation<TEasing>.ValueAt;
+                else if (typeof(TValue) == typeof(ushort))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<ushort, TEasing>)GenericInterpolation<TEasing>.ValueAt;
+                else if (typeof(TValue) == typeof(int))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<int, TEasing>)GenericInterpolation<TEasing>.ValueAt;
+                else if (typeof(TValue) == typeof(uint))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<uint, TEasing>)GenericInterpolation<TEasing>.ValueAt;
+                else if (typeof(TValue) == typeof(long))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<long, TEasing>)GenericInterpolation<TEasing>.ValueAt;
+                else if (typeof(TValue) == typeof(ulong))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<ulong, TEasing>)GenericInterpolation<TEasing>.ValueAt;
+                else if (typeof(TValue) == typeof(float))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<float, TEasing>)GenericInterpolation<TEasing>.ValueAt;
+                else if (typeof(TValue) == typeof(decimal))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<decimal, TEasing>)GenericInterpolation<TEasing>.ValueAt;
+                else if (typeof(TValue) == typeof(double))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<double, TEasing>)GenericInterpolation<TEasing>.ValueAt;
+                else if (typeof(TValue) == typeof(Vector2))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<Vector2, TEasing>)GenericInterpolation<TEasing>.ValueAt;
+                else if (typeof(TValue) == typeof(RectangleF))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<RectangleF, TEasing>)GenericInterpolation<TEasing>.ValueAt;
                 else
-                {
-                    var typeRef = FormatterServices.GetSafeUninitializedObject(typeof(TValue)) as IInterpolable<TValue>;
-
-                    if (typeRef == null)
-                        throw new NotSupportedException($"Type {typeof(TValue)} has no interpolation function. Implement the interface {typeof(IInterpolable<TValue>)} interface on the object.");
-
-                    FUNCTION = typeRef.ValueAt;
-                }
+                    throw new NotSupportedException($"Type {typeof(TValue)} has no interpolation function. Implement the interface {typeof(IInterpolable<TValue>)} interface on the object.");
             }
         }
     }

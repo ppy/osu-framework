@@ -10,9 +10,11 @@
   <!-- OpenTabletDriver contains P/Invokes to the "Quartz" framework for native macOS code.
        This leads iOS linker into attempting to include that framework, despite not existing on such platform.
        See: https://github.com/OpenTabletDriver/OpenTabletDriver/issues/2524 / https://github.com/xamarin/xamarin-macios/issues/15118#issuecomment-1141893683 -->
-  <Target Name="OsuFrameworkIOSRemoveQuartz" BeforeTargets="_ComputeLinkNativeExecutableInputs" AfterTargets="_LoadLinkerOutput">
+  <!-- There's also P/Invokes for "ApplicationServices" framework somewhere in the referenced libraries... -->
+  <Target Name="OsuFrameworkIOSRemoveMacOSFrameworks" BeforeTargets="_ComputeLinkNativeExecutableInputs" AfterTargets="_LoadLinkerOutput">
     <ItemGroup>
-      <_LinkerFrameworks Remove="Quartz" />
+      <_LinkerFrameworks Remove="Quartz"/>
+      <_LinkerFrameworks Remove="ApplicationServices"/>
     </ItemGroup>
   </Target>
 </Project>

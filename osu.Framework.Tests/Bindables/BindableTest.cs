@@ -107,6 +107,146 @@ namespace osu.Framework.Tests.Bindables
             Assert.That(value, Is.EqualTo(output));
         }
 
+        // Bindable<int>.Parse(null)
+        [Test]
+        public void TestParseNullIntoValueType()
+        {
+            Bindable<int> bindable = new Bindable<int>();
+            Assert.That(() => bindable.Parse(null), Throws.ArgumentNullException);
+        }
+
+        // Bindable<int>.Parse(string.Empty)
+        [Test]
+        public void TestParseEmptyStringIntoValueType()
+        {
+            Bindable<int> bindable = new Bindable<int>();
+            Assert.Throws<FormatException>(() => bindable.Parse(string.Empty));
+        }
+
+        // Bindable<int?>.Parse(null)
+        [Test]
+        public void TestParseNullIntoNullableValueType()
+        {
+            Bindable<int?> bindable = new Bindable<int?>();
+            bindable.Parse(null);
+            Assert.That(bindable.Value, Is.Null);
+        }
+
+        // Bindable<int?>.Parse(string.Empty)
+        [Test]
+        public void TestParseEmptyStringIntoNullableValueType()
+        {
+            Bindable<int?> bindable = new Bindable<int?>();
+            bindable.Parse(string.Empty);
+            Assert.That(bindable.Value, Is.Null);
+        }
+
+        // Bindable<Class>.Parse(null)
+        [Test]
+        public void TestParseNullIntoReferenceType()
+        {
+            Bindable<TestClass> bindable = new Bindable<TestClass>();
+            bindable.Parse(null);
+            Assert.That(bindable.Value, Is.Null);
+        }
+
+        // Bindable<Class>.Parse(string.Empty)
+        [Test]
+        public void TestParseEmptyStringIntoReferenceType()
+        {
+            Bindable<TestClass> bindable = new Bindable<TestClass>();
+            bindable.Parse(string.Empty);
+            Assert.That(bindable.Value, Is.Null);
+        }
+
+#nullable enable
+        // Bindable<Class>.Parse(null) -- NRT
+        [Test]
+        public void TestParseNullIntoReferenceTypeWithNRT()
+        {
+            Bindable<TestClass> bindable = new Bindable<TestClass>();
+            bindable.Parse(null);
+            Assert.That(bindable.Value, Is.Null);
+        }
+
+        // Bindable<Class>.Parse(string.Empty) -- NRT
+        [Test]
+        public void TestParseEmptyStringIntoReferenceTypeWithNRT()
+        {
+            Bindable<TestClass> bindable = new Bindable<TestClass>();
+            bindable.Parse(string.Empty);
+            Assert.That(bindable.Value, Is.Null);
+        }
+
+        // Bindable<Class?>.Parse(null) -- NRT
+        [Test]
+        public void TestParseNullIntoNullableReferenceTypeWithNRT()
+        {
+            Bindable<TestClass?> bindable = new Bindable<TestClass?>();
+            bindable.Parse(null);
+            Assert.That(bindable.Value, Is.Null);
+        }
+
+        // Bindable<Class?>.Parse(string.Empty) -- NRT
+        [Test]
+        public void TestParseEmptyStringIntoNullableReferenceTypeWithNRT()
+        {
+            Bindable<TestClass?> bindable = new Bindable<TestClass?>();
+            bindable.Parse(string.Empty);
+            Assert.That(bindable.Value, Is.Null);
+        }
+#nullable disable
+
+        [Test]
+        public void TestParseNullIntoStringType()
+        {
+            Bindable<string> bindable = new Bindable<string>();
+            bindable.Parse(null);
+            Assert.That(bindable.Value, Is.Null);
+        }
+
+        [Test]
+        public void TestParseEmptyStringIntoStringType()
+        {
+            Bindable<string> bindable = new Bindable<string>();
+            bindable.Parse(string.Empty);
+            Assert.That(bindable.Value, Is.Empty);
+        }
+
+#nullable enable
+        [Test]
+        public void TestParseNullIntoStringTypeWithNRT()
+        {
+            Bindable<string> bindable = new Bindable<string>();
+            bindable.Parse(null);
+            Assert.That(bindable.Value, Is.Null);
+        }
+
+        [Test]
+        public void TestParseEmptyStringIntoStringTypeWithNRT()
+        {
+            Bindable<string> bindable = new Bindable<string>();
+            bindable.Parse(string.Empty);
+            Assert.That(bindable.Value, Is.Empty);
+        }
+
+        [Test]
+        public void TestParseNullIntoNullableStringTypeWithNRT()
+        {
+            Bindable<string?> bindable = new Bindable<string?>();
+            bindable.Parse(null);
+            Assert.That(bindable.Value, Is.Null);
+        }
+
+        [Test]
+        public void TestParseEmptyStringIntoNullableStringTypeWithNRT()
+        {
+            Bindable<string?> bindable = new Bindable<string?>();
+            bindable.Parse(string.Empty);
+            Assert.That(bindable.Value, Is.Empty);
+        }
+#nullable disable
+
         private static IEnumerable<object[]> getParsingConversionTests()
         {
             var testTypes = new[]
@@ -155,6 +295,11 @@ namespace osu.Framework.Tests.Bindables
                         yield return new[] { type, input, expectedOutput };
                 }
             }
+        }
+
+        // ReSharper disable once ClassNeverInstantiated.Local
+        private class TestClass
+        {
         }
     }
 }

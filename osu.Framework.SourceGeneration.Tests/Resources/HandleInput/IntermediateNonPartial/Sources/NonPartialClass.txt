@@ -1,0 +1,4 @@
+public class NonPartialClass : osu.Framework.Graphics.Drawable
+{
+    protected override void Handle(object e) { }
+}

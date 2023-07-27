@@ -44,6 +44,7 @@ using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Serialization;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
+using Rectangle = System.Drawing.Rectangle;
 using Size = System.Drawing.Size;
 
 namespace osu.Framework.Platform
@@ -173,8 +174,10 @@ namespace osu.Framework.Platform
         /// </summary>
         protected abstract IWindow CreateWindow(GraphicsSurfaceType preferredSurface);
 
-        [CanBeNull]
-        public virtual Clipboard GetClipboard() => null;
+        [Obsolete($"Resolve {nameof(Clipboard)} via DI.")] // can be removed 20231010
+        public Clipboard GetClipboard() => Dependencies.Get<Clipboard>();
+
+        protected abstract Clipboard CreateClipboard();
 
         protected virtual ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new ReadableKeyCombinationProvider();
 
@@ -468,6 +471,8 @@ namespace osu.Framework.Platform
 
         private readonly DepthValue depthValue = new DepthValue();
 
+        private bool didRenderFrame;
+
         protected virtual void DrawFrame()
         {
             if (Root == null)
@@ -477,15 +482,25 @@ namespace osu.Framework.Platform
                 return;
 
             Renderer.AllowTearing = windowMode.Value == WindowMode.Fullscreen;
-            Renderer.WaitUntilNextFrameReady();
 
             ObjectUsage<DrawNode> buffer;
 
             using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
+            {
+                // Importantly, only wait on renderer frame availability if we actually rendered a frame since the last `WaitUntilNextFrameReady()`.
+                // Without this, the wait handle, internally used in the Veldrid-side implementation of `WaitUntilNextFrameReady()`,
+                // will potentially be in a bad state and take the timeout value (1 second) to recover.
+                if (didRenderFrame)
+                    Renderer.WaitUntilNextFrameReady();
+
+                didRenderFrame = false;
                 buffer = DrawRoots.GetForRead();
+            }
 
             if (buffer == null)
                 return;
+
+            Debug.Assert(buffer.Object != null);
 
             try
             {
@@ -527,6 +542,7 @@ namespace osu.Framework.Platform
                     Swap();
 
                 Window.OnDraw();
+                didRenderFrame = true;
             }
             finally
             {
@@ -723,6 +739,7 @@ namespace osu.Framework.Platform
 
                 Dependencies.CacheAs(readableKeyCombinationProvider = CreateReadableKeyCombinationProvider());
                 Dependencies.CacheAs(CreateTextInput());
+                Dependencies.CacheAs(CreateClipboard());
 
                 ExecutionState = ExecutionState.Running;
                 threadRunner.Start();
@@ -942,6 +959,7 @@ namespace osu.Framework.Platform
             Logger.Log($"🖼️ Initialising \"{renderer.GetType().ReadableName().Replace("Renderer", "")}\" renderer with \"{surfaceType}\" surface");
 
             Renderer = renderer;
+            Renderer.CacheStorage = CacheStorage.GetStorageForDirectory("shaders");
 
             // Prepare window
             Window = CreateWindow(surfaceType);
@@ -977,6 +995,16 @@ namespace osu.Framework.Platform
 
             currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
             currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());
+
+            Window.CurrentDisplayBindable.BindValueChanged(display =>
+            {
+                if (Renderer is VeldridRenderer veldridRenderer)
+                {
+                    Rectangle bounds = display.NewValue.Bounds;
+
+                    veldridRenderer.Device.UpdateActiveDisplay(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+                }
+            }, true);
 
             IsActive.BindTo(Window.IsActive);
         }
@@ -1365,6 +1393,9 @@ namespace osu.Framework.Platform
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.X), PlatformAction.Cut),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.C), PlatformAction.Copy),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.V), PlatformAction.Paste),
+            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Delete), PlatformAction.Cut),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Insert), PlatformAction.Copy),
+            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Insert), PlatformAction.Paste),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.A), PlatformAction.SelectAll),
             new KeyBinding(InputKey.Left, PlatformAction.MoveBackwardChar),
             new KeyBinding(InputKey.Right, PlatformAction.MoveForwardChar),

@@ -41,14 +41,14 @@ namespace osu.Framework.Audio.Callbacks
 
         public FileCallbacks(IFileProcedures implementation)
         {
-            Callbacks = RuntimeFeature.IsDynamicCodeCompiled ? instanceProcedures : static_procedures;
+            Callbacks = RuntimeFeature.IsDynamicCodeSupported ? instanceProcedures : static_procedures;
             this.implementation = implementation;
             procedures = null;
         }
 
         public FileCallbacks(FileProcedures procedures)
         {
-            Callbacks = RuntimeFeature.IsDynamicCodeCompiled ? instanceProcedures : static_procedures;
+            Callbacks = RuntimeFeature.IsDynamicCodeSupported ? instanceProcedures : static_procedures;
             this.procedures = procedures;
             implementation = null;
         }

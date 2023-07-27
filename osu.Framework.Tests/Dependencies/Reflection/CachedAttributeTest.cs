@@ -9,7 +9,9 @@ using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Testing.Dependencies;
 
+// ReSharper disable ValueParameterNotUsed
 #pragma warning disable IDE0052 // Unread private member
+#pragma warning disable CS0169 // Private unused fields
 
 namespace osu.Framework.Tests.Dependencies.Reflection
 {
@@ -458,7 +460,6 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             public object Provided1
             {
                 get => null;
-                // ReSharper disable once ValueParameterNotUsed
                 set
                 {
                 }
@@ -470,7 +471,6 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             [Cached]
             public object Provided1
             {
-                // ReSharper disable once ValueParameterNotUsed
                 set
                 {
                 }

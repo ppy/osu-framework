@@ -25,10 +25,7 @@ namespace osu.Framework.Tests.Visual.Containers
         private TestBox blendedBox;
 
         [SetUp]
-        public void Setup() => Schedule(() =>
-        {
-            Clear();
-        });
+        public void Setup() => Schedule(Clear);
 
         [TearDownSteps]
         public void TearDownSteps()

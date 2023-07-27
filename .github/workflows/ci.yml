@@ -58,9 +58,10 @@ jobs:
        fail-fast: false
        matrix:
           os:
-            - { prettyname: Windows, fullname: windows-latest }
-            - { prettyname: macOS, fullname: macos-latest }
-            - { prettyname: Linux, fullname: ubuntu-latest }
+            - { prettyname: Windows, fullname: windows-latest, configuration: Debug }
+            - { prettyname: macOS, fullname: macos-latest, configuration: Debug }
+            - { prettyname: Linux, fullname: ubuntu-latest, configuration: Debug }
+            - { prettyname: Linux, fullname: ubuntu-latest, configuration: Release }
           threadingMode: ['SingleThread', 'MultiThreaded']
     timeout-minutes: 60
 
@@ -84,10 +85,10 @@ jobs:
         shell: bash
 
       - name: Compile
-        run: dotnet build -c Debug -warnaserror osu-framework.Desktop.slnf
+        run: dotnet build -c ${{matrix.os.configuration}} -warnaserror osu-framework.Desktop.slnf
 
       - name: Test
-        run: dotnet test $pwd/**/*.Tests/bin/Debug/*/*.Tests.dll --settings $pwd/build/vstestconfig.runsettings --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx"
+        run: dotnet test $pwd/**/*.Tests/bin/${{matrix.os.configuration}}/*/*.Tests.dll --no-build --settings $pwd/build/vstestconfig.runsettings --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.os.configuration}}.trx"
         shell: pwsh
 
       # Attempt to upload results even if test fails.
@@ -96,8 +97,8 @@ jobs:
         uses: actions/upload-artifact@v3
         if: ${{ always() }}
         with:
-          name: osu-framework-test-results-${{matrix.os.prettyname}}-${{matrix.threadingMode}}
-          path: ${{github.workspace}}/TestResults/TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx
+          name: osu-framework-test-results-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.os.configuration}}
+          path: ${{github.workspace}}/TestResults/TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.os.configuration}}.trx
 
   build-only-android:
     name: Build only (Android)

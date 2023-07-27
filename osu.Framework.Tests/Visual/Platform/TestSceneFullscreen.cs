@@ -24,6 +24,8 @@ namespace osu.Framework.Tests.Visual.Platform
 {
     public partial class TestSceneFullscreen : FrameworkTestScene
     {
+        public override bool AutomaticallyRunFirstStep => false;
+
         private readonly SpriteText currentActualSize = new SpriteText();
         private readonly SpriteText currentDisplayMode = new SpriteText();
         private readonly SpriteText currentWindowMode = new SpriteText();
@@ -107,9 +109,6 @@ namespace osu.Framework.Tests.Visual.Platform
                 Assert.Ignore("This test cannot run in headless mode (a window instance is required).");
                 return;
             }
-
-            // so the test case doesn't change fullscreen size just when you enter it
-            AddStep("nothing", () => { });
 
             var initialWindowMode = windowMode.Value;
 

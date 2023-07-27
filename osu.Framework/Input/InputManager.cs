@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.ListExtensions;
 using osu.Framework.Extensions.TypeExtensions;
@@ -21,6 +22,7 @@ using osu.Framework.Lists;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
+using osu.Framework.Threading;
 using osuTK;
 using osuTK.Input;
 using JoystickState = osu.Framework.Input.States.JoystickState;
@@ -135,7 +137,10 @@ namespace osu.Framework.Input
         private readonly Dictionary<Key, KeyEventManager> keyButtonEventManagers = new Dictionary<Key, KeyEventManager>();
         private readonly Dictionary<TouchSource, TouchEventManager> touchEventManagers = new Dictionary<TouchSource, TouchEventManager>();
         private readonly Dictionary<TabletPenButton, TabletPenButtonEventManager> tabletPenButtonEventManagers = new Dictionary<TabletPenButton, TabletPenButtonEventManager>();
-        private readonly Dictionary<TabletAuxiliaryButton, TabletAuxiliaryButtonEventManager> tabletAuxiliaryButtonEventManagers = new Dictionary<TabletAuxiliaryButton, TabletAuxiliaryButtonEventManager>();
+
+        private readonly Dictionary<TabletAuxiliaryButton, TabletAuxiliaryButtonEventManager> tabletAuxiliaryButtonEventManagers =
+            new Dictionary<TabletAuxiliaryButton, TabletAuxiliaryButtonEventManager>();
+
         private readonly Dictionary<JoystickButton, JoystickButtonEventManager> joystickButtonEventManagers = new Dictionary<JoystickButton, JoystickButtonEventManager>();
         private readonly Dictionary<MidiKey, MidiKeyEventManager> midiKeyEventManagers = new Dictionary<MidiKey, MidiKeyEventManager>();
 
@@ -146,6 +151,11 @@ namespace osu.Framework.Input
         /// </summary>
         protected virtual bool MapMouseToLatestTouch => true;
 
+        /// <summary>
+        /// Whether long touches should produce right mouse click, if mouse is mapped to touch.
+        /// </summary>
+        protected virtual bool AllowRightClickFromLongTouch => true;
+
         protected InputManager()
         {
             CurrentState = CreateInitialState();
@@ -154,9 +164,10 @@ namespace osu.Framework.Input
             foreach (var button in Enum.GetValues<MouseButton>())
             {
                 var manager = CreateButtonEventManagerFor(button);
-                manager.RequestFocus = ChangeFocusFromClick;
+
+                manager.InputManager = this;
                 manager.GetInputQueue = () => PositionalInputQueue;
-                manager.GetCurrentTime = () => Time.Current;
+
                 mouseButtonEventManagers.Add(button, manager);
             }
         }
@@ -213,6 +224,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(key);
+            manager.InputManager = this;
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return keyButtonEventManagers[key] = manager;
         }
@@ -235,6 +247,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(source);
+            manager.InputManager = this;
             manager.GetInputQueue = () => buildPositionalInputQueue(CurrentState.Touch.TouchPositions[(int)source]);
             return touchEventManagers[source] = manager;
         }
@@ -257,6 +270,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(button);
+            manager.InputManager = this;
             manager.GetInputQueue = () => PositionalInputQueue;
             return tabletPenButtonEventManagers[button] = manager;
         }
@@ -279,6 +293,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(button);
+            manager.InputManager = this;
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return tabletAuxiliaryButtonEventManagers[button] = manager;
         }
@@ -301,6 +316,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(button);
+            manager.InputManager = this;
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return joystickButtonEventManagers[button] = manager;
         }
@@ -323,6 +339,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(key);
+            manager.InputManager = this;
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return midiKeyEventManagers[key] = manager;
         }
@@ -718,6 +735,33 @@ namespace osu.Framework.Input
         /// </summary>
         private readonly HashSet<TouchSource> mouseMappedTouchesDown = new HashSet<TouchSource>();
 
+        private const double touch_right_click_delay = 750;
+        private const double touch_right_click_distance = 100;
+
+        /// <summary>
+        /// Invoked when a touch long-press gesture has scheduled for triggering after the specified delay.
+        /// </summary>
+        public event Action<Vector2, double> TouchLongPressBegan;
+
+        /// <summary>
+        /// Invoked when an ongoing touch long-press gesture has been cancelled.
+        /// </summary>
+        public event Action TouchLongPressCancelled;
+
+        [CanBeNull]
+        private ScheduledDelegate touchLongPressDelegate;
+
+        /// <summary>
+        /// The current position of the long-press touch, if one was begun.
+        /// </summary>
+        private Vector2? touchLongPressPosition;
+
+        /// <summary>
+        /// Whether the current touch state is eligible for performing a long-press gesture.
+        /// This is set to true once a single touch is pressed, and can be invalidated before the gesture is triggered.
+        /// </summary>
+        private bool validForLongPress;
+
         /// <summary>
         /// Handles latest activated touch state change event to produce mouse input from.
         /// </summary>
@@ -736,19 +780,86 @@ namespace osu.Framework.Input
                 }.Apply(CurrentState, this);
             }
 
-            switch (e.IsActive)
+            if (e.IsActive != null)
             {
-                case true:
+                if (e.IsActive == true)
                     mouseMappedTouchesDown.Add(e.Touch.Source);
-                    break;
-
-                case false:
+                else
                     mouseMappedTouchesDown.Remove(e.Touch.Source);
-                    break;
+
+                updateTouchMouseLeft(e);
             }
 
-            new MouseButtonInputFromTouch(MouseButton.Left, mouseMappedTouchesDown.Count > 0, e).Apply(CurrentState, this);
+            updateTouchMouseRight(e);
             return true;
+        }
+
+        private void updateTouchMouseLeft(TouchStateChangeEvent e)
+        {
+            if (mouseMappedTouchesDown.Count > 0)
+                new MouseButtonInputFromTouch(MouseButton.Left, true, e).Apply(CurrentState, this);
+            else
+                new MouseButtonInputFromTouch(MouseButton.Left, false, e).Apply(CurrentState, this);
+        }
+
+        private void updateTouchMouseRight(TouchStateChangeEvent e)
+        {
+            if (!AllowRightClickFromLongTouch)
+                return;
+
+            // if a touch was pressed/released in this event, reset gesture validity state.
+            if (e.IsActive != null)
+                validForLongPress = e.IsActive == true && mouseMappedTouchesDown.Count == 1;
+
+            bool gestureActive = touchLongPressDelegate != null;
+
+            if (gestureActive)
+            {
+                Debug.Assert(touchLongPressPosition != null);
+
+                // if a gesture was active and the user moved away from actuation point, invalidate gesture.
+                if (Vector2Extensions.Distance(touchLongPressPosition.Value, e.Touch.Position) > touch_right_click_distance)
+                    validForLongPress = false;
+
+                if (!validForLongPress)
+                    cancelTouchLongPress();
+            }
+            else
+            {
+                if (validForLongPress)
+                    beginTouchLongPress(e);
+            }
+        }
+
+        private void beginTouchLongPress(TouchStateChangeEvent e)
+        {
+            touchLongPressPosition = e.Touch.Position;
+
+            TouchLongPressBegan?.Invoke(e.Touch.Position, touch_right_click_delay);
+            touchLongPressDelegate = Scheduler.AddDelayed(() =>
+            {
+                new MousePositionAbsoluteInputFromTouch(e) { Position = e.Touch.Position }.Apply(CurrentState, this);
+                new MouseButtonInputFromTouch(MouseButton.Right, true, e).Apply(CurrentState, this);
+                new MouseButtonInputFromTouch(MouseButton.Right, false, e).Apply(CurrentState, this);
+
+                // the touch actuated a long-press, releasing it should not perform a click.
+                GetButtonEventManagerFor(MouseButton.Left).BlockNextClick = true;
+
+                touchLongPressDelegate = null;
+                validForLongPress = false;
+            }, touch_right_click_delay);
+        }
+
+        private void cancelTouchLongPress()
+        {
+            Debug.Assert(touchLongPressDelegate != null);
+
+            touchLongPressPosition = null;
+
+            touchLongPressDelegate.Cancel();
+            touchLongPressDelegate = null;
+
+            TouchLongPressCancelled?.Invoke();
         }
 
         protected virtual void HandleTabletPenButtonStateChange(ButtonStateChangeEvent<TabletPenButton> tabletPenButtonStateChange)
@@ -856,7 +967,8 @@ namespace osu.Framework.Input
 
         private bool handleMouseMove(InputState state, Vector2 lastPosition) => PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, lastPosition));
 
-        private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise) => PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));
+        private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise) =>
+            PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));
 
         /// <summary>
         /// Triggers events on drawables in <paramref name="drawables"/> until it is handled.
@@ -939,7 +1051,7 @@ namespace osu.Framework.Input
             return valid;
         }
 
-        protected virtual void ChangeFocusFromClick(Drawable clickedDrawable)
+        protected internal virtual void ChangeFocusFromClick(Drawable clickedDrawable)
         {
             Drawable focusTarget = null;
 

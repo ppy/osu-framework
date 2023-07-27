@@ -1,10 +1,9 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
@@ -24,7 +23,7 @@ namespace osu.Framework.Graphics.Sprites
             private ColourInfo shadowColour;
             private Vector2 shadowOffset;
 
-            private readonly List<ScreenSpaceCharacterPart> parts = new List<ScreenSpaceCharacterPart>();
+            private List<ScreenSpaceCharacterPart>? parts;
 
             public SpriteTextDrawNode(SpriteText source)
                 : base(source)
@@ -35,8 +34,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 base.ApplyState();
 
-                parts.Clear();
-                parts.AddRange(Source.screenSpaceCharacters);
+                updateScreenSpaceCharacters();
                 shadow = Source.Shadow;
 
                 if (shadow)
@@ -48,6 +46,8 @@ namespace osu.Framework.Graphics.Sprites
 
             public override void Draw(IRenderer renderer)
             {
+                Debug.Assert(parts != null);
+
                 base.Draw(renderer);
 
                 BindTextureShader(renderer);
@@ -79,6 +79,36 @@ namespace osu.Framework.Graphics.Sprites
                 }
 
                 UnbindTextureShader(renderer);
+            }
+
+            /// <summary>
+            /// The characters in screen space. These are ready to be drawn.
+            /// </summary>
+            private void updateScreenSpaceCharacters()
+            {
+                int partCount = Source.characters.Count;
+
+                if (parts == null)
+                    parts = new List<ScreenSpaceCharacterPart>(partCount);
+                else
+                {
+                    parts.Clear();
+                    parts.EnsureCapacity(partCount);
+                }
+
+                Vector2 inflationAmount = DrawInfo.MatrixInverse.ExtractScale().Xy;
+
+                foreach (var character in Source.characters)
+                {
+                    parts.Add(new ScreenSpaceCharacterPart
+                    {
+                        DrawQuad = Source.ToScreenSpace(character.DrawRectangle.Inflate(inflationAmount)),
+                        InflationPercentage = new Vector2(
+                            character.DrawRectangle.Size.X == 0 ? 0 : inflationAmount.X / character.DrawRectangle.Size.X,
+                            character.DrawRectangle.Size.Y == 0 ? 0 : inflationAmount.Y / character.DrawRectangle.Size.Y),
+                        Texture = character.Texture
+                    });
+                }
             }
         }
 

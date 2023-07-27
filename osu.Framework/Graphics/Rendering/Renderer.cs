@@ -35,13 +35,17 @@ namespace osu.Framework.Graphics.Rendering
     public abstract class Renderer : IRenderer
     {
         /// <summary>
-        /// The interval (in frames) before checking whether VBOs should be freed.
-        /// VBOs may remain unused for at most double this length before they are recycled.
+        /// The length of no usage (in frames) before freeing unused resources.
         /// </summary>
-        private const int vbo_free_check_interval = 300;
+        internal const int RESOURCE_FREE_NO_USAGE_LENGTH = 300;
 
         protected internal abstract bool VerticalSync { get; set; }
         protected internal abstract bool AllowTearing { get; set; }
+
+        protected internal Storage? CacheStorage
+        {
+            set => shaderCompilationStore.CacheStorage = value;
+        }
 
         public int MaxTextureSize { get; protected set; } = 4096; // default value is to allow roughly normal flow in cases we don't have graphics context, like headless CI.
 
@@ -52,10 +56,7 @@ namespace osu.Framework.Graphics.Rendering
         public abstract bool IsUvOriginTopLeft { get; }
         public abstract bool IsClipSpaceYInverted { get; }
 
-        /// <summary>
-        /// The current reset index.
-        /// </summary>
-        public ulong ResetId { get; private set; }
+        public ulong FrameIndex { get; private set; }
 
         public ref readonly MaskingInfo CurrentMaskingInfo => ref currentMaskingInfo;
 
@@ -93,10 +94,13 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         protected IShader? Shader { get; private set; }
 
+        private readonly ShaderCompilationStore shaderCompilationStore = new ShaderCompilationStore();
+
         private readonly GlobalStatistic<int> statExpensiveOperationsQueued;
         private readonly GlobalStatistic<int> statTextureUploadsQueued;
         private readonly GlobalStatistic<int> statTextureUploadsDequeued;
         private readonly GlobalStatistic<int> statTextureUploadsPerformed;
+        private readonly GlobalStatistic<int> vboInUse;
 
         private readonly ConcurrentQueue<ScheduledDelegate> expensiveOperationQueue = new ConcurrentQueue<ScheduledDelegate>();
         private readonly ConcurrentQueue<INativeTexture> textureUploadQueue = new ConcurrentQueue<INativeTexture>();
@@ -149,6 +153,7 @@ namespace osu.Framework.Graphics.Rendering
             statTextureUploadsDequeued = GlobalStatistics.Get<int>(GetType().Name, "Texture uploads dequeued");
             statTextureUploadsQueued = GlobalStatistics.Get<int>(GetType().Name, "Texture upload queue length");
             statExpensiveOperationsQueued = GlobalStatistics.Get<int>(GetType().Name, "Expensive operation queue length");
+            vboInUse = GlobalStatistics.Get<int>(GetType().Name, "VBOs in use");
 
             whitePixel = new Lazy<TextureWhitePixel>(() =>
                 new TextureAtlas(this, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, true).WhitePixel);
@@ -201,7 +206,7 @@ namespace osu.Framework.Graphics.Rendering
 
             Debug.Assert(defaultQuadBatch != null);
 
-            ResetId++;
+            FrameIndex++;
 
             resetScheduler.Update();
 
@@ -268,6 +273,7 @@ namespace osu.Framework.Graphics.Rendering
             Clear(new ClearInfo(Color4.Black));
 
             freeUnusedVertexBuffers();
+            vboInUse.Value = vertexBuffersInUse.Count;
 
             statTextureUploadsQueued.Value = textureUploadQueue.Count;
             statTextureUploadsDequeued.Value = 0;
@@ -817,13 +823,13 @@ namespace osu.Framework.Graphics.Rendering
 
         private void freeUnusedVertexBuffers()
         {
-            if (ResetId % vbo_free_check_interval != 0)
-                return;
-
             foreach (var buf in vertexBuffersInUse)
             {
-                if (buf.InUse && ResetId - buf.LastUseResetId > vbo_free_check_interval)
+                if (buf.InUse && FrameIndex - buf.LastUseFrameIndex > RESOURCE_FREE_NO_USAGE_LENGTH)
+                {
+                    // Calling Free will mark InUse as false internally, which allows the cleanup below to work.
                     buf.Free();
+                }
             }
 
             vertexBuffersInUse.RemoveAll(b => !b.InUse);
@@ -1051,7 +1057,7 @@ namespace osu.Framework.Graphics.Rendering
         protected abstract IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType);
 
         /// <inheritdoc cref="IRenderer.CreateShader"/>
-        protected abstract IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer);
+        protected abstract IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer, ShaderCompilationStore compilationStore);
 
         /// <inheritdoc cref="IRenderer.CreateLinearBatch{TVertex}"/>
         protected abstract IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology) where TVertex : unmanaged, IEquatable<TVertex>, IVertex;
@@ -1069,10 +1075,10 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="height">The height of the texture.</param>
         /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
         /// <param name="filteringMode">The filtering mode.</param>
-        /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads).</param>
+        /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads). If null, no initialisation is provided out-of-the-box.</param>
         /// <returns>The <see cref="INativeTexture"/>.</returns>
         protected abstract INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
-                                                              Color4 initialisationColour = default);
+                                                              Color4? initialisationColour = null);
 
         /// <summary>
         /// Creates a new <see cref="INativeTexture"/> for video sprites.
@@ -1082,7 +1088,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <returns>The video <see cref="INativeTexture"/>.</returns>
         protected abstract INativeTexture CreateNativeVideoTexture(int width, int height);
 
-        public Texture CreateTexture(int width, int height, bool manualMipmaps, TextureFilteringMode filteringMode, WrapMode wrapModeS, WrapMode wrapModeT, Color4 initialisationColour)
+        public Texture CreateTexture(int width, int height, bool manualMipmaps, TextureFilteringMode filteringMode, WrapMode wrapModeS, WrapMode wrapModeT, Color4? initialisationColour)
             => CreateTexture(CreateNativeTexture(width, height, manualMipmaps, filteringMode, initialisationColour), wrapModeS, wrapModeT);
 
         public Texture CreateVideoTexture(int width, int height) => CreateTexture(CreateNativeVideoTexture(width, height));
@@ -1120,6 +1126,11 @@ namespace osu.Framework.Graphics.Rendering
             set => AllowTearing = value;
         }
 
+        Storage? IRenderer.CacheStorage
+        {
+            set => CacheStorage = value;
+        }
+
         IVertexBatch<TexturedVertex2D> IRenderer.DefaultQuadBatch => DefaultQuadBatch;
 
         private bool firstFrame = true;
@@ -1148,7 +1159,7 @@ namespace osu.Framework.Graphics.Rendering
         void IRenderer.PopQuadBatch() => PopQuadBatch();
         Image<Rgba32> IRenderer.TakeScreenshot() => TakeScreenshot();
         IShaderPart IRenderer.CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType) => CreateShaderPart(store, name, rawData, partType);
-        IShader IRenderer.CreateShader(string name, IShaderPart[] parts) => CreateShader(name, parts, GlobalUniformBuffer!);
+        IShader IRenderer.CreateShader(string name, IShaderPart[] parts) => CreateShader(name, parts, GlobalUniformBuffer!, shaderCompilationStore);
 
         IVertexBatch<TVertex> IRenderer.CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology)
         {

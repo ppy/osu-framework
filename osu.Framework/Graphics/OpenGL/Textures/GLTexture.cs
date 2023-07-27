@@ -6,8 +6,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
+using System.Runtime.InteropServices;
 using osu.Framework.Development;
-using osu.Framework.Graphics.OpenGL.Buffers;
+using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
@@ -15,6 +17,7 @@ using osu.Framework.Lists;
 using osu.Framework.Platform;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
@@ -66,10 +69,12 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private int internalWidth;
         private int internalHeight;
+        private bool manualMipmaps;
+
+        private readonly List<RectangleI> uploadedRegions = new List<RectangleI>();
 
         private readonly All filteringMode;
-        private readonly Color4 initialisationColour;
-        private readonly bool manualMipmaps;
+        private readonly Color4? initialisationColour;
 
         /// <summary>
         /// Creates a new <see cref="GLTexture"/>.
@@ -79,8 +84,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="height">The height of the texture.</param>
         /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
         /// <param name="filteringMode">The filtering mode.</param>
-        /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads).</param>
-        public GLTexture(GLRenderer renderer, int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, Color4 initialisationColour = default)
+        /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads). If null, no initialisation is provided out-of-the-box.</param>
+        public GLTexture(GLRenderer renderer, int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, Color4? initialisationColour = null)
         {
             Renderer = renderer;
             Width = width;
@@ -206,10 +211,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (!Available)
                 return false;
 
+            uploadedRegions.Clear();
+
             // We should never run raw OGL calls on another thread than the main thread due to race conditions.
             ThreadSafety.EnsureDrawThread();
-
-            uploadedRegions.Clear();
 
             while (tryGetNextUpload(out ITextureUpload upload))
             {
@@ -280,8 +285,121 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             // reference mipmap generation GL.GenerateMipmap().
             // if (!manualMipmaps && uploadedRegions.Count != 0)
             // {
-            //     GL.Hint(HintTarget.GenerateMipmapHint, HintMode.Nicest);
-            //     GL.GenerateMipmap(TextureTarget.Texture2D);
+            //     // Merge overlapping upload regions to prevent redundant mipmap generation.
+            //     // i goes through the list left-to-right, j goes through it right-to-left
+            //     // until both indices meet somewhere in the middle.
+            //     // This algorithm needs multiple passes until no possible merges are found.
+            //     bool mergeFound;
+
+            //     do
+            //     {
+            //         mergeFound = false;
+
+            //         for (int i = 0; i < uploadedRegions.Count; ++i)
+            //         {
+            //             RectangleI toMerge = uploadedRegions[i];
+
+            //             for (int j = uploadedRegions.Count - 1; j > i; --j)
+            //             {
+            //                 RectangleI mergeCandidate = uploadedRegions[j];
+
+            //                 if (!toMerge.Intersect(mergeCandidate).IsEmpty)
+            //                 {
+            //                     uploadedRegions[i] = toMerge = RectangleI.Union(toMerge, mergeCandidate);
+            //                     uploadedRegions.RemoveAt(j);
+            //                     mergeFound = true;
+            //                 }
+            //             }
+            //         }
+            //     } while (mergeFound);
+
+            //     // Mipmap generation using the merged upload regions follows
+            //     using var frameBuffer = new GLFrameBuffer(Renderer, this);
+
+            //     BlendingParameters previousBlendingParameters = Renderer.CurrentBlendingParameters;
+
+            //     // Use a simple render state (no blending, masking, scissoring, stenciling, etc.)
+            //     Renderer.SetBlend(BlendingParameters.None);
+            //     Renderer.PushDepthInfo(new DepthInfo(false, false));
+            //     Renderer.PushStencilInfo(new StencilInfo(false));
+            //     Renderer.PushScissorState(false);
+
+            //     Renderer.BindFrameBuffer(frameBuffer);
+
+            //     // Create render state for mipmap generation
+            //     Renderer.BindTexture(this);
+            //     Renderer.GetMipmapShader().Bind();
+
+            //     while (uploadedRegions.Count > 0)
+            //     {
+            //         int width = internalWidth;
+            //         int height = internalHeight;
+
+            //         int count = Math.Min(uploadedRegions.Count, IRenderer.MAX_QUADS);
+
+            //         // Generate quad buffer that will hold all the updated regions
+            //         var quadBuffer = new GLQuadBuffer<UncolouredVertex2D>(Renderer, count, BufferUsageHint.StreamDraw);
+
+            //         // Compute mipmap by iteratively blitting coarser and coarser versions of the updated regions
+            //         for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); ++level)
+            //         {
+            //             width /= 2;
+            //             height /= 2;
+
+            //             // Fill quad buffer with downscaled (and conservatively rounded) draw rectangles
+            //             for (int i = 0; i < count; ++i)
+            //             {
+            //                 // Conservatively round the draw rectangles. Rounding to integer coords is required
+            //                 // in order to ensure all the texels affected by linear interpolation are touched.
+            //                 // We could skip the rounding & use a single vertex buffer for all levels if we had
+            //                 // conservative raster, but alas, that's only supported on NV and Intel.
+            //                 Vector2I topLeft = uploadedRegions[i].TopLeft;
+            //                 topLeft = new Vector2I(topLeft.X / 2, topLeft.Y / 2);
+            //                 Vector2I bottomRight = uploadedRegions[i].BottomRight;
+            //                 bottomRight = new Vector2I(MathUtils.DivideRoundUp(bottomRight.X, 2), MathUtils.DivideRoundUp(bottomRight.Y, 2));
+            //                 uploadedRegions[i] = new RectangleI(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
+
+            //                 // Normalize the draw rectangle into the unit square, which doubles as texture sampler coordinates.
+            //                 RectangleF r = (RectangleF)uploadedRegions[i] / new Vector2(width, height);
+
+            //                 quadBuffer.SetVertex(i * 4 + 0, new UncolouredVertex2D { Position = r.BottomLeft });
+            //                 quadBuffer.SetVertex(i * 4 + 1, new UncolouredVertex2D { Position = r.BottomRight });
+            //                 quadBuffer.SetVertex(i * 4 + 2, new UncolouredVertex2D { Position = r.TopRight });
+            //                 quadBuffer.SetVertex(i * 4 + 3, new UncolouredVertex2D { Position = r.TopLeft });
+            //             }
+
+            //             // Read the texture from 1 mip level higher...
+            //             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinLod, level - 1);
+            //             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLod, level - 1);
+
+            //             // ...than the one we're writing to via frame buffer.
+            //             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, TextureId, level);
+
+            //             // Perform the actual mip level draw
+            //             Renderer.PushViewport(new RectangleI(0, 0, width, height));
+
+            //             quadBuffer.Update();
+            //             quadBuffer.Draw();
+
+            //             Renderer.PopViewport();
+            //         }
+
+            //         uploadedRegions.RemoveRange(0, count);
+            //     }
+
+            //     // Restore previous render state
+            //     Renderer.GetMipmapShader().Unbind();
+
+            //     Renderer.PopScissorState();
+            //     Renderer.PopStencilInfo();
+            //     Renderer.PopDepthInfo();
+
+            //     Renderer.SetBlend(previousBlendingParameters);
+
+            //     Renderer.UnbindFrameBuffer(frameBuffer);
+
+            //     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinLod, 0);
+            //     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLod, IRenderer.MAX_MIPMAP_LEVELS);
             // }
 
             return true;
@@ -358,45 +476,58 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 }
                 else
                 {
-                    initializeLevel(upload.Level, Width, Height, upload.Format);
+                    initializeLevel(upload.Level, Width, Height);
+
                     GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format,
                         PixelType.UnsignedByte, dataPointer);
                 }
-
-                if (!manualMipmaps)
-                {
-                    int width = internalWidth;
-                    int height = internalHeight;
-
-                    for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); ++level)
-                    {
-                        width = Math.Max(width >> 1, 1);
-                        height = Math.Max(height >> 1, 1);
-
-                        initializeLevel(level, width, height, upload.Format);
-                    }
-                }
             }
-
             // Just update content of the current texture
             else if (dataPointer != IntPtr.Zero)
             {
                 Renderer.BindTexture(this);
-                GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format, PixelType.UnsignedByte,
-                    dataPointer);
+
+                if (!manualMipmaps && upload.Level > 0)
+                {
+                    //allocate mipmap levels
+                    int level = 1;
+                    int d = 2;
+
+                    while (Width / d > 0)
+                    {
+                        initializeLevel(level, Width / d, Height / d);
+                        level++;
+                        d *= 2;
+                    }
+
+                    manualMipmaps = true;
+                }
+
+                int div = (int)Math.Pow(2, upload.Level);
+
+                GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X / div, upload.Bounds.Y / div, upload.Bounds.Width / div, upload.Bounds.Height / div,
+                    upload.Format, PixelType.UnsignedByte, dataPointer);
             }
         }
 
-        private void initializeLevel(int level, int width, int height, PixelFormat format)
+        private void initializeLevel(int level, int width, int height)
         {
-            updateMemoryUsage(level, (long)width * height * 4);
-            GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Rgba8, width, height, 0, format, PixelType.UnsignedByte, IntPtr.Zero);
+            if (initialisationColour == null)
+                return;
 
-            // Initialize texture to solid color
-            using var frameBuffer = new GLFrameBuffer(Renderer, this, level);
-            Renderer.BindFrameBuffer(frameBuffer);
-            Renderer.Clear(new ClearInfo(initialisationColour));
-            Renderer.UnbindFrameBuffer(frameBuffer);
+            var rgbaColour = new Rgba32(new Vector4(initialisationColour.Value.R, initialisationColour.Value.G, initialisationColour.Value.B, initialisationColour.Value.A));
+
+            // it is faster to initialise without a background specification if transparent black is all that's required.
+            using var image = initialisationColour == default
+                ? new Image<Rgba32>(width, height)
+                : new Image<Rgba32>(width, height, rgbaColour);
+
+            using (var pixels = image.CreateReadOnlyPixelSpan())
+            {
+                updateMemoryUsage(level, (long)width * height * 4);
+                GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Rgba8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte,
+                    ref MemoryMarshal.GetReference(pixels.Span));
+            }
         }
     }
 }
