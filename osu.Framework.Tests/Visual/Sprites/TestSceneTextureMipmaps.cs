@@ -274,7 +274,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
                     report($"Generating mipmaps spent {timeSpent:N3}ms");
                     // ReSharper disable once AccessToModifiedClosure
-                    reportDelegate?.Cancel();
+                    reportDelegate.Cancel();
                     break;
                 }
             }, 0, true);

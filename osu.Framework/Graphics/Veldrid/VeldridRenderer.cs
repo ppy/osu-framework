@@ -37,7 +37,6 @@ using Veldrid.OpenGL;
 using Veldrid.OpenGLBinding;
 using Veldrid.SPIRV;
 using Vortice.Direct3D;
-using BufferUsage = Veldrid.BufferUsage;
 using FramebufferTarget = Veldrid.OpenGLBinding.FramebufferTarget;
 using Image = SixLabors.ImageSharp.Image;
 using PixelFormat = Veldrid.PixelFormat;
@@ -312,7 +311,7 @@ namespace osu.Framework.Graphics.Veldrid
                     {
                         new VeldridShaderPart(store.Get("sh_mipmap.vs"), ShaderPartType.Vertex, shaderStore),
                         new VeldridShaderPart(store.Get("sh_mipmap.fs"), ShaderPartType.Fragment, shaderStore),
-                    }, GlobalUniformBuffer!);
+                    }, GlobalUniformBuffer!, ShaderCompilationStore);
                 }
             }
         }
@@ -395,6 +394,7 @@ namespace osu.Framework.Graphics.Veldrid
                 computeMipmapGenerationQueue.TryRemove(texture, out var regions);
                 generateMipmapsViaComputeShader(texture, regions!);
             }
+
             flushTextureUploadCommands();
 
             BufferUpdateCommands.End();
@@ -483,7 +483,7 @@ namespace osu.Framework.Graphics.Veldrid
             //
             // Except we are using a staging texture pool to avoid the alloc overhead of each staging texture.
             var staging = stagingTexturePool.Get(width, height, texture.Format);
-            Device.UpdateTexture(staging, data, 0, 0, 0, (uint)width, (uint)height, 1, (uint)level, 0);
+            Device.UpdateTexture(staging, data, 0, 0, 0, (uint)width, (uint)height, 1, 0, 0);
             TextureUpdateCommands.CopyTexture(staging, 0, 0, 0, 0, 0, texture, (uint)x, (uint)y, 0, (uint)level, 0, (uint)width, (uint)height, 1, 1);
         }
 
@@ -625,7 +625,7 @@ namespace osu.Framework.Graphics.Veldrid
             int height = texture.Height;
 
             // Generate quad buffer that will hold all the updated regions
-            var quadBuffer = new VeldridQuadBuffer<UncolouredVertex2D>(this, regions.Count, BufferUsage.Dynamic);
+            var quadBuffer = new VeldridQuadBatch<UncolouredVertex2D>(this, regions.Count);
 
             // Compute mipmap by iteratively blitting coarser and coarser versions of the updated regions
             for (int level = 1; level < IRenderer.MAX_MIPMAP_LEVELS + 1 && (width > 1 || height > 1); ++level)
@@ -649,10 +649,10 @@ namespace osu.Framework.Graphics.Veldrid
                     // Normalize the draw rectangle into the unit square, which doubles as texture sampler coordinates.
                     RectangleF r = (RectangleF)regions[i] / new Vector2(width, height);
 
-                    quadBuffer.SetVertex(i * 4 + 0, new UncolouredVertex2D { Position = r.BottomLeft });
-                    quadBuffer.SetVertex(i * 4 + 1, new UncolouredVertex2D { Position = r.BottomRight });
-                    quadBuffer.SetVertex(i * 4 + 2, new UncolouredVertex2D { Position = r.TopRight });
-                    quadBuffer.SetVertex(i * 4 + 3, new UncolouredVertex2D { Position = r.TopLeft });
+                    quadBuffer.Add(new UncolouredVertex2D { Position = r.BottomLeft });
+                    quadBuffer.Add(new UncolouredVertex2D { Position = r.BottomRight });
+                    quadBuffer.Add(new UncolouredVertex2D { Position = r.TopRight });
+                    quadBuffer.Add(new UncolouredVertex2D { Position = r.TopLeft });
                 }
 
                 // Read the texture from 1 mip level higher...
@@ -679,7 +679,6 @@ namespace osu.Framework.Graphics.Veldrid
                     // Perform the actual mip level draw
                     PushViewport(new RectangleI(0, 0, width, height));
 
-                    quadBuffer.Update();
                     quadBuffer.Draw();
 
                     PopViewport();

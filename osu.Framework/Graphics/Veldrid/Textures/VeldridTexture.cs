@@ -3,21 +3,21 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Numerics;
 using osu.Framework.Development;
 using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.Veldrid.Buffers;
 using osu.Framework.Lists;
 using osu.Framework.Platform;
 using osuTK.Graphics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Veldrid;
+using PixelFormat = Veldrid.PixelFormat;
 using Texture = Veldrid.Texture;
 
 namespace osu.Framework.Graphics.Veldrid.Textures
@@ -52,8 +52,6 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         public bool BypassTextureUploadQueueing { get; set; }
 
         private readonly bool manualMipmaps;
-
-        private readonly List<RectangleI> uploadedRegions = new List<RectangleI>();
 
         private readonly SamplerFilter filteringMode;
         private readonly Color4? initialisationColour;
@@ -502,6 +500,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         {
             Texture? texture = resources?.Texture;
             Sampler? sampler = resources?.Sampler;
+            bool newTexture = false;
 
             if (texture == null || texture.Width != Width || texture.Height != Height)
             {
@@ -509,10 +508,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
                 var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)CalculateMipmapLevels(Width, Height), 1, PixelFormat.R8_G8_B8_A8_UNorm, Usages);
                 texture = Renderer.Factory.CreateTexture(ref textureDescription);
-
-                // todo: we may want to look into not having to allocate chunks of zero byte region for initialising textures
-                // similar to how OpenGL allows calling glTexImage2D with null data pointer.
-                initialiseLevel(texture, 0, Width, Height);
+                newTexture = true;
 
                 maximumUploadedLod = 0;
             }
@@ -520,33 +516,13 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             int lastMaximumUploadedLod = maximumUploadedLod;
 
             if (!upload.Data.IsEmpty && upload.Level > maximumUploadedLod)
-                maximumUploadedLod = upload.Level;
-
-            if (sampler == null || maximumUploadedLod > lastMaximumUploadedLod)
-                sampler = createSampler();
-
-            resources = new VeldridTextureResources(texture, sampler, Renderer);
-
-            if (newTexture)
-            {
-                for (int i = 0; i < texture.MipLevels; i++)
-                    initialiseLevel(i, Width >> i, Height >> i);
-            }
-
-            if (!upload.Data.IsEmpty)
             {
                 // ensure all mip levels up to the target level are initialised.
                 // generally we always upload at level 0, so this won't run.
-                if (upload.Level > maximumUploadedLod)
-                {
-                    for (int i = maximumUploadedLod + 1; i <= upload.Level; i++)
-                        initialiseLevel(texture, i, Width >> i, Height >> i);
+                for (int i = maximumUploadedLod + 1; i <= upload.Level; i++)
+                    initialiseLevel(texture, i, Width >> i, Height >> i);
 
-                    maximumUploadedLod = upload.Level;
-                }
-
-                Renderer.UpdateTexture(texture, upload.Bounds.X >> upload.Level, upload.Bounds.Y >> upload.Level, upload.Bounds.Width >> upload.Level, upload.Bounds.Height >> upload.Level,
-                    upload.Level, upload.Data);
+                maximumUploadedLod = upload.Level;
             }
 
             if (sampler == null || maximumUploadedLod > lastMaximumUploadedLod)
@@ -555,7 +531,16 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 sampler = createSampler();
             }
 
-            resources = new VeldridTextureResources(texture, sampler);
+            resources = new VeldridTextureResources(texture, sampler, Renderer);
+
+            if (newTexture)
+            {
+                for (int i = 0; i < texture.MipLevels; i++)
+                    initialiseLevel(texture, i, Width >> i, Height >> i);
+            }
+
+            if (!upload.Data.IsEmpty)
+                Renderer.UpdateTexture(texture, upload.Bounds.X >> upload.Level, upload.Bounds.Y >> upload.Level, upload.Bounds.Width >> upload.Level, upload.Bounds.Height >> upload.Level, upload.Level, upload.Data);
         }
 
         private unsafe void initialiseLevel(Texture texture, int level, int width, int height)

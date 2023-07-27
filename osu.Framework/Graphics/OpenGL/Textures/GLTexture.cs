@@ -71,8 +71,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private int internalHeight;
         private bool manualMipmaps;
 
-        private readonly List<RectangleI> uploadedRegions = new List<RectangleI>();
-
         private readonly All filteringMode;
         private readonly Color4? initialisationColour;
 

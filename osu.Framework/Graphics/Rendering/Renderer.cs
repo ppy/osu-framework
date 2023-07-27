@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Rendering
 
         protected internal Storage? CacheStorage
         {
-            set => shaderCompilationStore.CacheStorage = value;
+            set => ShaderCompilationStore.CacheStorage = value;
         }
 
         public int MaxTextureSize { get; protected set; } = 4096; // default value is to allow roughly normal flow in cases we don't have graphics context, like headless CI.
@@ -94,7 +94,7 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         protected IShader? Shader { get; private set; }
 
-        private readonly ShaderCompilationStore shaderCompilationStore = new ShaderCompilationStore();
+        protected ShaderCompilationStore ShaderCompilationStore { get; } = new ShaderCompilationStore();
 
         private readonly GlobalStatistic<int> statExpensiveOperationsQueued;
         private readonly GlobalStatistic<int> statTextureUploadsQueued;
@@ -1159,7 +1159,7 @@ namespace osu.Framework.Graphics.Rendering
         void IRenderer.PopQuadBatch() => PopQuadBatch();
         Image<Rgba32> IRenderer.TakeScreenshot() => TakeScreenshot();
         IShaderPart IRenderer.CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType) => CreateShaderPart(store, name, rawData, partType);
-        IShader IRenderer.CreateShader(string name, IShaderPart[] parts) => CreateShader(name, parts, GlobalUniformBuffer!, shaderCompilationStore);
+        IShader IRenderer.CreateShader(string name, IShaderPart[] parts) => CreateShader(name, parts, GlobalUniformBuffer!, ShaderCompilationStore);
 
         IVertexBatch<TVertex> IRenderer.CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology)
         {
