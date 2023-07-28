@@ -279,17 +279,6 @@ namespace osu.Framework.Graphics.Rendering
         void PopScissor();
 
         /// <summary>
-        /// Applies a new scissor offset to the scissor rectangle.
-        /// </summary>
-        /// <param name="offset">The scissor offset.</param>
-        void PushScissorOffset(Vector2I offset);
-
-        /// <summary>
-        /// Restores the last scissor offset.
-        /// </summary>
-        void PopScissorOffset();
-
-        /// <summary>
         /// Applies a new projection matrix.
         /// </summary>
         /// <param name="matrix">The matrix.</param>
