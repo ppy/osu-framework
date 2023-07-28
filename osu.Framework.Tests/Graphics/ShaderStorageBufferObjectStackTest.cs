@@ -232,5 +232,27 @@ namespace osu.Framework.Tests.Graphics
             Assert.That(stack.CurrentIndex, Is.EqualTo(size - 3));
             Assert.That(stack.CurrentBuffer[stack.CurrentIndex], Is.EqualTo(size - 3));
         }
+
+        [Test]
+        public void TestTransitionFromEmptyStack()
+        {
+            for (int i = 0; i < size * 2; i++)
+            {
+                var lastBuffer = stack.CurrentBuffer;
+
+                // Push one item.
+                stack.Push(i);
+
+                // On a buffer transition, test that the item at the 0-th index of the first buffer was correct copied to the new buffer.
+                if (stack.CurrentBuffer != lastBuffer)
+                    Assert.That(stack.CurrentBuffer[stack.CurrentIndex - 1], Is.EqualTo(0));
+
+                // Test that the item was correctly placed in the new buffer
+                Assert.That(stack.CurrentBuffer[stack.CurrentIndex], Is.EqualTo(i));
+
+                // Return to an empty stack.
+                stack.Pop();
+            }
+        }
     }
 }

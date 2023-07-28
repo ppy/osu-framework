@@ -16,12 +16,22 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// The index of the current item inside <see cref="CurrentBuffer"/>.
         /// </summary>
-        public int CurrentIndex => Math.Max(0, currentIndex) % bufferSize;
+        public int CurrentIndex => currentBufferOffset;
 
         /// <summary>
         /// The buffer that contains the current object.
         /// </summary>
-        public IShaderStorageBufferObject<TData> CurrentBuffer => buffers[Math.Max(0, currentIndex) / bufferSize];
+        public IShaderStorageBufferObject<TData> CurrentBuffer => buffers[currentBufferIndex];
+
+        /// <summary>
+        /// The index of the item inside the buffer containing it.
+        /// </summary>
+        private int currentBufferOffset => currentIndex == -1 ? 0 : currentIndex % bufferSize;
+
+        /// <summary>
+        /// The index of the buffer containing the current item.
+        /// </summary>
+        private int currentBufferIndex => currentIndex == -1 ? 0 : currentIndex / bufferSize;
 
         private readonly List<IShaderStorageBufferObject<TData>> buffers = new List<IShaderStorageBufferObject<TData>>();
         private readonly Stack<int> lastIndices = new Stack<int>();
@@ -75,8 +85,6 @@ namespace osu.Framework.Graphics.Rendering
         {
             lastIndices.Push(currentIndex);
 
-            int currentBufferIndex = currentIndex / bufferSize;
-            int currentBufferOffset = currentIndex % bufferSize;
             int newIndex = nextAdditionIndex++;
             int newBufferIndex = newIndex / bufferSize;
             int newBufferOffset = newIndex % bufferSize;
@@ -148,7 +156,6 @@ namespace osu.Framework.Graphics.Rendering
             if (currentIndex == -1)
                 throw new InvalidOperationException("There are no items in the stack to pop.");
 
-            int currentBufferIndex = currentIndex / bufferSize;
             int newIndex = lastIndices.Pop();
             int newBufferIndex = newIndex / bufferSize;
 

@@ -212,7 +212,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                 {
                     int colourIndex = colourBuffer.Push(new ColourData { Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), 1) });
 
-                    // Bind the SSBO. This may change between invocations if the buffer overflows in the above push.
+                    // Bind the SSBO. This may change between iterations if a buffer transition happens via the above push.
                     shader.BindUniformBlock("g_ColourBuffer", colourBuffer.CurrentBuffer);
 
                     vertices.Add(new ColourIndexedVertex
@@ -238,6 +238,9 @@ namespace osu.Framework.Tests.Visual.Graphics
                         Position = areas[i].TopLeft,
                         ColourIndex = colourIndex
                     });
+
+                    // This isn't really required when using ShaderStorageBufferObjectStack in this isolated form, but is good practice.
+                    colourBuffer.Pop();
                 }
 
                 vertices.Draw();
