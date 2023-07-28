@@ -23,7 +23,8 @@ namespace osu.Framework.Graphics.Textures
         internal const int WHITE_PIXEL_SIZE = 1;
 
         private readonly List<RectangleI> subTextureBounds = new List<RectangleI>();
-        private Texture? atlasTexture;
+
+        protected internal Texture? AtlasTexture { get; private set; }
 
         private readonly IRenderer renderer;
         private readonly int atlasWidth;
@@ -38,12 +39,12 @@ namespace osu.Framework.Graphics.Textures
         {
             get
             {
-                if (atlasTexture == null)
+                if (AtlasTexture == null)
                     Reset();
 
-                Debug.Assert(atlasTexture != null, "Atlas texture should not be null after Reset().");
+                Debug.Assert(AtlasTexture != null, "Atlas texture should not be null after Reset().");
 
-                return new TextureWhitePixel(atlasTexture);
+                return new TextureWhitePixel(AtlasTexture);
             }
         }
 
@@ -77,12 +78,12 @@ namespace osu.Framework.Graphics.Textures
 
                 // We pass PADDING/2 as opposed to PADDING such that the padded region of each individual texture
                 // occupies half of the padded space.
-                atlasTexture = new BackingAtlasTexture(renderer, atlasWidth, atlasHeight, manualMipmaps, filteringMode, PADDING / 2);
+                AtlasTexture = new BackingAtlasTexture(renderer, atlasWidth, atlasHeight, manualMipmaps, filteringMode, PADDING / 2);
 
                 RectangleI bounds = new RectangleI(0, 0, WHITE_PIXEL_SIZE, WHITE_PIXEL_SIZE);
                 subTextureBounds.Add(bounds);
 
-                using (var whiteTex = new TextureRegion(atlasTexture, bounds, WrapMode.Repeat, WrapMode.Repeat))
+                using (var whiteTex = new TextureRegion(AtlasTexture, bounds, WrapMode.Repeat, WrapMode.Repeat))
                     // Generate white padding as if the white texture was wrapped, even though it isn't
                     whiteTex.SetData(new TextureUpload(new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, whiteTex.Width, whiteTex.Height, new Rgba32(Vector4.One))));
 
@@ -106,12 +107,12 @@ namespace osu.Framework.Graphics.Textures
             lock (textureRetrievalLock)
             {
                 Vector2I position = findPosition(width, height);
-                Debug.Assert(atlasTexture != null, "Atlas texture should not be null after findPosition().");
+                Debug.Assert(AtlasTexture != null, "Atlas texture should not be null after findPosition().");
 
                 RectangleI bounds = new RectangleI(position.X, position.Y, width, height);
                 subTextureBounds.Add(bounds);
 
-                return new TextureRegion(atlasTexture, bounds, wrapModeS, wrapModeT);
+                return new TextureRegion(AtlasTexture, bounds, wrapModeS, wrapModeT);
             }
         }
 
@@ -143,7 +144,7 @@ namespace osu.Framework.Graphics.Textures
         /// <returns>The position within the texture atlas to place the new texture.</returns>
         private Vector2I findPosition(int width, int height)
         {
-            if (atlasTexture == null)
+            if (AtlasTexture == null)
             {
                 Logger.Log($"TextureAtlas initialised ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
                 Reset();

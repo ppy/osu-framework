@@ -1,0 +1,26 @@
+#version 450
+
+// On OpenGL backends, the thread group size is specified here in the compute shader.
+// On non-OpenGL backends, the thread group size is specified in Veldrid's compute pipeline description.
+// This should always match with the constants defined in GLRenderer/VeldridRenderer.
+layout(local_size_x = 32, local_size_y = 32) in;
+
+layout(set = 0, binding = 0) uniform texture2D inputTexture;
+layout(set = 0, binding = 1) uniform sampler inputSampler;
+layout(set = 0, binding = 2, rgba8) writeonly uniform image2D outputTexture;
+
+layout(set = 1, binding = 0) uniform parameters
+{
+    vec4 region;
+    int outputWidth;
+};
+
+void main(void)
+{
+    if (gl_GlobalInvocationID.x >= region.z || gl_GlobalInvocationID.y >= region.w)
+        return;
+
+    ivec2 texelCoord = ivec2(region.xy + gl_GlobalInvocationID.xy);
+    vec4 colour = texture(sampler2D(inputTexture, inputSampler), (vec2(texelCoord) + 0.5) / outputWidth);
+    imageStore(outputTexture, texelCoord, colour);
+}

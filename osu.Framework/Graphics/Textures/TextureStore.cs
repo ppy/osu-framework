@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Textures
         private readonly TextureFilteringMode filteringMode;
         private readonly bool manualMipmaps;
 
-        protected TextureAtlas Atlas;
+        protected internal TextureAtlas Atlas { get; protected set; }
 
         /// <remarks>
         /// While it would be beneficial to have this atlas size be higher (the ideal size seems to be somewhere in the ballpark of 4096),

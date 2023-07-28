@@ -58,7 +58,8 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                             MinimumLod = 0,
                             MaximumLod = IRenderer.MAX_MIPMAP_LEVELS,
                             MaximumAnisotropy = 0,
-                        })
+                        }),
+                        Renderer
                     );
 
                     textureSize += countPixels;

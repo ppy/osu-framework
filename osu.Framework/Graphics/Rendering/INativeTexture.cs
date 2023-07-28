@@ -76,8 +76,14 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// Uploads this texture.
         /// </summary>
-        /// <returns>Whether any uploads occurred.</returns>
+        // <returns>Whether any uploads occurred.</returns>
         bool Upload();
+
+        /// <summary>
+        /// Generate mipmaps for the last uploaded regions of this texture.
+        /// </summary>
+        /// <returns>Whether any mipmap content was generated. False if the texture does not support automatic mipmap generation, or no data was uploaded at all.</returns>
+        bool GenerateMipmaps();
 
         /// <summary>
         /// The size of this texture in bytes.

@@ -3,14 +3,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Numerics;
 using osu.Framework.Development;
 using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Lists;
 using osu.Framework.Platform;
 using osuTK.Graphics;
 using SixLabors.ImageSharp;
@@ -42,6 +43,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         public virtual int Width { get; set; }
         public virtual int Height { get; set; }
+
         public virtual int GetByteSize() => Width * Height * 4;
         public bool Available { get; private set; } = true;
 
@@ -50,8 +52,6 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         public bool BypassTextureUploadQueueing { get; set; }
 
         private readonly bool manualMipmaps;
-
-        private readonly List<RectangleI> uploadedRegions = new List<RectangleI>();
 
         private readonly SamplerFilter filteringMode;
         private readonly Color4? initialisationColour;
@@ -66,8 +66,8 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             {
                 var usages = TextureUsage.Sampled | TextureUsage.RenderTarget;
 
-                if (!manualMipmaps)
-                    usages |= TextureUsage.GenerateMipmaps;
+                if (!manualMipmaps && Renderer.Device.Features.ComputeShader)
+                    usages |= TextureUsage.Storage;
 
                 return usages;
             }
@@ -212,6 +212,11 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             return true;
         }
 
+        /// <summary>
+        /// Represents all regions of uploaded data from the last <see cref="Upload"/> call.
+        /// </summary>
+        private readonly SortedList<RectangleI> uploadedRegions = new SortedList<RectangleI>((a, b) => a.Y != b.Y ? a.Y.CompareTo(b.Y) : a.X.CompareTo(b.X));
+
         public bool Upload()
         {
             if (!Available)
@@ -227,24 +232,66 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 using (upload)
                 {
                     DoUpload(upload);
-
                     uploadedRegions.Add(upload.Bounds);
                 }
             }
 
-            #region Custom mipmap generation (disabled)
+            GenerateMipmaps();
+            return uploadedRegions.Count != 0;
+        }
+
+        public bool GenerateMipmaps()
+        {
+            if (manualMipmaps || uploadedRegions.Count == 0)
+                return false;
+
+            var regions = uploadedRegions.ToList();
 
             // Generate mipmaps for just the updated regions of the texture.
             // This implementation is functionally equivalent to CommandList.GenerateMipmaps(),
             // only that it is much more efficient if only small parts of the texture
             // have been updated.
+            RectangleI? current = null;
 
-            // The implementation has been tried in a release, but the user reception has been mixed
-            // due to various issues on various platforms (most prominently android).
-            // As it's difficult to ascertain a reasonable heuristic as to when it should be safe to use this implementation,
-            // for now it is unconditionally disabled, and it can be revisited at a later date.
+            RectangleI rightRectangle = regions[0];
+            RectangleI? leftRectangle = null;
 
-            // if (uploadedRegions.Count != 0 && !manualMipmaps)
+            int initialX = rightRectangle.X;
+
+            for (int i = 1; i < regions.Count; i++)
+            {
+                var region = regions[i];
+
+                bool finalElement = i == regions.Count - 1;
+                bool finalInRow = !finalElement && regions[i + 1].Y > current?.Y;
+
+                if (region.X >= initialX)
+                {
+                    current = current == null ? region : RectangleI.Union(current.Value, region);
+                    regions.RemoveAt(i--);
+
+                    if (finalInRow)
+                        rightRectangle = RectangleI.Union(rightRectangle, current.Value);
+                    else if (finalElement && leftRectangle != null)
+                        leftRectangle = RectangleI.Union(leftRectangle.Value, current.Value);
+                }
+                else
+                {
+                    leftRectangle = leftRectangle == null ? region : RectangleI.Union(leftRectangle.Value, region);
+                    regions.RemoveAt(i--);
+                }
+            }
+
+            // trim left rectangle from overlapping with right rectangle to avoid any unnecessary work.
+            if (leftRectangle is RectangleI left)
+                leftRectangle = new RectangleI(left.X, left.Y, left.Width - Math.Max(0, left.Right - rightRectangle.Left), left.Height);
+
+            Renderer.GenerateMipmaps(this, leftRectangle != null
+                ? new List<RectangleI> { rightRectangle, leftRectangle.Value }
+                : new List<RectangleI> { rightRectangle });
+
+            // Uncomment the following block of code in order to compare the above with the renderer mipmap generation method CommandList.GenerateMipmaps().
+            // if (!manualMipmaps && regions.Count != 0)
             // {
             //     // Merge overlapping upload regions to prevent redundant mipmap generation.
             //     // i goes through the list left-to-right, j goes through it right-to-left
@@ -373,19 +420,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             //     Renderer.SetBlend(previousBlendingParameters);
             // }
 
-            #endregion
-
-            #region Veldrid-provided mipmap generation
-
-            if (uploadedRegions.Count != 0 && !manualMipmaps)
-            {
-                Debug.Assert(resources != null);
-                Renderer.Commands.GenerateMipmaps(resources.Texture);
-            }
-
-            #endregion
-
-            return uploadedRegions.Count != 0;
+            return true;
         }
 
         public bool UploadComplete
@@ -465,6 +500,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         {
             Texture? texture = resources?.Texture;
             Sampler? sampler = resources?.Sampler;
+            bool newTexture = false;
 
             if (texture == null || texture.Width != Width || texture.Height != Height)
             {
@@ -472,30 +508,21 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
                 var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)CalculateMipmapLevels(Width, Height), 1, PixelFormat.R8_G8_B8_A8_UNorm, Usages);
                 texture = Renderer.Factory.CreateTexture(ref textureDescription);
-
-                // todo: we may want to look into not having to allocate chunks of zero byte region for initialising textures
-                // similar to how OpenGL allows calling glTexImage2D with null data pointer.
-                initialiseLevel(texture, 0, Width, Height);
+                newTexture = true;
 
                 maximumUploadedLod = 0;
             }
 
             int lastMaximumUploadedLod = maximumUploadedLod;
 
-            if (!upload.Data.IsEmpty)
+            if (!upload.Data.IsEmpty && upload.Level > maximumUploadedLod)
             {
                 // ensure all mip levels up to the target level are initialised.
                 // generally we always upload at level 0, so this won't run.
-                if (upload.Level > maximumUploadedLod)
-                {
-                    for (int i = maximumUploadedLod + 1; i <= upload.Level; i++)
-                        initialiseLevel(texture, i, Width >> i, Height >> i);
+                for (int i = maximumUploadedLod + 1; i <= upload.Level; i++)
+                    initialiseLevel(texture, i, Width >> i, Height >> i);
 
-                    maximumUploadedLod = upload.Level;
-                }
-
-                Renderer.UpdateTexture(texture, upload.Bounds.X >> upload.Level, upload.Bounds.Y >> upload.Level, upload.Bounds.Width >> upload.Level, upload.Bounds.Height >> upload.Level,
-                    upload.Level, upload.Data);
+                maximumUploadedLod = upload.Level;
             }
 
             if (sampler == null || maximumUploadedLod > lastMaximumUploadedLod)
@@ -504,7 +531,16 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 sampler = createSampler();
             }
 
-            resources = new VeldridTextureResources(texture, sampler);
+            resources = new VeldridTextureResources(texture, sampler, Renderer);
+
+            if (newTexture)
+            {
+                for (int i = 0; i < texture.MipLevels; i++)
+                    initialiseLevel(texture, i, Width >> i, Height >> i);
+            }
+
+            if (!upload.Data.IsEmpty)
+                Renderer.UpdateTexture(texture, upload.Bounds.X >> upload.Level, upload.Bounds.Y >> upload.Level, upload.Bounds.Width >> upload.Level, upload.Bounds.Height >> upload.Level, upload.Level, upload.Data);
         }
 
         private unsafe void initialiseLevel(Texture texture, int level, int width, int height)
@@ -529,5 +565,19 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         // todo: should this be limited to MAX_MIPMAP_LEVELS or was that constant supposed to be for automatic mipmap generation only?
         // previous implementation was allocating mip levels all the way to 1x1 size when an ITextureUpload.Level > 0, therefore it's not limited there.
         protected static int CalculateMipmapLevels(int width, int height) => 1 + (int)Math.Floor(Math.Log(Math.Max(width, height), 2));
+
+        // private class TextureUploadComparer : IComparer<ITextureUpload>
+        // {
+        //     public int Compare(ITextureUpload? x, ITextureUpload? y)
+        //     {
+        //         ArgumentNullException.ThrowIfNull(x);
+        //         ArgumentNullException.ThrowIfNull(y);
+        //
+        //         if (x.Bounds.Y != y.Bounds.Y)
+        //             return x.Bounds.Y.CompareTo(y.Bounds.Y);
+        //
+        //         return x.Bounds.X.CompareTo(y.Bounds.X);
+        //     }
+        // }
     }
 }

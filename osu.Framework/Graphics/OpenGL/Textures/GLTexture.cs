@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
@@ -12,6 +13,7 @@ using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Lists;
 using osu.Framework.Platform;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
@@ -42,6 +44,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public virtual int Width { get; set; }
         public virtual int Height { get; set; }
+
         public virtual int GetByteSize() => Width * Height * 4;
         public bool Available { get; private set; } = true;
 
@@ -53,6 +56,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             set
             {
                 mipLevel = value;
+
+                GL.BindTexture(TextureTarget.Texture2D, textureId);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinLod, mipLevel ?? 0);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLod, mipLevel ?? IRenderer.MAX_MIPMAP_LEVELS);
             }
@@ -65,8 +70,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private int internalWidth;
         private int internalHeight;
         private bool manualMipmaps;
-
-        private readonly List<RectangleI> uploadedRegions = new List<RectangleI>();
 
         private readonly All filteringMode;
         private readonly Color4? initialisationColour;
@@ -196,6 +199,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
+        /// <summary>
+        /// Represents all regions of uploaded data from the last <see cref="Upload"/> call.
+        /// </summary>
+        private readonly SortedList<RectangleI> uploadedRegions = new SortedList<RectangleI>((a, b) => a.Y != b.Y ? a.Y.CompareTo(b.Y) : a.X.CompareTo(b.X));
+
         public unsafe bool Upload()
         {
             if (!Available)
@@ -217,19 +225,63 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 }
             }
 
-            #region Custom mipmap generation (disabled)
+            GenerateMipmaps();
+            return uploadedRegions.Count != 0;
+        }
+
+        public bool GenerateMipmaps()
+        {
+            if (manualMipmaps || uploadedRegions.Count == 0)
+                return false;
+
+            var regions = uploadedRegions.ToList();
 
             // Generate mipmaps for just the updated regions of the texture.
             // This implementation is functionally equivalent to GL.GenerateMipmap(),
             // only that it is much more efficient if only small parts of the texture
             // have been updated.
+            RectangleI? current = null;
 
-            // The implementation has been tried in a release, but the user reception has been mixed
-            // due to various issues on various platforms (most prominently android).
-            // As it's difficult to ascertain a reasonable heuristic as to when it should be safe to use this implementation,
-            // for now it is unconditionally disabled, and it can be revisited at a later date.
+            RectangleI rightRectangle = regions[0];
+            RectangleI? leftRectangle = null;
 
-            // if (uploadedRegions.Count != 0 && !manualMipmaps)
+            int initialX = rightRectangle.X;
+
+            for (int i = 1; i < regions.Count; i++)
+            {
+                var region = regions[i];
+
+                bool finalElement = i == regions.Count - 1;
+                bool finalInRow = !finalElement && regions[i + 1].Y > current?.Y;
+
+                if (region.X >= initialX)
+                {
+                    current = current == null ? region : RectangleI.Union(current.Value, region);
+                    regions.RemoveAt(i--);
+
+                    if (finalInRow)
+                        rightRectangle = RectangleI.Union(rightRectangle, current.Value);
+                    else if (finalElement && leftRectangle != null)
+                        leftRectangle = RectangleI.Union(leftRectangle.Value, current.Value);
+                }
+                else
+                {
+                    leftRectangle = leftRectangle == null ? region : RectangleI.Union(leftRectangle.Value, region);
+                    regions.RemoveAt(i--);
+                }
+            }
+
+            // trim left rectangle from overlapping with right rectangle to avoid any unnecessary work.
+            if (leftRectangle is RectangleI left)
+                leftRectangle = new RectangleI(left.X, left.Y, left.Width - Math.Max(0, left.Right - rightRectangle.Left), left.Height);
+
+            Renderer.GenerateMipmaps(this, leftRectangle != null
+                ? new List<RectangleI> { rightRectangle, leftRectangle.Value }
+                : new List<RectangleI> { rightRectangle });
+
+            // Uncomment the following block of code in order to compare the above with the OpenGL
+            // reference mipmap generation GL.GenerateMipmap().
+            // if (!manualMipmaps && uploadedRegions.Count != 0)
             // {
             //     // Merge overlapping upload regions to prevent redundant mipmap generation.
             //     // i goes through the list left-to-right, j goes through it right-to-left
@@ -348,19 +400,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             //     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLod, IRenderer.MAX_MIPMAP_LEVELS);
             // }
 
-            #endregion
-
-            #region GL-provided mipmap generation
-
-            if (uploadedRegions.Count != 0 && !manualMipmaps)
-            {
-                GL.Hint(HintTarget.GenerateMipmapHint, HintMode.Nicest);
-                GL.GenerateMipmap(TextureTarget.Texture2D);
-            }
-
-            #endregion
-
-            return uploadedRegions.Count != 0;
+            return true;
         }
 
         public bool UploadComplete
