@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
@@ -25,6 +26,7 @@ using SixLabors.ImageSharp.Memory;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using Image = SixLabors.ImageSharp.Image;
+using GL4 = osuTK.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -58,6 +60,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         private int backbufferFramebuffer;
 
+        private readonly Dictionary<string, IGLUniformBuffer> boundUniformBuffers = new Dictionary<string, IGLUniformBuffer>();
         private bool? lastBlendingEnabledState;
         private int lastBoundVertexArray;
 
@@ -112,6 +115,7 @@ namespace osu.Framework.Graphics.OpenGL
         {
             lastBlendingEnabledState = null;
             lastBoundVertexArray = 0;
+            boundUniformBuffers.Clear();
 
             // Seems to be required on some drivers as the context is lost from the draw thread.
             MakeCurrent();
@@ -263,11 +267,41 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
         }
 
+        public void BindUniformBuffer(string blockName, IGLUniformBuffer glBuffer)
+        {
+            FlushCurrentBatch(FlushBatchSource.BindBuffer);
+            boundUniformBuffers[blockName] = glBuffer;
+        }
+
         public void DrawVertices(PrimitiveType type, int vertexStart, int verticesCount)
         {
             var glShader = (GLShader)Shader!;
 
             glShader.BindUniformBlock("g_GlobalUniforms", GlobalUniformBuffer!);
+
+            int currentUniformBinding = 0;
+            int currentStorageBinding = 0;
+
+            foreach ((string name, IGLUniformBuffer buffer) in boundUniformBuffers)
+            {
+                if (glShader.GetUniformBlockIndex(name) is not int index)
+                    continue;
+
+                buffer.Flush();
+
+                if (buffer is IGLShaderStorageBufferObject && UseStructuredBuffers)
+                {
+                    GL4.GL.ShaderStorageBlockBinding(glShader, index, currentStorageBinding);
+                    GL4.GL.BindBufferBase(GL4.BufferRangeTarget.ShaderStorageBuffer, currentStorageBinding, buffer.Id);
+                    currentStorageBinding++;
+                }
+                else
+                {
+                    GL.UniformBlockBinding(glShader, index, currentUniformBinding);
+                    GL.BindBufferBase(BufferRangeTarget.UniformBuffer, currentUniformBinding, buffer.Id);
+                    currentUniformBinding++;
+                }
+            }
 
             GL.DrawElements(type, verticesCount, DrawElementsType.UnsignedShort, (IntPtr)(vertexStart * sizeof(ushort)));
         }

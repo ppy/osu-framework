@@ -13,6 +13,8 @@ using osuTK.Graphics.ES30;
 using Veldrid;
 using Veldrid.SPIRV;
 using static osu.Framework.Threading.ScheduledDelegate;
+using GL4 = osuTK.Graphics.OpenGL;
+using ProgramInterface = osuTK.Graphics.OpenGL.ProgramInterface;
 
 namespace osu.Framework.Graphics.OpenGL.Shaders
 {
@@ -28,7 +30,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         IReadOnlyDictionary<string, IUniform> IShader.Uniforms => Uniforms;
 
-        private readonly Dictionary<string, GLUniformBlock> uniformBlocks = new Dictionary<string, GLUniformBlock>();
+        private readonly Dictionary<string, int> uniformBlocks = new Dictionary<string, int>();
         private readonly List<Uniform<int>> textureUniforms = new List<Uniform<int>>();
 
         public bool IsLoaded { get; private set; }
@@ -136,6 +138,8 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             return (Uniform<T>)Uniforms[name];
         }
 
+        public int? GetUniformBlockIndex(string name) => uniformBlocks.TryGetValue(name, out int index) ? index : null;
+
         public virtual void BindUniformBlock(string blockName, IUniformBuffer buffer)
         {
             if (buffer is not IGLUniformBuffer glBuffer)
@@ -146,8 +150,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
             EnsureShaderCompiled();
 
-            renderer.FlushCurrentBatch(FlushBatchSource.BindBuffer);
-            GL.BindBufferBase(BufferRangeTarget.UniformBuffer, uniformBlocks[blockName].Binding, glBuffer.Id);
+            renderer.BindUniformBuffer(blockName, glBuffer);
         }
 
         private protected virtual bool CompileInternal()
@@ -167,7 +170,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             if (linkResult != 1)
                 return false;
 
-            int blockBindingIndex = 0;
             int textureIndex = 0;
 
             foreach (ResourceLayoutDescription layout in compilation.Reflection.ResourceLayouts)
@@ -188,7 +190,19 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                     });
                 }
                 else
-                    uniformBlocks[layout.Elements[0].Name] = new GLUniformBlock(this, GL.GetUniformBlockIndex(this, layout.Elements[0].Name), blockBindingIndex++);
+                {
+                    switch (layout.Elements[0].Kind)
+                    {
+                        case ResourceKind.UniformBuffer:
+                            uniformBlocks[layout.Elements[0].Name] = GL.GetUniformBlockIndex(this, layout.Elements[0].Name);
+                            break;
+
+                        case ResourceKind.StructuredBufferReadOnly:
+                        case ResourceKind.StructuredBufferReadWrite:
+                            uniformBlocks[layout.Elements[0].Name] = GL4.GL.GetProgramResourceIndex(this, ProgramInterface.ShaderStorageBlock, layout.Elements[0].Name);
+                            break;
+                    }
+                }
             }
 
             return true;
