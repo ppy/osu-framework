@@ -526,6 +526,9 @@ namespace osu.Framework.Graphics.Veldrid
 
         public void BindUniformBuffer(string blockName, IVeldridUniformBuffer veldridBuffer)
         {
+            if (boundUniformBuffers.TryGetValue(blockName, out IVeldridUniformBuffer? current) && current == veldridBuffer)
+                return;
+
             FlushCurrentBatch(FlushBatchSource.BindBuffer);
             boundUniformBuffers[blockName] = veldridBuffer;
         }

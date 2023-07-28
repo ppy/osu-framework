@@ -269,6 +269,9 @@ namespace osu.Framework.Graphics.OpenGL
 
         public void BindUniformBuffer(string blockName, IGLUniformBuffer glBuffer)
         {
+            if (boundUniformBuffers.TryGetValue(blockName, out IGLUniformBuffer? current) && current == glBuffer)
+                return;
+
             FlushCurrentBatch(FlushBatchSource.BindBuffer);
             boundUniformBuffers[blockName] = glBuffer;
         }
