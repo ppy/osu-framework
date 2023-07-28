@@ -279,6 +279,15 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
         }
 
+        public void DrawVertices(PrimitiveType type, int vertexStart, int verticesCount)
+        {
+            var glShader = (GLShader)Shader!;
+
+            glShader.BindUniformBlock("g_GlobalUniforms", GlobalUniformBuffer!);
+
+            GL.DrawElements(type, verticesCount, DrawElementsType.UnsignedShort, (IntPtr)(vertexStart * sizeof(ushort)));
+        }
+
         protected override void SetScissorStateImplementation(bool enabled)
         {
             if (enabled)
@@ -382,8 +391,8 @@ namespace osu.Framework.Graphics.OpenGL
             return new GLShaderPart(this, name, rawData, glType, store);
         }
 
-        protected override IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer, ShaderCompilationStore compilationStore)
-            => new GLShader(this, name, parts.Cast<GLShaderPart>().ToArray(), globalUniformBuffer, compilationStore);
+        protected override IShader CreateShader(string name, IShaderPart[] parts, ShaderCompilationStore compilationStore)
+            => new GLShader(this, name, parts.Cast<GLShaderPart>().ToArray(), compilationStore);
 
         public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
         {

@@ -130,9 +130,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         public void DrawRange(int startIndex, int endIndex)
         {
             Bind(true);
-
-            int countVertices = endIndex - startIndex;
-            GL.DrawElements(Type, ToElements(countVertices), DrawElementsType.UnsignedShort, (IntPtr)(ToElementIndex(startIndex) * sizeof(ushort)));
+            Renderer.DrawVertices(Type, ToElementIndex(startIndex), ToElements(endIndex - startIndex));
         }
 
         public void Update()
