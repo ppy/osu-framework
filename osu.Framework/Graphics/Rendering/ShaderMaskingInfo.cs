@@ -10,6 +10,7 @@ namespace osu.Framework.Graphics.Rendering
     public record struct ShaderMaskingInfo
     {
         public UniformMatrix4 ToMaskingSpace;
+        public UniformMatrix4 ToScissorSpace;
 
         public UniformBool IsMasking;
         public UniformFloat CornerRadius;
@@ -17,6 +18,7 @@ namespace osu.Framework.Graphics.Rendering
         public UniformFloat BorderThickness;
 
         public UniformVector4 MaskingRect;
+        public UniformVector4 ScissorRect;
 
         public UniformMatrix4 BorderColour;
         public UniformFloat MaskingBlendRange;

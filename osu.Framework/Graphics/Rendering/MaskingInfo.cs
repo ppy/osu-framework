@@ -33,6 +33,11 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         public Matrix3 ToMaskingSpace;
 
+        /// <summary>
+        /// A matrix that converts from vertex coordinates to the space of <see cref="ScreenSpaceScissorArea"/>.
+        /// </summary>
+        public Matrix3 ToScissorSpace;
+
         public float CornerRadius;
         public float CornerExponent;
 
@@ -54,6 +59,7 @@ namespace osu.Framework.Graphics.Rendering
             left.MaskingArea == right.MaskingArea &&
             left.ConservativeScreenSpaceQuad.Equals(right.ConservativeScreenSpaceQuad) &&
             left.ToMaskingSpace == right.ToMaskingSpace &&
+            left.ToScissorSpace == right.ToScissorSpace &&
             left.CornerRadius == right.CornerRadius &&
             left.CornerExponent == right.CornerExponent &&
             left.BorderThickness == right.BorderThickness &&

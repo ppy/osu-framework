@@ -14,6 +14,18 @@ layout(location = 1) in lowp vec4 v_Colour;
 
 layout(location = 4) in mediump vec2 v_BlendRange;
 layout(location = 5) flat in int v_MaskingIndex;
+layout(location = 6) in highp vec2 v_ScissorPosition;
+
+/// Positive if outside the rect, negative if inside the rect.
+highp float distanceFromScissorRect()
+{
+	highp vec2 topLeftOffset = g_MaskingInfo.ScissorRect.xy - v_ScissorPosition;
+	highp vec2 bottomRightOffset = v_ScissorPosition - g_MaskingInfo.ScissorRect.zw;
+
+	highp vec2 distanceFromShrunkRect = max(bottomRightOffset, topLeftOffset);
+
+	return max(distanceFromShrunkRect.x, distanceFromShrunkRect.y);
+}
 
 highp float distanceFromRoundedRect(highp vec2 offset, highp float radius)
 {
@@ -71,6 +83,11 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 	if (!g_MaskingInfo.IsMasking && v_BlendRange == vec2(0.0))
 	{
 		return v_Colour * texel;
+	}
+
+	if (distanceFromScissorRect() > 0)
+	{
+		discard;
 	}
 
 	highp float dist = distanceFromRoundedRect(vec2(0.0), g_MaskingInfo.CornerRadius);

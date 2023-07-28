@@ -15,6 +15,7 @@ layout(location = 2) out highp vec2 v_TexCoord;
 layout(location = 3) out highp vec4 v_TexRect;
 layout(location = 4) out mediump vec2 v_BlendRange;
 layout(location = 5) flat out int v_MaskingIndex;
+layout(location = 6) out highp vec2 v_ScissorPosition;
 
 void main(void)
 {
@@ -23,6 +24,10 @@ void main(void)
     // Transform from screen space to masking space.
     highp vec4 maskingPos = g_MaskingInfo.ToMaskingSpace * vec4(m_Position.xy, 1.0, 0.0);
     v_MaskingPosition = maskingPos.xy / maskingPos.z;
+
+    // Transform from screen space to scissor space.
+    highp vec4 scissorPos = g_MaskingInfo.ToScissorSpace * vec4(m_Position.xy, 1.0, 0.0);
+    v_ScissorPosition = scissorPos.xy / scissorPos.z;
 
     v_TexRect = vec4(0.0);
     v_BlendRange = vec2(0.0);

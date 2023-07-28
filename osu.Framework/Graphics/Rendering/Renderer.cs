@@ -260,6 +260,7 @@ namespace osu.Framework.Graphics.Rendering
                 ScreenSpaceScissorArea = new RectangleI(0, 0, (int)windowSize.X, (int)windowSize.Y),
                 MaskingArea = new RectangleF(0, 0, windowSize.X, windowSize.Y),
                 ToMaskingSpace = Matrix3.Identity,
+                ToScissorSpace = Matrix3.Identity,
                 BlendRange = 1,
                 AlphaExponent = 1,
                 CornerExponent = 2.5f,
@@ -638,10 +639,22 @@ namespace osu.Framework.Graphics.Rendering
             if (CurrentMaskingInfo == maskingInfo)
                 return;
 
-            FlushCurrentBatch(FlushBatchSource.SetMasking);
-
             if (isPushing)
             {
+                RectangleI scissorRect = maskingInfo.ScreenSpaceScissorArea;
+
+                if (!overwritePreviousScissor)
+                {
+                    Vector4 currentSmiScissorRectangle = ShaderMaskingStack!.CurrentBuffer[ShaderMaskingStack.CurrentOffset].ScissorRect;
+                    RectangleI currentScissorRectangle = RectangleF.FromLTRB(
+                        currentSmiScissorRectangle.X,
+                        currentSmiScissorRectangle.Y,
+                        currentSmiScissorRectangle.Z,
+                        currentSmiScissorRectangle.W);
+
+                    scissorRect = RectangleI.Intersect(currentScissorRectangle, scissorRect);
+                }
+
                 ShaderMaskingStack!.Push(new ShaderMaskingInfo
                 {
                     IsMasking = IsMaskingActive,
@@ -650,7 +663,13 @@ namespace osu.Framework.Graphics.Rendering
                         maskingInfo.MaskingArea.Top,
                         maskingInfo.MaskingArea.Right,
                         maskingInfo.MaskingArea.Bottom),
+                    ScissorRect = new Vector4(
+                        scissorRect.Left,
+                        scissorRect.Top,
+                        scissorRect.Right,
+                        scissorRect.Bottom),
                     ToMaskingSpace = new Matrix4(maskingInfo.ToMaskingSpace),
+                    ToScissorSpace = new Matrix4(maskingInfo.ToScissorSpace),
                     CornerRadius = maskingInfo.CornerRadius,
                     CornerExponent = maskingInfo.CornerExponent,
                     BorderThickness = maskingInfo.BorderThickness / maskingInfo.BlendRange,
@@ -683,29 +702,11 @@ namespace osu.Framework.Graphics.Rendering
                     DiscardInner = maskingInfo.Hollow,
                     InnerCornerRadius = maskingInfo.Hollow
                         ? maskingInfo.HollowCornerRadius
-                        : ShaderMaskingStack.CurrentBuffer[ShaderMaskingStack.CurrentOffset].InnerCornerRadius
+                        : ShaderMaskingStack.CurrentBuffer[ShaderMaskingStack.CurrentOffset].InnerCornerRadius,
                 });
-
-                // When drawing to a viewport that doesn't match the projection size (e.g. via framebuffers), the resultant image will be scaled
-                Vector2 projectionScale = new Vector2(ProjectionMatrix.Row0.X / 2, -ProjectionMatrix.Row1.Y / 2);
-                Vector2 viewportScale = Vector2.Multiply(Viewport.Size, projectionScale);
-
-                Vector2 location = (maskingInfo.ScreenSpaceScissorArea.Location - ScissorOffset) * viewportScale;
-                Vector2 size = maskingInfo.ScreenSpaceScissorArea.Size * viewportScale;
-
-                RectangleI actualRect = new RectangleI(
-                    (int)Math.Floor(location.X),
-                    (int)Math.Floor(location.Y),
-                    (int)Math.Ceiling(size.X),
-                    (int)Math.Ceiling(size.Y));
-
-                PushScissor(overwritePreviousScissor ? actualRect : RectangleI.Intersect(scissorRectStack.Peek(), actualRect));
             }
             else
-            {
                 ShaderMaskingStack!.Pop();
-                PopScissor();
-            }
 
             currentMaskingInfo = maskingInfo;
         }

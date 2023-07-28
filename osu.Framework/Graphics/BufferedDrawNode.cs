@@ -166,6 +166,7 @@ namespace osu.Framework.Graphics
                 ScreenSpaceScissorArea = screenSpaceMaskingRect,
                 MaskingArea = screenSpaceDrawRectangle,
                 ToMaskingSpace = Matrix3.Identity,
+                ToScissorSpace = Matrix3.Identity,
                 BlendRange = 1,
                 AlphaExponent = 1,
             }, true);
