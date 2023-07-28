@@ -163,8 +163,8 @@ namespace osu.Framework.Graphics
 
             renderer.PushMaskingInfo(new MaskingInfo
             {
-                ScreenSpaceAABB = screenSpaceMaskingRect,
-                MaskingRect = screenSpaceDrawRectangle,
+                ScreenSpaceScissorArea = screenSpaceMaskingRect,
+                MaskingArea = screenSpaceDrawRectangle,
                 ToMaskingSpace = Matrix3.Identity,
                 BlendRange = 1,
                 AlphaExponent = 1,

@@ -257,8 +257,8 @@ namespace osu.Framework.Graphics.Rendering
             PushScissorOffset(Vector2I.Zero);
             PushMaskingInfo(new MaskingInfo
             {
-                ScreenSpaceAABB = new RectangleI(0, 0, (int)windowSize.X, (int)windowSize.Y),
-                MaskingRect = new RectangleF(0, 0, windowSize.X, windowSize.Y),
+                ScreenSpaceScissorArea = new RectangleI(0, 0, (int)windowSize.X, (int)windowSize.Y),
+                MaskingArea = new RectangleF(0, 0, windowSize.X, windowSize.Y),
                 ToMaskingSpace = Matrix3.Identity,
                 BlendRange = 1,
                 AlphaExponent = 1,
@@ -646,10 +646,10 @@ namespace osu.Framework.Graphics.Rendering
                 {
                     IsMasking = IsMaskingActive,
                     MaskingRect = new Vector4(
-                        maskingInfo.MaskingRect.Left,
-                        maskingInfo.MaskingRect.Top,
-                        maskingInfo.MaskingRect.Right,
-                        maskingInfo.MaskingRect.Bottom),
+                        maskingInfo.MaskingArea.Left,
+                        maskingInfo.MaskingArea.Top,
+                        maskingInfo.MaskingArea.Right,
+                        maskingInfo.MaskingArea.Bottom),
                     ToMaskingSpace = new Matrix4(maskingInfo.ToMaskingSpace),
                     CornerRadius = maskingInfo.CornerRadius,
                     CornerExponent = maskingInfo.CornerExponent,
@@ -690,8 +690,8 @@ namespace osu.Framework.Graphics.Rendering
                 Vector2 projectionScale = new Vector2(ProjectionMatrix.Row0.X / 2, -ProjectionMatrix.Row1.Y / 2);
                 Vector2 viewportScale = Vector2.Multiply(Viewport.Size, projectionScale);
 
-                Vector2 location = (maskingInfo.ScreenSpaceAABB.Location - ScissorOffset) * viewportScale;
-                Vector2 size = maskingInfo.ScreenSpaceAABB.Size * viewportScale;
+                Vector2 location = (maskingInfo.ScreenSpaceScissorArea.Location - ScissorOffset) * viewportScale;
+                Vector2 size = maskingInfo.ScreenSpaceScissorArea.Size * viewportScale;
 
                 RectangleI actualRect = new RectangleI(
                     (int)Math.Floor(location.X),
