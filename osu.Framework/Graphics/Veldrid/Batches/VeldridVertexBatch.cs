@@ -144,33 +144,29 @@ namespace osu.Framework.Graphics.Veldrid.Batches
 
         public int Draw()
         {
-            if (currentVertexIndex == currentDrawIndex)
+            int countToDraw = currentVertexIndex - currentDrawIndex;
+            int drawStartIndex = currentDrawIndex;
+            currentDrawIndex = currentVertexIndex;
+
+            if (countToDraw == 0)
                 return 0;
 
-            var buffers = currentVertexBuffers;
-
-            if (buffers.Count == 0)
-                return 0;
-
-            int verticesCount = currentVertexIndex - currentDrawIndex;
-
-            IVeldridVertexBuffer<T> buffer = buffers[currentBufferIndex];
+            IVeldridVertexBuffer<T> buffer = currentVertexBuffers[currentBufferIndex];
 
             if (synchronisationBeginIndex >= 0)
                 buffer.UpdateRange(synchronisationBeginIndex, synchronisationEndIndex);
 
             renderer.BindVertexBuffer(buffer);
             renderer.BindIndexBuffer(indexLayout, Size);
-            renderer.DrawVertices(primitiveType, currentDrawIndex, verticesCount);
+            renderer.DrawVertices(primitiveType, drawStartIndex, countToDraw);
 
             // When using multiple buffers we advance to the next one with every draw to prevent contention on the same buffer with future vertex updates.
-            currentDrawIndex = currentVertexIndex;
             synchronisationBeginIndex = -1;
 
             FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
-            FrameStatistics.Add(StatisticsCounterType.VerticesDraw, verticesCount);
+            FrameStatistics.Add(StatisticsCounterType.VerticesDraw, countToDraw);
 
-            return verticesCount;
+            return countToDraw;
         }
     }
 }
