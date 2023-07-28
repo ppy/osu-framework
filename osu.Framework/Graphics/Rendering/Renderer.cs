@@ -59,6 +59,7 @@ namespace osu.Framework.Graphics.Rendering
         public ulong FrameIndex { get; private set; }
 
         public ref readonly MaskingInfo CurrentMaskingInfo => ref currentMaskingInfo;
+        public int CurrentMaskingIndex => 0;
 
         public RectangleI Viewport { get; private set; }
         public RectangleI Scissor { get; private set; }

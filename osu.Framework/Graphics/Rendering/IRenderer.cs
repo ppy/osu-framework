@@ -98,6 +98,8 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         ref readonly MaskingInfo CurrentMaskingInfo { get; }
 
+        internal int CurrentMaskingIndex { get; }
+
         /// <summary>
         /// The current viewport.
         /// </summary>
