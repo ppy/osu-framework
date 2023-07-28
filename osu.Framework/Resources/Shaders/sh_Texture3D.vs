@@ -2,6 +2,7 @@
 #define TEXTURE3D_VS
 
 #include "sh_Utils.h"
+#include "Internal/sh_MaskingInfo.h"
 
 layout(location = 0) in highp vec3 m_Position;
 layout(location = 1) in lowp vec4 m_Colour;
@@ -17,16 +18,18 @@ layout(location = 5) flat out int v_MaskingIndex;
 
 void main(void)
 {
-    // Transform to position to masking space.
-    vec3 maskingPos = g_ToMaskingSpace * vec3(m_Position.xy, 1.0);
+    InitMasking(m_MaskingIndex);
+
+    // Transform from screen space to masking space.
+    highp vec4 maskingPos = g_MaskingInfo.ToMaskingSpace * vec4(m_Position.xy, 1.0, 0.0);
     v_MaskingPosition = maskingPos.xy / maskingPos.z;
 
     v_TexRect = vec4(0.0);
     v_BlendRange = vec2(0.0);
-
     v_Colour = m_Colour;
     v_TexCoord = m_TexCoord;
     v_MaskingIndex = m_MaskingIndex;
+
     gl_Position = g_ProjMatrix * vec4(m_Position, 1.0);
 }
 

@@ -281,6 +281,7 @@ namespace osu.Framework.Graphics.OpenGL
             var glShader = (GLShader)Shader!;
 
             glShader.BindUniformBlock("g_GlobalUniforms", GlobalUniformBuffer!);
+            glShader.BindUniformBlock("g_MaskingBuffer", ShaderMaskingStack!.CurrentBuffer);
 
             int currentUniformBinding = 0;
             int currentStorageBinding = 0;

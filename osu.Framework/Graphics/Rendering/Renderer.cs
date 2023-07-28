@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.Rendering
         public ulong FrameIndex { get; private set; }
 
         public ref readonly MaskingInfo CurrentMaskingInfo => ref currentMaskingInfo;
-        public int CurrentMaskingIndex => 0;
+        public int CurrentMaskingIndex => ShaderMaskingStack?.CurrentOffset ?? 0;
 
         public RectangleI Viewport { get; private set; }
         public RectangleI Scissor { get; private set; }
@@ -131,6 +131,8 @@ namespace osu.Framework.Graphics.Rendering
         private readonly LockedWeakList<Texture> allTextures = new LockedWeakList<Texture>();
 
         protected IUniformBuffer<GlobalUniformData>? GlobalUniformBuffer { get; private set; }
+        protected ShaderStorageBufferObjectStack<ShaderMaskingInfo>? ShaderMaskingStack { get; private set; }
+
         private IVertexBatch<TexturedVertex2D>? defaultQuadBatch;
         private IVertexBatch? currentActiveBatch;
         private MaskingInfo currentMaskingInfo;
@@ -196,6 +198,9 @@ namespace osu.Framework.Graphics.Rendering
                 IsClipSpaceYInverted = IsClipSpaceYInverted,
                 IsUvOriginTopLeft = IsUvOriginTopLeft
             };
+
+            ShaderMaskingStack ??= new ShaderStorageBufferObjectStack<ShaderMaskingInfo>(this, 64, 8192);
+            ShaderMaskingStack.Clear();
 
             Debug.Assert(defaultQuadBatch != null);
 
@@ -635,52 +640,52 @@ namespace osu.Framework.Graphics.Rendering
 
             FlushCurrentBatch(FlushBatchSource.SetMasking);
 
-            GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with
-            {
-                IsMasking = IsMaskingActive,
-                MaskingRect = new Vector4(
-                    maskingInfo.MaskingRect.Left,
-                    maskingInfo.MaskingRect.Top,
-                    maskingInfo.MaskingRect.Right,
-                    maskingInfo.MaskingRect.Bottom),
-                ToMaskingSpace = maskingInfo.ToMaskingSpace,
-                CornerRadius = maskingInfo.CornerRadius,
-                CornerExponent = maskingInfo.CornerExponent,
-                BorderThickness = maskingInfo.BorderThickness / maskingInfo.BlendRange,
-                BorderColour = maskingInfo.BorderThickness > 0
-                    ? new Matrix4(
-                        // TopLeft
-                        maskingInfo.BorderColour.TopLeft.SRGB.R,
-                        maskingInfo.BorderColour.TopLeft.SRGB.G,
-                        maskingInfo.BorderColour.TopLeft.SRGB.B,
-                        maskingInfo.BorderColour.TopLeft.SRGB.A,
-                        // BottomLeft
-                        maskingInfo.BorderColour.BottomLeft.SRGB.R,
-                        maskingInfo.BorderColour.BottomLeft.SRGB.G,
-                        maskingInfo.BorderColour.BottomLeft.SRGB.B,
-                        maskingInfo.BorderColour.BottomLeft.SRGB.A,
-                        // TopRight
-                        maskingInfo.BorderColour.TopRight.SRGB.R,
-                        maskingInfo.BorderColour.TopRight.SRGB.G,
-                        maskingInfo.BorderColour.TopRight.SRGB.B,
-                        maskingInfo.BorderColour.TopRight.SRGB.A,
-                        // BottomRight
-                        maskingInfo.BorderColour.BottomRight.SRGB.R,
-                        maskingInfo.BorderColour.BottomRight.SRGB.G,
-                        maskingInfo.BorderColour.BottomRight.SRGB.B,
-                        maskingInfo.BorderColour.BottomRight.SRGB.A)
-                    : GlobalUniformBuffer.Data.BorderColour,
-                MaskingBlendRange = maskingInfo.BlendRange,
-                AlphaExponent = maskingInfo.AlphaExponent,
-                EdgeOffset = maskingInfo.EdgeOffset,
-                DiscardInner = maskingInfo.Hollow,
-                InnerCornerRadius = maskingInfo.Hollow
-                    ? maskingInfo.HollowCornerRadius
-                    : GlobalUniformBuffer.Data.InnerCornerRadius
-            };
-
             if (isPushing)
             {
+                ShaderMaskingStack!.Push(new ShaderMaskingInfo
+                {
+                    IsMasking = IsMaskingActive,
+                    MaskingRect = new Vector4(
+                        maskingInfo.MaskingRect.Left,
+                        maskingInfo.MaskingRect.Top,
+                        maskingInfo.MaskingRect.Right,
+                        maskingInfo.MaskingRect.Bottom),
+                    ToMaskingSpace = new Matrix4(maskingInfo.ToMaskingSpace),
+                    CornerRadius = maskingInfo.CornerRadius,
+                    CornerExponent = maskingInfo.CornerExponent,
+                    BorderThickness = maskingInfo.BorderThickness / maskingInfo.BlendRange,
+                    BorderColour = maskingInfo.BorderThickness > 0
+                        ? new Matrix4(
+                            // TopLeft
+                            maskingInfo.BorderColour.TopLeft.SRGB.R,
+                            maskingInfo.BorderColour.TopLeft.SRGB.G,
+                            maskingInfo.BorderColour.TopLeft.SRGB.B,
+                            maskingInfo.BorderColour.TopLeft.SRGB.A,
+                            // BottomLeft
+                            maskingInfo.BorderColour.BottomLeft.SRGB.R,
+                            maskingInfo.BorderColour.BottomLeft.SRGB.G,
+                            maskingInfo.BorderColour.BottomLeft.SRGB.B,
+                            maskingInfo.BorderColour.BottomLeft.SRGB.A,
+                            // TopRight
+                            maskingInfo.BorderColour.TopRight.SRGB.R,
+                            maskingInfo.BorderColour.TopRight.SRGB.G,
+                            maskingInfo.BorderColour.TopRight.SRGB.B,
+                            maskingInfo.BorderColour.TopRight.SRGB.A,
+                            // BottomRight
+                            maskingInfo.BorderColour.BottomRight.SRGB.R,
+                            maskingInfo.BorderColour.BottomRight.SRGB.G,
+                            maskingInfo.BorderColour.BottomRight.SRGB.B,
+                            maskingInfo.BorderColour.BottomRight.SRGB.A)
+                        : ShaderMaskingStack.CurrentBuffer[ShaderMaskingStack.CurrentOffset].BorderColour,
+                    MaskingBlendRange = maskingInfo.BlendRange,
+                    AlphaExponent = maskingInfo.AlphaExponent,
+                    EdgeOffset = maskingInfo.EdgeOffset,
+                    DiscardInner = maskingInfo.Hollow,
+                    InnerCornerRadius = maskingInfo.Hollow
+                        ? maskingInfo.HollowCornerRadius
+                        : ShaderMaskingStack.CurrentBuffer[ShaderMaskingStack.CurrentOffset].InnerCornerRadius
+                });
+
                 // When drawing to a viewport that doesn't match the projection size (e.g. via framebuffers), the resultant image will be scaled
                 Vector2 projectionScale = new Vector2(ProjectionMatrix.Row0.X / 2, -ProjectionMatrix.Row1.Y / 2);
                 Vector2 viewportScale = Vector2.Multiply(Viewport.Size, projectionScale);
@@ -697,7 +702,10 @@ namespace osu.Framework.Graphics.Rendering
                 PushScissor(overwritePreviousScissor ? actualRect : RectangleI.Intersect(scissorRectStack.Peek(), actualRect));
             }
             else
+            {
+                ShaderMaskingStack!.Pop();
                 PopScissor();
+            }
 
             currentMaskingInfo = maskingInfo;
         }
