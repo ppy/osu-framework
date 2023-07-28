@@ -8,8 +8,8 @@ layout(location = 0) flat out int v_ColourIndex;
 
 void main(void)
 {
-	v_ColourIndex = m_ColourIndex;
-	gl_Position = g_ProjMatrix * vec4(m_Position, 1.0, 1.0);
+    v_ColourIndex = m_ColourIndex;
+    gl_Position = g_ProjMatrix * vec4(m_Position, 1.0, 1.0);
 }
 
 #endif
