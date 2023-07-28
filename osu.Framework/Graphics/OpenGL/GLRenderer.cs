@@ -58,8 +58,6 @@ namespace osu.Framework.Graphics.OpenGL
 
         private int backbufferFramebuffer;
 
-        private readonly int[] lastBoundBuffers = new int[2];
-
         private bool? lastBlendingEnabledState;
         private int lastBoundVertexArray;
 
@@ -113,7 +111,6 @@ namespace osu.Framework.Graphics.OpenGL
         protected internal override void BeginFrame(Vector2 windowSize)
         {
             lastBlendingEnabledState = null;
-            lastBoundBuffers.AsSpan().Clear();
             lastBoundVertexArray = 0;
 
             // Seems to be required on some drivers as the context is lost from the draw thread.
@@ -140,19 +137,6 @@ namespace osu.Framework.Graphics.OpenGL
 
             lastBoundVertexArray = vaoId;
             GL.BindVertexArray(vaoId);
-
-            FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
-            return true;
-        }
-
-        public bool BindBuffer(BufferTarget target, int buffer)
-        {
-            int bufferIndex = target - BufferTarget.ArrayBuffer;
-            if (lastBoundBuffers[bufferIndex] == buffer)
-                return false;
-
-            lastBoundBuffers[bufferIndex] = buffer;
-            GL.BindBuffer(target, buffer);
 
             FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
             return true;
