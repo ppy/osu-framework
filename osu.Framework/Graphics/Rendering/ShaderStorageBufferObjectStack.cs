@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// The index of the current item inside <see cref="CurrentBuffer"/>.
         /// </summary>
-        public int CurrentIndex => currentBufferOffset;
+        public int CurrentOffset => currentBufferOffset;
 
         /// <summary>
         /// The buffer that contains the current object.
@@ -149,7 +149,7 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         /// <remarks>
         /// This does not remove the item from the stack or the underlying buffer,
-        /// but adjusts <see cref="CurrentIndex"/> and <see cref="CurrentBuffer"/>.
+        /// but adjusts <see cref="CurrentOffset"/> and <see cref="CurrentBuffer"/>.
         /// </remarks>
         public void Pop()
         {

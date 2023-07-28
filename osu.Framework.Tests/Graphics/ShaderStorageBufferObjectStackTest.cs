@@ -32,9 +32,9 @@ namespace osu.Framework.Tests.Graphics
         [Test]
         public void TestInitialState()
         {
-            Assert.That(stack.CurrentIndex, Is.Zero);
+            Assert.That(stack.CurrentOffset, Is.Zero);
             Assert.That(stack.CurrentBuffer, Is.Not.Null);
-            Assert.That(stack.CurrentBuffer[stack.CurrentIndex], Is.EqualTo(0));
+            Assert.That(stack.CurrentBuffer[stack.CurrentOffset], Is.EqualTo(0));
         }
 
         [Test]
@@ -50,9 +50,9 @@ namespace osu.Framework.Tests.Graphics
 
             stack.Push(1);
 
-            Assert.That(stack.CurrentIndex, Is.Zero);
+            Assert.That(stack.CurrentOffset, Is.Zero);
             Assert.That(stack.CurrentBuffer, Is.EqualTo(firstBuffer));
-            Assert.That(stack.CurrentBuffer[stack.CurrentIndex], Is.EqualTo(1));
+            Assert.That(stack.CurrentBuffer[stack.CurrentOffset], Is.EqualTo(1));
         }
 
         [Test]
@@ -64,9 +64,9 @@ namespace osu.Framework.Tests.Graphics
             for (int i = 0; i < size; i++)
             {
                 stack.Push(i);
-                Assert.That(stack.CurrentIndex, Is.EqualTo(expectedIndex++));
+                Assert.That(stack.CurrentOffset, Is.EqualTo(expectedIndex++));
                 Assert.That(stack.CurrentBuffer, Is.EqualTo(firstBuffer));
-                Assert.That(stack.CurrentBuffer[stack.CurrentIndex], Is.EqualTo(i));
+                Assert.That(stack.CurrentBuffer[stack.CurrentOffset], Is.EqualTo(i));
             }
         }
 
@@ -80,9 +80,9 @@ namespace osu.Framework.Tests.Graphics
 
             for (int i = size - 1; i >= 0; i--)
             {
-                Assert.That(stack.CurrentIndex, Is.EqualTo(i));
+                Assert.That(stack.CurrentOffset, Is.EqualTo(i));
                 Assert.That(stack.CurrentBuffer, Is.EqualTo(firstBuffer));
-                Assert.That(stack.CurrentBuffer[stack.CurrentIndex], Is.EqualTo(i));
+                Assert.That(stack.CurrentBuffer[stack.CurrentOffset], Is.EqualTo(i));
                 stack.Pop();
             }
         }
@@ -94,14 +94,14 @@ namespace osu.Framework.Tests.Graphics
                 stack.Push(i);
 
             var firstBuffer = stack.CurrentBuffer;
-            int copiedItem = stack.CurrentBuffer[stack.CurrentIndex];
+            int copiedItem = stack.CurrentBuffer[stack.CurrentOffset];
 
             // Transition to a new buffer...
             stack.Push(size);
             Assert.That(stack.CurrentBuffer, Is.Not.EqualTo(firstBuffer));
 
             // ... where the "hack" employed by the queue means that after a transition, the new item is added at index 1...
-            Assert.That(stack.CurrentIndex, Is.EqualTo(1));
+            Assert.That(stack.CurrentOffset, Is.EqualTo(1));
             Assert.That(stack.CurrentBuffer[1], Is.EqualTo(size));
 
             // ... and the first item in the new buffer is a copy of the last referenced item before the push.
@@ -115,7 +115,7 @@ namespace osu.Framework.Tests.Graphics
                 stack.Push(i);
 
             var firstBuffer = stack.CurrentBuffer;
-            int copiedItem = stack.CurrentBuffer[stack.CurrentIndex];
+            int copiedItem = stack.CurrentBuffer[stack.CurrentOffset];
 
             // Transition to the new buffer.
             stack.Push(size);
@@ -123,20 +123,20 @@ namespace osu.Framework.Tests.Graphics
             // The "hack" employed means that on the first pop, the index moves to the 0th index in the new buffer.
             stack.Pop();
             Assert.That(stack.CurrentBuffer, Is.Not.EqualTo(firstBuffer));
-            Assert.That(stack.CurrentIndex, Is.Zero);
-            Assert.That(stack.CurrentBuffer[stack.CurrentIndex], Is.EqualTo(copiedItem));
+            Assert.That(stack.CurrentOffset, Is.Zero);
+            Assert.That(stack.CurrentBuffer[stack.CurrentOffset], Is.EqualTo(copiedItem));
 
             // After a subsequent pop, we transition to the previous buffer and move to the index prior to the copied item.
             // We've already seen the copied item in the new buffer with the above pop, so we should not see it again here.
             stack.Pop();
             Assert.That(stack.CurrentBuffer, Is.EqualTo(firstBuffer));
-            Assert.That(stack.CurrentIndex, Is.EqualTo(copiedItem - 1));
-            Assert.That(stack.CurrentBuffer[stack.CurrentIndex], Is.EqualTo(copiedItem - 1));
+            Assert.That(stack.CurrentOffset, Is.EqualTo(copiedItem - 1));
+            Assert.That(stack.CurrentBuffer[stack.CurrentOffset], Is.EqualTo(copiedItem - 1));
 
             // Popping once again should move the index further backwards.
             stack.Pop();
             Assert.That(stack.CurrentBuffer, Is.EqualTo(firstBuffer));
-            Assert.That(stack.CurrentIndex, Is.EqualTo(copiedItem - 2));
+            Assert.That(stack.CurrentOffset, Is.EqualTo(copiedItem - 2));
         }
 
         [Test]
@@ -150,14 +150,14 @@ namespace osu.Framework.Tests.Graphics
             stack.Pop();
 
             var firstBuffer = stack.CurrentBuffer;
-            int copiedItem = stack.CurrentIndex;
+            int copiedItem = stack.CurrentOffset;
 
             // Transition to the new buffer...
             stack.Push(size);
 
             // ... and as above, we arrive at index 1 in the new buffer.
             Assert.That(stack.CurrentBuffer, Is.Not.EqualTo(firstBuffer));
-            Assert.That(stack.CurrentIndex, Is.EqualTo(1));
+            Assert.That(stack.CurrentOffset, Is.EqualTo(1));
             Assert.That(stack.CurrentBuffer[1], Is.EqualTo(size));
             Assert.That(stack.CurrentBuffer[0], Is.EqualTo(copiedItem));
 
@@ -167,13 +167,13 @@ namespace osu.Framework.Tests.Graphics
 
             // ... noting that this is the same as the above "normal" pop case, except that item arrived at is in the middle of the previous buffer.
             Assert.That(stack.CurrentBuffer, Is.EqualTo(firstBuffer));
-            Assert.That(stack.CurrentIndex, Is.EqualTo(copiedItem - 1));
-            Assert.That(stack.CurrentBuffer[stack.CurrentIndex], Is.EqualTo(copiedItem - 1));
+            Assert.That(stack.CurrentOffset, Is.EqualTo(copiedItem - 1));
+            Assert.That(stack.CurrentBuffer[stack.CurrentOffset], Is.EqualTo(copiedItem - 1));
 
             // Popping once again from this state should move further backwards.
             stack.Pop();
             Assert.That(stack.CurrentBuffer, Is.EqualTo(firstBuffer));
-            Assert.That(stack.CurrentIndex, Is.EqualTo(copiedItem - 2));
+            Assert.That(stack.CurrentOffset, Is.EqualTo(copiedItem - 2));
         }
 
         [Test]
@@ -183,13 +183,13 @@ namespace osu.Framework.Tests.Graphics
                 stack.Push(i);
 
             var lastBuffer = stack.CurrentBuffer;
-            int copiedItem1 = stack.CurrentBuffer[stack.CurrentIndex];
+            int copiedItem1 = stack.CurrentBuffer[stack.CurrentOffset];
 
             // Transition to the middle of the new buffer.
             stack.Push(size);
             stack.Push(size + 1);
             Assert.That(stack.CurrentBuffer, Is.Not.EqualTo(lastBuffer));
-            Assert.That(stack.CurrentIndex, Is.EqualTo(2));
+            Assert.That(stack.CurrentOffset, Is.EqualTo(2));
             Assert.That(stack.CurrentBuffer[2], Is.EqualTo(size + 1));
             Assert.That(stack.CurrentBuffer[1], Is.EqualTo(size));
             Assert.That(stack.CurrentBuffer[0], Is.EqualTo(copiedItem1));
@@ -201,14 +201,14 @@ namespace osu.Framework.Tests.Graphics
             Assert.That(stack.CurrentBuffer, Is.EqualTo(lastBuffer));
 
             // The item that will be copied into the new buffer.
-            int copiedItem2 = stack.CurrentBuffer[stack.CurrentIndex];
+            int copiedItem2 = stack.CurrentBuffer[stack.CurrentOffset];
 
             // Transition to the new buffer...
             stack.Push(size + 2);
             Assert.That(stack.CurrentBuffer, Is.Not.EqualTo(lastBuffer));
 
             // ... noting that this is the same as the normal case of transitioning to a new buffer, except arriving in the middle of it...
-            Assert.That(stack.CurrentIndex, Is.EqualTo(4));
+            Assert.That(stack.CurrentOffset, Is.EqualTo(4));
             Assert.That(stack.CurrentBuffer[4], Is.EqualTo(size + 2));
 
             // ... where this is the copied item as a result of the immediate push...
@@ -229,8 +229,8 @@ namespace osu.Framework.Tests.Graphics
             // 2. Transition to old buffer, arrive at index N-2 (N-1 was copied into the new buffer).
             // 3. From index N-2 -> transition to new buffer.
             // 4. Transition to old buffer, arrive at index N-3 (N-2 was copied into the new buffer).
-            Assert.That(stack.CurrentIndex, Is.EqualTo(size - 3));
-            Assert.That(stack.CurrentBuffer[stack.CurrentIndex], Is.EqualTo(size - 3));
+            Assert.That(stack.CurrentOffset, Is.EqualTo(size - 3));
+            Assert.That(stack.CurrentBuffer[stack.CurrentOffset], Is.EqualTo(size - 3));
         }
 
         [Test]
@@ -245,10 +245,10 @@ namespace osu.Framework.Tests.Graphics
 
                 // On a buffer transition, test that the item at the 0-th index of the first buffer was correct copied to the new buffer.
                 if (stack.CurrentBuffer != lastBuffer)
-                    Assert.That(stack.CurrentBuffer[stack.CurrentIndex - 1], Is.EqualTo(0));
+                    Assert.That(stack.CurrentBuffer[stack.CurrentOffset - 1], Is.EqualTo(0));
 
                 // Test that the item was correctly placed in the new buffer
-                Assert.That(stack.CurrentBuffer[stack.CurrentIndex], Is.EqualTo(i));
+                Assert.That(stack.CurrentBuffer[stack.CurrentOffset], Is.EqualTo(i));
 
                 // Return to an empty stack.
                 stack.Pop();
