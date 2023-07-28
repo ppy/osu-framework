@@ -17,28 +17,34 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
     internal class VeldridShaderPart : IShaderPart
     {
         private static readonly Regex shader_input_pattern = new Regex(@"^\s*layout\s*\(\s*location\s*=\s*(-?\d+)\s*\)\s*in\s+((?:(?:lowp|mediump|highp)\s+)?\w+)\s+(\w+)\s*;", RegexOptions.Multiline);
-        private static readonly Regex shader_output_pattern = new Regex(@"^\s*layout\s*\(\s*location\s*=\s*(-?\d+)\s*\)\s*out\s+((?:(?:lowp|mediump|highp)\s+)?\w+)\s+(\w+)\s*;", RegexOptions.Multiline);
-        private static readonly Regex uniform_pattern = new Regex(@"^(\s*layout\s*\(.*)set\s*=\s*(-?\d)(.*\)\s*uniform)", RegexOptions.Multiline);
+
+        private static readonly Regex shader_output_pattern =
+            new Regex(@"^\s*layout\s*\(\s*location\s*=\s*(-?\d+)\s*\)\s*out\s+((?:(?:lowp|mediump|highp)\s+)?\w+)\s+(\w+)\s*;", RegexOptions.Multiline);
+
+        private static readonly Regex uniform_pattern = new Regex(@"^(\s*layout\s*\(.*)set\s*=\s*(-?\d)(.*\)\s*(?:(?:readonly\s*)?buffer|uniform))", RegexOptions.Multiline);
         private static readonly Regex include_pattern = new Regex(@"^\s*#\s*include\s+[""<](.*)["">]");
 
         public readonly ShaderPartType Type;
 
         private string header = string.Empty;
 
-        private readonly string code;
+        private readonly string code = string.Empty;
         private readonly IShaderStore store;
 
         public readonly List<VeldridShaderAttribute> Inputs = new List<VeldridShaderAttribute>();
         public readonly List<VeldridShaderAttribute> Outputs = new List<VeldridShaderAttribute>();
 
-        public VeldridShaderPart(byte[]? data, ShaderPartType type, IShaderStore store)
+        public VeldridShaderPart(VeldridRenderer renderer, byte[]? data, ShaderPartType type, IShaderStore store)
         {
             this.store = store;
 
             Type = type;
 
+            if (!renderer.UseStructuredBuffers)
+                code = "#define OSU_GRAPHICS_NO_SSBO\n";
+
             // Load the shader files.
-            code = loadFile(data, true);
+            code += loadFile(data, true);
 
             int lastInputIndex = 0;
 
@@ -114,8 +120,10 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     internalIncludes += loadFile(store.GetRawData("Internal/sh_GlobalUniforms.h"), false) + "\n";
                     result = internalIncludes + result;
 
-                    Inputs.AddRange(shader_input_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value)).ToList());
-                    Outputs.AddRange(shader_output_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value)).ToList());
+                    Inputs.AddRange(
+                        shader_input_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value)).ToList());
+                    Outputs.AddRange(shader_output_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value))
+                                                          .ToList());
 
                     string outputCode = loadFile(store.GetRawData($"Internal/sh_{Type}_Output.h"), false);
 

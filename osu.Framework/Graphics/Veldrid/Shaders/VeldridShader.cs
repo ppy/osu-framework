@@ -188,7 +188,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
                         textureLayouts.Add(new VeldridUniformLayout(set, renderer.Factory.CreateResourceLayout(layout)));
                     }
-                    else if (layout.Elements[0].Kind == ResourceKind.UniformBuffer)
+                    else
                         uniformLayouts[layout.Elements[0].Name] = new VeldridUniformLayout(set, renderer.Factory.CreateResourceLayout(layout));
                 }
 

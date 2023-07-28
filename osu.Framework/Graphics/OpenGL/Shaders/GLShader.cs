@@ -191,11 +191,8 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                         Value = textureIndex++
                     });
                 }
-                else if (layout.Elements[0].Kind == ResourceKind.UniformBuffer)
-                {
-                    var block = new GLUniformBlock(this, GL.GetUniformBlockIndex(this, layout.Elements[0].Name), blockBindingIndex++);
-                    uniformBlocks[layout.Elements[0].Name] = block;
-                }
+                else
+                    uniformBlocks[layout.Elements[0].Name] = new GLUniformBlock(this, GL.GetUniformBlockIndex(this, layout.Elements[0].Name), blockBindingIndex++);
             }
 
             return true;
