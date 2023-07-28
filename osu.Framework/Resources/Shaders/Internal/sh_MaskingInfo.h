@@ -39,7 +39,7 @@ layout(std140, set = -2, binding = 0) readonly buffer g_MaskingBuffer
 
 layout(std140, set = -2, binding = 0) uniform g_MaskingBuffer
 {
-    MaskingInfo Data[64];
+    MaskingInfo Data[60];
 } MaskingBuffer;
 
 #endif // OSU_GRAPHICS_NO_SSBO

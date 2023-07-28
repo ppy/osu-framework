@@ -199,7 +199,8 @@ namespace osu.Framework.Graphics.Rendering
                 IsUvOriginTopLeft = IsUvOriginTopLeft
             };
 
-            ShaderMaskingStack ??= new ShaderStorageBufferObjectStack<ShaderMaskingInfo>(this, 64, 8192);
+            // 60 elements keeps the total data length under 16KiB (16320).
+            ShaderMaskingStack ??= new ShaderStorageBufferObjectStack<ShaderMaskingInfo>(this, 60, 8192);
             ShaderMaskingStack.Clear();
 
             Debug.Assert(defaultQuadBatch != null);
