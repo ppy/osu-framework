@@ -27,11 +27,27 @@ namespace osu.Framework.Graphics.Rendering.Vertices
         [VertexMember(2, VertexAttribPointerType.Float)]
         public Vector2 BlendRange;
 
+        [VertexMember(1, VertexAttribPointerType.Float)]
+        private readonly float backbufferDrawDepth;
+
+        [Obsolete("Initialise this type with an IRenderer instead", true)]
+        public TexturedVertex2D()
+        {
+            this = default;
+        }
+
+        public TexturedVertex2D(IRenderer renderer)
+        {
+            this = default;
+            backbufferDrawDepth = renderer.BackbufferDrawDepth;
+        }
+
         public readonly bool Equals(TexturedVertex2D other) =>
             Position.Equals(other.Position)
             && TexturePosition.Equals(other.TexturePosition)
             && Colour.Equals(other.Colour)
             && TextureRect.Equals(other.TextureRect)
-            && BlendRange.Equals(other.BlendRange);
+            && BlendRange.Equals(other.BlendRange)
+            && backbufferDrawDepth == other.backbufferDrawDepth;
     }
 }
