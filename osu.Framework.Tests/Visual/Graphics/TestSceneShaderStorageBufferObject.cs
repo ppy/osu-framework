@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
@@ -18,9 +19,26 @@ namespace osu.Framework.Tests.Visual.Graphics
 {
     public partial class TestSceneShaderStorageBufferObject : FrameworkTestScene
     {
-        public TestSceneShaderStorageBufferObject()
+        private const int ubo_size = 64;
+        private const int ssbo_size = 8192;
+
+        [Test]
+        public void TestRawStorageBuffer()
         {
-            Add(new GridDrawable { RelativeSizeAxes = Axes.Both });
+            AddStep("add grid", () => Child = new GridDrawable
+            {
+                RelativeSizeAxes = Axes.Both,
+                RawBuffer = true
+            });
+        }
+
+        [Test]
+        public void TestStorageBufferStack()
+        {
+            AddStep("add grid", () => Child = new GridDrawable
+            {
+                RelativeSizeAxes = Axes.Both
+            });
         }
 
         private partial class GridDrawable : Drawable
@@ -28,119 +46,209 @@ namespace osu.Framework.Tests.Visual.Graphics
             private const int separation = 1;
             private const int size = 32;
 
-            private IShader shader = null!;
+            public bool RawBuffer;
 
-            private readonly List<Quad> areas = new List<Quad>();
+            public IShader Shader { get; private set; } = null!;
+            public List<Quad> Areas { get; } = new List<Quad>();
 
             [BackgroundDependencyLoader]
             private void load(ShaderManager shaderManager)
             {
-                shader = shaderManager.Load("SSBOTest", "SSBOTest");
+                Shader = shaderManager.Load("SSBOTest", "SSBOTest");
             }
 
             protected override void Update()
             {
                 base.Update();
 
-                areas.Clear();
+                Areas.Clear();
 
                 for (float y = 0; y < DrawHeight; y += size + separation)
                 {
                     for (float x = 0; x < DrawWidth; x += size + separation)
-                        areas.Add(ToScreenSpace(new RectangleF(x, y, size, size)));
+                        Areas.Add(ToScreenSpace(new RectangleF(x, y, size, size)));
                 }
 
                 Invalidate(Invalidation.DrawNode);
             }
 
-            protected override DrawNode CreateDrawNode() => new GridDrawNode(this);
+            protected override DrawNode CreateDrawNode() => RawBuffer ? new RawStorageBufferDrawNode(this) : new StorageBufferStackDrawNode(this);
+        }
 
-            private class GridDrawNode : DrawNode
+        /// <summary>
+        /// This implementation demonstrates the usage of a raw <see cref="IShaderStorageBufferObject{TData}"/>.
+        /// </summary>
+        private class RawStorageBufferDrawNode : DrawNode
+        {
+            protected new GridDrawable Source => (GridDrawable)base.Source;
+
+            private IShader shader = null!;
+            private readonly List<Quad> areas = new List<Quad>();
+
+            public RawStorageBufferDrawNode(IDrawable source)
+                : base(source)
             {
-                private const int min_ssbo_size = 64;
-                private const int max_ssbo_size = 8192;
+            }
 
-                protected new GridDrawable Source => (GridDrawable)base.Source;
+            public override void ApplyState()
+            {
+                base.ApplyState();
 
-                private IShader shader = null!;
-                private readonly List<Quad> areas = new List<Quad>();
+                shader = Source.Shader;
+                areas.Clear();
+                areas.AddRange(Source.Areas);
+            }
 
-                public GridDrawNode(IDrawable source)
-                    : base(source)
+            private IShaderStorageBufferObject<ColourData>? colourBuffer;
+            private IVertexBatch<ColourIndexedVertex>? vertices;
+
+            public override void Draw(IRenderer renderer)
+            {
+                base.Draw(renderer);
+
+                // Create the vertex batch.
+                vertices ??= renderer.CreateQuadBatch<ColourIndexedVertex>(400, 1000);
+
+                // Create the SSBO. It only needs to be populated once for the demonstration of this test.
+                if (colourBuffer == null)
                 {
+                    colourBuffer = renderer.CreateShaderStorageBufferObject<ColourData>(ubo_size, ssbo_size);
+                    var rng = new Random(1337);
+
+                    for (int i = 0; i < colourBuffer.Size; i++)
+                        colourBuffer[i] = new ColourData { Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), 1) };
                 }
 
-                public override void ApplyState()
+                // Bind the custom shader and SSBO.
+                shader.Bind();
+                shader.BindUniformBlock("g_ColourBuffer", colourBuffer);
+
+                // Submit vertices, making sure that we don't submit an index which would overflow the SSBO.
+                for (int i = 0; i < areas.Count; i++)
                 {
-                    base.ApplyState();
-
-                    shader = Source.shader;
-                    areas.Clear();
-                    areas.AddRange(Source.areas);
-                }
-
-                private IShaderStorageBufferObject<ColourData>? colourBuffer;
-                private IVertexBatch<ColourIndexedVertex>? vertices;
-
-                public override void Draw(IRenderer renderer)
-                {
-                    base.Draw(renderer);
-
-                    // Create the vertex batch.
-                    vertices ??= renderer.CreateQuadBatch<ColourIndexedVertex>(400, 1000);
-
-                    // Create the SSBO. It only needs to be populated once for the demonstration of this test.
-                    if (colourBuffer == null)
+                    vertices.Add(new ColourIndexedVertex
                     {
-                        colourBuffer = renderer.CreateShaderStorageBufferObject<ColourData>(min_ssbo_size, max_ssbo_size);
-                        var rng = new Random(1337);
+                        Position = areas[i].BottomLeft,
+                        ColourIndex = i % colourBuffer.Size
+                    });
 
-                        for (int i = 0; i < colourBuffer.Size; i++)
-                            colourBuffer[i] = new ColourData { Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), 1) };
-                    }
-
-                    // Bind the custom shader and SSBO.
-                    shader.Bind();
-                    shader.BindUniformBlock("g_ColourBuffer", colourBuffer);
-
-                    // Submit vertices, making sure that we don't submit an index which would overflow the SSBO.
-                    for (int i = 0; i < areas.Count; i++)
+                    vertices.Add(new ColourIndexedVertex
                     {
-                        vertices.Add(new ColourIndexedVertex
-                        {
-                            Position = areas[i].BottomLeft,
-                            ColourIndex = i % colourBuffer.Size
-                        });
+                        Position = areas[i].BottomRight,
+                        ColourIndex = i % colourBuffer.Size
+                    });
 
-                        vertices.Add(new ColourIndexedVertex
-                        {
-                            Position = areas[i].BottomRight,
-                            ColourIndex = i % colourBuffer.Size
-                        });
+                    vertices.Add(new ColourIndexedVertex
+                    {
+                        Position = areas[i].TopRight,
+                        ColourIndex = i % colourBuffer.Size
+                    });
 
-                        vertices.Add(new ColourIndexedVertex
-                        {
-                            Position = areas[i].TopRight,
-                            ColourIndex = i % colourBuffer.Size
-                        });
-
-                        vertices.Add(new ColourIndexedVertex
-                        {
-                            Position = areas[i].TopLeft,
-                            ColourIndex = i % colourBuffer.Size
-                        });
-                    }
-
-                    vertices.Draw();
+                    vertices.Add(new ColourIndexedVertex
+                    {
+                        Position = areas[i].TopLeft,
+                        ColourIndex = i % colourBuffer.Size
+                    });
                 }
 
-                protected override void Dispose(bool isDisposing)
+                vertices.Draw();
+            }
+
+            protected override void Dispose(bool isDisposing)
+            {
+                base.Dispose(isDisposing);
+
+                colourBuffer?.Dispose();
+                vertices?.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// This implementation demonstrates the usage of a <see cref="ShaderStorageBufferObjectStack{TData}"/>.
+        /// Note that unlike the above implementation, this one provides more randomness when run with <c>OSU_GRAPHICS_NO_SSBO=1</c>,
+        /// due to the unlimited size of <see cref="ShaderStorageBufferObjectStack{TData}"/>.
+        /// </summary>
+        private class StorageBufferStackDrawNode : DrawNode
+        {
+            protected new GridDrawable Source => (GridDrawable)base.Source;
+
+            private IShader shader = null!;
+            private readonly List<Quad> areas = new List<Quad>();
+
+            public StorageBufferStackDrawNode(IDrawable source)
+                : base(source)
+            {
+            }
+
+            public override void ApplyState()
+            {
+                base.ApplyState();
+
+                shader = Source.Shader;
+                areas.Clear();
+                areas.AddRange(Source.Areas);
+            }
+
+            private ShaderStorageBufferObjectStack<ColourData>? colourBuffer;
+            private IVertexBatch<ColourIndexedVertex>? vertices;
+
+            public override void Draw(IRenderer renderer)
+            {
+                base.Draw(renderer);
+
+                // Create the vertex batch.
+                vertices ??= renderer.CreateQuadBatch<ColourIndexedVertex>(400, 1000);
+
+                // Create the SSBO.
+                colourBuffer ??= new ShaderStorageBufferObjectStack<ColourData>(renderer, ubo_size, ssbo_size);
+
+                var rng = new Random(1337);
+
+                // Bind the custom shader.
+                shader.Bind();
+
+                // Submit vertices, making sure that we don't submit an index which would overflow the SSBO.
+                for (int i = 0; i < areas.Count; i++)
                 {
-                    base.Dispose(isDisposing);
+                    int colourIndex = colourBuffer.Push(new ColourData { Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), 1) });
 
-                    colourBuffer?.Dispose();
-                    vertices?.Dispose();
+                    // Bind the SSBO. This may change between invocations if the buffer overflows in the above push.
+                    shader.BindUniformBlock("g_ColourBuffer", colourBuffer.CurrentBuffer);
+
+                    vertices.Add(new ColourIndexedVertex
+                    {
+                        Position = areas[i].BottomLeft,
+                        ColourIndex = colourIndex
+                    });
+
+                    vertices.Add(new ColourIndexedVertex
+                    {
+                        Position = areas[i].BottomRight,
+                        ColourIndex = colourIndex
+                    });
+
+                    vertices.Add(new ColourIndexedVertex
+                    {
+                        Position = areas[i].TopRight,
+                        ColourIndex = colourIndex
+                    });
+
+                    vertices.Add(new ColourIndexedVertex
+                    {
+                        Position = areas[i].TopLeft,
+                        ColourIndex = colourIndex
+                    });
                 }
+
+                vertices.Draw();
+            }
+
+            protected override void Dispose(bool isDisposing)
+            {
+                base.Dispose(isDisposing);
+
+                colourBuffer?.Dispose();
+                vertices?.Dispose();
             }
         }
 
