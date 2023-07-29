@@ -95,7 +95,7 @@ namespace osu.Framework.Graphics.Rendering
             // Flush the pipeline if this invocation transitions to a new buffer.
             if (newBufferIndex != currentBufferIndex)
             {
-                renderer.FlushCurrentBatch(FlushBatchSource.SetMasking);
+                renderer.FlushCurrentBatch(FlushBatchSource.StorageBufferOverflow);
 
                 //
                 // When transitioning to a new buffer, we want to minimise a certain "thrashing" effect that occurs with successive push/pops.
@@ -161,7 +161,7 @@ namespace osu.Framework.Graphics.Rendering
 
             // Flush the pipeline if this invocation transitions to a new buffer.
             if (newBufferIndex != currentBufferIndex)
-                renderer.FlushCurrentBatch(FlushBatchSource.SetMasking);
+                renderer.FlushCurrentBatch(FlushBatchSource.StorageBufferOverflow);
 
             currentIndex = newIndex;
         }

@@ -221,6 +221,8 @@ namespace osu.Framework.Graphics.Veldrid
                     break;
             }
 
+            Logger.Log($"{nameof(UseStructuredBuffers)}: {UseStructuredBuffers}");
+
             MaxTextureSize = maxTextureSize;
 
             Commands = Factory.CreateCommandList();
