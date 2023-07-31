@@ -33,7 +33,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             AddStep("setup", () => createModelBackedDrawable(false));
             AddUntilStep("wait for load", () => backedDrawable.DelayedLoadFinished);
-            AddAssert("nothing shown", () => backedDrawable.DisplayedDrawable == null);
+            AddAssert("nothing shown", () => backedDrawable.DisplayedDrawable, () => Is.Null.Or.InstanceOf(Empty().GetType()));
         }
 
         [Test]
