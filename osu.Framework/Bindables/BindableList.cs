@@ -59,10 +59,7 @@ namespace osu.Framework.Bindables
 
         private void setIndex(int index, T item, HashSet<BindableList<T>> appliedInstances)
         {
-            if (appliedInstances.Contains(this))
-                return;
-
-            appliedInstances.Add(this);
+            if (checkAlreadyApplied(appliedInstances)) return;
 
             ensureMutationAllowed();
 
@@ -89,10 +86,7 @@ namespace osu.Framework.Bindables
 
         private void add(T item, HashSet<BindableList<T>> appliedInstances)
         {
-            if (appliedInstances.Contains(this))
-                return;
-
-            appliedInstances.Add(this);
+            if (checkAlreadyApplied(appliedInstances)) return;
 
             ensureMutationAllowed();
 
@@ -125,10 +119,7 @@ namespace osu.Framework.Bindables
 
         private void insert(int index, T item, HashSet<BindableList<T>> appliedInstances)
         {
-            if (appliedInstances.Contains(this))
-                return;
-
-            appliedInstances.Add(this);
+            if (checkAlreadyApplied(appliedInstances)) return;
 
             ensureMutationAllowed();
 
@@ -152,10 +143,7 @@ namespace osu.Framework.Bindables
 
         private void clear(HashSet<BindableList<T>> appliedInstances)
         {
-            if (appliedInstances.Contains(this))
-                return;
-
-            appliedInstances.Add(this);
+            if (checkAlreadyApplied(appliedInstances)) return;
 
             ensureMutationAllowed();
 
@@ -195,10 +183,8 @@ namespace osu.Framework.Bindables
 
         private bool remove(T item, HashSet<BindableList<T>> appliedInstances)
         {
-            if (appliedInstances.Contains(this))
+            if (checkAlreadyApplied(appliedInstances))
                 return false;
-
-            appliedInstances.Add(this);
 
             ensureMutationAllowed();
 
@@ -240,10 +226,7 @@ namespace osu.Framework.Bindables
 
         private void removeRange(int index, int count, HashSet<BindableList<T>> appliedInstances)
         {
-            if (appliedInstances.Contains(this))
-                return;
-
-            appliedInstances.Add(this);
+            if (checkAlreadyApplied(appliedInstances)) return;
 
             ensureMutationAllowed();
 
@@ -277,10 +260,7 @@ namespace osu.Framework.Bindables
 
         private void removeAt(int index, HashSet<BindableList<T>> appliedInstances)
         {
-            if (appliedInstances.Contains(this))
-                return;
-
-            appliedInstances.Add(this);
+            if (checkAlreadyApplied(appliedInstances)) return;
 
             ensureMutationAllowed();
 
@@ -306,10 +286,8 @@ namespace osu.Framework.Bindables
 
         private int removeAll(Predicate<T> match, HashSet<BindableList<T>> appliedInstances)
         {
-            if (appliedInstances.Contains(this))
+            if (checkAlreadyApplied(appliedInstances))
                 return 0;
-
-            appliedInstances.Add(this);
 
             ensureMutationAllowed();
 
@@ -342,10 +320,7 @@ namespace osu.Framework.Bindables
 
         private void replaceRange(int index, int count, IList newItems, HashSet<BindableList<T>> appliedInstances)
         {
-            if (appliedInstances.Contains(this))
-                return;
-
-            appliedInstances.Add(this);
+            if (checkAlreadyApplied(appliedInstances)) return;
 
             ensureMutationAllowed();
 
@@ -368,6 +343,23 @@ namespace osu.Framework.Bindables
             }
 
             notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, newItems, removedItems, index));
+        }
+
+        /// <summary>
+        /// As we are applying non-atomic operations on a potentially complex bindable tree, care needs to be taken to not apply
+        /// the same operation twice to the same bindable instance.
+        ///
+        /// This call tracks all instances which an operation has already been applied to.
+        /// </summary>
+        /// <param name="appliedInstances">A hash set to be passed down the recursive call tree tracking all applied instances.</param>
+        /// <returns>Whether the current instance has already been applied.</returns>
+        private bool checkAlreadyApplied(HashSet<BindableList<T>> appliedInstances)
+        {
+            if (appliedInstances.Contains(this))
+                return true;
+
+            appliedInstances.Add(this);
+            return false;
         }
 
         /// <summary>
@@ -554,10 +546,7 @@ namespace osu.Framework.Bindables
 
         private void addRange(IList items, HashSet<BindableList<T>> appliedInstances)
         {
-            if (appliedInstances.Contains(this))
-                return;
-
-            appliedInstances.Add(this);
+            if (checkAlreadyApplied(appliedInstances)) return;
 
             ensureMutationAllowed();
 
@@ -582,10 +571,7 @@ namespace osu.Framework.Bindables
 
         private void move(int oldIndex, int newIndex, HashSet<BindableList<T>> appliedInstances)
         {
-            if (appliedInstances.Contains(this))
-                return;
-
-            appliedInstances.Add(this);
+            if (checkAlreadyApplied(appliedInstances)) return;
 
             ensureMutationAllowed();
 
