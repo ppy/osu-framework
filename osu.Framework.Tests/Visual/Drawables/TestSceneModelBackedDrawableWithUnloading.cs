@@ -91,7 +91,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private partial class TestUnloadingModelBackedDrawable : ModelBackedDrawable<int>
         {
-            public bool ReturnNullDrawable = false;
+            public bool ReturnNullDrawable;
 
             public new Drawable? DisplayedDrawable => base.DisplayedDrawable;
 
