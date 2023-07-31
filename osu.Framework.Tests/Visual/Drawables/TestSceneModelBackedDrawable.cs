@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using NUnit.Framework;
@@ -18,7 +16,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 {
     public partial class TestSceneModelBackedDrawable : FrameworkTestScene
     {
-        private TestModelBackedDrawable backedDrawable;
+        private TestModelBackedDrawable backedDrawable = null!;
 
         private void createModelBackedDrawable(bool hasIntermediate, bool showNullModel = false) =>
             Child = backedDrawable = new TestModelBackedDrawable
@@ -40,7 +38,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         [Test]
         public void TestModelDefaultState()
         {
-            TestDrawableModel drawableModel = null;
+            TestDrawableModel drawableModel = null!;
 
             AddStep("setup", () =>
             {
@@ -55,8 +53,8 @@ namespace osu.Framework.Tests.Visual.Drawables
         [TestCase(true)]
         public void TestChangeModel(bool hasIntermediate)
         {
-            TestDrawableModel firstModel = null;
-            TestDrawableModel secondModel = null;
+            TestDrawableModel firstModel = null!;
+            TestDrawableModel secondModel = null!;
 
             AddStep("setup", () =>
             {
@@ -77,9 +75,9 @@ namespace osu.Framework.Tests.Visual.Drawables
         [TestCase(true)]
         public void TestChangeModelDuringLoad(bool hasIntermediate)
         {
-            TestDrawableModel firstModel = null;
-            TestDrawableModel secondModel = null;
-            TestDrawableModel thirdModel = null;
+            TestDrawableModel firstModel = null!;
+            TestDrawableModel secondModel = null!;
+            TestDrawableModel thirdModel = null!;
 
             AddStep("setup", () =>
             {
@@ -106,8 +104,8 @@ namespace osu.Framework.Tests.Visual.Drawables
         [TestCase(true)]
         public void TestOutOfOrderLoad(bool hasIntermediate)
         {
-            TestDrawableModel firstModel = null;
-            TestDrawableModel secondModel = null;
+            TestDrawableModel firstModel = null!;
+            TestDrawableModel secondModel = null!;
 
             AddStep("setup", () =>
             {
@@ -130,7 +128,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         [Test]
         public void TestSetNullModel()
         {
-            TestDrawableModel drawableModel = null;
+            TestDrawableModel drawableModel = null!;
 
             AddStep("setup", () =>
             {
@@ -147,7 +145,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         [Test]
         public void TestInsideBufferedContainer()
         {
-            TestDrawableModel drawableModel = null;
+            TestDrawableModel drawableModel = null!;
 
             AddStep("setup", () =>
             {
@@ -270,7 +268,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             public bool HasIntermediate;
 
-            protected override Drawable CreateDrawable(TestModel model)
+            protected override Drawable? CreateDrawable(TestModel? model)
             {
                 if (model == null && ShowNullModel)
                     return new TestNullDrawableModel();
@@ -278,9 +276,9 @@ namespace osu.Framework.Tests.Visual.Drawables
                 return model?.DrawableModel;
             }
 
-            public new Drawable DisplayedDrawable => base.DisplayedDrawable;
+            public new Drawable? DisplayedDrawable => base.DisplayedDrawable;
 
-            public new TestModel Model
+            public new TestModel? Model
             {
                 set => base.Model = value;
             }

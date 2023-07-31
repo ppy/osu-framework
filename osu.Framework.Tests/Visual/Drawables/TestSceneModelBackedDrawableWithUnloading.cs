@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -18,8 +16,8 @@ namespace osu.Framework.Tests.Visual.Drawables
 {
     public partial class TestSceneModelBackedDrawableWithUnloading : FrameworkTestScene
     {
-        private TestUnloadingModelBackedDrawable backedDrawable;
-        private Drawable initialDrawable;
+        private TestUnloadingModelBackedDrawable backedDrawable = null!;
+        private Drawable? initialDrawable;
 
         [SetUpSteps]
         public void SetUpSteps()
@@ -43,7 +41,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         public void TestUnloading()
         {
             AddStep("mask away", () => backedDrawable.Position = new Vector2(-2));
-            AddUntilStep("drawable unloaded", () => initialDrawable.IsDisposed && backedDrawable.DisplayedDrawable == null);
+            AddUntilStep("drawable unloaded", () => initialDrawable?.IsDisposed == true && backedDrawable.DisplayedDrawable == null);
 
             AddStep("return back", () => backedDrawable.Position = Vector2.Zero);
             AddUntilStep("new drawable displayed", () => backedDrawable.DisplayedDrawable != null && backedDrawable.DisplayedDrawable != initialDrawable);
@@ -76,12 +74,12 @@ namespace osu.Framework.Tests.Visual.Drawables
             // on loading, ModelBackedDrawable applies immediate hide transform on new drawable then applies show transform.
             AddAssert("initial hide transform applied", () => backedDrawable.HideTransforms == 1);
             AddAssert("show transform applied", () => backedDrawable.ShowTransforms == 1);
-            AddUntilStep("new drawable alpha = 1", () => backedDrawable.DisplayedDrawable.Alpha == 1);
+            AddUntilStep("new drawable alpha = 1", () => backedDrawable.DisplayedDrawable?.Alpha == 1);
         }
 
         private partial class TestUnloadingModelBackedDrawable : ModelBackedDrawable<int>
         {
-            public new Drawable DisplayedDrawable => base.DisplayedDrawable;
+            public new Drawable? DisplayedDrawable => base.DisplayedDrawable;
 
             public new int Model
             {
