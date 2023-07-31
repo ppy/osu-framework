@@ -97,7 +97,7 @@ namespace osu.Framework.Graphics.Containers
                 loadDrawable(null);
             }
 
-            loadDrawable(() => CreateDrawable(model)!);
+            loadDrawable(() => CreateDrawable(model) ?? Empty());
         }
 
         private void loadDrawable(Func<Drawable>? createDrawableFunc)
