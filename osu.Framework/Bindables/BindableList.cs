@@ -355,11 +355,7 @@ namespace osu.Framework.Bindables
         /// <returns>Whether the current instance has already been applied.</returns>
         private bool checkAlreadyApplied(HashSet<BindableList<T>> appliedInstances)
         {
-            if (appliedInstances.Contains(this))
-                return true;
-
-            appliedInstances.Add(this);
-            return false;
+            return !appliedInstances.Add(this);
         }
 
         /// <summary>
