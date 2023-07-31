@@ -32,6 +32,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         public void TestEmptyDefaultState()
         {
             AddStep("setup", () => createModelBackedDrawable(false));
+            AddUntilStep("wait for load", () => backedDrawable.DelayedLoadFinished);
             AddAssert("nothing shown", () => backedDrawable.DisplayedDrawable == null);
         }
 
@@ -265,8 +266,8 @@ namespace osu.Framework.Tests.Visual.Drawables
         private partial class TestModelBackedDrawable : ModelBackedDrawable<TestModel>
         {
             public bool ShowNullModel;
-
             public bool HasIntermediate;
+            public bool DelayedLoadFinished;
 
             protected override Drawable? CreateDrawable(TestModel? model)
             {
@@ -284,6 +285,18 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
 
             protected override bool TransformImmediately => HasIntermediate;
+
+            protected override void OnLoadStarted()
+            {
+                base.OnLoadStarted();
+                DelayedLoadFinished = false;
+            }
+
+            protected override void OnLoadFinished()
+            {
+                base.OnLoadFinished();
+                DelayedLoadFinished = true;
+            }
         }
     }
 }
