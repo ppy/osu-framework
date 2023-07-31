@@ -48,6 +48,18 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         [Test]
+        public void TestUnloadingWithNullAfterUnload()
+        {
+            AddStep("mask away", () => backedDrawable.Position = new Vector2(-2));
+            AddUntilStep("drawable unloaded", () => initialDrawable?.IsDisposed == true && backedDrawable.DisplayedDrawable == null);
+
+            AddStep("set providing drawable to null", () => backedDrawable.ReturnNullDrawable = true);
+
+            AddStep("return back", () => backedDrawable.Position = Vector2.Zero);
+            AddUntilStep("new drawable displayed", () => backedDrawable.DisplayedDrawable != null && backedDrawable.DisplayedDrawable != initialDrawable);
+        }
+
+        [Test]
         public void TestChangeWhileMaskedAway()
         {
             AddStep("mask away", () => backedDrawable.Position = new Vector2(-2));
@@ -79,6 +91,8 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private partial class TestUnloadingModelBackedDrawable : ModelBackedDrawable<int>
         {
+            public bool ReturnNullDrawable = false;
+
             public new Drawable? DisplayedDrawable => base.DisplayedDrawable;
 
             public new int Model
@@ -118,8 +132,11 @@ namespace osu.Framework.Tests.Visual.Drawables
                 return base.ApplyHideTransforms(drawable);
             }
 
-            protected override Drawable CreateDrawable(int model)
+            protected override Drawable? CreateDrawable(int model)
             {
+                if (ReturnNullDrawable)
+                    return null;
+
                 return new Container
                 {
                     RelativeSizeAxes = Axes.Both,
