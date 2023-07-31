@@ -7,8 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Tests.Bindables
@@ -54,6 +56,21 @@ namespace osu.Framework.Tests.Bindables
         #endregion
 
         #region Bind
+
+        [Test, Repeat(100)]
+        [Ignore("manual testing only")]
+        public void TestBindThreadSafety()
+        {
+            BindableList<int> bindable1 = new BindableList<int>();
+            BindableList<int> bindable2 = new BindableList<int>();
+
+            var task = Task.Run(() => bindable1.Add(1));
+            bindable2.BindTo(bindable1);
+            task.WaitSafely();
+
+            Assert.That(bindable1, Has.One.EqualTo(1));
+            Assert.That(bindable2, Has.One.EqualTo(1));
+        }
 
         /// <summary>
         /// Tests binding to a bindable that has already been bound.

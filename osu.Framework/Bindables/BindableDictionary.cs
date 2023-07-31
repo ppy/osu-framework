@@ -33,6 +33,8 @@ namespace osu.Framework.Bindables
 
         private LockedWeakList<BindableDictionary<TKey, TValue>>? bindings;
 
+        private readonly object bindableChangeLock = new object();
+
         /// <inheritdoc cref="Dictionary{TKey,TValue}(IEqualityComparer{TKey})" />
         public BindableDictionary(IEqualityComparer<TKey>? comparer = null)
             : this(0, comparer)
@@ -66,22 +68,25 @@ namespace osu.Framework.Bindables
 
         private void add(TKey key, TValue value, BindableDictionary<TKey, TValue>? caller)
         {
-            ensureMutationAllowed();
-
-            collection.Add(key, value);
-
-            if (bindings != null)
+            lock (bindableChangeLock)
             {
-                foreach (var b in bindings)
-                {
-                    // prevent re-adding the item back to the callee.
-                    // That would result in a <see cref="StackOverflowException"/>.
-                    if (b != caller)
-                        b.add(key, value, this);
-                }
-            }
+                ensureMutationAllowed();
 
-            notifyDictionaryChanged(new NotifyDictionaryChangedEventArgs<TKey, TValue>(NotifyDictionaryChangedAction.Add, new KeyValuePair<TKey, TValue>(key, value)));
+                collection.Add(key, value);
+
+                if (bindings != null)
+                {
+                    foreach (var b in bindings)
+                    {
+                        // prevent re-adding the item back to the callee.
+                        // That would result in a <see cref="StackOverflowException"/>.
+                        if (b != caller)
+                            b.add(key, value, this);
+                    }
+                }
+
+                notifyDictionaryChanged(new NotifyDictionaryChangedEventArgs<TKey, TValue>(NotifyDictionaryChangedAction.Add, new KeyValuePair<TKey, TValue>(key, value)));
+            }
         }
 
         public bool ContainsKey(TKey key) => collection.ContainsKey(key);
@@ -98,25 +103,28 @@ namespace osu.Framework.Bindables
 
         private bool remove(TKey key, [MaybeNullWhen(false)] out TValue value, BindableDictionary<TKey, TValue>? caller)
         {
-            ensureMutationAllowed();
-
-            if (!collection.Remove(key, out value))
-                return false;
-
-            if (bindings != null)
+            lock (bindableChangeLock)
             {
-                foreach (var b in bindings)
+                ensureMutationAllowed();
+
+                if (!collection.Remove(key, out value))
+                    return false;
+
+                if (bindings != null)
                 {
-                    // prevent re-removing from the callee.
-                    // That would result in a <see cref="StackOverflowException"/>.
-                    if (b != caller)
-                        b.remove(key, out _, this);
+                    foreach (var b in bindings)
+                    {
+                        // prevent re-removing from the callee.
+                        // That would result in a <see cref="StackOverflowException"/>.
+                        if (b != caller)
+                            b.remove(key, out _, this);
+                    }
                 }
+
+                notifyDictionaryChanged(new NotifyDictionaryChangedEventArgs<TKey, TValue>(NotifyDictionaryChangedAction.Remove, new KeyValuePair<TKey, TValue>(key, value)));
+
+                return true;
             }
-
-            notifyDictionaryChanged(new NotifyDictionaryChangedEventArgs<TKey, TValue>(NotifyDictionaryChangedAction.Remove, new KeyValuePair<TKey, TValue>(key, value)));
-
-            return true;
         }
 
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value) => collection.TryGetValue(key, out value);
@@ -131,26 +139,29 @@ namespace osu.Framework.Bindables
 
         private void setKey(TKey key, TValue value, BindableDictionary<TKey, TValue>? caller)
         {
-            ensureMutationAllowed();
-
-            bool hasPreviousValue = TryGetValue(key, out TValue? lastValue);
-
-            collection[key] = value;
-
-            if (bindings != null)
+            lock (bindableChangeLock)
             {
-                foreach (var b in bindings)
-                {
-                    // prevent re-adding the item back to the callee.
-                    // That would result in a <see cref="StackOverflowException"/>.
-                    if (b != caller)
-                        b.setKey(key, value, this);
-                }
-            }
+                ensureMutationAllowed();
 
-            notifyDictionaryChanged(hasPreviousValue
-                ? new NotifyDictionaryChangedEventArgs<TKey, TValue>(new KeyValuePair<TKey, TValue>(key, value), new KeyValuePair<TKey, TValue>(key, lastValue!))
-                : new NotifyDictionaryChangedEventArgs<TKey, TValue>(NotifyDictionaryChangedAction.Add, new KeyValuePair<TKey, TValue>(key, value)));
+                bool hasPreviousValue = TryGetValue(key, out TValue? lastValue);
+
+                collection[key] = value;
+
+                if (bindings != null)
+                {
+                    foreach (var b in bindings)
+                    {
+                        // prevent re-adding the item back to the callee.
+                        // That would result in a <see cref="StackOverflowException"/>.
+                        if (b != caller)
+                            b.setKey(key, value, this);
+                    }
+                }
+
+                notifyDictionaryChanged(hasPreviousValue
+                    ? new NotifyDictionaryChangedEventArgs<TKey, TValue>(new KeyValuePair<TKey, TValue>(key, value), new KeyValuePair<TKey, TValue>(key, lastValue!))
+                    : new NotifyDictionaryChangedEventArgs<TKey, TValue>(NotifyDictionaryChangedAction.Add, new KeyValuePair<TKey, TValue>(key, value)));
+            }
         }
 
         public ICollection<TKey> Keys => collection.Keys;
@@ -170,28 +181,31 @@ namespace osu.Framework.Bindables
 
         private void clear(BindableDictionary<TKey, TValue>? caller)
         {
-            ensureMutationAllowed();
-
-            if (collection.Count == 0)
-                return;
-
-            // Preserve items for subscribers
-            var clearedItems = collection.ToArray();
-
-            collection.Clear();
-
-            if (bindings != null)
+            lock (bindableChangeLock)
             {
-                foreach (var b in bindings)
-                {
-                    // prevent re-adding the item back to the callee.
-                    // That would result in a <see cref="StackOverflowException"/>.
-                    if (b != caller)
-                        b.clear(this);
-                }
-            }
+                ensureMutationAllowed();
 
-            notifyDictionaryChanged(new NotifyDictionaryChangedEventArgs<TKey, TValue>(NotifyDictionaryChangedAction.Remove, clearedItems));
+                if (collection.Count == 0)
+                    return;
+
+                // Preserve items for subscribers
+                var clearedItems = collection.ToArray();
+
+                collection.Clear();
+
+                if (bindings != null)
+                {
+                    foreach (var b in bindings)
+                    {
+                        // prevent re-adding the item back to the callee.
+                        // That would result in a <see cref="StackOverflowException"/>.
+                        if (b != caller)
+                            b.clear(this);
+                    }
+                }
+
+                notifyDictionaryChanged(new NotifyDictionaryChangedEventArgs<TKey, TValue>(NotifyDictionaryChangedAction.Remove, clearedItems));
+            }
         }
 
         bool IDictionary.Contains(object key)
@@ -302,25 +316,28 @@ namespace osu.Framework.Bindables
 
         private void addRange(IList items, BindableDictionary<TKey, TValue>? caller)
         {
-            ensureMutationAllowed();
-
-            var typedItems = (IList<KeyValuePair<TKey, TValue>>)items;
-
-            foreach (var (key, value) in typedItems)
-                collection.Add(key, value);
-
-            if (bindings != null)
+            lock (bindableChangeLock)
             {
-                foreach (var b in bindings)
-                {
-                    // prevent re-adding the item back to the callee.
-                    // That would result in a <see cref="StackOverflowException"/>.
-                    if (b != caller)
-                        b.addRange(items, this);
-                }
-            }
+                ensureMutationAllowed();
 
-            notifyDictionaryChanged(new NotifyDictionaryChangedEventArgs<TKey, TValue>(NotifyDictionaryChangedAction.Add, typedItems));
+                var typedItems = (IList<KeyValuePair<TKey, TValue>>)items;
+
+                foreach (var (key, value) in typedItems)
+                    collection.Add(key, value);
+
+                if (bindings != null)
+                {
+                    foreach (var b in bindings)
+                    {
+                        // prevent re-adding the item back to the callee.
+                        // That would result in a <see cref="StackOverflowException"/>.
+                        if (b != caller)
+                            b.addRange(items, this);
+                    }
+                }
+
+                notifyDictionaryChanged(new NotifyDictionaryChangedEventArgs<TKey, TValue>(NotifyDictionaryChangedAction.Add, typedItems));
+            }
         }
 
         #endregion
@@ -341,9 +358,12 @@ namespace osu.Framework.Bindables
                 if (value == disabled)
                     return;
 
-                disabled = value;
+                lock (bindableChangeLock)
+                {
+                    disabled = value;
 
-                triggerDisabledChange();
+                    triggerDisabledChange();
+                }
             }
         }
 
@@ -401,8 +421,14 @@ namespace osu.Framework.Bindables
             if (!(them is BindableDictionary<TKey, TValue> tThem))
                 throw new InvalidCastException($"Can't unbind a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
 
-            removeWeakReference(tThem.weakReference);
-            tThem.removeWeakReference(weakReference);
+            lock (bindableChangeLock)
+            {
+                lock (tThem.bindableChangeLock)
+                {
+                    removeWeakReference(tThem.weakReference);
+                    tThem.removeWeakReference(weakReference);
+                }
+            }
         }
 
         private void unbind(BindableDictionary<TKey, TValue> binding)
@@ -459,12 +485,18 @@ namespace osu.Framework.Bindables
             if (them == this)
                 throw new ArgumentException("A dictionary can not be bound to itself");
 
-            // copy state and content over
-            Parse(them);
-            Disabled = them.Disabled;
+            lock (bindableChangeLock)
+            {
+                lock (them.bindableChangeLock)
+                {
+                    // copy state and content over
+                    Parse(them);
+                    Disabled = them.Disabled;
 
-            addWeakReference(them.weakReference);
-            them.addWeakReference(weakReference);
+                    addWeakReference(them.weakReference);
+                    them.addWeakReference(weakReference);
+                }
+            }
         }
 
         /// <summary>
