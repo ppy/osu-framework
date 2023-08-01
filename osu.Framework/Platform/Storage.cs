@@ -179,7 +179,7 @@ namespace osu.Framework.Platform
 
             protected override void Dispose(bool disposing)
             {
-                if (!isDisposed)
+                if (disposing && !isDisposed)
                 {
                     // this was added to work around some hardware writing zeroes to a file
                     // before writing actual content, causing corrupt files to exist on disk.
@@ -202,7 +202,7 @@ namespace osu.Framework.Platform
 
                 base.Dispose(disposing);
 
-                if (!isDisposed)
+                if (disposing && !isDisposed)
                 {
                     storage.Delete(finalPath);
                     storage.Move(temporaryPath, finalPath);
