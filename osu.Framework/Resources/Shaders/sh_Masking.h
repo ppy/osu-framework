@@ -64,16 +64,16 @@ lowp vec4 getBorderColour()
 highp float getCornerRadius()
 {
 	highp vec2 relativeTexCoord = v_MaskingPosition / (g_MaskingRect.zw - g_MaskingRect.xy);
-	lowp float top = mix(g_CornerRadius.x, g_CornerRadius.z, step(0.5, relativeTexCoord.x));
-	lowp float bottom = mix(g_CornerRadius.y, g_CornerRadius.w, step(0.5, relativeTexCoord.x));
+	highp float top = mix(g_CornerRadius.x, g_CornerRadius.z, step(0.5, relativeTexCoord.x));
+	highp float bottom = mix(g_CornerRadius.y, g_CornerRadius.w, step(0.5, relativeTexCoord.x));
 	return mix(top, bottom, step(0.5, relativeTexCoord.y));
 }
 
 highp float getInnerCornerRadius()
 {
 	highp vec2 relativeTexCoord = v_MaskingPosition / (g_MaskingRect.zw - g_MaskingRect.xy);
-	lowp float top = mix(g_InnerCornerRadius.x, g_InnerCornerRadius.z, step(0.5, relativeTexCoord.x));
-	lowp float bottom = mix(g_InnerCornerRadius.y, g_InnerCornerRadius.w, step(0.5, relativeTexCoord.x));
+	highp float top = mix(g_InnerCornerRadius.x, g_InnerCornerRadius.z, step(0.5, relativeTexCoord.x));
+	highp float bottom = mix(g_InnerCornerRadius.y, g_InnerCornerRadius.w, step(0.5, relativeTexCoord.x));
 	return mix(top, bottom, step(0.5, relativeTexCoord.y));
 }
 

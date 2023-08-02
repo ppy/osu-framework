@@ -586,7 +586,8 @@ namespace osu.Framework.Tests.Visual.Containers
             {
                 Masking = true;
                 CornerRadius = corners;
-                Size = new Vector2(100, 100);
+                Size = new Vector2(100);
+                Scale = new Vector2(2);
                 EdgeEffect = new EdgeEffectParameters
                 {
                     Type = EdgeEffectType.Glow,
@@ -594,10 +595,30 @@ namespace osu.Framework.Tests.Visual.Containers
                     Radius = 10,
                     Hollow = true,
                 };
-                Child = box = new Box
+                Children = new Drawable[]
                 {
-                    Colour = Colour4.Gray,
-                    RelativeSizeAxes = Axes.Both,
+                    box = new Box
+                    {
+                        Colour = Colour4.Gray,
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                    // these things are to know where is the box center
+                    new Box
+                    {
+                        Colour = Color4.White,
+                        RelativeSizeAxes = Axes.Y,
+                        Width = 2,
+                        Origin = Anchor.Centre,
+                        Anchor = Anchor.Centre,
+                    },
+                    new Box
+                    {
+                        Colour = Color4.White,
+                        RelativeSizeAxes = Axes.X,
+                        Height = 2,
+                        Origin = Anchor.Centre,
+                        Anchor = Anchor.Centre,
+                    }
                 };
             }
 

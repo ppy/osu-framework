@@ -86,5 +86,7 @@ namespace osu.Framework.Graphics
         }
 
         public static implicit operator CornersInfo(float value) => new CornersInfo(value);
+
+        public override string ToString() => Vector.ToString();
     }
 }
