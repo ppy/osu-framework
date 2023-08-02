@@ -526,17 +526,18 @@ namespace osu.Framework.Tests.Visual.Containers
                     break;
 
                 case 9:
-                    TestContainer.Add(new FillFlowContainer()
+                    TestContainer.Add(new FillFlowContainer
                     {
-                        AutoSizeAxes = Axes.Both,
-                        Direction = FillDirection.Vertical,
-                        Spacing = new Vector2(20),
+                        RelativeSizeAxes = Axes.Both,
+                        Direction = FillDirection.Full,
+                        Spacing = new Vector2(40),
                         Padding = new MarginPadding(20),
                         Children = new Drawable[]
                         {
                             new NonCircularContainerWithInput(new CornersInfo(50, 50, 5, 5)),
                             new NonCircularContainerWithInput(new CornersInfo(50, 5, 50, 50)),
                             new NonCircularContainerWithInput(new CornersInfo(50, 0, 0, 0)),
+                            new NonCircularContainerWithInput(new CornersInfo(20, 0, 10, 50)),
                             // border
                             new NonCircularContainerWithInput(new CornersInfo(50, 5, 5, 50))
                             {
@@ -548,6 +549,10 @@ namespace osu.Framework.Tests.Visual.Containers
                                 BorderThickness = 5,
                                 BorderColour = Colour4.Blue,
                             },
+                            // reference
+                            new NonCircularContainerWithInput(new CornersInfo(0)),
+                            new NonCircularContainerWithInput(new CornersInfo(25)),
+                            new NonCircularContainerWithInput(new CornersInfo(50)),
                         }
                     });
                     break;
@@ -575,16 +580,23 @@ namespace osu.Framework.Tests.Visual.Containers
 
         private partial class NonCircularContainerWithInput : Container
         {
-            private Box box;
+            private readonly Box box;
 
             public NonCircularContainerWithInput(CornersInfo corners)
             {
                 Masking = true;
                 CornerRadius = corners;
                 Size = new Vector2(100, 100);
+                EdgeEffect = new EdgeEffectParameters
+                {
+                    Type = EdgeEffectType.Glow,
+                    Colour = Color4.Yellow,
+                    Radius = 10,
+                    Hollow = true,
+                };
                 Child = box = new Box
                 {
-                    Colour = Colour4.White,
+                    Colour = Colour4.Gray,
                     RelativeSizeAxes = Axes.Both,
                 };
             }
@@ -597,7 +609,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
             protected override void OnHoverLost(HoverLostEvent e)
             {
-                box.FadeColour(Colour4.White, 100);
+                box.FadeColour(Colour4.Gray, 100);
             }
         }
     }
