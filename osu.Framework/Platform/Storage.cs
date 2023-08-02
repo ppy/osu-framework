@@ -179,7 +179,15 @@ namespace osu.Framework.Platform
 
             protected override void Dispose(bool disposing)
             {
-                if (disposing && !isDisposed)
+                // Don't perform any custom logic when arriving via the finaliser.
+                // We assume that all usages of `SafeWriteStream` correctly follow a local disposal pattern.
+                if (!disposing)
+                {
+                    base.Dispose(false);
+                    return;
+                }
+
+                if (!isDisposed)
                 {
                     // this was added to work around some hardware writing zeroes to a file
                     // before writing actual content, causing corrupt files to exist on disk.
@@ -202,7 +210,7 @@ namespace osu.Framework.Platform
 
                 base.Dispose(disposing);
 
-                if (disposing && !isDisposed)
+                if (!isDisposed)
                 {
                     storage.Delete(finalPath);
                     storage.Move(temporaryPath, finalPath);
