@@ -18,9 +18,10 @@ namespace osu.Framework.Graphics.Rendering
         public UniformMatrix4 ProjMatrix;
         public UniformMatrix3 ToMaskingSpace;
         public UniformBool IsMasking;
-        public UniformFloat CornerRadius;
+        private readonly UniformPadding12 pad1;
+        public UniformVector4 CornerRadius;
         public UniformFloat CornerExponent;
-        private readonly UniformPadding4 pad2;
+        private readonly UniformPadding12 pad2;
 
         public UniformVector4 MaskingRect;
         public UniformFloat BorderThickness;
@@ -31,8 +32,10 @@ namespace osu.Framework.Graphics.Rendering
         public UniformFloat AlphaExponent;
         public UniformVector2 EdgeOffset;
         public UniformBool DiscardInner;
-        public UniformFloat InnerCornerRadius;
+        private readonly UniformPadding12 pad4;
+        public UniformVector4 InnerCornerRadius;
         public UniformInt WrapModeS;
         public UniformInt WrapModeT;
+        private readonly UniformPadding8 pad5;
     }
 }

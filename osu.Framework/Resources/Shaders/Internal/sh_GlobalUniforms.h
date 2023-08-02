@@ -22,7 +22,7 @@ layout(std140, set = -1, binding = 0) uniform g_GlobalUniforms
     mat3 g_ToMaskingSpace;
 
     bool g_IsMasking;
-    highp float g_CornerRadius;
+    highp vec4 g_CornerRadius;
     highp float g_CornerExponent;
     highp vec4 g_MaskingRect;
     highp float g_BorderThickness;
@@ -31,7 +31,7 @@ layout(std140, set = -1, binding = 0) uniform g_GlobalUniforms
     lowp float g_AlphaExponent;
     highp vec2 g_EdgeOffset;
     bool g_DiscardInner;
-    highp float g_InnerCornerRadius;
+    highp vec4 g_InnerCornerRadius;
 
     // 0 -> None
     // 1 -> ClampToEdge

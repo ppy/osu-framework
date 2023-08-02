@@ -112,7 +112,9 @@ namespace osu.Framework.Physics
             Vertices.Clear();
             Normals.Clear();
 
-            float cornerRadius = CornerRadius;
+            var radius = CornerRadius;
+
+            float[] radiuses = { radius.TopLeft, radius.TopRight, radius.BottomRight, radius.BottomLeft };
 
             // Sides
             RectangleF rect = DrawRectangle;
@@ -127,28 +129,28 @@ namespace osu.Framework.Physics
                 float length = diff.Length;
                 Vector2 dir = diff / length;
 
-                float usableLength = Math.Max(length - 2 * cornerRadius, 0);
+                float usableLength = Math.Max(length - 2 * radiuses[i], 0);
 
                 Vector2 normal = (b - a).PerpendicularRight.Normalized();
 
                 for (int j = 0; j < amount_side_steps; ++j)
                 {
-                    Vertices.Add(a + dir * (cornerRadius + j * usableLength / (amount_side_steps - 1)));
+                    Vertices.Add(a + dir * (radiuses[i] + j * usableLength / (amount_side_steps - 1)));
                     Normals.Add(normal);
                 }
             }
 
             const int amount_corner_steps = 10;
 
-            if (cornerRadius > 0)
+            if (radius.Max() > 0)
             {
                 // Rounded corners
                 Vector2[] offsets =
                 {
-                    new Vector2(cornerRadius, cornerRadius),
-                    new Vector2(-cornerRadius, cornerRadius),
-                    new Vector2(-cornerRadius, -cornerRadius),
-                    new Vector2(cornerRadius, -cornerRadius),
+                    new Vector2(radiuses[0], radiuses[0]),
+                    new Vector2(-radiuses[1], radiuses[1]),
+                    new Vector2(-radiuses[2], -radiuses[2]),
+                    new Vector2(radiuses[3], -radiuses[3]),
                 };
 
                 for (int i = 0; i < 4; ++i)
@@ -162,7 +164,7 @@ namespace osu.Framework.Physics
                         float theta = startTheta + j * MathF.PI / (2 * (amount_corner_steps - 1));
 
                         Vector2 normal = new Vector2(MathF.Sin(theta), MathF.Cos(theta));
-                        Vertices.Add(a + offsets[i] + normal * cornerRadius);
+                        Vertices.Add(a + offsets[i] + normal * radiuses[i]);
                         Normals.Add(normal);
                     }
                 }

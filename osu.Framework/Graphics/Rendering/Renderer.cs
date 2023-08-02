@@ -643,7 +643,7 @@ namespace osu.Framework.Graphics.Rendering
                     maskingInfo.MaskingRect.Right,
                     maskingInfo.MaskingRect.Bottom),
                 ToMaskingSpace = maskingInfo.ToMaskingSpace,
-                CornerRadius = maskingInfo.CornerRadius,
+                CornerRadius = maskingInfo.CornerRadius.Vector,
                 CornerExponent = maskingInfo.CornerExponent,
                 BorderThickness = maskingInfo.BorderThickness / maskingInfo.BlendRange,
                 BorderColour = maskingInfo.BorderThickness > 0
@@ -674,7 +674,7 @@ namespace osu.Framework.Graphics.Rendering
                 EdgeOffset = maskingInfo.EdgeOffset,
                 DiscardInner = maskingInfo.Hollow,
                 InnerCornerRadius = maskingInfo.Hollow
-                    ? maskingInfo.HollowCornerRadius
+                    ? maskingInfo.HollowCornerRadius.Vector
                     : GlobalUniformBuffer.Data.InnerCornerRadius
             };
 

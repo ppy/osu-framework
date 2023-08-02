@@ -36,7 +36,8 @@ namespace osu.Framework.Tests.Visual.Containers
                 @"Nested masking",
                 @"Rounded corner input",
                 @"Offset shadow",
-                @"Negative size"
+                @"Negative size",
+                @"Variable corners"
             };
 
             for (int i = 0; i < testNames.Length; i++)
@@ -523,6 +524,33 @@ namespace osu.Framework.Tests.Visual.Containers
                          .ResizeTo(new Vector2(200, 200), 1000).Loop();
                     }));
                     break;
+
+                case 9:
+                    TestContainer.Add(new FillFlowContainer()
+                    {
+                        AutoSizeAxes = Axes.Both,
+                        Direction = FillDirection.Vertical,
+                        Spacing = new Vector2(20),
+                        Padding = new MarginPadding(20),
+                        Children = new Drawable[]
+                        {
+                            new NonCircularContainerWithInput(new CornersInfo(50, 50, 5, 5)),
+                            new NonCircularContainerWithInput(new CornersInfo(50, 5, 50, 50)),
+                            new NonCircularContainerWithInput(new CornersInfo(50, 0, 0, 0)),
+                            // border
+                            new NonCircularContainerWithInput(new CornersInfo(50, 5, 5, 50))
+                            {
+                                BorderThickness = 5,
+                                BorderColour = Colour4.Blue,
+                            },
+                            new NonCircularContainerWithInput(new CornersInfo(0, 50, 50, 0))
+                            {
+                                BorderThickness = 5,
+                                BorderColour = Colour4.Blue,
+                            },
+                        }
+                    });
+                    break;
             }
 
 #if DEBUG
@@ -542,6 +570,34 @@ namespace osu.Framework.Tests.Visual.Containers
             protected override void OnHoverLost(HoverLostEvent e)
             {
                 this.ScaleTo(1f, 100);
+            }
+        }
+
+        private partial class NonCircularContainerWithInput : Container
+        {
+            private Box box;
+
+            public NonCircularContainerWithInput(CornersInfo corners)
+            {
+                Masking = true;
+                CornerRadius = corners;
+                Size = new Vector2(100, 100);
+                Child = box = new Box
+                {
+                    Colour = Colour4.White,
+                    RelativeSizeAxes = Axes.Both,
+                };
+            }
+
+            protected override bool OnHover(HoverEvent e)
+            {
+                box.FadeColour(Colour4.Red, 100);
+                return true;
+            }
+
+            protected override void OnHoverLost(HoverLostEvent e)
+            {
+                box.FadeColour(Colour4.White, 100);
             }
         }
     }
