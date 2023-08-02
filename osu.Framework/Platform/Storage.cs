@@ -208,7 +208,7 @@ namespace osu.Framework.Platform
                     }
                 }
 
-                base.Dispose(disposing);
+                base.Dispose(true);
 
                 if (!isDisposed)
                 {
