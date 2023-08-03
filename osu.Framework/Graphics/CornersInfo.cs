@@ -11,32 +11,70 @@ namespace osu.Framework.Graphics
     /// </summary>
     public readonly struct CornersInfo : IEquatable<CornersInfo>
     {
+        /// <summary>
+        /// Data about four corners, stored as vector.
+        /// </summary>
         public readonly Vector4 Vector;
 
+        /// <summary>
+        /// Radius of top-left corner.
+        /// </summary>
         public float TopLeft => Vector.X;
+
+        /// <summary>
+        /// Radius of bottom-left corner.
+        /// </summary>
         public float BottomLeft => Vector.Y;
+
+        /// <summary>
+        /// Radius of top-right corner.
+        /// </summary>
         public float TopRight => Vector.Z;
+
+        /// <summary>
+        /// Radius of bottom-right corner.
+        /// </summary>
         public float BottomRight => Vector.W;
 
+        /// <summary>
+        /// Initializes all four corners from <see cref="Vector4"/>.
+        /// </summary>
+        /// <param name="vector">Vector to copy from.</param>
         public CornersInfo(Vector4 vector)
         {
             Vector = vector;
         }
 
+        /// <summary>
+        /// Initializes all four corners to the given value.
+        /// </summary>
+        /// <param name="value">Radius of each corner.</param>
         public CornersInfo(float value)
         {
             Vector = new Vector4(value);
         }
 
+        /// <summary>
+        /// Initializes all four corners with values for each corner.
+        /// </summary>
+        /// <param name="topLeft">Radius of top-left corner.</param>
+        /// <param name="bottomLeft">Radius of bottom-left corner.</param>
+        /// <param name="topRight">Radius of top-right corner.</param>
+        /// <param name="bottomRight">Radius of bottom-right corner.</param>
         public CornersInfo(float topLeft, float bottomLeft, float topRight, float bottomRight)
         {
             Vector = new Vector4(topLeft, bottomLeft, topRight, bottomRight);
         }
 
-        public float Max()
-        {
-            return Math.Max(Math.Max(Vector.X, Vector.Y), Math.Max(Vector.Z, Vector.W));
-        }
+        /// <summary>
+        /// Gets the biggest radius among all corners.
+        /// </summary>
+        public float Max => Math.Max(Math.Max(Vector.X, Vector.Y), Math.Max(Vector.Z, Vector.W));
+
+        /// <summary>
+        /// Gets the least radius among all corners.
+        /// </summary>
+        public float Min => Math.Min(Math.Min(Vector.X, Vector.Y), Math.Min(Vector.Z, Vector.W));
 
         public float this[int index] => Vector[index];
 

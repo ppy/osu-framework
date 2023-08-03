@@ -142,7 +142,7 @@ namespace osu.Framework.Physics
 
             const int amount_corner_steps = 10;
 
-            if (radius.Max() > 0)
+            if (radius.Max > 0)
             {
                 // Rounded corners
                 Vector2[] offsets =

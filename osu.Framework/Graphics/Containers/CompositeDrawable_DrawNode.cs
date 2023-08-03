@@ -82,7 +82,7 @@ namespace osu.Framework.Graphics.Containers
                 float blendRange = Source.MaskingSmoothness * (scale.X + scale.Y) / 2;
 
                 // Calculate a shrunk rectangle which is free from corner radius/smoothing/border effects
-                float maxCornerRadius = Source.CornerRadius.Max();
+                float maxCornerRadius = Source.CornerRadius.Max;
                 float shrinkage = maxCornerRadius - maxCornerRadius * cos_45 + blendRange + Source.borderThickness;
 
                 // Normalise to handle negative sizes, and clamp the shrinkage to prevent size from going negative.

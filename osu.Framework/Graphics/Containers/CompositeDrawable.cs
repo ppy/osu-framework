@@ -1393,7 +1393,7 @@ namespace osu.Framework.Graphics.Containers
             float cExponent = CornerExponent;
 
             // Select a cheaper contains method when we don't need rounded edges.
-            if (cRadius.Max() == 0.0f)
+            if (cRadius.Max == 0.0f)
                 return base.Contains(screenSpacePos);
 
             var localSpacePos = ToLocalSpace(screenSpacePos);
@@ -1624,7 +1624,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                float cRadius = CornerRadius.Max(); //TODO variable radius
+                float cRadius = CornerRadius.Min; //TODO variable radius
                 if (cRadius == 0.0f)
                     return base.BoundingBox;
 
