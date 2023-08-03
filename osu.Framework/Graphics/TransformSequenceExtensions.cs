@@ -253,6 +253,14 @@ namespace osu.Framework.Graphics
             where T : class, ITransformable
             => t.TransformBindableTo(bindable, newValue, duration, new DefaultEasingFunction(easing));
 
+        public static TransformSequence<T> RoundCornersTo<T>(this TransformSequence<T> t, CornersInfo newValue, double duration, Easing easing = Easing.None)
+            where T : CompositeDrawable
+            => t.RoundCornersTo(newValue, duration, new DefaultEasingFunction(easing));
+
+        public static TransformSequence<T> RoundCornersTo<T>(this TransformSequence<T> t, float newValue, double duration, Easing easing = Easing.None)
+            where T : CompositeDrawable
+            => t.RoundCornersTo(newValue, duration, new DefaultEasingFunction(easing));
+
         #endregion
 
         #region Generic Easing
@@ -490,6 +498,24 @@ namespace osu.Framework.Graphics
             where T : class, ITransformable
             where TEasing : IEasingFunction
             => t.Append(o => o.TransformBindableTo(bindable, newValue, duration, easing));
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="CompositeDrawable.CornerRadius"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<T> RoundCornersTo<T, TEasing>(this TransformSequence<T> t, CornersInfo destination, double duration, TEasing easing)
+            where T : CompositeDrawable
+            where TEasing : IEasingFunction
+            => t.Append(o => o.RoundCornersTo(destination, duration, easing));
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="CompositeDrawable.CornerRadius"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<T> RoundCornersTo<T, TEasing>(this TransformSequence<T> t, float destination, double duration, TEasing easing)
+            where T : CompositeDrawable
+            where TEasing : IEasingFunction
+            => t.Append(o => o.RoundCornersTo(destination, duration, easing));
 
         #endregion
     }
