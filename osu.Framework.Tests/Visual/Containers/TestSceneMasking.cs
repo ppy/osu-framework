@@ -526,6 +526,8 @@ namespace osu.Framework.Tests.Visual.Containers
                     break;
 
                 case 9:
+                {
+                    var animated = new NonCircularContainerWithInput(new CornersInfo(0));
                     TestContainer.Add(new FillFlowContainer
                     {
                         RelativeSizeAxes = Axes.Both,
@@ -553,9 +555,13 @@ namespace osu.Framework.Tests.Visual.Containers
                             new NonCircularContainerWithInput(new CornersInfo(0)),
                             new NonCircularContainerWithInput(new CornersInfo(25)),
                             new NonCircularContainerWithInput(new CornersInfo(50)),
+                            // transform
+                            animated
                         }
                     });
+                    animated.RoundCornersTo(25, 1000).Then().RoundCornersTo(new CornersInfo(50, 0, 50, 50), 1000).Then().RoundCornersTo(0, 1000).Loop();
                     break;
+                }
             }
 
 #if DEBUG
