@@ -20,7 +20,7 @@ namespace osu.Framework.Tests.Audio
         [SetUp]
         public void Setup()
         {
-            sample = new SampleVirtual();
+            sample = new SampleVirtual("virtual");
             updateSample();
         }
 
@@ -76,7 +76,7 @@ namespace osu.Framework.Tests.Audio
                 resetEvent.Set();
             })
             {
-                Name = GameThread.PrefixedThreadNameFor("Audio")
+                Name = GameThread.SuffixedThreadNameFor("Audio")
             }.Start();
 
             if (!resetEvent.WaitOne(TimeSpan.FromSeconds(10)))

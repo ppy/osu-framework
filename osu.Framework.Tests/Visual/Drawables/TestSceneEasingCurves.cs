@@ -17,7 +17,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneEasingCurves : TestScene
+    public partial class TestSceneEasingCurves : TestScene
     {
         private const float default_size = 200;
 
@@ -51,7 +51,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
         }
 
-        private class Visualiser : Container
+        private partial class Visualiser : Container
         {
             private const float movement_duration = 1000f;
             private const float pause_duration = 200f;

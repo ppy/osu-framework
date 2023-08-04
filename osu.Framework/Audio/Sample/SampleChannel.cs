@@ -13,6 +13,13 @@ namespace osu.Framework.Audio.Sample
     {
         internal Action<SampleChannel>? OnPlay;
 
+        public string Name { get; }
+
+        protected SampleChannel(string name)
+        {
+            Name = name;
+        }
+
         public virtual void Play()
         {
             if (IsDisposed)

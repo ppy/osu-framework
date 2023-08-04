@@ -26,37 +26,61 @@ namespace osu.Framework.Allocation
     internal class DependencyActivator
     {
         private static readonly ConcurrentDictionary<Type, DependencyActivator> activator_cache = new ConcurrentDictionary<Type, DependencyActivator>();
+        private static readonly DependencyActivatorProxy activator_proxy = new DependencyActivatorProxy();
 
         private readonly List<InjectDependencyDelegate> injectionActivators = new List<InjectDependencyDelegate>();
         private readonly List<CacheDependencyDelegate> buildCacheActivators = new List<CacheDependencyDelegate>();
 
-        private readonly DependencyActivator baseActivator;
-
         static DependencyActivator()
         {
             // Attributes could have been added or removed when using hot-reload.
-            HotReloadCallbackReceiver.CompilationFinished += _ => activator_cache.Clear();
+            HotReloadCallbackReceiver.CompilationFinished += _ => ClearCache();
         }
 
+        // Source generator pathway.
+        private DependencyActivator(Type type, InjectDependencyDelegate injectDel, CacheDependencyDelegate cacheDel)
+        {
+            injectionActivators.Add(injectDel);
+            buildCacheActivators.Add(cacheDel);
+            activator_cache[type] = this;
+        }
+
+        // Reflection pathway.
         private DependencyActivator(Type type)
         {
             injectionActivators.Add(ResolvedAttribute.CreateActivator(type));
             injectionActivators.Add(BackgroundDependencyLoaderAttribute.CreateActivator(type));
             buildCacheActivators.Add(CachedAttribute.CreateActivator(type));
-
-            if (type.BaseType != typeof(object))
-                baseActivator = getActivator(type.BaseType);
-
             activator_cache[type] = this;
         }
+
+        /// <summary>
+        /// Clears the dependency activator function cache.
+        /// </summary>
+        public static void ClearCache() => activator_cache.Clear();
 
         /// <summary>
         /// Injects dependencies from a <see cref="DependencyContainer"/> into an object.
         /// </summary>
         /// <param name="obj">The object to inject the dependencies into.</param>
         /// <param name="dependencies">The dependencies to use for injection.</param>
-        public static void Activate(object obj, IReadOnlyDependencyContainer dependencies)
-            => getActivator(obj.GetType()).activate(obj, dependencies);
+        public static void Activate<T>(T obj, IReadOnlyDependencyContainer dependencies)
+            where T : IDependencyInjectionCandidate
+        {
+            initialiseSourceGeneratedActivators(obj);
+            activateRecursively(obj, dependencies, obj.GetType());
+
+            static void activateRecursively(object obj, IReadOnlyDependencyContainer dependencies, Type currentType)
+            {
+                if (currentType == typeof(object))
+                    return;
+
+                activateRecursively(obj, dependencies, currentType.BaseType);
+
+                foreach (var a in getActivator(currentType).injectionActivators)
+                    a(obj, dependencies);
+            }
+        }
 
         /// <summary>
         /// Merges existing dependencies with new dependencies from an object into a new <see cref="IReadOnlyDependencyContainer"/>.
@@ -65,8 +89,38 @@ namespace osu.Framework.Allocation
         /// <param name="dependencies">The existing dependencies.</param>
         /// <param name="info">Extra information to identify parameters of <paramref name="obj"/> in the cache with.</param>
         /// <returns>A new <see cref="IReadOnlyDependencyContainer"/> if <paramref name="obj"/> provides any dependencies, otherwise <paramref name="dependencies"/>.</returns>
-        public static IReadOnlyDependencyContainer MergeDependencies(object obj, IReadOnlyDependencyContainer dependencies, CacheInfo info = default)
-            => getActivator(obj.GetType()).mergeDependencies(obj, dependencies, info);
+        public static IReadOnlyDependencyContainer MergeDependencies<T>(T obj, IReadOnlyDependencyContainer dependencies, CacheInfo info = default)
+            where T : IDependencyInjectionCandidate
+        {
+            initialiseSourceGeneratedActivators(obj);
+            return mergeRecursively(obj, dependencies, info, obj.GetType());
+
+            static IReadOnlyDependencyContainer mergeRecursively(object obj, IReadOnlyDependencyContainer dependencies, CacheInfo info, Type currentType)
+            {
+                if (currentType == typeof(object))
+                    return dependencies;
+
+                dependencies = mergeRecursively(obj, dependencies, info, currentType.BaseType);
+
+                foreach (var a in getActivator(currentType).buildCacheActivators)
+                    dependencies = a(obj, dependencies, info);
+
+                return dependencies;
+            }
+        }
+
+        /// <summary>
+        /// Initialises a potential <see cref="ISourceGeneratedDependencyActivator"/> object.
+        /// </summary>
+        /// <param name="obj">The object to initialise.</param>
+        private static void initialiseSourceGeneratedActivators(object obj)
+        {
+            if (obj is not ISourceGeneratedDependencyActivator sgActivator)
+                return;
+
+            if (!activator_cache.ContainsKey(obj.GetType()))
+                sgActivator.RegisterForDependencyActivation(activator_proxy);
+        }
 
         private static DependencyActivator getActivator(Type type)
         {
@@ -76,21 +130,21 @@ namespace osu.Framework.Allocation
             return existing;
         }
 
-        private void activate(object obj, IReadOnlyDependencyContainer dependencies)
+        /// <summary>
+        /// A proxy class used to register activation functions for objects implementing <see cref="ISourceGeneratedDependencyActivator"/>.
+        /// </summary>
+        private class DependencyActivatorProxy : IDependencyActivatorRegistry
         {
-            baseActivator?.activate(obj, dependencies);
+            public bool IsRegistered(Type type) => activator_cache.ContainsKey(type);
 
-            foreach (var a in injectionActivators)
-                a(obj, dependencies);
-        }
-
-        private IReadOnlyDependencyContainer mergeDependencies(object obj, IReadOnlyDependencyContainer dependencies, CacheInfo info)
-        {
-            dependencies = baseActivator?.mergeDependencies(obj, dependencies, info) ?? dependencies;
-            foreach (var a in buildCacheActivators)
-                dependencies = a(obj, dependencies, info);
-
-            return dependencies;
+            public void Register(Type type, InjectDependencyDelegate injectDel, CacheDependencyDelegate cacheDel)
+            {
+                // The DependencyActivator constructor stores itself to a static dictionary.
+                var _ = new DependencyActivator(
+                    type,
+                    injectDel ?? ((_, _) => { }),
+                    cacheDel ?? ((_, d, _) => d));
+            }
         }
     }
 
@@ -164,7 +218,7 @@ namespace osu.Framework.Allocation
         }
     }
 
-    internal delegate void InjectDependencyDelegate(object target, IReadOnlyDependencyContainer dependencies);
+    public delegate void InjectDependencyDelegate(object target, IReadOnlyDependencyContainer dependencies);
 
-    internal delegate IReadOnlyDependencyContainer CacheDependencyDelegate(object target, IReadOnlyDependencyContainer existingDependencies, CacheInfo info);
+    public delegate IReadOnlyDependencyContainer CacheDependencyDelegate(object target, IReadOnlyDependencyContainer existingDependencies, CacheInfo info);
 }

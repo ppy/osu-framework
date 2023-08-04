@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using Markdig.Syntax.Inlines;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Cursor;
@@ -19,15 +17,15 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// <code>
     /// [link text](url)
     /// </code>
-    public class MarkdownLinkText : CompositeDrawable, IHasTooltip, IMarkdownTextComponent
+    public partial class MarkdownLinkText : CompositeDrawable, IHasTooltip, IMarkdownTextComponent
     {
         public LocalisableString TooltipText => Url;
 
         [Resolved]
-        private IMarkdownTextComponent parentTextComponent { get; set; }
+        private IMarkdownTextComponent parentTextComponent { get; set; } = null!;
 
         [Resolved]
-        private GameHost host { get; set; }
+        private GameHost host { get; set; } = null!;
 
         private readonly string text;
 

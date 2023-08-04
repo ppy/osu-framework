@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.IO.Serialization;
 using osu.Framework.Lists;
@@ -180,6 +181,17 @@ namespace osu.Framework.Bindables
         }
 
         /// <summary>
+        /// Copies all values and value limitations of this bindable to another.
+        /// </summary>
+        /// <param name="them">The target to copy to.</param>
+        public virtual void CopyTo(Bindable<T> them)
+        {
+            them.Value = Value;
+            them.Default = Default;
+            them.Disabled = Disabled;
+        }
+
+        /// <summary>
         /// Binds this bindable to another such that bi-directional updates are propagated.
         /// This will adopt any values and value limitations of the bindable bound to.
         /// </summary>
@@ -187,12 +199,10 @@ namespace osu.Framework.Bindables
         /// <exception cref="InvalidOperationException">Thrown when attempting to bind to an already bound object.</exception>
         public virtual void BindTo(Bindable<T> them)
         {
-            if (Bindings?.Contains(them) == true)
-                throw new InvalidOperationException($"This bindable is already bound to the requested bindable ({them}).");
+            if (Bindings?.Contains(them.weakReference) == true)
+                throw new ArgumentException("An already bound bindable cannot be bound again.");
 
-            Value = them.Value;
-            Default = them.Default;
-            Disabled = them.Disabled;
+            them.CopyTo(this);
 
             addWeakReference(them.weakReference);
             them.addWeakReference(weakReference);
@@ -237,13 +247,24 @@ namespace osu.Framework.Bindables
         /// <param name="input">The input which is to be parsed.</param>
         public virtual void Parse(object input)
         {
-            Type underlyingType = typeof(T).GetUnderlyingNullableType() ?? typeof(T);
-
             switch (input)
             {
+                // Of note, this covers the case when the input is a string and `T` is `string`.
+                // Both `string.Empty` and `null` are valid values for this type.
                 case T t:
                     Value = t;
                     break;
+
+                case null:
+                    // Nullable value types and reference types (annotated or not) are allowed to be initialised with `null`.
+                    if (typeof(T).IsNullable() || typeof(T).IsClass)
+                    {
+                        Value = default;
+                        break;
+                    }
+
+                    // Non-nullable value types can't convert from null.
+                    throw new ArgumentNullException(nameof(input));
 
                 case IBindable:
                     if (!(input is IBindable<T> bindable))
@@ -253,8 +274,23 @@ namespace osu.Framework.Bindables
                     break;
 
                 default:
+                    if (input is string strInput && string.IsNullOrEmpty(strInput))
+                    {
+                        // Nullable value types and reference types are initialised to `null` on empty strings.
+                        if (typeof(T).IsNullable() || typeof(T).IsClass)
+                        {
+                            Value = default;
+                            break;
+                        }
+
+                        // Most likely all conversion methods will not accept empty strings, but we let this fall through so that the exception is thrown by .NET itself.
+                        // For example, DateTime.Parse() throws a more contextually relevant exception than int.Parse().
+                    }
+
+                    Type underlyingType = typeof(T).GetUnderlyingNullableType() ?? typeof(T);
+
                     if (underlyingType.IsEnum)
-                        Value = (T)Enum.Parse(underlyingType, input.ToString());
+                        Value = (T)Enum.Parse(underlyingType, input.ToString().AsNonNull());
                     else
                         Value = (T)Convert.ChangeType(input, underlyingType, CultureInfo.InvariantCulture);
 
@@ -379,16 +415,18 @@ namespace osu.Framework.Bindables
 
         public string Description { get; set; }
 
-        public override string ToString() => value?.ToString() ?? string.Empty;
+        public sealed override string ToString() => ToString(null, CultureInfo.CurrentCulture);
+
+        public virtual string ToString(string format, IFormatProvider formatProvider) => string.Format(formatProvider, $"{{0:{format}}}", Value);
 
         /// <summary>
         /// Create an unbound clone of this bindable.
         /// </summary>
         public Bindable<T> GetUnboundCopy()
         {
-            var clone = GetBoundCopy();
-            clone.UnbindAll();
-            return clone;
+            var newBindable = CreateInstance();
+            CopyTo(newBindable);
+            return newBindable;
         }
 
         IBindable IBindable.CreateInstance() => CreateInstance();

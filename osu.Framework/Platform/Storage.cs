@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
+using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.Platform
 {
@@ -119,7 +120,7 @@ namespace osu.Framework.Platform
         [Pure]
         public Stream CreateFileSafely(string path)
         {
-            string temporaryPath = Path.Combine(Path.GetDirectoryName(path), $"_{Path.GetFileName(path)}_{Guid.NewGuid()}");
+            string temporaryPath = Path.Combine(Path.GetDirectoryName(path).AsNonNull(), $"_{Path.GetFileName(path)}_{Guid.NewGuid()}");
 
             return new SafeWriteStream(temporaryPath, path, this);
         }
@@ -178,6 +179,14 @@ namespace osu.Framework.Platform
 
             protected override void Dispose(bool disposing)
             {
+                // Don't perform any custom logic when arriving via the finaliser.
+                // We assume that all usages of `SafeWriteStream` correctly follow a local disposal pattern.
+                if (!disposing)
+                {
+                    base.Dispose(false);
+                    return;
+                }
+
                 if (!isDisposed)
                 {
                     // this was added to work around some hardware writing zeroes to a file
@@ -199,7 +208,7 @@ namespace osu.Framework.Platform
                     }
                 }
 
-                base.Dispose(disposing);
+                base.Dispose(true);
 
                 if (!isDisposed)
                 {

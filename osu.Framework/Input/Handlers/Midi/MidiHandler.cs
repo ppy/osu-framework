@@ -24,6 +24,8 @@ namespace osu.Framework.Input.Handlers.Midi
         public override string Description => "MIDI";
         public override bool IsActive => inGoodState;
 
+        private const int milliseconds_between_device_refresh = 1000;
+
         private bool inGoodState = true;
 
         private ScheduledDelegate scheduledRefreshDevices;
@@ -36,6 +38,8 @@ namespace osu.Framework.Input.Handlers.Midi
         /// </summary>
         private readonly Dictionary<string, byte> runningStatus = new Dictionary<string, byte>();
 
+        private Task lastInitTask;
+
         public override bool Initialize(GameHost host)
         {
             if (!base.Initialize(host))
@@ -45,11 +49,22 @@ namespace osu.Framework.Input.Handlers.Midi
             {
                 if (e.NewValue)
                 {
-                    inGoodState = true;
-                    host.InputThread.Scheduler.Add(scheduledRefreshDevices = new ScheduledDelegate(() => refreshDevices(), 0, 500));
+                    lastInitTask = Task.Run(() =>
+                    {
+                        inGoodState = true;
+
+                        // First call to this can be expensive (macOS / coremidi) so let's run it on a separate thread.
+                        if (!refreshDevices())
+                            return;
+
+                        host.InputThread.Scheduler.Add(
+                            scheduledRefreshDevices = new ScheduledDelegate(() => refreshDevices(), milliseconds_between_device_refresh, milliseconds_between_device_refresh));
+                    });
                 }
                 else
                 {
+                    lastInitTask?.WaitSafely();
+
                     scheduledRefreshDevices?.Cancel();
 
                     lock (openedDevices)
@@ -62,7 +77,7 @@ namespace osu.Framework.Input.Handlers.Midi
                 }
             }, true);
 
-            return refreshDevices();
+            return true;
         }
 
         private bool refreshDevices()
@@ -83,7 +98,7 @@ namespace osu.Framework.Input.Handlers.Midi
                             closeDevice(device);
                             openedDevices.Remove(key);
 
-                            Logger.Log($"Disconnected MIDI device: {device.Details.Name}");
+                            Log($"Disconnected MIDI device: {device.Details.Name}");
                         }
                     }
 
@@ -96,7 +111,7 @@ namespace osu.Framework.Input.Handlers.Midi
                             newInput.MessageReceived += onMidiMessageReceived;
                             openedDevices[input.Id] = newInput;
 
-                            Logger.Log($"Connected MIDI device: {newInput.Details.Name}");
+                            Log($"Connected MIDI device: {newInput.Details.Name}");
                         }
                     }
                 }
@@ -109,7 +124,7 @@ namespace osu.Framework.Input.Handlers.Midi
                     ? "Is libasound2-dev installed?"
                     : "There may be another application already using MIDI.";
 
-                Logger.Log($"MIDI devices could not be enumerated. {message} ({e.Message})");
+                Log($"MIDI devices could not be enumerated. {message} ({e.Message})");
 
                 // stop attempting to refresh devices until next startup.
                 inGoodState = false;
@@ -124,7 +139,7 @@ namespace osu.Framework.Input.Handlers.Midi
 
             // some devices may take some time to close, so this should be fire-and-forget.
             // the internal implementations look to have their own (eventual) timeout logic.
-            Task.Factory.StartNew(() => device.CloseAsync(), TaskCreationOptions.LongRunning);
+            Task.Factory.StartNew(device.CloseAsync, TaskCreationOptions.LongRunning);
         }
 
         private void onMidiMessageReceived(object sender, MidiReceivedEventArgs e)
@@ -143,7 +158,7 @@ namespace osu.Framework.Input.Handlers.Midi
             catch (Exception exception)
             {
                 string dataString = string.Join("-", e.Data.Select(b => b.ToString("X2")));
-                Logger.Error(exception, $"An exception occurred while reading MIDI data from sender {senderId}: {dataString}");
+                Log($"An exception occurred while reading MIDI data from sender {senderId}: {dataString}", LogLevel.Error, exception);
             }
         }
 

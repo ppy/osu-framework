@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
@@ -17,7 +18,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A container which allows laying out <see cref="Drawable"/>s in a grid.
     /// </summary>
-    public class GridContainer : CompositeDrawable
+    public partial class GridContainer : CompositeDrawable
     {
         public GridContainer()
         {
@@ -74,8 +75,7 @@ namespace osu.Framework.Graphics.Containers
         {
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+                ArgumentNullException.ThrowIfNull(value);
 
                 if (rowDimensions == value)
                     return;
@@ -95,8 +95,7 @@ namespace osu.Framework.Graphics.Containers
         {
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+                ArgumentNullException.ThrowIfNull(value);
 
                 if (columnDimensions == value)
                     return;
@@ -164,6 +163,9 @@ namespace osu.Framework.Graphics.Containers
             {
                 for (int c = 0; c < cellColumns; c++)
                 {
+                    // Content should not be null since the number of rows/columns is non-zero.
+                    Debug.Assert(Content != null);
+
                     // Add cell
                     cells[r, c] = new CellContainer();
 
@@ -359,7 +361,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Represents one cell of the <see cref="GridContainer"/>.
         /// </summary>
-        private class CellContainer : Container
+        private partial class CellContainer : Container
         {
             protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
             {

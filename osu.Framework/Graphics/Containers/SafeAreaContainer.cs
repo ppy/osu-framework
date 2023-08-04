@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Containers
     /// An <see cref="Container"/> that can also apply a padding based on the safe areas of the nearest cached <see cref="SafeAreaDefiningContainer"/>.
     /// Padding will only be applied if the contents of this container would otherwise intersect the safe area margins relative to the associated target container.
     /// </summary>
-    public class SafeAreaContainer : Container
+    public partial class SafeAreaContainer : Container
     {
         private readonly BindableSafeArea safeAreaPadding = new BindableSafeArea();
 

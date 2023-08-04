@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -14,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneHandleInput : ManualInputManagerTestScene
+    public partial class TestSceneHandleInput : ManualInputManagerTestScene
     {
         public TestSceneHandleInput()
         {
@@ -54,7 +52,7 @@ namespace osu.Framework.Tests.Visual.Input
             //AddAssert($"check {nameof(handleNonPositionalInput)}", () => !handleNonPositionalInput.HasFocus);
         }
 
-        private class TestContainerNoHandling : Container
+        private partial class TestContainerNoHandling : Container
         {
             protected readonly Box Box;
             protected readonly Box DisabledOverlay;
@@ -84,7 +82,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class TestContainer : TestContainerNoHandling
+        private partial class TestContainer : TestContainerNoHandling
         {
             public override bool AcceptsFocus => Enabled;
             public override bool RequestsFocus => Enabled;
@@ -102,12 +100,12 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class TestContainerHandlePositionalInput : TestContainer
+        private partial class TestContainerHandlePositionalInput : TestContainer
         {
             public override bool HandlePositionalInput => Enabled;
         }
 
-        private class TestContainerHandleNonPositionalInput : TestContainer
+        private partial class TestContainerHandleNonPositionalInput : TestContainer
         {
             public override bool HandleNonPositionalInput => Enabled;
         }

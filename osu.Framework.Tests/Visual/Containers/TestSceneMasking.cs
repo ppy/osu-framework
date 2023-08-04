@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -15,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneMasking : FrameworkTestScene
+    public partial class TestSceneMasking : FrameworkTestScene
     {
         protected Container TestContainer;
         protected int CurrentTest;
@@ -533,7 +531,7 @@ namespace osu.Framework.Tests.Visual.Containers
 #endif
         }
 
-        private class CircularContainerWithInput : CircularContainer
+        private partial class CircularContainerWithInput : CircularContainer
         {
             protected override bool OnHover(HoverEvent e)
             {

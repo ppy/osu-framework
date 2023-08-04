@@ -33,8 +33,13 @@ namespace osu.Framework.Graphics.Transforms
         public double StartTime { get; internal set; }
         public double EndTime { get; internal set; }
 
-        public bool IsLooping { get; internal set; }
+        public bool IsLooping => LoopCount == -1 || LoopCount > 0;
         public double LoopDelay { get; internal set; }
+
+        /// <summary>
+        /// The remaining number of loops, including the current loop. If -1, then this loops indefinitely.
+        /// </summary>
+        public int LoopCount { get; internal set; }
 
         public abstract string TargetMember { get; }
 
@@ -68,8 +73,8 @@ namespace osu.Framework.Graphics.Transforms
         {
             public int Compare(Transform x, Transform y)
             {
-                if (x == null) throw new ArgumentNullException(nameof(x));
-                if (y == null) throw new ArgumentNullException(nameof(y));
+                ArgumentNullException.ThrowIfNull(x);
+                ArgumentNullException.ThrowIfNull(y);
 
                 int compare = x.StartTime.CompareTo(y.StartTime);
                 if (compare != 0) return compare;

@@ -1,14 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicMenu : Menu
+    public partial class BasicMenu : Menu
     {
         public BasicMenu(Direction direction, bool topLevelMenu = false)
             : base(direction, topLevelMenu)
@@ -25,7 +23,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override ScrollContainer<Drawable> CreateScrollContainer(Direction direction) => new BasicScrollContainer(direction);
 
-        public class BasicDrawableMenuItem : DrawableMenuItem
+        public partial class BasicDrawableMenuItem : DrawableMenuItem
         {
             public BasicDrawableMenuItem(MenuItem item)
                 : base(item)

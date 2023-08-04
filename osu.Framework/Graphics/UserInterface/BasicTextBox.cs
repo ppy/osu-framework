@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Containers;
@@ -13,7 +11,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicTextBox : TextBox
+    public partial class BasicTextBox : TextBox
     {
         protected virtual float CaretWidth => 2;
 
@@ -110,7 +108,7 @@ namespace osu.Framework.Graphics.UserInterface
             X = CaretWidth,
         };
 
-        public class FallingDownContainer : Container
+        public partial class FallingDownContainer : Container
         {
             public override void Show()
             {
@@ -125,7 +123,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public class FadingPlaceholderText : SpriteText
+        public partial class FadingPlaceholderText : SpriteText
         {
             public override void Show() => this.FadeIn(200);
 
@@ -138,7 +136,7 @@ namespace osu.Framework.Graphics.UserInterface
             SelectionColour = SelectionColour,
         };
 
-        public class BasicCaret : Caret
+        public partial class BasicCaret : Caret
         {
             public BasicCaret()
             {

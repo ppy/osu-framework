@@ -14,7 +14,7 @@ namespace osu.Framework.Audio
     /// </summary>
     public class AudioAdjustments : IAdjustableAudioComponent
     {
-        private static readonly AdjustableProperty[] all_adjustments = (AdjustableProperty[])Enum.GetValues(typeof(AdjustableProperty));
+        private static readonly AdjustableProperty[] all_adjustments = Enum.GetValues<AdjustableProperty>();
 
         /// <summary>
         /// The volume of this component.

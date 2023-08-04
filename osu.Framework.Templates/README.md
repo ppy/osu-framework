@@ -7,7 +7,7 @@ Templates to use when starting off with osu!framework. Create a fully-testable, 
 ```bash
 # install (or update) template package.
 # this only needs to be done once
-dotnet new -i ppy.osu.Framework.Templates
+dotnet new install ppy.osu.Framework.Templates
 
 ## IMPORTANT: Do not use spaces or hyphens in your project name for the following commands.
 ## This does not play nice with the templating system.

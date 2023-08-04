@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -16,7 +14,7 @@ using osuTK.Graphics;
 namespace osu.Framework.Tests.Visual.Sprites
 {
     [System.ComponentModel.Description("word-wrap and paragraphs")]
-    public class TestSceneTextFlow : FrameworkTestScene
+    public partial class TestSceneTextFlow : FrameworkTestScene
     {
         public TestSceneTextFlow()
         {
@@ -186,12 +184,12 @@ osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source c
             AddToggleStep(@"Non-zero line spacing", state => textFlowContainer.LineSpacing = state ? 1 : 0);
         }
 
-        private class LineBaseBox : Box, IHasLineBaseHeight
+        private partial class LineBaseBox : Box, IHasLineBaseHeight
         {
             public float LineBaseHeight { get; set; }
         }
 
-        private class CustomText : CustomizableTextContainer
+        private partial class CustomText : CustomizableTextContainer
         {
             public CustomText()
             {

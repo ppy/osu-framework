@@ -19,7 +19,7 @@ namespace osu.Framework.Tests.Visual.Platform
 {
     [System.ComponentModel.Description("For complete validation, run this with different window modes and resolutions at startup.")]
     [Ignore("This test cannot run in headless mode (a window instance is required).")]
-    public class TestSceneDisplayMode : FrameworkTestScene
+    public partial class TestSceneDisplayMode : FrameworkTestScene
     {
         [Resolved]
         private FrameworkConfigManager config { get; set; }

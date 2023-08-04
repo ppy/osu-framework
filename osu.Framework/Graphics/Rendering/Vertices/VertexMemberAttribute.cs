@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osuTK.Graphics.ES30;
 
@@ -21,6 +19,7 @@ namespace osu.Framework.Graphics.Rendering.Vertices
         /// The type of each component of this vertex attribute member.
         /// E.g. a <see cref="osuTK.Vector2"/> is represented by 2 **<see cref="VertexAttribPointerType.Float"/>** components.
         /// </summary>
+        // todo: this should be replaced by an enum defined in o!f.
         public VertexAttribPointerType Type { get; private set; }
 
         /// <summary>

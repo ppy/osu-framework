@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osuTK;
 using osu.Framework.Graphics;
 using System.Collections.Generic;
@@ -13,14 +11,14 @@ namespace osu.Framework.Physics
     /// <summary>
     /// Applies rigid body simulation to all children.
     /// </summary>
-    public class RigidBodySimulation : RigidBodySimulation<Drawable>
+    public partial class RigidBodySimulation : RigidBodySimulation<Drawable>
     {
     }
 
     /// <summary>
     /// Applies rigid body simulation to all children.
     /// </summary>
-    public class RigidBodySimulation<T> : RigidBodyContainer<RigidBodyContainer<T>>
+    public partial class RigidBodySimulation<T> : RigidBodyContainer<RigidBodyContainer<T>>
         where T : Drawable
     {
         public RigidBodySimulation()

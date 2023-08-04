@@ -25,11 +25,6 @@ namespace osu.Framework.Graphics
         internal long DrawVersion = -1;
 
         /// <summary>
-        /// The <see cref="IFrameBuffer"/> which contains the original version of the rendered <see cref="Drawable"/>.
-        /// </summary>
-        public IFrameBuffer MainBuffer { get; private set; }
-
-        /// <summary>
         /// Whether the frame buffer position should be snapped to the nearest pixel when blitting.
         /// This amounts to setting the texture filtering mode to "nearest".
         /// </summary>
@@ -47,9 +42,11 @@ namespace osu.Framework.Graphics
         /// </summary>
         private readonly IFrameBuffer[] effectBuffers;
 
-        private readonly RenderBufferFormat[] formats;
+        private readonly RenderBufferFormat[] mainBufferFormats;
+        private readonly TextureFilteringMode filterMode;
 
         private IRenderer renderer;
+        private IFrameBuffer mainBuffer;
 
         /// <summary>
         /// Creates a new <see cref="BufferedDrawNodeSharedData"/> with no effect buffers.
@@ -63,36 +60,32 @@ namespace osu.Framework.Graphics
         /// Creates a new <see cref="BufferedDrawNodeSharedData"/> with a specific amount of effect buffers.
         /// </summary>
         /// <param name="effectBufferCount">The number of effect buffers.</param>
-        /// <param name="formats">The render buffer formats to attach to each frame buffer.</param>
+        /// <param name="mainBufferFormats">The render buffer formats to attach to the main frame buffer.</param>
         /// <param name="pixelSnapping">Whether the frame buffer position should be snapped to the nearest pixel when blitting.
         /// This amounts to setting the texture filtering mode to "nearest".</param>
         /// <param name="clipToRootNode">Whether the frame buffer should be clipped to be contained in the root node..</param>
         /// <exception cref="ArgumentOutOfRangeException">If <paramref name="effectBufferCount"/> is less than 0.</exception>
-        public BufferedDrawNodeSharedData(int effectBufferCount, RenderBufferFormat[] formats = null, bool pixelSnapping = false, bool clipToRootNode = false)
+        public BufferedDrawNodeSharedData(int effectBufferCount, RenderBufferFormat[] mainBufferFormats = null, bool pixelSnapping = false, bool clipToRootNode = false)
         {
             if (effectBufferCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(effectBufferCount), "Must be positive.");
 
-            this.formats = formats;
+            this.mainBufferFormats = mainBufferFormats;
             PixelSnapping = pixelSnapping;
             ClipToRootNode = clipToRootNode;
+            filterMode = PixelSnapping ? TextureFilteringMode.Nearest : TextureFilteringMode.Linear;
 
             effectBuffers = new IFrameBuffer[effectBufferCount];
         }
 
+        /// <summary>
+        /// The <see cref="IFrameBuffer"/> which contains the original version of the rendered <see cref="Drawable"/>.
+        /// </summary>
+        public IFrameBuffer MainBuffer => mainBuffer ??= renderer.CreateFrameBuffer(mainBufferFormats, filterMode);
+
         public void Initialise(IRenderer renderer)
         {
-            if (IsInitialised)
-                return;
-
             this.renderer = renderer;
-
-            TextureFilteringMode filterMode = PixelSnapping ? TextureFilteringMode.Nearest : TextureFilteringMode.Linear;
-
-            MainBuffer = renderer.CreateFrameBuffer(formats, filterMode);
-            for (int i = 0; i < effectBuffers.Length; i++)
-                effectBuffers[i] = renderer.CreateFrameBuffer(formats, filterMode);
-
             IsInitialised = true;
         }
 
@@ -101,7 +94,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The <see cref="IFrameBuffer"/> which contains the most up-to-date drawn effect.
         /// </summary>
-        public IFrameBuffer CurrentEffectBuffer => currentEffectBuffer == -1 ? MainBuffer : effectBuffers[currentEffectBuffer];
+        public IFrameBuffer CurrentEffectBuffer => currentEffectBuffer == -1 ? MainBuffer : getEffectBufferAtIndex(currentEffectBuffer);
 
         /// <summary>
         /// Retrieves the next <see cref="IFrameBuffer"/> which effects can be rendered to.
@@ -114,8 +107,11 @@ namespace osu.Framework.Graphics
 
             if (++currentEffectBuffer >= effectBuffers.Length)
                 currentEffectBuffer = 0;
-            return effectBuffers[currentEffectBuffer];
+
+            return getEffectBufferAtIndex(currentEffectBuffer);
         }
+
+        private IFrameBuffer getEffectBufferAtIndex(int index) => effectBuffers[index] ??= renderer.CreateFrameBuffer(filteringMode: filterMode);
 
         /// <summary>
         /// Resets <see cref="CurrentEffectBuffer"/>.

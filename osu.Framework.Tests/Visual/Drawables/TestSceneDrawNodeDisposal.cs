@@ -17,7 +17,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneDrawNodeDisposal : FrameworkTestScene
+    public partial class TestSceneDrawNodeDisposal : FrameworkTestScene
     {
         /// <summary>
         /// Tests that all references are lost after a drawable is disposed.
@@ -112,7 +112,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("clear + remove parent container", () =>
             {
                 parentContainer.Clear();
-                Remove(parentContainer);
+                Remove(parentContainer, false);
 
                 // Lose last hard-reference to the child
                 child = null;
@@ -133,7 +133,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("all drawable references lost", () => !drawableRefs.Any(r => r.IsAlive));
         }
 
-        private class NonFlattenedContainer : Container
+        private partial class NonFlattenedContainer : Container
         {
             protected override bool CanBeFlattened => false;
         }

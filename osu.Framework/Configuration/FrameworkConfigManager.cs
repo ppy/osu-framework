@@ -39,6 +39,7 @@ namespace osu.Framework.Configuration
             SetDefault(FrameworkSetting.SizeFullscreen, new Size(9999, 9999), new Size(320, 240));
             SetDefault(FrameworkSetting.FrameSync, FrameSync.Limit2x);
             SetDefault(FrameworkSetting.WindowMode, WindowMode.Windowed);
+            SetDefault(FrameworkSetting.Renderer, RendererType.Automatic);
             SetDefault(FrameworkSetting.ShowUnicode, false);
             SetDefault(FrameworkSetting.Locale, string.Empty);
 
@@ -90,6 +91,7 @@ namespace osu.Framework.Configuration
 
         SizeFullscreen,
 
+        Renderer,
         WindowMode,
         ConfineMouseMode,
         FrameSync,

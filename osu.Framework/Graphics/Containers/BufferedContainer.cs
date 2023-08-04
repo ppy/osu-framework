@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.Containers
     /// If all children are of a specific non-<see cref="Drawable"/> type, use the
     /// generic version <see cref="BufferedContainer{T}"/>.
     /// </summary>
-    public class BufferedContainer : BufferedContainer<Drawable>
+    public partial class BufferedContainer : BufferedContainer<Drawable>
     {
         /// <inheritdoc />
         public BufferedContainer(RenderBufferFormat[] formats = null, bool pixelSnapping = false, bool cachedFrameBuffer = false)
@@ -236,8 +236,6 @@ namespace osu.Framework.Graphics.Containers
 
         public IShader TextureShader { get; private set; }
 
-        public IShader RoundedTextureShader { get; private set; }
-
         private IShader blurShader;
 
         private readonly BufferedContainerDrawNodeSharedData sharedData;
@@ -245,14 +243,14 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Constructs an empty buffered container.
         /// </summary>
-        /// <param name="formats">The render buffer formats attached to the frame buffers of this <see cref="BufferedContainer"/>.</param>
+        /// <param name="formats">The render buffer formats attached to the frame buffer of this <see cref="BufferedContainer"/>.</param>
         /// <param name="pixelSnapping">
         /// Whether the frame buffer position should be snapped to the nearest pixel when blitting.
         /// This amounts to setting the texture filtering mode to "nearest".
         /// </param>
         /// <param name="cachedFrameBuffer">
-        /// Whether the rendered framebuffer should be cached until <see cref="ForceRedraw"/> is called
-        /// or the size of the container (i.e. framebuffer) changes.
+        /// Whether the rendered frame buffer should be cached until <see cref="ForceRedraw"/> is called
+        /// or the size of the container (i.e. frame buffer) changes.
         /// When disabled, drawing will be clipped to the game window bounds. Enabling can allow drawing larger than (or outside) the game window bounds.
         /// </param>
         public BufferedContainer(RenderBufferFormat[] formats = null, bool pixelSnapping = false, bool cachedFrameBuffer = false)
@@ -268,7 +266,6 @@ namespace osu.Framework.Graphics.Containers
         private void load(ShaderManager shaders)
         {
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
             blurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
         }
 

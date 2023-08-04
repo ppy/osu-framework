@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -13,7 +11,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneProxyDrawables : FrameworkTestScene
+    public partial class TestSceneProxyDrawables : FrameworkTestScene
     {
         public TestSceneProxyDrawables()
         {
@@ -363,7 +361,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             };
         }
 
-        private class NonPresentContainer : Container
+        private partial class NonPresentContainer : Container
         {
             private bool isPresent = true;
             public override bool IsPresent => isPresent;
@@ -383,13 +381,13 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        private class NonAliveContainer : Container
+        private partial class NonAliveContainer : Container
         {
             protected internal override bool ShouldBeAlive => false;
             public override bool DisposeOnDeathRemoval => false;
         }
 
-        private class Visualiser : Container
+        private partial class Visualiser : Container
         {
             protected override Container<Drawable> Content => content;
             private readonly Container content;
@@ -425,7 +423,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        private class ProxyVisualiser : CompositeDrawable
+        private partial class ProxyVisualiser : CompositeDrawable
         {
             private readonly Drawable original;
             private readonly Drawable overlay;

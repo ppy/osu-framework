@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Globalization;
 using osu.Framework.Graphics;
@@ -19,10 +17,10 @@ namespace osu.Framework.Bindables
         {
         }
 
-        public override string ToString() => Value.ToString();
-
-        public override void Parse(object input)
+        public override void Parse(object? input)
         {
+            if (input == null) throw new ArgumentNullException(nameof(input));
+
             switch (input)
             {
                 case string str:

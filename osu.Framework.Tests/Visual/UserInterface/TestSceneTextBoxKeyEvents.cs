@@ -16,7 +16,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneTextBoxKeyEvents : ManualInputManagerTestScene
+    public partial class TestSceneTextBoxKeyEvents : ManualInputManagerTestScene
     {
         private KeyEventQueuesTextBox textBox;
 
@@ -263,7 +263,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
         }
 
-        private class KeyEventQueuesTextBox : TestSceneTextBoxEvents.EventQueuesTextBox
+        private partial class KeyEventQueuesTextBox : TestSceneTextBoxEvents.EventQueuesTextBox
         {
             public readonly Queue<bool> KeyDownQueue = new Queue<bool>();
             public readonly Queue<bool> KeyDownRepeatQueue = new Queue<bool>();

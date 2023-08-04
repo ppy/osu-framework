@@ -1,10 +1,8 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System.Collections.Generic;
-using JetBrains.Annotations;
+using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -12,7 +10,7 @@ using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Testing
 {
-    internal class DrawFrameRecordingContainer : Container
+    internal partial class DrawFrameRecordingContainer : Container
     {
         private readonly Bindable<RecordState> recordState = new Bindable<RecordState>();
         private readonly BindableInt currentFrame = new BindableInt();
@@ -31,8 +29,8 @@ namespace osu.Framework.Testing
             };
         }
 
-        [BackgroundDependencyLoader(true)]
-        private void load([CanBeNull] TestBrowser browser)
+        [BackgroundDependencyLoader]
+        private void load(TestBrowser? browser)
         {
             if (browser != null)
             {
@@ -80,6 +78,8 @@ namespace osu.Framework.Testing
             if (!(drawNode is ICompositeDrawNode composite))
                 return;
 
+            Debug.Assert(composite.Children != null);
+
             foreach (var child in composite.Children)
                 referenceRecursively(child);
         }
@@ -91,12 +91,14 @@ namespace osu.Framework.Testing
             if (!(drawNode is ICompositeDrawNode composite))
                 return;
 
+            Debug.Assert(composite.Children != null);
+
             foreach (var child in composite.Children)
                 disposeRecursively(child);
         }
 
         // An empty drawable which captures DrawVisualiser input in this container
-        private class InputCapturingDrawable : Drawable
+        private partial class InputCapturingDrawable : Drawable
         {
             // Required for the DrawVisualiser to not treat this Drawable as an overlay input receptor
             // ReSharper disable once RedundantOverriddenMember

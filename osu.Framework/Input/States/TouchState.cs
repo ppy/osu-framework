@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -15,7 +13,7 @@ namespace osu.Framework.Input.States
         /// <summary>
         /// The maximum amount of touches this can handle.
         /// </summary>
-        public static readonly int MAX_TOUCH_COUNT = Enum.GetValues(typeof(TouchSource)).Length;
+        public static readonly int MAX_TOUCH_COUNT = Enum.GetValues<TouchSource>().Length;
 
         /// <summary>
         /// The list of currently active touch sources.

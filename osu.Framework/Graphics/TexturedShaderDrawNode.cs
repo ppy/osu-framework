@@ -10,8 +10,7 @@ namespace osu.Framework.Graphics
 {
     public abstract class TexturedShaderDrawNode : DrawNode
     {
-        protected IShader TextureShader { get; private set; }
-        protected IShader RoundedTextureShader { get; private set; }
+        private IShader textureShader;
 
         protected new ITexturedShaderDrawable Source => (ITexturedShaderDrawable)base.Source;
 
@@ -24,21 +23,29 @@ namespace osu.Framework.Graphics
         {
             base.ApplyState();
 
-            TextureShader = Source.TextureShader;
-            RoundedTextureShader = Source.RoundedTextureShader;
+            textureShader = Source.TextureShader;
         }
 
         /// <summary>
-        /// Gets the appropriate <see cref="IShader"/> to use for the current masking state.
-        /// This will return <see cref="RoundedTextureShader"/> if masking is active, otherwise <see cref="TextureShader"/>.
+        /// Binds the <see cref="IShader"/> used for rendering the texture.
         /// </summary>
-        /// <param name="renderer">The renderer that will be drawn with.</param>
-        protected IShader GetAppropriateShader(IRenderer renderer) => RequiresRoundedShader(renderer) ? RoundedTextureShader : TextureShader;
+        /// <param name="renderer">The renderer to use for setting up uniform resources.</param>
+        protected void BindTextureShader(IRenderer renderer)
+        {
+            textureShader.Bind();
+
+            BindUniformResources(textureShader, renderer);
+        }
+
+        protected void UnbindTextureShader(IRenderer renderer) => textureShader.Unbind();
 
         /// <summary>
-        /// Whether rounded texture is required for the current draw state (masking, etc).
+        /// Binds uniform resources against the provided shader.
         /// </summary>
-        /// <param name="renderer">The renderer that will be drawn with.</param>
-        protected virtual bool RequiresRoundedShader(IRenderer renderer) => renderer.IsMaskingActive;
+        /// <param name="shader">The shader to bind uniform resources against.</param>
+        /// <param name="renderer">The renderer to use for setting up uniform resources.</param>
+        protected virtual void BindUniformResources(IShader shader, IRenderer renderer)
+        {
+        }
     }
 }

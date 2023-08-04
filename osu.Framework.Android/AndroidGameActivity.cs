@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -41,11 +42,13 @@ namespace osu.Framework.Android
         /// </summary>
         public SystemUiFlags UIVisibilityFlags
         {
+#pragma warning disable 618 // SystemUiVisibility is deprecated
             get => (SystemUiFlags)Window.AsNonNull().DecorView.SystemUiVisibility;
             set
             {
                 systemUiFlags = value;
                 Window.AsNonNull().DecorView.SystemUiVisibility = (StatusBarVisibility)value;
+#pragma warning restore 618
             }
         }
 
@@ -82,7 +85,7 @@ namespace osu.Framework.Android
                 }
             };
 
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.P)
+            if (OperatingSystem.IsAndroidVersionAtLeast(28))
             {
                 Window.AsNonNull().Attributes.AsNonNull().LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.ShortEdges;
             }

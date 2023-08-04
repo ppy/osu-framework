@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using System;
 using osu.Framework.Extensions;
@@ -19,13 +17,17 @@ namespace osu.Framework.Graphics.UserInterface
     /// It typically is activated by another control and includes an arrow pointing to the location from which it emerged.
     /// (loosely paraphrasing: https://developer.apple.com/design/human-interface-guidelines/ios/views/popovers/)
     /// </summary>
-    public abstract class Popover : FocusedOverlayContainer
+    public abstract partial class Popover : OverlayContainer
     {
         protected override bool BlockPositionalInput => true;
 
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Body.ReceivePositionalInputAt(screenSpacePos) || Arrow.ReceivePositionalInputAt(screenSpacePos);
 
         public override bool HandleNonPositionalInput => State.Value == Visibility.Visible;
+
+        public override bool RequestsFocus => State.Value == Visibility.Visible;
+
+        public override bool AcceptsFocus => State.Value == Visibility.Visible;
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
@@ -150,7 +152,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected internal sealed override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(Content)} instead.");
+        protected sealed override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(Content)} instead.");
 
         #region Sizing delegation
 

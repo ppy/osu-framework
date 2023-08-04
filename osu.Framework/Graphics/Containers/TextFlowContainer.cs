@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A drawable text object that supports more advanced text formatting.
     /// </summary>
-    public class TextFlowContainer : FillFlowContainer
+    public partial class TextFlowContainer : FillFlowContainer
     {
         private float firstLineIndent;
         private readonly Action<SpriteText> defaultCreationParameters;
@@ -277,7 +277,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected internal virtual SpriteText CreateSpriteText() => new SpriteText();
 
-        internal void ApplyDefaultCreationParamters(SpriteText spriteText) => defaultCreationParameters?.Invoke(spriteText);
+        internal void ApplyDefaultCreationParameters(SpriteText spriteText) => defaultCreationParameters?.Invoke(spriteText);
 
         public override void Add(Drawable drawable)
         {
@@ -322,7 +322,7 @@ namespace osu.Framework.Graphics.Containers
             // manual parts need to be manually removed before clearing contents,
             // to avoid accidentally disposing of them in the process.
             foreach (var manualPart in parts.OfType<TextPartManual>())
-                RemoveRange(manualPart.Drawables);
+                RemoveRange(manualPart.Drawables, false);
 
             // make sure not to clear the list of parts by accident.
             base.Clear(true);
@@ -443,7 +443,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool ForceNewRow(Drawable child) => child is NewLineContainer;
 
-        public class NewLineContainer : Container
+        public partial class NewLineContainer : Container
         {
             public readonly bool IndicatesNewParagraph;
 

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Drawing;
@@ -19,7 +17,7 @@ using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Input
 {
-    public class UserInputManager : PassThroughInputManager
+    public partial class UserInputManager : PassThroughInputManager
     {
         protected override ImmutableArray<InputHandler> InputHandlers => Host.AvailableInputHandlers;
 
@@ -90,7 +88,7 @@ namespace osu.Framework.Input
             switch (Host.Window.WindowMode.Value)
             {
                 case WindowMode.Windowed:
-                    windowLocation = Host.Window is SDL2DesktopWindow sdlWindow ? sdlWindow.Position : Point.Empty;
+                    windowLocation = Host.Window is SDL2Window sdlWindow ? sdlWindow.Position : Point.Empty;
                     break;
 
                 default:

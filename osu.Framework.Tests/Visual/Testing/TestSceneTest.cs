@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using System.Linq;
 using NUnit.Framework;
@@ -11,7 +9,7 @@ using osu.Framework.Testing.Drawables.Steps;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneTest : FrameworkTestScene
+    public partial class TestSceneTest : FrameworkTestScene
     {
         private int setupRun;
         private int setupStepsRun;
@@ -108,7 +106,7 @@ namespace osu.Framework.Tests.Visual.Testing
 
         protected override ITestSceneTestRunner CreateRunner() => new TestRunner();
 
-        private class TestRunner : TestSceneTestRunner
+        private partial class TestRunner : TestSceneTestRunner
         {
             public override void RunTestBlocking(TestScene test)
             {

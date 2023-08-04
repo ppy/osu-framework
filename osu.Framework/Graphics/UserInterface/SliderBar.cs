@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Globalization;
 using osu.Framework.Bindables;
@@ -13,7 +11,7 @@ using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class SliderBar<T> : Container, IHasCurrentValue<T>
+    public abstract partial class SliderBar<T> : Container, IHasCurrentValue<T>
         where T : struct, IComparable<T>, IConvertible, IEquatable<T>
     {
         /// <summary>
@@ -48,8 +46,7 @@ namespace osu.Framework.Graphics.UserInterface
             get => current;
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+                ArgumentNullException.ThrowIfNull(value);
 
                 current.Current = value;
 
@@ -65,7 +62,17 @@ namespace osu.Framework.Graphics.UserInterface
             current.MinValueChanged += v => currentNumberInstantaneous.MinValue = v;
             current.MaxValueChanged += v => currentNumberInstantaneous.MaxValue = v;
             current.PrecisionChanged += v => currentNumberInstantaneous.Precision = v;
-            current.DisabledChanged += v => currentNumberInstantaneous.Disabled = v;
+            current.DisabledChanged += disabled =>
+            {
+                if (disabled)
+                {
+                    // revert any changes before disabling to make sure we are in a consistent state.
+                    currentNumberInstantaneous.Value = current.Value;
+                    uncommittedChanges = false;
+                }
+
+                currentNumberInstantaneous.Disabled = disabled;
+            };
 
             currentNumberInstantaneous.ValueChanged += e =>
             {

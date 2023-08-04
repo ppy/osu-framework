@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
@@ -24,7 +25,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// A drop-down menu to select from a group of values.
     /// </summary>
     /// <typeparam name="T">Type of value to select.</typeparam>
-    public abstract class Dropdown<T> : CompositeDrawable, IHasCurrentValue<T>
+    public abstract partial class Dropdown<T> : CompositeDrawable, IHasCurrentValue<T>
     {
         protected internal DropdownHeader Header;
         protected internal DropdownMenu Menu;
@@ -63,7 +64,7 @@ namespace osu.Framework.Graphics.UserInterface
                 return;
 
             foreach (var entry in items)
-                addDropdownItem(GenerateItemText(entry), entry);
+                addDropdownItem(entry);
 
             if (Current.Value == null || !itemMap.Keys.Contains(Current.Value, EqualityComparer<T>.Default))
                 Current.Value = itemMap.Keys.FirstOrDefault();
@@ -95,27 +96,20 @@ namespace osu.Framework.Graphics.UserInterface
         /// Add a menu item directly while automatically generating a label.
         /// </summary>
         /// <param name="value">Value selected by the menu item.</param>
-        public void AddDropdownItem(T value) => AddDropdownItem(GenerateItemText(value), value);
-
-        /// <summary>
-        /// Add a menu item directly.
-        /// </summary>
-        /// <param name="text">Text to display on the menu item.</param>
-        /// <param name="value">Value selected by the menu item.</param>
-        protected void AddDropdownItem(LocalisableString text, T value)
+        public void AddDropdownItem(T value)
         {
             if (boundItemSource != null)
                 throw new InvalidOperationException($"Cannot manually add dropdown items when an {nameof(ItemSource)} is bound.");
 
-            addDropdownItem(text, value);
+            addDropdownItem(value);
         }
 
-        private void addDropdownItem(LocalisableString text, T value)
+        private void addDropdownItem(T value)
         {
             if (itemMap.ContainsKey(value))
                 throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<T>)}.");
 
-            var newItem = new DropdownMenuItem<T>(text, value, () =>
+            var item = new DropdownMenuItem<T>(value, () =>
             {
                 if (!Current.Disabled)
                     Current.Value = value;
@@ -123,8 +117,12 @@ namespace osu.Framework.Graphics.UserInterface
                 Menu.State = MenuState.Closed;
             });
 
-            Menu.Add(newItem);
-            itemMap[value] = newItem;
+            // inheritors expect that `virtual GenerateItemText` is only called when this dropdown's BDL has run to completion.
+            if (LoadState >= LoadState.Ready)
+                item.Text.Value = GenerateItemText(value);
+
+            Menu.Add(item);
+            itemMap[value] = item;
         }
 
         /// <summary>
@@ -153,6 +151,12 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
+        /// <summary>
+        /// Called to generate the text to be shown for this <paramref name="item"/>.
+        /// </summary>
+        /// <remarks>
+        /// Can be overriden if custom behaviour is needed. Will only be called after this <see cref="Dropdown{T}"/> has fully loaded.
+        /// </remarks>
         protected virtual LocalisableString GenerateItemText(T item)
         {
             switch (item)
@@ -225,7 +229,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Menu.State = MenuState.Closed;
             };
 
-            ItemSource.CollectionChanged += (_, _) => setItems(ItemSource);
+            ItemSource.CollectionChanged += (_, _) => setItems(itemSource);
         }
 
         private void preselectionConfirmed(int selectedIndex)
@@ -264,6 +268,17 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        protected override void LoadAsyncComplete()
+        {
+            base.LoadAsyncComplete();
+
+            foreach (var item in MenuItems)
+            {
+                Debug.Assert(string.IsNullOrEmpty(item.Text.Value.ToString()));
+                item.Text.Value = GenerateItemText(item.Value);
+            }
+        }
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -277,11 +292,11 @@ namespace osu.Framework.Graphics.UserInterface
             // null is not a valid value for Dictionary, so neither here
             if (args.NewValue == null && SelectedItem != null)
             {
-                selectedItem = new DropdownMenuItem<T>(default, default);
+                selectedItem = new DropdownMenuItem<T>(default(LocalisableString), default);
             }
             else if (SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue))
             {
-                if (!itemMap.TryGetValue(args.NewValue, out selectedItem))
+                if (args.NewValue == null || !itemMap.TryGetValue(args.NewValue, out selectedItem))
                 {
                     selectedItem = new DropdownMenuItem<T>(GenerateItemText(args.NewValue), args.NewValue);
                 }
@@ -343,7 +358,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         #region DropdownMenu
 
-        public abstract class DropdownMenu : Menu, IKeyBindingHandler<PlatformAction>
+        public abstract partial class DropdownMenu : Menu, IKeyBindingHandler<PlatformAction>
         {
             protected DropdownMenu()
                 : base(Direction.Vertical)
@@ -381,7 +396,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
                 {
-                    c.IsSelected = c.Item == item;
+                    c.IsSelected = compareItemEquality(item, c.Item);
                     if (c.IsSelected)
                         ContentContainer.ScrollIntoView(c);
                 });
@@ -391,13 +406,13 @@ namespace osu.Framework.Graphics.UserInterface
             /// Shows an item from this <see cref="DropdownMenu"/>.
             /// </summary>
             /// <param name="item">The item to show.</param>
-            public void HideItem(DropdownMenuItem<T> item) => Children.FirstOrDefault(c => c.Item == item)?.Hide();
+            public void HideItem(DropdownMenuItem<T> item) => Children.FirstOrDefault(c => compareItemEquality(item, c.Item))?.Hide();
 
             /// <summary>
             /// Hides an item from this <see cref="DropdownMenu"/>
             /// </summary>
             /// <param name="item"></param>
-            public void ShowItem(DropdownMenuItem<T> item) => Children.FirstOrDefault(c => c.Item == item)?.Show();
+            public void ShowItem(DropdownMenuItem<T> item) => Children.FirstOrDefault(c => compareItemEquality(item, c.Item))?.Show();
 
             /// <summary>
             /// Whether any items part of this <see cref="DropdownMenu"/> are present.
@@ -414,7 +429,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
                 {
-                    c.IsPreSelected = c.Item == item;
+                    c.IsPreSelected = compareItemEquality(item, c.Item);
                     if (c.IsPreSelected)
                         ContentContainer.ScrollIntoView(c);
                 });
@@ -424,9 +439,17 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected abstract DrawableDropdownMenuItem CreateDrawableDropdownMenuItem(MenuItem item);
 
+            private static bool compareItemEquality(MenuItem a, MenuItem b)
+            {
+                if (a is not DropdownMenuItem<T> aTyped || b is not DropdownMenuItem<T> bTyped)
+                    return false;
+
+                return EqualityComparer<T>.Default.Equals(aTyped.Value, bTyped.Value);
+            }
+
             #region DrawableDropdownMenuItem
 
-            public abstract class DrawableDropdownMenuItem : DrawableMenuItem
+            public abstract partial class DrawableDropdownMenuItem : DrawableMenuItem
             {
                 public event Action<DropdownMenuItem<T>> PreselectionRequested;
 

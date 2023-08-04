@@ -23,7 +23,7 @@ namespace osu.Framework.Tests.Audio
         [SetUp]
         public void Setup()
         {
-            track = new TrackVirtual(60000);
+            track = new TrackVirtual(60000, "virtual");
             updateTrack();
         }
 
@@ -45,7 +45,7 @@ namespace osu.Framework.Tests.Audio
         public void TestStartZeroLength()
         {
             // override default with custom length
-            track = new TrackVirtual(0);
+            track = new TrackVirtual(0, "virtual");
 
             track.Start();
             updateTrack();
@@ -378,7 +378,7 @@ namespace osu.Framework.Tests.Audio
                 resetEvent.Set();
             })
             {
-                Name = GameThread.PrefixedThreadNameFor("Audio")
+                Name = GameThread.SuffixedThreadNameFor("Audio")
             }.Start();
 
             if (!resetEvent.WaitOne(TimeSpan.FromSeconds(10)))

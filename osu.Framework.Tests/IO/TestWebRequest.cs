@@ -15,6 +15,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.IO.Network;
 using WebRequest = osu.Framework.IO.Network.WebRequest;
@@ -680,7 +681,7 @@ namespace osu.Framework.Tests.IO
             else
                 Assert.DoesNotThrow(request.Perform);
 
-            var responseJson = JsonConvert.DeserializeObject<HttpBinPostResponse>(request.GetResponseString());
+            var responseJson = JsonConvert.DeserializeObject<HttpBinPostResponse>(request.GetResponseString().AsNonNull());
 
             Assert.IsTrue(request.Completed);
             Assert.IsFalse(request.Aborted);

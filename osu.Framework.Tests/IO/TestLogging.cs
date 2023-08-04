@@ -13,7 +13,7 @@ using osu.Framework.Testing;
 namespace osu.Framework.Tests.IO
 {
     [TestFixture]
-    public class TestLogging
+    public partial class TestLogging
     {
         [Test]
         public void TestExceptionLogging()
@@ -122,7 +122,7 @@ namespace osu.Framework.Tests.IO
             });
         }
 
-        private class CrashTestGame : Game
+        private partial class CrashTestGame : Game
         {
             protected override void Update()
             {

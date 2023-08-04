@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Cursor
     /// If a right-click happens on a <see cref="Drawable"/> that implements <see cref="IHasContextMenu"/> and exists as a child of the same <see cref="InputManager"/> as this container,
     /// a <see cref="Menu"/> will be displayed with bottom-right origin at the right-clicked position.
     /// </summary>
-    public abstract class ContextMenuContainer : CursorEffectContainer<ContextMenuContainer, IHasContextMenu>
+    public abstract partial class ContextMenuContainer : CursorEffectContainer<ContextMenuContainer, IHasContextMenu>
     {
         private readonly Menu menu;
 

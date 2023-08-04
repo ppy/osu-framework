@@ -153,6 +153,12 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public Vector2 Size => new Vector2(Width, Height);
 
+        internal int? MipLevel
+        {
+            get => NativeTexture.MipLevel;
+            set => NativeTexture.MipLevel = value;
+        }
+
         /// <summary>
         /// Binds this texture for drawing.
         /// </summary>
@@ -310,11 +316,6 @@ namespace osu.Framework.Graphics.Textures
         /// Whether this <see cref="Texture"/> is part of a <see cref="TextureAtlas"/>.
         /// </summary>
         internal bool IsAtlasTexture { get; set; }
-
-        /// <summary>
-        /// The total amount of times this <see cref="Texture"/> has ever been bound.
-        /// </summary>
-        internal ulong BindCount => NativeTexture.BindCount;
 
         /// <summary>
         /// The size of this texture in bytes.

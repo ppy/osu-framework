@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
@@ -12,7 +10,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// <summary>
     /// An abstract class that implements the functionality of a checkbox.
     /// </summary>
-    public abstract class Checkbox : Container, IHasCurrentValue<bool>
+    public abstract partial class Checkbox : Container, IHasCurrentValue<bool>
     {
         private readonly BindableWithCurrent<bool> current = new BindableWithCurrent<bool>();
 

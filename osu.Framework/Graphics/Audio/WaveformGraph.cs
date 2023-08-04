@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,15 +25,15 @@ namespace osu.Framework.Graphics.Audio
     /// <summary>
     /// Visualises the waveform for an audio stream.
     /// </summary>
-    public class WaveformGraph : Drawable
+    public partial class WaveformGraph : Drawable
     {
-        private IShader shader;
-        private Texture texture;
+        private IShader shader = null!;
+        private Texture texture = null!;
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders, IRenderer renderer)
         {
-            shader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            shader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             texture = renderer.WhitePixel;
         }
 
@@ -61,12 +59,12 @@ namespace osu.Framework.Graphics.Audio
             }
         }
 
-        private Waveform waveform;
+        private Waveform? waveform;
 
         /// <summary>
         /// The <see cref="Framework.Audio.Track.Waveform"/> to display.
         /// </summary>
-        public Waveform Waveform
+        public Waveform? Waveform
         {
             get => waveform;
             set
@@ -174,12 +172,11 @@ namespace osu.Framework.Graphics.Audio
             return result;
         }
 
-        private CancellationTokenSource cancelSource = new CancellationTokenSource();
+        private CancellationTokenSource? cancelSource = new CancellationTokenSource();
 
         private long resampledVersion;
-        private List<Waveform.Point> resampledPoints;
+        private Waveform.Point[]? resampledPoints;
         private int? resampledPointCount;
-        private int resampledChannels;
         private double resampledMaxHighIntensity;
         private double resampledMaxMidIntensity;
         private double resampledMaxLowIntensity;
@@ -187,7 +184,7 @@ namespace osu.Framework.Graphics.Audio
         private void queueRegeneration() => Scheduler.AddOnce(() =>
         {
             int requiredPointCount = (int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution);
-            if (requiredPointCount == resampledPointCount && !cancelSource.IsCancellationRequested)
+            if (requiredPointCount == resampledPointCount && cancelSource?.IsCancellationRequested != false)
                 return;
 
             cancelGeneration();
@@ -208,16 +205,15 @@ namespace osu.Framework.Graphics.Audio
             {
                 var resampled = await originalWaveform.GenerateResampledAsync(requiredPointCount, token).ConfigureAwait(false);
 
-                int originalPointCount = (await originalWaveform.GetPointsAsync().ConfigureAwait(false)).Count;
+                int originalPointCount = (await originalWaveform.GetPointsAsync().ConfigureAwait(false)).Length;
 
                 Logger.Log($"Waveform resampled with {requiredPointCount:N0} points (original {originalPointCount:N0})...");
 
                 var points = await resampled.GetPointsAsync().ConfigureAwait(false);
-                int channels = await resampled.GetChannelsAsync().ConfigureAwait(false);
 
-                double maxHighIntensity = points.Count > 0 ? points.Max(p => p.HighIntensity) : 0;
-                double maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
-                double maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
+                double maxHighIntensity = points.Length > 0 ? points.Max(p => p.HighIntensity) : 0;
+                double maxMidIntensity = points.Length > 0 ? points.Max(p => p.MidIntensity) : 0;
+                double maxLowIntensity = points.Length > 0 ? points.Max(p => p.LowIntensity) : 0;
 
                 Schedule(() =>
                 {
@@ -225,7 +221,6 @@ namespace osu.Framework.Graphics.Audio
                         return;
 
                     resampledPoints = points;
-                    resampledChannels = channels;
                     resampledMaxHighIntensity = maxHighIntensity;
                     resampledMaxMidIntensity = maxMidIntensity;
                     resampledMaxLowIntensity = maxLowIntensity;
@@ -262,13 +257,12 @@ namespace osu.Framework.Graphics.Audio
 
         private class WaveformDrawNode : DrawNode
         {
-            private IShader shader;
-            private Texture texture;
+            private IShader shader = null!;
+            private Texture? texture;
 
-            private readonly List<Waveform.Point> points = new List<Waveform.Point>();
+            private List<Waveform.Point>? points;
 
             private Vector2 drawSize;
-            private int channels;
 
             private long version;
 
@@ -304,12 +298,16 @@ namespace osu.Framework.Graphics.Audio
 
                 if (Source.resampledVersion != version)
                 {
-                    points.Clear();
+                    // Late initialise list to use a sane initial capacity.
+                    if (points == null)
+                        points = new List<Waveform.Point>(Source.resampledPoints ?? Enumerable.Empty<Waveform.Point>());
+                    else
+                    {
+                        points.Clear();
 
-                    if (Source.resampledPoints != null)
-                        points.AddRange(Source.resampledPoints);
-
-                    channels = Source.resampledChannels;
+                        if (Source.resampledPoints != null)
+                            points.AddRange(Source.resampledPoints);
+                    }
 
                     highMax = Source.resampledMaxHighIntensity;
                     midMax = Source.resampledMaxMidIntensity;
@@ -319,7 +317,7 @@ namespace osu.Framework.Graphics.Audio
                 }
             }
 
-            private IVertexBatch<TexturedVertex2D> vertexBatch;
+            private IVertexBatch<TexturedVertex2D>? vertexBatch;
 
             public override void Draw(IRenderer renderer)
             {
@@ -342,16 +340,15 @@ namespace osu.Framework.Graphics.Audio
 
                 float separation = drawSize.X / (points.Count - 1);
 
-                for (int i = 0; i < points.Count - 1; i++)
+                // Equates to making sure that rightX >= localMaskingRectangle.Left at startIndex and leftX <= localMaskingRectangle.Right at endIndex.
+                // Without this pre-check, very long waveform displays can get slow just from running the loop below (point counts in excess of 1mil).
+                int startIndex = (int)Math.Clamp(localMaskingRectangle.Left / separation, 0, points.Count - 1);
+                int endIndex = (int)Math.Clamp(localMaskingRectangle.Right / separation + 1, 0, points.Count - 1);
+
+                for (int i = startIndex; i < endIndex; i++)
                 {
                     float leftX = i * separation;
                     float rightX = (i + 1) * separation;
-
-                    if (rightX < localMaskingRectangle.Left)
-                        continue;
-
-                    if (leftX > localMaskingRectangle.Right)
-                        break; // X is always increasing
 
                     Color4 frequencyColour = baseColour;
 
@@ -365,34 +362,14 @@ namespace osu.Framework.Graphics.Audio
                     ColourInfo finalColour = DrawColourInfo.Colour;
                     finalColour.ApplyChild(frequencyColour);
 
-                    Quad quadToDraw;
+                    float height = drawSize.Y / 2;
 
-                    switch (channels)
-                    {
-                        default:
-                        case 2:
-                        {
-                            float height = drawSize.Y / 2;
-                            quadToDraw = new Quad(
-                                new Vector2(leftX, height - points[i].Amplitude[0] * height),
-                                new Vector2(rightX, height - points[i + 1].Amplitude[0] * height),
-                                new Vector2(leftX, height + points[i].Amplitude[1] * height),
-                                new Vector2(rightX, height + points[i + 1].Amplitude[1] * height)
-                            );
-                            break;
-                        }
-
-                        case 1:
-                        {
-                            quadToDraw = new Quad(
-                                new Vector2(leftX, drawSize.Y - points[i].Amplitude[0] * drawSize.Y),
-                                new Vector2(rightX, drawSize.Y - points[i + 1].Amplitude[0] * drawSize.Y),
-                                new Vector2(leftX, drawSize.Y),
-                                new Vector2(rightX, drawSize.Y)
-                            );
-                            break;
-                        }
-                    }
+                    Quad quadToDraw = new Quad(
+                        new Vector2(leftX, height - points[i].AmplitudeLeft * height),
+                        new Vector2(rightX, height - points[i + 1].AmplitudeLeft * height),
+                        new Vector2(leftX, height + points[i].AmplitudeRight * height),
+                        new Vector2(rightX, height + points[i + 1].AmplitudeRight * height)
+                    );
 
                     quadToDraw *= DrawInfo.Matrix;
 

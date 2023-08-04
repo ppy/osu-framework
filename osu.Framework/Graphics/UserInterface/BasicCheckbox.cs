@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -15,7 +13,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// <summary>
     /// A basic checkbox for framework internal use and for prototyping UI.
     /// </summary>
-    public class BasicCheckbox : Checkbox
+    public partial class BasicCheckbox : Checkbox
     {
         /// <summary>
         /// The color of the checkbox when the checkbox is checked. Defaults to White

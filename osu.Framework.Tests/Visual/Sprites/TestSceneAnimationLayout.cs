@@ -1,10 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Animations;
 using osu.Framework.Graphics.Containers;
@@ -18,7 +17,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneAnimationLayout : GridTestScene
+    public partial class TestSceneAnimationLayout : GridTestScene
     {
         public TestSceneAnimationLayout()
             : base(2, 3)
@@ -83,7 +82,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             }
         };
 
-        private class TestDrawableAnimation : DrawableAnimation
+        private partial class TestDrawableAnimation : DrawableAnimation
         {
             public TestDrawableAnimation(Axes contentRelativeAxes = Axes.None)
             {
@@ -122,10 +121,10 @@ namespace osu.Framework.Tests.Visual.Sprites
             }
         }
 
-        private class TestTextureAnimation : TextureAnimation
+        private partial class TestTextureAnimation : TextureAnimation
         {
             [Resolved]
-            private FontStore fontStore { get; set; }
+            private FontStore fontStore { get; set; } = null!;
 
             public TestTextureAnimation()
             {
@@ -137,7 +136,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             private void load()
             {
                 for (int i = 0; i <= 9; i++)
-                    AddFrame(new Texture(fontStore.Get(null, i.ToString()[0])?.Texture) { ScaleAdjust = 1 + i / 2 }, 1000.0 / 60 * 6);
+                    AddFrame(new Texture(fontStore.Get(null, i.ToString()[0]).AsNonNull().Texture) { ScaleAdjust = 1 + i / 2f }, 1000.0 / 60 * 6);
             }
         }
     }

@@ -2,11 +2,11 @@ using osu.Framework.Testing;
 
 namespace TemplateGame.Game.Tests.Visual
 {
-    public class TemplateGameTestScene : TestScene
+    public partial class TemplateGameTestScene : TestScene
     {
         protected override ITestSceneTestRunner CreateRunner() => new TemplateGameTestSceneTestRunner();
 
-        private class TemplateGameTestSceneTestRunner : TemplateGameGameBase, ITestSceneTestRunner
+        private partial class TemplateGameTestSceneTestRunner : TemplateGameGameBase, ITestSceneTestRunner
         {
             private TestSceneTestRunner.TestRunner runner;
 

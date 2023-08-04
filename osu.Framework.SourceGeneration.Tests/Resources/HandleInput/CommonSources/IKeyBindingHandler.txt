@@ -1,0 +1,6 @@
+namespace osu.Framework.Input.Bindings
+{
+    public interface IKeyBindingHandler
+    {
+    }
+}

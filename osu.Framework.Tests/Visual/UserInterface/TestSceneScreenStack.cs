@@ -25,7 +25,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneScreenStack : FrameworkTestScene
+    public partial class TestSceneScreenStack : FrameworkTestScene
     {
         private TestScreen baseScreen;
         private ScreenStack stack;
@@ -703,8 +703,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 for (int i = 0; i < exit_count; i++)
                     stack.Exit();
 
-                Remove(stack);
-                stack.Dispose();
+                Remove(stack, true);
             });
 
             AddUntilStep("All screens unbound in correct order", () => screens.Count == 0);
@@ -959,7 +958,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddUntilStep("ensure current", () => screen.IsCurrentScreen());
         }
 
-        private class TestScreenSlow : TestScreen
+        private partial class TestScreenSlow : TestScreen
         {
             public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim();
 
@@ -976,7 +975,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class TestScreen : Screen
+        private partial class TestScreen : Screen
         {
             public Func<bool> Exiting;
 
@@ -1100,7 +1099,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                 if (shouldTakeOutLease)
                 {
-                    DummyBindable.BindTo(((TestScreen)e.Last).DummyBindable);
+                    DummyBindable.BindTo(((TestScreen)e.Last!).DummyBindable);
                     LeasedCopy = DummyBindable.BeginLease(true);
                 }
 

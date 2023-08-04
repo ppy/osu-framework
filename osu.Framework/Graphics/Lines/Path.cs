@@ -19,7 +19,6 @@ namespace osu.Framework.Graphics.Lines
 {
     public partial class Path : Drawable, IBufferedDrawable
     {
-        public IShader RoundedTextureShader { get; private set; }
         public IShader TextureShader { get; private set; }
         private IShader pathShader;
 
@@ -34,7 +33,6 @@ namespace osu.Framework.Graphics.Lines
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             pathShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
         }
@@ -282,7 +280,20 @@ namespace osu.Framework.Graphics.Lines
         // The path should not receive the true colour to avoid colour doubling when the frame-buffer is rendered to the back-buffer.
         public override DrawColourInfo DrawColourInfo => new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
 
-        public Color4 BackgroundColour => new Color4(0, 0, 0, 0);
+        private Color4 backgroundColour = new Color4(0, 0, 0, 0);
+
+        /// <summary>
+        /// The background colour to be used for the frame buffer this path is rendered to.
+        /// </summary>
+        public virtual Color4 BackgroundColour
+        {
+            get => backgroundColour;
+            set
+            {
+                backgroundColour = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
 
         private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(new[] { RenderBufferFormat.D16 }, clipToRootNode: true);
 

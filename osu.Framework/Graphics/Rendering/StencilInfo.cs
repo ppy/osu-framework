@@ -14,14 +14,14 @@ namespace osu.Framework.Graphics.Rendering
 
         /// <summary>
         /// Whether stencil testing should occur.
-        /// If this is false, no <see cref="StencilOperation"/> will occur (use <see cref="DepthStencilFunction.Always"/> instead).
+        /// If this is false, no <see cref="StencilOperation"/> will occur (use <see cref="BufferTestFunction.Always"/> instead).
         /// </summary>
         public readonly bool StencilTest;
 
         /// <summary>
         /// The stencil test function.
         /// </summary>
-        public readonly DepthStencilFunction TestFunction;
+        public readonly BufferTestFunction TestFunction;
 
         /// <summary>
         /// The stencil test value to compare against.
@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         public readonly StencilOperation TestPassedOperation;
 
-        public StencilInfo(bool stencilTest = true, DepthStencilFunction testFunction = DepthStencilFunction.Always, int testValue = 1, int mask = 0xff,
+        public StencilInfo(bool stencilTest = true, BufferTestFunction testFunction = BufferTestFunction.Always, int testValue = 1, int mask = 0xff,
                            StencilOperation stencilFailed = StencilOperation.Keep, StencilOperation depthFailed = StencilOperation.Keep, StencilOperation passed = StencilOperation.Replace)
         {
             StencilTest = stencilTest;

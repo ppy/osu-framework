@@ -12,6 +12,11 @@ namespace osu.Framework.Audio.Mixing
     public interface IAudioChannel
     {
         /// <summary>
+        /// A name identifying this sample internally.
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
         /// The mixer in which all audio produced by this channel should be routed into.
         /// </summary>
         internal AudioMixer? Mixer { get; set; }

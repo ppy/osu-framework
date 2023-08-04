@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// Without this, <see cref="TabControl{T}"/> will automatically hide extra items.
     /// </remarks>
     /// <typeparam name="T">The type of item to be represented by tabs.</typeparam>
-    public abstract class TabControl<T> : CompositeDrawable, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
+    public abstract partial class TabControl<T> : CompositeDrawable, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
     {
         private readonly BindableWithCurrent<T> current = new BindableWithCurrent<T>();
 
@@ -333,7 +333,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (removeFromDropdown)
                 Dropdown?.RemoveDropdownItem(tab.Value);
 
-            TabContainer.Remove(tab);
+            TabContainer.Remove(tab, true);
         }
 
         /// <summary>
@@ -451,7 +451,7 @@ namespace osu.Framework.Graphics.UserInterface
             Masking = true
         };
 
-        public class TabFillFlowContainer : FillFlowContainer<TabItem<T>>
+        public partial class TabFillFlowContainer : FillFlowContainer<TabItem<T>>
         {
             private bool allowMultiline;
 
@@ -538,10 +538,10 @@ namespace osu.Framework.Graphics.UserInterface
                 base.Clear(disposeChildren);
             }
 
-            public override bool Remove(TabItem<T> drawable)
+            public override bool Remove(TabItem<T> drawable, bool disposeImmediately)
             {
                 tabVisibility.Remove(drawable);
-                return base.Remove(drawable);
+                return base.Remove(drawable, disposeImmediately);
             }
         }
     }

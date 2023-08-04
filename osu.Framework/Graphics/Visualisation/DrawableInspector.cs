@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using System;
 using System.Linq;
@@ -14,7 +12,7 @@ using osu.Framework.Graphics.UserInterface;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class DrawableInspector : VisibilityContainer
+    internal partial class DrawableInspector : VisibilityContainer
     {
         [Cached]
         public Bindable<Drawable> InspectedDrawable { get; private set; } = new Bindable<Drawable>();
@@ -54,7 +52,7 @@ namespace osu.Framework.Graphics.Visualisation
                                 Horizontal = 10,
                                 Vertical = 5
                             },
-                            Items = Enum.GetValues(typeof(Tab)).Cast<Tab>().ToList()
+                            Items = Enum.GetValues<Tab>().ToList()
                         },
                         tabContentContainer = new Container
                         {

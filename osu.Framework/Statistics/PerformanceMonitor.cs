@@ -103,12 +103,17 @@ namespace osu.Framework.Statistics
         /// </summary>
         public InvokeOnDisposal BeginCollecting(PerformanceCollectionType type)
         {
+            // Consume time, regardless of whether we are using it at this point.
+            // If not, an `EndCollecting` call may end up reporting more time than actually passed between
+            // the Begin-End pair.
+            double time = consumeStopwatchElapsedTime();
+
             if (currentCollectionTypeStack.Count > 0)
             {
                 PerformanceCollectionType t = currentCollectionTypeStack.Peek();
 
-                if (!currentFrame.CollectedTimes.ContainsKey(t)) currentFrame.CollectedTimes[t] = 0;
-                currentFrame.CollectedTimes[t] += consumeStopwatchElapsedTime();
+                currentFrame.CollectedTimes.TryAdd(t, 0);
+                currentFrame.CollectedTimes[t] += time;
             }
 
             currentCollectionTypeStack.Push(type);
@@ -124,7 +129,7 @@ namespace osu.Framework.Statistics
         {
             currentCollectionTypeStack.Pop();
 
-            if (!currentFrame.CollectedTimes.ContainsKey(type)) currentFrame.CollectedTimes[type] = 0;
+            currentFrame.CollectedTimes.TryAdd(type, 0);
             currentFrame.CollectedTimes[type] += consumeStopwatchElapsedTime();
         }
 
@@ -153,6 +158,7 @@ namespace osu.Framework.Statistics
                     global.Value = count;
                     currentFrame.Counts[type] = count;
                     currentFrame.FramesPerSecond = Clock.FramesPerSecond;
+                    currentFrame.Jitter = Clock.Jitter;
 
                     FrameStatistics.COUNTERS[i] = 0;
                 }

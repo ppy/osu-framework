@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
@@ -14,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneRigidBody : FrameworkTestScene
+    public partial class TestSceneRigidBody : FrameworkTestScene
     {
         private readonly TestRigidBodySimulation sim;
 
@@ -26,9 +24,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             set
             {
                 restitutionBacking = value;
-
-                if (sim == null)
-                    return;
 
                 foreach (var d in sim.Children)
                     d.Restitution = value;
@@ -44,9 +39,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             set
             {
                 frictionBacking = value;
-
-                if (sim == null)
-                    return;
 
                 foreach (var d in sim.Children)
                     d.FrictionCoefficient = value;
@@ -161,7 +153,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class TestRigidBody : RigidBodyContainer<Drawable>
+        private partial class TestRigidBody : RigidBodyContainer<Drawable>
         {
             public TestRigidBody()
             {
@@ -169,7 +161,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class TestRigidBodySimulation : RigidBodySimulation
+        private partial class TestRigidBodySimulation : RigidBodySimulation
         {
             protected override void LoadComplete()
             {

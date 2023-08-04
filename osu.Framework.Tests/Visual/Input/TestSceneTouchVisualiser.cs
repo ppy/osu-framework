@@ -16,7 +16,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneTouchVisualiser : ManualInputManagerTestScene
+    public partial class TestSceneTouchVisualiser : ManualInputManagerTestScene
     {
         public TestSceneTouchVisualiser()
         {
@@ -33,7 +33,7 @@ namespace osu.Framework.Tests.Visual.Input
             };
         }
 
-        public class TouchVisualiser : CompositeDrawable
+        public partial class TouchVisualiser : CompositeDrawable
         {
             private readonly Drawable[] drawableTouches = new Drawable[10];
 
@@ -85,7 +85,7 @@ namespace osu.Framework.Tests.Visual.Input
                 return Color4.FromHsv(new Vector4((float)source / TouchState.MAX_TOUCH_COUNT, 1f, 1f, 1f));
             }
 
-            private class FadingCircle : Circle
+            private partial class FadingCircle : Circle
             {
                 public FadingCircle(Drawable source)
                 {

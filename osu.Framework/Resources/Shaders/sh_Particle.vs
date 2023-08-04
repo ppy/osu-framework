@@ -1,14 +1,19 @@
-attribute vec2 m_Position;
-attribute vec2 m_TexCoord;
-attribute float m_Time;
-attribute vec2 m_Direction;
+#ifndef PARTICLE_VS
+#define PARTICLE_VS
 
-varying vec4 v_Colour;
-varying vec2 v_TexCoord;
+layout(location = 0) in vec2 m_Position;
+layout(location = 1) in vec2 m_TexCoord;
+layout(location = 2) in float m_Time;
+layout(location = 3) in vec2 m_Direction;
 
-uniform mat4 g_ProjMatrix;
-uniform float g_FadeClock;
-uniform float g_Gravity;
+layout(location = 1) out vec4 v_Colour;
+layout(location = 2) out vec2 v_TexCoord;
+
+layout(std140, set = 0, binding = 0) uniform m_ParticleParameters
+{
+    float g_FadeClock;
+    float g_Gravity;
+};
 
 void main(void)
 {
@@ -21,3 +26,5 @@ void main(void)
 	v_Colour = vec4(1.0, 1.0, 1.0, 1.0 - clamp(g_FadeClock / m_Time, 0.0, 1.0));
 	v_TexCoord = m_TexCoord;
 }
+
+#endif

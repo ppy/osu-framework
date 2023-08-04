@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics;
@@ -25,7 +26,7 @@ namespace osu.Framework.Input
     /// Thus, when this is attached to the scene graph initially and when <see cref="UseParentInput"/> becomes true,
     /// multiple events may fire to synchronise the local <see cref="InputState"/> with the parent's.
     /// </remarks>
-    public class PassThroughInputManager : CustomInputManager, IRequireHighFrequencyMousePosition
+    public partial class PassThroughInputManager : CustomInputManager, IRequireHighFrequencyMousePosition
     {
         /// <summary>
         /// If there's an InputManager above us, decide whether we should use their available state.
@@ -181,13 +182,13 @@ namespace osu.Framework.Input
             new TouchInput(touchStateDifference.deactivated, false).Apply(CurrentState, this);
             new TouchInput(touchStateDifference.activated, true).Apply(CurrentState, this);
 
-            new JoystickButtonInput(state?.Joystick?.Buttons, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
-            new JoystickAxisInput(state?.Joystick?.GetAxes()).Apply(CurrentState, this);
+            new JoystickButtonInput(state?.Joystick?.Buttons ?? new ButtonStates<JoystickButton>(), CurrentState.Joystick.Buttons).Apply(CurrentState, this);
+            new JoystickAxisInput(state?.Joystick?.GetAxes() ?? Array.Empty<JoystickAxis>()).Apply(CurrentState, this);
 
-            new MidiKeyInput(state?.Midi, CurrentState.Midi).Apply(CurrentState, this);
+            new MidiKeyInput(state?.Midi ?? new MidiState(), CurrentState.Midi).Apply(CurrentState, this);
 
-            new TabletPenButtonInput(state?.Tablet.PenButtons, CurrentState.Tablet.PenButtons).Apply(CurrentState, this);
-            new TabletAuxiliaryButtonInput(state?.Tablet.AuxiliaryButtons, CurrentState.Tablet.AuxiliaryButtons).Apply(CurrentState, this);
+            new TabletPenButtonInput(state?.Tablet.PenButtons ?? new ButtonStates<TabletPenButton>(), CurrentState.Tablet.PenButtons).Apply(CurrentState, this);
+            new TabletAuxiliaryButtonInput(state?.Tablet.AuxiliaryButtons ?? new ButtonStates<TabletAuxiliaryButton>(), CurrentState.Tablet.AuxiliaryButtons).Apply(CurrentState, this);
         }
     }
 }

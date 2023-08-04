@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -10,12 +8,11 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Statistics;
 using osu.Framework.Timing;
 using osu.Framework.Utils;
-using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Performance
 {
-    internal class FrameTimeDisplay : Container
+    internal partial class FrameTimeDisplay : Container
     {
         private readonly SpriteText counter;
 
@@ -38,11 +35,11 @@ namespace osu.Framework.Graphics.Performance
                     Colour = Color4.Black,
                     Alpha = 0.75f
                 },
-                counter = new CounterText
+                counter = new SpriteText
                 {
                     Anchor = Anchor.TopRight,
                     Origin = Anchor.TopRight,
-                    Spacing = new Vector2(-1, 0),
+                    Font = FrameworkFont.Regular,
                     Text = @"...",
                 }
             });
@@ -59,6 +56,8 @@ namespace osu.Framework.Graphics.Performance
         private double elapsedSinceLastUpdate;
         private double lastUpdateLocalTime;
         private double lastFrameFramesPerSecond;
+
+        private double jitter;
 
         private const int updates_per_second = 10;
 
@@ -100,18 +99,8 @@ namespace osu.Framework.Graphics.Performance
             framesSinceLastUpdate = 0;
             elapsedSinceLastUpdate = 0;
 
-            counter.Text = $"{displayFps:0}fps ({rollingElapsed:0.00}ms)"
+            counter.Text = $"{displayFps:0}fps ({rollingElapsed:0.00}ms ±{jitter:0.00}ms)"
                            + (clock.Throttling ? $"{(clock.MaximumUpdateHz > 0 && clock.MaximumUpdateHz < 10000 ? clock.MaximumUpdateHz.ToString("0") : "∞"),4}hz" : string.Empty);
-        }
-
-        private class CounterText : SpriteText
-        {
-            public CounterText()
-            {
-                Font = FrameworkFont.Regular.With(fixedWidth: true);
-            }
-
-            protected override char[] FixedWidthExcludeCharacters { get; } = { ',', '.', ' ' };
         }
 
         public void NewFrame(FrameStatistics frame)
@@ -126,6 +115,7 @@ namespace osu.Framework.Graphics.Performance
 
             framesSinceLastUpdate++;
             lastFrameFramesPerSecond = frame.FramesPerSecond;
+            jitter = frame.Jitter;
         }
     }
 }

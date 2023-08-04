@@ -83,16 +83,12 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture?.Available != true)
                 return;
 
-            var shader = GetAppropriateShader(renderer);
-
-            shader.Bind();
+            BindTextureShader(renderer);
 
             Blit(renderer);
 
-            shader.Unbind();
+            UnbindTextureShader(renderer);
         }
-
-        protected override bool RequiresRoundedShader(IRenderer renderer) => base.RequiresRoundedShader(renderer) || InflationAmount != Vector2.Zero;
 
         protected override void DrawOpaqueInterior(IRenderer renderer)
         {
@@ -101,11 +97,11 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture?.Available != true)
                 return;
 
-            TextureShader.Bind();
+            BindTextureShader(renderer);
 
             BlitOpaqueInterior(renderer);
 
-            TextureShader.Unbind();
+            UnbindTextureShader(renderer);
         }
 
         protected internal override bool CanDrawOpaqueInterior => Texture?.Available == true && Texture.Opacity == Opacity.Opaque && hasOpaqueInterior;

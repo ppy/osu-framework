@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics;
@@ -11,7 +9,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneTexturedTriangle : FrameworkTestScene
+    public partial class TestSceneTexturedTriangle : FrameworkTestScene
     {
         public TestSceneTexturedTriangle()
         {
@@ -23,7 +21,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             });
         }
 
-        private class TexturedTriangle : Triangle
+        private partial class TexturedTriangle : Triangle
         {
             [BackgroundDependencyLoader]
             private void load(TextureStore textures)

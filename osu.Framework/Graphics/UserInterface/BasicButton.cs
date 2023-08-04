@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
@@ -13,16 +11,12 @@ using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicButton : Button
+    public partial class BasicButton : Button
     {
         public LocalisableString Text
         {
-            get => SpriteText?.Text ?? default;
-            set
-            {
-                if (SpriteText != null)
-                    SpriteText.Text = value;
-            }
+            get => SpriteText.Text;
+            set => SpriteText.Text = value;
         }
 
         public Color4 BackgroundColour

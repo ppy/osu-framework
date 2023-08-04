@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using osuTK;
 
@@ -9,7 +7,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 {
     /// <summary>
     /// A class that carries the information we care about from the tablet provider.
-    /// Can be considered for removal when we no longer require dual targeting against netstandard.
+    /// Can be considered for removal now that we're solely targeting .NET 6
     /// </summary>
     public class TabletInfo
     {

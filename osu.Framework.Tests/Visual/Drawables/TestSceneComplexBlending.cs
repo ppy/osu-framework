@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -17,7 +15,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneComplexBlending : FrameworkTestScene
+    public partial class TestSceneComplexBlending : FrameworkTestScene
     {
         private readonly Dropdown<string> colourModeDropdown;
         private readonly Dropdown<BlendingEquation> colourEquation;
@@ -246,10 +244,10 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private void switchOffCustomBlending()
         {
-            settingsBox.Remove(blendingSrcContainer);
-            settingsBox.Remove(blendingDestContainer);
-            settingsBox.Remove(blendingAlphaSrcContainer);
-            settingsBox.Remove(blendingAlphaDestContainer);
+            settingsBox.Remove(blendingSrcContainer, false);
+            settingsBox.Remove(blendingDestContainer, false);
+            settingsBox.Remove(blendingAlphaSrcContainer, false);
+            settingsBox.Remove(blendingAlphaDestContainer, false);
         }
 
         private void updateBlending()
@@ -293,7 +291,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        private class GradientPart : Box
+        private partial class GradientPart : Box
         {
             public GradientPart(int index, Color4 start, Color4 end)
             {

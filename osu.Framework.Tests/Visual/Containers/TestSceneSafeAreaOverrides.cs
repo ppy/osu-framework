@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics;
@@ -12,7 +10,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneSafeAreaOverrides : FrameworkTestScene
+    public partial class TestSceneSafeAreaOverrides : FrameworkTestScene
     {
         public TestSceneSafeAreaOverrides()
         {
@@ -65,7 +63,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 && bottomOverridden == container.SafeAreaContainer.Padding.Bottom < 0);
         }
 
-        private class OverrideTestContainer : SafeAreaDefiningContainer
+        private partial class OverrideTestContainer : SafeAreaDefiningContainer
         {
             internal readonly SafeAreaContainer SafeAreaContainer;
 

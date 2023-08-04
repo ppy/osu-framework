@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.Audio
     /// A wrapper which allows audio components (or adjustments) to exist in the draw hierarchy.
     /// </summary>
     [Cached(typeof(IAggregateAudioAdjustment))]
-    public abstract class DrawableAudioWrapper : CompositeDrawable, IAdjustableAudioComponent
+    public abstract partial class DrawableAudioWrapper : CompositeDrawable, IAdjustableAudioComponent
     {
         /// <summary>
         /// The volume of this component.
@@ -138,11 +138,16 @@ namespace osu.Framework.Graphics.Audio
         {
         }
 
+        internal override void UnbindAllBindables()
+        {
+            base.UnbindAllBindables();
+
+            component?.UnbindAdjustments(adjustments);
+        }
+
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
-            component?.UnbindAdjustments(adjustments);
-
             if (disposeUnderlyingComponentOnDispose)
                 (component as IDisposable)?.Dispose();
 

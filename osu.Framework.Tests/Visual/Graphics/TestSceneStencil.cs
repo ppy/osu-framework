@@ -2,35 +2,70 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
 using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Graphics
 {
-    public class TestSceneStencil : FrameworkTestScene
+    public partial class TestSceneStencil : FrameworkTestScene
     {
         [BackgroundDependencyLoader]
         private void load(TextureStore textures)
         {
             Container circlesContainer;
+            Container circlesContainerBuffered;
 
-            Child = new StencilDrawable
+            Children = new Drawable[]
             {
-                RelativeSizeAxes = Axes.Both,
-                Background = new Sprite
+                new StencilDrawable
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Texture = textures.Get("sample-texture")
+                    Width = 0.5f,
+                    Background = new Sprite
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Texture = textures.Get("sample-texture")
+                    },
+                    Stencil = circlesContainer = new Container
+                    {
+                        RelativeSizeAxes = Axes.Both
+                    }
                 },
-                Stencil = circlesContainer = new Container
+                new BufferedContainer(new[] { RenderBufferFormat.D32S8 })
                 {
-                    RelativeSizeAxes = Axes.Both
+                    RelativeSizeAxes = Axes.Both,
+                    Anchor = Anchor.TopRight,
+                    Origin = Anchor.TopRight,
+                    Width = 0.5f,
+                    BlurSigma = new Vector2(10),
+                    Child = new StencilDrawable
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Background = new Sprite
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Texture = textures.Get("sample-texture")
+                        },
+                        Stencil = circlesContainerBuffered = new Container
+                        {
+                            RelativeSizeAxes = Axes.Both
+                        }
+                    }
+                },
+                new Label("Container"),
+                new Label("BufferedContainer")
+                {
+                    Anchor = Anchor.TopRight,
+                    Origin = Anchor.TopRight
                 }
             };
 
@@ -49,11 +84,20 @@ namespace osu.Framework.Tests.Visual.Graphics
                         Position = new Vector2(xPos, yPos),
                         Current = { Value = 1 }
                     });
+
+                    circlesContainerBuffered.Add(new CircularProgress
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Size = new Vector2(circle_radius),
+                        RelativePositionAxes = Axes.Both,
+                        Position = new Vector2(xPos, yPos),
+                        Current = { Value = 1 }
+                    });
                 }
             }
         }
 
-        private class StencilDrawable : CompositeDrawable
+        private partial class StencilDrawable : CompositeDrawable
         {
             public Drawable Background
             {
@@ -94,6 +138,8 @@ namespace osu.Framework.Tests.Visual.Graphics
                 // No depth testing.
                 renderer.PushDepthInfo(new DepthInfo(false));
 
+                Debug.Assert(Children != null);
+
                 drawStencil(renderer, Children[1]);
                 drawBackground(renderer, Children[0]);
 
@@ -105,7 +151,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                 // Populate the stencil buffer with 255 in places defined by the draw node.
                 renderer.PushStencilInfo(new StencilInfo(
                     stencilTest: true,
-                    testFunction: DepthStencilFunction.Always,
+                    testFunction: BufferTestFunction.Always,
                     255,
                     passed: StencilOperation.Replace));
 
@@ -129,7 +175,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                 // Only pass the stencil test where the stencil buffer value is 255.
                 renderer.PushStencilInfo(new StencilInfo(
                     stencilTest: true,
-                    testFunction: DepthStencilFunction.Equal,
+                    testFunction: BufferTestFunction.Equal,
                     mask: 255,
                     testValue: 255,
                     stencilFailed: StencilOperation.Keep,
@@ -141,9 +187,31 @@ namespace osu.Framework.Tests.Visual.Graphics
                 renderer.PopStencilInfo();
             }
 
-            public List<DrawNode> Children { get; set; } = new List<DrawNode>();
+            public List<DrawNode>? Children { get; set; } = new List<DrawNode>();
 
             public bool AddChildDrawNodes => true;
+        }
+
+        private partial class Label : Container
+        {
+            public Label(string text)
+            {
+                AutoSizeAxes = Axes.Both;
+                Margin = new MarginPadding(10);
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = Color4.Black
+                    },
+                    new SpriteText
+                    {
+                        Text = text,
+                        Margin = new MarginPadding(10)
+                    }
+                };
+            }
         }
     }
 }

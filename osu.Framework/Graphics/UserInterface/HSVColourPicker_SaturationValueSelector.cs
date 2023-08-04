@@ -4,11 +4,13 @@
 #nullable disable
 
 using System;
+using System.Runtime.InteropServices;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
@@ -19,7 +21,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public abstract partial class HSVColourPicker
     {
-        public abstract class SaturationValueSelector : CompositeDrawable
+        public abstract partial class SaturationValueSelector : CompositeDrawable
         {
             public readonly Bindable<Colour4> Current = new Bindable<Colour4>();
 
@@ -202,15 +204,14 @@ namespace osu.Framework.Graphics.UserInterface
                 Value.Value = 1 - localSpacePosition.Y / DrawHeight;
             }
 
-            protected abstract class Marker : CompositeDrawable
+            protected abstract partial class Marker : CompositeDrawable
             {
                 public IBindable<Colour4> Current { get; } = new Bindable<Colour4>();
             }
 
-            private class SaturationBox : Box, ITexturedShaderDrawable
+            private partial class SaturationBox : Box, ITexturedShaderDrawable
             {
                 public new IShader TextureShader { get; private set; }
-                public new IShader RoundedTextureShader { get; private set; }
 
                 private float hue;
 
@@ -235,7 +236,6 @@ namespace osu.Framework.Graphics.UserInterface
                 private void load(ShaderManager shaders)
                 {
                     TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "SaturationSelectorBackground");
-                    RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "SaturationSelectorBackgroundRounded");
                 }
 
                 protected override DrawNode CreateDrawNode() => new SaturationBoxDrawNode(this);
@@ -257,10 +257,29 @@ namespace osu.Framework.Graphics.UserInterface
                         hue = Source.hue;
                     }
 
-                    protected override void Blit(IRenderer renderer)
+                    private IUniformBuffer<HueData> hueDataBuffer;
+
+                    protected override void BindUniformResources(IShader shader, IRenderer renderer)
                     {
-                        GetAppropriateShader(renderer).GetUniform<float>("hue").UpdateValue(ref hue);
-                        base.Blit(renderer);
+                        base.BindUniformResources(shader, renderer);
+
+                        hueDataBuffer ??= renderer.CreateUniformBuffer<HueData>();
+                        hueDataBuffer.Data = hueDataBuffer.Data with { Hue = hue };
+
+                        shader.BindUniformBlock("m_HueData", hueDataBuffer);
+                    }
+
+                    protected override void Dispose(bool isDisposing)
+                    {
+                        base.Dispose(isDisposing);
+                        hueDataBuffer?.Dispose();
+                    }
+
+                    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+                    private record struct HueData
+                    {
+                        public UniformFloat Hue;
+                        private readonly UniformPadding12 pad1;
                     }
                 }
             }

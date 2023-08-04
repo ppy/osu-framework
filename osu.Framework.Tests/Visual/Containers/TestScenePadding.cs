@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -15,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestScenePadding : GridTestScene
+    public partial class TestScenePadding : GridTestScene
     {
         public TestScenePadding()
             : base(2, 2)
@@ -177,7 +175,7 @@ namespace osu.Framework.Tests.Visual.Containers
             });
         }
 
-        private class PaddedBox : Container
+        private partial class PaddedBox : Container
         {
             private readonly SpriteText t1;
             private readonly SpriteText t2;

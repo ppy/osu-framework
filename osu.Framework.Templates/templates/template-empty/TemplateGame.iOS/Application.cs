@@ -2,15 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.iOS;
-using UIKit;
+using TemplateGame.Game;
 
 namespace TemplateGame.iOS
 {
     public static class Application
     {
-        public static void Main(string[] args)
-        {
-            UIApplication.Main(args, typeof(GameUIApplication), typeof(AppDelegate));
-        }
+        public static void Main(string[] args) => GameApplication.Main(new TemplateGameGame());
     }
 }

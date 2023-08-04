@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -13,7 +11,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneTriangles : FrameworkTestScene
+    public partial class TestSceneTriangles : FrameworkTestScene
     {
         private readonly Container testContainer;
 
@@ -169,7 +167,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         }
     }
 
-    internal class DraggableTriangle : Triangle
+    internal partial class DraggableTriangle : Triangle
     {
         public bool AllowDrag = true;
 

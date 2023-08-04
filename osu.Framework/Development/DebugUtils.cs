@@ -1,14 +1,13 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
+using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.Development
 {
@@ -38,7 +37,7 @@ namespace osu.Framework.Development
             {
                 Debug.Assert(IsNUnitRunning);
 
-                string testName = TestContext.CurrentContext.Test.ClassName;
+                string testName = TestContext.CurrentContext.Test.ClassName.AsNonNull();
                 return AppDomain.CurrentDomain.GetAssemblies().First(asm => asm.GetType(testName) != null);
             }
         );
@@ -56,7 +55,7 @@ namespace osu.Framework.Development
         public static bool LogPerformanceIssues { get; internal set; }
 
         // https://stackoverflow.com/a/2186634
-        private static bool isDebugAssembly(Assembly assembly) => assembly?.GetCustomAttributes(false).OfType<DebuggableAttribute>().Any(da => da.IsJITTrackingEnabled) ?? false;
+        private static bool isDebugAssembly(Assembly? assembly) => assembly?.GetCustomAttributes(false).OfType<DebuggableAttribute>().Any(da => da.IsJITTrackingEnabled) ?? false;
 
         /// <summary>
         /// Gets the entry assembly, or calling assembly otherwise.
@@ -70,12 +69,5 @@ namespace osu.Framework.Development
 
             return Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
         }
-
-        /// <summary>
-        /// Gets the absolute path to the directory containing the assembly determined by <see cref="GetEntryAssembly"/>.
-        /// </summary>
-        /// <returns>The entry path (usually obtained via the entry assembly's <see cref="Assembly.Location"/> directory.</returns>
-        [Obsolete("Use AppContext.BaseDirectory instead")] // Can be removed 20220211
-        public static string GetEntryPath() => AppContext.BaseDirectory;
     }
 }

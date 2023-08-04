@@ -1,21 +1,19 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicDropdown<T> : Dropdown<T>
+    public partial class BasicDropdown<T> : Dropdown<T>
     {
         protected override DropdownMenu CreateMenu() => new BasicDropdownMenu();
 
         protected override DropdownHeader CreateHeader() => new BasicDropdownHeader();
 
-        public class BasicDropdownHeader : DropdownHeader
+        public partial class BasicDropdownHeader : DropdownHeader
         {
             private readonly SpriteText label;
 
@@ -45,7 +43,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public class BasicDropdownMenu : DropdownMenu
+        public partial class BasicDropdownMenu : DropdownMenu
         {
             protected override Menu CreateSubMenu() => new BasicMenu(Direction.Vertical);
 
@@ -53,7 +51,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override ScrollContainer<Drawable> CreateScrollContainer(Direction direction) => new BasicScrollContainer(direction);
 
-            private class DrawableBasicDropdownMenuItem : DrawableDropdownMenuItem
+            private partial class DrawableBasicDropdownMenuItem : DrawableDropdownMenuItem
             {
                 public DrawableBasicDropdownMenuItem(MenuItem item)
                     : base(item)

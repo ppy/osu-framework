@@ -102,6 +102,7 @@ namespace osu.Framework.Tests.Clocks
             decoupleable.ProcessFrame();
 
             Assert.IsFalse(decoupleable.IsRunning, "Coupled should not be running.");
+            Assert.That(decoupleable.CurrentTime, Is.EqualTo(source.CurrentTime));
         }
 
         /// <summary>
@@ -131,6 +132,74 @@ namespace osu.Framework.Tests.Clocks
             decoupleable.ProcessFrame();
 
             Assert.IsTrue(decoupleable.IsRunning, "Decoupled should be running.");
+        }
+
+        #endregion
+
+        #region Source changes
+
+        [Test]
+        public void SourceChangeTransfersValueAdjustable()
+        {
+            // For decoupled clocks, value transfer is preferred in the direction of the track if possible.
+            // In other words, we want to keep our current time even if the source changes, as long as the source supports it.
+            //
+            // This tests the case where it is supported.
+
+            const double first_source_time = 256000;
+            const double second_source_time = 128000;
+
+            source.Seek(first_source_time);
+            source.Start();
+
+            var secondSource = new TestClock
+            {
+                // importantly, test a value lower than the original source.
+                // this is to both test value transfer *and* the case where time is going backwards, as
+                // some clocks have special provisions for this.
+                CurrentTime = second_source_time
+            };
+
+            decoupleable.ProcessFrame();
+            Assert.That(decoupleable.CurrentTime, Is.EqualTo(first_source_time));
+
+            decoupleable.ChangeSource(secondSource);
+            decoupleable.ProcessFrame();
+
+            Assert.That(secondSource.CurrentTime, Is.EqualTo(first_source_time));
+            Assert.That(decoupleable.CurrentTime, Is.EqualTo(first_source_time));
+        }
+
+        [Test]
+        public void SourceChangeTransfersValueNonAdjustable()
+        {
+            // For decoupled clocks, value transfer is preferred in the direction of the track if possible.
+            // In other words, we want to keep our current time even if the source changes, as long as the source supports it.
+            //
+            // This tests the case where it is NOT supported.
+
+            const double first_source_time = 256000;
+            const double second_source_time = 128000;
+
+            source.Seek(first_source_time);
+            source.Start();
+
+            var secondSource = new TestNonAdjustableClock
+            {
+                // importantly, test a value lower than the original source.
+                // this is to both test value transfer *and* the case where time is going backwards, as
+                // some clocks have special provisions for this.
+                CurrentTime = second_source_time
+            };
+
+            decoupleable.ProcessFrame();
+            Assert.That(decoupleable.CurrentTime, Is.EqualTo(first_source_time));
+
+            decoupleable.ChangeSource(secondSource);
+            decoupleable.ProcessFrame();
+
+            Assert.That(secondSource.CurrentTime, Is.EqualTo(second_source_time));
+            Assert.That(decoupleable.CurrentTime, Is.EqualTo(second_source_time));
         }
 
         #endregion
@@ -303,7 +372,9 @@ namespace osu.Framework.Tests.Clocks
             decoupleable.IsCoupled = false;
             decoupleable.Seek(1000);
 
-            Assert.AreEqual(decoupleable.CurrentTime, source.CurrentTime, "Source time should match coupled time.");
+            Assert.AreEqual(decoupleable.CurrentTime, 1000, "Decoupled time should match seek target.");
+            // Seek on the source is not performed as the clock is stopped.
+            Assert.AreNotEqual(source.CurrentTime, decoupleable.CurrentTime, "Source time should not match coupled time.");
         }
 
         /// <summary>

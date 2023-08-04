@@ -16,7 +16,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
-    public class StepSlider<T> : SliderBar<T>
+    public partial class StepSlider<T> : SliderBar<T>
         where T : struct, IComparable<T>, IConvertible, IEquatable<T>
     {
         private readonly Box selection;
@@ -92,7 +92,7 @@ namespace osu.Framework.Testing.Drawables.Steps
             var value = Current.Value;
 
             ValueChanged?.Invoke(value);
-            spriteText.Text = $"{text}: {Convert.ToDouble(value):G3}";
+            spriteText.Text = $"{text}: {Convert.ToDouble(value):#,0.##}";
             selection.ResizeWidthTo(normalizedValue);
         }
 
