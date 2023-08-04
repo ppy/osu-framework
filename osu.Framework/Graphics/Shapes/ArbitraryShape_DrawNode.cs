@@ -29,7 +29,6 @@ namespace osu.Framework.Graphics.Shapes
             private Vector2 drawSize;
 
             private IShader shader;
-            private IShader roundedShader;
             private Texture texture;
 
             private FillRule fillRule;
@@ -56,7 +55,6 @@ namespace osu.Framework.Graphics.Shapes
 
                 texture = Source.Texture;
                 shader = Source.TextureShader;
-                roundedShader = Source.RoundedTextureShader;
                 fillRule = Source.fillRule;
             }
 
@@ -77,11 +75,11 @@ namespace osu.Framework.Graphics.Shapes
 
             private void drawNonZero(IRenderer renderer)
             {
-                var activeShader = renderer.IsMaskingActive ? roundedShader : shader;
+                var activeShader = shader;
                 shader.Bind();
 
                 // clear stencil where we will draw
-                renderer.PushStencilInfo(new StencilInfo(stencilTest: true, DepthStencilFunction.Always, 0));
+                renderer.PushStencilInfo(new StencilInfo(stencilTest: true, BufferTestFunction.Always, 0));
                 renderer.DrawQuad(renderer.WhitePixel, screenSpaceQuad, Color4.Transparent);
                 renderer.PopStencilInfo();
 
@@ -94,14 +92,14 @@ namespace osu.Framework.Graphics.Shapes
                     if (winding < 0)
                     {
                         renderer.PushStencilInfo(new StencilInfo(
-                            true, DepthStencilFunction.Always, 1,
+                            true, BufferTestFunction.Always, 1,
                             passed: StencilOperation.DecreaseWrap
                         ));
                     }
                     else
                     {
                         renderer.PushStencilInfo(new StencilInfo(
-                            true, DepthStencilFunction.Always, 1,
+                            true, BufferTestFunction.Always, 1,
                             passed: StencilOperation.IncreaseWrap
                         ));
                     }
@@ -138,7 +136,7 @@ namespace osu.Framework.Graphics.Shapes
                 activeShader.Bind();
 
                 // draw over the stencil
-                renderer.PushStencilInfo(new StencilInfo(stencilTest: true, DepthStencilFunction.NotEqual, 0));
+                renderer.PushStencilInfo(new StencilInfo(stencilTest: true, BufferTestFunction.NotEqual, 0));
                 renderer.DrawQuad(texture, screenSpaceQuad, DrawColourInfo.Colour);
                 renderer.PopStencilInfo();
 
@@ -147,17 +145,17 @@ namespace osu.Framework.Graphics.Shapes
 
             private void drawEvenOdd(IRenderer renderer)
             {
-                var activeShader = renderer.IsMaskingActive ? roundedShader : shader;
+                var activeShader = shader;
                 shader.Bind();
 
                 // clear stencil where we will draw
-                renderer.PushStencilInfo(new StencilInfo(stencilTest: true, DepthStencilFunction.Always, 0));
+                renderer.PushStencilInfo(new StencilInfo(stencilTest: true, BufferTestFunction.Always, 0));
                 renderer.DrawQuad(renderer.WhitePixel, screenSpaceQuad, Color4.Transparent);
                 renderer.PopStencilInfo();
 
                 // even-odd will filp the stencil value each time we draw over the pixel
                 renderer.PushStencilInfo(new StencilInfo(
-                    true, DepthStencilFunction.Always, 1,
+                    true, BufferTestFunction.Always, 1,
                     passed: StencilOperation.Invert
                 ));
                 renderer.PushLocalMatrix(DrawInfo.Matrix);
@@ -178,7 +176,7 @@ namespace osu.Framework.Graphics.Shapes
                 activeShader.Bind();
 
                 // draw over the stencil
-                renderer.PushStencilInfo(new StencilInfo(stencilTest: true, DepthStencilFunction.NotEqual, 0));
+                renderer.PushStencilInfo(new StencilInfo(stencilTest: true, BufferTestFunction.NotEqual, 0));
                 renderer.DrawQuad(texture, screenSpaceQuad, DrawColourInfo.Colour);
                 renderer.PopStencilInfo();
 
@@ -193,7 +191,7 @@ namespace osu.Framework.Graphics.Shapes
 
             private void drawFan(IRenderer renderer)
             {
-                var activeShader = renderer.IsMaskingActive ? roundedShader : shader;
+                var activeShader = shader;
                 activeShader.Bind();
 
                 renderer.PushLocalMatrix(DrawInfo.Matrix);

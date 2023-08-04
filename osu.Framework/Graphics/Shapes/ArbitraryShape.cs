@@ -21,7 +21,6 @@ namespace osu.Framework.Graphics.Shapes
     /// </summary>
     public partial class ArbitraryShape : Drawable
     {
-        public IShader RoundedTextureShader { get; private set; }
         public IShader TextureShader { get; private set; }
 
         [Resolved]
@@ -37,7 +36,6 @@ namespace osu.Framework.Graphics.Shapes
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
         }
 
