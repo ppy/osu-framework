@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.UserInterface
         public Anchor PopoverAnchor
         {
             get => Anchor;
-            set
+            internal set
             {
                 BoundingBoxContainer.Origin = value;
                 BoundingBoxContainer.Anchor = value.Opposite();
