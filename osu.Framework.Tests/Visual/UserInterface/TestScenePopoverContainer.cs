@@ -521,6 +521,56 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("container received click", () => eventHandlingContainer.ClickReceived);
         }
 
+        [Test]
+        public void TestAllowableAnchors()
+        {
+            DrawableWithPopover target = null!;
+
+            AddStep("add button", () => popoverContainer.Child = target = new DrawableWithPopover
+            {
+                Width = 200,
+                Height = 30,
+                Anchor = Anchor.TopLeft,
+                Origin = Anchor.TopLeft,
+                RelativePositionAxes = Axes.Both,
+                Text = "open",
+            });
+
+            AddStep("allow popover to only show above & below", () =>
+            {
+                target.HidePopover();
+                target.CreateContent = _ => new BasicPopover
+                {
+                    AllowableAnchors = new[] { Anchor.TopCentre, Anchor.BottomCentre },
+                    Child = new SpriteText { Text = "This popover can only be shown above or below" }
+                };
+                target.ShowPopover();
+            });
+
+            AddStep("allow popover to only show to the sides", () =>
+            {
+                target.HidePopover();
+                target.CreateContent = _ => new BasicPopover
+                {
+                    AllowableAnchors = new[] { Anchor.CentreLeft, Anchor.CentreRight },
+                    Child = new SpriteText { Text = "This popover can only be shown to the sides" }
+                };
+                target.ShowPopover();
+            });
+
+            AddSliderStep("move X", 0f, 1, 0, x =>
+            {
+                if (target.IsNotNull())
+                    target.X = x;
+            });
+
+            AddSliderStep("move Y", 0f, 1, 0, y =>
+            {
+                if (target.IsNotNull())
+                    target.Y = y;
+            });
+        }
+
         private void createContent(Func<DrawableWithPopover, Popover> creationFunc)
             => AddStep("create content", () =>
             {
