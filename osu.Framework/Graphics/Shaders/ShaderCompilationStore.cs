@@ -84,8 +84,11 @@ namespace osu.Framework.Graphics.Shaders
                 if (CacheStorage == null)
                     return false;
 
-                if (!CacheStorage.Exists(filename))
-                    return false;
+                lock (save_lock)
+                {
+                    if (!CacheStorage.Exists(filename))
+                        return false;
+                }
 
                 using var stream = CacheStorage.GetStream(filename);
                 using var br = new BinaryReader(stream);
