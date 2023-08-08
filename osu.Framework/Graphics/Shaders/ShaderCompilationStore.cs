@@ -84,17 +84,21 @@ namespace osu.Framework.Graphics.Shaders
                 if (CacheStorage == null)
                     return false;
 
+                string checksum;
+                string data;
+
                 lock (save_lock)
                 {
                     if (!CacheStorage.Exists(filename))
                         return false;
+
+                    using var stream = CacheStorage.GetStream(filename);
+
+                    using var br = new BinaryReader(stream);
+
+                    checksum = br.ReadString();
+                    data = br.ReadString();
                 }
-
-                using var stream = CacheStorage.GetStream(filename);
-                using var br = new BinaryReader(stream);
-
-                string checksum = br.ReadString();
-                string data = br.ReadString();
 
                 if (data.ComputeMD5Hash() != checksum)
                 {
