@@ -4,6 +4,7 @@
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -20,6 +21,9 @@ namespace osu.Framework.Tests.Visual.Input
     public partial class TestSceneTabletInput : FrameworkTestScene
     {
         private readonly FillFlowContainer contentFlow;
+
+        [Resolved]
+        private FrameworkConfigManager frameworkConfigManager { get; set; } = null!;
 
         public TestSceneTabletInput()
         {
@@ -83,6 +87,9 @@ namespace osu.Framework.Tests.Visual.Input
                         tabletHandler.AreaOffset.Value.X,
                         tabletHandler.AreaSize.Default.Y * yOffset));
             }
+
+            AddToggleStep("toggle confine mode", enabled => frameworkConfigManager.SetValue(FrameworkSetting.ConfineMouseMode,
+                enabled ? ConfineMouseMode.Always : ConfineMouseMode.Never));
         }
 
         private partial class TabletAreaVisualiser : CompositeDrawable
