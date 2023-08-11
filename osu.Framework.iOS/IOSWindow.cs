@@ -46,6 +46,8 @@ namespace osu.Framework.iOS
         {
             base.Create();
 
+            SDL.SDL_SetHint(SDL.SDL_HINT_IOS_HIDE_HOME_INDICATOR, "1");
+
             window = Runtime.GetNSObject<UIWindow>(WindowHandle);
             updateSafeArea();
         }
