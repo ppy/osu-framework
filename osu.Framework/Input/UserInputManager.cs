@@ -66,6 +66,9 @@ namespace osu.Framework.Input
                     break;
 
                 case ButtonStateChangeEvent<MouseButton> buttonChange:
+                    // presses registered when the mouse pointer is outside the window are ignored.
+                    // however, releases registered when the mouse pointer is outside the window cannot be ignored;
+                    // handling them is essential to correctly handling mouse capture (only applicable when relative mode is disabled).
                     if (buttonChange.Kind == ButtonStateChangeKind.Pressed && Host.Window?.CursorInWindow.Value == false)
                         return;
 
