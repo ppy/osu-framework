@@ -142,7 +142,8 @@ namespace osu.Framework.Graphics.Audio
         {
             base.UnbindAllBindables();
 
-            component?.UnbindAdjustments(adjustments);
+            if (!disposeUnderlyingComponentOnDispose)
+                component?.UnbindAdjustments(adjustments);
         }
 
         protected override void Dispose(bool isDisposing)
