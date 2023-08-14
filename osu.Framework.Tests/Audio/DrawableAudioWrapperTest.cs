@@ -21,10 +21,25 @@ namespace osu.Framework.Tests.Audio
             TrackVirtual track = null!;
             SlowDisposingDrawableAudioWrapper wrapper = null!;
 
-            AddStep("add slow disposing component", () => Child = wrapper = new SlowDisposingDrawableAudioWrapper(track = new TrackVirtual(1000)));
+            AddStep("add slow disposing wrapper for owned track",
+                () => Child = wrapper = new SlowDisposingDrawableAudioWrapper(track = new TrackVirtual(1000)));
             AddStep("mute wrapper", () => wrapper.AddAdjustment(AdjustableProperty.Volume, new BindableDouble()));
             AddStep("expire wrapper", () => wrapper.Expire());
             AddAssert("component still muted", () => track.AggregateVolume.Value, () => Is.EqualTo(0));
+            AddStep("allow disposal to complete", () => wrapper.AllowDisposal.Set());
+        }
+
+        [Test]
+        public void TestAdjustmentsRevertedOnOwnedComponentAfterRemoval()
+        {
+            TrackVirtual track = null!;
+            SlowDisposingDrawableAudioWrapper wrapper = null!;
+
+            AddStep("add slow disposing wrapper for non-owned track",
+                () => Child = wrapper = new SlowDisposingDrawableAudioWrapper(track = new TrackVirtual(1000), false));
+            AddStep("mute wrapper", () => wrapper.AddAdjustment(AdjustableProperty.Volume, new BindableDouble()));
+            AddStep("expire wrapper", () => wrapper.Expire());
+            AddAssert("component unmuted", () => track.AggregateVolume.Value, () => Is.EqualTo(1));
             AddStep("allow disposal to complete", () => wrapper.AllowDisposal.Set());
         }
 
@@ -32,8 +47,8 @@ namespace osu.Framework.Tests.Audio
         {
             public ManualResetEvent AllowDisposal { get; private set; } = new ManualResetEvent(false);
 
-            public SlowDisposingDrawableAudioWrapper(IAdjustableAudioComponent component)
-                : base(component)
+            public SlowDisposingDrawableAudioWrapper(IAdjustableAudioComponent component, bool disposeUnderlyingComponentOnDispose = true)
+                : base(component, disposeUnderlyingComponentOnDispose)
             {
             }
 
