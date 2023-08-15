@@ -20,7 +20,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
     {
         private readonly GLRenderer renderer;
         private readonly string name;
-        private readonly IUniformBuffer<GlobalUniformData> globalUniformBuffer;
         private readonly GLShaderPart[] parts;
 
         private readonly ScheduledDelegate shaderCompileDelegate;
@@ -42,11 +41,10 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
         private readonly GLShaderPart fragmentPart;
         private readonly VertexFragmentShaderCompilation compilation;
 
-        internal GLShader(GLRenderer renderer, string name, GLShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer, ShaderCompilationStore compilationStore)
+        internal GLShader(GLRenderer renderer, string name, GLShaderPart[] parts, ShaderCompilationStore compilationStore)
         {
             this.renderer = renderer;
             this.name = name;
-            this.globalUniformBuffer = globalUniformBuffer;
             this.parts = parts;
 
             vertexPart = parts.Single(p => p.Type == ShaderType.VertexShader);
@@ -88,8 +86,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                 throw new ProgramLinkingFailedException(name, GetProgramLog());
 
             IsLoaded = true;
-
-            BindUniformBlock("g_GlobalUniforms", globalUniformBuffer);
         }
 
         internal void EnsureShaderCompiled()
