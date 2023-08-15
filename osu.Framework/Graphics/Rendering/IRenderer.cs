@@ -417,6 +417,25 @@ namespace osu.Framework.Graphics.Rendering
         IUniformBuffer<TData> CreateUniformBuffer<TData>() where TData : unmanaged, IEquatable<TData>;
 
         /// <summary>
+        /// Creates a buffer that can be used to store an array of data for use in a <see cref="IShader"/>.
+        /// </summary>
+        /// <param name="uboSize">The number of elements this buffer should contain if Shader Storage Buffer Objects <b>are not</b> supported by the platform.
+        /// A safe value is <c>16384/{data_size}</c>. The value must match the definition of the UBO implementation in the shader.</param>
+        /// <param name="ssboSize">The number of elements this buffer should contain if Shader Storage Buffer Objects <b>are</b> supported by the platform.
+        /// May be any value up to <c>{vram_size}/{data_size}</c>.</param>
+        /// <remarks>
+        /// <list type="bullet">
+        /// <item>Internally, this buffer may be implemented as either a "Uniform Buffer Object" (UBO) or
+        /// a "Shader Storage Buffer Object" (SSBO) depending on the capabilities of the platform.</item>
+        /// <item>UBOs are more broadly supported but cannot hold as much data as SSBOs.</item>
+        /// <item>Shaders must provide implementations for both types of buffers to properly support this storage.</item>
+        /// </list>
+        /// </remarks>
+        /// <typeparam name="TData">The type of data to be stored in the buffer.</typeparam>
+        /// <returns>An <see cref="IShaderStorageBufferObject{TData}"/>.</returns>
+        IShaderStorageBufferObject<TData> CreateShaderStorageBufferObject<TData>(int uboSize, int ssboSize) where TData : unmanaged, IEquatable<TData>;
+
+        /// <summary>
         /// Sets the value of a uniform.
         /// </summary>
         /// <param name="uniform">The uniform to set.</param>

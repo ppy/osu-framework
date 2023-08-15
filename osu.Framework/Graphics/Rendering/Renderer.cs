@@ -1075,6 +1075,9 @@ namespace osu.Framework.Graphics.Rendering
         /// <inheritdoc cref="IRenderer.CreateUniformBuffer{TData}"/>
         protected abstract IUniformBuffer<TData> CreateUniformBuffer<TData>() where TData : unmanaged, IEquatable<TData>;
 
+        /// <inheritdoc cref="IRenderer.CreateShaderStorageBufferObject{TData}"/>
+        protected abstract IShaderStorageBufferObject<TData> CreateShaderStorageBufferObject<TData>(int uboSize, int ssboSize) where TData : unmanaged, IEquatable<TData>;
+
         /// <summary>
         /// Creates a new <see cref="INativeTexture"/>.
         /// </summary>
@@ -1187,10 +1190,22 @@ namespace osu.Framework.Graphics.Rendering
 
         IUniformBuffer<TData> IRenderer.CreateUniformBuffer<TData>()
         {
+            validateUniformLayout<TData>();
+            return CreateUniformBuffer<TData>();
+        }
+
+        IShaderStorageBufferObject<TData> IRenderer.CreateShaderStorageBufferObject<TData>(int uboSize, int ssboSize)
+        {
+            validateUniformLayout<TData>();
+            return CreateShaderStorageBufferObject<TData>(uboSize, ssboSize);
+        }
+
+        private void validateUniformLayout<TData>()
+        {
             Trace.Assert(ThreadSafety.IsDrawThread);
 
             if (validUboTypes.Contains(typeof(TData)))
-                return CreateUniformBuffer<TData>();
+                return;
 
             if (typeof(TData).StructLayoutAttribute?.Pack != 1)
                 throw new ArgumentException($"{typeof(TData).ReadableName()} requires a packing size of 1.");
@@ -1220,7 +1235,7 @@ namespace osu.Framework.Graphics.Rendering
                 throw new ArgumentException($"{typeof(TData).ReadableName()} alignment requires a {finalPadding} to be added at the end.");
 
             validUboTypes.Add(typeof(TData));
-            return CreateUniformBuffer<TData>();
+            return;
 
             static void checkValidType(FieldInfo field)
             {

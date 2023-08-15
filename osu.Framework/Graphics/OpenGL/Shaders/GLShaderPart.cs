@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
     internal class GLShaderPart : IShaderPart
     {
         public static readonly Regex SHADER_INPUT_PATTERN = new Regex(@"^\s*layout\s*\(\s*location\s*=\s*(-?\d+)\s*\)\s*(in\s+(?:(?:lowp|mediump|highp)\s+)?\w+\s+(\w+)\s*;)", RegexOptions.Multiline);
-        private static readonly Regex uniform_pattern = new Regex(@"^(\s*layout\s*\(.*)set\s*=\s*(-?\d)(.*\)\s*uniform)", RegexOptions.Multiline);
+        private static readonly Regex uniform_pattern = new Regex(@"^(\s*layout\s*\(.*)set\s*=\s*(-?\d)(.*\)\s*(?:(?:readonly\s*)?buffer|uniform))", RegexOptions.Multiline);
         private static readonly Regex include_pattern = new Regex(@"^\s*#\s*include\s+[""<](.*)["">]");
 
         internal bool Compiled { get; private set; }
@@ -29,13 +29,16 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private int partID = -1;
 
-        public GLShaderPart(IRenderer renderer, string name, byte[]? data, ShaderType type, IShaderStore store)
+        public GLShaderPart(GLRenderer renderer, string name, byte[]? data, ShaderType type, IShaderStore store)
         {
             this.renderer = renderer;
             this.store = store;
 
             Name = name;
             Type = type;
+
+            if (!renderer.UseStructuredBuffers)
+                shaderCodes.Add("#define OSU_GRAPHICS_NO_SSBO\n");
 
             // Load the shader files.
             shaderCodes.Add(loadFile(data, true));
