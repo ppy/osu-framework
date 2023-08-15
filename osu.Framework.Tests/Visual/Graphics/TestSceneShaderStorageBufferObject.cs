@@ -202,6 +202,9 @@ namespace osu.Framework.Tests.Visual.Graphics
                 // Create the SSBO.
                 colourBuffer ??= new ShaderStorageBufferObjectStack<ColourData>(renderer, ubo_size, ssbo_size);
 
+                // Reset the SSBO. This should be called every frame.
+                colourBuffer.Clear();
+
                 var rng = new Random(1337);
 
                 // Bind the custom shader.
