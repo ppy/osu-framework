@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             if (renderer.UseStructuredBuffers)
             {
                 Size = ssboSize;
-                buffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)(elementSize * Size), BufferUsage.StructuredBufferReadOnly | BufferUsage.Dynamic, elementSize));
+                buffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)(elementSize * Size), BufferUsage.StructuredBufferReadOnly | BufferUsage.Dynamic, elementSize, true));
             }
             else
             {
