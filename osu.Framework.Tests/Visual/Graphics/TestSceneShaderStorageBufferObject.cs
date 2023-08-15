@@ -207,7 +207,6 @@ namespace osu.Framework.Tests.Visual.Graphics
                 // Bind the custom shader.
                 shader.Bind();
 
-                // Submit vertices, making sure that we don't submit an index which would overflow the SSBO.
                 for (int i = 0; i < areas.Count; i++)
                 {
                     int colourIndex = colourBuffer.Push(new ColourData { Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), 1) });

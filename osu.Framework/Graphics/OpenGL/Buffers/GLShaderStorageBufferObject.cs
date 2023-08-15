@@ -71,18 +71,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (changeBeginIndex == -1)
                 return;
 
-            if (renderer.UseStructuredBuffers)
-            {
-                GL.BindBuffer(BufferTarget.UniformBuffer, Id);
-                GL.BufferSubData(BufferTarget.UniformBuffer, (IntPtr)(changeBeginIndex * elementSize), (IntPtr)(elementSize * changeCount), ref data[changeBeginIndex]);
-                GL.BindBuffer(BufferTarget.UniformBuffer, 0);
-            }
-            else
-            {
-                GL.BindBuffer(BufferTarget.UniformBuffer, Id);
-                GL.BufferSubData(BufferTarget.UniformBuffer, (IntPtr)(changeBeginIndex * elementSize), (IntPtr)(elementSize * changeCount), ref data[changeBeginIndex]);
-                GL.BindBuffer(BufferTarget.UniformBuffer, 0);
-            }
+            GL.BindBuffer(BufferTarget.UniformBuffer, Id);
+            GL.BufferSubData(BufferTarget.UniformBuffer, (IntPtr)(changeBeginIndex * elementSize), (IntPtr)(elementSize * changeCount), ref data[changeBeginIndex]);
+            GL.BindBuffer(BufferTarget.UniformBuffer, 0);
 
             changeBeginIndex = -1;
             changeCount = 0;
