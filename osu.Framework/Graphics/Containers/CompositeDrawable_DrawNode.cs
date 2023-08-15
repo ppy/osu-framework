@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Containers
             private MaskingInfo? maskingInfo;
 
             /// <summary>
-            /// The screen-space version of <see cref="MaskingInfo.MaskingSpaceArea"/>.
+            /// The screen-space version of <see cref="MaskingInfo.MaskingArea"/>.
             /// Used as cache of screen-space masking quads computed in previous frames.
             /// Assign null to reset.
             /// </summary>
