@@ -167,7 +167,7 @@ namespace osu.Framework.Graphics.Rendering
         }
 
         /// <summary>
-        /// Clears the stack.
+        /// Clears the stack. This should be called at the start of every frame to prevent runaway VRAM usage.
         /// </summary>
         public void Clear()
         {

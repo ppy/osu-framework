@@ -16,13 +16,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         public int Id { get; }
 
         private readonly TData[] data;
-        private readonly GLRenderer renderer;
         private readonly uint elementSize;
 
         public GLShaderStorageBufferObject(GLRenderer renderer, int uboSize, int ssboSize)
         {
-            this.renderer = renderer;
-
             Id = GL.GenBuffer();
             Size = renderer.UseStructuredBuffers ? ssboSize : uboSize;
             data = new TData[Size];
@@ -71,18 +68,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (changeBeginIndex == -1)
                 return;
 
-            if (renderer.UseStructuredBuffers)
-            {
-                GL.BindBuffer(BufferTarget.UniformBuffer, Id);
-                GL.BufferSubData(BufferTarget.UniformBuffer, (IntPtr)(changeBeginIndex * elementSize), (IntPtr)(elementSize * changeCount), ref data[changeBeginIndex]);
-                GL.BindBuffer(BufferTarget.UniformBuffer, 0);
-            }
-            else
-            {
-                GL.BindBuffer(BufferTarget.UniformBuffer, Id);
-                GL.BufferSubData(BufferTarget.UniformBuffer, (IntPtr)(changeBeginIndex * elementSize), (IntPtr)(elementSize * changeCount), ref data[changeBeginIndex]);
-                GL.BindBuffer(BufferTarget.UniformBuffer, 0);
-            }
+            GL.BindBuffer(BufferTarget.UniformBuffer, Id);
+            GL.BufferSubData(BufferTarget.UniformBuffer, (IntPtr)(changeBeginIndex * elementSize), (IntPtr)(elementSize * changeCount), ref data[changeBeginIndex]);
+            GL.BindBuffer(BufferTarget.UniformBuffer, 0);
 
             changeBeginIndex = -1;
             changeCount = 0;

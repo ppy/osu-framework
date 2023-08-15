@@ -187,7 +187,16 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                         textureLayouts.Add(new VeldridUniformLayout(set, renderer.Factory.CreateResourceLayout(layout)));
                     }
                     else
-                        uniformLayouts[layout.Elements[0].Name] = new VeldridUniformLayout(set, renderer.Factory.CreateResourceLayout(layout));
+                    {
+                        switch (layout.Elements[0].Kind)
+                        {
+                            case ResourceKind.UniformBuffer:
+                            case ResourceKind.StructuredBufferReadOnly:
+                            case ResourceKind.StructuredBufferReadWrite:
+                                uniformLayouts[layout.Elements[0].Name] = new VeldridUniformLayout(set, renderer.Factory.CreateResourceLayout(layout));
+                                break;
+                        }
+                    }
                 }
 
                 Logger.Log(cached

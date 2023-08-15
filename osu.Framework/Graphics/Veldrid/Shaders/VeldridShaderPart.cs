@@ -119,8 +119,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
                     Inputs.AddRange(
                         shader_input_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value)).ToList());
-                    Outputs.AddRange(shader_output_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value))
-                                                          .ToList());
+                    Outputs.AddRange(
+                        shader_output_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value)).ToList());
 
                     string outputCode = loadFile(store.GetRawData($"Internal/sh_{Type}_Output.h"), false);
 
