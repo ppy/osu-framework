@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         private readonly VeldridRenderer renderer;
 
         private NativeMemoryTracker.NativeMemoryLease? memoryLease;
-        private IStagingBuffer<DepthWrappingVertex<T>>? stagingBuffer;
+        private IStagingBuffer<T>? stagingBuffer;
 
         private DeviceBuffer? buffer;
 
@@ -49,14 +49,9 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         public bool SetVertex(int vertexIndex, T vertex)
         {
             ref var currentVertex = ref getMemory()[vertexIndex];
+            bool isNewVertex = vertexIndex > lastWrittenVertexIndex || !currentVertex.Equals(vertex);
 
-            bool isNewVertex = vertexIndex > lastWrittenVertexIndex
-                               || !currentVertex.Vertex.Equals(vertex)
-                               || currentVertex.BackbufferDrawDepth != renderer.BackbufferDrawDepth;
-
-            currentVertex.Vertex = vertex;
-            currentVertex.BackbufferDrawDepth = renderer.BackbufferDrawDepth;
-
+            currentVertex = vertex;
             lastWrittenVertexIndex = Math.Max(lastWrittenVertexIndex, vertexIndex);
 
             return isNewVertex;
@@ -87,13 +82,13 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             memoryLease = NativeMemoryTracker.AddMemory(this, buffer.SizeInBytes);
         }
 
-        private Span<DepthWrappingVertex<T>> getMemory()
+        private Span<T> getMemory()
         {
             ThreadSafety.EnsureDrawThread();
 
             if (!InUse)
             {
-                stagingBuffer = renderer.CreateStagingBuffer<DepthWrappingVertex<T>>((uint)Size);
+                stagingBuffer = renderer.CreateStagingBuffer<T>((uint)Size);
                 renderer.RegisterVertexBufferUse(this);
             }
 

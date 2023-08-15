@@ -12,9 +12,9 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
     internal interface IVeldridVertexBuffer<in T> : IVertexBuffer, IDisposable
         where T : unmanaged, IEquatable<T>, IVertex
     {
-        protected static readonly int STRIDE = VeldridVertexUtils<DepthWrappingVertex<T>>.STRIDE;
+        protected static readonly int STRIDE = VeldridVertexUtils<T>.STRIDE;
 
-        public static readonly VertexLayoutDescription LAYOUT = VeldridVertexUtils<DepthWrappingVertex<T>>.Layout;
+        public static readonly VertexLayoutDescription LAYOUT = VeldridVertexUtils<T>.Layout;
 
         /// <summary>
         /// Gets the number of vertices in this <see cref="IVeldridVertexBuffer{T}"/>.

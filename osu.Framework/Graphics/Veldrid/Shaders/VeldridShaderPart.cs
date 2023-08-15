@@ -46,15 +46,6 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             // Load the shader files.
             code += loadFile(data, true);
 
-            int lastInputIndex = 0;
-
-            // Parse all shader inputs to find the last input index.
-            foreach (Match m in shader_input_pattern.Matches(code))
-                lastInputIndex = Math.Max(lastInputIndex, int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture));
-
-            // Update the location of the m_BackbufferDrawDepth input to be placed after all other inputs.
-            code = code.Replace("layout(location = -1)", $"layout(location = {lastInputIndex + 1})");
-
             // Increment the binding set of all uniform blocks.
             // After this transformation, the g_GlobalUniforms block is placed in set 0 and all other user blocks begin from 1.
             // The difference in implementation here (compared to above) is intentional, as uniform blocks must be consistent between the shader stages, so they can't be easily appended.
