@@ -16,13 +16,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         public int Id { get; }
 
         private readonly TData[] data;
-        private readonly GLRenderer renderer;
         private readonly uint elementSize;
 
         public GLShaderStorageBufferObject(GLRenderer renderer, int uboSize, int ssboSize)
         {
-            this.renderer = renderer;
-
             Id = GL.GenBuffer();
             Size = renderer.UseStructuredBuffers ? ssboSize : uboSize;
             data = new TData[Size];
