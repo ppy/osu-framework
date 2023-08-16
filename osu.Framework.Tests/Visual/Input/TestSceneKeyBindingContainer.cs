@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using NUnit.Framework;
@@ -25,7 +23,7 @@ namespace osu.Framework.Tests.Visual.Input
             bool pressedReceived = false;
             bool releasedReceived = false;
 
-            TestKeyBindingContainer keyBindingContainer = null;
+            TestKeyBindingContainer keyBindingContainer = null!;
 
             AddStep("add container", () =>
             {
@@ -89,7 +87,7 @@ namespace osu.Framework.Tests.Visual.Input
             List<TestAction> pressedActions = new List<TestAction>();
             List<TestAction> releasedActions = new List<TestAction>();
 
-            TextBox textBox = null;
+            TextBox textBox = null!;
 
             AddStep("add children", () =>
             {
@@ -218,7 +216,7 @@ namespace osu.Framework.Tests.Visual.Input
             int pressedReceived = 0;
             int repeatedReceived = 0;
             bool releasedReceived = false;
-            TestKeyBindingReceptor receptor = null;
+            TestKeyBindingReceptor receptor = null!;
 
             AddStep("add container", () =>
             {
@@ -301,9 +299,9 @@ namespace osu.Framework.Tests.Visual.Input
 
         private partial class TestKeyBindingReceptor : Drawable, IKeyBindingHandler<TestAction>
         {
-            public Action<TestAction> Pressed;
-            public Action<TestAction> Repeated;
-            public Action<TestAction> Released;
+            public Action<TestAction>? Pressed;
+            public Action<TestAction>? Repeated;
+            public Action<TestAction>? Released;
 
             public TestKeyBindingReceptor()
             {
