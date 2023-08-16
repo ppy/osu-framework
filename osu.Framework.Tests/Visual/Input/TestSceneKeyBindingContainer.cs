@@ -297,6 +297,58 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("release B", () => InputManager.ReleaseKey(Key.B));
         }
 
+        [Test]
+        public void TestPrioritisedNonPositionalInput([Values] bool prioritised)
+        {
+            bool containerReceivedInput = false;
+
+            AddStep("create content", () =>
+            {
+                containerReceivedInput = false;
+
+                Child = new TestKeyBindingContainer(prioritised)
+                {
+                    Pressed = a => containerReceivedInput = a == TestAction.ActionA,
+                    Child = new InputBlockingDrawable()
+                };
+            });
+
+            AddStep("trigger action", () => InputManager.Key(Key.A));
+
+            if (prioritised)
+                AddAssert("container received input", () => containerReceivedInput);
+            else
+                AddAssert("container did not receive input", () => !containerReceivedInput);
+        }
+
+        [Test]
+        public void TestPrioritisedPositionalInput([Values] bool prioritised)
+        {
+            bool containerReceivedInput = false;
+
+            Drawable receptor = null!;
+
+            AddStep("create content", () =>
+            {
+                containerReceivedInput = false;
+
+                Child = new TestKeyBindingContainer(prioritised)
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Pressed = a => containerReceivedInput = a == TestAction.ActionMouse4,
+                    Child = receptor = new InputBlockingDrawable()
+                };
+            });
+
+            AddStep("hover receptor", () => InputManager.MoveMouseTo(receptor));
+            AddStep("trigger action", () => InputManager.Click(MouseButton.Button4));
+
+            if (prioritised)
+                AddAssert("container received input", () => containerReceivedInput);
+            else
+                AddAssert("container did not receive input", () => !containerReceivedInput);
+        }
+
         private partial class TestKeyBindingReceptor : Drawable, IKeyBindingHandler<TestAction>
         {
             public Action<TestAction>? Pressed;
@@ -324,15 +376,44 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private partial class TestKeyBindingContainer : KeyBindingContainer<TestAction>
+        private partial class TestKeyBindingContainer : KeyBindingContainer<TestAction>, IKeyBindingHandler<TestAction>
         {
+            protected override bool Prioritised { get; }
+
+            public Func<TestAction, bool>? Pressed;
+
+            public TestKeyBindingContainer(bool prioritised = false)
+            {
+                Prioritised = prioritised;
+            }
+
             public override IEnumerable<IKeyBinding> DefaultKeyBindings => new IKeyBinding[]
             {
                 new KeyBinding(InputKey.A, TestAction.ActionA),
                 new KeyBinding(new KeyCombination(InputKey.A, InputKey.B), TestAction.ActionAB),
                 new KeyBinding(InputKey.Enter, TestAction.ActionEnter),
-                new KeyBinding(InputKey.Control, TestAction.ActionControl)
+                new KeyBinding(InputKey.Control, TestAction.ActionControl),
+                new KeyBinding(InputKey.ExtraMouseButton4, TestAction.ActionMouse4),
             };
+
+            public bool OnPressed(KeyBindingPressEvent<TestAction> e)
+            {
+                return Pressed?.Invoke(e.Action) == true;
+            }
+
+            public void OnReleased(KeyBindingReleaseEvent<TestAction> e)
+            {
+            }
+        }
+
+        private partial class InputBlockingDrawable : Drawable
+        {
+            protected override bool Handle(UIEvent e) => true;
+
+            public InputBlockingDrawable()
+            {
+                RelativeSizeAxes = Axes.Both;
+            }
         }
 
         private enum TestAction
@@ -340,7 +421,8 @@ namespace osu.Framework.Tests.Visual.Input
             ActionA,
             ActionAB,
             ActionEnter,
-            ActionControl
+            ActionControl,
+            ActionMouse4,
         }
     }
 }
