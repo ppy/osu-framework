@@ -13,7 +13,7 @@ namespace osu.Framework.Tests.Visual.Platform
     public partial class TestSceneWindowFlash : FrameworkTestScene
     {
         private IBindable<bool> isActive = null!;
-        private IWindow? window;
+        private SDL2DesktopWindow? window;
         private SpriteText text = null!;
         private TextFlowContainer behaviourText = null!;
         private readonly Bindable<bool> flashUntilFocused = new BindableBool();
@@ -22,7 +22,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private void load(GameHost gameHost)
         {
             isActive = gameHost.IsActive.GetBoundCopy();
-            window = gameHost.Window;
+            window = gameHost.Window as SDL2DesktopWindow;
             Child = new FillFlowContainer
             {
                 Direction = FillDirection.Vertical,

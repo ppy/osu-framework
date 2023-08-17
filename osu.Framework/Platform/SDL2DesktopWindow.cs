@@ -12,6 +12,19 @@ namespace osu.Framework.Platform
         {
         }
 
+        public void Flash(bool untilFocused = false) => ScheduleCommand(() =>
+        {
+            if (IsActive.Value)
+                return;
+
+            SDL.SDL_FlashWindow(SDLWindowHandle, untilFocused
+                ? SDL.SDL_FlashOperation.SDL_FLASH_UNTIL_FOCUSED
+                : SDL.SDL_FlashOperation.SDL_FLASH_BRIEFLY);
+        });
+
+        public void CancelFlash()
+            => ScheduleCommand(() => SDL.SDL_FlashWindow(SDLWindowHandle, SDL.SDL_FlashOperation.SDL_FLASH_CANCEL));
+
         protected override void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
         {
             // this reset is required even on changing from one fullscreen resolution to another.

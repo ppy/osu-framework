@@ -366,19 +366,6 @@ namespace osu.Framework.Platform
             SDL.SDL_RaiseWindow(SDLWindowHandle);
         });
 
-        public void Flash(bool untilFocused = false) => ScheduleCommand(() =>
-        {
-            if (isActive.Value)
-                return;
-
-            SDL.SDL_FlashWindow(SDLWindowHandle, untilFocused
-                ? SDL.SDL_FlashOperation.SDL_FLASH_UNTIL_FOCUSED
-                : SDL.SDL_FlashOperation.SDL_FLASH_BRIEFLY);
-        });
-
-        public void CancelFlash()
-            => ScheduleCommand(() => SDL.SDL_FlashWindow(SDLWindowHandle, SDL.SDL_FlashOperation.SDL_FLASH_CANCEL));
-
         /// <summary>
         /// Attempts to set the window's icon to the specified image.
         /// </summary>
