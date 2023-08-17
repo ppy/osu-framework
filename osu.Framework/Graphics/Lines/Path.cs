@@ -280,7 +280,20 @@ namespace osu.Framework.Graphics.Lines
         // The path should not receive the true colour to avoid colour doubling when the frame-buffer is rendered to the back-buffer.
         public override DrawColourInfo DrawColourInfo => new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
 
-        public Color4 BackgroundColour => new Color4(0, 0, 0, 0);
+        private Color4 backgroundColour = new Color4(0, 0, 0, 0);
+
+        /// <summary>
+        /// The background colour to be used for the frame buffer this path is rendered to.
+        /// </summary>
+        public virtual Color4 BackgroundColour
+        {
+            get => backgroundColour;
+            set
+            {
+                backgroundColour = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
 
         private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(new[] { RenderBufferFormat.D16 }, clipToRootNode: true);
 

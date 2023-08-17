@@ -22,7 +22,7 @@ namespace osu.Framework.Platform.Windows
     {
         private TimePeriod? timePeriod;
 
-        public override Clipboard GetClipboard() => new WindowsClipboard();
+        protected override Clipboard CreateClipboard() => new WindowsClipboard();
 
         protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new WindowsReadableKeyCombinationProvider();
 

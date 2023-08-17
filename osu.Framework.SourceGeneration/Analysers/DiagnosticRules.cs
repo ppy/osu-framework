@@ -13,12 +13,12 @@ namespace osu.Framework.SourceGeneration.Analysers
 
         public static readonly DiagnosticDescriptor MAKE_DI_CLASS_PARTIAL = new DiagnosticDescriptor(
             "OFSG001",
-            "This class is a candidate for dependency injection and should be partial",
-            "This class is a candidate for dependency injection and should be partial",
+            "This type, or a nested type, is a candidate for dependency injection and should be partial",
+            "This type, or a nested type, is a candidate for dependency injection and should be partial",
             "Performance",
             DiagnosticSeverity.Warning,
             true,
-            "Classes that are candidates for dependency injection should be made partial to benefit from compile-time optimisations.");
+            "Types that are candidates for dependency injection should be made partial to benefit from compile-time optimisations.");
 
 #pragma warning restore RS2008
     }

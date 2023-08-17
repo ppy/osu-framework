@@ -1,0 +1,39 @@
+namespace osu.Framework.Graphics
+{
+    public partial class Drawable
+    {
+        protected virtual void Handle(object e) { }
+
+        protected virtual void OnMouseMove(object e) { }
+        protected virtual void OnHover(object e) { }
+        protected virtual void OnHoverLost(object e) { }
+        protected virtual void OnMouseDown(object e) { }
+        protected virtual void OnMouseUp(object e) { }
+        protected virtual void OnClick(object e) { }
+        protected virtual void OnDoubleClick(object e) { }
+        protected virtual void OnDragStart(object e) { }
+        protected virtual void OnDrag(object e) { }
+        protected virtual void OnDragEnd(object e) { }
+        protected virtual void OnScroll(object e) { }
+        protected virtual void OnFocus(object e) { }
+        protected virtual void OnFocusLost(object e) { }
+        protected virtual void OnKeyDown(object e) { }
+        protected virtual void OnKeyUp(object e) { }
+        protected virtual void OnTouchDown(object e) { }
+        protected virtual void OnTouchMove(object e) { }
+        protected virtual void OnTouchUp(object e) { }
+        protected virtual void OnJoystickPress(object e) { }
+        protected virtual void OnJoystickRelease(object e) { }
+        protected virtual void OnJoystickAxisMove(object e) { }
+        protected virtual void OnMidiDown(object e) { }
+        protected virtual void OnMidiUp(object e) { }
+        protected virtual void OnTabletPenButtonPress(object e) { }
+        protected virtual void OnTabletPenButtonRelease(object e) { }
+        protected virtual void OnTabletAuxiliaryButtonPress(object e) { }
+        protected virtual void OnTabletAuxiliaryButtonRelease(object e) { }
+
+        protected virtual bool HandlePositionalInput => false;
+        protected virtual bool HandleNonPositionalInput => false;
+        protected virtual bool AcceptsFocus => false;
+    }
+}

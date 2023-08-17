@@ -1,0 +1,4 @@
+public partial class OnDragStartMethod : osu.Framework.Graphics.Drawable
+{
+    protected override void OnDragStart(object e) { }
+}

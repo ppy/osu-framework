@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
@@ -105,13 +104,17 @@ namespace osu.Framework.Benchmarks
             public void RunSingleFrame()
             {
                 ExecutionMode = ExecutionMode.SingleThread;
+
+                // Importantly, this calls the base method, bypassing the custom wait logic below
+                // (which is blocking execution by thread runner while the benchmark runs).
                 base.RunMainLoop();
             }
 
             public override void RunMainLoop()
             {
-                if (!RunOnce.Wait(10000))
-                    throw new TimeoutException("Run request didn't arrive for a long time");
+#pragma warning disable RS0030
+                RunOnce.Wait();
+#pragma warning restore RS0030
 
                 RunSingleFrame();
                 RunOnce.Reset();

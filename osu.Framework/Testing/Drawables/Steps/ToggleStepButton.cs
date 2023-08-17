@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Graphics;
 using osuTK.Graphics;
@@ -11,7 +9,7 @@ namespace osu.Framework.Testing.Drawables.Steps
 {
     public partial class ToggleStepButton : StepButton
     {
-        private readonly Action<bool> reloadCallback;
+        private readonly Action<bool>? reloadCallback;
         private static readonly Color4 off_colour = Color4.Red;
         private static readonly Color4 on_colour = Color4.YellowGreen;
 
@@ -19,7 +17,7 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         public override int RequiredRepetitions => 2;
 
-        public ToggleStepButton(Action<bool> reloadCallback)
+        public ToggleStepButton(Action<bool>? reloadCallback)
         {
             this.reloadCallback = reloadCallback;
             Action = clickAction;

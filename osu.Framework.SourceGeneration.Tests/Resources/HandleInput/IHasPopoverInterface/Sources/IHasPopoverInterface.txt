@@ -1,0 +1,5 @@
+using osu.Framework.Graphics.Cursor;
+
+public partial class IHasPopoverInterface : osu.Framework.Graphics.Drawable, IHasPopover
+{
+}

@@ -19,6 +19,7 @@ namespace osu.Framework.Graphics.Rendering
         SetStencilInfo,
         SetUniform,
         UnbindTexture,
-        SetActiveBatch
+        SetActiveBatch,
+        StorageBufferOverflow
     }
 }

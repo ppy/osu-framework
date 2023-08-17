@@ -8,9 +8,13 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Input;
+using osu.Framework.Input.Events;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
+using osuTK;
 using osuTK.Graphics;
+using osuTK.Input;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Performance
@@ -71,6 +75,90 @@ namespace osu.Framework.Graphics.Performance
             updateInfoText();
         }
 
+        // for some reason PerformanceOverlay has 0 width despite using AutoSizeAxes, and it doesn't look simple to fix.
+        // let's just work around it and consider frame statistics display dimensions for receiving input events.
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Children.OfType<FrameStatisticsDisplay>().Any(d => d.ReceivePositionalInputAt(screenSpacePos));
+
+        protected override bool OnKeyDown(KeyDownEvent e)
+        {
+            switch (e.Key)
+            {
+                case Key.ControlLeft:
+                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
+                        display.Expanded = true;
+
+                    break;
+
+                case Key.ShiftLeft:
+                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
+                        display.Running = false;
+
+                    break;
+            }
+
+            return base.OnKeyDown(e);
+        }
+
+        protected override void OnKeyUp(KeyUpEvent e)
+        {
+            switch (e.Key)
+            {
+                case Key.ControlLeft:
+                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
+                        display.Expanded = false;
+
+                    break;
+
+                case Key.ShiftLeft:
+                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
+                        display.Running = true;
+
+                    break;
+            }
+
+            base.OnKeyUp(e);
+        }
+
+        protected override bool OnTouchDown(TouchDownEvent e)
+        {
+            switch (e.Touch.Source)
+            {
+                case TouchSource.Touch1:
+                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
+                        display.Expanded = true;
+
+                    break;
+
+                case TouchSource.Touch2:
+                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
+                        display.Running = false;
+
+                    break;
+            }
+
+            return base.OnTouchDown(e);
+        }
+
+        protected override void OnTouchUp(TouchUpEvent e)
+        {
+            switch (e.Touch.Source)
+            {
+                case TouchSource.Touch1:
+                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
+                        display.Expanded = false;
+
+                    break;
+
+                case TouchSource.Touch2:
+                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
+                        display.Running = true;
+
+                    break;
+            }
+
+            base.OnTouchUp(e);
+        }
+
         private void updateState()
         {
             switch (state)
@@ -90,6 +178,7 @@ namespace osu.Framework.Graphics.Performance
                         Add(infoText = new TextFlowContainer(cp => cp.Font = FrameworkFont.Condensed)
                         {
                             Alpha = 0.75f,
+                            Anchor = Anchor.TopRight,
                             Origin = Anchor.TopRight,
                             TextAnchor = Anchor.TopRight,
                             AutoSizeAxes = Axes.Both,
@@ -98,7 +187,14 @@ namespace osu.Framework.Graphics.Performance
                         updateInfoText();
 
                         foreach (GameThread t in host.Threads)
-                            Add(new FrameStatisticsDisplay(t, uploadPool) { State = state });
+                        {
+                            Add(new FrameStatisticsDisplay(t, uploadPool)
+                            {
+                                Anchor = Anchor.TopRight,
+                                Origin = Anchor.TopRight,
+                                State = state
+                            });
+                        }
                     }
 
                     this.FadeIn(100);

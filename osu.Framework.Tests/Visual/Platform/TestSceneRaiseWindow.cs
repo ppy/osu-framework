@@ -11,13 +11,14 @@ namespace osu.Framework.Tests.Visual.Platform
     [Ignore("This test cannot be run in headless mode (a window instance is required).")]
     public partial class TestSceneRaiseWindow : FrameworkTestScene
     {
+        public override bool AutomaticallyRunFirstStep => false;
+
         private IWindow window = null!;
 
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
             window = host.Window!;
-            AddStep("nothing", () => { }); // so the test doesn't switch to windowed on startup.
         }
 
         [TestCase(WindowMode.Windowed)]

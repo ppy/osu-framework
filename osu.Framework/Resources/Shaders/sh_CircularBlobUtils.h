@@ -1,4 +1,10 @@
-﻿#define HALF_PI 1.57079632679
+﻿#ifndef CIRCULAR_BLOB_UTILS_H
+#define CIRCULAR_BLOB_UTILS_H
+
+#undef HALF_PI
+#define HALF_PI 1.57079632679
+
+#undef TWO_PI
 #define TWO_PI 6.28318530718
 
 // 2D noise and random https://thebookofshaders.com/11/
@@ -56,3 +62,5 @@ lowp float blobAlphaAt(highp vec2 pixelPos, mediump float innerRadius, highp flo
     
     return smoothstep(texelSize, 0.0, shortestDistance - pathRadius);
 }
+
+#endif

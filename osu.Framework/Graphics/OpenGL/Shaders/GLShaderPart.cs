@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -17,7 +15,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
     internal class GLShaderPart : IShaderPart
     {
         public static readonly Regex SHADER_INPUT_PATTERN = new Regex(@"^\s*layout\s*\(\s*location\s*=\s*(-?\d+)\s*\)\s*(in\s+(?:(?:lowp|mediump|highp)\s+)?\w+\s+(\w+)\s*;)", RegexOptions.Multiline);
-        private static readonly Regex uniform_pattern = new Regex(@"^(\s*layout\s*\(.*)set\s*=\s*(-?\d)(.*\)\s*uniform)", RegexOptions.Multiline);
+        private static readonly Regex uniform_pattern = new Regex(@"^(\s*layout\s*\(.*)set\s*=\s*(-?\d)(.*\)\s*(?:(?:readonly\s*)?buffer|uniform))", RegexOptions.Multiline);
         private static readonly Regex include_pattern = new Regex(@"^\s*#\s*include\s+[""<](.*)["">]");
 
         internal bool Compiled { get; private set; }
@@ -31,7 +29,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private int partID = -1;
 
-        public GLShaderPart(IRenderer renderer, string name, byte[] data, ShaderType type, IShaderStore store)
+        public GLShaderPart(GLRenderer renderer, string name, byte[]? data, ShaderType type, IShaderStore store)
         {
             this.renderer = renderer;
             this.store = store;
@@ -39,21 +37,11 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             Name = name;
             Type = type;
 
+            if (!renderer.UseStructuredBuffers)
+                shaderCodes.Add("#define OSU_GRAPHICS_NO_SSBO\n");
+
             // Load the shader files.
             shaderCodes.Add(loadFile(data, true));
-
-            int lastInputIndex = 0;
-
-            // Parse all shader inputs to find the last input index.
-            for (int i = 0; i < shaderCodes.Count; i++)
-            {
-                foreach (Match m in SHADER_INPUT_PATTERN.Matches(shaderCodes[i]))
-                    lastInputIndex = Math.Max(lastInputIndex, int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture));
-            }
-
-            // Update the location of the m_BackbufferDrawDepth input to be placed after all other inputs.
-            for (int i = 0; i < shaderCodes.Count; i++)
-                shaderCodes[i] = shaderCodes[i].Replace("layout(location = -1)", $"layout(location = {lastInputIndex + 1})");
 
             // Increment the binding set of all uniform blocks.
             // After this transformation, the g_GlobalUniforms block is placed in set 0 and all other user blocks begin from 1.
@@ -62,10 +50,10 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                 shaderCodes[i] = uniform_pattern.Replace(shaderCodes[i], match => $"{match.Groups[1].Value}set = {int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture) + 1}{match.Groups[3].Value}");
         }
 
-        private string loadFile(byte[] bytes, bool mainFile)
+        private string loadFile(byte[]? bytes, bool mainFile)
         {
             if (bytes == null)
-                return null;
+                return string.Empty;
 
             using (MemoryStream ms = new MemoryStream(bytes))
             using (StreamReader sr = new StreamReader(ms))
@@ -74,7 +62,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
                 while (sr.Peek() != -1)
                 {
-                    string line = sr.ReadLine();
+                    string? line = sr.ReadLine();
 
                     if (string.IsNullOrEmpty(line))
                     {
@@ -123,10 +111,10 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
                         if (!string.IsNullOrEmpty(backbufferCode))
                         {
-                            string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
+                            const string real_main_name = "__internal_real_main";
 
-                            backbufferCode = backbufferCode.Replace("{{ real_main }}", realMainName);
-                            code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';
+                            backbufferCode = backbufferCode.Replace("{{ real_main }}", real_main_name);
+                            code = Regex.Replace(code, @"void main\((.*)\)", $"void {real_main_name}()") + backbufferCode + '\n';
                         }
                     }
                 }
