@@ -53,8 +53,9 @@ namespace osu.Framework.Tests.Visual.Platform
             flashUntilFocused.BindValueChanged(e =>
             {
                 window?.CancelFlash();
-                text.Text = "This window will flash " + (e.NewValue ? "until focused again" : "briefly")
-                                                      + " as soon as it is unfocused.";
+                text.Text = "This window will flash "
+                            + (e.NewValue ? "continuously, until focused again, " : "briefly")
+                            + " as soon as it is unfocused.";
             }, true);
             isActive.BindValueChanged(e =>
             {
