@@ -46,15 +46,15 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             // Load the shader files.
             code += loadFile(data, true);
 
-            // Find the minimum uniform/buffer binding set across all shader codes. This will be a negative number (see sh_GlobalUniforms.h).
+            // Find the minimum uniform/buffer binding set across all shader codes. This will be a negative number (see sh_GlobalUniforms.h / sh_MaskingInfo.h).
             int minSet = uniform_pattern.Matches(code)
                                         .Where(m => m.Success)
                                         .Select(m => int.Parse(m.Groups[2].Value, CultureInfo.InvariantCulture))
                                         .DefaultIfEmpty(0).Min();
 
-            // Increment the binding set of all uniform blocks.
-            // After this transformation, the g_GlobalUniforms block is placed in set 0 and all other user blocks begin from 1.
-            // The difference in implementation here (compared to above) is intentional, as uniform blocks must be consistent between the shader stages, so they can't be easily appended.
+            // Increment the binding set of all uniform blocks equal to the absolute value of the minimum set from above.
+            // After this transformation, blocks with negative sets will start from set 0, and all other user blocks begin after them.
+            // The reason for doing this is that uniform blocks must be consistent between the shader stages, so they can't be appended.
             code = uniform_pattern.Replace(code, match => $"{match.Groups[1].Value}set = {int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture) + Math.Abs(minSet)}{match.Groups[3].Value}");
         }
 
