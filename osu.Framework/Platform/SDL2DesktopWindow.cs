@@ -21,15 +21,15 @@ namespace osu.Framework.Platform
         /// <remarks>
         /// This behaviour is available only on desktop platforms and may differ depending on the operating system.
         /// </remarks>
-        /// <param name="untilFocused">Whether the window should flash briefly or until focused.</param>
-        public void Flash(bool untilFocused = false) => ScheduleCommand(() =>
+        /// <param name="briefly">Whether the window should flash briefly or until focused.</param>
+        public void Flash(bool briefly = true) => ScheduleCommand(() =>
         {
             if (IsActive.Value)
                 return;
 
-            SDL.SDL_FlashWindow(SDLWindowHandle, untilFocused
-                ? SDL.SDL_FlashOperation.SDL_FLASH_UNTIL_FOCUSED
-                : SDL.SDL_FlashOperation.SDL_FLASH_BRIEFLY);
+            SDL.SDL_FlashWindow(SDLWindowHandle, briefly
+                ? SDL.SDL_FlashOperation.SDL_FLASH_BRIEFLY
+                : SDL.SDL_FlashOperation.SDL_FLASH_UNTIL_FOCUSED);
         });
 
         /// <summary>
