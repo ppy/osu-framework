@@ -24,6 +24,12 @@ namespace osu.Framework.Graphics
         Vector2 DrawSize { get; }
 
         /// <summary>
+        /// Absolutely sized rectangle for drawing in the <see cref="Parent"/>'s coordinate system.
+        /// Based on <see cref="DrawSize"/>.
+        /// </summary>
+        RectangleF DrawRectangle { get; }
+
+        /// <summary>
         /// Contains a linear transformation, colour information, and blending information
         /// of this drawable.
         /// </summary>
