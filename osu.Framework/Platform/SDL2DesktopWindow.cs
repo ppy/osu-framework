@@ -12,6 +12,16 @@ namespace osu.Framework.Platform
         {
         }
 
+        /// <summary>
+        /// Attempts to flash the window in order to request the user's attention while unfocused.
+        /// <para>
+        /// The flash can be canceled with <see cref="CancelFlash"/>.
+        /// </para>
+        /// </summary>
+        /// <remarks>
+        /// This behaviour is available only on desktop platforms and may differ depending on the operating system.
+        /// </remarks>
+        /// <param name="untilFocused">Whether the window should flash briefly or until focused.</param>
         public void Flash(bool untilFocused = false) => ScheduleCommand(() =>
         {
             if (IsActive.Value)
@@ -22,6 +32,12 @@ namespace osu.Framework.Platform
                 : SDL.SDL_FlashOperation.SDL_FLASH_BRIEFLY);
         });
 
+        /// <summary>
+        /// Cancels any flash triggered with <see cref="Flash"/>
+        /// </summary>
+        /// <remarks>
+        /// This can also cancel brief flashes (especially on Linux and Windows).
+        /// </remarks>
         public void CancelFlash()
             => ScheduleCommand(() => SDL.SDL_FlashWindow(SDLWindowHandle, SDL.SDL_FlashOperation.SDL_FLASH_CANCEL));
 
