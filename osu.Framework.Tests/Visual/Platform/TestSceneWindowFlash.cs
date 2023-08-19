@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -10,6 +11,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
+    [Ignore("This test cannot run in headless mode (a window instance is required).")]
     public partial class TestSceneWindowFlash : FrameworkTestScene
     {
         private IBindable<bool> isActive = null!;
