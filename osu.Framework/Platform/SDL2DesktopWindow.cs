@@ -12,35 +12,6 @@ namespace osu.Framework.Platform
         {
         }
 
-        /// <summary>
-        /// Attempts to flash the window in order to request the user's attention while unfocused.
-        /// <para>
-        /// The flash can be canceled with <see cref="CancelFlash"/>.
-        /// </para>
-        /// </summary>
-        /// <remarks>
-        /// This behaviour is available only on desktop platforms and may differ depending on the operating system.
-        /// </remarks>
-        /// <param name="briefly">Whether the window should flash briefly or until focused.</param>
-        public void Flash(bool briefly = true) => ScheduleCommand(() =>
-        {
-            if (IsActive.Value)
-                return;
-
-            SDL.SDL_FlashWindow(SDLWindowHandle, briefly
-                ? SDL.SDL_FlashOperation.SDL_FLASH_BRIEFLY
-                : SDL.SDL_FlashOperation.SDL_FLASH_UNTIL_FOCUSED);
-        });
-
-        /// <summary>
-        /// Cancels any flash triggered with <see cref="Flash"/>
-        /// </summary>
-        /// <remarks>
-        /// This can also cancel brief flashes (especially on Linux and Windows).
-        /// </remarks>
-        public void CancelFlash()
-            => ScheduleCommand(() => SDL.SDL_FlashWindow(SDLWindowHandle, SDL.SDL_FlashOperation.SDL_FLASH_CANCEL));
-
         protected override void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
         {
             // this reset is required even on changing from one fullscreen resolution to another.

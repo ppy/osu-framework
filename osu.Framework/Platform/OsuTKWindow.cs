@@ -94,6 +94,10 @@ namespace osu.Framework.Platform
         {
         }
 
+        public void Flash(bool _) => throw new NotImplementedException("OsuTK windows don't implement flashing.");
+
+        public void CancelFlash() => throw new NotImplementedException("OsuTK windows don't implement flashing.");
+
         public abstract bool Focused { get; }
 
         public abstract IBindable<bool> IsActive { get; }
