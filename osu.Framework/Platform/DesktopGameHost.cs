@@ -26,6 +26,10 @@ namespace osu.Framework.Platform
             IsPortableInstallation = Options.PortableInstallation;
         }
 
+        public void FlashWindow(bool briefly = true) => (Window as SDL2DesktopWindow)?.Flash(briefly);
+
+        public void CancelWindowFlashing() => (Window as SDL2DesktopWindow)?.CancelFlash();
+
         protected sealed override Storage GetDefaultGameStorage()
         {
             if (IsPortableInstallation || File.Exists(Path.Combine(RuntimeInfo.StartupDirectory, FrameworkConfigManager.FILENAME)))
