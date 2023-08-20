@@ -172,7 +172,10 @@ namespace osu.Framework.Platform
         /// <remarks>
         /// This has no effect on <see cref="OsuTKWindow"/>s and on iOS/iPadOS.
         /// </remarks>
-        /// <param name="untilFocused">Flash the window until the window is focused.</param>
+        /// <param name="untilFocused">
+        /// When true, the window will flash until it is focused again.
+        /// Only once otherwise.
+        /// </param>
         void Flash(bool untilFocused = false);
 
         /// <summary>
