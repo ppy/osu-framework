@@ -53,6 +53,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Reset bodies", reset);
 
             AddSliderStep("Simulation speed", 0f, 1f, 0.5f, v => sim.SimulationSpeed = v);
+            AddSliderStep("Gravity", 0f, 10000f, 981f, v => sim.Gravity = v);
             AddSliderStep("Restitution", -1f, 1f, 1f, v => restitution = v);
             AddSliderStep("Friction", -1f, 5f, 0f, v => friction = v);
 
