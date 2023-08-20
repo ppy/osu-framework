@@ -167,12 +167,10 @@ namespace osu.Framework.Platform
 
         /// <summary>
         /// Attempts to flash the window in order to request the user's attention.
+        /// This behaviour is only available on desktop platforms and is different depending on the OS.
         /// </summary>
         /// <remarks>
-        /// This behaviour is only available on desktop platforms and is different depending on the OS:
-        /// - On Windows: flashes the icon on the taskbar (only once if briefly) and raises it
-        /// - On MacOS: jumps on the Dock (only once if briefly)
-        /// - On Linux: depends on the Desktop Environment / Window Manager setup.
+        /// This has no effect on <see cref="OsuTKWindow"/>s and on iOS/iPadOS.
         /// </remarks>
         /// <param name="untilFocused">Flash the window until the window is focused.</param>
         void Flash(bool untilFocused = false);
@@ -180,6 +178,9 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Attempts to cancel any window flash requested with <see cref="Flash"/>.
         /// </summary>
+        /// <remarks>
+        /// This has no effect on <see cref="OsuTKWindow"/>s and on iOS/iPadOS.
+        /// </remarks>
         void CancelFlash();
 
         /// <summary>
