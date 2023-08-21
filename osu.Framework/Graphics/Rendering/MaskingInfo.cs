@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// A rectangle that defines the scissor area in screen-space coordinates.
         /// </summary>
-        public RectangleI ScreenSpaceScissorArea;
+        public RectangleF ScreenSpaceScissorArea;
 
         /// <summary>
         /// A rectangle that defines the masking area in the local-space (i.e. <see cref="Drawable.DrawRectangle"/>) of the masking container.
