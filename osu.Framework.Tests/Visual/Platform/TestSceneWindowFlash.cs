@@ -17,7 +17,6 @@ namespace osu.Framework.Tests.Visual.Platform
         private IBindable<bool> isActive = null!;
         private IWindow? window;
         private SpriteText text = null!;
-        private TextFlowContainer behaviourText = null!;
         private readonly Bindable<bool> flashUntilFocused = new BindableBool();
 
         [BackgroundDependencyLoader]
@@ -34,16 +33,10 @@ namespace osu.Framework.Tests.Visual.Platform
                 {
                     text = new SpriteText
                     {
-                        Text = "This window will flash as soon as you unfocus it.",
+                        Text = "This window will flash as soon as you un-focus it.",
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre
                     },
-                    behaviourText = new TextFlowContainer
-                    {
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        AutoSizeAxes = Axes.Both
-                    }
                 }
             };
         }
@@ -51,7 +44,7 @@ namespace osu.Framework.Tests.Visual.Platform
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            AddToggleStep("Flash until focused", a => flashUntilFocused.Value = a);
+
             flashUntilFocused.BindValueChanged(e =>
             {
                 window?.CancelFlash();
@@ -59,15 +52,18 @@ namespace osu.Framework.Tests.Visual.Platform
                             + (e.NewValue ? "continuously, until focused again, " : "briefly")
                             + " as soon as it is unfocused.";
             }, true);
+
             isActive.BindValueChanged(e =>
             {
                 if (!e.NewValue)
                     window?.Flash(flashUntilFocused.Value);
             }, true);
-            behaviourText.AddParagraph("Behaviour is platform dependent (only for desktops):");
-            behaviourText.AddParagraph("- Windows: icon flashes on the taskbar and raises it. Only once if briefly.");
-            behaviourText.AddParagraph("- MacOS: icon jumps on the Dock (can be seen even hidden). Only once if briefly.");
-            behaviourText.AddParagraph("- Linux: depends on DE/WM setup.");
+        }
+
+        [Test]
+        public void TestBasic()
+        {
+            AddToggleStep("Flash until focused", a => flashUntilFocused.Value = a);
         }
     }
 }
