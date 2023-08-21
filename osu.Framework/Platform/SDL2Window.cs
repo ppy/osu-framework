@@ -407,6 +407,27 @@ namespace osu.Framework.Platform
             SDL.SDL_RaiseWindow(SDLWindowHandle);
         });
 
+        public void Flash(bool flashUntilFocused = false) => ScheduleCommand(() =>
+        {
+            if (isActive.Value)
+                return;
+
+            if (!RuntimeInfo.IsDesktop)
+                return;
+
+            SDL.SDL_FlashWindow(SDLWindowHandle, flashUntilFocused
+                ? SDL.SDL_FlashOperation.SDL_FLASH_UNTIL_FOCUSED
+                : SDL.SDL_FlashOperation.SDL_FLASH_BRIEFLY);
+        });
+
+        public void CancelFlash() => ScheduleCommand(() =>
+        {
+            if (!RuntimeInfo.IsDesktop)
+                return;
+
+            SDL.SDL_FlashWindow(SDLWindowHandle, SDL.SDL_FlashOperation.SDL_FLASH_CANCEL);
+        });
+
         /// <summary>
         /// Attempts to set the window's icon to the specified image.
         /// </summary>
