@@ -407,7 +407,7 @@ namespace osu.Framework.Platform
             SDL.SDL_RaiseWindow(SDLWindowHandle);
         });
 
-        public void Flash(bool untilFocused = false) => ScheduleCommand(() =>
+        public void Flash(bool flashUntilFocused = false) => ScheduleCommand(() =>
         {
             if (isActive.Value)
                 return;
@@ -415,7 +415,7 @@ namespace osu.Framework.Platform
             if (!RuntimeInfo.IsDesktop)
                 return;
 
-            SDL.SDL_FlashWindow(SDLWindowHandle, untilFocused
+            SDL.SDL_FlashWindow(SDLWindowHandle, flashUntilFocused
                 ? SDL.SDL_FlashOperation.SDL_FLASH_UNTIL_FOCUSED
                 : SDL.SDL_FlashOperation.SDL_FLASH_BRIEFLY);
         });

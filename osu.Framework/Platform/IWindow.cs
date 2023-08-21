@@ -167,22 +167,21 @@ namespace osu.Framework.Platform
 
         /// <summary>
         /// Attempts to flash the window in order to request the user's attention.
-        /// This behaviour is only available on desktop platforms and is different depending on the OS.
         /// </summary>
         /// <remarks>
-        /// This has no effect on <see cref="OsuTKWindow"/>s and on iOS/iPadOS.
+        /// On platforms which don't support any kind of flashing (ie. mobile), this will be a no-op.
         /// </remarks>
-        /// <param name="untilFocused">
-        /// When true, the window will flash until it is focused again.
-        /// Only once otherwise.
+        /// <param name="flashUntilFocused">
+        /// When <c>true</c>, the window will flash until it is focused again.
+        /// When <c>false</c> it will only flash momentarily.
         /// </param>
-        void Flash(bool untilFocused = false);
+        void Flash(bool flashUntilFocused = false);
 
         /// <summary>
         /// Attempts to cancel any window flash requested with <see cref="Flash"/>.
         /// </summary>
         /// <remarks>
-        /// This has no effect on <see cref="OsuTKWindow"/>s and on iOS/iPadOS.
+        /// On platforms which don't support any kind of flashing (ie. mobile), this will be a no-op.
         /// </remarks>
         void CancelFlash();
 
