@@ -94,6 +94,20 @@ namespace osu.Framework.Input.Bindings
             return true;
         }
 
+        internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
+        {
+            if (!base.BuildPositionalInputQueue(screenSpacePos, queue))
+                return false;
+
+            if (Prioritised)
+            {
+                queue.Remove(this);
+                queue.Add(this);
+            }
+
+            return true;
+        }
+
         /// <summary>
         /// All input keys which are currently pressed and have reached this <see cref="KeyBindingContainer"/>.
         /// </summary>
