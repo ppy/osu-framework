@@ -53,7 +53,7 @@ namespace osu.Framework.Graphics
             base.ApplyState();
 
             backgroundColour = Source.BackgroundColour;
-            localDrawRectangle = ((Drawable)Source).DrawRectangle;
+            localDrawRectangle = Source.DrawRectangle;
             screenSpaceDrawRectangle = Source.ScreenSpaceDrawQuad.AABBFloat;
             DrawColourInfo = Source.FrameBufferDrawColour ?? new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
             frameBufferScale = Source.FrameBufferScale;

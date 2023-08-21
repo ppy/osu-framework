@@ -36,12 +36,12 @@ namespace osu.Framework.Graphics.Rendering.Vertices
         [Obsolete("Initialise this type with an IRenderer instead", true)]
         public TexturedVertex2D()
         {
-            this = default;
+            this = default; // explicitly initialise all members to default values
         }
 
         public TexturedVertex2D(IRenderer renderer)
         {
-            this = default;
+            this = default; // explicitly initialise all members to default values
             backbufferDrawDepth = renderer.BackbufferDrawDepth;
             maskingIndex = renderer.CurrentMaskingIndex;
         }
