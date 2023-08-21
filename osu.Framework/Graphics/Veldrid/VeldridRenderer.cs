@@ -547,6 +547,7 @@ namespace osu.Framework.Graphics.Veldrid
             var veldridShader = (VeldridShader)Shader!;
 
             veldridShader.BindUniformBlock("g_GlobalUniforms", GlobalUniformBuffer!);
+            veldridShader.BindUniformBlock("g_MaskingBuffer", ShaderMaskingStack!.CurrentBuffer);
 
             pipeline.PrimitiveTopology = type;
             Array.Resize(ref pipeline.ResourceLayouts, veldridShader.LayoutCount);

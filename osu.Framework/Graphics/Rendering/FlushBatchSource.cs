@@ -12,7 +12,6 @@ namespace osu.Framework.Graphics.Rendering
         SetBlendMask,
         SetDepthInfo,
         SetFrameBuffer,
-        SetMasking,
         SetProjection,
         SetScissor,
         SetShader,
