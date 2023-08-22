@@ -51,16 +51,16 @@ namespace osu.Framework.Tests.Visual.Sprites
             };
         }
 
-        private void loadNewVideo(string format = "mp4")
+        private void loadNewVideo(string videoFile = "h264.mp4")
         {
             AddStep("Reset clock", () =>
             {
                 clock.CurrentTime = 0;
                 didDecode = false;
             });
-            AddStep($"load .{format} video", () =>
+            AddStep($"load {videoFile}", () =>
             {
-                videoContainer.Child = video = new TestVideo(videoStore.GetStream($"sample-video.{format}"))
+                videoContainer.Child = video = new TestVideo(videoStore.GetStream(videoFile))
                 {
                     Loop = false,
                     Origin = Anchor.Centre,
@@ -138,23 +138,23 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("decoding ran", () => didDecode);
         }
 
-        [TestCase("mp4")]
-        [TestCase("avi")]
-        [TestCase("webm")]
-        public void TestJumpForward(string videoFormat)
+        [TestCase("h264.mp4")]
+        [TestCase("h264.avi")]
+        [TestCase("vp9.webm")]
+        public void TestJumpForward(string videoFile)
         {
-            loadNewVideo(videoFormat);
+            loadNewVideo(videoFile);
 
             AddStep("Jump ahead by 10 seconds", () => clock.CurrentTime += 10000);
             AddUntilStep("Video seeked", () => video.CurrentFrameTime >= 10000);
         }
 
-        [TestCase("mp4")]
-        [TestCase("avi")]
-        [TestCase("webm")]
-        public void TestJumpBack(string videoFormat)
+        [TestCase("h264.mp4")]
+        [TestCase("h264.avi")]
+        [TestCase("vp9.webm")]
+        public void TestJumpBack(string videoFile)
         {
-            loadNewVideo(videoFormat);
+            loadNewVideo(videoFile);
 
             AddStep("Jump ahead by 30 seconds", () => clock.CurrentTime += 30000);
             AddUntilStep("Video seeked", () => video.CurrentFrameTime >= 30000);
@@ -162,12 +162,12 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("Video seeked", () => video.CurrentFrameTime < 30000);
         }
 
-        [TestCase("mp4")]
-        [TestCase("avi")]
-        [TestCase("webm")]
-        public void TestJumpBackAfterEndOfPlayback(string videoFormat)
+        [TestCase("h264.mp4")]
+        [TestCase("h264.avi")]
+        [TestCase("vp9.webm")]
+        public void TestJumpBackAfterEndOfPlayback(string videoFile)
         {
-            loadNewVideo(videoFormat);
+            loadNewVideo(videoFile);
 
             AddStep("Jump close to end", () => clock.CurrentTime = video.Duration - 1000);
             AddUntilStep("Video seeked", () => video.CurrentFrameTime >= video.Duration - 1500);
