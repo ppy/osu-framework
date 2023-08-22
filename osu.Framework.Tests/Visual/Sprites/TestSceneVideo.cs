@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
@@ -30,6 +31,25 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         [Resolved]
         private FrameworkConfigManager config { get; set; }
+
+        private static readonly string[] file_formats =
+        {
+            "h264.mp4",
+            "h264.mov",
+            "h264.avi",
+            "h264.flv",
+            "h264.mkv",
+        };
+
+        private static readonly string[] video_formats =
+        {
+            "h264.mp4",
+            "hevc.mp4",
+            "vp8.webm",
+            "vp9.webm",
+        };
+
+        private static string[][] videoFormatTestCaseSource => video_formats.Select(format => new[] { format }).ToArray();
 
         [BackgroundDependencyLoader]
         private void load(Game game)
@@ -76,11 +96,8 @@ namespace osu.Framework.Tests.Visual.Sprites
         [Test]
         public void TestFileFormats()
         {
-            loadNewVideo("h264.mp4");
-            loadNewVideo("h264.mov");
-            loadNewVideo("h264.avi");
-            loadNewVideo("h264.flv");
-            loadNewVideo("h264.mkv");
+            foreach (string fileFormat in file_formats)
+                loadNewVideo(fileFormat);
         }
 
         [Test]
@@ -88,10 +105,8 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             AddStep("disable hardware decoding", () => config.SetValue(FrameworkSetting.HardwareVideoDecoder, HardwareVideoDecoder.None));
 
-            loadNewVideo("h264.mp4");
-            loadNewVideo("hevc.mp4");
-            loadNewVideo("vp8.webm");
-            loadNewVideo("vp9.webm");
+            foreach (string videoFormat in video_formats)
+                loadNewVideo(videoFormat);
         }
 
         [Test]
@@ -99,10 +114,8 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             AddStep("enable hardware decoding", () => config.SetValue(FrameworkSetting.HardwareVideoDecoder, HardwareVideoDecoder.Any));
 
-            loadNewVideo("h264.mp4");
-            loadNewVideo("hevc.mp4");
-            loadNewVideo("vp8.webm");
-            loadNewVideo("vp9.webm");
+            foreach (string videoFormat in video_formats)
+                loadNewVideo(videoFormat);
         }
 
         [Test]
@@ -160,10 +173,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("decoding ran", () => didDecode);
         }
 
-        [TestCase("h264.mp4")]
-        [TestCase("hevc.mp4")]
-        [TestCase("vp8.webm")]
-        [TestCase("vp9.webm")]
+        [TestCaseSource(nameof(videoFormatTestCaseSource))]
         public void TestJumpForward(string videoFile)
         {
             loadNewVideo(videoFile);
@@ -172,10 +182,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("Video seeked", () => video.CurrentFrameTime >= 10000);
         }
 
-        [TestCase("h264.mp4")]
-        [TestCase("hevc.mp4")]
-        [TestCase("vp8.webm")]
-        [TestCase("vp9.webm")]
+        [TestCaseSource(nameof(videoFormatTestCaseSource))]
         public void TestJumpBack(string videoFile)
         {
             loadNewVideo(videoFile);
@@ -186,10 +193,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("Video seeked", () => video.CurrentFrameTime < 30000);
         }
 
-        [TestCase("h264.mp4")]
-        [TestCase("hevc.mp4")]
-        [TestCase("vp8.webm")]
-        [TestCase("vp9.webm")]
+        [TestCaseSource(nameof(videoFormatTestCaseSource))]
         public void TestJumpBackAfterEndOfPlayback(string videoFile)
         {
             loadNewVideo(videoFile);
