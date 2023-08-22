@@ -104,11 +104,11 @@ namespace osu.Framework.Tests.Audio
         internal TrackBass GetTrack() => (TrackBass)TrackStore.Get("Resources.Tracks.sample-track.mp3");
         internal SampleBass GetSample() => (SampleBass)SampleStore.Get("Resources.Tracks.sample-track.mp3");
 
-        public void Dispose()
+        public void Dispose() => RunOnAudioThread(() =>
         {
             allComponents.Dispose();
-            Update(); // Actually runs the disposal.
+            allComponents.Update(); // Actually runs the disposal.
             Bass.Free();
-        }
+        });
     }
 }
