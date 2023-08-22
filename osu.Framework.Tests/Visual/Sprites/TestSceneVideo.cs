@@ -74,13 +74,35 @@ namespace osu.Framework.Tests.Visual.Sprites
         }
 
         [Test]
-        public void TestHardwareDecode()
+        public void TestFileFormats()
         {
-            loadNewVideo();
+            loadNewVideo("h264.mp4");
+            loadNewVideo("h264.mov");
+            loadNewVideo("h264.avi");
+            loadNewVideo("h264.flv");
+            loadNewVideo("h264.mkv");
+        }
 
+        [Test]
+        public void TestVideoFormats()
+        {
             AddStep("disable hardware decoding", () => config.SetValue(FrameworkSetting.HardwareVideoDecoder, HardwareVideoDecoder.None));
-            AddWaitStep("Wait some", 20);
+
+            loadNewVideo("h264.mp4");
+            loadNewVideo("hevc.mp4");
+            loadNewVideo("vp8.webm");
+            loadNewVideo("vp9.webm");
+        }
+
+        [Test]
+        public void TestVideoFormatsWithHwAccel()
+        {
             AddStep("enable hardware decoding", () => config.SetValue(FrameworkSetting.HardwareVideoDecoder, HardwareVideoDecoder.Any));
+
+            loadNewVideo("h264.mp4");
+            loadNewVideo("hevc.mp4");
+            loadNewVideo("vp8.webm");
+            loadNewVideo("vp9.webm");
         }
 
         [Test]
@@ -139,7 +161,8 @@ namespace osu.Framework.Tests.Visual.Sprites
         }
 
         [TestCase("h264.mp4")]
-        [TestCase("h264.avi")]
+        [TestCase("hevc.mp4")]
+        [TestCase("vp8.webm")]
         [TestCase("vp9.webm")]
         public void TestJumpForward(string videoFile)
         {
@@ -150,7 +173,8 @@ namespace osu.Framework.Tests.Visual.Sprites
         }
 
         [TestCase("h264.mp4")]
-        [TestCase("h264.avi")]
+        [TestCase("hevc.mp4")]
+        [TestCase("vp8.webm")]
         [TestCase("vp9.webm")]
         public void TestJumpBack(string videoFile)
         {
@@ -163,7 +187,8 @@ namespace osu.Framework.Tests.Visual.Sprites
         }
 
         [TestCase("h264.mp4")]
-        [TestCase("h264.avi")]
+        [TestCase("hevc.mp4")]
+        [TestCase("vp8.webm")]
         [TestCase("vp9.webm")]
         public void TestJumpBackAfterEndOfPlayback(string videoFile)
         {
