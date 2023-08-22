@@ -56,6 +56,8 @@ namespace osu.Framework.Graphics.Veldrid
         public override bool IsUvOriginTopLeft => Device.IsUvOriginTopLeft;
         public override bool IsClipSpaceYInverted => Device.IsClipSpaceYInverted;
 
+        public bool UseStructuredBuffers => !FrameworkEnvironment.NoStructuredBuffers && Device.Features.StructuredBuffer;
+
         /// <summary>
         /// Represents the <see cref="Renderer.FrameIndex"/> of the latest frame that has completed rendering by the GPU.
         /// </summary>
@@ -218,6 +220,8 @@ namespace osu.Framework.Graphics.Veldrid
                     Device.LogMetal(out maxTextureSize);
                     break;
             }
+
+            Logger.Log($"{nameof(UseStructuredBuffers)}: {UseStructuredBuffers}");
 
             MaxTextureSize = maxTextureSize;
 
@@ -524,6 +528,9 @@ namespace osu.Framework.Graphics.Veldrid
 
         public void BindUniformBuffer(string blockName, IVeldridUniformBuffer veldridBuffer)
         {
+            if (boundUniformBuffers.TryGetValue(blockName, out IVeldridUniformBuffer? current) && current == veldridBuffer)
+                return;
+
             FlushCurrentBatch(FlushBatchSource.BindBuffer);
             boundUniformBuffers[blockName] = veldridBuffer;
         }
@@ -538,6 +545,9 @@ namespace osu.Framework.Graphics.Veldrid
             flushTextureUploadCommands();
 
             var veldridShader = (VeldridShader)Shader!;
+
+            veldridShader.BindUniformBlock("g_GlobalUniforms", GlobalUniformBuffer!);
+            veldridShader.BindUniformBlock("g_MaskingBuffer", ShaderMaskingStack!.CurrentBuffer);
 
             pipeline.PrimitiveTopology = type;
             Array.Resize(ref pipeline.ResourceLayouts, veldridShader.LayoutCount);
@@ -728,10 +738,10 @@ namespace osu.Framework.Graphics.Veldrid
         }
 
         protected override IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType)
-            => new VeldridShaderPart(rawData, partType, store);
+            => new VeldridShaderPart(this, rawData, partType, store);
 
-        protected override IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer, ShaderCompilationStore compilationStore)
-            => new VeldridShader(this, name, parts.Cast<VeldridShaderPart>().ToArray(), globalUniformBuffer, compilationStore);
+        protected override IShader CreateShader(string name, IShaderPart[] parts, ShaderCompilationStore compilationStore)
+            => new VeldridShader(this, name, parts.Cast<VeldridShaderPart>().ToArray(), compilationStore);
 
         public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
             => new VeldridFrameBuffer(this, renderBufferFormats?.ToPixelFormats(), filteringMode.ToSamplerFilter());
@@ -750,6 +760,9 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected override IUniformBuffer<TData> CreateUniformBuffer<TData>()
             => new VeldridUniformBuffer<TData>(this);
+
+        protected override IShaderStorageBufferObject<TData> CreateShaderStorageBufferObject<TData>(int uboSize, int ssboSize)
+            => new VeldridShaderStorageBufferObject<TData>(this, uboSize, ssboSize);
 
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
                                                               Color4? initialisationColour = null)

@@ -29,6 +29,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public bool IsUvOriginTopLeft => true;
         public bool IsClipSpaceYInverted => true;
         public ref readonly MaskingInfo CurrentMaskingInfo => ref maskingInfo;
+        public int CurrentMaskingIndex => 0;
         private readonly MaskingInfo maskingInfo;
 
         public RectangleI Viewport => RectangleI.Empty;
@@ -212,6 +213,9 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 
         public IUniformBuffer<TData> CreateUniformBuffer<TData>() where TData : unmanaged, IEquatable<TData>
             => new DummyUniformBuffer<TData>();
+
+        public IShaderStorageBufferObject<TData> CreateShaderStorageBufferObject<TData>(int uboSize, int ssboSize) where TData : unmanaged, IEquatable<TData>
+            => new DummyShaderStorageBufferObject<TData>(ssboSize);
 
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform)
         {

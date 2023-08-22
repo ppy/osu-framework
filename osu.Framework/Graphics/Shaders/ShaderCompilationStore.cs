@@ -84,14 +84,21 @@ namespace osu.Framework.Graphics.Shaders
                 if (CacheStorage == null)
                     return false;
 
-                if (!CacheStorage.Exists(filename))
-                    return false;
+                string checksum;
+                string data;
 
-                using var stream = CacheStorage.GetStream(filename);
-                using var br = new BinaryReader(stream);
+                lock (save_lock)
+                {
+                    if (!CacheStorage.Exists(filename))
+                        return false;
 
-                string checksum = br.ReadString();
-                string data = br.ReadString();
+                    using var stream = CacheStorage.GetStream(filename);
+
+                    using var br = new BinaryReader(stream);
+
+                    checksum = br.ReadString();
+                    data = br.ReadString();
+                }
 
                 if (data.ComputeMD5Hash() != checksum)
                 {
@@ -111,28 +118,39 @@ namespace osu.Framework.Graphics.Shaders
             return false;
         }
 
+        private static readonly object save_lock = new object();
+
         private void saveToCache(string filename, object compilation)
         {
-            if (CacheStorage == null)
-                return;
-
-            try
+            // Multiple save operations could happen in parallel due to the asynchronous
+            // and unguarded nature of this store. Without locking, errors may be thrown
+            // as two operations attempt to write to the same destination file.
+            //
+            // Saving to disk is the least expensive part of the process, so locking on
+            // this should be very minimal contention.
+            lock (save_lock)
             {
-                // ensure any stale cached versions are deleted.
-                CacheStorage.Delete(filename);
+                if (CacheStorage == null)
+                    return;
 
-                using var stream = CacheStorage.CreateFileSafely(filename);
-                using var bw = new BinaryWriter(stream);
+                try
+                {
+                    // ensure any stale cached versions are deleted.
+                    CacheStorage.Delete(filename);
 
-                string data = JsonConvert.SerializeObject(compilation);
-                string checksum = data.ComputeMD5Hash();
+                    using var stream = CacheStorage.CreateFileSafely(filename);
+                    using var bw = new BinaryWriter(stream);
 
-                bw.Write(checksum);
-                bw.Write(data);
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex, "Failed to save shader to cache.");
+                    string data = JsonConvert.SerializeObject(compilation);
+                    string checksum = data.ComputeMD5Hash();
+
+                    bw.Write(checksum);
+                    bw.Write(data);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, "Failed to save shader to cache.");
+                }
             }
         }
     }

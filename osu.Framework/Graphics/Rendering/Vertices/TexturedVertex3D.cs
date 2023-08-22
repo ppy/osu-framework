@@ -21,6 +21,13 @@ namespace osu.Framework.Graphics.Rendering.Vertices
         [VertexMember(2, VertexAttribPointerType.Float)]
         public Vector2 TexturePosition;
 
-        public readonly bool Equals(TexturedVertex3D other) => Position.Equals(other.Position) && TexturePosition.Equals(other.TexturePosition) && Colour.Equals(other.Colour);
+        [VertexMember(1, VertexAttribPointerType.Int)]
+        private readonly int maskingIndex;
+
+        public readonly bool Equals(TexturedVertex3D other)
+            => Position.Equals(other.Position)
+               && TexturePosition.Equals(other.TexturePosition)
+               && Colour.Equals(other.Colour)
+               && maskingIndex == other.maskingIndex;
     }
 }

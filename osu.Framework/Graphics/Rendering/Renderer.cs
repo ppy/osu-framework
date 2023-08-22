@@ -9,7 +9,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
-using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
@@ -60,6 +59,7 @@ namespace osu.Framework.Graphics.Rendering
         public ulong FrameIndex { get; private set; }
 
         public ref readonly MaskingInfo CurrentMaskingInfo => ref currentMaskingInfo;
+        public int CurrentMaskingIndex => ShaderMaskingStack?.CurrentOffset ?? 0;
 
         public RectangleI Viewport { get; private set; }
         public RectangleI Scissor { get; private set; }
@@ -130,7 +130,9 @@ namespace osu.Framework.Graphics.Rendering
         private readonly Lazy<TextureWhitePixel> whitePixel;
         private readonly LockedWeakList<Texture> allTextures = new LockedWeakList<Texture>();
 
-        private IUniformBuffer<GlobalUniformData>? globalUniformBuffer;
+        protected IUniformBuffer<GlobalUniformData>? GlobalUniformBuffer { get; private set; }
+        protected ShaderStorageBufferObjectStack<ShaderMaskingInfo>? ShaderMaskingStack { get; private set; }
+
         private IVertexBatch<TexturedVertex2D>? defaultQuadBatch;
         private IVertexBatch? currentActiveBatch;
         private MaskingInfo currentMaskingInfo;
@@ -189,13 +191,17 @@ namespace osu.Framework.Graphics.Rendering
             foreach (var source in flush_source_statistics)
                 source.Value = 0;
 
-            globalUniformBuffer ??= ((IRenderer)this).CreateUniformBuffer<GlobalUniformData>();
-            globalUniformBuffer.Data = globalUniformBuffer.Data with
+            GlobalUniformBuffer ??= ((IRenderer)this).CreateUniformBuffer<GlobalUniformData>();
+            GlobalUniformBuffer.Data = GlobalUniformBuffer.Data with
             {
                 IsDepthRangeZeroToOne = IsDepthRangeZeroToOne,
                 IsClipSpaceYInverted = IsClipSpaceYInverted,
                 IsUvOriginTopLeft = IsUvOriginTopLeft
             };
+
+            // 60 elements keeps the total data length under 16KiB (16320).
+            ShaderMaskingStack ??= new ShaderStorageBufferObjectStack<ShaderMaskingInfo>(this, 60, 8192);
+            ShaderMaskingStack.Clear();
 
             Debug.Assert(defaultQuadBatch != null);
 
@@ -249,12 +255,12 @@ namespace osu.Framework.Graphics.Rendering
             PushScissorState(true);
             PushViewport(new RectangleI(0, 0, (int)windowSize.X, (int)windowSize.Y));
             PushScissor(new RectangleI(0, 0, (int)windowSize.X, (int)windowSize.Y));
-            PushScissorOffset(Vector2I.Zero);
             PushMaskingInfo(new MaskingInfo
             {
-                ScreenSpaceAABB = new RectangleI(0, 0, (int)windowSize.X, (int)windowSize.Y),
-                MaskingRect = new RectangleF(0, 0, windowSize.X, windowSize.Y),
+                ScreenSpaceScissorArea = new RectangleI(0, 0, (int)windowSize.X, (int)windowSize.Y),
+                MaskingArea = new RectangleF(0, 0, windowSize.X, windowSize.Y),
                 ToMaskingSpace = Matrix3.Identity,
+                ToScissorSpace = Matrix3.Identity,
                 BlendRange = 1,
                 AlphaExponent = 1,
                 CornerExponent = 2.5f,
@@ -490,12 +496,6 @@ namespace osu.Framework.Graphics.Rendering
             setScissorState(enabled);
         }
 
-        public void PushScissorOffset(Vector2I offset)
-        {
-            scissorOffsetStack.Push(offset);
-            setScissorOffset(offset);
-        }
-
         public void PopScissor()
         {
             Trace.Assert(scissorRectStack.Count > 1);
@@ -510,14 +510,6 @@ namespace osu.Framework.Graphics.Rendering
 
             scissorStateStack.Pop();
             setScissorState(scissorStateStack.Peek());
-        }
-
-        public void PopScissorOffset()
-        {
-            Trace.Assert(scissorOffsetStack.Count > 1);
-
-            scissorOffsetStack.Pop();
-            setScissorOffset(scissorOffsetStack.Peek());
         }
 
         private void setScissor(RectangleI scissor)
@@ -560,15 +552,6 @@ namespace osu.Framework.Graphics.Rendering
             ScissorState = enabled;
         }
 
-        private void setScissorOffset(Vector2I offset)
-        {
-            if (ScissorOffset == offset)
-                return;
-
-            FlushCurrentBatch(FlushBatchSource.SetScissor);
-            ScissorOffset = offset;
-        }
-
         /// <summary>
         /// Updates the graphics device with a new scissor rectangle.
         /// </summary>
@@ -606,7 +589,7 @@ namespace osu.Framework.Graphics.Rendering
 
             FlushCurrentBatch(FlushBatchSource.SetProjection);
 
-            globalUniformBuffer!.Data = globalUniformBuffer.Data with { ProjMatrix = matrix };
+            GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with { ProjMatrix = matrix };
             ProjectionMatrix = matrix;
         }
 
@@ -633,71 +616,74 @@ namespace osu.Framework.Graphics.Rendering
             if (CurrentMaskingInfo == maskingInfo)
                 return;
 
-            FlushCurrentBatch(FlushBatchSource.SetMasking);
-
-            globalUniformBuffer!.Data = globalUniformBuffer.Data with
-            {
-                IsMasking = IsMaskingActive,
-                MaskingRect = new Vector4(
-                    maskingInfo.MaskingRect.Left,
-                    maskingInfo.MaskingRect.Top,
-                    maskingInfo.MaskingRect.Right,
-                    maskingInfo.MaskingRect.Bottom),
-                ToMaskingSpace = maskingInfo.ToMaskingSpace,
-                CornerRadius = maskingInfo.CornerRadius,
-                CornerExponent = maskingInfo.CornerExponent,
-                BorderThickness = maskingInfo.BorderThickness / maskingInfo.BlendRange,
-                BorderColour = maskingInfo.BorderThickness > 0
-                    ? new Matrix4(
-                        // TopLeft
-                        maskingInfo.BorderColour.TopLeft.SRGB.R,
-                        maskingInfo.BorderColour.TopLeft.SRGB.G,
-                        maskingInfo.BorderColour.TopLeft.SRGB.B,
-                        maskingInfo.BorderColour.TopLeft.SRGB.A,
-                        // BottomLeft
-                        maskingInfo.BorderColour.BottomLeft.SRGB.R,
-                        maskingInfo.BorderColour.BottomLeft.SRGB.G,
-                        maskingInfo.BorderColour.BottomLeft.SRGB.B,
-                        maskingInfo.BorderColour.BottomLeft.SRGB.A,
-                        // TopRight
-                        maskingInfo.BorderColour.TopRight.SRGB.R,
-                        maskingInfo.BorderColour.TopRight.SRGB.G,
-                        maskingInfo.BorderColour.TopRight.SRGB.B,
-                        maskingInfo.BorderColour.TopRight.SRGB.A,
-                        // BottomRight
-                        maskingInfo.BorderColour.BottomRight.SRGB.R,
-                        maskingInfo.BorderColour.BottomRight.SRGB.G,
-                        maskingInfo.BorderColour.BottomRight.SRGB.B,
-                        maskingInfo.BorderColour.BottomRight.SRGB.A)
-                    : globalUniformBuffer.Data.BorderColour,
-                MaskingBlendRange = maskingInfo.BlendRange,
-                AlphaExponent = maskingInfo.AlphaExponent,
-                EdgeOffset = maskingInfo.EdgeOffset,
-                DiscardInner = maskingInfo.Hollow,
-                InnerCornerRadius = maskingInfo.Hollow
-                    ? maskingInfo.HollowCornerRadius
-                    : globalUniformBuffer.Data.InnerCornerRadius
-            };
-
             if (isPushing)
             {
-                // When drawing to a viewport that doesn't match the projection size (e.g. via framebuffers), the resultant image will be scaled
-                Vector2 projectionScale = new Vector2(ProjectionMatrix.Row0.X / 2, -ProjectionMatrix.Row1.Y / 2);
-                Vector2 viewportScale = Vector2.Multiply(Viewport.Size, projectionScale);
+                RectangleF scissorRect = maskingInfo.ScreenSpaceScissorArea;
 
-                Vector2 location = (maskingInfo.ScreenSpaceAABB.Location - ScissorOffset) * viewportScale;
-                Vector2 size = maskingInfo.ScreenSpaceAABB.Size * viewportScale;
+                if (!overwritePreviousScissor)
+                {
+                    Vector4 currentSmiScissorRectangle = ShaderMaskingStack!.CurrentBuffer[ShaderMaskingStack.CurrentOffset].ScissorRect;
+                    RectangleF currentScissorRectangle = RectangleF.FromLTRB(
+                        currentSmiScissorRectangle.X,
+                        currentSmiScissorRectangle.Y,
+                        currentSmiScissorRectangle.Z,
+                        currentSmiScissorRectangle.W);
 
-                RectangleI actualRect = new RectangleI(
-                    (int)Math.Floor(location.X),
-                    (int)Math.Floor(location.Y),
-                    (int)Math.Ceiling(size.X),
-                    (int)Math.Ceiling(size.Y));
+                    scissorRect = RectangleF.Intersect(currentScissorRectangle, scissorRect);
+                }
 
-                PushScissor(overwritePreviousScissor ? actualRect : RectangleI.Intersect(scissorRectStack.Peek(), actualRect));
+                ShaderMaskingStack!.Push(new ShaderMaskingInfo
+                {
+                    IsMasking = IsMaskingActive,
+                    MaskingRect = new Vector4(
+                        maskingInfo.MaskingArea.Left,
+                        maskingInfo.MaskingArea.Top,
+                        maskingInfo.MaskingArea.Right,
+                        maskingInfo.MaskingArea.Bottom),
+                    ScissorRect = new Vector4(
+                        scissorRect.Left,
+                        scissorRect.Top,
+                        scissorRect.Right,
+                        scissorRect.Bottom),
+                    ToMaskingSpace = new Matrix4(maskingInfo.ToMaskingSpace),
+                    ToScissorSpace = new Matrix4(maskingInfo.ToScissorSpace),
+                    CornerRadius = maskingInfo.CornerRadius,
+                    CornerExponent = maskingInfo.CornerExponent,
+                    BorderThickness = maskingInfo.BorderThickness / maskingInfo.BlendRange,
+                    BorderColour = maskingInfo.BorderThickness > 0
+                        ? new Matrix4(
+                            // TopLeft
+                            maskingInfo.BorderColour.TopLeft.SRGB.R,
+                            maskingInfo.BorderColour.TopLeft.SRGB.G,
+                            maskingInfo.BorderColour.TopLeft.SRGB.B,
+                            maskingInfo.BorderColour.TopLeft.SRGB.A,
+                            // BottomLeft
+                            maskingInfo.BorderColour.BottomLeft.SRGB.R,
+                            maskingInfo.BorderColour.BottomLeft.SRGB.G,
+                            maskingInfo.BorderColour.BottomLeft.SRGB.B,
+                            maskingInfo.BorderColour.BottomLeft.SRGB.A,
+                            // TopRight
+                            maskingInfo.BorderColour.TopRight.SRGB.R,
+                            maskingInfo.BorderColour.TopRight.SRGB.G,
+                            maskingInfo.BorderColour.TopRight.SRGB.B,
+                            maskingInfo.BorderColour.TopRight.SRGB.A,
+                            // BottomRight
+                            maskingInfo.BorderColour.BottomRight.SRGB.R,
+                            maskingInfo.BorderColour.BottomRight.SRGB.G,
+                            maskingInfo.BorderColour.BottomRight.SRGB.B,
+                            maskingInfo.BorderColour.BottomRight.SRGB.A)
+                        : ShaderMaskingStack.CurrentBuffer[ShaderMaskingStack.CurrentOffset].BorderColour,
+                    MaskingBlendRange = maskingInfo.BlendRange,
+                    AlphaExponent = maskingInfo.AlphaExponent,
+                    EdgeOffset = maskingInfo.EdgeOffset,
+                    DiscardInner = maskingInfo.Hollow,
+                    InnerCornerRadius = maskingInfo.Hollow
+                        ? maskingInfo.HollowCornerRadius
+                        : ShaderMaskingStack.CurrentBuffer[ShaderMaskingStack.CurrentOffset].InnerCornerRadius,
+                });
             }
             else
-                PopScissor();
+                ShaderMaskingStack!.Pop();
 
             currentMaskingInfo = maskingInfo;
         }
@@ -872,14 +858,14 @@ namespace osu.Framework.Graphics.Rendering
             if (wrapModeS != CurrentWrapModeS)
             {
                 // Will flush the current batch internally.
-                globalUniformBuffer!.Data = globalUniformBuffer.Data with { WrapModeS = (int)wrapModeS };
+                GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with { WrapModeS = (int)wrapModeS };
                 CurrentWrapModeS = wrapModeS;
             }
 
             if (wrapModeT != CurrentWrapModeT)
             {
                 // Will flush the current batch internally.
-                globalUniformBuffer!.Data = globalUniformBuffer.Data with { WrapModeT = (int)wrapModeT };
+                GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with { WrapModeT = (int)wrapModeT };
                 CurrentWrapModeT = wrapModeT;
             }
 
@@ -957,7 +943,7 @@ namespace osu.Framework.Graphics.Rendering
 
             SetFrameBufferImplementation(frameBuffer);
 
-            globalUniformBuffer!.Data = globalUniformBuffer.Data with { BackbufferDraw = UsingBackbuffer };
+            GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with { BackbufferDraw = UsingBackbuffer };
 
             FrameBuffer = frameBuffer;
         }
@@ -1042,7 +1028,7 @@ namespace osu.Framework.Graphics.Rendering
         protected abstract IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType);
 
         /// <inheritdoc cref="IRenderer.CreateShader"/>
-        protected abstract IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer, ShaderCompilationStore compilationStore);
+        protected abstract IShader CreateShader(string name, IShaderPart[] parts, ShaderCompilationStore compilationStore);
 
         private IShader? mipmapShader;
 
@@ -1062,7 +1048,7 @@ namespace osu.Framework.Graphics.Rendering
             {
                 CreateShaderPart(store, "mipmap.vs", store.GetRawData("sh_mipmap.vs"), ShaderPartType.Vertex),
                 CreateShaderPart(store, "mipmap.fs", store.GetRawData("sh_mipmap.fs"), ShaderPartType.Fragment),
-            }, globalUniformBuffer.AsNonNull(), shaderCompilationStore);
+            }, shaderCompilationStore);
 
             return mipmapShader;
         }
@@ -1075,6 +1061,9 @@ namespace osu.Framework.Graphics.Rendering
 
         /// <inheritdoc cref="IRenderer.CreateUniformBuffer{TData}"/>
         protected abstract IUniformBuffer<TData> CreateUniformBuffer<TData>() where TData : unmanaged, IEquatable<TData>;
+
+        /// <inheritdoc cref="IRenderer.CreateShaderStorageBufferObject{TData}"/>
+        protected abstract IShaderStorageBufferObject<TData> CreateShaderStorageBufferObject<TData>(int uboSize, int ssboSize) where TData : unmanaged, IEquatable<TData>;
 
         /// <summary>
         /// Creates a new <see cref="INativeTexture"/>.
@@ -1154,7 +1143,7 @@ namespace osu.Framework.Graphics.Rendering
         void IRenderer.PopQuadBatch() => PopQuadBatch();
         Image<Rgba32> IRenderer.TakeScreenshot() => TakeScreenshot();
         IShaderPart IRenderer.CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType) => CreateShaderPart(store, name, rawData, partType);
-        IShader IRenderer.CreateShader(string name, IShaderPart[] parts) => CreateShader(name, parts, globalUniformBuffer!, shaderCompilationStore);
+        IShader IRenderer.CreateShader(string name, IShaderPart[] parts) => CreateShader(name, parts, shaderCompilationStore);
 
         IVertexBatch<TVertex> IRenderer.CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology)
         {
@@ -1188,10 +1177,22 @@ namespace osu.Framework.Graphics.Rendering
 
         IUniformBuffer<TData> IRenderer.CreateUniformBuffer<TData>()
         {
+            validateUniformLayout<TData>();
+            return CreateUniformBuffer<TData>();
+        }
+
+        IShaderStorageBufferObject<TData> IRenderer.CreateShaderStorageBufferObject<TData>(int uboSize, int ssboSize)
+        {
+            validateUniformLayout<TData>();
+            return CreateShaderStorageBufferObject<TData>(uboSize, ssboSize);
+        }
+
+        private void validateUniformLayout<TData>()
+        {
             Trace.Assert(ThreadSafety.IsDrawThread);
 
             if (validUboTypes.Contains(typeof(TData)))
-                return CreateUniformBuffer<TData>();
+                return;
 
             if (typeof(TData).StructLayoutAttribute?.Pack != 1)
                 throw new ArgumentException($"{typeof(TData).ReadableName()} requires a packing size of 1.");
@@ -1221,7 +1222,7 @@ namespace osu.Framework.Graphics.Rendering
                 throw new ArgumentException($"{typeof(TData).ReadableName()} alignment requires a {finalPadding} to be added at the end.");
 
             validUboTypes.Add(typeof(TData));
-            return CreateUniformBuffer<TData>();
+            return;
 
             static void checkValidType(FieldInfo field)
             {

@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
@@ -25,6 +26,7 @@ using SixLabors.ImageSharp.Memory;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using Image = SixLabors.ImageSharp.Image;
+using GL4 = osuTK.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -44,6 +46,8 @@ namespace osu.Framework.Graphics.OpenGL
         public override bool IsUvOriginTopLeft => false;
         public override bool IsClipSpaceYInverted => false;
 
+        public bool UseStructuredBuffers { get; private set; }
+
         /// <summary>
         /// The maximum allowed render buffer size.
         /// </summary>
@@ -56,8 +60,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         private int backbufferFramebuffer;
 
-        private readonly int[] lastBoundBuffers = new int[2];
-
+        private readonly Dictionary<string, IGLUniformBuffer> boundUniformBuffers = new Dictionary<string, IGLUniformBuffer>();
         private bool? lastBlendingEnabledState;
         private int lastBoundVertexArray;
 
@@ -80,12 +83,18 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Disable(EnableCap.StencilTest);
             GL.Enable(EnableCap.Blend);
 
+            string extensions = GetExtensions();
+
             Logger.Log($@"GL Initialized
                         GL Version:                 {GL.GetString(StringName.Version)}
                         GL Renderer:                {GL.GetString(StringName.Renderer)}
                         GL Shader Language version: {GL.GetString(StringName.ShadingLanguageVersion)}
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
-                        GL Extensions:              {GetExtensions()}");
+                        GL Extensions:              {extensions}");
+
+            UseStructuredBuffers = extensions.Contains(@"GL_ARB_shader_storage_buffer_object") && !FrameworkEnvironment.NoStructuredBuffers;
+
+            Logger.Log($"{nameof(UseStructuredBuffers)}: {UseStructuredBuffers}");
 
             openGLSurface.ClearCurrent();
         }
@@ -107,8 +116,8 @@ namespace osu.Framework.Graphics.OpenGL
         protected internal override void BeginFrame(Vector2 windowSize)
         {
             lastBlendingEnabledState = null;
-            lastBoundBuffers.AsSpan().Clear();
             lastBoundVertexArray = 0;
+            boundUniformBuffers.Clear();
 
             // Seems to be required on some drivers as the context is lost from the draw thread.
             MakeCurrent();
@@ -134,19 +143,6 @@ namespace osu.Framework.Graphics.OpenGL
 
             lastBoundVertexArray = vaoId;
             GL.BindVertexArray(vaoId);
-
-            FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
-            return true;
-        }
-
-        public bool BindBuffer(BufferTarget target, int buffer)
-        {
-            int bufferIndex = target - BufferTarget.ArrayBuffer;
-            if (lastBoundBuffers[bufferIndex] == buffer)
-                return false;
-
-            lastBoundBuffers[bufferIndex] = buffer;
-            GL.BindBuffer(target, buffer);
 
             FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
             return true;
@@ -273,6 +269,49 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
         }
 
+        public void BindUniformBuffer(string blockName, IGLUniformBuffer glBuffer)
+        {
+            if (boundUniformBuffers.TryGetValue(blockName, out IGLUniformBuffer? current) && current == glBuffer)
+                return;
+
+            FlushCurrentBatch(FlushBatchSource.BindBuffer);
+            boundUniformBuffers[blockName] = glBuffer;
+        }
+
+        public void DrawVertices(PrimitiveType type, int vertexStart, int verticesCount)
+        {
+            var glShader = (GLShader)Shader!;
+
+            glShader.BindUniformBlock("g_GlobalUniforms", GlobalUniformBuffer!);
+            glShader.BindUniformBlock("g_MaskingBuffer", ShaderMaskingStack!.CurrentBuffer);
+
+            int currentUniformBinding = 0;
+            int currentStorageBinding = 0;
+
+            foreach ((string name, IGLUniformBuffer buffer) in boundUniformBuffers)
+            {
+                if (glShader.GetUniformBlockIndex(name) is not int index)
+                    continue;
+
+                buffer.Flush();
+
+                if (buffer is IGLShaderStorageBufferObject && UseStructuredBuffers)
+                {
+                    GL4.GL.ShaderStorageBlockBinding(glShader, index, currentStorageBinding);
+                    GL4.GL.BindBufferBase(GL4.BufferRangeTarget.ShaderStorageBuffer, currentStorageBinding, buffer.Id);
+                    currentStorageBinding++;
+                }
+                else
+                {
+                    GL.UniformBlockBinding(glShader, index, currentUniformBinding);
+                    GL.BindBufferBase(BufferRangeTarget.UniformBuffer, currentUniformBinding, buffer.Id);
+                    currentUniformBinding++;
+                }
+            }
+
+            GL.DrawElements(type, verticesCount, DrawElementsType.UnsignedShort, (IntPtr)(vertexStart * sizeof(ushort)));
+        }
+
         protected override void SetScissorStateImplementation(bool enabled)
         {
             if (enabled)
@@ -376,8 +415,8 @@ namespace osu.Framework.Graphics.OpenGL
             return new GLShaderPart(this, name, rawData, glType, store);
         }
 
-        protected override IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer, ShaderCompilationStore compilationStore)
-            => new GLShader(this, name, parts.Cast<GLShaderPart>().ToArray(), globalUniformBuffer, compilationStore);
+        protected override IShader CreateShader(string name, IShaderPart[] parts, ShaderCompilationStore compilationStore)
+            => new GLShader(this, name, parts.Cast<GLShaderPart>().ToArray(), compilationStore);
 
         public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
         {
@@ -431,7 +470,11 @@ namespace osu.Framework.Graphics.OpenGL
             return new GLFrameBuffer(this, glFormats, glFilteringMode);
         }
 
-        protected override IUniformBuffer<TData> CreateUniformBuffer<TData>() => new GLUniformBuffer<TData>(this);
+        protected override IUniformBuffer<TData> CreateUniformBuffer<TData>()
+            => new GLUniformBuffer<TData>(this);
+
+        protected override IShaderStorageBufferObject<TData> CreateShaderStorageBufferObject<TData>(int uboSize, int ssboSize)
+            => new GLShaderStorageBufferObject<TData>(this, uboSize, ssboSize);
 
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
                                                               Color4? initialisationColour = null)

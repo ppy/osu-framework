@@ -17,8 +17,6 @@ using Android.App;
     ResizeableActivity = true,
     Theme = "@android:style/Theme.Black.NoTitleBar"
 )]
-[assembly: UsesPermission(Manifest.Permission.ReadExternalStorage)]
-[assembly: UsesPermission(Manifest.Permission.WriteExternalStorage)]
 [assembly: UsesPermission(Manifest.Permission.WakeLock)]
 [assembly: UsesPermission(Manifest.Permission.ReadFrameBuffer)]
 [assembly: UsesPermission(Manifest.Permission.Internet)]

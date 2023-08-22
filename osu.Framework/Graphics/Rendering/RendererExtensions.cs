@@ -65,7 +65,7 @@ namespace osu.Framework.Graphics.Rendering
             SRGBColour topColour = (drawColour.TopLeft + drawColour.TopRight) / 2;
             SRGBColour bottomColour = (drawColour.BottomLeft + drawColour.BottomRight) / 2;
 
-            vertexAction(new TexturedVertex2D
+            vertexAction(new TexturedVertex2D(renderer)
             {
                 Position = vertexTriangle.P0,
                 TexturePosition = new Vector2((inflatedCoordRect.Left + inflatedCoordRect.Right) / 2, inflatedCoordRect.Top),
@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.Rendering
                 BlendRange = inflationAmount,
                 Colour = topColour.SRGB,
             });
-            vertexAction(new TexturedVertex2D
+            vertexAction(new TexturedVertex2D(renderer)
             {
                 Position = vertexTriangle.P1,
                 TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Bottom),
@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.Rendering
                 BlendRange = inflationAmount,
                 Colour = drawColour.BottomLeft.SRGB,
             });
-            vertexAction(new TexturedVertex2D
+            vertexAction(new TexturedVertex2D(renderer)
             {
                 Position = (vertexTriangle.P1 + vertexTriangle.P2) / 2,
                 TexturePosition = new Vector2((inflatedCoordRect.Left + inflatedCoordRect.Right) / 2, inflatedCoordRect.Bottom),
@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics.Rendering
                 BlendRange = inflationAmount,
                 Colour = bottomColour.SRGB,
             });
-            vertexAction(new TexturedVertex2D
+            vertexAction(new TexturedVertex2D(renderer)
             {
                 Position = vertexTriangle.P2,
                 TexturePosition = new Vector2(inflatedCoordRect.Right, inflatedCoordRect.Bottom),
@@ -150,7 +150,7 @@ namespace osu.Framework.Graphics.Rendering
 
             vertexAction ??= renderer.DefaultQuadBatch.AddAction;
 
-            vertexAction(new TexturedVertex2D
+            vertexAction(new TexturedVertex2D(renderer)
             {
                 Position = vertexQuad.BottomLeft,
                 TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Bottom),
@@ -158,7 +158,7 @@ namespace osu.Framework.Graphics.Rendering
                 BlendRange = blendRange,
                 Colour = drawColour.BottomLeft.SRGB,
             });
-            vertexAction(new TexturedVertex2D
+            vertexAction(new TexturedVertex2D(renderer)
             {
                 Position = vertexQuad.BottomRight,
                 TexturePosition = new Vector2(inflatedCoordRect.Right, inflatedCoordRect.Bottom),
@@ -166,7 +166,7 @@ namespace osu.Framework.Graphics.Rendering
                 BlendRange = blendRange,
                 Colour = drawColour.BottomRight.SRGB,
             });
-            vertexAction(new TexturedVertex2D
+            vertexAction(new TexturedVertex2D(renderer)
             {
                 Position = vertexQuad.TopRight,
                 TexturePosition = new Vector2(inflatedCoordRect.Right, inflatedCoordRect.Top),
@@ -174,7 +174,7 @@ namespace osu.Framework.Graphics.Rendering
                 BlendRange = blendRange,
                 Colour = drawColour.TopRight.SRGB,
             });
-            vertexAction(new TexturedVertex2D
+            vertexAction(new TexturedVertex2D(renderer)
             {
                 Position = vertexQuad.TopLeft,
                 TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Top),
@@ -263,9 +263,14 @@ namespace osu.Framework.Graphics.Rendering
         public static void PushLocalMatrix(this IRenderer renderer, Matrix4 matrix)
         {
             var currentMasking = renderer.CurrentMaskingInfo;
-            // normally toMaskingSpace is fed vertices already in screen space coordinates,
-            // but since we are modifying the matrix the vertices are in local space
+
+            // Normally, ToMaskingSpace is used to convert from screen-space coordinates to local coordinates in the masking-space.
+            // But if a local matrix is pushed, then vertices will instead be provided in local-space, such that:
+            // 1. To convert to masking-space we need to first convert to screen-space.
+            // 2. To convert to scissor-space we need to convert to screen-space.
             currentMasking.ToMaskingSpace = new Matrix3(matrix) * currentMasking.ToMaskingSpace;
+            currentMasking.ToScissorSpace = new Matrix3(matrix);
+
             renderer.PushMaskingInfo(currentMasking, true);
             renderer.PushProjectionMatrix(matrix * renderer.ProjectionMatrix);
         }
@@ -274,10 +279,13 @@ namespace osu.Framework.Graphics.Rendering
         public static void PushLocalMatrix(this IRenderer renderer, Matrix3 matrix)
         {
             var currentMasking = renderer.CurrentMaskingInfo;
-            // normally toMaskingSpace is fed vertices already in screen space coordinates,
-            // but since we are modifying the matrix the vertices are in local space
+
+            // Normally, ToMaskingSpace is used to convert from screen-space coordinates to local coordinates in the masking-space.
+            // But if a local matrix is pushed, then vertices will instead be provided in local-space, such that:
+            // 1. To convert to masking-space we need to first convert to screen-space.
+            // 2. To convert to scissor-space we need to convert to screen-space.
             currentMasking.ToMaskingSpace = matrix * currentMasking.ToMaskingSpace;
-            renderer.PushMaskingInfo(currentMasking, true);
+            currentMasking.ToScissorSpace = matrix;
 
             // this makes sure it also works for 3D vertices like the ones path uses
             Matrix4 mat = new Matrix4(matrix);
@@ -285,6 +293,8 @@ namespace osu.Framework.Graphics.Rendering
             mat.Row2.X = 0;
             mat.Row3.Y = mat.Row2.Y;
             mat.Row2.Y = 0;
+
+            renderer.PushMaskingInfo(currentMasking, true);
             renderer.PushProjectionMatrix(mat * renderer.ProjectionMatrix);
         }
 
