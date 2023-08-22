@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using ManagedBass;
 using osu.Framework.Audio;
@@ -72,11 +73,21 @@ namespace osu.Framework.Tests.Audio
         public void RunOnAudioThread(Action action)
         {
             var resetEvent = new ManualResetEvent(false);
+            Exception? threadException = null;
 
             new Thread(() =>
             {
                 ThreadSafety.IsAudioThread = true;
-                action();
+
+                try
+                {
+                    action();
+                }
+                catch (Exception e)
+                {
+                    threadException = e;
+                }
+
                 resetEvent.Set();
             })
             {
@@ -85,6 +96,9 @@ namespace osu.Framework.Tests.Audio
 
             if (!resetEvent.WaitOne(TimeSpan.FromSeconds(10)))
                 throw new TimeoutException();
+
+            if (threadException != null)
+                ExceptionDispatchInfo.Throw(threadException);
         }
 
         internal TrackBass GetTrack() => (TrackBass)TrackStore.Get("Resources.Tracks.sample-track.mp3");
