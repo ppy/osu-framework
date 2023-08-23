@@ -38,6 +38,14 @@ case $arch in
 esac
 
 FFMPEG_FLAGS+=(
+    --enable-w32threads
+
+    --enable-dxva2
+    --enable-d3d11va
+    --enable-hwaccel='h264_dxva2,h264_d3d11va,h264_d3d11va2'
+    --enable-hwaccel='hevc_dxva2,hevc_d3d11va,hevc_d3d11va2'
+    --enable-hwaccel='vp9_dxva2,vp9_d3d11va,vp9_d3d11va2'
+
     --enable-cross-compile
     --target-os=mingw32
     --arch=$cross_arch
