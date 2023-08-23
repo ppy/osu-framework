@@ -166,5 +166,6 @@ jobs:
           title: Update FFmpeg binaries
           body: This PR has been auto-generated to update the FFmpeg binaries.
           branch: update-ffmpeg-binaries
+          delete-branch: true
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
