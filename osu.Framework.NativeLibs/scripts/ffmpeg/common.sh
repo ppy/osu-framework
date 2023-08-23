@@ -1,7 +1,8 @@
 #!/bin/bash
+set -eu
 
 FFMPEG_VERSION=4.3.3
-
+FFMPEG_FILE="ffmpeg-$FFMPEG_VERSION.tar.gz"
 FFMPEG_FLAGS=(
     --disable-programs
     --disable-doc
@@ -27,28 +28,43 @@ FFMPEG_FLAGS=(
     --enable-shared
 )
 
-function build_ffmpeg() {
-    if [ ! -d "ffmpeg-$FFMPEG_VERSION" ]; then
-        echo "-> Downloading source..."
-        curl https://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.gz | tar zxf -
+function prep_ffmpeg() {
+    FFMPEG_FLAGS+=(
+        --prefix="$PWD/$1"
+        --shlibdir="$PWD/$1"
+    )
+
+    local build_dir="$1-build"
+    if [ ! -e "$FFMPEG_FILE" ]; then
+        echo "-> Downloading $FFMPEG_FILE..."
+        curl -o "$FFMPEG_FILE" "https://ffmpeg.org/releases/$FFMPEG_FILE"
     else
-        echo "-> ffmpeg-$FFMPEG_VERSION already exists, not re-downloading."
+        echo "-> $FFMPEG_FILE already exists, not re-downloading."
+    fi
+
+    if [ ! -d "$build_dir" ]; then
+        echo "-> Unpacking source to $build_dir..."
+        mkdir "$build_dir"
+        tar xzf "$FFMPEG_FILE" --strip 1 -C "$build_dir"
+    else
+        echo "-> $build_dir already exists, skipping unpacking."
     fi
 
     echo "-> Configuring..."
-
-    cd ffmpeg-$FFMPEG_VERSION
+    cd "$build_dir"
     ./configure "${FFMPEG_FLAGS[@]}"
+}
 
-    CORES=0
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        CORES=$(sysctl -n hw.ncpu)
-    else
-        CORES=$(nproc)
-    fi
-
+function build_ffmpeg() {
     echo "-> Building using $CORES threads..."
 
     make -j$CORES
-    make install
+    make install-libs
 }
+
+CORES=0
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    CORES=$(sysctl -n hw.ncpu)
+else
+    CORES=$(nproc)
+fi
