@@ -28,6 +28,8 @@ FFMPEG_FLAGS+=(
     --arch=$arch
     --extra-cflags="-arch $arch"
     --extra-ldflags="-arch $arch"
+    
+    --install-name-dir='@loader_path'
 )
 
 pushd . > /dev/null
@@ -44,14 +46,3 @@ for f in *.*.*.*.dylib; do
     mv -v "$f" "${f%.*.*.*}.dylib"
 done
 popd > /dev/null
-
-echo "-> Fixing dylibs paths..."
-BUILDPATH="macOS-$arch"
-LIBS="libavcodec.58.dylib libavformat.58.dylib libavutil.56.dylib libswscale.5.dylib"
-for f in $LIBS; do
-    install_name_tool "$BUILDPATH/$f" -id "@loader_path/$f" \
-        -change $BUILDPATH/libavcodec.58.dylib @loader_path/libavcodec.58.dylib \
-        -change $BUILDPATH/libavformat.58.dylib @loader_path/libavformat.58.dylib \
-        -change $BUILDPATH/libavutil.56.dylib @loader_path/libavutil.56.dylib \
-        -change $BUILDPATH/libswscale.5.dylib @loader_path/libswscale.5.dylib
-done
