@@ -15,12 +15,17 @@ namespace osu.Framework.Graphics.Shaders
 {
     public class ShaderCompilationStore
     {
+        /// <summary>
+        /// A cache-busting mechanism to be used for when the cross-compilation output changes (i.e. a change to the cross-compiler itself), but the input is not affected.
+        /// </summary>
+        private const int cache_version = 1;
+
         public Storage? CacheStorage { private get; set; }
 
         public VertexFragmentShaderCompilation CompileVertexFragment(string vertexText, string fragmentText, CrossCompileTarget target)
         {
             // vertexHash#fragmentHash#target
-            string filename = $"{vertexText.ComputeMD5Hash()}#{fragmentText.ComputeMD5Hash()}#{(int)target}";
+            string filename = $"{vertexText.ComputeMD5Hash()}#{fragmentText.ComputeMD5Hash()}#{(int)target}#{cache_version}";
 
             if (tryGetCached(filename, out VertexFragmentShaderCompilation? existing))
             {
@@ -50,7 +55,7 @@ namespace osu.Framework.Graphics.Shaders
         public ComputeProgramCompilation CompileCompute(string programText, CrossCompileTarget target)
         {
             // programHash#target
-            string filename = $"{programText.ComputeMD5Hash()}#{(int)target}";
+            string filename = $"{programText.ComputeMD5Hash()}#{(int)target}#{cache_version}";
 
             if (tryGetCached(filename, out ComputeProgramCompilation? existing))
             {
