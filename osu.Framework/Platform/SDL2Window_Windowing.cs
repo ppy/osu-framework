@@ -486,10 +486,6 @@ namespace osu.Framework.Platform
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
                     Focused = true;
-                    // displays can change without a SDL_DISPLAYEVENT being sent, eg. changing resolution.
-                    // force update displays when gaining keyboard focus to always have up-to-date information.
-                    // eg. this covers scenarios when changing resolution outside of the game, and then tabbing in.
-                    fetchDisplays();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
@@ -498,6 +494,21 @@ namespace osu.Framework.Platform
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
+                    break;
+            }
+
+            // displays can change without a SDL_DISPLAYEVENT being sent, eg. changing resolution.
+            // force update displays when gaining keyboard focus to always have up-to-date information.
+            // eg. this covers scenarios when changing resolution outside of the game, and then tabbing in.
+            switch (evtWindow.windowEvent)
+            {
+                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
+                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
+                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
+                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
+                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SHOWN:
+                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_HIDDEN:
+                    fetchDisplays();
                     break;
             }
 
