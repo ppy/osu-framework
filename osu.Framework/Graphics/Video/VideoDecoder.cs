@@ -119,7 +119,6 @@ namespace osu.Framework.Graphics.Video
                 Library.Load("libavutil.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
                 Library.Load("libavcodec.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
                 Library.Load("libavformat.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
-                Library.Load("libavfilter.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
                 Library.Load("libswscale.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
             }
         }
