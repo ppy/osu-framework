@@ -106,7 +106,8 @@ jobs:
 
   build-linux:
     name: Build Linux (x64)
-    runs-on: ubuntu-22.04
+    # Use 20.04 to target glibc 2.31 like the other native libs
+    runs-on: ubuntu-20.04
     steps:
       - name: Install dependencies
         run: |
