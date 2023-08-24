@@ -103,7 +103,7 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
-        /// Move a file from one location to another. File must exist. Destination must not exist.
+        /// Move a file from one location to another. File must exist. Destination will be overwritten if exists.
         /// </summary>
         /// <param name="from">The file path to move.</param>
         /// <param name="to">The destination path.</param>
