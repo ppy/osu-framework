@@ -904,6 +904,16 @@ namespace osu.Framework.Graphics.Video
                         ffmpeg.avformat_close_input(ptr);
                 }
 
+                if (ioContext != null)
+                {
+                    // This is not handled by avformat_close_input for custom IO:
+                    // https://ffmpeg.org/doxygen/4.3/structAVFormatContext.html#a1e7324262b6b78522e52064daaa7bc87
+                    ffmpeg.av_freep(&ioContext->buffer);
+
+                    fixed (AVIOContext** ptr = &ioContext)
+                        ffmpeg.avio_context_free(ptr);
+                }
+
                 if (codecContext != null)
                 {
                     fixed (AVCodecContext** ptr = &codecContext)
