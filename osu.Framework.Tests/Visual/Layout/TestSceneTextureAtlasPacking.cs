@@ -17,7 +17,7 @@ namespace osu.Framework.Tests.Visual.Layout
         private const int atlas_size = 1024;
 
         private readonly Container placed;
-        private readonly Box toPlace;
+        private readonly Container toPlace;
 
         public TestSceneTextureAtlasPacking()
         {
@@ -38,9 +38,17 @@ namespace osu.Framework.Tests.Visual.Layout
                     {
                         RelativeSizeAxes = Axes.Both,
                     },
-                    toPlace = new Box
+                    toPlace = new Container
                     {
-                        Colour = Color4.Cyan
+                        Masking = true,
+                        BorderThickness = 10,
+                        BorderColour = Color4.Cyan,
+                        Child = new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Alpha = 0,
+                            AlwaysPresent = true
+                        }
                     }
                 }
             });
@@ -48,7 +56,7 @@ namespace osu.Framework.Tests.Visual.Layout
 
         private int width;
         private int height;
-        private Vector2I positionToPlace;
+        private Vector2I? positionToPlace;
         private Vector2I lastPlacedTopRight;
         private readonly List<RectangleI> subTextureBounds = new List<RectangleI>();
 
@@ -85,13 +93,16 @@ namespace osu.Framework.Tests.Visual.Layout
 
         private void place()
         {
-            subTextureBounds.Add(new RectangleI(positionToPlace.X, positionToPlace.Y, width, height));
-            lastPlacedTopRight = new Vector2I(positionToPlace.X + width, positionToPlace.Y);
+            if (!positionToPlace.HasValue)
+                return;
+
+            subTextureBounds.Add(new RectangleI(positionToPlace.Value.X, positionToPlace.Value.Y, width, height));
+            lastPlacedTopRight = new Vector2I(positionToPlace.Value.X + width, positionToPlace.Value.Y);
 
             placed.Add(new Box
             {
                 Size = new Vector2(width, height),
-                Position = positionToPlace
+                Position = positionToPlace.Value
             });
 
             updatePosition();
@@ -100,15 +111,15 @@ namespace osu.Framework.Tests.Visual.Layout
         private void updatePosition()
         {
             var available = getAvailablePosition(lastPlacedTopRight, true);
+            positionToPlace = available;
 
-            toPlace.FadeColour(available.HasValue ? Color4.Cyan : Color4.Red, 250, Easing.OutQuint);
+            toPlace.BorderColour = available.HasValue ? Color4.Cyan : Color4.Red;
             toPlace.Size = new Vector2(width, height);
 
             if (!available.HasValue)
                 return;
 
-            positionToPlace = available.Value;
-            toPlace.MoveTo(positionToPlace, 250, Easing.OutQuint);
+            toPlace.MoveTo(available.Value, 250, Easing.OutQuint);
         }
 
         private Vector2I? getAvailablePosition(Vector2I currentPosition, bool checkBounds)
