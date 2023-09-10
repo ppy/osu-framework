@@ -5,6 +5,7 @@ using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Extensions.Color4Extensions;
 using System;
+using System.Diagnostics.Contracts;
 
 namespace osu.Framework.Graphics.Colour
 {
@@ -24,6 +25,21 @@ namespace osu.Framework.Graphics.Colour
         /// A <see cref="Color4"/> representation of this colour in the linear space.
         /// </summary>
         public Color4 Linear => SRGB.ToLinear();
+
+        /// <summary>
+        /// Create a <see cref="SRGBColour"/> from a <see cref="Colour4"/>, treating
+        /// the contained colour components as being in gamma-corrected sRGB colour space.
+        /// </summary>
+        /// <param name="colour">The raw colour values to store.</param>
+        public SRGBColour(Colour4 colour) => SRGB = colour;
+
+        /// <summary>
+        /// Convert this <see cref="SRGBColour"/> into a <see cref="LinearColour"/> by removing
+        /// the gamma correction of the chromatic (RGB) components. The alpha component is untouched.
+        /// </summary>
+        /// <returns>A <see cref="LinearColour"/> struct containing the converted values.</returns>
+        [Pure]
+        public readonly LinearColour ToLinear() => new LinearColour(SRGB.ToLinear());
 
         /// <summary>
         /// The alpha component of this colour.
