@@ -136,10 +136,12 @@ namespace osu.Framework.Graphics.Colour
         public static SRGBColour FromVector(Vector4 v) => new SRGBColour { SRGB = new Color4(v.X, v.Y, v.Z, v.W) };
 
         /// <summary>
-        /// Multiplies the alpha value of this colour by the given alpha factor.
+        /// Returns a new <see cref="SRGBColour"/> with the same RGB components, but multiplying the current
+        /// alpha component by a scalar value. The final alpha is clamped to the 0-1 range.
         /// </summary>
-        /// <param name="alpha">The alpha factor to multiply with.</param>
-        public void MultiplyAlpha(float alpha) => SRGB.A *= alpha;
+        /// <param name="scalar">The value that the existing alpha will be multiplied by.</param>
+        [Pure]
+        public SRGBColour MultiplyAlpha(float scalar) => new SRGBColour(SRGB.MultiplyAlpha(scalar));
 
         private static bool isWhite(SRGBColour colour) => colour.SRGB.R == 1 && colour.SRGB.G == 1 && colour.SRGB.B == 1;
 
