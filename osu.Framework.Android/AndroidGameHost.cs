@@ -88,14 +88,7 @@ namespace osu.Framework.Android
                 {
                     // Recommended way to open URLs on Android 11+
                     // https://developer.android.com/training/package-visibility/use-cases#open-urls-browser-or-other-app
-                    try
-                    {
-                        gameView.Activity.StartActivity(intent);
-                    }
-                    catch (ActivityNotFoundException e)
-                    {
-                        Logger.Error(e, $"Failed to start intent: {intent}");
-                    }
+                    gameView.Activity.StartActivity(intent);
                 }
             }
             catch (Exception ex)
