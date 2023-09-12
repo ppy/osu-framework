@@ -89,7 +89,7 @@ namespace osu.Framework.Platform
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Unable to open link in browser.");
+                Logger.Error(ex, Logger.EXTERNAL_LINK_OPEN_ERROR_MESSAGE);
             }
         }
 
