@@ -18,7 +18,6 @@ using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Platform.MacOS;
 using UIKit;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace osu.Framework.iOS
 {
