@@ -82,18 +82,25 @@ namespace osu.Framework.Android
             if (!url.CheckIsValidUrl())
                 throw new ArgumentException("The provided URL must be one of either http://, https:// or mailto: protocols.", nameof(url));
 
-            using (var intent = new Intent(Intent.ActionView, Uri.Parse(url)))
+            try
             {
-                // Recommended way to open URLs on Android 11+
-                // https://developer.android.com/training/package-visibility/use-cases#open-urls-browser-or-other-app
-                try
+                using (var intent = new Intent(Intent.ActionView, Uri.Parse(url)))
                 {
-                    gameView.Activity.StartActivity(intent);
+                    // Recommended way to open URLs on Android 11+
+                    // https://developer.android.com/training/package-visibility/use-cases#open-urls-browser-or-other-app
+                    try
+                    {
+                        gameView.Activity.StartActivity(intent);
+                    }
+                    catch (ActivityNotFoundException e)
+                    {
+                        Logger.Error(e, $"Failed to start intent: {intent}");
+                    }
                 }
-                catch (ActivityNotFoundException e)
-                {
-                    Logger.Error(e, $"Failed to start intent: {intent}");
-                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Unable to open link in browser.");
             }
         }
 
