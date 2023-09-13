@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Containers
             private MaskingInfo? maskingInfo;
 
             /// <summary>
-            /// The screen-space version of <see cref="MaskingInfo.MaskingArea"/>.
+            /// The screen-space version of <see cref="MaskingInfo.MaskingRect"/>.
             /// Used as cache of screen-space masking quads computed in previous frames.
             /// Assign null to reset.
             /// </summary>
@@ -92,11 +92,10 @@ namespace osu.Framework.Graphics.Containers
                     ? null
                     : new MaskingInfo
                     {
-                        ScreenSpaceScissorArea = Source.ScreenSpaceDrawQuad.AABB,
-                        MaskingArea = Source.DrawRectangle.Normalize(),
+                        ScreenSpaceAABB = Source.ScreenSpaceDrawQuad.AABB,
+                        MaskingRect = Source.DrawRectangle.Normalize(),
                         ConservativeScreenSpaceQuad = Quad.FromRectangle(shrunkDrawRectangle) * DrawInfo.Matrix,
                         ToMaskingSpace = DrawInfo.MatrixInverse,
-                        ToScissorSpace = Matrix3.Identity,
                         CornerRadius = Source.effectiveCornerRadius,
                         CornerExponent = Source.CornerExponent,
                         BorderThickness = Source.BorderThickness,
@@ -122,13 +121,13 @@ namespace osu.Framework.Graphics.Containers
                 if (maskingInfo == null || edgeEffect.Type == EdgeEffectType.None || edgeEffect.Radius <= 0.0f || edgeEffect.Colour.Alpha <= 0)
                     return;
 
-                RectangleF effectRect = maskingInfo.Value.MaskingArea.Inflate(edgeEffect.Radius).Offset(edgeEffect.Offset);
+                RectangleF effectRect = maskingInfo.Value.MaskingRect.Inflate(edgeEffect.Radius).Offset(edgeEffect.Offset);
 
                 screenSpaceMaskingQuad ??= Quad.FromRectangle(effectRect) * DrawInfo.Matrix;
 
                 MaskingInfo edgeEffectMaskingInfo = maskingInfo.Value;
-                edgeEffectMaskingInfo.MaskingArea = effectRect;
-                edgeEffectMaskingInfo.ScreenSpaceScissorArea = screenSpaceMaskingQuad.Value.AABB;
+                edgeEffectMaskingInfo.MaskingRect = effectRect;
+                edgeEffectMaskingInfo.ScreenSpaceAABB = screenSpaceMaskingQuad.Value.AABB;
                 edgeEffectMaskingInfo.CornerRadius = maskingInfo.Value.CornerRadius + edgeEffect.Radius + edgeEffect.Roundness;
                 edgeEffectMaskingInfo.BorderThickness = 0;
                 // HACK HACK HACK. We abuse blend range to give us the linear alpha gradient of

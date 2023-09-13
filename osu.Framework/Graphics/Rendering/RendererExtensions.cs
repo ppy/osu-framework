@@ -263,14 +263,9 @@ namespace osu.Framework.Graphics.Rendering
         public static void PushLocalMatrix(this IRenderer renderer, Matrix4 matrix)
         {
             var currentMasking = renderer.CurrentMaskingInfo;
-
-            // Normally, ToMaskingSpace is used to convert from screen-space coordinates to local coordinates in the masking-space.
-            // But if a local matrix is pushed, then vertices will instead be provided in local-space, such that:
-            // 1. To convert to masking-space we need to first convert to screen-space.
-            // 2. To convert to scissor-space we need to convert to screen-space.
+            // normally toMaskingSpace is fed vertices already in screen space coordinates,
+            // but since we are modifying the matrix the vertices are in local space
             currentMasking.ToMaskingSpace = new Matrix3(matrix) * currentMasking.ToMaskingSpace;
-            currentMasking.ToScissorSpace = new Matrix3(matrix);
-
             renderer.PushMaskingInfo(currentMasking, true);
             renderer.PushProjectionMatrix(matrix * renderer.ProjectionMatrix);
         }
@@ -279,13 +274,10 @@ namespace osu.Framework.Graphics.Rendering
         public static void PushLocalMatrix(this IRenderer renderer, Matrix3 matrix)
         {
             var currentMasking = renderer.CurrentMaskingInfo;
-
-            // Normally, ToMaskingSpace is used to convert from screen-space coordinates to local coordinates in the masking-space.
-            // But if a local matrix is pushed, then vertices will instead be provided in local-space, such that:
-            // 1. To convert to masking-space we need to first convert to screen-space.
-            // 2. To convert to scissor-space we need to convert to screen-space.
+            // normally toMaskingSpace is fed vertices already in screen space coordinates,
+            // but since we are modifying the matrix the vertices are in local space
             currentMasking.ToMaskingSpace = matrix * currentMasking.ToMaskingSpace;
-            currentMasking.ToScissorSpace = matrix;
+            renderer.PushMaskingInfo(currentMasking, true);
 
             // this makes sure it also works for 3D vertices like the ones path uses
             Matrix4 mat = new Matrix4(matrix);
@@ -293,8 +285,6 @@ namespace osu.Framework.Graphics.Rendering
             mat.Row2.X = 0;
             mat.Row3.Y = mat.Row2.Y;
             mat.Row2.Y = 0;
-
-            renderer.PushMaskingInfo(currentMasking, true);
             renderer.PushProjectionMatrix(mat * renderer.ProjectionMatrix);
         }
 
