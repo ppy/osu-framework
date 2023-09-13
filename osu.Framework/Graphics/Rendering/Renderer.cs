@@ -618,18 +618,18 @@ namespace osu.Framework.Graphics.Rendering
 
             if (isPushing)
             {
-                RectangleF scissorRect = maskingInfo.ScreenSpaceScissorArea;
+                RectangleI scissorRect = maskingInfo.ScreenSpaceScissorArea;
 
                 if (!overwritePreviousScissor)
                 {
                     Vector4 currentSmiScissorRectangle = ShaderMaskingStack!.CurrentBuffer[ShaderMaskingStack.CurrentOffset].ScissorRect;
-                    RectangleF currentScissorRectangle = RectangleF.FromLTRB(
+                    RectangleI currentScissorRectangle = RectangleF.FromLTRB(
                         currentSmiScissorRectangle.X,
                         currentSmiScissorRectangle.Y,
                         currentSmiScissorRectangle.Z,
                         currentSmiScissorRectangle.W);
 
-                    scissorRect = RectangleF.Intersect(currentScissorRectangle, scissorRect);
+                    scissorRect = RectangleI.Intersect(currentScissorRectangle, scissorRect);
                 }
 
                 ShaderMaskingStack!.Push(new ShaderMaskingInfo
