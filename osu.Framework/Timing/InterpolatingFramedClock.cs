@@ -11,44 +11,17 @@ namespace osu.Framework.Timing
     /// </summary>
     public class InterpolatingFramedClock : IFrameBasedClock, ISourceChangeableClock
     {
-        private readonly FramedClock clock = new FramedClock(new StopwatchClock(true));
-
-        public IClock? Source { get; private set; }
-
-        protected IFrameBasedClock? FramedSourceClock;
-        protected double LastInterpolatedTime;
-        protected double CurrentInterpolatedTime;
-
-        public double FramesPerSecond => 0;
-
-        public virtual void ChangeSource(IClock? source)
-        {
-            if (source != null)
-            {
-                Source = source;
-                FramedSourceClock = Source as IFrameBasedClock ?? new FramedClock(Source);
-            }
-
-            currentTime = 0;
-            LastInterpolatedTime = 0;
-            CurrentInterpolatedTime = 0;
-        }
-
-        public InterpolatingFramedClock(IClock? source = null)
-        {
-            ChangeSource(source);
-        }
-
-        public virtual double CurrentTime => currentTime;
-
-        private double currentTime;
-
         /// <summary>
         /// The amount of error that is allowed between the source and interpolated time before the interpolated time is ignored and the source time is used.
         /// </summary>
         public virtual double AllowableErrorMilliseconds => 1000.0 / 60 * 2 * Rate;
 
-        private bool sourceIsRunning;
+        /// <summary>
+        /// Whether time is being interpolated for the frame currently being processed.
+        /// </summary>
+        public bool IsInterpolating { get; private set; }
+
+        public double Drift => CurrentTime - (FramedSourceClock?.CurrentTime ?? 0);
 
         public virtual double Rate
         {
@@ -58,38 +31,63 @@ namespace osu.Framework.Timing
 
         public virtual bool IsRunning => sourceIsRunning;
 
-        public virtual double Drift => CurrentTime - (FramedSourceClock?.CurrentTime ?? 0);
+        public virtual double ElapsedFrameTime => currentInterpolatedTime - lastInterpolatedTime;
 
-        public virtual double ElapsedFrameTime => CurrentInterpolatedTime - LastInterpolatedTime;
+        public IClock? Source { get; private set; }
 
-        /// <summary>
-        /// Whether time is being interpolated for the frame currently being processed.
-        /// </summary>
-        public bool IsInterpolating { get; private set; }
+        public virtual double CurrentTime => currentTime;
+
+        protected IFrameBasedClock? FramedSourceClock;
+
+        private readonly FramedClock realtimeClock = new FramedClock(new StopwatchClock(true));
+
+        private double lastInterpolatedTime;
+
+        private double currentInterpolatedTime;
+
+        private bool sourceIsRunning;
+
+        private double currentTime;
+
+        public InterpolatingFramedClock(IClock? source = null)
+        {
+            ChangeSource(source);
+        }
+
+        public virtual void ChangeSource(IClock? source)
+        {
+            if (source != null)
+            {
+                Source = source;
+                FramedSourceClock = Source as IFrameBasedClock ?? new FramedClock(source);
+            }
+
+            resetInterpolation();
+        }
 
         public virtual void ProcessFrame()
         {
             if (FramedSourceClock == null) return;
 
-            clock.ProcessFrame();
+            realtimeClock.ProcessFrame();
             FramedSourceClock.ProcessFrame();
 
             sourceIsRunning = FramedSourceClock.IsRunning;
 
-            LastInterpolatedTime = currentTime;
+            lastInterpolatedTime = currentTime;
 
             if (FramedSourceClock.IsRunning)
             {
                 if (FramedSourceClock.ElapsedFrameTime != 0)
                     IsInterpolating = true;
 
-                CurrentInterpolatedTime += clock.ElapsedFrameTime * Rate;
+                currentInterpolatedTime += realtimeClock.ElapsedFrameTime * Rate;
 
-                if (!IsInterpolating || Math.Abs(FramedSourceClock.CurrentTime - CurrentInterpolatedTime) > AllowableErrorMilliseconds)
+                if (!IsInterpolating || Math.Abs(FramedSourceClock.CurrentTime - currentInterpolatedTime) > AllowableErrorMilliseconds)
                 {
                     // if we've exceeded the allowable error, we should use the source clock's time value.
                     // seeking backwards should only be allowed if the source is explicitly doing that.
-                    CurrentInterpolatedTime = FramedSourceClock.ElapsedFrameTime < 0 ? FramedSourceClock.CurrentTime : Math.Max(LastInterpolatedTime, FramedSourceClock.CurrentTime);
+                    currentInterpolatedTime = FramedSourceClock.ElapsedFrameTime < 0 ? FramedSourceClock.CurrentTime : Math.Max(lastInterpolatedTime, FramedSourceClock.CurrentTime);
 
                     // once interpolation fails, we don't want to resume interpolating until the source clock starts to move again.
                     IsInterpolating = false;
@@ -97,14 +95,23 @@ namespace osu.Framework.Timing
                 else
                 {
                     //if we differ from the elapsed time of the source, let's adjust for the difference.
-                    CurrentInterpolatedTime += (FramedSourceClock.CurrentTime - CurrentInterpolatedTime) / 8;
+                    currentInterpolatedTime += (FramedSourceClock.CurrentTime - currentInterpolatedTime) / 8;
 
                     // limit the direction of travel to avoid seeking against the flow.
-                    CurrentInterpolatedTime = Rate >= 0 ? Math.Max(LastInterpolatedTime, CurrentInterpolatedTime) : Math.Min(LastInterpolatedTime, CurrentInterpolatedTime);
+                    currentInterpolatedTime = Rate >= 0 ? Math.Max(lastInterpolatedTime, currentInterpolatedTime) : Math.Min(lastInterpolatedTime, currentInterpolatedTime);
                 }
             }
 
-            currentTime = sourceIsRunning ? CurrentInterpolatedTime : FramedSourceClock.CurrentTime;
+            currentTime = sourceIsRunning ? currentInterpolatedTime : FramedSourceClock.CurrentTime;
         }
+
+        private void resetInterpolation()
+        {
+            currentTime = 0;
+            lastInterpolatedTime = 0;
+            currentInterpolatedTime = 0;
+        }
+
+        double IFrameBasedClock.FramesPerSecond => throw new NotImplementedException();
     }
 }
