@@ -7,7 +7,6 @@ namespace osu.Framework.Timing
 {
     /// <summary>
     /// A clock which uses an internal stopwatch to interpolate (smooth out) a source.
-    /// Note that this will NOT function unless a source has been set.
     /// </summary>
     public class InterpolatingFramedClock : IFrameBasedClock, ISourceChangeableClock
     {
@@ -56,11 +55,11 @@ namespace osu.Framework.Timing
 
         public virtual void ChangeSource(IClock? source)
         {
-            if (source != null)
-            {
-                Source = source;
-                FramedSourceClock = Source as IFrameBasedClock ?? new FramedClock(source);
-            }
+            Source = source ?? new StopwatchClock(true);
+
+            // We need a frame-based source to correctly process interpolation.
+            // If the provided source is not already a framed clock, encapsulate it in one.
+            FramedSourceClock = Source as IFrameBasedClock ?? new FramedClock(source);
 
             resetInterpolation();
         }
