@@ -19,8 +19,6 @@ namespace osu.Framework.Timing
         protected double LastInterpolatedTime;
         protected double CurrentInterpolatedTime;
 
-        public FrameTimeInfo TimeInfo => new FrameTimeInfo { Elapsed = ElapsedFrameTime, Current = CurrentTime };
-
         public double FramesPerSecond => 0;
 
         public virtual void ChangeSource(IClock? source)

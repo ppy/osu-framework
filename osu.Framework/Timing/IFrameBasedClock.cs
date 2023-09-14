@@ -20,7 +20,11 @@ namespace osu.Framework.Timing
         /// </summary>
         double FramesPerSecond { get; }
 
-        FrameTimeInfo TimeInfo { get; }
+        FrameTimeInfo TimeInfo => new FrameTimeInfo
+        {
+            Elapsed = ElapsedFrameTime,
+            Current = CurrentTime,
+        };
 
         /// <summary>
         /// Processes one frame. Generally should be run once per update loop.

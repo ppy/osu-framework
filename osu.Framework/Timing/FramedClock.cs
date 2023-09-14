@@ -28,8 +28,6 @@ namespace osu.Framework.Timing
             ChangeSource(Source);
         }
 
-        public FrameTimeInfo TimeInfo => new FrameTimeInfo { Elapsed = ElapsedFrameTime, Current = CurrentTime };
-
         private readonly double[] betweenFrameTimes = new double[128];
 
         private long totalFramesProcessed;
