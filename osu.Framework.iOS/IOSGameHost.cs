@@ -58,7 +58,11 @@ namespace osu.Framework.iOS
 
         public override void OpenUrlExternally(string url)
         {
-            if (!url.CheckIsValidUrl())
+            if (!url.CheckIsValidUrl()
+                // App store links
+                && !url.StartsWith("itms-apps://", StringComparison.Ordinal)
+                // Testflight links
+                && !url.StartsWith("itms-beta://", StringComparison.Ordinal))
                 throw new ArgumentException("The provided URL must be one of either http://, https:// or mailto: protocols.", nameof(url));
 
             UIApplication.SharedApplication.InvokeOnMainThread(() =>
