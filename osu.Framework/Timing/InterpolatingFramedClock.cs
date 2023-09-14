@@ -16,10 +16,17 @@ namespace osu.Framework.Timing
         public virtual double AllowableErrorMilliseconds => 1000.0 / 60 * 2 * Rate;
 
         /// <summary>
-        /// Whether time is being interpolated for the frame currently being processed.
+        /// Whether interpolation was applied at the last processed frame.
         /// </summary>
+        /// <remarks>
+        /// If <see cref="Drift"/> becomes too high (as defined by <see cref="AllowableErrorMilliseconds"/>),
+        /// interpolation will be bypassed in order to provide a more correct time value.
+        /// </remarks>
         public bool IsInterpolating { get; private set; }
 
+        /// <summary>
+        /// The drift in milliseconds between the source and interpolation at the last processed frame.
+        /// </summary>
         public double Drift => CurrentTime - (FramedSourceClock?.CurrentTime ?? 0);
 
         public virtual double Rate
