@@ -85,8 +85,6 @@ namespace osu.Framework.Logging
         /// </summary>
         public string Filename => $@"{Name}.log";
 
-        public const string EXTERNAL_LINK_OPEN_ERROR_MESSAGE = "Unable to open external link.";
-
         public int TotalLogOperations => logCount.Value;
 
         private readonly GlobalStatistic<int> logCount;

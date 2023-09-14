@@ -73,7 +73,7 @@ namespace osu.Framework.iOS
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, Logger.EXTERNAL_LINK_OPEN_ERROR_MESSAGE);
+                Logger.Error(ex, "Unable to open external link.");
             }
         }
 
