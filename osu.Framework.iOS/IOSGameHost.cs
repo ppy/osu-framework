@@ -14,6 +14,7 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.IO.Stores;
 using osu.Framework.iOS.Graphics.Textures;
 using osu.Framework.iOS.Graphics.Video;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Platform.MacOS;
 using UIKit;
@@ -65,12 +66,19 @@ namespace osu.Framework.iOS
                 && !url.StartsWith("itms-beta://", StringComparison.Ordinal))
                 throw new ArgumentException("The provided URL must be one of either http://, https:// or mailto: protocols.", nameof(url));
 
-            UIApplication.SharedApplication.InvokeOnMainThread(() =>
+            try
             {
-                NSUrl nsurl = NSUrl.FromString(url).AsNonNull();
-                if (UIApplication.SharedApplication.CanOpenUrl(nsurl))
-                    UIApplication.SharedApplication.OpenUrl(nsurl, new NSDictionary(), null);
-            });
+                UIApplication.SharedApplication.InvokeOnMainThread(() =>
+                {
+                    NSUrl nsurl = NSUrl.FromString(url).AsNonNull();
+                    if (UIApplication.SharedApplication.CanOpenUrl(nsurl))
+                        UIApplication.SharedApplication.OpenUrl(nsurl, new NSDictionary(), null);
+                });
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Unable to open external link.");
+            }
         }
 
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
