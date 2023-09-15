@@ -53,7 +53,7 @@ namespace osu.Framework.Graphics.Textures
             this.renderer = renderer;
             atlasWidth = width;
             atlasHeight = height;
-            rectanglePacker = new ShelfRectanglePacker(new Vector2I(width, height));
+            rectanglePacker = new ShelfRectanglePacker(new Vector2I(width - PADDING, height - PADDING));
             this.manualMipmaps = manualMipmaps;
             this.filteringMode = filteringMode;
         }
@@ -76,7 +76,7 @@ namespace osu.Framework.Graphics.Textures
                 // occupies half of the padded space.
                 atlasTexture = new BackingAtlasTexture(renderer, atlasWidth, atlasHeight, manualMipmaps, filteringMode, PADDING / 2);
 
-                rectanglePacker.TryAdd(WHITE_PIXEL_SIZE + PADDING, WHITE_PIXEL_SIZE + PADDING);
+                rectanglePacker.TryAdd(WHITE_PIXEL_SIZE, WHITE_PIXEL_SIZE);
 
                 using (var whiteTex = new TextureRegion(atlasTexture, new RectangleI(0, 0, WHITE_PIXEL_SIZE, WHITE_PIXEL_SIZE), WrapMode.Repeat, WrapMode.Repeat))
                     // Generate white padding as if the white texture was wrapped, even though it isn't
@@ -143,7 +143,7 @@ namespace osu.Framework.Graphics.Textures
             Vector2I? result = rectanglePacker.TryAdd(width + PADDING, height + PADDING);
 
             if (result.HasValue)
-                return result.Value;
+                return new Vector2I(result.Value.X + PADDING, result.Value.Y + PADDING);
 
             Logger.Log($"TextureAtlas size exceeded {++exceedCount} time(s); generating new texture ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
             Reset();
