@@ -118,6 +118,6 @@ namespace osu.Framework.Timing
             currentInterpolatedTime = 0;
         }
 
-        double IFrameBasedClock.FramesPerSecond => throw new NotImplementedException();
+        double IFrameBasedClock.FramesPerSecond => 0;
     }
 }
