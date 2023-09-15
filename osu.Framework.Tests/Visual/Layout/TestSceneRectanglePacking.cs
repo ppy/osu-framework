@@ -92,10 +92,7 @@ namespace osu.Framework.Tests.Visual.Layout
             AddSliderStep("Max height", 2, size, size / 4, h => maxHeight = h);
 
             AddStep("Reset", resetAll);
-            AddUntilStep("Add until all filled", () =>
-            {
-                return tryAddToAll(RNG.Next(minWidth, maxWidth), RNG.Next(minHeight, maxHeight));
-            });
+            AddUntilStep("Add until all filled", () => tryAddToAll(RNG.Next(minWidth, maxWidth), RNG.Next(minHeight, maxHeight)));
         }
 
         private void resetAll()
@@ -169,7 +166,7 @@ namespace osu.Framework.Tests.Visual.Layout
                                 Spacing = new Vector2(0, 5),
                                 Children = new Drawable[]
                                 {
-                                    new TextFlowContainer()
+                                    new TextFlowContainer
                                     {
                                         AutoSizeAxes = Axes.Y,
                                         RelativeSizeAxes = Axes.X,

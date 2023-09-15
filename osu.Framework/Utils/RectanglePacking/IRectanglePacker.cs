@@ -18,11 +18,11 @@ namespace osu.Framework.Utils.RectanglePacking
         /// <param name="width">Width of rectangle to be added.</param>
         /// <param name="height">Height of rectangle to be added.</param>
         /// <returns>Position of added rectangle. Null if no space available.</returns>
-        public abstract Vector2I? TryAdd(int width, int height);
+        public Vector2I? TryAdd(int width, int height);
 
         /// <summary>
         /// Resets the bin.
         /// </summary>
-        public abstract void Reset();
+        public void Reset();
     }
 }

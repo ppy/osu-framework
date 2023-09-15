@@ -9,7 +9,7 @@ namespace osu.Framework.Utils.RectanglePacking
     {
         public Vector2I BinSize { get; protected set; }
 
-        public RectanglePacker(Vector2I binSize)
+        protected RectanglePacker(Vector2I binSize)
         {
             BinSize = binSize;
             Reset();

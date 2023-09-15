@@ -12,7 +12,7 @@ namespace osu.Framework.Utils.RectanglePacking
         protected readonly List<RectangleI> FreeSpaces = new List<RectangleI>();
         protected readonly FitStrategy Strategy;
 
-        public FreeSpaceTrackingRectanglePacker(Vector2I binSize, FitStrategy strategy)
+        protected FreeSpaceTrackingRectanglePacker(Vector2I binSize, FitStrategy strategy)
             : base(binSize)
         {
             Strategy = strategy;
