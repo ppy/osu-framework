@@ -149,7 +149,6 @@ namespace osu.Framework.Graphics.Shaders
     public static class VertexShaderDescriptor
     {
         public const string TEXTURE_2 = "Texture2D";
-        public const string TEXTURE_2_NO_MASKING = "Texture2D_NoMasking";
         public const string TEXTURE_3 = "Texture3D";
         public const string POSITION = "Position";
     }
