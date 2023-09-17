@@ -33,7 +33,12 @@ namespace osu.Framework.Utils.RectanglePacking
                     continue;
 
                 result = freeSpaces[i].TopLeft;
-                freeSpaces[i] = new RectangleI(freeSpaces[i].X + width, freeSpaces[i].Y, freeSpaces[i].Width - width, freeSpaces[i].Height);
+
+                if (width < freeSpaces[i].Width)
+                    freeSpaces[i] = new RectangleI(freeSpaces[i].X + width, freeSpaces[i].Y, freeSpaces[i].Width - width, freeSpaces[i].Height);
+                else
+                    freeSpaces.RemoveAt(i);
+
                 return result;
             }
 

@@ -22,16 +22,29 @@ namespace osu.Framework.Utils.RectanglePacking
             switch (splitStrategy)
             {
                 default:
-                case SplitStrategy.AlwaysVertical:
-                    splitVertically(spaceToDivide, newlyPlaced);
+                case SplitStrategy.ShorterAxis:
+                    if (spaceToDivide.Width < spaceToDivide.Height)
+                        splitHorizontally(spaceToDivide, newlyPlaced);
+                    else
+                        splitVertically(spaceToDivide, newlyPlaced);
                     break;
 
-                case SplitStrategy.AlwaysHorizontal:
-                    splitHorizontally(spaceToDivide, newlyPlaced);
+                case SplitStrategy.LongerAxis:
+                    if (spaceToDivide.Width >= spaceToDivide.Height)
+                        splitHorizontally(spaceToDivide, newlyPlaced);
+                    else
+                        splitVertically(spaceToDivide, newlyPlaced);
                     break;
 
-                case SplitStrategy.Mixed:
-                    if (newlyPlaced.Width > newlyPlaced.Height)
+                case SplitStrategy.ShorterLeftoverAxis:
+                    if (spaceToDivide.Width - newlyPlaced.Width < spaceToDivide.Height - newlyPlaced.Height)
+                        splitHorizontally(spaceToDivide, newlyPlaced);
+                    else
+                        splitVertically(spaceToDivide, newlyPlaced);
+                    break;
+
+                case SplitStrategy.LongerLeftoverAxis:
+                    if (spaceToDivide.Width - newlyPlaced.Width >= spaceToDivide.Height - newlyPlaced.Height)
                         splitHorizontally(spaceToDivide, newlyPlaced);
                     else
                         splitVertically(spaceToDivide, newlyPlaced);
@@ -64,8 +77,9 @@ namespace osu.Framework.Utils.RectanglePacking
 
     public enum SplitStrategy
     {
-        AlwaysVertical,
-        AlwaysHorizontal,
-        Mixed
+        ShorterAxis,
+        LongerAxis,
+        ShorterLeftoverAxis,
+        LongerLeftoverAxis
     }
 }

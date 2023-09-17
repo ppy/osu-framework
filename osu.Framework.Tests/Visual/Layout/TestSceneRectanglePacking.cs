@@ -19,7 +19,7 @@ namespace osu.Framework.Tests.Visual.Layout
 {
     public partial class TestSceneRectanglePacking : FrameworkTestScene
     {
-        private const int size = 200;
+        private const int size = 170;
 
         public TestSceneRectanglePacking()
         {
@@ -28,16 +28,17 @@ namespace osu.Framework.Tests.Visual.Layout
                 RelativeSizeAxes = Axes.Both,
                 ColumnDimensions = new[]
                 {
-                    new Dimension(GridSizeMode.Relative, 0.25f),
-                    new Dimension(GridSizeMode.Relative, 0.25f),
-                    new Dimension(GridSizeMode.Relative, 0.25f),
-                    new Dimension(GridSizeMode.Relative, 0.25f)
+                    new Dimension(GridSizeMode.Relative, 0.2f),
+                    new Dimension(GridSizeMode.Relative, 0.2f),
+                    new Dimension(GridSizeMode.Relative, 0.2f),
+                    new Dimension(GridSizeMode.Relative, 0.2f),
+                    new Dimension(GridSizeMode.Relative, 0.2f)
                 },
                 RowDimensions = new[]
                 {
-                    new Dimension(GridSizeMode.Relative, 0.333f),
-                    new Dimension(GridSizeMode.Relative, 0.333f),
-                    new Dimension(GridSizeMode.Relative, 0.333f)
+                    new Dimension(GridSizeMode.Relative, 0.33f),
+                    new Dimension(GridSizeMode.Relative, 0.33f),
+                    new Dimension(GridSizeMode.Relative, 0.33f),
                 },
                 Content = new[]
                 {
@@ -46,21 +47,24 @@ namespace osu.Framework.Tests.Visual.Layout
                         new DrawableBin(new ShelfRectanglePacker(new Vector2I(size))),
                         new DrawableBin(new ShelfWithRemainderRectanglePacker(new Vector2I(size))),
                         new DrawableBin(new MaximalRectanglePacker(new Vector2I(size), FitStrategy.First)),
-                        new DrawableBin(new MaximalRectanglePacker(new Vector2I(size), FitStrategy.TightestFit)),
+                        new DrawableBin(new MaximalRectanglePacker(new Vector2I(size), FitStrategy.TopLeft)),
+                        new DrawableBin(new MaximalRectanglePacker(new Vector2I(size), FitStrategy.BestLongSide)),
                     },
                     new Drawable[]
                     {
-                        new DrawableBin(new MaximalRectanglePacker(new Vector2I(size), FitStrategy.SmallestWidth)),
-                        new DrawableBin(new MaximalRectanglePacker(new Vector2I(size), FitStrategy.SmallestHeight)),
+                        new DrawableBin(new MaximalRectanglePacker(new Vector2I(size), FitStrategy.BestShortSide)),
                         new DrawableBin(new MaximalRectanglePacker(new Vector2I(size), FitStrategy.SmallestArea)),
-                        new DrawableBin(new MaximalRectanglePacker(new Vector2I(size), FitStrategy.First)),
+                        new DrawableBin(new GuillotineRectanglePacker(new Vector2I(size), FitStrategy.BestLongSide, SplitStrategy.ShorterAxis)),
+                        new DrawableBin(new GuillotineRectanglePacker(new Vector2I(size), FitStrategy.BestLongSide, SplitStrategy.ShorterLeftoverAxis)),
+                        new DrawableBin(new GuillotineRectanglePacker(new Vector2I(size), FitStrategy.BestShortSide, SplitStrategy.ShorterAxis))
                     },
                     new Drawable[]
                     {
-                        new DrawableBin(new GuillotineRectanglePacker(new Vector2I(size), FitStrategy.SmallestWidth, SplitStrategy.AlwaysVertical)),
-                        new DrawableBin(new GuillotineRectanglePacker(new Vector2I(size), FitStrategy.SmallestHeight, SplitStrategy.AlwaysHorizontal)),
-                        new DrawableBin(new GuillotineRectanglePacker(new Vector2I(size), FitStrategy.SmallestArea, SplitStrategy.Mixed)),
-                        new DrawableBin(new GuillotineRectanglePacker(new Vector2I(size), FitStrategy.SmallestWidth, SplitStrategy.Mixed))
+                        new DrawableBin(new GuillotineRectanglePacker(new Vector2I(size), FitStrategy.BestShortSide, SplitStrategy.ShorterLeftoverAxis)),
+                        new DrawableBin(new GuillotineRectanglePacker(new Vector2I(size), FitStrategy.SmallestArea, SplitStrategy.ShorterAxis)),
+                        new DrawableBin(new GuillotineRectanglePacker(new Vector2I(size), FitStrategy.SmallestArea, SplitStrategy.ShorterLeftoverAxis)),
+                        new DrawableBin(new GuillotineRectanglePacker(new Vector2I(size), FitStrategy.TopLeft, SplitStrategy.ShorterAxis)),
+                        new DrawableBin(new GuillotineRectanglePacker(new Vector2I(size), FitStrategy.TopLeft, SplitStrategy.ShorterLeftoverAxis))
                     }
                 }
             });

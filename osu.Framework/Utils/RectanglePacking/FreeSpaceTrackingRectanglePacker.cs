@@ -61,19 +61,10 @@ namespace osu.Framework.Utils.RectanglePacking
                 case FitStrategy.TopLeft:
                     return potentialBest.Y < currentBest.Y || (potentialBest.Y == currentBest.Y && potentialBest.X < currentBest.X);
 
-                case FitStrategy.SmallestWidth:
-                    return potentialBest.Width < currentBest.Width;
+                case FitStrategy.BestLongSide:
+                    return Math.Max(potentialBest.Height, potentialBest.Width) < Math.Max(currentBest.Height, currentBest.Width);
 
-                case FitStrategy.BiggestWidth:
-                    return potentialBest.Width > currentBest.Width;
-
-                case FitStrategy.SmallestHeight:
-                    return potentialBest.Height < currentBest.Height;
-
-                case FitStrategy.BiggestHeight:
-                    return potentialBest.Height > currentBest.Height;
-
-                case FitStrategy.TightestFit:
+                case FitStrategy.BestShortSide:
                     return Math.Min(potentialBest.Height, potentialBest.Width) < Math.Min(currentBest.Height, currentBest.Width);
 
                 case FitStrategy.SmallestArea:
@@ -86,11 +77,8 @@ namespace osu.Framework.Utils.RectanglePacking
     {
         First,
         TopLeft,
-        SmallestWidth,
-        BiggestWidth,
-        SmallestHeight,
-        BiggestHeight,
-        TightestFit,
-        SmallestArea
+        SmallestArea,
+        BestShortSide,
+        BestLongSide
     }
 }
