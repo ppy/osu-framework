@@ -10,7 +10,7 @@ using osu.Framework.Utils.RectanglePacking;
 namespace osu.Framework.Benchmarks
 {
     [MemoryDiagnoser]
-    public class BenchmarkRecanglePacking
+    public class BenchmarkRectanglePacking
     {
         private ShelfRectanglePacker shelf = null!;
         private ShelfWithRemainderRectanglePacker shelfRemainder = null!;
