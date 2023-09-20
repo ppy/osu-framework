@@ -17,13 +17,10 @@ namespace osu.Framework.Timing
         /// </summary>
         private readonly FramedClock realtimeReferenceClock = new FramedClock(new StopwatchClock(true));
 
-        /// <summary>
-        /// This clock is used to set final outputs on.
-        /// </summary>
-        private readonly ManualFramedClock outputClock = new ManualFramedClock();
-
         private IFrameBasedClock framedSourceClock;
         private IAdjustableClock adjustableSourceClock;
+
+        private bool isRunningDecoupled;
 
         public DecouplingFramedClock(IClock? source = null)
         {
@@ -57,10 +54,8 @@ namespace osu.Framework.Timing
             {
             }
 
-            outputClock.Rate = framedSourceClock.Rate;
-            outputClock.CurrentTime = framedSourceClock.CurrentTime;
-            outputClock.IsRunning = framedSourceClock.IsRunning;
-            outputClock.ElapsedFrameTime = framedSourceClock.ElapsedFrameTime;
+            CurrentTime = framedSourceClock.CurrentTime;
+            ElapsedFrameTime = framedSourceClock.ElapsedFrameTime;
         }
 
         private void updateRealtimeReference()
@@ -103,9 +98,9 @@ namespace osu.Framework.Timing
 
         # region IFrameBasedClock delegation
 
-        public double ElapsedFrameTime => outputClock.ElapsedFrameTime;
-        public bool IsRunning => outputClock.IsRunning;
-        public virtual double CurrentTime => outputClock.CurrentTime;
+        public double ElapsedFrameTime { get; private set; }
+        public bool IsRunning => framedSourceClock.IsRunning ? true : isRunningDecoupled;
+        public virtual double CurrentTime { get; private set; }
         double IFrameBasedClock.FramesPerSecond => 0;
 
         #endregion
