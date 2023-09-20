@@ -240,14 +240,15 @@ namespace osu.Framework.Graphics.UserInterface
                 // Clipboard
                 case PlatformAction.Cut:
                 case PlatformAction.Copy:
-                    // Blocking even when no text is selected could be deemed more correct, but this means shift-delete / ctrl-insert
-                    // cannot be handled elsewhere. We've seen usages of this, so let's not block unless we handle for now.
-                    if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return false;
+                    if (!AllowClipboardExport) return false;
 
-                    clipboard.SetText(SelectedText);
+                    if (!string.IsNullOrEmpty(SelectedText))
+                    {
+                        clipboard.SetText(SelectedText);
 
-                    if (e.Action == PlatformAction.Cut)
-                        DeleteBy(0);
+                        if (e.Action == PlatformAction.Cut)
+                            DeleteBy(0);
+                    }
 
                     return true;
 
