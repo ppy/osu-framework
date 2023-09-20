@@ -6,6 +6,15 @@ using System.Diagnostics;
 
 namespace osu.Framework.Timing
 {
+    /// <summary>
+    /// A decoupling clock allows taking an existing clock which has seek limitations and provides
+    /// a controllable encapsulated view of that clock with the ability to seek and track time
+    /// outside of the normally seekable bounds.
+    ///
+    /// Put simply, it will take a Track which can only track time from 0..trackLength and allow
+    /// both negative seeks and seeks beyond trackLength. It will also allow time to continue counting
+    /// beyond the end of the track even when not explicitly seeked.
+    /// </summary>
     public class DecouplingClock : ISourceChangeableClock, IAdjustableClock
     {
         public bool AllowDecoupling = true;
