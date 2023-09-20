@@ -6,22 +6,59 @@ using System.Diagnostics;
 
 namespace osu.Framework.Timing
 {
-    public class DecouplingFramedClock : IFrameBasedClock, ISourceChangeableClock, IAdjustableClock
+    public class DecouplingClock : ISourceChangeableClock, IAdjustableClock
     {
         public bool AllowDecoupling = true;
 
         public IClock Source { get; private set; }
 
         /// <summary>
-        /// This clock is used when we are decoupling from the source, to figure out how much elapsed time has passed between frames.
+        /// This clock is used when we are decoupling from the source.
         /// </summary>
-        private readonly FramedClock realtimeReferenceClock = new FramedClock(new StopwatchClock(true));
+        private readonly StopwatchClock realtimeReferenceClock = new StopwatchClock(true);
 
         private IAdjustableClock adjustableSourceClock;
 
         private bool isRunning;
+        private double? lastDecoupledTimeConsumed;
 
-        public DecouplingFramedClock(IClock? source = null)
+        public bool IsRunning
+        {
+            get
+            {
+                // Always use the source clock's running state if it's running.
+                if (Source.IsRunning || !AllowDecoupling)
+                    return isRunning = Source.IsRunning;
+
+                return isRunning;
+            }
+        }
+
+        private double currentTime;
+
+        public virtual double CurrentTime
+        {
+            get
+            {
+                if (Source.IsRunning || !AllowDecoupling)
+                    return currentTime = Source.CurrentTime;
+
+                if (!isRunning)
+                    return currentTime;
+
+                if (lastDecoupledTimeConsumed != null)
+                    currentTime += (realtimeReferenceClock.CurrentTime - lastDecoupledTimeConsumed.Value) * Rate;
+
+                lastDecoupledTimeConsumed = realtimeReferenceClock.CurrentTime;
+
+                if (lastDecoupledTimeConsumed < 0 && currentTime >= 0)
+                    adjustableSourceClock.Start();
+
+                return currentTime;
+            }
+        }
+
+        public DecouplingClock(IClock? source = null)
         {
             ChangeSource(source);
             Debug.Assert(Source != null);
@@ -38,45 +75,24 @@ namespace osu.Framework.Timing
             adjustableSourceClock = adjustableSource;
         }
 
-        public virtual void ProcessFrame()
-        {
-            updateRealtimeReference();
-
-            double lastTime = CurrentTime;
-
-            if (Source.IsRunning || !AllowDecoupling)
-            {
-                ElapsedFrameTime = Source.CurrentTime - lastTime;
-                CurrentTime = Source.CurrentTime;
-            }
-            else
-            {
-                if (isRunning)
-                    CurrentTime += realtimeReferenceClock.ElapsedFrameTime * Rate;
-            }
-        }
-
-        private void updateRealtimeReference()
-        {
-            ((StopwatchClock)realtimeReferenceClock.Source).Rate = Source.Rate;
-            realtimeReferenceClock.ProcessFrame();
-        }
-
         #region IAdjustableClock implementation
 
         public void Reset()
         {
             adjustableSourceClock.Reset();
+            isRunning = false;
         }
 
         public void Start()
         {
             adjustableSourceClock.Start();
+            isRunning = adjustableSourceClock.IsRunning || AllowDecoupling;
         }
 
         public void Stop()
         {
             adjustableSourceClock.Stop();
+            isRunning = false;
         }
 
         public bool Seek(double position)
@@ -87,7 +103,7 @@ namespace osu.Framework.Timing
             if (!AllowDecoupling)
                 return false;
 
-            CurrentTime = position;
+            currentTime = position;
             return true;
         }
 
@@ -98,27 +114,6 @@ namespace osu.Framework.Timing
             get => adjustableSourceClock.Rate;
             set => adjustableSourceClock.Rate = value;
         }
-
-        #endregion
-
-        # region IFrameBasedClock delegation
-
-        public double ElapsedFrameTime { get; private set; }
-
-        public bool IsRunning
-        {
-            get
-            {
-                // Always immediately use the source clock's running state if it's running.
-                if (Source.IsRunning || !AllowDecoupling)
-                    return isRunning = Source.IsRunning;
-
-                return isRunning;
-            }
-        }
-
-        public virtual double CurrentTime { get; private set; }
-        double IFrameBasedClock.FramesPerSecond => 0;
 
         #endregion
     }
