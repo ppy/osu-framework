@@ -201,6 +201,9 @@ namespace osu.Framework.IO.Network
         {
             try
             {
+                if (ResponseStream == null)
+                    return null;
+
                 ResponseStream.Seek(0, SeekOrigin.Begin);
                 StreamReader r = new StreamReader(ResponseStream, Encoding.UTF8);
                 return r.ReadToEnd();
@@ -219,6 +222,9 @@ namespace osu.Framework.IO.Network
         {
             try
             {
+                if (ResponseStream == null)
+                    return null;
+
                 ResponseStream.Seek(0, SeekOrigin.Begin);
 
                 return ResponseStream.ReadAllBytesToArray();
