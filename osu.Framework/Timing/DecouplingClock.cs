@@ -20,7 +20,7 @@ namespace osu.Framework.Timing
         private IAdjustableClock adjustableSourceClock;
 
         private bool isRunning;
-        private double? lastDecoupledTimeConsumed;
+        private double? lastReferenceTimeConsumed;
 
         public bool IsRunning
         {
@@ -40,21 +40,33 @@ namespace osu.Framework.Timing
         {
             get
             {
-                if (Source.IsRunning || !AllowDecoupling)
-                    return currentTime = Source.CurrentTime;
+                try
+                {
+                    if (Source.IsRunning || !AllowDecoupling)
+                        return currentTime = Source.CurrentTime;
 
-                if (!isRunning)
-                    return currentTime;
+                    if (!isRunning)
+                        return currentTime;
 
-                if (lastDecoupledTimeConsumed != null)
-                    currentTime += (realtimeReferenceClock.CurrentTime - lastDecoupledTimeConsumed.Value) * Rate;
+                    if (lastReferenceTimeConsumed == null)
+                        return currentTime;
 
-                lastDecoupledTimeConsumed = realtimeReferenceClock.CurrentTime;
+                    double elapsedSinceLastCall = (realtimeReferenceClock.CurrentTime - lastReferenceTimeConsumed.Value) * Rate;
 
-                if (lastDecoupledTimeConsumed < 0 && currentTime >= 0)
-                    adjustableSourceClock.Start();
+                    // Crossing the zero time boundary, we can attempt to start and use the source clock.
+                    if (currentTime < 0 && currentTime + elapsedSinceLastCall >= 0)
+                    {
+                        adjustableSourceClock.Start();
+                        if (Source.IsRunning)
+                            return currentTime = Source.CurrentTime;
+                    }
 
-                return currentTime;
+                    return currentTime += elapsedSinceLastCall;
+                }
+                finally
+                {
+                    lastReferenceTimeConsumed = realtimeReferenceClock.CurrentTime;
+                }
             }
         }
 
@@ -98,7 +110,11 @@ namespace osu.Framework.Timing
         public bool Seek(double position)
         {
             if (adjustableSourceClock.Seek(position))
+            {
+                if (isRunning && !Source.IsRunning)
+                    adjustableSourceClock.Start();
                 return true;
+            }
 
             if (!AllowDecoupling)
                 return false;
