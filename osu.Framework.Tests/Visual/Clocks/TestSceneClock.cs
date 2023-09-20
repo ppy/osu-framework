@@ -30,18 +30,18 @@ namespace osu.Framework.Tests.Visual.Clocks
             {
                 fill.Clear();
                 lastClock = null;
-                AddClock(Clock);
+                AddClock(Clock, "game");
             });
         }
 
         private IClock? lastClock;
 
-        protected IClock AddClock(IClock clock)
+        protected IClock AddClock(IClock clock, string? name = null)
         {
             if (lastClock != null && clock is ISourceChangeableClock framed)
                 framed.ChangeSource(lastClock);
 
-            fill.Add(new VisualClock(lastClock = clock));
+            fill.Add(new VisualClock(lastClock = clock, name));
 
             return clock;
         }
@@ -59,7 +59,7 @@ namespace osu.Framework.Tests.Visual.Clocks
             private readonly Box bg;
             private readonly Box hand;
 
-            public VisualClock(IClock clock)
+            public VisualClock(IClock clock, string? name = null)
             {
                 this.clock = clock;
 
@@ -79,7 +79,7 @@ namespace osu.Framework.Tests.Visual.Clocks
                     },
                     new SpriteText
                     {
-                        Text = clock.GetType().Name,
+                        Text = clock.GetType().Name + (!string.IsNullOrEmpty(name) ? $" ({name})" : string.Empty),
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         Y = -25,
