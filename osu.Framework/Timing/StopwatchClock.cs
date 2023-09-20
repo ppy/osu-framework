@@ -66,7 +66,7 @@ namespace osu.Framework.Timing
 
         public void ResetSpeedAdjustments() => Rate = 1;
 
-        public bool Seek(double position)
+        public virtual bool Seek(double position)
         {
             // Determine the offset that when added to stopwatchCurrentTime; results in the requested time value
             seekOffset = position - stopwatchCurrentTime;
