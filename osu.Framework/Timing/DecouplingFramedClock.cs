@@ -20,7 +20,7 @@ namespace osu.Framework.Timing
         private IFrameBasedClock framedSourceClock;
         private IAdjustableClock adjustableSourceClock;
 
-        private bool isRunningDecoupled;
+        private bool isRunning;
 
         public DecouplingFramedClock(IClock? source = null)
         {
@@ -50,12 +50,16 @@ namespace osu.Framework.Timing
 
             framedSourceClock.ProcessFrame();
 
-            if (AllowDecoupling)
+            if (Source.IsRunning || !AllowDecoupling)
             {
+                CurrentTime = framedSourceClock.CurrentTime;
+                ElapsedFrameTime = framedSourceClock.ElapsedFrameTime;
             }
-
-            CurrentTime = framedSourceClock.CurrentTime;
-            ElapsedFrameTime = framedSourceClock.ElapsedFrameTime;
+            else
+            {
+                if (isRunning)
+                    CurrentTime += realtimeReferenceClock.ElapsedFrameTime * Rate;
+            }
         }
 
         private void updateRealtimeReference()
@@ -83,7 +87,16 @@ namespace osu.Framework.Timing
 
         public bool Seek(double position)
         {
-            return adjustableSourceClock.Seek(position);
+            if (adjustableSourceClock.Seek(position))
+            {
+                return true;
+            }
+
+            if (!AllowDecoupling)
+                return false;
+
+            CurrentTime = position;
+            return true;
         }
 
         public void ResetSpeedAdjustments() => adjustableSourceClock.ResetSpeedAdjustments();
@@ -99,7 +112,19 @@ namespace osu.Framework.Timing
         # region IFrameBasedClock delegation
 
         public double ElapsedFrameTime { get; private set; }
-        public bool IsRunning => framedSourceClock.IsRunning ? true : isRunningDecoupled;
+
+        public bool IsRunning
+        {
+            get
+            {
+                // Always immediately use the source clock's running state if it's running.
+                if (framedSourceClock.IsRunning || !AllowDecoupling)
+                    return isRunning = framedSourceClock.IsRunning;
+
+                return isRunning;
+            }
+        }
+
         public virtual double CurrentTime { get; private set; }
         double IFrameBasedClock.FramesPerSecond => 0;
 

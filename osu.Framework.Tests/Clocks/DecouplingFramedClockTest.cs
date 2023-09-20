@@ -27,6 +27,8 @@ namespace osu.Framework.Tests.Clocks
         [Test]
         public void TestStartFromDecoupling()
         {
+            decouplingClock.AllowDecoupling = false;
+
             Assert.That(source.IsRunning, Is.False);
             Assert.That(decouplingClock.IsRunning, Is.False);
 
@@ -39,6 +41,8 @@ namespace osu.Framework.Tests.Clocks
         [Test]
         public void TestStartFromSource()
         {
+            decouplingClock.AllowDecoupling = false;
+
             Assert.That(source.IsRunning, Is.False);
             Assert.That(decouplingClock.IsRunning, Is.False);
 
@@ -51,6 +55,8 @@ namespace osu.Framework.Tests.Clocks
         [Test]
         public void TestSeekFromDecoupling()
         {
+            decouplingClock.AllowDecoupling = false;
+
             Assert.That(source.CurrentTime, Is.EqualTo(0));
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(0));
 
@@ -68,6 +74,8 @@ namespace osu.Framework.Tests.Clocks
         [Test]
         public void TestSeekFromSource()
         {
+            decouplingClock.AllowDecoupling = false;
+
             Assert.That(source.CurrentTime, Is.EqualTo(0));
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(0));
 
@@ -85,6 +93,8 @@ namespace osu.Framework.Tests.Clocks
         [Test]
         public void ChangeSourceUpdatesToNewSourceTime()
         {
+            decouplingClock.AllowDecoupling = false;
+
             const double first_source_time = 256000;
             const double second_source_time = 128000;
 
@@ -127,17 +137,47 @@ namespace osu.Framework.Tests.Clocks
         public void TestSeekNegativeWhileNotDecoupling()
         {
             decouplingClock.AllowDecoupling = false;
-            decouplingClock.Seek(-1000);
+            Assert.That(decouplingClock.Seek(-1000), Is.False);
 
             decouplingClock.ProcessFrame();
 
-            Assert.AreEqual(0, source.CurrentTime);
-            Assert.AreEqual(0, decouplingClock.CurrentTime);
+            Assert.That(source.CurrentTime, Is.EqualTo(0));
+            Assert.That(decouplingClock.CurrentTime, Is.EqualTo(0));
         }
 
         #endregion
 
         #region Operation in decoupling mode
+
+        [Test]
+        public void TestSourceStoppedWhileDecoupling()
+        {
+            decouplingClock.AllowDecoupling = true;
+            decouplingClock.Start();
+
+            Assert.That(source.IsRunning, Is.True);
+            Assert.That(decouplingClock.IsRunning, Is.True);
+
+            source.Stop();
+            decouplingClock.ProcessFrame();
+
+            Assert.That(source.IsRunning, Is.False);
+            // We're decoupling, so should still be running.
+            Assert.That(decouplingClock.IsRunning, Is.True);
+        }
+
+        [Test]
+        public void TestSeekNegativeWhileDecoupling()
+        {
+            decouplingClock.AllowDecoupling = true;
+            Assert.That(decouplingClock.Seek(-1000), Is.True);
+
+            decouplingClock.ProcessFrame();
+
+            Assert.That(source.CurrentTime, Is.EqualTo(0));
+            // We're decoupling, so should be able to go beyond zero.
+            Assert.That(decouplingClock.CurrentTime, Is.EqualTo(-1000));
+        }
 
         // TODO: test playback is always forward over the 0ms boundary.
 
