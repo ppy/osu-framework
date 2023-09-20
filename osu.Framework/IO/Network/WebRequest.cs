@@ -218,6 +218,7 @@ namespace osu.Framework.IO.Network
         /// Retrieve the full response body as an array of bytes.
         /// </summary>
         /// <returns>The response body.</returns>
+        [CanBeNull]
         public byte[] GetResponseData()
         {
             try
