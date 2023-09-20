@@ -17,7 +17,6 @@ namespace osu.Framework.Timing
         /// </summary>
         private readonly FramedClock realtimeReferenceClock = new FramedClock(new StopwatchClock(true));
 
-        private IFrameBasedClock framedSourceClock;
         private IAdjustableClock adjustableSourceClock;
 
         private bool isRunning;
@@ -26,7 +25,6 @@ namespace osu.Framework.Timing
         {
             ChangeSource(source);
             Debug.Assert(Source != null);
-            Debug.Assert(framedSourceClock != null);
             Debug.Assert(adjustableSourceClock != null);
         }
 
@@ -38,22 +36,18 @@ namespace osu.Framework.Timing
                 throw new ArgumentException($"Clock must be of type {nameof(IAdjustableClock)}");
 
             adjustableSourceClock = adjustableSource;
-
-            // We need a frame-based source to correctly process interpolation.
-            // If the provided source is not already a framed clock, encapsulate it in one.
-            framedSourceClock = Source as IFrameBasedClock ?? new FramedClock(source);
         }
 
         public virtual void ProcessFrame()
         {
             updateRealtimeReference();
 
-            framedSourceClock.ProcessFrame();
+            double lastTime = CurrentTime;
 
             if (Source.IsRunning || !AllowDecoupling)
             {
-                CurrentTime = framedSourceClock.CurrentTime;
-                ElapsedFrameTime = framedSourceClock.ElapsedFrameTime;
+                ElapsedFrameTime = Source.CurrentTime - lastTime;
+                CurrentTime = Source.CurrentTime;
             }
             else
             {
@@ -64,7 +58,7 @@ namespace osu.Framework.Timing
 
         private void updateRealtimeReference()
         {
-            ((StopwatchClock)realtimeReferenceClock.Source).Rate = framedSourceClock.Rate;
+            ((StopwatchClock)realtimeReferenceClock.Source).Rate = Source.Rate;
             realtimeReferenceClock.ProcessFrame();
         }
 
@@ -88,9 +82,7 @@ namespace osu.Framework.Timing
         public bool Seek(double position)
         {
             if (adjustableSourceClock.Seek(position))
-            {
                 return true;
-            }
 
             if (!AllowDecoupling)
                 return false;
@@ -118,8 +110,8 @@ namespace osu.Framework.Timing
             get
             {
                 // Always immediately use the source clock's running state if it's running.
-                if (framedSourceClock.IsRunning || !AllowDecoupling)
-                    return isRunning = framedSourceClock.IsRunning;
+                if (Source.IsRunning || !AllowDecoupling)
+                    return isRunning = Source.IsRunning;
 
                 return isRunning;
             }
