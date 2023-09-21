@@ -15,7 +15,7 @@ namespace osu.Framework.Timing
     /// both negative seeks and seeks beyond trackLength. It will also allow time to continue counting
     /// beyond the end of the track even when not explicitly seeked.
     /// </summary>
-    public class DecouplingClock : ISourceChangeableClock, IAdjustableClock
+    public sealed class DecouplingClock : ISourceChangeableClock, IAdjustableClock
     {
         public bool AllowDecoupling = true;
 
@@ -45,7 +45,7 @@ namespace osu.Framework.Timing
 
         private double currentTime;
 
-        public virtual double CurrentTime
+        public double CurrentTime
         {
             get
             {
@@ -134,7 +134,7 @@ namespace osu.Framework.Timing
 
         public void ResetSpeedAdjustments() => adjustableSourceClock.ResetSpeedAdjustments();
 
-        public virtual double Rate
+        public double Rate
         {
             get => adjustableSourceClock.Rate;
             set => adjustableSourceClock.Rate = value;
