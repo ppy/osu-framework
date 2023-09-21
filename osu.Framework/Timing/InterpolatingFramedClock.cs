@@ -9,7 +9,7 @@ namespace osu.Framework.Timing
     /// <summary>
     /// A clock which uses an internal stopwatch to interpolate (smooth out) a source.
     /// </summary>
-    public class InterpolatingFramedClock : IFrameBasedClock, ISourceChangeableClock
+    public class InterpolatingFramedClock : IFrameBasedClock, ISourceChangeableClock // TODO: seal when DecoupleableInterpolatingFramedClock is gone.
     {
         /// <summary>
         /// The amount of error that is allowed between the source and interpolated time before the interpolated time is ignored and the source time is used.
