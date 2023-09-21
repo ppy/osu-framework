@@ -134,7 +134,7 @@ namespace osu.Framework.Timing
 
         public override void ChangeSource(IClock? source)
         {
-            if (source == null) return;
+            source ??= new StopwatchClock(true);
 
             // transfer our value to the source clock.
             (source as IAdjustableClock)?.Seek(CurrentTime);
