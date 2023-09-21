@@ -22,9 +22,6 @@ namespace osu.Framework.IO.Network
 
         protected override void ProcessResponse()
         {
-            if (ResponseStream == null)
-                return;
-
             string response = GetResponseString();
             if (response != null)
                 ResponseObject = JsonConvert.DeserializeObject<T>(response);
