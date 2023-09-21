@@ -128,6 +128,16 @@ namespace osu.Framework.Tests.Clocks
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(0));
         }
 
+        [Test]
+        public void TestSeekPositiveWhileNotDecoupling()
+        {
+            decouplingClock.AllowDecoupling = false;
+            Assert.That(decouplingClock.Seek(1000), Is.True);
+
+            Assert.That(source.CurrentTime, Is.EqualTo(1000));
+            Assert.That(decouplingClock.CurrentTime, Is.EqualTo(1000));
+        }
+
         #endregion
 
         #region Operation in decoupling mode
@@ -157,6 +167,16 @@ namespace osu.Framework.Tests.Clocks
             Assert.That(source.CurrentTime, Is.EqualTo(0));
             // We're decoupling, so should be able to go beyond zero.
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(-1000));
+        }
+
+        [Test]
+        public void TestSeekPositiveWhileDecoupling()
+        {
+            decouplingClock.AllowDecoupling = true;
+            Assert.That(decouplingClock.Seek(1000), Is.True);
+
+            Assert.That(source.CurrentTime, Is.EqualTo(1000));
+            Assert.That(decouplingClock.CurrentTime, Is.EqualTo(1000));
         }
 
         // TODO: test playback is always forward over the 0ms boundary.

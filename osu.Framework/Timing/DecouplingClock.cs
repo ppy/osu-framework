@@ -118,15 +118,20 @@ namespace osu.Framework.Timing
 
         public bool Seek(double position)
         {
-            if (adjustableSourceClock.Seek(position))
+            bool sourceCouldSeek = adjustableSourceClock.Seek(position);
+
+            if (sourceCouldSeek)
             {
+                // Transfer attempt to transfer decoupled running state to source
+                // in the case we succeeded.
                 if (isRunning && !Source.IsRunning)
                     adjustableSourceClock.Start();
-                return true;
             }
-
-            if (!AllowDecoupling)
-                return false;
+            else
+            {
+                if (!AllowDecoupling)
+                    return false;
+            }
 
             currentTime = position;
             return true;
