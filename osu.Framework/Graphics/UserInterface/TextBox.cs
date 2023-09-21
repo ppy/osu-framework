@@ -240,12 +240,15 @@ namespace osu.Framework.Graphics.UserInterface
                 // Clipboard
                 case PlatformAction.Cut:
                 case PlatformAction.Copy:
-                    if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
+                    if (!AllowClipboardExport) return false;
 
-                    clipboard.SetText(SelectedText);
+                    if (!string.IsNullOrEmpty(SelectedText))
+                    {
+                        clipboard.SetText(SelectedText);
 
-                    if (e.Action == PlatformAction.Cut)
-                        DeleteBy(0);
+                        if (e.Action == PlatformAction.Cut)
+                            DeleteBy(0);
+                    }
 
                     return true;
 
