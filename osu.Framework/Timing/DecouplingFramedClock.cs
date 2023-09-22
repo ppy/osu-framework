@@ -16,9 +16,8 @@ namespace osu.Framework.Timing
     /// beyond the end of the track even when not explicitly seeked.
     /// </summary>
     /// <remarks>
-    /// This clock is intentionally *not* an <see cref="IFrameBasedClock"/> to keep things simple.
-    /// It is important therefore that if the source clock is set to a framed clock, you will need to call
-    /// <see cref="IFrameBasedClock.ProcessFrame"/> externally.
+    /// Changing the source clock via <see cref="ChangeSource"/> will always take on the new source's running
+    /// state and current time, regardless of decoupled state.
     /// </remarks>
     public sealed class DecouplingFramedClock : ISourceChangeableClock, IAdjustableClock, IFrameBasedClock
     {
