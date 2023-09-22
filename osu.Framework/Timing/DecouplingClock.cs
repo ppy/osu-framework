@@ -31,6 +31,12 @@ namespace osu.Framework.Timing
         private bool isRunning;
         private double? lastReferenceTimeConsumed;
 
+        /// <summary>
+        /// Whether the last <see cref="Seek"/> operation failed.
+        /// This denotes that we need to <see cref="Start"/> in decoupled mode (if possible).
+        /// </summary>
+        private bool lastSeekFailed;
+
         public bool IsRunning
         {
             get
@@ -63,6 +69,7 @@ namespace osu.Framework.Timing
                     double elapsedSinceLastCall = (realtimeReferenceClock.CurrentTime - lastReferenceTimeConsumed.Value) * Rate;
 
                     // Crossing the zero time boundary, we can attempt to start and use the source clock.
+                    // TODO: consider if this is too specific. may need to be mentioned in class xmldoc if we keep it.
                     if (currentTime < 0 && currentTime + elapsedSinceLastCall >= 0)
                     {
                         adjustableSourceClock.Start();
@@ -102,10 +109,23 @@ namespace osu.Framework.Timing
         {
             adjustableSourceClock.Reset();
             isRunning = false;
+            lastSeekFailed = false;
         }
 
         public void Start()
         {
+            if (isRunning)
+                return;
+
+            // If the previous seek failed, avoid calling `Start` on the source clock.
+            // Doing so would potentially cause it to start from an incorrect location (ie. 0 in the case where we are tracking negative time).
+            // TODO: add test coverage
+            if (lastSeekFailed && AllowDecoupling)
+            {
+                isRunning = true;
+                return;
+            }
+
             adjustableSourceClock.Start();
             isRunning = adjustableSourceClock.IsRunning || AllowDecoupling;
         }
@@ -118,9 +138,9 @@ namespace osu.Framework.Timing
 
         public bool Seek(double position)
         {
-            bool sourceCouldSeek = adjustableSourceClock.Seek(position);
+            lastSeekFailed = !adjustableSourceClock.Seek(position);
 
-            if (sourceCouldSeek)
+            if (!lastSeekFailed)
             {
                 // Transfer attempt to transfer decoupled running state to source
                 // in the case we succeeded.
