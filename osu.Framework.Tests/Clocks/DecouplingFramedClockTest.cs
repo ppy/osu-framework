@@ -11,7 +11,7 @@ namespace osu.Framework.Tests.Clocks
     [TestFixture]
     public class DecouplingFramedClockTest
     {
-        private TestClockWithRange source = null!;
+        private IAdjustableClock source = null!;
         private DecouplingFramedClock decouplingClock = null!;
 
         [SetUp]
@@ -312,9 +312,65 @@ namespace osu.Framework.Tests.Clocks
             Assert.That(decouplingClock.CurrentTime, Is.GreaterThan(time));
         }
 
-        // TODO: test playback is always forward over the 0ms boundary.
+        [Test]
+        public void TestBackwardPlaybackOverZeroBoundary()
+        {
+            source = new TestStopwatchClockWithRangeLimit();
+            decouplingClock.ChangeSource(source);
+            decouplingClock.AllowDecoupling = true;
 
-        // TODO: test backwards playback. (over the boundary?)
+            decouplingClock.Seek(300);
+            decouplingClock.Rate = -1;
+            decouplingClock.Start();
+
+            decouplingClock.ProcessFrame();
+
+            while (source.IsRunning)
+            {
+                decouplingClock.ProcessFrame();
+                Assert.That(decouplingClock.CurrentTime, Is.EqualTo(source.CurrentTime).Within(5));
+            }
+
+            Assert.That(source.IsRunning, Is.False);
+
+            double time = decouplingClock.CurrentTime;
+
+            while (decouplingClock.CurrentTime > -300)
+            {
+                Assert.That(source.IsRunning, Is.False);
+                Assert.That(decouplingClock.CurrentTime, Is.LessThanOrEqualTo(time));
+                time = decouplingClock.CurrentTime;
+
+                decouplingClock.ProcessFrame();
+            }
+        }
+
+        [Test]
+        public void TestForwardPlaybackOverZeroBoundary()
+        {
+            source = new TestStopwatchClockWithRangeLimit();
+            decouplingClock.ChangeSource(source);
+            decouplingClock.AllowDecoupling = true;
+
+            decouplingClock.Seek(-300);
+            decouplingClock.Start();
+
+            decouplingClock.ProcessFrame();
+
+            double time = decouplingClock.CurrentTime;
+
+            while (decouplingClock.CurrentTime < 0)
+            {
+                Assert.That(source.IsRunning, Is.False);
+                Assert.That(decouplingClock.CurrentTime, Is.GreaterThanOrEqualTo(time));
+                time = decouplingClock.CurrentTime;
+
+                decouplingClock.ProcessFrame();
+            }
+
+            Assert.That(source.CurrentTime, Is.EqualTo(decouplingClock.CurrentTime).Within(5));
+            Assert.That(source.IsRunning, Is.True);
+        }
 
         #endregion
 
