@@ -1,9 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using NUnit.Framework;
 using osu.Framework.Testing;
+using osu.Framework.Tests.Clocks;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Visual.Clocks
@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Visual.Clocks
         [Test]
         public void TestDecouplingWithRangeLimited()
         {
-            AddStep("add non-negative stopwatch", () => AddClock(new TestClockWithRangeLimit()));
+            AddStep("add non-negative stopwatch", () => AddClock(new TestStopwatchClockWithRangeLimit()));
             AddStep("add decoupling", () => AddClock(new DecouplingFramedClock { AllowDecoupling = true }));
 
             AddStep("seek decoupling to -10000", () =>
@@ -35,33 +35,6 @@ namespace osu.Framework.Tests.Visual.Clocks
                 foreach (var c in this.ChildrenOfType<VisualClock>())
                     (c.TrackingClock as DecouplingFramedClock)?.Seek(10000);
             });
-        }
-
-        internal class TestClockWithRangeLimit : StopwatchClock
-        {
-            public double MinTime => 0;
-            public double MaxTime { get; set; } = double.PositiveInfinity;
-
-            public TestClockWithRangeLimit()
-                : base(true)
-            {
-            }
-
-            public override bool Seek(double position)
-            {
-                double clamped = Math.Clamp(position, MinTime, MaxTime);
-
-                if (clamped != position)
-                {
-                    // Emulate what bass will probably do in this case.
-                    // TODO: confirm.
-                    Stop();
-                    Seek(clamped);
-                    return false;
-                }
-
-                return base.Seek(position);
-            }
         }
     }
 }

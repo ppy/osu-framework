@@ -27,7 +27,7 @@ namespace osu.Framework.Timing
                 Start();
         }
 
-        public double CurrentTime => stopwatchCurrentTime + seekOffset;
+        public virtual double CurrentTime => stopwatchCurrentTime + seekOffset;
 
         /// <summary>
         /// The current time, represented solely by the accumulated <see cref="Stopwatch"/> time.
