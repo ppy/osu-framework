@@ -16,8 +16,13 @@ namespace osu.Framework.Timing
     /// beyond the end of the track even when not explicitly seeked.
     /// </summary>
     /// <remarks>
-    /// Changing the source clock via <see cref="ChangeSource"/> will always take on the new source's running
-    /// state and current time, regardless of decoupled state.
+    /// There are a few things to note about this implementation:
+    /// - Changing the source clock via <see cref="ChangeSource"/> will always take on the new source's running
+    ///   state and current time, regardless of decoupled state.
+    /// - It is always assumed that after a <see cref="Reset"/> on the source, it will be able to track time.
+    /// - It is assumed that a source is generally able to start tracking from zero. Special handling ensures
+    ///   that when arriving at zero from negative time, the source will attempt to be started once so it can
+    ///   take over.
     /// </remarks>
     public sealed class DecouplingFramedClock : ISourceChangeableClock, IAdjustableClock, IFrameBasedClock
     {
