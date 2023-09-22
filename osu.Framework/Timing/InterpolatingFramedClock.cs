@@ -52,7 +52,7 @@ namespace osu.Framework.Timing
 
         private double currentTime;
 
-        public InterpolatingFramedClock(IClock? source = null)
+        public InterpolatingFramedClock(IFrameBasedClock? source = null)
         {
             ChangeSource(source);
             Debug.Assert(Source != null);
