@@ -55,6 +55,7 @@ namespace osu.Framework.Tests.Visual.Clocks
             public IClock TrackingClock { get; }
 
             private readonly SpriteText time;
+            private readonly SpriteText elapsed;
             private readonly SpriteText rate;
 
             private bool zeroed = true;
@@ -102,6 +103,13 @@ namespace osu.Framework.Tests.Visual.Clocks
                         Font = new FontUsage(size: 14),
                         Y = 40,
                     },
+                    elapsed = new SpriteText
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Font = new FontUsage(size: 14),
+                        Y = 60,
+                    },
                     hand = new Box
                     {
                         Colour = Color4.White,
@@ -139,7 +147,11 @@ namespace osu.Framework.Tests.Visual.Clocks
 
                 double lastTime = TrackingClock.CurrentTime;
 
-                (TrackingClock as IFrameBasedClock)?.ProcessFrame();
+                if (TrackingClock is IFrameBasedClock framedClock)
+                {
+                    framedClock.ProcessFrame();
+                    elapsed.Text = $"{framedClock.ElapsedFrameTime:+0.00;-0.00} ms";
+                }
 
                 var timespan = TimeSpan.FromMilliseconds(TrackingClock.CurrentTime);
                 time.Text = $"{timespan.Minutes:00}:{timespan.Seconds:00}:{timespan.Milliseconds:00}";
