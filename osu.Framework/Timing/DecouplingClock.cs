@@ -15,6 +15,11 @@ namespace osu.Framework.Timing
     /// both negative seeks and seeks beyond trackLength. It will also allow time to continue counting
     /// beyond the end of the track even when not explicitly seeked.
     /// </summary>
+    /// <remarks>
+    /// This clock is intentionally *not* an <see cref="IFrameBasedClock"/> to keep things simple.
+    /// It is important therefore that if the source clock is set to a framed clock, you will need to call
+    /// <see cref="IFrameBasedClock.ProcessFrame"/> externally.
+    /// </remarks>
     public sealed class DecouplingClock : ISourceChangeableClock, IAdjustableClock
     {
         public bool AllowDecoupling = true;
