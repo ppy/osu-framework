@@ -22,12 +22,13 @@ namespace osu.Framework.Tests.Clocks
             decouplingClock.ChangeSource(source);
         }
 
-        #region Basic assumptions
+        #region Basic assumptions (which hold for both decoupled and not)
 
-        [Test]
-        public void TestStartFromDecoupling()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TestStartFromDecoupling(bool allowDecoupling)
         {
-            decouplingClock.AllowDecoupling = false;
+            decouplingClock.AllowDecoupling = allowDecoupling;
 
             Assert.That(source.IsRunning, Is.False);
             Assert.That(decouplingClock.IsRunning, Is.False);
@@ -38,10 +39,11 @@ namespace osu.Framework.Tests.Clocks
             Assert.That(decouplingClock.IsRunning, Is.True);
         }
 
-        [Test]
-        public void TestStartFromSource()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TestStartFromSource(bool allowDecoupling)
         {
-            decouplingClock.AllowDecoupling = false;
+            decouplingClock.AllowDecoupling = allowDecoupling;
 
             Assert.That(source.IsRunning, Is.False);
             Assert.That(decouplingClock.IsRunning, Is.False);
@@ -52,10 +54,11 @@ namespace osu.Framework.Tests.Clocks
             Assert.That(decouplingClock.IsRunning, Is.True);
         }
 
-        [Test]
-        public void TestSeekFromDecoupling()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TestSeekFromDecoupling(bool allowDecoupling)
         {
-            decouplingClock.AllowDecoupling = false;
+            decouplingClock.AllowDecoupling = allowDecoupling;
 
             Assert.That(source.CurrentTime, Is.EqualTo(0));
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(0));
@@ -66,10 +69,15 @@ namespace osu.Framework.Tests.Clocks
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(1000));
         }
 
-        [Test]
-        public void TestSeekFromSource()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TestSeekFromSource(bool allowDecoupling)
         {
-            decouplingClock.AllowDecoupling = false;
+            decouplingClock.AllowDecoupling = allowDecoupling;
+
+            // Seeking the source when in decoupled mode isn't really supported.
+            // But it will work if the source is running.
+            source.Start();
 
             Assert.That(source.CurrentTime, Is.EqualTo(0));
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(0));
@@ -80,10 +88,11 @@ namespace osu.Framework.Tests.Clocks
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(1000));
         }
 
-        [Test]
-        public void ChangeSourceUpdatesToNewSourceTime()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void ChangeSourceUpdatesToNewSourceTime(bool allowDecoupling)
         {
-            decouplingClock.AllowDecoupling = false;
+            decouplingClock.AllowDecoupling = allowDecoupling;
 
             const double first_source_time = 256000;
             const double second_source_time = 128000;
