@@ -206,6 +206,31 @@ namespace osu.Framework.Tests.Clocks
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(1000));
         }
 
+        /// <summary>
+        /// In decoupled operation, seeking the source while it's not playing is undefined
+        /// behaviour.
+        /// </summary>
+        [Test]
+        public void TestSeekFromSourceWhileDecoupling()
+        {
+            decouplingClock.AllowDecoupling = true;
+
+            Assert.That(source.CurrentTime, Is.EqualTo(0));
+            Assert.That(decouplingClock.CurrentTime, Is.EqualTo(0));
+
+            source.Seek(1000);
+
+            Assert.That(source.CurrentTime, Is.EqualTo(1000));
+            // One might expect this to match the source, but with the current implementation, it doesn't.
+            Assert.That(decouplingClock.CurrentTime, Is.Not.EqualTo(1000));
+
+            // One should seek the decoupling clock directly.
+            decouplingClock.Seek(1000);
+
+            Assert.That(source.CurrentTime, Is.EqualTo(1000));
+            Assert.That(decouplingClock.CurrentTime, Is.EqualTo(1000));
+        }
+
         // TODO: test playback is always forward over the 0ms boundary.
 
         // TODO: test backwards playback. (over the boundary?)
