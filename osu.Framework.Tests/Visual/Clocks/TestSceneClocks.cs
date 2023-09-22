@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using NUnit.Framework;
 using osu.Framework.Testing;
 using osu.Framework.Timing;
 
@@ -9,17 +10,19 @@ namespace osu.Framework.Tests.Visual.Clocks
 {
     public partial class TestSceneClocks : TestSceneClock
     {
-        protected override void LoadComplete()
+        [Test]
+        public void TestInterpolationWithLaggyClock()
         {
-            base.LoadComplete();
-
             AddStep("add stopwatch", () => AddClock(new StopwatchClock(true)));
-            AddStep("add non-negative stopwatch", () => AddClock(new TestClockWithRangeLimit()));
-            AddStep("add framed", () => AddClock(new FramedClock()));
-            AddStep("add lag", () => AddClock(new LaggyFramedClock()));
+            AddStep("add lag", () => AddClock(new LaggyFramedClock(50)));
             AddStep("add interpolating", () => AddClock(new InterpolatingFramedClock()));
-            AddStep("add decoupling(true)", () => AddClock(new DecouplingClock { AllowDecoupling = true }));
-            AddStep("add decoupling(false)", () => AddClock(new DecouplingClock { AllowDecoupling = false }));
+        }
+
+        [Test]
+        public void TestDecouplingWithRangeLimited()
+        {
+            AddStep("add non-negative stopwatch", () => AddClock(new TestClockWithRangeLimit()));
+            AddStep("add decoupling", () => AddClock(new DecouplingClock { AllowDecoupling = true }));
 
             AddStep("seek decoupling to -10000", () =>
             {

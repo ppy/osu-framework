@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
+using osu.Framework.Testing;
 using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
@@ -25,12 +26,15 @@ namespace osu.Framework.Tests.Visual.Clocks
                 Direction = FillDirection.Full,
                 RelativeSizeAxes = Axes.Both,
             };
+        }
 
+        [SetUpSteps]
+        public void SetUpSteps()
+        {
             AddStep("clear all", () =>
             {
                 fill.Clear();
                 lastClock = null;
-                AddClock(Clock, "game");
             });
         }
 
