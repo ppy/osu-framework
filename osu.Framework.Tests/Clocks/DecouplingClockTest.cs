@@ -90,7 +90,7 @@ namespace osu.Framework.Tests.Clocks
 
         [TestCase(true)]
         [TestCase(false)]
-        public void ChangeSourceUpdatesToNewSourceTime(bool allowDecoupling)
+        public void TestChangeSourceUpdatesToNewSourceTime(bool allowDecoupling)
         {
             decouplingClock.AllowDecoupling = allowDecoupling;
 
@@ -109,7 +109,7 @@ namespace osu.Framework.Tests.Clocks
 
         [TestCase(true)]
         [TestCase(false)]
-        public void ChangeSourceUpdatesToCorrectSourceState(bool allowDecoupling)
+        public void TestChangeSourceUpdatesToCorrectSourceState(bool allowDecoupling)
         {
             decouplingClock.AllowDecoupling = allowDecoupling;
 
@@ -123,6 +123,26 @@ namespace osu.Framework.Tests.Clocks
 
             decouplingClock.ChangeSource(source);
             Assert.That(decouplingClock.IsRunning, Is.True);
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TestReset(bool allowDecoupling)
+        {
+            decouplingClock.AllowDecoupling = allowDecoupling;
+
+            source.Seek(2000);
+            source.Start();
+
+            Assert.That(decouplingClock.IsRunning, Is.True);
+            Assert.That(decouplingClock.CurrentTime, Is.EqualTo(2000));
+
+            decouplingClock.Reset();
+
+            Assert.That(decouplingClock.IsRunning, Is.False);
+            Assert.That(source.IsRunning, Is.False);
+            Assert.That(decouplingClock.CurrentTime, Is.EqualTo(0));
+            Assert.That(source.CurrentTime, Is.EqualTo(0));
         }
 
         #endregion

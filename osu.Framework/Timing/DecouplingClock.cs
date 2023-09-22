@@ -122,6 +122,7 @@ namespace osu.Framework.Timing
             adjustableSourceClock.Reset();
             isRunning = false;
             lastSeekFailed = false;
+            currentTime = 0;
         }
 
         public void Start()
