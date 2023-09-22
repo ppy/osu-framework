@@ -230,6 +230,7 @@ namespace osu.Framework.Tests.Clocks
             decouplingClock.ProcessFrame();
 
             Assert.That(source.CurrentTime, Is.EqualTo(0));
+
             // We're decoupling, so should be able to go beyond zero.
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(-1000));
         }
@@ -271,8 +272,9 @@ namespace osu.Framework.Tests.Clocks
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(1000));
         }
 
-        [Test]
-        public void TestStartFromNegativeTimeIncrementsCorrectly()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestStartFromNegativeTimeIncrementsCorrectly(bool seekBeforeStart)
         {
             // Intentionally wait some time to allow the reference clock to
             // build up some elapsed difference.
@@ -282,8 +284,16 @@ namespace osu.Framework.Tests.Clocks
 
             decouplingClock.AllowDecoupling = true;
 
-            decouplingClock.Seek(-300);
-            decouplingClock.Start();
+            if (seekBeforeStart)
+            {
+                decouplingClock.Seek(-300);
+                decouplingClock.Start();
+            }
+            else
+            {
+                decouplingClock.Start();
+                decouplingClock.Seek(-300);
+            }
 
             decouplingClock.ProcessFrame();
 

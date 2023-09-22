@@ -214,7 +214,6 @@ namespace osu.Framework.Timing
                     return false;
 
                 // Ensure the underlying clock is stopped as we enter decoupled mode.
-                // TODO: test coverage
                 adjustableSourceClock.Stop();
             }
 
