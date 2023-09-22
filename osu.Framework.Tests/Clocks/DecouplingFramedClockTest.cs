@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Timing;
 
@@ -268,6 +269,37 @@ namespace osu.Framework.Tests.Clocks
 
             Assert.That(source.CurrentTime, Is.EqualTo(1000));
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(1000));
+        }
+
+        [Test]
+        public void TestStartFromNegativeTimeIncrementsCorrectly()
+        {
+            // Intentionally wait some time to allow the reference clock to
+            // build up some elapsed difference.
+            //
+            // We want to make sure that this isn't all applied at once causing a large jump.
+            Thread.Sleep(500);
+
+            decouplingClock.AllowDecoupling = true;
+
+            decouplingClock.Seek(-300);
+            decouplingClock.Start();
+
+            decouplingClock.ProcessFrame();
+
+            Assert.That(source.IsRunning, Is.False);
+            Assert.That(source.CurrentTime, Is.EqualTo(0));
+
+            double time = decouplingClock.CurrentTime;
+
+            Assert.That(decouplingClock.IsRunning, Is.True);
+            Assert.That(decouplingClock.CurrentTime, Is.LessThan(0));
+
+            Thread.Sleep(100);
+
+            decouplingClock.ProcessFrame();
+            Assert.That(decouplingClock.CurrentTime, Is.LessThan(0));
+            Assert.That(decouplingClock.CurrentTime, Is.GreaterThan(time));
         }
 
         // TODO: test playback is always forward over the 0ms boundary.

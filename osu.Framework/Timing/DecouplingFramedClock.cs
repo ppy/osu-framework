@@ -117,7 +117,11 @@ namespace osu.Framework.Timing
                 if (!isRunning)
                     return;
 
-                double elapsedReferenceTime = (realtimeReferenceClock.CurrentTime - (lastReferenceTime ?? 0)) * Rate;
+                // We can only begin tracking time from the second frame, as we need an elapsed real time reference.
+                if (lastReferenceTime == null)
+                    return;
+
+                double elapsedReferenceTime = (realtimeReferenceClock.CurrentTime - lastReferenceTime.Value) * Rate;
 
                 currentTime += elapsedReferenceTime;
 
