@@ -42,10 +42,16 @@ namespace osu.Framework.Timing
             get
             {
                 // Always use the source clock's running state if it's running.
-                if (Source.IsRunning || !AllowDecoupling)
-                    return isRunning = Source.IsRunning;
+                if (Source.IsRunning)
+                    return isRunning = true;
 
-                return isRunning;
+                // If we're allowed to be decoupled, maintain our internal running state.
+                if (AllowDecoupling)
+                    return isRunning;
+
+                // Otherwise we're definitely not running.
+                Debug.Assert(!Source.IsRunning);
+                return isRunning = false;
             }
         }
 
