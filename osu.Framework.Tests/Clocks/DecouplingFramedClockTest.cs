@@ -8,17 +8,17 @@ using osu.Framework.Timing;
 namespace osu.Framework.Tests.Clocks
 {
     [TestFixture]
-    public class DecouplingClockTest
+    public class DecouplingFramedClockTest
     {
         private TestClockWithRange source = null!;
-        private DecouplingClock decouplingClock = null!;
+        private DecouplingFramedClock decouplingClock = null!;
 
         [SetUp]
         public void SetUp()
         {
             source = new TestClockWithRange();
 
-            decouplingClock = new DecouplingClock();
+            decouplingClock = new DecouplingFramedClock();
             decouplingClock.ChangeSource(source);
         }
 
@@ -66,6 +66,11 @@ namespace osu.Framework.Tests.Clocks
             decouplingClock.Seek(1000);
 
             Assert.That(source.CurrentTime, Is.EqualTo(1000));
+            Assert.That(decouplingClock.CurrentTime, Is.EqualTo(0));
+
+            decouplingClock.ProcessFrame();
+
+            Assert.That(source.CurrentTime, Is.EqualTo(1000));
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(1000));
         }
 
@@ -83,6 +88,7 @@ namespace osu.Framework.Tests.Clocks
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(0));
 
             source.Seek(1000);
+            decouplingClock.ProcessFrame();
 
             Assert.That(source.CurrentTime, Is.EqualTo(1000));
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(1000));
@@ -100,10 +106,15 @@ namespace osu.Framework.Tests.Clocks
             source.Seek(first_source_time);
             source.Start();
 
+            decouplingClock.ProcessFrame();
+
             var secondSource = new TestClock { CurrentTime = second_source_time };
 
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(first_source_time));
+
             decouplingClock.ChangeSource(secondSource);
+            decouplingClock.ProcessFrame();
+
             Assert.That(secondSource.CurrentTime, Is.EqualTo(second_source_time));
         }
 
@@ -134,10 +145,13 @@ namespace osu.Framework.Tests.Clocks
             source.Seek(2000);
             source.Start();
 
+            decouplingClock.ProcessFrame();
+
             Assert.That(decouplingClock.IsRunning, Is.True);
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(2000));
 
             decouplingClock.Reset();
+            decouplingClock.ProcessFrame();
 
             Assert.That(decouplingClock.IsRunning, Is.False);
             Assert.That(source.IsRunning, Is.False);
@@ -180,6 +194,7 @@ namespace osu.Framework.Tests.Clocks
         {
             decouplingClock.AllowDecoupling = false;
             Assert.That(decouplingClock.Seek(1000), Is.True);
+            decouplingClock.ProcessFrame();
 
             Assert.That(source.CurrentTime, Is.EqualTo(1000));
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(1000));
@@ -211,6 +226,8 @@ namespace osu.Framework.Tests.Clocks
             decouplingClock.AllowDecoupling = true;
             Assert.That(decouplingClock.Seek(-1000), Is.True);
 
+            decouplingClock.ProcessFrame();
+
             Assert.That(source.CurrentTime, Is.EqualTo(0));
             // We're decoupling, so should be able to go beyond zero.
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(-1000));
@@ -221,6 +238,7 @@ namespace osu.Framework.Tests.Clocks
         {
             decouplingClock.AllowDecoupling = true;
             Assert.That(decouplingClock.Seek(1000), Is.True);
+            decouplingClock.ProcessFrame();
 
             Assert.That(source.CurrentTime, Is.EqualTo(1000));
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(1000));
@@ -246,6 +264,7 @@ namespace osu.Framework.Tests.Clocks
 
             // One should seek the decoupling clock directly.
             decouplingClock.Seek(1000);
+            decouplingClock.ProcessFrame();
 
             Assert.That(source.CurrentTime, Is.EqualTo(1000));
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(1000));
