@@ -101,6 +101,7 @@ namespace osu.Framework.Timing
                 throw new ArgumentException($"Clock must be of type {nameof(IAdjustableClock)}");
 
             adjustableSourceClock = adjustableSource;
+            isRunning = adjustableSource.IsRunning;
         }
 
         #region IAdjustableClock implementation

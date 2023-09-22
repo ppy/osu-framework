@@ -98,6 +98,24 @@ namespace osu.Framework.Tests.Clocks
             Assert.That(secondSource.CurrentTime, Is.EqualTo(second_source_time));
         }
 
+        [TestCase(true)]
+        [TestCase(false)]
+        public void ChangeSourceUpdatesToCorrectSourceState(bool allowDecoupling)
+        {
+            decouplingClock.AllowDecoupling = allowDecoupling;
+
+            source.Start();
+            Assert.That(decouplingClock.IsRunning, Is.True);
+
+            var secondSource = new TestClock();
+
+            decouplingClock.ChangeSource(secondSource);
+            Assert.That(decouplingClock.IsRunning, Is.False);
+
+            decouplingClock.ChangeSource(source);
+            Assert.That(decouplingClock.IsRunning, Is.True);
+        }
+
         #endregion
 
         #region Operation in non-decoupling mode
