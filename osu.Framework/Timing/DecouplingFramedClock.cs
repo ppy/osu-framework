@@ -15,27 +15,20 @@ namespace osu.Framework.Timing
     /// both negative seeks and seeks beyond trackLength. It will also allow time to continue counting
     /// beyond the end of the track even when not explicitly seeked.
     /// </summary>
+    /// <remarks>
+    /// This clock is intentionally *not* an <see cref="IFrameBasedClock"/> to keep things simple.
+    /// It is important therefore that if the source clock is set to a framed clock, you will need to call
+    /// <see cref="IFrameBasedClock.ProcessFrame"/> externally.
+    /// </remarks>
     public sealed class DecouplingFramedClock : ISourceChangeableClock, IAdjustableClock, IFrameBasedClock
     {
-        public bool AllowDecoupling = true;
-
-        public IClock Source { get; private set; }
-
         /// <summary>
-        /// This clock is used when we are decoupling from the source.
+        /// Whether to allow operation in decoupled mode. Defaults to <c>true</c>.
         /// </summary>
-        private readonly StopwatchClock realtimeReferenceClock = new StopwatchClock(true);
-
-        private IAdjustableClock adjustableSourceClock;
-
-        private bool isRunning;
-        private double? lastReferenceTimeConsumed;
-
-        /// <summary>
-        /// Whether the last <see cref="Seek"/> operation failed.
-        /// This denotes that we need to <see cref="Start"/> in decoupled mode (if possible).
-        /// </summary>
-        private bool lastSeekFailed;
+        /// <remarks>
+        /// When set to <c>false</c>, this clock will operate in a transparent pass-through mode.
+        /// </remarks>
+        public bool AllowDecoupling { get; set; } = true;
 
         public bool IsRunning
         {
@@ -58,13 +51,45 @@ namespace osu.Framework.Timing
         public double CurrentTime { get; private set; }
 
         public double ElapsedFrameTime { get; private set; }
+
         public double FramesPerSecond => 0;
+
+        /// <summary>
+        /// We maintain an internal running state so that when we notice the source clock has stopped,
+        /// we can continue to run in a decoupled mode (and know if we should be running or not).
+        /// </summary>
+        private bool isRunning;
 
         /// <summary>
         /// We need to track our internal time separately from the exposed <see cref="CurrentTime"/> to make sure
         /// the exposed value is only ever updated on <see cref="ProcessFrame"/>.
         /// </summary>
         private double currentTime;
+
+        /// <summary>
+        /// Tracks the current time of <see cref="realtimeReferenceClock"/> one <see cref="ProcessFrame"/> ago.
+        /// </summary>
+        private double? lastReferenceTime;
+
+        /// <summary>
+        /// Whether the last <see cref="Seek"/> operation failed.
+        /// This denotes that we need to <see cref="Start"/> in decoupled mode (if possible).
+        /// </summary>
+        private bool lastSeekFailed;
+
+        /// <summary>
+        /// This clock is used when we are decoupling from the source.
+        /// </summary>
+        private readonly StopwatchClock realtimeReferenceClock = new StopwatchClock(true);
+
+        private IAdjustableClock adjustableSourceClock;
+
+        public DecouplingFramedClock(IClock? source = null)
+        {
+            ChangeSource(source);
+            Debug.Assert(Source != null);
+            Debug.Assert(adjustableSourceClock != null);
+        }
 
         public void ProcessFrame()
         {
@@ -74,45 +99,49 @@ namespace osu.Framework.Timing
 
             try
             {
-                if (Source.IsRunning || !AllowDecoupling)
+                // If the source is running, there is never a need for any decoupling logic.
+                if (Source.IsRunning)
                 {
                     currentTime = Source.CurrentTime;
                     return;
                 }
 
+                // If we're not allowed to decouple, we should also just pass-through the source time.
+                if (!AllowDecoupling)
+                {
+                    currentTime = Source.CurrentTime;
+                    return;
+                }
+
+                // We then want to check whether our internal running state permits time to elapse in decoupled mode.
                 if (!isRunning)
                     return;
 
-                if (lastReferenceTimeConsumed == null)
-                    return;
+                double elapsedReferenceTime = (realtimeReferenceClock.CurrentTime - (lastReferenceTime ?? 0)) * Rate;
 
-                double elapsedSinceLastCall = (realtimeReferenceClock.CurrentTime - lastReferenceTimeConsumed.Value) * Rate;
+                currentTime += elapsedReferenceTime;
 
-                // Crossing the zero time boundary, we can attempt to start and use the source clock.
-                // TODO: consider if this is too specific. may need to be mentioned in class xmldoc if we keep it.
-                if (CurrentTime < 0 && CurrentTime + elapsedSinceLastCall >= 0)
+                // When crossing the zero time boundary, we should start and use the source clock.
+                if (lastTime < 0 && currentTime >= 0)
                 {
+                    adjustableSourceClock.Seek(currentTime);
                     adjustableSourceClock.Start();
-                    if (Source.IsRunning)
-                        currentTime = Source.CurrentTime;
-                }
 
-                currentTime += elapsedSinceLastCall;
+                    // Don't use the source's time until next frame, as our decoupled time is likely more accurate
+                    // (starting a clock, especially a TrackBass may have slight discrepancies).
+                }
             }
             finally
             {
-                lastReferenceTimeConsumed = realtimeReferenceClock.CurrentTime;
+                lastReferenceTime = realtimeReferenceClock.CurrentTime;
                 CurrentTime = currentTime;
                 ElapsedFrameTime = CurrentTime - lastTime;
             }
         }
 
-        public DecouplingFramedClock(IClock? source = null)
-        {
-            ChangeSource(source);
-            Debug.Assert(Source != null);
-            Debug.Assert(adjustableSourceClock != null);
-        }
+        #region ISourceChangeableClock implementation
+
+        public IClock Source { get; private set; }
 
         public void ChangeSource(IClock? source)
         {
@@ -124,6 +153,8 @@ namespace osu.Framework.Timing
             adjustableSourceClock = adjustableSource;
             isRunning = adjustableSource.IsRunning;
         }
+
+        #endregion
 
         #region IAdjustableClock implementation
 
