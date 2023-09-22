@@ -177,7 +177,6 @@ namespace osu.Framework.Timing
 
             // If the previous seek failed, avoid calling `Start` on the source clock.
             // Doing so would potentially cause it to start from an incorrect location (ie. 0 in the case where we are tracking negative time).
-            // TODO: add test coverage
             if (lastSeekFailed && AllowDecoupling)
             {
                 isRunning = true;
