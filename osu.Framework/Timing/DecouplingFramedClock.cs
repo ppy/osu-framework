@@ -34,23 +34,7 @@ namespace osu.Framework.Timing
         /// </remarks>
         public bool AllowDecoupling { get; set; } = true;
 
-        public bool IsRunning
-        {
-            get
-            {
-                // Always use the source clock's running state if it's running.
-                if (Source.IsRunning)
-                    return isRunning = true;
-
-                // If we're allowed to be decoupled, maintain our internal running state.
-                if (AllowDecoupling)
-                    return isRunning;
-
-                // Otherwise we're definitely not running.
-                Debug.Assert(!Source.IsRunning);
-                return isRunning = false;
-            }
-        }
+        public bool IsRunning { get; private set; }
 
         public double CurrentTime { get; private set; }
 
@@ -107,6 +91,7 @@ namespace osu.Framework.Timing
                 if (Source.IsRunning)
                 {
                     currentTime = Source.CurrentTime;
+                    isRunning = true;
                     return;
                 }
 
@@ -114,6 +99,7 @@ namespace osu.Framework.Timing
                 if (!AllowDecoupling)
                 {
                     currentTime = Source.CurrentTime;
+                    isRunning = false;
                     return;
                 }
 
@@ -141,6 +127,7 @@ namespace osu.Framework.Timing
             }
             finally
             {
+                IsRunning = isRunning;
                 lastReferenceTime = realtimeReferenceClock.CurrentTime;
                 CurrentTime = currentTime;
                 ElapsedFrameTime = CurrentTime - lastTime;

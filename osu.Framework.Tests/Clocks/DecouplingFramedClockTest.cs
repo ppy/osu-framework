@@ -35,6 +35,7 @@ namespace osu.Framework.Tests.Clocks
             Assert.That(decouplingClock.IsRunning, Is.False);
 
             decouplingClock.Start();
+            decouplingClock.ProcessFrame();
 
             Assert.That(source.IsRunning, Is.True);
             Assert.That(decouplingClock.IsRunning, Is.True);
@@ -50,6 +51,7 @@ namespace osu.Framework.Tests.Clocks
             Assert.That(decouplingClock.IsRunning, Is.False);
 
             source.Start();
+            decouplingClock.ProcessFrame();
 
             Assert.That(source.IsRunning, Is.True);
             Assert.That(decouplingClock.IsRunning, Is.True);
@@ -126,14 +128,17 @@ namespace osu.Framework.Tests.Clocks
             decouplingClock.AllowDecoupling = allowDecoupling;
 
             source.Start();
+            decouplingClock.ProcessFrame();
             Assert.That(decouplingClock.IsRunning, Is.True);
 
             var secondSource = new TestClock();
 
             decouplingClock.ChangeSource(secondSource);
+            decouplingClock.ProcessFrame();
             Assert.That(decouplingClock.IsRunning, Is.False);
 
             decouplingClock.ChangeSource(source);
+            decouplingClock.ProcessFrame();
             Assert.That(decouplingClock.IsRunning, Is.True);
         }
 
@@ -169,11 +174,13 @@ namespace osu.Framework.Tests.Clocks
         {
             decouplingClock.AllowDecoupling = false;
             decouplingClock.Start();
+            decouplingClock.ProcessFrame();
 
             Assert.That(source.IsRunning, Is.True);
             Assert.That(decouplingClock.IsRunning, Is.True);
 
             source.Stop();
+            decouplingClock.ProcessFrame();
 
             Assert.That(source.IsRunning, Is.False);
             Assert.That(decouplingClock.IsRunning, Is.False);
@@ -210,6 +217,7 @@ namespace osu.Framework.Tests.Clocks
         {
             decouplingClock.AllowDecoupling = true;
             decouplingClock.Start();
+            decouplingClock.ProcessFrame();
 
             Assert.That(source.IsRunning, Is.True);
             Assert.That(decouplingClock.IsRunning, Is.True);
