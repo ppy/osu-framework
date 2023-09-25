@@ -380,6 +380,48 @@ namespace osu.Framework.Tests.Clocks
             Assert.That(source.IsRunning, Is.True);
         }
 
+        [Test]
+        public void TestForwardPlaybackOverLengthBoundary()
+        {
+            source = new TestStopwatchClockWithRangeLimit
+            {
+                MaxTime = 10000
+            };
+
+            decouplingClock.ChangeSource(source);
+            decouplingClock.AllowDecoupling = true;
+
+            decouplingClock.Seek(9800);
+            decouplingClock.Start();
+
+            decouplingClock.ProcessFrame();
+
+            double time = decouplingClock.CurrentTime;
+
+            while (decouplingClock.CurrentTime < 10000)
+            {
+                Assert.That(source.IsRunning, Is.True);
+                Assert.That(source.CurrentTime, Is.EqualTo(decouplingClock.CurrentTime).Within(5));
+                Assert.That(decouplingClock.CurrentTime, Is.GreaterThanOrEqualTo(time));
+                time = decouplingClock.CurrentTime;
+
+                decouplingClock.ProcessFrame();
+            }
+
+            Assert.That(source.IsRunning, Is.False);
+
+            while (decouplingClock.CurrentTime < 10200)
+            {
+                Assert.That(decouplingClock.IsRunning, Is.True);
+                Assert.That(decouplingClock.CurrentTime, Is.GreaterThanOrEqualTo(time));
+                time = decouplingClock.CurrentTime;
+
+                decouplingClock.ProcessFrame();
+            }
+
+            Assert.That(source.IsRunning, Is.False);
+        }
+
         #endregion
 
         private class TestClockWithRange : TestClock
