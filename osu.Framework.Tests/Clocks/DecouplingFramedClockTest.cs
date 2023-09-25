@@ -254,6 +254,24 @@ namespace osu.Framework.Tests.Clocks
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(1000));
         }
 
+        [Test]
+        public void TestSeekBeyondLengthWhileDecoupling()
+        {
+            source = new TestStopwatchClockWithRangeLimit
+            {
+                MaxTime = 500
+            };
+
+            decouplingClock.ChangeSource(source);
+            decouplingClock.AllowDecoupling = true;
+
+            Assert.That(decouplingClock.Seek(1000), Is.True);
+            decouplingClock.ProcessFrame();
+
+            Assert.That(source.CurrentTime, Is.EqualTo(500));
+            Assert.That(decouplingClock.CurrentTime, Is.EqualTo(1000));
+        }
+
         /// <summary>
         /// In decoupled operation, seeking the source while it's not playing is undefined
         /// behaviour.
