@@ -119,6 +119,7 @@ namespace osu.Framework.Tests.Clocks
             decouplingClock.ProcessFrame();
 
             Assert.That(secondSource.CurrentTime, Is.EqualTo(second_source_time));
+            Assert.That(decouplingClock.CurrentTime, Is.EqualTo(second_source_time));
         }
 
         [TestCase(true)]
