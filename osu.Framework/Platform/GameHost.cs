@@ -729,6 +729,8 @@ namespace osu.Framework.Platform
 
                 ChooseAndSetupRenderer();
 
+                // Window creation may fail in the case of a catastrophic failure (ie. graphics driver or SDL2 level).
+                // In such cases, we want to throw here to immediately mark this renderer setup as failed.
                 if (RequireWindowExists && Window == null)
                 {
                     Logger.Log("Aborting startup as no window could be created.");
@@ -979,11 +981,10 @@ namespace osu.Framework.Platform
 
                 if (Window == null)
                 {
+                    // Can be null, usually via Headless execution.
                     if (!RequireWindowExists)
                         return;
 
-                    // Window creation may fail in the case of a catastrophic failure (ie. graphics driver or SDL2 level).
-                    // In such cases, we want to throw here to immediately mark this renderer setup as failed.
                     throw new InvalidOperationException("🖼️ Renderer could not be initialised as window creation failed.");
                 }
 
