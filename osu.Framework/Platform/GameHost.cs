@@ -972,18 +972,21 @@ namespace osu.Framework.Platform
             Renderer = renderer;
             Renderer.CacheStorage = CacheStorage.GetStorageForDirectory("shaders");
 
-            // Prepare window
-            Window = CreateWindow(surfaceType);
-
-            if (RequireWindowExists && Window == null)
-            {
-                // Window creation may fail in the case of a catastrophic failure (ie. graphics driver or SDL2 level).
-                // In such cases, we want to throw here to immediately mark this renderer setup as failed.
-                throw new InvalidOperationException("🖼️ Renderer could not be initialised as window creation failed.");
-            }
-
             try
             {
+                // Prepare window
+                Window = CreateWindow(surfaceType);
+
+                if (Window == null)
+                {
+                    if (!RequireWindowExists)
+                        return;
+
+                    // Window creation may fail in the case of a catastrophic failure (ie. graphics driver or SDL2 level).
+                    // In such cases, we want to throw here to immediately mark this renderer setup as failed.
+                    throw new InvalidOperationException("🖼️ Renderer could not be initialised as window creation failed.");
+                }
+
                 Window.SetupWindow(Config);
                 Window.Create();
                 Window.Title = $@"osu!framework (running ""{Name}"")";
