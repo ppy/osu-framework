@@ -23,6 +23,8 @@ namespace osu.Framework.Timing
     /// - It is assumed that a source is generally able to start tracking from zero. Special handling ensures
     ///   that when arriving at zero from negative time, the source will attempt to be started once so it can
     ///   take over.
+    ///   Note that no such special handling is assured for when the source has a maximum allowable time,
+    ///   since it is not known what that time is.
     /// </remarks>
     public sealed class DecouplingFramedClock : ISourceChangeableClock, IAdjustableClock, IFrameBasedClock
     {
@@ -115,7 +117,10 @@ namespace osu.Framework.Timing
 
                 currentTime += elapsedReferenceTime;
 
-                // When crossing the zero time boundary, we should start and use the source clock.
+                // When crossing the zero time boundary forwards, we should start and use the source clock.
+                // Note that this implicitly assumes the source starts at zero,
+                // and additionally the right-side boundary is not handled as we don't know where the source's max time is.
+                // This could be potentially handled if need be, if we had a notion of what the source's max allowable time is.
                 if (lastTime < 0 && currentTime >= 0)
                 {
                     adjustableSourceClock.Seek(currentTime);
