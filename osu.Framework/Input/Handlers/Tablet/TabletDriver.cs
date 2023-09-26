@@ -35,7 +35,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 
             Log.Output += (_, logMessage) =>
             {
-                LogLevel level = (int)logMessage.Level > (int)LogLevel.Error ? LogLevel.Error : (LogLevel)logMessage.Level;
+                LogLevel level = (int)logMessage.Level > (int)LogLevel.Error ? LogLevel.Error : LogLevel.Verbose;
                 PostLog?.Invoke($"{logMessage.Group}: {logMessage.Message}", level, null);
             };
 
