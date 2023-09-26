@@ -427,7 +427,11 @@ namespace osu.Framework.Tests.Clocks
                 decouplingClock.ProcessFrame();
             }
 
+            while (source.IsRunning)
+                decouplingClock.ProcessFrame();
+
             Assert.That(source.IsRunning, Is.False);
+            Assert.That(decouplingClock.CurrentTime, Is.LessThan(10100));
 
             while (decouplingClock.CurrentTime < 10200)
             {
