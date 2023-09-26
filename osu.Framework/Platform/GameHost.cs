@@ -53,6 +53,11 @@ namespace osu.Framework.Platform
     {
         public IWindow Window { get; private set; }
 
+        /// <summary>
+        /// Whether <see cref="Window"/> needs to be non-null for startup to succeed.
+        /// </summary>
+        protected virtual bool RequireWindowExists => true;
+
         public IRenderer Renderer { get; private set; }
 
         public string RendererInfo { get; private set; }
@@ -724,6 +729,12 @@ namespace osu.Framework.Platform
 
                 ChooseAndSetupRenderer();
 
+                if (RequireWindowExists && Window == null)
+                {
+                    Logger.Log("Aborting startup as no window could be created.");
+                    return;
+                }
+
                 initialiseInputHandlers();
 
                 // Prepare renderer (requires config).
@@ -964,10 +975,11 @@ namespace osu.Framework.Platform
             // Prepare window
             Window = CreateWindow(surfaceType);
 
-            if (Window == null)
+            if (RequireWindowExists && Window == null)
             {
-                Logger.Log("🖼️ Renderer could not be initialised, no window exists.");
-                return;
+                // Window creation may fail in the case of a catastrophic failure (ie. graphics driver or SDL2 level).
+                // In such cases, we want to throw here to immediately mark this renderer setup as failed.
+                throw new InvalidOperationException("🖼️ Renderer could not be initialised as window creation failed.");
             }
 
             try
