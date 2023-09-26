@@ -2,13 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 
 namespace osu.Framework.Timing
 {
     /// <summary>
     /// A clock which uses an internal stopwatch to interpolate (smooth out) a source.
     /// </summary>
-    public class InterpolatingFramedClock : IFrameBasedClock, ISourceChangeableClock
+    public class InterpolatingFramedClock : IFrameBasedClock, ISourceChangeableClock // TODO: seal when DecoupleableInterpolatingFramedClock is gone.
     {
         /// <summary>
         /// The amount of error that is allowed between the source and interpolated time before the interpolated time is ignored and the source time is used.
@@ -27,23 +28,19 @@ namespace osu.Framework.Timing
         /// <summary>
         /// The drift in milliseconds between the source and interpolation at the last processed frame.
         /// </summary>
-        public double Drift => CurrentTime - (FramedSourceClock?.CurrentTime ?? 0);
+        public double Drift => CurrentTime - FramedSourceClock.CurrentTime;
 
-        public virtual double Rate
-        {
-            get => FramedSourceClock?.Rate ?? 1;
-            set => throw new NotSupportedException();
-        }
+        public virtual double Rate => FramedSourceClock.Rate;
 
         public virtual bool IsRunning => sourceIsRunning;
 
         public virtual double ElapsedFrameTime => currentInterpolatedTime - lastInterpolatedTime;
 
-        public IClock? Source { get; private set; }
+        public IClock Source { get; private set; }
+
+        protected IFrameBasedClock FramedSourceClock;
 
         public virtual double CurrentTime => currentTime;
-
-        protected IFrameBasedClock? FramedSourceClock;
 
         private readonly FramedClock realtimeClock = new FramedClock(new StopwatchClock(true));
 
@@ -55,9 +52,11 @@ namespace osu.Framework.Timing
 
         private double currentTime;
 
-        public InterpolatingFramedClock(IClock? source = null)
+        public InterpolatingFramedClock(IFrameBasedClock? source = null)
         {
             ChangeSource(source);
+            Debug.Assert(Source != null);
+            Debug.Assert(FramedSourceClock != null);
         }
 
         public virtual void ChangeSource(IClock? source)
@@ -73,8 +72,6 @@ namespace osu.Framework.Timing
 
         public virtual void ProcessFrame()
         {
-            if (FramedSourceClock == null) return;
-
             realtimeClock.ProcessFrame();
             FramedSourceClock.ProcessFrame();
 
