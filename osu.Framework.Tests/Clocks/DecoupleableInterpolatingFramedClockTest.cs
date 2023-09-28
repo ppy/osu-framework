@@ -9,7 +9,7 @@ using osu.Framework.Timing;
 namespace osu.Framework.Tests.Clocks
 {
     [TestFixture]
-    public class DecoupleableClockTest
+    public class DecoupleableInterpolatingFramedClockTest
     {
         private TestClockWithRange source = null!;
         private TestDecoupleableClock decoupleable = null!;
@@ -440,7 +440,9 @@ namespace osu.Framework.Tests.Clocks
             Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, decoupleable.AllowableErrorMilliseconds, "Decoupled should match source time.");
         }
 
+#pragma warning disable CS0618
         private class TestDecoupleableClock : DecoupleableInterpolatingFramedClock
+#pragma warning restore CS0618
         {
             public double? CustomAllowableErrorMilliseconds { get; set; }
 
