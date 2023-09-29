@@ -14,7 +14,6 @@ using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Layout;
 using osu.Framework.Logging;
 using osu.Framework.Utils;
 using osuTK;
@@ -158,18 +157,15 @@ namespace osu.Framework.Graphics.Audio
             }
         }
 
-        protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
+        private Vector2? lastGeneratedDrawSize;
+
+        protected override void Update()
         {
-            bool result = base.OnInvalidate(invalidation, source);
+            base.Update();
 
-            if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
-            {
-                // We should regenerate when `Scale` changed, but not `Position`.
-                // Unfortunately both of these are grouped together in `MiscGeometry`.
+            // Can't use invalidation for this as RequiredParentSizeToFit is closes, but also triggers on DrawPosition changes.
+            if (lastGeneratedDrawSize != null && DrawSize != lastGeneratedDrawSize)
                 queueRegeneration();
-            }
-
-            return result;
         }
 
         private CancellationTokenSource? cancelSource = new CancellationTokenSource();
@@ -188,6 +184,8 @@ namespace osu.Framework.Graphics.Audio
                 return;
 
             cancelGeneration();
+
+            lastGeneratedDrawSize = DrawSize;
 
             var originalWaveform = Waveform;
 
