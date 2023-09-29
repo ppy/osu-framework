@@ -255,9 +255,15 @@ namespace osu.Framework.Testing
 
         private bool addStepsAsSetupSteps;
 
-        public StepButton AddStep(string description, Action action)
+        public StepButton AddSetupStep(string description, Action action) =>
+            addStep(description, action, true);
+
+        public StepButton AddStep(string description, Action action) =>
+            addStep(description, action, addStepsAsSetupSteps);
+
+        private StepButton addStep(string description, Action action, bool isSetupStep)
         {
-            var step = new SingleStepButton(addStepsAsSetupSteps)
+            var step = new SingleStepButton(isSetupStep)
             {
                 Text = description,
                 Action = action
