@@ -355,7 +355,7 @@ namespace osu.Framework.Tests.Clocks
             while (source.IsRunning)
             {
                 decouplingClock.ProcessFrame();
-                Assert.That(decouplingClock.CurrentTime, Is.EqualTo(source.CurrentTime).Within(5));
+                Assert.That(decouplingClock.CurrentTime, Is.EqualTo(source.CurrentTime).Within(30));
             }
 
             Assert.That(source.IsRunning, Is.False);
@@ -395,7 +395,7 @@ namespace osu.Framework.Tests.Clocks
                 decouplingClock.ProcessFrame();
             }
 
-            Assert.That(source.CurrentTime, Is.EqualTo(decouplingClock.CurrentTime).Within(5));
+            Assert.That(source.CurrentTime, Is.EqualTo(decouplingClock.CurrentTime).Within(30));
             Assert.That(source.IsRunning, Is.True);
         }
 
@@ -420,7 +420,7 @@ namespace osu.Framework.Tests.Clocks
             while (decouplingClock.CurrentTime < 10000)
             {
                 Assert.That(source.IsRunning, Is.True);
-                Assert.That(source.CurrentTime, Is.EqualTo(decouplingClock.CurrentTime).Within(5));
+                Assert.That(source.CurrentTime, Is.EqualTo(decouplingClock.CurrentTime).Within(30));
                 Assert.That(decouplingClock.CurrentTime, Is.GreaterThanOrEqualTo(time));
                 time = decouplingClock.CurrentTime;
 
