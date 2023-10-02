@@ -163,7 +163,7 @@ namespace osu.Framework.Graphics.Audio
         {
             base.Update();
 
-            // Can't use invalidation for this as RequiredParentSizeToFit is closes, but also triggers on DrawPosition changes.
+            // Can't use invalidation for this as RequiredParentSizeToFit is closest, but also triggers on DrawPosition changes.
             if (lastGeneratedDrawSize != null && DrawSize != lastGeneratedDrawSize)
                 queueRegeneration();
         }
