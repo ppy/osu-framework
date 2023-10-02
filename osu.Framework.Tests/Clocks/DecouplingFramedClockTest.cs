@@ -416,8 +416,24 @@ namespace osu.Framework.Tests.Clocks
             decouplingClock.ProcessFrame();
 
             double time = decouplingClock.CurrentTime;
+            const double tolerance = 30;
 
-            while (decouplingClock.CurrentTime < 10000)
+            // The decoupling clock generally lags behind the source clock,
+            // so we don't want the threshold here to go up to the full tolerance,
+            // to avoid situations like so:
+            //
+            // x: decouplingClock
+            // o: sourceClock
+            //
+            // ------x-----------o------>
+            //    9980ms      10000ms
+            //
+            // The source clock has reached its playback limit and cannot seek further, so it will stop.
+            // The decoupling clock hasn't caught up to the source clock yet, but it is close enough to pass the tolerance check.
+            //
+            // Subtracting the tolerance ensures that both the decoupling and source clocks stay in the same 30ms band, but neither stops yet.
+            // We will assert that the source should eventually stop further down anyway.
+            while (decouplingClock.CurrentTime < 10000 - tolerance)
             {
                 Assert.That(source.IsRunning, Is.True);
                 Assert.That(source.CurrentTime, Is.EqualTo(decouplingClock.CurrentTime).Within(30));
