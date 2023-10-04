@@ -93,12 +93,18 @@ namespace osu.Framework.Tests.Threading
             Thread disposeThread = new Thread(() =>
             {
                 scheduler.Dispose();
-            }) { IsBackground = true };
+            })
+            {
+                IsBackground = true
+            };
 
             Thread queueThread = new Thread(() =>
             {
                 Task.Factory.StartNew(() => { }, CancellationToken.None, TaskCreationOptions.HideScheduler, scheduler);
-            }) { IsBackground = true };
+            })
+            {
+                IsBackground = true
+            };
 
             disposeThread.Start();
             queueThread.Start();
