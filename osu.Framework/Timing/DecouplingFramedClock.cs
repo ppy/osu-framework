@@ -48,7 +48,7 @@ namespace osu.Framework.Timing
         /// We maintain an internal running state so that when we notice the source clock has stopped,
         /// we can continue to run in a decoupled mode (and know if we should be running or not).
         /// </summary>
-        private bool isRunning;
+        private bool shouldBeRunning;
 
         /// <summary>
         /// We need to track our internal time separately from the exposed <see cref="CurrentTime"/> to make sure
@@ -93,7 +93,7 @@ namespace osu.Framework.Timing
                 if (Source.IsRunning)
                 {
                     currentTime = Source.CurrentTime;
-                    isRunning = true;
+                    shouldBeRunning = true;
                     return;
                 }
 
@@ -101,12 +101,12 @@ namespace osu.Framework.Timing
                 if (!AllowDecoupling)
                 {
                     currentTime = Source.CurrentTime;
-                    isRunning = false;
+                    shouldBeRunning = false;
                     return;
                 }
 
                 // We then want to check whether our internal running state permits time to elapse in decoupled mode.
-                if (!isRunning)
+                if (!shouldBeRunning)
                     return;
 
                 // We can only begin tracking time from the second frame, as we need an elapsed real time reference.
@@ -133,7 +133,7 @@ namespace osu.Framework.Timing
             }
             finally
             {
-                IsRunning = isRunning;
+                IsRunning = shouldBeRunning;
                 lastReferenceTime = realtimeReferenceClock.CurrentTime;
                 CurrentTime = currentTime;
                 ElapsedFrameTime = CurrentTime - lastTime;
@@ -153,7 +153,7 @@ namespace osu.Framework.Timing
 
             adjustableSourceClock = adjustableSource;
             currentTime = adjustableSource.CurrentTime;
-            isRunning = adjustableSource.IsRunning;
+            shouldBeRunning = adjustableSource.IsRunning;
         }
 
         #endregion
@@ -163,32 +163,32 @@ namespace osu.Framework.Timing
         public void Reset()
         {
             adjustableSourceClock.Reset();
-            isRunning = false;
+            shouldBeRunning = false;
             lastSeekFailed = false;
             currentTime = 0;
         }
 
         public void Start()
         {
-            if (isRunning)
+            if (shouldBeRunning)
                 return;
 
             // If the previous seek failed, avoid calling `Start` on the source clock.
             // Doing so would potentially cause it to start from an incorrect location (ie. 0 in the case where we are tracking negative time).
             if (lastSeekFailed && AllowDecoupling)
             {
-                isRunning = true;
+                shouldBeRunning = true;
                 return;
             }
 
             adjustableSourceClock.Start();
-            isRunning = adjustableSourceClock.IsRunning || AllowDecoupling;
+            shouldBeRunning = adjustableSourceClock.IsRunning || AllowDecoupling;
         }
 
         public void Stop()
         {
             adjustableSourceClock.Stop();
-            isRunning = false;
+            shouldBeRunning = false;
         }
 
         public bool Seek(double position)
@@ -199,7 +199,7 @@ namespace osu.Framework.Timing
             {
                 // Transfer attempt to transfer decoupled running state to source
                 // in the case we succeeded.
-                if (isRunning && !Source.IsRunning)
+                if (shouldBeRunning && !Source.IsRunning)
                     adjustableSourceClock.Start();
             }
             else
