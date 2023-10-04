@@ -8,10 +8,8 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.Utils;
 using osuTK;
@@ -60,7 +58,10 @@ namespace osu.Framework.Graphics.UserInterface
                     SelectionArea = new Container
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Child = box = new SaturationBox()
+                        Child = box = new SaturationBox
+                        {
+                            Colour = ColourInfo.GradientHorizontal(Color4.White, Color4.Red)
+                        }
                     },
                     marker = CreateMarker().With(d =>
                     {
@@ -148,7 +149,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             private void hueChanged()
             {
-                box.Hue = Hue.Value;
+                box.Colour = ColourInfo.GradientHorizontal(Color4.White, Colour4.FromHSV(Hue.Value, 1f, 1f));
                 updateCurrent();
             }
 
@@ -211,21 +212,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             private partial class SaturationBox : Box
             {
-                private float hue;
-                private ColourInfo gradient = ColourInfo.GradientHorizontal(Color4.White, Color4.Red);
-
-                public float Hue
-                {
-                    set
-                    {
-                        if (hue == value) return;
-
-                        hue = value;
-                        gradient = ColourInfo.GradientHorizontal(Color4.White, Colour4.FromHSV(hue, 1f, 1f));
-                        Invalidate(Invalidation.DrawNode);
-                    }
-                }
-
                 public SaturationBox()
                 {
                     RelativeSizeAxes = Axes.Both;
@@ -235,39 +221,6 @@ namespace osu.Framework.Graphics.UserInterface
                 private void load(ShaderManager shaders)
                 {
                     TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "SaturationSelectorBackground");
-                }
-
-                protected override DrawNode CreateDrawNode() => new SaturationBoxDrawNode(this);
-
-                private class SaturationBoxDrawNode : SpriteDrawNode
-                {
-                    public new SaturationBox Source => (SaturationBox)base.Source;
-
-                    public SaturationBoxDrawNode(SaturationBox source)
-                        : base(source)
-                    {
-                    }
-
-                    private ColourInfo gradient;
-
-                    public override void ApplyState()
-                    {
-                        base.ApplyState();
-                        gradient = Source.gradient;
-                    }
-
-                    protected override void Blit(IRenderer renderer)
-                    {
-                        if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
-                            return;
-
-                        ColourInfo col = DrawColourInfo.Colour;
-                        col.ApplyChild(gradient);
-
-                        renderer.DrawQuad(Texture, ScreenSpaceDrawQuad, col, null, null,
-                            new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height),
-                            null, TextureCoords);
-                    }
                 }
             }
         }
