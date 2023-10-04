@@ -4,18 +4,18 @@
 #nullable disable
 
 using System;
-using System.Runtime.InteropServices;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.Utils;
 using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -209,20 +209,19 @@ namespace osu.Framework.Graphics.UserInterface
                 public IBindable<Colour4> Current { get; } = new Bindable<Colour4>();
             }
 
-            private partial class SaturationBox : Box, ITexturedShaderDrawable
+            private partial class SaturationBox : Box
             {
-                public new IShader TextureShader { get; private set; }
-
                 private float hue;
+                private ColourInfo gradient = ColourInfo.GradientHorizontal(Color4.White, Color4.Red);
 
                 public float Hue
                 {
-                    get => hue;
                     set
                     {
                         if (hue == value) return;
 
                         hue = value;
+                        gradient = ColourInfo.GradientHorizontal(Color4.White, Colour4.FromHSV(hue, 1f, 1f));
                         Invalidate(Invalidation.DrawNode);
                     }
                 }
@@ -249,37 +248,25 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                     }
 
-                    private float hue;
+                    private ColourInfo gradient;
 
                     public override void ApplyState()
                     {
                         base.ApplyState();
-                        hue = Source.hue;
+                        gradient = Source.gradient;
                     }
 
-                    private IUniformBuffer<HueData> hueDataBuffer;
-
-                    protected override void BindUniformResources(IShader shader, IRenderer renderer)
+                    protected override void Blit(IRenderer renderer)
                     {
-                        base.BindUniformResources(shader, renderer);
+                        if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
+                            return;
 
-                        hueDataBuffer ??= renderer.CreateUniformBuffer<HueData>();
-                        hueDataBuffer.Data = hueDataBuffer.Data with { Hue = hue };
+                        ColourInfo col = DrawColourInfo.Colour;
+                        col.ApplyChild(gradient);
 
-                        shader.BindUniformBlock("m_HueData", hueDataBuffer);
-                    }
-
-                    protected override void Dispose(bool isDisposing)
-                    {
-                        base.Dispose(isDisposing);
-                        hueDataBuffer?.Dispose();
-                    }
-
-                    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-                    private record struct HueData
-                    {
-                        public UniformFloat Hue;
-                        private readonly UniformPadding12 pad1;
+                        renderer.DrawQuad(Texture, ScreenSpaceDrawQuad, col, null, null,
+                            new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height),
+                            null, TextureCoords);
                     }
                 }
             }
