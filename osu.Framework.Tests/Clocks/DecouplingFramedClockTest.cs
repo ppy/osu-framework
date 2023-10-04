@@ -397,6 +397,17 @@ namespace osu.Framework.Tests.Clocks
 
             Assert.That(source.CurrentTime, Is.EqualTo(decouplingClock.CurrentTime).Within(30));
             Assert.That(source.IsRunning, Is.True);
+
+            // Subsequently test stop/start works correctly.
+            decouplingClock.Stop();
+            decouplingClock.ProcessFrame();
+            Assert.That(decouplingClock.IsRunning, Is.False);
+            Assert.That(source.IsRunning, Is.False);
+
+            decouplingClock.Start();
+            decouplingClock.ProcessFrame();
+            Assert.That(decouplingClock.IsRunning, Is.True);
+            Assert.That(source.IsRunning, Is.True);
         }
 
         [Test]
