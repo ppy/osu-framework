@@ -125,6 +125,7 @@ namespace osu.Framework.Timing
                 {
                     adjustableSourceClock.Seek(currentTime);
                     adjustableSourceClock.Start();
+                    lastSeekFailed = false;
 
                     // Don't use the source's time until next frame, as our decoupled time is likely more accurate
                     // (starting a clock, especially a TrackBass may have slight discrepancies).
