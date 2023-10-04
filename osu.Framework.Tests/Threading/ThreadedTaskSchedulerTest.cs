@@ -83,5 +83,28 @@ namespace osu.Framework.Tests.Threading
             Assert.That(run.Wait(30000));
             Assert.That(exited.Wait(30000));
         }
+
+        [Test]
+        [Repeat(1000)]
+        public void QueueAndDisposeStressTest()
+        {
+            ThreadedTaskScheduler scheduler = new ThreadedTaskScheduler(1, string.Empty);
+
+            Thread disposeThread = new Thread(() =>
+            {
+                scheduler.Dispose();
+            }) { IsBackground = true };
+
+            Thread queueThread = new Thread(() =>
+            {
+                Task.Factory.StartNew(() => { }, CancellationToken.None, TaskCreationOptions.HideScheduler, scheduler);
+            }) { IsBackground = true };
+
+            disposeThread.Start();
+            queueThread.Start();
+
+            disposeThread.Join();
+            queueThread.Join();
+        }
     }
 }
