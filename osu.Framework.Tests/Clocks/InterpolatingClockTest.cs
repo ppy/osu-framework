@@ -13,14 +13,14 @@ namespace osu.Framework.Tests.Clocks
     public class InterpolatingClockTest
     {
         private TestClock source = null!;
-        private InterpolatingFramedClock interpolating = null!;
+        private TestInterpolatingFramedClock interpolating = null!;
 
         [SetUp]
         public void SetUp()
         {
             source = new TestClock();
 
-            interpolating = new InterpolatingFramedClock();
+            interpolating = new TestInterpolatingFramedClock();
             interpolating.ChangeSource(source);
         }
 
@@ -175,6 +175,33 @@ namespace osu.Framework.Tests.Clocks
         }
 
         [Test]
+        public void TestInterpolationAfterSourceStoppedThenSeeked()
+        {
+            // Just to make sure this works even when still in interpolation allowance.
+            interpolating.CustomErrorMilliseconds = 100000;
+
+            source.Start();
+
+            while (!interpolating.IsInterpolating)
+            {
+                source.CurrentTime += 10;
+                Thread.Sleep(10);
+                interpolating.ProcessFrame();
+            }
+
+            source.Stop();
+            source.Seek(-10000);
+
+            interpolating.ProcessFrame();
+            Assert.That(interpolating.IsInterpolating, Is.False);
+            Assert.That(interpolating.CurrentTime, Is.EqualTo(-10000).Within(100));
+
+            source.Start();
+            interpolating.ProcessFrame();
+            Assert.That(interpolating.CurrentTime, Is.EqualTo(-10000).Within(100));
+        }
+
+        [Test]
         public void InterpolationStaysWithinBounds()
         {
             source.Start();
@@ -196,7 +223,14 @@ namespace osu.Framework.Tests.Clocks
             interpolating.ProcessFrame();
 
             Assert.IsFalse(interpolating.IsRunning);
-            Assert.AreEqual(source.CurrentTime, interpolating.CurrentTime, "Interpolating should match source time.");
+            Assert.That(source.CurrentTime, Is.EqualTo(interpolating.CurrentTime).Within(interpolating.AllowableErrorMilliseconds));
+        }
+
+        public class TestInterpolatingFramedClock : InterpolatingFramedClock
+        {
+            public double? CustomErrorMilliseconds { get; set; }
+
+            public override double AllowableErrorMilliseconds => CustomErrorMilliseconds ?? base.AllowableErrorMilliseconds;
         }
     }
 }
