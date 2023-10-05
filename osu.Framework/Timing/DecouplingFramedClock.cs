@@ -123,9 +123,10 @@ namespace osu.Framework.Timing
                 // This could be potentially handled if need be, if we had a notion of what the source's max allowable time is.
                 if (lastTime < 0 && currentTime >= 0)
                 {
-                    adjustableSourceClock.Seek(currentTime);
-                    adjustableSourceClock.Start();
-                    lastSeekFailed = false;
+                    // We still need to check the seek was successful, else we might have already exceeded valid length of the source.
+                    lastSeekFailed = !adjustableSourceClock.Seek(currentTime);
+                    if (!lastSeekFailed)
+                        adjustableSourceClock.Start();
 
                     // Don't use the source's time until next frame, as our decoupled time is likely more accurate
                     // (starting a clock, especially a TrackBass may have slight discrepancies).
