@@ -78,10 +78,11 @@ namespace osu.Framework.Timing
             sourceIsRunning = FramedSourceClock.IsRunning;
 
             lastInterpolatedTime = currentTime;
+            bool sourceHasElapsed = FramedSourceClock.ElapsedFrameTime != 0;
 
-            if (FramedSourceClock.IsRunning)
+            if (sourceIsRunning)
             {
-                if (FramedSourceClock.ElapsedFrameTime != 0)
+                if (sourceHasElapsed)
                     IsInterpolating = true;
 
                 currentInterpolatedTime += realtimeClock.ElapsedFrameTime * Rate;
@@ -103,9 +104,18 @@ namespace osu.Framework.Timing
                     // limit the direction of travel to avoid seeking against the flow.
                     currentInterpolatedTime = Rate >= 0 ? Math.Max(lastInterpolatedTime, currentInterpolatedTime) : Math.Min(lastInterpolatedTime, currentInterpolatedTime);
                 }
-            }
 
-            currentTime = sourceIsRunning ? currentInterpolatedTime : FramedSourceClock.CurrentTime;
+                currentTime = currentInterpolatedTime;
+            }
+            else
+            {
+                // If we detect a seek in the source while it's not running, immediately abort interpolation.
+                if (sourceHasElapsed)
+                    resetInterpolation();
+
+                if (!IsInterpolating)
+                    currentTime = FramedSourceClock.CurrentTime;
+            }
         }
 
         private void resetInterpolation()
@@ -113,6 +123,7 @@ namespace osu.Framework.Timing
             currentTime = 0;
             lastInterpolatedTime = 0;
             currentInterpolatedTime = 0;
+            IsInterpolating = false;
         }
 
         double IFrameBasedClock.FramesPerSecond => 0;
