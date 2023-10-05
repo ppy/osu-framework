@@ -34,7 +34,7 @@ namespace osu.Framework.Timing
 
         public virtual bool IsRunning => sourceIsRunning;
 
-        public virtual double ElapsedFrameTime => currentInterpolatedTime - lastInterpolatedTime;
+        public virtual double ElapsedFrameTime { get; private set; }
 
         public IClock Source { get; private set; }
 
@@ -43,8 +43,6 @@ namespace osu.Framework.Timing
         public virtual double CurrentTime => currentTime;
 
         private readonly FramedClock realtimeClock = new FramedClock(new StopwatchClock(true));
-
-        private double lastInterpolatedTime;
 
         private double currentInterpolatedTime;
 
@@ -75,12 +73,13 @@ namespace osu.Framework.Timing
 
         public virtual void ProcessFrame()
         {
+            double timeBefore = currentTime;
+
             realtimeClock.ProcessFrame();
             FramedSourceClock.ProcessFrame();
 
             sourceIsRunning = FramedSourceClock.IsRunning;
 
-            lastInterpolatedTime = currentTime;
             bool sourceHasElapsed = FramedSourceClock.ElapsedFrameTime != 0;
 
             if (sourceIsRunning)
@@ -91,7 +90,7 @@ namespace osu.Framework.Timing
                 {
                     // if we've exceeded the allowable error, we should use the source clock's time value.
                     // seeking backwards should only be allowed if the source is explicitly doing that.
-                    currentInterpolatedTime = FramedSourceClock.ElapsedFrameTime < 0 ? FramedSourceClock.CurrentTime : Math.Max(lastInterpolatedTime, FramedSourceClock.CurrentTime);
+                    currentInterpolatedTime = FramedSourceClock.ElapsedFrameTime < 0 ? FramedSourceClock.CurrentTime : Math.Max(timeBefore, FramedSourceClock.CurrentTime);
 
                     // once interpolation fails, we don't want to resume interpolating until the source clock starts to move again.
                     IsInterpolating = false;
@@ -102,7 +101,7 @@ namespace osu.Framework.Timing
                     currentInterpolatedTime += (FramedSourceClock.CurrentTime - currentInterpolatedTime) / 8;
 
                     // limit the direction of travel to avoid seeking against the flow.
-                    currentInterpolatedTime = Rate >= 0 ? Math.Max(lastInterpolatedTime, currentInterpolatedTime) : Math.Min(lastInterpolatedTime, currentInterpolatedTime);
+                    currentInterpolatedTime = Rate >= 0 ? Math.Max(timeBefore, currentInterpolatedTime) : Math.Min(timeBefore, currentInterpolatedTime);
                 }
 
                 currentTime = currentInterpolatedTime;
@@ -121,12 +120,13 @@ namespace osu.Framework.Timing
                 if (!IsInterpolating)
                     currentTime = FramedSourceClock.CurrentTime;
             }
+
+            ElapsedFrameTime = currentTime - timeBefore;
         }
 
         private void resetInterpolation()
         {
             currentTime = 0;
-            lastInterpolatedTime = 0;
             currentInterpolatedTime = 0;
             IsInterpolating = false;
         }

@@ -195,10 +195,12 @@ namespace osu.Framework.Tests.Clocks
             interpolating.ProcessFrame();
             Assert.That(interpolating.IsInterpolating, Is.False);
             Assert.That(interpolating.CurrentTime, Is.EqualTo(-10000).Within(100));
+            Assert.That(interpolating.ElapsedFrameTime, Is.EqualTo(-10000).Within(100));
 
             source.Start();
             interpolating.ProcessFrame();
             Assert.That(interpolating.CurrentTime, Is.EqualTo(-10000).Within(100));
+            Assert.That(interpolating.ElapsedFrameTime, Is.EqualTo(0).Within(100));
         }
 
         [Test]
