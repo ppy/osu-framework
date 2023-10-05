@@ -85,9 +85,6 @@ namespace osu.Framework.Timing
 
             if (sourceIsRunning)
             {
-                if (sourceHasElapsed)
-                    IsInterpolating = true;
-
                 currentInterpolatedTime += realtimeClock.ElapsedFrameTime * Rate;
 
                 if (!IsInterpolating || Math.Abs(FramedSourceClock.CurrentTime - currentInterpolatedTime) > AllowableErrorMilliseconds)
@@ -109,6 +106,11 @@ namespace osu.Framework.Timing
                 }
 
                 currentTime = currentInterpolatedTime;
+
+                // Of importance, only start interpolating from the next frame.
+                // The first frame after a clock starts may give very incorrect results, ie. due to a seek in the frame before.
+                if (sourceHasElapsed)
+                    IsInterpolating = true;
             }
             else
             {
