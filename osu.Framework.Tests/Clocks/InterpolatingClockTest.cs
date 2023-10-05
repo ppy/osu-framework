@@ -213,6 +213,9 @@ namespace osu.Framework.Tests.Clocks
                 source.CurrentTime += sleep_time;
                 interpolating.ProcessFrame();
 
+                // should be a nooop
+                interpolating.ChangeSource(source);
+
                 Assert.IsTrue(Precision.AlmostEquals(interpolating.CurrentTime, source.CurrentTime, interpolating.AllowableErrorMilliseconds),
                     "Interpolating should be within allowable error bounds.");
 

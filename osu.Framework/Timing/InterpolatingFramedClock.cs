@@ -61,6 +61,9 @@ namespace osu.Framework.Timing
 
         public virtual void ChangeSource(IClock? source)
         {
+            if (source != null && source == Source)
+                return;
+
             Source = source ?? new StopwatchClock(true);
 
             // We need a frame-based source to correctly process interpolation.
