@@ -32,7 +32,7 @@ namespace osu.Framework.Timing
 
         public virtual double Rate => FramedSourceClock.Rate;
 
-        public virtual bool IsRunning => sourceIsRunning;
+        public virtual bool IsRunning { get; private set; }
 
         public virtual double ElapsedFrameTime { get; private set; }
 
@@ -40,13 +40,9 @@ namespace osu.Framework.Timing
 
         protected IFrameBasedClock FramedSourceClock;
 
-        public virtual double CurrentTime => currentTime;
+        public virtual double CurrentTime { get; private set; }
 
         private readonly FramedClock realtimeClock = new FramedClock(new StopwatchClock(true));
-
-        private double currentInterpolatedTime;
-
-        private bool sourceIsRunning;
 
         private double currentTime;
 
@@ -68,67 +64,74 @@ namespace osu.Framework.Timing
             // If the provided source is not already a framed clock, encapsulate it in one.
             FramedSourceClock = Source as IFrameBasedClock ?? new FramedClock(source);
 
-            resetInterpolation();
+            IsInterpolating = false;
+            currentTime = FramedSourceClock.CurrentTime;
         }
 
         public virtual void ProcessFrame()
         {
-            double timeBefore = currentTime;
+            double lastTime = currentTime;
 
             realtimeClock.ProcessFrame();
             FramedSourceClock.ProcessFrame();
 
-            sourceIsRunning = FramedSourceClock.IsRunning;
+            bool sourceIsRunning = FramedSourceClock.IsRunning;
 
             bool sourceHasElapsed = FramedSourceClock.ElapsedFrameTime != 0;
 
-            if (sourceIsRunning)
+            try
             {
-                currentInterpolatedTime += realtimeClock.ElapsedFrameTime * Rate;
-
-                if (!IsInterpolating || Math.Abs(FramedSourceClock.CurrentTime - currentInterpolatedTime) > AllowableErrorMilliseconds)
+                if (!sourceIsRunning)
                 {
-                    // if we've exceeded the allowable error, we should use the source clock's time value.
-                    // seeking backwards should only be allowed if the source is explicitly doing that.
-                    currentInterpolatedTime = FramedSourceClock.ElapsedFrameTime < 0 ? FramedSourceClock.CurrentTime : Math.Max(timeBefore, FramedSourceClock.CurrentTime);
+                    // While the source isn't running, we remain in the current interpolation mode unless there's a seek.
+                    // This is to ensure the most consistent playback possible, and avoid fractional differences when stopping/starting the source.
+                    if (sourceHasElapsed)
+                    {
+                        IsInterpolating = false;
+                        currentTime = FramedSourceClock.CurrentTime;
+                    }
 
-                    // once interpolation fails, we don't want to resume interpolating until the source clock starts to move again.
-                    IsInterpolating = false;
+                    return;
+                }
+
+                if (IsInterpolating)
+                {
+                    // apply time increase from interpolation.
+                    currentTime += realtimeClock.ElapsedFrameTime * Rate;
+                    // if we differ from the elapsed time of the source, let's adjust for the difference.
+                    // TODO: this is frame rate depending, and can result in unexpected results.
+                    currentTime += (FramedSourceClock.CurrentTime - currentTime) / 8;
+
+                    bool withinAllowableError = Math.Abs(FramedSourceClock.CurrentTime - currentTime) <= AllowableErrorMilliseconds;
+
+                    if (!withinAllowableError)
+                    {
+                        // if we've exceeded the allowable error, we should use the source clock's time value.
+                        IsInterpolating = false;
+                        currentTime = FramedSourceClock.CurrentTime;
+                    }
                 }
                 else
                 {
-                    //if we differ from the elapsed time of the source, let's adjust for the difference.
-                    currentInterpolatedTime += (FramedSourceClock.CurrentTime - currentInterpolatedTime) / 8;
+                    currentTime = FramedSourceClock.CurrentTime;
 
-                    // limit the direction of travel to avoid seeking against the flow.
-                    currentInterpolatedTime = Rate >= 0 ? Math.Max(timeBefore, currentInterpolatedTime) : Math.Min(timeBefore, currentInterpolatedTime);
+                    // Of importance, only start interpolating from the next frame.
+                    // The first frame after a clock starts may give very incorrect results, ie. due to a seek in the frame before.
+                    if (sourceHasElapsed)
+                        IsInterpolating = true;
                 }
 
-                currentTime = currentInterpolatedTime;
-
-                // Of importance, only start interpolating from the next frame.
-                // The first frame after a clock starts may give very incorrect results, ie. due to a seek in the frame before.
-                if (sourceHasElapsed)
-                    IsInterpolating = true;
+                // seeking backwards should only be allowed if the source is explicitly doing that.
+                bool elapsedInOpposingDirection = FramedSourceClock.ElapsedFrameTime != 0 && Math.Sign(FramedSourceClock.ElapsedFrameTime) != Math.Sign(Rate);
+                if (!elapsedInOpposingDirection)
+                    currentTime = Rate >= 0 ? Math.Max(lastTime, currentTime) : Math.Min(lastTime, currentTime);
             }
-            else
+            finally
             {
-                // If we detect a seek in the source while it's not running, immediately abort interpolation.
-                if (sourceHasElapsed)
-                    resetInterpolation();
-
-                if (!IsInterpolating)
-                    currentTime = FramedSourceClock.CurrentTime;
+                IsRunning = sourceIsRunning;
+                CurrentTime = currentTime;
+                ElapsedFrameTime = currentTime - lastTime;
             }
-
-            ElapsedFrameTime = currentTime - timeBefore;
-        }
-
-        private void resetInterpolation()
-        {
-            currentTime = 0;
-            currentInterpolatedTime = 0;
-            IsInterpolating = false;
         }
 
         double IFrameBasedClock.FramesPerSecond => 0;
