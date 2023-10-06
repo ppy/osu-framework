@@ -10,7 +10,7 @@ using osu.Framework.Timing;
 namespace osu.Framework.Tests.Clocks
 {
     [TestFixture]
-    public class InterpolatingClockTest
+    public class InterpolatingFramedClockTest
     {
         private TestClock source = null!;
         private TestInterpolatingFramedClock interpolating = null!;
