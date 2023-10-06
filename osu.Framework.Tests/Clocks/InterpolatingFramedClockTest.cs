@@ -157,6 +157,47 @@ namespace osu.Framework.Tests.Clocks
         }
 
         [Test]
+        public void CanSeekForwardsOnInterpolationFail()
+        {
+            const int sleep_time = 20;
+
+            double lastValue = interpolating.CurrentTime;
+            source.Start();
+            int interpolatedCount = 0;
+
+            for (int i = 0; i < 200; i++)
+            {
+                source.Rate += i * 10;
+
+                bool skipSourceForwards = i == 100;
+
+                if (skipSourceForwards) // seek forward once at a random point.
+                {
+                    source.CurrentTime += interpolating.AllowableErrorMilliseconds * 10;
+                    interpolating.ProcessFrame();
+                    Assert.That(interpolating.IsInterpolating, Is.False);
+                    Assert.That(interpolating.CurrentTime, Is.EqualTo(source.CurrentTime));
+                }
+                else
+                {
+                    source.CurrentTime += sleep_time * source.Rate;
+                    interpolating.ProcessFrame();
+                }
+
+                if (interpolating.IsInterpolating)
+                    interpolatedCount++;
+
+                Assert.GreaterOrEqual(interpolating.CurrentTime, lastValue, "Interpolating should not jump against rate.");
+                Assert.LessOrEqual(Math.Abs(interpolating.CurrentTime - source.CurrentTime), interpolating.AllowableErrorMilliseconds, "Interpolating should be within allowance.");
+
+                Thread.Sleep(sleep_time);
+                lastValue = interpolating.CurrentTime;
+            }
+
+            Assert.Greater(interpolatedCount, 10);
+        }
+
+        [Test]
         public void CanSeekBackwards()
         {
             Assert.AreEqual(source.CurrentTime, interpolating.CurrentTime, "Interpolating should match source time.");
