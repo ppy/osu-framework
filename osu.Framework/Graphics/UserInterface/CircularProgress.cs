@@ -7,6 +7,7 @@ using System;
 using System.Runtime.InteropServices;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shaders.Types;
@@ -89,6 +90,21 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        private EdgeEffectParameters edgeEffect;
+
+        public EdgeEffectParameters EdgeEffect
+        {
+            get => edgeEffect;
+            set
+            {
+                if (edgeEffect.Equals(value))
+                    return;
+
+                edgeEffect = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
         private class CircularProgressDrawNode : SpriteDrawNode
         {
             public new CircularProgress Source => (CircularProgress)base.Source;
@@ -102,6 +118,7 @@ namespace osu.Framework.Graphics.UserInterface
             private float progress;
             private float texelSize;
             private bool roundedCaps;
+            private EdgeEffectParameters edgeEffect;
 
             public override void ApplyState()
             {
@@ -113,6 +130,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                 // smoothstep looks too sharp with 1px, let's give it a bit more
                 texelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
+
+                edgeEffect = Source.edgeEffect;
             }
 
             private IUniformBuffer<CircularProgressParameters> parametersBuffer;

@@ -7,6 +7,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Textures;
@@ -28,6 +29,16 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private int rotateMode;
         private const double period = 4000;
         private const double transition_period = 2000;
+
+        private float glowRadius;
+        private EdgeEffectType type = EdgeEffectType.Glow;
+        private bool hollow;
+        private float glowR = 1f;
+        private float glowG = 1f;
+        private float glowB = 1f;
+        private float glowA = 1f;
+        private float offsetX;
+        private float offsetY;
 
         private Texture gradientTextureHorizontal;
         private Texture gradientTextureVertical;
@@ -136,6 +147,64 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddToggleStep("Toggle background", b => background.Alpha = b ? 1 : 0);
             AddSliderStep("Scale", 0f, 2f, 1f, s => clock.Scale = new Vector2(s));
             AddSliderStep("Fill", 0f, 1f, 0.5f, f => clock.InnerRadius = f);
+
+            AddSliderStep("Glow size", 0f, 500f, 0f, r =>
+            {
+                glowRadius = r;
+                updateGlow();
+            });
+            AddSliderStep("Glow R", 0f, 1f, 1f, r =>
+            {
+                glowR = r;
+                updateGlow();
+            });
+            AddSliderStep("Glow G", 0f, 1f, 1f, g =>
+            {
+                glowG = g;
+                updateGlow();
+            });
+            AddSliderStep("Glow B", 0f, 1f, 1f, b =>
+            {
+                glowB = b;
+                updateGlow();
+            });
+            AddSliderStep("Glow A", 0f, 1f, 1f, a =>
+            {
+                glowA = a;
+                updateGlow();
+            });
+            AddToggleStep("Toggle hollow", h =>
+            {
+                hollow = h;
+                updateGlow();
+            });
+            AddToggleStep("Toggle type", t =>
+            {
+                type = t ? EdgeEffectType.Glow : EdgeEffectType.Shadow;
+                updateGlow();
+            });
+            AddSliderStep("Glow Offset X", 0f, 100f, 0f, x =>
+            {
+                offsetX = x;
+                updateGlow();
+            });
+            AddSliderStep("Glow Offset Y", 0f, 100f, 0f, y =>
+            {
+                offsetY = y;
+                updateGlow();
+            });
+        }
+
+        private void updateGlow()
+        {
+            clock.EdgeEffect = new EdgeEffectParameters
+            {
+                Radius = glowRadius,
+                Colour = new Color4(glowR, glowG, glowB, glowA),
+                Hollow = hollow,
+                Type = type,
+                Offset = new Vector2(offsetX, offsetY)
+            };
         }
 
         protected override void Update()
