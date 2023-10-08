@@ -200,7 +200,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Progress = progress,
                     TexelSize = texelSizeEdgeEffect,
                     RoundedCaps = roundedCaps,
-                    glowSize = glowSize,
+                    GlowSize = glowSize,
                     Hollow = edgeEffect.Hollow
                 };
 
@@ -244,7 +244,7 @@ namespace osu.Framework.Graphics.UserInterface
             [StructLayout(LayoutKind.Sequential, Pack = 1)]
             private record struct CircularProgressEdgeEffectParameters
             {
-                public UniformVector2 glowSize;
+                public UniformVector2 GlowSize;
                 public UniformFloat InnerRadius;
                 public UniformFloat Progress;
                 public UniformFloat TexelSize;
