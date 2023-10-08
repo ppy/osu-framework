@@ -178,9 +178,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 hollow = h;
                 updateGlow();
             });
-            AddToggleStep("Toggle type", t =>
+            AddStep("Change type to glow", () =>
             {
-                type = t ? EdgeEffectType.Glow : EdgeEffectType.Shadow;
+                type = EdgeEffectType.Glow;
+                updateGlow();
+            });
+            AddStep("Change type to shadow", () =>
+            {
+                type = EdgeEffectType.Shadow;
                 updateGlow();
             });
             AddSliderStep("Glow Offset X", 0f, 100f, 0f, x =>

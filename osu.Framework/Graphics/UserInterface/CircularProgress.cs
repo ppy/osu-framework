@@ -7,12 +7,15 @@ using System;
 using System.Runtime.InteropServices;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Effects;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transforms;
+using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -26,11 +29,14 @@ namespace osu.Framework.Graphics.UserInterface
             set => current.Current = value;
         }
 
+        private IShader edgeEffectShader;
+
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders, IRenderer renderer)
         {
             Texture ??= renderer.WhitePixel;
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgress");
+            edgeEffectShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgressEdgeEffect");
         }
 
         protected override void LoadComplete()
@@ -117,8 +123,13 @@ namespace osu.Framework.Graphics.UserInterface
             private float innerRadius;
             private float progress;
             private float texelSize;
+            private float texelSizeEdgeEffect;
             private bool roundedCaps;
             private EdgeEffectParameters edgeEffect;
+            private bool inFront;
+            private IShader edgeEffectShader;
+            private Quad inflated;
+            private Vector2 glowSize;
 
             public override void ApplyState()
             {
@@ -131,17 +142,69 @@ namespace osu.Framework.Graphics.UserInterface
                 // smoothstep looks too sharp with 1px, let's give it a bit more
                 texelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
 
+                edgeEffectShader = Source.edgeEffectShader;
                 edgeEffect = Source.edgeEffect;
+                inFront = edgeEffect.Type == EdgeEffectType.Glow;
+
+                RectangleF offsetRect = DrawRectangle;
+                offsetRect.Location += edgeEffect.Offset;
+                inflated = Source.ToScreenSpace(offsetRect.Inflate(edgeEffect.Radius));
+
+                glowSize = Vector2.Divide(new Vector2(Source.edgeEffect.Radius), Source.DrawSize);
+
+                // In the shader we are inflating coordinate space, so we need to adjust texelSize with the glow size in mind.
+                texelSizeEdgeEffect = 1.5f / ScreenSpaceDrawQuad.Size.X * (1f + Math.Min(glowSize.X, glowSize.Y) * 2);
+            }
+
+            public override void Draw(IRenderer renderer)
+            {
+                if (innerRadius == 0 || (!roundedCaps && progress == 0) || DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
+                    return;
+
+                if (!inFront)
+                    drawEdgeEffect(renderer);
+
+                base.Draw(renderer);
+
+                if (inFront)
+                    drawEdgeEffect(renderer);
+            }
+
+            private void drawEdgeEffect(IRenderer renderer)
+            {
+                if (edgeEffect.Type == EdgeEffectType.None || (edgeEffect.Radius == 0.0 && edgeEffect.Offset == Vector2.Zero && edgeEffect.Type == EdgeEffectType.Shadow))
+                    return;
+
+                renderer.SetBlend(edgeEffect.Type == EdgeEffectType.Glow ? BlendingParameters.Additive : BlendingParameters.Mixture);
+
+                edgeEffectShader.Bind();
+                bindEdgeEffectUniformResources(edgeEffectShader, renderer);
+
+                ColourInfo col = DrawColourInfo.Colour;
+                col.ApplyChild(edgeEffect.Colour);
+
+                renderer.DrawQuad(renderer.WhitePixel, inflated, col);
+
+                edgeEffectShader.Unbind();
             }
 
             private IUniformBuffer<CircularProgressParameters> parametersBuffer;
+            private IUniformBuffer<CircularProgressEdgeEffectParameters> edgeEffectParametersBuffer;
 
-            protected override void Blit(IRenderer renderer)
+            private void bindEdgeEffectUniformResources(IShader shader, IRenderer renderer)
             {
-                if (innerRadius == 0 || (!roundedCaps && progress == 0))
-                    return;
+                edgeEffectParametersBuffer ??= renderer.CreateUniformBuffer<CircularProgressEdgeEffectParameters>();
+                edgeEffectParametersBuffer.Data = new CircularProgressEdgeEffectParameters
+                {
+                    InnerRadius = innerRadius,
+                    Progress = progress,
+                    TexelSize = texelSizeEdgeEffect,
+                    RoundedCaps = roundedCaps,
+                    glowSize = glowSize,
+                    Hollow = edgeEffect.Hollow
+                };
 
-                base.Blit(renderer);
+                shader.BindUniformBlock("m_CircularProgressEdgeEffectParameters", edgeEffectParametersBuffer);
             }
 
             protected override void BindUniformResources(IShader shader, IRenderer renderer)
@@ -166,6 +229,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 base.Dispose(isDisposing);
                 parametersBuffer?.Dispose();
+                edgeEffectParametersBuffer?.Dispose();
             }
 
             [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -175,6 +239,18 @@ namespace osu.Framework.Graphics.UserInterface
                 public UniformFloat Progress;
                 public UniformFloat TexelSize;
                 public UniformBool RoundedCaps;
+            }
+
+            [StructLayout(LayoutKind.Sequential, Pack = 1)]
+            private record struct CircularProgressEdgeEffectParameters
+            {
+                public UniformVector2 glowSize;
+                public UniformFloat InnerRadius;
+                public UniformFloat Progress;
+                public UniformFloat TexelSize;
+                public UniformBool RoundedCaps;
+                public UniformBool Hollow;
+                private UniformPadding4 pad;
             }
         }
     }

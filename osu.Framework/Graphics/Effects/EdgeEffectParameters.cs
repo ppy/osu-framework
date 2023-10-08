@@ -51,7 +51,8 @@ namespace osu.Framework.Graphics.Effects
             Offset == other.Offset &&
             Type == other.Type &&
             Roundness == other.Roundness &&
-            Radius == other.Radius;
+            Radius == other.Radius &&
+            Hollow == other.Hollow;
 
         public override readonly string ToString() => Type != EdgeEffectType.None ? $@"{Radius} {Type}EdgeEffect" : @"EdgeEffect (Disabled)";
     }
