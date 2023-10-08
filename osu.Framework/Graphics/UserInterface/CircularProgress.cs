@@ -250,7 +250,7 @@ namespace osu.Framework.Graphics.UserInterface
                 public UniformFloat TexelSize;
                 public UniformBool RoundedCaps;
                 public UniformBool Hollow;
-                private UniformPadding4 pad;
+                private readonly UniformPadding4 pad;
             }
         }
     }
