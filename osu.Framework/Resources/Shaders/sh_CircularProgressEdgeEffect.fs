@@ -60,7 +60,7 @@ void main(void)
     highp vec2 pixelPos = (v_TexCoord / resolution) * (vec2(1.0) + glowSize * 2.0) - glowSize;
 
     highp float dst = distanceToProgress(pixelPos, progress, innerRadius, roundedCaps, texelSize);
-    lowp float glowA = hollow && dst < 0.0 ? 0.0 : getGlow(dst, min(glowSize.x, glowSize.y));
+    lowp float glowA = hollow && dst < 0.0 ? smoothstep(texelSize, 0.0, -dst) : getGlow(dst, min(glowSize.x, glowSize.y));
     o_Colour = getRoundedColor(vec4(vec3(1.0), glowA), v_TexCoord);
 }
 
