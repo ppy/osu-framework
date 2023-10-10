@@ -80,7 +80,7 @@ namespace osu.Framework.Testing.Drawables
                                     Margin = new MarginPadding { Left = section_padding },
                                     Children = new Drawable[]
                                     {
-                                        new Container //Backdrop of the record section
+                                        new Container //Backdrop of the bg section
                                         {
                                             RelativeSizeAxes = Axes.Both,
                                             Padding = new MarginPadding(-section_padding),
