@@ -369,6 +369,12 @@ namespace osu.Framework.Platform
                                          })
                                          .ToArray();
 
+            // on an iPad, SDL returns a display mode for both portrait and landscape orientations,
+            // but we don't support having both of them in the display modes array (since display modes are usually treated as different resolutions).
+            // for simplicity, do not provide any display modes on iOS regardless of SDL.
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.iOS)
+                displayModes = Array.Empty<DisplayMode>();
+
             display = new Display(displayIndex, SDL.SDL_GetDisplayName(displayIndex), new Rectangle(rect.x, rect.y, rect.w, rect.h), displayModes);
             return true;
         }
