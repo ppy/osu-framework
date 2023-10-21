@@ -350,30 +350,30 @@ namespace osu.Framework.Platform
                 return false;
             }
 
-            int numModes = SDL.SDL_GetNumDisplayModes(displayIndex);
+            DisplayMode[] displayModes = Array.Empty<DisplayMode>();
 
-            if (numModes < 0)
+            if (RuntimeInfo.IsDesktop)
             {
-                Logger.Log($"Failed to get display modes for display at index ({displayIndex}) ({rect.w}x{rect.h}). SDL Error: {SDL.SDL_GetError()} ({numModes})");
-                display = null;
-                return false;
-            }
+                int numModes = SDL.SDL_GetNumDisplayModes(displayIndex);
 
-            if (numModes == 0) Logger.Log($"Display at index ({displayIndex}) ({rect.w}x{rect.h}) has no display modes. Fullscreen might not work.");
+                if (numModes < 0)
+                {
+                    Logger.Log($"Failed to get display modes for display at index ({displayIndex}) ({rect.w}x{rect.h}). SDL Error: {SDL.SDL_GetError()} ({numModes})");
+                    display = null;
+                    return false;
+                }
 
-            var displayModes = Enumerable.Range(0, numModes)
+                if (numModes == 0)
+                    Logger.Log($"Display at index ({displayIndex}) ({rect.w}x{rect.h}) has no display modes. Fullscreen might not work.");
+
+                displayModes = Enumerable.Range(0, numModes)
                                          .Select(modeIndex =>
                                          {
                                              SDL.SDL_GetDisplayMode(displayIndex, modeIndex, out var mode);
                                              return mode.ToDisplayMode(displayIndex);
                                          })
                                          .ToArray();
-
-            // on an iPad, SDL returns a display mode for both portrait and landscape orientations,
-            // but we don't support having both of them in the display modes array (since display modes are usually treated as different resolutions).
-            // for simplicity, do not provide any display modes on iOS regardless of SDL.
-            if (RuntimeInfo.OS == RuntimeInfo.Platform.iOS)
-                displayModes = Array.Empty<DisplayMode>();
+            }
 
             display = new Display(displayIndex, SDL.SDL_GetDisplayName(displayIndex), new Rectangle(rect.x, rect.y, rect.w, rect.h), displayModes);
             return true;
