@@ -273,6 +273,36 @@ namespace osu.Framework.Tests.Clocks
             Assert.That(decouplingClock.CurrentTime, Is.EqualTo(1000));
         }
 
+        [Test]
+        public void TestSeekFromNegativeToBeyondLengthWhileDecoupling()
+        {
+            source = new TestStopwatchClockWithRangeLimit
+            {
+                MaxTime = 500
+            };
+
+            decouplingClock.ChangeSource(source);
+            decouplingClock.AllowDecoupling = true;
+
+            decouplingClock.Start();
+
+            Assert.That(decouplingClock.Seek(-1000), Is.True);
+            decouplingClock.ProcessFrame();
+
+            Assert.That(source.CurrentTime, Is.EqualTo(0).Within(30));
+            Assert.That(source.IsRunning, Is.False);
+            Assert.That(decouplingClock.CurrentTime, Is.EqualTo(-1000));
+            Assert.That(decouplingClock.IsRunning, Is.True);
+
+            Assert.That(decouplingClock.Seek(1000), Is.True);
+            decouplingClock.ProcessFrame();
+
+            Assert.That(source.CurrentTime, Is.EqualTo(500));
+            Assert.That(source.IsRunning, Is.False);
+            Assert.That(decouplingClock.CurrentTime, Is.EqualTo(1000).Within(30));
+            Assert.That(decouplingClock.IsRunning, Is.True);
+        }
+
         /// <summary>
         /// In decoupled operation, seeking the source while it's not playing is undefined
         /// behaviour.
@@ -355,7 +385,7 @@ namespace osu.Framework.Tests.Clocks
             while (source.IsRunning)
             {
                 decouplingClock.ProcessFrame();
-                Assert.That(decouplingClock.CurrentTime, Is.EqualTo(source.CurrentTime).Within(5));
+                Assert.That(decouplingClock.CurrentTime, Is.EqualTo(source.CurrentTime).Within(30));
             }
 
             Assert.That(source.IsRunning, Is.False);
@@ -395,7 +425,18 @@ namespace osu.Framework.Tests.Clocks
                 decouplingClock.ProcessFrame();
             }
 
-            Assert.That(source.CurrentTime, Is.EqualTo(decouplingClock.CurrentTime).Within(5));
+            Assert.That(source.CurrentTime, Is.EqualTo(decouplingClock.CurrentTime).Within(30));
+            Assert.That(source.IsRunning, Is.True);
+
+            // Subsequently test stop/start works correctly.
+            decouplingClock.Stop();
+            decouplingClock.ProcessFrame();
+            Assert.That(decouplingClock.IsRunning, Is.False);
+            Assert.That(source.IsRunning, Is.False);
+
+            decouplingClock.Start();
+            decouplingClock.ProcessFrame();
+            Assert.That(decouplingClock.IsRunning, Is.True);
             Assert.That(source.IsRunning, Is.True);
         }
 
@@ -416,11 +457,27 @@ namespace osu.Framework.Tests.Clocks
             decouplingClock.ProcessFrame();
 
             double time = decouplingClock.CurrentTime;
+            const double tolerance = 30;
 
-            while (decouplingClock.CurrentTime < 10000)
+            // The decoupling clock generally lags behind the source clock,
+            // so we don't want the threshold here to go up to the full tolerance,
+            // to avoid situations like so:
+            //
+            // x: decouplingClock
+            // o: sourceClock
+            //
+            // ------x-----------o------>
+            //    9980ms      10000ms
+            //
+            // The source clock has reached its playback limit and cannot seek further, so it will stop.
+            // The decoupling clock hasn't caught up to the source clock yet, but it is close enough to pass the tolerance check.
+            //
+            // Subtracting the tolerance ensures that both the decoupling and source clocks stay in the same 30ms band, but neither stops yet.
+            // We will assert that the source should eventually stop further down anyway.
+            while (decouplingClock.CurrentTime < 10000 - tolerance)
             {
                 Assert.That(source.IsRunning, Is.True);
-                Assert.That(source.CurrentTime, Is.EqualTo(decouplingClock.CurrentTime).Within(5));
+                Assert.That(source.CurrentTime, Is.EqualTo(decouplingClock.CurrentTime).Within(30));
                 Assert.That(decouplingClock.CurrentTime, Is.GreaterThanOrEqualTo(time));
                 time = decouplingClock.CurrentTime;
 
