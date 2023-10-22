@@ -798,7 +798,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("Stack is not empty", () => stack.CurrentScreen != null);
         }
 
-
         [Test]
         public void TestPushOnExitingWithoutBlocking()
         {
