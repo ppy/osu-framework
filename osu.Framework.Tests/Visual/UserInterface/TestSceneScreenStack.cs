@@ -798,6 +798,27 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("Stack is not empty", () => stack.CurrentScreen != null);
         }
 
+
+        [Test]
+        public void TestPushOnExitingWithoutBlocking()
+        {
+            TestScreen screen1 = null;
+
+            pushAndEnsureCurrent(() =>
+            {
+                screen1 = new TestScreen(id: 1);
+                screen1.Exiting = () =>
+                {
+                    screen1.Push(new TestScreen(id: 2));
+                    return false;
+                };
+                return screen1;
+            });
+
+            AddStep("ensure push throws", () => Assert.Throws<ScreenStack.ScreenNotCurrentException>(
+                () => screen1.Exit()));
+        }
+
         [Test]
         public void TestInvalidPushBlocksNonImmediateSuspend()
         {
