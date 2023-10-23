@@ -305,7 +305,7 @@ namespace osu.Framework.Screens
                     return true;
 
                 if (toExit != stack.Pop())
-                    throw new ScreenNotCurrentException("Cannot push to ScreenStack during exit without blocking the exit.");
+                    throw new InvalidOperationException($"Cannot push to {nameof(ScreenStack)} during exit without blocking the exit.");
             }
 
             // we will probably want to change this logic when we support returning to a screen after exiting.
