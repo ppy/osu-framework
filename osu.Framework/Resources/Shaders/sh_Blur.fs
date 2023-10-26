@@ -44,7 +44,12 @@ lowp vec4 blur(int radius, highp vec2 direction, mediump vec2 texCoord, mediump 
 			break;
 	}
 
-	return sum / totalFactor;
+	// this is supposed to be unnecessary with https://github.com/ppy/veldrid-spirv/pull/4,
+	// but blurring is still broken on some Apple devices when removing it (at least on an M2 iPad Pro and an iPhone 12).
+	// todo: investigate this.
+	float one = g_BackbufferDraw ? 0 : 1;
+
+	return sum / totalFactor * one;
 }
 
 void main(void)

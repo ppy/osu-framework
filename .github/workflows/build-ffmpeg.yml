@@ -69,8 +69,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get update && sudo apt-get upgrade
-          sudo apt-get install -y make nasm gcc mingw-w64
+          sudo apt-get update
+          sudo apt-get install nasm mingw-w64
 
       - name: Build
         run: osu.Framework.NativeLibs/scripts/ffmpeg/build-win.sh
@@ -111,8 +111,8 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo apt-get update && sudo apt-get upgrade
-          sudo apt-get install -y git curl gcc make nasm pkg-config libva-dev libvdpau-dev
+          sudo apt-get update
+          sudo apt-get install nasm libva-dev libvdpau-dev
 
       - name: Checkout
         uses: actions/checkout@v3
