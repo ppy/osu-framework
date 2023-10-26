@@ -108,16 +108,11 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private void handleDeviceReported(object? sender, IDeviceReport report)
         {
-            switch (report)
-            {
-                case ITabletReport tabletReport:
-                    handleTabletReport(tabletReport);
-                    break;
+            if (report is ITabletReport tabletReport)
+                handleTabletReport(tabletReport);
 
-                case IAuxReport auxiliaryReport:
-                    handleAuxiliaryReport(auxiliaryReport);
-                    break;
-            }
+            if (report is IAuxReport auxiliaryReport)
+                handleAuxiliaryReport(auxiliaryReport);
         }
 
         private void updateOutputArea(IWindow window)
