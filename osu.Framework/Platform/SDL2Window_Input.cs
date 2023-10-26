@@ -145,16 +145,17 @@ namespace osu.Framework.Platform
         private void pollMouse()
         {
             SDL.SDL_GetGlobalMouseState(out int x, out int y);
-            if (previousPolledPoint.X == x && previousPolledPoint.Y == y)
-                return;
 
-            previousPolledPoint = new Point(x, y);
+            if (previousPolledPoint.X != x || previousPolledPoint.Y != y)
+            {
+                previousPolledPoint = new Point(x, y);
 
-            var pos = WindowMode.Value == Configuration.WindowMode.Windowed ? Position : windowDisplayBounds.Location;
-            int rx = x - pos.X;
-            int ry = y - pos.Y;
+                var pos = WindowMode.Value == Configuration.WindowMode.Windowed ? Position : windowDisplayBounds.Location;
+                int rx = x - pos.X;
+                int ry = y - pos.Y;
 
-            MouseMove?.Invoke(new Vector2(rx * Scale, ry * Scale));
+                MouseMove?.Invoke(new Vector2(rx * Scale, ry * Scale));
+            }
         }
 
         public virtual void StartTextInput(bool allowIme) => ScheduleCommand(SDL.SDL_StartTextInput);
