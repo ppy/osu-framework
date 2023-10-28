@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Extensions;
@@ -800,6 +801,33 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("select all", () => InputManager.Keys(PlatformAction.SelectAll));
             AddStep("set text via current", () => textBox.Text = "short text");
             AddAssert("nothing selected", () => textBox.SelectedText == string.Empty);
+        }
+
+        [Test]
+        public void TestSelectAll()
+        {
+            TextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new BasicTextBox
+                {
+                    Size = new Vector2(300, 40),
+                    Text = "initial text",
+                });
+            });
+
+            AddAssert("select all method returns false", () => !textBox.SelectAll());
+            AddAssert("no text selected", () => textBox.SelectedText == string.Empty);
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("select all text returns true", () => textBox.SelectAll());
+            AddAssert("all text selected", () => textBox.SelectedText == textBox.Text);
         }
 
         private void prependString(InsertableTextBox textBox, string text)
