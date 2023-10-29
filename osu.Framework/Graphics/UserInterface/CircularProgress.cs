@@ -123,7 +123,6 @@ namespace osu.Framework.Graphics.UserInterface
             private float innerRadius;
             private float progress;
             private float texelSize;
-            private float texelSizeEdgeEffect;
             private bool roundedCaps;
             private EdgeEffectParameters edgeEffect;
             private bool inFront;
@@ -151,9 +150,6 @@ namespace osu.Framework.Graphics.UserInterface
                 inflated = Source.ToScreenSpace(offsetRect.Inflate(edgeEffect.Radius));
 
                 glowSize = Vector2.Divide(new Vector2(Source.edgeEffect.Radius), Source.DrawSize);
-
-                // In the shader we are inflating coordinate space, so we need to adjust texelSize with the glow size in mind.
-                texelSizeEdgeEffect = 1.5f / ScreenSpaceDrawQuad.Size.X * (1f + Math.Min(glowSize.X, glowSize.Y) * 2);
             }
 
             public override void Draw(IRenderer renderer)
@@ -198,7 +194,7 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     InnerRadius = innerRadius,
                     Progress = progress,
-                    TexelSize = texelSizeEdgeEffect,
+                    TexelSize = texelSize,
                     RoundedCaps = roundedCaps,
                     GlowSize = glowSize,
                     Hollow = edgeEffect.Hollow
