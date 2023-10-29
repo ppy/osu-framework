@@ -61,7 +61,11 @@ void main(void)
     highp vec2 pixelPos = (v_TexCoord / resolution) * (vec2(1.0) + glowSize * 2.0) - glowSize;
 
     highp float dst = distanceToProgress(pixelPos, progress, innerRadius, roundedCaps, texelSize);
-    lowp float glowA = hollow && dst < 0.0 ? smoothstep(texelSize, 0.0, -dst) : getBlur(dst, min(glowSize.x, glowSize.y), innerRadius * 0.5);
+
+    lowp float glowA = hollow && dst < 0.0
+        ? mix(0.0, getBlur(0.0, min(glowSize.x, glowSize.y), innerRadius * 0.5), smoothstep(-texelSize, 0.0, dst)) // mix between 0 and alpha at the shape edge
+        : getBlur(dst, min(glowSize.x, glowSize.y), innerRadius * 0.5);
+
     o_Colour = getRoundedColor(vec4(vec3(1.0), glowA), v_TexCoord);
 }
 
