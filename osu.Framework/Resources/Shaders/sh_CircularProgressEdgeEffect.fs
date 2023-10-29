@@ -36,9 +36,10 @@ lowp float getGlow(highp float distance, highp float size)
     return glow * (1.0 - ratio); // function won't reach 0, add linear fade on top
 }
 
-lowp float getBlur(highp float distance, highp float size)
+lowp float getBlur(highp float distance, highp float size, highp float thickness)
 {
-    return smoothstep(size, -size, distance);
+    highp float m = min(size, thickness * 0.5);
+    return smoothstep(size, -m, distance) * m / size;
 }
 
 lowp float getGlowDebug(highp float distance, highp float size)
@@ -60,7 +61,7 @@ void main(void)
     highp vec2 pixelPos = (v_TexCoord / resolution) * (vec2(1.0) + glowSize * 2.0) - glowSize;
 
     highp float dst = distanceToProgress(pixelPos, progress, innerRadius, roundedCaps, texelSize);
-    lowp float glowA = hollow && dst < 0.0 ? smoothstep(texelSize, 0.0, -dst) : getGlow(dst, min(glowSize.x, glowSize.y));
+    lowp float glowA = hollow && dst < 0.0 ? smoothstep(texelSize, 0.0, -dst) : getBlur(dst, min(glowSize.x, glowSize.y), innerRadius * 0.5);
     o_Colour = getRoundedColor(vec4(vec3(1.0), glowA), v_TexCoord);
 }
 
