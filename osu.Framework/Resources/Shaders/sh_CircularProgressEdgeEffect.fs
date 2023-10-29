@@ -24,7 +24,7 @@ layout(location = 0) out vec4 o_Colour;
 
 lowp float getGlow(highp float distance, highp float size)
 {
-    // Many sources suggest that y = 1/x function looks the best for glow and imo it really does.
+    // Many sources suggest that y = 1/x function looks the best for glow.
     // We will pick a part of it with x ranging from 0.4 to 5.0, but these values can be adjusted.
 
     const float lowerX = 0.4;
@@ -59,6 +59,12 @@ void main(void)
 
     // Inflate coordinate space, so it would be (-glowSize -> 0 -> 1 -> glowSize) to preserve everything in place while inflating the draw quad
     highp vec2 pixelPos = (v_TexCoord / resolution) * (vec2(1.0) + glowSize * 2.0) - glowSize;
+
+    if (glowSize.x == 0.0 || glowSize.y == 0.0)
+    {
+        o_Colour = getRoundedColor(vec4(vec3(1.0), progressAlphaAt(pixelPos, progress, innerRadius, roundedCaps, texelSize)), v_TexCoord);
+        return;
+    }
 
     highp float dst = distanceToProgress(pixelPos, progress, innerRadius, roundedCaps, texelSize);
 

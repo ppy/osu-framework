@@ -168,7 +168,10 @@ namespace osu.Framework.Graphics.UserInterface
 
             private void drawEdgeEffect(IRenderer renderer)
             {
-                if (edgeEffect.Type == EdgeEffectType.None || (edgeEffect.Radius == 0.0 && edgeEffect.Offset == Vector2.Zero && edgeEffect.Type == EdgeEffectType.Shadow))
+                if (edgeEffect.Type == EdgeEffectType.None)
+                    return;
+
+                if (edgeEffect.Radius == 0.0 && (edgeEffect.Hollow || (edgeEffect.Offset == Vector2.Zero && edgeEffect.Type == EdgeEffectType.Shadow)))
                     return;
 
                 renderer.SetBlend(edgeEffect.Type == EdgeEffectType.Glow ? BlendingParameters.Additive : BlendingParameters.Mixture);
