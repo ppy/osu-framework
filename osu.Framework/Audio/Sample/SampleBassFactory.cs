@@ -14,42 +14,26 @@ namespace osu.Framework.Audio.Sample
     /// <summary>
     /// A factory for <see cref="SampleBass"/> objects sharing a common sample ID (and thus playback concurrency).
     /// </summary>
-    internal class SampleBassFactory : AudioCollectionManager<AdjustableAudioComponent>
+    internal class SampleBassFactory : SampleFactory
     {
-        /// <summary>
-        /// A name identifying the sample to be created by this factory.
-        /// </summary>
-        public string Name { get; }
-
         public int SampleId { get; private set; }
 
         public override bool IsLoaded => SampleId != 0;
 
-        public double Length { get; private set; }
-
-        /// <summary>
-        /// Todo: Expose this to support per-sample playback concurrency once ManagedBass has been updated (https://github.com/ManagedBass/ManagedBass/pull/85).
-        /// </summary>
-        internal readonly Bindable<int> PlaybackConcurrency = new Bindable<int>(Sample.DEFAULT_CONCURRENCY);
-
         private readonly BassAudioMixer mixer;
 
         private NativeMemoryTracker.NativeMemoryLease? memoryLease;
+
         private byte[]? data;
 
-        public SampleBassFactory(byte[] data, string name, BassAudioMixer mixer)
+        public SampleBassFactory(byte[] data, string name, BassAudioMixer mixer, int playbackConcurrency)
+            : base(name, playbackConcurrency)
         {
             this.data = data;
             this.mixer = mixer;
-
-            Name = name;
-
-            EnqueueAction(loadSample);
-
-            PlaybackConcurrency.BindValueChanged(updatePlaybackConcurrency);
         }
 
-        private void updatePlaybackConcurrency(ValueChangedEvent<int> concurrency)
+        private protected override void UpdatePlaybackConcurrency(ValueChangedEvent<int> concurrency)
         {
             EnqueueAction(() =>
             {
@@ -63,14 +47,7 @@ namespace osu.Framework.Audio.Sample
             });
         }
 
-        internal override void UpdateDevice(int deviceIndex)
-        {
-            // The sample may not have already loaded if a device wasn't present in a previous load attempt.
-            if (!IsLoaded)
-                loadSample();
-        }
-
-        private void loadSample()
+        private protected override void LoadSample()
         {
             Debug.Assert(CanPerformInline);
             Debug.Assert(!IsLoaded);
@@ -87,7 +64,6 @@ namespace osu.Framework.Audio.Sample
             if (Bass.LastError == Errors.Init)
                 return;
 
-            // We've done as best as we could to init the sample. It may still have failed by some other cause (such as malformed data), but allow the GC to now clean up the locally-stored data.
             data = null;
 
             if (!IsLoaded)
@@ -97,12 +73,9 @@ namespace osu.Framework.Audio.Sample
             memoryLease = NativeMemoryTracker.AddMemory(this, dataLength);
         }
 
-        public Sample CreateSample() => new SampleBass(this, mixer) { OnPlay = onPlay };
+        public override Sample CreateSample() => new SampleBass(this, mixer) { OnPlay = SampleFactoryOnPlay };
 
-        private void onPlay(Sample sample)
-        {
-            AddItem(sample);
-        }
+        private protected override void FreeSample() => Bass.SampleFree(SampleId);
 
         ~SampleBassFactory()
         {
@@ -115,10 +88,7 @@ namespace osu.Framework.Audio.Sample
                 return;
 
             if (IsLoaded)
-            {
-                Bass.SampleFree(SampleId);
                 memoryLease?.Dispose();
-            }
 
             base.Dispose(disposing);
         }

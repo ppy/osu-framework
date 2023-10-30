@@ -15,12 +15,10 @@ namespace osu.Framework.Audio.Sample
         private readonly BassAudioMixer mixer;
 
         internal SampleBass(SampleBassFactory factory, BassAudioMixer mixer)
-            : base(factory.Name)
+            : base(factory, factory.Name)
         {
             this.factory = factory;
             this.mixer = mixer;
-
-            PlaybackConcurrency.BindTo(factory.PlaybackConcurrency);
         }
 
         protected override SampleChannel CreateChannel()
