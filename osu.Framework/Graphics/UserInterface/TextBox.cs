@@ -266,6 +266,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 case PlatformAction.SelectAll:
                     SelectAll();
+                    onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
                     return true;
 
                 // Cursor Manipulation
