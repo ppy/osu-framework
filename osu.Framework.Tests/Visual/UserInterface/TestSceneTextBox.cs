@@ -169,29 +169,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        public void TestSelectAll()
-        {
-            BasicTextBox textBox = null;
-
-            AddStep("add number textbox", () =>
-            {
-                textBoxes.Add(textBox = new BasicTextBox
-                {
-                    Size = new Vector2(500, 30),
-                    TabbableContentContainer = textBoxes
-                });
-            });
-
-            AddStep(@"set arbitrary text", () => textBox.Text = "some text");
-            AddAssert("not focused", () => textBox.HasFocus, () => Is.False);
-
-            AddStep("select all", () => textBox.SelectAll());
-
-            AddAssert("has focus", () => textBox.HasFocus, () => Is.True);
-            AddAssert("has selection", () => textBox.SelectedText, () => Is.EqualTo(textBox.Text));
-        }
-
-        [Test]
         public void TestNumbersOnly()
         {
             NumberTextBox numbers = null;
@@ -823,6 +800,33 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("select all", () => InputManager.Keys(PlatformAction.SelectAll));
             AddStep("set text via current", () => textBox.Text = "short text");
             AddAssert("nothing selected", () => textBox.SelectedText == string.Empty);
+        }
+
+        [Test]
+        public void TestSelectAll()
+        {
+            TextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new BasicTextBox
+                {
+                    Size = new Vector2(300, 40),
+                    Text = "initial text",
+                });
+            });
+
+            AddAssert("select all fails", () => textBox.SelectAll(), () => Is.False);
+            AddAssert("no text selected", () => textBox.SelectedText, () => Is.EqualTo(string.Empty));
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("select all succeeds", () => textBox.SelectAll(), () => Is.True);
+            AddAssert("all text selected", () => textBox.SelectedText, () => Is.EqualTo(textBox.Text));
         }
 
         private void prependString(InsertableTextBox textBox, string text)

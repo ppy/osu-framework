@@ -360,6 +360,21 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
+        /// Selects all text in this <see cref="TextBox"/>. Focus must be acquired before calling this method.
+        /// </summary>
+        /// <returns>Whether text has been selected successfully. Returns <c>false</c> if the text box does not have focus.</returns>
+        public bool SelectAll()
+        {
+            if (!HasFocus)
+                return false;
+
+            selectionStart = 0;
+            selectionEnd = text.Length;
+            cursorAndLayout.Invalidate();
+            return true;
+        }
+
+        /// <summary>
         /// Find the word boundary in the backward direction, then return the negative amount of characters.
         /// </summary>
         protected int GetBackwardWordAmount()
@@ -997,29 +1012,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             endTextChange(beganChange);
             cursorAndLayout.Invalidate();
-        }
-
-        /// <summary>
-        /// Select all text.
-        /// </summary>
-        /// <remarks>
-        /// This will force focus if not already focused.
-        /// </remarks>
-        public void SelectAll()
-        {
-            if (!HasFocus)
-            {
-                GetContainingInputManager().ChangeFocus(this);
-                Schedule(SelectAll);
-                return;
-            }
-
-            var lastSelectionBounds = getTextSelectionBounds();
-
-            selectionStart = 0;
-            selectionEnd = text.Length;
-            cursorAndLayout.Invalidate();
-            onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
         }
 
         public string SelectedText => selectionLength > 0 ? Text.Substring(selectionLeft, selectionLength) : string.Empty;
