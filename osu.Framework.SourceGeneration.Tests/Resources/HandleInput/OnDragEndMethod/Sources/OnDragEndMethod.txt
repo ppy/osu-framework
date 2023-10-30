@@ -1,0 +1,4 @@
+public partial class OnDragEndMethod : osu.Framework.Graphics.Drawable
+{
+    protected override void OnDragEnd(object e) { }
+}

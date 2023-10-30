@@ -118,7 +118,8 @@ namespace osu.Framework.Graphics.UserInterface
         [Resolved]
         private TextInputSource textInput { get; set; }
 
-        private Clipboard clipboard;
+        [Resolved]
+        private Clipboard clipboard { get; set; }
 
         /// <summary>
         /// Whether the <see cref="GameHost"/> is active (has keyboard focus).
@@ -199,7 +200,6 @@ namespace osu.Framework.Graphics.UserInterface
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
-            clipboard = host.GetClipboard();
             isActive = host.IsActive.GetBoundCopy();
         }
 
@@ -240,12 +240,15 @@ namespace osu.Framework.Graphics.UserInterface
                 // Clipboard
                 case PlatformAction.Cut:
                 case PlatformAction.Copy:
-                    if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
+                    if (!AllowClipboardExport) return false;
 
-                    clipboard?.SetText(SelectedText);
+                    if (!string.IsNullOrEmpty(SelectedText))
+                    {
+                        clipboard.SetText(SelectedText);
 
-                    if (e.Action == PlatformAction.Cut)
-                        DeleteBy(0);
+                        if (e.Action == PlatformAction.Cut)
+                            DeleteBy(0);
+                    }
 
                     return true;
 
@@ -258,7 +261,7 @@ namespace osu.Framework.Graphics.UserInterface
                         // This is currently only happening on iOS since it relies on a hidden UITextField for software keyboard.
                         return true;
 
-                    InsertString(clipboard?.GetText());
+                    InsertString(clipboard.GetText());
                     return true;
 
                 case PlatformAction.SelectAll:

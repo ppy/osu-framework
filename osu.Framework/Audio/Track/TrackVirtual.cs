@@ -23,15 +23,17 @@ namespace osu.Framework.Audio.Track
         {
             seekOffset = Math.Clamp(seek, 0, Length);
 
+            bool success = seekOffset == seek;
+
             lock (clock)
             {
-                if (IsRunning)
+                if (success && IsRunning)
                     clock.Restart();
                 else
                     clock.Reset();
             }
 
-            return seekOffset == seek;
+            return success;
         }
 
         public override Task<bool> SeekAsync(double seek)
@@ -53,7 +55,7 @@ namespace osu.Framework.Audio.Track
 
         public override void Start()
         {
-            if (Length == 0)
+            if (Length == 0 || CurrentTime >= Length)
                 return;
 
             lock (clock) clock.Start();

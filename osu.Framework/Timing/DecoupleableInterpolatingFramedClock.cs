@@ -16,6 +16,7 @@ namespace osu.Framework.Timing
     /// If a <see cref="InterpolatingFramedClock.Source"/> is set, it is presumed that we have exclusive control over operations on it.
     /// This is used to our advantage to allow correct <see cref="IsRunning"/> state tracking in the event of cross-thread communication delays (with an audio thread, for instance).
     /// </summary>
+    [Obsolete("This clock implementation is too complex and no longer. Use DecouplingClock instead.")] // can be removed 20240321.
     public class DecoupleableInterpolatingFramedClock : InterpolatingFramedClock, IAdjustableClock
     {
         /// <summary>
@@ -26,7 +27,7 @@ namespace osu.Framework.Timing
         /// <summary>
         /// In some cases we should always use the interpolated source.
         /// </summary>
-        private bool useInterpolatedSourceTime => IsRunning && FramedSourceClock?.IsRunning == true;
+        private bool useInterpolatedSourceTime => IsRunning && FramedSourceClock.IsRunning;
 
         private readonly FramedClock decoupledClock;
         private readonly StopwatchClock decoupledStopwatch;
@@ -50,9 +51,9 @@ namespace osu.Framework.Timing
 
         public override double ElapsedFrameTime => elapsedFrameTime;
 
-        public override double Rate
+        public new double Rate
         {
-            get => Source?.Rate ?? 1;
+            get => Source.Rate;
             set
             {
                 if (adjustableSource == null)
@@ -73,7 +74,7 @@ namespace osu.Framework.Timing
         {
             base.ProcessFrame();
 
-            bool sourceRunning = Source?.IsRunning ?? false;
+            bool sourceRunning = Source.IsRunning;
 
             decoupledStopwatch.Rate = adjustableSource?.Rate ?? 1;
 
@@ -133,12 +134,13 @@ namespace osu.Framework.Timing
 
         public override void ChangeSource(IClock? source)
         {
-            if (source == null) return;
+            source ??= new StopwatchClock(true);
 
             // transfer our value to the source clock.
             (source as IAdjustableClock)?.Seek(CurrentTime);
 
             base.ChangeSource(source);
+            base.ProcessFrame();
 
             // the above value transfer may have failed (if the source is not adjustable).
             // in such a case, transfer value in the opposite direction to ensure we are still in sync.

@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using ObjCRuntime;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Platform;
 using SDL2;
@@ -12,7 +13,7 @@ using UIKit;
 
 namespace osu.Framework.iOS
 {
-    public class IOSWindow : SDL2Window
+    internal class IOSWindow : SDL2Window
     {
         private UIWindow? window;
 
@@ -60,7 +61,16 @@ namespace osu.Framework.iOS
             // frame rate with multi-threaded mode turned on, but it is going to give them worse input latency
             // and higher power usage.
             SDL.SDL_iPhoneSetEventPump(SDL.SDL_bool.SDL_FALSE);
-            SDL.SDL_iPhoneSetAnimationCallback(SDLWindowHandle, 1, _ => RunFrame(), IntPtr.Zero);
+            SDL.SDL_iPhoneSetAnimationCallback(SDLWindowHandle, 1, runFrame, ObjectHandle.Handle);
+        }
+
+        [ObjCRuntime.MonoPInvokeCallback(typeof(SDL.SDL_iPhoneAnimationCallback))]
+        private static void runFrame(IntPtr userdata)
+        {
+            var handle = new ObjectHandle<IOSWindow>(userdata);
+
+            if (handle.GetTarget(out IOSWindow window))
+                window.RunFrame();
         }
 
         private void updateSafeArea()

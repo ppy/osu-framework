@@ -17,6 +17,7 @@ using osu.Framework.Development;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
@@ -40,9 +41,25 @@ namespace osu.Framework.Testing
 
         protected virtual ITestSceneTestRunner CreateRunner() => new TestSceneTestRunner();
 
+        /// <summary>
+        /// Delay between invoking two <see cref="StepButton"/>s in automatic runs.
+        /// </summary>
+        protected virtual double TimePerAction => 200;
+
+        /// <summary>
+        /// Whether to automatically run the the first actual <see cref="StepButton"/> (one that is not part of <see cref="SetUpAttribute">[SetUp]</see> or <see cref="SetUpStepsAttribute">[SetUpSteps]</see>)
+        /// when the test is first loaded.
+        /// </summary>
+        /// <remarks>
+        /// Defaults to <c>true</c>. Should be set to <c>false</c> if the first step in the first <see cref="TestAttribute">test</see> has unwanted-by-default behaviour.
+        /// </remarks>
+        public virtual bool AutomaticallyRunFirstStep => true;
+
         private GameHost host;
         private Task runTask;
         private ITestSceneTestRunner runner;
+
+        private readonly Box backgroundFill;
 
         /// <summary>
         /// A nested game instance, if added via <see cref="AddGame"/>.
@@ -152,11 +169,23 @@ namespace osu.Framework.Testing
                             Bottom = padding,
                         },
                         RelativeSizeAxes = Axes.Both,
-                        Child = content = new DrawFrameRecordingContainer
+                        Child = new Container
                         {
-                            Masking = true,
-                            RelativeSizeAxes = Axes.Both
-                        }
+                            RelativeSizeAxes = Axes.Both,
+                            Children = new Drawable[]
+                            {
+                                backgroundFill = new Box
+                                {
+                                    Colour = Color4.Black,
+                                    RelativeSizeAxes = Axes.Both,
+                                },
+                                content = new DrawFrameRecordingContainer
+                                {
+                                    Masking = true,
+                                    RelativeSizeAxes = Axes.Both
+                                }
+                            }
+                        },
                     },
                 }
             });
@@ -187,8 +216,6 @@ namespace osu.Framework.Testing
         }
 
         private StepButton loadableStep => actionIndex >= 0 ? StepsContainer.Children.ElementAtOrDefault(actionIndex) as StepButton : null;
-
-        protected virtual double TimePerAction => 200;
 
         private void runNextStep(Action onCompletion, Action<Exception> onError, Func<StepButton, bool> stopCondition)
         {
@@ -242,6 +269,9 @@ namespace osu.Framework.Testing
         public void AddStep(StepButton step) => schedule(() => StepsContainer.Add(step));
 
         private bool addStepsAsSetupSteps;
+
+        public void ChangeBackgroundColour(ColourInfo colour)
+            => backgroundFill.FadeColour(colour, 200, Easing.OutQuint);
 
         public StepButton AddStep(string description, Action action)
         {

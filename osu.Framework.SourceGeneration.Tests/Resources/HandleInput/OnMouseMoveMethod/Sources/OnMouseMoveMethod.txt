@@ -1,0 +1,4 @@
+public partial class OnMouseMoveMethod : osu.Framework.Graphics.Drawable
+{
+    protected override void OnMouseMove(object e) { }
+}

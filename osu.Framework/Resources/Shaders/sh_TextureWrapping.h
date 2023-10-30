@@ -1,3 +1,6 @@
+#ifndef TEXTURE_WRAPPING_H
+#define TEXTURE_WRAPPING_H
+
 float wrap(float coord, int mode, float rangeMin, float rangeMax)
 {
     if (mode == 1)
@@ -25,3 +28,5 @@ vec4 wrappedSampler(vec2 wrappedCoord, vec4 texRect, texture2D wrapTexture, samp
 
     return texture(sampler2D(wrapTexture, wrapSampler), wrappedCoord, lodBias);
 }
+
+#endif

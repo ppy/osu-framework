@@ -47,7 +47,11 @@ namespace osu.Framework.Platform
             this.realtime = realtime;
         }
 
+        protected override bool RequireWindowExists => false;
+
         protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => null;
+
+        protected override Clipboard CreateClipboard() => new HeadlessClipboard();
 
         protected override void ChooseAndSetupRenderer() => SetupRendererAndWindow(new DummyRenderer(), GraphicsSurfaceType.OpenGL);
 

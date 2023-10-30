@@ -17,7 +17,7 @@ using SDL2;
 
 namespace osu.Framework.Platform
 {
-    public partial class SDL2Window
+    internal partial class SDL2Window
     {
         private void setupWindowing(FrameworkConfigManager config)
         {
@@ -350,24 +350,30 @@ namespace osu.Framework.Platform
                 return false;
             }
 
-            int numModes = SDL.SDL_GetNumDisplayModes(displayIndex);
+            DisplayMode[] displayModes = Array.Empty<DisplayMode>();
 
-            if (numModes < 0)
+            if (RuntimeInfo.IsDesktop)
             {
-                Logger.Log($"Failed to get display modes for display at index ({displayIndex}) ({rect.w}x{rect.h}). SDL Error: {SDL.SDL_GetError()} ({numModes})");
-                display = null;
-                return false;
-            }
+                int numModes = SDL.SDL_GetNumDisplayModes(displayIndex);
 
-            if (numModes == 0) Logger.Log($"Display at index ({displayIndex}) ({rect.w}x{rect.h}) has no display modes. Fullscreen might not work.");
+                if (numModes < 0)
+                {
+                    Logger.Log($"Failed to get display modes for display at index ({displayIndex}) ({rect.w}x{rect.h}). SDL Error: {SDL.SDL_GetError()} ({numModes})");
+                    display = null;
+                    return false;
+                }
 
-            var displayModes = Enumerable.Range(0, numModes)
+                if (numModes == 0)
+                    Logger.Log($"Display at index ({displayIndex}) ({rect.w}x{rect.h}) has no display modes. Fullscreen might not work.");
+
+                displayModes = Enumerable.Range(0, numModes)
                                          .Select(modeIndex =>
                                          {
                                              SDL.SDL_GetDisplayMode(displayIndex, modeIndex, out var mode);
                                              return mode.ToDisplayMode(displayIndex);
                                          })
                                          .ToArray();
+            }
 
             display = new Display(displayIndex, SDL.SDL_GetDisplayName(displayIndex), new Rectangle(rect.x, rect.y, rect.w, rect.h), displayModes);
             return true;
@@ -442,9 +448,7 @@ namespace osu.Framework.Platform
             Scale = (float)drawableW / w;
             Size = new Size(w, h);
 
-            // This function may be invoked before the SDL internal states are all changed. (as documented here: https://wiki.libsdl.org/SDL_SetEventFilter)
-            // Scheduling the store to config until after the event poll has run will ensure the window is in the correct state.
-            EventScheduler.AddOnce(storeWindowSizeToConfig);
+            storeWindowSizeToConfig();
         }
 
         #region SDL Event Handling
@@ -488,10 +492,6 @@ namespace osu.Framework.Platform
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
                     Focused = true;
-                    // displays can change without a SDL_DISPLAYEVENT being sent, eg. changing resolution.
-                    // force update displays when gaining keyboard focus to always have up-to-date information.
-                    // eg. this covers scenarios when changing resolution outside of the game, and then tabbing in.
-                    fetchDisplays();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
@@ -500,6 +500,21 @@ namespace osu.Framework.Platform
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
+                    break;
+            }
+
+            // displays can change without a SDL_DISPLAYEVENT being sent, eg. changing resolution.
+            // force update displays when gaining keyboard focus to always have up-to-date information.
+            // eg. this covers scenarios when changing resolution outside of the game, and then tabbing in.
+            switch (evtWindow.windowEvent)
+            {
+                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
+                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
+                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
+                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
+                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SHOWN:
+                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_HIDDEN:
+                    fetchDisplays();
                     break;
             }
 
@@ -534,7 +549,9 @@ namespace osu.Framework.Platform
                 windowState = pendingWindowState.Value;
                 pendingWindowState = null;
 
+                updatingWindowStateAndSize = true;
                 UpdateWindowStateAndSize(windowState, currentDisplay, currentDisplayMode.Value);
+                updatingWindowStateAndSize = false;
 
                 fetchWindowSize();
 
@@ -572,6 +589,9 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Should be run after a local window state change, to propagate the correct SDL actions.
         /// </summary>
+        /// <remarks>
+        /// Call sites need to set <see cref="updatingWindowStateAndSize"/> appropriately.
+        /// </remarks>
         protected virtual void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
         {
             switch (state)
@@ -721,6 +741,15 @@ namespace osu.Framework.Platform
         /// Set to <c>true</c> while the window size is being stored to config to avoid bindable feedback.
         /// </summary>
         private bool storingSizeToConfig;
+
+        /// <summary>
+        /// Set when <see cref="UpdateWindowStateAndSize"/> is in progress to avoid <see cref="fetchWindowSize"/> being called with invalid data.
+        /// </summary>
+        /// <remarks>
+        /// Since <see cref="UpdateWindowStateAndSize"/> is a multi-step process, intermediary windows size changes might be invalid.
+        /// This is usually not a problem, but since <see cref="HandleEventFromFilter"/> runs out-of-band, invalid data might appear in those events.
+        /// </remarks>
+        private bool updatingWindowStateAndSize;
 
         private void storeWindowSizeToConfig()
         {

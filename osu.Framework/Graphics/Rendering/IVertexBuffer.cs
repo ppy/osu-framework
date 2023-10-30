@@ -9,9 +9,9 @@ namespace osu.Framework.Graphics.Rendering
     internal interface IVertexBuffer
     {
         /// <summary>
-        /// The <see cref="Renderer.ResetId"/> when this <see cref="IVertexBuffer"/> was last used.
+        /// The <see cref="Renderer.FrameIndex"/> when this <see cref="IVertexBuffer"/> was last used.
         /// </summary>
-        ulong LastUseResetId { get; }
+        ulong LastUseFrameIndex { get; }
 
         /// <summary>
         /// Whether this <see cref="IVertexBuffer"/> is currently in use.

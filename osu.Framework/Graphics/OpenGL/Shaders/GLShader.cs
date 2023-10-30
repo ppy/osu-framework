@@ -1,12 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
@@ -15,6 +13,8 @@ using osuTK.Graphics.ES30;
 using Veldrid;
 using Veldrid.SPIRV;
 using static osu.Framework.Threading.ScheduledDelegate;
+using GL4 = osuTK.Graphics.OpenGL;
+using ProgramInterface = osuTK.Graphics.OpenGL.ProgramInterface;
 
 namespace osu.Framework.Graphics.OpenGL.Shaders
 {
@@ -22,7 +22,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
     {
         private readonly GLRenderer renderer;
         private readonly string name;
-        private readonly IUniformBuffer<GlobalUniformData> globalUniformBuffer;
         private readonly GLShaderPart[] parts;
 
         private readonly ScheduledDelegate shaderCompileDelegate;
@@ -31,7 +30,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         IReadOnlyDictionary<string, IUniform> IShader.Uniforms => Uniforms;
 
-        private readonly Dictionary<string, GLUniformBlock> uniformBlocks = new Dictionary<string, GLUniformBlock>();
+        private readonly Dictionary<string, int> uniformBlocks = new Dictionary<string, int>();
         private readonly List<Uniform<int>> textureUniforms = new List<Uniform<int>>();
 
         public bool IsLoaded { get; private set; }
@@ -42,14 +41,13 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private readonly GLShaderPart vertexPart;
         private readonly GLShaderPart fragmentPart;
-        private readonly VertexFragmentCompilationResult crossCompileResult;
+        private readonly VertexFragmentShaderCompilation compilation;
 
-        internal GLShader(GLRenderer renderer, string name, GLShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
+        internal GLShader(GLRenderer renderer, string name, GLShaderPart[] parts, ShaderCompilationStore compilationStore)
         {
             this.renderer = renderer;
             this.name = name;
-            this.globalUniformBuffer = globalUniformBuffer;
-            this.parts = parts.Where(p => p != null).ToArray();
+            this.parts = parts;
 
             vertexPart = parts.Single(p => p.Type == ShaderType.VertexShader);
             fragmentPart = parts.Single(p => p.Type == ShaderType.FragmentShader);
@@ -59,9 +57,9 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             try
             {
                 // Shaders are in "Vulkan GLSL" format. They need to be cross-compiled to GLSL.
-                crossCompileResult = SpirvCompilation.CompileVertexFragment(
-                    Encoding.UTF8.GetBytes(vertexPart.GetRawText()),
-                    Encoding.UTF8.GetBytes(fragmentPart.GetRawText()),
+                compilation = compilationStore.CompileVertexFragment(
+                    vertexPart.GetRawText(),
+                    fragmentPart.GetRawText(),
                     renderer.IsEmbedded ? CrossCompileTarget.ESSL : CrossCompileTarget.GLSL);
             }
             catch (Exception e)
@@ -90,8 +88,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                 throw new ProgramLinkingFailedException(name, GetProgramLog());
 
             IsLoaded = true;
-
-            BindUniformBlock("g_GlobalUniforms", globalUniformBuffer);
         }
 
         internal void EnsureShaderCompiled()
@@ -142,6 +138,8 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             return (Uniform<T>)Uniforms[name];
         }
 
+        public int? GetUniformBlockIndex(string name) => uniformBlocks.TryGetValue(name, out int index) ? index : null;
+
         public virtual void BindUniformBlock(string blockName, IUniformBuffer buffer)
         {
             if (buffer is not IGLUniformBuffer glBuffer)
@@ -152,14 +150,13 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
             EnsureShaderCompiled();
 
-            renderer.FlushCurrentBatch(FlushBatchSource.BindBuffer);
-            GL.BindBufferBase(BufferRangeTarget.UniformBuffer, uniformBlocks[blockName].Binding, glBuffer.Id);
+            renderer.BindUniformBuffer(blockName, glBuffer);
         }
 
         private protected virtual bool CompileInternal()
         {
-            vertexPart.Compile(crossCompileResult.VertexShader);
-            fragmentPart.Compile(crossCompileResult.FragmentShader);
+            vertexPart.Compile(compilation.VertexText);
+            fragmentPart.Compile(compilation.FragmentText);
 
             foreach (GLShaderPart p in parts)
                 GL.AttachShader(this, p);
@@ -173,26 +170,38 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             if (linkResult != 1)
                 return false;
 
-            int blockBindingIndex = 0;
             int textureIndex = 0;
 
-            foreach (ResourceLayoutDescription layout in crossCompileResult.Reflection.ResourceLayouts)
+            foreach (ResourceLayoutDescription layout in compilation.Reflection.ResourceLayouts)
             {
                 if (layout.Elements.Length == 0)
                     continue;
 
                 if (layout.Elements.Any(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite))
                 {
-                    var textureElement = layout.Elements.First(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite);
+                    ResourceLayoutElementDescription textureElement = layout.Elements.First(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite);
+
+                    if (layout.Elements.All(e => e.Kind != ResourceKind.Sampler))
+                        throw new ProgramLinkingFailedException(name, $"Texture {textureElement.Name} has no associated sampler.");
+
                     textureUniforms.Add(new Uniform<int>(renderer, this, textureElement.Name, GL.GetUniformLocation(this, textureElement.Name))
                     {
                         Value = textureIndex++
                     });
                 }
-                else if (layout.Elements[0].Kind == ResourceKind.UniformBuffer)
+                else
                 {
-                    var block = new GLUniformBlock(this, GL.GetUniformBlockIndex(this, layout.Elements[0].Name), blockBindingIndex++);
-                    uniformBlocks[layout.Elements[0].Name] = block;
+                    switch (layout.Elements[0].Kind)
+                    {
+                        case ResourceKind.UniformBuffer:
+                            uniformBlocks[layout.Elements[0].Name] = GL.GetUniformBlockIndex(this, layout.Elements[0].Name);
+                            break;
+
+                        case ResourceKind.StructuredBufferReadOnly:
+                        case ResourceKind.StructuredBufferReadWrite:
+                            uniformBlocks[layout.Elements[0].Name] = GL4.GL.GetProgramResourceIndex(this, ProgramInterface.ShaderStorageBlock, layout.Elements[0].Name);
+                            break;
+                    }
                 }
             }
 
@@ -226,15 +235,16 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!IsDisposed)
-            {
-                IsDisposed = true;
+            if (IsDisposed)
+                return;
 
-                shaderCompileDelegate?.Cancel();
+            IsDisposed = true;
 
-                if (programID != -1)
-                    DeleteProgram(this);
-            }
+            if (shaderCompileDelegate.IsNotNull())
+                shaderCompileDelegate.Cancel();
+
+            if (programID != -1)
+                DeleteProgram(this);
         }
 
         #endregion

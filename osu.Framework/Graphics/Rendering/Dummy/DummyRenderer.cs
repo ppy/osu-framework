@@ -53,9 +53,13 @@ namespace osu.Framework.Graphics.Rendering.Dummy
             WhitePixel = new TextureWhitePixel(new Texture(new DummyNativeTexture(this), WrapMode.None, WrapMode.None));
         }
 
+        public ulong FrameIndex { get; private set; }
+
         bool IRenderer.VerticalSync { get; set; } = true;
 
         bool IRenderer.AllowTearing { get; set; }
+
+        Storage? IRenderer.CacheStorage { set { } }
 
         void IRenderer.Initialise(IGraphicsSurface graphicsSurface)
         {
@@ -64,6 +68,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 
         void IRenderer.BeginFrame(Vector2 windowSize)
         {
+            FrameIndex++;
         }
 
         void IRenderer.FinishFrame()
@@ -193,7 +198,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
             => new DummyFrameBuffer(this);
 
         public Texture CreateTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, WrapMode wrapModeS = WrapMode.None,
-                                     WrapMode wrapModeT = WrapMode.None, Color4 initialisationColour = default)
+                                     WrapMode wrapModeT = WrapMode.None, Color4? initialisationColour = null)
             => new Texture(new DummyNativeTexture(this) { Width = width, Height = height }, wrapModeS, wrapModeT);
 
         public Texture CreateVideoTexture(int width, int height)
@@ -207,6 +212,9 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 
         public IUniformBuffer<TData> CreateUniformBuffer<TData>() where TData : unmanaged, IEquatable<TData>
             => new DummyUniformBuffer<TData>();
+
+        public IShaderStorageBufferObject<TData> CreateShaderStorageBufferObject<TData>(int uboSize, int ssboSize) where TData : unmanaged, IEquatable<TData>
+            => new DummyShaderStorageBufferObject<TData>(ssboSize);
 
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform)
         {

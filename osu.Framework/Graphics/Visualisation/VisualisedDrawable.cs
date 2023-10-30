@@ -407,7 +407,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void onLayout() => activityLayout.FadeOutFromOne(1);
 
-        private void onInvalidated(Drawable d) => activityInvalidate.FadeOutFromOne(1);
+        private void onInvalidated(Drawable d, Invalidation invalidation) => activityInvalidate.FadeOutFromOne(1);
 
         private void onDispose()
         {

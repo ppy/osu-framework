@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osuTK;
 using osu.Framework.Graphics;
 using System.Collections.Generic;
@@ -35,6 +33,11 @@ namespace osu.Framework.Physics
         /// as the rest of the game.
         /// </summary>
         public float SimulationSpeed = 1;
+
+        /// <summary>
+        /// The downward acceleration to apply on all children.
+        /// </summary>
+        public float Gravity = 981f;
 
         private readonly List<IRigidBody> toSimulate = new List<IRigidBody>();
 
@@ -71,7 +74,7 @@ namespace osu.Framework.Physics
             // apply the state to each drawable in question.
             foreach (var d in toSimulate)
             {
-                d.Integrate(new Vector2(0, 981f * d.Mass), 0, dt);
+                d.Integrate(new Vector2(0, Gravity * d.Mass), 0, dt);
                 d.ApplyState();
             }
         }

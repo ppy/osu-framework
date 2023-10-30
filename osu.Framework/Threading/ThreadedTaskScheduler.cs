@@ -87,7 +87,7 @@ namespace osu.Framework.Threading
             {
                 tasks.Add(task);
             }
-            catch (ObjectDisposedException)
+            catch (Exception ex) when (ex is InvalidOperationException or ObjectDisposedException)
             {
                 // tasks may have been disposed. there's no easy way to check on this other than catch for it.
                 Logger.Log($"Task was queued for execution on a {nameof(ThreadedTaskScheduler)} ({name}) after it was disposed. The task will be executed inline.");

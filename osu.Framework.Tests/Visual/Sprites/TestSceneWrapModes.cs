@@ -40,7 +40,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                     textures[i * 4 + j] = textureStore.Get(@"sample-texture", wrapModes[i], wrapModes[j]);
             }
 
-            videoData = game.Resources.Get("Videos/sample-video.mp4");
+            videoData = game.Resources.Get("Videos/h264.mp4");
         }
 
         [Test]

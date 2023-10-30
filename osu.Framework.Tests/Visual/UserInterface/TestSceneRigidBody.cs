@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
@@ -27,9 +25,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 restitutionBacking = value;
 
-                if (sim == null)
-                    return;
-
                 foreach (var d in sim.Children)
                     d.Restitution = value;
                 sim.Restitution = value;
@@ -45,9 +40,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 frictionBacking = value;
 
-                if (sim == null)
-                    return;
-
                 foreach (var d in sim.Children)
                     d.FrictionCoefficient = value;
                 sim.FrictionCoefficient = value;
@@ -61,6 +53,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Reset bodies", reset);
 
             AddSliderStep("Simulation speed", 0f, 1f, 0.5f, v => sim.SimulationSpeed = v);
+            AddSliderStep("Gravity", 0f, 10000f, 981f, v => sim.Gravity = v);
             AddSliderStep("Restitution", -1f, 1f, 1f, v => restitution = v);
             AddSliderStep("Friction", -1f, 5f, 0f, v => friction = v);
 
