@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Text;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
@@ -136,7 +137,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             private void load()
             {
                 for (int i = 0; i <= 9; i++)
-                    AddFrame(new Texture(fontStore.Get(null, i.ToString()[0]).AsNonNull().Texture) { ScaleAdjust = 1 + i / 2f }, 1000.0 / 60 * 6);
+                    AddFrame(new Texture(fontStore.Get(null, Rune.GetRuneAt(i.ToString(), 0)).AsNonNull().Texture) { ScaleAdjust = 1 + i / 2f }, 1000.0 / 60 * 6);
             }
         }
     }

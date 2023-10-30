@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Runtime.CompilerServices;
+using System.Text;
 using JetBrains.Annotations;
 using osu.Framework.IO.Stores;
 
@@ -15,11 +16,11 @@ namespace osu.Framework.Text
         public float YOffset { get; }
         public float XAdvance { get; }
         public float Baseline { get; }
-        public char Character { get; }
+        public Rune Character { get; }
 
         private readonly IGlyphStore containingStore;
 
-        public CharacterGlyph(char character, float xOffset, float yOffset, float xAdvance, float baseline, [CanBeNull] IGlyphStore containingStore)
+        public CharacterGlyph(Rune character, float xOffset, float yOffset, float xAdvance, float baseline, [CanBeNull] IGlyphStore containingStore)
         {
             this.containingStore = containingStore;
 

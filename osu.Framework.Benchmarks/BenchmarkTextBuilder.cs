@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Text;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using osu.Framework.Graphics.Rendering.Dummy;
@@ -42,16 +43,16 @@ namespace osu.Framework.Benchmarks
             char different = 'B';
 
             for (int i = 0; i < 100; i++)
-                textBuilder.AddCharacter(withDifferentBaselines && (i % 10 == 0) ? different++ : 'A');
+                textBuilder.AddCharacter(new Rune(withDifferentBaselines && (i % 10 == 0) ? different++ : 'A'));
         }
 
         private class TestStore : ITexturedGlyphLookupStore
         {
-            public ITexturedCharacterGlyph Get(string fontName, char character) => new TexturedCharacterGlyph(
-                new CharacterGlyph(character, character, character, character, character, null),
+            public ITexturedCharacterGlyph Get(string fontName, Rune character) => new TexturedCharacterGlyph(
+                new CharacterGlyph(character, character.Value, character.Value, character.Value, character.Value, null),
                 new DummyRenderer().CreateTexture(1, 1));
 
-            public Task<ITexturedCharacterGlyph?> GetAsync(string fontName, char character) => Task.Run<ITexturedCharacterGlyph?>(() => Get(fontName, character));
+            public Task<ITexturedCharacterGlyph?> GetAsync(string fontName, Rune character) => Task.Run<ITexturedCharacterGlyph?>(() => Get(fontName, character));
         }
     }
 }
