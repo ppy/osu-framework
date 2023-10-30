@@ -186,7 +186,7 @@ namespace osu.Framework.Platform
         {
             ObjectHandle = new ObjectHandle<SDL2Window>(this, GCHandleType.Normal);
 
-            if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER) < 0)
+            if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER | SDL.SDL_INIT_AUDIO) < 0)
             {
                 throw new InvalidOperationException($"Failed to initialise SDL: {SDL.SDL_GetError()}");
             }
