@@ -9,6 +9,7 @@ using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 using osu.Framework.Development;
+using osu.Framework.Extensions;
 using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
 
@@ -36,8 +37,16 @@ namespace osu.Framework.Tests.Audio
 
             Mixer = CreateMixer();
             Resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
-            TrackStore = new TrackStore(Resources, Mixer);
-            SampleStore = new SampleStore(Resources, Mixer);
+            TrackStore = new TrackStore(Resources, Mixer, (data, name) => new TrackBass(data, name));
+            SampleStore = new SampleStore(Resources, Mixer, (stream, name, mixer, playbackConcurrency) =>
+            {
+                byte[] data;
+
+                using (stream)
+                    data = stream.ReadAllBytesToArray();
+
+                return new SampleBassFactory(data, name, (BassAudioMixer)mixer, playbackConcurrency);
+            });
 
             Add(TrackStore, SampleStore);
         }
