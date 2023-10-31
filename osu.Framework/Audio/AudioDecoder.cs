@@ -25,7 +25,7 @@ namespace osu.Framework.Audio
             internal readonly bool IsTrack;
             internal readonly ushort Format;
             internal readonly Stream Stream;
-            internal readonly PassDataDelegate Pass;
+            internal readonly PassDataDelegate? Pass;
             internal readonly object? UserData;
 
             internal int DecodeStream;
@@ -61,7 +61,7 @@ namespace osu.Framework.Audio
             internal volatile bool StopJob;
             internal volatile bool Loading;
 
-            internal AudioDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, PassDataDelegate pass, object? userData)
+            public AudioDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, PassDataDelegate? pass = null, object? userData = null)
             {
                 Rate = rate;
                 Channels = channels;
@@ -137,31 +137,9 @@ namespace osu.Framework.Audio
             AudioDecoderData data = new AudioDecoderData(spec.freq, spec.channels, true, spec.format, stream, pass, userData);
 
             lock (jobs)
-            {
                 jobs.AddFirst(data);
-            }
 
             return data;
-        }
-
-        private void passAudioSync(byte[] data, object? userdata, AudioDecoderData decoderData, bool done)
-        {
-            if (userdata is TempDecodeData temp)
-            {
-                if (done && temp.Stream == null)
-                    temp.DecodedAtOnce = data;
-                else
-                {
-                    temp.Stream ??= new MemoryStream();
-                    temp.Stream.Write(data);
-                }
-            }
-        }
-
-        private class TempDecodeData
-        {
-            internal MemoryStream? Stream;
-            internal byte[]? DecodedAtOnce;
         }
 
         /// <summary>
@@ -169,29 +147,28 @@ namespace osu.Framework.Audio
         /// </summary>
         /// <param name="stream">Data stream to read.</param>
         /// <returns>Decoded audio</returns>
-        public byte[] DecodeAudio(Stream stream)
+        public byte[] DecodeAudioInCurrentSpec(Stream stream) => DecodeAudio(spec.freq, spec.channels, spec.format, stream);
+
+        public static byte[] DecodeAudio(int freq, int channels, ushort format, Stream stream)
         {
-            TempDecodeData tempData = new TempDecodeData();
-            AudioDecoderData data = new AudioDecoderData(spec.freq, spec.channels, false, spec.format, stream, passAudioSync, tempData);
+            AudioDecoderData data = new AudioDecoderData(freq, channels, false, format, stream);
 
-            try
+            LoadFromStream(data, out byte[] decoded);
+
+            if (!data.Loading)
+                return decoded;
+
+            using (MemoryStream memoryStream = new MemoryStream())
             {
-                loadFromStream(data);
-
-                if (tempData.DecodedAtOnce != null)
-                    return tempData.DecodedAtOnce;
+                memoryStream.Write(decoded);
 
                 while (data.Loading)
                 {
-                    loadFromStream(data);
+                    LoadFromStream(data, out decoded);
+                    memoryStream.Write(decoded);
                 }
 
-                return tempData.Stream?.ToArray() ?? Array.Empty<byte>();
-            }
-            finally
-            {
-                tempData.Stream?.Dispose();
-                tempData.Stream = null;
+                return memoryStream.ToArray();
             }
         }
 
@@ -220,7 +197,10 @@ namespace osu.Framework.Audio
                             jobs.Remove(node);
                         }
                         else
-                            loadFromStream(data);
+                        {
+                            LoadFromStream(data, out byte[] decoded);
+                            data.Pass?.Invoke(decoded, data.UserData, data, !data.Loading);
+                        }
 
                         if (!data.Loading)
                             jobs.Remove(node);
@@ -231,65 +211,69 @@ namespace osu.Framework.Audio
             }
         }
 
-        private int loadFromStream(AudioDecoderData job)
+        private static readonly object bass_sync_lock = new object();
+
+        /// <summary>
+        /// Decodes and resamples audio from job.Stream, and pass it to decoded.
+        /// </summary>
+        /// <param name="job">Decode data</param>
+        /// <param name="decoded">Decoded audio</param>
+        public static void LoadFromStream(AudioDecoderData job, out byte[] decoded)
         {
             try
             {
                 if (Bass.CurrentDevice > -1)
                 {
-                    if (!job.Loading)
+                    lock (bass_sync_lock)
                     {
-                        job.Callbacks = new FileCallbacks(new DataStreamFileProcedures(job.Stream));
-                        BassFlags bassFlags = BassFlags.Decode;
-                        if (SDL.SDL_AUDIO_ISFLOAT(job.Format)) bassFlags |= BassFlags.Float;
-                        if (job.IsTrack) bassFlags |= BassFlags.Prescan;
-                        job.DecodeStream = Bass.CreateStream(StreamSystem.NoBuffer, bassFlags, job.Callbacks.Callbacks);
-
-                        if (job.DecodeStream == 0)
-                            throw new FormatException($"Couldn't create stream: {Bass.LastError}");
-
-                        bool infoAvail = Bass.ChannelGetInfo(job.DecodeStream, out var info);
-
-                        if (infoAvail)
+                        if (!job.Loading)
                         {
-                            job.ByteLength = Bass.ChannelGetLength(job.DecodeStream);
-                            job.Length = Bass.ChannelBytes2Seconds(job.DecodeStream, job.ByteLength) * 1000;
-                            job.Bitrate = (int)Math.Round(Bass.ChannelGetAttribute(job.DecodeStream, ChannelAttribute.Bitrate));
+                            job.Callbacks = new FileCallbacks(new DataStreamFileProcedures(job.Stream));
+                            BassFlags bassFlags = BassFlags.Decode;
+                            if (SDL.SDL_AUDIO_ISFLOAT(job.Format)) bassFlags |= BassFlags.Float;
+                            if (job.IsTrack) bassFlags |= BassFlags.Prescan;
+                            job.DecodeStream = Bass.CreateStream(StreamSystem.NoBuffer, bassFlags, job.Callbacks.Callbacks);
 
-                            ushort srcformat;
+                            if (job.DecodeStream == 0)
+                                throw new FormatException($"Couldn't create stream: {Bass.LastError}");
 
-                            switch (info.Resolution)
+                            bool infoAvail = Bass.ChannelGetInfo(job.DecodeStream, out var info);
+
+                            if (infoAvail)
                             {
-                                case Resolution.Byte:
-                                    srcformat = SDL.AUDIO_S8;
-                                    break;
+                                job.ByteLength = Bass.ChannelGetLength(job.DecodeStream);
+                                job.Length = Bass.ChannelBytes2Seconds(job.DecodeStream, job.ByteLength) * 1000;
+                                job.Bitrate = (int)Math.Round(Bass.ChannelGetAttribute(job.DecodeStream, ChannelAttribute.Bitrate));
 
-                                case Resolution.Short:
-                                    srcformat = SDL.AUDIO_S16;
-                                    break;
+                                ushort srcformat;
 
-                                case Resolution.Float:
-                                default:
-                                    srcformat = SDL.AUDIO_F32;
-                                    break;
+                                switch (info.Resolution)
+                                {
+                                    case Resolution.Byte:
+                                        srcformat = SDL.AUDIO_S8;
+                                        break;
+
+                                    case Resolution.Short:
+                                        srcformat = SDL.AUDIO_S16;
+                                        break;
+
+                                    case Resolution.Float:
+                                    default:
+                                        srcformat = SDL.AUDIO_F32;
+                                        break;
+                                }
+
+                                if (info.Channels != job.Channels || srcformat != job.Format || info.Frequency != job.Rate)
+                                    job.Resampler = new SDL2AudioStream(srcformat, (byte)info.Channels, info.Frequency, job.Format, (byte)job.Channels, job.Rate);
+                            }
+                            else
+                            {
+                                if (job.IsTrack)
+                                    throw new FormatException($"Couldn't get channel info: {Bass.LastError}");
                             }
 
-                            if (info.Channels != job.Channels || srcformat != job.Format || info.Frequency != job.Rate)
-                                job.Resampler = new SDL2AudioStream(srcformat, (byte)info.Channels, info.Frequency, job.Format, (byte)job.Channels, job.Rate);
+                            job.Loading = true;
                         }
-                        else
-                        {
-                            if (job.IsTrack)
-                                throw new FormatException($"Couldn't get channel info: {Bass.LastError}");
-                        }
-
-                        job.Loading = true;
-                    }
-
-                    if (job.Loading)
-                    {
-                        if (job.DecodeStream == 0)
-                            throw new InvalidOperationException("BASS stream is not available");
 
                         int bufferLen = (int)(job.IsTrack ? Bass.ChannelSeconds2Bytes(job.DecodeStream, 8) : job.ByteLength);
 
@@ -315,7 +299,7 @@ namespace osu.Framework.Audio
                             if (got <= 0) buffer = Array.Empty<byte>();
                             else if (got != bufferLen) Array.Resize(ref buffer, got);
 
-                            job.Pass(buffer, job.UserData, job, !job.Loading);
+                            decoded = buffer;
                         }
                         else
                         {
@@ -332,7 +316,7 @@ namespace osu.Framework.Audio
                             if (avail > 0)
                                 job.Resampler.Get(resampled, avail);
 
-                            job.Pass(resampled, job.UserData, job, !job.Loading);
+                            decoded = resampled;
                         }
                     }
                 }
@@ -352,26 +336,25 @@ namespace osu.Framework.Audio
                         job.Loading = true;
                     }
 
-                    job.FFmpeg.DecodeNextAudioFrame(32, out byte[] decoded, !job.IsTrack);
+                    job.FFmpeg.DecodeNextAudioFrame(32, out byte[] audioData, !job.IsTrack);
 
                     if (job.FFmpeg.State != VideoDecoder.DecoderState.Running)
                         job.Loading = false;
 
-                    job.Pass(decoded, job.UserData, job, !job.Loading);
+                    decoded = audioData;
                 }
             }
             catch (Exception e)
             {
                 Logger.Log(e.Message, level: LogLevel.Important);
                 job.Loading = false;
+                decoded = Array.Empty<byte>();
             }
             finally
             {
                 if (!job.Loading)
                     job.Dispose();
             }
-
-            return 0;
         }
 
         private bool disposedValue;

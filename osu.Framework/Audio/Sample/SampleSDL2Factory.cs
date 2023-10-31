@@ -42,7 +42,7 @@ namespace osu.Framework.Audio.Sample
 
             try
             {
-                byte[] audio = decoder.DecodeAudio(stream);
+                byte[] audio = decoder.DecodeAudioInCurrentSpec(stream);
 
                 if (audio.Length > 0)
                 {
