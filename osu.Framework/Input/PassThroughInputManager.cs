@@ -12,6 +12,7 @@ using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.States;
 using osuTK;
 using osuTK.Input;
+using KeyboardState = osu.Framework.Input.States.KeyboardState;
 
 namespace osu.Framework.Input
 {
@@ -176,7 +177,7 @@ namespace osu.Framework.Input
             var mouseButtonDifference = (state?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
             new MouseButtonInput(mouseButtonDifference.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false))).Apply(CurrentState, this);
 
-            new KeyboardKeyInput(state?.Keyboard, CurrentState.Keyboard).Apply(CurrentState, this);
+            new KeyboardKeyInput(state?.Keyboard ?? new KeyboardState(), CurrentState.Keyboard).Apply(CurrentState, this);
 
             var touchStateDifference = (state?.Touch ?? new TouchState()).EnumerateDifference(CurrentState.Touch);
             new TouchInput(touchStateDifference.deactivated, false).Apply(CurrentState, this);
