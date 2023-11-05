@@ -3,9 +3,11 @@
 
 using System.Linq;
 using System;
+using System.Diagnostics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
+using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
@@ -134,10 +136,25 @@ namespace osu.Framework.Testing.Input
             var binding = Host.PlatformKeyBindings.First(b => (PlatformAction)b.Action == action);
 
             foreach (var k in binding.KeyCombination.Keys)
-                PressKey((Key)k);
+                PressKey(toKeyboardKey(k));
 
             foreach (var k in binding.KeyCombination.Keys)
-                ReleaseKey((Key)k);
+                ReleaseKey(toKeyboardKey(k));
+
+            return;
+
+            KeyboardKey toKeyboardKey(InputKey inputKey)
+            {
+                if (inputKey >= InputKey.KeycodeA && inputKey <= InputKey.KeycodeZ)
+                {
+                    int diff = inputKey - InputKey.KeycodeA;
+                    return new KeyboardKey(osuTK.Input.Key.A + diff, (char)('a' + diff));
+                }
+
+                var key = (Key)inputKey;
+                Debug.Assert(Enum.IsDefined(key));
+                return KeyboardKey.FromKey(key);
+            }
         }
 
         public void ScrollBy(Vector2 delta, bool isPrecise = false) => Input(new MouseScrollRelativeInput { Delta = delta, IsPrecise = isPrecise });
