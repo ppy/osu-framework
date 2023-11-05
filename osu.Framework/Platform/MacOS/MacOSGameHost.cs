@@ -27,21 +27,21 @@ namespace osu.Framework.Platform.MacOS
         {
             get
             {
-                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Library", "Application Support");
+                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Application Support");
 
                 string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
 
                 if (!string.IsNullOrEmpty(xdg))
                     yield return xdg;
 
-                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), ".local", "share");
+                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share");
 
                 foreach (string path in base.UserStoragePaths)
                     yield return path;
             }
         }
 
-        public override Clipboard GetClipboard() => new MacOSClipboard();
+        protected override Clipboard CreateClipboard() => new MacOSClipboard();
 
         protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new MacOSReadableKeyCombinationProvider();
 

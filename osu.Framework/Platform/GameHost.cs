@@ -53,6 +53,11 @@ namespace osu.Framework.Platform
     {
         public IWindow Window { get; private set; }
 
+        /// <summary>
+        /// Whether <see cref="Window"/> needs to be non-null for startup to succeed.
+        /// </summary>
+        protected virtual bool RequireWindowExists => true;
+
         public IRenderer Renderer { get; private set; }
 
         public string RendererInfo { get; private set; }
@@ -174,8 +179,10 @@ namespace osu.Framework.Platform
         /// </summary>
         protected abstract IWindow CreateWindow(GraphicsSurfaceType preferredSurface);
 
-        [CanBeNull]
-        public virtual Clipboard GetClipboard() => null;
+        [Obsolete($"Resolve {nameof(Clipboard)} via DI.")] // can be removed 20231010
+        public Clipboard GetClipboard() => Dependencies.Get<Clipboard>();
+
+        protected abstract Clipboard CreateClipboard();
 
         protected virtual ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new ReadableKeyCombinationProvider();
 
@@ -722,6 +729,14 @@ namespace osu.Framework.Platform
 
                 ChooseAndSetupRenderer();
 
+                // Window creation may fail in the case of a catastrophic failure (ie. graphics driver or SDL2 level).
+                // In such cases, we want to throw here to immediately mark this renderer setup as failed.
+                if (RequireWindowExists && Window == null)
+                {
+                    Logger.Log("Aborting startup as no window could be created.");
+                    return;
+                }
+
                 initialiseInputHandlers();
 
                 // Prepare renderer (requires config).
@@ -737,6 +752,7 @@ namespace osu.Framework.Platform
 
                 Dependencies.CacheAs(readableKeyCombinationProvider = CreateReadableKeyCombinationProvider());
                 Dependencies.CacheAs(CreateTextInput());
+                Dependencies.CacheAs(CreateClipboard());
 
                 ExecutionState = ExecutionState.Running;
                 threadRunner.Start();
@@ -958,17 +974,20 @@ namespace osu.Framework.Platform
             Renderer = renderer;
             Renderer.CacheStorage = CacheStorage.GetStorageForDirectory("shaders");
 
-            // Prepare window
-            Window = CreateWindow(surfaceType);
-
-            if (Window == null)
-            {
-                Logger.Log("🖼️ Renderer could not be initialised, no window exists.");
-                return;
-            }
-
             try
             {
+                // Prepare window
+                Window = CreateWindow(surfaceType);
+
+                if (Window == null)
+                {
+                    // Can be null, usually via Headless execution.
+                    if (!RequireWindowExists)
+                        return;
+
+                    throw new InvalidOperationException("🖼️ Renderer could not be initialised as window creation failed.");
+                }
+
                 Window.SetupWindow(Config);
                 Window.Create();
                 Window.Title = $@"osu!framework (running ""{Name}"")";

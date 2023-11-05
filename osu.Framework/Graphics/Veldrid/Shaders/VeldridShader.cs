@@ -22,7 +22,6 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
     {
         private readonly string name;
         private readonly VeldridShaderPart[] parts;
-        private readonly IUniformBuffer<GlobalUniformData> globalUniformBuffer;
         private readonly ShaderCompilationStore compilationStore;
         private readonly VeldridRenderer renderer;
 
@@ -43,11 +42,10 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         private readonly Dictionary<string, VeldridUniformLayout> uniformLayouts = new Dictionary<string, VeldridUniformLayout>();
         private readonly List<VeldridUniformLayout> textureLayouts = new List<VeldridUniformLayout>();
 
-        public VeldridShader(VeldridRenderer renderer, string name, VeldridShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer, ShaderCompilationStore compilationStore)
+        public VeldridShader(VeldridRenderer renderer, string name, VeldridShaderPart[] parts, ShaderCompilationStore compilationStore)
         {
             this.name = name;
             this.parts = parts;
-            this.globalUniformBuffer = globalUniformBuffer;
             this.compilationStore = compilationStore;
             this.renderer = renderer;
 
@@ -188,8 +186,17 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
                         textureLayouts.Add(new VeldridUniformLayout(set, renderer.Factory.CreateResourceLayout(layout)));
                     }
-                    else if (layout.Elements[0].Kind == ResourceKind.UniformBuffer)
-                        uniformLayouts[layout.Elements[0].Name] = new VeldridUniformLayout(set, renderer.Factory.CreateResourceLayout(layout));
+                    else
+                    {
+                        switch (layout.Elements[0].Kind)
+                        {
+                            case ResourceKind.UniformBuffer:
+                            case ResourceKind.StructuredBufferReadOnly:
+                            case ResourceKind.StructuredBufferReadWrite:
+                                uniformLayouts[layout.Elements[0].Name] = new VeldridUniformLayout(set, renderer.Factory.CreateResourceLayout(layout));
+                                break;
+                        }
+                    }
                 }
 
                 Logger.Log(cached
@@ -210,8 +217,6 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                 renderer.Factory.CreateShader(vertexShaderDescription),
                 renderer.Factory.CreateShader(fragmentShaderDescription)
             };
-
-            BindUniformBlock("g_GlobalUniforms", globalUniformBuffer);
         }
 
         private bool isDisposed;

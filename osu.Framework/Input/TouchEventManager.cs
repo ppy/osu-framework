@@ -36,7 +36,7 @@ namespace osu.Framework.Input
 
         private void handleTouchMove(InputState state, Vector2 position, Vector2 lastPosition)
         {
-            PropagateButtonEvent(ButtonDownInputQueue, new TouchMoveEvent(state, new Touch(Button, position), TouchDownPosition, lastPosition));
+            PropagateButtonEvent(ButtonDownInputQueue!, new TouchMoveEvent(state, new Touch(Button, position), TouchDownPosition, lastPosition));
         }
 
         protected override Drawable HandleButtonDown(InputState state, List<Drawable> targets)

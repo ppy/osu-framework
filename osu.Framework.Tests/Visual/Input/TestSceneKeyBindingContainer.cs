@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using NUnit.Framework;
@@ -25,7 +23,7 @@ namespace osu.Framework.Tests.Visual.Input
             bool pressedReceived = false;
             bool releasedReceived = false;
 
-            TestKeyBindingContainer keyBindingContainer = null;
+            TestKeyBindingContainer keyBindingContainer = null!;
 
             AddStep("add container", () =>
             {
@@ -73,14 +71,14 @@ namespace osu.Framework.Tests.Visual.Input
             });
 
             AddStep("press key A", () => InputManager.PressKey(Key.A));
-            AddAssert("only one action triggered", () => pressedActions.Count == 1);
-            AddAssert("ActionA triggered", () => pressedActions[0] == TestAction.ActionA);
-            AddAssert("no actions released", () => releasedActions.Count == 0);
+            AddAssert("only one action triggered", () => pressedActions, () => Has.Count.EqualTo(1));
+            AddAssert("ActionA triggered", () => pressedActions[0], () => Is.EqualTo(TestAction.ActionA));
+            AddAssert("no actions released", () => releasedActions, () => Is.Empty);
 
             AddStep("release key A", () => InputManager.ReleaseKey(Key.A));
-            AddAssert("only one action triggered", () => pressedActions.Count == 1);
-            AddAssert("only one action released", () => releasedActions.Count == 1);
-            AddAssert("ActionA released", () => releasedActions[0] == TestAction.ActionA);
+            AddAssert("only one action triggered", () => pressedActions, () => Has.Count.EqualTo(1));
+            AddAssert("only one action released", () => releasedActions, () => Has.Count.EqualTo(1));
+            AddAssert("ActionA released", () => releasedActions[0], () => Is.EqualTo(TestAction.ActionA));
         }
 
         [Test]
@@ -89,7 +87,7 @@ namespace osu.Framework.Tests.Visual.Input
             List<TestAction> pressedActions = new List<TestAction>();
             List<TestAction> releasedActions = new List<TestAction>();
 
-            TextBox textBox = null;
+            TextBox textBox = null!;
 
             AddStep("add children", () =>
             {
@@ -128,8 +126,8 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("release enter", () => InputManager.ReleaseKey(Key.Enter));
             AddStep("release mouse button", () => InputManager.ReleaseButton(MouseButton.Left));
 
-            AddAssert("no pressed actions", () => pressedActions.Count == 0);
-            AddAssert("no released actions", () => releasedActions.Count == 0);
+            AddAssert("no pressed actions", () => pressedActions, () => Is.Empty);
+            AddAssert("no released actions", () => releasedActions, () => Is.Empty);
         }
 
         [Test]
@@ -198,18 +196,18 @@ namespace osu.Framework.Tests.Visual.Input
             });
 
             AddStep("press A", () => InputManager.PressKey(Key.A));
-            AddAssert("press received", () => pressedReceived == 1);
+            AddAssert("press received", () => pressedReceived, () => Is.EqualTo(1));
 
             for (int i = 0; i < 10; i++)
             {
                 int localI = i + 1;
-                AddUntilStep($"repeat #{1 + i} received", () => repeatedReceived >= localI);
+                AddUntilStep($"repeat #{1 + i} received", () => repeatedReceived, () => Is.GreaterThanOrEqualTo(localI));
             }
 
             AddStep("release A", () => InputManager.ReleaseKey(Key.A));
             AddAssert("release received", () => releasedReceived);
 
-            AddAssert("only one press received", () => pressedReceived == 1);
+            AddAssert("only one press received", () => pressedReceived, () => Is.EqualTo(1));
         }
 
         [Test]
@@ -218,7 +216,7 @@ namespace osu.Framework.Tests.Visual.Input
             int pressedReceived = 0;
             int repeatedReceived = 0;
             bool releasedReceived = false;
-            TestKeyBindingReceptor receptor = null;
+            TestKeyBindingReceptor receptor = null!;
 
             AddStep("add container", () =>
             {
@@ -238,18 +236,18 @@ namespace osu.Framework.Tests.Visual.Input
             });
 
             AddStep("press A", () => InputManager.PressKey(Key.A));
-            AddUntilStep("wait for non-zero repeated", () => repeatedReceived > 0);
+            AddUntilStep("wait for non-zero repeated", () => repeatedReceived, () => Is.GreaterThan(0));
 
             AddStep("hide receptor", () => receptor.Hide());
 
             int stopReceivingCheck = 0;
             AddStep("store count", () => stopReceivingCheck = repeatedReceived);
             AddWaitStep("wait some", 5);
-            AddAssert("ensure not incrementing", () => stopReceivingCheck == repeatedReceived);
+            AddAssert("ensure not incrementing", () => stopReceivingCheck, () => Is.EqualTo(repeatedReceived));
 
             AddStep("release A", () => InputManager.ReleaseKey(Key.A));
             AddAssert("release received", () => releasedReceived);
-            AddAssert("only one press received", () => pressedReceived == 1);
+            AddAssert("only one press received", () => pressedReceived, () => Is.EqualTo(1));
         }
 
         [Test]
@@ -299,11 +297,100 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("release B", () => InputManager.ReleaseKey(Key.B));
         }
 
+        [Test]
+        public void TestPrioritisedNonPositionalInput([Values] bool prioritised)
+        {
+            bool containerReceivedInput = false;
+
+            AddStep("create content", () =>
+            {
+                containerReceivedInput = false;
+
+                Child = new TestKeyBindingContainer(prioritised)
+                {
+                    Pressed = a => containerReceivedInput = a == TestAction.ActionA,
+                    Child = new InputBlockingDrawable()
+                };
+            });
+
+            AddStep("trigger action", () => InputManager.Key(Key.A));
+
+            if (prioritised)
+                AddAssert("container received input", () => containerReceivedInput);
+            else
+                AddAssert("container did not receive input", () => !containerReceivedInput);
+        }
+
+        [Test]
+        public void TestPrioritisedPositionalInput([Values] bool prioritised)
+        {
+            bool containerReceivedInput = false;
+
+            Drawable receptor = null!;
+
+            AddStep("create content", () =>
+            {
+                containerReceivedInput = false;
+
+                Child = new TestKeyBindingContainer(prioritised)
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Pressed = a => containerReceivedInput = a == TestAction.ActionMouse4,
+                    Child = receptor = new InputBlockingDrawable()
+                };
+            });
+
+            AddStep("hover receptor", () => InputManager.MoveMouseTo(receptor));
+            AddStep("trigger action", () => InputManager.Click(MouseButton.Button4));
+
+            if (prioritised)
+                AddAssert("container received input", () => containerReceivedInput);
+            else
+                AddAssert("container did not receive input", () => !containerReceivedInput);
+        }
+
+        [Test]
+        public void TestReleaseKeyAfterReceptorRemovedFromHierarchy()
+        {
+            TestKeyBindingContainer container = null!;
+            TestKeyBindingReceptor receptor = null!;
+            List<TestAction> pressedActions = new List<TestAction>();
+            List<TestAction> releasedActions = new List<TestAction>();
+
+            AddStep("add container", () =>
+            {
+                pressedActions.Clear();
+                releasedActions.Clear();
+
+                Child = container = new TestKeyBindingContainer
+                {
+                    Child = receptor = new TestKeyBindingReceptor
+                    {
+                        Pressed = a => pressedActions.Add(a),
+                        Released = a => releasedActions.Add(a)
+                    }
+                };
+            });
+
+            AddStep("press key A", () => InputManager.PressKey(Key.A));
+            AddAssert("only one action triggered", () => pressedActions, () => Has.Count.EqualTo(1));
+            AddAssert("ActionA triggered", () => pressedActions[0], () => Is.EqualTo(TestAction.ActionA));
+            AddAssert("no actions released", () => releasedActions, () => Is.Empty);
+
+            AddStep("remove receptor", () => container.Remove(receptor, disposeImmediately: false));
+
+            AddStep("release key A", () => InputManager.ReleaseKey(Key.A));
+            AddAssert("only one action triggered", () => pressedActions, () => Has.Count.EqualTo(1));
+            AddAssert("no actions released", () => releasedActions, () => Is.Empty);
+
+            AddStep("dispose of receptor", () => receptor.Dispose());
+        }
+
         private partial class TestKeyBindingReceptor : Drawable, IKeyBindingHandler<TestAction>
         {
-            public Action<TestAction> Pressed;
-            public Action<TestAction> Repeated;
-            public Action<TestAction> Released;
+            public Action<TestAction>? Pressed;
+            public Action<TestAction>? Repeated;
+            public Action<TestAction>? Released;
 
             public TestKeyBindingReceptor()
             {
@@ -326,15 +413,44 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private partial class TestKeyBindingContainer : KeyBindingContainer<TestAction>
+        private partial class TestKeyBindingContainer : KeyBindingContainer<TestAction>, IKeyBindingHandler<TestAction>
         {
+            protected override bool Prioritised { get; }
+
+            public Func<TestAction, bool>? Pressed;
+
+            public TestKeyBindingContainer(bool prioritised = false)
+            {
+                Prioritised = prioritised;
+            }
+
             public override IEnumerable<IKeyBinding> DefaultKeyBindings => new IKeyBinding[]
             {
                 new KeyBinding(InputKey.A, TestAction.ActionA),
                 new KeyBinding(new KeyCombination(InputKey.A, InputKey.B), TestAction.ActionAB),
                 new KeyBinding(InputKey.Enter, TestAction.ActionEnter),
-                new KeyBinding(InputKey.Control, TestAction.ActionControl)
+                new KeyBinding(InputKey.Control, TestAction.ActionControl),
+                new KeyBinding(InputKey.ExtraMouseButton4, TestAction.ActionMouse4),
             };
+
+            public bool OnPressed(KeyBindingPressEvent<TestAction> e)
+            {
+                return Pressed?.Invoke(e.Action) == true;
+            }
+
+            public void OnReleased(KeyBindingReleaseEvent<TestAction> e)
+            {
+            }
+        }
+
+        private partial class InputBlockingDrawable : Drawable
+        {
+            protected override bool Handle(UIEvent e) => true;
+
+            public InputBlockingDrawable()
+            {
+                RelativeSizeAxes = Axes.Both;
+            }
         }
 
         private enum TestAction
@@ -342,7 +458,8 @@ namespace osu.Framework.Tests.Visual.Input
             ActionA,
             ActionAB,
             ActionEnter,
-            ActionControl
+            ActionControl,
+            ActionMouse4,
         }
     }
 }

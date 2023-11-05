@@ -60,7 +60,56 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             for (int i = 0; i < attributes.Count; i++)
             {
                 GL.EnableVertexAttribArray(i);
-                GL.VertexAttribPointer(i, attributes[i].Count, attributes[i].Type, attributes[i].Normalized, STRIDE, attributes[i].Offset);
+
+                if (isIntegerType(attributes[i].Type) && !attributes[i].Normalized)
+                    GL.VertexAttribIPointer(i, attributes[i].Count, convertIntegerType(attributes[i].Type), STRIDE, attributes[i].Offset);
+                else
+                    GL.VertexAttribPointer(i, attributes[i].Count, attributes[i].Type, attributes[i].Normalized, STRIDE, attributes[i].Offset);
+            }
+        }
+
+        private static bool isIntegerType(VertexAttribPointerType type)
+        {
+            switch (type)
+            {
+                case VertexAttribPointerType.Int:
+                    return true;
+
+                case VertexAttribPointerType.UnsignedInt:
+                    return true;
+
+                case VertexAttribPointerType.Byte:
+                    return true;
+
+                case VertexAttribPointerType.UnsignedByte:
+                    return true;
+
+                case VertexAttribPointerType.Short:
+                    return true;
+
+                case VertexAttribPointerType.UnsignedShort:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        private static VertexAttribIntegerType convertIntegerType(VertexAttribPointerType type)
+        {
+            switch (type)
+            {
+                case VertexAttribPointerType.Int:
+                case VertexAttribPointerType.UnsignedInt:
+                case VertexAttribPointerType.Byte:
+                case VertexAttribPointerType.UnsignedByte:
+                case VertexAttribPointerType.Short:
+                case VertexAttribPointerType.UnsignedShort:
+                    // These appear to be 1-1 conversions.
+                    return (VertexAttribIntegerType)type;
+
+                default:
+                    throw new ArgumentException($"\"{type}\" is not an integer type.", nameof(type));
             }
         }
     }

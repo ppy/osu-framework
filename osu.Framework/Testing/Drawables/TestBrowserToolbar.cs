@@ -2,17 +2,22 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing.Drawables.Sections;
+using osu.Framework.Utils;
+using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables
 {
     internal partial class TestBrowserToolbar : CompositeDrawable
     {
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(TestBrowser browser)
         {
             const float section_padding = 10;
 
@@ -40,6 +45,7 @@ namespace osu.Framework.Testing.Drawables
                             new Dimension(GridSizeMode.AutoSize),
                             new Dimension(),
                             new Dimension(GridSizeMode.AutoSize),
+                            new Dimension(GridSizeMode.AutoSize),
                         },
                         Content = new[]
                         {
@@ -51,7 +57,7 @@ namespace osu.Framework.Testing.Drawables
                                 {
                                     RelativeSizeAxes = Axes.Y,
                                     AutoSizeAxes = Axes.X,
-                                    Margin = new MarginPadding { Left = section_padding },
+                                    Margin = new MarginPadding { Horizontal = section_padding },
                                     Children = new Drawable[]
                                     {
                                         new Container //Backdrop of the record section
@@ -64,9 +70,43 @@ namespace osu.Framework.Testing.Drawables
                                                 Colour = FrameworkColour.GreenDarker,
                                             },
                                         },
-                                        new ToolbarRecordSection { RelativeSizeAxes = Axes.Y }
+                                        new ToolbarRecordSection { RelativeSizeAxes = Axes.Y },
                                     }
                                 },
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Y,
+                                    AutoSizeAxes = Axes.X,
+                                    Margin = new MarginPadding { Left = section_padding },
+                                    Children = new Drawable[]
+                                    {
+                                        new Container //Backdrop of the bg section
+                                        {
+                                            RelativeSizeAxes = Axes.Both,
+                                            Padding = new MarginPadding(-section_padding),
+                                            Child = new Box
+                                            {
+                                                RelativeSizeAxes = Axes.Both,
+                                                Colour = FrameworkColour.GreenDarker.Darken(0.5f),
+                                            },
+                                        },
+                                        new BasicButton
+                                        {
+                                            Text = "bg",
+                                            RelativeSizeAxes = Axes.Y,
+                                            Width = 40,
+                                            Action = () => browser.CurrentTest.ChangeBackgroundColour(
+                                                new ColourInfo
+                                                {
+                                                    TopLeft = new Color4(RNG.NextSingle(1), RNG.NextSingle(1), RNG.NextSingle(1), 1),
+                                                    TopRight = new Color4(RNG.NextSingle(1), RNG.NextSingle(1), RNG.NextSingle(1), 1),
+                                                    BottomLeft = new Color4(RNG.NextSingle(1), RNG.NextSingle(1), RNG.NextSingle(1), 1),
+                                                    BottomRight = new Color4(RNG.NextSingle(1), RNG.NextSingle(1), RNG.NextSingle(1), 1)
+                                                }
+                                            )
+                                        },
+                                    }
+                                }
                             }
                         },
                     },

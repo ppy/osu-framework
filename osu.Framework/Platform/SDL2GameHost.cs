@@ -31,7 +31,7 @@ namespace osu.Framework.Platform
             return base.CreateTextInput();
         }
 
-        public override Clipboard GetClipboard() => new SDL2Clipboard();
+        protected override Clipboard CreateClipboard() => new SDL2Clipboard();
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
             new InputHandler[]
