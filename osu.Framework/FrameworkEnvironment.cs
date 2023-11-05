@@ -23,7 +23,7 @@ namespace osu.Framework
             StartupExecutionMode = Enum.TryParse<ExecutionMode>(Environment.GetEnvironmentVariable("OSU_EXECUTION_MODE"), true, out var mode) ? mode : null;
             NoTestTimeout = Environment.GetEnvironmentVariable("OSU_TESTS_NO_TIMEOUT") == "1";
             ForceTestGC = Environment.GetEnvironmentVariable("OSU_TESTS_FORCED_GC") == "1";
-            FrameStatisticsViaTouch = Environment.GetEnvironmentVariable("OSU_FRAME_STATISTICS_VIA_TOUCH") == "1";
+            FrameStatisticsViaTouch = Environment.GetEnvironmentVariable("OSU_FRAME_STATISTICS_VIA_TOUCH") != "0";
             PreferredGraphicsSurface = Enum.TryParse<GraphicsSurfaceType>(Environment.GetEnvironmentVariable("OSU_GRAPHICS_SURFACE"), true, out var surface) ? surface : null;
             PreferredGraphicsRenderer = Environment.GetEnvironmentVariable("OSU_GRAPHICS_RENDERER")?.ToLowerInvariant();
 
