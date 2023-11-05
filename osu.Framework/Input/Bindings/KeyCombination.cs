@@ -574,6 +574,7 @@ namespace osu.Framework.Input.Bindings
                 case Key.RWin: return InputKey.RSuper;
             }
 
+            Debug.Assert(Enum.IsDefined(key));
             return (InputKey)key;
         }
 
