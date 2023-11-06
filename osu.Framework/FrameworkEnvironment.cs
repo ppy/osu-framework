@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 
 namespace osu.Framework
@@ -21,9 +22,9 @@ namespace osu.Framework
         static FrameworkEnvironment()
         {
             StartupExecutionMode = Enum.TryParse<ExecutionMode>(Environment.GetEnvironmentVariable("OSU_EXECUTION_MODE"), true, out var mode) ? mode : null;
-            NoTestTimeout = Environment.GetEnvironmentVariable("OSU_TESTS_NO_TIMEOUT") == "1";
-            ForceTestGC = Environment.GetEnvironmentVariable("OSU_TESTS_FORCED_GC") == "1";
-            FrameStatisticsViaTouch = Environment.GetEnvironmentVariable("OSU_FRAME_STATISTICS_VIA_TOUCH") != "0";
+            NoTestTimeout = parseBool(Environment.GetEnvironmentVariable("OSU_TESTS_NO_TIMEOUT")) ?? false;
+            ForceTestGC = parseBool(Environment.GetEnvironmentVariable("OSU_TESTS_FORCED_GC")) ?? false;
+            FrameStatisticsViaTouch = parseBool(Environment.GetEnvironmentVariable("OSU_FRAME_STATISTICS_VIA_TOUCH")) ?? true;
             PreferredGraphicsSurface = Enum.TryParse<GraphicsSurfaceType>(Environment.GetEnvironmentVariable("OSU_GRAPHICS_SURFACE"), true, out var surface) ? surface : null;
             PreferredGraphicsRenderer = Environment.GetEnvironmentVariable("OSU_GRAPHICS_RENDERER")?.ToLowerInvariant();
 
@@ -33,7 +34,22 @@ namespace osu.Framework
             if (int.TryParse(Environment.GetEnvironmentVariable("OSU_GRAPHICS_STAGING_BUFFER_TYPE"), out int stagingBufferImplementation))
                 StagingBufferType = stagingBufferImplementation;
 
-            NoStructuredBuffers = Environment.GetEnvironmentVariable("OSU_GRAPHICS_NO_SSBO") == "1";
+            NoStructuredBuffers = parseBool(Environment.GetEnvironmentVariable("OSU_GRAPHICS_NO_SSBO")) ?? false;
+        }
+
+        private static bool? parseBool(string? value)
+        {
+            switch (value)
+            {
+                case "0":
+                    return false;
+
+                case "1":
+                    return true;
+
+                default:
+                    return bool.TryParse(value, out bool b) ? b : null;
+            }
         }
     }
 }
