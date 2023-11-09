@@ -16,30 +16,30 @@ namespace osu.Framework.Tests.Visual.Drawables
     public partial class TestScenePathApproximator : GridTestScene
     {
         public TestScenePathApproximator()
-            : base(2, 2)
+            : base(2, 3)
         {
             Cell(0).AddRange(new[]
             {
-                createLabel("ApproximateBezier"),
-                new ApproximatedPathTest(PathApproximator.ApproximateBezier),
-            });
-
-            Cell(1).AddRange(new[]
-            {
-                createLabel("ApproximateCatmull"),
-                new ApproximatedPathTest(PathApproximator.ApproximateCatmull),
+                createLabel("BezierToPiecewiseLinear"),
+                new ApproximatedPathTest(PathApproximator.BezierToPiecewiseLinear),
             });
 
             Cell(2).AddRange(new[]
             {
-                createLabel("ApproximateCircularArc"),
-                new ApproximatedPathTest(PathApproximator.ApproximateCircularArc),
+                createLabel("CatmullToPiecewiseLinear"),
+                new ApproximatedPathTest(PathApproximator.CatmullToPiecewiseLinear),
             });
 
             Cell(3).AddRange(new[]
             {
-                createLabel("ApproximateLagrangePolynomial"),
-                new ApproximatedPathTest(PathApproximator.ApproximateLagrangePolynomial),
+                createLabel("CircularArcToPiecewiseLinear"),
+                new ApproximatedPathTest(PathApproximator.CircularArcToPiecewiseLinear),
+            });
+
+            Cell(4).AddRange(new[]
+            {
+                createLabel("LagrangePolynomialToPiecewiseLinear"),
+                new ApproximatedPathTest(PathApproximator.LagrangePolynomialToPiecewiseLinear),
             });
         }
 
@@ -50,10 +50,10 @@ namespace osu.Framework.Tests.Visual.Drawables
             Colour = Color4.White,
         };
 
+        public delegate List<Vector2> ApproximatorFunc(ReadOnlySpan<Vector2> controlPoints);
+
         private partial class ApproximatedPathTest : SmoothPath
         {
-            public delegate List<Vector2> ApproximatorFunc(ReadOnlySpan<Vector2> controlPoints);
-
             public ApproximatedPathTest(ApproximatorFunc approximator)
             {
                 Vector2[] points = new Vector2[5];

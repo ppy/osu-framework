@@ -123,7 +123,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                 shader.Bind();
                 shader.BindUniformBlock("g_ColourBuffer", colourBuffer);
 
-                // Submit vertices, making sure that we don't submit an index which would overflow the SSBO.
+                // Submit rawDrawnPath, making sure that we don't submit an index which would overflow the SSBO.
                 for (int i = 0; i < areas.Count; i++)
                 {
                     vertices.Add(new ColourIndexedVertex
