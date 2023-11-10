@@ -22,11 +22,15 @@ namespace osu.Framework.Audio
 {
     public class SDL2AudioManager : AudioManager
     {
+        public const int AUDIO_FREQ = 44100;
+        public const byte AUDIO_CHANNELS = 2;
+        public const ushort AUDIO_FORMAT = SDL.AUDIO_F32;
+
         private volatile uint deviceId;
 
         private SDL.SDL_AudioSpec spec;
 
-        private readonly AudioDecoder decoder;
+        private static AudioDecoder decoder;
 
         private readonly List<SDL2AudioMixer> sdlMixerList = new List<SDL2AudioMixer>();
 
@@ -42,9 +46,9 @@ namespace osu.Framework.Audio
             // Must not edit this except for samples, as components (especially mixer) expects this to match.
             spec = new SDL.SDL_AudioSpec
             {
-                freq = 44100,
-                channels = 2,
-                format = SDL.AUDIO_F32,
+                freq = AUDIO_FREQ,
+                channels = AUDIO_CHANNELS,
+                format = AUDIO_FORMAT,
                 callback = audioCallback,
                 samples = 256 // determines latency, this value can be changed but is already reasonably low
             };
@@ -55,8 +59,15 @@ namespace osu.Framework.Audio
                 ManagedBass.Bass.Configure((ManagedBass.Configuration)68, 1);
                 AudioThread.InitDevice(0);
             });
+        }
 
-            decoder = new AudioDecoder(spec);
+        public static AudioDecoder GetAudioDecoder()
+        {
+            decoder ??= ManagedBass.Bass.CurrentDevice >= 0
+                ? new BassAudioDecoder(AUDIO_FREQ, AUDIO_CHANNELS, AUDIO_FORMAT)
+                : new FFmpegAudioDecoder(AUDIO_FREQ, AUDIO_CHANNELS, AUDIO_FORMAT);
+
+            return decoder;
         }
 
         private string currentDeviceName = "Not loaded";
@@ -219,18 +230,18 @@ namespace osu.Framework.Audio
         internal override Track.Track GetNewTrack(Stream data, string name)
         {
             TrackSDL2 track = new TrackSDL2(name, spec.freq, spec.channels, spec.samples);
-            decoder.StartDecodingAsync(data, track.AddToQueue, null);
+            EnqueueAction(() => GetAudioDecoder().StartDecodingAsync(data, track.AddToQueue, null));
             return track;
         }
 
         internal override SampleFactory GetSampleFactory(Stream data, string name, AudioMixer mixer, int playbackConcurrency)
-            => new SampleSDL2Factory(data, name, (SDL2AudioMixer)mixer, playbackConcurrency, spec, decoder);
+            => new SampleSDL2Factory(data, name, (SDL2AudioMixer)mixer, playbackConcurrency, spec);
 
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
 
-            decoder.Dispose();
+            decoder?.Dispose();
 
             if (deviceId > 0)
             {

@@ -65,6 +65,7 @@ namespace osu.Framework.Audio.Track
                     if (done)
                     {
                         player.DonePutting();
+                        data.Stream.Dispose();
                         decodeData = null;
                     }
                 }
@@ -213,6 +214,8 @@ namespace osu.Framework.Audio.Track
 
             isRunning = false;
             (Mixer as SDL2AudioMixer)?.StreamFree(this);
+
+            decodeData?.Stream.Dispose();
 
             decodeData?.Stop();
 

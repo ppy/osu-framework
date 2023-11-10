@@ -17,19 +17,17 @@ namespace osu.Framework.Audio.Sample
 
         private readonly SDL2AudioMixer mixer;
         private readonly SDL.SDL_AudioSpec spec;
-        private readonly AudioDecoder decoder;
 
         public float[]? DecodedAudio { get; private set; }
 
         private Stream? stream;
 
-        public SampleSDL2Factory(Stream stream, string name, SDL2AudioMixer mixer, int playbackConcurrency, SDL.SDL_AudioSpec spec, AudioDecoder decoder)
+        public SampleSDL2Factory(Stream stream, string name, SDL2AudioMixer mixer, int playbackConcurrency, SDL.SDL_AudioSpec spec)
             : base(name, playbackConcurrency)
         {
             this.stream = stream;
             this.mixer = mixer;
             this.spec = spec;
-            this.decoder = decoder;
         }
 
         private protected override void LoadSample()
@@ -42,7 +40,7 @@ namespace osu.Framework.Audio.Sample
 
             try
             {
-                byte[] audio = decoder.DecodeAudioInCurrentSpec(stream);
+                byte[] audio = SDL2AudioManager.GetAudioDecoder().DecodeAudioInCurrentSpec(stream);
 
                 if (audio.Length > 0)
                 {

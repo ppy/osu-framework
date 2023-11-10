@@ -9,7 +9,7 @@ using FFmpeg.AutoGen;
 
 namespace osu.Framework.Graphics.Video
 {
-    internal sealed unsafe class FFmpegFrame : IDisposable
+    public sealed unsafe class FFmpegFrame : IDisposable
     {
         public readonly AVFrame* Pointer;
 

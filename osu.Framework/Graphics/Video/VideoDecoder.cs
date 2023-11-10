@@ -24,6 +24,7 @@ using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Platform.Linux.Native;
+using System.Buffers;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -587,10 +588,10 @@ namespace osu.Framework.Graphics.Video
 
             try
             {
-                for (int i = 0; i < iteration; i++)
-                {
-                    if (decodeUntilEnd) i--; // loop indefinitely to decode at once
+                int i = 0;
 
+                while (decodeUntilEnd || i++ < iteration)
+                {
                     decodeNextFrame(packet, receiveFrame);
 
                     if (State != DecoderState.Running)
@@ -711,6 +712,12 @@ namespace osu.Framework.Graphics.Video
                     break;
                 }
 
+                if (audio)
+                {
+                    resampleAndAppendToAudioStream(receiveFrame);
+                    continue;
+                }
+
                 // use `best_effort_timestamp` as it can be more accurate if timestamps from the source file (pts) are broken.
                 // but some HW codecs don't set it in which case fallback to `pts`
                 long frameTimestamp = receiveFrame->best_effort_timestamp != FFmpegFuncs.AV_NOPTS_VALUE ? receiveFrame->best_effort_timestamp : receiveFrame->pts;
@@ -723,7 +730,7 @@ namespace osu.Framework.Graphics.Video
                 // get final frame.
                 FFmpegFrame frame;
 
-                if (!audio && ((AVPixelFormat)receiveFrame->format).IsHardwarePixelFormat())
+                if (((AVPixelFormat)receiveFrame->format).IsHardwarePixelFormat())
                 {
                     // transfer data from HW decoder to RAM.
                     if (!hwTransferFrames.TryDequeue(out var hwTransferFrame))
@@ -753,13 +760,6 @@ namespace osu.Framework.Graphics.Video
 
                 lastDecodedFrameTime = (float)frameTime;
 
-                if (audio)
-                {
-                    resampleAndAppendToAudioStream(frame);
-                    frame.Dispose();
-                    continue;
-                }
-
                 // Note: this is the pixel format that `VideoTexture` expects internally
                 frame = ensureFramePixelFormat(frame, AVPixelFormat.AV_PIX_FMT_YUV420P);
                 if (frame == null)
@@ -776,7 +776,7 @@ namespace osu.Framework.Graphics.Video
             }
         }
 
-        private void resampleAndAppendToAudioStream(FFmpegFrame frame)
+        private void resampleAndAppendToAudioStream(AVFrame* frame)
         {
             if (memoryStream == null)
                 return;
@@ -791,8 +791,8 @@ namespace osu.Framework.Graphics.Video
 
                 if (frame != null)
                 {
-                    sampleCount = (int)Math.Ceiling((double)(sampleCount + frame.Pointer->nb_samples) * audioRate / codecContext->sample_rate);
-                    source = frame.Pointer->data.ToArray();
+                    sampleCount = (int)Math.Ceiling((double)(sampleCount + frame->nb_samples) * audioRate / codecContext->sample_rate);
+                    source = frame->data.ToArray();
                 }
 
                 // no frame, no remaining samples in resampler
@@ -801,8 +801,8 @@ namespace osu.Framework.Graphics.Video
             }
             else if (frame != null)
             {
-                sampleCount = frame.Pointer->nb_samples;
-                source = frame.Pointer->data.ToArray();
+                sampleCount = frame->nb_samples;
+                source = frame->data.ToArray();
             }
             else // no frame, no resampler
             {
@@ -810,28 +810,35 @@ namespace osu.Framework.Graphics.Video
             }
 
             int audioSize = ffmpeg.av_samples_get_buffer_size(null, audioChannels, sampleCount, audioFmt, 0);
-            byte[] audioDest = new byte[audioSize];
+            byte[] audioDest = ArrayPool<byte>.Shared.Rent(audioSize);
             int nbSamples = 0;
 
-            if (swrContext != null)
+            try
             {
-                fixed (byte** data = source)
-                fixed (byte* dest = audioDest)
-                    nbSamples = ffmpeg.swr_convert(swrContext, &dest, sampleCount, data, frame != null ? frame.Pointer->nb_samples : 0);
-            }
-            else if (source != null)
-            {
-                // assuming that the destination and source are not planar as we never define planar in ctor
-                nbSamples = sampleCount;
-
-                for (int i = 0; i < audioDest.Length; i++)
+                if (swrContext != null)
                 {
-                    audioDest[i] = *(source[0] + i);
+                    fixed (byte** data = source)
+                    fixed (byte* dest = audioDest)
+                        nbSamples = ffmpeg.swr_convert(swrContext, &dest, sampleCount, data, frame != null ? frame->nb_samples : 0);
                 }
-            }
+                else if (source != null)
+                {
+                    // assuming that the destination and source are not planar as we never define planar in ctor
+                    nbSamples = sampleCount;
 
-            if (nbSamples > 0)
-                memoryStream.Write(audioDest, 0, nbSamples * (audioBits / 8) * audioChannels);
+                    for (int i = 0; i < audioDest.Length; i++)
+                    {
+                        audioDest[i] = *(source[0] + i);
+                    }
+                }
+
+                if (nbSamples > 0)
+                    memoryStream.Write(audioDest, 0, nbSamples * (audioBits / 8) * audioChannels);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(audioDest);
+            }
         }
 
         private readonly ConcurrentQueue<FFmpegFrame> scalerFrames = new ConcurrentQueue<FFmpegFrame>();
@@ -1115,7 +1122,9 @@ namespace osu.Framework.Graphics.Video
                 seekCallback = null;
                 readPacketCallback = null;
 
-                videoStream.Dispose();
+                if (!audio)
+                    videoStream.Dispose();
+
                 videoStream = null;
 
                 if (swsContext != null)
