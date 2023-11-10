@@ -215,9 +215,9 @@ namespace osu.Framework.Audio.Track
             isRunning = false;
             (Mixer as SDL2AudioMixer)?.StreamFree(this);
 
-            decodeData?.Stream.Dispose();
-
             decodeData?.Stop();
+
+            decodeData?.Stream.Dispose();
 
             lock (syncRoot)
                 player.Dispose();
