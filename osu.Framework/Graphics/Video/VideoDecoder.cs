@@ -406,6 +406,9 @@ namespace osu.Framework.Graphics.Video
                 Duration = stream->duration * timeBaseInSeconds * 1000.0;
             else
                 Duration = formatContext->duration / (double)FFmpegFuncs.AV_TIME_BASE * 1000.0;
+
+            packet = ffmpeg.av_packet_alloc();
+            receiveFrame = ffmpeg.av_frame_alloc();
         }
 
         internal void RecreateCodecContext()
@@ -507,11 +510,11 @@ namespace osu.Framework.Graphics.Video
             return ffmpeg.swr_is_initialized(swrContext) > 0;
         }
 
+        private AVPacket* packet;
+        private AVFrame* receiveFrame;
+
         private void decodingLoop(CancellationToken cancellationToken)
         {
-            var packet = ffmpeg.av_packet_alloc();
-            var receiveFrame = ffmpeg.av_frame_alloc();
-
             const int max_pending_frames = 3;
 
             try
@@ -563,9 +566,6 @@ namespace osu.Framework.Graphics.Video
             }
             finally
             {
-                ffmpeg.av_packet_free(&packet);
-                ffmpeg.av_frame_free(&receiveFrame);
-
                 if (State != DecoderState.Faulted)
                     State = DecoderState.Stopped;
             }
@@ -581,10 +581,8 @@ namespace osu.Framework.Graphics.Video
                 return;
             }
 
-            var packet = ffmpeg.av_packet_alloc();
-            var receiveFrame = ffmpeg.av_frame_alloc();
-
-            memoryStream = new MemoryStream();
+            memoryStream ??= new MemoryStream();
+            memoryStream.Position = 0;
 
             try
             {
@@ -608,12 +606,10 @@ namespace osu.Framework.Graphics.Video
             }
             finally
             {
-                ffmpeg.av_packet_free(&packet);
-                ffmpeg.av_frame_free(&receiveFrame);
-
-                decodedAudio = memoryStream.ToArray();
-                memoryStream?.Dispose();
-                memoryStream = null;
+                decodedAudio = new byte[memoryStream.Position];
+                memoryStream.Position = 0;
+                int read = memoryStream.Read(decodedAudio, 0, decodedAudio.Length);
+                Array.Resize(ref decodedAudio, read);
             }
         }
 
@@ -1097,6 +1093,18 @@ namespace osu.Framework.Graphics.Video
 
             void freeFFmpeg()
             {
+                if (packet != null)
+                {
+                    fixed (AVPacket** ptr = &packet)
+                        ffmpeg.av_packet_free(ptr);
+                }
+
+                if (receiveFrame != null)
+                {
+                    fixed (AVFrame** ptr = &receiveFrame)
+                        ffmpeg.av_frame_free(ptr);
+                }
+
                 if (formatContext != null && inputOpened)
                 {
                     fixed (AVFormatContext** ptr = &formatContext)
@@ -1135,6 +1143,8 @@ namespace osu.Framework.Graphics.Video
                     fixed (SwrContext** ptr = &swrContext)
                         ffmpeg.swr_free(ptr);
                 }
+
+                memoryStream?.Dispose();
 
                 while (decodedFrames.TryDequeue(out var f))
                 {
