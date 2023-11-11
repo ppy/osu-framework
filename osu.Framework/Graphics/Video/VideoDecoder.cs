@@ -193,6 +193,8 @@ namespace osu.Framework.Graphics.Video
             audioChannelLayout = ffmpeg.av_get_default_channel_layout(channels);
             audioFmt = AVSampleFormat.AV_SAMPLE_FMT_FLT;
 
+            memoryStream = new MemoryStream();
+
             if (isFloat)
                 audioFmt = AVSampleFormat.AV_SAMPLE_FMT_FLT;
             else if (!signed && bits == 8)
@@ -583,7 +585,6 @@ namespace osu.Framework.Graphics.Video
                 return;
             }
 
-            memoryStream ??= new MemoryStream();
             memoryStream.Position = 0;
 
             try
@@ -1147,6 +1148,8 @@ namespace osu.Framework.Graphics.Video
                 }
 
                 memoryStream?.Dispose();
+
+                memoryStream = null;
 
                 while (decodedFrames.TryDequeue(out var f))
                 {
