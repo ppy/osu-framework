@@ -372,6 +372,8 @@ namespace osu.Framework.Graphics.Video
         // sets up libavformat state: creates the AVFormatContext, the frames, etc. to start decoding, but does not actually start the decodingLoop
         internal void PrepareDecoding()
         {
+            videoStream.Position = 0;
+
             const int context_buffer_size = 4096;
             readPacketCallback = readPacket;
             seekCallback = streamSeekCallbacks;
