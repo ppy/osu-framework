@@ -19,15 +19,15 @@ namespace osu.Framework.Audio
         {
             internal VideoDecoder? FFmpeg;
 
-            public FFmpegAudioDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, PassDataDelegate? pass, object? userData)
-                : base(rate, channels, isTrack, format, stream, pass, userData)
+            public FFmpegAudioDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, bool autoDisposeStream, PassDataDelegate? pass, object? userData)
+                : base(rate, channels, isTrack, format, stream, autoDisposeStream, pass, userData)
             {
             }
 
             internal override void Dispose()
             {
-                base.Dispose();
                 FFmpeg?.Dispose();
+                base.Dispose();
             }
         }
 
@@ -58,7 +58,7 @@ namespace osu.Framework.Audio
             decoded = audioData;
         }
 
-        public override AudioDecoderData CreateDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, PassDataDelegate? pass = null, object? userData = null)
-            => new FFmpegAudioDecoderData(rate, channels, isTrack, format, stream, pass, userData);
+        public override AudioDecoderData CreateDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, bool autoDisposeStream = true, PassDataDelegate? pass = null, object? userData = null)
+            => new FFmpegAudioDecoderData(rate, channels, isTrack, format, stream, autoDisposeStream, pass, userData);
     }
 }

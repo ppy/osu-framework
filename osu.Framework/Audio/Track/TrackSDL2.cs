@@ -217,8 +217,6 @@ namespace osu.Framework.Audio.Track
 
             decodeData?.Stop();
 
-            decodeData?.Stream.Dispose();
-
             lock (syncRoot)
                 player.Dispose();
 

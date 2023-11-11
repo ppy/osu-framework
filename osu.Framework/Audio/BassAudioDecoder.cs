@@ -25,8 +25,8 @@ namespace osu.Framework.Audio
             internal FileCallbacks? Callbacks;
             internal SDL2AudioStream? Resampler;
 
-            public BassAudioDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, PassDataDelegate? pass = null, object? userData = null)
-                : base(rate, channels, isTrack, format, stream, pass, userData)
+            public BassAudioDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, bool autoDisposeStream, PassDataDelegate? pass, object? userData)
+                : base(rate, channels, isTrack, format, stream, autoDisposeStream, pass, userData)
             {
             }
 
@@ -109,7 +109,7 @@ namespace osu.Framework.Audio
                 int bufferLen = (int)(job.IsTrack ? Bass.ChannelSeconds2Bytes(job.DecodeStream, 1) : job.ByteLength);
 
                 if (bufferLen <= 0)
-                    bufferLen = 44100 * 2 * 1;
+                    bufferLen = 44100 * 2 * 4 * 1;
 
                 byte[] buffer = new byte[bufferLen];
                 int got = Bass.ChannelGetData(job.DecodeStream, buffer, bufferLen);
@@ -152,7 +152,7 @@ namespace osu.Framework.Audio
             }
         }
 
-        public override AudioDecoderData CreateDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, PassDataDelegate? pass = null, object? userData = null)
-            => new BassAudioDecoderData(rate, channels, isTrack, format, stream, pass, userData);
+        public override AudioDecoderData CreateDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, bool autoDisposeStream = true, PassDataDelegate? pass = null, object? userData = null)
+            => new BassAudioDecoderData(rate, channels, isTrack, format, stream, autoDisposeStream, pass, userData);
     }
 }

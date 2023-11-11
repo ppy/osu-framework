@@ -21,6 +21,7 @@ namespace osu.Framework.Audio
             internal readonly bool IsTrack;
             internal readonly ushort Format;
             internal readonly Stream Stream;
+            internal readonly bool AutoDisposeStream;
             internal readonly PassDataDelegate? Pass;
             internal readonly object? UserData;
 
@@ -51,13 +52,14 @@ namespace osu.Framework.Audio
             internal volatile bool StopJob;
             internal volatile bool Loading;
 
-            protected AudioDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, PassDataDelegate? pass, object? userData)
+            protected AudioDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, bool autoDisposeStream, PassDataDelegate? pass, object? userData)
             {
                 Rate = rate;
                 Channels = channels;
                 IsTrack = isTrack;
                 Format = format;
                 Stream = stream;
+                AutoDisposeStream = autoDisposeStream;
                 Pass = pass;
                 UserData = userData;
             }
@@ -70,6 +72,8 @@ namespace osu.Framework.Audio
             // Call this in lock
             internal virtual void Dispose()
             {
+                if (AutoDisposeStream)
+                    Stream.Dispose();
             }
         }
 
@@ -123,7 +127,7 @@ namespace osu.Framework.Audio
                 decoderThread.Start();
             }
 
-            AudioDecoderData data = CreateDecoderData(rate, channels, true, format, stream, pass, userData);
+            AudioDecoderData data = CreateDecoderData(rate, channels, true, format, stream, true, pass, userData);
 
             lock (jobs)
                 jobs.AddFirst(data);
@@ -205,7 +209,7 @@ namespace osu.Framework.Audio
             }
         }
 
-        public abstract AudioDecoderData CreateDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, PassDataDelegate? pass = null, object? userData = null);
+        public abstract AudioDecoderData CreateDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, bool autoDisposeStream = true, PassDataDelegate? pass = null, object? userData = null);
 
         protected abstract void LoadFromStreamInternal(AudioDecoderData job, out byte[] decoded);
 

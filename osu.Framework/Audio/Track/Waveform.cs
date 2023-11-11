@@ -81,7 +81,7 @@ namespace osu.Framework.Audio.Track
                 AudioDecoder decoder = SDL2AudioManager.GetAudioDecoder();
 
                 // AudioDecoder will resample data into specified sample rate and channels (44100hz 2ch float)
-                AudioDecoder.AudioDecoderData decoderData = decoder.CreateDecoderData(sample_rate, channels, true, SDL2.SDL.AUDIO_F32, data);
+                AudioDecoder.AudioDecoderData decoderData = decoder.CreateDecoderData(sample_rate, channels, true, SDL2.SDL.AUDIO_F32, data, false);
 
                 Complex[]? complexBuffer = null;
 
