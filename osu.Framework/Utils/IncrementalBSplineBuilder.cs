@@ -160,7 +160,7 @@ namespace osu.Framework.Utils
             // Determine the alignment between the raw path and control path's momentums.
             // It uses Vector2.Dot which calculates the cosine of the angle between two vectors.
             // This alignment is used to adjust the control points based on the path's direction change.
-            float alignment = MathF.Max(Vector2.Dot(mraw, mcp), 0.01f);
+            float alignment = mraw == Vector2.Zero || mcp == Vector2.Zero ? 1.0f : MathF.Max(Vector2.Dot(mraw, mcp), 0.01f);
 
             // Calculate the distance between the last two control points.
             // This distance is then used, along with alignment, to decide if a new control point is needed.
