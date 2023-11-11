@@ -206,7 +206,7 @@ namespace osu.Framework.Audio.Mixing.SDL2
             {
                 // allowing non-bqf to keep index of list
                 if (param is BQFParameters bqfp)
-                    BiQuadFilter = getFilter(44100, bqfp);
+                    BiQuadFilter = getFilter(SDL2AudioManager.AUDIO_FREQ, bqfp);
             }
         }
 
