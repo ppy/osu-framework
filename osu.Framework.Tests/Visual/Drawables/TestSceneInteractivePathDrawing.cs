@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             };
 
             updateViz();
-            OnUpdate += _ => updateControlPointsViz();
+            OnUpdate += _ => updateViz();
 
             AddStep("Reset path", () =>
             {
