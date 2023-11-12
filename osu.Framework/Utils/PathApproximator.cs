@@ -47,9 +47,9 @@ namespace osu.Framework.Utils
         public static List<Vector2> BSplineToPiecewiseLinear(ReadOnlySpan<Vector2> controlPoints, int degree)
         {
             List<Vector2> output = new List<Vector2>();
-            int nPoints = controlPoints.Length - 1;
+            int pointCount = controlPoints.Length - 1;
 
-            if (nPoints < 0)
+            if (pointCount < 0)
                 return output;
 
             Stack<Vector2[]> toFlatten = new Stack<Vector2[]>();
@@ -57,10 +57,10 @@ namespace osu.Framework.Utils
 
             var points = controlPoints.ToArray();
 
-            if (degree > 0 && degree < nPoints)
+            if (degree > 0 && degree < pointCount)
             {
                 // Subdivide B-spline into bezier control points at knots.
-                for (int i = 0; i < nPoints - degree; i++)
+                for (int i = 0; i < pointCount - degree; i++)
                 {
                     var subBezier = new Vector2[degree + 1];
                     subBezier[0] = points[i];
@@ -72,7 +72,7 @@ namespace osu.Framework.Utils
 
                         for (int k = 1; k < degree - j; k++)
                         {
-                            int l = Math.Min(k, nPoints - degree - i);
+                            int l = Math.Min(k, pointCount - degree - i);
                             points[i + k] = (l * points[i + k] + points[i + k + 1]) / (l + 1);
                         }
                     }
@@ -81,14 +81,14 @@ namespace osu.Framework.Utils
                     toFlatten.Push(subBezier);
                 }
 
-                toFlatten.Push(points[(nPoints - degree)..]);
+                toFlatten.Push(points[(pointCount - degree)..]);
                 // Reverse the stack so elements can be accessed in order.
                 toFlatten = new Stack<Vector2[]>(toFlatten);
             }
             else
             {
                 // B-spline subdivision unnecessary, degenerate to single bezier.
-                degree = nPoints;
+                degree = pointCount;
                 toFlatten.Push(points);
             }
             // "toFlatten" contains all the curves which are not yet approximated well enough.
@@ -131,7 +131,7 @@ namespace osu.Framework.Utils
                 toFlatten.Push(parent);
             }
 
-            output.Add(controlPoints[nPoints]);
+            output.Add(controlPoints[pointCount]);
             return output;
         }
 

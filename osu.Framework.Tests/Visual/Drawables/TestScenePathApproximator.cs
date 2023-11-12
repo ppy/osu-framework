@@ -16,7 +16,7 @@ namespace osu.Framework.Tests.Visual.Drawables
     public partial class TestScenePathApproximator : GridTestScene
     {
         public TestScenePathApproximator()
-            : base(2, 3)
+            : base(2, 2)
         {
             Cell(0).AddRange(new[]
             {

@@ -124,8 +124,7 @@ namespace osu.Framework.Utils
         {
             inputPath.Clear();
             controlPoints.Clear();
-            if (outputCache.IsValid)
-                outputCache.Value.Clear();
+            outputCache.Value = new List<Vector2>();
         }
 
         /// <summary>
@@ -140,6 +139,8 @@ namespace osu.Framework.Utils
             if (inputPath.Count == 0)
             {
                 inputPath.Add(v);
+                // We add the first point twice so we can track the
+                // end point of the raw path using the last control point.
                 controlPoints.Add(inputPath[0]);
                 controlPoints.Add(inputPath[0]);
                 return;
@@ -181,6 +182,8 @@ namespace osu.Framework.Utils
             for (int i = 0; i < window; i++)
                 sum += vertices[^(i + 1)] - vertices[^(i + 2)];
 
+            // We choose a very small acceptable difference here to ensure that
+            // small momenta are not ignored.
             if (Precision.AlmostEquals(sum.X, 0, 1e-7f) && Precision.AlmostEquals(sum.Y, 0, 1e-7f))
                 return Vector2.Zero;
 
