@@ -20,25 +20,25 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             Cell(0).AddRange(new[]
             {
-                createLabel("BezierToPiecewiseLinear"),
+                createLabel(nameof(PathApproximator.BezierToPiecewiseLinear)),
                 new ApproximatedPathTest(PathApproximator.BezierToPiecewiseLinear),
             });
 
             Cell(1).AddRange(new[]
             {
-                createLabel("CatmullToPiecewiseLinear"),
+                createLabel(nameof(PathApproximator.CatmullToPiecewiseLinear)),
                 new ApproximatedPathTest(PathApproximator.CatmullToPiecewiseLinear),
             });
 
             Cell(2).AddRange(new[]
             {
-                createLabel("CircularArcToPiecewiseLinear"),
+                createLabel(nameof(PathApproximator.CircularArcToPiecewiseLinear)),
                 new ApproximatedPathTest(PathApproximator.CircularArcToPiecewiseLinear),
             });
 
             Cell(3).AddRange(new[]
             {
-                createLabel("LagrangePolynomialToPiecewiseLinear"),
+                createLabel(nameof(PathApproximator.LagrangePolynomialToPiecewiseLinear)),
                 new ApproximatedPathTest(PathApproximator.LagrangePolynomialToPiecewiseLinear),
             });
         }
