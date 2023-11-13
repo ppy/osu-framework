@@ -46,12 +46,20 @@ namespace osu.Framework.Utils
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
         public static List<Vector2> BSplineToPiecewiseLinear(ReadOnlySpan<Vector2> controlPoints, int degree)
         {
+            // Zero-th degree splines would be piecewise-constant, which cannot be represented by the picewise-
+            // linear output of this function. Negative degrees would require rational splines which this code
+            // does not support.
             if (degree < 1)
                 throw new ArgumentOutOfRangeException(nameof(degree), $"{nameof(degree)} must be >=1 but was {degree}.");
 
+            // Spline fitting does not make sense when the input contains no points or just one point. In this case
+            // the user likely wants this function to behave like a no-op.
             if (controlPoints.Length < 2)
                 return controlPoints.Length == 0 ? new List<Vector2>() : new List<Vector2> { controlPoints[0] };
 
+            // With fewer control points than the degree, splines can not be unambiguously fitted. Rather than erroring
+            // out, we set the degree to the minimal number that permits a unique fit to avoid special casing in
+            // incremental spline building algorithms that call this function.
             degree = Math.Min(degree, controlPoints.Length - 1);
 
             List<Vector2> output = new List<Vector2>();
