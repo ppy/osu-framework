@@ -31,7 +31,7 @@ namespace osu.Framework.Utils
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
         public static List<Vector2> BezierToPiecewiseLinear(ReadOnlySpan<Vector2> controlPoints)
         {
-            return BSplineToPiecewiseLinear(controlPoints, 0);
+            return BSplineToPiecewiseLinear(controlPoints, controlPoints.Length - 1);
         }
 
         /// <summary>
@@ -46,18 +46,28 @@ namespace osu.Framework.Utils
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
         public static List<Vector2> BSplineToPiecewiseLinear(ReadOnlySpan<Vector2> controlPoints, int degree)
         {
+            if (degree < 1)
+                throw new ArgumentOutOfRangeException(nameof(degree), $"{nameof(degree)} must be >=1 but was {degree}.");
+
+            if (controlPoints.Length < 2)
+                return controlPoints.Length == 0 ? new List<Vector2>() : new List<Vector2> { controlPoints[0] };
+
+            degree = Math.Min(degree, controlPoints.Length - 1);
+
             List<Vector2> output = new List<Vector2>();
             int pointCount = controlPoints.Length - 1;
-
-            if (pointCount < 0)
-                return output;
 
             Stack<Vector2[]> toFlatten = new Stack<Vector2[]>();
             Stack<Vector2[]> freeBuffers = new Stack<Vector2[]>();
 
             var points = controlPoints.ToArray();
 
-            if (degree > 0 && degree < pointCount)
+            if (degree == pointCount)
+            {
+                // B-spline subdivision unnecessary, degenerate to single bezier.
+                toFlatten.Push(points);
+            }
+            else
             {
                 // Subdivide B-spline into bezier control points at knots.
                 for (int i = 0; i < pointCount - degree; i++)
@@ -85,12 +95,7 @@ namespace osu.Framework.Utils
                 // Reverse the stack so elements can be accessed in order.
                 toFlatten = new Stack<Vector2[]>(toFlatten);
             }
-            else
-            {
-                // B-spline subdivision unnecessary, degenerate to single bezier.
-                degree = pointCount;
-                toFlatten.Push(points);
-            }
+
             // "toFlatten" contains all the curves which are not yet approximated well enough.
             // We use a stack to emulate recursion without the risk of running into a stack overflow.
             // (More specifically, we iteratively and adaptively refine our curve with a
