@@ -266,7 +266,14 @@ namespace osu.Framework.Graphics.Rendering
             // normally toMaskingSpace is fed vertices already in screen space coordinates,
             // but since we are modifying the matrix the vertices are in local space
             currentMasking.ToMaskingSpace = matrix * currentMasking.ToMaskingSpace;
+
             renderer.PushMaskingInfo(currentMasking, true);
+
+            matrix.Row3.X = matrix.Row2.X;
+            matrix.Row2.X = 0;
+            matrix.Row3.Y = matrix.Row2.Y;
+            matrix.Row2.Y = 0;
+
             renderer.PushProjectionMatrix(matrix * renderer.ProjectionMatrix);
         }
 
@@ -285,6 +292,7 @@ namespace osu.Framework.Graphics.Rendering
             mat.Row2.X = 0;
             mat.Row3.Y = mat.Row2.Y;
             mat.Row2.Y = 0;
+
             renderer.PushProjectionMatrix(mat * renderer.ProjectionMatrix);
         }
 
