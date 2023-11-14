@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Caching;
+using osu.Framework.Graphics.Primitives;
 using osuTK;
 
 namespace osu.Framework.Utils
@@ -20,7 +21,7 @@ namespace osu.Framework.Utils
         private readonly List<Vector2> inputPath = new List<Vector2>();
         private readonly List<float> cumulativeInputPathLength = new List<float>();
 
-        private Vector2 getPathAt(List<Vector2> path, List<float> cumulativeDistances, float t)
+        private static Vector2 getPathAt(List<Vector2> path, List<float> cumulativeDistances, float t)
         {
             if (path.Count == 0)
                 throw new InvalidOperationException("Input path is empty.");
@@ -56,7 +57,7 @@ namespace osu.Framework.Utils
         /// <param name="cumulativeDistances">The cumulative distances of the path.</param>
         /// <param name="t">The point on the path to get the tangent from.</param>
         /// <returns>The tangent at the given point on the path.</returns>
-        private Vector2 getTangentAt(List<Vector2> path, List<float> cumulativeDistances, float t)
+        private static Vector2 getTangentAt(List<Vector2> path, List<float> cumulativeDistances, float t)
         {
             Vector2 xminus = getPathAt(path, cumulativeDistances, t - FdEpsilon);
             Vector2 xplus = getPathAt(path, cumulativeDistances, t + FdEpsilon);
@@ -71,7 +72,7 @@ namespace osu.Framework.Utils
         /// <param name="cumulativeDistances">The cumulative distances of the path.</param>
         /// <param name="t">The point on the path to get the rotation from.</param>
         /// <returns>The amount of rotation (in radians) at the given point on the path.</returns>
-        private float getWindingAt(List<Vector2> path, List<float> cumulativeDistances, float t)
+        private static float getWindingAt(List<Vector2> path, List<float> cumulativeDistances, float t)
         {
             Vector2 xminus = getPathAt(path, cumulativeDistances, t - FdEpsilon);
             Vector2 x = getPathAt(path, cumulativeDistances, t);
@@ -272,7 +273,8 @@ namespace osu.Framework.Utils
             return cornerT;
         }
 
-        private void regenerateApproximatedPathControlPoints() {
+        private void regenerateApproximatedPathControlPoints()
+        {
             // Approximating a given input path with a BSpline has three stages:
             //  1. Fit a dense-ish BSpline (with one control point in FdEpsilon-sized intervals) to the input path.
             //     The purpose of this dense BSpline is an initial smoothening that permits reliable curvature
@@ -305,6 +307,14 @@ namespace osu.Framework.Utils
                 float t0 = cornerTs[i - 1] + stepSize * 2;
                 float t1 = cornerTs[i] - stepSize * 2;
 
+                Vector2 c0 = getPathAt(vertices, distances, cornerTs[i - 1]);
+                Vector2 c1 = getPathAt(vertices, distances, cornerTs[i]);
+                Line linearConnection = new Line(c0, c1);
+
+                var tmp = new List<Vector2>();
+                bool allOnLine = true;
+                float onLineThreshold = 10 * stepSize;
+
                 if (t1 > t0)
                 {
                     int nSteps = (int)((t1 - t0) / stepSize);
@@ -322,7 +332,11 @@ namespace osu.Framework.Utils
                         float t = t0 + j * stepSize;
                         if (currentAngle > controlPointSpacing)
                         {
-                            cps.Add(getPathAt(vertices, distances, t));
+                            Vector2 p = getPathAt(vertices, distances, t);
+                            if (linearConnection.DistanceSquaredToPoint(p) > onLineThreshold * onLineThreshold)
+                                allOnLine = false;
+
+                            tmp.Add(p);
                             currentAngle -= controlPointSpacing;
                         }
 
@@ -330,17 +344,18 @@ namespace osu.Framework.Utils
                     }
                 }
 
+                if (!allOnLine)
+                    cps.AddRange(tmp);
+
                 // Insert the corner at the end of the segment as a sharp control point consisting of
                 // degree many regular control points, meaning that the BSpline will have a kink here.
                 // Special case the last corner which will be the end of the path and thus automatically
                 // duplicated degree times by BSplineToPiecewiseLinear down the line.
-                Vector2 corner = getPathAt(vertices, distances, cornerTs[i]);
-                if (i == cornerTs.Count - 1) {
-                    cps.Add(corner);
-                } else {
+                if (i == cornerTs.Count - 1)
+                    cps.Add(c1);
+                else
                     for (int j = 0; j < degree; ++j)
-                        cps.Add(corner);
-                }
+                        cps.Add(c1);
             }
         }
 
@@ -377,7 +392,7 @@ namespace osu.Framework.Utils
             }
 
             float inputDistance = Vector2.Distance(v, inputPath[^1]);
-            if (inputDistance < FdEpsilon)
+            if (inputDistance < FdEpsilon * 2)
                 return;
 
             inputPath.Add(v);
