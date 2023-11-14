@@ -11,13 +11,13 @@ namespace osu.Framework.Graphics
 {
     public struct DrawInfo : IEquatable<DrawInfo>
     {
-        public Matrix3 Matrix;
-        public Matrix3 MatrixInverse;
+        public Matrix4 Matrix;
+        public Matrix4 MatrixInverse;
 
-        public DrawInfo(Matrix3? matrix = null, Matrix3? matrixInverse = null)
+        public DrawInfo(Matrix4? matrix = null, Matrix4? matrixInverse = null)
         {
-            Matrix = matrix ?? Matrix3.Identity;
-            MatrixInverse = matrixInverse ?? Matrix3.Identity;
+            Matrix = matrix ?? Matrix4.Identity;
+            MatrixInverse = matrixInverse ?? Matrix4.Identity;
         }
 
         /// <summary>

@@ -165,7 +165,7 @@ namespace osu.Framework.Graphics
             {
                 ScreenSpaceAABB = screenSpaceMaskingRect,
                 MaskingRect = screenSpaceDrawRectangle,
-                ToMaskingSpace = Matrix3.Identity,
+                ToMaskingSpace = Matrix4.Identity,
                 BlendRange = 1,
                 AlphaExponent = 1,
             }, true);

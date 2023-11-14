@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics.Primitives
                 new Vector2(rectangle.Left, rectangle.Bottom),
                 new Vector2(rectangle.Right, rectangle.Bottom));
 
-        public static Quad operator *(Quad r, Matrix3 m) =>
+        public static Quad operator *(Quad r, Matrix4 m) =>
             new Quad(
                 Vector2Extensions.Transform(r.TopLeft, m),
                 Vector2Extensions.Transform(r.TopRight, m),

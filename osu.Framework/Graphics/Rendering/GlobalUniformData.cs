@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Rendering
         public UniformBool IsUvOriginTopLeft;
 
         public UniformMatrix4 ProjMatrix;
-        public UniformMatrix3 ToMaskingSpace;
+        public UniformMatrix4 ToMaskingSpace;
         public UniformBool IsMasking;
         public UniformFloat CornerRadius;
         public UniformFloat CornerExponent;

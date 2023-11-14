@@ -253,7 +253,7 @@ namespace osu.Framework.Graphics.Rendering
             {
                 ScreenSpaceAABB = new RectangleI(0, 0, (int)windowSize.X, (int)windowSize.Y),
                 MaskingRect = new RectangleF(0, 0, windowSize.X, windowSize.Y),
-                ToMaskingSpace = Matrix3.Identity,
+                ToMaskingSpace = Matrix4.Identity,
                 BlendRange = 1,
                 AlphaExponent = 1,
                 CornerExponent = 2.5f,

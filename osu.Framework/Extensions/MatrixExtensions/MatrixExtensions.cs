@@ -8,12 +8,12 @@ namespace osu.Framework.Extensions.MatrixExtensions
 {
     public static class MatrixExtensions
     {
-        public static void TranslateFromLeft(ref Matrix3 m, Vector2 v)
+        public static void TranslateFromLeft(ref Matrix4 m, Vector2 v)
         {
             m.Row2 += m.Row0 * v.X + m.Row1 * v.Y;
         }
 
-        public static void TranslateFromRight(ref Matrix3 m, Vector2 v)
+        public static void TranslateFromRight(ref Matrix4 m, Vector2 v)
         {
             //m.Column0 += m.Column2 * v.X;
             m.M11 += m.M13 * v.X;
@@ -26,17 +26,17 @@ namespace osu.Framework.Extensions.MatrixExtensions
             m.M32 += m.M33 * v.Y;
         }
 
-        public static void RotateFromLeft(ref Matrix3 m, float radians)
+        public static void RotateFromLeft(ref Matrix4 m, float radians)
         {
             float cos = MathF.Cos(radians);
             float sin = MathF.Sin(radians);
 
-            Vector3 row0 = m.Row0 * cos + m.Row1 * sin;
+            Vector4 row0 = m.Row0 * cos + m.Row1 * sin;
             m.Row1 = m.Row1 * cos - m.Row0 * sin;
             m.Row0 = row0;
         }
 
-        public static void RotateFromRight(ref Matrix3 m, float radians)
+        public static void RotateFromRight(ref Matrix4 m, float radians)
         {
             float cos = MathF.Cos(radians);
             float sin = MathF.Sin(radians);
@@ -57,13 +57,13 @@ namespace osu.Framework.Extensions.MatrixExtensions
             m.M31 = m31;
         }
 
-        public static void ScaleFromLeft(ref Matrix3 m, Vector2 v)
+        public static void ScaleFromLeft(ref Matrix4 m, Vector2 v)
         {
             m.Row0 *= v.X;
             m.Row1 *= v.Y;
         }
 
-        public static void ScaleFromRight(ref Matrix3 m, Vector2 v)
+        public static void ScaleFromRight(ref Matrix4 m, Vector2 v)
         {
             //m.Column0 *= v.X;
             m.M11 *= v.X;
@@ -83,9 +83,9 @@ namespace osu.Framework.Extensions.MatrixExtensions
         /// </summary>
         /// <param name="m">The matrix to apply the shearing operation to.</param>
         /// <param name="v">The X and Y amounts of shearing.</param>
-        public static void ShearFromLeft(ref Matrix3 m, Vector2 v)
+        public static void ShearFromLeft(ref Matrix4 m, Vector2 v)
         {
-            Vector3 row0 = m.Row0 + m.Row1 * v.Y + m.Row0 * v.X * v.Y;
+            Vector4 row0 = m.Row0 + m.Row1 * v.Y + m.Row0 * v.X * v.Y;
             m.Row1 += m.Row0 * v.X;
             m.Row0 = row0;
         }
@@ -97,7 +97,7 @@ namespace osu.Framework.Extensions.MatrixExtensions
         /// </summary>
         /// <param name="m">The matrix to apply the shearing operation to.</param>
         /// <param name="v">The X and Y amounts of shearing.</param>
-        public static void ShearFromRight(ref Matrix3 m, Vector2 v)
+        public static void ShearFromRight(ref Matrix4 m, Vector2 v)
         {
             float xy = v.X * v.Y;
 
@@ -116,7 +116,7 @@ namespace osu.Framework.Extensions.MatrixExtensions
             m.M31 = m31;
         }
 
-        public static void FastInvert(ref Matrix3 value)
+        public static void FastInvert(ref Matrix4 value)
         {
             float d11 = value.M22 * value.M33 + value.M23 * -value.M32;
             float d12 = value.M21 * value.M33 + value.M23 * -value.M31;
@@ -126,7 +126,7 @@ namespace osu.Framework.Extensions.MatrixExtensions
 
             if (Math.Abs(det) == 0.0f)
             {
-                value = Matrix3.Zero;
+                value = Matrix4.Zero;
                 return;
             }
 
