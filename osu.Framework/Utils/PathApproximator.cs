@@ -14,7 +14,7 @@ namespace osu.Framework.Utils
     /// </summary>
     public static class PathApproximator
     {
-        private const float bezier_tolerance = 0.25f;
+        public const float BEZIER_TOLERANCE = 0.25f;
 
         /// <summary>
         /// The amount of pieces to calculate for each control point quadruplet.
@@ -313,7 +313,7 @@ namespace osu.Framework.Utils
         {
             for (int i = 1; i < controlPoints.Length - 1; i++)
             {
-                if ((controlPoints[i - 1] - 2 * controlPoints[i] + controlPoints[i + 1]).LengthSquared > bezier_tolerance * bezier_tolerance * 4)
+                if ((controlPoints[i - 1] - 2 * controlPoints[i] + controlPoints[i + 1]).LengthSquared > BEZIER_TOLERANCE * BEZIER_TOLERANCE * 4)
                     return false;
             }
 
