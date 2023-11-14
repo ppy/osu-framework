@@ -20,7 +20,7 @@ void main(void)
 {
     // Transform from screen space to masking space.
     highp vec4 maskingPos = g_ToMaskingSpace * vec4(m_Position, 1.0, 1.0);
-    v_MaskingPosition = maskingPos.xy / maskingPos.z;
+    v_MaskingPosition = maskingPos.xy / maskingPos.w;
 
     v_Colour = m_Colour;
     v_TexCoord = m_TexCoord;

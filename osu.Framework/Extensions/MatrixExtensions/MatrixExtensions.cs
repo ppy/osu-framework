@@ -10,20 +10,43 @@ namespace osu.Framework.Extensions.MatrixExtensions
     {
         public static void TranslateFromLeft(ref Matrix4 m, Vector2 v)
         {
-            m.Row2 += m.Row0 * v.X + m.Row1 * v.Y;
+            m.Row3 += m.Row0 * v.X + m.Row1 * v.Y;
+        }
+
+        public static void TranslateFromLeft(ref Matrix4 m, Vector3 v)
+        {
+            m.Row3 += m.Row0 * v.X + m.Row1 * v.Y + m.Row2 * v.Z;
         }
 
         public static void TranslateFromRight(ref Matrix4 m, Vector2 v)
         {
             //m.Column0 += m.Column2 * v.X;
-            m.M11 += m.M13 * v.X;
-            m.M21 += m.M23 * v.X;
-            m.M31 += m.M33 * v.X;
+            m.M11 += m.M14 * v.X;
+            m.M21 += m.M24 * v.X;
+            m.M41 += m.M44 * v.X;
 
             //m.Column1 += m.Column2 * v.Y;
-            m.M12 += m.M13 * v.Y;
-            m.M22 += m.M23 * v.Y;
-            m.M32 += m.M33 * v.Y;
+            m.M12 += m.M14 * v.Y;
+            m.M22 += m.M24 * v.Y;
+            m.M42 += m.M44 * v.Y;
+        }
+
+        public static void TranslateFromRight(ref Matrix4 m, Vector3 v)
+        {
+            //m.Column0 += m.Column2 * v.X;
+            m.M11 += m.M14 * v.X;
+            m.M21 += m.M24 * v.X;
+            m.M41 += m.M34 * v.X;
+
+            //m.Column1 += m.Column2 * v.Y;
+            m.M12 += m.M14 * v.Y;
+            m.M22 += m.M24 * v.Y;
+            m.M42 += m.M34 * v.Y;
+
+            //m.Column2 += m.Column3 * v.Z;
+            m.M13 += m.M14 * v.Z;
+            m.M23 += m.M24 * v.Z;
+            m.M43 += m.M34 * v.Z;
         }
 
         public static void RotateFromLeft(ref Matrix4 m, float radians)
@@ -116,7 +139,7 @@ namespace osu.Framework.Extensions.MatrixExtensions
             m.M31 = m31;
         }
 
-        public static void FastInvert(ref Matrix4 value)
+        public static void FastInvert(ref Matrix3 value)
         {
             float d11 = value.M22 * value.M33 + value.M23 * -value.M32;
             float d12 = value.M21 * value.M33 + value.M23 * -value.M31;
@@ -126,7 +149,7 @@ namespace osu.Framework.Extensions.MatrixExtensions
 
             if (Math.Abs(det) == 0.0f)
             {
-                value = Matrix4.Zero;
+                value = Matrix3.Zero;
                 return;
             }
 

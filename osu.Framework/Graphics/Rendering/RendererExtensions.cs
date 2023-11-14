@@ -268,12 +268,6 @@ namespace osu.Framework.Graphics.Rendering
             currentMasking.ToMaskingSpace = matrix * currentMasking.ToMaskingSpace;
 
             renderer.PushMaskingInfo(currentMasking, true);
-
-            matrix.Row3.X = matrix.Row2.X;
-            matrix.Row2.X = 0;
-            matrix.Row3.Y = matrix.Row2.Y;
-            matrix.Row2.Y = 0;
-
             renderer.PushProjectionMatrix(matrix * renderer.ProjectionMatrix);
         }
 
