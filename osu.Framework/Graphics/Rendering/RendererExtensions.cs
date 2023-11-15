@@ -3,7 +3,6 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using Microsoft.Diagnostics.Runtime;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Primitives;
@@ -68,7 +67,7 @@ namespace osu.Framework.Graphics.Rendering
 
             vertexAction(new TexturedVertex2D(renderer)
             {
-                Position = vertexTriangle.P0,
+                Position = new Vector3(vertexTriangle.P0),
                 TexturePosition = new Vector2((inflatedCoordRect.Left + inflatedCoordRect.Right) / 2, inflatedCoordRect.Top),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
@@ -76,7 +75,7 @@ namespace osu.Framework.Graphics.Rendering
             });
             vertexAction(new TexturedVertex2D(renderer)
             {
-                Position = vertexTriangle.P1,
+                Position = new Vector3(vertexTriangle.P1),
                 TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
@@ -84,7 +83,7 @@ namespace osu.Framework.Graphics.Rendering
             });
             vertexAction(new TexturedVertex2D(renderer)
             {
-                Position = (vertexTriangle.P1 + vertexTriangle.P2) / 2,
+                Position = new Vector3((vertexTriangle.P1 + vertexTriangle.P2) / 2),
                 TexturePosition = new Vector2((inflatedCoordRect.Left + inflatedCoordRect.Right) / 2, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
@@ -92,7 +91,7 @@ namespace osu.Framework.Graphics.Rendering
             });
             vertexAction(new TexturedVertex2D(renderer)
             {
-                Position = vertexTriangle.P2,
+                Position = new Vector3(vertexTriangle.P2),
                 TexturePosition = new Vector2(inflatedCoordRect.Right, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
@@ -249,17 +248,18 @@ namespace osu.Framework.Graphics.Rendering
 
         public static void PushPerspective(this IRenderer renderer, RectangleF perspective)
         {
-            float f = 2f;
+            float fovY = 45;
+            float focalLength = 2 * MathF.Tan(0.5f * MathUtils.DegreesToRadians(fovY));
             float zNear = 0.1f;
-            float zFar = 10f;
+            float zFar = 1000f;
 
             Matrix4 mat = new Matrix4(
-                f / perspective.Width, 0, 0, 0,
-                0, -f / perspective.Height, 0, 0,
+                focalLength * perspective.Height / perspective.Width, 0, 0, 0,
+                0, -focalLength, 0, 0,
                 0, 0, (zFar + zNear) / (zNear - zFar), 1.0f,
                 0, 0, 2 * zFar * zNear / (zNear - zFar), 0);
 
-            mat = Matrix4.CreateTranslation(-0.5f * perspective.Width, -0.5f * perspective.Height, 0.0f) * mat;
+            mat = Matrix4.CreateTranslation(-0.5f * perspective.Width, -0.5f * perspective.Height, perspective.Height * focalLength / 2) * mat;
 
             renderer.PushProjectionMatrix(mat);
         }

@@ -49,6 +49,9 @@ namespace osu.Framework.Graphics
             result.X = mat.Row0.X * pos.X + mat.Row1.X * pos.Y + mat.Row2.X * pos.Z + mat.Row3.X;
             result.Y = mat.Row0.Y * pos.X + mat.Row1.Y * pos.Y + mat.Row2.Y * pos.Z + mat.Row3.Y;
             result.Z = mat.Row0.Z * pos.X + mat.Row1.Z * pos.Y + mat.Row2.Z * pos.Z + mat.Row3.Z;
+
+            float w = mat.Row0.W * pos.X + mat.Row1.W * pos.Y + mat.Row2.W * pos.Z + mat.Row3.W;
+            result /= w;
         }
 
         /// <summary>

@@ -1644,10 +1644,10 @@ namespace osu.Framework.Graphics
 
                 ci.Colour.ApplyChild(ourColour,
                     new Quad(
-                        Vector2.Divide(interp.TopLeft, parentSize),
-                        Vector2.Divide(interp.TopRight, parentSize),
-                        Vector2.Divide(interp.BottomLeft, parentSize),
-                        Vector2.Divide(interp.BottomRight, parentSize)));
+                        Vector2.Divide(interp.TopLeft.Xy, parentSize),
+                        Vector2.Divide(interp.TopRight.Xy, parentSize),
+                        Vector2.Divide(interp.BottomLeft.Xy, parentSize),
+                        Vector2.Divide(interp.BottomRight.Xy, parentSize)));
             }
 
             return ci;

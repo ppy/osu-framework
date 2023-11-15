@@ -206,7 +206,7 @@ namespace osu.Framework.Graphics
                 return;
 
             // Clip the screen space draw rectangle to the bounds of the root node
-            RectangleF clipBounds = new RectangleF(rootNode.ScreenSpaceDrawQuad.TopLeft, rootNode.ScreenSpaceDrawQuad.Size);
+            RectangleF clipBounds = new RectangleF(rootNode.ScreenSpaceDrawQuad.TopLeft.Xy, rootNode.ScreenSpaceDrawQuad.Size);
             screenSpaceDrawRectangle.Intersect(clipBounds);
         }
 

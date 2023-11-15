@@ -170,7 +170,7 @@ namespace osu.Framework.Tests.Visual.Containers
             });
 
             AddStep("Scroll to 0", () => scrollContainer.ScrollTo(0, false));
-            AddAssert("Content position at top", () => Precision.AlmostEquals(scrollContainer.ScreenSpaceDrawQuad.TopLeft, scrollContainer.ScrollContent.ScreenSpaceDrawQuad.TopLeft));
+            AddAssert("Content position at top", () => Precision.AlmostEquals(scrollContainer.ScreenSpaceDrawQuad.TopLeft.Xy, scrollContainer.ScrollContent.ScreenSpaceDrawQuad.TopLeft.Xy));
         }
 
         [Test]
@@ -245,9 +245,9 @@ namespace osu.Framework.Tests.Visual.Containers
                 InputManager.MoveMouseTo(clampedContainer.Scrollbar.ToScreenSpace(clampedContainer.Scrollbar.LayoutRectangle.Centre + new Vector2(0, -10f)));
             });
 
-            AddStep("Move mouse up", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.TopRight - new Vector2(0, 20)));
+            AddStep("Move mouse up", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.TopRight.Xy - new Vector2(0, 20)));
             checkScrollbarPosition(0);
-            AddStep("Move mouse down", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.BottomRight + new Vector2(0, 20)));
+            AddStep("Move mouse down", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.BottomRight.Xy + new Vector2(0, 20)));
             checkScrollbarPosition(250);
             AddStep("Release mouse button", () => InputManager.ReleaseButton(MouseButton.Left));
             checkScrollbarPosition(250);

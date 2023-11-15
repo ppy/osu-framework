@@ -103,7 +103,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 };
             });
 
-            AddAssert("inner box stops at edge of right box", () => Precision.AlmostEquals(fullBox.ScreenSpaceDrawQuad.TopRight, innerBox.ScreenSpaceDrawQuad.TopRight));
+            AddAssert("inner box stops at edge of right box", () => Precision.AlmostEquals(fullBox.ScreenSpaceDrawQuad.TopRight.Xy, innerBox.ScreenSpaceDrawQuad.TopRight.Xy));
         }
     }
 }
