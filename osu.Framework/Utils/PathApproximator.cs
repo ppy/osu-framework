@@ -46,7 +46,7 @@ namespace osu.Framework.Utils
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
         public static List<Vector2> BSplineToPiecewiseLinear(ReadOnlySpan<Vector2> controlPoints, int degree)
         {
-            // Zero-th degree splines would be piecewise-constant, which cannot be represented by the picewise-
+            // Zero-th degree splines would be piecewise-constant, which cannot be represented by the piecewise-
             // linear output of this function. Negative degrees would require rational splines which this code
             // does not support.
             if (degree < 1)
