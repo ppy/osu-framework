@@ -31,7 +31,7 @@ namespace osu.Framework.Utils
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
         public static List<Vector2> BezierToPiecewiseLinear(ReadOnlySpan<Vector2> controlPoints)
         {
-            return BSplineToPiecewiseLinear(controlPoints, controlPoints.Length - 1);
+            return BSplineToPiecewiseLinear(controlPoints, Math.Max(1, controlPoints.Length - 1));
         }
 
         /// <summary>
