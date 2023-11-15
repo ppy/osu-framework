@@ -28,7 +28,8 @@ namespace osu.Framework.Graphics
         /// <param name="rotation">The amount by which to rotate.</param>
         /// <param name="shear">The shear amounts for both directions.</param>
         /// <param name="origin">The center of rotation and scale.</param>
-        public void ApplyTransform(Vector2 translation, Vector2 scale, float rotation, Vector2 shear, Vector2 origin)
+        /// <param name="extraRotation"></param>
+        public void ApplyTransform(Vector2 translation, Vector2 scale, float rotation, Vector2 shear, Vector2 origin, Matrix3 extraRotation)
         {
             if (translation != Vector2.Zero)
             {
@@ -41,6 +42,12 @@ namespace osu.Framework.Graphics
                 float radians = MathUtils.DegreesToRadians(rotation);
                 MatrixExtensions.RotateFromLeft(ref Matrix, radians);
                 MatrixExtensions.RotateFromRight(ref MatrixInverse, -radians);
+            }
+
+            if (extraRotation != Matrix3.Identity)
+            {
+                Matrix = new Matrix4(extraRotation) * Matrix;
+                MatrixInverse *= new Matrix4(extraRotation.Inverted());
             }
 
             if (shear != Vector2.Zero)

@@ -238,7 +238,8 @@ namespace osu.Framework.Graphics
             lock (LoadLock)
             {
                 if (!isDirectAsyncContext && IsLongRunning)
-                    throw new InvalidOperationException($"Tried to load long-running drawable type {GetType().ReadableName()} in a non-direct async context. See https://git.io/Je1YF for more details.");
+                    throw new InvalidOperationException(
+                        $"Tried to load long-running drawable type {GetType().ReadableName()} in a non-direct async context. See https://git.io/Je1YF for more details.");
 
                 if (IsDisposed)
                     throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
@@ -1567,6 +1568,18 @@ namespace osu.Framework.Graphics
 
         private readonly LayoutValue<DrawInfo> drawInfoBacking = new LayoutValue<DrawInfo>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence);
 
+        private Matrix3 extraRotation = Matrix3.Identity;
+
+        public Matrix3 ExtraRotation
+        {
+            get => extraRotation;
+            set
+            {
+                extraRotation = value;
+                Invalidate();
+            }
+        }
+
         private DrawInfo computeDrawInfo()
         {
             DrawInfo di = Parent?.DrawInfo ?? new DrawInfo(null);
@@ -1577,7 +1590,7 @@ namespace osu.Framework.Graphics
             if (Parent != null)
                 pos += Parent.ChildOffset;
 
-            di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
+            di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition, ExtraRotation);
 
             return di;
         }

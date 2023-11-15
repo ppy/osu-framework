@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using Microsoft.Diagnostics.Runtime;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Primitives;
@@ -243,7 +244,24 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="ortho">The rectangle to create the orthographic projection from.</param>
         public static void PushOrtho(this IRenderer renderer, RectangleF ortho)
         {
-            renderer.PushProjectionMatrix(Matrix4.CreateOrthographicOffCenter(ortho.Left, ortho.Right, ortho.Bottom, ortho.Top, -1, 1));
+            renderer.PushProjectionMatrix(Matrix4.CreateOrthographicOffCenter(ortho.Left, ortho.Right, ortho.Bottom, ortho.Top, 0.1f, 10));
+        }
+
+        public static void PushPerspective(this IRenderer renderer, RectangleF perspective)
+        {
+            float f = 2f;
+            float zNear = 0.1f;
+            float zFar = 10f;
+
+            Matrix4 mat = new Matrix4(
+                f / perspective.Width, 0, 0, 0,
+                0, -f / perspective.Height, 0, 0,
+                0, 0, (zFar + zNear) / (zNear - zFar), 1.0f,
+                0, 0, 2 * zFar * zNear / (zNear - zFar), 0);
+
+            mat = Matrix4.CreateTranslation(-0.5f * perspective.Width, -0.5f * perspective.Height, 0.0f) * mat;
+
+            renderer.PushProjectionMatrix(mat);
         }
 
         /// <summary>

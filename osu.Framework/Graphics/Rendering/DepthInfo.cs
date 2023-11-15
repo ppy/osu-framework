@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// The default depth properties, as defined by OpenGL.
         /// </summary>
-        public static DepthInfo Default => new DepthInfo(true);
+        public static DepthInfo Default => new DepthInfo(false);
 
         /// <summary>
         /// Whether depth testing should occur.

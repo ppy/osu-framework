@@ -17,10 +17,11 @@ namespace osu.Framework.Graphics.Rendering
 
         public UniformMatrix4 ProjMatrix;
         public UniformMatrix4 ToMaskingSpace;
+        public UniformVector2 Viewport;
         public UniformBool IsMasking;
         public UniformFloat CornerRadius;
         public UniformFloat CornerExponent;
-        private readonly UniformPadding4 pad2;
+        private readonly UniformPadding12 pad2;
 
         public UniformVector4 MaskingRect;
         public UniformFloat BorderThickness;

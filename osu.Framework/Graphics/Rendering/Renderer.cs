@@ -193,7 +193,8 @@ namespace osu.Framework.Graphics.Rendering
             {
                 IsDepthRangeZeroToOne = IsDepthRangeZeroToOne,
                 IsClipSpaceYInverted = IsClipSpaceYInverted,
-                IsUvOriginTopLeft = IsUvOriginTopLeft
+                IsUvOriginTopLeft = IsUvOriginTopLeft,
+                Viewport = (Vector2)Viewport.Size
             };
 
             Debug.Assert(defaultQuadBatch != null);
@@ -329,7 +330,10 @@ namespace osu.Framework.Graphics.Rendering
         /// The draw depth is written to every vertex added to <see cref="IVertexBuffer"/>s.
         /// </summary>
         /// <param name="drawDepth">The draw depth.</param>
-        internal void SetDrawDepth(float drawDepth) => BackbufferDrawDepth = drawDepth;
+        internal void SetDrawDepth(float drawDepth)
+        {
+            BackbufferDrawDepth = 1.5f;
+        }
 
         /// <summary>
         /// Performs a once-off initialisation of this <see cref="Renderer"/>.
@@ -442,7 +446,7 @@ namespace osu.Framework.Graphics.Rendering
                 actualRect.Height = -viewport.Height;
             }
 
-            this.PushOrtho(viewport);
+            this.PushPerspective(viewport);
 
             viewportStack.Push(actualRect);
             setViewport(viewport);
