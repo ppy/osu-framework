@@ -330,10 +330,7 @@ namespace osu.Framework.Graphics.Rendering
         /// The draw depth is written to every vertex added to <see cref="IVertexBuffer"/>s.
         /// </summary>
         /// <param name="drawDepth">The draw depth.</param>
-        internal void SetDrawDepth(float drawDepth)
-        {
-            BackbufferDrawDepth = 1.5f;
-        }
+        internal void SetDrawDepth(float drawDepth) => BackbufferDrawDepth = drawDepth;
 
         /// <summary>
         /// Performs a once-off initialisation of this <see cref="Renderer"/>.
@@ -484,19 +481,16 @@ namespace osu.Framework.Graphics.Rendering
         public void PushScissor(RectangleI scissor)
         {
             scissorRectStack.Push(scissor);
-            setScissor(scissor);
         }
 
         public void PushScissorState(bool enabled)
         {
             scissorStateStack.Push(enabled);
-            setScissorState(enabled);
         }
 
         public void PushScissorOffset(Vector2I offset)
         {
             scissorOffsetStack.Push(offset);
-            setScissorOffset(offset);
         }
 
         public void PopScissor()
@@ -504,7 +498,6 @@ namespace osu.Framework.Graphics.Rendering
             Trace.Assert(scissorRectStack.Count > 1);
 
             scissorRectStack.Pop();
-            setScissor(scissorRectStack.Peek());
         }
 
         public void PopScissorState()
@@ -512,7 +505,6 @@ namespace osu.Framework.Graphics.Rendering
             Trace.Assert(scissorStateStack.Count > 1);
 
             scissorStateStack.Pop();
-            setScissorState(scissorStateStack.Peek());
         }
 
         public void PopScissorOffset()
@@ -520,7 +512,6 @@ namespace osu.Framework.Graphics.Rendering
             Trace.Assert(scissorOffsetStack.Count > 1);
 
             scissorOffsetStack.Pop();
-            setScissorOffset(scissorOffsetStack.Peek());
         }
 
         private void setScissor(RectangleI scissor)

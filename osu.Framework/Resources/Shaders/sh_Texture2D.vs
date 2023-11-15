@@ -19,7 +19,7 @@ layout(location = 4) out mediump vec2 v_BlendRange;
 void main(void)
 {
     // Transform from screen space to masking space.
-    highp vec4 maskingPos = g_ToMaskingSpace * vec4(m_Position, 1.0, 1.0);
+    highp vec4 maskingPos = g_ToMaskingSpace * vec4(m_Position, 1.0 , 1.0);
     v_MaskingPosition = maskingPos.xy / maskingPos.w;
 
     v_Colour = m_Colour;
@@ -27,8 +27,11 @@ void main(void)
     v_TexRect = m_TexRect;
     v_BlendRange = m_BlendRange;
 
-    gl_Position = g_ProjMatrix * vec4(m_Position, m_BackbufferDrawDepth, 1.0);
+    gl_Position = g_ProjMatrix * vec4(m_Position, 1.0, 1.0);
     gl_Position /= gl_Position.w;
+    
+    if (g_BackbufferDraw)
+        gl_Position.z = m_BackbufferDrawDepth;
 }
 
 #endif

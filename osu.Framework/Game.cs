@@ -108,6 +108,8 @@ namespace osu.Framework
         {
             RelativeSizeAxes = Axes.Both;
 
+            ExtraRotation = Matrix3.CreateRotationX(MathF.PI / 4);
+
             base.AddInternal(content = new Container
             {
                 Anchor = Anchor.Centre,
