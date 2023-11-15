@@ -5,7 +5,6 @@ using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osuTK;
@@ -31,8 +30,7 @@ namespace osu.Framework.Tests.Visual
                 Child = sprite = new Sprite
                 {
                     RelativeSizeAxes = Axes.Both
-                },
-                ExtraRotation = Matrix3.CreateRotationX(MathF.PI / 2.5f)
+                }
             });
 
             AddSliderStep("X Rotation", 0, MathF.PI, 0, v =>
@@ -56,7 +54,7 @@ namespace osu.Framework.Tests.Visual
 
         private void updateRotation()
         {
-            target.ExtraRotation = Matrix3.CreateRotationX(xRotation) * Matrix3.CreateRotationY(yRotation);
+            target.TransformTo(nameof(ExtraRotation), new Quaternion(xRotation, yRotation, 0), 500, Easing.OutQuint);
         }
     }
 }

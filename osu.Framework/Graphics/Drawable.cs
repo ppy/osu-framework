@@ -1568,14 +1568,14 @@ namespace osu.Framework.Graphics
 
         private readonly LayoutValue<DrawInfo> drawInfoBacking = new LayoutValue<DrawInfo>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence);
 
-        private Matrix3 extraRotation = Matrix3.Identity;
+        private Matrix4 extraRotationMatrix = Matrix4.Identity;
 
-        public Matrix3 ExtraRotation
+        public Quaternion ExtraRotation
         {
-            get => extraRotation;
+            get => extraRotationMatrix.ExtractRotation();
             set
             {
-                extraRotation = value;
+                extraRotationMatrix = Matrix4.CreateFromQuaternion(value);
                 Invalidate();
             }
         }
@@ -1590,7 +1590,7 @@ namespace osu.Framework.Graphics
             if (Parent != null)
                 pos += Parent.ChildOffset;
 
-            di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition, ExtraRotation);
+            di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition, extraRotationMatrix);
 
             return di;
         }

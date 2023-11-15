@@ -66,8 +66,6 @@ namespace osu.Framework.Graphics.Containers
 
             private int sourceChildrenCount;
 
-            private bool hasExtraRotation;
-
             public CompositeDrawableDrawNode(CompositeDrawable source)
                 : base(source)
             {
@@ -89,8 +87,6 @@ namespace osu.Framework.Graphics.Containers
                 // Normalise to handle negative sizes, and clamp the shrinkage to prevent size from going negative.
                 RectangleF shrunkDrawRectangle = Source.DrawRectangle.Normalize();
                 shrunkDrawRectangle = shrunkDrawRectangle.Shrink(new Vector2(Math.Min(shrunkDrawRectangle.Width / 2, shrinkage), Math.Min(shrunkDrawRectangle.Height / 2, shrinkage)));
-
-                hasExtraRotation = Source.ExtraRotation != Matrix3.Identity;
 
                 maskingInfo = !Source.Masking
                     ? null
