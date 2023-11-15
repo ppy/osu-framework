@@ -35,15 +35,19 @@ namespace osu.Framework.Utils
         }
 
         /// <summary>
-        /// Creates a piecewise-linear approximation of a clamped uniform B-spline with polynomial order degree,
+        /// Creates a piecewise-linear approximation of a clamped uniform B-spline with polynomial order <paramref name="degree"/>,
         /// by dividing it into a series of bezier control points at its knots, then adaptively repeatedly
         /// subdividing those until their approximation error vanishes below a given threshold.
-        /// Retains previous bezier approximation functionality when degree is 0 or too large to create knots.
-        /// Algorithm unsuitable for large values of degree with many knots.
         /// </summary>
+        /// <remarks>
+        /// Does nothing if <paramref name="controlPoints"/> has zero points or one point.
+        /// Generalises to bezier approximation functionality when <paramref name="degree"/> is too large to create knots.
+        /// Algorithm unsuitable for large values of <paramref name="degree"/> with many knots.
+        /// </remarks>
         /// <param name="controlPoints">The control points.</param>
         /// <param name="degree">The polynomial order.</param>
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="degree"/> was less than 1.</exception>
         public static List<Vector2> BSplineToPiecewiseLinear(ReadOnlySpan<Vector2> controlPoints, int degree)
         {
             // Zero-th degree splines would be piecewise-constant, which cannot be represented by the piecewise-
