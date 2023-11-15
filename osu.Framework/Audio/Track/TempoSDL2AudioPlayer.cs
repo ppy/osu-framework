@@ -147,7 +147,6 @@ namespace osu.Framework.Audio.Track
         public override void Reset(bool resetPosition = true)
         {
             base.Reset(resetPosition);
-            soundTouch?.Flush();
             doneFilling = false;
             donePlaying = false;
         }
@@ -161,6 +160,12 @@ namespace osu.Framework.Audio.Track
         }
 
         protected override double GetProcessingLatency() => base.GetProcessingLatency() + (double)GetTempoLatencyInSamples() / SrcRate * 1000.0d;
+
+        public override void Flush()
+        {
+            base.Flush();
+            soundTouch?.Flush();
+        }
 
         public override void Seek(double seek)
         {

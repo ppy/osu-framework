@@ -74,6 +74,11 @@ namespace osu.Framework.Audio
             return resampler.GetCurrentLatency() * 1000.0d;
         }
 
+        public virtual void Flush()
+        {
+            resampler?.Reset();
+        }
+
         /// <summary>
         /// Returns rate adjusted audio samples. It calls a parent method if <see cref="RelativeRate"/> is 1.
         /// </summary>

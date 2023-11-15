@@ -174,9 +174,7 @@ namespace osu.Framework.Audio.Track
             if (resetPosition)
             {
                 SaveSeek = 0;
-
-                if (AudioData != null)
-                    AudioData.Position = 0;
+                Seek(0);
             }
         }
 
@@ -213,6 +211,7 @@ namespace osu.Framework.Audio.Track
             {
                 SaveSeek = 0;
                 AudioData.Position = Math.Clamp(tmp, 0, AudioDataLength - 1);
+                Flush();
             }
         }
 
