@@ -31,33 +31,55 @@ namespace osu.Framework.Utils
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
         public static List<Vector2> BezierToPiecewiseLinear(ReadOnlySpan<Vector2> controlPoints)
         {
-            return BSplineToPiecewiseLinear(controlPoints, 0);
+            return BSplineToPiecewiseLinear(controlPoints, controlPoints.Length - 1);
         }
 
         /// <summary>
-        /// Creates a piecewise-linear approximation of a clamped uniform B-spline with polynomial order degree,
+        /// Creates a piecewise-linear approximation of a clamped uniform B-spline with polynomial order <paramref name="degree"/>,
         /// by dividing it into a series of bezier control points at its knots, then adaptively repeatedly
         /// subdividing those until their approximation error vanishes below a given threshold.
-        /// Retains previous bezier approximation functionality when degree is 0 or too large to create knots.
-        /// Algorithm unsuitable for large values of degree with many knots.
         /// </summary>
+        /// <remarks>
+        /// Does nothing if <paramref name="controlPoints"/> has zero points or one point.
+        /// Generalises to bezier approximation functionality when <paramref name="degree"/> is too large to create knots.
+        /// Algorithm unsuitable for large values of <paramref name="degree"/> with many knots.
+        /// </remarks>
         /// <param name="controlPoints">The control points.</param>
         /// <param name="degree">The polynomial order.</param>
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="degree"/> was less than 1.</exception>
         public static List<Vector2> BSplineToPiecewiseLinear(ReadOnlySpan<Vector2> controlPoints, int degree)
         {
+            // Zero-th degree splines would be piecewise-constant, which cannot be represented by the piecewise-
+            // linear output of this function. Negative degrees would require rational splines which this code
+            // does not support.
+            if (degree < 1)
+                throw new ArgumentOutOfRangeException(nameof(degree), $"{nameof(degree)} must be >=1 but was {degree}.");
+
+            // Spline fitting does not make sense when the input contains no points or just one point. In this case
+            // the user likely wants this function to behave like a no-op.
+            if (controlPoints.Length < 2)
+                return controlPoints.Length == 0 ? new List<Vector2>() : new List<Vector2> { controlPoints[0] };
+
+            // With fewer control points than the degree, splines can not be unambiguously fitted. Rather than erroring
+            // out, we set the degree to the minimal number that permits a unique fit to avoid special casing in
+            // incremental spline building algorithms that call this function.
+            degree = Math.Min(degree, controlPoints.Length - 1);
+
             List<Vector2> output = new List<Vector2>();
             int pointCount = controlPoints.Length - 1;
-
-            if (pointCount < 0)
-                return output;
 
             Stack<Vector2[]> toFlatten = new Stack<Vector2[]>();
             Stack<Vector2[]> freeBuffers = new Stack<Vector2[]>();
 
             var points = controlPoints.ToArray();
 
-            if (degree > 0 && degree < pointCount)
+            if (degree == pointCount)
+            {
+                // B-spline subdivision unnecessary, degenerate to single bezier.
+                toFlatten.Push(points);
+            }
+            else
             {
                 // Subdivide B-spline into bezier control points at knots.
                 for (int i = 0; i < pointCount - degree; i++)
@@ -85,12 +107,7 @@ namespace osu.Framework.Utils
                 // Reverse the stack so elements can be accessed in order.
                 toFlatten = new Stack<Vector2[]>(toFlatten);
             }
-            else
-            {
-                // B-spline subdivision unnecessary, degenerate to single bezier.
-                degree = pointCount;
-                toFlatten.Push(points);
-            }
+
             // "toFlatten" contains all the curves which are not yet approximated well enough.
             // We use a stack to emulate recursion without the risk of running into a stack overflow.
             // (More specifically, we iteratively and adaptively refine our curve with a
