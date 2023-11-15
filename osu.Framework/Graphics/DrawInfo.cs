@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics
             if (extraRotation != Matrix3.Identity)
             {
                 Matrix = new Matrix4(extraRotation) * Matrix;
-                MatrixInverse *= new Matrix4(extraRotation.Inverted());
+                MatrixInverse *= new Matrix4(Matrix3.Transpose(extraRotation));
             }
 
             if (shear != Vector2.Zero)
