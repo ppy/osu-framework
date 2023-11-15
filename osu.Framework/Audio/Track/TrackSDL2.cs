@@ -65,7 +65,6 @@ namespace osu.Framework.Audio.Track
                     if (done)
                     {
                         player.DonePutting();
-                        data.Stream.Dispose();
                         decodeData = null;
                     }
                 }
