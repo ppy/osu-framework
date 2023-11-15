@@ -84,21 +84,23 @@ namespace osu.Framework.Audio
         /// </summary>
         /// <param name="data">An array to put samples in</param>
         /// <returns>The number of samples put into the array</returns>
-        public virtual int GetRemainingSamples(float[] data)
+        public virtual int GetRemainingSamples(float[] data) => GetRemainingSamples(data, 0, data.Length);
+
+        public virtual int GetRemainingSamples(float[] data, int offset, int needed)
         {
             if (RelativeRate == 0)
                 return 0;
 
             if (resampler == null || RelativeRate == 1)
-                return GetRemainingRawFloats(data, 0, data.Length);
+                return GetRemainingRawFloats(data, offset, needed);
 
-            int requested = data.Length / SrcChannels;
-            int needed = resampler.ResamplePrepare(requested, SrcChannels, out float[] inBuffer, out int inBufferOffset);
-            int rawGot = GetRemainingRawFloats(inBuffer, inBufferOffset, needed * SrcChannels);
+            int requested = needed / SrcChannels;
+            int neededFrames = resampler.ResamplePrepare(requested, SrcChannels, out float[] inBuffer, out int inBufferOffset);
+            int rawGot = GetRemainingRawFloats(inBuffer, inBufferOffset, neededFrames * SrcChannels);
 
             if (rawGot > 0)
             {
-                int got = resampler.ResampleOut(data, 0, rawGot / SrcChannels, requested, SrcChannels);
+                int got = resampler.ResampleOut(data, offset, rawGot / SrcChannels, requested, SrcChannels);
                 return got * SrcChannels;
             }
 
