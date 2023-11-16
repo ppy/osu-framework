@@ -10,8 +10,6 @@ using NUnit.Framework;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
-using osu.Framework.Development;
-using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Audio
 {
@@ -399,24 +397,6 @@ namespace osu.Framework.Tests.Audio
         /// Here we simulate this process on a correctly named thread to avoid endless blocking.
         /// </summary>
         /// <param name="action">The action to perform.</param>
-        public static void RunOnAudioThread(Action action)
-        {
-            var resetEvent = new ManualResetEvent(false);
-
-            new Thread(() =>
-            {
-                ThreadSafety.IsAudioThread = true;
-
-                action();
-
-                resetEvent.Set();
-            })
-            {
-                Name = GameThread.SuffixedThreadNameFor("Audio")
-            }.Start();
-
-            if (!resetEvent.WaitOne(TimeSpan.FromSeconds(10)))
-                throw new TimeoutException();
-        }
+        public static void RunOnAudioThread(Action action) => AudioTestHelper.RunOnAudioThread(action);
     }
 }
