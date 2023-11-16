@@ -94,7 +94,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         private partial class StoreProvidingContainer : Container
         {
             [Cached]
-            private LargeTextureStore largeStore { get; set; } = null!;
+            private LargeTextureStore largeStore = null!;
 
             protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
             {
