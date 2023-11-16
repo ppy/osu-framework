@@ -320,6 +320,40 @@ namespace osu.Framework.Tests.Audio
             Assert.That(track.CurrentTime, Is.EqualTo(track.Length));
         }
 
+        [Test]
+        public void TestSeekBeyondStartTimeWhenRunning()
+        {
+            bool seekSucceeded = false;
+            startPlaybackAt(0);
+            RunOnAudioThread(() => seekSucceeded = track.Seek(-1000));
+
+            Assert.That(seekSucceeded, Is.False);
+            Assert.That(track.IsRunning, Is.False);
+            Assert.That(track.CurrentTime, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TestSeekBeyondEndTimeWhenRunning()
+        {
+            bool seekSucceeded = false;
+            startPlaybackAt(0);
+            RunOnAudioThread(() => seekSucceeded = track.Seek(track.Length + 1000));
+
+            Assert.That(seekSucceeded, Is.False);
+            Assert.That(track.IsRunning, Is.False);
+            Assert.That(track.CurrentTime, Is.EqualTo(track.Length));
+        }
+
+        [Test]
+        public void TestStartDoesNotWorkIfTrackAtEnd()
+        {
+            startPlaybackAt(track.Length);
+            track.Start();
+
+            Assert.That(track.IsRunning, Is.False);
+            Assert.That(track.CurrentTime, Is.EqualTo(track.Length));
+        }
+
         private void testPlaybackRate(double expectedRate)
         {
             const double play_time = 1000;

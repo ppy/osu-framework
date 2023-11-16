@@ -89,6 +89,8 @@ namespace osu.Framework.Audio.Track
 
                 fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(data));
 
+                const int bytes_per_sample = 4;
+
                 int decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode | BassFlags.Float, fileCallbacks.Callbacks, fileCallbacks.Handle);
 
                 float[]? sampleBuffer = null;
@@ -102,7 +104,7 @@ namespace osu.Framework.Audio.Track
                     // Each "point" is generated from a number of samples, each sample contains a number of channels
                     int samplesPerPoint = (int)(info.Frequency * resolution * info.Channels);
 
-                    int bytesPerPoint = samplesPerPoint * TrackBass.BYTES_PER_SAMPLE;
+                    int bytesPerPoint = samplesPerPoint * bytes_per_sample;
 
                     int pointCount = (int)(length / bytesPerPoint);
 
@@ -111,7 +113,7 @@ namespace osu.Framework.Audio.Track
                     // Each iteration pulls in several samples
                     int bytesPerIteration = bytesPerPoint * points_per_iteration;
 
-                    sampleBuffer = ArrayPool<float>.Shared.Rent(bytesPerIteration / TrackBass.BYTES_PER_SAMPLE);
+                    sampleBuffer = ArrayPool<float>.Shared.Rent(bytesPerIteration / bytes_per_sample);
 
                     int pointIndex = 0;
 
@@ -119,7 +121,7 @@ namespace osu.Framework.Audio.Track
                     while (length > 0)
                     {
                         length = Bass.ChannelGetData(decodeStream, sampleBuffer, bytesPerIteration);
-                        int samplesRead = (int)(length / TrackBass.BYTES_PER_SAMPLE);
+                        int samplesRead = (int)(length / bytes_per_sample);
 
                         // Each point is composed of multiple samples
                         for (int i = 0; i < samplesRead && pointIndex < pointCount; i += samplesPerPoint)

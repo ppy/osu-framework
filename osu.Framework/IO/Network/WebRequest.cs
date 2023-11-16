@@ -195,12 +195,18 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// Retrieve the full response body as a UTF8 encoded string.
         /// </summary>
-        /// <returns>The response body.</returns>
+        /// <returns>
+        /// The response body.
+        /// Can be <see langword="null"/> if the request hasn't yet <see cref="Completed"/>, or if it has been <see cref="Aborted"/>.
+        /// </returns>
         [CanBeNull]
         public string GetResponseString()
         {
             try
             {
+                if (ResponseStream == null)
+                    return null;
+
                 ResponseStream.Seek(0, SeekOrigin.Begin);
                 StreamReader r = new StreamReader(ResponseStream, Encoding.UTF8);
                 return r.ReadToEnd();
@@ -214,11 +220,18 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// Retrieve the full response body as an array of bytes.
         /// </summary>
-        /// <returns>The response body.</returns>
+        /// <returns>
+        /// The response body.
+        /// Can be <see langword="null"/> if the request hasn't yet <see cref="Completed"/>, or if it has been <see cref="Aborted"/>.
+        /// </returns>
+        [CanBeNull]
         public byte[] GetResponseData()
         {
             try
             {
+                if (ResponseStream == null)
+                    return null;
+
                 ResponseStream.Seek(0, SeekOrigin.Begin);
 
                 return ResponseStream.ReadAllBytesToArray();

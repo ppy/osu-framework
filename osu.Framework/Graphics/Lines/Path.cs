@@ -237,6 +237,16 @@ namespace osu.Framework.Graphics.Lines
             Invalidate(Invalidation.DrawSize);
         }
 
+        public void ReplaceVertex(int index, Vector2 pos)
+        {
+            vertices[index] = pos;
+
+            vertexBoundsCache.Invalidate();
+            segmentsCache.Invalidate();
+
+            Invalidate(Invalidation.DrawSize);
+        }
+
         private readonly List<Line> segmentsBacking = new List<Line>();
         private readonly Cached segmentsCache = new Cached();
         private List<Line> segments => segmentsCache.IsValid ? segmentsBacking : generateSegments();

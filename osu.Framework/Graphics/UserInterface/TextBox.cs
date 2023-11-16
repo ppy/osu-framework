@@ -240,12 +240,15 @@ namespace osu.Framework.Graphics.UserInterface
                 // Clipboard
                 case PlatformAction.Cut:
                 case PlatformAction.Copy:
-                    if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
+                    if (!AllowClipboardExport) return false;
 
-                    clipboard.SetText(SelectedText);
+                    if (!string.IsNullOrEmpty(SelectedText))
+                    {
+                        clipboard.SetText(SelectedText);
 
-                    if (e.Action == PlatformAction.Cut)
-                        DeleteBy(0);
+                        if (e.Action == PlatformAction.Cut)
+                            DeleteBy(0);
+                    }
 
                     return true;
 
@@ -262,9 +265,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return true;
 
                 case PlatformAction.SelectAll:
-                    selectionStart = 0;
-                    selectionEnd = text.Length;
-                    cursorAndLayout.Invalidate();
+                    SelectAll();
                     onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
                     return true;
 
@@ -357,6 +358,21 @@ namespace osu.Framework.Graphics.UserInterface
 
         public virtual void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
         {
+        }
+
+        /// <summary>
+        /// Selects all text in this <see cref="TextBox"/>. Focus must be acquired before calling this method.
+        /// </summary>
+        /// <returns>Whether text has been selected successfully. Returns <c>false</c> if the text box does not have focus.</returns>
+        public bool SelectAll()
+        {
+            if (!HasFocus)
+                return false;
+
+            selectionStart = 0;
+            selectionEnd = text.Length;
+            cursorAndLayout.Invalidate();
+            return true;
         }
 
         /// <summary>
