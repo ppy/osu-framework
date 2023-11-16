@@ -18,6 +18,7 @@ namespace osu.Framework.Tests.Visual
 
         private float xRotation;
         private float yRotation;
+        private float zRotation;
 
         public TestScenePerspectiveContainer()
         {
@@ -33,15 +34,21 @@ namespace osu.Framework.Tests.Visual
                 }
             });
 
-            AddSliderStep("X Rotation", 0, MathF.PI, 0, v =>
+            AddSliderStep("X Rotation", -MathF.PI, MathF.PI, 0, v =>
             {
                 xRotation = v;
                 updateRotation();
             });
 
-            AddSliderStep("Y Rotation", 0, MathF.PI, 0, v =>
+            AddSliderStep("Y Rotation", -MathF.PI, MathF.PI, 0, v =>
             {
                 yRotation = v;
+                updateRotation();
+            });
+
+            AddSliderStep("Z Rotation", -MathF.PI, MathF.PI, 0, v =>
+            {
+                zRotation = v;
                 updateRotation();
             });
         }
@@ -54,7 +61,7 @@ namespace osu.Framework.Tests.Visual
 
         private void updateRotation()
         {
-            target.TransformTo(nameof(ExtraRotation), new Quaternion(xRotation, yRotation, 0), 500, Easing.OutQuint);
+            target.TransformTo(nameof(Rotation3D), new Quaternion(xRotation, yRotation, zRotation), 500, Easing.OutQuint);
         }
     }
 }

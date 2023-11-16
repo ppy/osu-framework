@@ -1057,19 +1057,24 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private float rotation;
-
         /// <summary>
         /// Rotation in degrees around <see cref="OriginPosition"/>.
         /// </summary>
         public float Rotation
         {
+            get => MathUtils.RadiansToDegrees(MathF.Atan2(2 * (Rotation3D.W * Rotation3D.Z + Rotation3D.X * Rotation3D.Y), 1 - 2 * (Rotation3D.Y * Rotation3D.Y + Rotation3D.Z * Rotation3D.Z)));
+            set => Rotation3D = new Quaternion(Rotation3D.X, Rotation3D.Y, MathUtils.DegreesToRadians(value));
+        }
+
+        private Quaternion rotation = Quaternion.Identity;
+
+        public Quaternion Rotation3D
+        {
             get => rotation;
             set
             {
-                if (value == rotation) return;
-
-                if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(Rotation)} must be finite, but is {value}.");
+                if (rotation == value)
+                    return;
 
                 rotation = value;
 
@@ -1568,18 +1573,6 @@ namespace osu.Framework.Graphics
 
         private readonly LayoutValue<DrawInfo> drawInfoBacking = new LayoutValue<DrawInfo>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence);
 
-        private Matrix4 extraRotationMatrix = Matrix4.Identity;
-
-        public Quaternion ExtraRotation
-        {
-            get => extraRotationMatrix.ExtractRotation();
-            set
-            {
-                extraRotationMatrix = Matrix4.CreateFromQuaternion(value);
-                Invalidate();
-            }
-        }
-
         private DrawInfo computeDrawInfo()
         {
             DrawInfo di = Parent?.DrawInfo ?? new DrawInfo(null);
@@ -1590,7 +1583,7 @@ namespace osu.Framework.Graphics
             if (Parent != null)
                 pos += Parent.ChildOffset;
 
-            di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition, extraRotationMatrix);
+            di.ApplyTransform(pos, drawScale, Matrix4.CreateFromQuaternion(rotation), Shear, OriginPosition);
 
             return di;
         }
