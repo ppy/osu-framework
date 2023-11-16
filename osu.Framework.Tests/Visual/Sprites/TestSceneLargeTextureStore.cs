@@ -13,7 +13,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public partial class TestSceneLargeStoreMipmaps : FrameworkTestScene
+    public partial class TestSceneLargeTextureStore : FrameworkTestScene
     {
         private DependencyContainer dependencies = null!;
 
