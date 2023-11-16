@@ -308,7 +308,7 @@ namespace osu.Framework.Utils
 
                 var tmp = new List<Vector2>();
                 bool allOnLine = true;
-                float on_line_threshold = 5 * Tolerance * step_size;
+                float onLineThreshold = 5 * Tolerance * step_size;
 
                 if (t1 > t0)
                 {
@@ -331,7 +331,7 @@ namespace osu.Framework.Utils
                         if (currentWinding > controlPointSpacing)
                         {
                             Vector2 p = getPathAt(vertices, distances, t);
-                            if (linearConnection.DistanceSquaredToPoint(p) > on_line_threshold * on_line_threshold)
+                            if (linearConnection.DistanceSquaredToPoint(p) > onLineThreshold * onLineThreshold)
                                 allOnLine = false;
 
                             tmp.Add(p);
