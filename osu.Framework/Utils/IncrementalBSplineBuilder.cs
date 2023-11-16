@@ -48,16 +48,19 @@ namespace osu.Framework.Utils
 
         private float inputPathLength => cumulativeInputPathLength.Count == 0 ? 0 : cumulativeInputPathLength[^1];
 
-        public const float FD_EPSILON = PathApproximator.BEZIER_TOLERANCE * 8f;
+        /// <summary>
+        /// Spacing to use in spline-related finite difference (FD) calculations.
+        /// </summary>
+        internal const float FD_EPSILON = PathApproximator.BEZIER_TOLERANCE * 8f;
 
         /// <summary>
-        /// Get the amount of rotation (in radians) at a given point on the path.
+        /// Get the absolute amount of rotation (in radians) at a given point on the path.
         /// </summary>
         /// <param name="path">The path to get the rotation from.</param>
         /// <param name="cumulativeDistances">The cumulative distances of the path.</param>
         /// <param name="t">The point on the path to get the rotation from.</param>
-        /// <returns>The amount of rotation (in radians) at the given point on the path.</returns>
-        private static float getWindingAt(List<Vector2> path, List<float> cumulativeDistances, float t)
+        /// <returns>The absolute amount of rotation (in radians) at the given point on the path.</returns>
+        private static float getAbsWindingAt(List<Vector2> path, List<float> cumulativeDistances, float t)
         {
             Vector2 xminus = getPathAt(path, cumulativeDistances, t - FD_EPSILON);
             Vector2 x = getPathAt(path, cumulativeDistances, t);
@@ -226,7 +229,7 @@ namespace osu.Framework.Utils
             const float step_size = FD_EPSILON;
             int nSteps = (int)(distances[^1] / step_size);
 
-            // Empirically, averaging the winding rate over a neighborgood of 32 samples seems to be
+            // Empirically, averaging the winding rate over a neighborhood of 32 samples seems to be
             // a good representation of the neighborhood of the curve.
             const int n_avg_samples = 32;
             float avgCurvature = 0.0f;
@@ -236,18 +239,20 @@ namespace osu.Framework.Utils
                 // Update average curvature by adding the new winding rate and subtracting the old one from
                 // nAvgSamples steps ago.
                 float newt = i * step_size;
-                float newWinding = MathF.Abs(getWindingAt(vertices, distances, newt));
+                float newWinding = getAbsWindingAt(vertices, distances, newt);
 
                 float oldt = (i - n_avg_samples) * step_size;
-                float oldWinding = oldt < 0 ? 0 : MathF.Abs(getWindingAt(vertices, distances, oldt));
+                float oldWinding = oldt < 0 ? 0 : getAbsWindingAt(vertices, distances, oldt);
 
                 avgCurvature += (newWinding - oldWinding) / n_avg_samples;
 
                 // Check whether the current winding rate is a local maximum and whether it exceeds the
                 // threshold as well as the surrounding average curvature. If so, we have found a corner.
-                // Also prohibit marking new corners that are too close to the previous one.
+                // Also prohibit marking new corners that are too close to the previous one, where "too close"
+                // is defined as the averaging windows overlapping. This ensures the same corner can not
+                // be detected twice.
                 float midt = (i - n_avg_samples / 2f) * step_size;
-                float midWinding = midt < 0 ? 0 : MathF.Abs(getWindingAt(vertices, distances, midt));
+                float midWinding = midt < 0 ? 0 : getAbsWindingAt(vertices, distances, midt);
 
                 float distToPrevCorner = cornerT.Count == 0 ? float.MaxValue : newt - cornerT[^1];
                 if (midWinding > threshold && midWinding > avgCurvature * 4 && distToPrevCorner > n_avg_samples * step_size)
@@ -292,7 +297,7 @@ namespace osu.Framework.Utils
 
             for (int i = 1; i < cornerTs.Count; ++i)
             {
-                float totalAngle = 0;
+                float totalWinding = 0;
 
                 float t0 = cornerTs[i - 1] + step_size * 2;
                 float t1 = cornerTs[i] - step_size * 2;
@@ -312,28 +317,28 @@ namespace osu.Framework.Utils
                     for (int j = 0; j < nSteps; ++j)
                     {
                         float t = t0 + j * step_size;
-                        totalAngle += getWindingAt(vertices, distances, t);
+                        totalWinding += getAbsWindingAt(vertices, distances, t);
                     }
 
-                    int nControlPoints = (int)(totalAngle / Tolerance);
-                    float controlPointSpacing = totalAngle / nControlPoints;
-                    float currentAngle = 0;
+                    int nControlPoints = (int)(totalWinding / Tolerance);
+                    float controlPointSpacing = totalWinding / nControlPoints;
+                    float currentWinding = 0;
 
                     for (int j = 0; j < nSteps; ++j)
                     {
                         float t = t0 + j * step_size;
 
-                        if (currentAngle > controlPointSpacing)
+                        if (currentWinding > controlPointSpacing)
                         {
                             Vector2 p = getPathAt(vertices, distances, t);
                             if (linearConnection.DistanceSquaredToPoint(p) > on_line_threshold * on_line_threshold)
                                 allOnLine = false;
 
                             tmp.Add(p);
-                            currentAngle -= controlPointSpacing;
+                            currentWinding -= controlPointSpacing;
                         }
 
-                        currentAngle += getWindingAt(vertices, distances, t);
+                        currentWinding += getAbsWindingAt(vertices, distances, t);
                     }
                 }
 
