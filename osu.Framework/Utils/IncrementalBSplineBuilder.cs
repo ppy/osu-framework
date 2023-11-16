@@ -308,7 +308,7 @@ namespace osu.Framework.Utils
 
                 var tmp = new List<Vector2>();
                 bool allOnLine = true;
-                const float on_line_threshold = 10 * step_size;
+                float on_line_threshold = 5 * Tolerance * step_size;
 
                 if (t1 > t0)
                 {
