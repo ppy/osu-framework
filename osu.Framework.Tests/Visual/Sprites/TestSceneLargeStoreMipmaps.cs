@@ -15,41 +15,44 @@ namespace osu.Framework.Tests.Visual.Sprites
 {
     public partial class TestSceneLargeStoreMipmaps : FrameworkTestScene
     {
+        private DependencyContainer dependencies = null!;
+
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(IRenderer renderer, GameHost host, Game game)
         {
-            Child = new StoreProvidingContainer
+            dependencies.CacheAs(new LargeTextureStore(renderer, host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(game.Resources, "Textures")), manualMipmaps: false));
+
+            Child = new GridContainer
             {
                 RelativeSizeAxes = Axes.Both,
-                Child = new GridContainer
+                ColumnDimensions = new[]
                 {
-                    RelativeSizeAxes = Axes.Both,
-                    ColumnDimensions = new[]
+                    new Dimension(GridSizeMode.Relative, 0.5f),
+                    new Dimension(GridSizeMode.Relative, 0.5f),
+                },
+                RowDimensions = new[]
+                {
+                    new Dimension(GridSizeMode.Relative, 0.5f),
+                    new Dimension(GridSizeMode.Relative, 0.5f),
+                },
+                Content = new[]
+                {
+                    new Drawable[]
                     {
-                        new Dimension(GridSizeMode.Relative, 0.5f),
-                        new Dimension(GridSizeMode.Relative, 0.5f),
+                        new MipmapSprite(0),
+                        new MipmapSprite(1)
                     },
-                    RowDimensions = new[]
+                    new Drawable[]
                     {
-                        new Dimension(GridSizeMode.Relative, 0.5f),
-                        new Dimension(GridSizeMode.Relative, 0.5f),
-                    },
-                    Content = new[]
-                    {
-                        new Drawable[]
-                        {
-                            new MipmapSprite(0),
-                            new MipmapSprite(1)
-                        },
-                        new Drawable[]
-                        {
-                            new MipmapSprite(2),
-                            new MipmapSprite(3)
-                        }
+                        new MipmapSprite(2),
+                        new MipmapSprite(3)
                     }
                 }
             };
         }
+
+        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
+            => dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
 
         private partial class MipmapSprite : Sprite
         {
@@ -88,23 +91,6 @@ namespace osu.Framework.Tests.Visual.Sprites
                     renderer.FlushCurrentBatch(null);
                     Texture.MipLevel = null;
                 }
-            }
-        }
-
-        private partial class StoreProvidingContainer : Container
-        {
-            [Cached]
-            private LargeTextureStore largeStore = null!;
-
-            protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
-            {
-                var game = parent.Get<Game>();
-                var host = parent.Get<GameHost>();
-                var renderer = parent.Get<IRenderer>();
-
-                largeStore = new LargeTextureStore(renderer, host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(game.Resources, "Textures")), manualMipmaps: false);
-
-                return base.CreateChildDependencies(parent);
             }
         }
     }
