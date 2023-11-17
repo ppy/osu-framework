@@ -381,7 +381,7 @@ namespace osu.Framework.Tests.Audio
             updateTrack();
         }
 
-        private void updateTrack() => AudioTestHelper.RunOnAudioThread((() => track.Update()));
+        private void updateTrack() => AudioTestHelper.RunOnAudioThread(() => track.Update());
 
         private void restartTrack()
         {
