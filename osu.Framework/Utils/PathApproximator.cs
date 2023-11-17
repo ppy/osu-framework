@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
+using NumSharp;
 
 namespace osu.Framework.Utils
 {
@@ -303,6 +304,161 @@ namespace osu.Framework.Utils
             }
 
             return result;
+        }
+
+        public static List<Vector2> PiecewiseLinearToBezier(ReadOnlySpan<Vector2> inputPath, int numControlPoints, int numTestPoints = 200, int maxIterations = 100)
+        {
+            const float learning_rate = 8f;
+            const float b1 = 0.9f;
+            const float b2 = 0.92f;
+            const float epsilon = 1E-8f;
+
+            // Generate Bezier weight matrix
+            var weights = generateBezierWeights(numControlPoints, numTestPoints);
+            var weightsTranspose = weights.T;
+
+            // Create efficient interpolation on the input path
+            var interpolator = new Interpolator(inputPath);
+
+            // Create initial control point positions equally spaced along the input path
+            var controlPoints = interpolator.Interpolate(np.linspace(0, 1, numControlPoints));
+            NDArray labels = null!;
+
+            // Initialize Adam optimizer variables
+            var m = np.zeros_like(controlPoints);
+            var v = np.zeros_like(controlPoints);
+            var learnableMask = np.zeros_like(controlPoints);
+            learnableMask["1:-1"] = 1;
+
+            for (int step = 0; step < maxIterations; step++)
+            {
+                var points = np.matmul(weights, controlPoints);
+
+                // Update labels to shift the distance distribution between points
+                if (step % 11 == 0)
+                    labels = interpolateWithDistanceDistribution(points, interpolator);
+
+                // Calculate the gradient on the control points
+                var diff = labels - points;
+                var grad = -1 / numControlPoints * np.matmul(weightsTranspose, diff);
+
+                // Apply learnable mask to prevent moving the endpoints
+                grad *= learnableMask;
+
+                // Update control points with Adam optimizer
+                m = b1 * m + (1 - b1) * grad;
+                v = b2 * v + (1 - b2) * np.square(grad);
+                var mCorr = m / (1 - Math.Pow(b1, step));
+                var vCorr = v / (1 - Math.Pow(b2, step));
+                controlPoints -= learning_rate * mCorr / (np.sqrt(vCorr) + epsilon);
+            }
+
+            // Convert the resulting control points NDArray
+            var result = new List<Vector2>(numControlPoints);
+
+            for (int i = 0; i < numControlPoints; i++)
+            {
+                result.Add(new Vector2(controlPoints[i, 0], controlPoints[i, 1]));
+            }
+
+            return result;
+        }
+
+        private static NDArray getDistanceDistribution(NDArray points)
+        {
+            var distCumulativeSum = np.cumsum(np.sqrt(np.sum(np.square(points["1:"] - points[":-1"]), -1)));
+            distCumulativeSum = np.concatenate(new[] { np.zeros(1), distCumulativeSum });
+            return distCumulativeSum / distCumulativeSum[-1];
+        }
+
+        private static NDArray interpolateWithDistanceDistribution(NDArray points, Interpolator interpolator)
+        {
+            return interpolator.Interpolate(getDistanceDistribution(points));
+        }
+
+        private class Interpolator
+        {
+            private readonly int ny;
+            private readonly NDArray ys;
+
+            public Interpolator(ReadOnlySpan<Vector2> inputPath, int resolution = 1000)
+            {
+                var arr = np.array(inputPath.ToArray());
+                var dist = getDistanceDistribution(arr);
+                ny = resolution;
+                ys = np.empty(resolution, arr.shape[1]);
+                int current = 0;
+
+                for (int i = 0; i < resolution; i++)
+                {
+                    float target = (float)i / (resolution - 1);
+
+                    while (dist[current] < target)
+                        current++;
+
+                    int prev = Math.Max(0, current - 1);
+                    float t = (dist[current] - target) / (dist[current] - dist[prev]);
+
+                    if (float.IsNaN(t))
+                        t = 0;
+
+                    ys[i] = t * arr[prev] + (1 - t) * arr[current];
+                }
+            }
+
+            public NDArray Interpolate(NDArray x)
+            {
+                var xIdx = x * (ny - 1);
+                var idxBelow = np.floor(xIdx);
+                var idxAbove = np.minimum(idxBelow + 1, ny - 1);
+                idxBelow = np.maximum(idxAbove - 1, 0);
+
+                var yRefBelow = ys[idxBelow];
+                var yRefAbove = ys[idxAbove];
+
+                var t = xIdx - idxBelow;
+
+                var y = t * yRefAbove + (1 - t) * yRefBelow;
+                return y;
+            }
+        }
+
+        private static NDArray generateBezierWeights(int numControlPoints, int numTestPoints)
+        {
+            var ts = np.linspace(0, 1, numTestPoints);
+            var coefficients = binomialCoefficients(numControlPoints);
+            var p = np.empty(numTestPoints, numControlPoints);
+
+            for (int i = 0; i < numTestPoints; i++)
+            {
+                p[i, 0] = 1;
+                float t = ts[i];
+
+                for (int j = 1; j < numControlPoints; j++)
+                {
+                    p[i, j] = p[i, j - 1] * t;
+                }
+            }
+
+            return coefficients * p["::-1, ::-1"] * p;
+        }
+
+        private static NDArray binomialCoefficients(int n)
+        {
+            var coefficients = np.empty(n);
+            coefficients[0] = 1;
+
+            for (int i = 1; i < (n + 1) / 2; i++)
+            {
+                coefficients[i] = coefficients[i - 1] * (n - i + 1) / i;
+            }
+
+            for (int i = n - 1; i > (n - 1) / 2; i--)
+            {
+                coefficients[i] = coefficients[n - i - 1];
+            }
+
+            return coefficients;
         }
 
         /// <summary>
