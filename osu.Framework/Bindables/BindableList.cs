@@ -8,6 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using JetBrains.Annotations;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Lists;
@@ -24,6 +25,7 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="triggerDisabledChange(bool)"/>).
         /// </summary>
+        [CanBeNull]
         public event Action<bool> DisabledChanged;
 
         private readonly List<T> collection = new List<T>();
@@ -417,7 +419,7 @@ namespace osu.Framework.Bindables
         /// </summary>
         /// <param name="input">The input which is to be parsed.</param>
         /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
-        public void Parse(object input)
+        public void Parse([CanBeNull] object input)
         {
             ensureMutationAllowed();
 
