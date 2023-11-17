@@ -59,9 +59,13 @@ namespace osu.Framework.Tests.Visual.Drawables
             {
                 bSplineBuilder.Degree = v;
             });
-            AddSliderStep($"{nameof(bSplineBuilder.Tolerance)}", 0f, 1f, 0.1f, v =>
+            AddSliderStep($"{nameof(bSplineBuilder.Tolerance)}", 0f, 3f, 1.5f, v =>
             {
                 bSplineBuilder.Tolerance = v;
+            });
+            AddSliderStep($"{nameof(bSplineBuilder.CornerThreshold)}", 0f, 1f, 0.4f, v =>
+            {
+                bSplineBuilder.CornerThreshold = v;
             });
         }
 
@@ -69,7 +73,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             controlPointViz.Clear();
 
-            foreach (var cp in bSplineBuilder.GetControlPoints())
+            foreach (var cp in bSplineBuilder.ControlPoints)
             {
                 controlPointViz.Add(new Box
                 {
