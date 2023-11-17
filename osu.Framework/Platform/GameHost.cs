@@ -117,6 +117,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Func<Exception, bool> ExceptionThrown;
 
+        [CanBeNull]
         public event Func<IpcMessage, IpcMessage> MessageReceived;
 
         /// <summary>
