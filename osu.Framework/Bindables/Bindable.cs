@@ -25,16 +25,19 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
         /// </summary>
+        [CanBeNull]
         public event Action<ValueChangedEvent<T>> ValueChanged;
 
         /// <summary>
         /// An event which is raised when <see cref="Disabled"/> has changed (or manually via <see cref="TriggerDisabledChange"/>).
         /// </summary>
+        [CanBeNull]
         public event Action<bool> DisabledChanged;
 
         /// <summary>
         /// An event which is raised when <see cref="Default"/> has changed (or manually via <see cref="TriggerDefaultChange"/>).
         /// </summary>
+        [CanBeNull]
         public event Action<ValueChangedEvent<T>> DefaultChanged;
 
         private T value;
@@ -245,7 +248,7 @@ namespace osu.Framework.Bindables
         /// An object deriving T can be parsed, or a string can be parsed if T is an enum type.
         /// </summary>
         /// <param name="input">The input which is to be parsed.</param>
-        public virtual void Parse(object input)
+        public virtual void Parse([CanBeNull] object input)
         {
             switch (input)
             {
