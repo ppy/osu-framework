@@ -41,16 +41,22 @@ namespace osu.Framework.Benchmarks
         [Benchmark]
         public void BenchmarkRawCachingReuse()
         {
-            using (var store = new RawCachingGlyphStore(baseResources, font_name) { CacheStorage = sharedTemp })
+            using (var store = new RawCachingGlyphStore(baseResources, font_name))
+            {
+                store.CacheStorage = sharedTemp;
                 runFor(store);
+            }
         }
 
         [Benchmark(Baseline = true)]
         public void BenchmarkRawCaching()
         {
             using (var temp = new TemporaryNativeStorage("fontstore-test" + Guid.NewGuid()))
-            using (var store = new RawCachingGlyphStore(baseResources, font_name) { CacheStorage = temp })
+            using (var store = new RawCachingGlyphStore(baseResources, font_name))
+            {
+                store.CacheStorage = temp;
                 runFor(store);
+            }
         }
 
         [Benchmark]

@@ -6,6 +6,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
@@ -131,7 +132,7 @@ namespace osu.Framework.IO.Stores
             base.RemoveStore(store);
         }
 
-        public ITexturedCharacterGlyph Get(string fontName, char character)
+        public ITexturedCharacterGlyph Get([CanBeNull] string fontName, char character)
         {
             var key = (fontName, character);
 

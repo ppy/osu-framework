@@ -1,7 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Utils;
 using osuTK;
@@ -39,6 +41,25 @@ namespace osu.Framework.Tests.MathUtils
             Assert.True(Precision.AlmostEquals(approximated[0], points[0], 1e-4f));
             Assert.True(Precision.AlmostEquals(approximated[28], points[6], 1e-4f));
             Assert.True(Precision.AlmostEquals(approximated[10], new Vector2(-0.11415f, -0.69065f), 1e-4f));
+        }
+
+        [Test]
+        public void TestBSplineThrowsOnInvalidDegree()
+        {
+            Vector2[] points = { new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, -1), new Vector2(-1, -1), new Vector2(-1, 1), new Vector2(3, 2), new Vector2(3, 0) };
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => PathApproximator.BSplineToPiecewiseLinear(points, 0));
+            Assert.Throws<ArgumentOutOfRangeException>(() => PathApproximator.BSplineToPiecewiseLinear(points, -5));
+        }
+
+        [TestCase(0)]
+        [TestCase(1)]
+        public void TestBSplineDoesNothingWhenGivenTooFewPoints(int pointCount)
+        {
+            var points = Enumerable.Repeat(new Vector2(), pointCount).ToArray();
+
+            Assert.That(PathApproximator.BSplineToPiecewiseLinear(points, 3), Is.EquivalentTo(points));
+            Assert.That(PathApproximator.BezierToPiecewiseLinear(points), Is.EquivalentTo(points));
         }
     }
 }
