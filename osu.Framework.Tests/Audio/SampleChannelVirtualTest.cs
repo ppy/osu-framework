@@ -3,12 +3,8 @@
 
 #nullable disable
 
-using System;
-using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Audio.Sample;
-using osu.Framework.Development;
-using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Audio
 {
@@ -56,31 +52,6 @@ namespace osu.Framework.Tests.Audio
             Assert.IsTrue(channel.HasCompleted);
         }
 
-        private void updateSample() => RunOnAudioThread(() => sample.Update());
-
-        /// <summary>
-        /// Certain actions are invoked on the audio thread.
-        /// Here we simulate this process on a correctly named thread to avoid endless blocking.
-        /// </summary>
-        /// <param name="action">The action to perform.</param>
-        public static void RunOnAudioThread(Action action)
-        {
-            var resetEvent = new ManualResetEvent(false);
-
-            new Thread(() =>
-            {
-                ThreadSafety.IsAudioThread = true;
-
-                action();
-
-                resetEvent.Set();
-            })
-            {
-                Name = GameThread.SuffixedThreadNameFor("Audio")
-            }.Start();
-
-            if (!resetEvent.WaitOne(TimeSpan.FromSeconds(10)))
-                throw new TimeoutException();
-        }
+        private void updateSample() => AudioTestHelper.RunOnAudioThread(() => sample.Update());
     }
 }

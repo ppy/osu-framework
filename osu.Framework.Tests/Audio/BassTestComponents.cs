@@ -2,14 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Runtime.ExceptionServices;
-using System.Threading;
 using ManagedBass;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
-using osu.Framework.Development;
 using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
 
@@ -70,36 +67,11 @@ namespace osu.Framework.Tests.Audio
             RunOnAudioThread(() => allComponents.Update());
         }
 
-        public void RunOnAudioThread(Action action)
-        {
-            var resetEvent = new ManualResetEvent(false);
-            Exception? threadException = null;
-
-            new Thread(() =>
-            {
-                ThreadSafety.IsAudioThread = true;
-
-                try
-                {
-                    action();
-                }
-                catch (Exception e)
-                {
-                    threadException = e;
-                }
-
-                resetEvent.Set();
-            })
-            {
-                Name = GameThread.SuffixedThreadNameFor("Audio")
-            }.Start();
-
-            if (!resetEvent.WaitOne(TimeSpan.FromSeconds(10)))
-                throw new TimeoutException();
-
-            if (threadException != null)
-                ExceptionDispatchInfo.Throw(threadException);
-        }
+        /// <summary>
+        /// Runs an <paramref name="action"/> on a newly created audio thread, and blocks until it has been run to completion.
+        /// </summary>
+        /// <param name="action">The action to run on the audio thread.</param>
+        public void RunOnAudioThread(Action action) => AudioTestHelper.RunOnAudioThread(action);
 
         internal TrackBass GetTrack() => (TrackBass)TrackStore.Get("Resources.Tracks.sample-track.mp3");
         internal SampleBass GetSample() => (SampleBass)SampleStore.Get("Resources.Tracks.sample-track.mp3");

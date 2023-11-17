@@ -15,7 +15,6 @@ namespace osu.Framework.Tests.Audio
         {
             var manager = new TestAudioCollectionManager();
 
-            var threadExecutionFinished = new ManualResetEventSlim();
             var updateLoopStarted = new ManualResetEventSlim();
 
             // add a huge amount of items to the queue
@@ -23,24 +22,20 @@ namespace osu.Framework.Tests.Audio
                 manager.AddItem(new TestingAdjustableAudioComponent());
 
             // in a separate thread start processing the queue
-            var thread = new Thread(() =>
+            var thread = AudioTestHelper.StartNewAudioThread(() =>
             {
                 while (!manager.IsDisposed)
                 {
                     updateLoopStarted.Set();
                     manager.Update();
                 }
-
-                threadExecutionFinished.Set();
             });
-
-            thread.Start();
 
             Assert.IsTrue(updateLoopStarted.Wait(10000));
 
             Assert.DoesNotThrow(() => manager.Dispose());
 
-            Assert.IsTrue(threadExecutionFinished.Wait(10000));
+            thread.Dispose();
         }
 
         private class TestAudioCollectionManager : AudioCollectionManager<AdjustableAudioComponent>
