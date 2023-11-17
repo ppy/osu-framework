@@ -15,9 +15,9 @@ namespace osu.Framework.Tests.Visual.Drawables
 {
     public partial class TestSceneLinearToBezier : GridTestScene
     {
-        private int numControlPoints = 5;
-        private int numTestPoints = 100;
-        private int maxIterations = 1000;
+        private int numControlPoints;
+        private int numTestPoints;
+        private int maxIterations;
 
         private readonly List<DoubleApproximatedPathTest> doubleTests = new List<DoubleApproximatedPathTest>();
 
@@ -73,6 +73,13 @@ namespace osu.Framework.Tests.Visual.Drawables
                 maxIterations = v;
                 updateTests();
             });
+
+            AddStep("Enable optimization", () =>
+            {
+                foreach (var test in doubleTests)
+                    test.OptimizePath = true;
+                updateTests();
+            });
         }
 
         private void updateTests()
@@ -124,6 +131,8 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             public int MaxIterations { get; set; }
 
+            public bool OptimizePath { get; set; }
+
             public DoubleApproximatedPathTest(ApproximatorFunc approximator, int numControlPoints, int numTestPoints, int maxIterations)
             {
                 Vector2[] points = new Vector2[5];
@@ -147,6 +156,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             public void UpdatePath()
             {
+                if (!OptimizePath) return;
                 var controlPoints = PathApproximator.PiecewiseLinearToBezier(inputPath, NumControlPoints, NumTestPoints, MaxIterations);
                 Vertices = PathApproximator.BezierToPiecewiseLinear(controlPoints.ToArray());
             }
