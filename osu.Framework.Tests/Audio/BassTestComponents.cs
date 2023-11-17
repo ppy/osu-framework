@@ -67,6 +67,10 @@ namespace osu.Framework.Tests.Audio
             RunOnAudioThread(() => allComponents.Update());
         }
 
+        /// <summary>
+        /// Runs an <paramref name="action"/> on a newly created audio thread, and blocks until it has been run to completion.
+        /// </summary>
+        /// <param name="action">The action to run on the audio thread.</param>
         public void RunOnAudioThread(Action action) => AudioTestHelper.RunOnAudioThread(action);
 
         internal TrackBass GetTrack() => (TrackBass)TrackStore.Get("Resources.Tracks.sample-track.mp3");
