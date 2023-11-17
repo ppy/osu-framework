@@ -10,7 +10,7 @@ using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Audio
 {
-    public static class AudioTestHelper
+    internal static class AudioTestHelper
     {
         /// <summary>
         /// Runs an <paramref name="action"/> on a newly created audio thread.
