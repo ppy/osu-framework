@@ -13,13 +13,14 @@ namespace osu.Framework.Tests.Audio
     internal static class AudioTestHelper
     {
         /// <summary>
-        /// Runs an <paramref name="action"/> on a newly created audio thread.
+        /// Runs an <paramref name="action"/> on a newly created audio thread, and blocks until it has been run to completion.
         /// </summary>
         /// <param name="action">The action to run on the audio thread.</param>
         public static void RunOnAudioThread(Action action)
         {
-            var thread = StartNewAudioThread(action);
-            thread.Dispose();
+            using (var _ = StartNewAudioThread(action))
+            {
+            }
         }
 
         /// <summary>
