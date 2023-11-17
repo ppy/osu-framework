@@ -62,7 +62,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                     {
                         Anchor = Anchor.TopCentre,
                         Origin = Anchor.TopCentre,
-                        Text = $"Auto mipmaps: {!useManualMipmaps}"
+                        Text = $"useManaulMipmaps: {useManualMipmaps}"
                     },
                     new Container
                     {
