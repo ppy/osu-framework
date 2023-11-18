@@ -306,7 +306,7 @@ namespace osu.Framework.Utils
             return result;
         }
 
-        public static List<Vector2> PiecewiseLinearToBezier(ReadOnlySpan<Vector2> inputPath, int numControlPoints, int numTestPoints = 200, int maxIterations = 100)
+        public static List<Vector2> PiecewiseLinearToBezier(ReadOnlySpan<Vector2> inputPath, int numControlPoints, int numTestPoints = 100, int maxIterations = 100)
         {
             const float learning_rate = 8f;
             const float b1 = 0.9f;
