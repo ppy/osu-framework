@@ -6,7 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
-using NumSharp;
+using Numpy;
+using Numpy.Models;
 
 namespace osu.Framework.Utils
 {
@@ -323,17 +324,17 @@ namespace osu.Framework.Utils
 
             // Create initial control point positions equally spaced along the input path
             var controlPoints = interpolator.Interpolate(np.linspace(0, 1, numControlPoints));
-            NDArray labels = null!;
+            NDarray labels = null!;
 
             // Initialize Adam optimizer variables
             var m = np.zeros_like(controlPoints);
             var v = np.zeros_like(controlPoints);
             var learnableMask = np.zeros_like(controlPoints);
-            learnableMask["1:-1"] = 1;
+            learnableMask["1:-1"] = np.ones_like(controlPoints["1:-1"]);
 
             for (int step = 0; step < maxIterations; step++)
             {
-                var points = np.matmul(weights, controlPoints);
+                var points = weights.matmul(controlPoints);
 
                 // Update labels to shift the distance distribution between points
                 if (step % 11 == 0)
@@ -341,17 +342,17 @@ namespace osu.Framework.Utils
 
                 // Calculate the gradient on the control points
                 var diff = labels - points;
-                var grad = -1f / numControlPoints * np.matmul(weightsTranspose, diff);
+                var grad = -1f / numControlPoints * weightsTranspose.matmul(diff);
 
                 // Apply learnable mask to prevent moving the endpoints
                 grad *= learnableMask;
 
                 // Update control points with Adam optimizer
                 m = b1 * m + (1 - b1) * grad;
-                v = b2 * v + (1 - b2) * np.square(grad);
+                v = b2 * v + (1 - b2) * grad.square();
                 var mCorr = m / (1 - Math.Pow(b1, step + 1));
                 var vCorr = v / (1 - Math.Pow(b2, step + 1));
-                controlPoints -= learning_rate * mCorr / (np.sqrt(vCorr) + epsilon);
+                controlPoints.isub(learning_rate * mCorr / (vCorr.sqrt() + epsilon));
             }
 
             // Convert the resulting control points NDArray
@@ -359,48 +360,42 @@ namespace osu.Framework.Utils
 
             for (int i = 0; i < numControlPoints; i++)
             {
-                result.Add(new Vector2(controlPoints[i, 0], controlPoints[i, 1]));
+                result.Add(new Vector2((float)controlPoints[i, 0], (float)controlPoints[i, 1]));
             }
 
             return result;
         }
 
-        private static NDArray getDistanceDistribution(NDArray points)
+        private static NDarray getDistanceDistribution(NDarray points)
         {
-            var distCumulativeSum = np.cumsum(np.sqrt(np.sum(np.square(points["1:"] - points[":-1"]), -1, NPTypeCode.Single)), typeCode: NPTypeCode.Single);
-            distCumulativeSum = np.concatenate(new[] { np.zeros(new Shape(1), NPTypeCode.Single), distCumulativeSum });
+            var distCumulativeSum = (points["1:"] - points[":-1"]).square().sum(-1, np.float32).sqrt().cumsum(dtype: np.float32).pad(np.array(1, 0), "constant");
             return distCumulativeSum / distCumulativeSum[-1];
         }
 
         private class Interpolator
         {
             private readonly int ny;
-            private readonly NDArray ys;
+            private readonly NDarray ys;
 
             public Interpolator(ReadOnlySpan<Vector2> inputPath, int resolution = 1000)
             {
-                var arr = np.empty(new Shape(inputPath.Length, 2), NPTypeCode.Single);
-
-                for (int i = 0; i < inputPath.Length; i++)
-                {
-                    arr[i, 0] = inputPath[i].X;
-                    arr[i, 1] = inputPath[i].Y;
-                }
-
+                var arr = np.array(inputPath.ToArray(), dtype: np.float32);
                 var dist = getDistanceDistribution(arr);
                 ny = resolution;
-                ys = np.empty(new Shape(resolution, arr.shape[1]), NPTypeCode.Single);
+                ys = np.empty(new Shape(resolution, arr.shape[1]), np.float32);
                 int current = 0;
 
                 for (int i = 0; i < resolution; i++)
                 {
                     float target = (float)i / (resolution - 1);
 
-                    while (dist[current] < target)
+                    while ((float)dist[current] < target)
                         current++;
 
                     int prev = Math.Max(0, current - 1);
-                    float t = (dist[current] - target) / (dist[current] - dist[prev]);
+                    float currDist = (float)dist[current];
+                    float prevDist = (float)dist[prev];
+                    float t = (currDist - target) / (currDist - prevDist);
 
                     if (float.IsNaN(t))
                         t = 0;
@@ -409,46 +404,34 @@ namespace osu.Framework.Utils
                 }
             }
 
-            public NDArray Interpolate(NDArray x)
+            public NDarray Interpolate(NDarray x)
             {
                 var xIdx = x * (ny - 1);
-                var idxBelow = np.floor(xIdx);
-                var idxAbove = np.minimum(idxBelow + 1, ny - 1);
-                idxBelow = np.maximum(idxAbove - 1, 0);
+                var idxBelow = xIdx.floor();
+                var idxAbove = (idxBelow + 1).minimum(np.array(ny - 1));
+                idxBelow = (idxAbove - 1).maximum(np.array(0));
 
                 var yRefBelow = ys[idxBelow];
                 var yRefAbove = ys[idxAbove];
 
                 var t = xIdx - idxBelow;
 
-                var y = t[Slice.All, np.newaxis] * yRefAbove + (1 - t)[Slice.All, np.newaxis] * yRefBelow;
+                var y = t[":, None"] * yRefAbove + (1 - t)[":, None"] * yRefBelow;
                 return y;
             }
         }
 
-        private static NDArray generateBezierWeights(int numControlPoints, int numTestPoints)
+        private static NDarray generateBezierWeights(int numControlPoints, int numTestPoints)
         {
             var ts = np.linspace(0, 1, numTestPoints);
-            var coefficients = binomialCoefficients(numControlPoints).astype(NPTypeCode.Single);
-            var p = np.empty(new Shape(numTestPoints, numControlPoints), NPTypeCode.Single);
-
-            for (int i = 0; i < numTestPoints; i++)
-            {
-                p[i, 0] = 1;
-                float t = ts[i];
-
-                for (int j = 1; j < numControlPoints; j++)
-                {
-                    p[i, j] = p[i, j - 1] * t;
-                }
-            }
-
+            var coefficients = np.array(binomialCoefficients(numControlPoints), dtype: np.float32);
+            var p = ts.power(np.arange(numControlPoints));
             return coefficients * p["::-1, ::-1"] * p;
         }
 
-        private static NDArray binomialCoefficients(int n)
+        private static long[] binomialCoefficients(int n)
         {
-            var coefficients = np.empty(new Shape(n), NPTypeCode.Int64);
+            long[] coefficients = new long[n];
             coefficients[0] = 1;
 
             for (int i = 1; i < (n + 1) / 2; i++)
