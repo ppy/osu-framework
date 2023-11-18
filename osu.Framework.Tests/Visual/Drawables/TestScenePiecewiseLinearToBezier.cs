@@ -13,47 +13,47 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public partial class TestSceneLinearToBezier : GridTestScene
+    public partial class TestScenePiecewiseLinearToBezier : GridTestScene
     {
         private int numControlPoints;
         private int numTestPoints;
         private int maxIterations;
 
-        private readonly List<DoubleApproximatedPathTest> doubleTests = new List<DoubleApproximatedPathTest>();
+        private readonly List<DoubleApproximatedPathTest> doubleApproximatedPathTests = new List<DoubleApproximatedPathTest>();
 
-        public TestSceneLinearToBezier()
+        public TestScenePiecewiseLinearToBezier()
             : base(2, 2)
         {
-            doubleTests.Add(new DoubleApproximatedPathTest(PathApproximator.BezierToPiecewiseLinear, numControlPoints, numTestPoints, maxIterations));
+            doubleApproximatedPathTests.Add(new DoubleApproximatedPathTest(PathApproximator.BezierToPiecewiseLinear, numControlPoints, numTestPoints, maxIterations));
             Cell(0).AddRange(new[]
             {
                 createLabel(nameof(PathApproximator.BezierToPiecewiseLinear)),
                 new ApproximatedPathTest(PathApproximator.BezierToPiecewiseLinear),
-                doubleTests[^1],
+                doubleApproximatedPathTests[^1],
             });
 
-            doubleTests.Add(new DoubleApproximatedPathTest(PathApproximator.CatmullToPiecewiseLinear, numControlPoints, numTestPoints, maxIterations));
+            doubleApproximatedPathTests.Add(new DoubleApproximatedPathTest(PathApproximator.CatmullToPiecewiseLinear, numControlPoints, numTestPoints, maxIterations));
             Cell(1).AddRange(new[]
             {
                 createLabel(nameof(PathApproximator.CatmullToPiecewiseLinear)),
                 new ApproximatedPathTest(PathApproximator.CatmullToPiecewiseLinear),
-                doubleTests[^1],
+                doubleApproximatedPathTests[^1],
             });
 
-            doubleTests.Add(new DoubleApproximatedPathTest(PathApproximator.CircularArcToPiecewiseLinear, numControlPoints, numTestPoints, maxIterations));
+            doubleApproximatedPathTests.Add(new DoubleApproximatedPathTest(PathApproximator.CircularArcToPiecewiseLinear, numControlPoints, numTestPoints, maxIterations));
             Cell(2).AddRange(new[]
             {
                 createLabel(nameof(PathApproximator.CircularArcToPiecewiseLinear)),
                 new ApproximatedPathTest(PathApproximator.CircularArcToPiecewiseLinear),
-                doubleTests[^1],
+                doubleApproximatedPathTests[^1],
             });
 
-            doubleTests.Add(new DoubleApproximatedPathTest(PathApproximator.LagrangePolynomialToPiecewiseLinear, numControlPoints, numTestPoints, maxIterations));
+            doubleApproximatedPathTests.Add(new DoubleApproximatedPathTest(PathApproximator.LagrangePolynomialToPiecewiseLinear, numControlPoints, numTestPoints, maxIterations));
             Cell(3).AddRange(new[]
             {
                 createLabel(nameof(PathApproximator.LagrangePolynomialToPiecewiseLinear)),
                 new ApproximatedPathTest(PathApproximator.LagrangePolynomialToPiecewiseLinear),
-                doubleTests[^1],
+                doubleApproximatedPathTests[^1],
             });
 
             AddSliderStep($"{nameof(numControlPoints)}", 3, 25, 5, v =>
@@ -62,7 +62,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 updateTests();
             });
 
-            AddSliderStep($"{nameof(numTestPoints)}", 10, 1000, 100, v =>
+            AddSliderStep($"{nameof(numTestPoints)}", 10, 200, 100, v =>
             {
                 numTestPoints = v;
                 updateTests();
@@ -76,7 +76,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddStep("Enable optimization", () =>
             {
-                foreach (var test in doubleTests)
+                foreach (var test in doubleApproximatedPathTests)
                     test.OptimizePath = true;
                 updateTests();
             });
@@ -84,7 +84,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private void updateTests()
         {
-            foreach (var test in doubleTests)
+            foreach (var test in doubleApproximatedPathTests)
             {
                 test.NumControlPoints = numControlPoints;
                 test.NumTestPoints = numTestPoints;
@@ -157,6 +157,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             public void UpdatePath()
             {
                 if (!OptimizePath) return;
+
                 var controlPoints = PathApproximator.PiecewiseLinearToBezier(inputPath, NumControlPoints, NumTestPoints, MaxIterations);
                 Vertices = PathApproximator.BezierToPiecewiseLinear(controlPoints.ToArray());
             }

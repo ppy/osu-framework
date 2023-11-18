@@ -337,7 +337,7 @@ namespace osu.Framework.Utils
 
                 // Update labels to shift the distance distribution between points
                 if (step % 11 == 0)
-                    labels = interpolateWithDistanceDistribution(points, interpolator);
+                    labels = interpolator.Interpolate(getDistanceDistribution(points));
 
                 // Calculate the gradient on the control points
                 var diff = labels - points;
@@ -370,11 +370,6 @@ namespace osu.Framework.Utils
             var distCumulativeSum = np.cumsum(np.sqrt(np.sum(np.square(points["1:"] - points[":-1"]), -1, NPTypeCode.Single)), typeCode: NPTypeCode.Single);
             distCumulativeSum = np.concatenate(new[] { np.zeros(new Shape(1), NPTypeCode.Single), distCumulativeSum });
             return distCumulativeSum / distCumulativeSum[-1];
-        }
-
-        private static NDArray interpolateWithDistanceDistribution(NDArray points, Interpolator interpolator)
-        {
-            return interpolator.Interpolate(getDistanceDistribution(points));
         }
 
         private class Interpolator
