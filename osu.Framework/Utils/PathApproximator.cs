@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
-using Numpy;
-using Numpy.Models;
+using Tensornet;
+using Tensornet.Math;
 
 namespace osu.Framework.Utils
 {
@@ -317,24 +317,27 @@ namespace osu.Framework.Utils
 
             // Generate Bezier weight matrix
             var weights = generateBezierWeights(numControlPoints, numTestPoints);
-            var weightsTranspose = weights.T;
+            var weightsTranspose = weights.Transpose(0, 1);
 
             // Create efficient interpolation on the input path
             var interpolator = new Interpolator(inputPath, interpolator_resolution);
 
             // Create initial control point positions equally spaced along the input path
-            var controlPoints = interpolator.Interpolate(np.linspace(0, 1, numControlPoints));
-            NDarray labels = null!;
+            var controlPoints = interpolator.Interpolate(Tensor.Linspace<float>(0, 1, numControlPoints));
+            Tensor<float> labels = null!;
 
             // Initialize Adam optimizer variables
-            var m = np.zeros_like(controlPoints);
-            var v = np.zeros_like(controlPoints);
-            var learnableMask = np.zeros_like(controlPoints);
-            learnableMask["1:-1"] = np.ones_like(controlPoints["1:-1"]);
+            var m = Tensor.ZerosLike<float, float>(controlPoints);
+            var v = Tensor.ZerosLike<float, float>(controlPoints);
+            var learnableMask = Tensor.OnesLike<float, float>(controlPoints);
+            learnableMask[0, 0] = 0;
+            learnableMask[0, 1] = 0;
+            learnableMask[numControlPoints - 1, 0] = 0;
+            learnableMask[numControlPoints - 1, 1] = 0;
 
             for (int step = 0; step < maxIterations; step++)
             {
-                var points = weights.matmul(controlPoints);
+                var points = weights.Matmul(controlPoints);
 
                 // Update labels to shift the distance distribution between points
                 if (step % 11 == 0)
@@ -342,17 +345,17 @@ namespace osu.Framework.Utils
 
                 // Calculate the gradient on the control points
                 var diff = labels - points;
-                var grad = -1f / numControlPoints * weightsTranspose.matmul(diff);
+                var grad = -1f / numControlPoints * weightsTranspose.Matmul(diff);
 
                 // Apply learnable mask to prevent moving the endpoints
                 grad *= learnableMask;
 
                 // Update control points with Adam optimizer
                 m = b1 * m + (1 - b1) * grad;
-                v = b2 * v + (1 - b2) * grad.square();
-                var mCorr = m / (1 - Math.Pow(b1, step + 1));
-                var vCorr = v / (1 - Math.Pow(b2, step + 1));
-                controlPoints.isub(learning_rate * mCorr / (vCorr.sqrt() + epsilon));
+                v = b2 * v + (1 - b2) * MathT.Pow(grad, 2);
+                var mCorr = m / (float)(1 - Math.Pow(b1, step + 1));
+                var vCorr = v / (float)(1 - Math.Pow(b2, step + 1));
+                controlPoints -= learning_rate * mCorr / (MathT.Pow(vCorr, 0.5f) + epsilon);
             }
 
             // Convert the resulting control points NDArray
@@ -360,78 +363,118 @@ namespace osu.Framework.Utils
 
             for (int i = 0; i < numControlPoints; i++)
             {
-                result.Add(new Vector2((float)controlPoints[i, 0], (float)controlPoints[i, 1]));
+                result.Add(new Vector2(controlPoints[i, 0], controlPoints[i, 1]));
             }
 
             return result;
         }
 
-        private static NDarray getDistanceDistribution(NDarray points)
+        private static Tensor<float> getDistanceDistribution(Tensor<float> points)
         {
-            var distCumulativeSum = (points["1:"] - points[":-1"]).square().sum(-1, np.float32).sqrt().cumsum(dtype: np.float32).pad(np.array(1, 0), "constant");
-            return distCumulativeSum / distCumulativeSum[-1];
+            var distCumulativeSum = MathT.Pow(MathT.Pow(points[1.., ..] - points[..^1, ..], 2).Sum(1), 0.5f);
+            float accumulator = 0;
+            distCumulativeSum.ForEachInplace(v =>
+            {
+                accumulator += v;
+                return accumulator;
+            });
+            distCumulativeSum = distCumulativeSum.Pad(new[] { (1, 0) });
+            return distCumulativeSum / distCumulativeSum[distCumulativeSum.Shape[0] - 1];
         }
 
         private class Interpolator
         {
             private readonly int ny;
-            private readonly NDarray ys;
+            private readonly Tensor<float> ys;
 
             public Interpolator(ReadOnlySpan<Vector2> inputPath, int resolution = 1000)
             {
-                var arr = np.array(inputPath.ToArray(), dtype: np.float32);
+                var arr = Tensor.Zeros<float>(new TensorShape(inputPath.Length, 2));
+
+                for (int i = 0; i < inputPath.Length; i++)
+                {
+                    arr[i, 0] = inputPath[i].X;
+                    arr[i, 1] = inputPath[i].Y;
+                }
+
                 var dist = getDistanceDistribution(arr);
                 ny = resolution;
-                ys = np.empty(new Shape(resolution, arr.shape[1]), np.float32);
+                ys = Tensor.Zeros<float>(new TensorShape(resolution, 2));
                 int current = 0;
 
                 for (int i = 0; i < resolution; i++)
                 {
                     float target = (float)i / (resolution - 1);
 
-                    while ((float)dist[current] < target)
+                    while (dist[current] < target)
                         current++;
 
                     int prev = Math.Max(0, current - 1);
-                    float currDist = (float)dist[current];
-                    float prevDist = (float)dist[prev];
+                    float currDist = dist[current];
+                    float prevDist = dist[prev];
                     float t = (currDist - target) / (currDist - prevDist);
 
                     if (float.IsNaN(t))
                         t = 0;
 
-                    ys[i] = t * arr[prev] + (1 - t) * arr[current];
+                    ys[i, 0] = t * arr[prev, 0] + (1 - t) * arr[current, 0];
+                    ys[i, 1] = t * arr[prev, 1] + (1 - t) * arr[current, 1];
                 }
             }
 
-            public NDarray Interpolate(NDarray x)
+            public Tensor<float> Interpolate(Tensor<float> x)
             {
                 var xIdx = x * (ny - 1);
-                var idxBelow = xIdx.floor();
-                var idxAbove = (idxBelow + 1).minimum(np.array(ny - 1));
-                idxBelow = (idxAbove - 1).maximum(np.array(0));
+                var idxBelow = xIdx.Floor();
+                var idxAbove = MathT.Clamp(idxBelow + 1, 0, ny - 1);
+                idxBelow = MathT.Clamp(idxAbove - 1, 0, ny - 1);
 
-                var yRefBelow = ys[idxBelow];
-                var yRefAbove = ys[idxAbove];
+                var yRefBelow = Tensor.Zeros<float>(new TensorShape(x.Shape[0], 2));
+                var yRefAbove = Tensor.Zeros<float>(new TensorShape(x.Shape[0], 2));
+
+                for (int i = 0; i < x.Shape[0]; i++)
+                {
+                    int b = (int)idxBelow[i];
+                    int a = (int)idxAbove[i];
+                    yRefBelow[i, 0] = ys[b, 0];
+                    yRefBelow[i, 1] = ys[b, 1];
+                    yRefAbove[i, 0] = ys[a, 0];
+                    yRefAbove[i, 1] = ys[a, 1];
+                }
 
                 var t = xIdx - idxBelow;
 
-                var y = t[":, None"] * yRefAbove + (1 - t)[":, None"] * yRefBelow;
+                var y = t.Unsqueeze(1) * yRefAbove + (1 - t).Unsqueeze(1) * yRefBelow;
                 return y;
             }
         }
 
-        private static NDarray generateBezierWeights(int numControlPoints, int numTestPoints)
+        private static Tensor<float> generateBezierWeights(int numControlPoints, int numTestPoints)
         {
-            var ts = np.linspace(0, 1, numTestPoints);
-            var coefficients = np.array(binomialCoefficients(numControlPoints), dtype: np.float32);
-            var p = ts.power(np.arange(numControlPoints));
-            return coefficients * p["::-1, ::-1"] * p;
+            var ts = Tensor.Linspace<float>(0, 1, numTestPoints);
+            var coefficients = Tensor.FromArray(binomialCoefficients(numControlPoints), new[] { numControlPoints });
+            float[] p = new float[numTestPoints * numControlPoints];
+
+            for (int i = 0; i < numTestPoints; i++)
+            {
+                p[i * numControlPoints] = 1;
+                float t = ts[i];
+
+                for (int j = 1; j < numControlPoints; j++)
+                {
+                    p[i * numControlPoints + j] = p[i * numControlPoints + j - 1] * t;
+                }
+            }
+
+            var pt = Tensor.FromArray(p, new TensorShape(numTestPoints, numControlPoints));
+            var pti = pt.Rotate(2, 0, 1);
+
+            return coefficients * pti * pt;
         }
 
-        private static long[] binomialCoefficients(int n)
+        private static float[] binomialCoefficients(int n)
         {
-            long[] coefficients = new long[n];
+            float[] coefficients = new float[n];
             coefficients[0] = 1;
 
             for (int i = 1; i < (n + 1) / 2; i++)
