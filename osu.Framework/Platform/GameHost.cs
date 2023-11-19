@@ -487,6 +487,9 @@ namespace osu.Framework.Platform
             if (ExecutionState != ExecutionState.Running)
                 return;
 
+            if (Window?.WindowState == WindowState.Minimised)
+                return;
+
             Renderer.AllowTearing = windowMode.Value == WindowMode.Fullscreen;
 
             ObjectUsage<DrawNode> buffer;
