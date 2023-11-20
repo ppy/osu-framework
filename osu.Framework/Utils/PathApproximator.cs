@@ -456,7 +456,7 @@ namespace osu.Framework.Utils
         /// <param name="numTestPoints">The number of points to evaluate the spline at.</param>
         /// <param name="degree">The order of the B-spline.</param>
         /// <returns>Matrix array of B-spline basis function values.</returns>
-        public static Tensor<float> GenerateBSplineWeights(int numControlPoints, int numTestPoints, int degree)
+        private static Tensor<float> generateBSplineWeights(int numControlPoints, int numTestPoints, int degree)
         {
             // Calculate the basis function values using a modified vectorized De Boor's algorithm
             var x = Tensor.Linspace<float>(0, 1, numTestPoints).Unsqueeze(1);
