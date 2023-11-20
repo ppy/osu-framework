@@ -320,22 +320,25 @@ namespace osu.Framework.Utils
                         totalWinding += getAbsWindingAt(vertices, distances, t);
                     }
 
-                    int nControlPoints = (int)(totalWinding / Tolerance);
-                    float controlPointSpacing = totalWinding / nControlPoints;
                     float currentWinding = 0;
-
                     for (int j = 0; j < nSteps; ++j)
                     {
                         float t = t0 + j * step_size;
 
-                        if (currentWinding > controlPointSpacing)
+                        // Don't permit control points too close to the next corner as they are redundant.
+                        // However, ignore this limitation on the last segment of the path as we would like
+                        // it to follow the user's drawing as closely as possible.
+                        if (currentWinding + tmp.Count * Tolerance > totalWinding - Tolerance * 0.5f && i < cornerTs.Count - 1)
+                            break;
+
+                        if (currentWinding > Tolerance)
                         {
                             Vector2 p = getPathAt(vertices, distances, t);
                             if (linearConnection.DistanceSquaredToPoint(p) > onLineThreshold * onLineThreshold)
                                 allOnLine = false;
 
                             tmp.Add(p);
-                            currentWinding -= controlPointSpacing;
+                            currentWinding -= Tolerance;
                         }
 
                         currentWinding += getAbsWindingAt(vertices, distances, t);
