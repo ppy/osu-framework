@@ -25,6 +25,12 @@
       "commands": [
         "CodeFileSanity"
       ]
+    },
+    "java.openjdk": {
+      "version": "11.0.1-beta001",
+      "commands": [
+        "Java.OpenJDK"
+      ]
     }
   }
 }
