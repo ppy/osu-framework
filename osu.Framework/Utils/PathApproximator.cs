@@ -307,18 +307,42 @@ namespace osu.Framework.Utils
             return result;
         }
 
-        public static List<Vector2> PiecewiseLinearToBezier(ReadOnlySpan<Vector2> inputPath, int numControlPoints, int numTestPoints = 100, int maxIterations = 100, float learningRate = 8f, float b1 = 0.9f, float b2 = 0.92f, int interpolatorResolution = 100)
+        public static List<Vector2> PiecewiseLinearToBezier(ReadOnlySpan<Vector2> inputPath,
+                                                            int numControlPoints,
+                                                            int numTestPoints = 100,
+                                                            int maxIterations = 100,
+                                                            float learningRate = 8f,
+                                                            float b1 = 0.9f,
+                                                            float b2 = 0.92f,
+                                                            int interpolatorResolution = 100,
+                                                            List<Vector2>? initialControlPoints = null)
         {
-            return piecewiseLinearToSpline(inputPath, generateBezierWeights(numControlPoints, numTestPoints), maxIterations, learningRate, b1, b2, interpolatorResolution);
+            return piecewiseLinearToSpline(inputPath, generateBezierWeights(numControlPoints, numTestPoints), maxIterations, learningRate, b1, b2, interpolatorResolution, initialControlPoints);
         }
 
-        public static List<Vector2> PiecewiseLinearToBSpline(ReadOnlySpan<Vector2> inputPath, int numControlPoints, int degree, int numTestPoints = 100, int maxIterations = 100, float learningRate = 8f, float b1 = 0.8f, float b2 = 0.99f, int interpolatorResolution = 100)
+        public static List<Vector2> PiecewiseLinearToBSpline(ReadOnlySpan<Vector2> inputPath,
+                                                             int numControlPoints,
+                                                             int degree,
+                                                             int numTestPoints = 100,
+                                                             int maxIterations = 100,
+                                                             float learningRate = 8f,
+                                                             float b1 = 0.8f,
+                                                             float b2 = 0.99f,
+                                                             int interpolatorResolution = 100,
+                                                             List<Vector2>? initialControlPoints = null)
         {
             degree = Math.Min(degree, numControlPoints - 1);
-            return piecewiseLinearToSpline(inputPath, generateBSplineWeights(numControlPoints, numTestPoints, degree), maxIterations, learningRate, b1, b2, interpolatorResolution);
+            return piecewiseLinearToSpline(inputPath, generateBSplineWeights(numControlPoints, numTestPoints, degree), maxIterations, learningRate, b1, b2, interpolatorResolution, initialControlPoints);
         }
 
-        private static List<Vector2> piecewiseLinearToSpline(ReadOnlySpan<Vector2> inputPath, Tensor<float> weights, int maxIterations = 100, float learningRate = 8f, float b1 = 0.9f, float b2 = 0.92f, int interpolatorResolution = 100)
+        private static List<Vector2> piecewiseLinearToSpline(ReadOnlySpan<Vector2> inputPath,
+                                                             Tensor<float> weights,
+                                                             int maxIterations = 100,
+                                                             float learningRate = 8f,
+                                                             float b1 = 0.9f,
+                                                             float b2 = 0.92f,
+                                                             int interpolatorResolution = 100,
+                                                             List<Vector2>? initialControlPoints = null)
         {
             const float epsilon = 1E-8f;
 
@@ -329,9 +353,23 @@ namespace osu.Framework.Utils
             // Create efficient interpolation on the input path
             var interpolator = new Interpolator(inputPath, interpolatorResolution);
 
-            // Create initial control point positions equally spaced along the input path
-            var controlPoints = interpolator.Interpolate(Tensor.Linspace<float>(0, 1, numControlPoints));
+            // Initialize control points
             Tensor<float> labels = null!;
+            Tensor<float> controlPoints;
+
+            if (initialControlPoints is not null)
+            {
+                controlPoints = Tensor.Zeros<float>(new TensorShape(numControlPoints, 2));
+
+                for (int i = 0; i < numControlPoints; i++)
+                {
+                    controlPoints[i, 0] = initialControlPoints[i].X;
+                    controlPoints[i, 1] = initialControlPoints[i].Y;
+                }
+            }
+            else
+                // Create initial control point positions equally spaced along the input path
+                controlPoints = interpolator.Interpolate(Tensor.Linspace<float>(0, 1, numControlPoints));
 
             // Initialize Adam optimizer variables
             var m = Tensor.ZerosLike<float, float>(controlPoints);
