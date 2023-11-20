@@ -307,20 +307,27 @@ namespace osu.Framework.Utils
             return result;
         }
 
-        public static List<Vector2> PiecewiseLinearToBezier(ReadOnlySpan<Vector2> inputPath, int numControlPoints, int numTestPoints = 100, int maxIterations = 100)
+        public static List<Vector2> PiecewiseLinearToBezier(ReadOnlySpan<Vector2> inputPath, int numControlPoints, int numTestPoints = 100, int maxIterations = 100, float learningRate = 8f, float b1 = 0.9f, float b2 = 0.92f, int interpolatorResolution = 100)
         {
-            const float learning_rate = 8f;
-            const float b1 = 0.9f;
-            const float b2 = 0.92f;
+            return piecewiseLinearToSpline(inputPath, generateBezierWeights(numControlPoints, numTestPoints), maxIterations, learningRate, b1, b2, interpolatorResolution);
+        }
+
+        public static List<Vector2> PiecewiseLinearToBSpline(ReadOnlySpan<Vector2> inputPath, int numControlPoints, int degree, int numTestPoints = 100, int maxIterations = 100, float learningRate = 8f, float b1 = 0.8f, float b2 = 0.99f, int interpolatorResolution = 100)
+        {
+            degree = Math.Min(degree, numControlPoints - 1);
+            return piecewiseLinearToSpline(inputPath, generateBSplineWeights(numControlPoints, numTestPoints, degree), maxIterations, learningRate, b1, b2, interpolatorResolution);
+        }
+
+        private static List<Vector2> piecewiseLinearToSpline(ReadOnlySpan<Vector2> inputPath, Tensor<float> weights, int maxIterations = 100, float learningRate = 8f, float b1 = 0.9f, float b2 = 0.92f, int interpolatorResolution = 100)
+        {
             const float epsilon = 1E-8f;
-            const int interpolator_resolution = 100;
 
             // Generate Bezier weight matrix
-            var weights = generateBezierWeights(numControlPoints, numTestPoints);
+            int numControlPoints = weights.Shape[1];
             var weightsTranspose = weights.Transpose(0, 1);
 
             // Create efficient interpolation on the input path
-            var interpolator = new Interpolator(inputPath, interpolator_resolution);
+            var interpolator = new Interpolator(inputPath, interpolatorResolution);
 
             // Create initial control point positions equally spaced along the input path
             var controlPoints = interpolator.Interpolate(Tensor.Linspace<float>(0, 1, numControlPoints));
@@ -355,7 +362,7 @@ namespace osu.Framework.Utils
                 v = b2 * v + (1 - b2) * MathT.Pow(grad, 2);
                 var mCorr = m / (float)(1 - Math.Pow(b1, step + 1));
                 var vCorr = v / (float)(1 - Math.Pow(b2, step + 1));
-                controlPoints -= learning_rate * mCorr / (MathT.Pow(vCorr, 0.5f) + epsilon);
+                controlPoints -= learningRate * mCorr / (MathT.Pow(vCorr, 0.5f) + epsilon);
             }
 
             // Convert the resulting control points NDArray

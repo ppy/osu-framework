@@ -13,15 +13,19 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public partial class TestScenePiecewiseLinearToBezier : GridTestScene
+    public partial class TestScenePiecewiseLinearToBSpline : GridTestScene
     {
         private int numControlPoints;
+        private int degree;
         private int numTestPoints;
         private int maxIterations;
+        private float learningRate;
+        private float b1;
+        private float b2;
 
         private readonly List<DoubleApproximatedPathTest> doubleApproximatedPathTests = new List<DoubleApproximatedPathTest>();
 
-        public TestScenePiecewiseLinearToBezier()
+        public TestScenePiecewiseLinearToBSpline()
             : base(2, 2)
         {
             doubleApproximatedPathTests.Add(new DoubleApproximatedPathTest(PathApproximator.BezierToPiecewiseLinear, numControlPoints, numTestPoints, maxIterations));
@@ -62,6 +66,12 @@ namespace osu.Framework.Tests.Visual.Drawables
                 updateTests();
             });
 
+            AddSliderStep($"{nameof(degree)}", 1, 5, 3, v =>
+            {
+                degree = v;
+                updateTests();
+            });
+
             AddSliderStep($"{nameof(numTestPoints)}", 10, 200, 100, v =>
             {
                 numTestPoints = v;
@@ -71,6 +81,24 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddSliderStep($"{nameof(maxIterations)}", 0, 200, 10, v =>
             {
                 maxIterations = v;
+                updateTests();
+            });
+
+            AddSliderStep($"{nameof(learningRate)}", 0, 10, 8f, v =>
+            {
+                learningRate = v;
+                updateTests();
+            });
+
+            AddSliderStep($"{nameof(b1)}", 0, 0.999f, 0.8f, v =>
+            {
+                b1 = v;
+                updateTests();
+            });
+
+            AddSliderStep($"{nameof(b2)}", 0, 0.999f, 0.99f, v =>
+            {
+                b2 = v;
                 updateTests();
             });
 
@@ -87,15 +115,19 @@ namespace osu.Framework.Tests.Visual.Drawables
             foreach (var test in doubleApproximatedPathTests)
             {
                 test.NumControlPoints = numControlPoints;
+                test.Degree = degree;
                 test.NumTestPoints = numTestPoints;
                 test.MaxIterations = maxIterations;
+                test.LearningRate = learningRate;
+                test.B1 = b1;
+                test.B2 = b2;
                 test.UpdatePath();
             }
         }
 
         private Drawable createLabel(string text) => new SpriteText
         {
-            Text = text,
+            Text = text + "ToBSpline",
             Font = new FontUsage(size: 20),
             Colour = Color4.White,
         };
@@ -127,9 +159,17 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             public int NumControlPoints { get; set; }
 
+            public int Degree { get; set; }
+
             public int NumTestPoints { get; set; }
 
             public int MaxIterations { get; set; }
+
+            public float LearningRate { get; set; }
+
+            public float B1 { get; set; }
+
+            public float B2 { get; set; }
 
             public bool OptimizePath { get; set; }
 
@@ -158,8 +198,8 @@ namespace osu.Framework.Tests.Visual.Drawables
             {
                 if (!OptimizePath) return;
 
-                var controlPoints = PathApproximator.PiecewiseLinearToBezier(inputPath, NumControlPoints, NumTestPoints, MaxIterations);
-                Vertices = PathApproximator.BezierToPiecewiseLinear(controlPoints.ToArray());
+                var controlPoints = PathApproximator.PiecewiseLinearToBSpline(inputPath, NumControlPoints, Degree, NumTestPoints, MaxIterations, LearningRate, B1, B2);
+                Vertices = PathApproximator.BSplineToPiecewiseLinear(controlPoints.ToArray(), Degree);
             }
         }
     }
