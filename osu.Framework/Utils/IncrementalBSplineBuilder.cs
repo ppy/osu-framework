@@ -382,18 +382,31 @@ namespace osu.Framework.Utils
             outputCache.Invalidate();
             controlPoints.Invalidate();
 
+            // Implementation detail: we would like to disregard input path detail that is smaller than
+            // FD_EPSILON * 2 because it can otherwise mess with the winding calculations. However, we
+            // also do not want the input path extension to feel "choppy", so we maintain an extra point
+            // at the end of the path that does not obey the FD_EPSILON * 2 rule and instead perfectly
+            // follows the inputted vertices. This also means that the input path must always contain
+            // at least two points if it is not empty.
             if (inputPath.Count == 0)
             {
                 inputPath.Add(v);
+                inputPath.Add(v);
+                cumulativeInputPathLength.Add(0);
                 return;
             }
 
-            float inputDistance = Vector2.Distance(v, inputPath[^1]);
+            inputPath[^1] = v;
+            float inputDistance = Vector2.Distance(v, inputPath[^2]);
+            cumulativeInputPathLength[^1] = inputDistance;
+            if (cumulativeInputPathLength.Count > 1)
+                cumulativeInputPathLength[^1] += cumulativeInputPathLength[^2];
+
             if (inputDistance < FD_EPSILON * 2)
                 return;
 
             inputPath.Add(v);
-            cumulativeInputPathLength.Add((cumulativeInputPathLength.Count == 0 ? 0 : cumulativeInputPathLength[^1]) + inputDistance);
+            cumulativeInputPathLength.Add(cumulativeInputPathLength[^1]);
         }
     }
 }
