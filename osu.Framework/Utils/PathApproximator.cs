@@ -37,6 +37,34 @@ namespace osu.Framework.Utils
         }
 
         /// <summary>
+        /// Converts a B-spline with polynomial order <paramref name="degree"/> to a series of Bezier control points
+        /// via Boehm's algorithm.
+        /// </summary>
+        /// <remarks>
+        /// Does nothing if <paramref name="controlPoints"/> has zero points or one point.
+        /// Algorithm unsuitable for large values of <paramref name="degree"/> with many knots.
+        /// </remarks>
+        /// <param name="controlPoints">The control points.</param>
+        /// <param name="degree">The polynomial order.</param>
+        /// <returns>An array of vectors containing control point positions for the resulting Bezier curve.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="degree"/> was less than 1.</exception>
+        public static Vector2[] BSplineToBezier(ReadOnlySpan<Vector2> controlPoints, int degree)
+        {
+            // Zero-th degree splines would be piecewise-constant, which cannot be represented by the piecewise-
+            // linear output of this function. Negative degrees would require rational splines which this code
+            // does not support.
+            if (degree < 1)
+                throw new ArgumentOutOfRangeException(nameof(degree), $"{nameof(degree)} must be >=1 but was {degree}.");
+
+            // Spline fitting does not make sense when the input contains no points or just one point. In this case
+            // the user likely wants this function to behave like a no-op.
+            if (controlPoints.Length < 2)
+                return controlPoints.Length == 0 ? Array.Empty<Vector2>() : new[] { controlPoints[0] };
+
+            return bSplineToBezierInternal(controlPoints, ref degree).SelectMany(segment => segment).ToArray();
+        }
+
+        /// <summary>
         /// Creates a piecewise-linear approximation of a clamped uniform B-spline with polynomial order <paramref name="degree"/>,
         /// by dividing it into a series of bezier control points at its knots, then adaptively repeatedly
         /// subdividing those until their approximation error vanishes below a given threshold.
@@ -71,44 +99,8 @@ namespace osu.Framework.Utils
             List<Vector2> output = new List<Vector2>();
             int pointCount = controlPoints.Length - 1;
 
-            Stack<Vector2[]> toFlatten = new Stack<Vector2[]>();
+            Stack<Vector2[]> toFlatten = bSplineToBezierInternal(controlPoints, ref degree);
             Stack<Vector2[]> freeBuffers = new Stack<Vector2[]>();
-
-            var points = controlPoints.ToArray();
-
-            if (degree == pointCount)
-            {
-                // B-spline subdivision unnecessary, degenerate to single bezier.
-                toFlatten.Push(points);
-            }
-            else
-            {
-                // Subdivide B-spline into bezier control points at knots.
-                for (int i = 0; i < pointCount - degree; i++)
-                {
-                    var subBezier = new Vector2[degree + 1];
-                    subBezier[0] = points[i];
-
-                    // Destructively insert the knot degree-1 times via Boehm's algorithm.
-                    for (int j = 0; j < degree - 1; j++)
-                    {
-                        subBezier[j + 1] = points[i + 1];
-
-                        for (int k = 1; k < degree - j; k++)
-                        {
-                            int l = Math.Min(k, pointCount - degree - i);
-                            points[i + k] = (l * points[i + k] + points[i + k + 1]) / (l + 1);
-                        }
-                    }
-
-                    subBezier[degree] = points[i + 1];
-                    toFlatten.Push(subBezier);
-                }
-
-                toFlatten.Push(points[(pointCount - degree)..]);
-                // Reverse the stack so elements can be accessed in order.
-                toFlatten = new Stack<Vector2[]>(toFlatten);
-            }
 
             // "toFlatten" contains all the curves which are not yet approximated well enough.
             // We use a stack to emulate recursion without the risk of running into a stack overflow.
@@ -564,6 +556,55 @@ namespace osu.Framework.Utils
             }
 
             return coefficients;
+        }
+
+        private static Stack<Vector2[]> bSplineToBezierInternal(ReadOnlySpan<Vector2> controlPoints, ref int degree)
+        {
+            Stack<Vector2[]> result = new Stack<Vector2[]>();
+
+            // With fewer control points than the degree, splines can not be unambiguously fitted. Rather than erroring
+            // out, we set the degree to the minimal number that permits a unique fit to avoid special casing in
+            // incremental spline building algorithms that call this function.
+            degree = Math.Min(degree, controlPoints.Length - 1);
+
+            int pointCount = controlPoints.Length - 1;
+            var points = controlPoints.ToArray();
+
+            if (degree == pointCount)
+            {
+                // B-spline subdivision unnecessary, degenerate to single bezier.
+                result.Push(points);
+            }
+            else
+            {
+                // Subdivide B-spline into bezier control points at knots.
+                for (int i = 0; i < pointCount - degree; i++)
+                {
+                    var subBezier = new Vector2[degree + 1];
+                    subBezier[0] = points[i];
+
+                    // Destructively insert the knot degree-1 times via Boehm's algorithm.
+                    for (int j = 0; j < degree - 1; j++)
+                    {
+                        subBezier[j + 1] = points[i + 1];
+
+                        for (int k = 1; k < degree - j; k++)
+                        {
+                            int l = Math.Min(k, pointCount - degree - i);
+                            points[i + k] = (l * points[i + k] + points[i + k + 1]) / (l + 1);
+                        }
+                    }
+
+                    subBezier[degree] = points[i + 1];
+                    result.Push(subBezier);
+                }
+
+                result.Push(points[(pointCount - degree)..]);
+                // Reverse the stack so elements can be accessed in order.
+                result = new Stack<Vector2[]>(result);
+            }
+
+            return result;
         }
 
         /// <summary>
