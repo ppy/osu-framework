@@ -449,6 +449,37 @@ namespace osu.Framework.Utils
             }
         }
 
+        /// <summary>
+        /// Calculate a matrix of B-spline basis function values.
+        /// </summary>
+        /// <param name="numControlPoints">The number of control points.</param>
+        /// <param name="numTestPoints">The number of points to evaluate the spline at.</param>
+        /// <param name="degree">The order of the B-spline.</param>
+        /// <returns>Matrix array of B-spline basis function values.</returns>
+        public static Tensor<float> GenerateBSplineWeights(int numControlPoints, int numTestPoints, int degree)
+        {
+            // Calculate the basis function values using a modified vectorized De Boor's algorithm
+            var x = Tensor.Linspace<float>(0, 1, numTestPoints).Unsqueeze(1);
+            var knots = Tensor.Linspace<float>(0, 1, numControlPoints + 1 - degree).Pad(new[] { (degree, degree) }, constants: new[] { (0d, 1d) });
+            (int, int)[] alphaPad = { (0, 0), (1, 0) };
+            (int, int)[] betaPad = { (0, 0), (0, 1) };
+
+            // Calculate the first order basis
+            var prevOrder = Tensor.Zeros<float>(new TensorShape(numTestPoints, numControlPoints - degree));
+            for (int i = 0; i < numTestPoints; i++)
+                prevOrder[i, MathHelper.Clamp((int)(x[i, 0] * (numControlPoints - degree)), 0, numControlPoints - degree - 1)] = 1;
+
+            // Calculate the higher order basis
+            for (int q = 1; q < degree + 1; q++)
+            {
+                var divisor = (knots[(degree + 1)..(numControlPoints + q)] - knots[(degree - q + 1)..numControlPoints]).Unsqueeze(0);
+                var alpha = (x - knots[(degree - q + 1)..numControlPoints].Unsqueeze(0)) / divisor;
+                prevOrder = (alpha * prevOrder).Pad(alphaPad) + ((1 - alpha) * prevOrder).Pad(betaPad);
+            }
+
+            return prevOrder;
+        }
+
         private static Tensor<float> generateBezierWeights(int numControlPoints, int numTestPoints)
         {
             var ts = Tensor.Linspace<float>(0, 1, numTestPoints);
