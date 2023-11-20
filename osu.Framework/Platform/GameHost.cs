@@ -481,13 +481,15 @@ namespace osu.Framework.Platform
 
         protected virtual void DrawFrame()
         {
+            Debug.Assert(Window != null);
+
             if (Root == null)
                 return;
 
             if (ExecutionState != ExecutionState.Running)
                 return;
 
-            if (Window?.WindowState == WindowState.Minimised)
+            if (Window.WindowState == WindowState.Minimised)
                 return;
 
             Renderer.AllowTearing = windowMode.Value == WindowMode.Fullscreen;
