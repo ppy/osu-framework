@@ -321,6 +321,7 @@ namespace osu.Framework.Utils
                     }
 
                     float currentWinding = 0;
+
                     for (int j = 0; j < nSteps; ++j)
                     {
                         float t = t0 + j * step_size;
