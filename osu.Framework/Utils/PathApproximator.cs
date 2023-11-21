@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
-using Tensornet;
-using Tensornet.Math;
 
 namespace osu.Framework.Utils
 {
@@ -328,7 +326,7 @@ namespace osu.Framework.Utils
         }
 
         private static List<Vector2> piecewiseLinearToSpline(ReadOnlySpan<Vector2> inputPath,
-                                                             Tensor<float> weights,
+                                                             float[,] weights,
                                                              int maxIterations = 100,
                                                              float learningRate = 8f,
                                                              float b1 = 0.9f,
@@ -336,23 +334,19 @@ namespace osu.Framework.Utils
                                                              int interpolatorResolution = 100,
                                                              List<Vector2>? initialControlPoints = null)
         {
-            const float epsilon = 1E-8f;
-
             // Generate Bezier weight matrix
-            int numControlPoints = weights.Shape[1];
-            var weightsTranspose = weights.Transpose(0, 1);
+            int numControlPoints = weights.GetLength(1);
+            int numTestPoints = weights.GetLength(0);
 
             // Create efficient interpolation on the input path
             var interpolator = new Interpolator(inputPath, interpolatorResolution);
 
             // Initialize control points
-            Tensor<float> labels = null!;
-            Tensor<float> controlPoints;
+            float[,] labels = new float[numTestPoints, 2];
+            float[,] controlPoints = new float[numControlPoints, 2];
 
             if (initialControlPoints is not null)
             {
-                controlPoints = Tensor.Zeros<float>(new TensorShape(numControlPoints, 2));
-
                 for (int i = 0; i < numControlPoints; i++)
                 {
                     controlPoints[i, 0] = initialControlPoints[i].X;
@@ -361,38 +355,48 @@ namespace osu.Framework.Utils
             }
             else
                 // Create initial control point positions equally spaced along the input path
-                controlPoints = interpolator.Interpolate(Tensor.Linspace<float>(0, 1, numControlPoints));
+                interpolator.Interpolate(linspace(0, 1, numControlPoints), controlPoints);
 
             // Initialize Adam optimizer variables
-            var m = Tensor.ZerosLike<float, float>(controlPoints);
-            var v = Tensor.ZerosLike<float, float>(controlPoints);
-            var learnableMask = Tensor.OnesLike<float, float>(controlPoints);
-            learnableMask[0, 0] = 0;
-            learnableMask[0, 1] = 0;
-            learnableMask[numControlPoints - 1, 0] = 0;
-            learnableMask[numControlPoints - 1, 1] = 0;
+            float[,] m = new float[numControlPoints, 2];
+            float[,] v = new float[numControlPoints, 2];
+            float[,] learnableMask = new float[numControlPoints, 2];
+
+            for (int i = 1; i < numControlPoints - 1; i++)
+            {
+                learnableMask[i, 0] = 1;
+                learnableMask[i, 1] = 1;
+            }
+
+            // Initialize intermediate variables
+            float[,] points = new float[numTestPoints, 2];
+            float[,] grad = new float[numControlPoints, 2];
+            float[] distanceDistribution = new float[numTestPoints];
 
             for (int step = 0; step < maxIterations; step++)
             {
-                var points = weights.Matmul(controlPoints);
+                matmul(weights, controlPoints, points);
 
                 // Update labels to shift the distance distribution between points
                 if (step % 11 == 0)
-                    labels = interpolator.Interpolate(getDistanceDistribution(points));
+                {
+                    getDistanceDistribution(points, distanceDistribution);
+                    interpolator.Interpolate(distanceDistribution, labels);
+                }
 
                 // Calculate the gradient on the control points
-                var diff = labels - points;
-                var grad = -1f / numControlPoints * weightsTranspose.Matmul(diff);
+                matDiff(labels, points, points);
+                matmulTranspose(weights, points, grad);
+                matScale(grad, -1f / numControlPoints, grad);
 
                 // Apply learnable mask to prevent moving the endpoints
-                grad *= learnableMask;
+                matProduct(grad, learnableMask, grad);
 
                 // Update control points with Adam optimizer
-                m = b1 * m + (1 - b1) * grad;
-                v = b2 * v + (1 - b2) * MathT.Pow(grad, 2);
-                var mCorr = m / (float)(1 - Math.Pow(b1, step + 1));
-                var vCorr = v / (float)(1 - Math.Pow(b2, step + 1));
-                controlPoints -= learningRate * mCorr / (MathT.Pow(vCorr, 0.5f) + epsilon);
+                matLerp(grad, m, b1, m);
+                matProduct(grad, grad, grad);
+                matLerp(grad, v, b2, v);
+                adamUpdate(controlPoints, m, v, step, learningRate, b1, b2);
             }
 
             // Convert the resulting control points NDArray
@@ -406,27 +410,164 @@ namespace osu.Framework.Utils
             return result;
         }
 
-        private static Tensor<float> getDistanceDistribution(Tensor<float> points)
+        private static void adamUpdate(float[,] parameters, float[,] m, float[,] v, int step, float learningRate, float b1, float b2)
         {
-            var distCumulativeSum = MathT.Pow(MathT.Pow(points[1.., ..] - points[..^1, ..], 2).Sum(1), 0.5f);
-            float accumulator = 0;
-            distCumulativeSum.ForEachInplace(v =>
+            const float epsilon = 1E-8f;
+            float mMult = 1 / (1 - MathF.Pow(b1, step + 1));
+            float vMult = 1 / (1 - MathF.Pow(b2, step + 1));
+            int m0 = m.GetLength(0);
+            int m1 = m.GetLength(1);
+
+            for (int i = 0; i < m0; i++)
             {
-                accumulator += v;
-                return accumulator;
-            });
-            distCumulativeSum = distCumulativeSum.Pad(new[] { (1, 0) });
-            return distCumulativeSum / distCumulativeSum[distCumulativeSum.Shape[0] - 1];
+                for (int j = 0; j < m1; j++)
+                {
+                    float mCorr = m[i, j] * mMult;
+                    float vCorr = v[i, j] * vMult;
+                    parameters[i, j] -= learningRate * mCorr / (MathF.Sqrt(vCorr) + epsilon);
+                }
+            }
+        }
+
+        private static void matLerp(float[,] mat1, float[,] mat2, float t, float[,] result)
+        {
+            int m = mat1.GetLength(0);
+            int n = mat1.GetLength(1);
+
+            for (int i = 0; i < m; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    result[i, j] = mat1[i, j] * (1 - t) + mat2[i, j] * t;
+                }
+            }
+        }
+
+        private static void matProduct(float[,] mat1, float[,] mat2, float[,] result)
+        {
+            int m = mat1.GetLength(0);
+            int n = mat1.GetLength(1);
+
+            for (int i = 0; i < m; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    result[i, j] = mat1[i, j] * mat2[i, j];
+                }
+            }
+        }
+
+        private static void matScale(float[,] mat, float scalar, float[,] result)
+        {
+            int m = mat.GetLength(0);
+            int n = mat.GetLength(1);
+
+            for (int i = 0; i < m; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    result[i, j] = mat[i, j] * scalar;
+                }
+            }
+        }
+
+        private static void matmulTranspose(float[,] mat1, float[,] mat2, float[,] result)
+        {
+            int m = mat1.GetLength(1);
+            int n = mat2.GetLength(1);
+            int p = mat1.GetLength(0);
+
+            for (int i = 0; i < m; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    float sum = 0;
+
+                    for (int k = 0; k < p; k++)
+                    {
+                        sum += mat1[k, i] * mat2[k, j];
+                    }
+
+                    result[i, j] = sum;
+                }
+            }
+        }
+
+        private static void matDiff(float[,] mat1, float[,] mat2, float[,] result)
+        {
+            int m = mat1.GetLength(0);
+            int n = mat1.GetLength(1);
+
+            for (int i = 0; i < m; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    result[i, j] = mat1[i, j] - mat2[i, j];
+                }
+            }
+        }
+
+        private static void matmul(float[,] mat1, float[,] mat2, float[,] result)
+        {
+            int m = mat1.GetLength(0);
+            int n = mat2.GetLength(1);
+            int p = mat1.GetLength(1);
+
+            for (int i = 0; i < m; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    float sum = 0;
+
+                    for (int k = 0; k < p; k++)
+                    {
+                        sum += mat1[i, k] * mat2[k, j];
+                    }
+
+                    result[i, j] = sum;
+                }
+            }
+        }
+
+        private static float[] linspace(float start, float end, int count)
+        {
+            float[] result = new float[count];
+
+            for (int i = 0; i < count; i++)
+            {
+                result[i] = start + (end - start) * i / (count - 1);
+            }
+
+            return result;
+        }
+
+        private static void getDistanceDistribution(float[,] points, float[] result)
+        {
+            int m = points.GetLength(0);
+            float accumulator = 0;
+            result[0] = 0;
+
+            for (int i = 1; i < m; i++)
+            {
+                float dist = MathF.Sqrt(MathF.Pow(points[i, 0] - points[i - 1, 0], 2) + MathF.Pow(points[i, 1] - points[i - 1, 1], 2));
+                accumulator += dist;
+                result[i] = accumulator;
+            }
+
+            for (int i = 0; i < m; i++)
+            {
+                result[i] /= accumulator;
+            }
         }
 
         private class Interpolator
         {
             private readonly int ny;
-            private readonly Tensor<float> ys;
+            private readonly float[,] ys;
 
             public Interpolator(ReadOnlySpan<Vector2> inputPath, int resolution = 1000)
             {
-                var arr = Tensor.Zeros<float>(new TensorShape(inputPath.Length, 2));
+                float[,] arr = new float[inputPath.Length, 2];
 
                 for (int i = 0; i < inputPath.Length; i++)
                 {
@@ -434,9 +575,10 @@ namespace osu.Framework.Utils
                     arr[i, 1] = inputPath[i].Y;
                 }
 
-                var dist = getDistanceDistribution(arr);
+                float[] dist = new float[inputPath.Length];
+                getDistanceDistribution(arr, dist);
                 ny = resolution;
-                ys = Tensor.Zeros<float>(new TensorShape(resolution, 2));
+                ys = new float[resolution, 2];
                 int current = 0;
 
                 for (int i = 0; i < resolution; i++)
@@ -459,30 +601,22 @@ namespace osu.Framework.Utils
                 }
             }
 
-            public Tensor<float> Interpolate(Tensor<float> x)
+            public void Interpolate(float[] x, float[,] result)
             {
-                var xIdx = x * (ny - 1);
-                var idxBelow = xIdx.Floor();
-                var idxAbove = MathT.Clamp(idxBelow + 1, 0, ny - 1);
-                idxBelow = MathT.Clamp(idxAbove - 1, 0, ny - 1);
+                int nx = x.Length;
 
-                var yRefBelow = Tensor.Zeros<float>(new TensorShape(x.Shape[0], 2));
-                var yRefAbove = Tensor.Zeros<float>(new TensorShape(x.Shape[0], 2));
-
-                for (int i = 0; i < x.Shape[0]; i++)
+                for (int i = 0; i < nx; i++)
                 {
-                    int b = (int)idxBelow[i];
-                    int a = (int)idxAbove[i];
-                    yRefBelow[i, 0] = ys[b, 0];
-                    yRefBelow[i, 1] = ys[b, 1];
-                    yRefAbove[i, 0] = ys[a, 0];
-                    yRefAbove[i, 1] = ys[a, 1];
+                    float idx = x[i] * (ny - 1);
+                    int idxBelow = (int)idx;
+                    int idxAbove = Math.Min(idxBelow + 1, ny - 1);
+                    idxBelow = Math.Max(idxAbove - 1, 0);
+
+                    float t = idx - idxBelow;
+
+                    result[i, 0] = t * ys[idxAbove, 0] + (1 - t) * ys[idxBelow, 0];
+                    result[i, 1] = t * ys[idxAbove, 1] + (1 - t) * ys[idxBelow, 1];
                 }
-
-                var t = xIdx - idxBelow;
-
-                var y = t.Unsqueeze(1) * yRefAbove + (1 - t).Unsqueeze(1) * yRefBelow;
-                return y;
             }
         }
 
@@ -493,56 +627,86 @@ namespace osu.Framework.Utils
         /// <param name="numTestPoints">The number of points to evaluate the spline at.</param>
         /// <param name="degree">The order of the B-spline.</param>
         /// <returns>Matrix array of B-spline basis function values.</returns>
-        private static Tensor<float> generateBSplineWeights(int numControlPoints, int numTestPoints, int degree)
+        private static float[,] generateBSplineWeights(int numControlPoints, int numTestPoints, int degree)
         {
             // Calculate the basis function values using a modified vectorized De Boor's algorithm
-            var x = Tensor.Linspace<float>(0, 1, numTestPoints).Unsqueeze(1);
-            var knots = Tensor.Linspace<float>(0, 1, numControlPoints + 1 - degree).Pad(new[] { (degree, degree) }, constants: new[] { (0d, 1d) });
-            (int, int)[] alphaPad = { (0, 0), (1, 0) };
-            (int, int)[] betaPad = { (0, 0), (0, 1) };
+            float[] x = linspace(0, 1, numTestPoints);
+            float[] knots = new float[numControlPoints + degree + 1];
+
+            for (int i = 0; i < degree; i++)
+            {
+                knots[i] = 0;
+                knots[numControlPoints + degree - i] = 1;
+            }
+
+            for (int i = degree; i < numControlPoints + 1; i++)
+            {
+                knots[i] = (float)(i - degree) / (numControlPoints - degree);
+            }
 
             // Calculate the first order basis
-            var prevOrder = Tensor.Zeros<float>(new TensorShape(numTestPoints, numControlPoints - degree));
+            float[,] prevOrder = new float[numTestPoints, numControlPoints];
+
             for (int i = 0; i < numTestPoints; i++)
-                prevOrder[i, MathHelper.Clamp((int)(x[i, 0] * (numControlPoints - degree)), 0, numControlPoints - degree - 1)] = 1;
+            {
+                prevOrder[i, (int)MathHelper.Clamp(x[i] * (numControlPoints - degree), 0, numControlPoints - degree - 1)] = 1;
+            }
 
             // Calculate the higher order basis
             for (int q = 1; q < degree + 1; q++)
             {
-                var divisor = (knots[(degree + 1)..(numControlPoints + q)] - knots[(degree - q + 1)..numControlPoints]).Unsqueeze(0);
-                var alpha = (x - knots[(degree - q + 1)..numControlPoints].Unsqueeze(0)) / divisor;
-                prevOrder = (alpha * prevOrder).Pad(alphaPad) + ((1 - alpha) * prevOrder).Pad(betaPad);
+                for (int i = 0; i < numTestPoints; i++)
+                {
+                    float prevAlpha = 0;
+
+                    for (int j = 0; j < numControlPoints - degree + q - 1; j++)
+                    {
+                        float alpha = (x[i] - knots[degree - q + 1 + j]) / (knots[degree + 1 + j] - knots[degree - q + 1 + j]);
+                        float alphaVal = alpha * prevOrder[i, j];
+                        float betaVal = (1 - alpha) * prevOrder[i, j];
+                        prevOrder[i, j] = prevAlpha + betaVal;
+                        prevAlpha = alphaVal;
+                    }
+
+                    prevOrder[i, numControlPoints - degree + q - 1] = prevAlpha;
+                }
             }
 
             return prevOrder;
         }
 
-        private static Tensor<float> generateBezierWeights(int numControlPoints, int numTestPoints)
+        private static float[,] generateBezierWeights(int numControlPoints, int numTestPoints)
         {
-            var ts = Tensor.Linspace<float>(0, 1, numTestPoints);
-            var coefficients = Tensor.FromArray(binomialCoefficients(numControlPoints), new[] { numControlPoints });
-            float[] p = new float[numTestPoints * numControlPoints];
+            long[] coefficients = binomialCoefficients(numControlPoints);
+            float[,] p = new float[numTestPoints, numControlPoints];
 
             for (int i = 0; i < numTestPoints; i++)
             {
-                p[i * numControlPoints] = 1;
-                float t = ts[i];
+                p[i, 0] = 1;
+                float t = (float)i / (numTestPoints - 1);
 
                 for (int j = 1; j < numControlPoints; j++)
                 {
-                    p[i * numControlPoints + j] = p[i * numControlPoints + j - 1] * t;
+                    p[i, j] = p[i, j - 1] * t;
                 }
             }
 
-            var pt = Tensor.FromArray(p, new TensorShape(numTestPoints, numControlPoints));
-            var pti = pt.Rotate(2, 0, 1);
+            float[,] result = new float[numTestPoints, numControlPoints];
 
-            return coefficients * pti * pt;
+            for (int i = 0; i < numTestPoints; i++)
+            {
+                for (int j = 0; j < numControlPoints; j++)
+                {
+                    result[i, j] = coefficients[j] * p[i, j] * p[numTestPoints - i - 1, numControlPoints - j - 1];
+                }
+            }
+
+            return result;
         }
 
-        private static float[] binomialCoefficients(int n)
+        private static long[] binomialCoefficients(int n)
         {
-            float[] coefficients = new float[n];
+            long[] coefficients = new long[n];
             coefficients[0] = 1;
 
             for (int i = 1; i < (n + 1) / 2; i++)

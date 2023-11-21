@@ -15,20 +15,20 @@ namespace osu.Framework.Tests.Visual.Drawables
 {
     public partial class TestScenePiecewiseLinearToBSpline : GridTestScene
     {
-        private int numControlPoints;
-        private int degree;
-        private int numTestPoints;
-        private int maxIterations;
-        private float learningRate;
-        private float b1;
-        private float b2;
+        private int numControlPoints = 5;
+        private int degree = 2;
+        private int numTestPoints = 100;
+        private int maxIterations = 100;
+        private float learningRate = 8;
+        private float b1 = 0.8f;
+        private float b2 = 0.99f;
 
         private readonly List<DoubleApproximatedPathTest> doubleApproximatedPathTests = new List<DoubleApproximatedPathTest>();
 
         public TestScenePiecewiseLinearToBSpline()
             : base(2, 2)
         {
-            doubleApproximatedPathTests.Add(new DoubleApproximatedPathTest(PathApproximator.BezierToPiecewiseLinear, numControlPoints, numTestPoints, maxIterations));
+            doubleApproximatedPathTests.Add(new DoubleApproximatedPathTest(PathApproximator.BezierToPiecewiseLinear));
             Cell(0).AddRange(new[]
             {
                 createLabel(nameof(PathApproximator.BezierToPiecewiseLinear)),
@@ -36,7 +36,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 doubleApproximatedPathTests[^1],
             });
 
-            doubleApproximatedPathTests.Add(new DoubleApproximatedPathTest(PathApproximator.CatmullToPiecewiseLinear, numControlPoints, numTestPoints, maxIterations));
+            doubleApproximatedPathTests.Add(new DoubleApproximatedPathTest(PathApproximator.CatmullToPiecewiseLinear));
             Cell(1).AddRange(new[]
             {
                 createLabel(nameof(PathApproximator.CatmullToPiecewiseLinear)),
@@ -44,7 +44,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 doubleApproximatedPathTests[^1],
             });
 
-            doubleApproximatedPathTests.Add(new DoubleApproximatedPathTest(PathApproximator.CircularArcToPiecewiseLinear, numControlPoints, numTestPoints, maxIterations));
+            doubleApproximatedPathTests.Add(new DoubleApproximatedPathTest(PathApproximator.CircularArcToPiecewiseLinear));
             Cell(2).AddRange(new[]
             {
                 createLabel(nameof(PathApproximator.CircularArcToPiecewiseLinear)),
@@ -52,7 +52,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 doubleApproximatedPathTests[^1],
             });
 
-            doubleApproximatedPathTests.Add(new DoubleApproximatedPathTest(PathApproximator.LagrangePolynomialToPiecewiseLinear, numControlPoints, numTestPoints, maxIterations));
+            doubleApproximatedPathTests.Add(new DoubleApproximatedPathTest(PathApproximator.LagrangePolynomialToPiecewiseLinear));
             Cell(3).AddRange(new[]
             {
                 createLabel(nameof(PathApproximator.LagrangePolynomialToPiecewiseLinear)),
@@ -173,7 +173,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             public bool OptimizePath { get; set; }
 
-            public DoubleApproximatedPathTest(ApproximatorFunc approximator, int numControlPoints, int numTestPoints, int maxIterations)
+            public DoubleApproximatedPathTest(ApproximatorFunc approximator)
             {
                 Vector2[] points = new Vector2[5];
                 points[0] = new Vector2(50, 250);
@@ -186,19 +186,14 @@ namespace osu.Framework.Tests.Visual.Drawables
                 RelativeSizeAxes = Axes.Both;
                 PathRadius = 2;
                 Colour = Color4.Magenta;
-
-                NumControlPoints = numControlPoints;
-                NumTestPoints = numTestPoints;
-                MaxIterations = maxIterations;
                 inputPath = approximator(points).ToArray();
-                UpdatePath();
             }
 
             public void UpdatePath()
             {
                 if (!OptimizePath) return;
 
-                var controlPoints = PathApproximator.PiecewiseLinearToBSpline(inputPath, NumControlPoints, Degree, NumTestPoints, MaxIterations, LearningRate, B1, B2);
+                var controlPoints = PathApproximator.PiecewiseLinearToBSpline(inputPath, NumControlPoints, Degree, NumTestPoints, MaxIterations);
                 Vertices = PathApproximator.BSplineToPiecewiseLinear(controlPoints.ToArray(), Degree);
             }
         }
