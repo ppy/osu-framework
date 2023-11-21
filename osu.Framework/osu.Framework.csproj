@@ -52,6 +52,5 @@
     <!-- Any version ahead of this will cause runtime issues on iOS
          See https://github.com/xoofx/markdig/issues/564 -->
     <PackageReference Include="Markdig" Version="0.23.0" />
-    <PackageReference Include="Tensor.NET" Version="0.1.2" />
   </ItemGroup>
 </Project>
