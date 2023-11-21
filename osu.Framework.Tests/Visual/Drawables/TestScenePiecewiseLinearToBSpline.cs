@@ -193,7 +193,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             {
                 if (!OptimizePath) return;
 
-                var controlPoints = PathApproximator.PiecewiseLinearToBSpline(inputPath, NumControlPoints, Degree, NumTestPoints, MaxIterations);
+                var controlPoints = PathApproximator.PiecewiseLinearToBSpline(inputPath, NumControlPoints, Degree, NumTestPoints, MaxIterations, LearningRate, B1, B2);
                 Vertices = PathApproximator.BSplineToPiecewiseLinear(controlPoints.ToArray(), Degree);
             }
         }
