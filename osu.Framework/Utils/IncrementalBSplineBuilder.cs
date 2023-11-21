@@ -94,6 +94,9 @@ namespace osu.Framework.Utils
                 if (value < 0)
                     throw new ArgumentOutOfRangeException(nameof(value), "Degree must not be negative.");
 
+                if (value == degree)
+                    return;
+
                 degree = value;
                 outputCache.Invalidate();
                 controlPoints.Invalidate();
@@ -114,6 +117,9 @@ namespace osu.Framework.Utils
                 if (tolerance < 0)
                     throw new ArgumentOutOfRangeException(nameof(value), "Tolerance must not be negative.");
 
+                if (value == tolerance)
+                    return;
+
                 tolerance = value;
                 outputCache.Invalidate();
                 controlPoints.Invalidate();
@@ -133,6 +139,9 @@ namespace osu.Framework.Utils
             {
                 if (cornerThreshold < 0)
                     throw new ArgumentOutOfRangeException(nameof(value), "CornerThreshold must not be negative.");
+
+                if (value == cornerThreshold)
+                    return;
 
                 cornerThreshold = value;
                 outputCache.Invalidate();
