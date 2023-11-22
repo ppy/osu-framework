@@ -335,10 +335,10 @@ namespace osu.Framework.Utils
                                                              int interpolatorResolution = 100,
                                                              List<Vector2>? initialControlPoints = null)
         {
-            // Generate transpose weight matrix
             int numControlPoints = weights.GetLength(1);
             int numTestPoints = weights.GetLength(0);
 
+            // Generate transpose weight matrix
             float[,] weightsTranspose = new float[numControlPoints, numTestPoints];
 
             for (int i = 0; i < numControlPoints; i++)
@@ -410,7 +410,7 @@ namespace osu.Framework.Utils
                 adamUpdate(controlPoints, m, v, step, learningRate, b1, b2);
             }
 
-            // Convert the resulting control points NDArray
+            // Convert the resulting control points array
             var result = new List<Vector2>(numControlPoints);
 
             for (int i = 0; i < numControlPoints; i++)
@@ -626,7 +626,7 @@ namespace osu.Framework.Utils
         /// <returns>Matrix array of B-spline basis function values.</returns>
         private static float[,] generateBSplineWeights(int numControlPoints, int numTestPoints, int degree)
         {
-            // Calculate the basis function values using a modified vectorized De Boor's algorithm
+            // Calculate the basis function values using a modified De Boor's algorithm
             float[] x = linspace(0, 1, numTestPoints);
             float[] knots = new float[numControlPoints + degree + 1];
 
