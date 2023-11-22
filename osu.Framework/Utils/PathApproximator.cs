@@ -442,69 +442,45 @@ namespace osu.Framework.Utils
 
         private static unsafe void matLerp(float[,] mat1, float[,] mat2, float t, float[,] result)
         {
-            int m = mat1.GetLength(0);
-            int n = mat1.GetLength(1);
-
-            for (int i = 0; i < m; i++)
+            fixed (float* mat1P = mat1, mat2P = mat2, resultP = result)
             {
-                fixed (float* mat1P = mat1, mat2P = mat2, resultP = result)
-                {
-                    var span1 = new Span<float>(mat1P + i * n, n);
-                    var span2 = new Span<float>(mat2P + i * n, n);
-                    var spanR = new Span<float>(resultP + i * n, n);
-                    TensorPrimitives.Multiply(span2, t, spanR);
-                    TensorPrimitives.MultiplyAdd(span1, 1 - t, spanR, spanR);
-                }
+                var span1 = new Span<float>(mat1P, mat1.Length);
+                var span2 = new Span<float>(mat2P, mat2.Length);
+                var spanR = new Span<float>(resultP, result.Length);
+                TensorPrimitives.Multiply(span2, t, spanR);
+                TensorPrimitives.MultiplyAdd(span1, 1 - t, spanR, spanR);
             }
         }
 
         private static unsafe void matProduct(float[,] mat1, float[,] mat2, float[,] result)
         {
-            int m = mat1.GetLength(0);
-            int n = mat1.GetLength(1);
-
-            for (int i = 0; i < m; i++)
+            fixed (float* mat1P = mat1, mat2P = mat2, resultP = result)
             {
-                fixed (float* mat1P = mat1, mat2P = mat2, resultP = result)
-                {
-                    var span1 = new Span<float>(mat1P + i * n, n);
-                    var span2 = new Span<float>(mat2P + i * n, n);
-                    var spanR = new Span<float>(resultP + i * n, n);
-                    TensorPrimitives.Multiply(span1, span2, spanR);
-                }
+                var span1 = new Span<float>(mat1P, mat1.Length);
+                var span2 = new Span<float>(mat2P, mat2.Length);
+                var spanR = new Span<float>(resultP, result.Length);
+                TensorPrimitives.Multiply(span1, span2, spanR);
             }
         }
 
         private static unsafe void matScale(float[,] mat, float scalar, float[,] result)
         {
-            int m = mat.GetLength(0);
-            int n = mat.GetLength(1);
-
-            for (int i = 0; i < m; i++)
+            fixed (float* matP = mat, resultP = result)
             {
-                fixed (float* matP = mat, resultP = result)
-                {
-                    var span1 = new Span<float>(matP + i * n, n);
-                    var spanR = new Span<float>(resultP + i * n, n);
-                    TensorPrimitives.Multiply(span1, scalar, spanR);
-                }
+                var span1 = new Span<float>(matP, mat.Length);
+                var spanR = new Span<float>(resultP, result.Length);
+                TensorPrimitives.Multiply(span1, scalar, spanR);
             }
         }
 
         private static unsafe void matDiff(float[,] mat1, float[,] mat2, float[,] result)
         {
-            int m = mat1.GetLength(0);
-            int n = mat1.GetLength(1);
-
-            for (int i = 0; i < m; i++)
+            fixed (float* mat1P = mat1, mat2P = mat2, resultP = result)
             {
-                fixed (float* mat1P = mat1, mat2P = mat2, resultP = result)
-                {
-                    var span1 = new Span<float>(mat1P + i * n, n);
-                    var span2 = new Span<float>(mat2P + i * n, n);
-                    var spanR = new Span<float>(resultP + i * n, n);
-                    TensorPrimitives.Subtract(span1, span2, spanR);
-                }
+                var span1 = new Span<float>(mat1P, mat1.Length);
+                var span2 = new Span<float>(mat2P, mat2.Length);
+                var spanR = new Span<float>(resultP, result.Length);
+                TensorPrimitives.Subtract(span1, span2, spanR);
             }
         }
 
