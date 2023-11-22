@@ -13,7 +13,7 @@ namespace osu.Framework.Tests.Visual
 {
     public partial class TestScenePerspectiveContainer : FrameworkTestScene
     {
-        private readonly Drawable target;
+        private readonly Container target;
         private readonly Sprite sprite;
 
         private float xRotation;
@@ -51,6 +51,13 @@ namespace osu.Framework.Tests.Visual
                 zRotation = v;
                 updateRotation();
             });
+
+            AddSliderStep("fov", 0, 90f, 45f, updateFov);
+        }
+
+        private void updateFov(float fov)
+        {
+            target.Camera = new Camera(fov, new Vector2(0.5f));
         }
 
         [BackgroundDependencyLoader]

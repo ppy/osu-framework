@@ -443,7 +443,7 @@ namespace osu.Framework.Graphics.Rendering
                 actualRect.Height = -viewport.Height;
             }
 
-            this.PushPerspective(viewport);
+            this.PushOrtho(viewport);
 
             viewportStack.Push(actualRect);
             setViewport(viewport);
