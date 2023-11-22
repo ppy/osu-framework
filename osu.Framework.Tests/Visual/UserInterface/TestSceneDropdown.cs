@@ -27,7 +27,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [SetUp]
         public new void SetUp() => Schedule(() =>
         {
-            testDropdown = setupDropdowns<TestDropdown>(1)[0];
+            testDropdown = setupDropdowns(1)[0];
         });
 
         [Test]
@@ -60,7 +60,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             TestDropdown[] dropdowns = null!;
 
-            AddStep("create two dropdowns", () => dropdowns = setupDropdowns<TestDropdown>(2));
+            AddStep("create two dropdowns", () => dropdowns = setupDropdowns(2));
 
             toggleDropdownViaClick(() => dropdowns[0], "dropdown 1");
             AddAssert("dropdown 1 is open", () => dropdowns[0].Menu.State == MenuState.Open);
@@ -227,6 +227,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 testDropdown.ClearItems();
                 testDropdown.ItemSource = bindableList = new BindableList<TestModel>();
             });
+
             toggleDropdownViaClick(() => testDropdown);
 
             AddAssert("no elements in dropdown", () => !testDropdown.Items.Any());
@@ -255,7 +256,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("setup dropdown", () =>
             {
-                dropdown = setupDropdowns<BdlDropdown>(1, d => d.Items = new TestModel("test").Yield())[0];
+                Child = dropdown = new BdlDropdown
+                {
+                    Position = new Vector2(50f, 50f),
+                    Width = 150f,
+                    Items = new TestModel("test").Yield(),
+                };
             });
 
             AddAssert("text is expected", () => dropdown.Menu.DrawableMenuItems.First().ChildrenOfType<SpriteText>().First().Text.ToString(), () => Is.EqualTo("loaded: test"));
@@ -271,7 +277,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("setup dropdown", () =>
             {
-                dropdown = setupDropdowns<BdlDropdown>(1)[0];
+                Child = dropdown = new BdlDropdown
+                {
+                    Position = new Vector2(50f, 50f),
+                    Width = 150f,
+                };
+
                 dropdown.Items = new TestModel("test").Yield();
             });
 
@@ -301,11 +312,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 if (!afterBdl)
                     bindable.Value = new TestModel("non-existent item");
 
-                dropdown = setupDropdowns<BdlDropdown>(1, d =>
+                Child = dropdown = new BdlDropdown
                 {
-                    d.ItemSource = bindableList;
-                    d.Current = bindable;
-                })[0];
+                    Position = new Vector2(50f, 50f),
+                    Width = 150f,
+                    ItemSource = bindableList,
+                    Current = bindable,
+                };
 
                 if (afterBdl)
                     bindable.Value = new TestModel("non-existent item");
@@ -314,24 +327,22 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("text is expected", () => dropdown.SelectedItem.Text.Value.ToString(), () => Is.EqualTo("loaded: non-existent item"));
         }
 
-        private TDropdown[] setupDropdowns<TDropdown>(int count, Action<TDropdown> applyBeforeLoad = null!)
-            where TDropdown : TestDropdown, new()
+        private TestDropdown[] setupDropdowns(int count)
         {
-            TDropdown[] dropdowns = new TDropdown[count];
-
-            var testItems = new TestModel[10];
-            for (int i = 0; i < items_to_add; i++)
-                testItems[i] = "test " + i;
+            TestDropdown[] dropdowns = new TestDropdown[count];
 
             for (int i = 0; i < count; i++)
             {
-                dropdowns[i] = new TDropdown
+                var testItems = new TestModel[10];
+                for (int i1 = 0; i1 < items_to_add; i1++)
+                    testItems[i1] = "test " + i1;
+
+                dropdowns[i] = new TestDropdown
                 {
+                    Position = new Vector2(50f, 50f),
                     Width = 150,
                     Items = testItems,
                 };
-
-                applyBeforeLoad?.Invoke(dropdowns[i]);
             }
 
             Child = new FillFlowContainer
