@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics.Tensors;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
 
@@ -334,23 +335,33 @@ namespace osu.Framework.Utils
                                                              int interpolatorResolution = 100,
                                                              List<Vector2>? initialControlPoints = null)
         {
-            // Generate Bezier weight matrix
+            // Generate transpose weight matrix
             int numControlPoints = weights.GetLength(1);
             int numTestPoints = weights.GetLength(0);
+
+            float[,] weightsTranspose = new float[numControlPoints, numTestPoints];
+
+            for (int i = 0; i < numControlPoints; i++)
+            {
+                for (int j = 0; j < numTestPoints; j++)
+                {
+                    weightsTranspose[i, j] = weights[j, i];
+                }
+            }
 
             // Create efficient interpolation on the input path
             var interpolator = new Interpolator(inputPath, interpolatorResolution);
 
             // Initialize control points
-            float[,] labels = new float[numTestPoints, 2];
-            float[,] controlPoints = new float[numControlPoints, 2];
+            float[,] labels = new float[2, numTestPoints];
+            float[,] controlPoints = new float[2, numControlPoints];
 
             if (initialControlPoints is not null)
             {
                 for (int i = 0; i < numControlPoints; i++)
                 {
-                    controlPoints[i, 0] = initialControlPoints[i].X;
-                    controlPoints[i, 1] = initialControlPoints[i].Y;
+                    controlPoints[0, i] = initialControlPoints[i].X;
+                    controlPoints[1, i] = initialControlPoints[i].Y;
                 }
             }
             else
@@ -358,24 +369,24 @@ namespace osu.Framework.Utils
                 interpolator.Interpolate(linspace(0, 1, numControlPoints), controlPoints);
 
             // Initialize Adam optimizer variables
-            float[,] m = new float[numControlPoints, 2];
-            float[,] v = new float[numControlPoints, 2];
-            float[,] learnableMask = new float[numControlPoints, 2];
+            float[,] m = new float[2, numControlPoints];
+            float[,] v = new float[2, numControlPoints];
+            float[,] learnableMask = new float[2, numControlPoints];
 
             for (int i = 1; i < numControlPoints - 1; i++)
             {
-                learnableMask[i, 0] = 1;
-                learnableMask[i, 1] = 1;
+                learnableMask[0, i] = 1;
+                learnableMask[1, i] = 1;
             }
 
             // Initialize intermediate variables
-            float[,] points = new float[numTestPoints, 2];
-            float[,] grad = new float[numControlPoints, 2];
+            float[,] points = new float[2, numTestPoints];
+            float[,] grad = new float[2, numControlPoints];
             float[] distanceDistribution = new float[numTestPoints];
 
             for (int step = 0; step < maxIterations; step++)
             {
-                matmul(weights, controlPoints, points);
+                matmul(controlPoints, weights, points);
 
                 // Update labels to shift the distance distribution between points
                 if (step % 11 == 0)
@@ -386,7 +397,7 @@ namespace osu.Framework.Utils
 
                 // Calculate the gradient on the control points
                 matDiff(labels, points, points);
-                matmulTranspose(weights, points, grad);
+                matmul(points, weightsTranspose, grad);
                 matScale(grad, -1f / numControlPoints, grad);
 
                 // Apply learnable mask to prevent moving the endpoints
@@ -404,7 +415,7 @@ namespace osu.Framework.Utils
 
             for (int i = 0; i < numControlPoints; i++)
             {
-                result.Add(new Vector2(controlPoints[i, 0], controlPoints[i, 1]));
+                result.Add(new Vector2(controlPoints[0, i], controlPoints[1, i]));
             }
 
             return result;
@@ -507,24 +518,22 @@ namespace osu.Framework.Utils
             }
         }
 
-        private static void matmul(float[,] mat1, float[,] mat2, float[,] result)
+        private static unsafe void matmul(float[,] mat1, float[,] mat2, float[,] result)
         {
             int m = mat1.GetLength(0);
-            int n = mat2.GetLength(1);
+            int n = mat2.GetLength(0);
             int p = mat1.GetLength(1);
 
             for (int i = 0; i < m; i++)
             {
                 for (int j = 0; j < n; j++)
                 {
-                    float sum = 0;
-
-                    for (int k = 0; k < p; k++)
+                    fixed (float* mat1f = mat1, mat2f = mat2)
                     {
-                        sum += mat1[i, k] * mat2[k, j];
+                        var span1 = new Span<float>(mat1f + i * p, p);
+                        var span2 = new Span<float>(mat2f + j * p, p);
+                        result[i, j] = TensorPrimitives.Dot(span1, span2);
                     }
-
-                    result[i, j] = sum;
                 }
             }
         }
@@ -543,13 +552,13 @@ namespace osu.Framework.Utils
 
         private static void getDistanceDistribution(float[,] points, float[] result)
         {
-            int m = points.GetLength(0);
+            int m = points.GetLength(1);
             float accumulator = 0;
             result[0] = 0;
 
             for (int i = 1; i < m; i++)
             {
-                float dist = MathF.Sqrt(MathF.Pow(points[i, 0] - points[i - 1, 0], 2) + MathF.Pow(points[i, 1] - points[i - 1, 1], 2));
+                float dist = MathF.Sqrt(MathF.Pow(points[0, i] - points[0, i - 1], 2) + MathF.Pow(points[1, i] - points[1, i - 1], 2));
                 accumulator += dist;
                 result[i] = accumulator;
             }
@@ -567,12 +576,12 @@ namespace osu.Framework.Utils
 
             public Interpolator(ReadOnlySpan<Vector2> inputPath, int resolution = 1000)
             {
-                float[,] arr = new float[inputPath.Length, 2];
+                float[,] arr = new float[2, inputPath.Length];
 
                 for (int i = 0; i < inputPath.Length; i++)
                 {
-                    arr[i, 0] = inputPath[i].X;
-                    arr[i, 1] = inputPath[i].Y;
+                    arr[0, i] = inputPath[i].X;
+                    arr[1, i] = inputPath[i].Y;
                 }
 
                 float[] dist = new float[inputPath.Length];
@@ -596,8 +605,8 @@ namespace osu.Framework.Utils
                     if (float.IsNaN(t))
                         t = 0;
 
-                    ys[i, 0] = t * arr[prev, 0] + (1 - t) * arr[current, 0];
-                    ys[i, 1] = t * arr[prev, 1] + (1 - t) * arr[current, 1];
+                    ys[i, 0] = t * arr[0, prev] + (1 - t) * arr[0, current];
+                    ys[i, 1] = t * arr[1, prev] + (1 - t) * arr[1, current];
                 }
             }
 
@@ -614,8 +623,8 @@ namespace osu.Framework.Utils
 
                     float t = idx - idxBelow;
 
-                    result[i, 0] = t * ys[idxAbove, 0] + (1 - t) * ys[idxBelow, 0];
-                    result[i, 1] = t * ys[idxAbove, 1] + (1 - t) * ys[idxBelow, 1];
+                    result[0, i] = t * ys[idxAbove, 0] + (1 - t) * ys[idxBelow, 0];
+                    result[1, i] = t * ys[idxAbove, 1] + (1 - t) * ys[idxBelow, 1];
                 }
             }
         }
