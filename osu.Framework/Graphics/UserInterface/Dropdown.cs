@@ -66,10 +66,7 @@ namespace osu.Framework.Graphics.UserInterface
             foreach (var entry in items)
                 addDropdownItem(entry);
 
-            if (Current.Value == null || !itemMap.Keys.Contains(Current.Value, EqualityComparer<T>.Default))
-                Current.Value = itemMap.Keys.FirstOrDefault();
-            else
-                Current.TriggerChange();
+            ensureItemSelectionIsValid();
         }
 
         private readonly IBindableList<T> itemSource = new BindableList<T>();
@@ -221,7 +218,7 @@ namespace osu.Framework.Graphics.UserInterface
             Header.Action = Menu.Toggle;
             Header.ChangeSelection += selectionKeyPressed;
             Menu.PreselectionConfirmed += preselectionConfirmed;
-            Current.ValueChanged += val => Scheduler.AddOnce(selectionChanged, val);
+            Current.ValueChanged += val => Scheduler.AddOnce(updateItemSelection, val.NewValue);
             Current.DisabledChanged += disabled =>
             {
                 Header.Enabled.Value = !disabled;
@@ -286,20 +283,28 @@ namespace osu.Framework.Graphics.UserInterface
             Header.Label = SelectedItem?.Text.Value ?? default;
         }
 
-        private void selectionChanged(ValueChangedEvent<T> args)
+        private void ensureItemSelectionIsValid()
         {
-            // refresh if SelectedItem and SelectedValue mismatched
-            // null is not a valid value for Dictionary, so neither here
-            if (args.NewValue == null && SelectedItem != null)
+            if (Current.Value == null || !itemMap.ContainsKey(Current.Value))
             {
-                selectedItem = new DropdownMenuItem<T>(default(LocalisableString), default);
+                Current.Value = itemMap.Keys.FirstOrDefault();
+                return;
             }
-            else if (SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue))
+
+            if (SelectedItem == null || !EqualityComparer<T>.Default.Equals(Current.Value, selectedItem.Value))
+                updateItemSelection(Current.Value);
+        }
+
+        private void updateItemSelection(T value)
+        {
+            if (value != null && itemMap.TryGetValue(value, out var existingItem))
+                selectedItem = existingItem;
+            else
             {
-                if (args.NewValue == null || !itemMap.TryGetValue(args.NewValue, out selectedItem))
-                {
-                    selectedItem = new DropdownMenuItem<T>(GenerateItemText(args.NewValue), args.NewValue);
-                }
+                if (value == null && selectedItem != null)
+                    selectedItem = new DropdownMenuItem<T>(default(LocalisableString), default);
+                else
+                    selectedItem = new DropdownMenuItem<T>(GenerateItemText(value), value);
             }
 
             Menu.SelectItem(selectedItem);
@@ -321,6 +326,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             itemMap.Clear();
             Menu.Clear();
+            selectedItem = null;
         }
 
         /// <summary>
