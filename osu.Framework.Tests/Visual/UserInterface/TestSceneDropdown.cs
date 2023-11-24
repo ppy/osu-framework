@@ -23,17 +23,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
     public partial class TestSceneDropdown : ManualInputManagerTestScene
     {
         private const int items_to_add = 10;
-        private TestDropdown testDropdown = null!;
-
-        [SetUp]
-        public new void SetUp() => Schedule(() =>
-        {
-            testDropdown = setupDropdowns(1)[0];
-        });
 
         [Test]
         public void TestSelectByUserInteraction()
         {
+            TestDropdown testDropdown = null!;
+
+            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
+
             toggleDropdownViaClick(() => testDropdown);
             assertDropdownIsOpen(() => testDropdown);
 
@@ -55,6 +52,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestSelectByCurrent()
         {
+            TestDropdown testDropdown = null!;
+
+            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
+
             assertDropdownIsClosed(() => testDropdown);
 
             AddStep("update current to item 3", () => testDropdown.Current.Value = testDropdown.Items.ElementAt(3));
@@ -87,6 +88,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
             const float explicit_height = 100;
             float calculatedHeight = 0;
 
+            TestDropdown testDropdown = null!;
+
+            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
+
             toggleDropdownViaClick(() => testDropdown);
 
             AddStep("add items", () =>
@@ -114,40 +119,48 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             int previousIndex = 0;
 
-            AddStep("Hover dropdown 1", () => InputManager.MoveMouseTo(testDropdown.Header));
+            TestDropdown testDropdown = null!;
+
+            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
+
+            AddStep("hover dropdown", () => InputManager.MoveMouseTo(testDropdown.Header));
 
             if (cleanSelection)
-                AddStep("Clean selection", () => testDropdown.Current.Value = null);
+                AddStep("clean selection", () => testDropdown.Current.Value = null);
 
-            AddStep("Select next item", () =>
+            AddStep("select next item", () =>
             {
                 previousIndex = testDropdown.SelectedIndex;
                 InputManager.Key(Key.Down);
             });
-            AddAssert("Next item is selected", () => testDropdown.SelectedIndex == previousIndex + 1);
+            AddAssert("next item is selected", () => testDropdown.SelectedIndex == previousIndex + 1);
 
-            AddStep("Select previous item", () =>
+            AddStep("select previous item", () =>
             {
                 previousIndex = testDropdown.SelectedIndex;
                 InputManager.Key(Key.Up);
             });
-            AddAssert("Previous item is selected", () => testDropdown.SelectedIndex == Math.Max(0, previousIndex - 1));
+            AddAssert("previous item is selected", () => testDropdown.SelectedIndex == Math.Max(0, previousIndex - 1));
 
-            AddStep("Select last item", () => InputManager.Keys(PlatformAction.MoveToListEnd));
-            AddAssert("Last item selected", () => testDropdown.SelectedItem == testDropdown.Menu.DrawableMenuItems.Last().Item);
+            AddStep("select last item", () => InputManager.Keys(PlatformAction.MoveToListEnd));
+            AddAssert("last item selected", () => testDropdown.SelectedItem == testDropdown.Menu.DrawableMenuItems.Last().Item);
 
-            AddStep("Select last item", () => InputManager.Keys(PlatformAction.MoveToListStart));
-            AddAssert("First item selected", () => testDropdown.SelectedItem == testDropdown.Menu.DrawableMenuItems.First().Item);
+            AddStep("select last item", () => InputManager.Keys(PlatformAction.MoveToListStart));
+            AddAssert("first item selected", () => testDropdown.SelectedItem == testDropdown.Menu.DrawableMenuItems.First().Item);
 
-            AddStep("Select next item when empty", () => InputManager.Key(Key.Up));
-            AddStep("Select previous item when empty", () => InputManager.Key(Key.Down));
-            AddStep("Select last item when empty", () => InputManager.Key(Key.PageUp));
-            AddStep("Select first item when empty", () => InputManager.Key(Key.PageDown));
+            AddStep("select next item when empty", () => InputManager.Key(Key.Up));
+            AddStep("select previous item when empty", () => InputManager.Key(Key.Down));
+            AddStep("select last item when empty", () => InputManager.Key(Key.PageUp));
+            AddStep("select first item when empty", () => InputManager.Key(Key.PageDown));
         }
 
         [Test]
         public void TestReplaceItems()
         {
+            TestDropdown testDropdown = null!;
+
+            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
+
             toggleDropdownViaClick(() => testDropdown);
 
             AddStep("click item 4", () =>
@@ -173,6 +186,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestInvalidCurrent()
         {
+            TestDropdown testDropdown = null!;
+
+            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
+
             toggleDropdownViaClick(() => testDropdown);
             AddStep("select 'invalid'", () => testDropdown.Current.Value = "invalid");
 
@@ -186,6 +203,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestNullCurrent()
         {
+            TestDropdown testDropdown = null!;
+
+            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
+
             AddStep("select item 1", () => testDropdown.Current.Value = testDropdown.Items.ElementAt(1).AsNonNull());
             AddAssert("item 1 is selected", () => testDropdown.Current.Value?.Equals(testDropdown.Items.ElementAt(1)) == true);
 
@@ -197,7 +218,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestDisabledCurrent()
         {
+            TestDropdown testDropdown = null!;
             TestModel originalValue = null!;
+
+            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
 
             AddStep("disable current", () => testDropdown.Current.Disabled = true);
             AddStep("store original value", () => originalValue = testDropdown.Current.Value.AsNonNull());
@@ -230,7 +254,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestItemSource()
         {
+            TestDropdown testDropdown = null!;
             BindableList<TestModel?> bindableList = null!;
+
+            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
 
             AddStep("bind source", () =>
             {
