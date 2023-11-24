@@ -316,7 +316,7 @@ namespace osu.Framework.Utils
                 var cps = new List<Vector2> { c0 };
                 var segmentPath = new List<Vector2>();
                 bool allOnLine = true;
-                float onLineThreshold = 5 * Tolerance * step_size;
+                float onLineThreshold = 0.02f * Tolerance * Vector2.Distance(c0, c1);
 
                 if (t1 > t0)
                 {
