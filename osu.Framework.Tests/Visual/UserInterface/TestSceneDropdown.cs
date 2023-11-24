@@ -317,6 +317,23 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("scroll is unchanged", () => testDropdown.ChildrenOfType<BasicScrollContainer>().Single().Target == 200);
         }
 
+        [Test]
+        public void TestClearItemsInBindableWhileNotPresent()
+        {
+            TestDropdown testDropdown = null!;
+            BindableList<TestModel?> bindableList = null!;
+
+            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
+
+            AddStep("bind source", () => testDropdown.ItemSource = bindableList = new BindableList<TestModel?>());
+            AddStep("add many items", () => bindableList.AddRange(Enumerable.Range(0, 20).Select(i => (TestModel)$"test {i}")));
+
+            AddStep("hide dropdown", () => testDropdown.Hide());
+            AddStep("clear items", () => bindableList.Clear());
+            AddStep("show dropdown", () => testDropdown.Show());
+            AddAssert("dropdown menu empty", () => !testDropdown.Menu.DrawableMenuItems.Any());
+        }
+
         /// <summary>
         /// Adds an item before a dropdown is loaded, and ensures item labels are assigned correctly.
         /// </summary>
