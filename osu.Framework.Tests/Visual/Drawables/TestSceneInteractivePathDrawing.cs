@@ -73,15 +73,18 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             controlPointViz.Clear();
 
-            foreach (var cp in bSplineBuilder.ControlPoints)
+            foreach (var segment in bSplineBuilder.ControlPoints)
             {
-                controlPointViz.Add(new Box
+                foreach (var cp in segment)
                 {
-                    Origin = Anchor.Centre,
-                    Size = new Vector2(10),
-                    Position = cp,
-                    Colour = Color4.LightGreen,
-                });
+                    controlPointViz.Add(new Box
+                    {
+                        Origin = Anchor.Centre,
+                        Size = new Vector2(10),
+                        Position = cp,
+                        Colour = Color4.LightGreen,
+                    });
+                }
             }
         }
 

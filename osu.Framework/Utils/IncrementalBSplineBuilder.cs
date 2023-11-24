@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
@@ -75,9 +74,9 @@ namespace osu.Framework.Utils
             Value = new List<Vector2>()
         };
 
-        private readonly Cached<List<Vector2>> controlPoints = new Cached<List<Vector2>>
+        private readonly Cached<List<List<Vector2>>> controlPoints = new Cached<List<List<Vector2>>>
         {
-            Value = new List<Vector2>()
+            Value = new List<List<Vector2>>()
         };
 
         private int degree;
@@ -166,7 +165,7 @@ namespace osu.Framework.Utils
         /// <summary>
         /// The list of control points of the B-Spline. This is inferred from the input path.
         /// </summary>
-        public IReadOnlyList<Vector2> ControlPoints
+        public IReadOnlyList<List<Vector2>> ControlPoints
         {
             get
             {
@@ -288,17 +287,16 @@ namespace osu.Framework.Utils
 
             if (vertices.Count < 2)
             {
-                controlPoints.Value = vertices;
+                controlPoints.Value = new List<List<Vector2>> { vertices };
                 return;
             }
 
-            controlPoints.Value = new List<Vector2>();
+            controlPoints.Value = new List<List<Vector2>>();
 
             Debug.Assert(vertices.Count == distances.Count + 1);
             var cornerTs = detectCorners(vertices, distances);
 
-            var cps = controlPoints.Value;
-            cps.Add(vertices[0]);
+            var cpss = controlPoints.Value;
 
             // Populate each segment between corners with control points that have density proportional to the
             // product of Tolerance and curvature.
@@ -315,63 +313,62 @@ namespace osu.Framework.Utils
                 Vector2 c1 = getPathAt(vertices, distances, cornerTs[i]);
                 Line linearConnection = new Line(c0, c1);
 
-                var tmp = new List<Vector2>();
+                var cps = new List<Vector2> { c0 };
+                var segmentPath = new List<Vector2>();
                 bool allOnLine = true;
                 float onLineThreshold = 5 * Tolerance * step_size;
 
                 if (t1 > t0)
                 {
                     int nSteps = (int)((t1 - t0) / step_size);
+                    float currentWinding = 0.5f * Tolerance;
 
                     for (int j = 0; j < nSteps; ++j)
                     {
                         float t = t0 + j * step_size;
-                        totalWinding += getAbsWindingAt(vertices, distances, t);
-                    }
+                        float winding = getAbsWindingAt(vertices, distances, t);
+                        totalWinding += winding;
+                        currentWinding += winding;
 
-                    float currentWinding = 0;
+                        Vector2 p = getPathAt(vertices, distances, t);
+                        segmentPath.Add(p);
 
-                    for (int j = 0; j < nSteps; ++j)
-                    {
-                        float t = t0 + j * step_size;
+                        if (currentWinding < Tolerance) continue;
 
-                        // Don't permit control points too close to the next corner as they are redundant.
-                        // However, ignore this limitation on the last segment of the path as we would like
-                        // it to follow the user's drawing as closely as possible.
-                        if (currentWinding + tmp.Count * Tolerance > totalWinding - Tolerance * 0.5f && i < cornerTs.Count - 1)
-                            break;
+                        if (linearConnection.DistanceSquaredToPoint(p) > onLineThreshold * onLineThreshold)
+                            allOnLine = false;
 
-                        if (currentWinding > Tolerance)
-                        {
-                            Vector2 p = getPathAt(vertices, distances, t);
-                            if (linearConnection.DistanceSquaredToPoint(p) > onLineThreshold * onLineThreshold)
-                                allOnLine = false;
-
-                            tmp.Add(p);
-                            currentWinding -= Tolerance;
-                        }
-
-                        currentWinding += getAbsWindingAt(vertices, distances, t);
+                        cps.Add(p);
+                        currentWinding -= Tolerance;
                     }
                 }
 
-                if (!allOnLine)
-                    cps.AddRange(tmp);
+                if (allOnLine)
+                {
+                    cpss.Add(new List<Vector2> { c0, c1 });
+                    continue;
+                }
 
-                // Insert the corner at the end of the segment as a sharp control point consisting of
-                // degree many regular control points, meaning that the BSpline will have a kink here.
-                // Special case the last corner which will be the end of the path and thus automatically
-                // duplicated degree times by BSplineToPiecewiseLinear down the line.
-                if (i == cornerTs.Count - 1)
-                    cps.Add(c1);
-                else
-                    cps.AddRange(Enumerable.Repeat(c1, degree));
+                cps.Add(c1);
+
+                if (cps.Count > 2 && cps.Count < 1000)
+                {
+                    int res = (int)(totalWinding * 10);
+                    cps = PathApproximator.PiecewiseLinearToBSpline(segmentPath.ToArray(), cps.Count, degree, res, 100, 5, interpolatorResolution: res * 2, initialControlPoints: cps);
+                }
+
+                cpss.Add(cps);
             }
         }
 
         private void redrawApproximatedPath()
         {
-            outputCache.Value = PathApproximator.BSplineToPiecewiseLinear(ControlPoints.ToArray(), degree);
+            outputCache.Value = new List<Vector2>();
+
+            foreach (var segment in ControlPoints)
+            {
+                outputCache.Value.AddRange(PathApproximator.BSplineToPiecewiseLinear(segment.ToArray(), degree));
+            }
         }
 
         /// <summary>
@@ -382,7 +379,7 @@ namespace osu.Framework.Utils
             inputPath.Clear();
             cumulativeInputPathLength.Clear();
 
-            controlPoints.Value = new List<Vector2>();
+            controlPoints.Value = new List<List<Vector2>>();
             outputCache.Value = new List<Vector2>();
         }
 
