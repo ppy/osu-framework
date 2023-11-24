@@ -265,14 +265,56 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddAssert("no elements in dropdown", () => !testDropdown.Items.Any());
 
-            AddStep("add items to bindable", () => bindableList.AddRange(new[] { "one", "two", "three" }.Select(s => new TestModel(s))));
+            AddStep("add items to bindable", () => bindableList.AddRange(new[] { "one", "2", "three" }.Select(s => new TestModel(s))));
             AddStep("select 'three'", () => testDropdown.Current.Value = "three");
+
+            AddStep("replace '2' with 'two'", () => bindableList.ReplaceRange(1, 1, new TestModel[] { "two" }));
+            checkOrder(1, "two");
+
             AddStep("remove 'one' from bindable", () => bindableList.RemoveAt(0));
             AddAssert("two items in dropdown", () => testDropdown.Items.Count() == 2);
             AddAssert("current value is still 'three'", () => testDropdown.Current.Value?.Identifier == "three");
 
-            AddStep("remove three", () => bindableList.Remove("three"));
+            AddStep("remove 'three'", () => bindableList.Remove("three"));
             AddAssert("current value is 'two'", () => testDropdown.Current.Value?.Identifier == "two");
+
+            AddStep("add 'one' and 'three'", () =>
+            {
+                bindableList.Insert(0, "one");
+                bindableList.Add("three");
+            });
+
+            checkOrder(0, "one");
+            checkOrder(2, "three");
+
+            AddStep("add 'one-half'", () => bindableList.Add("one-half"));
+            AddStep("move 'one-half'", () => bindableList.Move(3, 1));
+            checkOrder(1, "one-half");
+            checkOrder(2, "two");
+
+            void checkOrder(int index, string item)
+            {
+                AddAssert($"item #{index + 1} is '{item}'", () => testDropdown.ChildrenOfType<FillFlowContainer<Menu.DrawableMenuItem>>().Single().FlowingChildren.Cast<Menu.DrawableMenuItem>().ElementAt(index).Item.Text.Value == item);
+            }
+        }
+
+        [Test]
+        public void TestItemReplacementDoesNotAffectScroll()
+        {
+            TestDropdown testDropdown = null!;
+            BindableList<TestModel?> bindableList = null!;
+
+            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
+
+            AddStep("bind source", () => testDropdown.ItemSource = bindableList = new BindableList<TestModel?>());
+            AddStep("add many items", () => bindableList.AddRange(Enumerable.Range(0, 20).Select(i => (TestModel)$"test {i}")));
+            AddStep("set max height", () => testDropdown.Menu.MaxHeight = 100);
+
+            toggleDropdownViaClick(() => testDropdown);
+
+            AddStep("scroll to middle", () => testDropdown.ChildrenOfType<BasicScrollContainer>().Single().ScrollTo(200));
+            AddStep("replace item in middle", () => bindableList.ReplaceRange(10, 1, new TestModel[] { "test ten" }));
+            AddAssert("scroll is unchanged", () => testDropdown.ChildrenOfType<BasicScrollContainer>().Single().Target == 200);
         }
 
         /// <summary>
