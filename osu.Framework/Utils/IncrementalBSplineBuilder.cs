@@ -354,7 +354,7 @@ namespace osu.Framework.Utils
                 if (cps.Count > 2 && cps.Count < 100)
                 {
                     int res = (int)(totalWinding * 10);
-                    cps = PathApproximator.PiecewiseLinearToBSpline(segmentPath.ToArray(), cps.Count, degree, res, 100, 5, interpolatorResolution: res * 2, initialControlPoints: cps);
+                    cps = PathApproximator.PiecewiseLinearToBSpline(segmentPath.ToArray(), cps.Count, degree, res, 100, 5, interpolatorResolution: res, initialControlPoints: cps);
                 }
 
                 cpss.Add(cps);
