@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using osu.Framework.Graphics;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -18,6 +19,7 @@ namespace osu.Framework.Tests.Visual.Drawables
     {
         private readonly Path rawDrawnPath;
         private readonly Path approximatedDrawnPath;
+        private readonly Path controlPointPath;
         private readonly Container controlPointViz;
 
         private readonly IncrementalBSplineBuilder bSplineBuilder = new IncrementalBSplineBuilder();
@@ -38,6 +40,12 @@ namespace osu.Framework.Tests.Visual.Drawables
                     {
                         Colour = Color4.Blue,
                         PathRadius = 3,
+                    },
+                    controlPointPath = new Path
+                    {
+                        Colour = Color4.LightGreen,
+                        PathRadius = 1,
+                        Alpha = 0.5f,
                     },
                     controlPointViz = new Container
                     {
@@ -71,6 +79,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private void updateControlPointsViz()
         {
+            controlPointPath.Vertices = bSplineBuilder.ControlPoints.SelectMany(o => o).ToArray();
             controlPointViz.Clear();
 
             foreach (var segment in bSplineBuilder.ControlPoints)
