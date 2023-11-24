@@ -303,8 +303,8 @@ namespace osu.Framework.Utils
                                                             int numTestPoints = 100,
                                                             int maxIterations = 100,
                                                             float learningRate = 8f,
-                                                            float b1 = 0.9f,
-                                                            float b2 = 0.92f,
+                                                            float b1 = 0.8f,
+                                                            float b2 = 0.99f,
                                                             int interpolatorResolution = 100,
                                                             List<Vector2>? initialControlPoints = null)
         {
@@ -330,8 +330,8 @@ namespace osu.Framework.Utils
                                                              float[,] weights,
                                                              int maxIterations = 100,
                                                              float learningRate = 8f,
-                                                             float b1 = 0.9f,
-                                                             float b2 = 0.92f,
+                                                             float b1 = 0.8f,
+                                                             float b2 = 0.99f,
                                                              int interpolatorResolution = 100,
                                                              List<Vector2>? initialControlPoints = null)
         {
@@ -440,6 +440,7 @@ namespace osu.Framework.Utils
             }
         }
 
+        // mat1 can not be the same array as result, or it will not work correctly
         private static unsafe void matLerp(float[,] mat1, float[,] mat2, float t, float[,] result)
         {
             fixed (float* mat1P = mat1, mat2P = mat2, resultP = result)
@@ -484,6 +485,8 @@ namespace osu.Framework.Utils
             }
         }
 
+        // This matmul operation is not standard because it computes (m, p) * (n, p) -> (m, n)
+        // This is because the memory for the reduced dimension must be contiguous
         private static unsafe void matmul(float[,] mat1, float[,] mat2, float[,] result)
         {
             int m = mat1.GetLength(0);
@@ -630,6 +633,9 @@ namespace osu.Framework.Utils
             {
                 for (int i = 0; i < numTestPoints; i++)
                 {
+                    // This code multiplies the previous order by equal length arrays of alphas and betas,
+                    // then shifts the alpha array by one index, and adds the results, resulting in one extra length.
+                    // nextOrder = (prevOrder * alphas).shiftRight() + (prevOrder * betas)
                     float prevAlpha = 0;
 
                     for (int j = 0; j < numControlPoints - degree + q - 1; j++)
