@@ -286,7 +286,8 @@ namespace osu.Framework.Utils
             Debug.Assert(vertices.Count == distances.Count + 1);
             var cornerTs = detectCorners(vertices, distances);
 
-            var cps = new List<Vector2> { vertices[0] };
+            var cps = new List<Vector2>();
+            cps.Add(vertices[0]);
 
             // Populate each segment between corners with control points that have density proportional to the
             // product of Tolerance and curvature.
