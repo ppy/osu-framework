@@ -283,10 +283,12 @@ namespace osu.Framework.Utils
                 return;
             }
 
+            controlPoints.Value = new List<Vector2>();
+
             Debug.Assert(vertices.Count == distances.Count + 1);
             var cornerTs = detectCorners(vertices, distances);
 
-            var cps = new List<Vector2>();
+            var cps = controlPoints.Value;
             cps.Add(vertices[0]);
 
             // Populate each segment between corners with control points that have density proportional to the
@@ -352,8 +354,6 @@ namespace osu.Framework.Utils
                 else
                     cps.AddRange(Enumerable.Repeat(c1, degree));
             }
-
-            controlPoints.Value = PathApproximator.PiecewiseLinearToBSpline(inputPath.ToArray(), cps.Count, degree, initialControlPoints: cps);
         }
 
         private void redrawApproximatedPath()
