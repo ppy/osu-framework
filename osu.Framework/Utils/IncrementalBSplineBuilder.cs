@@ -353,7 +353,7 @@ namespace osu.Framework.Utils
                     cps.AddRange(Enumerable.Repeat(c1, degree));
             }
 
-            controlPoints.Value = PathApproximator.PiecewiseLinearToBSpline(vertices.ToArray(), cps.Count, degree, initialControlPoints: cps);
+            controlPoints.Value = PathApproximator.PiecewiseLinearToBSpline(inputPath.ToArray(), cps.Count, degree, initialControlPoints: cps);
         }
 
         private void redrawApproximatedPath()
