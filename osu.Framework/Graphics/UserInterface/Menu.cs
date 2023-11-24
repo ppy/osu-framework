@@ -277,7 +277,14 @@ namespace osu.Framework.Graphics.UserInterface
         /// Adds a <see cref="MenuItem"/> to this <see cref="Menu"/>.
         /// </summary>
         /// <param name="item">The <see cref="MenuItem"/> to add.</param>
-        public virtual void Add(MenuItem item)
+        public virtual void Add(MenuItem item) => Insert(itemsFlow.Count, item);
+
+        /// <summary>
+        /// Inserts a <see cref="MenuItem"/> at a specified position inside this <see cref="Menu"/>.
+        /// </summary>
+        /// <param name="position">The position to insert this item at.</param>
+        /// <param name="item">The <see cref="MenuItem"/> to insert.</param>
+        public void Insert(int position, MenuItem item)
         {
             var drawableItem = CreateDrawableMenuItem(item);
             drawableItem.Clicked = menuItemClicked;
@@ -286,7 +293,12 @@ namespace osu.Framework.Graphics.UserInterface
 
             drawableItem.SetFlowDirection(Direction);
 
-            ItemsContainer.Add(drawableItem);
+            var items = ItemsContainer.FlowingChildren.Cast<DrawableMenuItem>().ToList();
+
+            for (int i = position; i < items.Count; i++)
+                ItemsContainer.SetLayoutPosition(items[i], i + 1);
+
+            ItemsContainer.Insert(position, drawableItem);
             itemsFlow.SizeCache.Invalidate();
         }
 
@@ -306,10 +318,26 @@ namespace osu.Framework.Graphics.UserInterface
         /// <returns>Whether <paramref name="item"/> was successfully removed.</returns>
         public bool Remove(MenuItem item)
         {
-            bool result = ItemsContainer.RemoveAll(d => d.Item == item, true) > 0;
-            itemsFlow.SizeCache.Invalidate();
+            var items = ItemsContainer.FlowingChildren.Cast<DrawableMenuItem>().ToList();
+            bool removed = false;
 
-            return result;
+            for (int i = 0; i < items.Count; i++)
+            {
+                var d = items[i];
+
+                if (d.Item == item)
+                {
+                    for (int j = i + 1; j < items.Count; j++)
+                        ItemsContainer.SetLayoutPosition(items[j], j - 1);
+
+                    ItemsContainer.Remove(d, true);
+                    items.RemoveAt(i--);
+                    removed = true;
+                }
+            }
+
+            itemsFlow.SizeCache.Invalidate();
+            return removed;
         }
 
         /// <summary>
