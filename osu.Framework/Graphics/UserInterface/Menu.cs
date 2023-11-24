@@ -293,7 +293,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             drawableItem.SetFlowDirection(Direction);
 
-            var items = ItemsContainer.FlowingChildren.Cast<DrawableMenuItem>().ToList();
+            var items = Children.OrderBy(ItemsContainer.GetLayoutPosition).ToList();
 
             for (int i = position; i < items.Count; i++)
                 ItemsContainer.SetLayoutPosition(items[i], i + 1);
@@ -318,7 +318,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <returns>Whether <paramref name="item"/> was successfully removed.</returns>
         public bool Remove(MenuItem item)
         {
-            var items = ItemsContainer.FlowingChildren.Cast<DrawableMenuItem>().ToList();
+            var items = Children.OrderBy(ItemsContainer.GetLayoutPosition).ToList();
             bool removed = false;
 
             for (int i = 0; i < items.Count; i++)
