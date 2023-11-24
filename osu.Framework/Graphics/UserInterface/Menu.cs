@@ -277,7 +277,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// Adds a <see cref="MenuItem"/> to this <see cref="Menu"/>.
         /// </summary>
         /// <param name="item">The <see cref="MenuItem"/> to add.</param>
-        public virtual void Add(MenuItem item) => Insert(itemsFlow.Count, item);
+        public void Add(MenuItem item) => Insert(itemsFlow.Count, item);
 
         /// <summary>
         /// Inserts a <see cref="MenuItem"/> at a specified position inside this <see cref="Menu"/>.

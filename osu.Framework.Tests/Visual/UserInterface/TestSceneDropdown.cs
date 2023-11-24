@@ -259,12 +259,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
 
-            AddStep("bind source", () =>
-            {
-                // todo: perhaps binding ItemSource should clear existing items.
-                testDropdown.ClearItems();
-                testDropdown.ItemSource = bindableList = new BindableList<TestModel?>();
-            });
+            AddStep("bind source", () => testDropdown.ItemSource = bindableList = new BindableList<TestModel?>());
 
             toggleDropdownViaClick(() => testDropdown);
 

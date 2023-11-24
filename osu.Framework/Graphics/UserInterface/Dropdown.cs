@@ -5,11 +5,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
@@ -57,18 +59,6 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private void setItems(IEnumerable<T> items)
-        {
-            clearItems();
-            if (items == null)
-                return;
-
-            foreach (var entry in items)
-                addDropdownItem(entry);
-
-            ensureItemSelectionIsValid();
-        }
-
         private readonly IBindableList<T> itemSource = new BindableList<T>();
         private IBindableList<T> boundItemSource;
 
@@ -86,7 +76,21 @@ namespace osu.Framework.Graphics.UserInterface
 
                 if (boundItemSource != null) itemSource.UnbindFrom(boundItemSource);
                 itemSource.BindTo(boundItemSource = value);
+
+                setItems(value);
             }
+        }
+
+        private void setItems(IEnumerable<T> value)
+        {
+            clearItems();
+            if (value == null)
+                return;
+
+            foreach (var entry in value)
+                addDropdownItem(entry);
+
+            ensureItemSelectionIsValid();
         }
 
         /// <summary>
@@ -101,7 +105,7 @@ namespace osu.Framework.Graphics.UserInterface
             addDropdownItem(value);
         }
 
-        private void addDropdownItem(T value)
+        private void addDropdownItem(T value, int? position = null)
         {
             if (itemMap.ContainsKey(value))
                 throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<T>)}.");
@@ -118,7 +122,11 @@ namespace osu.Framework.Graphics.UserInterface
             if (LoadState >= LoadState.Ready)
                 item.Text.Value = GenerateItemText(value);
 
-            Menu.Add(item);
+            if (position != null)
+                Menu.Insert(position.Value, item);
+            else
+                Menu.Add(item);
+
             itemMap[value] = item;
         }
 
@@ -144,7 +152,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             Menu.Remove(item);
             itemMap.Remove(value);
-
             return true;
         }
 
@@ -226,7 +233,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Menu.State = MenuState.Closed;
             };
 
-            ItemSource.CollectionChanged += (_, _) => setItems(itemSource);
+            ItemSource.CollectionChanged += collectionChanged;
         }
 
         private void preselectionConfirmed(int selectedIndex)
@@ -281,6 +288,55 @@ namespace osu.Framework.Graphics.UserInterface
             base.LoadComplete();
 
             Header.Label = SelectedItem?.Text.Value ?? default;
+        }
+
+        private void collectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            switch (e.Action)
+            {
+                case NotifyCollectionChangedAction.Add:
+                {
+                    var newItems = e.NewItems.AsNonNull().Cast<T>().ToArray();
+
+                    for (int i = 0; i < newItems.Length; i++)
+                        addDropdownItem(newItems[i], e.NewStartingIndex + i);
+
+                    break;
+                }
+
+                case NotifyCollectionChangedAction.Remove:
+                    foreach (var item in e.OldItems.AsNonNull().Cast<T>())
+                        removeDropdownItem(item);
+
+                    break;
+
+                case NotifyCollectionChangedAction.Move:
+                {
+                    var item = Items.ElementAt(e.OldStartingIndex);
+                    removeDropdownItem(item);
+                    addDropdownItem(item, e.NewStartingIndex);
+                    break;
+                }
+
+                case NotifyCollectionChangedAction.Replace:
+                {
+                    foreach (var item in e.OldItems.AsNonNull().Cast<T>())
+                        removeDropdownItem(item);
+
+                    var newItems = e.NewItems.AsNonNull().Cast<T>().ToArray();
+
+                    for (int i = 0; i < newItems.Length; i++)
+                        addDropdownItem(newItems[i], e.NewStartingIndex + i);
+
+                    break;
+                }
+
+                case NotifyCollectionChangedAction.Reset:
+                    clearItems();
+                    break;
+            }
+
+            ensureItemSelectionIsValid();
         }
 
         private void ensureItemSelectionIsValid()
@@ -372,14 +428,6 @@ namespace osu.Framework.Graphics.UserInterface
                 StateChanged += clearPreselection;
             }
 
-            public override void Add(MenuItem item)
-            {
-                base.Add(item);
-
-                var drawableDropdownMenuItem = (DrawableDropdownMenuItem)ItemsContainer.Single(drawableItem => drawableItem.Item == item);
-                drawableDropdownMenuItem.PreselectionRequested += PreselectItem;
-            }
-
             private void clearPreselection(MenuState obj)
             {
                 if (obj == MenuState.Closed)
@@ -441,7 +489,12 @@ namespace osu.Framework.Graphics.UserInterface
                 });
             }
 
-            protected sealed override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => CreateDrawableDropdownMenuItem(item);
+            protected sealed override DrawableMenuItem CreateDrawableMenuItem(MenuItem item)
+            {
+                var drawableItem = CreateDrawableDropdownMenuItem(item);
+                drawableItem.PreselectionRequested += PreselectItem;
+                return drawableItem;
+            }
 
             protected abstract DrawableDropdownMenuItem CreateDrawableDropdownMenuItem(MenuItem item);
 
