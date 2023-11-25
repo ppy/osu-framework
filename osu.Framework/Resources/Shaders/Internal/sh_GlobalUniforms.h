@@ -20,7 +20,6 @@ layout(std140, set = -1, binding = 0) uniform g_GlobalUniforms
 
     mat4 g_ProjMatrix;
     mat4 g_ToMaskingSpace;
-    highp vec2 g_Viewport;
 
     bool g_IsMasking;
     highp float g_CornerRadius;

@@ -193,8 +193,7 @@ namespace osu.Framework.Graphics.Rendering
             {
                 IsDepthRangeZeroToOne = IsDepthRangeZeroToOne,
                 IsClipSpaceYInverted = IsClipSpaceYInverted,
-                IsUvOriginTopLeft = IsUvOriginTopLeft,
-                Viewport = (Vector2)Viewport.Size
+                IsUvOriginTopLeft = IsUvOriginTopLeft
             };
 
             Debug.Assert(defaultQuadBatch != null);
