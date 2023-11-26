@@ -393,7 +393,7 @@ namespace osu.Framework.Utils
                 // Update labels to shift the distance distribution between points
                 if (step % 11 == 0)
                 {
-                    getDistanceDistribution(points, distanceDistribution);
+                    getDistanceDistribution(points, distanceDistribution, 0.1f);
                     interpolator.Interpolate(distanceDistribution, labels);
                 }
 
@@ -521,7 +521,7 @@ namespace osu.Framework.Utils
             return result;
         }
 
-        private static void getDistanceDistribution(float[,] points, float[] result)
+        private static void getDistanceDistribution(float[,] points, float[] result, float regularizingFactor = 0f)
         {
             int m = points.GetLength(1);
             float accumulator = 0;
@@ -530,7 +530,7 @@ namespace osu.Framework.Utils
             for (int i = 1; i < m; i++)
             {
                 float dist = MathF.Sqrt(MathF.Pow(points[0, i] - points[0, i - 1], 2) + MathF.Pow(points[1, i] - points[1, i - 1], 2));
-                accumulator += dist;
+                accumulator += dist + regularizingFactor;
                 result[i] = accumulator;
             }
 
