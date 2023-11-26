@@ -308,6 +308,7 @@ namespace osu.Framework.Utils
                                                             int interpolatorResolution = 100,
                                                             List<Vector2>? initialControlPoints = null)
         {
+            numTestPoints = Math.Max(numTestPoints, 3);
             return piecewiseLinearToSpline(inputPath, generateBezierWeights(numControlPoints, numTestPoints), maxIterations, learningRate, b1, b2, interpolatorResolution, initialControlPoints);
         }
 
@@ -323,6 +324,7 @@ namespace osu.Framework.Utils
                                                              List<Vector2>? initialControlPoints = null)
         {
             degree = Math.Min(degree, numControlPoints - 1);
+            numTestPoints = Math.Max(numTestPoints, 3);
             return piecewiseLinearToSpline(inputPath, generateBSplineWeights(numControlPoints, numTestPoints, degree), maxIterations, learningRate, b1, b2, interpolatorResolution, initialControlPoints);
         }
 
