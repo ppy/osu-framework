@@ -79,6 +79,8 @@ namespace osu.Framework.Utils
             Value = new List<List<Vector2>>()
         };
 
+        private bool controlPointsPartiallyInvalid;
+
         private int degree;
 
         /// <summary>
@@ -171,6 +173,9 @@ namespace osu.Framework.Utils
             {
                 if (!controlPoints.IsValid)
                     regenerateApproximatedPathControlPoints();
+
+                if (controlPointsPartiallyInvalid)
+                    updateApproximatedPathControlPoints();
 
                 return controlPoints.Value;
             }
@@ -272,6 +277,120 @@ namespace osu.Framework.Utils
             return cornerT;
         }
 
+        private void updateApproximatedPathControlPoints()
+        {
+            if (!controlPoints.IsValid)
+            {
+                regenerateApproximatedPathControlPoints();
+                return;
+            }
+
+            var (vertices, distances) = computeSmoothedInputPath();
+
+            if (vertices.Count < 2)
+            {
+                controlPoints.Value = new List<List<Vector2>> { vertices };
+                return;
+            }
+
+            Debug.Assert(vertices.Count == distances.Count + 1);
+            var cornerTs = detectCorners(vertices, distances);
+
+            var cpss = controlPoints.Value;
+
+            // Make sure there are enough segments.
+            while (cpss.Count < cornerTs.Count - 1)
+                cpss.Add(new List<Vector2>());
+
+            // Make sure each segment has at least two control points which are the start and end points.
+            for (int j = 0; j < cpss.Count; ++j)
+            {
+                var cps = cpss[j];
+
+                if (cps.Count == 0)
+                {
+                    cps.Add(getPathAt(vertices, distances, cornerTs[j]));
+                    cps.Add(getPathAt(vertices, distances, cornerTs[j + 1]));
+                }
+                else if (cps.Count == 1)
+                {
+                    cps[0] = getPathAt(vertices, distances, cornerTs[j]);
+                    cps.Add(getPathAt(vertices, distances, cornerTs[j + 1]));
+                }
+                else
+                {
+                    cps[0] = getPathAt(vertices, distances, cornerTs[j]);
+                    cps[^1] = getPathAt(vertices, distances, cornerTs[j + 1]);
+                }
+            }
+
+            // Populate the last segment with control points that have density proportional to the
+            // product of Tolerance and curvature.
+            const float step_size = FD_EPSILON;
+
+            int i = cornerTs.Count - 1;
+            float totalWinding = 0;
+
+            float t0 = cornerTs[i - 1] + step_size * 2;
+            float t1 = cornerTs[i] - step_size * 2;
+
+            Vector2 c0 = getPathAt(vertices, distances, cornerTs[i - 1]);
+            Vector2 c1 = getPathAt(vertices, distances, cornerTs[i]);
+            Line linearConnection = new Line(c0, c1);
+
+            var tmp = new List<Vector2>();
+            var segmentPath = new List<Vector2>();
+            bool allOnLine = true;
+            float onLineThreshold = 0.02f * Tolerance * Vector2.Distance(c0, c1);
+
+            if (t1 > t0)
+            {
+                int nSteps = (int)((t1 - t0) / step_size);
+                float currentWinding = 0.5f * Tolerance;
+
+                for (int j = 0; j < nSteps; ++j)
+                {
+                    float t = t0 + j * step_size;
+                    float winding = getAbsWindingAt(vertices, distances, t);
+                    totalWinding += winding;
+                    currentWinding += winding;
+
+                    Vector2 p = getPathAt(vertices, distances, t);
+                    segmentPath.Add(p);
+
+                    if (currentWinding < Tolerance) continue;
+
+                    if (linearConnection.DistanceSquaredToPoint(p) > onLineThreshold * onLineThreshold)
+                        allOnLine = false;
+
+                    tmp.Add(p);
+                    currentWinding -= Tolerance;
+                }
+            }
+
+            if (!allOnLine)
+            {
+                // Make sure the last segment has enough control points.
+                var cps = cpss[^1];
+                int toAdd = tmp.Count + 2 - cps.Count;
+
+                for (int j = 0; j < toAdd; j++)
+                {
+                    cps.Insert(cps.Count - 1, tmp[j - toAdd + tmp.Count]);
+                }
+
+                if (cps.Count > 2 && cps.Count < 100)
+                {
+                    int res = (int)(totalWinding * 10);
+                    cps = PathApproximator.PiecewiseLinearToBSpline(segmentPath.ToArray(), cps.Count, degree,
+                        res, 20, 5f, interpolatorResolution: res, initialControlPoints: cps);
+                    cpss[^1] = cps;
+                }
+            }
+
+            controlPointsPartiallyInvalid = false;
+        }
+
         private void regenerateApproximatedPathControlPoints()
         {
             // Approximating a given input path with a BSpline has three stages:
@@ -283,7 +402,9 @@ namespace osu.Framework.Utils
             //     of Tolerance and curvature.
             //  4. Additionally, we special case linear segments: if the path does not deviate more
             //     than some threshold from a straight line, we do not add additional control points.
-            var (vertices, distances) = computeSmoothedInputPath();
+            // var (vertices, distances) = computeSmoothedInputPath();
+            var vertices = inputPath;
+            var distances = cumulativeInputPathLength;
 
             if (vertices.Count < 2)
             {
@@ -354,11 +475,14 @@ namespace osu.Framework.Utils
                 if (cps.Count > 2 && cps.Count < 100)
                 {
                     int res = (int)(totalWinding * 10);
-                    cps = PathApproximator.PiecewiseLinearToBSpline(segmentPath.ToArray(), cps.Count, degree, res, 100, 5, interpolatorResolution: res, initialControlPoints: cps);
+                    cps = PathApproximator.PiecewiseLinearToBSpline(segmentPath.ToArray(), cps.Count, degree,
+                        res, 100, 5, interpolatorResolution: res, initialControlPoints: cps);
                 }
 
                 cpss.Add(cps);
             }
+
+            controlPointsPartiallyInvalid = false;
         }
 
         private void redrawApproximatedPath()
@@ -390,7 +514,7 @@ namespace osu.Framework.Utils
         public void AddLinearPoint(Vector2 v)
         {
             outputCache.Invalidate();
-            controlPoints.Invalidate();
+            controlPointsPartiallyInvalid = true;
 
             // Implementation detail: we would like to disregard input path detail that is smaller than
             // FD_EPSILON * 2 because it can otherwise mess with the winding calculations. However, we
