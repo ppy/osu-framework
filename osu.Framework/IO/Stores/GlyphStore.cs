@@ -66,7 +66,7 @@ namespace osu.Framework.IO.Stores
             AssetName = assetName;
             TextureLoader = textureLoader;
 
-            FontName = assetName?.Split('/').Last();
+            FontName = assetName?.Split('/').Last() ?? string.Empty;
         }
 
         private Task fontLoadTask;
