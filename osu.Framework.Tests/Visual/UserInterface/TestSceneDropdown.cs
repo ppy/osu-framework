@@ -29,7 +29,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             TestDropdown testDropdown = null!;
 
-            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
+            AddStep("setup dropdown", () => testDropdown = createDropdown());
 
             toggleDropdownViaClick(() => testDropdown);
             assertDropdownIsOpen(() => testDropdown);
@@ -54,7 +54,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             TestDropdown testDropdown = null!;
 
-            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
+            AddStep("setup dropdown", () => testDropdown = createDropdown());
 
             assertDropdownIsClosed(() => testDropdown);
 
@@ -72,7 +72,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             TestDropdown[] dropdowns = null!;
 
-            AddStep("create two dropdowns", () => dropdowns = setupDropdowns(2));
+            AddStep("create two dropdowns", () => dropdowns = createDropdowns(2));
 
             toggleDropdownViaClick(() => dropdowns[0], "dropdown 1");
             AddAssert("dropdown 1 is open", () => dropdowns[0].Menu.State == MenuState.Open);
@@ -90,7 +90,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             TestDropdown testDropdown = null!;
 
-            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
+            AddStep("setup dropdown", () => testDropdown = createDropdown());
 
             toggleDropdownViaClick(() => testDropdown);
 
@@ -121,7 +121,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             TestDropdown testDropdown = null!;
 
-            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
+            AddStep("setup dropdown", () => testDropdown = createDropdown());
 
             AddStep("hover dropdown", () => InputManager.MoveMouseTo(testDropdown.Header));
 
@@ -159,7 +159,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             TestDropdown testDropdown = null!;
 
-            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
+            AddStep("setup dropdown", () => testDropdown = createDropdown());
 
             toggleDropdownViaClick(() => testDropdown);
 
@@ -188,7 +188,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             TestDropdown testDropdown = null!;
 
-            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
+            AddStep("setup dropdown", () => testDropdown = createDropdown());
 
             toggleDropdownViaClick(() => testDropdown);
             AddStep("select 'invalid'", () => testDropdown.Current.Value = "invalid");
@@ -205,7 +205,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             TestDropdown testDropdown = null!;
 
-            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
+            AddStep("setup dropdown", () => testDropdown = createDropdown());
 
             AddStep("select item 1", () => testDropdown.Current.Value = testDropdown.Items.ElementAt(1).AsNonNull());
             AddAssert("item 1 is selected", () => testDropdown.Current.Value?.Equals(testDropdown.Items.ElementAt(1)) == true);
@@ -221,7 +221,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             TestDropdown testDropdown = null!;
             TestModel originalValue = null!;
 
-            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
+            AddStep("setup dropdown", () => testDropdown = createDropdown());
 
             AddStep("disable current", () => testDropdown.Current.Disabled = true);
             AddStep("store original value", () => originalValue = testDropdown.Current.Value.AsNonNull());
@@ -257,7 +257,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             TestDropdown testDropdown = null!;
             BindableList<TestModel?> bindableList = null!;
 
-            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
+            AddStep("setup dropdown", () => testDropdown = createDropdown());
 
             AddStep("bind source", () =>
             {
@@ -365,7 +365,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("text is expected", () => dropdown.SelectedItem.Text.Value.ToString(), () => Is.EqualTo("loaded: non-existent item"));
         }
 
-        private TestDropdown[] setupDropdowns(int count)
+        private TestDropdown createDropdown() => createDropdowns(1).Single();
+
+        private TestDropdown[] createDropdowns(int count)
         {
             TestDropdown[] dropdowns = new TestDropdown[count];
 
