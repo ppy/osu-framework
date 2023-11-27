@@ -266,10 +266,7 @@ namespace osu.Framework.Logging
                 string nameLower = name.ToLowerInvariant();
 
                 if (!static_loggers.TryGetValue(nameLower, out Logger l))
-                {
                     static_loggers[nameLower] = l = Enum.TryParse(name, true, out LoggingTarget target) ? new Logger(target) : new Logger(name, true);
-                    l.clear();
-                }
 
                 return l;
             }
@@ -417,28 +414,6 @@ namespace osu.Framework.Logging
         /// Fires whenever any logger tries to log a new entry, but before the entry is actually written to the logfile.
         /// </summary>
         public static event Action<LogEntry> NewEntry;
-
-        /// <summary>
-        /// Deletes log file from disk.
-        /// </summary>
-        private void clear()
-        {
-            lock (flush_sync_lock)
-            {
-                scheduler.Add(() =>
-                {
-                    try
-                    {
-                        Storage.Delete(Filename);
-                    }
-                    catch
-                    {
-                        // may fail if the file/directory was already cleaned up, ie. during test runs.
-                    }
-                });
-                writer_idle.Reset();
-            }
-        }
 
         private bool headerAdded;
 
