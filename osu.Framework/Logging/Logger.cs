@@ -73,14 +73,7 @@ namespace osu.Framework.Logging
             {
                 storage = value ?? throw new ArgumentNullException(nameof(value));
 
-                DateTime logCycleCutoff = DateTime.UtcNow.AddDays(-7);
-                var logFiles = new DirectoryInfo(storage.GetFullPath(string.Empty)).GetFiles();
-
-                foreach (var fileInfo in logFiles)
-                {
-                    if (fileInfo.CreationTimeUtc < logCycleCutoff)
-                        fileInfo.Delete();
-                }
+                cycleLogs();
             }
         }
 
@@ -422,6 +415,25 @@ namespace osu.Framework.Logging
         public static event Action<LogEntry> NewEntry;
 
         private bool headerAdded;
+
+        private static void cycleLogs()
+        {
+            try
+            {
+                DateTime logCycleCutoff = DateTime.UtcNow.AddDays(-7);
+                var logFiles = new DirectoryInfo(storage.GetFullPath(string.Empty)).GetFiles();
+
+                foreach (var fileInfo in logFiles)
+                {
+                    if (fileInfo.CreationTimeUtc < logCycleCutoff)
+                        fileInfo.Delete();
+                }
+            }
+            catch (Exception e)
+            {
+                Log($"Cycling logs failed ({e})");
+            }
+        }
 
         private void ensureHeader()
         {
