@@ -23,10 +23,18 @@ namespace osu.Framework.Logging
     {
         private static readonly object static_sync_lock = new object();
 
-        // separate locking object for flushing so that we don't lock too long on the staticSyncLock object, since we have to
-        // hold this lock for the entire duration of the flush (waiting for I/O etc) before we can resume scheduling logs
-        // but other operations like GetLogger(), ApplyFilters() etc. can still be executed while a flush is happening.
+        /// <summary>
+        /// Separate locking object for flushing so that we don't lock too long on the staticSyncLock object, since we have to
+        /// hold this lock for the entire duration of the flush (waiting for I/O etc) before we can resume scheduling logs
+        /// but other operations like GetLogger(), ApplyFilters() etc. can still be executed while a flush is happening.
+        /// </summary>
         private static readonly object flush_sync_lock = new object();
+
+        /// <summary>
+        /// Logs are stored with a consistent unix timestamp prefix per session (across all loggers) for logical grouping of
+        /// log files on disk.
+        /// </summary>
+        private static readonly long session_startup_timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         /// <summary>
         /// Whether logging is enabled. Setting this to false will disable all logging.
@@ -83,7 +91,7 @@ namespace osu.Framework.Logging
         /// <summary>
         /// Gets the name of the file that this logger is logging to.
         /// </summary>
-        public string Filename => $@"{Name}.log";
+        public string Filename { get; }
 
         public int TotalLogOperations => logCount.Value;
 
@@ -109,6 +117,7 @@ namespace osu.Framework.Logging
 
             Name = name;
             logCount = GlobalStatistics.Get<int>(nameof(Logger), Name);
+            Filename = $"{session_startup_timestamp}.{Name}.log";
         }
 
         /// <summary>
