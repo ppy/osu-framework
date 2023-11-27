@@ -369,13 +369,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             TestDropdown[] dropdowns = new TestDropdown[count];
 
-            for (int i = 0; i < count; i++)
+            for (int dropdownIndex = 0; dropdownIndex < count; dropdownIndex++)
             {
                 var testItems = new TestModel[10];
-                for (int i1 = 0; i1 < items_to_add; i1++)
-                    testItems[i1] = "test " + i1;
+                for (int itemIndex = 0; itemIndex < items_to_add; itemIndex++)
+                    testItems[itemIndex] = "test " + itemIndex;
 
-                dropdowns[i] = new TestDropdown
+                dropdowns[dropdownIndex] = new TestDropdown
                 {
                     Position = new Vector2(50f, 50f),
                     Width = 150,
