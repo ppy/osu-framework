@@ -73,9 +73,6 @@ namespace osu.Framework.Logging
             {
                 storage = value ?? throw new ArgumentNullException(nameof(value));
 
-                // clear static loggers so they are correctly initialised at the new storage location.
-                static_loggers.Clear();
-
                 DateTime logCycleCutoff = DateTime.UtcNow.AddDays(-7);
                 var logFiles = new DirectoryInfo(storage.GetFullPath(string.Empty)).GetFiles();
 
