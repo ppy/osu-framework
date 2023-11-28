@@ -421,7 +421,7 @@ namespace osu.Framework.Logging
             try
             {
                 DateTime logCycleCutoff = DateTime.UtcNow.AddDays(-7);
-                var logFiles = new DirectoryInfo(storage.GetFullPath(string.Empty)).GetFiles();
+                var logFiles = new DirectoryInfo(storage.GetFullPath(string.Empty)).GetFiles("*.log");
 
                 foreach (var fileInfo in logFiles)
                 {
