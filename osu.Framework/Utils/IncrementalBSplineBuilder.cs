@@ -383,6 +383,8 @@ namespace osu.Framework.Utils
                 {
                     segmentPath.Add(c1);
 
+                    // Make a mask to prevent modifying the control points which have already been optimized enough.
+                    // Also the end-points can not move.
                     float[,] learnableMask = new float[2, cps.Count];
 
                     for (int j = Math.Max(1, cps.Count - degree * 2); j < cps.Count - 1; j++)
