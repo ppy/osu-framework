@@ -339,7 +339,7 @@ namespace osu.Framework.Utils
             Line linearConnection = new Line(c0, c1);
 
             var tmp = new List<Vector2>();
-            var segmentPath = new List<Vector2>();
+            var segmentPath = new List<Vector2> { c0 };
             bool allOnLine = true;
             float onLineThreshold = 0.02f * Tolerance * Vector2.Distance(c0, c1);
 
@@ -381,9 +381,11 @@ namespace osu.Framework.Utils
 
                 if (cps.Count > 2 && cps.Count < 100)
                 {
+                    segmentPath.Add(c1);
+
                     int res = (int)(totalWinding * 10);
                     cps = PathApproximator.PiecewiseLinearToBSpline(segmentPath.ToArray(), cps.Count, degree,
-                        res, 20, 5f, interpolatorResolution: res, initialControlPoints: cps);
+                        res, 50, 5f, interpolatorResolution: res, initialControlPoints: cps);
                     cpss[^1] = cps;
                 }
             }
@@ -435,7 +437,7 @@ namespace osu.Framework.Utils
                 Line linearConnection = new Line(c0, c1);
 
                 var cps = new List<Vector2> { c0 };
-                var segmentPath = new List<Vector2>();
+                var segmentPath = new List<Vector2> { c0 };
                 bool allOnLine = true;
                 float onLineThreshold = 0.02f * Tolerance * Vector2.Distance(c0, c1);
 
@@ -471,6 +473,7 @@ namespace osu.Framework.Utils
                 }
 
                 cps.Add(c1);
+                segmentPath.Add(c1);
 
                 if (cps.Count > 2 && cps.Count < 100)
                 {
