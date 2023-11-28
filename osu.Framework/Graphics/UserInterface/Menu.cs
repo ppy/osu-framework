@@ -47,7 +47,9 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The <see cref="Container{T}"/> that contains the items of this <see cref="Menu"/>.
         /// </summary>
-        protected FillFlowContainer<DrawableMenuItem> ItemsContainer => itemsFlow;
+        // this is intentionally not a FillFlowContainer, as to not allow the consumers to mutate the layout position of menu items,
+        // since we manage it ourselves to define a specific order for menu items and allow inserting ones between others.
+        protected Container<DrawableMenuItem> ItemsContainer => itemsFlow;
 
         /// <summary>
         /// The container that provides the masking effects for this <see cref="Menu"/>.
@@ -293,12 +295,12 @@ namespace osu.Framework.Graphics.UserInterface
 
             drawableItem.SetFlowDirection(Direction);
 
-            var items = Children.OrderBy(ItemsContainer.GetLayoutPosition).ToList();
+            var items = Children.OrderBy(itemsFlow.GetLayoutPosition).ToList();
 
             for (int i = position; i < items.Count; i++)
-                ItemsContainer.SetLayoutPosition(items[i], i + 1);
+                itemsFlow.SetLayoutPosition(items[i], i + 1);
 
-            ItemsContainer.Insert(position, drawableItem);
+            itemsFlow.Insert(position, drawableItem);
             itemsFlow.SizeCache.Invalidate();
         }
 
@@ -318,7 +320,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <returns>Whether <paramref name="item"/> was successfully removed.</returns>
         public bool Remove(MenuItem item)
         {
-            var items = Children.OrderBy(ItemsContainer.GetLayoutPosition).ToList();
+            var items = Children.OrderBy(itemsFlow.GetLayoutPosition).ToList();
             bool removed = false;
 
             for (int i = 0; i < items.Count; i++)
@@ -328,9 +330,9 @@ namespace osu.Framework.Graphics.UserInterface
                 if (d.Item == item)
                 {
                     for (int j = i + 1; j < items.Count; j++)
-                        ItemsContainer.SetLayoutPosition(items[j], j - 1);
+                        itemsFlow.SetLayoutPosition(items[j], j - 1);
 
-                    ItemsContainer.Remove(d, true);
+                    itemsFlow.Remove(d, true);
                     items.RemoveAt(i--);
                     removed = true;
                 }
