@@ -306,10 +306,12 @@ namespace osu.Framework.Utils
                                                             float b1 = 0.8f,
                                                             float b2 = 0.99f,
                                                             int interpolatorResolution = 100,
-                                                            List<Vector2>? initialControlPoints = null)
+                                                            List<Vector2>? initialControlPoints = null,
+                                                            float[,]? learnableMask = null)
         {
             numTestPoints = Math.Max(numTestPoints, 3);
-            return piecewiseLinearToSpline(inputPath, generateBezierWeights(numControlPoints, numTestPoints), maxIterations, learningRate, b1, b2, interpolatorResolution, initialControlPoints);
+            return piecewiseLinearToSpline(inputPath, generateBezierWeights(numControlPoints, numTestPoints),
+                maxIterations, learningRate, b1, b2, interpolatorResolution, initialControlPoints, learnableMask);
         }
 
         public static List<Vector2> PiecewiseLinearToBSpline(ReadOnlySpan<Vector2> inputPath,
@@ -321,11 +323,13 @@ namespace osu.Framework.Utils
                                                              float b1 = 0.8f,
                                                              float b2 = 0.99f,
                                                              int interpolatorResolution = 100,
-                                                             List<Vector2>? initialControlPoints = null)
+                                                             List<Vector2>? initialControlPoints = null,
+                                                             float[,]? learnableMask = null)
         {
             degree = Math.Min(degree, numControlPoints - 1);
             numTestPoints = Math.Max(numTestPoints, 3);
-            return piecewiseLinearToSpline(inputPath, generateBSplineWeights(numControlPoints, numTestPoints, degree), maxIterations, learningRate, b1, b2, interpolatorResolution, initialControlPoints);
+            return piecewiseLinearToSpline(inputPath, generateBSplineWeights(numControlPoints, numTestPoints, degree),
+                maxIterations, learningRate, b1, b2, interpolatorResolution, initialControlPoints, learnableMask);
         }
 
         private static List<Vector2> piecewiseLinearToSpline(ReadOnlySpan<Vector2> inputPath,
@@ -335,7 +339,8 @@ namespace osu.Framework.Utils
                                                              float b1 = 0.8f,
                                                              float b2 = 0.99f,
                                                              int interpolatorResolution = 100,
-                                                             List<Vector2>? initialControlPoints = null)
+                                                             List<Vector2>? initialControlPoints = null,
+                                                             float[,]? learnableMask = null)
         {
             int numControlPoints = weights.GetLength(1);
             int numTestPoints = weights.GetLength(0);
@@ -373,12 +378,16 @@ namespace osu.Framework.Utils
             // Initialize Adam optimizer variables
             float[,] m = new float[2, numControlPoints];
             float[,] v = new float[2, numControlPoints];
-            float[,] learnableMask = new float[2, numControlPoints];
 
-            for (int i = 1; i < numControlPoints - 1; i++)
+            if (learnableMask is null)
             {
-                learnableMask[0, i] = 1;
-                learnableMask[1, i] = 1;
+                learnableMask = new float[2, numControlPoints];
+
+                for (int i = 1; i < numControlPoints - 1; i++)
+                {
+                    learnableMask[0, i] = 1;
+                    learnableMask[1, i] = 1;
+                }
             }
 
             // Initialize intermediate variables

@@ -383,9 +383,17 @@ namespace osu.Framework.Utils
                 {
                     segmentPath.Add(c1);
 
+                    float[,] learnableMask = new float[2, cps.Count];
+
+                    for (int j = Math.Max(1, cps.Count - degree * 2); j < cps.Count - 1; j++)
+                    {
+                        learnableMask[0, j] = 1;
+                        learnableMask[1, j] = 1;
+                    }
+
                     int res = (int)(totalWinding * 10);
                     cps = PathApproximator.PiecewiseLinearToBSpline(segmentPath.ToArray(), cps.Count, degree,
-                        res, 50, 5f, interpolatorResolution: res, initialControlPoints: cps);
+                        res, 50, 5f, interpolatorResolution: res, initialControlPoints: cps, learnableMask: learnableMask);
                     cpss[^1] = cps;
                 }
             }
