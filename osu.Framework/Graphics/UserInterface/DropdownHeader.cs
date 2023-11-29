@@ -5,6 +5,7 @@
 
 using osuTK.Graphics;
 using System;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
@@ -15,12 +16,16 @@ using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract partial class DropdownHeader : ClickableContainer, IKeyBindingHandler<PlatformAction>
+    public abstract partial class DropdownHeader : Container, IKeyBindingHandler<PlatformAction>
     {
         public event Action<DropdownSelectionAction> ChangeSelection;
 
         protected Container Background;
         protected Container Foreground;
+
+        private readonly DropdownSearchBar searchBar;
+
+        public Bindable<string> SearchTerm => searchBar.SearchTerm;
 
         private Color4 backgroundColour = Color4.DarkGray;
 
@@ -52,6 +57,12 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected internal abstract LocalisableString Label { get; set; }
 
+        public BindableBool Enabled { get; } = new BindableBool(true);
+
+        public IBindable<MenuState> State { get; } = new Bindable<MenuState>();
+
+        public Action ToggleMenu;
+
         protected DropdownHeader()
         {
             Masking = true;
@@ -79,13 +90,45 @@ namespace osu.Framework.Graphics.UserInterface
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y
                 },
+                searchBar = CreateSearchBar().With(s =>
+                {
+                    s.AlwaysPresent = true;
+                }),
             };
         }
+
+        protected abstract DropdownSearchBar CreateSearchBar();
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
             Enabled.BindValueChanged(_ => updateState(), true);
+
+            State.BindValueChanged(v =>
+            {
+                if (v.NewValue == MenuState.Open)
+                    searchBar.Focus();
+                else
+                    searchBar.Reset();
+            }, true);
+
+            searchBar.SearchTerm.BindValueChanged(t =>
+            {
+                if (!string.IsNullOrEmpty(t.NewValue) && string.IsNullOrEmpty(t.OldValue))
+                    searchBar.Show();
+                else if (string.IsNullOrEmpty(t.NewValue) && !string.IsNullOrEmpty(t.OldValue))
+                    searchBar.Hide();
+            }, true);
+        }
+
+        protected override bool OnClick(ClickEvent e)
+        {
+            if (!Enabled.Value)
+                return false;
+
+            ToggleMenu?.Invoke();
+            return false;
         }
 
         protected override bool OnHover(HoverEvent e)

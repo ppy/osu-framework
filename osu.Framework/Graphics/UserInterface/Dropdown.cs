@@ -220,7 +220,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Menu.RelativeSizeAxes = Axes.X;
 
-            Header.Action = Menu.Toggle;
+            Header.ToggleMenu = Menu.Toggle;
             Header.ChangeSelection += selectionKeyPressed;
             Header.State.BindTo(State);
             Menu.PreselectionConfirmed += preselectionConfirmed;
