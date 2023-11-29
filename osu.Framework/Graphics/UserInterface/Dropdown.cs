@@ -30,6 +30,8 @@ namespace osu.Framework.Graphics.UserInterface
         protected internal DropdownHeader Header;
         protected internal DropdownMenu Menu;
 
+        public Bindable<MenuState> State { get; } = new Bindable<MenuState>();
+
         /// <summary>
         /// Creates the header part of the control.
         /// </summary>
@@ -114,7 +116,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (!Current.Disabled)
                     Current.Value = value;
 
-                Menu.State = MenuState.Closed;
+                State.Value = MenuState.Closed;
             });
 
             // inheritors expect that `virtual GenerateItemText` is only called when this dropdown's BDL has run to completion.
@@ -220,13 +222,16 @@ namespace osu.Framework.Graphics.UserInterface
 
             Header.Action = Menu.Toggle;
             Header.ChangeSelection += selectionKeyPressed;
+            Header.State.BindTo(State);
             Menu.PreselectionConfirmed += preselectionConfirmed;
+            Menu.StateChanged += state => State.Value = state;
+            State.ValueChanged += state => Menu.State = state.NewValue;
             Current.ValueChanged += val => Scheduler.AddOnce(selectionChanged, val);
             Current.DisabledChanged += disabled =>
             {
                 Header.Enabled.Value = !disabled;
-                if (disabled && Menu.State == MenuState.Open)
-                    Menu.State = MenuState.Closed;
+                if (disabled && State.Value == MenuState.Open)
+                    State.Value = MenuState.Closed;
             };
 
             ItemSource.CollectionChanged += (_, _) => setItems(itemSource);
@@ -235,7 +240,7 @@ namespace osu.Framework.Graphics.UserInterface
         private void preselectionConfirmed(int selectedIndex)
         {
             SelectedItem = MenuItems.ElementAtOrDefault(selectedIndex);
-            Menu.State = MenuState.Closed;
+            State.Value = MenuState.Closed;
         }
 
         private void selectionKeyPressed(DropdownHeader.DropdownSelectionAction action)
