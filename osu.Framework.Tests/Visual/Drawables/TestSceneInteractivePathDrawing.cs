@@ -121,5 +121,13 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             bSplineBuilder.AddLinearPoint(rawDrawnPath.ToLocalSpace(ToScreenSpace(e.MousePosition)));
         }
+
+        protected override void OnDragEnd(DragEndEvent e)
+        {
+            if (e.Button == MouseButton.Left)
+                bSplineBuilder.Finish();
+
+            base.OnDragEnd(e);
+        }
     }
 }

@@ -455,7 +455,7 @@ namespace osu.Framework.Utils
                 {
                     int res = (int)(totalWinding * 10);
                     cps = PathApproximator.PiecewiseLinearToBSpline(segmentPath.ToArray(), cps.Count, degree,
-                        res, 100, 5, interpolatorResolution: res, initialControlPoints: cps);
+                        res, 200, 5, interpolatorResolution: res, initialControlPoints: cps);
                 }
 
                 segments.Add(cps);
@@ -520,6 +520,19 @@ namespace osu.Framework.Utils
 
             inputPath.Add(v);
             cumulativeInputPathLength.Add(cumulativeInputPathLength[^1]);
+        }
+
+        /// <summary>
+        /// Call this when you are done building the path.
+        /// This method applies the final step of post-processing.
+        /// </summary>
+        public void Finish()
+        {
+            if (!controlPoints.IsValid) return;
+
+            var (vertices, distances) = computeSmoothedInputPath();
+            var cornerTs = detectCorners(vertices, distances);
+            updateLastSegment(vertices, distances, cornerTs, controlPoints.Value, 100, false);
         }
     }
 }
