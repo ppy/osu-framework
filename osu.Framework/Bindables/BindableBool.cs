@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Globalization;
 
 namespace osu.Framework.Bindables
 {
@@ -12,7 +13,7 @@ namespace osu.Framework.Bindables
         {
         }
 
-        public override void Parse(object? input)
+        public override void Parse(object? input, CultureInfo? cultureInfo = null)
         {
             if (input == null) throw new ArgumentNullException(nameof(input));
 
@@ -21,7 +22,7 @@ namespace osu.Framework.Bindables
             else if (input is "0")
                 Value = false;
             else
-                base.Parse(input);
+                base.Parse(input, cultureInfo);
         }
 
         public void Toggle() => Value = !Value;

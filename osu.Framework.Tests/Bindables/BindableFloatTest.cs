@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Globalization;
 using NUnit.Framework;
 using osu.Framework.Bindables;
 
@@ -84,6 +85,19 @@ namespace osu.Framework.Tests.Bindables
             bindable.Parse(value);
 
             Assert.AreEqual(value, bindable.Value);
+        }
+
+        [TestCase("1,4", "de-DE", 1.4f)]
+        [TestCase("1.400,01", "de-DE", 1400.01f)]
+        [TestCase("1 234,57", "ru-RU", 1234.57f)]
+        [TestCase("1,094", "fr-FR", 1.094f)]
+        [TestCase("1,400.01", "zh-CN", 1400.01f)]
+        public void TestParsingLocale(string value, string locale, float expected)
+        {
+            var bindable = new BindableFloat();
+            bindable.Parse(value, CultureInfo.GetCultureInfo(locale));
+
+            Assert.AreEqual(expected, bindable.Value);
         }
     }
 }

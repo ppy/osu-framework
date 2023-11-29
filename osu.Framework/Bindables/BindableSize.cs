@@ -3,6 +3,7 @@
 
 using System;
 using System.Drawing;
+using System.Globalization;
 
 namespace osu.Framework.Bindables
 {
@@ -21,7 +22,7 @@ namespace osu.Framework.Bindables
 
         public override string ToString(string? format, IFormatProvider? formatProvider) => ((FormattableString)$"{Value.Width}x{Value.Height}").ToString(formatProvider);
 
-        public override void Parse(object? input)
+        public override void Parse(object? input, CultureInfo? cultureInfo = null)
         {
             if (input == null) throw new ArgumentNullException(nameof(input));
 
