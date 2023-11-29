@@ -292,10 +292,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkOrder(1, "one-half");
             checkOrder(2, "two");
 
-            void checkOrder(int index, string item)
-            {
-                AddAssert($"item #{index + 1} is '{item}'", () => testDropdown.ChildrenOfType<FillFlowContainer<Menu.DrawableMenuItem>>().Single().FlowingChildren.Cast<Menu.DrawableMenuItem>().ElementAt(index).Item.Text.Value == item);
-            }
+            void checkOrder(int index, string item) => AddAssert($"item #{index + 1} is '{item}'",
+                () => testDropdown.ChildrenOfType<FillFlowContainer<Menu.DrawableMenuItem>>().Single().FlowingChildren.Cast<Menu.DrawableMenuItem>().ElementAt(index).Item.Text.Value.ToString(),
+                () => Is.EqualTo(item));
         }
 
         [Test]
@@ -304,7 +303,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             TestDropdown testDropdown = null!;
             BindableList<TestModel?> bindableList = null!;
 
-            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
+            AddStep("setup dropdown", () => testDropdown = createDropdown());
 
             AddStep("bind source", () => testDropdown.ItemSource = bindableList = new BindableList<TestModel?>());
             AddStep("add many items", () => bindableList.AddRange(Enumerable.Range(0, 20).Select(i => (TestModel)$"test {i}")));
@@ -323,7 +322,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             TestDropdown testDropdown = null!;
             BindableList<TestModel?> bindableList = null!;
 
-            AddStep("setup dropdown", () => testDropdown = setupDropdowns(1)[0]);
+            AddStep("setup dropdown", () => testDropdown = createDropdown());
 
             AddStep("bind source", () => testDropdown.ItemSource = bindableList = new BindableList<TestModel?>());
             AddStep("add many items", () => bindableList.AddRange(Enumerable.Range(0, 20).Select(i => (TestModel)$"test {i}")));
