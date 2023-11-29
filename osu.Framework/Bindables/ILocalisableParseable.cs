@@ -14,6 +14,7 @@ namespace osu.Framework.Bindables
         /// Parse an input into this instance.
         /// </summary>
         /// <param name="input">The input which is to be parsed.</param>
+        /// <param name="cultureInfo">The preferred culture formatting to be displayed.</param>
         void Parse(object input, CultureInfo cultureInfo);
     }
 }
