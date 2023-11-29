@@ -277,6 +277,57 @@ namespace osu.Framework.Utils
             return cornerT;
         }
 
+        private (List<Vector2>, List<Vector2>, float) initializeSegment(List<Vector2> vertices, List<float> distances, float t0, float t1)
+        {
+            // Populate each segment between corners with control points that have density proportional to the
+            // product of Tolerance and curvature.
+            const float step_size = FD_EPSILON;
+
+            float totalWinding = 0;
+
+            Vector2 c0 = getPathAt(vertices, distances, t0);
+            Vector2 c1 = getPathAt(vertices, distances, t1);
+            Line linearConnection = new Line(c0, c1);
+
+            t0 += step_size * 2;
+            t1 -= step_size * 2;
+
+            var cps = new List<Vector2> { c0 };
+            var segmentPath = new List<Vector2> { c0 };
+            bool allOnLine = true;
+            float onLineThreshold = 0.02f * Tolerance * Vector2.Distance(c0, c1);
+
+            if (t1 > t0)
+            {
+                int nSteps = (int)((t1 - t0) / step_size);
+                float currentWinding = 0.5f * Tolerance;
+
+                for (int j = 0; j < nSteps; ++j)
+                {
+                    float t = t0 + j * step_size;
+                    float winding = getAbsWindingAt(vertices, distances, t);
+                    totalWinding += winding;
+                    currentWinding += winding;
+
+                    Vector2 p = getPathAt(vertices, distances, t);
+                    segmentPath.Add(p);
+
+                    if (currentWinding < Tolerance) continue;
+
+                    if (linearConnection.DistanceSquaredToPoint(p) > onLineThreshold * onLineThreshold)
+                        allOnLine = false;
+
+                    cps.Add(p);
+                    currentWinding -= Tolerance;
+                }
+            }
+
+            cps.Add(c1);
+            segmentPath.Add(c1);
+
+            return allOnLine ? (new List<Vector2> { c0, c1 }, segmentPath, totalWinding) : (cps, segmentPath, totalWinding);
+        }
+
         private void updateApproximatedPathControlPoints()
         {
             if (!controlPoints.IsValid)
@@ -349,57 +400,6 @@ namespace osu.Framework.Utils
             }
 
             controlPointsPartiallyInvalid = false;
-        }
-
-        private (List<Vector2>, List<Vector2>, float) initializeSegment(List<Vector2> vertices, List<float> distances, float t0, float t1)
-        {
-            // Populate each segment between corners with control points that have density proportional to the
-            // product of Tolerance and curvature.
-            const float step_size = FD_EPSILON;
-
-            float totalWinding = 0;
-
-            Vector2 c0 = getPathAt(vertices, distances, t0);
-            Vector2 c1 = getPathAt(vertices, distances, t1);
-            Line linearConnection = new Line(c0, c1);
-
-            t0 += step_size * 2;
-            t1 -= step_size * 2;
-
-            var cps = new List<Vector2> { c0 };
-            var segmentPath = new List<Vector2> { c0 };
-            bool allOnLine = true;
-            float onLineThreshold = 0.02f * Tolerance * Vector2.Distance(c0, c1);
-
-            if (t1 > t0)
-            {
-                int nSteps = (int)((t1 - t0) / step_size);
-                float currentWinding = 0.5f * Tolerance;
-
-                for (int j = 0; j < nSteps; ++j)
-                {
-                    float t = t0 + j * step_size;
-                    float winding = getAbsWindingAt(vertices, distances, t);
-                    totalWinding += winding;
-                    currentWinding += winding;
-
-                    Vector2 p = getPathAt(vertices, distances, t);
-                    segmentPath.Add(p);
-
-                    if (currentWinding < Tolerance) continue;
-
-                    if (linearConnection.DistanceSquaredToPoint(p) > onLineThreshold * onLineThreshold)
-                        allOnLine = false;
-
-                    cps.Add(p);
-                    currentWinding -= Tolerance;
-                }
-            }
-
-            cps.Add(c1);
-            segmentPath.Add(c1);
-
-            return allOnLine ? (new List<Vector2> { c0, c1 }, segmentPath, totalWinding) : (cps, segmentPath, totalWinding);
         }
 
         private void regenerateApproximatedPathControlPoints()
