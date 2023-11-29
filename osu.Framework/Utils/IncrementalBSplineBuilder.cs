@@ -328,7 +328,7 @@ namespace osu.Framework.Utils
             return allOnLine ? (new List<Vector2> { c0, c1 }, segmentPath, totalWinding) : (cps, segmentPath, totalWinding);
         }
 
-        private void updateLastSegment(List<Vector2> vertices, List<float> distances, List<float> cornerTs, List<List<Vector2>> segments)
+        private void updateLastSegment(List<Vector2> vertices, List<float> distances, List<float> cornerTs, List<List<Vector2>> segments, int iterations, bool mask)
         {
             if (segments.Count == 0) return;
 
@@ -368,17 +368,22 @@ namespace osu.Framework.Utils
 
             // Make a mask to prevent modifying the control points which have already been optimized enough.
             // Also the end-points can not move.
-            float[,] learnableMask = new float[2, lastSegment.Count];
+            float[,]? learnableMask = null;
 
-            for (int j = Math.Max(1, lastSegment.Count - degree * 2); j < lastSegment.Count - 1; j++)
+            if (mask)
             {
-                learnableMask[0, j] = 1;
-                learnableMask[1, j] = 1;
+                learnableMask = new float[2, lastSegment.Count];
+
+                for (int j = Math.Max(1, lastSegment.Count - degree * 2); j < lastSegment.Count - 1; j++)
+                {
+                    learnableMask[0, j] = 1;
+                    learnableMask[1, j] = 1;
+                }
             }
 
             int res = (int)(totalWinding * 10);
             segments[^1] = PathApproximator.PiecewiseLinearToBSpline(segmentPath.ToArray(), lastSegment.Count, degree,
-                res, 50, 5f, interpolatorResolution: res, initialControlPoints: lastSegment, learnableMask: learnableMask);
+                res, iterations, 4f, interpolatorResolution: res, initialControlPoints: lastSegment, learnableMask: learnableMask);
         }
 
         private void updateApproximatedPathControlPoints()
@@ -407,11 +412,11 @@ namespace osu.Framework.Utils
             {
                 // The previous segment may have been shortened by the addition of a corner.
                 // We have to remove the extra control points and re-optimize the path.
-                updateLastSegment(vertices, distances, cornerTs, segments);
+                updateLastSegment(vertices, distances, cornerTs, segments, 100, false);
                 segments.Add(new List<Vector2>());
             }
 
-            updateLastSegment(vertices, distances, cornerTs, segments);
+            updateLastSegment(vertices, distances, cornerTs, segments, 10, true);
 
             controlPointsPartiallyInvalid = false;
         }
