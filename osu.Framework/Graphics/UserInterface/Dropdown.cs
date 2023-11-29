@@ -218,14 +218,20 @@ namespace osu.Framework.Graphics.UserInterface
                 AutoSizeAxes = Axes.Y
             };
 
-            Menu.RelativeSizeAxes = Axes.X;
-
             Header.ToggleMenu = Menu.Toggle;
             Header.ChangeSelection += selectionKeyPressed;
+
+            Header.SearchTerm.ValueChanged += t => Menu.SearchTerm = t.NewValue;
+
             Header.State.BindTo(State);
+
+            Menu.RelativeSizeAxes = Axes.X;
             Menu.PreselectionConfirmed += preselectionConfirmed;
+            Menu.FilterCompleted += menuFilterCompleted;
             Menu.StateChanged += state => State.Value = state;
+
             State.ValueChanged += state => Menu.State = state.NewValue;
+
             Current.ValueChanged += val => Scheduler.AddOnce(selectionChanged, val);
             Current.DisabledChanged += disabled =>
             {
@@ -237,9 +243,17 @@ namespace osu.Framework.Graphics.UserInterface
             ItemSource.CollectionChanged += (_, _) => setItems(itemSource);
         }
 
-        private void preselectionConfirmed(int selectedIndex)
+        private void menuFilterCompleted()
         {
-            SelectedItem = MenuItems.ElementAtOrDefault(selectedIndex);
+            if (!string.IsNullOrEmpty(Menu.SearchTerm))
+                Menu.PreselectItem(0);
+            else
+                Menu.PreselectItem(null);
+        }
+
+        private void preselectionConfirmed(DropdownMenuItem<T> item)
+        {
+            SelectedItem = item;
             State.Value = MenuState.Closed;
         }
 
@@ -385,13 +399,13 @@ namespace osu.Framework.Graphics.UserInterface
                     PreselectItem(null);
             }
 
-            protected internal IEnumerable<DrawableDropdownMenuItem> DrawableMenuItems => Children.OfType<DrawableDropdownMenuItem>();
+            protected internal IEnumerable<DrawableDropdownMenuItem> DrawableMenuItems => Children.OfType<DrawableDropdownMenuItem>().Where(i => i.MatchingFilter);
             protected internal IEnumerable<DrawableDropdownMenuItem> VisibleMenuItems => DrawableMenuItems.Where(item => !item.IsMaskedAway);
 
             public DrawableDropdownMenuItem PreselectedItem => DrawableMenuItems.FirstOrDefault(c => c.IsPreSelected)
                                                                ?? DrawableMenuItems.FirstOrDefault(c => c.IsSelected);
 
-            public event Action<int> PreselectionConfirmed;
+            public event Action<DropdownMenuItem<T>> PreselectionConfirmed;
 
             /// <summary>
             /// Selects an item from this <see cref="DropdownMenu"/>.
@@ -424,13 +438,18 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             public bool AnyPresent => Children.Any(c => c.IsPresent);
 
-            protected void PreselectItem(int index) => PreselectItem(Items[Math.Clamp(index, 0, DrawableMenuItems.Count() - 1)]);
+            protected internal void PreselectItem(int index)
+            {
+                PreselectItem(DrawableMenuItems.Any()
+                    ? DrawableMenuItems.ElementAt(Math.Clamp(index, 0, DrawableMenuItems.Count() - 1)).Item
+                    : null);
+            }
 
             /// <summary>
             /// Preselects an item from this <see cref="DropdownMenu"/>.
             /// </summary>
             /// <param name="item">The item to select.</param>
-            protected void PreselectItem(MenuItem item)
+            protected internal void PreselectItem(MenuItem item)
             {
                 Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
                 {
@@ -586,7 +605,8 @@ namespace osu.Framework.Graphics.UserInterface
                         return true;
 
                     case Key.Enter:
-                        PreselectionConfirmed?.Invoke(targetPreselectionIndex);
+                        var preselectedItem = DrawableMenuItems.ElementAt(targetPreselectionIndex);
+                        PreselectionConfirmed?.Invoke((DropdownMenuItem<T>)preselectedItem.Item);
                         return true;
 
                     case Key.Escape:

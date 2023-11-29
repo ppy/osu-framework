@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.Layout;
+using osu.Framework.Localisation;
 using osu.Framework.Utils;
 using osu.Framework.Threading;
 using osuTK;
@@ -69,6 +70,21 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly Container<Menu> submenuContainer;
         private readonly LayoutValue positionLayout = new LayoutValue(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit);
+
+        /// <summary>
+        /// Search terms to filter items displayed in this menu.
+        /// </summary>
+        public string SearchTerm
+        {
+            get => itemsFlow.SearchTerm;
+            set => itemsFlow.SearchTerm = value;
+        }
+
+        public event Action FilterCompleted
+        {
+            add => itemsFlow.FilterCompleted += value;
+            remove => itemsFlow.FilterCompleted -= value;
+        }
 
         /// <summary>
         /// Constructs a menu.
@@ -656,7 +672,7 @@ namespace osu.Framework.Graphics.UserInterface
         #region DrawableMenuItem
 
         // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
-        public abstract partial class DrawableMenuItem : CompositeDrawable, IStateful<MenuItemState>
+        public abstract partial class DrawableMenuItem : CompositeDrawable, IStateful<MenuItemState>, IFilterable
         {
             /// <summary>
             /// Invoked when this <see cref="DrawableMenuItem"/>'s <see cref="State"/> changes.
@@ -697,6 +713,12 @@ namespace osu.Framework.Graphics.UserInterface
             /// Whether to close all menus when this action <see cref="DrawableMenuItem"/> is clicked.
             /// </summary>
             public virtual bool CloseMenuOnClick => true;
+
+            public IEnumerable<LocalisableString> FilterTerms => Item.Text.Value.Yield();
+
+            public abstract bool MatchingFilter { get; set; }
+
+            public abstract bool FilteringActive { set; }
 
             protected DrawableMenuItem(MenuItem item)
             {
@@ -912,7 +934,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         #endregion
 
-        private partial class ItemsFlow : FillFlowContainer<DrawableMenuItem>
+        private partial class ItemsFlow : SearchContainer<DrawableMenuItem>
         {
             public readonly LayoutValue SizeCache = new LayoutValue(Invalidation.RequiredParentSizeToFit, InvalidationSource.Self);
 

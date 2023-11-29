@@ -75,6 +75,23 @@ namespace osu.Framework.Graphics.UserInterface
 
             private partial class DrawableBasicDropdownMenuItem : DrawableDropdownMenuItem
             {
+                private bool matchingFilter;
+
+                public override bool MatchingFilter
+                {
+                    get => matchingFilter;
+                    set
+                    {
+                        matchingFilter = value;
+                        this.FadeTo(value ? 1 : 0);
+                    }
+                }
+
+                public override bool FilteringActive
+                {
+                    set { }
+                }
+
                 public DrawableBasicDropdownMenuItem(MenuItem item)
                     : base(item)
                 {

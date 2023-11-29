@@ -25,6 +25,23 @@ namespace osu.Framework.Graphics.UserInterface
 
         public partial class BasicDrawableMenuItem : DrawableMenuItem
         {
+            private bool matchingFilter;
+
+            public override bool MatchingFilter
+            {
+                get => matchingFilter;
+                set
+                {
+                    matchingFilter = value;
+                    this.FadeTo(value ? 1 : 0);
+                }
+            }
+
+            public override bool FilteringActive
+            {
+                set { }
+            }
+
             public BasicDrawableMenuItem(MenuItem item)
                 : base(item)
             {
