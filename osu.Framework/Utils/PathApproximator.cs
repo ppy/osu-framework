@@ -14,7 +14,7 @@ namespace osu.Framework.Utils
     /// </summary>
     public static class PathApproximator
     {
-        private const float bezier_tolerance = 0.25f;
+        internal const float BEZIER_TOLERANCE = 0.25f;
 
         /// <summary>
         /// The amount of pieces to calculate for each control point quadruplet.
@@ -29,76 +29,85 @@ namespace osu.Framework.Utils
         /// </summary>
         /// <param name="controlPoints">The control points.</param>
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
-        public static List<Vector2> ApproximateBezier(ReadOnlySpan<Vector2> controlPoints)
+        public static List<Vector2> BezierToPiecewiseLinear(ReadOnlySpan<Vector2> controlPoints)
         {
-            return ApproximateBSpline(controlPoints);
+            return BSplineToPiecewiseLinear(controlPoints, Math.Max(1, controlPoints.Length - 1));
         }
 
         /// <summary>
-        /// Creates a piecewise-linear approximation of a clamped uniform B-spline with polynomial order p,
+        /// Converts a B-spline with polynomial order <paramref name="degree"/> to a series of Bezier control points
+        /// via Boehm's algorithm.
+        /// </summary>
+        /// <remarks>
+        /// Does nothing if <paramref name="controlPoints"/> has zero points or one point.
+        /// Algorithm unsuitable for large values of <paramref name="degree"/> with many knots.
+        /// </remarks>
+        /// <param name="controlPoints">The control points.</param>
+        /// <param name="degree">The polynomial order.</param>
+        /// <returns>An array of vectors containing control point positions for the resulting Bezier curve.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="degree"/> was less than 1.</exception>
+        public static Vector2[] BSplineToBezier(ReadOnlySpan<Vector2> controlPoints, int degree)
+        {
+            // Zero-th degree splines would be piecewise-constant, which cannot be represented by the piecewise-
+            // linear output of this function. Negative degrees would require rational splines which this code
+            // does not support.
+            if (degree < 1)
+                throw new ArgumentOutOfRangeException(nameof(degree), $"{nameof(degree)} must be >=1 but was {degree}.");
+
+            // Spline fitting does not make sense when the input contains no points or just one point. In this case
+            // the user likely wants this function to behave like a no-op.
+            if (controlPoints.Length < 2)
+                return controlPoints.Length == 0 ? Array.Empty<Vector2>() : new[] { controlPoints[0] };
+
+            return bSplineToBezierInternal(controlPoints, ref degree).SelectMany(segment => segment).ToArray();
+        }
+
+        /// <summary>
+        /// Creates a piecewise-linear approximation of a clamped uniform B-spline with polynomial order <paramref name="degree"/>,
         /// by dividing it into a series of bezier control points at its knots, then adaptively repeatedly
         /// subdividing those until their approximation error vanishes below a given threshold.
-        /// Retains previous bezier approximation functionality when p is 0 or too large to create knots.
-        /// Algorithm unsuitable for large values of p with many knots.
         /// </summary>
+        /// <remarks>
+        /// Does nothing if <paramref name="controlPoints"/> has zero points or one point.
+        /// Generalises to bezier approximation functionality when <paramref name="degree"/> is too large to create knots.
+        /// Algorithm unsuitable for large values of <paramref name="degree"/> with many knots.
+        /// </remarks>
         /// <param name="controlPoints">The control points.</param>
-        /// <param name="p">The polynomial order.</param>
+        /// <param name="degree">The polynomial order.</param>
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
-        public static List<Vector2> ApproximateBSpline(ReadOnlySpan<Vector2> controlPoints, int p = 0)
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="degree"/> was less than 1.</exception>
+        public static List<Vector2> BSplineToPiecewiseLinear(ReadOnlySpan<Vector2> controlPoints, int degree)
         {
+            // Zero-th degree splines would be piecewise-constant, which cannot be represented by the piecewise-
+            // linear output of this function. Negative degrees would require rational splines which this code
+            // does not support.
+            if (degree < 1)
+                throw new ArgumentOutOfRangeException(nameof(degree), $"{nameof(degree)} must be >=1 but was {degree}.");
+
+            // Spline fitting does not make sense when the input contains no points or just one point. In this case
+            // the user likely wants this function to behave like a no-op.
+            if (controlPoints.Length < 2)
+                return controlPoints.Length == 0 ? new List<Vector2>() : new List<Vector2> { controlPoints[0] };
+
+            // With fewer control points than the degree, splines can not be unambiguously fitted. Rather than erroring
+            // out, we set the degree to the minimal number that permits a unique fit to avoid special casing in
+            // incremental spline building algorithms that call this function.
+            degree = Math.Min(degree, controlPoints.Length - 1);
+
             List<Vector2> output = new List<Vector2>();
-            int n = controlPoints.Length - 1;
+            int pointCount = controlPoints.Length - 1;
 
-            if (n < 0)
-                return output;
-
-            Stack<Vector2[]> toFlatten = new Stack<Vector2[]>();
+            Stack<Vector2[]> toFlatten = bSplineToBezierInternal(controlPoints, ref degree);
             Stack<Vector2[]> freeBuffers = new Stack<Vector2[]>();
 
-            var points = controlPoints.ToArray();
-
-            if (p > 0 && p < n)
-            {
-                // Subdivide B-spline into bezier control points at knots.
-                for (int i = 0; i < n - p; i++)
-                {
-                    var subBezier = new Vector2[p + 1];
-                    subBezier[0] = points[i];
-
-                    // Destructively insert the knot p-1 times via Boehm's algorithm.
-                    for (int j = 0; j < p - 1; j++)
-                    {
-                        subBezier[j + 1] = points[i + 1];
-
-                        for (int k = 1; k < p - j; k++)
-                        {
-                            int l = Math.Min(k, n - p - i);
-                            points[i + k] = (l * points[i + k] + points[i + k + 1]) / (l + 1);
-                        }
-                    }
-
-                    subBezier[p] = points[i + 1];
-                    toFlatten.Push(subBezier);
-                }
-
-                toFlatten.Push(points[(n - p)..]);
-                // Reverse the stack so elements can be accessed in order.
-                toFlatten = new Stack<Vector2[]>(toFlatten);
-            }
-            else
-            {
-                // B-spline subdivision unnecessary, degenerate to single bezier.
-                p = n;
-                toFlatten.Push(points);
-            }
             // "toFlatten" contains all the curves which are not yet approximated well enough.
             // We use a stack to emulate recursion without the risk of running into a stack overflow.
             // (More specifically, we iteratively and adaptively refine our curve with a
             // <a href="https://en.wikipedia.org/wiki/Depth-first_search">Depth-first search</a>
             // over the tree resulting from the subdivisions we make.)
 
-            var subdivisionBuffer1 = new Vector2[p + 1];
-            var subdivisionBuffer2 = new Vector2[p * 2 + 1];
+            var subdivisionBuffer1 = new Vector2[degree + 1];
+            var subdivisionBuffer2 = new Vector2[degree * 2 + 1];
 
             Vector2[] leftChild = subdivisionBuffer2;
 
@@ -112,7 +121,7 @@ namespace osu.Framework.Utils
                     // an extension to De Casteljau's algorithm to obtain a piecewise-linear approximation
                     // of the bezier curve represented by our control points, consisting of the same amount
                     // of points as there are control points.
-                    bezierApproximate(parent, output, subdivisionBuffer1, subdivisionBuffer2, p + 1);
+                    bezierApproximate(parent, output, subdivisionBuffer1, subdivisionBuffer2, degree + 1);
 
                     freeBuffers.Push(parent);
                     continue;
@@ -120,18 +129,18 @@ namespace osu.Framework.Utils
 
                 // If we do not yet have a sufficiently "flat" (in other words, detailed) approximation we keep
                 // subdividing the curve we are currently operating on.
-                Vector2[] rightChild = freeBuffers.Count > 0 ? freeBuffers.Pop() : new Vector2[p + 1];
-                bezierSubdivide(parent, leftChild, rightChild, subdivisionBuffer1, p + 1);
+                Vector2[] rightChild = freeBuffers.Count > 0 ? freeBuffers.Pop() : new Vector2[degree + 1];
+                bezierSubdivide(parent, leftChild, rightChild, subdivisionBuffer1, degree + 1);
 
                 // We re-use the buffer of the parent for one of the children, so that we save one allocation per iteration.
-                for (int i = 0; i < p + 1; ++i)
+                for (int i = 0; i < degree + 1; ++i)
                     parent[i] = leftChild[i];
 
                 toFlatten.Push(rightChild);
                 toFlatten.Push(parent);
             }
 
-            output.Add(controlPoints[n]);
+            output.Add(controlPoints[pointCount]);
             return output;
         }
 
@@ -139,7 +148,7 @@ namespace osu.Framework.Utils
         /// Creates a piecewise-linear approximation of a Catmull-Rom spline.
         /// </summary>
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
-        public static List<Vector2> ApproximateCatmull(ReadOnlySpan<Vector2> controlPoints)
+        public static List<Vector2> CatmullToPiecewiseLinear(ReadOnlySpan<Vector2> controlPoints)
         {
             var result = new List<Vector2>((controlPoints.Length - 1) * catmull_detail * 2);
 
@@ -164,11 +173,11 @@ namespace osu.Framework.Utils
         /// Creates a piecewise-linear approximation of a circular arc curve.
         /// </summary>
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
-        public static List<Vector2> ApproximateCircularArc(ReadOnlySpan<Vector2> controlPoints)
+        public static List<Vector2> CircularArcToPiecewiseLinear(ReadOnlySpan<Vector2> controlPoints)
         {
             CircularArcProperties pr = new CircularArcProperties(controlPoints);
             if (!pr.IsValid)
-                return ApproximateBezier(controlPoints);
+                return BezierToPiecewiseLinear(controlPoints);
 
             // We select the amount of points for the approximation by requiring the discrete curvature
             // to be smaller than the provided tolerance. The exact angle required to meet the tolerance
@@ -244,7 +253,7 @@ namespace osu.Framework.Utils
         /// Basically, returns the input.
         /// </summary>
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
-        public static List<Vector2> ApproximateLinear(ReadOnlySpan<Vector2> controlPoints)
+        public static List<Vector2> LinearToPiecewiseLinear(ReadOnlySpan<Vector2> controlPoints)
         {
             var result = new List<Vector2>(controlPoints.Length);
 
@@ -258,7 +267,7 @@ namespace osu.Framework.Utils
         /// Creates a piecewise-linear approximation of a lagrange polynomial.
         /// </summary>
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
-        public static List<Vector2> ApproximateLagrangePolynomial(ReadOnlySpan<Vector2> controlPoints)
+        public static List<Vector2> LagrangePolynomialToPiecewiseLinear(ReadOnlySpan<Vector2> controlPoints)
         {
             // TODO: add some smarter logic here, chebyshev nodes?
             const int num_steps = 51;
@@ -288,6 +297,55 @@ namespace osu.Framework.Utils
             return result;
         }
 
+        private static Stack<Vector2[]> bSplineToBezierInternal(ReadOnlySpan<Vector2> controlPoints, ref int degree)
+        {
+            Stack<Vector2[]> result = new Stack<Vector2[]>();
+
+            // With fewer control points than the degree, splines can not be unambiguously fitted. Rather than erroring
+            // out, we set the degree to the minimal number that permits a unique fit to avoid special casing in
+            // incremental spline building algorithms that call this function.
+            degree = Math.Min(degree, controlPoints.Length - 1);
+
+            int pointCount = controlPoints.Length - 1;
+            var points = controlPoints.ToArray();
+
+            if (degree == pointCount)
+            {
+                // B-spline subdivision unnecessary, degenerate to single bezier.
+                result.Push(points);
+            }
+            else
+            {
+                // Subdivide B-spline into bezier control points at knots.
+                for (int i = 0; i < pointCount - degree; i++)
+                {
+                    var subBezier = new Vector2[degree + 1];
+                    subBezier[0] = points[i];
+
+                    // Destructively insert the knot degree-1 times via Boehm's algorithm.
+                    for (int j = 0; j < degree - 1; j++)
+                    {
+                        subBezier[j + 1] = points[i + 1];
+
+                        for (int k = 1; k < degree - j; k++)
+                        {
+                            int l = Math.Min(k, pointCount - degree - i);
+                            points[i + k] = (l * points[i + k] + points[i + k + 1]) / (l + 1);
+                        }
+                    }
+
+                    subBezier[degree] = points[i + 1];
+                    result.Push(subBezier);
+                }
+
+                result.Push(points[(pointCount - degree)..]);
+                // Reverse the stack so elements can be accessed in order.
+                result = new Stack<Vector2[]>(result);
+            }
+
+            return result;
+        }
+
         /// <summary>
         /// Make sure the 2nd order derivative (approximated using finite elements) is within tolerable bounds.
         /// NOTE: The 2nd order derivative of a 2d curve represents its curvature, so intuitively this function
@@ -300,7 +358,7 @@ namespace osu.Framework.Utils
         {
             for (int i = 1; i < controlPoints.Length - 1; i++)
             {
-                if ((controlPoints[i - 1] - 2 * controlPoints[i] + controlPoints[i + 1]).LengthSquared > bezier_tolerance * bezier_tolerance * 4)
+                if ((controlPoints[i - 1] - 2 * controlPoints[i] + controlPoints[i + 1]).LengthSquared > BEZIER_TOLERANCE * BEZIER_TOLERANCE * 4)
                     return false;
             }
 

@@ -47,7 +47,7 @@ namespace osu.Framework.Benchmarks
 
         private class TestStore : ITexturedGlyphLookupStore
         {
-            public ITexturedCharacterGlyph Get(string fontName, char character) => new TexturedCharacterGlyph(
+            public ITexturedCharacterGlyph Get(string? fontName, char character) => new TexturedCharacterGlyph(
                 new CharacterGlyph(character, character, character, character, character, null),
                 new DummyRenderer().CreateTexture(1, 1));
 
