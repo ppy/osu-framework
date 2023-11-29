@@ -328,6 +328,59 @@ namespace osu.Framework.Utils
             return allOnLine ? (new List<Vector2> { c0, c1 }, segmentPath, totalWinding) : (cps, segmentPath, totalWinding);
         }
 
+        private void updateLastSegment(List<Vector2> vertices, List<float> distances, List<float> cornerTs, List<List<Vector2>> segments)
+        {
+            if (segments.Count == 0) return;
+
+            // Initialize control points for the last segment
+            int i = segments.Count - 1;
+            var lastSegment = segments[i];
+            var (cps, segmentPath, totalWinding) = initializeSegment(vertices, distances, cornerTs[i], cornerTs[i + 1]);
+
+            // Make sure the last segment has the correct end-points
+            if (lastSegment.Count >= 1)
+                lastSegment[0] = cps[0];
+            else
+                lastSegment.Add(cps[0]);
+            if (lastSegment.Count >= 2)
+                lastSegment[^1] = cps[^1];
+            else
+                lastSegment.Add(cps[^1]);
+
+            // Make sure the last segment has the correct number of control points.
+            if (cps.Count > lastSegment.Count)
+            {
+                int toAdd = cps.Count - lastSegment.Count;
+
+                for (int j = 0; j < toAdd; j++)
+                {
+                    lastSegment.Insert(lastSegment.Count - 1, cps[j + cps.Count - toAdd - 1]);
+                }
+            }
+            else if (cps.Count < lastSegment.Count)
+            {
+                int toRemove = lastSegment.Count - cps.Count;
+                lastSegment.RemoveRange(lastSegment.Count - toRemove - 1, toRemove);
+            }
+
+            // Optimize the control point placement
+            if (lastSegment.Count is <= 2 or >= 100) return;
+
+            // Make a mask to prevent modifying the control points which have already been optimized enough.
+            // Also the end-points can not move.
+            float[,] learnableMask = new float[2, lastSegment.Count];
+
+            for (int j = Math.Max(1, lastSegment.Count - degree * 2); j < lastSegment.Count - 1; j++)
+            {
+                learnableMask[0, j] = 1;
+                learnableMask[1, j] = 1;
+            }
+
+            int res = (int)(totalWinding * 10);
+            segments[^1] = PathApproximator.PiecewiseLinearToBSpline(segmentPath.ToArray(), lastSegment.Count, degree,
+                res, 50, 5f, interpolatorResolution: res, initialControlPoints: lastSegment, learnableMask: learnableMask);
+        }
+
         private void updateApproximatedPathControlPoints()
         {
             if (!controlPoints.IsValid)
@@ -347,57 +400,18 @@ namespace osu.Framework.Utils
             Debug.Assert(vertices.Count == distances.Count + 1);
             var cornerTs = detectCorners(vertices, distances);
 
-            var cpss = controlPoints.Value;
+            var segments = controlPoints.Value;
 
             // Make sure there are enough segments.
-            while (cpss.Count < cornerTs.Count - 1)
-                cpss.Add(new List<Vector2>());
-
-            // Make sure each segment has at least two control points which are the start and end points.
-            for (int j = 0; j < cpss.Count; ++j)
+            while (segments.Count < cornerTs.Count - 1)
             {
-                var tmp = cpss[j];
-
-                if (tmp.Count >= 1)
-                    tmp[0] = getPathAt(vertices, distances, cornerTs[j]);
-                else
-                    tmp.Add(getPathAt(vertices, distances, cornerTs[j]));
-
-                if (tmp.Count >= 2)
-                    tmp[^1] = getPathAt(vertices, distances, cornerTs[j + 1]);
-                else
-                    tmp.Add(getPathAt(vertices, distances, cornerTs[j + 1]));
+                // The previous segment may have been shortened by the addition of a corner.
+                // We have to remove the extra control points and re-optimize the path.
+                updateLastSegment(vertices, distances, cornerTs, segments);
+                segments.Add(new List<Vector2>());
             }
 
-            // Initialize control points for the last segment
-            int i = cornerTs.Count - 1;
-            var (cps, segmentPath, totalWinding) = initializeSegment(vertices, distances, cornerTs[i - 1], cornerTs[i]);
-
-            // Make sure the last segment has enough control points.
-            var lastSegment = cpss[^1];
-            int toAdd = cps.Count - lastSegment.Count;
-
-            for (int j = 0; j < toAdd; j++)
-            {
-                lastSegment.Insert(lastSegment.Count - 1, cps[j + cps.Count - toAdd - 1]);
-            }
-
-            if (lastSegment.Count > 2 && lastSegment.Count < 100)
-            {
-                // Make a mask to prevent modifying the control points which have already been optimized enough.
-                // Also the end-points can not move.
-                float[,] learnableMask = new float[2, lastSegment.Count];
-
-                for (int j = Math.Max(1, lastSegment.Count - degree * 2); j < lastSegment.Count - 1; j++)
-                {
-                    learnableMask[0, j] = 1;
-                    learnableMask[1, j] = 1;
-                }
-
-                int res = (int)(totalWinding * 10);
-                cpss[^1] = PathApproximator.PiecewiseLinearToBSpline(segmentPath.ToArray(), lastSegment.Count, degree,
-                    res, 50, 5f, interpolatorResolution: res, initialControlPoints: lastSegment, learnableMask: learnableMask);
-            }
+            updateLastSegment(vertices, distances, cornerTs, segments);
 
             controlPointsPartiallyInvalid = false;
         }
@@ -413,9 +427,7 @@ namespace osu.Framework.Utils
             //     of Tolerance and curvature.
             //  4. Additionally, we special case linear segments: if the path does not deviate more
             //     than some threshold from a straight line, we do not add additional control points.
-            // var (vertices, distances) = computeSmoothedInputPath();
-            var vertices = inputPath;
-            var distances = cumulativeInputPathLength;
+            var (vertices, distances) = computeSmoothedInputPath();
 
             if (vertices.Count < 2)
             {
@@ -428,7 +440,7 @@ namespace osu.Framework.Utils
             Debug.Assert(vertices.Count == distances.Count + 1);
             var cornerTs = detectCorners(vertices, distances);
 
-            var cpss = controlPoints.Value;
+            var segments = controlPoints.Value;
 
             for (int i = 1; i < cornerTs.Count; ++i)
             {
@@ -441,7 +453,7 @@ namespace osu.Framework.Utils
                         res, 100, 5, interpolatorResolution: res, initialControlPoints: cps);
                 }
 
-                cpss.Add(cps);
+                segments.Add(cps);
             }
 
             controlPointsPartiallyInvalid = false;
