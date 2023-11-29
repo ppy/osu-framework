@@ -81,6 +81,8 @@ namespace osu.Framework.Utils
 
         private bool controlPointsPartiallyInvalid;
 
+        private bool shouldFinishLastSegment;
+
         private int degree;
 
         /// <summary>
@@ -416,7 +418,10 @@ namespace osu.Framework.Utils
                 segments.Add(new List<Vector2>());
             }
 
-            updateLastSegment(vertices, distances, cornerTs, segments, 10, true);
+            if (shouldFinishLastSegment)
+                updateLastSegment(vertices, distances, cornerTs, segments, 100, false);
+            else
+                updateLastSegment(vertices, distances, cornerTs, segments, 10, true);
 
             controlPointsPartiallyInvalid = false;
         }
@@ -484,6 +489,9 @@ namespace osu.Framework.Utils
 
             controlPoints.Value = new List<List<Vector2>>();
             outputCache.Value = new List<Vector2>();
+
+            controlPointsPartiallyInvalid = false;
+            shouldFinishLastSegment = false;
         }
 
         /// <summary>
@@ -528,13 +536,9 @@ namespace osu.Framework.Utils
         /// </summary>
         public void Finish()
         {
-            if (!controlPoints.IsValid) return;
-
-            var (vertices, distances) = computeSmoothedInputPath();
-            var cornerTs = detectCorners(vertices, distances);
-            updateLastSegment(vertices, distances, cornerTs, controlPoints.Value, 100, false);
-
             outputCache.Invalidate();
+            controlPointsPartiallyInvalid = true;
+            shouldFinishLastSegment = true;
         }
     }
 }
