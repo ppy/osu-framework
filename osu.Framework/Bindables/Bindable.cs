@@ -256,7 +256,7 @@ namespace osu.Framework.Bindables
         /// </summary>
         /// <param name="input">The input which is to be parsed.</param>
         /// <param name="cultureInfo">The preferred culture formatting to be displayed.</param>
-        public virtual void Parse([CanBeNull] object input, [CanBeNull] CultureInfo cultureInfo)
+        public void Parse([CanBeNull] object input, [CanBeNull] CultureInfo cultureInfo)
         {
             switch (input)
             {
