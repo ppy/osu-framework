@@ -63,11 +63,11 @@ namespace osu.Framework.Tests.Visual.Drawables
                 bSplineBuilder.Clear();
             });
 
-            AddSliderStep($"{nameof(bSplineBuilder.Degree)}", 1, 5, 3, v =>
+            AddSliderStep($"{nameof(bSplineBuilder.Degree)}", 1, 4, 3, v =>
             {
                 bSplineBuilder.Degree = v;
             });
-            AddSliderStep($"{nameof(bSplineBuilder.Tolerance)}", 0f, 3f, 1.5f, v =>
+            AddSliderStep($"{nameof(bSplineBuilder.Tolerance)}", 0f, 3f, 2f, v =>
             {
                 bSplineBuilder.Tolerance = v;
             });
