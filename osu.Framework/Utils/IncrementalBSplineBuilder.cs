@@ -533,6 +533,8 @@ namespace osu.Framework.Utils
             var (vertices, distances) = computeSmoothedInputPath();
             var cornerTs = detectCorners(vertices, distances);
             updateLastSegment(vertices, distances, cornerTs, controlPoints.Value, 100, false);
+
+            outputCache.Invalidate();
         }
     }
 }
