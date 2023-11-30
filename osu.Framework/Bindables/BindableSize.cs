@@ -38,7 +38,7 @@ namespace osu.Framework.Bindables
                     break;
 
                 default:
-                    base.Parse(input);
+                    base.Parse(input, cultureInfo);
                     break;
             }
         }
