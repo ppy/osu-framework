@@ -21,12 +21,14 @@ namespace osu.Framework.Graphics
                 return Matrix4.Identity;
 
             float focalLength = 2 * MathF.Tan(0.5f * MathUtils.DegreesToRadians(FovY));
+            float rangeInv = 1.0f / (ZNear - ZFar);
+            float aspect = viewport.Height / viewport.Width;
 
             Matrix4 mat = new Matrix4(
-                focalLength * viewport.Height / viewport.Width, 0, 0, 0,
+                focalLength * aspect, 0, 0, 0,
                 0, -focalLength, 0, 0,
-                0, 0, (ZFar + ZNear) / (ZNear - ZFar), 1.0f,
-                0, 0, 2 * ZFar * ZNear / (ZNear - ZFar), 0);
+                0, 0, (ZNear + ZFar) * rangeInv, 1.0f,
+                0, 0, 2 * ZFar * ZNear * rangeInv, 0);
 
             return Matrix4.CreateTranslation(-Position.X * viewport.Width, -Position.Y * viewport.Height, viewport.Height * focalLength / 2) * mat;
         }
