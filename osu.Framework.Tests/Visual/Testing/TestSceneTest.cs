@@ -104,6 +104,17 @@ namespace osu.Framework.Tests.Visual.Testing
         [Repeat(2)]
         public void TestTestCase(int _) => TestTest();
 
+        [TestCase(0)]
+        [TestCase(1, "one")]
+        [TestCase(3, "one", "two", "three")]
+        [TestCase(2, new[] { "test", "two" })]
+        public void TestParamsTestCase(int length, params string[] p)
+        {
+            TestTest();
+            AddAssert("params is array", () => p, Is.TypeOf<string[]>);
+            AddAssert("length is expected", () => p, () => Has.Length.EqualTo(length));
+        }
+
         protected override ITestSceneTestRunner CreateRunner() => new TestRunner();
 
         private partial class TestRunner : TestSceneTestRunner

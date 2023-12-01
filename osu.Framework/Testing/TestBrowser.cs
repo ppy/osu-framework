@@ -468,7 +468,7 @@ namespace osu.Framework.Testing
                         hadTestAttributeTest = true;
                         CurrentTest.AddLabel($"{name}({string.Join(", ", tc.Arguments)}){repeatSuffix}");
 
-                        handleTestMethod(m, tc.Arguments);
+                        handleTestMethod(m, tc.BuildFrom(methodWrapper, null).Single().Arguments);
                     }
 
                     foreach (var tcs in m.GetCustomAttributes(typeof(TestCaseSourceAttribute), false).OfType<TestCaseSourceAttribute>())
