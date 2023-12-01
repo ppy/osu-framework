@@ -80,6 +80,12 @@ namespace osu.Framework.Graphics.UserInterface
             set => itemsFlow.SearchTerm = value;
         }
 
+        public bool AllowNonContiguousMatching
+        {
+            get => itemsFlow.AllowNonContiguousMatching;
+            set => itemsFlow.AllowNonContiguousMatching = value;
+        }
+
         public event Action FilterCompleted
         {
             add => itemsFlow.FilterCompleted += value;
@@ -598,9 +604,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool HandleNonPositionalInput => State == MenuState.Open;
 
+        protected virtual bool CloseOnEscape => !TopLevelMenu;
+
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (e.Key == Key.Escape && !TopLevelMenu)
+            if (e.Key == Key.Escape && CloseOnEscape)
             {
                 Close();
                 return true;

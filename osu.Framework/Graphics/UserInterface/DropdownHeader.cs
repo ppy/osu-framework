@@ -23,9 +23,15 @@ namespace osu.Framework.Graphics.UserInterface
         protected Container Background;
         protected Container Foreground;
 
-        private readonly DropdownSearchBar searchBar;
+        public bool AlwaysShowSearchBar
+        {
+            get => SearchBar.AlwaysDisplayOnFocus;
+            set => SearchBar.AlwaysDisplayOnFocus = value;
+        }
 
-        public Bindable<string> SearchTerm => searchBar.SearchTerm;
+        protected internal DropdownSearchBar SearchBar { get; }
+
+        public Bindable<string> SearchTerm => SearchBar.SearchTerm;
 
         private Color4 backgroundColour = Color4.DarkGray;
 
@@ -69,6 +75,7 @@ namespace osu.Framework.Graphics.UserInterface
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
             Width = 1;
+
             InternalChildren = new Drawable[]
             {
                 Background = new Container
@@ -90,10 +97,7 @@ namespace osu.Framework.Graphics.UserInterface
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y
                 },
-                searchBar = CreateSearchBar().With(s =>
-                {
-                    s.AlwaysPresent = true;
-                }),
+                SearchBar = CreateSearchBar(),
             };
         }
 
@@ -108,17 +112,9 @@ namespace osu.Framework.Graphics.UserInterface
             State.BindValueChanged(v =>
             {
                 if (v.NewValue == MenuState.Open)
-                    searchBar.Focus();
+                    SearchBar.ObtainFocus();
                 else
-                    searchBar.Reset();
-            }, true);
-
-            searchBar.SearchTerm.BindValueChanged(t =>
-            {
-                if (!string.IsNullOrEmpty(t.NewValue) && string.IsNullOrEmpty(t.OldValue))
-                    searchBar.Show();
-                else if (string.IsNullOrEmpty(t.NewValue) && !string.IsNullOrEmpty(t.OldValue))
-                    searchBar.Hide();
+                    SearchBar.ReleaseFocus();
             }, true);
         }
 
@@ -149,10 +145,11 @@ namespace osu.Framework.Graphics.UserInterface
             Background.Colour = IsHovered && Enabled.Value ? BackgroundColourHover : BackgroundColour;
         }
 
-        public override bool HandleNonPositionalInput => IsHovered;
-
         protected override bool OnKeyDown(KeyDownEvent e)
         {
+            if (!IsHovered)
+                return false;
+
             if (!Enabled.Value)
                 return true;
 

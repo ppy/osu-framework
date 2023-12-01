@@ -30,6 +30,21 @@ namespace osu.Framework.Graphics.UserInterface
         protected internal DropdownHeader Header;
         protected internal DropdownMenu Menu;
 
+        /// <summary>
+        /// Whether this <see cref="Dropdown{T}"/> should always have a search bar displayed in the header when opened.
+        /// </summary>
+        public bool AlwaysShowSearchBar
+        {
+            get => Header.AlwaysShowSearchBar;
+            set => Header.AlwaysShowSearchBar = value;
+        }
+
+        public bool AllowNonContiguousMatching
+        {
+            get => Menu.AllowNonContiguousMatching;
+            set => Menu.AllowNonContiguousMatching = value;
+        }
+
         public Bindable<MenuState> State { get; } = new Bindable<MenuState>();
 
         /// <summary>
@@ -177,6 +192,25 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        /// <summary>
+        /// Puts the state of this <see cref="Dropdown{T}"/> one level back:
+        ///  - If the dropdown search bar contains text, this method will reset it.
+        ///  - If the dropdown is open, this method wil close it.
+        /// </summary>
+        public bool Back()
+        {
+            if (Header.SearchBar.Back())
+                return true;
+
+            if (State.Value == MenuState.Open)
+            {
+                State.Value = MenuState.Closed;
+                return true;
+            }
+
+            return false;
+        }
+
         private readonly BindableWithCurrent<T> current = new BindableWithCurrent<T>();
 
         public Bindable<T> Current
@@ -303,6 +337,14 @@ namespace osu.Framework.Graphics.UserInterface
             base.LoadComplete();
 
             Header.Label = SelectedItem?.Text.Value ?? default;
+        }
+
+        protected override bool OnKeyDown(KeyDownEvent e)
+        {
+            if (e.Key == Key.Escape)
+                return Back();
+
+            return false;
         }
 
         private void selectionChanged(ValueChangedEvent<T> args)
@@ -567,6 +609,10 @@ namespace osu.Framework.Graphics.UserInterface
 
             #endregion
 
+            // we'll handle closing the menu in Dropdown instead,
+            // since a search bar may be active and we want to reset it rather than closing the menu.
+            protected override bool CloseOnEscape => false;
+
             protected override bool OnKeyDown(KeyDownEvent e)
             {
                 var drawableMenuItemsList = DrawableMenuItems.ToList();
@@ -607,10 +653,6 @@ namespace osu.Framework.Graphics.UserInterface
                     case Key.Enter:
                         var preselectedItem = DrawableMenuItems.ElementAt(targetPreselectionIndex);
                         PreselectionConfirmed?.Invoke((DropdownMenuItem<T>)preselectedItem.Item);
-                        return true;
-
-                    case Key.Escape:
-                        State = MenuState.Closed;
                         return true;
 
                     default:

@@ -5,6 +5,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
+using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -19,9 +20,26 @@ namespace osu.Framework.Graphics.UserInterface
         public override bool HandlePositionalInput => false;
         public override bool PropagatePositionalInputSubTree => false;
 
+        private bool obtainedFocus;
+
+        private bool alwaysDisplayOnFocus;
+
+        public bool AlwaysDisplayOnFocus
+        {
+            get => alwaysDisplayOnFocus;
+            set
+            {
+                alwaysDisplayOnFocus = value;
+
+                if (IsLoaded)
+                    updateVisibility();
+            }
+        }
+
         [BackgroundDependencyLoader]
         private void load()
         {
+            AlwaysPresent = true;
             RelativeSizeAxes = Axes.Both;
 
             // Dropdown menus rely on their focus state to determine when they should be closed.
@@ -32,21 +50,57 @@ namespace osu.Framework.Graphics.UserInterface
                 RelativeSizeAxes = Axes.Both,
                 Child = textBox = CreateTextBox().With(t =>
                 {
+                    t.ReleaseFocusOnCommit = false;
                     t.RelativeSizeAxes = Axes.Both;
+                    t.Size = new Vector2(1f);
                     t.Current = SearchTerm;
                 })
             };
         }
 
-        public void Focus() => textBoxInputManager.ChangeFocus(textBox);
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
 
-        public void Reset()
+            SearchTerm.BindValueChanged(v => updateVisibility());
+            updateVisibility();
+        }
+
+        public void ObtainFocus()
+        {
+            textBoxInputManager.ChangeFocus(textBox);
+            obtainedFocus = true;
+
+            updateVisibility();
+        }
+
+        public void ReleaseFocus()
         {
             textBoxInputManager.ChangeFocus(null);
-            textBox.Text = string.Empty;
+            SearchTerm.Value = string.Empty;
+            obtainedFocus = false;
 
-            Hide();
+            updateVisibility();
         }
+
+        public bool Back()
+        {
+            // text box may have lost focus from pressing escape, retain it.
+            if (obtainedFocus && !textBox.HasFocus)
+                ObtainFocus();
+
+            if (!string.IsNullOrEmpty(SearchTerm.Value))
+            {
+                SearchTerm.Value = string.Empty;
+                return true;
+            }
+
+            return false;
+        }
+
+        private void updateVisibility() => State.Value = obtainedFocus && (AlwaysDisplayOnFocus || !string.IsNullOrEmpty(SearchTerm.Value))
+            ? Visibility.Visible
+            : Visibility.Hidden;
 
         protected abstract TextBox CreateTextBox();
     }
