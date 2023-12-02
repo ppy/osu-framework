@@ -143,10 +143,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("previous item is selected", () => testDropdown.SelectedIndex == Math.Max(0, previousIndex - 1));
 
             AddStep("select last item", () => InputManager.Keys(PlatformAction.MoveToListEnd));
-            AddAssert("last item selected", () => testDropdown.SelectedItem == testDropdown.Menu.DrawableMenuItems.Last().Item);
+            AddAssert("last item selected", () => testDropdown.SelectedItem == testDropdown.Menu.VisibleMenuItems.Last().Item);
 
             AddStep("select last item", () => InputManager.Keys(PlatformAction.MoveToListStart));
-            AddAssert("first item selected", () => testDropdown.SelectedItem == testDropdown.Menu.DrawableMenuItems.First().Item);
+            AddAssert("first item selected", () => testDropdown.SelectedItem == testDropdown.Menu.VisibleMenuItems.First().Item);
 
             AddStep("select next item when empty", () => InputManager.Key(Key.Up));
             AddStep("select previous item when empty", () => InputManager.Key(Key.Down));
@@ -302,7 +302,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 };
             });
 
-            AddAssert("text is expected", () => dropdown.Menu.DrawableMenuItems.First().ChildrenOfType<SpriteText>().First().Text.ToString(), () => Is.EqualTo("loaded: test"));
+            AddAssert("text is expected", () => dropdown.Menu.VisibleMenuItems.First().ChildrenOfType<SpriteText>().First().Text.ToString(), () => Is.EqualTo("loaded: test"));
         }
 
         /// <summary>
@@ -324,7 +324,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 dropdown.Items = new TestModel("test").Yield();
             });
 
-            AddAssert("text is expected", () => dropdown.Menu.DrawableMenuItems.First(d => d.IsSelected).ChildrenOfType<SpriteText>().First().Text.ToString(), () => Is.EqualTo("loaded: test"));
+            AddAssert("text is expected", () => dropdown.Menu.VisibleMenuItems.First(d => d.IsSelected).ChildrenOfType<SpriteText>().First().Text.ToString(), () => Is.EqualTo("loaded: test"));
         }
 
         /// <summary>

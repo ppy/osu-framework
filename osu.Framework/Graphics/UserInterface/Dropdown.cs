@@ -441,11 +441,11 @@ namespace osu.Framework.Graphics.UserInterface
                     PreselectItem(null);
             }
 
-            protected internal IEnumerable<DrawableDropdownMenuItem> DrawableMenuItems => Children.OfType<DrawableDropdownMenuItem>().Where(i => i.MatchingFilter);
-            protected internal IEnumerable<DrawableDropdownMenuItem> VisibleMenuItems => DrawableMenuItems.Where(item => !item.IsMaskedAway);
+            protected internal IEnumerable<DrawableDropdownMenuItem> VisibleMenuItems => Children.OfType<DrawableDropdownMenuItem>().Where(i => i.MatchingFilter);
+            protected internal IEnumerable<DrawableDropdownMenuItem> MenuItemsInView => VisibleMenuItems.Where(item => !item.IsMaskedAway);
 
-            public DrawableDropdownMenuItem PreselectedItem => DrawableMenuItems.FirstOrDefault(c => c.IsPreSelected)
-                                                               ?? DrawableMenuItems.FirstOrDefault(c => c.IsSelected);
+            public DrawableDropdownMenuItem PreselectedItem => VisibleMenuItems.FirstOrDefault(c => c.IsPreSelected)
+                                                               ?? VisibleMenuItems.FirstOrDefault(c => c.IsSelected);
 
             public event Action<DropdownMenuItem<T>> PreselectionConfirmed;
 
@@ -482,8 +482,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected internal void PreselectItem(int index)
             {
-                PreselectItem(DrawableMenuItems.Any()
-                    ? DrawableMenuItems.ElementAt(Math.Clamp(index, 0, DrawableMenuItems.Count() - 1)).Item
+                PreselectItem(VisibleMenuItems.Any()
+                    ? VisibleMenuItems.ElementAt(Math.Clamp(index, 0, VisibleMenuItems.Count() - 1)).Item
                     : null);
             }
 
@@ -615,12 +615,12 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override bool OnKeyDown(KeyDownEvent e)
             {
-                var drawableMenuItemsList = DrawableMenuItems.ToList();
-                if (!drawableMenuItemsList.Any())
+                var visibleMenuItemsList = VisibleMenuItems.ToList();
+                if (!visibleMenuItemsList.Any())
                     return base.OnKeyDown(e);
 
                 var currentPreselected = PreselectedItem;
-                int targetPreselectionIndex = drawableMenuItemsList.IndexOf(currentPreselected);
+                int targetPreselectionIndex = visibleMenuItemsList.IndexOf(currentPreselected);
 
                 switch (e.Key)
                 {
@@ -638,7 +638,7 @@ namespace osu.Framework.Graphics.UserInterface
                         if (currentPreselected == firstVisibleItem)
                             PreselectItem(targetPreselectionIndex - VisibleMenuItems.Count());
                         else
-                            PreselectItem(drawableMenuItemsList.IndexOf(firstVisibleItem));
+                            PreselectItem(visibleMenuItemsList.IndexOf(firstVisibleItem));
                         return true;
 
                     case Key.PageDown:
@@ -647,11 +647,11 @@ namespace osu.Framework.Graphics.UserInterface
                         if (currentPreselected == lastVisibleItem)
                             PreselectItem(targetPreselectionIndex + VisibleMenuItems.Count());
                         else
-                            PreselectItem(drawableMenuItemsList.IndexOf(lastVisibleItem));
+                            PreselectItem(visibleMenuItemsList.IndexOf(lastVisibleItem));
                         return true;
 
                     case Key.Enter:
-                        var preselectedItem = DrawableMenuItems.ElementAt(targetPreselectionIndex);
+                        var preselectedItem = VisibleMenuItems.ElementAt(targetPreselectionIndex);
                         PreselectionConfirmed?.Invoke((DropdownMenuItem<T>)preselectedItem.Item);
                         return true;
 
