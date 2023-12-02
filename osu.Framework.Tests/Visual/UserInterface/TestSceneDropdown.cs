@@ -26,6 +26,16 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private const int items_to_add = 10;
 
         [Test]
+        public void TestBasic()
+        {
+            AddStep("setup dropdowns", () =>
+            {
+                TestDropdown[] dropdowns = createDropdowns(2);
+                dropdowns[1].AlwaysShowSearchBar = true;
+            });
+        }
+
+        [Test]
         public void TestSelectByUserInteraction()
         {
             TestDropdown testDropdown = null!;
