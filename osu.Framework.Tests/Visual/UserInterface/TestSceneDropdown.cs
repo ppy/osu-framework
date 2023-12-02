@@ -15,6 +15,7 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Localisation;
 using osu.Framework.Testing;
+using osu.Framework.Testing.Input;
 using osuTK;
 using osuTK.Input;
 
@@ -365,11 +366,114 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("text is expected", () => dropdown.SelectedItem.Text.Value.ToString(), () => Is.EqualTo("loaded: non-existent item"));
         }
 
+        #region Searching
+
+        [Test]
+        public void TestSearching()
+        {
+            ManualTextDropdown dropdown = null!;
+
+            AddStep("setup dropdown", () => dropdown = createDropdowns<ManualTextDropdown>(1)[0]);
+            AddAssert("search bar hidden", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
+
+            toggleDropdownViaClick(() => dropdown);
+
+            AddAssert("search bar still hidden", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
+
+            AddStep("trigger text", () => dropdown.TextInput.Text("test 4"));
+            AddAssert("search bar visible", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Visible));
+            AddAssert("items filtered", () =>
+            {
+                var drawableItem = dropdown.Menu.VisibleMenuItems.Single(i => i.IsPresent);
+                return drawableItem.Item.Text.Value == "test 4";
+            });
+            AddAssert("item preselected", () => dropdown.Menu.VisibleMenuItems.Single().IsPreSelected);
+
+            AddStep("press enter", () => InputManager.Key(Key.Enter));
+            AddAssert("item selected", () => dropdown.SelectedItem.Text.Value == "test 4");
+        }
+
+        [Test]
+        public void TestReleaseFocusAfterSearching()
+        {
+            ManualTextDropdown dropdown = null!;
+
+            AddStep("setup dropdown", () => dropdown = createDropdowns<ManualTextDropdown>(1)[0]);
+            toggleDropdownViaClick(() => dropdown);
+
+            AddStep("trigger text", () => dropdown.TextInput.Text("test 4"));
+            AddAssert("search bar visible", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Visible));
+
+            AddStep("press escape", () => InputManager.Key(Key.Escape));
+            AddAssert("search bar hidden", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
+            AddAssert("dropdown still open", () => dropdown.State.Value == MenuState.Open);
+
+            AddStep("press escape again", () => InputManager.Key(Key.Escape));
+            AddAssert("dropdown closed", () => dropdown.State.Value == MenuState.Closed);
+
+            toggleDropdownViaClick(() => dropdown);
+            AddStep("trigger text", () => dropdown.TextInput.Text("test 4"));
+            AddAssert("search bar visible", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Visible));
+
+            AddStep("click away", () =>
+            {
+                InputManager.MoveMouseTo(Vector2.Zero);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("search bar hidden", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
+        }
+
+        [Test]
+        public void TestAlwaysShowSearchBar()
+        {
+            ManualTextDropdown dropdown = null!;
+
+            AddStep("setup dropdown", () =>
+            {
+                dropdown = createDropdowns<ManualTextDropdown>(1)[0];
+                dropdown.AlwaysShowSearchBar = true;
+            });
+
+            AddAssert("search bar hidden", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
+            toggleDropdownViaClick(() => dropdown);
+
+            AddAssert("search bar visible", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Visible));
+
+            AddStep("trigger text", () => dropdown.TextInput.Text("test 4"));
+            AddAssert("search bar still visible", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Visible));
+
+            AddStep("press escape", () => InputManager.Key(Key.Escape));
+            AddAssert("search bar still visible", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Visible));
+            AddAssert("dropdown still open", () => dropdown.State.Value == MenuState.Open);
+
+            AddStep("press escape again", () => InputManager.Key(Key.Escape));
+            AddAssert("dropdown closed", () => dropdown.State.Value == MenuState.Closed);
+            AddAssert("search bar hidden", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
+
+            toggleDropdownViaClick(() => dropdown);
+            AddStep("trigger text", () => dropdown.TextInput.Text("test 4"));
+            AddAssert("search bar visible", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Visible));
+
+            AddStep("click away", () =>
+            {
+                InputManager.MoveMouseTo(Vector2.Zero);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("search bar hidden", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
+        }
+
+        #endregion
+
         private TestDropdown createDropdown() => createDropdowns(1).Single();
 
-        private TestDropdown[] createDropdowns(int count)
+        private TestDropdown[] createDropdowns(int count) => createDropdowns<TestDropdown>(count);
+
+        private TDropdown[] createDropdowns<TDropdown>(int count)
+            where TDropdown : TestDropdown, new()
         {
-            TestDropdown[] dropdowns = new TestDropdown[count];
+            TDropdown[] dropdowns = new TDropdown[count];
 
             for (int dropdownIndex = 0; dropdownIndex < count; dropdownIndex++)
             {
@@ -377,7 +481,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 for (int itemIndex = 0; itemIndex < items_to_add; itemIndex++)
                     testItems[itemIndex] = "test " + itemIndex;
 
-                dropdowns[dropdownIndex] = new TestDropdown
+                dropdowns[dropdownIndex] = new TDropdown
                 {
                     Position = new Vector2(50f, 50f),
                     Width = 150,
@@ -435,8 +539,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             internal new DropdownMenuItem<TestModel?> SelectedItem => base.SelectedItem;
 
-            public int SelectedIndex => Menu.DrawableMenuItems.Select(d => d.Item).ToList().IndexOf(SelectedItem);
-            public int PreselectedIndex => Menu.DrawableMenuItems.ToList().IndexOf(Menu.PreselectedItem);
+            public int SelectedIndex => Menu.VisibleMenuItems.Select(d => d.Item).ToList().IndexOf(SelectedItem);
+            public int PreselectedIndex => Menu.VisibleMenuItems.ToList().IndexOf(Menu.PreselectedItem);
+        }
+
+        private partial class ManualTextDropdown : TestDropdown
+        {
+            [Cached(typeof(TextInputSource))]
+            public readonly ManualTextInputSource TextInput = new ManualTextInputSource();
         }
 
         /// <summary>
