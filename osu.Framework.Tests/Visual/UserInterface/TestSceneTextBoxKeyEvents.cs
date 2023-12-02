@@ -11,6 +11,7 @@ using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
+using osu.Framework.Testing.Input;
 using osuTK;
 using osuTK.Input;
 
@@ -20,7 +21,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
     {
         private KeyEventQueuesTextBox textBox;
 
-        private TestSceneTextBoxEvents.ManualTextInput textInput;
+        private ManualTextInputSource textInput;
 
         [Resolved]
         private GameHost host { get; set; }
