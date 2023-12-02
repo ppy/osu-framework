@@ -76,7 +76,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             private partial class DrawableBasicDropdownMenuItem : DrawableDropdownMenuItem
             {
-                private bool matchingFilter;
+                private bool matchingFilter = true;
 
                 public override bool MatchingFilter
                 {

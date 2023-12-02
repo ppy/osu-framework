@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public partial class BasicDrawableMenuItem : DrawableMenuItem
         {
-            private bool matchingFilter;
+            private bool matchingFilter = true;
 
             public override bool MatchingFilter
             {
