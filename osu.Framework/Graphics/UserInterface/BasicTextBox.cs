@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override Drawable GetDrawableCharacter(char c) => new FallingDownContainer
         {
             AutoSizeAxes = Axes.Both,
-            Child = new SpriteText { Text = c.ToString(), Font = FrameworkFont.Condensed.With(size: CalculatedTextSize) }
+            Child = new SpriteText { Text = c.ToString(), Font = FrameworkFont.Condensed.With(size: DisplayedTextSize) }
         };
 
         protected override SpriteText CreatePlaceholder() => new FadingPlaceholderText

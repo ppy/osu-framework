@@ -878,7 +878,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private partial class CustomTextBox : BasicTextBox
         {
-            protected override Drawable GetDrawableCharacter(char c) => new ScalingText(c, CalculatedTextSize);
+            protected override Drawable GetDrawableCharacter(char c) => new ScalingText(c, DisplayedTextSize);
 
             private partial class ScalingText : CompositeDrawable
             {
