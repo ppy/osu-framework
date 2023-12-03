@@ -706,7 +706,7 @@ namespace osu.Framework.Utils
             if (numTestPoints < 2)
                 throw new ArgumentOutOfRangeException(nameof(numTestPoints), $"{nameof(numTestPoints)} must be >=2 but was {numTestPoints}.");
 
-            long[] coefficients = binomialCoefficients(numControlPoints);
+            long[] coefficients = binomialCoefficients(numControlPoints - 1);
             float[,] p = new float[numTestPoints, numControlPoints];
 
             for (int i = 0; i < numTestPoints; i++)
@@ -733,19 +733,23 @@ namespace osu.Framework.Utils
             return result;
         }
 
+        /// <summary>
+        /// Computes an array with all binomial coefficients from 0 to n inclusive.
+        /// </summary>
+        /// <returns>n+1 length array with the binomial coefficients.</returns>
         private static long[] binomialCoefficients(int n)
         {
-            long[] coefficients = new long[n];
+            long[] coefficients = new long[n + 1];
             coefficients[0] = 1;
 
-            for (int i = 1; i < (n + 1) / 2; i++)
+            for (int i = 1; i < (n + 2) / 2; i++)
             {
-                coefficients[i] = coefficients[i - 1] * (n - i) / i;
+                coefficients[i] = coefficients[i - 1] * (n + 1 - i) / i;
             }
 
-            for (int i = n - 1; i > (n - 1) / 2; i--)
+            for (int i = n; i > n / 2; i--)
             {
-                coefficients[i] = coefficients[n - i - 1];
+                coefficients[i] = coefficients[n - i];
             }
 
             return coefficients;
