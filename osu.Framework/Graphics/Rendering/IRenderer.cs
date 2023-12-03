@@ -153,7 +153,7 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         Texture WhitePixel { get; }
 
-        DepthValue BackbufferDepthValue { get; }
+        DepthValue BackbufferDepth { get; }
 
         /// <summary>
         /// Whether this <see cref="IRenderer"/> has been initialised using <see cref="Initialise"/>.

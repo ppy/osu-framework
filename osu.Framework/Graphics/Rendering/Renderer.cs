@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics.Rendering
         public bool IsMaskingActive => maskingStack.Count > 1;
         public bool UsingBackbuffer => frameBufferStack.Count == 0;
         public Texture WhitePixel => whitePixel.Value;
-        public DepthValue BackbufferDepthValue { get; } = new DepthValue();
+        public DepthValue BackbufferDepth { get; } = new DepthValue();
 
         public bool IsInitialised { get; private set; }
 
@@ -199,6 +199,8 @@ namespace osu.Framework.Graphics.Rendering
             Debug.Assert(defaultQuadBatch != null);
 
             FrameIndex++;
+
+            BackbufferDepth.Reset();
 
             resetScheduler.Update();
 

@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public float BackbufferDrawDepth => 0;
         public bool UsingBackbuffer => false;
         public Texture WhitePixel { get; }
-        public DepthValue BackbufferDepthValue { get; } = new DepthValue();
+        public DepthValue BackbufferDepth { get; } = new DepthValue();
 
         public bool IsInitialised { get; private set; }
 

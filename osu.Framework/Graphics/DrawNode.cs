@@ -40,6 +40,12 @@ namespace osu.Framework.Graphics
         private long referenceCount;
 
         /// <summary>
+        /// The depth at which this <see cref="DrawNode"/> is to be drawn.
+        /// Only used if front-to-back is enabled.
+        /// </summary>
+        private float drawDepth;
+
+        /// <summary>
         /// Creates a new <see cref="DrawNode"/>.
         /// </summary>
         /// <param name="source">The <see cref="Drawable"/> to draw with this <see cref="DrawNode"/>.</param>
@@ -61,58 +67,47 @@ namespace osu.Framework.Graphics
             InvalidationID = Source.InvalidationID;
         }
 
-        internal void InternalDraw(IRenderer renderer) => Draw(renderer);
-
-        internal void InternalDrawOpaqueInterior(IRenderer renderer) => DrawOpaqueInterior(renderer);
-
         /// <summary>
         /// Draws this <see cref="DrawNode"/> to the screen.
         /// </summary>
-        /// <remarks>
-        /// Subclasses must invoke <code>base.Draw()</code> prior to drawing vertices.
-        /// </remarks>
         /// <param name="renderer">The renderer to draw with.</param>
         protected virtual void Draw(IRenderer renderer)
         {
-            renderer.SetBlend(DrawColourInfo.Blending);
         }
 
         /// <summary>
-        /// Draws the opaque interior of this <see cref="DrawNode"/> to the screen.
+        /// Draws the opaque interior of this <see cref="DrawNode"/> to the screen, if <see cref="CanDrawOpaqueInterior"/> indicates that an opaque interior can be drawn.
         /// The opaque interior must be a fully-opaque, non-blended area of this <see cref="DrawNode"/>, clipped to the current masking area via <code>DrawClipped()</code>.
         /// See <see cref="Sprites.SpriteDrawNode"/> for an example implementation.
         /// </summary>
-        /// <remarks>
-        /// Subclasses must invoke <code>base.DrawOpaqueInterior()</code> prior to drawing vertices.
-        /// </remarks>
         /// <param name="renderer">The renderer to draw with.</param>
         protected virtual void DrawOpaqueInterior(IRenderer renderer)
         {
         }
 
-        protected void DrawOther(DrawNode node, IRenderer renderer)
+        protected internal static void DrawOther(DrawNode node, IRenderer renderer)
         {
+            renderer.SetBlend(node.DrawColourInfo.Blending);
+            renderer.BackbufferDepth.Set(node.drawDepth);
+
             node.Draw(renderer);
         }
 
         /// <summary>
-        /// Draws the opaque interior of this <see cref="DrawNode"/>, invoking <see cref="DrawOpaqueInterior"/>
-        /// if <see cref="CanDrawOpaqueInterior"/> indicates that an opaque interior can be drawn.
+        /// Draws the opaque interior of a <see cref="DrawNode"/>.
         /// </summary>
-        /// <remarks>
-        /// This is the front-to-back pass. The back-buffer depth test function used is GL_LESS.<br />
-        /// During this pass, the opaque interior is drawn BELOW ourselves. For this to occur, <see cref="drawDepth"/> is temporarily incremented and then decremented after drawing is complete.
-        /// Other <see cref="DrawNode"/>s behind ourselves receive the incremented depth value before doing the same themselves, allowing early-z to take place during this pass.
-        /// </remarks>
-        protected void DrawOtherOpaqueInterior(DrawNode node, IRenderer renderer)
+        protected internal static void DrawOtherOpaqueInterior(DrawNode node, IRenderer renderer)
         {
-            if (!renderer.BackbufferDepthValue.CanIncrement || !CanDrawOpaqueInterior)
+            // For an incoming depth value D, the content is to be drawn at depth D and the opaque interior is to be drawn at depth D+e.
+            // When the GL_LESS test function is applied, the content will therefore always pass the depth test for the same DrawNode (D < D+e)
+            node.drawDepth = renderer.BackbufferDepth;
+
+            if (!renderer.BackbufferDepth.CanIncrement || !node.CanDrawOpaqueInterior)
                 return;
 
-            // For an incoming depth value D, the opaque interior is drawn at depth D+e and the content is drawn at depth D.
-            // As such, when the GL_LESS test function is applied, the content will always pass the depth test for the same DrawNode (D < D+e).
+            if (node.HasOwnOpaqueInterior)
+                renderer.BackbufferDepth.Increment();
 
-            renderer.BackbufferDepthValue.Increment();
             node.DrawOpaqueInterior(renderer);
         }
 
@@ -121,6 +116,12 @@ namespace osu.Framework.Graphics
         /// Should not return <code>true</code> if <see cref="DrawOpaqueInterior"/> will result in a no-op.
         /// </summary>
         protected internal virtual bool CanDrawOpaqueInterior => false;
+
+        /// <summary>
+        /// Whether this <see cref="DrawNode"/> has its own opaque interior.
+        /// If <c>false</c>, a child of the <see cref="DrawNode"/> may be the source of the opaque interior.
+        /// </summary>
+        protected virtual bool HasOwnOpaqueInterior => CanDrawOpaqueInterior;
 
         /// <summary>
         /// Increments the reference count of this <see cref="DrawNode"/>, blocking <see cref="Dispose()"/> until the count reaches 0.

@@ -214,7 +214,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 base.DrawOpaqueInterior(renderer);
 
-                bool canIncrement = renderer.BackbufferDepthValue.CanIncrement;
+                bool canIncrement = renderer.BackbufferDepth.CanIncrement;
 
                 // Assume that if we can't increment the depth value, no child can, thus nothing will be drawn.
                 if (canIncrement)
@@ -246,6 +246,9 @@ namespace osu.Framework.Graphics.Containers
                         renderer.PopQuadBatch();
                 }
             }
+
+            protected internal override bool CanDrawOpaqueInterior => true;
+            protected override bool HasOwnOpaqueInterior => false;
 
             protected override void Dispose(bool isDisposing)
             {
