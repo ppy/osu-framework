@@ -553,6 +553,11 @@ namespace osu.Framework.Utils
             return result;
         }
 
+        /// <summary>
+        /// Calculates a normalized cumulative distribution for the Euclidean distance between points on a piecewise-linear path.
+        /// </summary>
+        /// <param name="points">(2, n) shape array which represents the points of the piecewise-linear path.</param>
+        /// <param name="result">n-length array to write the result to.</param>
         private static void getDistanceDistribution(float[,] points, float[] result)
         {
             int m = points.GetLength(1);
