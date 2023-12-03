@@ -305,12 +305,12 @@ namespace osu.Framework.Utils
                                                             float learningRate = 8f,
                                                             float b1 = 0.8f,
                                                             float b2 = 0.99f,
-                                                            int interpolatorResolution = 100,
                                                             List<Vector2>? initialControlPoints = null)
         {
-            return piecewiseLinearToSpline(inputPath, generateBezierWeights(numControlPoints, numTestPoints), maxIterations, learningRate, b1, b2, interpolatorResolution, initialControlPoints);
+            return piecewiseLinearToSpline(inputPath, generateBezierWeights(numControlPoints, numTestPoints), maxIterations, learningRate, b1, b2, initialControlPoints);
         }
 
+        /// <param name="degree">The polynomial order.</param>
         public static List<Vector2> PiecewiseLinearToBSpline(ReadOnlySpan<Vector2> inputPath,
                                                              int numControlPoints,
                                                              int degree,
@@ -319,11 +319,10 @@ namespace osu.Framework.Utils
                                                              float learningRate = 8f,
                                                              float b1 = 0.8f,
                                                              float b2 = 0.99f,
-                                                             int interpolatorResolution = 100,
                                                              List<Vector2>? initialControlPoints = null)
         {
             degree = Math.Min(degree, numControlPoints - 1);
-            return piecewiseLinearToSpline(inputPath, generateBSplineWeights(numControlPoints, numTestPoints, degree), maxIterations, learningRate, b1, b2, interpolatorResolution, initialControlPoints);
+            return piecewiseLinearToSpline(inputPath, generateBSplineWeights(numControlPoints, numTestPoints, degree), maxIterations, learningRate, b1, b2, initialControlPoints);
         }
 
         private static List<Vector2> piecewiseLinearToSpline(ReadOnlySpan<Vector2> inputPath,
@@ -332,7 +331,6 @@ namespace osu.Framework.Utils
                                                              float learningRate = 8f,
                                                              float b1 = 0.8f,
                                                              float b2 = 0.99f,
-                                                             int interpolatorResolution = 100,
                                                              List<Vector2>? initialControlPoints = null)
         {
             int numControlPoints = weights.GetLength(1);
@@ -350,7 +348,7 @@ namespace osu.Framework.Utils
             }
 
             // Create efficient interpolation on the input path
-            var interpolator = new Interpolator(inputPath, interpolatorResolution);
+            var interpolator = new Interpolator(inputPath, numTestPoints);
 
             // Initialize control points
             float[,] labels = new float[2, numTestPoints];
