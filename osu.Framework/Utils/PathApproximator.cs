@@ -298,6 +298,18 @@ namespace osu.Framework.Utils
             return result;
         }
 
+        /// <summary>
+        /// Creates a bezier curve approximation from a piecewise-linear path.
+        /// </summary>
+        /// <param name="inputPath">The piecewise-linear path to approximate.</param>
+        /// <param name="numControlPoints">The number of control points to use in the bezier approximation.</param>
+        /// <param name="numTestPoints">The number of points to evaluate the bezier path at for optimization, basically a resolution.</param>
+        /// <param name="maxIterations">The number of optimization steps.</param>
+        /// <param name="learningRate">The rate of optimization. Larger values converge faster but can be unstable.</param>
+        /// <param name="b1">The B1 parameter for the Adam optimizer. Between 0 and 1.</param>
+        /// <param name="b2">The B2 parameter for the Adam optimizer. Between 0 and 1.</param>
+        /// <param name="initialControlPoints">The initial bezier control points to use before optimization. The length of this list should be equal to <see cref="numControlPoints"/>.</param>
+        /// <returns>A List of vectors representing the bezier control points.</returns>
         public static List<Vector2> PiecewiseLinearToBezier(ReadOnlySpan<Vector2> inputPath,
                                                             int numControlPoints,
                                                             int numTestPoints = 100,
@@ -310,7 +322,19 @@ namespace osu.Framework.Utils
             return piecewiseLinearToSpline(inputPath, generateBezierWeights(numControlPoints, numTestPoints), maxIterations, learningRate, b1, b2, initialControlPoints);
         }
 
+        /// <summary>
+        /// Creates a B-spline approximation from a piecewise-linear path.
+        /// </summary>
+        /// <param name="inputPath">The piecewise-linear path to approximate.</param>
+        /// <param name="numControlPoints">The number of control points to use in the B-spline approximation.</param>
         /// <param name="degree">The polynomial order.</param>
+        /// <param name="numTestPoints">The number of points to evaluate the B-spline path at for optimization, basically a resolution.</param>
+        /// <param name="maxIterations">The number of optimization steps.</param>
+        /// <param name="learningRate">The rate of optimization. Larger values converge faster but can be unstable.</param>
+        /// <param name="b1">The B1 parameter for the Adam optimizer. Between 0 and 1.</param>
+        /// <param name="b2">The B2 parameter for the Adam optimizer. Between 0 and 1.</param>
+        /// <param name="initialControlPoints">The initial B-spline control points to use before optimization. The length of this list should be equal to <see cref="numControlPoints"/>.</param>
+        /// <returns>A List of vectors representing the B-spline control points.</returns>
         public static List<Vector2> PiecewiseLinearToBSpline(ReadOnlySpan<Vector2> inputPath,
                                                              int numControlPoints,
                                                              int degree,
@@ -325,6 +349,18 @@ namespace osu.Framework.Utils
             return piecewiseLinearToSpline(inputPath, generateBSplineWeights(numControlPoints, numTestPoints, degree), maxIterations, learningRate, b1, b2, initialControlPoints);
         }
 
+        /// <summary>
+        /// Creates an arbitrary spline approximation from a piecewise-linear path.
+        /// Works for any spline type where the interpolation is a linear combination of the control points.
+        /// </summary>
+        /// <param name="inputPath">The piecewise-linear path to approximate.</param>
+        /// <param name="weights">A 2D matrix that contains the spline basis functions at multiple positions. The length of the first dimension is the number of test points, and the length of the second dimension is the number of control points.</param>
+        /// <param name="maxIterations">The number of optimization steps.</param>
+        /// <param name="learningRate">The rate of optimization. Larger values converge faster but can be unstable.</param>
+        /// <param name="b1">The B1 parameter for the Adam optimizer. Between 0 and 1.</param>
+        /// <param name="b2">The B2 parameter for the Adam optimizer. Between 0 and 1.</param>
+        /// <param name="initialControlPoints">The initial control points to use before optimization. The length of this list should be equal to the number of test points.</param>
+        /// <returns>A List of vectors representing the spline control points.</returns>
         private static List<Vector2> piecewiseLinearToSpline(ReadOnlySpan<Vector2> inputPath,
                                                              float[,] weights,
                                                              int maxIterations = 100,
@@ -603,7 +639,9 @@ namespace osu.Framework.Utils
         /// <returns>Matrix array of B-spline basis function values.</returns>
         private static float[,] generateBSplineWeights(int numControlPoints, int numTestPoints, int degree)
         {
-            // Calculate the basis function values using a modified De Boor's algorithm
+            // Calculate the basis function values using the Cox-de Boor recursion formula
+
+            // Generate an open uniform knot vector from 0 to 1
             float[] x = linspace(0, 1, numTestPoints);
             float[] knots = new float[numControlPoints + degree + 1];
 
