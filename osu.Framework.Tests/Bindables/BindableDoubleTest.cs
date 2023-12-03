@@ -113,7 +113,7 @@ namespace osu.Framework.Tests.Bindables
 
             var bindable = new BindableDouble(numValue);
             string? asString = bindable.ToString();
-            Assert.AreEqual(expected.ToString(), asString);
+            Assert.AreEqual(expected.ToString(CultureInfo.CurrentCulture), asString);
             Assert.DoesNotThrow(() => bindable.Parse(asString));
             Assert.AreEqual(expected, bindable.Value, Precision.DOUBLE_EPSILON);
         }

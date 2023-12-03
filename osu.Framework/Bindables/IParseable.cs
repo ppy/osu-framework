@@ -13,7 +13,8 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// Parse an input into this instance.
         /// </summary>
+        /// <param name="input">The input which is to be parsed.</param>
         /// <param name="provider">An object that provides culture-specific formatting information about <paramref name="input"/>.</param>
-        void Parse(object input, IFormatProvider? provider = null);
+        void Parse(object? input, IFormatProvider? provider = null);
     }
 }

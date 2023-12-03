@@ -14,7 +14,7 @@ using osu.Framework.Lists;
 
 namespace osu.Framework.Bindables
 {
-    public class BindableDictionary<TKey, TValue> : IBindableDictionary<TKey, TValue>, IBindable, IParseable, IDictionary<TKey, TValue>, IDictionary
+    public class BindableDictionary<TKey, TValue> : IBindableDictionary<TKey, TValue>, IBindable, IDictionary<TKey, TValue>, IDictionary
         where TKey : notnull
     {
         public event NotifyDictionaryChangedEventHandler<TKey, TValue>? CollectionChanged;
