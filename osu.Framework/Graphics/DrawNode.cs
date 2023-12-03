@@ -74,6 +74,7 @@ namespace osu.Framework.Graphics
         protected virtual void Draw(IRenderer renderer)
         {
             renderer.SetBlend(DrawColourInfo.Blending);
+            renderer.BackbufferDepth.Set(drawDepth);
         }
 
         /// <summary>
@@ -88,7 +89,6 @@ namespace osu.Framework.Graphics
 
         protected internal static void DrawOther(DrawNode node, IRenderer renderer)
         {
-            renderer.BackbufferDepth.Set(node.drawDepth);
             node.Draw(renderer);
         }
 
