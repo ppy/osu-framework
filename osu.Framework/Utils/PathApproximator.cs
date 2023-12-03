@@ -640,6 +640,14 @@ namespace osu.Framework.Utils
         private static float[,] generateBSplineWeights(int numControlPoints, int numTestPoints, int degree)
         {
             // Calculate the basis function values using the Cox-de Boor recursion formula
+            if (numControlPoints < 2)
+                throw new ArgumentOutOfRangeException(nameof(numControlPoints), $"{nameof(numControlPoints)} must be >=2 but was {numControlPoints}.");
+
+            if (numTestPoints < 2)
+                throw new ArgumentOutOfRangeException(nameof(numTestPoints), $"{nameof(numTestPoints)} must be >=2 but was {numTestPoints}.");
+
+            if (degree < 0 || degree >= numControlPoints)
+                throw new ArgumentOutOfRangeException(nameof(degree), $"{nameof(degree)} must be >=0 and <{nameof(numControlPoints)} but was {degree}.");
 
             // Generate an open uniform knot vector from 0 to 1
             float[] x = linspace(0, 1, numTestPoints);
@@ -692,6 +700,12 @@ namespace osu.Framework.Utils
 
         private static float[,] generateBezierWeights(int numControlPoints, int numTestPoints)
         {
+            if (numControlPoints < 2)
+                throw new ArgumentOutOfRangeException(nameof(numControlPoints), $"{nameof(numControlPoints)} must be >=2 but was {numControlPoints}.");
+
+            if (numTestPoints < 2)
+                throw new ArgumentOutOfRangeException(nameof(numTestPoints), $"{nameof(numTestPoints)} must be >=2 but was {numTestPoints}.");
+
             long[] coefficients = binomialCoefficients(numControlPoints);
             float[,] p = new float[numTestPoints, numControlPoints];
 
