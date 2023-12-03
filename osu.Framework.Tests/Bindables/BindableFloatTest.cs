@@ -4,6 +4,7 @@
 using System.Globalization;
 using NUnit.Framework;
 using osu.Framework.Bindables;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Tests.Bindables
 {
@@ -87,17 +88,21 @@ namespace osu.Framework.Tests.Bindables
             Assert.AreEqual(value, bindable.Value);
         }
 
-        [TestCase("1,4", "de-DE", 1.4f)]
-        [TestCase("1.400,01", "de-DE", 1400.01f)]
-        [TestCase("1 234,57", "ru-RU", 1234.57f)]
-        [TestCase("1,094", "fr-FR", 1.094f)]
-        [TestCase("1,400.01", "zh-CN", 1400.01f)]
-        public void TestParsingLocale(string value, string locale, float expected)
+        [TestCase(1.4f, "1.4", "en-US", 1.4f)]
+        [TestCase(1.4f, "1,4", "de-DE", 1.4f)]
+        [TestCase(1400.01f, "1.400,01", "de-DE", 1400.01f)]
+        [TestCase(1234.57f, "1 234,57", "ru-RU", 1234.57f)]
+        [TestCase(1.094f, "1,094", "fr-FR", 1.094f)]
+        [TestCase(1400.01f, "1,400.01", "zh-CN", 1400.01f)]
+        public void TestParsingLocale(float numValue, string strValue, string locale, float expected)
         {
-            var bindable = new BindableFloat();
-            bindable.Parse(value, CultureInfo.GetCultureInfo(locale));
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(locale);
 
-            Assert.AreEqual(expected, bindable.Value);
+            var bindable = new BindableFloat(numValue);
+            string? asString = bindable.ToString();
+            Assert.AreEqual(expected.ToString(), asString);
+            Assert.DoesNotThrow(() => bindable.Parse(asString));
+            Assert.AreEqual(expected, bindable.Value, Precision.FLOAT_EPSILON);
         }
     }
 }

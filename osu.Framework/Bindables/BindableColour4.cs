@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Globalization;
 using osu.Framework.Graphics;
 
 namespace osu.Framework.Bindables
@@ -17,7 +16,7 @@ namespace osu.Framework.Bindables
         // 8-bit precision should probably be enough for serialization.
         public override string ToString(string? format, IFormatProvider? formatProvider) => Value.ToHex();
 
-        public override void Parse(object? input, CultureInfo? cultureInfo = null)
+        public override void Parse(object? input, IFormatProvider? provider = null)
         {
             if (input == null) throw new ArgumentNullException(nameof(input));
 
@@ -31,7 +30,7 @@ namespace osu.Framework.Bindables
                     break;
 
                 default:
-                    base.Parse(input, cultureInfo);
+                    base.Parse(input, provider);
                     break;
             }
         }

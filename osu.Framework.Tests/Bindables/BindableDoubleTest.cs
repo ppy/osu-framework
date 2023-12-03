@@ -4,6 +4,7 @@
 using System.Globalization;
 using NUnit.Framework;
 using osu.Framework.Bindables;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Tests.Bindables
 {
@@ -100,17 +101,21 @@ namespace osu.Framework.Tests.Bindables
             number.MaxValue = 10;
         }
 
-        [TestCase("1,4", "de-DE", 1.4)]
-        [TestCase("1.400,01", "de-DE", 1400.01)]
-        [TestCase("1 234,57", "ru-RU", 1234.57)]
-        [TestCase("1,094", "fr-FR", 1.094)]
-        [TestCase("1,400.01", "zh-CN", 1400.01)]
-        public void TestParsingLocale(string value, string locale, double expected)
+        [TestCase(1.4, "1.4", "en-US", 1.4)]
+        [TestCase(1.4, "1,4", "de-DE", 1.4)]
+        [TestCase(1400.01, "1.400,01", "de-DE", 1400.01)]
+        [TestCase(1234.57, "1 234,57", "ru-RU", 1234.57)]
+        [TestCase(1.094, "1,094", "fr-FR", 1.094)]
+        [TestCase(1400.01, "1,400.01", "zh-CN", 1400.01)]
+        public void TestParsingLocale(double numValue, string strValue, string locale, double expected)
         {
-            var bindable = new BindableDouble();
-            bindable.Parse(value, CultureInfo.GetCultureInfo(locale));
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(locale);
 
-            Assert.AreEqual(expected, bindable.Value);
+            var bindable = new BindableDouble(numValue);
+            string? asString = bindable.ToString();
+            Assert.AreEqual(expected.ToString(), asString);
+            Assert.DoesNotThrow(() => bindable.Parse(asString));
+            Assert.AreEqual(expected, bindable.Value, Precision.DOUBLE_EPSILON);
         }
     }
 }

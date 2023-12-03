@@ -15,7 +15,7 @@ using osu.Framework.Lists;
 
 namespace osu.Framework.Bindables
 {
-    public class BindableList<T> : IBindableList<T>, IBindable, IParseable, IList<T>, IList
+    public class BindableList<T> : IBindableList<T>, IBindable, IList<T>, IList
     {
         /// <summary>
         /// An event which is raised when this <see cref="BindableList{T}"/> changes.
@@ -689,5 +689,7 @@ namespace osu.Framework.Bindables
         public bool IsDefault => Count == 0;
 
         string IFormattable.ToString(string format, IFormatProvider formatProvider) => ((FormattableString)$"{GetType().ReadableName()}({nameof(Count)}={Count})").ToString(formatProvider);
+
+        void IParseable.Parse(object input, IFormatProvider provider) => Parse(input);
     }
 }

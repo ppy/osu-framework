@@ -20,7 +20,7 @@ namespace osu.Framework.Bindables
     /// A generic implementation of a <see cref="IBindable"/>
     /// </summary>
     /// <typeparam name="T">The type of our stored <see cref="Value"/>.</typeparam>
-    public class Bindable<T> : IBindable<T>, IBindable, ILocalisableParseable, ISerializableBindable
+    public class Bindable<T> : IBindable<T>, IBindable, ISerializableBindable
     {
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
@@ -248,8 +248,8 @@ namespace osu.Framework.Bindables
         /// An object deriving T can be parsed, or a string can be parsed if T is an enum type.
         /// </summary>
         /// <param name="input">The input which is to be parsed.</param>
-        /// <param name="cultureInfo">The preferred culture formatting to be displayed.</param>
-        public virtual void Parse([CanBeNull] object input, [CanBeNull] CultureInfo cultureInfo = null)
+        /// <param name="provider">An object that provides culture-specific formatting information about <paramref name="input"/>.</param>
+        public virtual void Parse([CanBeNull] object input, [CanBeNull] IFormatProvider provider = null)
         {
             switch (input)
             {
@@ -296,7 +296,7 @@ namespace osu.Framework.Bindables
                     if (underlyingType.IsEnum)
                         Value = (T)Enum.Parse(underlyingType, input.ToString().AsNonNull());
                     else
-                        Value = (T)Convert.ChangeType(input, underlyingType, cultureInfo ?? CultureInfo.InvariantCulture);
+                        Value = (T)Convert.ChangeType(input, underlyingType, provider ?? CultureInfo.CurrentCulture);
 
                     break;
             }

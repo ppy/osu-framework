@@ -525,5 +525,7 @@ namespace osu.Framework.Bindables
         public bool IsDefault => Count == 0;
 
         string IFormattable.ToString(string? format, IFormatProvider? formatProvider) => ((FormattableString)$"{GetType().ReadableName()}({nameof(Count)}={Count})").ToString(formatProvider);
+
+        void IParseable.Parse(object input, IFormatProvider? provider) => Parse(input);
     }
 }
