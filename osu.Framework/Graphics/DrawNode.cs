@@ -130,6 +130,10 @@ namespace osu.Framework.Graphics
             renderer.SetDrawDepth(drawDepth);
         }
 
+        protected void DrawOther(DrawNode node, IRenderer renderer) => node.Draw(renderer);
+
+        protected void DrawOtherOpaqueInterior(DrawNode node, IRenderer renderer) => node.DrawOpaqueInterior(renderer);
+
         /// <summary>
         /// Whether this <see cref="DrawNode"/> can draw a opaque interior. <see cref="DrawOpaqueInterior"/> will only be invoked if this value is <code>true</code>.
         /// Should not return <code>true</code> if <see cref="DrawOpaqueInterior"/> will result in a no-op.
