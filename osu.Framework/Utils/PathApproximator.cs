@@ -474,9 +474,12 @@ namespace osu.Framework.Utils
             }
         }
 
-        // mat1 can not be the same array as result, or it will not work correctly
         private static unsafe void matLerp(float[,] mat1, float[,] mat2, float t, float[,] result)
         {
+            // mat1 can not be the same array as result, or it will not work correctly
+            if (ReferenceEquals(mat1, result))
+                throw new ArgumentException($"{nameof(mat1)} can not be the same array as {nameof(result)}.");
+
             fixed (float* mat1P = mat1, mat2P = mat2, resultP = result)
             {
                 var span1 = new Span<float>(mat1P, mat1.Length);
