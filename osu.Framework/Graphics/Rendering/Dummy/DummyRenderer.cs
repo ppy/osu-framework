@@ -41,10 +41,9 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public WrapMode CurrentWrapModeS => WrapMode.None;
         public WrapMode CurrentWrapModeT => WrapMode.None;
         public bool IsMaskingActive => false;
-        public float BackbufferDrawDepth => 0;
         public bool UsingBackbuffer => false;
         public Texture WhitePixel { get; }
-        public DepthValue BackbufferDepth { get; } = new DepthValue();
+        DepthValue IRenderer.BackbufferDepth { get; } = new DepthValue();
 
         public bool IsInitialised { get; private set; }
 

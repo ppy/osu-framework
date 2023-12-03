@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics.Rendering
         public bool IsMaskingActive => maskingStack.Count > 1;
         public bool UsingBackbuffer => frameBufferStack.Count == 0;
         public Texture WhitePixel => whitePixel.Value;
-        public DepthValue BackbufferDepth { get; } = new DepthValue();
+        DepthValue IRenderer.BackbufferDepth => backBufferDepth;
 
         public bool IsInitialised { get; private set; }
 
@@ -107,6 +107,8 @@ namespace osu.Framework.Graphics.Rendering
         private readonly RendererDisposalQueue disposalQueue = new RendererDisposalQueue();
 
         private readonly Scheduler resetScheduler = new Scheduler(() => ThreadSafety.IsDrawThread, new StopwatchClock(true)); // force no thread set until we are actually on the draw thread.
+
+        private readonly DepthValue backBufferDepth = new DepthValue();
 
         private readonly Stack<IVertexBatch<TexturedVertex2D>> quadBatches = new Stack<IVertexBatch<TexturedVertex2D>>();
         private readonly List<IVertexBuffer> vertexBuffersInUse = new List<IVertexBuffer>();
@@ -200,7 +202,7 @@ namespace osu.Framework.Graphics.Rendering
 
             FrameIndex++;
 
-            BackbufferDepth.Reset();
+            backBufferDepth.Reset();
 
             resetScheduler.Update();
 
