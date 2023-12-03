@@ -44,6 +44,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public float BackbufferDrawDepth => 0;
         public bool UsingBackbuffer => false;
         public Texture WhitePixel { get; }
+        public DepthValue BackbufferDepthValue { get; } = new DepthValue();
 
         public bool IsInitialised { get; private set; }
 
@@ -217,10 +218,6 @@ namespace osu.Framework.Graphics.Rendering.Dummy
             => new DummyShaderStorageBufferObject<TData>(ssboSize);
 
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform)
-        {
-        }
-
-        void IRenderer.SetDrawDepth(float drawDepth)
         {
         }
 

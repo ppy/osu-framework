@@ -144,11 +144,6 @@ namespace osu.Framework.Graphics.Rendering
         bool IsMaskingActive { get; }
 
         /// <summary>
-        /// The current backbuffer depth.
-        /// </summary>
-        float BackbufferDrawDepth { get; }
-
-        /// <summary>
         /// Whether the currently bound framebuffer is the backbuffer.
         /// </summary>
         bool UsingBackbuffer { get; }
@@ -157,6 +152,8 @@ namespace osu.Framework.Graphics.Rendering
         /// The texture for a white pixel.
         /// </summary>
         Texture WhitePixel { get; }
+
+        DepthValue BackbufferDepthValue { get; }
 
         /// <summary>
         /// Whether this <see cref="IRenderer"/> has been initialised using <see cref="Initialise"/>.
@@ -440,13 +437,6 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         /// <param name="uniform">The uniform to set.</param>
         internal void SetUniform<T>(IUniformWithValue<T> uniform) where T : unmanaged, IEquatable<T>;
-
-        /// <summary>
-        /// Sets the current draw depth.
-        /// The draw depth is written to every vertex added to <see cref="IVertexBuffer"/>s.
-        /// </summary>
-        /// <param name="drawDepth">The draw depth.</param>
-        internal void SetDrawDepth(float drawDepth);
 
         internal IVertexBatch<TexturedVertex2D> DefaultQuadBatch { get; }
 
