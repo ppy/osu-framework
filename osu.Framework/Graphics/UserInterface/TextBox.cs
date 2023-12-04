@@ -507,7 +507,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateCursorAndLayout()
         {
-            Placeholder.Font = Placeholder.Font.With(size: DisplayedTextSize);
+            Placeholder.Font = Placeholder.Font.With(size: FontSize);
 
             float cursorPos = 0;
             if (text.Length > 0)
@@ -740,7 +740,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="c">The character that this <see cref="Drawable"/> should represent.</param>
         /// <returns>A <see cref="Drawable"/> that represents the character <paramref name="c"/> </returns>
-        protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), Font = new FontUsage(size: DisplayedTextSize) };
+        protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), Font = new FontUsage(size: FontSize) };
 
         protected virtual Drawable AddCharacterToFlow(char c)
         {
@@ -770,17 +770,16 @@ namespace osu.Framework.Graphics.UserInterface
 
         private float getDepthForCharacterIndex(int index) => -index;
 
-        private readonly float? customTextSize;
+        private readonly float? customFontSize;
 
         /// <summary>
         /// A fixed size for the text displayed in this <see cref="TextBox"/>. If left unset, text size will be computed based on the dimensions of the <see cref="TextBox"/>.
         /// </summary>
-        public float TextSize
+        public float FontSize
         {
-            init => customTextSize = value;
+            get => customFontSize ?? TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
+            init => customFontSize = value;
         }
-
-        protected float DisplayedTextSize => customTextSize ?? (TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom));
 
         protected void InsertString(string value)
         {

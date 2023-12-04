@@ -53,7 +53,7 @@ namespace osu.Framework.Graphics.UserInterface
                 protected override TextBox CreateTextBox() => new SearchTextBox
                 {
                     PlaceholderText = "type to search",
-                    TextSize = font.Size,
+                    FontSize = font.Size,
                 };
 
                 private partial class SearchTextBox : BasicTextBox
