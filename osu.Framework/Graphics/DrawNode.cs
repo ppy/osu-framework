@@ -70,6 +70,9 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Draws this <see cref="DrawNode"/> to the screen.
         /// </summary>
+        /// <remarks>
+        /// Subclasses must invoke <code>base.Draw()</code> prior to drawing vertices.
+        /// </remarks>
         /// <param name="renderer">The renderer to draw with.</param>
         protected virtual void Draw(IRenderer renderer)
         {
@@ -82,9 +85,14 @@ namespace osu.Framework.Graphics
         /// The opaque interior must be a fully-opaque, non-blended area of this <see cref="DrawNode"/>, clipped to the current masking area via <code>DrawClipped()</code>.
         /// See <see cref="Sprites.SpriteDrawNode"/> for an example implementation.
         /// </summary>
+        /// <remarks>
+        /// Subclasses must invoke <code>base.DrawOpaqueInterior()</code> prior to drawing vertices.
+        /// </remarks>
         /// <param name="renderer">The renderer to draw with.</param>
         protected virtual void DrawOpaqueInterior(IRenderer renderer)
         {
+            if (HasOwnOpaqueInterior)
+                renderer.BackbufferDepth.Increment();
         }
 
         protected internal static void DrawOther(DrawNode node, IRenderer renderer)
@@ -103,9 +111,6 @@ namespace osu.Framework.Graphics
 
             if (!renderer.BackbufferDepth.CanIncrement || !node.CanDrawOpaqueInterior)
                 return;
-
-            if (node.HasOwnOpaqueInterior)
-                renderer.BackbufferDepth.Increment();
 
             node.DrawOpaqueInterior(renderer);
         }
