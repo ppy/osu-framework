@@ -38,17 +38,19 @@ namespace osu.Framework.Tests.Visual.Localisation
         }
 
         [Test]
-        public void TestDropdown()
+        public void TestEnumDropdown()
         {
+            BasicDropdown<WindowMode> dropdown = null!;
+
             AddStep("add dropdown", () =>
             {
-                Child = new BasicDropdown<WindowMode>
+                Child = dropdown = new BasicDropdown<WindowMode>
                 {
                     Width = 200,
                     Items = Enum.GetValues<WindowMode>()
                 };
             });
-
+            AddStep("open dropdown", () => dropdown.Menu.Open());
             SetLocale("en-US");
             SetLocale("en-GB");
             SetLocale("hr-HR");
