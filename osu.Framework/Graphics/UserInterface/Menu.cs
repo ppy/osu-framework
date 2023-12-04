@@ -583,11 +583,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool HandleNonPositionalInput => State == MenuState.Open;
 
-        protected virtual bool CloseOnEscape => !TopLevelMenu;
-
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (e.Key == Key.Escape && CloseOnEscape)
+            if (e.Key == Key.Escape && !TopLevelMenu)
             {
                 Close();
                 return true;

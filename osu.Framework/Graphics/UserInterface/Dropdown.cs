@@ -651,55 +651,56 @@ namespace osu.Framework.Graphics.UserInterface
 
             #endregion
 
-            // we'll handle closing the menu in Dropdown instead,
-            // since a search bar may be active and we want to reset it rather than closing the menu.
-            protected override bool CloseOnEscape => false;
-
             protected override bool OnKeyDown(KeyDownEvent e)
             {
                 var visibleMenuItemsList = VisibleMenuItems.ToList();
-                if (!visibleMenuItemsList.Any())
-                    return base.OnKeyDown(e);
 
-                var currentPreselected = PreselectedItem;
-                int targetPreselectionIndex = visibleMenuItemsList.IndexOf(currentPreselected);
-
-                switch (e.Key)
+                if (visibleMenuItemsList.Any())
                 {
-                    case Key.Up:
-                        PreselectItem(targetPreselectionIndex - 1);
-                        return true;
+                    var currentPreselected = PreselectedItem;
+                    int targetPreselectionIndex = visibleMenuItemsList.IndexOf(currentPreselected);
 
-                    case Key.Down:
-                        PreselectItem(targetPreselectionIndex + 1);
-                        return true;
+                    switch (e.Key)
+                    {
+                        case Key.Up:
+                            PreselectItem(targetPreselectionIndex - 1);
+                            return true;
 
-                    case Key.PageUp:
-                        var firstVisibleItem = VisibleMenuItems.First();
+                        case Key.Down:
+                            PreselectItem(targetPreselectionIndex + 1);
+                            return true;
 
-                        if (currentPreselected == firstVisibleItem)
-                            PreselectItem(targetPreselectionIndex - VisibleMenuItems.Count());
-                        else
-                            PreselectItem(visibleMenuItemsList.IndexOf(firstVisibleItem));
-                        return true;
+                        case Key.PageUp:
+                            var firstVisibleItem = VisibleMenuItems.First();
 
-                    case Key.PageDown:
-                        var lastVisibleItem = VisibleMenuItems.Last();
+                            if (currentPreselected == firstVisibleItem)
+                                PreselectItem(targetPreselectionIndex - VisibleMenuItems.Count());
+                            else
+                                PreselectItem(visibleMenuItemsList.IndexOf(firstVisibleItem));
+                            return true;
 
-                        if (currentPreselected == lastVisibleItem)
-                            PreselectItem(targetPreselectionIndex + VisibleMenuItems.Count());
-                        else
-                            PreselectItem(visibleMenuItemsList.IndexOf(lastVisibleItem));
-                        return true;
+                        case Key.PageDown:
+                            var lastVisibleItem = VisibleMenuItems.Last();
 
-                    case Key.Enter:
-                        var preselectedItem = VisibleMenuItems.ElementAt(targetPreselectionIndex);
-                        PreselectionConfirmed?.Invoke((DropdownMenuItem<T>)preselectedItem.Item);
-                        return true;
+                            if (currentPreselected == lastVisibleItem)
+                                PreselectItem(targetPreselectionIndex + VisibleMenuItems.Count());
+                            else
+                                PreselectItem(visibleMenuItemsList.IndexOf(lastVisibleItem));
+                            return true;
 
-                    default:
-                        return base.OnKeyDown(e);
+                        case Key.Enter:
+                            var preselectedItem = VisibleMenuItems.ElementAt(targetPreselectionIndex);
+                            PreselectionConfirmed?.Invoke((DropdownMenuItem<T>)preselectedItem.Item);
+                            return true;
+                    }
                 }
+
+                if (e.Key == Key.Escape)
+                    // we'll handle closing the menu in Dropdown instead,
+                    // since a search bar may be active and we want to reset it rather than closing the menu.
+                    return false;
+
+                return base.OnKeyDown(e);
             }
 
             public bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
