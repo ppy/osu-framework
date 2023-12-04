@@ -24,16 +24,16 @@ namespace osu.Framework.Tests.Visual.Localisation
 
             Manager.AddLanguage("en-GB", new TestLocalisationStore("en-GB", new Dictionary<string, string>
             {
-                [WindowModeStrings.Windowed.GetKey()] = "Windowed",
-                [WindowModeStrings.Borderless.GetKey()] = "Borderless",
-                [WindowModeStrings.Fullscreen.GetKey()] = "Full screen",
+                [WindowModeStrings.Windowed.GetTranslationKey()] = "Windowed",
+                [WindowModeStrings.Borderless.GetTranslationKey()] = "Borderless",
+                [WindowModeStrings.Fullscreen.GetTranslationKey()] = "Full screen",
             }));
 
             Manager.AddLanguage("hr-HR", new TestLocalisationStore("hr-HR", new Dictionary<string, string>
             {
-                [WindowModeStrings.Windowed.GetKey()] = "Prozor",
-                [WindowModeStrings.Borderless.GetKey()] = "Bez ruba",
-                [WindowModeStrings.Fullscreen.GetKey()] = "Puni zaslon",
+                [WindowModeStrings.Windowed.GetTranslationKey()] = "Prozor",
+                [WindowModeStrings.Borderless.GetTranslationKey()] = "Bez ruba",
+                [WindowModeStrings.Fullscreen.GetTranslationKey()] = "Puni zaslon",
             }));
         }
 

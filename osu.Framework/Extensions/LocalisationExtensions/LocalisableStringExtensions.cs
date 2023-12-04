@@ -80,7 +80,7 @@ namespace osu.Framework.Extensions.LocalisationExtensions
         /// </param>
         /// <returns>The <see cref="TranslatableString.Key"/> of the underlying <see cref="TranslatableString"/>.</returns>
         /// <exception cref="ArgumentException">Thrown if this <see cref="LocalisableString"/> doesn't have underlying <see cref="TranslatableString"/> data.</exception>
-        public static string GetKey(this LocalisableString str)
+        public static string GetTranslationKey(this LocalisableString str)
         {
             if (str.Data is not TranslatableString translatable)
                 throw new ArgumentException($"The {nameof(LocalisableString)} doesn't have underlying {nameof(TranslatableString)} data.", nameof(str));
