@@ -132,7 +132,7 @@ namespace osu.Framework.Graphics.Sprites
                 sourceEffectPlacement = Source.container.EffectPlacement;
             }
 
-            public override void Draw(IRenderer renderer)
+            protected override void Draw(IRenderer renderer)
             {
                 base.Draw(renderer);
 
