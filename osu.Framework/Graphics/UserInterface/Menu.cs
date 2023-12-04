@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected readonly Direction Direction;
 
-        private ItemsFlow itemsFlow;
+        private FillFlowContainer<DrawableMenuItem> itemsFlow;
         private Menu parentMenu;
         private Menu submenu;
 
@@ -70,27 +70,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly Container<Menu> submenuContainer;
         private readonly LayoutValue positionLayout = new LayoutValue(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit);
-
-        /// <summary>
-        /// Search terms to filter items displayed in this menu.
-        /// </summary>
-        public string SearchTerm
-        {
-            get => itemsFlow.SearchTerm;
-            set => itemsFlow.SearchTerm = value;
-        }
-
-        public bool AllowNonContiguousMatching
-        {
-            get => itemsFlow.AllowNonContiguousMatching;
-            set => itemsFlow.AllowNonContiguousMatching = value;
-        }
-
-        public event Action FilterCompleted
-        {
-            add => itemsFlow.FilterCompleted += value;
-            remove => itemsFlow.FilterCompleted -= value;
-        }
 
         /// <summary>
         /// Constructs a menu.
@@ -123,7 +102,7 @@ namespace osu.Framework.Graphics.UserInterface
                         {
                             d.RelativeSizeAxes = Axes.Both;
                             d.Masking = false;
-                            d.Child = itemsFlow = new ItemsFlow { Direction = direction == Direction.Horizontal ? FillDirection.Horizontal : FillDirection.Vertical };
+                            d.Child = itemsFlow = (FillFlowContainer<DrawableMenuItem>)CreateItemsFlow(direction == Direction.Horizontal ? FillDirection.Horizontal : FillDirection.Vertical);
                         })
                     }
                 },
@@ -203,7 +182,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 maxWidth = value;
 
-                itemsFlow.SizeCache.Invalidate();
+                ((IItemsFlow)itemsFlow).SizeCache.Invalidate();
             }
         }
 
@@ -222,7 +201,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 maxHeight = value;
 
-                itemsFlow.SizeCache.Invalidate();
+                ((IItemsFlow)itemsFlow).SizeCache.Invalidate();
             }
         }
 
@@ -292,7 +271,7 @@ namespace osu.Framework.Graphics.UserInterface
                 return;
 
             submenu?.Close();
-            itemsFlow.SizeCache.Invalidate();
+            ((IItemsFlow)itemsFlow).SizeCache.Invalidate();
         }
 
         /// <summary>
@@ -309,7 +288,7 @@ namespace osu.Framework.Graphics.UserInterface
             drawableItem.SetFlowDirection(Direction);
 
             ItemsContainer.Add(drawableItem);
-            itemsFlow.SizeCache.Invalidate();
+            ((IItemsFlow)itemsFlow).SizeCache.Invalidate();
         }
 
         private void itemStateChanged(DrawableMenuItem item, MenuItemState state)
@@ -329,7 +308,7 @@ namespace osu.Framework.Graphics.UserInterface
         public bool Remove(MenuItem item)
         {
             bool result = ItemsContainer.RemoveAll(d => d.Item == item, true) > 0;
-            itemsFlow.SizeCache.Invalidate();
+            ((IItemsFlow)itemsFlow).SizeCache.Invalidate();
 
             return result;
         }
@@ -461,7 +440,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.UpdateAfterChildren();
 
-            if (!itemsFlow.SizeCache.IsValid)
+            if (!((IItemsFlow)itemsFlow).SizeCache.IsValid)
             {
                 // Our children will be relatively-sized on the axis separate to the menu direction, so we need to compute
                 // that size ourselves, based on the content size of our children, to give them a valid relative size
@@ -495,7 +474,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 UpdateSize(new Vector2(width, height));
 
-                itemsFlow.SizeCache.Validate();
+                ((IItemsFlow)itemsFlow).SizeCache.Validate();
             }
         }
 
@@ -677,10 +656,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// <returns>The <see cref="ScrollContainer{T}"/>.</returns>
         protected abstract ScrollContainer<Drawable> CreateScrollContainer(Direction direction);
 
+        internal virtual IItemsFlow CreateItemsFlow(FillDirection direction) => new ItemsFlow { Direction = direction };
+
         #region DrawableMenuItem
 
         // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
-        public abstract partial class DrawableMenuItem : CompositeDrawable, IStateful<MenuItemState>, IFilterable
+        public abstract partial class DrawableMenuItem : CompositeDrawable, IStateful<MenuItemState>
         {
             /// <summary>
             /// Invoked when this <see cref="DrawableMenuItem"/>'s <see cref="State"/> changes.
@@ -723,10 +704,6 @@ namespace osu.Framework.Graphics.UserInterface
             public virtual bool CloseMenuOnClick => true;
 
             public IEnumerable<LocalisableString> FilterTerms => Item.Text.Value.Yield();
-
-            public abstract bool MatchingFilter { get; set; }
-
-            public abstract bool FilteringActive { set; }
 
             protected DrawableMenuItem(MenuItem item)
             {
@@ -942,9 +919,14 @@ namespace osu.Framework.Graphics.UserInterface
 
         #endregion
 
-        private partial class ItemsFlow : SearchContainer<DrawableMenuItem>
+        internal interface IItemsFlow : IFillFlowContainer
         {
-            public readonly LayoutValue SizeCache = new LayoutValue(Invalidation.RequiredParentSizeToFit, InvalidationSource.Self);
+            LayoutValue SizeCache { get; }
+        }
+
+        private partial class ItemsFlow : FillFlowContainer<DrawableMenuItem>, IItemsFlow
+        {
+            public LayoutValue SizeCache { get; } = new LayoutValue(Invalidation.RequiredParentSizeToFit, InvalidationSource.Self);
 
             public ItemsFlow()
             {

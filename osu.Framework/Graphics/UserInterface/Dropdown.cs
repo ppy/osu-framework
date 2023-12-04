@@ -421,6 +421,29 @@ namespace osu.Framework.Graphics.UserInterface
 
         public abstract partial class DropdownMenu : Menu, IKeyBindingHandler<PlatformAction>
         {
+            private SearchContainer<DrawableMenuItem> itemsFlow;
+
+            /// <summary>
+            /// Search terms to filter items displayed in this menu.
+            /// </summary>
+            public string SearchTerm
+            {
+                get => itemsFlow.SearchTerm;
+                set => itemsFlow.SearchTerm = value;
+            }
+
+            public bool AllowNonContiguousMatching
+            {
+                get => itemsFlow.AllowNonContiguousMatching;
+                set => itemsFlow.AllowNonContiguousMatching = value;
+            }
+
+            public event Action FilterCompleted
+            {
+                add => itemsFlow.FilterCompleted += value;
+                remove => itemsFlow.FilterCompleted -= value;
+            }
+
             protected DropdownMenu()
                 : base(Direction.Vertical)
             {
@@ -515,9 +538,26 @@ namespace osu.Framework.Graphics.UserInterface
 
             #region DrawableDropdownMenuItem
 
-            public abstract partial class DrawableDropdownMenuItem : DrawableMenuItem
+            public abstract partial class DrawableDropdownMenuItem : DrawableMenuItem, IFilterable
             {
                 public event Action<DropdownMenuItem<T>> PreselectionRequested;
+
+                private bool matchingFilter = true;
+
+                public bool MatchingFilter
+                {
+                    get => matchingFilter;
+                    set
+                    {
+                        matchingFilter = value;
+                        UpdateFilteringState(value);
+                    }
+                }
+
+                public virtual bool FilteringActive
+                {
+                    set { }
+                }
 
                 protected DrawableDropdownMenuItem(MenuItem item)
                     : base(item)
@@ -600,6 +640,8 @@ namespace osu.Framework.Graphics.UserInterface
                     Foreground.FadeColour(IsPreSelected ? ForegroundColourHover : IsSelected ? ForegroundColourSelected : ForegroundColour);
                 }
 
+                protected virtual void UpdateFilteringState(bool filtered) => this.FadeTo(filtered ? 1 : 0);
+
                 protected override bool OnHover(HoverEvent e)
                 {
                     PreselectionRequested?.Invoke(Item as DropdownMenuItem<T>);
@@ -679,6 +721,21 @@ namespace osu.Framework.Graphics.UserInterface
 
             public void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
             {
+            }
+
+            internal override IItemsFlow CreateItemsFlow(FillDirection direction) => (IItemsFlow)(itemsFlow = new SearchableItemsFlow
+            {
+                Direction = direction,
+            });
+
+            private partial class SearchableItemsFlow : SearchContainer<DrawableMenuItem>, IItemsFlow
+            {
+                public LayoutValue SizeCache { get; } = new LayoutValue(Invalidation.RequiredParentSizeToFit, InvalidationSource.Self);
+
+                public SearchableItemsFlow()
+                {
+                    AddLayout(SizeCache);
+                }
             }
         }
 
