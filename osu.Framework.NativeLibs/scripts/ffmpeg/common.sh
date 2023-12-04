@@ -16,10 +16,15 @@ FFMPEG_FLAGS=(
     --enable-avformat
     --enable-swscale
 
-    # File and video formats
-    --enable-demuxer='mov,matroska,flv,avi' # mov = mp4, matroska = mkv & webm
-    --enable-parser='mpeg4video,h264,hevc,vp8,vp9'
-    --enable-decoder='flv,msmpeg4v1,msmpeg4v2,msmpeg4v3,mpeg4,h264,hevc,vp8,vp9'
+    # Legacy video formats
+    --enable-demuxer='avi,flv,asf'
+    --enable-parser='mpeg4video'
+    --enable-decoder='flv,msmpeg4v1,msmpeg4v2,msmpeg4v3,mpeg4,vp6,vp6f,wmv2'
+
+    # Modern video formats
+    --enable-demuxer='mov,matroska' # mov = mp4, matroska = mkv & webm
+    --enable-parser='h264,hevc,vp8,vp9'
+    --enable-decoder='h264,hevc,vp8,vp9'
     --enable-protocol=pipe
 )
 
