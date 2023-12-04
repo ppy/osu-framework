@@ -153,6 +153,9 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         Texture WhitePixel { get; }
 
+        /// <summary>
+        /// The current depth of <see cref="TexturedVertex2D"/> vertices when drawn to the backbuffer.
+        /// </summary>
         internal DepthValue BackbufferDepth { get; }
 
         /// <summary>
