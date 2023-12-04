@@ -88,21 +88,34 @@ namespace osu.Framework.Tests.Bindables
             Assert.AreEqual(value, bindable.Value);
         }
 
-        [TestCase(1.4f, "1.4", "en-US", 1.4f)]
-        [TestCase(1.4f, "1,4", "de-DE", 1.4f)]
-        [TestCase(1400.01f, "1.400,01", "de-DE", 1400.01f)]
-        [TestCase(1234.57f, "1 234,57", "ru-RU", 1234.57f)]
-        [TestCase(1.094f, "1,094", "fr-FR", 1.094f)]
-        [TestCase(1400.01f, "1,400.01", "zh-CN", 1400.01f)]
-        public void TestParsingLocale(float numValue, string strValue, string locale, float expected)
+        [TestCase("1.4", "en-US", 1.4f)]
+        [TestCase("1,4", "de-DE", 1.4f)]
+        [TestCase("1.400,01", "de-DE", 1400.01f)]
+        [TestCase("1 234,57", "ru-RU", 1234.57f)]
+        [TestCase("1,094", "fr-FR", 1.094f)]
+        [TestCase("1,400.01", "zh-CN", 1400.01f)]
+        public void TestParsingStringLocale(string value, string locale, float expected)
+        {
+            var bindable = new BindableFloat();
+            bindable.Parse(value, CultureInfo.GetCultureInfo(locale));
+            Assert.AreEqual(expected, bindable.Value);
+        }
+
+        [TestCase(1.4f, "en-US", "1.4")]
+        [TestCase(1.4f, "de-DE", "1,4")]
+        [TestCase(1400.01f, "de-DE", "1400,01")]
+        [TestCase(1234.57f, "ru-RU", "1234,57")]
+        [TestCase(1.094f, "fr-FR", "1,094")]
+        [TestCase(1400.01f, "zh-CN", "1400.01")]
+        public void TestParsingNumberLocale(float value, string locale, string expected)
         {
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(locale);
 
-            var bindable = new BindableFloat(numValue);
+            var bindable = new BindableFloat(value);
             string? asString = bindable.ToString();
-            Assert.AreEqual(expected.ToString(CultureInfo.CurrentCulture), asString);
+            Assert.AreEqual(expected, asString);
             Assert.DoesNotThrow(() => bindable.Parse(asString));
-            Assert.AreEqual(expected, bindable.Value, Precision.FLOAT_EPSILON);
+            Assert.AreEqual(value, bindable.Value, Precision.FLOAT_EPSILON);
         }
     }
 }

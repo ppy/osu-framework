@@ -101,21 +101,34 @@ namespace osu.Framework.Tests.Bindables
             number.MaxValue = 10;
         }
 
-        [TestCase(1.4, "1.4", "en-US", 1.4)]
-        [TestCase(1.4, "1,4", "de-DE", 1.4)]
-        [TestCase(1400.01, "1.400,01", "de-DE", 1400.01)]
-        [TestCase(1234.57, "1 234,57", "ru-RU", 1234.57)]
-        [TestCase(1.094, "1,094", "fr-FR", 1.094)]
-        [TestCase(1400.01, "1,400.01", "zh-CN", 1400.01)]
-        public void TestParsingLocale(double numValue, string strValue, string locale, double expected)
+        [TestCase("1.4", "en-US", 1.4)]
+        [TestCase("1,4", "de-DE", 1.4)]
+        [TestCase("1.400,01", "de-DE", 1400.01)]
+        [TestCase("1 234,57", "ru-RU", 1234.57)]
+        [TestCase("1,094", "fr-FR", 1.094)]
+        [TestCase("1,400.01", "zh-CN", 1400.01)]
+        public void TestParsingStringLocale(string value, string locale, double expected)
+        {
+            var bindable = new BindableDouble();
+            bindable.Parse(value, CultureInfo.GetCultureInfo(locale));
+            Assert.AreEqual(expected, bindable.Value);
+        }
+
+        [TestCase(1.4, "en-US", "1.4")]
+        [TestCase(1.4, "de-DE", "1,4")]
+        [TestCase(1400.01, "de-DE", "1400,01")]
+        [TestCase(1234.57, "ru-RU", "1234,57")]
+        [TestCase(1.094, "fr-FR", "1,094")]
+        [TestCase(1400.01, "zh-CN", "1400.01")]
+        public void TestParsingNumberLocale(double value, string locale, string expected)
         {
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(locale);
 
-            var bindable = new BindableDouble(numValue);
+            var bindable = new BindableDouble(value);
             string? asString = bindable.ToString();
-            Assert.AreEqual(expected.ToString(CultureInfo.CurrentCulture), asString);
+            Assert.AreEqual(expected, asString);
             Assert.DoesNotThrow(() => bindable.Parse(asString));
-            Assert.AreEqual(expected, bindable.Value, Precision.DOUBLE_EPSILON);
+            Assert.AreEqual(value, bindable.Value, Precision.DOUBLE_EPSILON);
         }
     }
 }
