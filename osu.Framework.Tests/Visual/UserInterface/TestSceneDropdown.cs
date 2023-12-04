@@ -416,10 +416,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("press escape", () => InputManager.Key(Key.Escape));
             AddAssert("search bar hidden", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
-            AddAssert("dropdown still open", () => dropdown.State.Value == MenuState.Open);
+            AddAssert("dropdown still open", () => dropdown.Menu.State == MenuState.Open);
 
             AddStep("press escape again", () => InputManager.Key(Key.Escape));
-            AddAssert("dropdown closed", () => dropdown.State.Value == MenuState.Closed);
+            AddAssert("dropdown closed", () => dropdown.Menu.State == MenuState.Closed);
 
             toggleDropdownViaClick(() => dropdown);
             AddStep("trigger text", () => dropdown.TextInput.Text("test 4"));
@@ -455,10 +455,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("press escape", () => InputManager.Key(Key.Escape));
             AddAssert("search bar still visible", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Visible));
-            AddAssert("dropdown still open", () => dropdown.State.Value == MenuState.Open);
+            AddAssert("dropdown still open", () => dropdown.Menu.State == MenuState.Open);
 
             AddStep("press escape again", () => InputManager.Key(Key.Escape));
-            AddAssert("dropdown closed", () => dropdown.State.Value == MenuState.Closed);
+            AddAssert("dropdown closed", () => dropdown.Menu.State == MenuState.Closed);
             AddAssert("search bar hidden", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
 
             toggleDropdownViaClick(() => dropdown);

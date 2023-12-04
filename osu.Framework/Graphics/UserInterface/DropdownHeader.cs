@@ -65,8 +65,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         public BindableBool Enabled { get; } = new BindableBool(true);
 
-        public IBindable<MenuState> State { get; } = new Bindable<MenuState>();
-
         public Action ToggleMenu;
 
         protected DropdownHeader()
@@ -108,14 +106,6 @@ namespace osu.Framework.Graphics.UserInterface
             base.LoadComplete();
 
             Enabled.BindValueChanged(_ => updateState(), true);
-
-            State.BindValueChanged(v =>
-            {
-                if (v.NewValue == MenuState.Open)
-                    SearchBar.ObtainFocus();
-                else
-                    SearchBar.ReleaseFocus();
-            }, true);
         }
 
         protected override bool OnClick(ClickEvent e)
@@ -137,6 +127,14 @@ namespace osu.Framework.Graphics.UserInterface
         {
             updateState();
             base.OnHoverLost(e);
+        }
+
+        public void UpdateSearchBarFocus(MenuState state)
+        {
+            if (state == MenuState.Open)
+                SearchBar.ObtainFocus();
+            else
+                SearchBar.ReleaseFocus();
         }
 
         private void updateState()

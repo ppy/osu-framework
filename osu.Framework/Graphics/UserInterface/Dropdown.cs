@@ -15,6 +15,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
+using osu.Framework.Layout;
 using osu.Framework.Localisation;
 using osuTK.Graphics;
 using osuTK.Input;
@@ -44,8 +45,6 @@ namespace osu.Framework.Graphics.UserInterface
             get => Menu.AllowNonContiguousMatching;
             set => Menu.AllowNonContiguousMatching = value;
         }
-
-        public Bindable<MenuState> State { get; } = new Bindable<MenuState>();
 
         /// <summary>
         /// Creates the header part of the control.
@@ -131,7 +130,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (!Current.Disabled)
                     Current.Value = value;
 
-                State.Value = MenuState.Closed;
+                Menu.Close();
             });
 
             // inheritors expect that `virtual GenerateItemText` is only called when this dropdown's BDL has run to completion.
@@ -202,9 +201,9 @@ namespace osu.Framework.Graphics.UserInterface
             if (Header.SearchBar.Back())
                 return true;
 
-            if (State.Value == MenuState.Open)
+            if (Menu.State == MenuState.Open)
             {
-                State.Value = MenuState.Closed;
+                Menu.Close();
                 return true;
             }
 
@@ -257,38 +256,39 @@ namespace osu.Framework.Graphics.UserInterface
 
             Header.SearchTerm.ValueChanged += t => Menu.SearchTerm = t.NewValue;
 
-            Header.State.BindTo(State);
-
             Menu.RelativeSizeAxes = Axes.X;
             Menu.PreselectionConfirmed += preselectionConfirmed;
-            Menu.FilterCompleted += menuFilterCompleted;
-            Menu.StateChanged += state => State.Value = state;
+            Menu.FilterCompleted += filterCompleted;
 
-            State.ValueChanged += state => Menu.State = state.NewValue;
+            Menu.StateChanged += state =>
+            {
+                Menu.State = state;
+                Header.UpdateSearchBarFocus(state);
+            };
 
             Current.ValueChanged += val => Scheduler.AddOnce(selectionChanged, val);
             Current.DisabledChanged += disabled =>
             {
                 Header.Enabled.Value = !disabled;
-                if (disabled && State.Value == MenuState.Open)
-                    State.Value = MenuState.Closed;
+                if (disabled && Menu.State == MenuState.Open)
+                    Menu.State = MenuState.Closed;
             };
 
             ItemSource.CollectionChanged += (_, _) => setItems(itemSource);
         }
 
-        private void menuFilterCompleted()
+        private void preselectionConfirmed(DropdownMenuItem<T> item)
+        {
+            SelectedItem = item;
+            Menu.State = MenuState.Closed;
+        }
+
+        private void filterCompleted()
         {
             if (!string.IsNullOrEmpty(Menu.SearchTerm))
                 Menu.PreselectItem(0);
             else
                 Menu.PreselectItem(null);
-        }
-
-        private void preselectionConfirmed(DropdownMenuItem<T> item)
-        {
-            SelectedItem = item;
-            State.Value = MenuState.Closed;
         }
 
         private void selectionKeyPressed(DropdownHeader.DropdownSelectionAction action)
