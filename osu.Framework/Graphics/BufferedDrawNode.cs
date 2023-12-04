@@ -80,7 +80,7 @@ namespace osu.Framework.Graphics
         /// <returns>A version representing this <see cref="DrawNode"/>'s state.</returns>
         protected virtual long GetDrawVersion() => InvalidationID;
 
-        public sealed override void Draw(IRenderer renderer)
+        protected sealed override void Draw(IRenderer renderer)
         {
             if (!SharedData.IsInitialised)
                 SharedData.Initialise(renderer);
@@ -101,7 +101,7 @@ namespace osu.Framework.Graphics
                         renderer.PushOrtho(screenSpaceDrawRectangle);
                         renderer.Clear(new ClearInfo(backgroundColour));
 
-                        Child.Draw(renderer);
+                        DrawOther(Child, renderer);
 
                         renderer.PopOrtho();
                     }
