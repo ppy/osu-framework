@@ -418,8 +418,9 @@ namespace osu.Framework.Bindables
         /// A collection holding items of type <typeparamref name="T"/> can be parsed. Null results in an empty <see cref="BindableList{T}"/>.
         /// </summary>
         /// <param name="input">The input which is to be parsed.</param>
+        /// <param name="provider">Not valid for <see cref="BindableList{T}"/>.</param>
         /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
-        public void Parse([CanBeNull] object input)
+        public void Parse([CanBeNull] object input, [CanBeNull] IFormatProvider provider = null)
         {
             ensureMutationAllowed();
 
@@ -689,7 +690,5 @@ namespace osu.Framework.Bindables
         public bool IsDefault => Count == 0;
 
         string IFormattable.ToString(string format, IFormatProvider formatProvider) => ((FormattableString)$"{GetType().ReadableName()}({nameof(Count)}={Count})").ToString(formatProvider);
-
-        void IParseable.Parse(object input, IFormatProvider provider) => Parse(input);
     }
 }

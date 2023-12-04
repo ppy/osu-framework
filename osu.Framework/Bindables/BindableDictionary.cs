@@ -273,8 +273,9 @@ namespace osu.Framework.Bindables
         /// A collection holding items of type <see cref="KeyValuePair{TKey,TValue}"/> can be parsed. Null results in an empty <see cref="BindableDictionary{TKey, TValue}"/>.
         /// </summary>
         /// <param name="input">The input which is to be parsed.</param>
+        /// <param name="provider">Not valid for <see cref="BindableDictionary{TKey, TValue}"/>.</param>
         /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableDictionary{TKey, TValue}"/> is <see cref="Disabled"/>.</exception>
-        public void Parse(object? input)
+        public void Parse(object? input, IFormatProvider? provider = null)
         {
             ensureMutationAllowed();
 
@@ -525,7 +526,5 @@ namespace osu.Framework.Bindables
         public bool IsDefault => Count == 0;
 
         string IFormattable.ToString(string? format, IFormatProvider? formatProvider) => ((FormattableString)$"{GetType().ReadableName()}({nameof(Count)}={Count})").ToString(formatProvider);
-
-        void IParseable.Parse(object input, IFormatProvider? provider) => Parse(input);
     }
 }
