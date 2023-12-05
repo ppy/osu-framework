@@ -296,7 +296,7 @@ namespace osu.Framework.Bindables
                     if (underlyingType.IsEnum)
                         Value = (T)Enum.Parse(underlyingType, input.ToString().AsNonNull());
                     else
-                        Value = (T)Convert.ChangeType(input, underlyingType, provider ?? CultureInfo.CurrentCulture);
+                        Value = (T)Convert.ChangeType(input, underlyingType, provider);
 
                     break;
             }
