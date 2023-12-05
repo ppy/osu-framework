@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Caching;
@@ -418,8 +419,9 @@ namespace osu.Framework.Bindables
         /// A collection holding items of type <typeparamref name="T"/> can be parsed. Null results in an empty <see cref="BindableList{T}"/>.
         /// </summary>
         /// <param name="input">The input which is to be parsed.</param>
+        /// <param name="provider">Not valid for <see cref="BindableList{T}"/>.</param>
         /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
-        public void Parse([CanBeNull] object input)
+        public void Parse(object input, IFormatProvider provider)
         {
             ensureMutationAllowed();
 
@@ -626,7 +628,7 @@ namespace osu.Framework.Bindables
                 throw new ArgumentException("A collection can not be bound to itself");
 
             // copy state and content over
-            Parse(them);
+            Parse(them, CultureInfo.InvariantCulture);
             Disabled = them.Disabled;
 
             addWeakReference(them.weakReference);
