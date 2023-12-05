@@ -21,7 +21,7 @@ namespace osu.Framework.Bindables
 
         public override string ToString(string? format, IFormatProvider? formatProvider) => ((FormattableString)$"{Value.Width}x{Value.Height}").ToString(formatProvider);
 
-        public override void Parse(object? input, IFormatProvider? provider = null)
+        public override void Parse(object? input, IFormatProvider provider)
         {
             if (input == null) throw new ArgumentNullException(nameof(input));
 

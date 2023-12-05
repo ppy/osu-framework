@@ -249,7 +249,7 @@ namespace osu.Framework.Bindables
         /// </summary>
         /// <param name="input">The input which is to be parsed.</param>
         /// <param name="provider">An object that provides culture-specific formatting information about <paramref name="input"/>.</param>
-        public virtual void Parse([CanBeNull] object input, [CanBeNull] IFormatProvider provider = null)
+        public virtual void Parse(object input, IFormatProvider provider)
         {
             switch (input)
             {

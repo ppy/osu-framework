@@ -55,7 +55,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestParsingString(string value, float expected)
         {
             var bindable = new BindableFloat();
-            bindable.Parse(value);
+            bindable.Parse(value, CultureInfo.InvariantCulture);
 
             Assert.AreEqual(expected, bindable.Value);
         }
@@ -68,7 +68,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestParsingStringWithRange(string value, float minValue, float maxValue, float expected)
         {
             var bindable = new BindableFloat { MinValue = minValue, MaxValue = maxValue };
-            bindable.Parse(value);
+            bindable.Parse(value, CultureInfo.InvariantCulture);
 
             Assert.AreEqual(expected, bindable.Value);
         }
@@ -83,7 +83,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestParsingFloat(float value)
         {
             var bindable = new BindableFloat();
-            bindable.Parse(value);
+            bindable.Parse(value, CultureInfo.InvariantCulture);
 
             Assert.AreEqual(value, bindable.Value);
         }
@@ -114,7 +114,7 @@ namespace osu.Framework.Tests.Bindables
             var bindable = new BindableFloat(value);
             string? asString = bindable.ToString();
             Assert.AreEqual(expected, asString);
-            Assert.DoesNotThrow(() => bindable.Parse(asString));
+            Assert.DoesNotThrow(() => bindable.Parse(asString, CultureInfo.CurrentCulture));
             Assert.AreEqual(value, bindable.Value, Precision.FLOAT_EPSILON);
         }
     }
