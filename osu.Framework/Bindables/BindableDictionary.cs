@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.TypeExtensions;
@@ -275,7 +276,7 @@ namespace osu.Framework.Bindables
         /// <param name="input">The input which is to be parsed.</param>
         /// <param name="provider">Not valid for <see cref="BindableDictionary{TKey, TValue}"/>.</param>
         /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableDictionary{TKey, TValue}"/> is <see cref="Disabled"/>.</exception>
-        public void Parse(object? input, IFormatProvider? provider = null)
+        public void Parse(object? input, IFormatProvider provider)
         {
             ensureMutationAllowed();
 
@@ -461,7 +462,7 @@ namespace osu.Framework.Bindables
                 throw new ArgumentException("A dictionary can not be bound to itself");
 
             // copy state and content over
-            Parse(them);
+            Parse(them, CultureInfo.InvariantCulture);
             Disabled = them.Disabled;
 
             addWeakReference(them.weakReference);
