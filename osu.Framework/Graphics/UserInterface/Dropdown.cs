@@ -84,6 +84,7 @@ namespace osu.Framework.Graphics.UserInterface
         private void setItems(IEnumerable<T> value)
         {
             clearItems();
+
             if (value == null)
                 return;
 
@@ -347,8 +348,7 @@ namespace osu.Framework.Graphics.UserInterface
                 return;
             }
 
-            if (SelectedItem == null || !EqualityComparer<T>.Default.Equals(Current.Value, selectedItem.Value))
-                updateItemSelection(Current.Value);
+            updateItemSelection(Current.Value);
         }
 
         private void updateItemSelection(T value)
@@ -382,7 +382,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             itemMap.Clear();
             Menu.Clear();
-            selectedItem = null;
         }
 
         /// <summary>
@@ -450,8 +449,9 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
                 {
+                    bool wasSelected = c.IsSelected;
                     c.IsSelected = compareItemEquality(item, c.Item);
-                    if (c.IsSelected)
+                    if (c.IsSelected && !wasSelected)
                         ContentContainer.ScrollIntoView(c);
                 });
             }
@@ -483,8 +483,9 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
                 {
+                    bool wasPreSelected = c.IsPreSelected;
                     c.IsPreSelected = compareItemEquality(item, c.Item);
-                    if (c.IsPreSelected)
+                    if (c.IsPreSelected && !wasPreSelected)
                         ContentContainer.ScrollIntoView(c);
                 });
             }
