@@ -332,7 +332,7 @@ namespace osu.Framework.Utils
 
         private void updateLastSegment(List<Vector2> vertices, List<float> distances, List<float> cornerTs, List<List<Vector2>> segments, int iterations, bool mask)
         {
-            if (segments.Count == 0) return;
+            if (segments.Count == 0 || segments.Count >= cornerTs.Count) return;
 
             // Initialize control points for the last segment
             int i = segments.Count - 1;
