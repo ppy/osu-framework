@@ -19,7 +19,7 @@ FFMPEG_FLAGS=(
     # File and video formats
     --enable-demuxer='mov,matroska,flv,avi' # mov = mp4, matroska = mkv & webm
     --enable-parser='mpeg4video,h264,hevc,vp8,vp9'
-    --enable-decoder='flv,mpeg4,h264,hevc,vp8,vp9'
+    --enable-decoder='flv,msmpeg4v1,msmpeg4v2,msmpeg4v3,mpeg4,h264,hevc,vp8,vp9'
     --enable-protocol=pipe
 )
 
