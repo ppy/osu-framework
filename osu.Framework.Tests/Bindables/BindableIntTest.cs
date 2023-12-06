@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Globalization;
 using NUnit.Framework;
 using osu.Framework.Bindables;
 
@@ -30,7 +31,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestParsingString(string value, int expected)
         {
             var bindable = new BindableInt();
-            bindable.Parse(value);
+            bindable.Parse(value, CultureInfo.InvariantCulture);
 
             Assert.AreEqual(expected, bindable.Value);
         }
@@ -43,7 +44,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestParsingStringWithRange(string value, int minValue, int maxValue, int expected)
         {
             var bindable = new BindableInt { MinValue = minValue, MaxValue = maxValue };
-            bindable.Parse(value);
+            bindable.Parse(value, CultureInfo.InvariantCulture);
 
             Assert.AreEqual(expected, bindable.Value);
         }
@@ -58,7 +59,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestParsingInt(int value)
         {
             var bindable = new BindableInt();
-            bindable.Parse(value);
+            bindable.Parse(value, CultureInfo.InvariantCulture);
 
             Assert.AreEqual(value, bindable.Value);
         }

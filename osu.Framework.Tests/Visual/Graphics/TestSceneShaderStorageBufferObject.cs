@@ -102,7 +102,7 @@ namespace osu.Framework.Tests.Visual.Graphics
             private IShaderStorageBufferObject<ColourData>? colourBuffer;
             private IVertexBatch<ColourIndexedVertex>? vertices;
 
-            public override void Draw(IRenderer renderer)
+            protected override void Draw(IRenderer renderer)
             {
                 base.Draw(renderer);
 
@@ -192,7 +192,7 @@ namespace osu.Framework.Tests.Visual.Graphics
             private ShaderStorageBufferObjectStack<ColourData>? colourBuffer;
             private IVertexBatch<ColourIndexedVertex>? vertices;
 
-            public override void Draw(IRenderer renderer)
+            protected override void Draw(IRenderer renderer)
             {
                 base.Draw(renderer);
 
