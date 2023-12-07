@@ -366,7 +366,7 @@ namespace osu.Framework.Utils
             }
 
             // Optimize the control point placement
-            if (lastSegment.Count is <= 2 or >= 100) return;
+            if (lastSegment.Count <= 2 || lastSegment.Count >= 100) return;
 
             float[,]? learnableMask = null;
 
