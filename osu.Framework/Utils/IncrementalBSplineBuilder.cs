@@ -548,6 +548,8 @@ namespace osu.Framework.Utils
         /// </summary>
         public void Finish()
         {
+            // Do additional optimization steps on the entire last segment.
+            // This improves results after drawing, so the performance stays fast and control points dont wobble too much while drawing.
             outputCache.Invalidate();
             controlPointsPartiallyInvalid = true;
             shouldFinishLastSegment = true;
