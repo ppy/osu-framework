@@ -368,14 +368,18 @@ namespace osu.Framework.Utils
             // Optimize the control point placement
             if (lastSegment.Count is <= 2 or >= 100) return;
 
-            // Make a mask to prevent modifying the control points which have already been optimized enough.
-            // Also the end-points can not move.
             float[,]? learnableMask = null;
 
             if (mask)
             {
+                // When live-drawing, only the end of the segment gets extended in which case we use this mask to make updates less wobbly.
+                // Make a mask to prevent modifying the control points which have barely any impact on the end of the segment.
+                // Also the end-points can not move.
                 learnableMask = new float[2, lastSegment.Count];
 
+                // Only the 2 * degree last control points are not fixed in place.
+                // This number was chosen because manual testing showed that control points outside this range barely get moved
+                // by the optimization when the end of the segment gets extended.
                 for (int j = Math.Max(1, lastSegment.Count - degree * 2); j < lastSegment.Count - 1; j++)
                 {
                     learnableMask[0, j] = 1;
