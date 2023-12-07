@@ -79,9 +79,9 @@ namespace osu.Framework.Utils
             Value = new List<List<Vector2>>()
         };
 
-        private bool controlPointsPartiallyInvalid;
+        private bool shouldOptimiseLastSegment;
 
-        private bool shouldFinishLastSegment;
+        private bool finishedDrawing;
 
         private int degree;
 
@@ -174,10 +174,10 @@ namespace osu.Framework.Utils
             get
             {
                 if (!controlPoints.IsValid)
-                    regenerateApproximatedPathControlPoints();
+                    regenerateFullApproximatedPath();
 
-                if (controlPointsPartiallyInvalid)
-                    updateApproximatedPathControlPoints();
+                if (shouldOptimiseLastSegment)
+                    regenerateLastApproximatedSegment();
 
                 return controlPoints.Value;
             }
@@ -392,11 +392,11 @@ namespace osu.Framework.Utils
                 res, iterations, 4f, initialControlPoints: lastSegment, learnableMask: learnableMask);
         }
 
-        private void updateApproximatedPathControlPoints()
+        private void regenerateLastApproximatedSegment()
         {
             if (!controlPoints.IsValid)
             {
-                regenerateApproximatedPathControlPoints();
+                regenerateFullApproximatedPath();
                 return;
             }
 
@@ -430,15 +430,15 @@ namespace osu.Framework.Utils
                 segments.Add(new List<Vector2>());
             }
 
-            if (shouldFinishLastSegment)
+            if (finishedDrawing)
                 updateLastSegment(vertices, distances, cornerTs, segments, 100, false);
             else
                 updateLastSegment(vertices, distances, cornerTs, segments, 10, true);
 
-            controlPointsPartiallyInvalid = false;
+            shouldOptimiseLastSegment = false;
         }
 
-        private void regenerateApproximatedPathControlPoints()
+        private void regenerateFullApproximatedPath()
         {
             // Approximating a given input path with a BSpline has three stages:
             //  1. Fit a dense-ish BSpline (with one control point in FdEpsilon-sized intervals) to the input path.
@@ -478,7 +478,7 @@ namespace osu.Framework.Utils
                 segments.Add(cps);
             }
 
-            controlPointsPartiallyInvalid = false;
+            shouldOptimiseLastSegment = false;
         }
 
         private void redrawApproximatedPath()
@@ -502,8 +502,8 @@ namespace osu.Framework.Utils
             controlPoints.Value = new List<List<Vector2>>();
             outputCache.Value = new List<Vector2>();
 
-            controlPointsPartiallyInvalid = false;
-            shouldFinishLastSegment = false;
+            shouldOptimiseLastSegment = false;
+            finishedDrawing = false;
         }
 
         /// <summary>
@@ -513,7 +513,7 @@ namespace osu.Framework.Utils
         public void AddLinearPoint(Vector2 v)
         {
             outputCache.Invalidate();
-            controlPointsPartiallyInvalid = true;
+            shouldOptimiseLastSegment = true;
 
             // Implementation detail: we would like to disregard input path detail that is smaller than
             // FD_EPSILON * 2 because it can otherwise mess with the winding calculations. However, we
@@ -551,8 +551,8 @@ namespace osu.Framework.Utils
             // Do additional optimization steps on the entire last segment.
             // This improves results after drawing, so the performance stays fast and control points dont wobble too much while drawing.
             outputCache.Invalidate();
-            controlPointsPartiallyInvalid = true;
-            shouldFinishLastSegment = true;
+            shouldOptimiseLastSegment = true;
+            finishedDrawing = true;
         }
     }
 }
