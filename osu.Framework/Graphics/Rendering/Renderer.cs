@@ -69,9 +69,9 @@ namespace osu.Framework.Graphics.Rendering
         public WrapMode CurrentWrapModeS { get; private set; }
         public WrapMode CurrentWrapModeT { get; private set; }
         public bool IsMaskingActive => maskingStack.Count > 1;
-        public float BackbufferDrawDepth { get; private set; }
         public bool UsingBackbuffer => frameBufferStack.Count == 0;
         public Texture WhitePixel => whitePixel.Value;
+        DepthValue IRenderer.BackbufferDepth => backBufferDepth;
 
         public bool IsInitialised { get; private set; }
 
@@ -107,6 +107,8 @@ namespace osu.Framework.Graphics.Rendering
         private readonly RendererDisposalQueue disposalQueue = new RendererDisposalQueue();
 
         private readonly Scheduler resetScheduler = new Scheduler(() => ThreadSafety.IsDrawThread, new StopwatchClock(true)); // force no thread set until we are actually on the draw thread.
+
+        private readonly DepthValue backBufferDepth = new DepthValue();
 
         private readonly Stack<IVertexBatch<TexturedVertex2D>> quadBatches = new Stack<IVertexBatch<TexturedVertex2D>>();
         private readonly List<IVertexBuffer> vertexBuffersInUse = new List<IVertexBuffer>();
@@ -199,6 +201,8 @@ namespace osu.Framework.Graphics.Rendering
             Debug.Assert(defaultQuadBatch != null);
 
             FrameIndex++;
+
+            backBufferDepth.Reset();
 
             resetScheduler.Update();
 
@@ -323,13 +327,6 @@ namespace osu.Framework.Graphics.Rendering
         /// Returns an image containing the current content of the backbuffer, i.e. takes a screenshot.
         /// </summary>
         protected internal abstract Image<Rgba32> TakeScreenshot();
-
-        /// <summary>
-        /// Sets the current draw depth.
-        /// The draw depth is written to every vertex added to <see cref="IVertexBuffer"/>s.
-        /// </summary>
-        /// <param name="drawDepth">The draw depth.</param>
-        internal void SetDrawDepth(float drawDepth) => BackbufferDrawDepth = drawDepth;
 
         /// <summary>
         /// Performs a once-off initialisation of this <see cref="Renderer"/>.
@@ -1151,7 +1148,6 @@ namespace osu.Framework.Graphics.Rendering
         void IRenderer.MakeCurrent() => MakeCurrent();
         void IRenderer.ClearCurrent() => ClearCurrent();
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform) => SetUniform(uniform);
-        void IRenderer.SetDrawDepth(float drawDepth) => SetDrawDepth(drawDepth);
         void IRenderer.PushQuadBatch(IVertexBatch<TexturedVertex2D> quadBatch) => PushQuadBatch(quadBatch);
         void IRenderer.PopQuadBatch() => PopQuadBatch();
         Image<Rgba32> IRenderer.TakeScreenshot() => TakeScreenshot();

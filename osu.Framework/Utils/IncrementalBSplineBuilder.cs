@@ -385,7 +385,7 @@ namespace osu.Framework.Utils
 
             int res = (int)(totalWinding * 10);
             segments[^1] = PathApproximator.PiecewiseLinearToBSpline(segmentPath.ToArray(), lastSegment.Count, degree,
-                res, iterations, 4f, interpolatorResolution: res, initialControlPoints: lastSegment, learnableMask: learnableMask);
+                res, iterations, 4f, initialControlPoints: lastSegment, learnableMask: learnableMask);
         }
 
         private void updateApproximatedPathControlPoints()
@@ -460,7 +460,7 @@ namespace osu.Framework.Utils
                 {
                     int res = (int)(totalWinding * 10);
                     cps = PathApproximator.PiecewiseLinearToBSpline(segmentPath.ToArray(), cps.Count, degree,
-                        res, 200, 5, interpolatorResolution: res, initialControlPoints: cps);
+                        res, 200, 5, initialControlPoints: cps);
                 }
 
                 segments.Add(cps);

@@ -298,6 +298,19 @@ namespace osu.Framework.Utils
             return result;
         }
 
+        /// <summary>
+        /// Creates a bezier curve approximation from a piecewise-linear path.
+        /// </summary>
+        /// <param name="inputPath">The piecewise-linear path to approximate.</param>
+        /// <param name="numControlPoints">The number of control points to use in the bezier approximation.</param>
+        /// <param name="numTestPoints">The number of points to evaluate the bezier path at for optimization, basically a resolution.</param>
+        /// <param name="maxIterations">The number of optimization steps.</param>
+        /// <param name="learningRate">The rate of optimization. Larger values converge faster but can be unstable.</param>
+        /// <param name="b1">The B1 parameter for the Adam optimizer. Between 0 and 1.</param>
+        /// <param name="b2">The B2 parameter for the Adam optimizer. Between 0 and 1.</param>
+        /// <param name="initialControlPoints">The initial bezier control points to use before optimization. The length of this list should be equal to <see cref="numControlPoints"/>.</param>
+        /// <param name="learnableMask">Mask determining which control point positions are fixed and cannot be changed by the optimiser.</param>
+        /// <returns>A List of vectors representing the bezier control points.</returns>
         public static List<Vector2> PiecewiseLinearToBezier(ReadOnlySpan<Vector2> inputPath,
                                                             int numControlPoints,
                                                             int numTestPoints = 100,
@@ -305,15 +318,28 @@ namespace osu.Framework.Utils
                                                             float learningRate = 8f,
                                                             float b1 = 0.8f,
                                                             float b2 = 0.99f,
-                                                            int interpolatorResolution = 100,
                                                             List<Vector2>? initialControlPoints = null,
                                                             float[,]? learnableMask = null)
         {
             numTestPoints = Math.Max(numTestPoints, 3);
             return piecewiseLinearToSpline(inputPath, generateBezierWeights(numControlPoints, numTestPoints),
-                maxIterations, learningRate, b1, b2, interpolatorResolution, initialControlPoints, learnableMask);
+                maxIterations, learningRate, b1, b2, initialControlPoints, learnableMask);
         }
 
+        /// <summary>
+        /// Creates a B-spline approximation from a piecewise-linear path.
+        /// </summary>
+        /// <param name="inputPath">The piecewise-linear path to approximate.</param>
+        /// <param name="numControlPoints">The number of control points to use in the B-spline approximation.</param>
+        /// <param name="degree">The polynomial order.</param>
+        /// <param name="numTestPoints">The number of points to evaluate the B-spline path at for optimization, basically a resolution.</param>
+        /// <param name="maxIterations">The number of optimization steps.</param>
+        /// <param name="learningRate">The rate of optimization. Larger values converge faster but can be unstable.</param>
+        /// <param name="b1">The B1 parameter for the Adam optimizer. Between 0 and 1.</param>
+        /// <param name="b2">The B2 parameter for the Adam optimizer. Between 0 and 1.</param>
+        /// <param name="initialControlPoints">The initial B-spline control points to use before optimization. The length of this list should be equal to <see cref="numControlPoints"/>.</param>
+        /// <param name="learnableMask">Mask determining which control point positions are fixed and cannot be changed by the optimiser.</param>
+        /// <returns>A List of vectors representing the B-spline control points.</returns>
         public static List<Vector2> PiecewiseLinearToBSpline(ReadOnlySpan<Vector2> inputPath,
                                                              int numControlPoints,
                                                              int degree,
@@ -322,23 +348,34 @@ namespace osu.Framework.Utils
                                                              float learningRate = 8f,
                                                              float b1 = 0.8f,
                                                              float b2 = 0.99f,
-                                                             int interpolatorResolution = 100,
                                                              List<Vector2>? initialControlPoints = null,
                                                              float[,]? learnableMask = null)
         {
             degree = Math.Min(degree, numControlPoints - 1);
             numTestPoints = Math.Max(numTestPoints, 3);
             return piecewiseLinearToSpline(inputPath, generateBSplineWeights(numControlPoints, numTestPoints, degree),
-                maxIterations, learningRate, b1, b2, interpolatorResolution, initialControlPoints, learnableMask);
+                maxIterations, learningRate, b1, b2, initialControlPoints, learnableMask);
         }
 
+        /// <summary>
+        /// Creates an arbitrary spline approximation from a piecewise-linear path.
+        /// Works for any spline type where the interpolation is a linear combination of the control points.
+        /// </summary>
+        /// <param name="inputPath">The piecewise-linear path to approximate.</param>
+        /// <param name="weights">A 2D matrix that contains the spline basis functions at multiple positions. The length of the first dimension is the number of test points, and the length of the second dimension is the number of control points.</param>
+        /// <param name="maxIterations">The number of optimization steps.</param>
+        /// <param name="learningRate">The rate of optimization. Larger values converge faster but can be unstable.</param>
+        /// <param name="b1">The B1 parameter for the Adam optimizer. Between 0 and 1.</param>
+        /// <param name="b2">The B2 parameter for the Adam optimizer. Between 0 and 1.</param>
+        /// <param name="initialControlPoints">The initial control points to use before optimization. The length of this list should be equal to the number of test points.</param>
+        /// <param name="learnableMask">Mask determining which control point positions are fixed and cannot be changed by the optimiser.</param>
+        /// <returns>A List of vectors representing the spline control points.</returns>
         private static List<Vector2> piecewiseLinearToSpline(ReadOnlySpan<Vector2> inputPath,
                                                              float[,] weights,
                                                              int maxIterations = 100,
                                                              float learningRate = 8f,
                                                              float b1 = 0.8f,
                                                              float b2 = 0.99f,
-                                                             int interpolatorResolution = 100,
                                                              List<Vector2>? initialControlPoints = null,
                                                              float[,]? learnableMask = null)
         {
@@ -357,7 +394,7 @@ namespace osu.Framework.Utils
             }
 
             // Create efficient interpolation on the input path
-            var interpolator = new Interpolator(inputPath, interpolatorResolution);
+            var interpolator = new Interpolator(inputPath, numTestPoints);
 
             // Initialize control points
             float[,] labels = new float[2, numTestPoints];
@@ -411,7 +448,7 @@ namespace osu.Framework.Utils
                 matmul(points, weightsTranspose, grad);
                 matScale(grad, -1f / numControlPoints, grad);
 
-                // Apply learnable mask to prevent moving the endpoints
+                // Apply learnable mask to prevent moving the fixed points
                 matProduct(grad, learnableMask, grad);
 
                 // Update control points with Adam optimizer
@@ -451,9 +488,12 @@ namespace osu.Framework.Utils
             }
         }
 
-        // mat1 can not be the same array as result, or it will not work correctly
         private static unsafe void matLerp(float[,] mat1, float[,] mat2, float t, float[,] result)
         {
+            // mat1 can not be the same array as result, or it will not work correctly
+            if (ReferenceEquals(mat1, result))
+                throw new ArgumentException($"{nameof(mat1)} can not be the same array as {nameof(result)}.");
+
             fixed (float* mat1P = mat1, mat2P = mat2, resultP = result)
             {
                 var span1 = new Span<float>(mat1P, mat1.Length);
@@ -530,6 +570,12 @@ namespace osu.Framework.Utils
             return result;
         }
 
+        /// <summary>
+        /// Calculates a normalized cumulative distribution for the Euclidean distance between points on a piecewise-linear path.
+        /// </summary>
+        /// <param name="points">(2, n) shape array which represents the points of the piecewise-linear path.</param>
+        /// <param name="result">n-length array to write the result to.</param>
+        /// <param name="regularizingFactor">Factor to be added to each computed distance between points.</param>
         private static void getDistanceDistribution(float[,] points, float[] result, float regularizingFactor = 0f)
         {
             int m = points.GetLength(1);
@@ -616,7 +662,17 @@ namespace osu.Framework.Utils
         /// <returns>Matrix array of B-spline basis function values.</returns>
         private static float[,] generateBSplineWeights(int numControlPoints, int numTestPoints, int degree)
         {
-            // Calculate the basis function values using a modified De Boor's algorithm
+            if (numControlPoints < 2)
+                throw new ArgumentOutOfRangeException(nameof(numControlPoints), $"{nameof(numControlPoints)} must be >=2 but was {numControlPoints}.");
+
+            if (numTestPoints < 2)
+                throw new ArgumentOutOfRangeException(nameof(numTestPoints), $"{nameof(numTestPoints)} must be >=2 but was {numTestPoints}.");
+
+            if (degree < 0 || degree >= numControlPoints)
+                throw new ArgumentOutOfRangeException(nameof(degree), $"{nameof(degree)} must be >=0 and <{nameof(numControlPoints)} but was {degree}.");
+
+            // Calculate the basis function values using the Cox-de Boor recursion formula
+            // Generate an open uniform knot vector from 0 to 1
             float[] x = linspace(0, 1, numTestPoints);
             float[] knots = new float[numControlPoints + degree + 1];
 
@@ -667,7 +723,13 @@ namespace osu.Framework.Utils
 
         private static float[,] generateBezierWeights(int numControlPoints, int numTestPoints)
         {
-            long[] coefficients = binomialCoefficients(numControlPoints);
+            if (numControlPoints < 2)
+                throw new ArgumentOutOfRangeException(nameof(numControlPoints), $"{nameof(numControlPoints)} must be >=2 but was {numControlPoints}.");
+
+            if (numTestPoints < 2)
+                throw new ArgumentOutOfRangeException(nameof(numTestPoints), $"{nameof(numTestPoints)} must be >=2 but was {numTestPoints}.");
+
+            long[] coefficients = binomialCoefficients(numControlPoints - 1);
             float[,] p = new float[numTestPoints, numControlPoints];
 
             for (int i = 0; i < numTestPoints; i++)
@@ -694,19 +756,23 @@ namespace osu.Framework.Utils
             return result;
         }
 
+        /// <summary>
+        /// Computes an array with all binomial coefficients from 0 to n inclusive.
+        /// </summary>
+        /// <returns>n+1 length array with the binomial coefficients.</returns>
         private static long[] binomialCoefficients(int n)
         {
-            long[] coefficients = new long[n];
+            long[] coefficients = new long[n + 1];
             coefficients[0] = 1;
 
-            for (int i = 1; i < (n + 1) / 2; i++)
+            for (int i = 1; i < (n + 2) / 2; i++)
             {
-                coefficients[i] = coefficients[i - 1] * (n - i) / i;
+                coefficients[i] = coefficients[i - 1] * (n + 1 - i) / i;
             }
 
-            for (int i = n - 1; i > (n - 1) / 2; i--)
+            for (int i = n; i > n / 2; i--)
             {
-                coefficients[i] = coefficients[n - i - 1];
+                coefficients[i] = coefficients[n - i];
             }
 
             return coefficients;
