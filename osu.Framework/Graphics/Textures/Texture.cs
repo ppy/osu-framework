@@ -8,6 +8,8 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Visualisation;
 using osuTK;
+using osuTK.Graphics;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -47,6 +49,11 @@ namespace osu.Framework.Graphics.Textures
         /// The texture opacity.
         /// </summary>
         public Opacity Opacity { get; protected set; } = Opacity.Mixed;
+
+        /// <summary>
+        /// The texture average colour.
+        /// </summary>
+        public Color4 AverageColour { get; protected set; } = Color4.Black;
 
         /// <summary>
         /// The texture wrap mode in horizontal direction.
@@ -180,7 +187,7 @@ namespace osu.Framework.Graphics.Textures
         /// The provided upload will be disposed after the upload is completed.
         /// </summary>
         /// <param name="upload">The texture data to upload.</param>
-        public void SetData(ITextureUpload upload) => SetData(upload, WrapModeS, WrapModeT, null);
+        public void SetData(ITextureUpload upload) => SetData(upload, WrapModeS, WrapModeT, null, null);
 
         /// <summary>
         /// Queue a <see cref="TextureUpload"/> to be uploaded on the draw thread.
@@ -188,9 +195,10 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         /// <param name="upload">The texture data to upload.</param>
         /// <param name="opacity">The texture's opacity, if known.</param>
-        public void SetData(ITextureUpload upload, Opacity opacity) => SetData(upload, WrapModeS, WrapModeT, opacity);
+        /// <param name="averageColour">The texture's average colour, if known.</param>
+        public void SetData(ITextureUpload upload, Opacity opacity, Color4 averageColour) => SetData(upload, WrapModeS, WrapModeT, opacity, averageColour);
 
-        internal virtual void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? opacity)
+        internal virtual void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? opacity, Color4? averageColour)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not set data of a disposed texture.");
@@ -210,7 +218,7 @@ namespace osu.Framework.Graphics.Textures
             }
 
             UpdateOpacity(upload, ref opacity);
-
+            UpdateAverageColour(upload, ref averageColour);
             NativeTexture.SetData(upload);
         }
 
@@ -242,6 +250,39 @@ namespace osu.Framework.Graphics.Textures
             // return firstPixelValue == 0 ? Opacity.Transparent : Opacity.Opaque;
         }
 
+        protected static Color4 ComputeAverageColour(ITextureUpload upload)
+        {
+            ReadOnlySpan<Rgba32> data = upload.Data;
+
+            if (data.Length == 0)
+                return Color4.Black;
+
+            int nonTransparentCount = 0;
+            int rSum = 0;
+            int gSum = 0;
+            int bSum = 0;
+
+            for (int i = 0; i < data.Length; i++)
+            {
+                if (data[i].A == 0)
+                    continue;
+
+                rSum += data[i].R;
+                gSum += data[i].G;
+                bSum += data[i].B;
+                nonTransparentCount++;
+            }
+
+            if (nonTransparentCount == 0)
+                return Color4.Black;
+
+            rSum /= nonTransparentCount;
+            gSum /= nonTransparentCount;
+            bSum /= nonTransparentCount;
+
+            return new Color4((byte)rSum, (byte)gSum, (byte)bSum, 255);
+        }
+
         protected void UpdateOpacity(ITextureUpload upload, ref Opacity? uploadOpacity)
         {
             // Compute opacity if it doesn't have a value yet
@@ -256,6 +297,13 @@ namespace osu.Framework.Graphics.Textures
                 Opacity = uploadOpacity.Value;
             else if (uploadOpacity.Value != Opacity)
                 Opacity = Opacity.Mixed;
+        }
+
+        protected void UpdateAverageColour(ITextureUpload upload, ref Color4? uploadAverageColour)
+        {
+            // Compute colour if it doesn't have a value yet
+            uploadAverageColour ??= ComputeAverageColour(upload);
+            AverageColour = uploadAverageColour.Value;
         }
 
         /// <summary>

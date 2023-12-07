@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Graphics.Primitives;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -32,7 +33,7 @@ namespace osu.Framework.Graphics.Textures
 
         public override int Height => bounds.Height;
 
-        internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? opacity)
+        internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? opacity, Color4? averageColour)
         {
             if (upload.Bounds.Width > bounds.Width || upload.Bounds.Height > bounds.Height)
             {
@@ -54,7 +55,8 @@ namespace osu.Framework.Graphics.Textures
             }
 
             UpdateOpacity(upload, ref opacity);
-            parent.SetData(upload, wrapModeS, wrapModeT, opacity);
+            UpdateAverageColour(upload, ref averageColour);
+            parent.SetData(upload, wrapModeS, wrapModeT, opacity, averageColour);
         }
 
         private RectangleF boundsInParent(RectangleF? area)
