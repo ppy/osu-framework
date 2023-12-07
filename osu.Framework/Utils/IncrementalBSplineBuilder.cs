@@ -409,6 +409,14 @@ namespace osu.Framework.Utils
 
             var segments = controlPoints.Value;
 
+            // In some extremely rare cases there can be less corners than on the previous frame,
+            // so we have to remove the last segments if that is the case.
+            if (segments.Count >= cornerTs.Count)
+            {
+                int toRemove = segments.Count + 1 - cornerTs.Count;
+                segments.RemoveRange(segments.Count - toRemove, toRemove);
+            }
+
             // Make sure there are enough segments.
             while (segments.Count < cornerTs.Count - 1)
             {
