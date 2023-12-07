@@ -56,6 +56,16 @@ namespace osu.Framework.Graphics.Rendering
         }
 
         /// <summary>
+        /// Sets the depth to a given value. After this, the depth value can no longer be incremented.
+        /// </summary>
+        /// <param name="value">The new depth value.</param>
+        public void Set(float value)
+        {
+            count = max_count;
+            depth = value;
+        }
+
+        /// <summary>
         /// Whether the depth value can be incremented.
         /// </summary>
         internal bool CanIncrement

@@ -94,6 +94,9 @@ namespace osu.Framework.Utils
                 if (value < 0)
                     throw new ArgumentOutOfRangeException(nameof(value), "Degree must not be negative.");
 
+                if (value == degree)
+                    return;
+
                 degree = value;
                 outputCache.Invalidate();
                 controlPoints.Invalidate();
@@ -114,6 +117,9 @@ namespace osu.Framework.Utils
                 if (tolerance < 0)
                     throw new ArgumentOutOfRangeException(nameof(value), "Tolerance must not be negative.");
 
+                if (value == tolerance)
+                    return;
+
                 tolerance = value;
                 outputCache.Invalidate();
                 controlPoints.Invalidate();
@@ -133,6 +139,9 @@ namespace osu.Framework.Utils
             {
                 if (cornerThreshold < 0)
                     throw new ArgumentOutOfRangeException(nameof(value), "CornerThreshold must not be negative.");
+
+                if (value == cornerThreshold)
+                    return;
 
                 cornerThreshold = value;
                 outputCache.Invalidate();
@@ -320,22 +329,26 @@ namespace osu.Framework.Utils
                         totalWinding += getAbsWindingAt(vertices, distances, t);
                     }
 
-                    int nControlPoints = (int)(totalWinding / Tolerance);
-                    float controlPointSpacing = totalWinding / nControlPoints;
                     float currentWinding = 0;
 
                     for (int j = 0; j < nSteps; ++j)
                     {
                         float t = t0 + j * step_size;
 
-                        if (currentWinding > controlPointSpacing)
+                        // Don't permit control points too close to the next corner as they are redundant.
+                        // However, ignore this limitation on the last segment of the path as we would like
+                        // it to follow the user's drawing as closely as possible.
+                        if (currentWinding + tmp.Count * Tolerance > totalWinding - Tolerance * 0.5f && i < cornerTs.Count - 1)
+                            break;
+
+                        if (currentWinding > Tolerance)
                         {
                             Vector2 p = getPathAt(vertices, distances, t);
                             if (linearConnection.DistanceSquaredToPoint(p) > onLineThreshold * onLineThreshold)
                                 allOnLine = false;
 
                             tmp.Add(p);
-                            currentWinding -= controlPointSpacing;
+                            currentWinding -= Tolerance;
                         }
 
                         currentWinding += getAbsWindingAt(vertices, distances, t);
@@ -382,18 +395,31 @@ namespace osu.Framework.Utils
             outputCache.Invalidate();
             controlPoints.Invalidate();
 
+            // Implementation detail: we would like to disregard input path detail that is smaller than
+            // FD_EPSILON * 2 because it can otherwise mess with the winding calculations. However, we
+            // also do not want the input path extension to feel "choppy", so we maintain an extra point
+            // at the end of the path that does not obey the FD_EPSILON * 2 rule and instead perfectly
+            // follows the inputted vertices. This also means that the input path must always contain
+            // at least two points if it is not empty.
             if (inputPath.Count == 0)
             {
                 inputPath.Add(v);
+                inputPath.Add(v);
+                cumulativeInputPathLength.Add(0);
                 return;
             }
 
-            float inputDistance = Vector2.Distance(v, inputPath[^1]);
+            inputPath[^1] = v;
+            float inputDistance = Vector2.Distance(v, inputPath[^2]);
+            cumulativeInputPathLength[^1] = inputDistance;
+            if (cumulativeInputPathLength.Count > 1)
+                cumulativeInputPathLength[^1] += cumulativeInputPathLength[^2];
+
             if (inputDistance < FD_EPSILON * 2)
                 return;
 
             inputPath.Add(v);
-            cumulativeInputPathLength.Add((cumulativeInputPathLength.Count == 0 ? 0 : cumulativeInputPathLength[^1]) + inputDistance);
+            cumulativeInputPathLength.Add(cumulativeInputPathLength[^1]);
         }
     }
 }
