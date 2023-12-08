@@ -88,7 +88,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                 {
                 }
 
-                public override void Draw(IRenderer renderer)
+                protected override void Draw(IRenderer renderer)
                 {
                     base.Draw(renderer);
                     renderer.FlushCurrentBatch(null);

@@ -344,7 +344,7 @@ namespace osu.Framework.Graphics.Video
             formatContext->pb = ioContext;
             formatContext->flags |= FFmpegFuncs.AVFMT_FLAG_GENPTS; // required for most HW decoders as they only read `pts`
 
-            int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "dummy", null, null);
+            int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "pipe:", null, null);
             inputOpened = openInputResult >= 0;
             if (!inputOpened)
                 throw new InvalidOperationException($"Error opening file or stream: {getErrorMessage(openInputResult)}");
@@ -430,7 +430,7 @@ namespace osu.Framework.Graphics.Video
             }
 
             if (!openSuccessful)
-                throw new InvalidOperationException("No usable decoder found");
+                throw new InvalidOperationException($"No usable decoder found for codec ID {codecParams.codec_id}");
         }
 
         private void decodingLoop(CancellationToken cancellationToken)

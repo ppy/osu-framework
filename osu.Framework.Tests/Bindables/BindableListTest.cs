@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Globalization;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Bindables;
@@ -135,7 +136,7 @@ namespace osu.Framework.Tests.Bindables
 
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             list.BindCollectionChanged((_, args) => triggeredArgs = args);
-            list.Parse(enumerable);
+            list.Parse(enumerable, CultureInfo.InvariantCulture);
 
             Assert.That(triggeredArgs, Is.Null);
         }
@@ -1488,7 +1489,7 @@ namespace osu.Framework.Tests.Bindables
         {
             bindableStringList.Add("a item");
 
-            bindableStringList.Parse(null);
+            bindableStringList.Parse(null, CultureInfo.InvariantCulture);
 
             Assert.IsEmpty(bindableStringList);
         }
@@ -1498,7 +1499,7 @@ namespace osu.Framework.Tests.Bindables
         {
             IEnumerable<string> strings = new[] { "testA", "testB" };
 
-            bindableStringList.Parse(strings);
+            bindableStringList.Parse(strings, CultureInfo.InvariantCulture);
 
             CollectionAssert.AreEquivalent(strings, bindableStringList);
         }
@@ -1510,11 +1511,11 @@ namespace osu.Framework.Tests.Bindables
 
             Assert.Multiple(() =>
             {
-                Assert.Throws(typeof(InvalidOperationException), () => bindableStringList.Parse(null));
+                Assert.Throws(typeof(InvalidOperationException), () => bindableStringList.Parse(null, CultureInfo.InvariantCulture));
                 Assert.Throws(typeof(InvalidOperationException), () => bindableStringList.Parse(new object[]
                 {
                     "test", "testabc", "asdasdasdasd"
-                }));
+                }, CultureInfo.InvariantCulture));
             });
         }
 
@@ -1523,13 +1524,13 @@ namespace osu.Framework.Tests.Bindables
         {
             Assert.Multiple(() =>
             {
-                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse(1));
-                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse(""));
-                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse(new object()));
-                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse(1.1));
-                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse(1.1f));
-                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse("test123"));
-                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse(29387L));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse(1, CultureInfo.InvariantCulture));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse("", CultureInfo.InvariantCulture));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse(new object(), CultureInfo.InvariantCulture));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse(1.1, CultureInfo.InvariantCulture));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse(1.1f, CultureInfo.InvariantCulture));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse("test123", CultureInfo.InvariantCulture));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse(29387L, CultureInfo.InvariantCulture));
             });
         }
 
@@ -1542,7 +1543,7 @@ namespace osu.Framework.Tests.Bindables
             var triggeredArgs = new List<NotifyCollectionChangedEventArgs>();
             bindableStringList.CollectionChanged += (_, args) => triggeredArgs.Add(args);
 
-            bindableStringList.Parse(null);
+            bindableStringList.Parse(null, CultureInfo.InvariantCulture);
 
             Assert.That(triggeredArgs, Has.Count.EqualTo(1));
             Assert.That(triggeredArgs.First().Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
@@ -1559,7 +1560,7 @@ namespace osu.Framework.Tests.Bindables
             var triggeredArgs = new List<NotifyCollectionChangedEventArgs>();
             bindableStringList.CollectionChanged += (_, args) => triggeredArgs.Add(args);
 
-            bindableStringList.Parse(strings);
+            bindableStringList.Parse(strings, CultureInfo.InvariantCulture);
 
             Assert.That(triggeredArgs, Has.Count.EqualTo(2));
             Assert.That(triggeredArgs.First().Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));

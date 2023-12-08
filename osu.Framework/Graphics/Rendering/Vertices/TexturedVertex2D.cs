@@ -30,9 +30,6 @@ namespace osu.Framework.Graphics.Rendering.Vertices
         [VertexMember(1, VertexAttribPointerType.Float)]
         private readonly float backbufferDrawDepth;
 
-        [VertexMember(1, VertexAttribPointerType.Int)]
-        private readonly int maskingIndex;
-
         [Obsolete("Initialise this type with an IRenderer instead", true)]
         public TexturedVertex2D()
         {
@@ -42,8 +39,7 @@ namespace osu.Framework.Graphics.Rendering.Vertices
         public TexturedVertex2D(IRenderer renderer)
         {
             this = default; // explicitly initialise all members to default values
-            backbufferDrawDepth = renderer.BackbufferDrawDepth;
-            maskingIndex = renderer.CurrentMaskingIndex;
+            backbufferDrawDepth = renderer.BackbufferDepth;
         }
 
         public readonly bool Equals(TexturedVertex2D other) =>
@@ -52,7 +48,6 @@ namespace osu.Framework.Graphics.Rendering.Vertices
             && Colour.Equals(other.Colour)
             && TextureRect.Equals(other.TextureRect)
             && BlendRange.Equals(other.BlendRange)
-            && backbufferDrawDepth == other.backbufferDrawDepth
-            && maskingIndex == other.maskingIndex;
+            && backbufferDrawDepth == other.backbufferDrawDepth;
     }
 }

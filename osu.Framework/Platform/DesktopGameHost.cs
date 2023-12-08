@@ -9,6 +9,7 @@ using System.IO;
 using System.Threading.Tasks;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Platform
 {
@@ -81,7 +82,14 @@ namespace osu.Framework.Platform
             if (!url.CheckIsValidUrl())
                 throw new ArgumentException("The provided URL must be one of either http://, https:// or mailto: protocols.", nameof(url));
 
-            openUsingShellExecute(url);
+            try
+            {
+                openUsingShellExecute(url);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Unable to open external link.");
+            }
         }
 
         public override bool PresentFileExternally(string filename)
