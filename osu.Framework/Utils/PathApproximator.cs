@@ -309,6 +309,7 @@ namespace osu.Framework.Utils
         /// <param name="b1">The B1 parameter for the Adam optimizer. Between 0 and 1.</param>
         /// <param name="b2">The B2 parameter for the Adam optimizer. Between 0 and 1.</param>
         /// <param name="initialControlPoints">The initial bezier control points to use before optimization. The length of this list should be equal to <see cref="numControlPoints"/>.</param>
+        /// <param name="learnableMask">Mask determining which control point positions are fixed and cannot be changed by the optimiser.</param>
         /// <returns>A List of vectors representing the bezier control points.</returns>
         public static List<Vector2> PiecewiseLinearToBezier(ReadOnlySpan<Vector2> inputPath,
                                                             int numControlPoints,
@@ -317,9 +318,12 @@ namespace osu.Framework.Utils
                                                             float learningRate = 8f,
                                                             float b1 = 0.8f,
                                                             float b2 = 0.99f,
-                                                            List<Vector2>? initialControlPoints = null)
+                                                            List<Vector2>? initialControlPoints = null,
+                                                            float[,]? learnableMask = null)
         {
-            return piecewiseLinearToSpline(inputPath, generateBezierWeights(numControlPoints, numTestPoints), maxIterations, learningRate, b1, b2, initialControlPoints);
+            numTestPoints = Math.Max(numTestPoints, 3);
+            return piecewiseLinearToSpline(inputPath, generateBezierWeights(numControlPoints, numTestPoints),
+                maxIterations, learningRate, b1, b2, initialControlPoints, learnableMask);
         }
 
         /// <summary>
@@ -334,6 +338,7 @@ namespace osu.Framework.Utils
         /// <param name="b1">The B1 parameter for the Adam optimizer. Between 0 and 1.</param>
         /// <param name="b2">The B2 parameter for the Adam optimizer. Between 0 and 1.</param>
         /// <param name="initialControlPoints">The initial B-spline control points to use before optimization. The length of this list should be equal to <see cref="numControlPoints"/>.</param>
+        /// <param name="learnableMask">Mask determining which control point positions are fixed and cannot be changed by the optimiser.</param>
         /// <returns>A List of vectors representing the B-spline control points.</returns>
         public static List<Vector2> PiecewiseLinearToBSpline(ReadOnlySpan<Vector2> inputPath,
                                                              int numControlPoints,
@@ -343,10 +348,13 @@ namespace osu.Framework.Utils
                                                              float learningRate = 8f,
                                                              float b1 = 0.8f,
                                                              float b2 = 0.99f,
-                                                             List<Vector2>? initialControlPoints = null)
+                                                             List<Vector2>? initialControlPoints = null,
+                                                             float[,]? learnableMask = null)
         {
             degree = Math.Min(degree, numControlPoints - 1);
-            return piecewiseLinearToSpline(inputPath, generateBSplineWeights(numControlPoints, numTestPoints, degree), maxIterations, learningRate, b1, b2, initialControlPoints);
+            numTestPoints = Math.Max(numTestPoints, 3);
+            return piecewiseLinearToSpline(inputPath, generateBSplineWeights(numControlPoints, numTestPoints, degree),
+                maxIterations, learningRate, b1, b2, initialControlPoints, learnableMask);
         }
 
         /// <summary>
@@ -360,6 +368,7 @@ namespace osu.Framework.Utils
         /// <param name="b1">The B1 parameter for the Adam optimizer. Between 0 and 1.</param>
         /// <param name="b2">The B2 parameter for the Adam optimizer. Between 0 and 1.</param>
         /// <param name="initialControlPoints">The initial control points to use before optimization. The length of this list should be equal to the number of test points.</param>
+        /// <param name="learnableMask">Mask determining which control point positions are fixed and cannot be changed by the optimiser.</param>
         /// <returns>A List of vectors representing the spline control points.</returns>
         private static List<Vector2> piecewiseLinearToSpline(ReadOnlySpan<Vector2> inputPath,
                                                              float[,] weights,
@@ -367,7 +376,8 @@ namespace osu.Framework.Utils
                                                              float learningRate = 8f,
                                                              float b1 = 0.8f,
                                                              float b2 = 0.99f,
-                                                             List<Vector2>? initialControlPoints = null)
+                                                             List<Vector2>? initialControlPoints = null,
+                                                             float[,]? learnableMask = null)
         {
             int numControlPoints = weights.GetLength(1);
             int numTestPoints = weights.GetLength(0);
@@ -405,12 +415,16 @@ namespace osu.Framework.Utils
             // Initialize Adam optimizer variables
             float[,] m = new float[2, numControlPoints];
             float[,] v = new float[2, numControlPoints];
-            float[,] learnableMask = new float[2, numControlPoints];
 
-            for (int i = 1; i < numControlPoints - 1; i++)
+            if (learnableMask is null)
             {
-                learnableMask[0, i] = 1;
-                learnableMask[1, i] = 1;
+                learnableMask = new float[2, numControlPoints];
+
+                for (int i = 1; i < numControlPoints - 1; i++)
+                {
+                    learnableMask[0, i] = 1;
+                    learnableMask[1, i] = 1;
+                }
             }
 
             // Initialize intermediate variables
@@ -425,7 +439,7 @@ namespace osu.Framework.Utils
                 // Update labels to shift the distance distribution between points
                 if (step % 11 == 0)
                 {
-                    getDistanceDistribution(points, distanceDistribution);
+                    getDistanceDistribution(points, distanceDistribution, 0.1f);
                     interpolator.Interpolate(distanceDistribution, labels);
                 }
 
@@ -434,7 +448,7 @@ namespace osu.Framework.Utils
                 matmul(points, weightsTranspose, grad);
                 matScale(grad, -1f / numControlPoints, grad);
 
-                // Apply learnable mask to prevent moving the endpoints
+                // Apply learnable mask to prevent moving the fixed points
                 matProduct(grad, learnableMask, grad);
 
                 // Update control points with Adam optimizer
@@ -561,7 +575,8 @@ namespace osu.Framework.Utils
         /// </summary>
         /// <param name="points">(2, n) shape array which represents the points of the piecewise-linear path.</param>
         /// <param name="result">n-length array to write the result to.</param>
-        private static void getDistanceDistribution(float[,] points, float[] result)
+        /// <param name="regularizingFactor">Factor to be added to each computed distance between points.</param>
+        private static void getDistanceDistribution(float[,] points, float[] result, float regularizingFactor = 0f)
         {
             int m = points.GetLength(1);
             float accumulator = 0;
@@ -570,7 +585,7 @@ namespace osu.Framework.Utils
             for (int i = 1; i < m; i++)
             {
                 float dist = MathF.Sqrt(MathF.Pow(points[0, i] - points[0, i - 1], 2) + MathF.Pow(points[1, i] - points[1, i - 1], 2));
-                accumulator += dist;
+                accumulator += dist + regularizingFactor;
                 result[i] = accumulator;
             }
 

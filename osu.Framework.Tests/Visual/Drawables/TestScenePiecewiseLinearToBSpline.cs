@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Lines;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Utils;
 using osu.Framework.Testing;
@@ -32,7 +34,6 @@ namespace osu.Framework.Tests.Visual.Drawables
             Cell(0).AddRange(new[]
             {
                 createLabel(nameof(PathApproximator.BezierToPiecewiseLinear)),
-                new ApproximatedPathTest(PathApproximator.BezierToPiecewiseLinear),
                 doubleApproximatedPathTests[^1],
             });
 
@@ -40,7 +41,6 @@ namespace osu.Framework.Tests.Visual.Drawables
             Cell(1).AddRange(new[]
             {
                 createLabel(nameof(PathApproximator.CatmullToPiecewiseLinear)),
-                new ApproximatedPathTest(PathApproximator.CatmullToPiecewiseLinear),
                 doubleApproximatedPathTests[^1],
             });
 
@@ -48,7 +48,6 @@ namespace osu.Framework.Tests.Visual.Drawables
             Cell(2).AddRange(new[]
             {
                 createLabel(nameof(PathApproximator.CircularArcToPiecewiseLinear)),
-                new ApproximatedPathTest(PathApproximator.CircularArcToPiecewiseLinear),
                 doubleApproximatedPathTests[^1],
             });
 
@@ -56,7 +55,6 @@ namespace osu.Framework.Tests.Visual.Drawables
             Cell(3).AddRange(new[]
             {
                 createLabel(nameof(PathApproximator.LagrangePolynomialToPiecewiseLinear)),
-                new ApproximatedPathTest(PathApproximator.LagrangePolynomialToPiecewiseLinear),
                 doubleApproximatedPathTests[^1],
             });
 
@@ -134,26 +132,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         public delegate List<Vector2> ApproximatorFunc(ReadOnlySpan<Vector2> controlPoints);
 
-        private partial class ApproximatedPathTest : SmoothPath
-        {
-            public ApproximatedPathTest(ApproximatorFunc approximator)
-            {
-                Vector2[] points = new Vector2[5];
-                points[0] = new Vector2(50, 250);
-                points[1] = new Vector2(150, 230);
-                points[2] = new Vector2(100, 150);
-                points[3] = new Vector2(200, 80);
-                points[4] = new Vector2(250, 50);
-
-                AutoSizeAxes = Axes.None;
-                RelativeSizeAxes = Axes.Both;
-                PathRadius = 2;
-                Vertices = approximator(points);
-                Colour = Color4.White;
-            }
-        }
-
-        private partial class DoubleApproximatedPathTest : SmoothPath
+        private partial class DoubleApproximatedPathTest : Container
         {
             private readonly Vector2[] inputPath;
 
@@ -173,6 +152,10 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             public bool OptimizePath { get; set; }
 
+            private readonly Path approximatedDrawnPath;
+            private readonly Path controlPointPath;
+            private readonly Container controlPointViz;
+
             public DoubleApproximatedPathTest(ApproximatorFunc approximator)
             {
                 Vector2[] points = new Vector2[5];
@@ -184,9 +167,33 @@ namespace osu.Framework.Tests.Visual.Drawables
 
                 AutoSizeAxes = Axes.None;
                 RelativeSizeAxes = Axes.Both;
-                PathRadius = 2;
-                Colour = Color4.Magenta;
                 inputPath = approximator(points).ToArray();
+
+                Children = new Drawable[]
+                {
+                    new Path
+                    {
+                        Colour = Color4.White,
+                        PathRadius = 2,
+                        Vertices = inputPath,
+                    },
+                    approximatedDrawnPath = new Path
+                    {
+                        Colour = Color4.Magenta,
+                        PathRadius = 2,
+                    },
+                    controlPointPath = new Path
+                    {
+                        Colour = Color4.LightGreen,
+                        PathRadius = 1,
+                        Alpha = 0.5f,
+                    },
+                    controlPointViz = new Container
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Alpha = 0.5f,
+                    },
+                };
             }
 
             public void UpdatePath()
@@ -194,7 +201,20 @@ namespace osu.Framework.Tests.Visual.Drawables
                 if (!OptimizePath) return;
 
                 var controlPoints = PathApproximator.PiecewiseLinearToBSpline(inputPath, NumControlPoints, Degree, NumTestPoints, MaxIterations, LearningRate, B1, B2);
-                Vertices = PathApproximator.BSplineToPiecewiseLinear(controlPoints.ToArray(), Degree);
+                approximatedDrawnPath.Vertices = PathApproximator.BSplineToPiecewiseLinear(controlPoints.ToArray(), Degree);
+                controlPointPath.Vertices = controlPoints;
+                controlPointViz.Clear();
+
+                foreach (var cp in controlPoints)
+                {
+                    controlPointViz.Add(new Box
+                    {
+                        Origin = Anchor.Centre,
+                        Size = new Vector2(10),
+                        Position = cp,
+                        Colour = Color4.LightGreen,
+                    });
+                }
             }
         }
     }
