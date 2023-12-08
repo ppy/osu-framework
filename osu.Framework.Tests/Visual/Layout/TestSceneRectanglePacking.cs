@@ -54,8 +54,8 @@ namespace osu.Framework.Tests.Visual.Layout
                     {
                         new DrawableBin(new MaximalRectanglePacker(new Vector2I(size), FitStrategy.BestShortSide)),
                         new DrawableBin(new MaximalRectanglePacker(new Vector2I(size), FitStrategy.SmallestArea)),
-                        new DrawableBin(new GuillotineRectanglePacker(new Vector2I(size), FitStrategy.BestLongSide, SplitStrategy.ShorterAxis)),
-                        new DrawableBin(new GuillotineRectanglePacker(new Vector2I(size), FitStrategy.BestLongSide, SplitStrategy.ShorterLeftoverAxis)),
+                        new DrawableBin(new GuillotineRectanglePacker(new Vector2I(size), FitStrategy.First, SplitStrategy.ShorterAxis)),
+                        new DrawableBin(new GuillotineRectanglePacker(new Vector2I(size), FitStrategy.First, SplitStrategy.ShorterLeftoverAxis)),
                         new DrawableBin(new GuillotineRectanglePacker(new Vector2I(size), FitStrategy.BestShortSide, SplitStrategy.ShorterAxis))
                     },
                     new Drawable[]

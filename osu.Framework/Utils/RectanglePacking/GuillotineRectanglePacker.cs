@@ -29,22 +29,8 @@ namespace osu.Framework.Utils.RectanglePacking
                         splitVertically(spaceToDivide, newlyPlaced);
                     break;
 
-                case SplitStrategy.LongerAxis:
-                    if (spaceToDivide.Width >= spaceToDivide.Height)
-                        splitHorizontally(spaceToDivide, newlyPlaced);
-                    else
-                        splitVertically(spaceToDivide, newlyPlaced);
-                    break;
-
                 case SplitStrategy.ShorterLeftoverAxis:
                     if (spaceToDivide.Width - newlyPlaced.Width < spaceToDivide.Height - newlyPlaced.Height)
-                        splitHorizontally(spaceToDivide, newlyPlaced);
-                    else
-                        splitVertically(spaceToDivide, newlyPlaced);
-                    break;
-
-                case SplitStrategy.LongerLeftoverAxis:
-                    if (spaceToDivide.Width - newlyPlaced.Width >= spaceToDivide.Height - newlyPlaced.Height)
                         splitHorizontally(spaceToDivide, newlyPlaced);
                     else
                         splitVertically(spaceToDivide, newlyPlaced);
@@ -78,8 +64,6 @@ namespace osu.Framework.Utils.RectanglePacking
     public enum SplitStrategy
     {
         ShorterAxis,
-        LongerAxis,
-        ShorterLeftoverAxis,
-        LongerLeftoverAxis
+        ShorterLeftoverAxis
     }
 }
