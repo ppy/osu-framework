@@ -379,7 +379,7 @@ namespace osu.Framework.Tests.Visual.Layout
                 foreach (var info in runInfos)
                     sum += info.AverageTime();
 
-                return sum / (float)runInfos.Count;
+                return sum / runInfos.Count;
             }
         }
 
