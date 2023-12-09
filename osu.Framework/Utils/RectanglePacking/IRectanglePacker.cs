@@ -8,7 +8,7 @@ namespace osu.Framework.Utils.RectanglePacking
     public interface IRectanglePacker
     {
         /// <summary>
-        /// The size of the bin.
+        /// The size of the bin to place rectangles into.
         /// </summary>
         public Vector2I BinSize { get; }
 
@@ -21,7 +21,7 @@ namespace osu.Framework.Utils.RectanglePacking
         public Vector2I? TryAdd(int width, int height);
 
         /// <summary>
-        /// Resets the bin.
+        /// Removes all the rectangles from the bin.
         /// </summary>
         public void Reset();
     }
