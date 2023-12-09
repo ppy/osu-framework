@@ -22,10 +22,10 @@ namespace osu.Framework.Utils.RectanglePacking
 
         public override Vector2I? TryAdd(int width, int height)
         {
-            if (y + height > BinSize.X)
+            if (y + height > BinSize.Y)
                 return null;
 
-            if (x + width > BinSize.Y)
+            if (x + width > BinSize.X)
             {
                 x = 0;
                 y += currentShelfHeight;
