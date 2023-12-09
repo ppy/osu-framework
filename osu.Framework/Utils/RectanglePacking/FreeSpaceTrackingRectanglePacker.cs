@@ -34,11 +34,18 @@ namespace osu.Framework.Utils.RectanglePacking
                 if (FreeSpaces[i].Width < width || FreeSpaces[i].Height < height)
                     continue;
 
-                if (!bestFit.HasValue || isBetterFit(bestFit.Value, FreeSpaces[i]))
+                if (Strategy == FitStrategy.First)
                 {
                     bestFit = FreeSpaces[i];
                     bestFitIndex = i;
+                    break;
                 }
+
+                if (bestFit.HasValue && !isBetterFit(bestFit.Value, FreeSpaces[i]))
+                    continue;
+
+                bestFit = FreeSpaces[i];
+                bestFitIndex = i;
             }
 
             if (!bestFit.HasValue)
