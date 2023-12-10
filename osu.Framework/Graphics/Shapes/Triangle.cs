@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Shapes
         /// </summary>
         /// <param name="q">A quadrilateral boundary, providing four vertices.</param>
         /// <returns>Converted triangle.</returns>
-        protected Primitives.Triangle ToTriangle(Quad q) => new Primitives.Triangle(
+        protected virtual Primitives.Triangle ToTriangle(Quad q) => new Primitives.Triangle(
             (q.TopLeft + q.TopRight) / 2,
             q.BottomLeft,
             q.BottomRight);
