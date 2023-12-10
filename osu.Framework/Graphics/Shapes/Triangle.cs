@@ -30,19 +30,21 @@ namespace osu.Framework.Graphics.Shapes
             Texture ??= renderer.WhitePixel;
         }
 
-        public override RectangleF BoundingBox => toTriangle(ToParentSpace(LayoutRectangle)).AABBFloat;
+        public override RectangleF BoundingBox => ToTriangle(ToParentSpace(LayoutRectangle)).AABBFloat;
 
-        private static Primitives.Triangle toTriangle(Quad q) => new Primitives.Triangle(
+        protected Primitives.Triangle ToTriangle(Quad q) => new Primitives.Triangle(
             (q.TopLeft + q.TopRight) / 2,
             q.BottomLeft,
             q.BottomRight);
 
-        public override bool Contains(Vector2 screenSpacePos) => toTriangle(ScreenSpaceDrawQuad).Contains(screenSpacePos);
+        public override bool Contains(Vector2 screenSpacePos) => ToTriangle(ScreenSpaceDrawQuad).Contains(screenSpacePos);
 
         protected override DrawNode CreateDrawNode() => new TriangleDrawNode(this);
 
         private class TriangleDrawNode : SpriteDrawNode
         {
+            protected new Triangle Source => (Triangle)base.Source;
+
             public TriangleDrawNode(Triangle source)
                 : base(source)
             {
@@ -53,7 +55,7 @@ namespace osu.Framework.Graphics.Shapes
                 if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                     return;
 
-                renderer.DrawTriangle(Texture, toTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, null, null,
+                renderer.DrawTriangle(Texture, Source.ToTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, null, null,
                     new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), TextureCoords);
             }
 
@@ -62,7 +64,7 @@ namespace osu.Framework.Graphics.Shapes
                 if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                     return;
 
-                var triangle = toTriangle(ConservativeScreenSpaceDrawQuad);
+                var triangle = Source.ToTriangle(ConservativeScreenSpaceDrawQuad);
 
                 if (renderer.IsMaskingActive)
                     renderer.DrawClipped(ref triangle, Texture, DrawColourInfo.Colour);
