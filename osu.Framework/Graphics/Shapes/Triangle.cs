@@ -32,6 +32,11 @@ namespace osu.Framework.Graphics.Shapes
 
         public override RectangleF BoundingBox => ToTriangle(ToParentSpace(LayoutRectangle)).AABBFloat;
 
+        /// <summary>
+        /// Converts a <see cref="Quad"/> and its vertex to a <see cref="Primitives.Triangle"/>.
+        /// </summary>
+        /// <param name="q">A quadrilateral boundary, providing four vertices.</param>
+        /// <returns>Converted triangle.</returns>
         protected Primitives.Triangle ToTriangle(Quad q) => new Primitives.Triangle(
             (q.TopLeft + q.TopRight) / 2,
             q.BottomLeft,
