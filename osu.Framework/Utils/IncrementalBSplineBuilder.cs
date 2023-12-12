@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
@@ -75,10 +74,14 @@ namespace osu.Framework.Utils
             Value = new List<Vector2>()
         };
 
-        private readonly Cached<List<Vector2>> controlPoints = new Cached<List<Vector2>>
+        private readonly Cached<List<List<Vector2>>> controlPoints = new Cached<List<List<Vector2>>>
         {
-            Value = new List<Vector2>()
+            Value = new List<List<Vector2>>()
         };
+
+        private bool shouldOptimiseLastSegment;
+
+        private bool finishedDrawing;
 
         private int degree;
 
@@ -166,12 +169,15 @@ namespace osu.Framework.Utils
         /// <summary>
         /// The list of control points of the B-Spline. This is inferred from the input path.
         /// </summary>
-        public IReadOnlyList<Vector2> ControlPoints
+        public IReadOnlyList<List<Vector2>> ControlPoints
         {
             get
             {
                 if (!controlPoints.IsValid)
-                    regenerateApproximatedPathControlPoints();
+                    regenerateFullApproximatedPath();
+
+                if (shouldOptimiseLastSegment)
+                    regenerateLastApproximatedSegment();
 
                 return controlPoints.Value;
             }
@@ -273,7 +279,166 @@ namespace osu.Framework.Utils
             return cornerT;
         }
 
-        private void regenerateApproximatedPathControlPoints()
+        private (List<Vector2>, List<Vector2>, float) initializeSegment(List<Vector2> vertices, List<float> distances, float t0, float t1)
+        {
+            // Populate each segment between corners with control points that have density proportional to the
+            // product of Tolerance and curvature.
+            const float step_size = FD_EPSILON;
+
+            float totalWinding = 0;
+
+            Vector2 c0 = getPathAt(vertices, distances, t0);
+            Vector2 c1 = getPathAt(vertices, distances, t1);
+            Line linearConnection = new Line(c0, c1);
+
+            t0 += step_size * 2;
+            t1 -= step_size * 2;
+
+            var cps = new List<Vector2> { c0 };
+            var segmentPath = new List<Vector2> { c0 };
+            bool allOnLine = true;
+            float onLineThreshold = 0.02f * Tolerance * Vector2.Distance(c0, c1);
+
+            if (t1 > t0)
+            {
+                int nSteps = (int)((t1 - t0) / step_size);
+                float currentWinding = 0.5f * Tolerance;
+
+                for (int j = 0; j < nSteps; ++j)
+                {
+                    float t = t0 + j * step_size;
+                    float winding = getAbsWindingAt(vertices, distances, t);
+                    totalWinding += winding;
+                    currentWinding += winding;
+
+                    Vector2 p = getPathAt(vertices, distances, t);
+                    segmentPath.Add(p);
+
+                    if (currentWinding < Tolerance) continue;
+
+                    if (linearConnection.DistanceSquaredToPoint(p) > onLineThreshold * onLineThreshold)
+                        allOnLine = false;
+
+                    cps.Add(p);
+                    currentWinding -= Tolerance;
+                }
+            }
+
+            cps.Add(c1);
+            segmentPath.Add(c1);
+
+            return allOnLine ? (new List<Vector2> { c0, c1 }, segmentPath, totalWinding) : (cps, segmentPath, totalWinding);
+        }
+
+        private void updateLastSegment(List<Vector2> vertices, List<float> distances, List<float> cornerTs, List<List<Vector2>> segments, int iterations, bool mask)
+        {
+            if (segments.Count == 0 || segments.Count >= cornerTs.Count) return;
+
+            // Initialize control points for the last segment
+            int i = segments.Count - 1;
+            var lastSegment = segments[i];
+            var (cps, segmentPath, totalWinding) = initializeSegment(vertices, distances, cornerTs[i], cornerTs[i + 1]);
+
+            // Make sure the last segment has the correct end-points
+            if (lastSegment.Count >= 1)
+                lastSegment[0] = cps[0];
+            else
+                lastSegment.Add(cps[0]);
+            if (lastSegment.Count >= 2)
+                lastSegment[^1] = cps[^1];
+            else
+                lastSegment.Add(cps[^1]);
+
+            // Make sure the last segment has the correct number of control points.
+            if (cps.Count > lastSegment.Count)
+            {
+                int toAdd = cps.Count - lastSegment.Count;
+
+                for (int j = 0; j < toAdd; j++)
+                {
+                    lastSegment.Insert(lastSegment.Count - 1, cps[j + cps.Count - toAdd - 1]);
+                }
+            }
+            else if (cps.Count < lastSegment.Count)
+            {
+                int toRemove = lastSegment.Count - cps.Count;
+                lastSegment.RemoveRange(lastSegment.Count - toRemove - 1, toRemove);
+            }
+
+            // Optimize the control point placement
+            if (lastSegment.Count <= 2 || lastSegment.Count >= 100) return;
+
+            float[,]? learnableMask = null;
+
+            if (mask)
+            {
+                // When live-drawing, only the end of the segment gets extended in which case we use this mask to make updates less wobbly.
+                // Make a mask to prevent modifying the control points which have barely any impact on the end of the segment.
+                // Also the end-points can not move.
+                learnableMask = new float[2, lastSegment.Count];
+
+                // Only the 2 * degree last control points are not fixed in place.
+                // This number was chosen because manual testing showed that control points outside this range barely get moved
+                // by the optimization when the end of the segment gets extended.
+                for (int j = Math.Max(1, lastSegment.Count - degree * 2); j < lastSegment.Count - 1; j++)
+                {
+                    learnableMask[0, j] = 1;
+                    learnableMask[1, j] = 1;
+                }
+            }
+
+            int res = (int)(totalWinding * 10);
+            segments[^1] = PathApproximator.PiecewiseLinearToBSpline(segmentPath.ToArray(), lastSegment.Count, degree,
+                res, iterations, 4f, initialControlPoints: lastSegment, learnableMask: learnableMask);
+        }
+
+        private void regenerateLastApproximatedSegment()
+        {
+            if (!controlPoints.IsValid)
+            {
+                regenerateFullApproximatedPath();
+                return;
+            }
+
+            var (vertices, distances) = computeSmoothedInputPath();
+
+            if (vertices.Count < 2)
+            {
+                controlPoints.Value = new List<List<Vector2>> { vertices };
+                return;
+            }
+
+            Debug.Assert(vertices.Count == distances.Count + 1);
+            var cornerTs = detectCorners(vertices, distances);
+
+            var segments = controlPoints.Value;
+
+            // In some extremely rare cases there can be less corners than on the previous frame,
+            // so we have to remove the last segments if that is the case.
+            if (segments.Count >= cornerTs.Count)
+            {
+                int toRemove = segments.Count + 1 - cornerTs.Count;
+                segments.RemoveRange(segments.Count - toRemove, toRemove);
+            }
+
+            // Make sure there are enough segments.
+            while (segments.Count < cornerTs.Count - 1)
+            {
+                // The previous segment may have been shortened by the addition of a corner.
+                // We have to remove the extra control points and re-optimize the path.
+                updateLastSegment(vertices, distances, cornerTs, segments, 100, false);
+                segments.Add(new List<Vector2>());
+            }
+
+            if (finishedDrawing)
+                updateLastSegment(vertices, distances, cornerTs, segments, 100, false);
+            else
+                updateLastSegment(vertices, distances, cornerTs, segments, 10, true);
+
+            shouldOptimiseLastSegment = false;
+        }
+
+        private void regenerateFullApproximatedPath()
         {
             // Approximating a given input path with a BSpline has three stages:
             //  1. Fit a dense-ish BSpline (with one control point in FdEpsilon-sized intervals) to the input path.
@@ -288,90 +453,42 @@ namespace osu.Framework.Utils
 
             if (vertices.Count < 2)
             {
-                controlPoints.Value = vertices;
+                controlPoints.Value = new List<List<Vector2>> { vertices };
                 return;
             }
 
-            controlPoints.Value = new List<Vector2>();
+            controlPoints.Value = new List<List<Vector2>>();
 
             Debug.Assert(vertices.Count == distances.Count + 1);
             var cornerTs = detectCorners(vertices, distances);
 
-            var cps = controlPoints.Value;
-            cps.Add(vertices[0]);
-
-            // Populate each segment between corners with control points that have density proportional to the
-            // product of Tolerance and curvature.
-            const float step_size = FD_EPSILON;
+            var segments = controlPoints.Value;
 
             for (int i = 1; i < cornerTs.Count; ++i)
             {
-                float totalWinding = 0;
+                var (cps, segmentPath, totalWinding) = initializeSegment(vertices, distances, cornerTs[i - 1], cornerTs[i]);
 
-                float t0 = cornerTs[i - 1] + step_size * 2;
-                float t1 = cornerTs[i] - step_size * 2;
-
-                Vector2 c0 = getPathAt(vertices, distances, cornerTs[i - 1]);
-                Vector2 c1 = getPathAt(vertices, distances, cornerTs[i]);
-                Line linearConnection = new Line(c0, c1);
-
-                var tmp = new List<Vector2>();
-                bool allOnLine = true;
-                float onLineThreshold = 5 * Tolerance * step_size;
-
-                if (t1 > t0)
+                if (cps.Count > 2 && cps.Count < 100)
                 {
-                    int nSteps = (int)((t1 - t0) / step_size);
-
-                    for (int j = 0; j < nSteps; ++j)
-                    {
-                        float t = t0 + j * step_size;
-                        totalWinding += getAbsWindingAt(vertices, distances, t);
-                    }
-
-                    float currentWinding = 0;
-
-                    for (int j = 0; j < nSteps; ++j)
-                    {
-                        float t = t0 + j * step_size;
-
-                        // Don't permit control points too close to the next corner as they are redundant.
-                        // However, ignore this limitation on the last segment of the path as we would like
-                        // it to follow the user's drawing as closely as possible.
-                        if (currentWinding + tmp.Count * Tolerance > totalWinding - Tolerance * 0.5f && i < cornerTs.Count - 1)
-                            break;
-
-                        if (currentWinding > Tolerance)
-                        {
-                            Vector2 p = getPathAt(vertices, distances, t);
-                            if (linearConnection.DistanceSquaredToPoint(p) > onLineThreshold * onLineThreshold)
-                                allOnLine = false;
-
-                            tmp.Add(p);
-                            currentWinding -= Tolerance;
-                        }
-
-                        currentWinding += getAbsWindingAt(vertices, distances, t);
-                    }
+                    int res = (int)(totalWinding * 10);
+                    cps = PathApproximator.PiecewiseLinearToBSpline(segmentPath.ToArray(), cps.Count, degree,
+                        res, 200, 5, initialControlPoints: cps);
                 }
 
-                if (!allOnLine)
-                    cps.AddRange(tmp);
-
-                // Insert the corner at the end of the segment as a sharp control point consisting of
-                // degree many regular control points, meaning that the BSpline will have a kink here.
-                // Special case the last corner which will be the end of the path and thus automatically
-                // duplicated degree times by BSplineToPiecewiseLinear down the line.
-                if (i == cornerTs.Count - 1)
-                    cps.Add(c1);
-                else
-                    cps.AddRange(Enumerable.Repeat(c1, degree));
+                segments.Add(cps);
             }
+
+            shouldOptimiseLastSegment = false;
         }
 
         private void redrawApproximatedPath()
         {
-            outputCache.Value = PathApproximator.BSplineToPiecewiseLinear(ControlPoints.ToArray(), degree);
+            outputCache.Value = new List<Vector2>();
+
+            foreach (var segment in ControlPoints)
+            {
+                outputCache.Value.AddRange(PathApproximator.BSplineToPiecewiseLinear(segment.ToArray(), degree));
+            }
         }
 
         /// <summary>
@@ -382,8 +499,11 @@ namespace osu.Framework.Utils
             inputPath.Clear();
             cumulativeInputPathLength.Clear();
 
-            controlPoints.Value = new List<Vector2>();
+            controlPoints.Value = new List<List<Vector2>>();
             outputCache.Value = new List<Vector2>();
+
+            shouldOptimiseLastSegment = false;
+            finishedDrawing = false;
         }
 
         /// <summary>
@@ -393,7 +513,7 @@ namespace osu.Framework.Utils
         public void AddLinearPoint(Vector2 v)
         {
             outputCache.Invalidate();
-            controlPoints.Invalidate();
+            shouldOptimiseLastSegment = true;
 
             // Implementation detail: we would like to disregard input path detail that is smaller than
             // FD_EPSILON * 2 because it can otherwise mess with the winding calculations. However, we
@@ -420,6 +540,19 @@ namespace osu.Framework.Utils
 
             inputPath.Add(v);
             cumulativeInputPathLength.Add(cumulativeInputPathLength[^1]);
+        }
+
+        /// <summary>
+        /// Call this when you are done building the path.
+        /// This method applies the final step of post-processing.
+        /// </summary>
+        public void Finish()
+        {
+            // Do additional optimization steps on the entire last segment.
+            // This improves results after drawing, so the performance stays fast and control points dont wobble too much while drawing.
+            outputCache.Invalidate();
+            shouldOptimiseLastSegment = true;
+            finishedDrawing = true;
         }
     }
 }

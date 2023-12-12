@@ -5,11 +5,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
@@ -73,21 +75,6 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private void setItems(IEnumerable<T> items)
-        {
-            clearItems();
-            if (items == null)
-                return;
-
-            foreach (var entry in items)
-                addDropdownItem(entry);
-
-            if (Current.Value == null || !itemMap.Keys.Contains(Current.Value, EqualityComparer<T>.Default))
-                Current.Value = itemMap.Keys.FirstOrDefault();
-            else
-                Current.TriggerChange();
-        }
-
         private readonly IBindableList<T> itemSource = new BindableList<T>();
         private IBindableList<T> boundItemSource;
 
@@ -105,7 +92,22 @@ namespace osu.Framework.Graphics.UserInterface
 
                 if (boundItemSource != null) itemSource.UnbindFrom(boundItemSource);
                 itemSource.BindTo(boundItemSource = value);
+
+                setItems(value);
             }
+        }
+
+        private void setItems(IEnumerable<T> value)
+        {
+            clearItems();
+
+            if (value == null)
+                return;
+
+            foreach (var entry in value)
+                addDropdownItem(entry);
+
+            ensureItemSelectionIsValid();
         }
 
         /// <summary>
@@ -120,7 +122,7 @@ namespace osu.Framework.Graphics.UserInterface
             addDropdownItem(value);
         }
 
-        private void addDropdownItem(T value)
+        private void addDropdownItem(T value, int? position = null)
         {
             if (itemMap.ContainsKey(value))
                 throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<T>)}.");
@@ -137,7 +139,11 @@ namespace osu.Framework.Graphics.UserInterface
             if (LoadState >= LoadState.Ready)
                 item.Text.Value = GenerateItemText(value);
 
-            Menu.Add(item);
+            if (position != null)
+                Menu.Insert(position.Value, item);
+            else
+                Menu.Add(item);
+
             itemMap[value] = item;
         }
 
@@ -163,7 +169,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             Menu.Remove(item);
             itemMap.Remove(value);
-
             return true;
         }
 
@@ -266,7 +271,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Header.UpdateSearchBarFocus(state);
             };
 
-            Current.ValueChanged += val => Scheduler.AddOnce(selectionChanged, val);
+            Current.ValueChanged += val => Scheduler.AddOnce(updateItemSelection, val.NewValue);
             Current.DisabledChanged += disabled =>
             {
                 Header.Enabled.Value = !disabled;
@@ -274,7 +279,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Menu.State = MenuState.Closed;
             };
 
-            ItemSource.CollectionChanged += (_, _) => setItems(itemSource);
+            ItemSource.CollectionChanged += collectionChanged;
         }
 
         private void preselectionConfirmed(DropdownMenuItem<T> item)
@@ -347,20 +352,76 @@ namespace osu.Framework.Graphics.UserInterface
             return false;
         }
 
-        private void selectionChanged(ValueChangedEvent<T> args)
+        private void collectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            // refresh if SelectedItem and SelectedValue mismatched
-            // null is not a valid value for Dictionary, so neither here
-            if (args.NewValue == null && SelectedItem != null)
+            switch (e.Action)
             {
-                selectedItem = new DropdownMenuItem<T>(default(LocalisableString), default);
-            }
-            else if (SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue))
-            {
-                if (args.NewValue == null || !itemMap.TryGetValue(args.NewValue, out selectedItem))
+                case NotifyCollectionChangedAction.Add:
                 {
-                    selectedItem = new DropdownMenuItem<T>(GenerateItemText(args.NewValue), args.NewValue);
+                    var newItems = e.NewItems.AsNonNull().Cast<T>().ToArray();
+
+                    for (int i = 0; i < newItems.Length; i++)
+                        addDropdownItem(newItems[i], e.NewStartingIndex + i);
+
+                    break;
                 }
+
+                case NotifyCollectionChangedAction.Remove:
+                    foreach (var item in e.OldItems.AsNonNull().Cast<T>())
+                        removeDropdownItem(item);
+
+                    break;
+
+                case NotifyCollectionChangedAction.Move:
+                {
+                    var item = Items.ElementAt(e.OldStartingIndex);
+                    removeDropdownItem(item);
+                    addDropdownItem(item, e.NewStartingIndex);
+                    break;
+                }
+
+                case NotifyCollectionChangedAction.Replace:
+                {
+                    foreach (var item in e.OldItems.AsNonNull().Cast<T>())
+                        removeDropdownItem(item);
+
+                    var newItems = e.NewItems.AsNonNull().Cast<T>().ToArray();
+
+                    for (int i = 0; i < newItems.Length; i++)
+                        addDropdownItem(newItems[i], e.NewStartingIndex + i);
+
+                    break;
+                }
+
+                case NotifyCollectionChangedAction.Reset:
+                    clearItems();
+                    break;
+            }
+
+            ensureItemSelectionIsValid();
+        }
+
+        private void ensureItemSelectionIsValid()
+        {
+            if (Current.Value == null || !itemMap.ContainsKey(Current.Value))
+            {
+                Current.Value = itemMap.Keys.FirstOrDefault();
+                return;
+            }
+
+            updateItemSelection(Current.Value);
+        }
+
+        private void updateItemSelection(T value)
+        {
+            if (value != null && itemMap.TryGetValue(value, out var existingItem))
+                selectedItem = existingItem;
+            else
+            {
+                if (value == null && selectedItem != null)
+                    selectedItem = new DropdownMenuItem<T>(default(LocalisableString), default);
+                else
+                    selectedItem = new DropdownMenuItem<T>(GenerateItemText(value), value);
             }
 
             Menu.SelectItem(selectedItem);
@@ -450,14 +511,6 @@ namespace osu.Framework.Graphics.UserInterface
                 StateChanged += clearPreselection;
             }
 
-            public override void Add(MenuItem item)
-            {
-                base.Add(item);
-
-                var drawableDropdownMenuItem = (DrawableDropdownMenuItem)ItemsContainer.Single(drawableItem => drawableItem.Item == item);
-                drawableDropdownMenuItem.PreselectionRequested += PreselectItem;
-            }
-
             private void clearPreselection(MenuState obj)
             {
                 if (obj == MenuState.Closed)
@@ -480,8 +533,9 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
                 {
+                    bool wasSelected = c.IsSelected;
                     c.IsSelected = compareItemEquality(item, c.Item);
-                    if (c.IsSelected)
+                    if (c.IsSelected && !wasSelected)
                         ContentContainer.ScrollIntoView(c);
                 });
             }
@@ -518,13 +572,19 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
                 {
+                    bool wasPreSelected = c.IsPreSelected;
                     c.IsPreSelected = compareItemEquality(item, c.Item);
-                    if (c.IsPreSelected)
+                    if (c.IsPreSelected && !wasPreSelected)
                         ContentContainer.ScrollIntoView(c);
                 });
             }
 
-            protected sealed override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => CreateDrawableDropdownMenuItem(item);
+            protected sealed override DrawableMenuItem CreateDrawableMenuItem(MenuItem item)
+            {
+                var drawableItem = CreateDrawableDropdownMenuItem(item);
+                drawableItem.PreselectionRequested += PreselectItem;
+                return drawableItem;
+            }
 
             protected abstract DrawableDropdownMenuItem CreateDrawableDropdownMenuItem(MenuItem item);
 

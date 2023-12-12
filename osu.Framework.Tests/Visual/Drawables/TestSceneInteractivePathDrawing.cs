@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using osu.Framework.Graphics;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -18,6 +19,7 @@ namespace osu.Framework.Tests.Visual.Drawables
     {
         private readonly Path rawDrawnPath;
         private readonly Path approximatedDrawnPath;
+        private readonly Path controlPointPath;
         private readonly Container controlPointViz;
 
         private readonly IncrementalBSplineBuilder bSplineBuilder = new IncrementalBSplineBuilder();
@@ -39,6 +41,12 @@ namespace osu.Framework.Tests.Visual.Drawables
                         Colour = Color4.Blue,
                         PathRadius = 3,
                     },
+                    controlPointPath = new Path
+                    {
+                        Colour = Color4.LightGreen,
+                        PathRadius = 1,
+                        Alpha = 0.5f,
+                    },
                     controlPointViz = new Container
                     {
                         RelativeSizeAxes = Axes.Both,
@@ -55,11 +63,11 @@ namespace osu.Framework.Tests.Visual.Drawables
                 bSplineBuilder.Clear();
             });
 
-            AddSliderStep($"{nameof(bSplineBuilder.Degree)}", 1, 5, 3, v =>
+            AddSliderStep($"{nameof(bSplineBuilder.Degree)}", 1, 4, 3, v =>
             {
                 bSplineBuilder.Degree = v;
             });
-            AddSliderStep($"{nameof(bSplineBuilder.Tolerance)}", 0f, 3f, 1.5f, v =>
+            AddSliderStep($"{nameof(bSplineBuilder.Tolerance)}", 0f, 3f, 2f, v =>
             {
                 bSplineBuilder.Tolerance = v;
             });
@@ -71,17 +79,21 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private void updateControlPointsViz()
         {
+            controlPointPath.Vertices = bSplineBuilder.ControlPoints.SelectMany(o => o).ToArray();
             controlPointViz.Clear();
 
-            foreach (var cp in bSplineBuilder.ControlPoints)
+            foreach (var segment in bSplineBuilder.ControlPoints)
             {
-                controlPointViz.Add(new Box
+                foreach (var cp in segment)
                 {
-                    Origin = Anchor.Centre,
-                    Size = new Vector2(10),
-                    Position = cp,
-                    Colour = Color4.LightGreen,
-                });
+                    controlPointViz.Add(new Box
+                    {
+                        Origin = Anchor.Centre,
+                        Size = new Vector2(10),
+                        Position = cp,
+                        Colour = Color4.LightGreen,
+                    });
+                }
             }
         }
 
@@ -108,6 +120,14 @@ namespace osu.Framework.Tests.Visual.Drawables
         protected override void OnDrag(DragEvent e)
         {
             bSplineBuilder.AddLinearPoint(rawDrawnPath.ToLocalSpace(ToScreenSpace(e.MousePosition)));
+        }
+
+        protected override void OnDragEnd(DragEndEvent e)
+        {
+            if (e.Button == MouseButton.Left)
+                bSplineBuilder.Finish();
+
+            base.OnDragEnd(e);
         }
     }
 }

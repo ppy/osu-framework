@@ -131,7 +131,7 @@ namespace osu.Framework.Tests.Visual.Graphics
             {
             }
 
-            public override void Draw(IRenderer renderer)
+            protected override void Draw(IRenderer renderer)
             {
                 base.Draw(renderer);
 
@@ -164,7 +164,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                     DestinationAlpha = BlendingType.One,
                 });
 
-                drawNode.Draw(renderer);
+                DrawOther(drawNode, renderer);
 
                 renderer.PopStencilInfo();
                 renderer.SetBlend(DrawColourInfo.Blending);
@@ -182,7 +182,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                     passed: StencilOperation.Keep
                 ));
 
-                drawNode.Draw(renderer);
+                DrawOther(drawNode, renderer);
 
                 renderer.PopStencilInfo();
             }
