@@ -341,7 +341,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("hide dropdown", () => testDropdown.Hide());
             AddStep("clear items", () => bindableList.Clear());
             AddStep("show dropdown", () => testDropdown.Show());
-            AddAssert("dropdown menu empty", () => !testDropdown.Menu.DrawableMenuItems.Any());
+            AddAssert("dropdown menu empty", () => !testDropdown.Menu.Children.Any());
         }
 
         /// <summary>
