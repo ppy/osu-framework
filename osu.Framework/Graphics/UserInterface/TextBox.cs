@@ -169,7 +169,11 @@ namespace osu.Framework.Graphics.UserInterface
                     Position = new Vector2(LeftRightPadding, 0),
                     Children = new Drawable[]
                     {
-                        Placeholder = CreatePlaceholder(),
+                        Placeholder = CreatePlaceholder().With(p =>
+                        {
+                            p.Anchor = Anchor.CentreLeft;
+                            p.Origin = Anchor.CentreLeft;
+                        }),
                         caret = CreateCaret().With(c =>
                         {
                             c.Anchor = Anchor.CentreLeft;
