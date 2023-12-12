@@ -140,20 +140,17 @@ namespace osu.Framework.Graphics.UserInterface
         {
             public BasicCaret()
             {
-                RelativeSizeAxes = Axes.Y;
-                Size = new Vector2(1, 0.9f);
-
                 Colour = Color4.Transparent;
-                Anchor = Anchor.CentreLeft;
-                Origin = Anchor.CentreLeft;
 
-                Masking = true;
-                CornerRadius = 1;
-
-                InternalChild = new Box
+                InternalChild = new Container
                 {
+                    Anchor = Anchor.CentreLeft,
+                    Origin = Anchor.CentreLeft,
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.White,
+                    Height = 0.9f,
+                    CornerRadius = 1f,
+                    Masking = true,
+                    Child = new Box { RelativeSizeAxes = Axes.Both },
                 };
             }
 

@@ -50,19 +50,11 @@ namespace osu.Framework.Graphics.UserInterface
 
                 protected override void PopOut() => this.FadeOut();
 
-                protected override TextBox CreateTextBox() => new SearchTextBox
+                protected override TextBox CreateTextBox() => new BasicTextBox
                 {
                     PlaceholderText = "type to search",
                     FontSize = font.Size,
                 };
-
-                private partial class SearchTextBox : BasicTextBox
-                {
-                    public SearchTextBox()
-                    {
-                        TextContainer.Margin = new MarginPadding { Top = 2 };
-                    }
-                }
             }
         }
 

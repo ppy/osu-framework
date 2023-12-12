@@ -170,14 +170,17 @@ namespace osu.Framework.Graphics.UserInterface
                     Children = new Drawable[]
                     {
                         Placeholder = CreatePlaceholder(),
-                        caret = CreateCaret(),
+                        caret = CreateCaret().With(c =>
+                        {
+                            c.Anchor = Anchor.CentreLeft;
+                            c.Origin = Anchor.CentreLeft;
+                        }),
                         TextFlow = new FillFlowContainer
                         {
                             Anchor = Anchor.CentreLeft,
                             Origin = Anchor.CentreLeft,
                             Direction = FillDirection.Horizontal,
-                            AutoSizeAxes = Axes.X,
-                            RelativeSizeAxes = Axes.Y,
+                            AutoSizeAxes = Axes.Both,
                         },
                     },
                 },
@@ -507,6 +510,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateCursorAndLayout()
         {
+            caret.Height = FontSize;
             Placeholder.Font = Placeholder.Font.With(size: FontSize);
 
             float cursorPos = 0;
