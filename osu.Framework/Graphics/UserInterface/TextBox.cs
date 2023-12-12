@@ -781,7 +781,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public float FontSize
         {
-            get => customFontSize ?? TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
+            get => customFontSize ?? TextContainer.DrawSize.Y;
             init => customFontSize = value;
         }
 
