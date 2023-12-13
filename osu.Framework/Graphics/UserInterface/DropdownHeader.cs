@@ -5,6 +5,7 @@
 
 using osuTK.Graphics;
 using System;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
@@ -15,12 +16,22 @@ using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract partial class DropdownHeader : ClickableContainer, IKeyBindingHandler<PlatformAction>
+    public abstract partial class DropdownHeader : Container, IKeyBindingHandler<PlatformAction>
     {
         public event Action<DropdownSelectionAction> ChangeSelection;
 
         protected Container Background;
         protected Container Foreground;
+
+        public bool AlwaysShowSearchBar
+        {
+            get => SearchBar.AlwaysDisplayOnFocus;
+            set => SearchBar.AlwaysDisplayOnFocus = value;
+        }
+
+        protected internal DropdownSearchBar SearchBar { get; }
+
+        public Bindable<string> SearchTerm => SearchBar.SearchTerm;
 
         private Color4 backgroundColour = Color4.DarkGray;
 
@@ -52,12 +63,17 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected internal abstract LocalisableString Label { get; set; }
 
+        public BindableBool Enabled { get; } = new BindableBool(true);
+
+        public Action ToggleMenu;
+
         protected DropdownHeader()
         {
             Masking = true;
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
             Width = 1;
+
             InternalChildren = new Drawable[]
             {
                 Background = new Container
@@ -79,13 +95,26 @@ namespace osu.Framework.Graphics.UserInterface
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y
                 },
+                SearchBar = CreateSearchBar(),
             };
         }
+
+        protected abstract DropdownSearchBar CreateSearchBar();
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
             Enabled.BindValueChanged(_ => updateState(), true);
+        }
+
+        protected override bool OnClick(ClickEvent e)
+        {
+            if (!Enabled.Value)
+                return false;
+
+            ToggleMenu?.Invoke();
+            return false;
         }
 
         protected override bool OnHover(HoverEvent e)
@@ -100,16 +129,25 @@ namespace osu.Framework.Graphics.UserInterface
             base.OnHoverLost(e);
         }
 
+        public void UpdateSearchBarFocus(MenuState state)
+        {
+            if (state == MenuState.Open)
+                SearchBar.ObtainFocus();
+            else
+                SearchBar.ReleaseFocus();
+        }
+
         private void updateState()
         {
             Colour = Enabled.Value ? Color4.White : DisabledColour;
             Background.Colour = IsHovered && Enabled.Value ? BackgroundColourHover : BackgroundColour;
         }
 
-        public override bool HandleNonPositionalInput => IsHovered;
-
         protected override bool OnKeyDown(KeyDownEvent e)
         {
+            if (!IsHovered)
+                return false;
+
             if (!Enabled.Value)
                 return true;
 

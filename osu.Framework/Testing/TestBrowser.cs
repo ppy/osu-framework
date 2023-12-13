@@ -655,7 +655,7 @@ namespace osu.Framework.Testing
 
             public TestBrowserTextBox()
             {
-                TextFlow.Height = 0.75f;
+                FontSize = 14f;
             }
         }
     }

@@ -16,7 +16,6 @@ using osu.Framework.Input;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
@@ -878,7 +877,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private partial class CustomTextBox : BasicTextBox
         {
-            protected override Drawable GetDrawableCharacter(char c) => new ScalingText(c, CalculatedTextSize);
+            protected override Drawable GetDrawableCharacter(char c) => new ScalingText(c, FontSize);
 
             private partial class ScalingText : CompositeDrawable
             {
@@ -923,16 +922,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                 public BorderCaret()
                 {
-                    RelativeSizeAxes = Axes.Y;
-
-                    Masking = true;
-                    BorderColour = Color4.White;
-                    BorderThickness = 3;
-
-                    InternalChild = new Box
+                    InternalChild = new Container
                     {
+                        Anchor = Anchor.CentreLeft,
+                        Origin = Anchor.CentreLeft,
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Transparent
+                        Masking = true,
+                        BorderColour = Colour4.White,
+                        BorderThickness = 3f,
+                        Child = new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = Colour4.Transparent,
+                        },
                     };
                 }
 

@@ -15,6 +15,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         public partial class BasicDropdownHeader : DropdownHeader
         {
+            private static FontUsage font => FrameworkFont.Condensed;
+
             private readonly SpriteText label;
 
             protected internal override LocalisableString Label
@@ -25,8 +27,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             public BasicDropdownHeader()
             {
-                var font = FrameworkFont.Condensed;
-
                 Foreground.Padding = new MarginPadding(5);
                 BackgroundColour = FrameworkColour.Green;
                 BackgroundColourHover = FrameworkColour.YellowGreen;
@@ -39,6 +39,21 @@ namespace osu.Framework.Graphics.UserInterface
                         Font = font,
                         Height = font.Size,
                     },
+                };
+            }
+
+            protected override DropdownSearchBar CreateSearchBar() => new BasicDropdownSearchBar();
+
+            public partial class BasicDropdownSearchBar : DropdownSearchBar
+            {
+                protected override void PopIn() => this.FadeIn();
+
+                protected override void PopOut() => this.FadeOut();
+
+                protected override TextBox CreateTextBox() => new BasicTextBox
+                {
+                    PlaceholderText = "type to search",
+                    FontSize = font.Size,
                 };
             }
         }
