@@ -47,7 +47,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("click item 2", () =>
             {
-                InputManager.MoveMouseTo(testDropdown.Menu.Children[2]);
+                InputManager.MoveMouseTo(testDropdown.Menu.Children.ElementAt(2));
                 InputManager.Click(MouseButton.Left);
             });
 
@@ -176,7 +176,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("click item 4", () =>
             {
-                InputManager.MoveMouseTo(testDropdown.Menu.Children[4]);
+                InputManager.MoveMouseTo(testDropdown.Menu.Children.ElementAt(4));
                 InputManager.Click(MouseButton.Left);
             });
 

@@ -181,7 +181,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             IReadOnlyList<MenuItem> currentItems = null;
             AddStep("Click item", () => { ClickItem(0, 0); });
 
-            AddStep("Get items", () => { currentItems = Menus.GetSubMenu(1).Items; });
+            AddStep("Get items", () => { currentItems = Menus.GetSubMenu(1).Items.ToList(); });
 
             AddAssert("Check open", () => Menus.GetSubMenu(1).State == MenuState.Open);
             AddStep("Hover item", () => InputManager.MoveMouseTo(Menus.GetSubStructure(0).GetMenuItems()[1]));
