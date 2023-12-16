@@ -45,7 +45,7 @@
 
     <!-- DO NOT use ProjectReference for native packaging project.
          See https://github.com/NuGet/Home/issues/4514 and https://github.com/dotnet/sdk/issues/765 . -->
-    <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2023.1013.0-nativelibs" />
+    <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2023.1205.0-nativelibs" />
 
     <!-- Any version ahead of this will cause AOT issues with iOS
          See https://github.com/mono/mono/issues/21188 -->
@@ -54,5 +54,6 @@
     <!-- Any version ahead of this will cause runtime issues on iOS
          See https://github.com/xoofx/markdig/issues/564 -->
     <PackageReference Include="Markdig" Version="0.23.0" />
+    <PackageReference Include="System.Numerics.Tensors" Version="8.0.0" />
   </ItemGroup>
 </Project>

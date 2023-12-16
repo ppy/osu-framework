@@ -485,7 +485,7 @@ namespace osu.Framework.Graphics.Video
             }
 
             if (!openSuccessful)
-                throw new InvalidOperationException("No usable decoder found");
+                throw new InvalidOperationException($"No usable decoder found for codec ID {codecParams.codec_id}");
         }
 
         private bool prepareResampler()

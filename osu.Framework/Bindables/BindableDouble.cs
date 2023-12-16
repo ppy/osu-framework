@@ -12,7 +12,7 @@ namespace osu.Framework.Bindables
         {
         }
 
-        public override string ToString(string? format, IFormatProvider formatProvider) => base.ToString(format ?? "0.0###", formatProvider);
+        public override string ToString(string? format, IFormatProvider? formatProvider) => base.ToString(format ?? "0.0###", formatProvider);
 
         protected override Bindable<double> CreateInstance() => new BindableDouble();
     }
