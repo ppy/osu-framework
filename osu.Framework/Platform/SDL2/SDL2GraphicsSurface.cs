@@ -13,7 +13,7 @@ using SDL2;
 
 namespace osu.Framework.Platform.SDL2
 {
-    public class SDL2GraphicsSurface : IGraphicsSurface, IOpenGLGraphicsSurface, IMetalGraphicsSurface, ILinuxGraphicsSurface
+    internal class SDL2GraphicsSurface : IGraphicsSurface, IOpenGLGraphicsSurface, IMetalGraphicsSurface, ILinuxGraphicsSurface
     {
         private readonly SDL2Window window;
 

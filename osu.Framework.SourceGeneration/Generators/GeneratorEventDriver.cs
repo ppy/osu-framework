@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 
 namespace osu.Framework.SourceGeneration.Generators
 {
@@ -47,7 +46,10 @@ namespace osu.Framework.SourceGeneration.Generators
             conditionalInvoke(Emit, candidate);
         }
 
-        [Conditional("DEBUG")]
+        // Since we're running source generators in release configuration along with tests,
+        // we need this to always fire. Because we're not really worried about the compile
+        // overhead (due to only incurring on release builds) this isn't seen as a huge issue.
+        // [Conditional("DEBUG")]
         private void conditionalInvoke<T>(Action<T>? @event, T arg)
         {
             @event?.Invoke(arg);

@@ -52,6 +52,16 @@ namespace osu.Framework.Graphics.Rendering
         protected internal bool AllowTearing { get; set; }
 
         /// <summary>
+        /// A <see cref="Storage"/> that can be used to cache objects.
+        /// </summary>
+        protected internal Storage? CacheStorage { set; }
+
+        /// <summary>
+        /// The current frame index.
+        /// </summary>
+        ulong FrameIndex { get; }
+
+        /// <summary>
         /// The maximum allowed texture size.
         /// </summary>
         int MaxTextureSize { get; }
@@ -134,11 +144,6 @@ namespace osu.Framework.Graphics.Rendering
         bool IsMaskingActive { get; }
 
         /// <summary>
-        /// The current backbuffer depth.
-        /// </summary>
-        float BackbufferDrawDepth { get; }
-
-        /// <summary>
         /// Whether the currently bound framebuffer is the backbuffer.
         /// </summary>
         bool UsingBackbuffer { get; }
@@ -147,6 +152,11 @@ namespace osu.Framework.Graphics.Rendering
         /// The texture for a white pixel.
         /// </summary>
         Texture WhitePixel { get; }
+
+        /// <summary>
+        /// The current depth of <see cref="TexturedVertex2D"/> vertices when drawn to the backbuffer.
+        /// </summary>
+        internal DepthValue BackbufferDepth { get; }
 
         /// <summary>
         /// Whether this <see cref="IRenderer"/> has been initialised using <see cref="Initialise"/>.
@@ -367,10 +377,18 @@ namespace osu.Framework.Graphics.Rendering
         IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear);
 
         /// <summary>
-        /// Creates a new texture.
+        /// Creates a new <see cref="Texture"/>.
         /// </summary>
+        /// <param name="width">The width of the texture.</param>
+        /// <param name="height">The height of the texture.</param>
+        /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
+        /// <param name="filteringMode">The filtering mode.</param>
+        /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads). If null, no initialisation is provided out-of-the-box.</param>
+        /// <param name="wrapModeS">The texture's horizontal wrap mode.</param>
+        /// <param name="wrapModeT">The texture's vertex wrap mode.</param>
+        /// <returns>The <see cref="Texture"/>.</returns>
         Texture CreateTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, WrapMode wrapModeS = WrapMode.None,
-                              WrapMode wrapModeT = WrapMode.None, Color4 initialisationColour = default);
+                              WrapMode wrapModeT = WrapMode.None, Color4? initialisationColour = null);
 
         /// <summary>
         /// Creates a new video texture.
@@ -399,17 +417,29 @@ namespace osu.Framework.Graphics.Rendering
         IUniformBuffer<TData> CreateUniformBuffer<TData>() where TData : unmanaged, IEquatable<TData>;
 
         /// <summary>
+        /// Creates a buffer that can be used to store an array of data for use in a <see cref="IShader"/>.
+        /// </summary>
+        /// <param name="uboSize">The number of elements this buffer should contain if Shader Storage Buffer Objects <b>are not</b> supported by the platform.
+        /// A safe value is <c>16384/{data_size}</c>. The value must match the definition of the UBO implementation in the shader.</param>
+        /// <param name="ssboSize">The number of elements this buffer should contain if Shader Storage Buffer Objects <b>are</b> supported by the platform.
+        /// May be any value up to <c>{vram_size}/{data_size}</c>.</param>
+        /// <remarks>
+        /// <list type="bullet">
+        /// <item>Internally, this buffer may be implemented as either a "Uniform Buffer Object" (UBO) or
+        /// a "Shader Storage Buffer Object" (SSBO) depending on the capabilities of the platform.</item>
+        /// <item>UBOs are more broadly supported but cannot hold as much data as SSBOs.</item>
+        /// <item>Shaders must provide implementations for both types of buffers to properly support this storage.</item>
+        /// </list>
+        /// </remarks>
+        /// <typeparam name="TData">The type of data to be stored in the buffer.</typeparam>
+        /// <returns>An <see cref="IShaderStorageBufferObject{TData}"/>.</returns>
+        IShaderStorageBufferObject<TData> CreateShaderStorageBufferObject<TData>(int uboSize, int ssboSize) where TData : unmanaged, IEquatable<TData>;
+
+        /// <summary>
         /// Sets the value of a uniform.
         /// </summary>
         /// <param name="uniform">The uniform to set.</param>
         internal void SetUniform<T>(IUniformWithValue<T> uniform) where T : unmanaged, IEquatable<T>;
-
-        /// <summary>
-        /// Sets the current draw depth.
-        /// The draw depth is written to every vertex added to <see cref="IVertexBuffer"/>s.
-        /// </summary>
-        /// <param name="drawDepth">The draw depth.</param>
-        internal void SetDrawDepth(float drawDepth);
 
         internal IVertexBatch<TexturedVertex2D> DefaultQuadBatch { get; }
 

@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using System.Linq;
 using NUnit.Framework;
@@ -105,6 +103,17 @@ namespace osu.Framework.Tests.Visual.Testing
         [TestCase(2)]
         [Repeat(2)]
         public void TestTestCase(int _) => TestTest();
+
+        [TestCase(0)]
+        [TestCase(1, "one")]
+        [TestCase(3, "one", "two", "three")]
+        [TestCase(2, new[] { "test", "two" })]
+        public void TestParamsTestCase(int length, params string[] p)
+        {
+            TestTest();
+            AddAssert("params is array", () => p, Is.TypeOf<string[]>);
+            AddAssert("length is expected", () => p, () => Has.Length.EqualTo(length));
+        }
 
         protected override ITestSceneTestRunner CreateRunner() => new TestRunner();
 

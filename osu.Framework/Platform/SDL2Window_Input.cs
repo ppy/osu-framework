@@ -20,7 +20,7 @@ using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Platform
 {
-    public partial class SDL2Window
+    internal partial class SDL2Window
     {
         private void setupInput(FrameworkConfigManager config)
         {
@@ -142,19 +142,35 @@ namespace osu.Framework.Platform
 
         private Point previousPolledPoint = Point.Empty;
 
+        private SDLButtonMask pressedButtons;
+
         private void pollMouse()
         {
-            SDL.SDL_GetGlobalMouseState(out int x, out int y);
-            if (previousPolledPoint.X == x && previousPolledPoint.Y == y)
-                return;
+            SDLButtonMask globalButtons = (SDLButtonMask)SDL.SDL_GetGlobalMouseState(out int x, out int y);
 
-            previousPolledPoint = new Point(x, y);
+            if (previousPolledPoint.X != x || previousPolledPoint.Y != y)
+            {
+                previousPolledPoint = new Point(x, y);
 
-            var pos = WindowMode.Value == Configuration.WindowMode.Windowed ? Position : windowDisplayBounds.Location;
-            int rx = x - pos.X;
-            int ry = y - pos.Y;
+                var pos = WindowMode.Value == Configuration.WindowMode.Windowed ? Position : windowDisplayBounds.Location;
+                int rx = x - pos.X;
+                int ry = y - pos.Y;
 
-            MouseMove?.Invoke(new Vector2(rx * Scale, ry * Scale));
+                MouseMove?.Invoke(new Vector2(rx * Scale, ry * Scale));
+            }
+
+            // a button should be released if it was pressed and its current global state differs (its bit in globalButtons is set to 0)
+            SDLButtonMask buttonsToRelease = pressedButtons & (globalButtons ^ pressedButtons);
+
+            // the outer if just optimises for the common case that there are no buttons to release.
+            if (buttonsToRelease != SDLButtonMask.None)
+            {
+                if (buttonsToRelease.HasFlagFast(SDLButtonMask.Left)) MouseUp?.Invoke(MouseButton.Left);
+                if (buttonsToRelease.HasFlagFast(SDLButtonMask.Middle)) MouseUp?.Invoke(MouseButton.Middle);
+                if (buttonsToRelease.HasFlagFast(SDLButtonMask.Right)) MouseUp?.Invoke(MouseButton.Right);
+                if (buttonsToRelease.HasFlagFast(SDLButtonMask.X1)) MouseUp?.Invoke(MouseButton.Button1);
+                if (buttonsToRelease.HasFlagFast(SDLButtonMask.X2)) MouseUp?.Invoke(MouseButton.Button2);
+            }
         }
 
         public virtual void StartTextInput(bool allowIme) => ScheduleCommand(SDL.SDL_StartTextInput);
@@ -398,14 +414,18 @@ namespace osu.Framework.Platform
         private void handleMouseButtonEvent(SDL.SDL_MouseButtonEvent evtButton)
         {
             MouseButton button = mouseButtonFromEvent(evtButton.button);
+            SDLButtonMask mask = (SDLButtonMask)SDL.SDL_BUTTON(evtButton.button);
+            Debug.Assert(Enum.IsDefined(mask));
 
             switch (evtButton.type)
             {
                 case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
+                    pressedButtons |= mask;
                     MouseDown?.Invoke(button);
                     break;
 
                 case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
+                    pressedButtons &= ~mask;
                     MouseUp?.Invoke(button);
                     break;
             }
@@ -479,6 +499,30 @@ namespace osu.Framework.Platform
                 case SDL.SDL_BUTTON_X2:
                     return MouseButton.Button2;
             }
+        }
+
+        /// <summary>
+        /// Button mask as returned from <see cref="SDL.SDL_GetGlobalMouseState(out int,out int)"/> and <see cref="SDL.SDL_BUTTON"/>.
+        /// </summary>
+        [Flags]
+        private enum SDLButtonMask
+        {
+            None = 0,
+
+            /// <see cref="SDL.SDL_BUTTON_LMASK"/>
+            Left = 1 << 0,
+
+            /// <see cref="SDL.SDL_BUTTON_MMASK"/>
+            Middle = 1 << 1,
+
+            /// <see cref="SDL.SDL_BUTTON_RMASK"/>
+            Right = 1 << 2,
+
+            /// <see cref="SDL.SDL_BUTTON_X1MASK"/>
+            X1 = 1 << 3,
+
+            /// <see cref="SDL.SDL_BUTTON_X2MASK"/>
+            X2 = 1 << 4
         }
 
         #endregion

@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private class CircularProgressDrawNode : SpriteDrawNode
+        protected class CircularProgressDrawNode : SpriteDrawNode
         {
             public new CircularProgress Source => (CircularProgress)base.Source;
 
@@ -98,28 +98,28 @@ namespace osu.Framework.Graphics.UserInterface
             {
             }
 
-            private float innerRadius;
-            private float progress;
-            private float texelSize;
-            private bool roundedCaps;
+            protected float InnerRadius { get; private set; }
+            protected float Progress { get; private set; }
+            protected float TexelSize { get; private set; }
+            protected bool RoundedCaps { get; private set; }
 
             public override void ApplyState()
             {
                 base.ApplyState();
 
-                innerRadius = Source.innerRadius;
-                progress = Math.Abs((float)Source.current.Value);
-                roundedCaps = Source.roundedCaps;
+                InnerRadius = Source.innerRadius;
+                Progress = Math.Abs((float)Source.current.Value);
+                RoundedCaps = Source.roundedCaps;
 
                 // smoothstep looks too sharp with 1px, let's give it a bit more
-                texelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
+                TexelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
             }
 
             private IUniformBuffer<CircularProgressParameters> parametersBuffer;
 
             protected override void Blit(IRenderer renderer)
             {
-                if (innerRadius == 0 || (!roundedCaps && progress == 0))
+                if (InnerRadius == 0 || (!RoundedCaps && Progress == 0))
                     return;
 
                 base.Blit(renderer);
@@ -132,10 +132,10 @@ namespace osu.Framework.Graphics.UserInterface
                 parametersBuffer ??= renderer.CreateUniformBuffer<CircularProgressParameters>();
                 parametersBuffer.Data = new CircularProgressParameters
                 {
-                    InnerRadius = innerRadius,
-                    Progress = progress,
-                    TexelSize = texelSize,
-                    RoundedCaps = roundedCaps,
+                    InnerRadius = InnerRadius,
+                    Progress = Progress,
+                    TexelSize = TexelSize,
+                    RoundedCaps = RoundedCaps,
                 };
 
                 shader.BindUniformBlock("m_CircularProgressParameters", parametersBuffer);

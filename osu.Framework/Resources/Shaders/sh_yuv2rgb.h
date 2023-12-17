@@ -1,3 +1,6 @@
+#ifndef YUV2RGB_H
+#define YUV2RGB_H
+
 #include "sh_TextureWrapping.h"
 
 layout(set = 0, binding = 0) uniform lowp texture2D m_TextureY;
@@ -26,3 +29,5 @@ lowp vec4 wrappedSamplerRgb(vec2 wrappedCoord, vec4 texRect, float lodBias)
     lowp float v = texture(sampler2D(m_TextureV, m_SamplerV), wrappedCoord, lodBias).r;
     return vec4(yuvCoeff * (vec3(y, u, v) + offsets), 1.0);
 }
+
+#endif

@@ -1,12 +1,12 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
+using System.Collections.Generic;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osuTK;
@@ -19,13 +19,17 @@ namespace osu.Framework.Graphics.UserInterface
     /// It typically is activated by another control and includes an arrow pointing to the location from which it emerged.
     /// (loosely paraphrasing: https://developer.apple.com/design/human-interface-guidelines/ios/views/popovers/)
     /// </summary>
-    public abstract partial class Popover : FocusedOverlayContainer
+    public abstract partial class Popover : OverlayContainer
     {
         protected override bool BlockPositionalInput => true;
 
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Body.ReceivePositionalInputAt(screenSpacePos) || Arrow.ReceivePositionalInputAt(screenSpacePos);
 
         public override bool HandleNonPositionalInput => State.Value == Visibility.Visible;
+
+        public override bool RequestsFocus => State.Value == Visibility.Visible;
+
+        public override bool AcceptsFocus => State.Value == Visibility.Visible;
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
@@ -44,7 +48,7 @@ namespace osu.Framework.Graphics.UserInterface
         public Anchor PopoverAnchor
         {
             get => Anchor;
-            set
+            internal set
             {
                 BoundingBoxContainer.Origin = value;
                 BoundingBoxContainer.Anchor = value.Opposite();
@@ -56,6 +60,24 @@ namespace osu.Framework.Graphics.UserInterface
                 AnchorUpdated(value);
             }
         }
+
+        /// <summary>
+        /// The collection of <see cref="Anchor"/>s to consider when auto-layouting the popover inside a <see cref="PopoverContainer"/>.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Anchor.Centre"/> is used as a fallback if an empty enumerable is provided, or any other anchor fails.
+        /// </remarks>
+        public IEnumerable<Anchor> AllowableAnchors { get; set; } = new[]
+        {
+            Anchor.TopLeft,
+            Anchor.TopCentre,
+            Anchor.TopRight,
+            Anchor.CentreLeft,
+            Anchor.CentreRight,
+            Anchor.BottomLeft,
+            Anchor.BottomCentre,
+            Anchor.BottomRight
+        };
 
         /// <summary>
         /// The container holding all of this popover's elements (the <see cref="Body"/> and the <see cref="Arrow"/>).

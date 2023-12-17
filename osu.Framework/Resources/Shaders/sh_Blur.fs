@@ -1,8 +1,12 @@
+#ifndef BLUR_FS
+#define BLUR_FS
+
 #include "sh_Utils.h"
 
+#undef INV_SQRT_2PI
 #define INV_SQRT_2PI 0.39894
 
-layout(location = 0) in mediump vec2 v_TexCoord;
+layout(location = 2) in mediump vec2 v_TexCoord;
 
 layout(std140, set = 0, binding = 0) uniform m_BlurParameters
 {
@@ -40,7 +44,9 @@ lowp vec4 blur(int radius, highp vec2 direction, mediump vec2 texCoord, mediump 
 			break;
 	}
 
-	// todo: workaround for a SPIR-V bug (https://github.com/ppy/osu-framework/issues/5719)
+	// this is supposed to be unnecessary with https://github.com/ppy/veldrid-spirv/pull/4,
+	// but blurring is still broken on some Apple devices when removing it (at least on an M2 iPad Pro and an iPhone 12).
+	// todo: investigate this.
 	float one = g_BackbufferDraw ? 0 : 1;
 
 	return sum / totalFactor * one;
@@ -50,3 +56,5 @@ void main(void)
 {
 	o_Colour = blur(g_Radius, g_BlurDirection, v_TexCoord, g_TexSize, g_Sigma);
 }
+
+#endif

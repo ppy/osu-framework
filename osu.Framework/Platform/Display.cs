@@ -25,7 +25,7 @@ namespace osu.Framework.Platform
         public Rectangle Bounds { get; }
 
         /// <summary>
-        /// The available <see cref="DisplayMode"/>s on this display.
+        /// The available <see cref="DisplayMode"/>s on this display, or empty if the display mode cannot be configured (e.g. mobile displays).
         /// </summary>
         public DisplayMode[] DisplayModes { get; }
 

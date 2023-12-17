@@ -113,8 +113,8 @@ namespace osu.Framework.Tests.Visual.Containers
             if (drawNode != null)
             {
                 labelDrawables.Text = $"boxes: {Cell(1).Children.Count * cell_count:N0}";
-                labelFrag.Text = $"samples ({nameof(DrawNode.Draw)}): {drawNode.DrawSamples:N0}";
-                labelFrag2.Text = $"samples ({nameof(DrawNode.DrawOpaqueInteriorSubTree)}): {drawNode.DrawOpaqueInteriorSubTreeSamples:N0}";
+                labelFrag.Text = $"samples (Draw): {drawNode.DrawSamples:N0}";
+                labelFrag2.Text = $"samples (DrawOpaqueInterior): {drawNode.DrawOpaqueInteriorSubTreeSamples:N0}";
             }
         }
 
@@ -151,16 +151,16 @@ namespace osu.Framework.Tests.Visual.Containers
             {
             }
 
-            internal override void DrawOpaqueInteriorSubTree(IRenderer renderer, DepthValue depthValue)
+            protected override void DrawOpaqueInterior(IRenderer renderer)
             {
                 if (renderer is VeldridRenderer)
                 {
-                    base.DrawOpaqueInteriorSubTree(renderer, depthValue);
+                    base.DrawOpaqueInterior(renderer);
                     return;
                 }
 
                 startQuery();
-                base.DrawOpaqueInteriorSubTree(renderer, depthValue);
+                base.DrawOpaqueInterior(renderer);
                 DrawOpaqueInteriorSubTreeSamples = endQuery();
             }
 
@@ -171,7 +171,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 base.ApplyState();
             }
 
-            public override void Draw(IRenderer renderer)
+            protected override void Draw(IRenderer renderer)
             {
                 if (renderer is VeldridRenderer)
                 {

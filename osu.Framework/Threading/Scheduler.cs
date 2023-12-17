@@ -368,7 +368,7 @@ namespace osu.Framework.Threading
         /// Adds a task which will only be run once per frame, no matter how many times it was scheduled in the previous frame.
         /// </summary>
         /// <remarks>The task will be run on the next <see cref="Update"/> independent of the current clock time.</remarks>
-        /// <param name="task">The work to be done.</param>
+        /// <param name="task">The work to be done. Avoid using inline delegates as they may not be cached, bypassing the once-per-frame guarantee.</param>
         /// <returns>Whether this is the first queue attempt of this work.</returns>
         public bool AddOnce(Action task)
         {

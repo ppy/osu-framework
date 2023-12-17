@@ -24,7 +24,7 @@ namespace osu.Framework.Platform
     /// <summary>
     /// Default implementation of a window, using SDL for windowing and graphics support.
     /// </summary>
-    public abstract partial class SDL2Window : IWindow
+    internal abstract partial class SDL2Window : IWindow
     {
         internal IntPtr SDLWindowHandle { get; private set; } = IntPtr.Zero;
 
@@ -174,11 +174,17 @@ namespace osu.Framework.Platform
         [UsedImplicitly]
         private SDL.SDL_EventFilter? eventFilterDelegate;
 
-        private ObjectHandle<SDL2Window> objectHandle;
+        [UsedImplicitly]
+        private SDL.SDL_EventFilter? eventWatchDelegate;
+
+        /// <summary>
+        /// Represents a handle to this <see cref="SDL2Window"/> instance, used for unmanaged callbacks.
+        /// </summary>
+        protected ObjectHandle<SDL2Window> ObjectHandle { get; private set; }
 
         protected SDL2Window(GraphicsSurfaceType surfaceType)
         {
-            objectHandle = new ObjectHandle<SDL2Window>(this, GCHandleType.Normal);
+            ObjectHandle = new ObjectHandle<SDL2Window>(this, GCHandleType.Normal);
 
             if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER) < 0)
             {
@@ -227,7 +233,8 @@ namespace osu.Framework.Platform
             SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_IME_SHOW_UI, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_MOUSE_RELATIVE_MODE_CENTER, "0");
-            SDL.SDL_SetHint(SDL.SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
+            SDL.SDL_SetHint(SDL.SDL_HINT_TOUCH_MOUSE_EVENTS, "0"); // disable touch events generating synthetic mouse events on desktop platforms
+            SDL.SDL_SetHint(SDL.SDL_HINT_MOUSE_TOUCH_EVENTS, "0"); // disable mouse events generating synthetic touch events on mobile platforms
 
             // we want text input to only be active when SDL2DesktopWindowTextInput is active.
             // SDL activates it by default on some platforms: https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/video/SDL_video.c#L573-L582
@@ -250,33 +257,52 @@ namespace osu.Framework.Platform
         /// </summary>
         public void Run()
         {
-            SDL.SDL_SetEventFilter(eventFilterDelegate = eventFilter, objectHandle.Handle);
+            SDL.SDL_SetEventFilter(eventFilterDelegate = eventFilter, ObjectHandle.Handle);
+            SDL.SDL_AddEventWatch(eventWatchDelegate = eventWatch, ObjectHandle.Handle);
 
+            RunMainLoop();
+        }
+
+        /// <summary>
+        /// Runs the main window loop.
+        /// </summary>
+        /// <remarks>
+        /// By default this will block and indefinitely call <see cref="RunFrame"/> as long as the window <see cref="Exists"/>.
+        /// Once the main loop finished running, cleanup logic will run.
+        ///
+        /// This may be overridden for special use cases, like mobile platforms which delegate execution of frames to the OS
+        /// and don't require any kind of exit logic to exist.
+        /// </remarks>
+        protected virtual void RunMainLoop()
+        {
             while (Exists)
-            {
-                commandScheduler.Update();
+                RunFrame();
 
-                if (!Exists)
-                    break;
-
-                if (pendingWindowState != null)
-                    updateAndFetchWindowSpecifics();
-
-                pollSDLEvents();
-
-                if (!cursorInWindow.Value)
-                    pollMouse();
-
-                EventScheduler.Update();
-
-                Update?.Invoke();
-            }
-
-            Exists = false;
             Exited?.Invoke();
-
             Close();
             SDL.SDL_Quit();
+        }
+
+        /// <summary>
+        /// Run a single frame.
+        /// </summary>
+        protected void RunFrame()
+        {
+            commandScheduler.Update();
+
+            if (!Exists)
+                return;
+
+            if (pendingWindowState != null)
+                updateAndFetchWindowSpecifics();
+
+            pollSDLEvents();
+
+            if (!cursorInWindow.Value)
+                pollMouse();
+
+            EventScheduler.Update();
+            Update?.Invoke();
         }
 
         /// <summary>
@@ -305,10 +331,16 @@ namespace osu.Framework.Platform
                 case SDL.SDL_EventType.SDL_APP_LOWMEMORY:
                     LowOnMemory?.Invoke();
                     break;
+            }
+        }
 
+        protected void HandleEventFromWatch(SDL.SDL_Event evt)
+        {
+            switch (evt.type)
+            {
                 case SDL.SDL_EventType.SDL_WINDOWEVENT:
                     // polling via SDL_PollEvent blocks on resizes (https://stackoverflow.com/a/50858339)
-                    if (evt.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
+                    if (evt.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED && !updatingWindowStateAndSize)
                         fetchWindowSize();
 
                     break;
@@ -321,6 +353,16 @@ namespace osu.Framework.Platform
             var handle = new ObjectHandle<SDL2Window>(userdata);
             if (handle.GetTarget(out SDL2Window window))
                 window.HandleEventFromFilter(Marshal.PtrToStructure<SDL.SDL_Event>(eventPtr));
+
+            return 1;
+        }
+
+        [MonoPInvokeCallback(typeof(SDL.SDL_EventFilter))]
+        private static int eventWatch(IntPtr userdata, IntPtr eventPtr)
+        {
+            var handle = new ObjectHandle<SDL2Window>(userdata);
+            if (handle.GetTarget(out SDL2Window window))
+                window.HandleEventFromWatch(Marshal.PtrToStructure<SDL.SDL_Event>(eventPtr));
 
             return 1;
         }
@@ -364,6 +406,27 @@ namespace osu.Framework.Platform
                 SDL.SDL_RestoreWindow(SDLWindowHandle);
 
             SDL.SDL_RaiseWindow(SDLWindowHandle);
+        });
+
+        public void Flash(bool flashUntilFocused = false) => ScheduleCommand(() =>
+        {
+            if (isActive.Value)
+                return;
+
+            if (!RuntimeInfo.IsDesktop)
+                return;
+
+            SDL.SDL_FlashWindow(SDLWindowHandle, flashUntilFocused
+                ? SDL.SDL_FlashOperation.SDL_FLASH_UNTIL_FOCUSED
+                : SDL.SDL_FlashOperation.SDL_FLASH_BRIEFLY);
+        });
+
+        public void CancelFlash() => ScheduleCommand(() =>
+        {
+            if (!RuntimeInfo.IsDesktop)
+                return;
+
+            SDL.SDL_FlashWindow(SDLWindowHandle, SDL.SDL_FlashOperation.SDL_FLASH_CANCEL);
         });
 
         /// <summary>
@@ -524,11 +587,11 @@ namespace osu.Framework.Platform
 
         #endregion
 
-        public void SetIconFromStream(Stream stream)
+        public void SetIconFromStream(Stream imageStream)
         {
             using (var ms = new MemoryStream())
             {
-                stream.CopyTo(ms);
+                imageStream.CopyTo(ms);
                 ms.Position = 0;
 
                 var imageInfo = Image.Identify(ms);
@@ -596,7 +659,7 @@ namespace osu.Framework.Platform
             Close();
             SDL.SDL_Quit();
 
-            objectHandle.Dispose();
+            ObjectHandle.Dispose();
         }
     }
 }

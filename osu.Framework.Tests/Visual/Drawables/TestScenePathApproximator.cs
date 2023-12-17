@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -22,26 +20,26 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             Cell(0).AddRange(new[]
             {
-                createLabel("ApproximateBezier"),
-                new ApproximatedPathTest(PathApproximator.ApproximateBezier),
+                createLabel(nameof(PathApproximator.BezierToPiecewiseLinear)),
+                new ApproximatedPathTest(PathApproximator.BezierToPiecewiseLinear),
             });
 
             Cell(1).AddRange(new[]
             {
-                createLabel("ApproximateCatmull"),
-                new ApproximatedPathTest(PathApproximator.ApproximateCatmull),
+                createLabel(nameof(PathApproximator.CatmullToPiecewiseLinear)),
+                new ApproximatedPathTest(PathApproximator.CatmullToPiecewiseLinear),
             });
 
             Cell(2).AddRange(new[]
             {
-                createLabel("ApproximateCircularArc"),
-                new ApproximatedPathTest(PathApproximator.ApproximateCircularArc),
+                createLabel(nameof(PathApproximator.CircularArcToPiecewiseLinear)),
+                new ApproximatedPathTest(PathApproximator.CircularArcToPiecewiseLinear),
             });
 
             Cell(3).AddRange(new[]
             {
-                createLabel("ApproximateLagrangePolynomial"),
-                new ApproximatedPathTest(PathApproximator.ApproximateLagrangePolynomial),
+                createLabel(nameof(PathApproximator.LagrangePolynomialToPiecewiseLinear)),
+                new ApproximatedPathTest(PathApproximator.LagrangePolynomialToPiecewiseLinear),
             });
         }
 
@@ -52,10 +50,10 @@ namespace osu.Framework.Tests.Visual.Drawables
             Colour = Color4.White,
         };
 
+        public delegate List<Vector2> ApproximatorFunc(ReadOnlySpan<Vector2> controlPoints);
+
         private partial class ApproximatedPathTest : SmoothPath
         {
-            public delegate List<Vector2> ApproximatorFunc(ReadOnlySpan<Vector2> controlPoints);
-
             public ApproximatedPathTest(ApproximatorFunc approximator)
             {
                 Vector2[] points = new Vector2[5];

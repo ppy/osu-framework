@@ -369,95 +369,11 @@ namespace osu.Framework.Tests.Visual.Containers
             checkScrollbarPosition(64);
         }
 
-        [TestCase(Direction.Horizontal, Direction.Vertical)]
-        [TestCase(Direction.Vertical, Direction.Horizontal)]
-        public void TestNestedScrolling(Direction outer, Direction inner)
-        {
-            BasicScrollContainer horizontalScroll = null;
-            BasicScrollContainer verticalScroll = null;
-
-            AddStep("create scroll containers", () =>
-            {
-                BasicScrollContainer outerScroll;
-                BasicScrollContainer innerScroll;
-
-                Child = outerScroll = new BasicScrollContainer(outer)
-                {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    Size = new Vector2(500),
-                    Children = new Drawable[]
-                    {
-                        new Box
-                        {
-                            Size = new Vector2(500f),
-                            Colour = FrameworkColour.Yellow,
-                        },
-                        innerScroll = new BasicScrollContainer(inner)
-                        {
-                            Anchor = Anchor.Centre,
-                            Origin = Anchor.Centre,
-                            Size = new Vector2(250, 250),
-                            Child = new Box
-                            {
-                                Size = new Vector2(250, 250),
-                                Colour = FrameworkColour.Green,
-                            },
-                        }
-                    }
-                };
-
-                horizontalScroll = outer == Direction.Horizontal ? outerScroll : innerScroll;
-                verticalScroll = outer == Direction.Vertical ? outerScroll : innerScroll;
-            });
-
-            AddStep("drag vertically", () =>
-            {
-                InputManager.MoveMouseTo(verticalScroll);
-                InputManager.PressButton(MouseButton.Left);
-                InputManager.MoveMouseTo(verticalScroll, new Vector2(0, -50));
-            });
-            AddAssert("vertical container scrolled only", () => checkScrollCurrent(verticalScroll, horizontalScroll));
-            AddStep("reset vertical scroll", () =>
-            {
-                InputManager.ReleaseButton(MouseButton.Left);
-                verticalScroll.ScrollToStart(false, true);
-            });
-
-            AddStep("drag horizontally", () =>
-            {
-                InputManager.MoveMouseTo(horizontalScroll);
-                InputManager.PressButton(MouseButton.Left);
-                InputManager.MoveMouseTo(horizontalScroll, new Vector2(-50, 0));
-            });
-            AddAssert("horizontal container scrolled only", () => checkScrollCurrent(horizontalScroll, verticalScroll));
-            AddStep("reset horizontal scroll", () =>
-            {
-                InputManager.ReleaseButton(MouseButton.Left);
-                horizontalScroll.ScrollToStart(false, true);
-            });
-
-            // if the inner is a horizontal scroll container, it'll absorb input either way,
-            // as vertical scrolls translate to horizontal in a horizontal scroll container.
-            if (inner != Direction.Horizontal)
-            {
-                AddStep("scroll vertically", () => InputManager.ScrollVerticalBy(-50));
-                AddAssert("vertical container scrolled only", () => checkScrollCurrent(verticalScroll, horizontalScroll));
-                AddStep("reset vertical scroll", () => verticalScroll.ScrollToStart(false));
-            }
-
-            AddStep("scroll horizontally", () => InputManager.ScrollHorizontalBy(-50));
-            AddAssert("horizontal container scrolled only", () => checkScrollCurrent(horizontalScroll, verticalScroll));
-            AddStep("reset horizontal scroll", () => horizontalScroll.ScrollToStart(false));
-
-            static bool checkScrollCurrent(BasicScrollContainer scrolled, BasicScrollContainer notScrolled) => notScrolled.Current == 0 && Precision.DefinitelyBigger(scrolled.Current, 0f);
-        }
-
         /// <summary>
         /// Ensures that initiating a drag with horizontal delta on a singular vertical <see cref="ScrollContainer{T}"/> doesn't prevent from continuing with vertical drags.
         /// </summary>
         /// <remarks>
-        /// If the vertical scroll container is nested inside of a horizontal one, then it should prevent it, as covered in <see cref="TestNestedScrolling"/>.
+        /// If the vertical scroll container is nested inside of a horizontal one, then it should prevent it, as covered in <see cref="TestSceneScrollContainerNested.TestDragging"/>.
         /// </remarks>
         [TestCase(false)]
         [TestCase(true)]

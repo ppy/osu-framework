@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using FFmpeg.AutoGen;
 
 namespace osu.Framework.Graphics.Video
@@ -62,6 +60,9 @@ namespace osu.Framework.Graphics.Video
 
                 case AVHWDeviceType.AV_HWDEVICE_TYPE_VIDEOTOOLBOX:
                     return HardwareVideoDecoder.VideoToolbox;
+
+                case AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA:
+                    return HardwareVideoDecoder.D3D11VA;
 
                 default:
                     return null;

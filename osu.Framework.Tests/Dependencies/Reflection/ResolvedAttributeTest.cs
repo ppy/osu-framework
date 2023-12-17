@@ -342,6 +342,5 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             [Resolved]
             public Bindable<int> Obj { get; private set; } = null!;
         }
-#nullable disable
     }
 }

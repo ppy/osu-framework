@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using osu.Framework.Configuration;
+using osu.Framework.Graphics.Rendering.Dummy;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Logging;
 using osu.Framework.Timing;
@@ -46,9 +47,13 @@ namespace osu.Framework.Platform
             this.realtime = realtime;
         }
 
+        protected override bool RequireWindowExists => false;
+
         protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => null;
 
-        protected override void ChooseAndSetupRenderer() => SetupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
+        protected override Clipboard CreateClipboard() => new HeadlessClipboard();
+
+        protected override void ChooseAndSetupRenderer() => SetupRendererAndWindow(new DummyRenderer(), GraphicsSurfaceType.OpenGL);
 
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {

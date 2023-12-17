@@ -43,6 +43,8 @@ namespace osu.Framework.Android
 
         protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new AndroidGameWindow(gameView);
 
+        protected override Clipboard CreateClipboard() => new AndroidClipboard(gameView);
+
         public override bool CanExit => false;
 
         public override bool CanSuspendToBackground => true;
@@ -80,18 +82,18 @@ namespace osu.Framework.Android
             if (!url.CheckIsValidUrl())
                 throw new ArgumentException("The provided URL must be one of either http://, https:// or mailto: protocols.", nameof(url));
 
-            using (var intent = new Intent(Intent.ActionView, Uri.Parse(url)))
+            try
             {
-                // Recommended way to open URLs on Android 11+
-                // https://developer.android.com/training/package-visibility/use-cases#open-urls-browser-or-other-app
-                try
+                using (var intent = new Intent(Intent.ActionView, Uri.Parse(url)))
                 {
+                    // Recommended way to open URLs on Android 11+
+                    // https://developer.android.com/training/package-visibility/use-cases#open-urls-browser-or-other-app
                     gameView.Activity.StartActivity(intent);
                 }
-                catch (ActivityNotFoundException e)
-                {
-                    Logger.Error(e, $"Failed to start intent: {intent}");
-                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Unable to open external link.");
             }
         }
 
