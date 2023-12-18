@@ -95,7 +95,11 @@ namespace osu.Framework.Audio
                         }
 
                         if (info.Channels != job.Channels || srcformat != job.Format || info.Frequency != job.Rate)
+                        {
                             job.Resampler = new SDL2AudioStream(srcformat, (byte)info.Channels, info.Frequency, job.Format, (byte)job.Channels, job.Rate);
+                            job.ByteLength = (long)Math.Ceiling(job.ByteLength / (double)info.Frequency / SDL.SDL_AUDIO_BITSIZE(srcformat) / info.Channels
+                                                                * job.Rate * SDL.SDL_AUDIO_BITSIZE(job.Format) * job.Channels);
+                        }
                     }
                     else
                     {

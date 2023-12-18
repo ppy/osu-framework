@@ -45,7 +45,7 @@ namespace osu.Framework.Audio
 
                 job.Bitrate = (int)job.FFmpeg.Bitrate;
                 job.Length = job.FFmpeg.Duration;
-                job.ByteLength = (long)Math.Ceiling(job.FFmpeg.Duration / 1000.0d * job.Rate) * job.Channels * SDL.SDL_AUDIO_BITSIZE(job.Format); // FIXME
+                job.ByteLength = (long)Math.Ceiling(job.FFmpeg.Duration / 1000.0d) * job.Rate * job.Channels * (SDL.SDL_AUDIO_BITSIZE(job.Format) / 8); // FIXME
 
                 job.Loading = true;
             }
