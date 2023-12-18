@@ -5,12 +5,16 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
+using osu.Framework.Platform;
 using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
     public abstract partial class DropdownSearchBar : VisibilityContainer
     {
+        [Resolved]
+        private GameHost? host { get; set; }
+
         private TextBox textBox = null!;
         private PassThroughInputManager textBoxInputManager = null!;
 
@@ -68,6 +72,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         public void ObtainFocus()
         {
+            // On mobile platforms, let's not make the keyboard popup unless the dropdown is intentionally searchable.
+            bool willShowOverlappingKeyboard = host?.OnScreenKeyboardOverlapsGameWindow == true;
+            if (willShowOverlappingKeyboard && !AlwaysDisplayOnFocus)
+                return;
+
             textBoxInputManager.ChangeFocus(textBox);
             obtainedFocus = true;
 
