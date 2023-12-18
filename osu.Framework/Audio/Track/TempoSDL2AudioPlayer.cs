@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Buffers;
 using SoundTouch;
 
 namespace osu.Framework.Audio.Track
@@ -55,22 +54,12 @@ namespace osu.Framework.Audio.Track
             while (!base.Done && soundTouch.AvailableSamples < samples)
             {
                 int getSamples = (int)Math.Ceiling((samples - soundTouch.AvailableSamples) * Tempo) * SrcChannels;
-                float[] src = ArrayPool<float>.Shared.Rent(getSamples);
-
-                try
-                {
-                    getSamples = base.GetRemainingRawFloats(src, 0, getSamples);
-
-                    if (getSamples > 0)
-                        soundTouch.PutSamples(src, getSamples / SrcChannels);
-                }
-                finally
-                {
-                    ArrayPool<float>.Shared.Return(src);
-                }
-
+                float[] src = new float[getSamples];
+                getSamples = base.GetRemainingSamples(src);
                 if (getSamples <= 0)
                     break;
+
+                soundTouch.PutSamples(src, getSamples / SrcChannels);
             }
 
             if (!doneFilling && base.Done)
@@ -132,39 +121,27 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         /// <param name="ret">An array to put samples in</param>
         /// <returns>The number of samples put</returns>
-        protected override int GetRemainingRawFloats(float[] data, int offset, int needed)
+        public override int GetRemainingSamples(float[] ret)
         {
             if (soundTouch == null)
-                return base.GetRemainingRawFloats(data, offset, needed);
+                return base.GetRemainingSamples(ret);
 
-            int expected = needed / SrcChannels;
+            if (RelativeRate == 0)
+                return 0;
+
+            int expected = ret.Length / SrcChannels;
 
             if (!doneFilling && soundTouch.AvailableSamples < expected)
             {
                 fillSamples(expected);
             }
 
-            float[] ret = offset == 0 ? data : ArrayPool<float>.Shared.Rent(needed);
-
-            int got = 0;
-
-            try
-            {
-                got = soundTouch.ReceiveSamples(ret, expected) * SrcChannels;
-
-                if (offset != 0 && got > 0)
-                    Buffer.BlockCopy(ret, 0, data, offset * 4, got * 4);
-            }
-            finally
-            {
-                if (offset != 0)
-                    ArrayPool<float>.Shared.Return(ret);
-            }
+            int got = soundTouch.ReceiveSamples(ret, expected);
 
             if (got == 0 && doneFilling)
                 donePlaying = true;
 
-            return got;
+            return got * SrcChannels;
         }
 
         public override void Reset(bool resetPosition = true)
