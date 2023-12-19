@@ -107,7 +107,7 @@ namespace osu.Framework.Audio.Track
 
                     do
                     {
-                        decoder.LoadFromStream(decoderData, out byte[] currentBytes);
+                        int read = decoder.LoadFromStream(decoderData, out byte[] currentBytes);
                         int sampleIndex = 0;
 
                         unsafe
@@ -115,7 +115,7 @@ namespace osu.Framework.Audio.Track
                             fixed (void* ptr = currentBytes)
                             {
                                 float* currentFloats = (float*)ptr;
-                                int currentFloatsLength = currentBytes.Length / bytes_per_sample;
+                                int currentFloatsLength = read / bytes_per_sample;
 
                                 while (sampleIndex < currentFloatsLength)
                                 {
@@ -177,6 +177,8 @@ namespace osu.Framework.Audio.Track
                 {
                     if (complexBuffer != null)
                         ArrayPool<Complex>.Shared.Return(complexBuffer);
+
+                    decoderData.Free();
                 }
             }, cancelSource.Token);
         }

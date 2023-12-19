@@ -70,7 +70,7 @@ namespace osu.Framework.Audio
             }
 
             // Call this in lock
-            internal virtual void Dispose()
+            internal virtual void Free()
             {
                 if (AutoDisposeStream)
                     Stream.Dispose();
@@ -85,13 +85,14 @@ namespace osu.Framework.Audio
         /// <param name="data">Decoded audio data</param>
         /// <param name="userdata"></param>
         /// <param name="decoderData"></param>
-        public delegate void PassDataDelegate(byte[] data, object? userdata, AudioDecoderData decoderData, bool done);
+        public delegate void PassDataDelegate(byte[] data, int length, object? userdata, AudioDecoderData decoderData, bool done);
 
         private readonly int rate;
         private readonly int channels;
         private readonly ushort format;
 
         private Thread? decoderThread;
+        private AutoResetEvent? decoderWaitHandle;
 
         /// <summary>
         /// Set up configuration and start a decoding thread.
@@ -119,6 +120,8 @@ namespace osu.Framework.Audio
         {
             if (decoderThread == null)
             {
+                decoderWaitHandle = new AutoResetEvent(false);
+
                 decoderThread = new Thread(() => loop(tokenSource.Token))
                 {
                     IsBackground = true
@@ -131,6 +134,8 @@ namespace osu.Framework.Audio
 
             lock (jobs)
                 jobs.AddFirst(data);
+
+            decoderWaitHandle?.Set();
 
             return data;
         }
@@ -158,8 +163,8 @@ namespace osu.Framework.Audio
 
                 while (data.Loading)
                 {
-                    LoadFromStream(data, out decoded);
-                    memoryStream.Write(decoded);
+                    int read = LoadFromStream(data, out decoded);
+                    memoryStream.Write(decoded, 0, read);
                 }
 
                 return memoryStream.ToArray();
@@ -187,13 +192,13 @@ namespace osu.Framework.Audio
 
                             if (data.StopJob)
                             {
-                                data.Dispose();
+                                data.Free();
                                 jobs.Remove(node);
                             }
                             else
                             {
-                                LoadFromStream(data, out byte[] decoded);
-                                data.Pass?.Invoke(decoded, data.UserData, data, !data.Loading);
+                                int read = LoadFromStream(data, out byte[] decoded);
+                                data.Pass?.Invoke(decoded, read, data.UserData, data, !data.Loading);
                             }
 
                             if (!data.Loading)
@@ -205,24 +210,24 @@ namespace osu.Framework.Audio
                 }
 
                 if (jobCount <= 0)
-                    Thread.Sleep(50);
+                    decoderWaitHandle?.WaitOne();
             }
         }
 
         public abstract AudioDecoderData CreateDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, bool autoDisposeStream = true, PassDataDelegate? pass = null, object? userData = null);
 
-        protected abstract void LoadFromStreamInternal(AudioDecoderData job, out byte[] decoded);
+        protected abstract int LoadFromStreamInternal(AudioDecoderData job, out byte[] decoded);
 
         /// <summary>
         /// Decodes and resamples audio from job.Stream, and pass it to decoded.
         /// </summary>
         /// <param name="job">Decode data</param>
         /// <param name="decoded">Decoded audio</param>
-        public void LoadFromStream(AudioDecoderData job, out byte[] decoded)
+        public int LoadFromStream(AudioDecoderData job, out byte[] decoded)
         {
             try
             {
-                LoadFromStreamInternal(job, out decoded);
+                return LoadFromStreamInternal(job, out decoded);
             }
             catch (Exception e)
             {
@@ -233,8 +238,10 @@ namespace osu.Framework.Audio
             finally
             {
                 if (!job.Loading)
-                    job.Dispose();
+                    job.Free();
             }
+
+            return -1;
         }
 
         private bool disposedValue;
@@ -246,15 +253,18 @@ namespace osu.Framework.Audio
                 if (disposing)
                 {
                     tokenSource.Cancel();
+                    decoderWaitHandle?.Set();
+
                     tokenSource.Dispose();
                     decoderThread?.Join();
+                    decoderWaitHandle?.Dispose();
                 }
 
                 lock (jobs)
                 {
                     foreach (var job in jobs)
                     {
-                        job.Dispose();
+                        job.Free();
                     }
 
                     jobs.Clear();

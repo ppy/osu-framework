@@ -577,12 +577,12 @@ namespace osu.Framework.Graphics.Video
 
         private MemoryStream memoryStream;
 
-        internal void DecodeNextAudioFrame(int iteration, out byte[] decodedAudio, bool decodeUntilEnd = false)
+        internal int DecodeNextAudioFrame(int iteration, ref byte[] decodedAudio, bool decodeUntilEnd = false)
         {
             if (!audio)
             {
                 decodedAudio = Array.Empty<byte>();
-                return;
+                return 0;
             }
 
             memoryStream.Position = 0;
@@ -606,14 +606,16 @@ namespace osu.Framework.Graphics.Video
             {
                 Logger.Error(e, "VideoDecoder faulted while decoding audio");
                 State = DecoderState.Faulted;
+                return 0;
             }
-            finally
-            {
+
+            if (decodedAudio == null || decodedAudio.Length < memoryStream.Position)
                 decodedAudio = new byte[memoryStream.Position];
-                memoryStream.Position = 0;
-                int read = memoryStream.Read(decodedAudio, 0, decodedAudio.Length);
-                Array.Resize(ref decodedAudio, read);
-            }
+
+            int pos = (int)memoryStream.Position;
+
+            memoryStream.Position = 0;
+            return memoryStream.Read(decodedAudio, 0, pos);
         }
 
         private void decodeNextFrame(AVPacket* packet, AVFrame* receiveFrame)

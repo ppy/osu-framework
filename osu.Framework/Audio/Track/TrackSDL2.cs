@@ -48,7 +48,7 @@ namespace osu.Framework.Audio.Track
 
         private AudioDecoder.AudioDecoderData? decodeData;
 
-        internal void AddToQueue(byte[] audio, object? userdata, AudioDecoder.AudioDecoderData data, bool done)
+        internal void AddToQueue(byte[] audio, int length, object? userdata, AudioDecoder.AudioDecoderData data, bool done)
         {
             if (IsDisposed)
                 return;
@@ -60,7 +60,7 @@ namespace osu.Framework.Audio.Track
                     if (!player.IsLoading)
                         player.PrepareStream(data.ByteLength);
 
-                    player.PutSamplesInStream(audio);
+                    player.PutSamplesInStream(audio, length);
 
                     if (done)
                     {

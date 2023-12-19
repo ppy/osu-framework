@@ -73,7 +73,7 @@ namespace osu.Framework.Audio.Track
             isLoading = true;
         }
 
-        internal void PutSamplesInStream(byte[] next)
+        internal void PutSamplesInStream(byte[] next, int length)
         {
             if (disposedValue)
                 return;
@@ -83,7 +83,7 @@ namespace osu.Framework.Audio.Track
 
             long save = AudioData.Position;
             AudioData.Position = AudioData.Length;
-            AudioData.Write(next);
+            AudioData.Write(next, 0, length);
             AudioData.Position = save;
         }
 

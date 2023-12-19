@@ -25,12 +25,15 @@ namespace osu.Framework.Audio
             internal FileCallbacks? Callbacks;
             internal SDL2AudioStream? Resampler;
 
+            internal byte[]? DecodeData;
+            internal byte[]? ResampleData;
+
             public BassAudioDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, bool autoDisposeStream, PassDataDelegate? pass, object? userData)
                 : base(rate, channels, isTrack, format, stream, autoDisposeStream, pass, userData)
             {
             }
 
-            internal override void Dispose()
+            internal override void Free()
             {
                 if (DecodeStream != 0)
                 {
@@ -41,13 +44,16 @@ namespace osu.Framework.Audio
                 Resampler?.Dispose();
                 Callbacks?.Dispose();
 
-                base.Dispose();
+                DecodeData = null;
+                ResampleData = null;
+
+                base.Free();
             }
         }
 
         private static readonly object bass_sync_lock = new object();
 
-        protected override void LoadFromStreamInternal(AudioDecoderData decodeData, out byte[] decoded)
+        protected override int LoadFromStreamInternal(AudioDecoderData decodeData, out byte[] decoded)
         {
             if (decodeData is not BassAudioDecoderData job)
                 throw new ArgumentException("Provide proper data");
@@ -115,8 +121,12 @@ namespace osu.Framework.Audio
                 if (bufferLen <= 0)
                     bufferLen = 44100 * 2 * 4 * 1;
 
-                byte[] buffer = new byte[bufferLen];
-                int got = Bass.ChannelGetData(job.DecodeStream, buffer, bufferLen);
+                if (job.DecodeData == null || job.DecodeData.Length < bufferLen)
+                {
+                    job.DecodeData = new byte[bufferLen];
+                }
+
+                int got = Bass.ChannelGetData(job.DecodeStream, job.DecodeData, bufferLen);
 
                 if (got == -1)
                 {
@@ -131,27 +141,27 @@ namespace osu.Framework.Audio
 
                 if (job.Resampler == null)
                 {
-                    if (got <= 0) buffer = Array.Empty<byte>();
-                    else if (got != bufferLen) Array.Resize(ref buffer, got);
-
-                    decoded = buffer;
+                    decoded = job.DecodeData;
+                    return Math.Max(0, got);
                 }
                 else
                 {
                     if (got > 0)
-                        job.Resampler.Put(buffer, got);
+                        job.Resampler.Put(job.DecodeData, got);
 
                     if (!job.Loading)
                         job.Resampler.Flush();
 
                     int avail = job.Resampler.GetPendingBytes();
 
-                    byte[] resampled = avail > 0 ? new byte[avail] : Array.Empty<byte>();
+                    if (job.ResampleData == null || job.ResampleData.Length < avail)
+                        job.ResampleData = new byte[avail];
 
                     if (avail > 0)
-                        job.Resampler.Get(resampled, avail);
+                        job.Resampler.Get(job.ResampleData, avail);
 
-                    decoded = resampled;
+                    decoded = job.ResampleData;
+                    return avail;
                 }
             }
         }

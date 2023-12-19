@@ -18,20 +18,23 @@ namespace osu.Framework.Audio
         public class FFmpegAudioDecoderData : AudioDecoderData
         {
             internal VideoDecoder? FFmpeg;
+            internal byte[]? DecodeData;
 
             public FFmpegAudioDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, bool autoDisposeStream, PassDataDelegate? pass, object? userData)
                 : base(rate, channels, isTrack, format, stream, autoDisposeStream, pass, userData)
             {
             }
 
-            internal override void Dispose()
+            internal override void Free()
             {
+                DecodeData = null;
+
                 FFmpeg?.Dispose();
-                base.Dispose();
+                base.Free();
             }
         }
 
-        protected override void LoadFromStreamInternal(AudioDecoderData decodeData, out byte[] decoded)
+        protected override int LoadFromStreamInternal(AudioDecoderData decodeData, out byte[] decoded)
         {
             if (decodeData is not FFmpegAudioDecoderData job)
                 throw new ArgumentException("Provide proper data");
@@ -50,12 +53,13 @@ namespace osu.Framework.Audio
                 job.Loading = true;
             }
 
-            job.FFmpeg.DecodeNextAudioFrame(32, out byte[] audioData, !job.IsTrack);
+            int got = job.FFmpeg.DecodeNextAudioFrame(32, ref job.DecodeData, !job.IsTrack);
 
             if (job.FFmpeg.State != VideoDecoder.DecoderState.Running)
                 job.Loading = false;
 
-            decoded = audioData;
+            decoded = job.DecodeData;
+            return got;
         }
 
         public override AudioDecoderData CreateDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, bool autoDisposeStream = true, PassDataDelegate? pass = null, object? userData = null)
