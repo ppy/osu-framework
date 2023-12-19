@@ -110,15 +110,16 @@ namespace osu.Framework.Audio.Mixing.SDL2
                     else if (channel.Playing)
                     {
                         int size = channel.GetRemainingSamples(ret);
-                        float left = 1;
-                        float right = 1;
 
                         if (size > 0)
                         {
+                            float left = 1;
+                            float right = 1;
+
                             if (channel.Balance < 0)
-                                right += (float)channel.Balance;
+                                right += channel.Balance;
                             else if (channel.Balance > 0)
-                                left -= (float)channel.Balance;
+                                left -= channel.Balance;
 
                             right *= channel.Volume;
                             left *= channel.Volume;

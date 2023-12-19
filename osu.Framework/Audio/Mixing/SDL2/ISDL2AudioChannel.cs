@@ -28,6 +28,6 @@ namespace osu.Framework.Audio.Mixing.SDL2
         /// <summary>
         /// Mixer uses this to adjust channel balance. Value should be within -1.0 and 1.0
         /// </summary>
-        double Balance { get; }
+        float Balance { get; }
     }
 }

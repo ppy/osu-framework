@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Threading;
 using osu.Framework.Audio.Mixing.SDL2;
 
 namespace osu.Framework.Audio.Sample
@@ -11,6 +12,9 @@ namespace osu.Framework.Audio.Sample
 
         private volatile bool playing;
         public override bool Playing => playing;
+
+        private volatile bool looping;
+        public override bool Looping { get => looping; set => looping = value; }
 
         public SampleChannelSDL2(SampleSDL2 sample, SampleSDL2AudioPlayer player)
             : base(sample.Name)
@@ -36,11 +40,11 @@ namespace osu.Framework.Audio.Sample
 
         int ISDL2AudioChannel.GetRemainingSamples(float[] data)
         {
-            if (player.RelativeRate != AggregateFrequency.Value)
-                player.RelativeRate = AggregateFrequency.Value;
+            if (player.RelativeRate != rate)
+                player.RelativeRate = rate;
 
-            if (player.Loop != Looping)
-                player.Loop = Looping;
+            if (player.Loop != looping)
+                player.Loop = looping;
 
             if (!started)
             {
@@ -59,11 +63,26 @@ namespace osu.Framework.Audio.Sample
             return ret;
         }
 
-        float ISDL2AudioChannel.Volume => (float)AggregateVolume.Value;
+        private volatile float volume = 1.0f;
+        private volatile float balance;
+
+        private double rate = 1.0f;
+
+        internal override void OnStateChanged()
+        {
+            base.OnStateChanged();
+
+            volume = (float)AggregateVolume.Value;
+            balance = (float)AggregateBalance.Value;
+
+            Interlocked.Exchange(ref rate, AggregateFrequency.Value);
+        }
+
+        float ISDL2AudioChannel.Volume => volume;
 
         bool ISDL2AudioChannel.Playing => playing;
 
-        double ISDL2AudioChannel.Balance => AggregateBalance.Value;
+        float ISDL2AudioChannel.Balance => balance;
 
         ~SampleChannelSDL2()
         {

@@ -106,22 +106,6 @@ namespace osu.Framework.Audio.Track
             }
         }
 
-        internal override void OnStateChanged()
-        {
-            base.OnStateChanged();
-
-            lock (syncRoot)
-            {
-                if (!player.ReversePlayback && AggregateFrequency.Value < 0)
-                    player.ReversePlayback = true;
-                else if (player.ReversePlayback && AggregateFrequency.Value >= 0)
-                    player.ReversePlayback = false;
-
-                player.RelativeRate = Math.Abs(AggregateFrequency.Value);
-                player.Tempo = AggregateTempo.Value;
-            }
-        }
-
         public override bool Seek(double seek) => SeekAsync(seek).GetResultSafely();
 
         public override async Task<bool> SeekAsync(double seek)
@@ -195,11 +179,33 @@ namespace osu.Framework.Audio.Track
             return ret;
         }
 
+        private volatile float volume = 1.0f;
+        private volatile float balance;
+
+        internal override void OnStateChanged()
+        {
+            base.OnStateChanged();
+
+            lock (syncRoot)
+            {
+                if (!player.ReversePlayback && AggregateFrequency.Value < 0)
+                    player.ReversePlayback = true;
+                else if (player.ReversePlayback && AggregateFrequency.Value >= 0)
+                    player.ReversePlayback = false;
+
+                player.RelativeRate = Math.Abs(AggregateFrequency.Value);
+                player.Tempo = AggregateTempo.Value;
+            }
+
+            volume = (float)AggregateVolume.Value;
+            balance = (float)AggregateBalance.Value;
+        }
+
         bool ISDL2AudioChannel.Playing => isRunning && !player.Done;
 
-        float ISDL2AudioChannel.Volume => (float)AggregateVolume.Value;
+        float ISDL2AudioChannel.Volume => volume;
 
-        double ISDL2AudioChannel.Balance => AggregateBalance.Value;
+        float ISDL2AudioChannel.Balance => balance;
 
         ~TrackSDL2()
         {
