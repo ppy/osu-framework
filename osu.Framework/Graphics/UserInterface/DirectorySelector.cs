@@ -11,6 +11,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osuTK;
 
@@ -204,10 +205,19 @@ namespace osu.Framework.Graphics.UserInterface
 
             try
             {
-                foreach (var dir in path.GetDirectories().OrderBy(d => d.Name))
+                foreach (string directoryName in Directory.GetDirectories(path.FullName).OrderBy(d => d))
                 {
-                    if (ShowHiddenItems.Value || !dir.Attributes.HasFlagFast(FileAttributes.Hidden))
-                        items.Add(CreateDirectoryItem(dir));
+                    try
+                    {
+                        DirectoryInfo di = new DirectoryInfo(directoryName);
+                        if (ShowHiddenItems.Value || !di.Attributes.HasFlagFast(FileAttributes.Hidden))
+                            items.Add(CreateDirectoryItem(di));
+                    }
+                    catch
+                    {
+                        // Don't fail enumeration if we fail getting attributes for a single entry
+                        Logger.Log($"Directory {directoryName} is inaccessible", LoggingTarget.Information, LogLevel.Debug);
+                    }
                 }
 
                 return true;
