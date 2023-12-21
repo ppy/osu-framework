@@ -57,7 +57,7 @@ namespace osu.Framework.Audio
             EnqueueAction(() =>
             {
                 ManagedBass.Bass.Configure((ManagedBass.Configuration)68, 1);
-                //AudioThread.InitDevice(0);
+                AudioThread.InitDevice(0);
             });
         }
 
