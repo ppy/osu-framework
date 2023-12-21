@@ -30,7 +30,7 @@ namespace osu.Framework.Audio
 
         private SDL.SDL_AudioSpec spec;
 
-        private static AudioDecoder decoder;
+        private static readonly AudioDecoderManager decoder = new AudioDecoderManager();
 
         private readonly List<SDL2AudioMixer> sdlMixerList = new List<SDL2AudioMixer>();
 
@@ -57,17 +57,8 @@ namespace osu.Framework.Audio
             EnqueueAction(() =>
             {
                 ManagedBass.Bass.Configure((ManagedBass.Configuration)68, 1);
-                AudioThread.InitDevice(0);
+                //AudioThread.InitDevice(0);
             });
-        }
-
-        public static AudioDecoder GetAudioDecoder()
-        {
-            decoder ??= ManagedBass.Bass.CurrentDevice >= 0
-                ? new BassAudioDecoder(AUDIO_FREQ, AUDIO_CHANNELS, AUDIO_FORMAT)
-                : new FFmpegAudioDecoder(AUDIO_FREQ, AUDIO_CHANNELS, AUDIO_FORMAT);
-
-            return decoder;
         }
 
         private string currentDeviceName = "Not loaded";
@@ -230,7 +221,7 @@ namespace osu.Framework.Audio
         internal override Track.Track GetNewTrack(Stream data, string name)
         {
             TrackSDL2 track = new TrackSDL2(name, spec.freq, spec.channels, spec.samples);
-            EnqueueAction(() => GetAudioDecoder().StartDecodingAsync(data, track.AddToQueue, null));
+            EnqueueAction(() => decoder.StartDecodingAsync(AUDIO_FREQ, AUDIO_CHANNELS, AUDIO_FORMAT, data, track.AddToQueue));
             return track;
         }
 

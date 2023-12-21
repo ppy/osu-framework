@@ -77,13 +77,10 @@ namespace osu.Framework.Audio.Track
                 // Code below assumes stereo
                 channels = 2;
 
-                // GetAudioDecoder returns BASS decoder if any BASS device (including No Sound) is available
-                AudioDecoder decoder = SDL2AudioManager.GetAudioDecoder();
-
                 // AudioDecoder will resample data into specified sample rate and channels (44100hz 2ch float)
-                AudioDecoder.AudioDecoderData decoderData = decoder.CreateDecoderData(sample_rate, channels, true, SDL2.SDL.AUDIO_F32, data, false);
+                AudioDecoderManager.AudioDecoder decoder = AudioDecoderManager.CreateDecoder(sample_rate, channels, true, SDL2.SDL.AUDIO_F32, data, false);
 
-                Complex[]? complexBuffer = null;
+                Complex[] complexBuffer = ArrayPool<Complex>.Shared.Rent(fft_samples);
 
                 try
                 {
@@ -95,8 +92,6 @@ namespace osu.Framework.Audio.Track
 
                     int fftPointIndex = 0;
 
-                    complexBuffer = ArrayPool<Complex>.Shared.Rent(fft_samples);
-
                     int complexBufferIndex = 0;
 
                     Point point = new Point();
@@ -107,7 +102,7 @@ namespace osu.Framework.Audio.Track
 
                     do
                     {
-                        int read = decoder.LoadFromStream(decoderData, out byte[] currentBytes);
+                        int read = decoder.LoadFromStream(out byte[] currentBytes);
                         int sampleIndex = 0;
 
                         unsafe
@@ -169,16 +164,13 @@ namespace osu.Framework.Audio.Track
                                 }
                             }
                         }
-                    } while (decoderData.Loading);
+                    } while (decoder.Loading);
 
                     points = pointList.ToArray();
                 }
                 finally
                 {
-                    if (complexBuffer != null)
-                        ArrayPool<Complex>.Shared.Return(complexBuffer);
-
-                    decoderData.Free();
+                    ArrayPool<Complex>.Shared.Return(complexBuffer);
                 }
             }, cancelSource.Token);
         }

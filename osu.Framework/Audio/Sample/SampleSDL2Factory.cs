@@ -40,7 +40,7 @@ namespace osu.Framework.Audio.Sample
 
             try
             {
-                byte[] audio = SDL2AudioManager.GetAudioDecoder().DecodeAudioInCurrentSpec(stream);
+                byte[] audio = AudioDecoderManager.DecodeAudio(spec.freq, spec.channels, spec.format, stream);
 
                 if (audio.Length > 0)
                 {

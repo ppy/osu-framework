@@ -6,6 +6,7 @@ using System.IO;
 using ManagedBass;
 using osu.Framework.Audio.Callbacks;
 using SDL2;
+using static osu.Framework.Audio.AudioDecoderManager;
 
 namespace osu.Framework.Audio
 {
@@ -14,73 +15,62 @@ namespace osu.Framework.Audio
     /// </summary>
     internal class BassAudioDecoder : AudioDecoder
     {
-        public BassAudioDecoder(int rate, int channels, ushort format)
-            : base(rate, channels, format)
+        private int decodeStream;
+        private FileCallbacks? callbacks;
+        private SDL2AudioStream? resampler;
+
+        private byte[]? decodeData;
+        private byte[]? resampleData;
+
+        public BassAudioDecoder(int rate, int channels, bool isTrack, ushort format, Stream stream, bool autoDisposeStream, PassDataDelegate? pass)
+            : base(rate, channels, isTrack, format, stream, autoDisposeStream, pass)
         {
         }
 
-        public class BassAudioDecoderData : AudioDecoderData
+        internal override void Free()
         {
-            internal int DecodeStream;
-            internal FileCallbacks? Callbacks;
-            internal SDL2AudioStream? Resampler;
-
-            internal byte[]? DecodeData;
-            internal byte[]? ResampleData;
-
-            public BassAudioDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, bool autoDisposeStream, PassDataDelegate? pass, object? userData)
-                : base(rate, channels, isTrack, format, stream, autoDisposeStream, pass, userData)
+            if (decodeStream != 0)
             {
+                Bass.StreamFree(decodeStream);
+                decodeStream = 0;
             }
 
-            internal override void Free()
-            {
-                if (DecodeStream != 0)
-                {
-                    Bass.StreamFree(DecodeStream);
-                    DecodeStream = 0;
-                }
+            resampler?.Dispose();
+            callbacks?.Dispose();
 
-                Resampler?.Dispose();
-                Callbacks?.Dispose();
+            decodeData = null;
+            resampleData = null;
 
-                DecodeData = null;
-                ResampleData = null;
-
-                base.Free();
-            }
+            base.Free();
         }
 
         private static readonly object bass_sync_lock = new object();
 
-        protected override int LoadFromStreamInternal(AudioDecoderData decodeData, out byte[] decoded)
+        protected override int LoadFromStreamInternal(out byte[] decoded)
         {
-            if (decodeData is not BassAudioDecoderData job)
-                throw new ArgumentException("Provide proper data");
-
             if (Bass.CurrentDevice < 0)
                 throw new InvalidOperationException("Initialize a BASS device to decode audio");
 
             lock (bass_sync_lock)
             {
-                if (!job.Loading)
+                if (!Loading)
                 {
-                    job.Callbacks = new FileCallbacks(new DataStreamFileProcedures(job.Stream));
+                    callbacks = new FileCallbacks(new DataStreamFileProcedures(Stream));
                     BassFlags bassFlags = BassFlags.Decode;
-                    if (SDL.SDL_AUDIO_ISFLOAT(job.Format)) bassFlags |= BassFlags.Float;
-                    if (job.IsTrack) bassFlags |= BassFlags.Prescan;
-                    job.DecodeStream = Bass.CreateStream(StreamSystem.NoBuffer, bassFlags, job.Callbacks.Callbacks);
+                    if (SDL.SDL_AUDIO_ISFLOAT(Format)) bassFlags |= BassFlags.Float;
+                    if (IsTrack) bassFlags |= BassFlags.Prescan;
+                    decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, bassFlags, callbacks.Callbacks);
 
-                    if (job.DecodeStream == 0)
+                    if (decodeStream == 0)
                         throw new FormatException($"Couldn't create stream: {Bass.LastError}");
 
-                    bool infoAvail = Bass.ChannelGetInfo(job.DecodeStream, out var info);
+                    bool infoAvail = Bass.ChannelGetInfo(decodeStream, out var info);
 
                     if (infoAvail)
                     {
-                        job.ByteLength = Bass.ChannelGetLength(job.DecodeStream);
-                        job.Length = Bass.ChannelBytes2Seconds(job.DecodeStream, job.ByteLength) * 1000;
-                        job.Bitrate = (int)Math.Round(Bass.ChannelGetAttribute(job.DecodeStream, ChannelAttribute.Bitrate));
+                        ByteLength = Bass.ChannelGetLength(decodeStream);
+                        Length = Bass.ChannelBytes2Seconds(decodeStream, ByteLength) * 1000;
+                        Bitrate = (int)Math.Round(Bass.ChannelGetAttribute(decodeStream, ChannelAttribute.Bitrate));
 
                         ushort srcformat;
 
@@ -100,73 +90,70 @@ namespace osu.Framework.Audio
                                 break;
                         }
 
-                        if (info.Channels != job.Channels || srcformat != job.Format || info.Frequency != job.Rate)
+                        if (info.Channels != Channels || srcformat != Format || info.Frequency != Rate)
                         {
-                            job.Resampler = new SDL2AudioStream(srcformat, (byte)info.Channels, info.Frequency, job.Format, (byte)job.Channels, job.Rate);
-                            job.ByteLength = (long)Math.Ceiling(job.ByteLength / (double)info.Frequency / SDL.SDL_AUDIO_BITSIZE(srcformat) / info.Channels
-                                                                * job.Rate * SDL.SDL_AUDIO_BITSIZE(job.Format) * job.Channels);
+                            resampler = new SDL2AudioStream(srcformat, (byte)info.Channels, info.Frequency, Format, (byte)Channels, Rate);
+                            ByteLength = (long)Math.Ceiling(ByteLength / (double)info.Frequency / SDL.SDL_AUDIO_BITSIZE(srcformat) / info.Channels
+                                                            * Rate * SDL.SDL_AUDIO_BITSIZE(Format) * Channels);
                         }
                     }
                     else
                     {
-                        if (job.IsTrack)
+                        if (IsTrack)
                             throw new FormatException($"Couldn't get channel info: {Bass.LastError}");
                     }
 
-                    job.Loading = true;
+                    Loading = true;
                 }
 
-                int bufferLen = (int)(job.IsTrack ? Bass.ChannelSeconds2Bytes(job.DecodeStream, 1) : job.ByteLength);
+                int bufferLen = (int)(IsTrack ? Bass.ChannelSeconds2Bytes(decodeStream, 1) : ByteLength);
 
                 if (bufferLen <= 0)
                     bufferLen = 44100 * 2 * 4 * 1;
 
-                if (job.DecodeData == null || job.DecodeData.Length < bufferLen)
+                if (decodeData == null || decodeData.Length < bufferLen)
                 {
-                    job.DecodeData = new byte[bufferLen];
+                    decodeData = new byte[bufferLen];
                 }
 
-                int got = Bass.ChannelGetData(job.DecodeStream, job.DecodeData, bufferLen);
+                int got = Bass.ChannelGetData(decodeStream, decodeData, bufferLen);
 
                 if (got == -1)
                 {
-                    job.Loading = false;
+                    Loading = false;
 
                     if (Bass.LastError != Errors.Ended)
                         throw new FormatException($"Couldn't decode: {Bass.LastError}");
                 }
 
-                if (Bass.StreamGetFilePosition(job.DecodeStream, FileStreamPosition.End) <= Bass.StreamGetFilePosition(job.DecodeStream))
-                    job.Loading = false;
+                if (Bass.StreamGetFilePosition(decodeStream, FileStreamPosition.End) <= Bass.StreamGetFilePosition(decodeStream))
+                    Loading = false;
 
-                if (job.Resampler == null)
+                if (resampler == null)
                 {
-                    decoded = job.DecodeData;
+                    decoded = decodeData;
                     return Math.Max(0, got);
                 }
                 else
                 {
                     if (got > 0)
-                        job.Resampler.Put(job.DecodeData, got);
+                        resampler.Put(decodeData, got);
 
-                    if (!job.Loading)
-                        job.Resampler.Flush();
+                    if (!Loading)
+                        resampler.Flush();
 
-                    int avail = job.Resampler.GetPendingBytes();
+                    int avail = resampler.GetPendingBytes();
 
-                    if (job.ResampleData == null || job.ResampleData.Length < avail)
-                        job.ResampleData = new byte[avail];
+                    if (resampleData == null || resampleData.Length < avail)
+                        resampleData = new byte[avail];
 
                     if (avail > 0)
-                        job.Resampler.Get(job.ResampleData, avail);
+                        resampler.Get(resampleData, avail);
 
-                    decoded = job.ResampleData;
+                    decoded = resampleData;
                     return avail;
                 }
             }
         }
-
-        public override AudioDecoderData CreateDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, bool autoDisposeStream = true, PassDataDelegate? pass = null, object? userData = null)
-            => new BassAudioDecoderData(rate, channels, isTrack, format, stream, autoDisposeStream, pass, userData);
     }
 }

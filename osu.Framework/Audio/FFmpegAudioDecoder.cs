@@ -5,64 +5,51 @@ using System;
 using System.IO;
 using osu.Framework.Graphics.Video;
 using SDL2;
+using static osu.Framework.Audio.AudioDecoderManager;
 
 namespace osu.Framework.Audio
 {
     internal class FFmpegAudioDecoder : AudioDecoder
     {
-        public FFmpegAudioDecoder(int rate, int channels, ushort format)
-            : base(rate, channels, format)
+        private VideoDecoder? ffmpeg;
+        private byte[]? decodeData;
+
+        public FFmpegAudioDecoder(int rate, int channels, bool isTrack, ushort format, Stream stream, bool autoDisposeStream, PassDataDelegate? pass)
+            : base(rate, channels, isTrack, format, stream, autoDisposeStream, pass)
         {
         }
 
-        public class FFmpegAudioDecoderData : AudioDecoderData
+        internal override void Free()
         {
-            internal VideoDecoder? FFmpeg;
-            internal byte[]? DecodeData;
+            decodeData = null;
 
-            public FFmpegAudioDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, bool autoDisposeStream, PassDataDelegate? pass, object? userData)
-                : base(rate, channels, isTrack, format, stream, autoDisposeStream, pass, userData)
-            {
-            }
-
-            internal override void Free()
-            {
-                DecodeData = null;
-
-                FFmpeg?.Dispose();
-                base.Free();
-            }
+            ffmpeg?.Dispose();
+            base.Free();
         }
 
-        protected override int LoadFromStreamInternal(AudioDecoderData decodeData, out byte[] decoded)
+        protected override int LoadFromStreamInternal(out byte[] decoded)
         {
-            if (decodeData is not FFmpegAudioDecoderData job)
-                throw new ArgumentException("Provide proper data");
-
-            if (job.FFmpeg == null)
+            if (ffmpeg == null)
             {
-                job.FFmpeg = new VideoDecoder(job.Stream, job.Rate, job.Channels, SDL.SDL_AUDIO_ISFLOAT(job.Format), SDL.SDL_AUDIO_BITSIZE(job.Format), SDL.SDL_AUDIO_ISSIGNED(job.Format));
+                ffmpeg = new VideoDecoder(Stream, Rate, Channels, SDL.SDL_AUDIO_ISFLOAT(Format), SDL.SDL_AUDIO_BITSIZE(Format), SDL.SDL_AUDIO_ISSIGNED(Format));
 
-                job.FFmpeg.PrepareDecoding();
-                job.FFmpeg.RecreateCodecContext();
+                ffmpeg.PrepareDecoding();
+                ffmpeg.RecreateCodecContext();
 
-                job.Bitrate = (int)job.FFmpeg.Bitrate;
-                job.Length = job.FFmpeg.Duration;
-                job.ByteLength = (long)Math.Ceiling(job.FFmpeg.Duration / 1000.0d) * job.Rate * job.Channels * (SDL.SDL_AUDIO_BITSIZE(job.Format) / 8); // FIXME
+                Bitrate = (int)ffmpeg.Bitrate;
+                Length = ffmpeg.Duration;
+                ByteLength = (long)Math.Ceiling(ffmpeg.Duration / 1000.0d * Rate) * Channels * (SDL.SDL_AUDIO_BITSIZE(Format) / 8); // FIXME
 
-                job.Loading = true;
+                Loading = true;
             }
 
-            int got = job.FFmpeg.DecodeNextAudioFrame(32, ref job.DecodeData, !job.IsTrack);
+            int got = ffmpeg.DecodeNextAudioFrame(32, ref decodeData, !IsTrack);
 
-            if (job.FFmpeg.State != VideoDecoder.DecoderState.Running)
-                job.Loading = false;
+            if (ffmpeg.State != VideoDecoder.DecoderState.Running)
+                Loading = false;
 
-            decoded = job.DecodeData;
+            decoded = decodeData;
             return got;
         }
-
-        public override AudioDecoderData CreateDecoderData(int rate, int channels, bool isTrack, ushort format, Stream stream, bool autoDisposeStream = true, PassDataDelegate? pass = null, object? userData = null)
-            => new FFmpegAudioDecoderData(rate, channels, isTrack, format, stream, autoDisposeStream, pass, userData);
     }
 }

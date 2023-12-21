@@ -46,9 +46,9 @@ namespace osu.Framework.Audio.Track
 
         private readonly object syncRoot = new object();
 
-        private AudioDecoder.AudioDecoderData? decodeData;
+        private AudioDecoderManager.AudioDecoder? decodeData;
 
-        internal void AddToQueue(byte[] audio, int length, object? userdata, AudioDecoder.AudioDecoderData data, bool done)
+        internal void AddToQueue(byte[] audio, int length, AudioDecoderManager.AudioDecoder data, bool done)
         {
             if (IsDisposed)
                 return;
@@ -63,10 +63,7 @@ namespace osu.Framework.Audio.Track
                     player.PutSamplesInStream(audio, length);
 
                     if (done)
-                    {
                         player.DonePutting();
-                        decodeData = null;
-                    }
                 }
             }
 
@@ -80,9 +77,16 @@ namespace osu.Framework.Audio.Track
 
             if (decodeData != null && !isLoaded)
             {
-                Length = decodeData.Length;
-                bitrate = decodeData.Bitrate;
-                isLoaded = true;
+                if (isLoaded)
+                {
+                    decodeData = null;
+                }
+                else
+                {
+                    Length = decodeData.Length;
+                    bitrate = decodeData.Bitrate;
+                    isLoaded = true;
+                }
             }
 
             if (player.Done && isRunning)
