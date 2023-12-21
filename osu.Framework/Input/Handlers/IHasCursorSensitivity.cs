@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Bindables;
+using osuTK;
 
 namespace osu.Framework.Input.Handlers
 {
@@ -10,6 +11,6 @@ namespace osu.Framework.Input.Handlers
     /// </summary>
     public interface IHasCursorSensitivity
     {
-        BindableDouble Sensitivity { get; }
+        Bindable<Vector2d> Sensitivity { get; }
     }
 }

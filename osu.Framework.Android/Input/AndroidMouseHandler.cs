@@ -31,12 +31,7 @@ namespace osu.Framework.Android.Input
             Description = "Allows for sensitivity adjustment and tighter control of input",
         };
 
-        public BindableDouble Sensitivity { get; } = new BindableDouble(1)
-        {
-            MinValue = 0.1,
-            MaxValue = 10,
-            Precision = 0.01,
-        };
+        public Bindable<Vector2d> Sensitivity { get; } = new Bindable<Vector2d>(new Vector2d(1, 1));
 
         public override string Description => "Mouse";
 
@@ -298,7 +293,7 @@ namespace osu.Framework.Android.Input
             void apply(MotionEvent e, int historyPosition)
             {
                 if (e.TryGetPosition(out var delta, historyPosition))
-                    enqueueInput(new MousePositionRelativeInput { Delta = delta * (float)Sensitivity.Value });
+                    enqueueInput(new MousePositionRelativeInput { Delta = new Vector2(delta.X * (float)Sensitivity.Value.X, delta.Y * (float)Sensitivity.Value.Y) });
             }
         }
 
