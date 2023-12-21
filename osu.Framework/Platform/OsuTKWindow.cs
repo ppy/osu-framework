@@ -94,6 +94,14 @@ namespace osu.Framework.Platform
         {
         }
 
+        public void Hide()
+        {
+        }
+
+        public void Show()
+        {
+        }
+
         public void Flash(bool _)
         {
         }
