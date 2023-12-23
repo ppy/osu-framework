@@ -18,7 +18,7 @@ namespace osu.Framework.Audio.Sample
         private readonly SDL2AudioMixer mixer;
         private readonly SDL.SDL_AudioSpec spec;
 
-        public float[]? DecodedAudio { get; private set; }
+        private float[] decodedAudio = Array.Empty<float>();
 
         private Stream? stream;
 
@@ -44,11 +44,11 @@ namespace osu.Framework.Audio.Sample
 
                 if (audio.Length > 0)
                 {
-                    DecodedAudio = new float[audio.Length / 4];
-                    Buffer.BlockCopy(audio, 0, DecodedAudio, 0, audio.Length);
+                    decodedAudio = new float[audio.Length / 4];
+                    Buffer.BlockCopy(audio, 0, decodedAudio, 0, audio.Length);
                 }
 
-                Length = audio.Length / 4.0d / spec.freq / spec.channels;
+                Length = audio.Length / 4d / spec.freq / spec.channels * 1000d;
                 isLoaded = true;
             }
             finally
@@ -58,7 +58,7 @@ namespace osu.Framework.Audio.Sample
             }
         }
 
-        public SampleSDL2AudioPlayer CreatePlayer() => new SampleSDL2AudioPlayer(DecodedAudio ?? Array.Empty<float>(), spec.freq, spec.channels);
+        public SampleSDL2AudioPlayer CreatePlayer() => new SampleSDL2AudioPlayer(decodedAudio, spec.freq, spec.channels);
 
         public override Sample CreateSample() => new SampleSDL2(this, mixer) { OnPlay = SampleFactoryOnPlay };
 
@@ -66,7 +66,7 @@ namespace osu.Framework.Audio.Sample
         {
             // All players created by this factory have reference to this array.
             // It removes its own reference to the array, but GC will clear it once all SampleAudioPlayers for this sample are gone.
-            DecodedAudio = null;
+            decodedAudio = Array.Empty<float>();
         }
 
         private protected override void UpdatePlaybackConcurrency(ValueChangedEvent<int> concurrency)
