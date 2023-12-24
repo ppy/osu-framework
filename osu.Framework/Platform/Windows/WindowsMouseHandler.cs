@@ -8,6 +8,7 @@ using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform.Windows.Native;
+using osu.Framework.Statistics;
 using osuTK;
 using SDL2;
 
@@ -20,6 +21,11 @@ namespace osu.Framework.Platform.Windows
     [SupportedOSPlatform("windows")]
     internal unsafe class WindowsMouseHandler : MouseHandler
     {
+        private static readonly GlobalStatistic<ulong> statistic_relative_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<WindowsMouseHandler>(), "Relative events");
+        private static readonly GlobalStatistic<ulong> statistic_absolute_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<WindowsMouseHandler>(), "Absolute events");
+        private static readonly GlobalStatistic<ulong> statistic_dropped_touch_inputs = GlobalStatistics.Get<ulong>(StatisticGroupFor<WindowsMouseHandler>(), "Dropped native touch inputs");
+        private static readonly GlobalStatistic<ulong> statistic_inputs_with_extra_information = GlobalStatistics.Get<ulong>(StatisticGroupFor<WindowsMouseHandler>(), "Native inputs with ExtraInformation");
+
         private const int raw_input_coordinate_space = 65535;
 
         private SDL.SDL_WindowsMessageHook callback = null!;
@@ -64,9 +70,12 @@ namespace osu.Framework.Platform.Windows
                 return IntPtr.Zero;
 
             if (Native.Input.IsTouchEvent(Native.Input.GetMessageExtraInfo()))
+            {
                 // sometimes GetMessageExtraInfo returns 0, so additionally, mouse.ExtraInformation is checked below.
                 // touch events are handled by TouchHandler
+                statistic_dropped_touch_inputs.Value++;
                 return IntPtr.Zero;
+            }
 
             int payloadSize = sizeof(RawInputData);
 
@@ -79,11 +88,16 @@ namespace osu.Framework.Platform.Windows
 
             // `ExtraInformation` doesn't have the MI_WP_SIGNATURE set, so we have to rely solely on the touch flag.
             if (Native.Input.HasTouchFlag(mouse.ExtraInformation))
+            {
+                statistic_dropped_touch_inputs.Value++;
                 return IntPtr.Zero;
+            }
 
             //TODO: this isn't correct.
             if (mouse.ExtraInformation > 0)
             {
+                statistic_inputs_with_extra_information.Value++;
+
                 // i'm not sure if there is a valid case where we need to handle packets with this present
                 // but the osu!tablet fires noise events with non-zero values, which we want to ignore.
                 // return IntPtr.Zero;
@@ -128,10 +142,12 @@ namespace osu.Framework.Platform.Windows
                 position *= window.Scale;
 
                 PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = position });
+                statistic_absolute_events.Value++;
             }
             else
             {
                 PendingInputs.Enqueue(new MousePositionRelativeInput { Delta = new Vector2(mouse.LastX, mouse.LastY) * sensitivity });
+                statistic_relative_events.Value++;
             }
 
             return IntPtr.Zero;
