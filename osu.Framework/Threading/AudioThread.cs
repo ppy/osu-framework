@@ -124,20 +124,40 @@ namespace osu.Framework.Threading
             // Try to initialise the device, or request a re-initialise.
             if (Bass.Init(deviceId, Flags: (DeviceInitFlags)128)) // 128 == BASS_DEVICE_REINIT
             {
-                if (WasapiMixer == 0)
+                int wasapiDevice = -1;
+
+                if (Bass.CurrentDevice > 0)
                 {
-                    wasapiProcedure = (buffer, length, user) => Bass.ChannelGetData(WasapiMixer, buffer, length);
+                    string driver = Bass.GetDeviceInfo(Bass.CurrentDevice).Driver;
 
-                    usingWasapi = BassWasapi.Init(-1, Procedure: wasapiProcedure, Buffer: 0.02f, Period: 0.005f);
-
-                    if (usingWasapi)
+                    if (!string.IsNullOrEmpty(driver))
                     {
-                        BassWasapi.GetInfo(out var wasapiInfo);
-                        WasapiMixer = BassMix.CreateMixerStream(wasapiInfo.Frequency, wasapiInfo.Channels, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
-                        BassWasapi.Start();
+                        while (true)
+                        {
+                            if (!BassWasapi.GetDeviceInfo(++wasapiDevice, out WasapiDeviceInfo info))
+                                break;
 
-                        Bass.ChannelSetAttribute(WasapiMixer, ChannelAttribute.Buffer, 0);
+                            if (info.ID == driver)
+                                break;
+                        }
                     }
+                }
+
+                if (WasapiMixer != 0)
+                {
+                    Bass.StreamFree(WasapiMixer);
+                    BassWasapi.Free();
+                    WasapiMixer = 0;
+                }
+
+                wasapiProcedure = (buffer, length, _) => Bass.ChannelGetData(WasapiMixer, buffer, length);
+                usingWasapi = BassWasapi.Init(wasapiDevice, Procedure: wasapiProcedure, Buffer: 0.02f, Period: 0.005f);
+
+                if (usingWasapi)
+                {
+                    BassWasapi.GetInfo(out var wasapiInfo);
+                    WasapiMixer = BassMix.CreateMixerStream(wasapiInfo.Frequency, wasapiInfo.Channels, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
+                    BassWasapi.Start();
                 }
 
                 initialised_devices.Add(deviceId);
@@ -146,9 +166,6 @@ namespace osu.Framework.Threading
 
             return false;
         }
-
-        private static int wasapiProc(IntPtr buffer, int length, IntPtr user) =>
-            Bass.ChannelGetData(WasapiMixer, buffer, length);
 
         internal static void FreeDevice(int deviceId)
         {
