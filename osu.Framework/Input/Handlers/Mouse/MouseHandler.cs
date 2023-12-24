@@ -20,6 +20,8 @@ namespace osu.Framework.Input.Handlers.Mouse
     /// </summary>
     public class MouseHandler : InputHandler, IHasCursorSensitivity, INeedsMousePositionFeedback
     {
+        private static readonly GlobalStatistic<ulong> statistic_total_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<MouseHandler>(), "Total events");
+
         /// <summary>
         /// Whether relative mode should be preferred when the window has focus, the cursor is contained and the OS cursor is not visible.
         /// </summary>
@@ -219,6 +221,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         {
             PendingInputs.Enqueue(input);
             FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
+            statistic_total_events.Value++;
         }
 
         private void transferLastPositionToHostCursor()
