@@ -11,8 +11,6 @@ using osu.Framework.Platform.Windows.Native;
 using osuTK;
 using SDL2;
 
-// ReSharper disable UnusedParameter.Local (Class regularly handles native events where we don't consume all parameters)
-
 namespace osu.Framework.Platform.Windows
 {
     /// <summary>
@@ -35,6 +33,7 @@ namespace osu.Framework.Platform.Windows
                 return false;
 
             window = desktopWindow;
+            // ReSharper disable once ConvertClosureToMethodGroup
             callback = (ptr, wnd, u, param, l) => onWndProc(ptr, wnd, u, param, l);
 
             Enabled.BindValueChanged(enabled =>
