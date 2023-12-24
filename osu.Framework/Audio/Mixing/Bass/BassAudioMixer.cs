@@ -249,7 +249,12 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (Handle == 0)
                 createMixer();
             else
+            {
                 ManagedBass.Bass.ChannelSetDevice(Handle, deviceIndex);
+
+                if (AudioThread.WasapiMixer != 0)
+                    BassMix.MixerAddChannel(AudioThread.WasapiMixer, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
+            }
         }
 
         protected override void UpdateState()
@@ -296,7 +301,9 @@ namespace osu.Framework.Audio.Mixing.Bass
 
             Effects.BindCollectionChanged(onEffectsChanged, true);
 
-            BassMix.MixerAddChannel(AudioThread.WasapiMixer, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
+            if (AudioThread.WasapiMixer != 0)
+                BassMix.MixerAddChannel(AudioThread.WasapiMixer, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
+
             ManagedBass.Bass.ChannelPlay(Handle);
         }
 
