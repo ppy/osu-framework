@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using NAudio.Dsp;
 
 namespace osu.Framework.Audio
@@ -31,8 +30,8 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Creates a new <see cref="ResamplingPlayer"/>.
         /// </summary>
-        /// <param name="srcRate">Sampling rate of audio that's given from <see cref="GetRemainingRawFloats(float[], int, int)"/> or <see cref="GetRemainingRawBytes(byte[])"/></param>
-        /// <param name="srcChannels">Channels of audio that's given from <see cref="GetRemainingRawFloats(float[], int, int)"/> or <see cref="GetRemainingRawBytes(byte[])"/></param>
+        /// <param name="srcRate">Sampling rate of audio that's given from <see cref="GetRemainingRawFloats(float[], int, int)"/></param>
+        /// <param name="srcChannels">Channels of audio that's given from <see cref="GetRemainingRawFloats(float[], int, int)"/></param>
         protected ResamplingPlayer(int srcRate, byte srcChannels)
         {
             SrcRate = srcRate;
@@ -105,32 +104,6 @@ namespace osu.Framework.Audio
             return 0;
         }
 
-        // must implement either (preferably float one)
-
-        private byte[]? bytes;
-
-        protected virtual int GetRemainingRawFloats(float[] data, int offset, int needed)
-        {
-            if (bytes == null || needed * 4 != bytes.Length)
-                bytes = new byte[needed * 4];
-
-            int got = GetRemainingRawBytes(bytes);
-
-            if (got > 0) Buffer.BlockCopy(bytes, 0, data, offset * 4, got);
-            return got / 4;
-        }
-
-        private float[]? floats;
-
-        protected virtual int GetRemainingRawBytes(byte[] data)
-        {
-            if (floats == null || data.Length / 4 != floats.Length)
-                floats = new float[data.Length / 4];
-
-            int got = GetRemainingRawFloats(floats, 0, floats.Length);
-
-            if (got > 0) Buffer.BlockCopy(floats, 0, data, 0, got * 4);
-            return got * 4;
-        }
+        protected abstract int GetRemainingRawFloats(float[] data, int offset, int needed);
     }
 }

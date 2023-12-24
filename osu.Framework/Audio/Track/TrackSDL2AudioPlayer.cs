@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.IO;
+using System.Buffers;
 using osu.Framework.Logging;
 
 namespace osu.Framework.Audio.Track
@@ -26,21 +26,25 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         /// <param name="bytePos">A byte position to convert</param>
         /// <returns></returns>
-        public double GetMsFromBytes(long bytePos) => bytePos * 1000.0d / SrcRate / SrcChannels / 4;
+        public double GetMsFromIndex(long bytePos) => bytePos * 1000.0d / SrcRate / SrcChannels;
 
         /// <summary>
         /// Returns a position in milliseconds converted from a byte position with configuration set for this player.
         /// </summary>
         /// <param name="seconds">A position in milliseconds to convert</param>
         /// <returns></returns>
-        public long GetBytesFromMs(double seconds) => (long)(seconds / 1000.0d * SrcRate) * SrcChannels * 4;
+        public long GetIndexFromMs(double seconds) => (long)(seconds / 1000.0d * SrcRate) * SrcChannels;
 
         /// <summary>
         /// Stores raw audio data.
         /// </summary>
-        protected MemoryStream? AudioData;
+        protected float[]? AudioData;
 
-        public long AudioDataLength => AudioData?.Length ?? 0;
+        protected long AudioDataPosition;
+
+        private bool dataRented;
+
+        public long AudioDataLength { get; private set; }
 
         /// <summary>
         /// Play backwards if set to true.
@@ -59,16 +63,55 @@ namespace osu.Framework.Audio.Track
             isLoaded = false;
         }
 
+        // To copy data with long offset with one method
+        private unsafe void copyData(float[] src, long srcOffset, float[] dst, long dstOffset, long length)
+        {
+            if (length <= 0)
+                return;
+
+            fixed (float* srcPtr = src)
+            fixed (float* dstPtr = dst)
+            {
+                Buffer.MemoryCopy(srcPtr + srcOffset, dstPtr + dstOffset, (dst.LongLength - dstOffset) * sizeof(float), length * sizeof(float));
+            }
+        }
+
+        private void prepareArray(long wanted)
+        {
+            if (wanted <= AudioData?.LongLength)
+                return;
+
+            float[] temp;
+            bool rent;
+
+            if (wanted > int.MaxValue)
+            {
+                rent = false;
+                temp = new float[wanted];
+            }
+            else
+            {
+                rent = true;
+                temp = ArrayPool<float>.Shared.Rent((int)wanted);
+            }
+
+            if (AudioData != null)
+                copyData(AudioData, 0, temp, 0, AudioDataLength);
+
+            if (dataRented && AudioData != null)
+                ArrayPool<float>.Shared.Return(AudioData);
+
+            AudioData = temp;
+            dataRented = rent;
+        }
+
         internal void PrepareStream(long byteLength)
         {
             if (disposedValue)
                 return;
 
             if (AudioData == null)
-            {
-                int len = byteLength > int.MaxValue ? int.MaxValue : (int)byteLength;
-                AudioData = new MemoryStream(len);
-            }
+                prepareArray(byteLength / 4);
 
             isLoading = true;
         }
@@ -81,10 +124,22 @@ namespace osu.Framework.Audio.Track
             if (AudioData == null)
                 throw new InvalidOperationException($"Use {nameof(PrepareStream)} before calling this");
 
-            long save = AudioData.Position;
-            AudioData.Position = AudioData.Length;
-            AudioData.Write(next, 0, length);
-            AudioData.Position = save;
+            int floatLen = length / sizeof(float);
+
+            if (AudioDataLength + floatLen > AudioData.LongLength)
+                prepareArray(AudioDataLength + floatLen);
+
+            unsafe // Most standard functions doesn't support long
+            {
+                fixed (float* dest = AudioData)
+                fixed (void* ptr = next)
+                {
+                    float* src = (float*)ptr;
+                    Buffer.MemoryCopy(src, dest + AudioDataLength, (AudioData.LongLength - AudioDataLength) * sizeof(float), length);
+                }
+            }
+
+            AudioDataLength += floatLen;
         }
 
         internal void DonePutting()
@@ -100,12 +155,12 @@ namespace osu.Framework.Audio.Track
             isLoaded = true;
         }
 
-        protected override int GetRemainingRawBytes(byte[] data)
+        protected override int GetRemainingRawFloats(float[] data, int offset, int needed)
         {
             if (AudioData == null)
                 return 0;
 
-            if (AudioData.Length <= 0)
+            if (AudioDataLength <= 0)
             {
                 done = true;
                 return 0;
@@ -114,13 +169,13 @@ namespace osu.Framework.Audio.Track
             if (SaveSeek > 0)
             {
                 // set to 0 if position is over saved seek
-                if (AudioData.Position > SaveSeek)
+                if (AudioDataPosition > SaveSeek)
                     SaveSeek = 0;
 
                 // player now has audio data to play
-                if (AudioData.Length > SaveSeek)
+                if (AudioDataLength > SaveSeek)
                 {
-                    AudioData.Position = SaveSeek;
+                    AudioDataPosition = SaveSeek;
                     SaveSeek = 0;
                 }
 
@@ -129,35 +184,34 @@ namespace osu.Framework.Audio.Track
                     return 0;
             }
 
-            int read = data.Length;
+            int read;
 
             if (ReversePlayback)
             {
-                int frameSize = SrcChannels * 4;
-
-                if (AudioData.Position < read)
-                    read = (int)AudioData.Position;
-
-                byte[] temp = new byte[read];
-
-                AudioData.Position -= read;
-                read = AudioData.Read(temp, 0, read);
-                AudioData.Position -= read;
-
-                for (int e = 0; e < read / frameSize; e++)
+                for (read = 0; read < needed; read++)
                 {
-                    Buffer.BlockCopy(temp, read - frameSize * (e + 1), data, frameSize * e, frameSize);
+                    if (AudioDataPosition < 0)
+                    {
+                        AudioDataPosition = 0;
+                        break;
+                    }
+
+                    data[read + offset] = AudioData[AudioDataPosition--];
                 }
             }
             else
             {
-                read = AudioData.Read(data, 0, read);
+                long remain = AudioDataLength - AudioDataPosition;
+                read = remain > needed ? needed : (int)remain;
+
+                copyData(AudioData, AudioDataPosition, data, offset, read);
+                AudioDataPosition += read;
             }
 
-            if (read < data.Length && isLoading)
+            if (read < needed && isLoading)
                 Logger.Log("Track underrun!");
 
-            if (ReversePlayback ? AudioData.Position <= 0 : AudioData.Position >= AudioData.Length && !isLoading)
+            if (ReversePlayback ? AudioDataPosition <= 0 : AudioDataPosition >= AudioDataLength && !isLoading)
                 done = true;
 
             return read;
@@ -187,8 +241,8 @@ namespace osu.Framework.Audio.Track
                 return 0;
 
             return !ReversePlayback
-                ? GetMsFromBytes(AudioData.Position) - GetProcessingLatency()
-                : GetMsFromBytes(AudioData.Position) + GetProcessingLatency();
+                ? GetMsFromIndex(AudioDataPosition) - GetProcessingLatency()
+                : GetMsFromIndex(AudioDataPosition) + GetProcessingLatency();
         }
 
         protected long SaveSeek;
@@ -201,7 +255,7 @@ namespace osu.Framework.Audio.Track
         /// <param name="seek">Position in milliseconds</param>
         public virtual void Seek(double seek)
         {
-            long tmp = GetBytesFromMs(seek);
+            long tmp = GetIndexFromMs(seek);
 
             if (!isLoaded && tmp > AudioDataLength)
             {
@@ -210,7 +264,7 @@ namespace osu.Framework.Audio.Track
             else if (AudioData != null)
             {
                 SaveSeek = 0;
-                AudioData.Position = Math.Clamp(tmp, 0, AudioDataLength - 1);
+                AudioDataPosition = Math.Clamp(tmp, 0, AudioDataLength - 1);
                 Flush();
             }
         }
@@ -223,12 +277,19 @@ namespace osu.Framework.Audio.Track
             {
                 if (disposing)
                 {
-                    AudioData?.Dispose();
+                    if (dataRented && AudioData != null)
+                        ArrayPool<float>.Shared.Return(AudioData);
+
                     AudioData = null;
                 }
 
                 disposedValue = true;
             }
+        }
+
+        ~TrackSDL2AudioPlayer()
+        {
+            Dispose(false);
         }
 
         public void Dispose()

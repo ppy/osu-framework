@@ -98,11 +98,11 @@ namespace osu.Framework.Audio.Track
                 {
                     if (AudioData != null)
                     {
-                        int latency = GetTempoLatencyInSamples() * 4 * SrcChannels;
-                        long temp = !ReversePlayback ? AudioData.Position - latency : AudioData.Position + latency;
+                        int latency = GetTempoLatencyInSamples() * SrcChannels;
+                        long temp = !ReversePlayback ? AudioDataPosition - latency : AudioDataPosition + latency;
 
                         if (temp >= 0)
-                            AudioData.Position = temp;
+                            AudioDataPosition = temp;
                     }
 
                     Reset(false);
