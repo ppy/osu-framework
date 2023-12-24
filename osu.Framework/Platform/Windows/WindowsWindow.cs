@@ -234,7 +234,7 @@ namespace osu.Framework.Platform.Windows
 
                 TriggerMouseMove(evtTfinger.x * ClientSize.Width, evtTfinger.y * ClientSize.Height);
 
-                switch ((SDL.SDL_EventType)evtTfinger.type)
+                switch (evtTfinger.type)
                 {
                     case SDL.SDL_EventType.SDL_FINGERDOWN:
                         TriggerMouseDown(MouseButton.Left);

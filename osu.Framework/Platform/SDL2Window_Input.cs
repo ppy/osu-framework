@@ -237,11 +237,9 @@ namespace osu.Framework.Platform
 
         protected virtual void HandleTouchFingerEvent(SDL.SDL_TouchFingerEvent evtTfinger)
         {
-            var eventType = (SDL.SDL_EventType)evtTfinger.type;
-
             var existingSource = getTouchSource(evtTfinger.fingerId);
 
-            if (eventType == SDL.SDL_EventType.SDL_FINGERDOWN)
+            if (evtTfinger.type == SDL.SDL_EventType.SDL_FINGERDOWN)
             {
                 Debug.Assert(existingSource == null);
                 existingSource = assignNextAvailableTouchSource(evtTfinger.fingerId);
@@ -255,7 +253,7 @@ namespace osu.Framework.Platform
 
             var touch = new Touch(existingSource.Value, new Vector2(x, y));
 
-            switch (eventType)
+            switch (evtTfinger.type)
             {
                 case SDL.SDL_EventType.SDL_FINGERDOWN:
                 case SDL.SDL_EventType.SDL_FINGERMOTION:
