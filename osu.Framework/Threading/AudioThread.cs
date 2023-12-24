@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using ManagedBass;
+using ManagedBass.Mix;
+using ManagedBass.Wasapi;
 using osu.Framework.Audio;
 using osu.Framework.Development;
 using osu.Framework.Platform.Linux.Native;
@@ -48,6 +50,11 @@ namespace osu.Framework.Threading
         private static readonly GlobalStatistic<double> cpu_usage = GlobalStatistics.Get<double>("Audio", "Bass CPU%");
 
         private long frameCount;
+
+        private static bool usingWasapi;
+        private static WasapiProcedure? wasapiProcedure;
+
+        public static int WasapiMixer { get; private set; }
 
         private void onNewFrame()
         {
@@ -117,12 +124,31 @@ namespace osu.Framework.Threading
             // Try to initialise the device, or request a re-initialise.
             if (Bass.Init(deviceId, Flags: (DeviceInitFlags)128)) // 128 == BASS_DEVICE_REINIT
             {
+                if (WasapiMixer == 0)
+                {
+                    wasapiProcedure = (buffer, length, user) => Bass.ChannelGetData(WasapiMixer, buffer, length);
+
+                    usingWasapi = BassWasapi.Init(-1, Procedure: wasapiProcedure, Buffer: 0.02f, Period: 0.005f);
+
+                    if (usingWasapi)
+                    {
+                        BassWasapi.GetInfo(out var wasapiInfo);
+                        WasapiMixer = BassMix.CreateMixerStream(wasapiInfo.Frequency, wasapiInfo.Channels, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
+                        BassWasapi.Start();
+
+                        Bass.ChannelSetAttribute(WasapiMixer, ChannelAttribute.Buffer, 0);
+                    }
+                }
+
                 initialised_devices.Add(deviceId);
                 return true;
             }
 
             return false;
         }
+
+        private static int wasapiProc(IntPtr buffer, int length, IntPtr user) =>
+            Bass.ChannelGetData(WasapiMixer, buffer, length);
 
         internal static void FreeDevice(int deviceId)
         {
@@ -135,6 +161,8 @@ namespace osu.Framework.Threading
                 Bass.CurrentDevice = deviceId;
                 Bass.Free();
             }
+
+            // TODO: wasapi free?
 
             if (selectedDevice != deviceId && canSelectDevice(selectedDevice))
                 Bass.CurrentDevice = selectedDevice;

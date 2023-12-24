@@ -14,6 +14,7 @@ using osu.Framework.Development;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Statistics;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Audio.Mixing.Bass
 {
@@ -277,7 +278,9 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (!ManagedBass.Bass.GetDeviceInfo(ManagedBass.Bass.CurrentDevice, out var deviceInfo) || !deviceInfo.IsInitialized)
                 return;
 
-            Handle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop);
+            Handle = AudioThread.WasapiMixer != 0
+                ? BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Decode)
+                : BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop);
 
             if (Handle == 0)
                 return;
@@ -293,6 +296,7 @@ namespace osu.Framework.Audio.Mixing.Bass
 
             Effects.BindCollectionChanged(onEffectsChanged, true);
 
+            BassMix.MixerAddChannel(AudioThread.WasapiMixer, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
             ManagedBass.Bass.ChannelPlay(Handle);
         }
 

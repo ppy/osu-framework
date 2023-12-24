@@ -312,7 +312,7 @@ namespace osu.Framework.Audio
             if (setAudioDevice(Bass.NoSoundDevice))
                 return true;
 
-            //we're fucked. even "No sound" device won't initialise.
+            // we're boned. even "No sound" device won't initialise.
             return false;
         }
 
