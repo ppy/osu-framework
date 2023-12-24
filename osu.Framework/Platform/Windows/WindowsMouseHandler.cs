@@ -77,7 +77,7 @@ namespace osu.Framework.Platform.Windows
 
             var mouse = data.Mouse;
 
-            // `ExtraInformation` doens't have the MI_WP_SIGNATURE set, so we have to rely solely on the touch flag.
+            // `ExtraInformation` doesn't have the MI_WP_SIGNATURE set, so we have to rely solely on the touch flag.
             if (Native.Input.HasTouchFlag(mouse.ExtraInformation))
                 return IntPtr.Zero;
 
