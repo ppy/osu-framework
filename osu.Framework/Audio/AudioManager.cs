@@ -112,6 +112,16 @@ namespace osu.Framework.Audio
         /// If a global mixer is being used, this will be the BASS handle for it.
         /// If non-null, all game mixers should be added to this mixer.
         /// </summary>
+        /// <remarks>
+        /// When this is non-null, all mixers created via <see cref="CreateAudioMixer"/>
+        /// will themselves be added to the global mixer, which will handle playback itself.
+        ///
+        /// In this mode of operation, nested mixers will be created with the <see cref="BassFlags.Decode"/>
+        /// flag, meaning they no longer handle playback directly.
+        ///
+        /// An eventual goal would be to use a global mixer across all platforms as it can result
+        /// in more control and better playback performance.
+        /// </remarks>
         internal readonly IBindable<int?> GlobalMixerHandle = new Bindable<int?>();
 
         public override bool IsLoaded => base.IsLoaded &&
