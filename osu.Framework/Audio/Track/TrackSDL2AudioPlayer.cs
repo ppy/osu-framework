@@ -188,7 +188,7 @@ namespace osu.Framework.Audio.Track
 
             if (ReversePlayback)
             {
-                for (read = 0; read < needed; read++)
+                for (read = 0; read < needed; read += 2)
                 {
                     if (AudioDataPosition < 0)
                     {
@@ -196,6 +196,8 @@ namespace osu.Framework.Audio.Track
                         break;
                     }
 
+                    // swap stereo channel
+                    data[read + 1 + offset] = AudioData[AudioDataPosition--];
                     data[read + offset] = AudioData[AudioDataPosition--];
                 }
             }
