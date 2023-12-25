@@ -219,6 +219,18 @@ namespace osu.Framework.Audio.Track
             return read;
         }
 
+        public bool Peek(float[] data)
+        {
+            if (AudioData == null)
+                return false;
+
+            long remain = AudioDataLength - AudioDataPosition;
+            int read = remain > data.Length ? data.Length : (int)remain;
+
+            copyData(AudioData, AudioDataPosition, data, 0, read);
+            return true;
+        }
+
         /// <summary>
         /// Clears 'done' status.
         /// </summary>

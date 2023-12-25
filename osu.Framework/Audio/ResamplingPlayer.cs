@@ -24,8 +24,8 @@ namespace osu.Framework.Audio
 
         private WdlResampler? resampler;
 
-        protected readonly int SrcRate;
-        protected readonly byte SrcChannels;
+        internal readonly int SrcRate;
+        internal readonly byte SrcChannels;
 
         /// <summary>
         /// Creates a new <see cref="ResamplingPlayer"/>.
