@@ -112,7 +112,7 @@ namespace osu.Framework.Audio
         /// If a global mixer is being used, this will be the BASS handle for it.
         /// If non-null, all game mixers should be added to this mixer.
         /// </summary>
-        internal readonly Bindable<int?> GlobalMixerHandle = new Bindable<int?>();
+        internal readonly IBindable<int?> GlobalMixerHandle = new Bindable<int?>();
 
         public override bool IsLoaded => base.IsLoaded &&
                                          // bass default device is a null device (-1), not the actual system default.
