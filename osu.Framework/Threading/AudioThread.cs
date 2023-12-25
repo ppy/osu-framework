@@ -10,6 +10,7 @@ using ManagedBass;
 using ManagedBass.Mix;
 using ManagedBass.Wasapi;
 using osu.Framework.Audio;
+using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Platform.Linux.Native;
 
@@ -51,10 +52,6 @@ namespace osu.Framework.Threading
 
         private long frameCount;
 
-        private static WasapiProcedure? wasapiProcedure;
-
-        public static int WasapiMixer { get; private set; }
-
         private void onNewFrame()
         {
             if (frameCount++ % 1000 == 0)
@@ -79,12 +76,16 @@ namespace osu.Framework.Threading
 
                 managers.Add(manager);
             }
+
+            manager.GlobalMixerHandle.BindTo(globalMixerHandle);
         }
 
         internal void UnregisterManager(AudioManager manager)
         {
             lock (managers)
                 managers.Remove(manager);
+
+            manager.GlobalMixerHandle.UnbindFrom(globalMixerHandle);
         }
 
         protected override void OnExit()
@@ -115,9 +116,19 @@ namespace osu.Framework.Threading
                 FreeDevice(d);
         }
 
+        #region BASS Initialisation
+
         // TODO: All this bass init stuff should proably not be in this class.
 
-        internal static bool InitDevice(int deviceId)
+        private WasapiProcedure? wasapiProcedure;
+
+        /// <summary>
+        /// If a global mixer is being used, this will be the BASS handle for it.
+        /// If non-null, all game mixers should be added to this mixer.
+        /// </summary>
+        private readonly Bindable<int?> globalMixerHandle = new Bindable<int?>();
+
+        internal bool InitDevice(int deviceId)
         {
             Debug.Assert(ThreadSafety.IsAudioThread);
             Trace.Assert(deviceId != -1); // The real device ID should always be used, as the -1 device has special cases which are hard to work with.
@@ -132,7 +143,7 @@ namespace osu.Framework.Threading
             return true;
         }
 
-        private static void attemptWasapiInitialisation()
+        private void attemptWasapiInitialisation()
         {
             if (RuntimeInfo.OS != RuntimeInfo.Platform.Windows)
                 return;
@@ -167,21 +178,21 @@ namespace osu.Framework.Threading
 
             // To keep things in a sane state let's only keep one device initialised via wasapi.
             // TODO: The mixer probably doesn't need to be recycled. Just keeping things sane for now.
-            if (WasapiMixer != 0)
+            if (globalMixerHandle.Value != null)
             {
-                Bass.StreamFree(WasapiMixer);
+                Bass.StreamFree(globalMixerHandle.Value.Value);
                 BassWasapi.Free();
-                WasapiMixer = 0;
+                globalMixerHandle.Value = null;
             }
 
             // This is intentionally initialised inline and stored to a field.
             // If we don't do this, it gets GC'd away.
-            wasapiProcedure = (buffer, length, _) => Bass.ChannelGetData(WasapiMixer, buffer, length);
+            wasapiProcedure = (buffer, length, _) => Bass.ChannelGetData(globalMixerHandle.Value!.Value, buffer, length);
 
             if (BassWasapi.Init(wasapiDevice, Procedure: wasapiProcedure, Buffer: 0.02f, Period: 0.005f))
             {
                 BassWasapi.GetInfo(out var wasapiInfo);
-                WasapiMixer = BassMix.CreateMixerStream(wasapiInfo.Frequency, wasapiInfo.Channels, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
+                globalMixerHandle.Value = BassMix.CreateMixerStream(wasapiInfo.Frequency, wasapiInfo.Channels, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
                 BassWasapi.Start();
             }
         }
@@ -219,5 +230,7 @@ namespace osu.Framework.Threading
                 Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
             }
         }
+
+        #endregion
     }
 }

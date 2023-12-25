@@ -14,7 +14,6 @@ using osu.Framework.Development;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Statistics;
-using osu.Framework.Threading;
 
 namespace osu.Framework.Audio.Mixing.Bass
 {
@@ -23,6 +22,8 @@ namespace osu.Framework.Audio.Mixing.Bass
     /// </summary>
     internal class BassAudioMixer : AudioMixer, IBassAudio
     {
+        private readonly AudioManager? manager;
+
         /// <summary>
         /// The handle for this mixer.
         /// </summary>
@@ -43,11 +44,13 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <summary>
         /// Creates a new <see cref="BassAudioMixer"/>.
         /// </summary>
+        /// <param name="manager">The game's audio manager.</param>
         /// <param name="fallbackMixer"><inheritdoc /></param>
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
-        public BassAudioMixer(AudioMixer? fallbackMixer, string identifier)
+        public BassAudioMixer(AudioManager? manager, AudioMixer? fallbackMixer, string identifier)
             : base(fallbackMixer, identifier)
         {
+            this.manager = manager;
             EnqueueAction(createMixer);
         }
 
@@ -252,8 +255,8 @@ namespace osu.Framework.Audio.Mixing.Bass
             {
                 ManagedBass.Bass.ChannelSetDevice(Handle, deviceIndex);
 
-                if (AudioThread.GlobalMixer != 0)
-                    BassMix.MixerAddChannel(AudioThread.GlobalMixer, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
+                if (manager?.GlobalMixerHandle.Value != null)
+                    BassMix.MixerAddChannel(manager.GlobalMixerHandle.Value.Value, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
             }
         }
 
@@ -283,7 +286,7 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (!ManagedBass.Bass.GetDeviceInfo(ManagedBass.Bass.CurrentDevice, out var deviceInfo) || !deviceInfo.IsInitialized)
                 return;
 
-            Handle = AudioThread.GlobalMixer != 0
+            Handle = manager?.GlobalMixerHandle.Value != null
                 ? BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Decode)
                 : BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop);
 
@@ -301,8 +304,8 @@ namespace osu.Framework.Audio.Mixing.Bass
 
             Effects.BindCollectionChanged(onEffectsChanged, true);
 
-            if (AudioThread.GlobalMixer != 0)
-                BassMix.MixerAddChannel(AudioThread.GlobalMixer, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
+            if (manager?.GlobalMixerHandle.Value != null)
+                BassMix.MixerAddChannel(manager.GlobalMixerHandle.Value.Value, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
 
             ManagedBass.Bass.ChannelPlay(Handle);
         }

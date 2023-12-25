@@ -108,6 +108,12 @@ namespace osu.Framework.Audio
             MaxValue = 1
         };
 
+        /// <summary>
+        /// If a global mixer is being used, this will be the BASS handle for it.
+        /// If non-null, all game mixers should be added to this mixer.
+        /// </summary>
+        internal readonly Bindable<int?> GlobalMixerHandle = new Bindable<int?>();
+
         public override bool IsLoaded => base.IsLoaded &&
                                          // bass default device is a null device (-1), not the actual system default.
                                          Bass.CurrentDevice != Bass.DefaultDevice;
@@ -236,7 +242,7 @@ namespace osu.Framework.Audio
 
         private AudioMixer createAudioMixer(AudioMixer fallbackMixer, string identifier)
         {
-            var mixer = new BassAudioMixer(fallbackMixer, identifier);
+            var mixer = new BassAudioMixer(this, fallbackMixer, identifier);
             AddItem(mixer);
             return mixer;
         }
@@ -390,7 +396,10 @@ namespace osu.Framework.Audio
             // See https://www.un4seen.com/forum/?topic=19601 for more information.
             Bass.Configure((ManagedBass.Configuration)70, false);
 
-            return AudioThread.InitDevice(device);
+            if (!thread.InitDevice(device))
+                return false;
+
+            return true;
         }
 
         private void syncAudioDevices()
