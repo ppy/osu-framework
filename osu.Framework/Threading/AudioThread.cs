@@ -143,6 +143,40 @@ namespace osu.Framework.Threading
             return true;
         }
 
+        internal void FreeDevice(int deviceId)
+        {
+            Debug.Assert(ThreadSafety.IsAudioThread);
+
+            int selectedDevice = Bass.CurrentDevice;
+
+            if (canSelectDevice(deviceId))
+            {
+                Bass.CurrentDevice = deviceId;
+                Bass.Free();
+            }
+
+            freeWasapi();
+
+            if (selectedDevice != deviceId && canSelectDevice(selectedDevice))
+                Bass.CurrentDevice = selectedDevice;
+
+            initialised_devices.Remove(deviceId);
+
+            static bool canSelectDevice(int deviceId) => Bass.GetDeviceInfo(deviceId, out var deviceInfo) && deviceInfo.IsInitialized;
+        }
+
+        /// <summary>
+        /// Makes BASS available to be consumed.
+        /// </summary>
+        internal static void PreloadBass()
+        {
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
+            {
+                // required for the time being to address libbass_fx.so load failures (see https://github.com/ppy/osu/issues/2852)
+                Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+            }
+        }
+
         private void attemptWasapiInitialisation()
         {
             if (RuntimeInfo.OS != RuntimeInfo.Platform.Windows)
@@ -177,13 +211,7 @@ namespace osu.Framework.Threading
             }
 
             // To keep things in a sane state let's only keep one device initialised via wasapi.
-            // TODO: The mixer probably doesn't need to be recycled. Just keeping things sane for now.
-            if (globalMixerHandle.Value != null)
-            {
-                Bass.StreamFree(globalMixerHandle.Value.Value);
-                BassWasapi.Free();
-                globalMixerHandle.Value = null;
-            }
+            freeWasapi();
 
             // This is intentionally initialised inline and stored to a field.
             // If we don't do this, it gets GC'd away.
@@ -203,38 +231,14 @@ namespace osu.Framework.Threading
             }
         }
 
-        internal static void FreeDevice(int deviceId)
+        private void freeWasapi()
         {
-            Debug.Assert(ThreadSafety.IsAudioThread);
+            if (globalMixerHandle.Value == null) return;
 
-            int selectedDevice = Bass.CurrentDevice;
-
-            if (canSelectDevice(deviceId))
-            {
-                Bass.CurrentDevice = deviceId;
-                Bass.Free();
-            }
-
-            // TODO: wasapi free?
-
-            if (selectedDevice != deviceId && canSelectDevice(selectedDevice))
-                Bass.CurrentDevice = selectedDevice;
-
-            initialised_devices.Remove(deviceId);
-
-            static bool canSelectDevice(int deviceId) => Bass.GetDeviceInfo(deviceId, out var deviceInfo) && deviceInfo.IsInitialized;
-        }
-
-        /// <summary>
-        /// Makes BASS available to be consumed.
-        /// </summary>
-        internal static void PreloadBass()
-        {
-            if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
-            {
-                // required for the time being to address libbass_fx.so load failures (see https://github.com/ppy/osu/issues/2852)
-                Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
-            }
+            // The mixer probably doesn't need to be recycled. Just keeping things sane for now.
+            Bass.StreamFree(globalMixerHandle.Value.Value);
+            BassWasapi.Free();
+            globalMixerHandle.Value = null;
         }
 
         #endregion
