@@ -51,7 +51,6 @@ namespace osu.Framework.Threading
 
         private long frameCount;
 
-        private static bool usingWasapi;
         private static WasapiProcedure? wasapiProcedure;
 
         public static int WasapiMixer { get; private set; }
@@ -138,13 +137,22 @@ namespace osu.Framework.Threading
 
             int wasapiDevice = -1;
 
+            // WASAPI device indices don't match normal BASS devices.
+            // Each device is listed multiple times with each supported channel/frequency pair.
+            //
+            // Working backwards to find the correct device is how bass does things internally (see BassWasapi.GetBassDevice).
             if (Bass.CurrentDevice > 0)
             {
                 string driver = Bass.GetDeviceInfo(Bass.CurrentDevice).Driver;
 
                 if (!string.IsNullOrEmpty(driver))
                 {
-                    while (true)
+                    // In the normal execution case, BassWasapi.GetDeviceInfo will return false as soon as we reach the end of devices.
+                    // This while condition is just a safety to avoid looping forever.
+                    // It's intentionally quite high because if a user has many audio devices, this list can get long.
+                    //
+                    // Retrieving device info here isn't free. In the future we may want to investigate a better method.
+                    while (wasapiDevice < 16384)
                     {
                         if (!BassWasapi.GetDeviceInfo(++wasapiDevice, out WasapiDeviceInfo info))
                             break;
@@ -155,6 +163,8 @@ namespace osu.Framework.Threading
                 }
             }
 
+            // To keep things in a sane state let's only keep one device initialised via wasapi.
+            // TODO: The mixer probably doesn't need to be recycled. Just keeping things sane for now.
             if (WasapiMixer != 0)
             {
                 Bass.StreamFree(WasapiMixer);
@@ -162,10 +172,11 @@ namespace osu.Framework.Threading
                 WasapiMixer = 0;
             }
 
+            // This is intentionally initialised inline and stored to a field.
+            // If we don't do this, it gets GC'd away.
             wasapiProcedure = (buffer, length, _) => Bass.ChannelGetData(WasapiMixer, buffer, length);
-            usingWasapi = BassWasapi.Init(wasapiDevice, Procedure: wasapiProcedure, Buffer: 0.02f, Period: 0.005f);
 
-            if (usingWasapi)
+            if (BassWasapi.Init(wasapiDevice, Procedure: wasapiProcedure, Buffer: 0.02f, Period: 0.005f))
             {
                 BassWasapi.GetInfo(out var wasapiInfo);
                 WasapiMixer = BassMix.CreateMixerStream(wasapiInfo.Frequency, wasapiInfo.Channels, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
