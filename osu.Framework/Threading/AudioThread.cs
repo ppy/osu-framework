@@ -187,7 +187,13 @@ namespace osu.Framework.Threading
 
             // This is intentionally initialised inline and stored to a field.
             // If we don't do this, it gets GC'd away.
-            wasapiProcedure = (buffer, length, _) => Bass.ChannelGetData(globalMixerHandle.Value!.Value, buffer, length);
+            wasapiProcedure = (buffer, length, _) =>
+            {
+                if (globalMixerHandle.Value == null)
+                    return 0;
+
+                return Bass.ChannelGetData(globalMixerHandle.Value!.Value, buffer, length);
+            };
 
             if (BassWasapi.Init(wasapiDevice, Procedure: wasapiProcedure, Buffer: 0.02f, Period: 0.005f))
             {
