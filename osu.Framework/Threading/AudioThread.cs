@@ -115,6 +115,8 @@ namespace osu.Framework.Threading
                 FreeDevice(d);
         }
 
+        // TODO: All this bass init stuff should proably not be in this class.
+
         internal static bool InitDevice(int deviceId)
         {
             Debug.Assert(ThreadSafety.IsAudioThread);
