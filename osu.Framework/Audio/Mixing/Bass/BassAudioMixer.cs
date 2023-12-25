@@ -252,8 +252,8 @@ namespace osu.Framework.Audio.Mixing.Bass
             {
                 ManagedBass.Bass.ChannelSetDevice(Handle, deviceIndex);
 
-                if (AudioThread.WasapiMixer != 0)
-                    BassMix.MixerAddChannel(AudioThread.WasapiMixer, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
+                if (AudioThread.GlobalMixer != 0)
+                    BassMix.MixerAddChannel(AudioThread.GlobalMixer, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
             }
         }
 
@@ -283,7 +283,7 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (!ManagedBass.Bass.GetDeviceInfo(ManagedBass.Bass.CurrentDevice, out var deviceInfo) || !deviceInfo.IsInitialized)
                 return;
 
-            Handle = AudioThread.WasapiMixer != 0
+            Handle = AudioThread.GlobalMixer != 0
                 ? BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Decode)
                 : BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop);
 
@@ -301,8 +301,8 @@ namespace osu.Framework.Audio.Mixing.Bass
 
             Effects.BindCollectionChanged(onEffectsChanged, true);
 
-            if (AudioThread.WasapiMixer != 0)
-                BassMix.MixerAddChannel(AudioThread.WasapiMixer, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
+            if (AudioThread.GlobalMixer != 0)
+                BassMix.MixerAddChannel(AudioThread.GlobalMixer, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
 
             ManagedBass.Bass.ChannelPlay(Handle);
         }
