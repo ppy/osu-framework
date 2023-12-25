@@ -68,9 +68,9 @@ namespace osu.Framework.Audio
             return $@"{GetType().ReadableName()} ({currentDeviceName})";
         }
 
-        protected override AudioMixer AudioCreateAudioMixer(AudioMixer globalMixer, string identifier)
+        protected override AudioMixer AudioCreateAudioMixer(AudioMixer fallbackMixer, string identifier)
         {
-            var mixer = new SDL2AudioMixer(globalMixer, identifier);
+            var mixer = new SDL2AudioMixer(fallbackMixer, identifier);
             AddItem(mixer);
             return mixer;
         }

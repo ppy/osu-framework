@@ -73,9 +73,9 @@ namespace osu.Framework.Audio
             return new SampleBassFactory(data, name, (BassAudioMixer)mixer, playbackConcurrency);
         }
 
-        protected override AudioMixer AudioCreateAudioMixer(AudioMixer globalMixer, string identifier)
+        protected override AudioMixer AudioCreateAudioMixer(AudioMixer fallbackMixer, string identifier)
         {
-            var mixer = new BassAudioMixer(globalMixer, identifier);
+            var mixer = new BassAudioMixer(fallbackMixer, identifier);
             AddItem(mixer);
             return mixer;
         }
