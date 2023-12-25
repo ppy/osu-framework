@@ -234,9 +234,9 @@ namespace osu.Framework.Audio
         public AudioMixer CreateAudioMixer(string identifier = default) =>
             createAudioMixer(SampleMixer, !string.IsNullOrEmpty(identifier) ? identifier : $"user #{Interlocked.Increment(ref userMixerID)}");
 
-        private AudioMixer createAudioMixer(AudioMixer globalMixer, string identifier)
+        private AudioMixer createAudioMixer(AudioMixer fallbackMixer, string identifier)
         {
-            var mixer = new BassAudioMixer(globalMixer, identifier);
+            var mixer = new BassAudioMixer(fallbackMixer, identifier);
             AddItem(mixer);
             return mixer;
         }
