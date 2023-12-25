@@ -122,49 +122,55 @@ namespace osu.Framework.Threading
             Trace.Assert(deviceId != -1); // The real device ID should always be used, as the -1 device has special cases which are hard to work with.
 
             // Try to initialise the device, or request a re-initialise.
-            if (Bass.Init(deviceId, Flags: (DeviceInitFlags)128)) // 128 == BASS_DEVICE_REINIT
+            if (!Bass.Init(deviceId, Flags: (DeviceInitFlags)128)) // 128 == BASS_DEVICE_REINIT
+                return false;
+
+            attemptWasapiInitialisation();
+
+            initialised_devices.Add(deviceId);
+            return true;
+        }
+
+        private static void attemptWasapiInitialisation()
+        {
+            if (RuntimeInfo.OS != RuntimeInfo.Platform.Windows)
+                return;
+
+            int wasapiDevice = -1;
+
+            if (Bass.CurrentDevice > 0)
             {
-                int wasapiDevice = -1;
+                string driver = Bass.GetDeviceInfo(Bass.CurrentDevice).Driver;
 
-                if (Bass.CurrentDevice > 0)
+                if (!string.IsNullOrEmpty(driver))
                 {
-                    string driver = Bass.GetDeviceInfo(Bass.CurrentDevice).Driver;
-
-                    if (!string.IsNullOrEmpty(driver))
+                    while (true)
                     {
-                        while (true)
-                        {
-                            if (!BassWasapi.GetDeviceInfo(++wasapiDevice, out WasapiDeviceInfo info))
-                                break;
+                        if (!BassWasapi.GetDeviceInfo(++wasapiDevice, out WasapiDeviceInfo info))
+                            break;
 
-                            if (info.ID == driver)
-                                break;
-                        }
+                        if (info.ID == driver)
+                            break;
                     }
                 }
-
-                if (WasapiMixer != 0)
-                {
-                    Bass.StreamFree(WasapiMixer);
-                    BassWasapi.Free();
-                    WasapiMixer = 0;
-                }
-
-                wasapiProcedure = (buffer, length, _) => Bass.ChannelGetData(WasapiMixer, buffer, length);
-                usingWasapi = BassWasapi.Init(wasapiDevice, Procedure: wasapiProcedure, Buffer: 0.02f, Period: 0.005f);
-
-                if (usingWasapi)
-                {
-                    BassWasapi.GetInfo(out var wasapiInfo);
-                    WasapiMixer = BassMix.CreateMixerStream(wasapiInfo.Frequency, wasapiInfo.Channels, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
-                    BassWasapi.Start();
-                }
-
-                initialised_devices.Add(deviceId);
-                return true;
             }
 
-            return false;
+            if (WasapiMixer != 0)
+            {
+                Bass.StreamFree(WasapiMixer);
+                BassWasapi.Free();
+                WasapiMixer = 0;
+            }
+
+            wasapiProcedure = (buffer, length, _) => Bass.ChannelGetData(WasapiMixer, buffer, length);
+            usingWasapi = BassWasapi.Init(wasapiDevice, Procedure: wasapiProcedure, Buffer: 0.02f, Period: 0.005f);
+
+            if (usingWasapi)
+            {
+                BassWasapi.GetInfo(out var wasapiInfo);
+                WasapiMixer = BassMix.CreateMixerStream(wasapiInfo.Frequency, wasapiInfo.Channels, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
+                BassWasapi.Start();
+            }
         }
 
         internal static void FreeDevice(int deviceId)
