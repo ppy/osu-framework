@@ -98,7 +98,7 @@ namespace osu.Framework.Audio.Track
 
                     int pointSamples = 0;
 
-                    int m = (int)Math.Log(fft_samples, 2.0);
+                    int m = (int)Math.Log2(fft_samples);
 
                     do
                     {
