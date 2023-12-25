@@ -118,7 +118,7 @@ namespace osu.Framework.Threading
 
         #region BASS Initialisation
 
-        // TODO: All this bass init stuff should proably not be in this class.
+        // TODO: All this bass init stuff should probably not be in this class.
 
         private WasapiProcedure? wasapiProcedure;
 
