@@ -42,10 +42,10 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <summary>
         /// Creates a new <see cref="BassAudioMixer"/>.
         /// </summary>
-        /// <param name="globalMixer"><inheritdoc /></param>
+        /// <param name="fallbackMixer"><inheritdoc /></param>
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
-        public BassAudioMixer(AudioMixer? globalMixer, string identifier)
-            : base(globalMixer, identifier)
+        public BassAudioMixer(AudioMixer? fallbackMixer, string identifier)
+            : base(fallbackMixer, identifier)
         {
             EnqueueAction(createMixer);
         }
@@ -278,6 +278,7 @@ namespace osu.Framework.Audio.Mixing.Bass
                 return;
 
             Handle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop);
+
             if (Handle == 0)
                 return;
 
