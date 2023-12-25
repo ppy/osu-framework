@@ -162,7 +162,8 @@ namespace osu.Framework.Audio
 
             thread.RegisterManager(this);
 
-            AudioDevice.ValueChanged += onDeviceChanged;
+            AudioDevice.ValueChanged += _ => onDeviceChanged();
+            GlobalMixerHandle.ValueChanged += _ => onDeviceChanged();
 
             AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
             AddItem(SampleMixer = createAudioMixer(null, nameof(SampleMixer)));
@@ -221,9 +222,9 @@ namespace osu.Framework.Audio
             base.Dispose(disposing);
         }
 
-        private void onDeviceChanged(ValueChangedEvent<string> args)
+        private void onDeviceChanged()
         {
-            scheduler.Add(() => setAudioDevice(args.NewValue));
+            scheduler.Add(() => setAudioDevice(AudioDevice.Value));
         }
 
         private void onDevicesChanged()

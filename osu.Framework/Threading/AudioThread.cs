@@ -121,6 +121,7 @@ namespace osu.Framework.Threading
         // TODO: All this bass init stuff should probably not be in this class.
 
         private WasapiProcedure? wasapiProcedure;
+        private WasapiNotifyProcedure? wasapiNotifyProcedure;
 
         /// <summary>
         /// If a global mixer is being used, this will be the BASS handle for it.
@@ -212,7 +213,11 @@ namespace osu.Framework.Threading
 
             // To keep things in a sane state let's only keep one device initialised via wasapi.
             freeWasapi();
+            initWasapi(wasapiDevice);
+        }
 
+        private void initWasapi(int wasapiDevice)
+        {
             // This is intentionally initialised inline and stored to a field.
             // If we don't do this, it gets GC'd away.
             wasapiProcedure = (buffer, length, _) =>
@@ -222,13 +227,25 @@ namespace osu.Framework.Threading
 
                 return Bass.ChannelGetData(globalMixerHandle.Value!.Value, buffer, length);
             };
-
-            if (BassWasapi.Init(wasapiDevice, Procedure: wasapiProcedure, Buffer: 0.02f, Period: 0.005f))
+            wasapiNotifyProcedure = (notify, device, _) => Scheduler.Add(() =>
             {
-                BassWasapi.GetInfo(out var wasapiInfo);
-                globalMixerHandle.Value = BassMix.CreateMixerStream(wasapiInfo.Frequency, wasapiInfo.Channels, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
-                BassWasapi.Start();
-            }
+                if (notify == WasapiNotificationType.DefaultOutput)
+                {
+                    freeWasapi();
+                    initWasapi(device);
+                }
+            });
+
+            bool initialised = BassWasapi.Init(wasapiDevice, Procedure: wasapiProcedure, Buffer: 0.02f, Period: 0.005f);
+
+            if (!initialised)
+                return;
+
+            BassWasapi.GetInfo(out var wasapiInfo);
+            globalMixerHandle.Value = BassMix.CreateMixerStream(wasapiInfo.Frequency, wasapiInfo.Channels, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
+            BassWasapi.Start();
+
+            BassWasapi.SetNotify(wasapiNotifyProcedure);
         }
 
         private void freeWasapi()
@@ -237,6 +254,7 @@ namespace osu.Framework.Threading
 
             // The mixer probably doesn't need to be recycled. Just keeping things sane for now.
             Bass.StreamFree(globalMixerHandle.Value.Value);
+            BassWasapi.Stop();
             BassWasapi.Free();
             globalMixerHandle.Value = null;
         }
