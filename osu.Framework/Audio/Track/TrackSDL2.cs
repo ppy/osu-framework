@@ -129,18 +129,17 @@ namespace osu.Framework.Audio.Track
         {
             base.UpdateState();
 
-            if (decodeData != null && !isLoaded)
+            if (decodeData != null)
             {
-                if (isLoaded)
-                {
-                    decodeData = null;
-                }
-                else
+                if (!isLoaded)
                 {
                     Length = decodeData.Length;
                     bitrate = decodeData.Bitrate;
                     isLoaded = true;
                 }
+
+                if (player.IsLoaded)
+                    decodeData = null;
             }
 
             if (player.Done && isRunning)
