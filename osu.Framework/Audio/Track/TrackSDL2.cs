@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using NAudio.Dsp;
 using osu.Framework.Audio.Mixing.SDL2;
 using osu.Framework.Extensions;
-using osu.Framework.Utils;
 
 namespace osu.Framework.Audio.Track
 {
