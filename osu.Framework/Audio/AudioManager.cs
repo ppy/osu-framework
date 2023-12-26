@@ -109,6 +109,14 @@ namespace osu.Framework.Audio
         };
 
         /// <summary>
+        /// Whether a global mixer is being used for audio routing.
+        /// For now, this is only the case on Windows when using shared mode WASAPI initialisation.
+        /// </summary>
+        public IBindable<bool> UsingGlobalMixer => usingGlobalMixer;
+
+        private readonly Bindable<bool> usingGlobalMixer = new BindableBool();
+
+        /// <summary>
         /// If a global mixer is being used, this will be the BASS handle for it.
         /// If non-null, all game mixers should be added to this mixer.
         /// </summary>
@@ -163,7 +171,11 @@ namespace osu.Framework.Audio
             thread.RegisterManager(this);
 
             AudioDevice.ValueChanged += _ => onDeviceChanged();
-            GlobalMixerHandle.ValueChanged += _ => onDeviceChanged();
+            GlobalMixerHandle.ValueChanged += handle =>
+            {
+                onDeviceChanged();
+                usingGlobalMixer.Value = handle.NewValue.HasValue;
+            };
 
             AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
             AddItem(SampleMixer = createAudioMixer(null, nameof(SampleMixer)));
