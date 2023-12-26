@@ -15,6 +15,8 @@ namespace osu.Framework.Android.Input
 {
     public class AndroidJoystickHandler : AndroidInputHandler
     {
+        private static readonly GlobalStatistic<ulong> statistic_total_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<AndroidJoystickHandler>(), "Total events");
+
         public BindableFloat DeadzoneThreshold { get; } = new BindableFloat(0.1f)
         {
             MinValue = 0,
@@ -223,6 +225,7 @@ namespace osu.Framework.Android.Input
         {
             PendingInputs.Enqueue(input);
             FrameStatistics.Increment(StatisticsCounterType.JoystickEvents);
+            statistic_total_events.Value++;
         }
     }
 }
