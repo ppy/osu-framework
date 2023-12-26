@@ -121,7 +121,7 @@ namespace osu.Framework.Audio.Track
             FastFourierTransform.FFT(true, (int)Math.Log2(fftSamples.Length), fftSamples);
 
             for (int i = 0; i < fftResult.Length; i++)
-                fftResult[i] = (float)Math.Sqrt(fftSamples[i].X * fftSamples[i].X + fftSamples[i].Y + fftSamples[i].Y);
+                fftResult[i] = fftSamples[i].ComputeMagnitude();
 
             currentAmplitudes = new ChannelAmplitudes(Math.Min(1f, leftAmplitude), Math.Min(1f, rightAmplitude), fftResult);
         }

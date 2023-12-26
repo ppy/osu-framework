@@ -185,7 +185,7 @@ namespace osu.Framework.Audio.Track
 
             float value = 0;
             for (int i = startBin; i < endBin; i++)
-                value += (float)Math.Sqrt(bins[i].X * bins[i].X + bins[i].Y * bins[i].Y);
+                value += bins[i].ComputeMagnitude();
             return value;
         }
 

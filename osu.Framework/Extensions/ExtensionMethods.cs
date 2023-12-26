@@ -13,6 +13,8 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using JetBrains.Annotations;
+using NAudio.Dsp;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
@@ -374,5 +376,12 @@ namespace osu.Framework.Extensions
                    || url.StartsWith("http://", StringComparison.Ordinal)
                    || url.StartsWith("mailto:", StringComparison.Ordinal);
         }
+
+        /// <summary>
+        /// Computes magnitude of a given <see cref="Complex"/>.
+        /// </summary>
+        /// <param name="complex">NAudio Complex number</param>
+        /// <returns>Magnitude (Absolute number) of a given complex.</returns>
+        public static float ComputeMagnitude(this Complex complex) => (float)Math.Sqrt(complex.X * complex.X + complex.Y * complex.Y);
     }
 }
