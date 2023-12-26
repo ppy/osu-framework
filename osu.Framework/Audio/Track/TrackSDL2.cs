@@ -50,7 +50,7 @@ namespace osu.Framework.Audio.Track
 
         private AudioDecoderManager.AudioDecoder? decodeData;
 
-        internal void AddToQueue(byte[] audio, int length, AudioDecoderManager.AudioDecoder data, bool done)
+        internal void ReceiveAudioData(byte[] audio, int length, AudioDecoderManager.AudioDecoder data, bool done)
         {
             if (IsDisposed)
                 return;

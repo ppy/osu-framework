@@ -221,7 +221,7 @@ namespace osu.Framework.Audio
         internal override Track.Track GetNewTrack(Stream data, string name)
         {
             TrackSDL2 track = new TrackSDL2(name, spec.freq, spec.channels, spec.samples);
-            EnqueueAction(() => decoder.StartDecodingAsync(AUDIO_FREQ, AUDIO_CHANNELS, AUDIO_FORMAT, data, track.AddToQueue));
+            EnqueueAction(() => decoder.StartDecodingAsync(AUDIO_FREQ, AUDIO_CHANNELS, AUDIO_FORMAT, data, track.ReceiveAudioData));
             return track;
         }
 
