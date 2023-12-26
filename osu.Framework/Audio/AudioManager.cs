@@ -108,6 +108,30 @@ namespace osu.Framework.Audio
             MaxValue = 1
         };
 
+        /// <summary>
+        /// Whether a global mixer is being used for audio routing.
+        /// For now, this is only the case on Windows when using shared mode WASAPI initialisation.
+        /// </summary>
+        public IBindable<bool> UsingGlobalMixer => usingGlobalMixer;
+
+        private readonly Bindable<bool> usingGlobalMixer = new BindableBool();
+
+        /// <summary>
+        /// If a global mixer is being used, this will be the BASS handle for it.
+        /// If non-null, all game mixers should be added to this mixer.
+        /// </summary>
+        /// <remarks>
+        /// When this is non-null, all mixers created via <see cref="CreateAudioMixer"/>
+        /// will themselves be added to the global mixer, which will handle playback itself.
+        ///
+        /// In this mode of operation, nested mixers will be created with the <see cref="BassFlags.Decode"/>
+        /// flag, meaning they no longer handle playback directly.
+        ///
+        /// An eventual goal would be to use a global mixer across all platforms as it can result
+        /// in more control and better playback performance.
+        /// </remarks>
+        internal readonly IBindable<int?> GlobalMixerHandle = new Bindable<int?>();
+
         public override bool IsLoaded => base.IsLoaded &&
                                          // bass default device is a null device (-1), not the actual system default.
                                          Bass.CurrentDevice != Bass.DefaultDevice;
@@ -146,7 +170,12 @@ namespace osu.Framework.Audio
 
             thread.RegisterManager(this);
 
-            AudioDevice.ValueChanged += onDeviceChanged;
+            AudioDevice.ValueChanged += _ => onDeviceChanged();
+            GlobalMixerHandle.ValueChanged += handle =>
+            {
+                onDeviceChanged();
+                usingGlobalMixer.Value = handle.NewValue.HasValue;
+            };
 
             AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
             AddItem(SampleMixer = createAudioMixer(null, nameof(SampleMixer)));
@@ -205,9 +234,9 @@ namespace osu.Framework.Audio
             base.Dispose(disposing);
         }
 
-        private void onDeviceChanged(ValueChangedEvent<string> args)
+        private void onDeviceChanged()
         {
-            scheduler.Add(() => setAudioDevice(args.NewValue));
+            scheduler.Add(() => setAudioDevice(AudioDevice.Value));
         }
 
         private void onDevicesChanged()
@@ -236,7 +265,7 @@ namespace osu.Framework.Audio
 
         private AudioMixer createAudioMixer(AudioMixer fallbackMixer, string identifier)
         {
-            var mixer = new BassAudioMixer(fallbackMixer, identifier);
+            var mixer = new BassAudioMixer(this, fallbackMixer, identifier);
             AddItem(mixer);
             return mixer;
         }
@@ -312,7 +341,7 @@ namespace osu.Framework.Audio
             if (setAudioDevice(Bass.NoSoundDevice))
                 return true;
 
-            //we're fucked. even "No sound" device won't initialise.
+            // we're boned. even "No sound" device won't initialise.
             return false;
         }
 
@@ -365,7 +394,7 @@ namespace osu.Framework.Audio
                 return true;
 
             // this likely doesn't help us but also doesn't seem to cause any issues or any cpu increase.
-            Bass.UpdatePeriod = 5;
+            Bass.UpdatePeriod = 1;
 
             // reduce latency to a known sane minimum.
             Bass.DeviceBufferLength = 10;
@@ -390,7 +419,10 @@ namespace osu.Framework.Audio
             // See https://www.un4seen.com/forum/?topic=19601 for more information.
             Bass.Configure((ManagedBass.Configuration)70, false);
 
-            return AudioThread.InitDevice(device);
+            if (!thread.InitDevice(device))
+                return false;
+
+            return true;
         }
 
         private void syncAudioDevices()
