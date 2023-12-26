@@ -169,7 +169,8 @@ namespace osu.Framework.Audio
 
             CancellationToken token = cancelSource.Token;
 
-            scheduler.Add(() =>
+            syncAudioDevices();
+            scheduler.AddDelayed(() =>
             {
                 // sync audioDevices every 1000ms
                 new Thread(() =>
@@ -189,7 +190,7 @@ namespace osu.Framework.Audio
                 {
                     IsBackground = true
                 }.Start();
-            });
+            }, 1000);
         }
 
         protected override void Dispose(bool disposing)
@@ -233,9 +234,9 @@ namespace osu.Framework.Audio
         public AudioMixer CreateAudioMixer(string identifier = default) =>
             createAudioMixer(SampleMixer, !string.IsNullOrEmpty(identifier) ? identifier : $"user #{Interlocked.Increment(ref userMixerID)}");
 
-        private AudioMixer createAudioMixer(AudioMixer globalMixer, string identifier)
+        private AudioMixer createAudioMixer(AudioMixer fallbackMixer, string identifier)
         {
-            var mixer = new BassAudioMixer(globalMixer, identifier);
+            var mixer = new BassAudioMixer(fallbackMixer, identifier);
             AddItem(mixer);
             return mixer;
         }
