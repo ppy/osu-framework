@@ -165,7 +165,7 @@ namespace osu.Framework.Audio.Track
             }
 
             // Not sure if I need to split this up to another class since this featrue is only exclusive to Track
-            if (amplitudeRequested && isRunning && Precision.DefinitelyBigger(currentTime, lastTime))
+            if (amplitudeRequested && isRunning && currentTime != lastTime)
             {
                 lastTime = currentTime;
 
