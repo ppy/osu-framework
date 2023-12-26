@@ -10,6 +10,8 @@ namespace osu.Framework.Input.Handlers.Keyboard
 {
     public class KeyboardHandler : InputHandler
     {
+        private static readonly GlobalStatistic<ulong> statistic_total_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<KeyboardHandler>(), "Total events");
+
         public override string Description => "Keyboard";
 
         public override bool IsActive => true;
@@ -43,6 +45,7 @@ namespace osu.Framework.Input.Handlers.Keyboard
         {
             PendingInputs.Enqueue(input);
             FrameStatistics.Increment(StatisticsCounterType.KeyEvents);
+            statistic_total_events.Value++;
         }
 
         private void handleKeyDown(TKKey key) => enqueueInput(new KeyboardKeyInput(key, true));
