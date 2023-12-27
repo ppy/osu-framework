@@ -21,6 +21,12 @@ namespace osu.Framework.Platform
     {
         private void setupWindowing(FrameworkConfigManager config)
         {
+            config.BindWith(FrameworkSetting.MinimiseOnFocusLossInFullscreen, minimiseOnFocusLoss);
+            minimiseOnFocusLoss.BindValueChanged(e =>
+            {
+                ScheduleCommand(() => SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, e.NewValue ? "1" : "0"));
+            }, true);
+
             fetchDisplays();
 
             DisplaysChanged += _ => CurrentDisplayBindable.Default = PrimaryDisplay;
@@ -429,6 +435,8 @@ namespace osu.Framework.Platform
         /// Bound to <see cref="FrameworkSetting.LastDisplayDevice"/>.
         /// </summary>
         private readonly Bindable<DisplayIndex> windowDisplayIndexBindable = new Bindable<DisplayIndex>();
+
+        private readonly BindableBool minimiseOnFocusLoss = new BindableBool();
 
         /// <summary>
         /// Updates <see cref="Size"/> and <see cref="Scale"/> according to SDL state.
