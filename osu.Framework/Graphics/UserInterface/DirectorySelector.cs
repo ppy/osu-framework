@@ -10,6 +10,7 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -202,6 +203,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual bool TryGetEntriesForPath(DirectoryInfo path, out ICollection<DirectorySelectorItem> items)
         {
             items = new List<DirectorySelectorItem>();
+            bool gotAllEntries = true;
 
             try
             {
@@ -217,10 +219,11 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         // Don't fail enumeration if we fail getting attributes for a single entry
                         Logger.Log($"Directory {directoryName} is inaccessible", LoggingTarget.Information, LogLevel.Debug);
+                        gotAllEntries = false;
                     }
                 }
 
-                return true;
+                return items.Count > 0 || gotAllEntries;
             }
             catch
             {
