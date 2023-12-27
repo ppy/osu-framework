@@ -570,7 +570,7 @@ namespace osu.Framework.Platform
                 case SDL.SDL_EventType.SDL_FINGERDOWN:
                 case SDL.SDL_EventType.SDL_FINGERUP:
                 case SDL.SDL_EventType.SDL_FINGERMOTION:
-                    handleTouchFingerEvent(e.tfinger);
+                    HandleTouchFingerEvent(e.tfinger);
                     break;
 
                 case SDL.SDL_EventType.SDL_DROPFILE:
