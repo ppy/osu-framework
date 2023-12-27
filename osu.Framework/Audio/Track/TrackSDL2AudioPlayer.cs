@@ -63,19 +63,6 @@ namespace osu.Framework.Audio.Track
             isLoaded = false;
         }
 
-        // To copy data with long offset with one method
-        private unsafe void copyData(float[] src, long srcOffset, float[] dst, long dstOffset, long length)
-        {
-            if (length <= 0)
-                return;
-
-            fixed (float* srcPtr = src)
-            fixed (float* dstPtr = dst)
-            {
-                Buffer.MemoryCopy(srcPtr + srcOffset, dstPtr + dstOffset, (dst.LongLength - dstOffset) * sizeof(float), length * sizeof(float));
-            }
-        }
-
         private void prepareArray(long wanted)
         {
             if (wanted <= AudioData?.LongLength)
@@ -96,10 +83,12 @@ namespace osu.Framework.Audio.Track
             }
 
             if (AudioData != null)
-                copyData(AudioData, 0, temp, 0, AudioDataLength);
+            {
+                Array.Copy(AudioData, 0, temp, 0, AudioDataLength);
 
-            if (dataRented && AudioData != null)
-                ArrayPool<float>.Shared.Return(AudioData);
+                if (dataRented)
+                    ArrayPool<float>.Shared.Return(AudioData);
+            }
 
             AudioData = temp;
             dataRented = rent;
@@ -129,7 +118,7 @@ namespace osu.Framework.Audio.Track
             if (AudioDataLength + floatLen > AudioData.LongLength)
                 prepareArray(AudioDataLength + floatLen);
 
-            unsafe // Most standard functions doesn't support long
+            unsafe // To directly put bytes as float in array
             {
                 fixed (float* dest = AudioData)
                 fixed (void* ptr = next)
@@ -206,7 +195,7 @@ namespace osu.Framework.Audio.Track
                 long remain = AudioDataLength - AudioDataPosition;
                 read = remain > needed ? needed : (int)remain;
 
-                copyData(AudioData, AudioDataPosition, data, offset, read);
+                Array.Copy(AudioData, AudioDataPosition, data, offset, read);
                 AudioDataPosition += read;
             }
 
@@ -227,7 +216,7 @@ namespace osu.Framework.Audio.Track
             long remain = AudioDataLength - AudioDataPosition;
             int read = remain > data.Length ? data.Length : (int)remain;
 
-            copyData(AudioData, AudioDataPosition, data, 0, read);
+            Array.Copy(AudioData, AudioDataPosition, data, 0, read);
             return true;
         }
 
