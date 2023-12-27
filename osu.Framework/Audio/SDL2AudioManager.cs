@@ -173,7 +173,7 @@ namespace osu.Framework.Audio
             if (deviceId > 0)
                 SDL.SDL_CloseAudioDevice(deviceId);
 
-            // Let audio driver adjust latency, this may set to a high value on Windows, but let's just be safe
+            // Let audio driver adjust latency, this may set to a high value on Windows (but usually around 10ms), but let's just be safe
             const uint flag = SDL.SDL_AUDIO_ALLOW_SAMPLES_CHANGE;
             deviceId = SDL.SDL_OpenAudioDevice(deviceName, 0, ref spec, out var outspec, (int)flag);
 
@@ -199,11 +199,9 @@ namespace osu.Framework.Audio
             Logger.Log($@"🔈 SDL Audio initialised
                             Driver:      {SDL.SDL_GetCurrentAudioDriver()}
                             Device Name: {currentDeviceName}
-                            Frequency:   {spec.freq} hz
-                            Channels:    {spec.channels}
-                            Format:      {(SDL.SDL_AUDIO_ISSIGNED(spec.format) ? "" : "un")}signed {SDL.SDL_AUDIO_BITSIZE(spec.format)} bits{(SDL.SDL_AUDIO_ISFLOAT(spec.format) ? " (float)" : "")}
-                            Samples:     {spec.samples} samples
-                            Buffer size: {spec.size} bytes");
+                            Format:      {spec.freq}hz {spec.channels}ch
+                            Resolution:  {(SDL.SDL_AUDIO_ISUNSIGNED(spec.format) ? "unsigned " : "")}{SDL.SDL_AUDIO_BITSIZE(spec.format)}bit{(SDL.SDL_AUDIO_ISFLOAT(spec.format) ? " float" : "")}
+                            Samples:     {spec.samples} samples");
 
             return true;
         }
