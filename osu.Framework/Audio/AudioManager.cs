@@ -394,7 +394,7 @@ namespace osu.Framework.Audio
                 return true;
 
             // this likely doesn't help us but also doesn't seem to cause any issues or any cpu increase.
-            Bass.UpdatePeriod = 1;
+            Bass.UpdatePeriod = 5;
 
             // reduce latency to a known sane minimum.
             Bass.DeviceBufferLength = 10;
