@@ -22,7 +22,7 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The thread audio operations (mainly Bass calls) are ran on.
         /// </summary>
-        private readonly AudioThread audioThread;
+        protected readonly AudioThread CurrentAudioThread;
 
         /// <summary>
         /// The manager component responsible for audio tracks (e.g. songs).
@@ -86,10 +86,17 @@ namespace osu.Framework.Audio
             MaxValue = 1
         };
 
+        /// <summary>
+        /// Whether a global mixer is being used for audio routing.
+        /// For now, this is only the case on Windows when using shared mode WASAPI initialisation.
+        /// Need to be moved from here as it's a BASS only thing but cannot happen due to possible code change from osu! (osu#26154)
+        /// </summary>
+        public readonly Bindable<bool> UsingGlobalMixer = new BindableBool();
+
         // Mutated by multiple threads, must be thread safe.
         protected ImmutableList<string> DeviceNames = ImmutableList<string>.Empty;
 
-        private Scheduler scheduler => audioThread.Scheduler;
+        private Scheduler scheduler => CurrentAudioThread.Scheduler;
 
         private Scheduler eventScheduler => EventScheduler ?? scheduler;
 
@@ -114,11 +121,11 @@ namespace osu.Framework.Audio
         /// <param name="sampleStore">The sample store containing all audio samples to be used in the future.</param>
         protected AudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
         {
-            this.audioThread = audioThread;
+            CurrentAudioThread = audioThread;
 
-            this.audioThread.RegisterManager(this);
+            CurrentAudioThread.RegisterManager(this);
 
-            AudioDevice.ValueChanged += onDeviceChanged;
+            AudioDevice.ValueChanged += _ => OnDeviceChanged();
 
             AddItem(TrackMixer = AudioCreateAudioMixer(null, nameof(TrackMixer)));
             AddItem(SampleMixer = AudioCreateAudioMixer(null, nameof(SampleMixer)));
@@ -173,7 +180,7 @@ namespace osu.Framework.Audio
         {
             cancelSource.Cancel();
 
-            audioThread.UnregisterManager(this);
+            CurrentAudioThread.UnregisterManager(this);
 
             OnNewDevice = null;
             OnLostDevice = null;
@@ -181,9 +188,9 @@ namespace osu.Framework.Audio
             base.Dispose(disposing);
         }
 
-        private void onDeviceChanged(ValueChangedEvent<string> args)
+        protected void OnDeviceChanged()
         {
-            scheduler.Add(() => SetAudioDevice(args.NewValue));
+            scheduler.Add(() => SetAudioDevice(AudioDevice.Value));
         }
 
         private void onDevicesChanged()

@@ -16,6 +16,7 @@ using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
+using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.TypeExtensions;
@@ -41,6 +42,22 @@ namespace osu.Framework.Audio
         /// </remarks>
         private const int bass_default_device = 1;
 
+        /// <summary>
+        /// If a global mixer is being used, this will be the BASS handle for it.
+        /// If non-null, all game mixers should be added to this mixer.
+        /// </summary>
+        /// <remarks>
+        /// When this is non-null, all mixers created via <see cref="AudioCreateAudioMixer"/>
+        /// will themselves be added to the global mixer, which will handle playback itself.
+        ///
+        /// In this mode of operation, nested mixers will be created with the <see cref="BassFlags.Decode"/>
+        /// flag, meaning they no longer handle playback directly.
+        ///
+        /// An eventual goal would be to use a global mixer across all platforms as it can result
+        /// in more control and better playback performance.
+        /// </remarks>
+        internal readonly IBindable<int?> GlobalMixerHandle = new Bindable<int?>();
+
         public override bool IsLoaded => base.IsLoaded &&
                                          // bass default device is a null device (-1), not the actual system default.
                                          Bass.CurrentDevice != Bass.DefaultDevice;
@@ -59,6 +76,11 @@ namespace osu.Framework.Audio
         public BassAudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
             : base(audioThread, trackStore, sampleStore)
         {
+            GlobalMixerHandle.ValueChanged += handle =>
+            {
+                OnDeviceChanged();
+                UsingGlobalMixer.Value = handle.NewValue.HasValue;
+            };
         }
 
         internal override Track.Track GetNewTrack(Stream data, string name) => new TrackBass(data, name);
@@ -75,7 +97,7 @@ namespace osu.Framework.Audio
 
         protected override AudioMixer AudioCreateAudioMixer(AudioMixer fallbackMixer, string identifier)
         {
-            var mixer = new BassAudioMixer(fallbackMixer, identifier);
+            var mixer = new BassAudioMixer(this, fallbackMixer, identifier);
             AddItem(mixer);
             return mixer;
         }
@@ -102,7 +124,7 @@ namespace osu.Framework.Audio
             if (SetAudioDevice(Bass.NoSoundDevice))
                 return true;
 
-            //we're fucked. even "No sound" device won't initialise.
+            // we're boned. even "No sound" device won't initialise.
             return false;
         }
 
@@ -180,7 +202,10 @@ namespace osu.Framework.Audio
             // See https://www.un4seen.com/forum/?topic=19601 for more information.
             Bass.Configure((ManagedBass.Configuration)70, false);
 
-            return AudioThread.InitDevice(device);
+            if (!CurrentAudioThread.InitDevice(device))
+                return false;
+
+            return true;
         }
 
         protected override bool IsDevicesUpdated(out ImmutableList<string> newDevices, out ImmutableList<string> lostDevices)
