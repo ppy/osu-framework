@@ -5,12 +5,16 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
+using osu.Framework.Platform;
 using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
     public abstract partial class DropdownSearchBar : VisibilityContainer
     {
+        [Resolved]
+        private GameHost? host { get; set; }
+
         private TextBox textBox = null!;
         private PassThroughInputManager textBoxInputManager = null!;
 
@@ -68,6 +72,19 @@ namespace osu.Framework.Graphics.UserInterface
 
         public void ObtainFocus()
         {
+            // On mobile platforms, let's not make the keyboard popup unless the dropdown is intentionally searchable.
+            // Unfortunately it is not enough to just early-return here,
+            // as even despite that the text box will receive focus via the text box input manager;
+            // it is necessary to cut off the text box input manager from parent input entirely.
+            // TODO: preferably figure out a better way to do this.
+            bool willShowOverlappingKeyboard = host?.OnScreenKeyboardOverlapsGameWindow == true;
+
+            if (willShowOverlappingKeyboard && !AlwaysDisplayOnFocus)
+            {
+                textBoxInputManager.UseParentInput = false;
+                return;
+            }
+
             textBoxInputManager.ChangeFocus(textBox);
             obtainedFocus = true;
 

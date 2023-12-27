@@ -20,6 +20,8 @@ namespace osu.Framework.Android.Input
     /// </summary>
     public class AndroidMouseHandler : AndroidInputHandler
     {
+        private static readonly GlobalStatistic<ulong> statistic_total_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<AndroidMouseHandler>(), "Total events");
+
         /// <summary>
         /// Whether relative mode should be preferred when the window has focus, the cursor is contained and the OS cursor is not visible.
         /// </summary>
@@ -308,6 +310,7 @@ namespace osu.Framework.Android.Input
         {
             PendingInputs.Enqueue(input);
             FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
+            statistic_total_events.Value++;
         }
     }
 }
