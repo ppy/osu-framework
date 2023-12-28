@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.ListExtensions;
@@ -50,6 +51,8 @@ namespace osu.Framework.Input
         /// The currently focused <see cref="Drawable"/>. Null if there is no current focus.
         /// </summary>
         public Drawable FocusedDrawable { get; internal set; }
+
+        private readonly List<Drawable> focusedDrawables = new List<Drawable>();
 
         protected abstract ImmutableArray<InputHandler> InputHandlers { get; }
 
@@ -405,29 +408,48 @@ namespace osu.Framework.Input
             if (potentialFocusTarget != null && (!isDrawableValidForFocus(potentialFocusTarget) || !potentialFocusTarget.AcceptsFocus))
                 return false;
 
-            var previousFocus = FocusedDrawable;
+            var previousTarget = FocusedDrawable;
+
+            var previousDrawables = focusedDrawables.ToArray();
+            var nextDrawables = getFocusDrawables(potentialFocusTarget).ToArray();
 
             FocusedDrawable = null;
+            focusedDrawables.Clear();
 
-            if (previousFocus != null)
+            foreach (var previous in previousDrawables)
             {
-                previousFocus.HasFocus = false;
-                previousFocus.TriggerEvent(new FocusLostEvent(state, potentialFocusTarget));
+                previous.HasFocus = false;
+                previous.TriggerEvent(new FocusLostEvent(state, nextDrawables));
 
                 if (FocusedDrawable != null) throw new InvalidOperationException($"Focus cannot be changed inside {nameof(OnFocusLost)}");
             }
 
             FocusedDrawable = potentialFocusTarget;
+            focusedDrawables.AddRange(nextDrawables);
 
-            Logger.Log($"Focus changed from {previousFocus?.ToString() ?? "nothing"} to {FocusedDrawable?.ToString() ?? "nothing"}.", LoggingTarget.Runtime, LogLevel.Debug);
+            Logger.Log($"Focus changed from {previousTarget?.ToString() ?? "nothing"} to {FocusedDrawable?.ToString() ?? "nothing"}.", LoggingTarget.Runtime, LogLevel.Debug);
 
-            if (FocusedDrawable != null)
+            foreach (var next in nextDrawables)
             {
-                FocusedDrawable.HasFocus = true;
-                FocusedDrawable.TriggerEvent(new FocusEvent(state, previousFocus));
+                next.HasFocus = true;
+                next.TriggerEvent(new FocusEvent(state, previousDrawables));
             }
 
             return true;
+        }
+
+        private IEnumerable<Drawable> getFocusDrawables(Drawable drawable)
+        {
+            if (drawable == null)
+                yield break;
+
+            yield return drawable;
+
+            foreach (var additional in drawable.AdditionalFocusTargets)
+            {
+                foreach (var t in getFocusDrawables(additional))
+                    yield return t;
+            }
         }
 
         internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
@@ -598,8 +620,20 @@ namespace osu.Framework.Input
 
             if (!unfocusIfNoLongerValid())
             {
-                inputQueue.Remove(FocusedDrawable);
-                inputQueue.Add(FocusedDrawable);
+                int count = inputQueue.Count;
+
+                for (int i = 0; i < count; i++)
+                {
+                    Drawable d = inputQueue[i];
+
+                    if (d.HasFocus)
+                    {
+                        inputQueue.Remove(d);
+                        inputQueue.Add(d);
+                        i--;
+                        count--;
+                    }
+                }
             }
 
             // queues were created in back-to-front order.

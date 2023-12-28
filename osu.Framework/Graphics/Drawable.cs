@@ -2373,6 +2373,12 @@ namespace osu.Framework.Graphics
         public virtual bool AcceptsFocus => false;
 
         /// <summary>
+        /// A list of <see cref="Drawable"/>s that will gain/lose focus according to this <see cref="Drawable"/>.
+        /// Such drawables do not require to inherit <see cref="AcceptsFocus"/>.
+        /// </summary>
+        protected internal virtual IEnumerable<Drawable> AdditionalFocusTargets => Enumerable.Empty<Drawable>();
+
+        /// <summary>
         /// Whether this Drawable is currently hovered over.
         /// </summary>
         /// <remarks>This is updated only if <see cref="HandlePositionalInput"/> is true.</remarks>
