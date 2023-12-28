@@ -5,6 +5,7 @@
 
 using osuTK.Graphics;
 using System;
+using System.Collections.Generic;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -32,6 +33,8 @@ namespace osu.Framework.Graphics.UserInterface
         protected internal DropdownSearchBar SearchBar { get; }
 
         public Bindable<string> SearchTerm => SearchBar.SearchTerm;
+
+        protected internal override IEnumerable<Drawable> AdditionalFocusTargets => new Drawable[] { SearchBar };
 
         private Color4 backgroundColour = Color4.DarkGray;
 
@@ -127,14 +130,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             updateState();
             base.OnHoverLost(e);
-        }
-
-        public void UpdateSearchBarFocus(MenuState state)
-        {
-            if (state == MenuState.Open)
-                SearchBar.ObtainFocus();
-            else
-                SearchBar.ReleaseFocus();
         }
 
         private void updateState()

@@ -33,6 +33,12 @@ namespace osu.Framework.Graphics.UserInterface
         protected internal DropdownHeader Header;
         protected internal DropdownMenu Menu;
 
+        public override bool AcceptsFocus => true;
+
+        public override bool RequestsFocus => Menu.State == MenuState.Open;
+
+        protected internal override IEnumerable<Drawable> AdditionalFocusTargets => new Drawable[] { Menu, Header };
+
         /// <summary>
         /// Whether this <see cref="Dropdown{T}"/> should always have a search bar displayed in the header when opened.
         /// </summary>
@@ -196,25 +202,6 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        /// <summary>
-        /// Puts the state of this <see cref="Dropdown{T}"/> one level back:
-        ///  - If the dropdown search bar contains text, this method will reset it.
-        ///  - If the dropdown is open, this method wil close it.
-        /// </summary>
-        public bool Back()
-        {
-            if (Header.SearchBar.Back())
-                return true;
-
-            if (Menu.State == MenuState.Open)
-            {
-                Menu.Close();
-                return true;
-            }
-
-            return false;
-        }
-
         private readonly BindableWithCurrent<T> current = new BindableWithCurrent<T>();
 
         public Bindable<T> Current
@@ -256,6 +243,8 @@ namespace osu.Framework.Graphics.UserInterface
                 AutoSizeAxes = Axes.Y
             };
 
+            Menu.ManageFocus = false;
+
             Header.ToggleMenu = Menu.Toggle;
             Header.ChangeSelection += selectionKeyPressed;
 
@@ -264,12 +253,7 @@ namespace osu.Framework.Graphics.UserInterface
             Menu.RelativeSizeAxes = Axes.X;
             Menu.PreselectionConfirmed += preselectionConfirmed;
             Menu.FilterCompleted += filterCompleted;
-
-            Menu.StateChanged += state =>
-            {
-                Menu.State = state;
-                Header.UpdateSearchBarFocus(state);
-            };
+            Menu.StateChanged += stateChanged;
 
             Current.ValueChanged += val => Scheduler.AddOnce(updateItemSelection, val.NewValue);
             Current.DisabledChanged += disabled =>
@@ -280,6 +264,27 @@ namespace osu.Framework.Graphics.UserInterface
             };
 
             ItemSource.CollectionChanged += collectionChanged;
+        }
+
+        private void stateChanged(MenuState state)
+        {
+            switch (state)
+            {
+                case MenuState.Open:
+                    ScheduleAfterChildren(() =>
+                    {
+                        if (Menu.State == MenuState.Open)
+                            GetContainingInputManager().ChangeFocus(this);
+                    });
+
+                    break;
+
+                case MenuState.Closed:
+                    if (HasFocus)
+                        GetContainingInputManager()?.ChangeFocus(null);
+
+                    break;
+            }
         }
 
         private void preselectionConfirmed(DropdownMenuItem<T> item)
@@ -346,8 +351,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (e.Key == Key.Escape)
-                return Back();
+            if (e.Key == Key.Escape && Menu.State == MenuState.Open)
+            {
+                Menu.Close();
+                return true;
+            }
 
             return false;
         }

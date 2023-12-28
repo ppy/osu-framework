@@ -1,30 +1,39 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Collections.Generic;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Input;
+using osu.Framework.Input.Events;
 using osu.Framework.Platform;
 using osuTK;
+using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
     public abstract partial class DropdownSearchBar : VisibilityContainer
     {
-        [Resolved]
-        private GameHost? host { get; set; }
+        public TextBox TextBox { get; private set; } = null!;
 
-        private TextBox textBox = null!;
-        private PassThroughInputManager textBoxInputManager = null!;
+        [Resolved]
+        private GameHost host { get; set; } = null!;
+
+        protected internal override IEnumerable<Drawable> AdditionalFocusTargets
+        {
+            get
+            {
+                // On mobile platforms, let's not make the keyboard popup unless the dropdown is intentionally searchable.
+                // todo: however, this causes such dropdowns to not be searchable at all when using hardware keyboard on mobile.
+                if (host.OnScreenKeyboardOverlapsGameWindow && !AlwaysDisplayOnFocus)
+                    return Array.Empty<Drawable>();
+
+                return new Drawable[] { TextBox };
+            }
+        }
 
         public Bindable<string> SearchTerm { get; } = new Bindable<string>();
-
-        // handling mouse input on dropdown header is not easy, since the menu would lose focus on release and automatically close
-        public override bool HandlePositionalInput => false;
-        public override bool PropagatePositionalInputSubTree => false;
-
-        private bool obtainedFocus;
 
         private bool alwaysDisplayOnFocus;
 
@@ -40,26 +49,23 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        // we want to handle input even if we are not visible
+        public override bool PropagateNonPositionalInputSubTree => true;
+        public override bool PropagatePositionalInputSubTree => true;
+
         [BackgroundDependencyLoader]
         private void load()
         {
             AlwaysPresent = true;
             RelativeSizeAxes = Axes.Both;
 
-            // Dropdown menus rely on their focus state to determine when they should be closed.
-            // On the other hand, text boxes require to be focused in order for the user to interact with them.
-            // To handle that matter, we'll wrap the search text box inside a local input manager, and manage its focus state accordingly.
-            InternalChild = textBoxInputManager = new PassThroughInputManager
+            InternalChild = TextBox = CreateTextBox().With(t =>
             {
-                RelativeSizeAxes = Axes.Both,
-                Child = textBox = CreateTextBox().With(t =>
-                {
-                    t.ReleaseFocusOnCommit = false;
-                    t.RelativeSizeAxes = Axes.Both;
-                    t.Size = new Vector2(1f);
-                    t.Current = SearchTerm;
-                })
-            };
+                t.ManageFocus = false;
+                t.RelativeSizeAxes = Axes.Both;
+                t.Size = new Vector2(1f);
+                t.Current = SearchTerm;
+            });
         }
 
         protected override void LoadComplete()
@@ -70,43 +76,22 @@ namespace osu.Framework.Graphics.UserInterface
             updateVisibility();
         }
 
-        public void ObtainFocus()
+        protected override void OnFocus(FocusEvent e)
         {
-            // On mobile platforms, let's not make the keyboard popup unless the dropdown is intentionally searchable.
-            // Unfortunately it is not enough to just early-return here,
-            // as even despite that the text box will receive focus via the text box input manager;
-            // it is necessary to cut off the text box input manager from parent input entirely.
-            // TODO: preferably figure out a better way to do this.
-            bool willShowOverlappingKeyboard = host?.OnScreenKeyboardOverlapsGameWindow == true;
-
-            if (willShowOverlappingKeyboard && !AlwaysDisplayOnFocus)
-            {
-                textBoxInputManager.UseParentInput = false;
-                return;
-            }
-
-            textBoxInputManager.ChangeFocus(textBox);
-            obtainedFocus = true;
-
+            base.OnFocus(e);
             updateVisibility();
         }
 
-        public void ReleaseFocus()
+        protected override void OnFocusLost(FocusLostEvent e)
         {
-            textBoxInputManager.ChangeFocus(null);
+            base.OnFocusLost(e);
             SearchTerm.Value = string.Empty;
-            obtainedFocus = false;
-
             updateVisibility();
         }
 
-        public bool Back()
+        protected override bool OnKeyDown(KeyDownEvent e)
         {
-            // text box may have lost focus from pressing escape, retain it.
-            if (obtainedFocus && !textBox.HasFocus)
-                ObtainFocus();
-
-            if (!string.IsNullOrEmpty(SearchTerm.Value))
+            if (e.Key == Key.Escape && !string.IsNullOrEmpty(SearchTerm.Value))
             {
                 SearchTerm.Value = string.Empty;
                 return true;
@@ -115,7 +100,7 @@ namespace osu.Framework.Graphics.UserInterface
             return false;
         }
 
-        private void updateVisibility() => State.Value = obtainedFocus && (AlwaysDisplayOnFocus || !string.IsNullOrEmpty(SearchTerm.Value))
+        private void updateVisibility() => State.Value = HasFocus && (AlwaysDisplayOnFocus || !string.IsNullOrEmpty(SearchTerm.Value))
             ? Visibility.Visible
             : Visibility.Hidden;
 
