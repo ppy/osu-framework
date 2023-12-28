@@ -208,15 +208,20 @@ namespace osu.Framework.Audio.Track
             return read;
         }
 
+        /// <summary>
+        /// Puts recently played audio samples into data. Mostly used to calculate amplitude of a track.
+        /// </summary>
+        /// <param name="data">A float array to put data in</param>
+        /// <returns>True if succeeded</returns>
         public bool Peek(float[] data)
         {
             if (AudioData == null)
                 return false;
 
-            long remain = AudioDataLength - AudioDataPosition;
-            int read = remain > data.Length ? data.Length : (int)remain;
+            long start = Math.Max(0, AudioDataPosition - data.Length); // To get most recently 'used' audio data
+            long remain = AudioDataLength - start;
 
-            Array.Copy(AudioData, AudioDataPosition, data, 0, read);
+            Array.Copy(AudioData, start, data, 0, Math.Min(data.Length, remain));
             return true;
         }
 
