@@ -72,6 +72,7 @@ namespace osu.Framework.Audio.Sample
             Length = Bass.ChannelBytes2Seconds(SampleId, dataLength) * 1000;
             memoryLease = NativeMemoryTracker.AddMemory(this, dataLength);
         }
+
         internal override void UpdateDevice(int deviceIndex)
         {
             // The sample may not have already loaded if a device wasn't present in a previous load attempt.
