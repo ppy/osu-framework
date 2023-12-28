@@ -72,25 +72,19 @@ namespace osu.Framework.Audio.Sample
             Length = Bass.ChannelBytes2Seconds(SampleId, dataLength) * 1000;
             memoryLease = NativeMemoryTracker.AddMemory(this, dataLength);
         }
+        internal override void UpdateDevice(int deviceIndex)
+        {
+            // The sample may not have already loaded if a device wasn't present in a previous load attempt.
+            if (!IsLoaded)
+                LoadSample();
+        }
 
         public override Sample CreateSample() => new SampleBass(this, mixer) { OnPlay = SampleFactoryOnPlay };
 
-        private protected override void FreeSample() => Bass.SampleFree(SampleId);
-
-        ~SampleBassFactory()
+        private protected override void FreeSample()
         {
-            Dispose(false);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (IsDisposed)
-                return;
-
-            if (IsLoaded)
-                memoryLease?.Dispose();
-
-            base.Dispose(disposing);
+            Bass.SampleFree(SampleId);
+            memoryLease?.Dispose();
         }
     }
 }

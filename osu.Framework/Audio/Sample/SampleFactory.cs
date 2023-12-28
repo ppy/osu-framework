@@ -34,13 +34,6 @@ namespace osu.Framework.Audio.Sample
 
         private protected abstract void UpdatePlaybackConcurrency(ValueChangedEvent<int> concurrency);
 
-        internal override void UpdateDevice(int deviceIndex)
-        {
-            // The sample may not have already loaded if a device wasn't present in a previous load attempt.
-            if (!IsLoaded)
-                LoadSample();
-        }
-
         private protected abstract void LoadSample();
 
         public abstract Sample CreateSample();
