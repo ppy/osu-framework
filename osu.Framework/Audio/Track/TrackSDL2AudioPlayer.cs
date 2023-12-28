@@ -193,7 +193,7 @@ namespace osu.Framework.Audio.Track
             else
             {
                 long remain = AudioDataLength - AudioDataPosition;
-                read = remain > needed ? needed : (int)remain;
+                read = (int)Math.Min(needed, remain);
 
                 Array.Copy(AudioData, AudioDataPosition, data, offset, read);
                 AudioDataPosition += read;

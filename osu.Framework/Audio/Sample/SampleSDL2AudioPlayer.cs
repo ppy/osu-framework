@@ -34,10 +34,7 @@ namespace osu.Framework.Audio.Sample
 
             for (; i < needed;)
             {
-                int remaining = needed - i;
-                int put = audioData.Length - position;
-                if (remaining < put)
-                    put = remaining;
+                int put = Math.Min(needed - i, audioData.Length - position);
 
                 if (put > 0)
                     Array.Copy(audioData, position, data, offset + i, put);
