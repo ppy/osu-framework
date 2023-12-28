@@ -113,6 +113,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public bool CommitOnFocusLost { get; set; }
 
+        /// <summary>
+        /// Whether this <see cref="TextBox"/> should manage focus state. If <c>false</c>, focus is assumed to be managed by a parent UI component (e.g. <see cref="Dropdown{T}"/>).
+        /// </summary>
+        internal bool ManageFocus { get; set; } = true;
+
         public override bool CanBeTabbedTo => !ReadOnly;
 
         [Resolved]
@@ -1080,11 +1085,16 @@ namespace osu.Framework.Graphics.UserInterface
             switch (e.Key)
             {
                 case Key.Escape:
-                    // if keypress is repeating, the IME was probably closed with the first, non-repeating keypress
-                    // so don't kill focus unless the user has explicitly released and pressed the key again.
-                    if (!e.Repeat)
-                        KillFocus();
-                    return true;
+                    if (ManageFocus)
+                    {
+                        // if keypress is repeating, the IME was probably closed with the first, non-repeating keypress
+                        // so don't kill focus unless the user has explicitly released and pressed the key again.
+                        if (!e.Repeat)
+                            KillFocus();
+                        return true;
+                    }
+
+                    return false;
 
                 case Key.KeypadEnter:
                 case Key.Enter:
@@ -1122,7 +1132,8 @@ namespace osu.Framework.Graphics.UserInterface
         private void killFocus()
         {
             var manager = GetContainingInputManager();
-            if (manager?.FocusedDrawable == this)
+
+            if (HasFocus)
                 manager.ChangeFocus(null);
         }
 
@@ -1291,14 +1302,14 @@ namespace osu.Framework.Graphics.UserInterface
                 Commit();
         }
 
-        public override bool AcceptsFocus => true;
+        public override bool AcceptsFocus => ManageFocus;
 
         protected override bool OnClick(ClickEvent e)
         {
             if (!ReadOnly && textInputBound)
                 textInput.EnsureActivated(AllowIme);
 
-            return !ReadOnly;
+            return ManageFocus && !ReadOnly;
         }
 
         protected override void OnFocus(FocusEvent e)

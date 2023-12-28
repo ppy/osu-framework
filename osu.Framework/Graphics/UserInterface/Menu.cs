@@ -75,6 +75,11 @@ namespace osu.Framework.Graphics.UserInterface
         private readonly LayoutValue positionLayout = new LayoutValue(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit);
 
         /// <summary>
+        /// Whether this <see cref="Menu"/> should manage focus state. If <c>false</c>, focus is assumed to be managed by a parent UI component (e.g. <see cref="Dropdown{T}"/>).
+        /// </summary>
+        internal bool ManageFocus { get; set; } = true;
+
+        /// <summary>
         /// Constructs a menu.
         /// </summary>
         /// <param name="direction">The direction of layout for this menu.</param>
@@ -246,7 +251,7 @@ namespace osu.Framework.Graphics.UserInterface
                 case MenuState.Closed:
                     AnimateClose();
 
-                    if (HasFocus)
+                    if (ManageFocus && HasFocus)
                         GetContainingInputManager()?.ChangeFocus(parentMenu);
                     break;
 
@@ -256,7 +261,7 @@ namespace osu.Framework.Graphics.UserInterface
                     AnimateOpen();
 
                     // We may not be present at this point, so must run on the next frame.
-                    if (!TopLevelMenu)
+                    if (!TopLevelMenu && ManageFocus)
                     {
                         Schedule(delegate
                         {
@@ -568,7 +573,10 @@ namespace osu.Framework.Graphics.UserInterface
             if (item.Item.Items.Count > 0)
             {
                 if (submenu.State == MenuState.Open)
-                    Schedule(delegate { GetContainingInputManager().ChangeFocus(submenu); });
+                {
+                    if (ManageFocus)
+                        Schedule(delegate { GetContainingInputManager().ChangeFocus(submenu); });
+                }
                 else
                     submenu.Open();
             }
@@ -629,9 +637,9 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnClick(ClickEvent e) => true;
         protected override bool OnHover(HoverEvent e) => true;
 
-        public override bool AcceptsFocus => !TopLevelMenu;
+        public override bool AcceptsFocus => !TopLevelMenu && ManageFocus;
 
-        public override bool RequestsFocus => !TopLevelMenu && State == MenuState.Open;
+        public override bool RequestsFocus => !TopLevelMenu && ManageFocus && State == MenuState.Open;
 
         protected override void OnFocusLost(FocusLostEvent e)
         {
