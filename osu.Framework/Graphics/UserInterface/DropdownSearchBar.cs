@@ -49,7 +49,8 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        // we want to handle input even if we are not visible
+        // Base implementation of these properties in VisibilityContainer include the condition of State == Visible.
+        // However, we want to keep propagating input in order for the textbox to receive key/platform action events.
         public override bool PropagateNonPositionalInputSubTree => true;
         public override bool PropagatePositionalInputSubTree => true;
 
