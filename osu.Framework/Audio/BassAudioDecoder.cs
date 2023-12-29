@@ -108,22 +108,9 @@ namespace osu.Framework.Audio
                             if (!BassMix.MixerAddChannel(resampler, decodeStream, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin))
                                 throw new FormatException($"Failed to add a channel to BASS Mixer: {Bass.LastError}");
 
-                            ushort srcBits = 32; // float by default
-
-                            switch (info.Resolution)
-                            {
-                                case Resolution.Byte:
-                                    srcBits = 8;
-                                    break;
-
-                                case Resolution.Short:
-                                    srcBits = 16;
-                                    break;
-                            }
-
                             ByteLength = (long)Math.Ceiling((decimal)ByteLength / info.Frequency * Rate);
-                            ByteLength /= info.Channels * (srcBits / 8);
-                            ByteLength *= Channels * (SDL.SDL_AUDIO_BITSIZE(Format) / 8);
+                            ByteLength /= info.Channels;
+                            ByteLength *= Channels;
                         }
                     }
                     else
