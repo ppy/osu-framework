@@ -68,13 +68,6 @@ namespace osu.Framework.Audio.Sample
 
         public override Sample CreateSample() => new SampleSDL2(this, mixer) { OnPlay = SampleFactoryOnPlay };
 
-        private protected override void FreeSample()
-        {
-            // All players created by this factory have reference to this array.
-            // It removes its own reference to the array, but GC will clear it once all SampleAudioPlayers for this sample are gone.
-            decodedAudio = Array.Empty<float>();
-        }
-
         private protected override void UpdatePlaybackConcurrency(ValueChangedEvent<int> concurrency)
         {
         }
@@ -91,6 +84,8 @@ namespace osu.Framework.Audio.Sample
 
             stream?.Dispose();
             stream = null;
+
+            decodedAudio = Array.Empty<float>();
 
             base.Dispose(disposing);
         }

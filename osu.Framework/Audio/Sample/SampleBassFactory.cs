@@ -82,8 +82,16 @@ namespace osu.Framework.Audio.Sample
 
         public override Sample CreateSample() => new SampleBass(this, mixer) { OnPlay = SampleFactoryOnPlay };
 
-        private protected override void FreeSample()
+        ~SampleBassFactory()
         {
+            Dispose(false);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (IsDisposed)
+                return;
+
             Bass.SampleFree(SampleId);
             memoryLease?.Dispose();
         }

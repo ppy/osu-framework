@@ -45,27 +45,9 @@ namespace osu.Framework.Audio.Sample
 
         public abstract Sample CreateSample();
 
-        private protected abstract void FreeSample();
-
         protected void SampleFactoryOnPlay(Sample sample)
         {
             AddItem(sample);
-        }
-
-        ~SampleFactory()
-        {
-            Dispose(false);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (IsDisposed)
-                return;
-
-            if (IsLoaded)
-                FreeSample();
-
-            base.Dispose(disposing);
         }
     }
 }
