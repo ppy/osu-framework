@@ -40,7 +40,17 @@ namespace osu.Framework.Graphics.UserInterface
         protected internal override IEnumerable<Drawable> AdditionalFocusTargets => new Drawable[] { Menu, Header };
 
         /// <summary>
+        /// Whether this <see cref="Dropdown{T}"/> is searchable and a search bar should be present.
+        /// </summary>
+        public bool Searchable
+        {
+            get => Header.Searchable;
+            set => Header.Searchable = value;
+        }
+
+        /// <summary>
         /// Whether this <see cref="Dropdown{T}"/> should always have a search bar displayed in the header when opened.
+        /// Requires <see cref="Searchable"/> to be true.
         /// </summary>
         public bool AlwaysShowSearchBar
         {
