@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using osu.Framework.Audio.Mixing.SDL2;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using SDL2;
 
 namespace osu.Framework.Audio.Sample
@@ -58,7 +59,12 @@ namespace osu.Framework.Audio.Sample
             }
         }
 
-        public SampleSDL2AudioPlayer CreatePlayer() => new SampleSDL2AudioPlayer(decodedAudio, spec.freq, spec.channels);
+        public SampleSDL2AudioPlayer CreatePlayer()
+        {
+            LoadSampleTask?.WaitSafely();
+
+            return new SampleSDL2AudioPlayer(decodedAudio, spec.freq, spec.channels);
+        }
 
         public override Sample CreateSample() => new SampleSDL2(this, mixer) { OnPlay = SampleFactoryOnPlay };
 

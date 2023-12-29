@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Threading.Tasks;
 using osu.Framework.Bindables;
 
 namespace osu.Framework.Audio.Sample
@@ -22,12 +23,18 @@ namespace osu.Framework.Audio.Sample
         /// </summary>
         internal readonly Bindable<int> PlaybackConcurrency = new Bindable<int>(Sample.DEFAULT_CONCURRENCY);
 
+        protected Task? LoadSampleTask;
+
         protected SampleFactory(string name, int playbackConcurrency)
         {
             Name = name;
             PlaybackConcurrency.Value = playbackConcurrency;
 
-            EnqueueAction(LoadSample);
+            LoadSampleTask = EnqueueAction(() =>
+            {
+                LoadSample();
+                LoadSampleTask = null;
+            });
 
             PlaybackConcurrency.BindValueChanged(UpdatePlaybackConcurrency);
         }
