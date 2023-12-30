@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using osu.Framework.Audio.Callbacks;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.SDL2;
 using osu.Framework.Audio.Sample;
@@ -34,6 +35,8 @@ namespace osu.Framework.Audio
 
         private readonly List<SDL2AudioMixer> sdlMixerList = new List<SDL2AudioMixer>();
 
+        private readonly SDL2AudioCallback audioCallback;
+
         /// <summary>
         /// Creates a new <see cref="SDL2AudioManager"/>.
         /// </summary>
@@ -43,13 +46,16 @@ namespace osu.Framework.Audio
         public SDL2AudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
             : base(audioThread, trackStore, sampleStore)
         {
+            audioCallback = new SDL2AudioCallback((_, stream, size) => internalAudioCallback(stream, size));
+
             // Must not edit this except for samples, as components (especially mixer) expects this to match.
             spec = new SDL.SDL_AudioSpec
             {
                 freq = AUDIO_FREQ,
                 channels = AUDIO_CHANNELS,
                 format = AUDIO_FORMAT,
-                callback = audioCallback,
+                callback = audioCallback.Callback,
+                userdata = audioCallback.Handle,
                 samples = 256 // determines latency, this value can be changed but is already reasonably low
             };
 
@@ -117,7 +123,7 @@ namespace osu.Framework.Audio
             }
         }
 
-        private void audioCallback(IntPtr userdata, IntPtr stream, int bufsize)
+        private void internalAudioCallback(IntPtr stream, int bufsize)
         {
             try
             {
@@ -237,6 +243,8 @@ namespace osu.Framework.Audio
                 SDL.SDL_CloseAudioDevice(deviceId);
                 deviceId = 0;
             }
+
+            audioCallback?.Dispose();
         }
     }
 }
