@@ -148,26 +148,30 @@ namespace osu.Framework.Audio
             return decoder;
         }
 
-        public static byte[] DecodeAudio(int freq, int channels, ushort format, Stream stream)
+        public static byte[] DecodeAudio(int freq, int channels, ushort format, Stream stream, out int size)
         {
             AudioDecoder decoder = CreateDecoder(freq, channels, false, format, stream);
 
-            decoder.LoadFromStream(out byte[] decoded);
+            int read = decoder.LoadFromStream(out byte[] decoded);
 
             if (!decoder.Loading)
+            {
+                size = read;
                 return decoded;
+            }
 
             // fallback if it couldn't decode at once
             using (MemoryStream memoryStream = new MemoryStream())
             {
-                memoryStream.Write(decoded);
+                memoryStream.Write(decoded, 0, read);
 
                 while (decoder.Loading)
                 {
-                    int read = decoder.LoadFromStream(out decoded);
+                    read = decoder.LoadFromStream(out decoded);
                     memoryStream.Write(decoded, 0, read);
                 }
 
+                size = (int)memoryStream.Length;
                 return memoryStream.ToArray();
             }
         }

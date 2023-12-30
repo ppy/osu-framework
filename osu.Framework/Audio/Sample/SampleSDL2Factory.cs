@@ -41,15 +41,15 @@ namespace osu.Framework.Audio.Sample
 
             try
             {
-                byte[] audio = AudioDecoderManager.DecodeAudio(spec.freq, spec.channels, spec.format, stream);
+                byte[] audio = AudioDecoderManager.DecodeAudio(spec.freq, spec.channels, spec.format, stream, out int size);
 
-                if (audio.Length > 0)
+                if (size > 0)
                 {
-                    decodedAudio = new float[audio.Length / 4];
-                    Buffer.BlockCopy(audio, 0, decodedAudio, 0, audio.Length);
+                    decodedAudio = new float[size / 4];
+                    Buffer.BlockCopy(audio, 0, decodedAudio, 0, size);
                 }
 
-                Length = audio.Length / 4d / spec.freq / spec.channels * 1000d;
+                Length = size / 4d / spec.freq / spec.channels * 1000d;
                 isLoaded = true;
             }
             finally

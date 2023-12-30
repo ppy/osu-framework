@@ -17,7 +17,9 @@ namespace osu.Framework.Audio
     internal class BassAudioDecoder : AudioDecoder
     {
         private int decodeStream;
-        private FileCallbacks? callbacks;
+        private FileCallbacks? fileCallbacks;
+
+        private SyncCallback? syncCallback;
 
         private int resampler;
 
@@ -42,6 +44,8 @@ namespace osu.Framework.Audio
             }
         }
 
+        private ushort bits => SDL.SDL_AUDIO_BITSIZE(Format);
+
         public BassAudioDecoder(int rate, int channels, bool isTrack, ushort format, Stream stream, bool autoDisposeStream, PassDataDelegate? pass)
             : base(rate, channels, isTrack, format, stream, autoDisposeStream, pass)
         {
@@ -61,7 +65,11 @@ namespace osu.Framework.Audio
                 decodeStream = 0;
             }
 
-            callbacks?.Dispose();
+            fileCallbacks?.Dispose();
+            syncCallback?.Dispose();
+
+            fileCallbacks = null;
+            syncCallback = null;
 
             decodeData = null;
 
@@ -79,51 +87,39 @@ namespace osu.Framework.Audio
             {
                 if (!Loading)
                 {
-                    callbacks = new FileCallbacks(new DataStreamFileProcedures(Stream));
+                    fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(Stream));
+                    syncCallback = new SyncCallback((_, _, _, _) =>
+                    {
+                        Loading = false;
+                    });
+
                     BassFlags bassFlags = BassFlags.Decode | resolution.ToBassFlag();
                     if (IsTrack) bassFlags |= BassFlags.Prescan;
 
-                    decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, bassFlags, callbacks.Callbacks);
+                    decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, bassFlags, fileCallbacks.Callbacks);
 
                     if (decodeStream == 0)
                         throw new FormatException($"Couldn't create stream: {Bass.LastError}");
 
-                    bool infoAvail = Bass.ChannelGetInfo(decodeStream, out var info);
-
-                    if (infoAvail)
+                    if (Bass.ChannelGetInfo(decodeStream, out var info))
                     {
                         ByteLength = Bass.ChannelGetLength(decodeStream);
-                        Length = Bass.ChannelBytes2Seconds(decodeStream, ByteLength) * 1000;
+                        Length = Bass.ChannelBytes2Seconds(decodeStream, ByteLength) * 1000.0d;
                         Bitrate = (int)Math.Round(Bass.ChannelGetAttribute(decodeStream, ChannelAttribute.Bitrate));
 
-                        if (info.Channels != Channels || info.Resolution != resolution || info.Frequency != Rate)
+                        if (info.Channels != Channels || info.Frequency != Rate)
                         {
                             resampler = BassMix.CreateMixerStream(Rate, Channels, BassFlags.MixerEnd | BassFlags.Decode | resolution.ToBassFlag());
 
                             if (resampler == 0)
                                 throw new FormatException($"Failed to create BASS Mixer: {Bass.LastError}");
 
-                            Bass.ChannelSetAttribute(resampler, ChannelAttribute.Buffer, 0);
-
-                            if (!BassMix.MixerAddChannel(resampler, decodeStream, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin))
+                            if (!BassMix.MixerAddChannel(resampler, decodeStream, BassFlags.MixerChanNoRampin | BassFlags.MixerChanLimit))
                                 throw new FormatException($"Failed to add a channel to BASS Mixer: {Bass.LastError}");
 
-                            ushort srcBits = 32; // float by default
-
-                            switch (info.Resolution)
-                            {
-                                case Resolution.Byte:
-                                    srcBits = 8;
-                                    break;
-
-                                case Resolution.Short:
-                                    srcBits = 16;
-                                    break;
-                            }
-
+                            ByteLength /= info.Channels * (bits / 8);
                             ByteLength = (long)Math.Ceiling((decimal)ByteLength / info.Frequency * Rate);
-                            ByteLength /= info.Channels * (srcBits / 8);
-                            ByteLength *= Channels * (SDL.SDL_AUDIO_BITSIZE(Format) / 8);
+                            ByteLength *= Channels * (bits / 8);
                         }
                     }
                     else
@@ -132,12 +128,14 @@ namespace osu.Framework.Audio
                             throw new FormatException($"Couldn't get channel info: {Bass.LastError}");
                     }
 
+                    Bass.ChannelSetSync(resampler == 0 ? decodeStream : resampler, SyncFlags.End | SyncFlags.Onetime, 0, syncCallback.Callback, syncCallback.Handle);
+
                     Loading = true;
                 }
 
                 int handle = resampler == 0 ? decodeStream : resampler;
 
-                int bufferLen = (int)(IsTrack ? Bass.ChannelSeconds2Bytes(handle, 1) : ByteLength);
+                int bufferLen = (int)Bass.ChannelSeconds2Bytes(handle, 1);
 
                 if (bufferLen <= 0)
                     bufferLen = 44100 * 2 * 4 * 1;
