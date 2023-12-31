@@ -1120,5 +1120,42 @@ namespace osu.Framework.Platform.SDL2
             SDL.SDL_ClearError();
             return error;
         }
+
+        private static bool tryGetTouchDeviceIndex(long touchId, out int index)
+        {
+            int n = SDL.SDL_GetNumTouchDevices();
+
+            for (int i = 0; i < n; i++)
+            {
+                long currentTouchId = SDL.SDL_GetTouchDevice(i);
+
+                if (touchId == currentTouchId)
+                {
+                    index = i;
+                    return true;
+                }
+            }
+
+            index = -1;
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the <paramref name="name"/> of the touch device for this <see cref="SDL.SDL_TouchFingerEvent"/>.
+        /// </summary>
+        /// <remarks>
+        /// On Windows, this will return <c>"touch"</c> for touchscreen events or <c>"pen"</c> for pen/tablet events.
+        /// </remarks>
+        public static bool TryGetTouchName(this SDL.SDL_TouchFingerEvent e, out string name)
+        {
+            if (tryGetTouchDeviceIndex(e.touchId, out int index))
+            {
+                name = SDL.SDL_GetTouchName(index);
+                return name != null;
+            }
+
+            name = null;
+            return false;
+        }
     }
 }

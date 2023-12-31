@@ -11,6 +11,8 @@ namespace osu.Framework.Input.Handlers.Joystick
 {
     public class JoystickHandler : InputHandler
     {
+        private static readonly GlobalStatistic<ulong> statistic_total_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<JoystickHandler>(), "Total events");
+
         public BindableFloat DeadzoneThreshold { get; } = new BindableFloat(0.1f)
         {
             MinValue = 0,
@@ -53,6 +55,7 @@ namespace osu.Framework.Input.Handlers.Joystick
         {
             PendingInputs.Enqueue(evt);
             FrameStatistics.Increment(StatisticsCounterType.JoystickEvents);
+            statistic_total_events.Value++;
         }
 
         private void enqueueJoystickButtonDown(JoystickButton button) => enqueueJoystickEvent(new JoystickButtonInput(button, true));

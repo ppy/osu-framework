@@ -21,6 +21,8 @@ namespace osu.Framework.Input.Handlers.Midi
 {
     public class MidiHandler : InputHandler
     {
+        private static readonly GlobalStatistic<ulong> statistic_total_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<MidiHandler>(), "Total events");
+
         public override string Description => "MIDI";
         public override bool IsActive => inGoodState;
 
@@ -251,12 +253,14 @@ namespace osu.Framework.Input.Handlers.Midi
             {
                 PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, velocity, true));
                 FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
+                statistic_total_events.Value++;
             }
 
             void noteOff()
             {
                 PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, 0, false));
                 FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
+                statistic_total_events.Value++;
             }
         }
     }
