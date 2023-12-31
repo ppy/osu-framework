@@ -122,7 +122,7 @@ namespace osu.Framework.Tests.IO
 
                 foreach (var value in values)
                 {
-                    Assert.That(entry.Message, Contains.Substring($"{value.Key}:{value.Value}"));
+                    Assert.That(entry.Message, Contains.Substring($"{value.Key}:\"{value.Value}\""));
                 }
             }
 

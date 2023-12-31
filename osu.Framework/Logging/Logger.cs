@@ -360,7 +360,7 @@ namespace osu.Framework.Logging
 
             if (values != null)
             {
-                message = $"{message}, {string.Join(" ", values.Select(kvp => $"{kvp.Key}:{kvp.Value}"))}";
+                message = $"{message}, {string.Join(" ", values.Select(kvp => $"{kvp.Key}:\"{kvp.Value}\""))}";
             }
 
             string logOutput = message;
