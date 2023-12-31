@@ -7,7 +7,7 @@ using osu.Framework.Bindables;
 namespace osu.Framework.Audio.Sample
 {
     /// <summary>
-    /// A factory for <see cref="SampleBass"/> objects sharing a common sample ID (and thus playback concurrency).
+    /// A factory for <see cref="Sample"/> objects sharing a common sample ID (and thus playback concurrency).
     /// </summary>
     internal abstract class SampleFactory : AudioCollectionManager<AdjustableAudioComponent>
     {
