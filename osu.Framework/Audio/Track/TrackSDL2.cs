@@ -97,8 +97,7 @@ namespace osu.Framework.Audio.Track
             fftSamples ??= new Complex[ChannelAmplitudes.AMPLITUDES_SIZE * 2];
             fftResult ??= new float[ChannelAmplitudes.AMPLITUDES_SIZE];
 
-            lock (syncRoot)
-                player.Peek(samples);
+            player.Peek(samples, lastTime);
 
             float leftAmplitude = 0;
             float rightAmplitude = 0;
@@ -185,6 +184,8 @@ namespace osu.Framework.Audio.Track
 
         private void seekInternal(double seek)
         {
+            double time;
+
             lock (syncRoot)
             {
                 player.Seek(seek);
@@ -195,8 +196,10 @@ namespace osu.Framework.Audio.Track
                     hasCompleted = false;
                 }
 
-                Interlocked.Exchange(ref currentTime, player.GetCurrentTime());
+                time = player.GetCurrentTime();
             }
+
+            Interlocked.Exchange(ref currentTime, time);
         }
 
         public override void Start()
@@ -228,12 +231,15 @@ namespace osu.Framework.Audio.Track
             if (!IsLoaded) return 0;
 
             int ret;
+            double time;
 
             lock (syncRoot)
             {
+                time = player.GetCurrentTime();
                 ret = player.GetRemainingSamples(data);
-                Interlocked.Exchange(ref currentTime, player.GetCurrentTime());
             }
+
+            Interlocked.Exchange(ref currentTime, time);
 
             if (ret < 0)
             {
