@@ -204,6 +204,12 @@ namespace osu.Framework.Input.Bindings
 
         private bool handleNewPressed(InputState state, InputKey newKey, Vector2? scrollDelta = null, bool isPrecise = false)
         {
+            if (!IsLoaded)
+                // If a KeyBindingContainer resides inside of a PassThroughInputManager,
+                // then the first input sync will propagate events while KeyBindingContainer is not fully loaded yet (in a ready state).
+                // since it's not loaded yet, KeyBindings will also be null because ReloadMappings isn't called, therefore ignore input in this stage.
+                return false;
+
             pressedInputKeys.Add(newKey);
 
             float scrollAmount = getScrollAmount(newKey, scrollDelta);
