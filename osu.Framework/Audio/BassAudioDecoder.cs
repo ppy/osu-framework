@@ -55,7 +55,10 @@ namespace osu.Framework.Audio
         internal override void Free()
         {
             if (syncHandle != 0)
+            {
                 Bass.ChannelRemoveSync(resampler == 0 ? decodeStream : resampler, syncHandle);
+                syncHandle = 0;
+            }
 
             fileCallbacks?.Dispose();
             syncCallback?.Dispose();
