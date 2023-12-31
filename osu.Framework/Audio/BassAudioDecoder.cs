@@ -19,6 +19,7 @@ namespace osu.Framework.Audio
         private int decodeStream;
         private FileCallbacks? fileCallbacks;
 
+        private int syncHandle;
         private SyncCallback? syncCallback;
 
         private int resampler;
@@ -53,6 +54,17 @@ namespace osu.Framework.Audio
 
         internal override void Free()
         {
+            if (syncHandle != 0)
+                Bass.ChannelRemoveSync(resampler == 0 ? decodeStream : resampler, syncHandle);
+
+            fileCallbacks?.Dispose();
+            syncCallback?.Dispose();
+
+            fileCallbacks = null;
+            syncCallback = null;
+
+            decodeData = null;
+
             if (resampler != 0)
             {
                 Bass.StreamFree(resampler);
@@ -64,14 +76,6 @@ namespace osu.Framework.Audio
                 Bass.StreamFree(decodeStream);
                 decodeStream = 0;
             }
-
-            fileCallbacks?.Dispose();
-            syncCallback?.Dispose();
-
-            fileCallbacks = null;
-            syncCallback = null;
-
-            decodeData = null;
 
             base.Free();
         }
@@ -128,7 +132,7 @@ namespace osu.Framework.Audio
                             throw new FormatException($"Couldn't get channel info: {Bass.LastError}");
                     }
 
-                    Bass.ChannelSetSync(resampler == 0 ? decodeStream : resampler, SyncFlags.End | SyncFlags.Onetime, 0, syncCallback.Callback, syncCallback.Handle);
+                    syncHandle = Bass.ChannelSetSync(resampler == 0 ? decodeStream : resampler, SyncFlags.End | SyncFlags.Onetime, 0, syncCallback.Callback, syncCallback.Handle);
 
                     Loading = true;
                 }
