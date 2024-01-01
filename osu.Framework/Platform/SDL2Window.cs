@@ -407,6 +407,16 @@ namespace osu.Framework.Platform
             SDL.SDL_RaiseWindow(SDLWindowHandle);
         });
 
+        public void Hide() => ScheduleCommand(() =>
+        {
+            SDL.SDL_HideWindow(SDLWindowHandle);
+        });
+
+        public void Show() => ScheduleCommand(() =>
+        {
+            SDL.SDL_ShowWindow(SDLWindowHandle);
+        });
+
         public void Flash(bool flashUntilFocused = false) => ScheduleCommand(() =>
         {
             if (isActive.Value)
