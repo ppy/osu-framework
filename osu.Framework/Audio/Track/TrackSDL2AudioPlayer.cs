@@ -223,7 +223,7 @@ namespace osu.Framework.Audio.Track
             long pos = GetIndexFromMs(posMs);
             long len = Interlocked.Read(ref audioDataLength);
 
-            long start = Math.Max(0, pos); // To get most recently 'used' audio data
+            long start = Math.Clamp(pos, 0, len);
             long remain = len - start;
 
             Array.Copy(AudioData, start, data, 0, Math.Min(data.Length, remain));
