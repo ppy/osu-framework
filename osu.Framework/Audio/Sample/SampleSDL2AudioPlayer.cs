@@ -32,7 +32,7 @@ namespace osu.Framework.Audio.Sample
 
             int i = 0;
 
-            for (; i < needed;)
+            while (i < needed)
             {
                 int put = Math.Min(needed - i, audioData.Length - position);
 
