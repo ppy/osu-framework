@@ -73,7 +73,7 @@ namespace osu.Framework.Audio
             return resampler.GetCurrentLatency() * 1000.0d;
         }
 
-        public virtual void Flush()
+        public virtual void Clear()
         {
             resampler?.Reset();
         }

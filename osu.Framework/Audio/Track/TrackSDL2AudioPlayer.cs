@@ -4,7 +4,6 @@
 using System;
 using System.Buffers;
 using System.Threading;
-using osu.Framework.Logging;
 
 namespace osu.Framework.Audio.Track
 {
@@ -200,9 +199,6 @@ namespace osu.Framework.Audio.Track
                 AudioDataPosition += read;
             }
 
-            if (read < needed && isLoading)
-                Logger.Log("Track underrun!");
-
             if (ReversePlayback ? AudioDataPosition <= 0 : AudioDataPosition >= audioDataLength && !isLoading)
                 done = true;
 
@@ -243,6 +239,8 @@ namespace osu.Framework.Audio.Track
                 SaveSeek = 0;
                 Seek(0);
             }
+
+            Clear();
         }
 
         /// <summary>
@@ -278,7 +276,7 @@ namespace osu.Framework.Audio.Track
             {
                 SaveSeek = 0;
                 AudioDataPosition = Math.Clamp(tmp, 0, Math.Max(0, audioDataLength - 1));
-                Flush();
+                Clear();
             }
         }
 
@@ -288,14 +286,10 @@ namespace osu.Framework.Audio.Track
         {
             if (!disposedValue)
             {
-                if (disposing)
-                {
-                    if (dataRented && AudioData != null)
-                        ArrayPool<float>.Shared.Return(AudioData);
+                if (dataRented && AudioData != null)
+                    ArrayPool<float>.Shared.Return(AudioData);
 
-                    AudioData = null;
-                }
-
+                AudioData = null;
                 disposedValue = true;
             }
         }

@@ -48,7 +48,7 @@ namespace osu.Framework.Audio.Track
         /// <param name="samples">Needed sample count</param>
         private void fillSamples(int samples)
         {
-            if (soundTouch == null)
+            if (soundTouch == null || tempo == 1.0f)
                 return;
 
             while (!base.Done && soundTouch.AvailableSamples < samples)
@@ -104,15 +104,14 @@ namespace osu.Framework.Audio.Track
                         if (temp >= 0)
                             AudioDataPosition = temp;
                     }
-
-                    Reset(false);
-                    soundTouch = null;
-                    return;
+                }
+                else
+                {
+                    double tempochange = Math.Clamp((Math.Abs(tempo) - 1.0d) * 100.0d, -95, 5000);
+                    soundTouch.TempoChange = tempochange;
                 }
 
-                double tempochange = Math.Clamp((Math.Abs(tempo) - 1.0d) * 100.0d, -95, 5000);
-                soundTouch.TempoChange = tempochange;
-                FillRequiredSamples();
+                Clear();
             }
         }
 
@@ -123,7 +122,7 @@ namespace osu.Framework.Audio.Track
         /// <returns>The number of samples put</returns>
         public override int GetRemainingSamples(float[] ret)
         {
-            if (soundTouch == null)
+            if (soundTouch == null || tempo == 1.0f)
                 return base.GetRemainingSamples(ret);
 
             if (RelativeRate == 0)
@@ -132,9 +131,7 @@ namespace osu.Framework.Audio.Track
             int expected = ret.Length / SrcChannels;
 
             if (!doneFilling && soundTouch.AvailableSamples < expected)
-            {
                 fillSamples(expected);
-            }
 
             int got = soundTouch.ReceiveSamples(ret, expected);
 
@@ -147,6 +144,7 @@ namespace osu.Framework.Audio.Track
         public override void Reset(bool resetPosition = true)
         {
             base.Reset(resetPosition);
+
             doneFilling = false;
             donePlaying = false;
         }
@@ -161,10 +159,10 @@ namespace osu.Framework.Audio.Track
 
         protected override double GetProcessingLatency() => base.GetProcessingLatency() + (double)GetTempoLatencyInSamples() / SrcRate * 1000.0d;
 
-        public override void Flush()
+        public override void Clear()
         {
-            base.Flush();
-            soundTouch?.Flush();
+            base.Clear();
+            soundTouch?.Clear();
         }
 
         public override void Seek(double seek)
