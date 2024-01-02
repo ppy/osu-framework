@@ -166,6 +166,16 @@ namespace osu.Framework.Platform
         void Raise();
 
         /// <summary>
+        /// Attempts to hide the window, making it invisible and hidden from the taskbar.
+        /// </summary>
+        void Hide();
+
+        /// <summary>
+        /// Attempts to show the window, making it visible.
+        /// </summary>
+        void Show();
+
+        /// <summary>
         /// Attempts to flash the window in order to request the user's attention.
         /// </summary>
         /// <remarks>
