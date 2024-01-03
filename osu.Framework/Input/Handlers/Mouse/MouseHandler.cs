@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Diagnostics;
+using System.Threading;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.StateChanges;
@@ -114,6 +115,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                     window.MouseDown += handleMouseDown;
                     window.MouseUp += handleMouseUp;
                     window.MouseWheel += handleMouseWheel;
+                    UdpGazePointDataHandler.Instance.AbsolutePositionChanged += HandleMouseMove;
                 }
                 else
                 {
@@ -122,6 +124,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                     window.MouseDown -= handleMouseDown;
                     window.MouseUp -= handleMouseUp;
                     window.MouseWheel -= handleMouseWheel;
+                    UdpGazePointDataHandler.Instance.AbsolutePositionChanged -= HandleMouseMove;
                 }
             }, true);
 
@@ -133,6 +136,13 @@ namespace osu.Framework.Input.Handlers.Mouse
                     transferLastPositionToHostCursor();
                 }
             };
+
+            UdpGazePointDataHandler.Instance.Initialize(host);
+            var gazePointThread = new Thread(() => { UdpGazePointDataHandler.Instance.Receive(); })
+            {
+                IsBackground = true,
+            };
+            gazePointThread.Start();
 
             return true;
         }
