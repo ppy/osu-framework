@@ -38,7 +38,7 @@ namespace osu.Framework.Lists
 
         public int IndexOf(object? value) => ((IList)list).IndexOf(value);
 
-        public void Insert(int index, object? value) => ((IList)list).Insert(index, value);
+        public void Insert(int index, object? value) => throw new NotImplementedException();
 
         public void Remove(object? value) => throw new NotImplementedException();
 
