@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.Transforms
             {
                 resetLastAppliedCache();
 
-                var appliedToEndReverts = new List<string>();
+                var appliedToEndReverts = new HashSet<string>();
 
                 // Under the case that completed transforms are not removed, reversing the clock is permitted.
                 // We need to first look back through all the transforms and apply the start values of the ones that were previously
