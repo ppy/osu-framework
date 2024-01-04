@@ -13,7 +13,7 @@ using SDL2;
 
 namespace osu.Framework.Platform.SDL2
 {
-    internal class SDL2GraphicsSurface : IGraphicsSurface, IOpenGLGraphicsSurface, IMetalGraphicsSurface, ILinuxGraphicsSurface
+    internal class SDL2GraphicsSurface : IGraphicsSurface, IOpenGLGraphicsSurface, IMetalGraphicsSurface, ILinuxGraphicsSurface, IAndroidGraphicsSurface
     {
         private readonly SDL2Window window;
 
@@ -232,6 +232,12 @@ namespace osu.Framework.Platform.SDL2
         #region Linux-specific implementation
 
         bool ILinuxGraphicsSurface.IsWayland => window.IsWayland;
+
+        #endregion
+
+        #region Android-specific implementation
+
+        IntPtr IAndroidGraphicsSurface.JniEnvHandle => SDL.SDL_AndroidGetJNIEnv();
 
         #endregion
     }
