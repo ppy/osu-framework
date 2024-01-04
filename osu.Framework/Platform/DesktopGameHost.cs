@@ -112,6 +112,32 @@ namespace osu.Framework.Platform
             return ipcProvider.SendMessageAsync(message);
         }
 
+        protected override void OnActivated()
+        {
+            setGamePriority(true);
+            base.OnActivated();
+        }
+
+        protected override void OnDeactivated()
+        {
+            setGamePriority(false);
+            base.OnDeactivated();
+        }
+
+        private void setGamePriority(bool active)
+        {
+            try
+            {
+                // We set process priority after the window becomes active, because for whatever reason windows will
+                // reset this when the window becomes active after being inactive when game mode is enabled.
+                Process.GetCurrentProcess().PriorityClass = active ? ProcessPriorityClass.High : ProcessPriorityClass.Normal;
+            }
+            catch
+            {
+                // This doesn't work on all operating systems.
+            }
+        }
+
         protected override void Dispose(bool isDisposing)
         {
             ipcProvider?.Dispose();
