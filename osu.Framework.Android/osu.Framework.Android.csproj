@@ -15,7 +15,7 @@
     <PackageTags>osu game framework</PackageTags>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\osu.Framework.Android.SDL2\osu.Framework.Android.SDL2.csproj" />
+    <ProjectReference Include="..\..\SDL2-CS\SDL2-CS-Android\SDL2-CS-Android.csproj" />
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
   </ItemGroup>
   <ItemGroup>
