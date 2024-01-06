@@ -8,10 +8,12 @@ using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
+using Java.Lang;
 using ManagedBass;
 using Org.Libsdl.App;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.ObjectExtensions;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Android
 {
@@ -36,12 +38,13 @@ namespace osu.Framework.Android
 
         protected const LaunchMode DEFAULT_LAUNCH_MODE = LaunchMode.SingleInstance;
 
-        internal static SDLSurface Surface => MSurface!;
+        internal static AndroidGameSurface Surface => (AndroidGameSurface)MSurface!;
 
         protected abstract Game CreateGame();
 
-        // I don't want to break compatibility for now.
-        internal Game CreateGameInternal() => CreateGame();
+        private Game? game;
+
+        private GameHost? host;
 
         /// <summary>
         /// Whether this <see cref="AndroidGameActivity"/> is active (in the foreground).
@@ -68,15 +71,31 @@ namespace osu.Framework.Android
         public override void OnTrimMemory([GeneratedEnum] TrimMemory level)
         {
             base.OnTrimMemory(level);
-            AndroidSDL2Main.Host.Collect();
+            host?.Collect();
         }
 
-        protected override string[] GetLibraries()
+        protected override string[] GetLibraries() => new string[] { "SDL2" };
+
+        protected override SDLSurface CreateSDLSurface(Context context) => new AndroidGameSurface(context);
+
+        protected override IRunnable CreateSDLMainRunnable() => new Runnable(() =>
         {
-            return new string[] { "SDL2", "SDL2AndroidMainSetter" };
-        }
+            // blocks back button
+            SDL2.SDL.SDL_SetHint(SDL2.SDL.SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1");
 
-        protected override string? MainFunction => "SetThisAsMain";
+            // accelerometer spams input thread
+            SDL2.SDL.SDL_SetHint(SDL2.SDL.SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");
+
+            // hints are here because they don't apply well in another location such as SDL2Window
+
+            host = new AndroidGameHost(this);
+            game = CreateGame();
+
+            host.Run(game);
+
+            if (!IsFinishing)
+                Finish();
+        });
 
         protected override void OnCreate(Bundle? savedInstanceState)
         {
@@ -84,8 +103,6 @@ namespace osu.Framework.Android
             // On some devices '/' maps to the app data directory. On others it maps to the root of the internal storage.
             // In order to have a consistent current directory on all devices the full path of the app data directory is set as the current directory.
             System.Environment.CurrentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
-
-            AndroidSDL2Main.SetSDL2Main(this);
 
             UIVisibilityFlags = SystemUiFlags.LayoutFlags | SystemUiFlags.LayoutFullscreen | SystemUiFlags.ImmersiveSticky | SystemUiFlags.HideNavigation | SystemUiFlags.Fullscreen;
 
