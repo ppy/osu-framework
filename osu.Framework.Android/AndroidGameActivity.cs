@@ -107,12 +107,6 @@ namespace osu.Framework.Android
             }
 
             base.OnCreate(savedInstanceState);
-
-            if (OperatingSystem.IsAndroidVersionAtLeast(26))
-            {
-                // disable ugly green border when view is focused via hardware keyboard/mouse.
-                Surface.DefaultFocusHighlightEnabled = false;
-            }
         }
 
         protected override void OnStop()
