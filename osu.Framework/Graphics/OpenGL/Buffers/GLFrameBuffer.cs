@@ -16,17 +16,22 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         public Texture Texture { get; }
 
+        public IReadOnlyList<RenderBufferFormat>? Formats => formats;
+
         private readonly List<GLRenderBuffer> attachedRenderBuffers = new List<GLRenderBuffer>();
         private readonly GLRenderer renderer;
+        private readonly RenderBufferFormat[]? formats;
         private readonly GLTexture glTexture;
 
         public readonly int FrameBuffer;
 
         private readonly bool externalTexture;
 
-        public GLFrameBuffer(GLRenderer renderer, RenderbufferInternalFormat[]? renderBufferFormats = null, All filteringMode = All.Linear)
+        public GLFrameBuffer(GLRenderer renderer, RenderBufferFormat[]? formats = null, All filteringMode = All.Linear)
         {
             this.renderer = renderer;
+            this.formats = formats;
+
             FrameBuffer = GL.GenFramebuffer();
 
             Texture = renderer.CreateTexture(glTexture = new FrameBufferTexture(renderer, filteringMode));
@@ -38,10 +43,36 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, glTexture.TextureId, 0);
             renderer.UnbindTexture();
 
-            if (renderBufferFormats != null)
+            if (formats != null)
             {
-                foreach (var format in renderBufferFormats)
-                    attachedRenderBuffers.Add(new GLRenderBuffer(renderer, format));
+                foreach (var format in formats)
+                {
+                    RenderbufferInternalFormat glFormat;
+
+                    switch (format)
+                    {
+                        case RenderBufferFormat.D16:
+                            glFormat = RenderbufferInternalFormat.DepthComponent16;
+                            break;
+
+                        case RenderBufferFormat.D32:
+                            glFormat = RenderbufferInternalFormat.DepthComponent32f;
+                            break;
+
+                        case RenderBufferFormat.D24S8:
+                            glFormat = RenderbufferInternalFormat.Depth24Stencil8;
+                            break;
+
+                        case RenderBufferFormat.D32S8:
+                            glFormat = RenderbufferInternalFormat.Depth32fStencil8;
+                            break;
+
+                        default:
+                            throw new ArgumentException($"Unsupported render buffer format: {format}", nameof(formats));
+                    }
+
+                    attachedRenderBuffers.Add(new GLRenderBuffer(renderer, glFormat));
+                }
             }
 
             renderer.UnbindFrameBuffer(this);

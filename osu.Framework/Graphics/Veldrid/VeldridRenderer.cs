@@ -743,7 +743,7 @@ namespace osu.Framework.Graphics.Veldrid
             => new VeldridShader(this, name, parts.Cast<VeldridShaderPart>().ToArray(), compilationStore);
 
         public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
-            => new VeldridFrameBuffer(this, renderBufferFormats?.ToPixelFormats(), filteringMode.ToSamplerFilter());
+            => new VeldridFrameBuffer(this, renderBufferFormats, filteringMode.ToSamplerFilter());
 
         protected override IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, Rendering.PrimitiveTopology primitiveType)
         {

@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -18,9 +19,12 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
     {
         public osu.Framework.Graphics.Textures.Texture Texture { get; }
 
+        public IReadOnlyList<RenderBufferFormat>? Formats => formats;
+
         public Framebuffer Framebuffer { get; private set; }
 
         private readonly VeldridRenderer renderer;
+        private readonly RenderBufferFormat[]? formats;
         private readonly PixelFormat? depthFormat;
 
         private readonly VeldridTexture colourTarget;
@@ -50,15 +54,16 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         private readonly bool externalColourTarget;
 
-        public VeldridFrameBuffer(VeldridRenderer renderer, PixelFormat[]? formats = null, SamplerFilter filteringMode = SamplerFilter.MinLinear_MagLinear_MipLinear)
+        public VeldridFrameBuffer(VeldridRenderer renderer, RenderBufferFormat[]? formats = null, SamplerFilter filteringMode = SamplerFilter.MinLinear_MagLinear_MipLinear)
         {
             // todo: we probably want the arguments separated to "PixelFormat[] colorFormats, PixelFormat depthFormat".
             if (formats?.Length > 1)
                 throw new ArgumentException("Veldrid framebuffer cannot contain more than one depth target.");
 
             this.renderer = renderer;
+            this.formats = formats;
 
-            depthFormat = formats?[0];
+            depthFormat = formats?[0].ToPixelFormat();
 
             colourTarget = new FrameBufferTexture(renderer, filteringMode);
             Texture = renderer.CreateTexture(colourTarget);
