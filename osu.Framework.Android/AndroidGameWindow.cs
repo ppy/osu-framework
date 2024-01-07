@@ -26,14 +26,6 @@ namespace osu.Framework.Android
             this.activity = activity;
         }
 
-        protected override void UpdateWindowStateAndSize(WindowState state, Platform.Display display, DisplayMode displayMode)
-        {
-            // This sets the status bar to hidden.
-            SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
-
-            // Don't run base logic at all. Let's keep things simple.
-        }
-
         public override void Create()
         {
             base.Create();
