@@ -76,7 +76,7 @@ namespace osu.Framework.Android
 
         protected override string[] GetLibraries() => new string[] { "SDL2" };
 
-        protected override SDLSurface CreateSDLSurface(Context context) => new AndroidGameSurface(context);
+        protected override SDLSurface CreateSDLSurface(Context context) => new AndroidGameSurface(this, context);
 
         protected override IRunnable CreateSDLMainRunnable() => new Runnable(() =>
         {
