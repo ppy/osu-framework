@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
@@ -93,13 +94,29 @@ namespace osu.Framework.Platform.Windows
         protected override void OnActivated()
         {
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous | Execution.ExecutionState.SystemRequired | Execution.ExecutionState.DisplayRequired);
+            setGamePriority(true);
             base.OnActivated();
         }
 
         protected override void OnDeactivated()
         {
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous);
+            setGamePriority(false);
             base.OnDeactivated();
+        }
+
+        private void setGamePriority(bool active)
+        {
+            try
+            {
+                // We set process priority after the window becomes active, because for whatever reason windows will
+                // reset this when the window becomes active after being inactive when game mode is enabled.
+                Process.GetCurrentProcess().PriorityClass = active ? ProcessPriorityClass.High : ProcessPriorityClass.Normal;
+            }
+            catch
+            {
+                // Failure to set priority is not critical.
+            }
         }
     }
 }
