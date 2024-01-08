@@ -441,12 +441,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             assertDropdownIsOpen(() => testDropdown);
 
             AddStep("hover item 0", () => InputManager.MoveMouseTo(testDropdown.Menu.Children[0]));
+            AddUntilStep("item 0 is preselected", () => testDropdown.PreselectedIndex == 0);
 
             AddStep("user scroll down by 1", () => InputManager.ScrollVerticalBy(-1));
             AddUntilStep("item 3 is hovered", () => testDropdown.Menu.Children[3].IsHovered);
+            AddUntilStep("item 0 still preselected", () => testDropdown.PreselectedIndex == 0);
 
             AddStep("user scroll up by 1", () => InputManager.ScrollVerticalBy(1));
             AddUntilStep("item 0 is hovered", () => testDropdown.Menu.Children[0].IsHovered);
+            AddUntilStep("item 0 still preselected", () => testDropdown.PreselectedIndex == 0);
         }
 
         [Test]
@@ -461,12 +464,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             assertDropdownIsOpen(() => testDropdown);
 
             AddStep("hover item 3", () => InputManager.MoveMouseTo(testDropdown.Menu.Children[3]));
+            AddUntilStep("item 3 is preselected", () => testDropdown.PreselectedIndex == 3);
 
             AddStep("user scroll down by 1", () => InputManager.ScrollVerticalBy(-1));
             AddUntilStep("item 6 is hovered", () => testDropdown.Menu.Children[6].IsHovered);
+            AddUntilStep("item 3 still preselected", () => testDropdown.PreselectedIndex == 3);
 
             AddStep("user scroll up by 1", () => InputManager.ScrollVerticalBy(1));
             AddUntilStep("item 3 is hovered", () => testDropdown.Menu.Children[3].IsHovered);
+            AddUntilStep("item 3 still preselected", () => testDropdown.PreselectedIndex == 3);
         }
 
         [Test]
