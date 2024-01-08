@@ -115,7 +115,7 @@ namespace osu.Framework.Platform.Windows
             }
             catch
             {
-                // This doesn't work on all operating systems.
+                // Failure to set priority is not critical.
             }
         }
     }
