@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         private IconUsage loadedIcon;
-        private Texture texture = null!;
+        private Texture? texture;
 
         private void updateTexture()
         {
@@ -140,13 +140,16 @@ namespace osu.Framework.Graphics.Sprites
             private ColourInfo shadowDrawColour;
             private Quad shadowDrawQuad;
             private Quad screenSpaceDrawQuad;
-            private Texture texture = null!;
+            private Texture? texture;
 
             public override void ApplyState()
             {
                 base.ApplyState();
 
                 texture = Source.texture;
+                if (texture == null)
+                    return;
+
                 shadow = Source.shadow;
 
                 RectangleF drawRect = Source.DrawRectangle;
@@ -188,17 +191,12 @@ namespace osu.Framework.Graphics.Sprites
 
                 BindTextureShader(renderer);
 
-                blit(renderer);
-
-                UnbindTextureShader(renderer);
-            }
-
-            private void blit(IRenderer renderer)
-            {
                 if (shadow)
                     renderer.DrawQuad(texture, shadowDrawQuad, shadowDrawColour);
 
                 renderer.DrawQuad(texture, screenSpaceDrawQuad, DrawColourInfo.Colour);
+
+                UnbindTextureShader(renderer);
             }
         }
     }
