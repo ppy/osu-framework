@@ -70,6 +70,10 @@ The BASS audio library (a dependency of this framework) is a commercial product.
 
 [IWBTM](https://github.com/EVAST9919/iwbtm) - A platform game with level editor based off of "I Wanna..." games
 
+[DeltaDash](https://deltada.sh/) - A multi-direction, lane-based scroller rhythm game
+
+[fluXis](https://github.com/TeamFluXis/fluXis) - A community-driven rhythm game with a focus on creativity and expression
+
 <!--
 We love to see people using our framework! Add your project here via a PR!
 

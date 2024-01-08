@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
@@ -15,7 +16,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
     internal class GLShaderPart : IShaderPart
     {
         public static readonly Regex SHADER_INPUT_PATTERN = new Regex(@"^\s*layout\s*\(\s*location\s*=\s*(-?\d+)\s*\)\s*(in\s+(?:(?:lowp|mediump|highp)\s+)?\w+\s+(\w+)\s*;)", RegexOptions.Multiline);
-        private static readonly Regex uniform_pattern = new Regex(@"^(\s*layout\s*\(.*)set\s*=\s*(-?\d)(.*\)\s*uniform)", RegexOptions.Multiline);
+        private static readonly Regex uniform_pattern = new Regex(@"^(\s*layout\s*\(.*)set\s*=\s*(-?\d)(.*\)\s*(?:(?:readonly\s*)?buffer|uniform))", RegexOptions.Multiline);
         private static readonly Regex include_pattern = new Regex(@"^\s*#\s*include\s+[""<](.*)["">]");
 
         internal bool Compiled { get; private set; }
@@ -29,7 +30,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private int partID = -1;
 
-        public GLShaderPart(IRenderer renderer, string name, byte[]? data, ShaderType type, IShaderStore store)
+        public GLShaderPart(GLRenderer renderer, string name, byte[]? data, ShaderType type, IShaderStore store)
         {
             this.renderer = renderer;
             this.store = store;
@@ -37,27 +38,32 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             Name = name;
             Type = type;
 
+            if (!renderer.UseStructuredBuffers)
+                shaderCodes.Add("#define OSU_GRAPHICS_NO_SSBO\n");
+
             // Load the shader files.
             shaderCodes.Add(loadFile(data, true));
 
-            int lastInputIndex = 0;
+            // Find the minimum uniform/buffer binding set across all shader codes. This will be a negative number (see sh_GlobalUniforms.h / sh_MaskingInfo.h).
+            int minSet = 0;
 
-            // Parse all shader inputs to find the last input index.
-            for (int i = 0; i < shaderCodes.Count; i++)
+            foreach (string code in shaderCodes)
             {
-                foreach (Match m in SHADER_INPUT_PATTERN.Matches(shaderCodes[i]))
-                    lastInputIndex = Math.Max(lastInputIndex, int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture));
+                minSet = Math.Min(minSet, uniform_pattern.Matches(code)
+                                                         .Where(m => m.Success)
+                                                         .Select(m => int.Parse(m.Groups[2].Value, CultureInfo.InvariantCulture))
+                                                         .DefaultIfEmpty(0).Min());
             }
 
-            // Update the location of the m_BackbufferDrawDepth input to be placed after all other inputs.
+            // Increment the binding set of all uniform blocks equal to the absolute value of the minimum set from above.
+            // After this transformation, blocks with negative sets will start from set 0, and all other user blocks begin after them.
+            // The reason for doing this is that uniform blocks must be consistent between the shader stages, so they can't be appended.
             for (int i = 0; i < shaderCodes.Count; i++)
-                shaderCodes[i] = shaderCodes[i].Replace("layout(location = -1)", $"layout(location = {lastInputIndex + 1})");
-
-            // Increment the binding set of all uniform blocks.
-            // After this transformation, the g_GlobalUniforms block is placed in set 0 and all other user blocks begin from 1.
-            // The difference in implementation here (compared to above) is intentional, as uniform blocks must be consistent between the shader stages, so they can't be easily appended.
-            for (int i = 0; i < shaderCodes.Count; i++)
-                shaderCodes[i] = uniform_pattern.Replace(shaderCodes[i], match => $"{match.Groups[1].Value}set = {int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture) + 1}{match.Groups[3].Value}");
+            {
+                shaderCodes[i] = uniform_pattern.Replace(
+                    shaderCodes[i],
+                    match => $"{match.Groups[1].Value}set = {int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture) + Math.Abs(minSet)}{match.Groups[3].Value}");
+            }
         }
 
         private string loadFile(byte[]? bytes, bool mainFile)

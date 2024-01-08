@@ -3,6 +3,7 @@
 
 using osu.Framework.Extensions.TypeExtensions;
 using System;
+using System.Diagnostics;
 using System.Linq;
 
 namespace osu.Framework.Timing
@@ -23,12 +24,10 @@ namespace osu.Framework.Timing
         public FramedClock(IClock? source = null, bool processSource = true)
         {
             this.processSource = processSource;
-            Source = source ?? new StopwatchClock(true);
 
-            ChangeSource(Source);
+            ChangeSource(source ?? new StopwatchClock(true));
+            Debug.Assert(Source != null);
         }
-
-        public FrameTimeInfo TimeInfo => new FrameTimeInfo { Elapsed = ElapsedFrameTime, Current = CurrentTime };
 
         private readonly double[] betweenFrameTimes = new double[128];
 
@@ -58,12 +57,10 @@ namespace osu.Framework.Timing
 
         private const int fps_calculation_interval = 250;
 
-        public void ChangeSource(IClock? source)
+        public void ChangeSource(IClock source)
         {
-            if (source == null) return;
-
-            CurrentTime = LastFrameTime = source.CurrentTime;
             Source = source;
+            CurrentTime = LastFrameTime = source.CurrentTime;
         }
 
         public virtual void ProcessFrame()

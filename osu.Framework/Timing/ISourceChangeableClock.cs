@@ -17,6 +17,6 @@ namespace osu.Framework.Timing
         /// Change the source clock.
         /// </summary>
         /// <param name="source">The new source clock.</param>
-        void ChangeSource(IClock? source);
+        void ChangeSource(IClock source);
     }
 }

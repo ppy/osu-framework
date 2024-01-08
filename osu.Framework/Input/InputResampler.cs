@@ -27,21 +27,30 @@ namespace osu.Framework.Input
         /// </summary>
         public bool ResampleRawInput { get; set; }
 
+        private readonly List<Vector2> returnedPositions = new List<Vector2>();
+
         /// <summary>
         /// Function that takes in a <paramref name="position"/> and returns a list of positions
         /// that can be used by the caller to make the input path smoother or reduce it.
         /// The current implementation always returns only none or exactly one vector which
         /// reduces the input to the corner nodes.
         /// </summary>
+        /// <remarks>
+        /// To save on allocations, the returned enumerable is only valid until the next call of <see cref="AddPosition"/>.
+        /// </remarks>
         public IEnumerable<Vector2> AddPosition(Vector2 position)
         {
+            returnedPositions.Clear();
+
             if (!ResampleRawInput)
             {
                 if (isRawInput)
                 {
                     lastRelevantPosition = position;
                     lastActualPosition = position;
-                    return new[] { position };
+
+                    returnedPositions.Add(position);
+                    return returnedPositions;
                 }
 
                 // HD if it has fractions
@@ -53,7 +62,9 @@ namespace osu.Framework.Input
             {
                 lastRelevantPosition = position;
                 lastActualPosition = position;
-                return new[] { position };
+
+                returnedPositions.Add(position);
+                return returnedPositions;
             }
 
             Vector2 diff = position - lastRelevantPosition.Value;
@@ -63,18 +74,19 @@ namespace osu.Framework.Input
             Vector2 realDiff = position - lastActualPosition.Value;
             float realMovementDistance = realDiff.Length;
             if (realMovementDistance < 1)
-                return Array.Empty<Vector2>();
+                return returnedPositions;
 
             lastActualPosition = position;
 
             // don't update when it moved less than 10 pixels from the last position in a straight fashion
             // but never update when its less than 2 pixels
             if ((distance < 10 && Vector2.Dot(direction, realDiff / realMovementDistance) > 0.7) || distance < 2)
-                return Array.Empty<Vector2>();
+                return returnedPositions;
 
             lastRelevantPosition = position;
 
-            return new[] { position };
+            returnedPositions.Add(position);
+            return returnedPositions;
         }
     }
 }

@@ -21,7 +21,6 @@ namespace osu.Framework.Android.Graphics.Video
         private const string lib_avcodec = "libavcodec.so";
         private const string lib_avformat = "libavformat.so";
         private const string lib_swscale = "libswscale.so";
-        private const string lib_avfilter = "libavfilter.so";
 
         [DllImport(lib_avutil)]
         private static extern AVFrame* av_frame_alloc();

@@ -119,7 +119,6 @@ namespace osu.Framework.Graphics.Video
                 Library.Load("libavutil.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
                 Library.Load("libavcodec.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
                 Library.Load("libavformat.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
-                Library.Load("libavfilter.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
                 Library.Load("libswscale.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
             }
         }
@@ -345,7 +344,7 @@ namespace osu.Framework.Graphics.Video
             formatContext->pb = ioContext;
             formatContext->flags |= FFmpegFuncs.AVFMT_FLAG_GENPTS; // required for most HW decoders as they only read `pts`
 
-            int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "dummy", null, null);
+            int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "pipe:", null, null);
             inputOpened = openInputResult >= 0;
             if (!inputOpened)
                 throw new InvalidOperationException($"Error opening file or stream: {getErrorMessage(openInputResult)}");
@@ -431,7 +430,7 @@ namespace osu.Framework.Graphics.Video
             }
 
             if (!openSuccessful)
-                throw new InvalidOperationException("No usable decoder found");
+                throw new InvalidOperationException($"No usable decoder found for codec ID {codecParams.codec_id}");
         }
 
         private void decodingLoop(CancellationToken cancellationToken)
@@ -902,6 +901,16 @@ namespace osu.Framework.Graphics.Video
                 {
                     fixed (AVFormatContext** ptr = &formatContext)
                         ffmpeg.avformat_close_input(ptr);
+                }
+
+                if (ioContext != null)
+                {
+                    // This is not handled by avformat_close_input for custom IO:
+                    // https://ffmpeg.org/doxygen/4.3/structAVFormatContext.html#a1e7324262b6b78522e52064daaa7bc87
+                    ffmpeg.av_freep(&ioContext->buffer);
+
+                    fixed (AVIOContext** ptr = &ioContext)
+                        ffmpeg.avio_context_free(ptr);
                 }
 
                 if (codecContext != null)

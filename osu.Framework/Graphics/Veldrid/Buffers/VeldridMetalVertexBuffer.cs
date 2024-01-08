@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         private readonly VeldridRenderer renderer;
 
         private DeviceBuffer? sharedBuffer;
-        private unsafe DepthWrappingVertex<T>* sharedBufferMemory;
+        private unsafe T* sharedBufferMemory;
         private NativeMemoryTracker.NativeMemoryLease? memoryLease;
 
         public int Size { get; }
@@ -39,11 +39,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             if (sharedBuffer == null)
                 initialiseBuffer();
 
-            sharedBufferMemory[vertexIndex] = new DepthWrappingVertex<T>
-            {
-                Vertex = vertex,
-                BackbufferDrawDepth = renderer.BackbufferDrawDepth
-            };
+            sharedBufferMemory[vertexIndex] = vertex;
 
             // we use a buffer with memory storage shared between the CPU and the GPU, therefore we don't need to do explicit synchronisation/updates (which is queued when returning true here).
             return false;
@@ -52,7 +48,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         private unsafe void initialiseBuffer()
         {
             sharedBuffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)(IVeldridVertexBuffer<T>.STRIDE * Size), BufferUsage.VertexBuffer | BufferUsage.Dynamic));
-            sharedBufferMemory = (DepthWrappingVertex<T>*)renderer.Device.Map(sharedBuffer, MapMode.Write).Data;
+            sharedBufferMemory = (T*)renderer.Device.Map(sharedBuffer, MapMode.Write).Data;
             memoryLease = NativeMemoryTracker.AddMemory(this, sharedBuffer.SizeInBytes);
 
             LastUseFrameIndex = renderer.FrameIndex;

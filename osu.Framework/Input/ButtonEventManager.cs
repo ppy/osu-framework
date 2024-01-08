@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
@@ -95,7 +94,13 @@ namespace osu.Framework.Input
         /// <param name="state">The current <see cref="InputState"/>.</param>
         private void handleButtonUp(InputState state)
         {
-            Debug.Assert(ButtonDownInputQueue != null);
+            // in rare cases, a button up event may arrive without a preceding mouse down event.
+            // one example of this is an absolute mouse up input from a tablet, which happened when the stylus was positioned
+            // outside the bounds of the active tablet area, with confine mouse to window off.
+            // it's an awkward configuration and as such it is not exactly clear what should happen in that case,
+            // but what should definitely not happen is a crash.
+            if (ButtonDownInputQueue == null)
+                return;
 
             HandleButtonUp(state, ButtonDownInputQueue.Where(d => d.IsRootedAt(InputManager)).ToList());
             ButtonDownInputQueue = null;

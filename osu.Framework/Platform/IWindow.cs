@@ -166,6 +166,36 @@ namespace osu.Framework.Platform
         void Raise();
 
         /// <summary>
+        /// Attempts to hide the window, making it invisible and hidden from the taskbar.
+        /// </summary>
+        void Hide();
+
+        /// <summary>
+        /// Attempts to show the window, making it visible.
+        /// </summary>
+        void Show();
+
+        /// <summary>
+        /// Attempts to flash the window in order to request the user's attention.
+        /// </summary>
+        /// <remarks>
+        /// On platforms which don't support any kind of flashing (ie. mobile), this will be a no-op.
+        /// </remarks>
+        /// <param name="flashUntilFocused">
+        /// When <c>true</c>, the window will flash until it is focused again.
+        /// When <c>false</c> it will only flash momentarily.
+        /// </param>
+        void Flash(bool flashUntilFocused = false);
+
+        /// <summary>
+        /// Attempts to cancel any window flash requested with <see cref="Flash"/>.
+        /// </summary>
+        /// <remarks>
+        /// On platforms which don't support any kind of flashing (ie. mobile), this will be a no-op.
+        /// </remarks>
+        void CancelFlash();
+
+        /// <summary>
         /// Start the window's run loop.
         /// Is a blocking call on desktop platforms, and a non-blocking call on mobile platforms.
         /// </summary>

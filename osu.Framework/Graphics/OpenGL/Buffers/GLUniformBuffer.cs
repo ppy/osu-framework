@@ -8,11 +8,6 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
-    internal interface IGLUniformBuffer
-    {
-        int Id { get; }
-    }
-
     internal class GLUniformBuffer<TData> : IUniformBuffer<TData>, IGLUniformBuffer
         where TData : unmanaged, IEquatable<TData>
     {
@@ -80,5 +75,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         #endregion
 
         public int Id => uboId;
+
+        public void Flush()
+        {
+        }
     }
 }

@@ -94,6 +94,22 @@ namespace osu.Framework.Platform
         {
         }
 
+        public void Hide()
+        {
+        }
+
+        public void Show()
+        {
+        }
+
+        public void Flash(bool _)
+        {
+        }
+
+        public void CancelFlash()
+        {
+        }
+
         public abstract bool Focused { get; }
 
         public abstract IBindable<bool> IsActive { get; }
