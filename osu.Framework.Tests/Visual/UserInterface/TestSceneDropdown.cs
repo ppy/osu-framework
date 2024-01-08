@@ -432,52 +432,61 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestScrollWhenHoveringFirstVisibleItem()
         {
-            toggleDropdownViaClick(testDropdownMenu);
-            assertDropdownIsOpen(testDropdownMenu);
+            TestDropdown testDropdown = null!;
 
-            AddStep("hover item 0", () => InputManager.MoveMouseTo(testDropdownMenu.Menu.Children[0]));
+            AddStep("setup dropdown", () => testDropdown = createDropdown());
+            AddStep("set max height", () => testDropdown.Menu.MaxHeight = 100);
+
+            toggleDropdownViaClick(() => testDropdown);
+            assertDropdownIsOpen(() => testDropdown);
+
+            AddStep("hover item 0", () => InputManager.MoveMouseTo(testDropdown.Menu.Children[0]));
 
             AddStep("user scroll down by 1", () => InputManager.ScrollVerticalBy(-1));
-            AddUntilStep("item 3 is hovered", () => testDropdownMenu.Menu.Children[3].IsHovered);
+            AddUntilStep("item 3 is hovered", () => testDropdown.Menu.Children[3].IsHovered);
 
             AddStep("user scroll up by 1", () => InputManager.ScrollVerticalBy(1));
-            AddUntilStep("item 0 is hovered", () => testDropdownMenu.Menu.Children[0].IsHovered);
-
-            AddStep("close dropdown", () => InputManager.Key(Key.Escape));
+            AddUntilStep("item 0 is hovered", () => testDropdown.Menu.Children[0].IsHovered);
         }
 
         [Test]
         public void TestScrollWhenHoveringLastVisibleItem()
         {
-            toggleDropdownViaClick(testDropdownMenu);
-            assertDropdownIsOpen(testDropdownMenu);
+            TestDropdown testDropdown = null!;
 
-            AddStep("hover item 3", () => InputManager.MoveMouseTo(testDropdownMenu.Menu.Children[3]));
+            AddStep("setup dropdown", () => testDropdown = createDropdown());
+            AddStep("set max height", () => testDropdown.Menu.MaxHeight = 100);
+
+            toggleDropdownViaClick(() => testDropdown);
+            assertDropdownIsOpen(() => testDropdown);
+
+            AddStep("hover item 3", () => InputManager.MoveMouseTo(testDropdown.Menu.Children[3]));
 
             AddStep("user scroll down by 1", () => InputManager.ScrollVerticalBy(-1));
-            AddUntilStep("item 6 is hovered", () => testDropdownMenu.Menu.Children[6].IsHovered);
+            AddUntilStep("item 6 is hovered", () => testDropdown.Menu.Children[6].IsHovered);
 
             AddStep("user scroll up by 1", () => InputManager.ScrollVerticalBy(1));
-            AddUntilStep("item 3 is hovered", () => testDropdownMenu.Menu.Children[3].IsHovered);
-
-            AddStep("close dropdown", () => InputManager.Key(Key.Escape));
+            AddUntilStep("item 3 is hovered", () => testDropdown.Menu.Children[3].IsHovered);
         }
 
         [Test]
         public void TestKeyboardNavigationWhenHoveringItems()
         {
-            toggleDropdownViaClick(testDropdownMenu);
-            assertDropdownIsOpen(testDropdownMenu);
+            TestDropdown testDropdown = null!;
 
-            AddStep("hover item 2", () => InputManager.MoveMouseTo(testDropdownMenu.Menu.Children[2]));
+            AddStep("setup dropdown", () => testDropdown = createDropdown());
+            AddStep("set max height", () => testDropdown.Menu.MaxHeight = 100);
+
+            toggleDropdownViaClick(() => testDropdown);
+            assertDropdownIsOpen(() => testDropdown);
+
+            AddStep("hover item 2", () => InputManager.MoveMouseTo(testDropdown.Menu.Children[2]));
 
             AddRepeatStep("user press arrow down 2 times", () => InputManager.Key(Key.Down), 2);
-            AddUntilStep("item 4 is preselected", () => testDropdownMenu.PreselectedIndex == 4);
+            AddUntilStep("item 4 is preselected", () => testDropdown.PreselectedIndex == 4);
 
             AddRepeatStep("user press arrow up 3 times", () => InputManager.Key(Key.Up), 3);
-            AddUntilStep("item 1 is preselected", () => testDropdownMenu.PreselectedIndex == 1);
-
-            AddStep("close dropdown", () => InputManager.Key(Key.Escape));
+            AddUntilStep("item 1 is preselected", () => testDropdown.PreselectedIndex == 1);
         }
 
         #region Searching
