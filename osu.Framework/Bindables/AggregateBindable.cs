@@ -80,7 +80,7 @@ namespace osu.Framework.Bindables
         private WeakRefPair findExistingPair(IBindable<T> bindable) =>
             sourceMapping.FirstOrDefault(p => p.WeakReference.TryGetTarget(out var target) && target == bindable);
 
-        private void recalculateAggregate(ValueChangedEvent<T> obj = null)
+        private void recalculateAggregate(ValueChangedEvent<T> obj = default)
         {
             T calculated = initialValue;
 
