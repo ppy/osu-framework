@@ -116,6 +116,14 @@ namespace osu.Framework.Input.Handlers.Mouse
                     window.MouseUp += handleMouseUp;
                     window.MouseWheel += handleMouseWheel;
                     UdpGazePointDataHandler.Instance.AbsolutePositionChanged += HandleMouseMove;
+                    UdpGazePointDataHandler.Instance.NoPositionPeriodStarted += handleMouseDown;
+                    UdpGazePointDataHandler.Instance.NoPositionPeriodEnded += handleMouseUp;
+
+                    //UdpGazePointDataHandler.Instance.NoPositionPeriodStarted += () =>
+                    //{
+                    //    window.RelativeMouseMode = false;
+                    //    transferLastPositionToHostCursor();
+                    //};
                 }
                 else
                 {
@@ -125,6 +133,8 @@ namespace osu.Framework.Input.Handlers.Mouse
                     window.MouseUp -= handleMouseUp;
                     window.MouseWheel -= handleMouseWheel;
                     UdpGazePointDataHandler.Instance.AbsolutePositionChanged -= HandleMouseMove;
+                    UdpGazePointDataHandler.Instance.NoPositionPeriodStarted -= handleMouseDown;
+                    UdpGazePointDataHandler.Instance.NoPositionPeriodEnded -= handleMouseUp;
                 }
             }, true);
 
