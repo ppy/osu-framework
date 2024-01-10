@@ -95,7 +95,8 @@ namespace osu.Framework.Input
             switch (e)
             {
                 case MouseMoveEvent mouseMove:
-                    new MousePositionAbsoluteInput { Position = mouseMove.ScreenSpaceMousePosition }.Apply(CurrentState, this);
+                    if (mouseMove.ScreenSpaceMousePosition != CurrentState.Mouse.Position)
+                        new MousePositionAbsoluteInput { Position = mouseMove.ScreenSpaceMousePosition }.Apply(CurrentState, this);
                     break;
 
                 case MouseDownEvent mouseDown:
