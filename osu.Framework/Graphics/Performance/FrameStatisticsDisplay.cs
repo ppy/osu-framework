@@ -390,7 +390,7 @@ namespace osu.Framework.Graphics.Performance
 
             foreach (Drawable e in timeBars[(timeBarIndex + 1) % timeBars.Length])
             {
-                if (e is Box && e.DrawPosition.X <= timeBarX)
+                if (e is GCBox && e.DrawPosition.X <= timeBarX)
                     e.Expire();
             }
         }

@@ -170,6 +170,9 @@ namespace osu.Framework.Input
         /// <param name="state">The state to synchronise current with. If this is null, it is regarded as an empty state.</param>
         protected virtual void SyncInputState(InputState state)
         {
+            // TODO: THIS IS ALL VERY HEAVY ALLOCATION AND NEEDS TO BE REMOVED.
+            // Using this class outside of a testing situation is not recommended...
+
             // invariant: if mouse button is currently pressed, then it has been pressed in parent (but not the converse)
             // therefore, mouse up events are always synced from parent
             // mouse down events are not synced to prevent false clicks
