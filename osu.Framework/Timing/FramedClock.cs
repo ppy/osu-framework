@@ -86,7 +86,10 @@ namespace osu.Framework.Timing
 
                     // simple stddev
                     double avg = betweenFrameTimes.Average();
-                    double stddev = Math.Sqrt(betweenFrameTimes.Average(v => Math.Pow(v - avg, 2)));
+                    double sumVariance = 0;
+                    foreach (double v in betweenFrameTimes)
+                        sumVariance += Math.Pow(v - avg, 2);
+                    double stddev = Math.Sqrt(sumVariance / betweenFrameTimes.Length);
                     Jitter = stddev;
                 }
 
