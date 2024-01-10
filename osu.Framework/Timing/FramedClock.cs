@@ -1,10 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Extensions.TypeExtensions;
 using System;
 using System.Diagnostics;
-using System.Linq;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Timing
 {
@@ -85,12 +84,18 @@ namespace osu.Framework.Timing
                     FramesPerSecond = (int)Math.Ceiling(framesSinceLastCalculation * 1000f / timeSinceLastCalculation);
 
                     // simple stddev
-                    double avg = betweenFrameTimes.Average();
-                    double sumVariance = 0;
+                    double sum = 0;
+                    double sumOfSquares = 0;
+
                     foreach (double v in betweenFrameTimes)
-                        sumVariance += Math.Pow(v - avg, 2);
-                    double stddev = Math.Sqrt(sumVariance / betweenFrameTimes.Length);
-                    Jitter = stddev;
+                    {
+                        sum += v;
+                        sumOfSquares += v * v;
+                    }
+
+                    double avg = sum / betweenFrameTimes.Length;
+                    double variance = (sumOfSquares / betweenFrameTimes.Length) - (avg * avg);
+                    Jitter = Math.Sqrt(variance);
                 }
 
                 timeSinceLastCalculation = framesSinceLastCalculation = 0;
