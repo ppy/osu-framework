@@ -39,7 +39,12 @@ namespace osu.Framework.Input.Bindings
 
             var keyBuilder = ImmutableArray.CreateBuilder<InputKey>(keys.Count);
 
-            keyBuilder.AddRange(keys);
+            foreach (var key in keys)
+            {
+                if (!keyBuilder.Contains(key))
+                    keyBuilder.Add(key);
+            }
+
             keyBuilder.Sort();
 
             Keys = keyBuilder.MoveToImmutable();
