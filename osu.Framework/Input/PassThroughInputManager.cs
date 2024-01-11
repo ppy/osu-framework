@@ -210,9 +210,9 @@ namespace osu.Framework.Input
 
             var midiDiff = (state?.Midi?.Keys ?? new ButtonStates<MidiKey>()).EnumerateDifference(CurrentState.Midi.Keys);
             foreach (var key in midiDiff.Released)
-                new MidiKeyInput(key, state?.Midi?.Velocities[key] ?? 0, false).Apply(CurrentState, this);
+                new MidiKeyInput(key, state?.Midi?.Velocities.GetValueOrDefault(key) ?? 0, false).Apply(CurrentState, this);
             foreach (var key in midiDiff.Pressed)
-                new MidiKeyInput(key, state?.Midi?.Velocities[key] ?? 0, true).Apply(CurrentState, this);
+                new MidiKeyInput(key, state?.Midi?.Velocities.GetValueOrDefault(key) ?? 0, true).Apply(CurrentState, this);
 
             var tabletPenDiff = (state?.Tablet?.PenButtons ?? new ButtonStates<TabletPenButton>()).EnumerateDifference(CurrentState.Tablet.PenButtons);
             foreach (var button in tabletPenDiff.Released)
