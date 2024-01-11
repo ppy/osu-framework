@@ -29,7 +29,7 @@ namespace osu.Framework.Input.Bindings
         /// Construct a new instance.
         /// </summary>
         /// <param name="keys">The keys.</param>
-        public KeyCombination(IEnumerable<InputKey>? keys)
+        public KeyCombination(ICollection<InputKey>? keys)
         {
             if (keys == null || !keys.Any())
             {
@@ -51,7 +51,7 @@ namespace osu.Framework.Input.Bindings
         /// <param name="keys">The keys.</param>
         /// <remarks>This constructor is not optimized. Hot paths are assumed to use <see cref="FromInputState(InputState, Vector2?)"/>.</remarks>
         public KeyCombination(params InputKey[] keys)
-            : this(keys.AsEnumerable())
+            : this((ICollection<InputKey>)keys)
         {
         }
 
@@ -61,7 +61,7 @@ namespace osu.Framework.Input.Bindings
         /// <param name="keys">A comma-separated (KeyCode in integer) string representation of the keys.</param>
         /// <remarks>This constructor is not optimized. Hot paths are assumed to use <see cref="FromInputState(InputState, Vector2?)"/>.</remarks>
         public KeyCombination(string keys)
-            : this(keys.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => (InputKey)int.Parse(s)))
+            : this(keys.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => (InputKey)int.Parse(s)).ToArray())
         {
         }
 
