@@ -33,11 +33,11 @@ namespace osu.Framework.Input.Bindings
         {
             if (keys == null || !keys.Any())
             {
-                Keys = ImmutableArray<InputKey>.Empty;
+                Keys = none;
                 return;
             }
 
-            var keyBuilder = ImmutableArray.CreateBuilder<InputKey>(keys.Count());
+            var keyBuilder = ImmutableArray.CreateBuilder<InputKey>(keys.Count);
 
             keyBuilder.AddRange(keys);
             keyBuilder.Sort();
