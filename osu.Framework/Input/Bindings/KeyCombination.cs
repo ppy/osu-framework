@@ -29,10 +29,20 @@ namespace osu.Framework.Input.Bindings
         /// Construct a new instance.
         /// </summary>
         /// <param name="keys">The keys.</param>
-        /// <remarks>This constructor is not optimized. Hot paths are assumed to use <see cref="FromInputState(InputState, Vector2?)"/>.</remarks>
         public KeyCombination(IEnumerable<InputKey>? keys)
         {
-            Keys = keys?.Any() == true ? keys.Distinct().OrderBy(k => (int)k).ToImmutableArray() : none;
+            if (keys == null || !keys.Any())
+            {
+                Keys = ImmutableArray<InputKey>.Empty;
+                return;
+            }
+
+            var keyBuilder = ImmutableArray.CreateBuilder<InputKey>(keys.Count());
+
+            keyBuilder.AddRange(keys);
+            keyBuilder.Sort();
+
+            Keys = keyBuilder.MoveToImmutable();
         }
 
         /// <summary>
@@ -643,8 +653,7 @@ namespace osu.Framework.Input.Bindings
             }
 
             Debug.Assert(!keys.Contains(InputKey.None)); // Having None in pressed keys will break IsPressed
-            keys.Sort();
-            return new KeyCombination(keys.ToImmutable());
+            return new KeyCombination(keys);
         }
     }
 
