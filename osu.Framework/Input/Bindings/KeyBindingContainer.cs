@@ -211,6 +211,7 @@ namespace osu.Framework.Input.Bindings
 
             bool handled = false;
             var bindings = KeyBindings?.Except(pressedBindings) ?? Enumerable.Empty<IKeyBinding>();
+
             var newlyPressed = bindings.Where(m =>
                 m.KeyCombination.IsPressed(pressedCombination, matchingMode));
 
