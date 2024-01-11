@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using osu.Framework.Configuration;
 using osuTK;
@@ -19,6 +20,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Threading;
+using Icon = osuTK.Icon;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Platform
@@ -114,7 +116,7 @@ namespace osu.Framework.Platform
 
         public abstract IBindable<bool> IsActive { get; }
 
-        public virtual IEnumerable<Display> Displays => new[] { DisplayDevice.GetDisplay(DisplayIndex.Primary).ToDisplay() };
+        public virtual ImmutableArray<Display> Displays => new ImmutableArray<Display> { DisplayDevice.GetDisplay(DisplayIndex.Primary).ToDisplay() };
 
 #pragma warning disable CS0067
         public event Action<IEnumerable<Display>> DisplaysChanged;
