@@ -132,7 +132,7 @@ namespace osu.Framework.Platform
         Bindable<WindowMode> WindowMode { get; }
 
         /// <summary>
-        /// Exposes the physical displays as an <see cref="IEnumerable{Display}"/>.
+        /// Contains information about the current physical displays.
         /// </summary>
         ImmutableArray<Display> Displays { get; }
 
