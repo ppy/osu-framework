@@ -11,14 +11,9 @@ namespace osu.Framework
     public class HostOptions
     {
         /// <summary>
-        /// Whether to bind the IPC port. See <see cref="IIpcHost"/> for more details on usage.
-        /// </summary>
-        public bool BindIPC { get; set; }
-
-        /// <summary>
         /// The IPC port to bind. See <see cref="IIpcHost"/> for more details on usage.
         /// </summary>
-        public int IPCPort { get; set; } = 45356;
+        public int? IPCPort { get; set; }
 
         /// <summary>
         /// Whether this is a portable installation. Will cause all game files to be placed alongside the executable, rather than in the standard data directory.
