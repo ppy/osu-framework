@@ -363,11 +363,12 @@ namespace osu.Framework.Input.Bindings
             {
                 var binding = pressedBindings[i];
 
-                if (binding.KeyCombination.IsPressed(pressedCombination, KeyCombinationMatchingMode.Any)) continue;
-
-                pressedBindings.RemoveAt(i--);
-                PropagateReleased(getInputQueue(binding).Where(d => d.IsRootedAt(this)), state, binding.GetAction<T>());
-                keyBindingQueues[binding].Clear();
+                if (pressedInputKeys.Count == 0 || !binding.KeyCombination.IsPressed(pressedCombination, KeyCombinationMatchingMode.Any))
+                {
+                    pressedBindings.RemoveAt(i--);
+                    PropagateReleased(getInputQueue(binding).Where(d => d.IsRootedAt(this)), state, binding.GetAction<T>());
+                    keyBindingQueues[binding].Clear();
+                }
             }
         }
 
