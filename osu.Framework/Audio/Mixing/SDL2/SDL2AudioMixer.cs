@@ -258,6 +258,15 @@ namespace osu.Framework.Audio.Mixing.SDL2
             return filter;
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            // Move all contained channels back to the default mixer.
+            foreach (var channel in activeChannels.ToArray())
+                Remove(channel);
+        }
+
         public void StreamFree(IAudioChannel channel)
         {
             Remove(channel, false);
