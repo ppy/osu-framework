@@ -658,7 +658,10 @@ namespace osu.Framework.Input.Bindings
             }
 
             Debug.Assert(!keys.Contains(InputKey.None)); // Having None in pressed keys will break IsPressed
-            return new KeyCombination(keys);
+            keys.Sort();
+
+            // Can't use `MoveToImmutable` here as we don't provide accurate capacity.
+            return new KeyCombination(keys.ToImmutableList());
         }
     }
 

@@ -196,22 +196,6 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             }
         }
 
-        public virtual bool Bind(int unit, WrapMode wrapModeS, WrapMode wrapModeT)
-        {
-            if (!Available)
-                throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
-
-            Upload();
-
-            if (resources == null)
-                return false;
-
-            if (Renderer.BindTexture(this, wrapModeS: wrapModeS, wrapModeT: wrapModeT))
-                BindCount++;
-
-            return true;
-        }
-
         public bool Upload()
         {
             if (!Available)
