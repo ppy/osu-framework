@@ -158,7 +158,8 @@ namespace osu.Framework.Audio
                     {
                         try
                         {
-                            syncAudioDevices();
+                            if (CheckForDeviceChanges(audioDevices))
+                                syncAudioDevices();
                             Thread.Sleep(1000);
                         }
                         catch

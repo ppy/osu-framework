@@ -1,80 +1,44 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
-using osu.Framework.Layout;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Sprites
 {
     /// <summary>
-    /// A sprite representing an icon.
+    /// A drawable representing an icon.
     /// Uses <see cref="FontStore"/> to perform character lookups.
     /// </summary>
-    public partial class SpriteIcon : CompositeDrawable
+    public partial class SpriteIcon : Drawable, ITexturedShaderDrawable
     {
-        private Sprite spriteShadow;
-        private Sprite spriteMain;
+        public IShader? TextureShader { get; private set; }
 
-        private readonly LayoutValue layout = new LayoutValue(Invalidation.Colour, conditions: (s, _) => ((SpriteIcon)s).Shadow);
-        private Container shadowVisibility;
-
-        private FontStore store;
-
-        public SpriteIcon()
-        {
-            AddLayout(layout);
-        }
+        private FontStore store = null!;
 
         [BackgroundDependencyLoader]
-        private void load(FontStore store)
+        private void load(FontStore store, ShaderManager shaders)
         {
             this.store = store;
-
-            InternalChildren = new Drawable[]
-            {
-                shadowVisibility = new Container
-                {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    RelativeSizeAxes = Axes.Both,
-                    Child = spriteShadow = new Sprite
-                    {
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        RelativeSizeAxes = Axes.Both,
-                        FillMode = FillMode.Fit,
-                        Position = shadowOffset,
-                        Colour = shadowColour
-                    },
-                    Alpha = shadow ? 1 : 0,
-                },
-                spriteMain = new Sprite
-                {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    RelativeSizeAxes = Axes.Both,
-                    FillMode = FillMode.Fit
-                },
-            };
-
-            updateTexture();
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
             updateTexture();
-            updateShadow();
         }
 
         private IconUsage loadedIcon;
+        private Texture? texture;
 
         private void updateTexture()
         {
@@ -86,28 +50,13 @@ namespace osu.Framework.Graphics.Sprites
 
             if (glyph != null)
             {
-                spriteMain.Texture = glyph.Texture;
-                spriteShadow.Texture = glyph.Texture;
+                texture = glyph.Texture;
 
                 if (Size == Vector2.Zero)
                     Size = new Vector2(glyph.Width, glyph.Height);
             }
 
             loadedIcon = loadableIcon;
-        }
-
-        protected override void Update()
-        {
-            if (!layout.IsValid)
-            {
-                //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
-                //squared result for quadratic fall-off seems to give the best result.
-                var avgColour = (Color4)DrawColourInfo.Colour.AverageColour;
-
-                spriteShadow.Alpha = MathF.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
-
-                layout.Validate();
-            }
         }
 
         private bool shadow;
@@ -117,10 +66,11 @@ namespace osu.Framework.Graphics.Sprites
             get => shadow;
             set
             {
-                shadow = value;
+                if (shadow == value)
+                    return;
 
-                if (IsLoaded)
-                    updateShadow();
+                shadow = value;
+                Invalidate(Invalidation.DrawNode);
             }
         }
 
@@ -134,10 +84,11 @@ namespace osu.Framework.Graphics.Sprites
             get => shadowColour;
             set
             {
-                shadowColour = value;
+                if (shadowColour == value)
+                    return;
 
-                if (IsLoaded)
-                    updateShadow();
+                shadowColour = value;
+                Invalidate(Invalidation.DrawNode);
             }
         }
 
@@ -151,18 +102,12 @@ namespace osu.Framework.Graphics.Sprites
             get => shadowOffset;
             set
             {
+                if (shadowOffset == value)
+                    return;
+
                 shadowOffset = value;
-
-                if (IsLoaded)
-                    updateShadow();
+                Invalidate(Invalidation.DrawNode);
             }
-        }
-
-        private void updateShadow()
-        {
-            shadowVisibility.Alpha = shadow ? 1 : 0;
-            spriteShadow.Colour = shadowColour;
-            spriteShadow.Position = shadowOffset;
         }
 
         private IconUsage icon;
@@ -177,6 +122,81 @@ namespace osu.Framework.Graphics.Sprites
                 icon = value;
                 if (IsLoaded)
                     updateTexture();
+            }
+        }
+
+        protected override DrawNode CreateDrawNode() => new SpriteIconDrawNode(this);
+
+        private class SpriteIconDrawNode : TexturedShaderDrawNode
+        {
+            protected new SpriteIcon Source => (SpriteIcon)base.Source;
+
+            public SpriteIconDrawNode(SpriteIcon source)
+                : base(source)
+            {
+            }
+
+            private bool shadow;
+            private ColourInfo shadowDrawColour;
+            private Quad shadowDrawQuad;
+            private Quad screenSpaceDrawQuad;
+            private Texture? texture;
+
+            public override void ApplyState()
+            {
+                base.ApplyState();
+
+                texture = Source.texture;
+                if (texture == null)
+                    return;
+
+                shadow = Source.shadow;
+
+                RectangleF drawRect = Source.DrawRectangle;
+
+                // scale texture to fit into drawable
+                float scale = Math.Min(drawRect.Width / texture.Width, drawRect.Height / texture.Height);
+                drawRect.Size = texture.Size * scale;
+
+                // move draw rectangle to make texture centered
+                drawRect.Location += (Source.DrawRectangle.Size - drawRect.Size) * 0.5f;
+                screenSpaceDrawQuad = Source.ToScreenSpace(drawRect);
+
+                if (!shadow)
+                    return;
+
+                RectangleF offsetRect = drawRect;
+                offsetRect.Location += Source.shadowOffset;
+                shadowDrawQuad = Source.ToScreenSpace(offsetRect);
+
+                ColourInfo shadowCol = Source.shadowColour;
+
+                //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
+                //squared result for quadratic fall-off seems to give the best result.
+                var avgColour = (Color4)DrawColourInfo.Colour.AverageColour;
+                float alpha = MathF.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
+
+                shadowCol = shadowCol.MultiplyAlpha(alpha);
+
+                shadowDrawColour = DrawColourInfo.Colour;
+                shadowDrawColour.ApplyChild(shadowCol);
+            }
+
+            protected override void Draw(IRenderer renderer)
+            {
+                base.Draw(renderer);
+
+                if (texture?.Available != true)
+                    return;
+
+                BindTextureShader(renderer);
+
+                if (shadow)
+                    renderer.DrawQuad(texture, shadowDrawQuad, shadowDrawColour);
+
+                renderer.DrawQuad(texture, screenSpaceDrawQuad, DrawColourInfo.Colour);
+
+                UnbindTextureShader(renderer);
             }
         }
     }
