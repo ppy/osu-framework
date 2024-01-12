@@ -579,6 +579,28 @@ namespace osu.Framework.Platform
                 case SDL.SDL_EventType.SDL_DROPCOMPLETE:
                     handleDropEvent(e.drop);
                     break;
+
+                case SDL.SDL_EventType.SDL_AUDIODEVICEADDED:
+                case SDL.SDL_EventType.SDL_AUDIODEVICEREMOVED:
+                    handleAudioDeviceEvent(e.adevice);
+                    break;
+            }
+        }
+
+        private void handleAudioDeviceEvent(SDL.SDL_AudioDeviceEvent evtAudioDevice)
+        {
+            if (evtAudioDevice.iscapture != 0) // capture device
+                return;
+
+            switch ((SDL.SDL_EventType)evtAudioDevice.type)
+            {
+                case SDL.SDL_EventType.SDL_AUDIODEVICEADDED:
+                    AudioDeviceAdded?.Invoke(evtAudioDevice.which);
+                    break;
+
+                case SDL.SDL_EventType.SDL_AUDIODEVICEREMOVED:
+                    AudioDeviceRemoved?.Invoke(evtAudioDevice.which);
+                    break;
             }
         }
 
@@ -651,6 +673,16 @@ namespace osu.Framework.Platform
         /// Invoked when the user drops a file into the window.
         /// </summary>
         public event Action<string>? DragDrop;
+
+        /// <summary>
+        /// Invoked when a new audio device is added, only when using SDL2 audio
+        /// </summary>
+        public event Action<uint>? AudioDeviceAdded;
+
+        /// <summary>
+        /// Invoked when a new audio device is removed, only when using SDL2 audio
+        /// </summary>
+        public event Action<uint>? AudioDeviceRemoved;
 
         #endregion
 
