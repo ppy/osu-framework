@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
@@ -71,18 +72,24 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             if (bytes == null)
                 return string.Empty;
 
+            var builder = new StringBuilder();
+
+            if (mainFile)
+            {
+                builder.AppendLine(loadFile(store.GetRawData("Internal/sh_Compatibility.h"), false));
+                builder.AppendLine(loadFile(store.GetRawData("Internal/sh_GlobalUniforms.h"), false));
+            }
+
             using (MemoryStream ms = new MemoryStream(bytes))
             using (StreamReader sr = new StreamReader(ms))
             {
-                string code = string.Empty;
-
                 while (sr.Peek() != -1)
                 {
                     string? line = sr.ReadLine();
 
                     if (string.IsNullOrEmpty(line))
                     {
-                        code += line + '\n';
+                        builder.AppendLine(line);
                         continue;
                     }
 
@@ -109,29 +116,26 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                         //                        if (File.Exists(includeName))
                         //                            rawData = File.ReadAllBytes(includeName);
                         //#endif
-                        code += loadFile(store.GetRawData(includeName), false) + '\n';
+                        builder.AppendLine(loadFile(store.GetRawData(includeName), false));
                     }
                     else
-                        code += line + '\n';
+                        builder.AppendLine(line);
                 }
 
-                if (mainFile)
+                string code = builder.ToString();
+
+                if (!mainFile) return code;
+
+                if (Type == ShaderType.VertexShader)
                 {
-                    string internalIncludes = loadFile(store.GetRawData("Internal/sh_Compatibility.h"), false) + "\n";
-                    internalIncludes += loadFile(store.GetRawData("Internal/sh_GlobalUniforms.h"), false) + "\n";
-                    code = internalIncludes + code;
+                    string backbufferCode = loadFile(store.GetRawData("Internal/sh_Vertex_Output.h"), false);
 
-                    if (Type == ShaderType.VertexShader)
+                    if (!string.IsNullOrEmpty(backbufferCode))
                     {
-                        string backbufferCode = loadFile(store.GetRawData("Internal/sh_Vertex_Output.h"), false);
+                        const string real_main_name = "__internal_real_main";
 
-                        if (!string.IsNullOrEmpty(backbufferCode))
-                        {
-                            const string real_main_name = "__internal_real_main";
-
-                            backbufferCode = backbufferCode.Replace("{{ real_main }}", real_main_name);
-                            code = Regex.Replace(code, @"void main\((.*)\)", $"void {real_main_name}()") + backbufferCode + '\n';
-                        }
+                        backbufferCode = backbufferCode.Replace("{{ real_main }}", real_main_name);
+                        code = Regex.Replace(code, @"void main\((.*)\)", $"void {real_main_name}()") + backbufferCode + '\n';
                     }
                 }
 

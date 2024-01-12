@@ -285,7 +285,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Queries the physical displays and their supported resolutions.
         /// </summary>
-        public IEnumerable<Display> Displays { get; private set; } = null!;
+        public ImmutableArray<Display> Displays { get; private set; } = ImmutableArray<Display>.Empty;
 
         public event Action<IEnumerable<Display>>? DisplaysChanged;
 
@@ -324,7 +324,7 @@ namespace osu.Framework.Platform
             Debug.Assert(actualDisplays.SequenceEqual(Displays), message, detailedMessage);
         }
 
-        private static IEnumerable<Display> getSDLDisplays()
+        private static ImmutableArray<Display> getSDLDisplays()
         {
             int numDisplays = SDL.SDL_GetNumVideoDisplays();
 
