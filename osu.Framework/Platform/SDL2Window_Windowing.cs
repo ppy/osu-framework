@@ -341,7 +341,7 @@ namespace osu.Framework.Platform
                     Logger.Log($"Failed to retrieve SDL display at index ({i})", level: LogLevel.Error);
             }
 
-            return builder.ToImmutable();
+            return builder.MoveToImmutable();
         }
 
         private static bool tryGetDisplayFromSDL(int displayIndex, [NotNullWhen(true)] out Display? display)
