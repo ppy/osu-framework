@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using osu.Framework.Audio.Callbacks;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.SDL2;
@@ -37,6 +36,8 @@ namespace osu.Framework.Audio
 
         private readonly SDL2AudioCallback audioCallback;
 
+        private Scheduler eventScheduler => EventScheduler ?? CurrentAudioThread.Scheduler;
+
         /// <summary>
         /// Creates a new <see cref="SDL2AudioManager"/>.
         /// </summary>
@@ -59,9 +60,11 @@ namespace osu.Framework.Audio
                 samples = 256 // determines latency, this value can be changed but is already reasonably low
             };
 
-            // comment below lines if you want to use FFmpeg to decode audio, AudioDecoder will use FFmpeg if no BASS device is available
-            EnqueueAction(() =>
+            eventScheduler.Add(() =>
             {
+                updateDeviceNames();
+
+                // comment below lines if you want to use FFmpeg to decode audio, AudioDecoder will use FFmpeg if no BASS device is available
                 ManagedBass.Bass.Configure((ManagedBass.Configuration)68, 1);
                 audioThread.InitDevice(ManagedBass.Bass.NoSoundDevice);
             });
@@ -147,22 +150,39 @@ namespace osu.Framework.Audio
             }
         }
 
-        protected override bool IsDevicesUpdated(out ImmutableList<string> newDevices, out ImmutableList<string> lostDevices)
+        internal void OnNewDeviceEvent(int addedDeviceIndex)
         {
-            var updatedAudioDevices = EnumerateAllDevices().ToImmutableList();
-
-            if (DeviceNames.SequenceEqual(updatedAudioDevices))
+            eventScheduler.Add(() =>
             {
-                newDevices = lostDevices = ImmutableList<string>.Empty;
-                return false;
-            }
+                // the index is only vaild until next SDL_GetNumAudioDevices call, so get the name first.
+                string name = SDL.SDL_GetAudioDeviceName(addedDeviceIndex, 0);
 
-            newDevices = updatedAudioDevices.Except(DeviceNames).ToImmutableList();
-            lostDevices = DeviceNames.Except(updatedAudioDevices).ToImmutableList();
-
-            DeviceNames = updatedAudioDevices;
-            return true;
+                updateDeviceNames();
+                InvokeOnNewDevice(name);
+            });
         }
+
+        internal void OnLostDeviceEvent(uint removedDeviceId)
+        {
+            eventScheduler.Add(() =>
+            {
+                // SDL doesn't retain information about removed device.
+                updateDeviceNames();
+
+                if (deviceId == removedDeviceId) // current device lost
+                {
+                    InvokeOnLostDevice(currentDeviceName);
+                    SetAudioDevice();
+                }
+                else
+                {
+                    // we can probably guess the name by comparing the old list and the new one, but it won't be reliable
+                    InvokeOnLostDevice(string.Empty);
+                }
+            });
+        }
+
+        private void updateDeviceNames() => DeviceNames = EnumerateAllDevices().ToImmutableList();
 
         protected virtual IEnumerable<string> EnumerateAllDevices()
         {
@@ -173,11 +193,13 @@ namespace osu.Framework.Audio
 
         protected override bool SetAudioDevice(string deviceName = null)
         {
-            if (!AudioDeviceNames.Contains(deviceName))
+            if (!DeviceNames.Contains(deviceName))
                 deviceName = null;
 
             if (deviceId > 0)
                 SDL.SDL_CloseAudioDevice(deviceId);
+
+            Logger.Log("Trying this device: " + deviceName);
 
             // Let audio driver adjust latency, this may set to a high value on Windows (but usually around 10ms), but let's just be safe
             const uint flag = SDL.SDL_AUDIO_ALLOW_SAMPLES_CHANGE;
@@ -187,7 +209,7 @@ namespace osu.Framework.Audio
             {
                 if (deviceName == null)
                 {
-                    Logger.Log("SDL Audio init failed!", level: LogLevel.Error);
+                    Logger.Log("No audio device can be used! Check your audio system.", level: LogLevel.Error);
                     return false;
                 }
 

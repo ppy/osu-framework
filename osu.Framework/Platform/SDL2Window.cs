@@ -601,14 +601,14 @@ namespace osu.Framework.Platform
             if (evtAudioDevice.iscapture != 0) // capture device
                 return;
 
-            switch ((SDL.SDL_EventType)evtAudioDevice.type)
+            switch (evtAudioDevice.type)
             {
                 case SDL.SDL_EventType.SDL_AUDIODEVICEADDED:
-                    AudioDeviceAdded?.Invoke(evtAudioDevice.which);
+                    AudioDeviceAdded?.Invoke((int)evtAudioDevice.which);
                     break;
 
                 case SDL.SDL_EventType.SDL_AUDIODEVICEREMOVED:
-                    AudioDeviceRemoved?.Invoke(evtAudioDevice.which);
+                    AudioDeviceRemoved?.Invoke(evtAudioDevice.which); // it is only uint if a device is removed
                     break;
             }
         }
@@ -686,7 +686,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when a new audio device is added, only when using SDL2 audio
         /// </summary>
-        public event Action<uint>? AudioDeviceAdded;
+        public event Action<int>? AudioDeviceAdded;
 
         /// <summary>
         /// Invoked when a new audio device is removed, only when using SDL2 audio

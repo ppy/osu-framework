@@ -170,6 +170,8 @@ namespace osu.Framework
                 case AudioDriver.SDL2 when Host.Window is SDL2Window sdl2Window:
                 {
                     SDL2AudioManager sdl2Audio = new SDL2AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
+                    sdl2Window.AudioDeviceAdded += sdl2Audio.OnNewDeviceEvent;
+                    sdl2Window.AudioDeviceRemoved += sdl2Audio.OnLostDeviceEvent;
                     Audio = sdl2Audio;
                     break;
                 }

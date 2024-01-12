@@ -57,10 +57,16 @@ namespace osu.Framework.Audio
         /// </summary>
         public event Action<string> OnNewDevice;
 
+        // workaround as c# doesn't allow actions to get invoked outside of this class
+        protected void InvokeOnNewDevice(string deviceName) => OnNewDevice?.Invoke(deviceName);
+
         /// <summary>
         /// Is fired whenever an audio device is lost and provides its name.
         /// </summary>
         public event Action<string> OnLostDevice;
+
+        // same as above
+        protected void InvokeOnLostDevice(string deviceName) => OnLostDevice?.Invoke(deviceName);
 
         /// <summary>
         /// The preferred audio device we should use. A value of
@@ -98,9 +104,7 @@ namespace osu.Framework.Audio
 
         private Scheduler scheduler => CurrentAudioThread.Scheduler;
 
-        private Scheduler eventScheduler => EventScheduler ?? scheduler;
-
-        private readonly CancellationTokenSource cancelSource = new CancellationTokenSource();
+        protected readonly CancellationTokenSource CancelSource = new CancellationTokenSource();
 
         /// <summary>
         /// The scheduler used for invoking publicly exposed delegate events.
@@ -145,32 +149,6 @@ namespace osu.Framework.Audio
                 store.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
                 return store;
             });
-
-            CancellationToken token = cancelSource.Token;
-
-            syncAudioDevices();
-            scheduler.AddDelayed(() =>
-            {
-                // sync audioDevices every 1000ms
-                new Thread(() =>
-                {
-                    while (!token.IsCancellationRequested)
-                    {
-                        try
-                        {
-                            if (CheckForDeviceChanges(audioDevices))
-                                syncAudioDevices();
-                            Thread.Sleep(1000);
-                        }
-                        catch
-                        {
-                        }
-                    }
-                })
-                {
-                    IsBackground = true
-                }.Start();
-            }, 1000);
         }
 
         internal abstract Track.Track GetNewTrack(Stream data, string name);
@@ -179,7 +157,7 @@ namespace osu.Framework.Audio
 
         protected override void Dispose(bool disposing)
         {
-            cancelSource.Cancel();
+            CancelSource.Cancel();
 
             CurrentAudioThread.UnregisterManager(this);
 
@@ -192,18 +170,6 @@ namespace osu.Framework.Audio
         protected void OnDeviceChanged()
         {
             scheduler.Add(() => SetAudioDevice(AudioDevice.Value));
-        }
-
-        private void onDevicesChanged()
-        {
-            scheduler.Add(() =>
-            {
-                if (cancelSource.IsCancellationRequested)
-                    return;
-
-                if (!IsCurrentDeviceValid())
-                    SetAudioDevice();
-            });
         }
 
         private static int userMixerID;
@@ -271,27 +237,6 @@ namespace osu.Framework.Audio
 
         protected abstract bool SetAudioDevice(string deviceName = null);
         protected abstract bool SetAudioDevice(int deviceIndex);
-
-        protected abstract bool IsDevicesUpdated(out ImmutableList<string> newDevices, out ImmutableList<string> lostDevices);
-
-        private void syncAudioDevices()
-        {
-            if (IsDevicesUpdated(out ImmutableList<string> newDevices, out ImmutableList<string> lostDevices))
-            {
-                onDevicesChanged();
-
-                if (newDevices.Count > 0 || lostDevices.Count > 0)
-                {
-                    eventScheduler.Add(delegate
-                    {
-                        foreach (string d in newDevices)
-                            OnNewDevice?.Invoke(d);
-                        foreach (string d in lostDevices)
-                            OnLostDevice?.Invoke(d);
-                    });
-                }
-            }
-        }
 
         // The current device is considered valid if it is enabled, initialized, and not a fallback device.
         protected abstract bool IsCurrentDeviceValid();

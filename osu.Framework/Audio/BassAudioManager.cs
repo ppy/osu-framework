@@ -4,11 +4,11 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
@@ -63,9 +63,9 @@ namespace osu.Framework.Audio
                                          Bass.CurrentDevice != Bass.DefaultDevice;
 
         // Mutated by multiple threads, must be thread safe.
-        private ImmutableList<DeviceInfo> audioDevices = ImmutableList<DeviceInfo>.Empty;
+        private ImmutableArray<DeviceInfo> audioDevices = ImmutableArray<DeviceInfo>.Empty;
 
-        private readonly DeviceInfoUpdateComparer updateComparer = new DeviceInfoUpdateComparer();
+        private Scheduler eventScheduler => EventScheduler ?? CurrentAudioThread.Scheduler;
 
         /// <summary>
         /// Constructs an AudioStore given a track resource store, and a sample resource store.
@@ -81,6 +81,44 @@ namespace osu.Framework.Audio
                 OnDeviceChanged();
                 UsingGlobalMixer.Value = handle.NewValue.HasValue;
             };
+
+            CancellationToken token = CancelSource.Token;
+
+            syncAudioDevices();
+            eventScheduler.AddDelayed(() =>
+            {
+                // sync audioDevices every 1000ms
+                new Thread(() =>
+                {
+                    while (!token.IsCancellationRequested)
+                    {
+                        try
+                        {
+                            if (CheckForDeviceChanges(audioDevices))
+                                syncAudioDevices();
+                            Thread.Sleep(1000);
+                        }
+                        catch
+                        {
+                        }
+                    }
+                })
+                {
+                    IsBackground = true
+                }.Start();
+            }, 1000);
+        }
+
+        protected void OnDevicesChanged()
+        {
+            eventScheduler.Add(() =>
+            {
+                if (CancelSource.IsCancellationRequested)
+                    return;
+
+                if (!IsCurrentDeviceValid())
+                    SetAudioDevice();
+            });
         }
 
         internal override Track.Track GetNewTrack(Stream data, string name) => new TrackBass(data, name);
@@ -208,37 +246,77 @@ namespace osu.Framework.Audio
             return true;
         }
 
-        protected override bool IsDevicesUpdated(out ImmutableList<string> newDevices, out ImmutableList<string> lostDevices)
+        private void syncAudioDevices()
         {
-            // audioDevices are updated if:
-            // - A new device is added
-            // - An existing device is Enabled/Disabled or set as Default
-            var updatedAudioDevices = EnumerateAllDevices().ToImmutableList();
-
-            if (audioDevices.SequenceEqual(updatedAudioDevices, updateComparer))
-            {
-                newDevices = lostDevices = ImmutableList<string>.Empty;
-                return false;
-            }
-
-            audioDevices = updatedAudioDevices;
+            audioDevices = GetAllDevices();
 
             // Bass should always be providing "No sound" and "Default" device.
-            Trace.Assert(audioDevices.Count >= BASS_INTERNAL_DEVICE_COUNT, "Bass did not provide any audio devices.");
+            Trace.Assert(audioDevices.Length >= BASS_INTERNAL_DEVICE_COUNT, "Bass did not provide any audio devices.");
 
             var oldDeviceNames = DeviceNames;
             var newDeviceNames = DeviceNames = audioDevices.Skip(BASS_INTERNAL_DEVICE_COUNT).Where(d => d.IsEnabled).Select(d => d.Name).ToImmutableList();
 
-            newDevices = newDeviceNames.Except(oldDeviceNames).ToImmutableList();
-            lostDevices = oldDeviceNames.Except(newDeviceNames).ToImmutableList();
-            return true;
+            OnDevicesChanged();
+
+            var newDevices = newDeviceNames.Except(oldDeviceNames).ToList();
+            var lostDevices = oldDeviceNames.Except(newDeviceNames).ToList();
+
+            if (newDevices.Count > 0 || lostDevices.Count > 0)
+            {
+                eventScheduler.Add(delegate
+                {
+                    foreach (string d in newDevices)
+                        InvokeOnNewDevice(d);
+                    foreach (string d in lostDevices)
+                        InvokeOnLostDevice(d);
+                });
+            }
         }
 
-        protected virtual IEnumerable<DeviceInfo> EnumerateAllDevices()
+        /// <summary>
+        /// Check whether any audio device changes have occurred.
+        ///
+        /// Changes supported are:
+        /// - A new device is added
+        /// - An existing device is Enabled/Disabled or set as Default
+        /// </summary>
+        /// <remarks>
+        /// This method is optimised to incur the lowest overhead possible.
+        /// </remarks>
+        /// <param name="previousDevices">The previous audio devices array.</param>
+        /// <returns>Whether a change was detected.</returns>
+        protected virtual bool CheckForDeviceChanges(ImmutableArray<DeviceInfo> previousDevices)
         {
             int deviceCount = Bass.DeviceCount;
+
+            if (previousDevices.Length != deviceCount)
+                return true;
+
             for (int i = 0; i < deviceCount; i++)
-                yield return Bass.GetDeviceInfo(i);
+            {
+                var prevInfo = previousDevices[i];
+
+                Bass.GetDeviceInfo(i, out var info);
+
+                if (info.IsEnabled != prevInfo.IsEnabled)
+                    return true;
+
+                if (info.IsDefault != prevInfo.IsDefault)
+                    return true;
+            }
+
+            return false;
+        }
+
+        protected virtual ImmutableArray<DeviceInfo> GetAllDevices()
+        {
+            int deviceCount = Bass.DeviceCount;
+
+            var devices = ImmutableArray.CreateBuilder<DeviceInfo>(deviceCount);
+            for (int i = 0; i < deviceCount; i++)
+                devices.Add(Bass.GetDeviceInfo(i));
+
+            return devices.MoveToImmutable();
         }
 
         // The current device is considered valid if it is enabled, initialized, and not a fallback device.
@@ -253,13 +331,6 @@ namespace osu.Framework.Audio
         {
             string deviceName = audioDevices.ElementAtOrDefault(Bass.CurrentDevice).Name;
             return $@"{GetType().ReadableName()} ({deviceName ?? "Unknown"})";
-        }
-
-        private class DeviceInfoUpdateComparer : IEqualityComparer<DeviceInfo>
-        {
-            public bool Equals(DeviceInfo x, DeviceInfo y) => x.IsEnabled == y.IsEnabled && x.IsDefault == y.IsDefault;
-
-            public int GetHashCode(DeviceInfo obj) => obj.Name.GetHashCode();
         }
     }
 }
