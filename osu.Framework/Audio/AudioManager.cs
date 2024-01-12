@@ -58,7 +58,7 @@ namespace osu.Framework.Audio
         public event Action<string> OnNewDevice;
 
         // workaround as c# doesn't allow actions to get invoked outside of this class
-        protected void InvokeOnNewDevice(string deviceName) => OnNewDevice?.Invoke(deviceName);
+        protected virtual void InvokeOnNewDevice(string deviceName) => OnNewDevice?.Invoke(deviceName);
 
         /// <summary>
         /// Is fired whenever an audio device is lost and provides its name.
@@ -66,7 +66,7 @@ namespace osu.Framework.Audio
         public event Action<string> OnLostDevice;
 
         // same as above
-        protected void InvokeOnLostDevice(string deviceName) => OnLostDevice?.Invoke(deviceName);
+        protected virtual void InvokeOnLostDevice(string deviceName) => OnLostDevice?.Invoke(deviceName);
 
         /// <summary>
         /// The preferred audio device we should use. A value of
@@ -102,7 +102,7 @@ namespace osu.Framework.Audio
         // Mutated by multiple threads, must be thread safe.
         protected ImmutableList<string> DeviceNames = ImmutableList<string>.Empty;
 
-        private Scheduler scheduler => CurrentAudioThread.Scheduler;
+        protected Scheduler AudioScheduler => CurrentAudioThread.Scheduler;
 
         protected readonly CancellationTokenSource CancelSource = new CancellationTokenSource();
 
@@ -169,7 +169,7 @@ namespace osu.Framework.Audio
 
         protected void OnDeviceChanged()
         {
-            scheduler.Add(() => SetAudioDevice(AudioDevice.Value));
+            AudioScheduler.Add(() => SetAudioDevice(AudioDevice.Value));
         }
 
         private static int userMixerID;

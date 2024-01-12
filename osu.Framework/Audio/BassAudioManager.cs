@@ -85,7 +85,7 @@ namespace osu.Framework.Audio
             CancellationToken token = CancelSource.Token;
 
             syncAudioDevices();
-            eventScheduler.AddDelayed(() =>
+            AudioScheduler.AddDelayed(() =>
             {
                 // sync audioDevices every 1000ms
                 new Thread(() =>
@@ -111,7 +111,7 @@ namespace osu.Framework.Audio
 
         protected void OnDevicesChanged()
         {
-            eventScheduler.Add(() =>
+            AudioScheduler.Add(() =>
             {
                 if (CancelSource.IsCancellationRequested)
                     return;

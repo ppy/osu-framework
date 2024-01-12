@@ -38,6 +38,10 @@ namespace osu.Framework.Audio
 
         private Scheduler eventScheduler => EventScheduler ?? CurrentAudioThread.Scheduler;
 
+        protected override void InvokeOnNewDevice(string deviceName) => eventScheduler.Add(() => base.InvokeOnNewDevice(deviceName));
+
+        protected override void InvokeOnLostDevice(string deviceName) => eventScheduler.Add(() => base.InvokeOnLostDevice(deviceName));
+
         /// <summary>
         /// Creates a new <see cref="SDL2AudioManager"/>.
         /// </summary>
@@ -60,7 +64,7 @@ namespace osu.Framework.Audio
                 samples = 256 // determines latency, this value can be changed but is already reasonably low
             };
 
-            eventScheduler.Add(() =>
+            AudioScheduler.Add(() =>
             {
                 updateDeviceNames();
 
@@ -152,7 +156,7 @@ namespace osu.Framework.Audio
 
         internal void OnNewDeviceEvent(int addedDeviceIndex)
         {
-            eventScheduler.Add(() =>
+            AudioScheduler.Add(() =>
             {
                 // the index is only vaild until next SDL_GetNumAudioDevices call, so get the name first.
                 string name = SDL.SDL_GetAudioDeviceName(addedDeviceIndex, 0);
@@ -164,7 +168,7 @@ namespace osu.Framework.Audio
 
         internal void OnLostDeviceEvent(uint removedDeviceId)
         {
-            eventScheduler.Add(() =>
+            AudioScheduler.Add(() =>
             {
                 // SDL doesn't retain information about removed device.
                 updateDeviceNames();
