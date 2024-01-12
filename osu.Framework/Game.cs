@@ -167,9 +167,12 @@ namespace osu.Framework
 
             switch (config.Get<AudioDriver>(FrameworkSetting.AudioDriver))
             {
-                case AudioDriver.SDL2:
-                    Audio = new SDL2AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
+                case AudioDriver.SDL2 when Host.Window is SDL2Window sdl2Window:
+                {
+                    SDL2AudioManager sdl2Audio = new SDL2AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
+                    Audio = sdl2Audio;
                     break;
+                }
 
                 default:
                     Audio = new BassAudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
