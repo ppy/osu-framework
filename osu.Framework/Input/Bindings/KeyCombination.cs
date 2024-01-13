@@ -39,15 +39,23 @@ namespace osu.Framework.Input.Bindings
 
             var keyBuilder = ImmutableArray.CreateBuilder<InputKey>(keys.Count);
 
+            bool hadDuplicates = false;
+
             foreach (var key in keys)
             {
-                if (!keyBuilder.Contains(key))
-                    keyBuilder.Add(key);
+                if (keyBuilder.Contains(key))
+                {
+                    // This changes the expected count meaning we can't use the optimised MoveToImmutable() method.
+                    hadDuplicates = true;
+                    continue;
+                }
+
+                keyBuilder.Add(key);
             }
 
             keyBuilder.Sort();
 
-            Keys = keyBuilder.MoveToImmutable();
+            Keys = hadDuplicates ? keyBuilder.ToImmutableArray() : keyBuilder.MoveToImmutable();
         }
 
         /// <summary>
