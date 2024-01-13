@@ -55,7 +55,7 @@ namespace osu.Framework.Input.Bindings
 
             keyBuilder.Sort();
 
-            Keys = hadDuplicates ? keys.ToImmutableArray() : keyBuilder.MoveToImmutable();
+            Keys = hadDuplicates ? keyBuilder.ToImmutableArray() : keyBuilder.MoveToImmutable();
         }
 
         /// <summary>
