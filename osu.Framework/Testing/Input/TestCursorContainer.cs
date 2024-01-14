@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using System.Linq;
 using osu.Framework.Graphics;
@@ -15,12 +13,12 @@ using osuTK.Input;
 
 namespace osu.Framework.Testing.Input
 {
-    internal class TestCursorContainer : CursorContainer
+    internal partial class TestCursorContainer : CursorContainer
     {
         protected override Drawable CreateCursor() => new TestCursor();
     }
 
-    internal class TestCursor : CompositeDrawable
+    internal partial class TestCursor : CompositeDrawable
     {
         private readonly Container circle;
 

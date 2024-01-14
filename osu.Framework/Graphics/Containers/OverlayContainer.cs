@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// An element which starts hidden and can be toggled to visible.
     /// </summary>
-    public abstract class OverlayContainer : VisibilityContainer
+    public abstract partial class OverlayContainer : VisibilityContainer
     {
         /// <summary>
         /// Whether we should block any positional input from interacting with things behind us.

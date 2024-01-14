@@ -15,7 +15,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.Visualisation.Audio
 {
-    internal class AudioMixerVisualiser : ToolWindow
+    internal partial class AudioMixerVisualiser : ToolWindow
     {
         [Resolved]
         private AudioManager audioManager { get; set; }
@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
         public AudioMixerVisualiser()
             : base("AudioMixer", "(Ctrl+F9 to toggle)")
         {
-            ScrollContent.Expire();
+            MainHorizontalContent.Clear();
             MainHorizontalContent.Add(new BasicScrollContainer(Direction.Horizontal)
             {
                 RelativeSizeAxes = Axes.Y,

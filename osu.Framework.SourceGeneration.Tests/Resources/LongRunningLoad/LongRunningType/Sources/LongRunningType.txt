@@ -1,0 +1,6 @@
+using osu.Framework.Allocation;
+
+[LongRunningLoad]
+public partial class LongRunningType : osu.Framework.Graphics.Drawable
+{
+}

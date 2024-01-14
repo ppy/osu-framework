@@ -76,20 +76,18 @@ namespace osu.Framework.Graphics.Sprites
                 renderer.DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, textureCoords: TextureCoords);
         }
 
-        public override void Draw(IRenderer renderer)
+        protected override void Draw(IRenderer renderer)
         {
             base.Draw(renderer);
 
             if (Texture?.Available != true)
                 return;
 
-            var shader = TextureShader;
-
-            shader.Bind();
+            BindTextureShader(renderer);
 
             Blit(renderer);
 
-            shader.Unbind();
+            UnbindTextureShader(renderer);
         }
 
         protected override void DrawOpaqueInterior(IRenderer renderer)
@@ -99,11 +97,11 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture?.Available != true)
                 return;
 
-            TextureShader.Bind();
+            BindTextureShader(renderer);
 
             BlitOpaqueInterior(renderer);
 
-            TextureShader.Unbind();
+            UnbindTextureShader(renderer);
         }
 
         protected internal override bool CanDrawOpaqueInterior => Texture?.Available == true && Texture.Opacity == Opacity.Opaque && hasOpaqueInterior;

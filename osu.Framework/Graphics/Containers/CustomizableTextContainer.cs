@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A <see cref="TextFlowContainer"/> that supports adding icons into its text. Inherit from this class to define reusable custom placeholders for icons.
     /// </summary>
-    public class CustomizableTextContainer : TextFlowContainer
+    public partial class CustomizableTextContainer : TextFlowContainer
     {
         internal const string UNESCAPED_LEFT = "[";
         internal const string ESCAPED_LEFT = "[[";
@@ -32,8 +32,7 @@ namespace osu.Framework.Graphics.Containers
             get => placeholders;
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+                ArgumentNullException.ThrowIfNull(value);
 
                 placeholders.Clear();
                 placeholders.AddRange(value);

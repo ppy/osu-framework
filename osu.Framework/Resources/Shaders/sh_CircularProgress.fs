@@ -1,31 +1,38 @@
-﻿#define HIGH_PRECISION_VERTEX
+﻿#ifndef CIRCULAR_PROGRESS_FS
+#define CIRCULAR_PROGRESS_FS
+
+#undef HIGH_PRECISION_VERTEX
+#define HIGH_PRECISION_VERTEX
 
 #include "sh_Utils.h"
 #include "sh_Masking.h"
 #include "sh_TextureWrapping.h"
 #include "sh_CircularProgressUtils.h"
 
-varying highp vec2 v_TexCoord;
+layout(location = 2) in highp vec2 v_TexCoord;
 
-uniform lowp sampler2D m_Sampler;
-uniform mediump float progress;
-uniform mediump float innerRadius;
-uniform highp float texelSize;
-uniform bool roundedCaps;
+layout(std140, set = 0, binding = 0) uniform m_CircularProgressParameters
+{
+    mediump float innerRadius;
+    mediump float progress;
+    highp float texelSize;
+    bool roundedCaps;
+};
+
+layout(set = 1, binding = 0) uniform lowp texture2D m_Texture;
+layout(set = 1, binding = 1) uniform lowp sampler m_Sampler;
+
+layout(location = 0) out vec4 o_Colour;
 
 void main(void)
 {
-    if (progress == 0.0 || innerRadius == 0.0)
-    {
-        gl_FragColor = vec4(0.0);
-        return;
-    }
-
     highp vec2 resolution = v_TexRect.zw - v_TexRect.xy;
     highp vec2 pixelPos = v_TexCoord / resolution;
     
     highp vec2 wrappedCoord = wrap(v_TexCoord, v_TexRect);
-    lowp vec4 textureColour = getRoundedColor(wrappedSampler(wrappedCoord, v_TexRect, m_Sampler, -0.9), wrappedCoord);
+    lowp vec4 textureColour = getRoundedColor(wrappedSampler(wrappedCoord, v_TexRect, m_Texture, m_Sampler, -0.9), wrappedCoord);
 
-    gl_FragColor = vec4(textureColour.rgb, textureColour.a * progressAlphaAt(pixelPos, progress, innerRadius, roundedCaps, texelSize));
+    o_Colour = vec4(textureColour.rgb, textureColour.a * progressAlphaAt(pixelPos, progress, innerRadius, roundedCaps, texelSize));
 }
+
+#endif

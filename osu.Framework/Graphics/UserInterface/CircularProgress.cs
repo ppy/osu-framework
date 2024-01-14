@@ -4,16 +4,18 @@
 #nullable disable
 
 using System;
+using System.Runtime.InteropServices;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularProgress : Sprite, IHasCurrentValue<double>
+    public partial class CircularProgress : Sprite, IHasCurrentValue<double>
     {
         private readonly BindableWithCurrent<double> current = new BindableWithCurrent<double>();
 
@@ -87,7 +89,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private class CircularProgressDrawNode : SpriteDrawNode
+        protected class CircularProgressDrawNode : SpriteDrawNode
         {
             public new CircularProgress Source => (CircularProgress)base.Source;
 
@@ -96,36 +98,65 @@ namespace osu.Framework.Graphics.UserInterface
             {
             }
 
-            private float innerRadius;
-            private float progress;
-            private float texelSize;
-            private bool roundedCaps;
+            protected float InnerRadius { get; private set; }
+            protected float Progress { get; private set; }
+            protected float TexelSize { get; private set; }
+            protected bool RoundedCaps { get; private set; }
 
             public override void ApplyState()
             {
                 base.ApplyState();
 
-                innerRadius = Source.innerRadius;
-                progress = Math.Abs((float)Source.current.Value);
-                roundedCaps = Source.roundedCaps;
+                InnerRadius = Source.innerRadius;
+                Progress = Math.Abs((float)Source.current.Value);
+                RoundedCaps = Source.roundedCaps;
 
                 // smoothstep looks too sharp with 1px, let's give it a bit more
-                texelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
+                TexelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
             }
+
+            private IUniformBuffer<CircularProgressParameters> parametersBuffer;
 
             protected override void Blit(IRenderer renderer)
             {
-                var shader = TextureShader;
-
-                shader.GetUniform<float>("innerRadius").UpdateValue(ref innerRadius);
-                shader.GetUniform<float>("progress").UpdateValue(ref progress);
-                shader.GetUniform<float>("texelSize").UpdateValue(ref texelSize);
-                shader.GetUniform<bool>("roundedCaps").UpdateValue(ref roundedCaps);
+                if (InnerRadius == 0 || (!RoundedCaps && Progress == 0))
+                    return;
 
                 base.Blit(renderer);
             }
 
+            protected override void BindUniformResources(IShader shader, IRenderer renderer)
+            {
+                base.BindUniformResources(shader, renderer);
+
+                parametersBuffer ??= renderer.CreateUniformBuffer<CircularProgressParameters>();
+                parametersBuffer.Data = new CircularProgressParameters
+                {
+                    InnerRadius = InnerRadius,
+                    Progress = Progress,
+                    TexelSize = TexelSize,
+                    RoundedCaps = RoundedCaps,
+                };
+
+                shader.BindUniformBlock("m_CircularProgressParameters", parametersBuffer);
+            }
+
             protected internal override bool CanDrawOpaqueInterior => false;
+
+            protected override void Dispose(bool isDisposing)
+            {
+                base.Dispose(isDisposing);
+                parametersBuffer?.Dispose();
+            }
+
+            [StructLayout(LayoutKind.Sequential, Pack = 1)]
+            private record struct CircularProgressParameters
+            {
+                public UniformFloat InnerRadius;
+                public UniformFloat Progress;
+                public UniformFloat TexelSize;
+                public UniformBool RoundedCaps;
+            }
         }
     }
 

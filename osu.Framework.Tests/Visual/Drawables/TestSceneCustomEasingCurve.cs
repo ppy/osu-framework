@@ -20,7 +20,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneCustomEasingCurve : FrameworkTestScene
+    public partial class TestSceneCustomEasingCurve : FrameworkTestScene
     {
         public TestSceneCustomEasingCurve()
         {
@@ -32,7 +32,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
         }
 
-        private class CurveVisualiser : CompositeDrawable
+        private partial class CurveVisualiser : CompositeDrawable
         {
             private readonly BindableList<Vector2> easingVertices = new BindableList<Vector2>();
 
@@ -165,7 +165,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 vectorPath.AddRange(ordered.Select(p => p.PointPosition.Value));
                 vectorPath.Add(new Vector2(DrawWidth, 0));
 
-                var bezierPath = PathApproximator.ApproximateBezier(vectorPath.ToArray());
+                var bezierPath = PathApproximator.BezierToPiecewiseLinear(vectorPath.ToArray());
                 path.Vertices = bezierPath;
                 path.Position = -path.PositionInBoundingBox(Vector2.Zero);
 
@@ -184,7 +184,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        private class ControlPointVisualiser : CompositeDrawable
+        private partial class ControlPointVisualiser : CompositeDrawable
         {
             public readonly Bindable<Vector2> PointPosition = new Bindable<Vector2>();
 
@@ -227,7 +227,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        private class PointHandle : Circle
+        private partial class PointHandle : Circle
         {
             public readonly Bindable<Vector2> PointPosition = new Bindable<Vector2>();
 

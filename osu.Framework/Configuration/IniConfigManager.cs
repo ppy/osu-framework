@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Logging;
@@ -66,7 +67,7 @@ namespace osu.Framework.Configuration
                                 if (!(b is IParseable parseable))
                                     throw new InvalidOperationException($"Bindable type {b.GetType().ReadableName()} is not {nameof(IParseable)}.");
 
-                                parseable.Parse(val);
+                                parseable.Parse(val, CultureInfo.InvariantCulture);
                             }
                             catch (Exception e)
                             {

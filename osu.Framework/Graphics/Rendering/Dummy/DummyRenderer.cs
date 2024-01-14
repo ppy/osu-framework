@@ -6,9 +6,13 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Platform;
 using osu.Framework.Threading;
 using osuTK;
+using osuTK.Graphics;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Rendering.Dummy
 {
@@ -21,6 +25,9 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public int MaxTexturesUploadedPerFrame { get; set; } = int.MaxValue;
         public int MaxPixelsUploadedPerFrame { get; set; } = int.MaxValue;
 
+        public bool IsDepthRangeZeroToOne => true;
+        public bool IsUvOriginTopLeft => true;
+        public bool IsClipSpaceYInverted => true;
         public ref readonly MaskingInfo CurrentMaskingInfo => ref maskingInfo;
         private readonly MaskingInfo maskingInfo;
 
@@ -34,25 +41,61 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public WrapMode CurrentWrapModeS => WrapMode.None;
         public WrapMode CurrentWrapModeT => WrapMode.None;
         public bool IsMaskingActive => false;
-        public float BackbufferDrawDepth => 0;
         public bool UsingBackbuffer => false;
         public Texture WhitePixel { get; }
+        DepthValue IRenderer.BackbufferDepth { get; } = new DepthValue();
+
+        public bool IsInitialised { get; private set; }
 
         public DummyRenderer()
         {
             maskingInfo = default;
-            WhitePixel = new Texture(new DummyNativeTexture(this), WrapMode.None, WrapMode.None);
+            WhitePixel = new TextureWhitePixel(new Texture(new DummyNativeTexture(this), WrapMode.None, WrapMode.None));
         }
 
-        void IRenderer.Initialise()
+        public ulong FrameIndex { get; private set; }
+
+        bool IRenderer.VerticalSync { get; set; } = true;
+
+        bool IRenderer.AllowTearing { get; set; }
+
+        Storage? IRenderer.CacheStorage { set { } }
+
+        void IRenderer.Initialise(IGraphicsSurface graphicsSurface)
         {
+            IsInitialised = true;
         }
 
         void IRenderer.BeginFrame(Vector2 windowSize)
         {
+            FrameIndex++;
         }
 
         void IRenderer.FinishFrame()
+        {
+        }
+
+        void IRenderer.FlushCurrentBatch(FlushBatchSource? source)
+        {
+        }
+
+        void IRenderer.SwapBuffers()
+        {
+        }
+
+        void IRenderer.WaitUntilIdle()
+        {
+        }
+
+        void IRenderer.WaitUntilNextFrameReady()
+        {
+        }
+
+        void IRenderer.MakeCurrent()
+        {
+        }
+
+        void IRenderer.ClearCurrent()
         {
         }
 
@@ -143,17 +186,19 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 
         public void ScheduleDisposal<T>(Action<T> disposalAction, T target) => disposalAction(target);
 
-        IShaderPart IRenderer.CreateShaderPart(ShaderManager manager, string name, byte[]? rawData, ShaderPartType partType)
+        Image<Rgba32> IRenderer.TakeScreenshot() => new Image<Rgba32>(1366, 768);
+
+        IShaderPart IRenderer.CreateShaderPart(IShaderStore manager, string name, byte[]? rawData, ShaderPartType partType)
             => new DummyShaderPart();
 
-        IShader IRenderer.CreateShader(string name, params IShaderPart[] parts)
+        IShader IRenderer.CreateShader(string name, IShaderPart[] parts)
             => new DummyShader(this);
 
         public IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
             => new DummyFrameBuffer(this);
 
         public Texture CreateTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, WrapMode wrapModeS = WrapMode.None,
-                                     WrapMode wrapModeT = WrapMode.None, Rgba32 initialisationColour = default)
+                                     WrapMode wrapModeT = WrapMode.None, Color4? initialisationColour = null)
             => new Texture(new DummyNativeTexture(this) { Width = width, Height = height }, wrapModeS, wrapModeT);
 
         public Texture CreateVideoTexture(int width, int height)
@@ -165,11 +210,13 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) where TVertex : unmanaged, IEquatable<TVertex>, IVertex
             => new DummyVertexBatch<TVertex>();
 
-        void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform)
-        {
-        }
+        public IUniformBuffer<TData> CreateUniformBuffer<TData>() where TData : unmanaged, IEquatable<TData>
+            => new DummyUniformBuffer<TData>();
 
-        void IRenderer.SetDrawDepth(float drawDepth)
+        public IShaderStorageBufferObject<TData> CreateShaderStorageBufferObject<TData>(int uboSize, int ssboSize) where TData : unmanaged, IEquatable<TData>
+            => new DummyShaderStorageBufferObject<TData>(ssboSize);
+
+        void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform)
         {
         }
 

@@ -7,13 +7,14 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
+using osu.Framework.Testing;
 using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Clocks
 {
-    public abstract class TestSceneClock : FrameworkTestScene
+    public abstract partial class TestSceneClock : FrameworkTestScene
     {
         private readonly FillFlowContainer fill;
 
@@ -25,31 +26,36 @@ namespace osu.Framework.Tests.Visual.Clocks
                 Direction = FillDirection.Full,
                 RelativeSizeAxes = Axes.Both,
             };
+        }
 
+        [SetUpSteps]
+        public void SetUpSteps()
+        {
             AddStep("clear all", () =>
             {
                 fill.Clear();
                 lastClock = null;
-                AddClock(Clock);
             });
         }
 
         private IClock? lastClock;
 
-        protected IClock AddClock(IClock clock)
+        protected IClock AddClock(IClock clock, string? name = null)
         {
             if (lastClock != null && clock is ISourceChangeableClock framed)
                 framed.ChangeSource(lastClock);
 
-            fill.Add(new VisualClock(lastClock = clock));
+            fill.Add(new VisualClock(lastClock = clock, name));
 
             return clock;
         }
 
-        public class VisualClock : CompositeDrawable
+        public partial class VisualClock : CompositeDrawable
         {
-            private readonly IClock clock;
+            public IClock TrackingClock { get; }
+
             private readonly SpriteText time;
+            private readonly SpriteText elapsed;
             private readonly SpriteText rate;
 
             private bool zeroed = true;
@@ -59,9 +65,9 @@ namespace osu.Framework.Tests.Visual.Clocks
             private readonly Box bg;
             private readonly Box hand;
 
-            public VisualClock(IClock clock)
+            public VisualClock(IClock trackingClock, string? name = null)
             {
-                this.clock = clock;
+                TrackingClock = trackingClock;
 
                 Size = new Vector2(width);
                 CornerRadius = width / 2;
@@ -74,12 +80,12 @@ namespace osu.Framework.Tests.Visual.Clocks
                 {
                     bg = new Box
                     {
-                        Colour = clock is IAdjustableClock ? Color4.Tomato : Color4.Navy,
+                        Colour = trackingClock is IAdjustableClock ? Color4.Tomato : Color4.Navy,
                         RelativeSizeAxes = Axes.Both,
                     },
                     new SpriteText
                     {
-                        Text = clock.GetType().Name,
+                        Text = trackingClock.GetType().Name + (!string.IsNullOrEmpty(name) ? $" ({name})" : string.Empty),
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         Y = -25,
@@ -97,6 +103,13 @@ namespace osu.Framework.Tests.Visual.Clocks
                         Font = new FontUsage(size: 14),
                         Y = 40,
                     },
+                    elapsed = new SpriteText
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Font = new FontUsage(size: 14),
+                        Y = 60,
+                    },
                     hand = new Box
                     {
                         Colour = Color4.White,
@@ -109,7 +122,7 @@ namespace osu.Framework.Tests.Visual.Clocks
 
             protected override bool OnClick(ClickEvent e)
             {
-                if (clock is IAdjustableClock adjustable)
+                if (TrackingClock is IAdjustableClock adjustable)
                 {
                     if (adjustable.IsRunning)
                         adjustable.Stop();
@@ -122,7 +135,7 @@ namespace osu.Framework.Tests.Visual.Clocks
 
             protected override bool OnScroll(ScrollEvent e)
             {
-                if (clock is IAdjustableClock adjustable)
+                if (TrackingClock is IAdjustableClock adjustable)
                     adjustable.Rate += e.ScrollDelta.Y / 1000;
 
                 return base.OnScroll(e);
@@ -132,20 +145,24 @@ namespace osu.Framework.Tests.Visual.Clocks
             {
                 base.Update();
 
-                double lastTime = clock.CurrentTime;
+                double lastTime = TrackingClock.CurrentTime;
 
-                (clock as IFrameBasedClock)?.ProcessFrame();
+                if (TrackingClock is IFrameBasedClock framedClock)
+                {
+                    framedClock.ProcessFrame();
+                    elapsed.Text = $"{framedClock.ElapsedFrameTime:+0.00;-0.00} ms";
+                }
 
-                var timespan = TimeSpan.FromMilliseconds(clock.CurrentTime);
+                var timespan = TimeSpan.FromMilliseconds(TrackingClock.CurrentTime);
                 time.Text = $"{timespan.Minutes:00}:{timespan.Seconds:00}:{timespan.Milliseconds:00}";
-                rate.Text = $"{clock.Rate:N2}x";
+                rate.Text = $"{TrackingClock.Rate:N2}x";
 
-                if (clock.CurrentTime != lastTime)
-                    BorderColour = clock.CurrentTime >= lastTime ? Color4.White : Color4.Red;
+                if (TrackingClock.CurrentTime != lastTime)
+                    BorderColour = TrackingClock.CurrentTime >= lastTime ? Color4.White : Color4.Red;
 
-                Colour = clock.IsRunning ? Color4.White : Color4.Gray;
+                Colour = TrackingClock.IsRunning ? Color4.White : Color4.Gray;
 
-                hand.Rotation = (float)(clock.CurrentTime / 1000) * 360 % 360;
+                hand.Rotation = (float)(TrackingClock.CurrentTime / 1000) * 360 % 360;
 
                 if (hand.Rotation < 180)
                 {

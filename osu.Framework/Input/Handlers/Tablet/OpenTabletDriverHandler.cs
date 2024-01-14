@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#if NET6_0_OR_GREATER
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,6 +20,8 @@ namespace osu.Framework.Input.Handlers.Tablet
 {
     public class OpenTabletDriverHandler : InputHandler, IAbsolutePointer, IRelativePointer, IPressureHandler, ITabletHandler
     {
+        private static readonly GlobalStatistic<ulong> statistic_total_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<OpenTabletDriverHandler>(), "Total events");
+
         private TabletDriver? tabletDriver;
 
         private InputDeviceTree? device;
@@ -109,16 +110,11 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private void handleDeviceReported(object? sender, IDeviceReport report)
         {
-            switch (report)
-            {
-                case ITabletReport tabletReport:
-                    handleTabletReport(tabletReport);
-                    break;
+            if (report is ITabletReport tabletReport)
+                handleTabletReport(tabletReport);
 
-                case IAuxReport auxiliaryReport:
-                    handleAuxiliaryReport(auxiliaryReport);
-                    break;
-            }
+            if (report is IAuxReport auxiliaryReport)
+                handleAuxiliaryReport(auxiliaryReport);
         }
 
         private void updateOutputArea(IWindow window)
@@ -209,7 +205,7 @@ namespace osu.Framework.Input.Handlers.Tablet
         {
             PendingInputs.Enqueue(input);
             FrameStatistics.Increment(StatisticsCounterType.TabletEvents);
+            statistic_total_events.Value++;
         }
     }
 }
-#endif

@@ -17,7 +17,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneCircularArcBoundingBox : FrameworkTestScene
+    public partial class TestSceneCircularArcBoundingBox : FrameworkTestScene
     {
         private SmoothPath path;
         private Box boundingBox;
@@ -74,7 +74,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 if (copy.Length != 3)
                     return;
 
-                path.Vertices = PathApproximator.ApproximateCircularArc(copy);
+                path.Vertices = PathApproximator.CircularArcToPiecewiseLinear(copy);
 
                 var bounds = PathApproximator.CircularArcBoundingBox(copy);
                 boundingBox.Size = bounds.Size;

@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A container which tabulates <see cref="Drawable"/>s.
     /// </summary>
-    public class TableContainer : CompositeDrawable
+    public partial class TableContainer : CompositeDrawable
     {
         private readonly GridContainer grid;
 

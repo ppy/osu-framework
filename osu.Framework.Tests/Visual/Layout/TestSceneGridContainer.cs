@@ -18,7 +18,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Layout
 {
-    public class TestSceneGridContainer : FrameworkTestScene
+    public partial class TestSceneGridContainer : FrameworkTestScene
     {
         private Container gridParent;
         private GridContainer grid;
@@ -888,7 +888,7 @@ namespace osu.Framework.Tests.Visual.Layout
                 grid.ColumnDimensions = dimensions;
         });
 
-        private class FillBox : Box
+        private partial class FillBox : Box
         {
             public FillBox()
             {

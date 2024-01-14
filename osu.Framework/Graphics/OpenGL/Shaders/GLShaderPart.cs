@@ -1,11 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
@@ -15,71 +16,96 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 {
     internal class GLShaderPart : IShaderPart
     {
-        internal const string SHADER_ATTRIBUTE_PATTERN = "^\\s*(?>attribute|in)\\s+(?:(?:lowp|mediump|highp)\\s+)?\\w+\\s+(\\w+)";
+        public static readonly Regex SHADER_INPUT_PATTERN = new Regex(@"^\s*layout\s*\(\s*location\s*=\s*(-?\d+)\s*\)\s*(in\s+(?:(?:lowp|mediump|highp)\s+)?\w+\s+(\w+)\s*;)", RegexOptions.Multiline);
+        private static readonly Regex uniform_pattern = new Regex(@"^(\s*layout\s*\(.*)set\s*=\s*(-?\d)(.*\)\s*(?:(?:readonly\s*)?buffer|uniform))", RegexOptions.Multiline);
+        private static readonly Regex include_pattern = new Regex(@"^\s*#\s*include\s+[""<](.*)["">]");
 
-        internal List<ShaderInputInfo> ShaderInputs = new List<ShaderInputInfo>();
+        internal bool Compiled { get; private set; }
+
+        public readonly string Name;
+        public readonly ShaderType Type;
 
         private readonly IRenderer renderer;
-        internal string Name;
-        internal bool HasCode;
-        internal bool Compiled;
-
-        internal ShaderType Type;
-
-        private bool isVertexShader => Type == ShaderType.VertexShader || Type == ShaderType.VertexShaderArb;
+        private readonly List<string> shaderCodes = new List<string>();
+        private readonly IShaderStore store;
 
         private int partID = -1;
 
-        private int lastShaderInputIndex;
-
-        private readonly List<string> shaderCodes = new List<string>();
-
-        private readonly Regex includeRegex = new Regex("^\\s*#\\s*include\\s+[\"<](.*)[\">]");
-        private readonly Regex shaderInputRegex = new Regex(SHADER_ATTRIBUTE_PATTERN);
-
-        private readonly ShaderManager manager;
-
-        internal GLShaderPart(IRenderer renderer, string name, byte[] data, ShaderType type, ShaderManager manager)
+        public GLShaderPart(GLRenderer renderer, string name, byte[]? data, ShaderType type, IShaderStore store)
         {
             this.renderer = renderer;
+            this.store = store;
+
             Name = name;
             Type = type;
 
-            this.manager = manager;
+            if (!renderer.UseStructuredBuffers)
+                shaderCodes.Add("#define OSU_GRAPHICS_NO_SSBO\n");
 
+            // Load the shader files.
             shaderCodes.Add(loadFile(data, true));
-            shaderCodes.RemoveAll(string.IsNullOrEmpty);
 
-            if (shaderCodes.Count == 0)
-                return;
+            // Find the minimum uniform/buffer binding set across all shader codes. This will be a negative number (see sh_GlobalUniforms.h / sh_MaskingInfo.h).
+            int minSet = 0;
 
-            HasCode = true;
+            foreach (string code in shaderCodes)
+            {
+                minSet = Math.Min(minSet, uniform_pattern.Matches(code)
+                                                         .Where(m => m.Success)
+                                                         .Select(m => int.Parse(m.Groups[2].Value, CultureInfo.InvariantCulture))
+                                                         .DefaultIfEmpty(0).Min());
+            }
+
+            // Increment the binding set of all uniform blocks equal to the absolute value of the minimum set from above.
+            // After this transformation, blocks with negative sets will start from set 0, and all other user blocks begin after them.
+            // The reason for doing this is that uniform blocks must be consistent between the shader stages, so they can't be appended.
+            for (int i = 0; i < shaderCodes.Count; i++)
+            {
+                shaderCodes[i] = uniform_pattern.Replace(
+                    shaderCodes[i],
+                    match => $"{match.Groups[1].Value}set = {int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture) + Math.Abs(minSet)}{match.Groups[3].Value}");
+            }
         }
 
-        private string loadFile(byte[] bytes, bool mainFile)
+        private string loadFile(byte[]? bytes, bool mainFile)
         {
             if (bytes == null)
-                return null;
+                return string.Empty;
+
+            var builder = new StringBuilder();
+
+            if (mainFile)
+            {
+                builder.AppendLine(loadFile(store.GetRawData("Internal/sh_Compatibility.h"), false));
+                builder.AppendLine(loadFile(store.GetRawData("Internal/sh_GlobalUniforms.h"), false));
+            }
 
             using (MemoryStream ms = new MemoryStream(bytes))
             using (StreamReader sr = new StreamReader(ms))
             {
-                string code = string.Empty;
-
                 while (sr.Peek() != -1)
                 {
-                    string line = sr.ReadLine();
+                    string? line = sr.ReadLine();
 
                     if (string.IsNullOrEmpty(line))
-                        continue;
-
-                    if (line.StartsWith("#version", StringComparison.Ordinal)) // the version directive has to appear before anything else in the shader
                     {
-                        shaderCodes.Add(line);
+                        builder.AppendLine(line);
                         continue;
                     }
 
-                    Match includeMatch = includeRegex.Match(line);
+                    if (line.StartsWith("#version", StringComparison.Ordinal)) // the version directive has to appear before anything else in the shader
+                    {
+                        shaderCodes.Insert(0, line + '\n');
+                        continue;
+                    }
+
+                    if (line.StartsWith("#extension", StringComparison.Ordinal))
+                    {
+                        shaderCodes.Add(line + '\n');
+                        continue;
+                    }
+
+                    Match includeMatch = include_pattern.Match(line);
 
                     if (includeMatch.Success)
                     {
@@ -90,38 +116,26 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
                         //                        if (File.Exists(includeName))
                         //                            rawData = File.ReadAllBytes(includeName);
                         //#endif
-                        code += loadFile(manager.LoadRaw(includeName), false) + '\n';
+                        builder.AppendLine(loadFile(store.GetRawData(includeName), false));
                     }
                     else
-                        code += line + '\n';
-
-                    if (Type == ShaderType.VertexShader || Type == ShaderType.VertexShaderArb)
-                    {
-                        Match inputMatch = shaderInputRegex.Match(line);
-
-                        if (inputMatch.Success)
-                        {
-                            ShaderInputs.Add(new ShaderInputInfo
-                            {
-                                Location = lastShaderInputIndex++,
-                                Name = inputMatch.Groups[1].Value.Trim()
-                            });
-                        }
-                    }
+                        builder.AppendLine(line);
                 }
 
-                if (mainFile)
+                string code = builder.ToString();
+
+                if (!mainFile) return code;
+
+                if (Type == ShaderType.VertexShader)
                 {
-                    code = loadFile(manager.LoadRaw("sh_Precision_Internal.h"), false) + "\n" + code;
+                    string backbufferCode = loadFile(store.GetRawData("Internal/sh_Vertex_Output.h"), false);
 
-                    if (isVertexShader)
+                    if (!string.IsNullOrEmpty(backbufferCode))
                     {
-                        string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
+                        const string real_main_name = "__internal_real_main";
 
-                        string backbufferCode = loadFile(manager.LoadRaw("sh_Backbuffer_Internal.h"), false);
-
-                        backbufferCode = backbufferCode.Replace("{{ real_main }}", realMainName);
-                        code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';
+                        backbufferCode = backbufferCode.Replace("{{ real_main }}", real_main_name);
+                        code = Regex.Replace(code, @"void main\((.*)\)", $"void {real_main_name}()") + backbufferCode + '\n';
                     }
                 }
 
@@ -129,28 +143,23 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             }
         }
 
-        internal bool Compile()
+        public string GetRawText() => string.Join('\n', shaderCodes);
+
+        public void Compile(string crossCompileOutput)
         {
-            if (!HasCode)
-                return false;
+            if (Compiled)
+                return;
 
-            if (partID == -1)
-                partID = GL.CreateShader(Type);
+            partID = GL.CreateShader(Type);
 
-            int[] codeLengths = new int[shaderCodes.Count];
-            for (int i = 0; i < shaderCodes.Count; i++)
-                codeLengths[i] = shaderCodes[i].Length;
-
-            GL.ShaderSource(this, shaderCodes.Count, shaderCodes.ToArray(), codeLengths);
+            GL.ShaderSource(this, crossCompileOutput);
             GL.CompileShader(this);
-
             GL.GetShader(this, ShaderParameter.CompileStatus, out int compileResult);
+
             Compiled = compileResult == 1;
 
             if (!Compiled)
                 throw new GLShader.PartCompilationFailedException(Name, GL.GetShaderInfoLog(this));
-
-            return Compiled;
         }
 
         public static implicit operator int(GLShaderPart program) => program.partID;

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Globalization;
 using osu.Framework.Bindables;
@@ -13,7 +11,7 @@ using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class SliderBar<T> : Container, IHasCurrentValue<T>
+    public abstract partial class SliderBar<T> : Container, IHasCurrentValue<T>
         where T : struct, IComparable<T>, IConvertible, IEquatable<T>
     {
         /// <summary>
@@ -48,8 +46,7 @@ namespace osu.Framework.Graphics.UserInterface
             get => current;
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+                ArgumentNullException.ThrowIfNull(value);
 
                 current.Current = value;
 
@@ -94,14 +91,7 @@ namespace osu.Framework.Graphics.UserInterface
                                                         + $" and {nameof(BindableNumber<T>.MaxValue)} to produce a valid {nameof(NormalizedValue)}.");
                 }
 
-                float min = Convert.ToSingle(currentNumberInstantaneous.MinValue);
-                float max = Convert.ToSingle(currentNumberInstantaneous.MaxValue);
-
-                if (max - min == 0)
-                    return 1;
-
-                float val = Convert.ToSingle(currentNumberInstantaneous.Value);
-                return (val - min) / (max - min);
+                return currentNumberInstantaneous.NormalizedValue;
             }
         }
 

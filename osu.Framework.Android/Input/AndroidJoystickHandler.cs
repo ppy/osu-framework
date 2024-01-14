@@ -15,6 +15,8 @@ namespace osu.Framework.Android.Input
 {
     public class AndroidJoystickHandler : AndroidInputHandler
     {
+        private static readonly GlobalStatistic<ulong> statistic_total_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<AndroidJoystickHandler>(), "Total events");
+
         public BindableFloat DeadzoneThreshold { get; } = new BindableFloat(0.1f)
         {
             MinValue = 0,
@@ -47,6 +49,7 @@ namespace osu.Framework.Android.Input
 
             Enabled.BindValueChanged(enabled =>
             {
+#nullable disable // Events misses nullable mark in .NET Android SDK (6.0.402)
                 if (enabled.NewValue)
                 {
                     View.GenericMotion += HandleGenericMotion;
@@ -59,6 +62,7 @@ namespace osu.Framework.Android.Input
                     View.KeyDown -= HandleKeyDown;
                     View.KeyUp -= HandleKeyUp;
                 }
+#nullable restore
             }, true);
 
             return true;
@@ -221,6 +225,7 @@ namespace osu.Framework.Android.Input
         {
             PendingInputs.Enqueue(input);
             FrameStatistics.Increment(StatisticsCounterType.JoystickEvents);
+            statistic_total_events.Value++;
         }
     }
 }

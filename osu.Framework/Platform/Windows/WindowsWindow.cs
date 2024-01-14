@@ -1,22 +1,22 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using JetBrains.Annotations;
+using System.Runtime.Versioning;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
+using osuTK.Input;
 using SDL2;
 using Icon = osu.Framework.Platform.Windows.Native.Icon;
 
 namespace osu.Framework.Platform.Windows
 {
-    public class WindowsWindow : SDL2DesktopWindow
+    [SupportedOSPlatform("windows")]
+    internal class WindowsWindow : SDL2DesktopWindow
     {
         private const int seticon_message = 0x0080;
         private const int icon_big = 1;
@@ -25,21 +25,56 @@ namespace osu.Framework.Platform.Windows
         private const int large_icon_size = 256;
         private const int small_icon_size = 16;
 
-        private Icon smallIcon;
-        private Icon largeIcon;
+        private Icon? smallIcon;
+        private Icon? largeIcon;
 
         private const int wm_killfocus = 8;
 
-        public WindowsWindow()
+        /// <summary>
+        /// Whether to apply the <see cref="windows_borderless_width_hack"/>.
+        /// </summary>
+        private readonly bool applyBorderlessWindowHack;
+
+        public WindowsWindow(GraphicsSurfaceType surfaceType)
+            : base(surfaceType)
+        {
+            switch (surfaceType)
+            {
+                case GraphicsSurfaceType.OpenGL:
+                case GraphicsSurfaceType.Vulkan:
+                    applyBorderlessWindowHack = true;
+                    break;
+
+                case GraphicsSurfaceType.Direct3D11:
+                    applyBorderlessWindowHack = false;
+                    break;
+            }
+
+            if (!declareDpiAwareV2())
+                declareDpiAware();
+        }
+
+        private bool declareDpiAwareV2()
         {
             try
             {
-                // SDL doesn't handle DPI correctly on windows, but this brings things mostly in-line with expectations. (https://bugzilla.libsdl.org/show_bug.cgi?id=3281)
-                SetProcessDpiAwareness(ProcessDpiAwareness.Process_Per_Monitor_DPI_Aware);
+                return SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT.DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
             }
             catch
             {
-                // API doesn't exist on Windows 7 so it needs to be allowed to fail silently.
+                return false;
+            }
+        }
+
+        private bool declareDpiAware()
+        {
+            try
+            {
+                return SetProcessDpiAwareness(ProcessDpiAwareness.Process_Per_Monitor_DPI_Aware);
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -47,31 +82,36 @@ namespace osu.Framework.Platform.Windows
         {
             base.Create();
 
+            // disable all pen and touch feedback as this causes issues when running "optimised" fullscreen under Direct3D11.
+            foreach (var feedbackType in Enum.GetValues<FeedbackType>())
+                Native.Input.SetWindowFeedbackSetting(WindowHandle, feedbackType, false);
+
             // enable window message events to use with `OnSDLEvent` below.
             SDL.SDL_EventState(SDL.SDL_EventType.SDL_SYSWMEVENT, SDL.SDL_ENABLE);
-
-            OnSDLEvent += handleSDLEvent;
         }
 
-        private void handleSDLEvent(SDL.SDL_Event e)
+        protected override void HandleEventFromFilter(SDL.SDL_Event e)
         {
-            if (e.type != SDL.SDL_EventType.SDL_SYSWMEVENT) return;
-
-            var wmMsg = Marshal.PtrToStructure<SDL2Structs.SDL_SysWMmsg>(e.syswm.msg);
-            var m = wmMsg.msg.win;
-
-            switch (m.msg)
+            if (e.type == SDL.SDL_EventType.SDL_SYSWMEVENT)
             {
-                case wm_killfocus:
-                    warpCursorFromFocusLoss();
-                    break;
+                var wmMsg = Marshal.PtrToStructure<SDL2Structs.SDL_SysWMmsg>(e.syswm.msg);
+                var m = wmMsg.msg.win;
 
-                case Imm.WM_IME_STARTCOMPOSITION:
-                case Imm.WM_IME_COMPOSITION:
-                case Imm.WM_IME_ENDCOMPOSITION:
-                    handleImeMessage(m.hwnd, m.msg, m.lParam);
-                    break;
+                switch (m.msg)
+                {
+                    case wm_killfocus:
+                        warpCursorFromFocusLoss();
+                        break;
+
+                    case Imm.WM_IME_STARTCOMPOSITION:
+                    case Imm.WM_IME_COMPOSITION:
+                    case Imm.WM_IME_ENDCOMPOSITION:
+                        handleImeMessage(m.hwnd, m.msg, m.lParam);
+                        break;
+                }
             }
+
+            base.HandleEventFromFilter(e);
         }
 
         /// <summary>
@@ -147,8 +187,7 @@ namespace osu.Framework.Platform.Windows
         /// Used for blocking SDL IME results since we handle those ourselves.
         /// Cleared when the SDL events are blocked.
         /// </remarks>
-        [CanBeNull]
-        private string lastImeResult;
+        private string? lastImeResult;
 
         private void handleImeMessage(IntPtr hWnd, uint uMsg, long lParam)
         {
@@ -162,13 +201,13 @@ namespace osu.Framework.Platform.Windows
                 case Imm.WM_IME_COMPOSITION:
                     using (var inputContext = new Imm.InputContext(hWnd, lParam))
                     {
-                        if (inputContext.TryGetImeResult(out string resultText))
+                        if (inputContext.TryGetImeResult(out string? resultText))
                         {
                             lastImeResult = resultText;
                             ScheduleEvent(() => TriggerTextInput(resultText));
                         }
 
-                        if (inputContext.TryGetImeComposition(out string compositionText, out int start, out int length))
+                        if (inputContext.TryGetImeComposition(out string? compositionText, out int start, out int length))
                         {
                             ScheduleEvent(() => TriggerTextEditing(compositionText, start, length));
                         }
@@ -185,12 +224,39 @@ namespace osu.Framework.Platform.Windows
 
         #endregion
 
+        protected override void HandleTouchFingerEvent(SDL.SDL_TouchFingerEvent evtTfinger)
+        {
+            if (evtTfinger.TryGetTouchName(out string name) && name == "pen")
+            {
+                // Windows Ink tablet/pen handling
+                // InputManager expects to receive this as mouse events, to have proper `mouseSource` input priority (see InputManager.GetPendingInputs)
+                // osu! expects to get tablet events as mouse events, and touch events as touch events for touch device (TD mod) handling (see https://github.com/ppy/osu/issues/25590)
+
+                TriggerMouseMove(evtTfinger.x * ClientSize.Width, evtTfinger.y * ClientSize.Height);
+
+                switch (evtTfinger.type)
+                {
+                    case SDL.SDL_EventType.SDL_FINGERDOWN:
+                        TriggerMouseDown(MouseButton.Left);
+                        break;
+
+                    case SDL.SDL_EventType.SDL_FINGERUP:
+                        TriggerMouseUp(MouseButton.Left);
+                        break;
+                }
+
+                return;
+            }
+
+            base.HandleTouchFingerEvent(evtTfinger);
+        }
+
         public override Size Size
         {
             protected set
             {
                 // trick the game into thinking the borderless window has normal size so that it doesn't render into the extra space.
-                if (WindowState == WindowState.FullscreenBorderless)
+                if (applyBorderlessWindowHack && WindowState == WindowState.FullscreenBorderless)
                     value.Width -= windows_borderless_width_hack;
 
                 base.Size = value;
@@ -201,17 +267,19 @@ namespace osu.Framework.Platform.Windows
         /// Amount of extra width added to window size when in borderless mode on Windows.
         /// Some drivers require this to avoid the window switching to exclusive fullscreen automatically.
         /// </summary>
+        /// <remarks>Used on <see cref="GraphicsSurfaceType.OpenGL"/> and <see cref="GraphicsSurfaceType.Vulkan"/>.</remarks>
         private const int windows_borderless_width_hack = 1;
 
         protected override Size SetBorderless(Display display)
         {
             SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_FALSE);
 
-            // use the 1px hack we've always used, but only expand the width.
-            // we also trick the game into thinking the window has normal size: see Size setter override
+            var newSize = display.Bounds.Size;
 
-            var sizeOffset = new Size(windows_borderless_width_hack, 0);
-            var newSize = display.Bounds.Size + sizeOffset;
+            if (applyBorderlessWindowHack)
+                // use the 1px hack we've always used, but only expand the width.
+                // we also trick the game into thinking the window has normal size: see Size setter override
+                newSize += new Size(windows_borderless_width_hack, 0);
 
             SDL.SDL_SetWindowSize(SDLWindowHandle, newSize.Width, newSize.Height);
             Position = display.Bounds.Location;
@@ -261,6 +329,20 @@ namespace osu.Framework.Platform.Windows
             Process_DPI_Unaware = 0,
             Process_System_DPI_Aware = 1,
             Process_Per_Monitor_DPI_Aware = 2
+        }
+
+        [DllImport("User32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT value);
+
+        // ReSharper disable once InconsistentNaming
+        internal enum DPI_AWARENESS_CONTEXT
+        {
+            DPI_AWARENESS_CONTEXT_UNAWARE = -1,
+            DPI_AWARENESS_CONTEXT_SYSTEM_AWARE = -2,
+            DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE = -3,
+            DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = -4,
+            DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED = -5,
         }
 
         [DllImport("user32.dll", SetLastError = true)]

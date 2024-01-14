@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -11,7 +9,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Screens
 {
-    public class Screen : CompositeDrawable, IScreen
+    public partial class Screen : CompositeDrawable, IScreen
     {
         public bool ValidForResume { get; set; } = true;
 
@@ -20,7 +18,7 @@ namespace osu.Framework.Screens
         public sealed override bool RemoveWhenNotAlive => false;
 
         [Resolved]
-        protected Game Game { get; private set; }
+        protected Game Game { get; private set; } = null!;
 
         public Screen()
         {

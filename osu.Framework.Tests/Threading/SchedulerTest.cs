@@ -429,6 +429,8 @@ namespace osu.Framework.Tests.Threading
         {
             classInvocations = 0;
 
+            // Note that while this works here (even with a capture), there's no guarantee that will always be the
+            // case. As such it's always best to use a local function or private method.
             for (int i = 0; i < 10; i++)
                 invokeInlineDelegateAction();
 

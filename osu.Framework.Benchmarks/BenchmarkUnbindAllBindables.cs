@@ -10,7 +10,7 @@ using osu.Framework.Timing;
 namespace osu.Framework.Benchmarks
 {
     [MemoryDiagnoser]
-    public class BenchmarkUnbindAllBindables
+    public partial class BenchmarkUnbindAllBindables
     {
         private readonly IFrameBasedClock clock = new FramedClock();
         private readonly IReadOnlyDependencyContainer dependencies = new DependencyContainer();
@@ -49,19 +49,19 @@ namespace osu.Framework.Benchmarks
             _.UnbindAllBindables();
         }
 
-        public class SimpleComposite3 : SimpleComposite2
+        public partial class SimpleComposite3 : SimpleComposite2
         {
         }
 
-        public class SimpleComposite2 : SimpleComposite1
+        public partial class SimpleComposite2 : SimpleComposite1
         {
         }
 
-        public class SimpleComposite1 : SimpleComposite
+        public partial class SimpleComposite1 : SimpleComposite
         {
         }
 
-        public class SimpleComposite : CompositeDrawable
+        public partial class SimpleComposite : CompositeDrawable
         {
         }
     }

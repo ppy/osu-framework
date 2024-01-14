@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,84 +19,89 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneMouseStates : ManualInputManagerTestScene
+    public partial class TestSceneMouseStates : ManualInputManagerTestScene
     {
-        private readonly Box marginBox, outerMarginBox;
-        private readonly Container actionContainer;
+        private Box marginBox = null!;
+        private Box outerMarginBox = null!;
+        private Container actionContainer = null!;
 
-        private readonly StateTracker s1, s2;
-
-        public TestSceneMouseStates()
-        {
-            Child = new Container
-            {
-                FillMode = FillMode.Fit,
-                FillAspectRatio = 1,
-                RelativeSizeAxes = Axes.Both,
-                Size = new Vector2(0.75f),
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                Children = new Drawable[]
-                {
-                    new Box
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Colour = new Color4(1, 1, 1, 0.2f),
-                    },
-                    s1 = new StateTracker(1),
-                    new Container
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Children = new Drawable[]
-                        {
-                            outerMarginBox = new Box
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
-                                Size = new Vector2(0.9f),
-                                Colour = Color4.SkyBlue.Opacity(0.1f),
-                            },
-                            actionContainer = new Container
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Size = new Vector2(0.6f),
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
-                                Children = new Drawable[]
-                                {
-                                    new Box
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Colour = new Color4(1, 1, 1, 0.2f),
-                                    },
-                                    marginBox = new Box
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Anchor = Anchor.Centre,
-                                        Origin = Anchor.Centre,
-                                        Size = new Vector2(0.8f),
-                                        Colour = Color4.SkyBlue.Opacity(0.1f),
-                                    },
-                                    s2 = new DraggableStateTracker(2),
-                                }
-                            }
-                        }
-                    }
-                }
-            };
-        }
+        private StateTracker s1 = null!;
+        private StateTracker s2 = null!;
 
         protected override void LoadComplete()
         {
-            ((Container)InputManager.Parent).Add(new StateTracker(0));
+            ((Container)InputManager.Parent!).Add(new StateTracker(0));
         }
 
         private void initTestScene()
         {
+            // Importantly, these need to be run outside of test steps.
+            // The counter are used for *expected* values during test setup, not execution.
             eventCounts1.Clear();
             eventCounts2.Clear();
-            // InitialMousePosition cannot be used here because the event counters should be resetted after the initial mouse move.
+
+            AddStep("create test tracker", () =>
+            {
+                Child = new Container
+                {
+                    FillMode = FillMode.Fit,
+                    FillAspectRatio = 1,
+                    RelativeSizeAxes = Axes.Both,
+                    Size = new Vector2(0.75f),
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Children = new Drawable[]
+                    {
+                        new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = new Color4(1, 1, 1, 0.2f),
+                        },
+                        s1 = new StateTracker(1),
+                        new Container
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Children = new Drawable[]
+                            {
+                                outerMarginBox = new Box
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    Size = new Vector2(0.9f),
+                                    Colour = Color4.SkyBlue.Opacity(0.1f),
+                                },
+                                actionContainer = new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(0.6f),
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    Children = new Drawable[]
+                                    {
+                                        new Box
+                                        {
+                                            RelativeSizeAxes = Axes.Both,
+                                            Colour = new Color4(1, 1, 1, 0.2f),
+                                        },
+                                        marginBox = new Box
+                                        {
+                                            RelativeSizeAxes = Axes.Both,
+                                            Anchor = Anchor.Centre,
+                                            Origin = Anchor.Centre,
+                                            Size = new Vector2(0.8f),
+                                            Colour = Color4.SkyBlue.Opacity(0.1f),
+                                        },
+                                        s2 = new DraggableStateTracker(2),
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+            });
+
+            // InitialMousePosition cannot be used here because the event counters should be reset after the initial mouse move.
             AddStep("move mouse to center", () => InputManager.MoveMouseTo(actionContainer));
             AddStep("reset event counters", () =>
             {
@@ -229,6 +232,51 @@ namespace osu.Framework.Tests.Visual.Input
 
             AddStep("release left button", () => InputManager.ReleaseButton(MouseButton.Left));
             checkEventCount(mouse_up, 1);
+            checkIsDragged(false);
+        }
+
+        [Test]
+        public void MouseDownMouseUpWithDrawableRemoved()
+        {
+            initTestScene();
+
+            AddStep("press left button", () => InputManager.PressButton(MouseButton.Left));
+            checkEventCount(mouse_down, 1);
+
+            AddStep("Remove drawable", Clear);
+
+            AddStep("release left button", () => InputManager.ReleaseButton(MouseButton.Left));
+
+            checkEventCount(mouse_up, 0);
+        }
+
+        [Test]
+        public void DragWithDraggedDrawableRemovedMidDrag()
+        {
+            initTestScene();
+
+            AddStep("press left button", () => InputManager.PressButton(MouseButton.Left));
+            checkEventCount(mouse_down, 1);
+            checkIsDragged(false);
+
+            AddStep("move bottom left", () => InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomLeft));
+            checkEventCount(drag_start, 1);
+            checkEventCount(drag, 1);
+            checkIsDragged(true);
+
+            AddStep("Remove drawable", Clear);
+
+            checkEventCount(drag, 0);
+            checkEventCount(drag_end, 0);
+            checkIsDragged(false);
+
+            AddStep("move bottom right", () => InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomRight));
+            AddStep("release left button", () => InputManager.ReleaseButton(MouseButton.Left));
+
+            checkEventCount(drag_start, 0);
+            checkEventCount(drag, 0);
+            checkEventCount(mouse_up, 0);
+            checkEventCount(drag_end, 0);
             checkIsDragged(false);
         }
 
@@ -398,7 +446,8 @@ namespace osu.Framework.Tests.Visual.Input
                 count2 += change;
             }
 
-            AddAssert($"{type.Name} count {count1}, {count2}", () => s1.CounterFor(type).Count == count1 && s2.CounterFor(type).Count == count2);
+            AddAssert($"Check {type.Name} count1", () => s1.CounterFor(type).Count, () => Is.EqualTo(count1));
+            AddAssert($"Check {type.Name} count2", () => s2.CounterFor(type).Count, () => Is.EqualTo(count2));
 
             eventCounts1[type] = count1;
             eventCounts2[type] = count2;
@@ -414,7 +463,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void checkIsDragged(bool isDragged) => AddAssert(isDragged ? "dragged" : "not dragged", () => s2.IsDragged == isDragged);
 
-        public class StateTracker : Container
+        public partial class StateTracker : Container
         {
             private readonly SpriteText keyboard;
             private readonly SpriteText mouse;
@@ -505,12 +554,12 @@ namespace osu.Framework.Tests.Visual.Input
                     var state = inputManager.CurrentState;
 
                     source.Text = inputManager.ToString();
-                    keyboard.Text = state.Keyboard.ToString();
-                    mouse.Text = state.Mouse.ToString();
+                    keyboard.Text = state.Keyboard?.ToString() ?? string.Empty;
+                    mouse.Text = state.Mouse?.ToString() ?? string.Empty;
                 }
             }
 
-            public class SmallText : SpriteText
+            public partial class SmallText : SpriteText
             {
                 public SmallText()
                 {
@@ -518,7 +567,7 @@ namespace osu.Framework.Tests.Visual.Input
                 }
             }
 
-            public class EventCounter : CompositeDrawable
+            public partial class EventCounter : CompositeDrawable
             {
                 private int count;
                 private readonly SpriteText text;
@@ -549,7 +598,7 @@ namespace osu.Framework.Tests.Visual.Input
                 }
             }
 
-            public class BoundedCursorContainer : Container
+            public partial class BoundedCursorContainer : Container
             {
                 private readonly Circle circle;
 
@@ -615,7 +664,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        public class DraggableStateTracker : StateTracker
+        public partial class DraggableStateTracker : StateTracker
         {
             private readonly SmallText dragStatus;
 

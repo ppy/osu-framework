@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Bindables;
@@ -58,7 +59,19 @@ namespace osu.Framework.Tests.Bindables
 
         #endregion
 
-        #region BindTarget
+        #region Bind
+
+        /// <summary>
+        /// Tests binding to a bindable that has already been bound.
+        /// </summary>
+        [Test]
+        public void TestBindToAlreadyBound()
+        {
+            BindableDictionary<string, byte> bindable1 = new BindableDictionary<string, byte>();
+            BindableDictionary<string, byte> bindable2 = bindable1.GetBoundCopy();
+
+            Assert.Throws<ArgumentException>(() => bindable1.BindTo(bindable2));
+        }
 
         /// <summary>
         /// Tests binding via the various <see cref="BindableDictionary{TKey,TValue}"/> methods.
@@ -154,7 +167,7 @@ namespace osu.Framework.Tests.Bindables
 
             NotifyDictionaryChangedEventArgs<string, byte> triggeredArgs = null;
             dict.BindCollectionChanged((_, args) => triggeredArgs = args);
-            dict.Parse(enumerable);
+            dict.Parse(enumerable, CultureInfo.InvariantCulture);
 
             Assert.That(triggeredArgs, Is.Null);
         }
@@ -888,7 +901,7 @@ namespace osu.Framework.Tests.Bindables
         {
             bindableStringByteDictionary.Add("a item", 0);
 
-            bindableStringByteDictionary.Parse(null);
+            bindableStringByteDictionary.Parse(null, CultureInfo.InvariantCulture);
 
             Assert.IsEmpty(bindableStringByteDictionary);
         }
@@ -902,7 +915,7 @@ namespace osu.Framework.Tests.Bindables
                 new KeyValuePair<string, byte>("testB", 1),
             };
 
-            bindableStringByteDictionary.Parse(array);
+            bindableStringByteDictionary.Parse(array, CultureInfo.InvariantCulture);
 
             CollectionAssert.AreEquivalent(array, bindableStringByteDictionary);
         }
@@ -914,13 +927,13 @@ namespace osu.Framework.Tests.Bindables
 
             Assert.Multiple(() =>
             {
-                Assert.Throws(typeof(InvalidOperationException), () => bindableStringByteDictionary.Parse(null));
+                Assert.Throws(typeof(InvalidOperationException), () => bindableStringByteDictionary.Parse(null, CultureInfo.InvariantCulture));
                 Assert.Throws(typeof(InvalidOperationException), () => bindableStringByteDictionary.Parse(new[]
                 {
                     new KeyValuePair<string, byte>("test", 0),
                     new KeyValuePair<string, byte>("testabc", 1),
                     new KeyValuePair<string, byte>("asdasdasdasd", 1),
-                }));
+                }, CultureInfo.InvariantCulture));
             });
         }
 
@@ -929,13 +942,13 @@ namespace osu.Framework.Tests.Bindables
         {
             Assert.Multiple(() =>
             {
-                Assert.Throws(typeof(ArgumentException), () => bindableStringByteDictionary.Parse(1));
-                Assert.Throws(typeof(ArgumentException), () => bindableStringByteDictionary.Parse(""));
-                Assert.Throws(typeof(ArgumentException), () => bindableStringByteDictionary.Parse(new object()));
-                Assert.Throws(typeof(ArgumentException), () => bindableStringByteDictionary.Parse(1.1));
-                Assert.Throws(typeof(ArgumentException), () => bindableStringByteDictionary.Parse(1.1f));
-                Assert.Throws(typeof(ArgumentException), () => bindableStringByteDictionary.Parse("test123"));
-                Assert.Throws(typeof(ArgumentException), () => bindableStringByteDictionary.Parse(29387L));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringByteDictionary.Parse(1, CultureInfo.InvariantCulture));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringByteDictionary.Parse("", CultureInfo.InvariantCulture));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringByteDictionary.Parse(new object(), CultureInfo.InvariantCulture));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringByteDictionary.Parse(1.1, CultureInfo.InvariantCulture));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringByteDictionary.Parse(1.1f, CultureInfo.InvariantCulture));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringByteDictionary.Parse("test123", CultureInfo.InvariantCulture));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringByteDictionary.Parse(29387L, CultureInfo.InvariantCulture));
             });
         }
 
@@ -955,7 +968,7 @@ namespace osu.Framework.Tests.Bindables
             var triggeredArgs = new List<NotifyDictionaryChangedEventArgs<string, byte>>();
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgs.Add(args);
 
-            bindableStringByteDictionary.Parse(null);
+            bindableStringByteDictionary.Parse(null, CultureInfo.InvariantCulture);
 
             Assert.That(triggeredArgs, Has.Count.EqualTo(1));
             Assert.That(triggeredArgs.First().Action, Is.EqualTo(NotifyDictionaryChangedAction.Remove));
@@ -976,7 +989,7 @@ namespace osu.Framework.Tests.Bindables
             var triggeredArgs = new List<NotifyDictionaryChangedEventArgs<string, byte>>();
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgs.Add(args);
 
-            bindableStringByteDictionary.Parse(array);
+            bindableStringByteDictionary.Parse(array, CultureInfo.InvariantCulture);
 
             Assert.That(triggeredArgs, Has.Count.EqualTo(2));
             Assert.That(triggeredArgs.First().Action, Is.EqualTo(NotifyDictionaryChangedAction.Remove));

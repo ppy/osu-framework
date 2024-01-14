@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Transforms;
@@ -11,7 +9,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// <summary>
     /// A drawable object that supports counting to values.
     /// </summary>
-    public class Counter : CompositeDrawable
+    public partial class Counter : CompositeDrawable
     {
         private double count;
 

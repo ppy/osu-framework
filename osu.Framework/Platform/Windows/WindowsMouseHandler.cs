@@ -1,18 +1,16 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Drawing;
+using System.Runtime.Versioning;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform.Windows.Native;
+using osu.Framework.Statistics;
 using osuTK;
 using SDL2;
-
-// ReSharper disable UnusedParameter.Local (Class regularly handles native events where we don't consume all parameters)
 
 namespace osu.Framework.Platform.Windows
 {
@@ -20,12 +18,18 @@ namespace osu.Framework.Platform.Windows
     /// A windows specific mouse input handler which overrides the SDL2 implementation of raw input.
     /// This is done to better handle quirks of some devices.
     /// </summary>
+    [SupportedOSPlatform("windows")]
     internal unsafe class WindowsMouseHandler : MouseHandler
     {
+        private static readonly GlobalStatistic<ulong> statistic_relative_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<WindowsMouseHandler>(), "Relative events");
+        private static readonly GlobalStatistic<ulong> statistic_absolute_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<WindowsMouseHandler>(), "Absolute events");
+        private static readonly GlobalStatistic<ulong> statistic_dropped_touch_inputs = GlobalStatistics.Get<ulong>(StatisticGroupFor<WindowsMouseHandler>(), "Dropped native touch inputs");
+        private static readonly GlobalStatistic<ulong> statistic_inputs_with_extra_information = GlobalStatistics.Get<ulong>(StatisticGroupFor<WindowsMouseHandler>(), "Native inputs with ExtraInformation");
+
         private const int raw_input_coordinate_space = 65535;
 
-        private SDL.SDL_WindowsMessageHook callback;
-        private WindowsWindow window;
+        private SDL.SDL_WindowsMessageHook callback = null!;
+        private WindowsWindow window = null!;
 
         public override bool IsActive => Enabled.Value;
 
@@ -35,6 +39,7 @@ namespace osu.Framework.Platform.Windows
                 return false;
 
             window = desktopWindow;
+            // ReSharper disable once ConvertClosureToMethodGroup
             callback = (ptr, wnd, u, param, l) => onWndProc(ptr, wnd, u, param, l);
 
             Enabled.BindValueChanged(enabled =>
@@ -65,9 +70,12 @@ namespace osu.Framework.Platform.Windows
                 return IntPtr.Zero;
 
             if (Native.Input.IsTouchEvent(Native.Input.GetMessageExtraInfo()))
+            {
                 // sometimes GetMessageExtraInfo returns 0, so additionally, mouse.ExtraInformation is checked below.
                 // touch events are handled by TouchHandler
+                statistic_dropped_touch_inputs.Value++;
                 return IntPtr.Zero;
+            }
 
             int payloadSize = sizeof(RawInputData);
 
@@ -78,13 +86,18 @@ namespace osu.Framework.Platform.Windows
 
             var mouse = data.Mouse;
 
-            // `ExtraInformation` doens't have the MI_WP_SIGNATURE set, so we have to rely solely on the touch flag.
+            // `ExtraInformation` doesn't have the MI_WP_SIGNATURE set, so we have to rely solely on the touch flag.
             if (Native.Input.HasTouchFlag(mouse.ExtraInformation))
+            {
+                statistic_dropped_touch_inputs.Value++;
                 return IntPtr.Zero;
+            }
 
             //TODO: this isn't correct.
             if (mouse.ExtraInformation > 0)
             {
+                statistic_inputs_with_extra_information.Value++;
+
                 // i'm not sure if there is a valid case where we need to handle packets with this present
                 // but the osu!tablet fires noise events with non-zero values, which we want to ignore.
                 // return IntPtr.Zero;
@@ -129,10 +142,12 @@ namespace osu.Framework.Platform.Windows
                 position *= window.Scale;
 
                 PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = position });
+                statistic_absolute_events.Value++;
             }
             else
             {
                 PendingInputs.Enqueue(new MousePositionRelativeInput { Delta = new Vector2(mouse.LastX, mouse.LastY) * sensitivity });
+                statistic_relative_events.Value++;
             }
 
             return IntPtr.Zero;

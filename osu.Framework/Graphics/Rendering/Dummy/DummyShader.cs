@@ -40,6 +40,10 @@ namespace osu.Framework.Graphics.Rendering.Dummy
             return new Uniform<T>(renderer, this, name, 0);
         }
 
+        public void BindUniformBlock(string blockName, IUniformBuffer buffer)
+        {
+        }
+
         public void Dispose()
         {
         }

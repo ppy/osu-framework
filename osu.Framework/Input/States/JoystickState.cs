@@ -1,10 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System.Collections.Generic;
-using System.Linq;
 
 namespace osu.Framework.Input.States
 {
@@ -24,10 +21,17 @@ namespace osu.Framework.Input.States
         /// </summary>
         internal readonly JoystickButton[] AxisDirectionButtons = new JoystickButton[MAX_AXES];
 
+        private readonly JoystickAxis[] axes = new JoystickAxis[MAX_AXES];
+
         /// <summary>
         /// Retrieves all <see cref="JoystickAxis"/> with their current value (regardless of inactive ones).
         /// </summary>
-        public IEnumerable<JoystickAxis> GetAxes() =>
-            AxesValues.Select((v, i) => new JoystickAxis((JoystickAxisSource)i, v));
+        public IEnumerable<JoystickAxis> GetAxes()
+        {
+            for (int i = 0; i < MAX_AXES; i++)
+                axes[i] = new JoystickAxis((JoystickAxisSource)i, AxesValues[i]);
+
+            return axes;
+        }
     }
 }

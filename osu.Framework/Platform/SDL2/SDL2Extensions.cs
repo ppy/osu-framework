@@ -904,6 +904,24 @@ namespace osu.Framework.Platform.SDL2
             return 0;
         }
 
+        public static SDL.SDL_WindowFlags ToFlags(this GraphicsSurfaceType surfaceType)
+        {
+            switch (surfaceType)
+            {
+                case GraphicsSurfaceType.OpenGL:
+                    return SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL;
+
+                case GraphicsSurfaceType.Vulkan when !RuntimeInfo.IsApple:
+                    return SDL.SDL_WindowFlags.SDL_WINDOW_VULKAN;
+
+                case GraphicsSurfaceType.Metal:
+                case GraphicsSurfaceType.Vulkan when RuntimeInfo.IsApple:
+                    return SDL.SDL_WindowFlags.SDL_WINDOW_METAL;
+            }
+
+            return 0;
+        }
+
         public static JoystickAxisSource ToJoystickAxisSource(this SDL.SDL_GameControllerAxis axis)
         {
             switch (axis)
@@ -1108,5 +1126,42 @@ namespace osu.Framework.Platform.SDL2
         /// Converts <see cref="DisplayIndex"/> to the appropriate display index for use in SDL display-related functions.
         /// </summary>
         public static int ToSDLDisplayIndex(this DisplayIndex index) => index == DisplayIndex.Primary ? 0 : (int)index;
+
+        private static bool tryGetTouchDeviceIndex(long touchId, out int index)
+        {
+            int n = SDL.SDL_GetNumTouchDevices();
+
+            for (int i = 0; i < n; i++)
+            {
+                long currentTouchId = SDL.SDL_GetTouchDevice(i);
+
+                if (touchId == currentTouchId)
+                {
+                    index = i;
+                    return true;
+                }
+            }
+
+            index = -1;
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the <paramref name="name"/> of the touch device for this <see cref="SDL.SDL_TouchFingerEvent"/>.
+        /// </summary>
+        /// <remarks>
+        /// On Windows, this will return <c>"touch"</c> for touchscreen events or <c>"pen"</c> for pen/tablet events.
+        /// </remarks>
+        public static bool TryGetTouchName(this SDL.SDL_TouchFingerEvent e, out string name)
+        {
+            if (tryGetTouchDeviceIndex(e.touchId, out int index))
+            {
+                name = SDL.SDL_GetTouchName(index);
+                return name != null;
+            }
+
+            name = null;
+            return false;
+        }
     }
 }

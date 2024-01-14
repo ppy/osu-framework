@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -12,7 +10,7 @@ using osu.Framework.Tests.Visual;
 namespace osu.Framework.Tests.Transforms
 {
     [HeadlessTest]
-    public class TestSceneTransformEventBindings : FrameworkTestScene
+    public partial class TestSceneTransformEventBindings : FrameworkTestScene
     {
         [Test]
         public void TestOnCompleteBinding()

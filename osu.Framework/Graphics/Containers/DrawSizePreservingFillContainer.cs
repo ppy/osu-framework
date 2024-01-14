@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Containers
     /// This is useful, for example, to automatically scale the user interface according to
     /// the window resolution, or to provide automatic HiDPI display support.
     /// </summary>
-    public class DrawSizePreservingFillContainer : Container
+    public partial class DrawSizePreservingFillContainer : Container
     {
         private readonly Container content;
 
@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Update();
 
-            Vector2 drawSizeRatio = Vector2.Divide(Parent.ChildSize, TargetDrawSize);
+            Vector2 drawSizeRatio = Vector2.Divide(Parent!.ChildSize, TargetDrawSize);
 
             switch (Strategy)
             {

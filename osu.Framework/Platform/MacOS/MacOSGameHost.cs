@@ -11,7 +11,6 @@ using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
-using osuTK.Graphics.OpenGL;
 
 namespace osu.Framework.Platform.MacOS
 {
@@ -22,27 +21,27 @@ namespace osu.Framework.Platform.MacOS
         {
         }
 
-        protected override IWindow CreateWindow() => new MacOSWindow();
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new MacOSWindow(preferredSurface);
 
         public override IEnumerable<string> UserStoragePaths
         {
             get
             {
-                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Library", "Application Support");
+                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Application Support");
 
                 string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
 
                 if (!string.IsNullOrEmpty(xdg))
                     yield return xdg;
 
-                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), ".local", "share");
+                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share");
 
                 foreach (string path in base.UserStoragePaths)
                     yield return path;
             }
         }
 
-        public override Clipboard GetClipboard() => new MacOSClipboard();
+        protected override Clipboard CreateClipboard() => new MacOSClipboard();
 
         protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new MacOSReadableKeyCombinationProvider();
 
@@ -51,8 +50,8 @@ namespace osu.Framework.Platform.MacOS
             base.Swap();
 
             // It has been reported that this helps performance on macOS (https://github.com/ppy/osu/issues/7447)
-            if (!Window.VerticalSync)
-                GL.Finish();
+            if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL && !Renderer.VerticalSync)
+                Renderer.WaitUntilIdle();
         }
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
@@ -63,6 +62,7 @@ namespace osu.Framework.Platform.MacOS
             {
                 // There are several bugs we need to fix with macOS / SDL2 cursor handling before switching this on.
                 h.UseRelativeMode.Value = false;
+                h.UseRelativeMode.Default = false;
             }
 
             return handlers;

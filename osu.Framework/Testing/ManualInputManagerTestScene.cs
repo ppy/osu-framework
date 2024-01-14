@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using NUnit.Framework;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
@@ -20,7 +18,7 @@ namespace osu.Framework.Testing
     /// <summary>
     /// An abstract test case which is tested with manual input management.
     /// </summary>
-    public abstract class ManualInputManagerTestScene : TestScene
+    public abstract partial class ManualInputManagerTestScene : TestScene
     {
         protected override Container<Drawable> Content { get; } = new Container { RelativeSizeAxes = Axes.Both };
 

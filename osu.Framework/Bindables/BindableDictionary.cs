@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.TypeExtensions;
@@ -119,11 +120,7 @@ namespace osu.Framework.Bindables
             return true;
         }
 
-#if NETSTANDARD
-        public bool TryGetValue(TKey key, out TValue value) => collection.TryGetValue(key, out value);
-#else
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value) => collection.TryGetValue(key, out value);
-#endif
 
         /// <inheritdoc cref="IDictionary{TKey,TValue}.this" />
         /// <exception cref="InvalidOperationException">Thrown when setting an item while this <see cref="BindableDictionary{TKey, TValue}"/> is <see cref="Disabled"/>.</exception>
@@ -277,8 +274,9 @@ namespace osu.Framework.Bindables
         /// A collection holding items of type <see cref="KeyValuePair{TKey,TValue}"/> can be parsed. Null results in an empty <see cref="BindableDictionary{TKey, TValue}"/>.
         /// </summary>
         /// <param name="input">The input which is to be parsed.</param>
+        /// <param name="provider">Not valid for <see cref="BindableDictionary{TKey, TValue}"/>.</param>
         /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableDictionary{TKey, TValue}"/> is <see cref="Disabled"/>.</exception>
-        public void Parse(object? input)
+        public void Parse(object? input, IFormatProvider provider)
         {
             ensureMutationAllowed();
 
@@ -456,15 +454,15 @@ namespace osu.Framework.Bindables
         /// <param name="them">The <see cref="BindableDictionary{TKey, TValue}"/> to be bound to.</param>
         public void BindTo(BindableDictionary<TKey, TValue> them)
         {
-            if (them == null)
-                throw new ArgumentNullException(nameof(them));
-            if (bindings?.Contains(weakReference) == true)
-                throw new ArgumentException("An already bound collection can not be bound again.");
+            ArgumentNullException.ThrowIfNull(them);
+
+            if (bindings?.Contains(them.weakReference) == true)
+                throw new ArgumentException("An already bound dictionary can not be bound again.");
             if (them == this)
-                throw new ArgumentException("A collection can not be bound to itself");
+                throw new ArgumentException("A dictionary can not be bound to itself");
 
             // copy state and content over
-            Parse(them);
+            Parse(them, CultureInfo.InvariantCulture);
             Disabled = them.Disabled;
 
             addWeakReference(them.weakReference);

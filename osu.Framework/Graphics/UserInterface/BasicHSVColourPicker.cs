@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -9,7 +7,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicHSVColourPicker : HSVColourPicker
+    public partial class BasicHSVColourPicker : HSVColourPicker
     {
         public BasicHSVColourPicker()
         {
@@ -22,12 +20,12 @@ namespace osu.Framework.Graphics.UserInterface
         protected override HueSelector CreateHueSelector() => new BasicHueSelector();
         protected override SaturationValueSelector CreateSaturationValueSelector() => new BasicSaturationValueSelector();
 
-        public class BasicHueSelector : HueSelector
+        public partial class BasicHueSelector : HueSelector
         {
             protected override Drawable CreateSliderNub() => new BasicHueSelectorNub();
         }
 
-        public class BasicHueSelectorNub : CompositeDrawable
+        public partial class BasicHueSelectorNub : CompositeDrawable
         {
             public BasicHueSelectorNub()
             {
@@ -51,11 +49,11 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public class BasicSaturationValueSelector : SaturationValueSelector
+        public partial class BasicSaturationValueSelector : SaturationValueSelector
         {
             protected override Marker CreateMarker() => new BasicMarker();
 
-            private class BasicMarker : Marker
+            private partial class BasicMarker : Marker
             {
                 private readonly Box colourPreview;
 

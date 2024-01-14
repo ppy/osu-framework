@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -16,7 +14,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneJoystick : FrameworkTestScene
+    public partial class TestSceneJoystick : FrameworkTestScene
     {
         public TestSceneJoystick()
         {
@@ -55,7 +53,7 @@ namespace osu.Framework.Tests.Visual.Input
             };
         }
 
-        private class JoystickButtonHandler : CompositeDrawable
+        private partial class JoystickButtonHandler : CompositeDrawable
         {
             private readonly Drawable background;
 
@@ -107,7 +105,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class JoystickHatHandler : CompositeDrawable
+        private partial class JoystickHatHandler : CompositeDrawable
         {
             private readonly Drawable upBox;
             private readonly Drawable downBox;
@@ -200,7 +198,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class JoystickAxisButtonHandler : CompositeDrawable
+        private partial class JoystickAxisButtonHandler : CompositeDrawable
         {
             private readonly JoystickAxisSource trackedAxis;
             private readonly Container background;

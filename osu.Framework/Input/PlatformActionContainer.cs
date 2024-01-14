@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System.Collections.Generic;
 using osu.Framework.Allocation;
 using osu.Framework.Input.Bindings;
@@ -16,10 +14,10 @@ namespace osu.Framework.Input
     /// can be created to handle events that should trigger specifically on a focused drawable.
     /// Will send repeat events by default.
     /// </summary>
-    public class PlatformActionContainer : KeyBindingContainer<PlatformAction>, IHandleGlobalKeyboardInput
+    public partial class PlatformActionContainer : KeyBindingContainer<PlatformAction>, IHandleGlobalKeyboardInput
     {
         [Resolved]
-        private GameHost host { get; set; }
+        private GameHost host { get; set; } = null!;
 
         public PlatformActionContainer()
             : base(SimultaneousBindingMode.None, KeyCombinationMatchingMode.Modifiers)

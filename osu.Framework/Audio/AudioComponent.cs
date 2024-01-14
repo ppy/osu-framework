@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using osu.Framework.Development;
 using osu.Framework.Platform;
@@ -80,7 +81,12 @@ namespace osu.Framework.Audio
             FrameStatistics.Increment(StatisticsCounterType.Components);
 
             while (!IsDisposed && PendingActions.TryDequeue(out Task task))
+            {
                 task.RunSynchronously();
+
+                if (task.Exception != null)
+                    ExceptionDispatchInfo.Throw(task.Exception);
+            }
 
             if (!IsDisposed)
                 UpdateState();

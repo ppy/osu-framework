@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -14,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneCachedBufferedContainer : GridTestScene
+    public partial class TestSceneCachedBufferedContainer : GridTestScene
     {
         public TestSceneCachedBufferedContainer()
             : base(5, 3)
@@ -90,7 +88,7 @@ namespace osu.Framework.Tests.Visual.Containers
             AddAssert("box 10 count is 1", () => boxes[10].Count == 1);
         }
 
-        private class ContainingBox : Container<CountingBox>
+        private partial class ContainingBox : Container<CountingBox>
         {
             public new int Count => Child.Count;
 
@@ -113,7 +111,7 @@ namespace osu.Framework.Tests.Visual.Containers
             }
         }
 
-        private class CountingBox : BufferedContainer
+        private partial class CountingBox : BufferedContainer
         {
             public new int Count;
 

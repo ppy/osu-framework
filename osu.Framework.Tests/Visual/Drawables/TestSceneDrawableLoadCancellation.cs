@@ -20,7 +20,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneDrawableLoadCancellation : FrameworkTestScene
+    public partial class TestSceneDrawableLoadCancellation : FrameworkTestScene
     {
         private readonly List<SlowLoader> loaders = new List<SlowLoader>();
 
@@ -74,7 +74,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             return loader;
         }
 
-        public class SlowLoader : CompositeDrawable
+        public partial class SlowLoader : CompositeDrawable
         {
             private readonly int id;
             private PausableLoadDrawable loadable;
@@ -113,7 +113,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        public class PausableLoadDrawable : CompositeDrawable
+        public partial class PausableLoadDrawable : CompositeDrawable
         {
             private readonly int id;
 

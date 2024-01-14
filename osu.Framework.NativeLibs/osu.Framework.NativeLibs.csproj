@@ -14,7 +14,7 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="runtimes\**\*">
+    <None Include="runtimes\**\native\*">
       <Pack>true</Pack>
       <PackagePath>runtimes</PackagePath>
     </None>

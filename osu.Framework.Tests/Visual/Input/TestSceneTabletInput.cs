@@ -1,11 +1,10 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
-#if NET6_0_OR_GREATER
 using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -19,8 +18,13 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneTabletInput : FrameworkTestScene
+    public partial class TestSceneTabletInput : FrameworkTestScene
     {
+        private readonly FillFlowContainer contentFlow;
+
+        [Resolved]
+        private FrameworkConfigManager frameworkConfigManager { get; set; } = null!;
+
         public TestSceneTabletInput()
         {
             var penButtonFlow = new FillFlowContainer
@@ -41,7 +45,7 @@ namespace osu.Framework.Tests.Visual.Input
             for (int i = 0; i < 16; i++)
                 auxButtonFlow.Add(new AuxiliaryButtonHandler(i));
 
-            Child = new FillFlowContainer
+            Child = contentFlow = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.Both,
                 Direction = FillDirection.Vertical,
@@ -50,7 +54,7 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Resolved]
-        private GameHost host { get; set; }
+        private GameHost host { get; set; } = null!;
 
         protected override void LoadComplete()
         {
@@ -59,10 +63,103 @@ namespace osu.Framework.Tests.Visual.Input
             var tabletHandler = host.AvailableInputHandlers.OfType<OpenTabletDriverHandler>().FirstOrDefault();
 
             if (tabletHandler != null)
+            {
                 AddToggleStep("toggle tablet handling", t => tabletHandler.Enabled.Value = t);
+
+                contentFlow.Insert(-1, new TabletAreaVisualiser(tabletHandler));
+                AddSliderStep("change width", 0, 1, 1f,
+                    width => tabletHandler.AreaSize.Value = new Vector2(
+                        tabletHandler.AreaSize.Default.X * width,
+                        tabletHandler.AreaSize.Value.Y));
+
+                AddSliderStep("change height", 0, 1, 1f,
+                    height => tabletHandler.AreaSize.Value = new Vector2(
+                        tabletHandler.AreaSize.Value.X,
+                        tabletHandler.AreaSize.Default.Y * height));
+
+                AddSliderStep("change X offset", 0, 1, 0.5f,
+                    xOffset => tabletHandler.AreaOffset.Value = new Vector2(
+                        tabletHandler.AreaSize.Default.X * xOffset,
+                        tabletHandler.AreaOffset.Value.Y));
+
+                AddSliderStep("change Y offset", 0, 1, 0.5f,
+                    yOffset => tabletHandler.AreaOffset.Value = new Vector2(
+                        tabletHandler.AreaOffset.Value.X,
+                        tabletHandler.AreaSize.Default.Y * yOffset));
+            }
+
+            AddToggleStep("toggle confine mode", enabled => frameworkConfigManager.SetValue(FrameworkSetting.ConfineMouseMode,
+                enabled ? ConfineMouseMode.Always : ConfineMouseMode.Never));
         }
 
-        private class PenButtonHandler : CompositeDrawable
+        private partial class TabletAreaVisualiser : CompositeDrawable
+        {
+            private readonly OpenTabletDriverHandler handler;
+
+            private Box fullArea = null!;
+            private Container activeArea = null!;
+
+            private Bindable<Vector2> areaSize = null!;
+            private Bindable<Vector2> areaOffset = null!;
+
+            public TabletAreaVisualiser(OpenTabletDriverHandler handler)
+            {
+                this.handler = handler;
+            }
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                Margin = new MarginPadding(10);
+                AutoSizeAxes = Axes.Both;
+                InternalChild = new Container
+                {
+                    AutoSizeAxes = Axes.Both,
+                    Children = new Drawable[]
+                    {
+                        fullArea = new Box
+                        {
+                            Width = handler.AreaSize.Default.X,
+                            Height = handler.AreaSize.Default.Y,
+                            Colour = FrameworkColour.GreenDark
+                        },
+                        activeArea = new Container
+                        {
+                            Origin = Anchor.Centre,
+                            Children = new Drawable[]
+                            {
+                                new Box
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Colour = FrameworkColour.YellowGreen
+                                },
+                                new SpriteText
+                                {
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    Text = "Active area"
+                                }
+                            }
+                        }
+                    }
+                };
+            }
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+
+                areaSize = handler.AreaSize.GetBoundCopy();
+                areaSize.BindValueChanged(size => activeArea.Size = size.NewValue, true);
+                areaSize.DefaultChanged += fullSize => fullArea.Size = fullSize.NewValue;
+                fullArea.Size = areaSize.Default;
+
+                areaOffset = handler.AreaOffset.GetBoundCopy();
+                areaOffset.BindValueChanged(offset => activeArea.Position = offset.NewValue, true);
+            }
+        }
+
+        private partial class PenButtonHandler : CompositeDrawable
         {
             private readonly TabletPenButton button;
             private readonly Drawable background;
@@ -112,7 +209,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class AuxiliaryButtonHandler : CompositeDrawable
+        private partial class AuxiliaryButtonHandler : CompositeDrawable
         {
             private readonly TabletAuxiliaryButton button;
             private readonly Drawable background;
@@ -163,4 +260,3 @@ namespace osu.Framework.Tests.Visual.Input
         }
     }
 }
-#endif

@@ -11,7 +11,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Android
 {
-    public class AndroidGameWindow : OsuTKWindow
+    internal class AndroidGameWindow : OsuTKWindow
     {
         private readonly AndroidGameView view;
 
@@ -53,7 +53,7 @@ namespace osu.Framework.Android
             SafeAreaPadding.BindTo(view.SafeAreaPadding);
         }
 
-        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]
+        public override IEnumerable<WindowMode> SupportedWindowModes => new[]
         {
             Configuration.WindowMode.Fullscreen,
         };

@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using System.Linq;
 using osu.Framework.Allocation;
@@ -19,7 +17,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneMidi : FrameworkTestScene
+    public partial class TestSceneMidi : FrameworkTestScene
     {
         public TestSceneMidi()
         {
@@ -36,7 +34,7 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Resolved]
-        private GameHost host { get; set; }
+        private GameHost host { get; set; } = null!;
 
         protected override void LoadComplete()
         {
@@ -70,7 +68,7 @@ namespace osu.Framework.Tests.Visual.Input
             return base.Handle(e);
         }
 
-        private class MidiKeyHandler : CompositeDrawable
+        private partial class MidiKeyHandler : CompositeDrawable
         {
             private readonly Drawable background;
 

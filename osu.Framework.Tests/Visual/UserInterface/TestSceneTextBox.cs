@@ -16,12 +16,11 @@ using osu.Framework.Input;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneTextBox : ManualInputManagerTestScene
+    public partial class TestSceneTextBox : ManualInputManagerTestScene
     {
         private FillFlowContainer textBoxes;
 
@@ -802,6 +801,33 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("nothing selected", () => textBox.SelectedText == string.Empty);
         }
 
+        [Test]
+        public void TestSelectAll()
+        {
+            TextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new BasicTextBox
+                {
+                    Size = new Vector2(300, 40),
+                    Text = "initial text",
+                });
+            });
+
+            AddAssert("select all fails", () => textBox.SelectAll(), () => Is.False);
+            AddAssert("no text selected", () => textBox.SelectedText, () => Is.EqualTo(string.Empty));
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("select all succeeds", () => textBox.SelectAll(), () => Is.True);
+            AddAssert("all text selected", () => textBox.SelectedText, () => Is.EqualTo(textBox.Text));
+        }
+
         private void prependString(InsertableTextBox textBox, string text)
         {
             InputManager.Keys(PlatformAction.MoveBackwardLine);
@@ -832,7 +858,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Keys(PlatformAction.DeleteBackwardChar);
         }
 
-        public class InsertableTextBox : BasicTextBox
+        public partial class InsertableTextBox : BasicTextBox
         {
             /// <summary>
             /// Returns the shown-in-screen text.
@@ -842,18 +868,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public new void InsertString(string text) => base.InsertString(text);
         }
 
-        private class NumberTextBox : BasicTextBox
+        private partial class NumberTextBox : BasicTextBox
         {
             protected override bool CanAddCharacter(char character) => character.IsAsciiDigit();
 
             protected override bool AllowIme => false;
         }
 
-        private class CustomTextBox : BasicTextBox
+        private partial class CustomTextBox : BasicTextBox
         {
-            protected override Drawable GetDrawableCharacter(char c) => new ScalingText(c, CalculatedTextSize);
+            protected override Drawable GetDrawableCharacter(char c) => new ScalingText(c, FontSize);
 
-            private class ScalingText : CompositeDrawable
+            private partial class ScalingText : CompositeDrawable
             {
                 private readonly SpriteText text;
 
@@ -890,22 +916,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             protected override Caret CreateCaret() => new BorderCaret();
 
-            private class BorderCaret : Caret
+            private partial class BorderCaret : Caret
             {
                 private const float caret_width = 2;
 
                 public BorderCaret()
                 {
-                    RelativeSizeAxes = Axes.Y;
-
-                    Masking = true;
-                    BorderColour = Color4.White;
-                    BorderThickness = 3;
-
-                    InternalChild = new Box
+                    InternalChild = new Container
                     {
+                        Anchor = Anchor.CentreLeft,
+                        Origin = Anchor.CentreLeft,
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Transparent
+                        Masking = true,
+                        BorderColour = Colour4.White,
+                        BorderThickness = 3f,
+                        Child = new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = Colour4.Transparent,
+                        },
                     };
                 }
 
@@ -917,7 +946,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class PaddedTextBox : BasicTextBox
+        private partial class PaddedTextBox : BasicTextBox
         {
             public const float LEFT_RIGHT_PADDING = 50;
 

@@ -1,11 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Performance;
 
 namespace osu.Framework.Graphics.Containers
@@ -20,7 +19,7 @@ namespace osu.Framework.Graphics.Containers
     /// <see cref="Drawable.ShouldBeAlive"/> is not overrided.
     /// Also, <see cref="Drawable.RemoveWhenNotAlive"/> should be false.
     /// </remarks>
-    public class LifetimeManagementContainer : CompositeDrawable
+    public partial class LifetimeManagementContainer : CompositeDrawable
     {
         private readonly LifetimeEntryManager manager = new LifetimeEntryManager();
         private readonly Dictionary<Drawable, DrawableLifetimeEntry> drawableMap = new Dictionary<Drawable, DrawableLifetimeEntry>();
@@ -138,7 +137,7 @@ namespace osu.Framework.Graphics.Containers
 
             public void Dispose()
             {
-                if (Drawable != null)
+                if (Drawable.IsNotNull())
                     Drawable.LifetimeChanged -= drawableLifetimeChanged;
             }
         }

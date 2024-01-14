@@ -1,12 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Drawing;
-using JetBrains.Annotations;
+using System.IO;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
@@ -18,6 +17,11 @@ namespace osu.Framework.Platform
     /// </summary>
     public interface IWindow : IDisposable
     {
+        /// <summary>
+        /// The graphics API for this window.
+        /// </summary>
+        internal IGraphicsSurface GraphicsSurface { get; }
+
         /// <summary>
         /// Cycles through the available <see cref="WindowMode"/>s as determined by <see cref="SupportedWindowModes"/>.
         /// </summary>
@@ -37,25 +41,42 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the window close (X) button or another platform-native exit action has been pressed.
         /// </summary>
-        [CanBeNull]
-        event Action ExitRequested;
+        event Action? ExitRequested;
 
         /// <summary>
         /// Invoked when the <see cref="IWindow"/> has closed.
         /// </summary>
-        [CanBeNull]
-        event Action Exited;
+        event Action? Exited;
+
+        /// <summary>
+        /// Invoked when the application associated with this <see cref="IWindow"/> has been suspended.
+        /// </summary>
+        event Action? Suspended;
+
+        /// <summary>
+        /// Invoked when the application associated with this <see cref="IWindow"/> has been resumed from suspension.
+        /// </summary>
+        event Action? Resumed;
+
+        /// <summary>
+        /// Invoked when the operating system is low on memory, in order for the application to free some.
+        /// </summary>
+        event Action? LowOnMemory;
 
         /// <summary>
         /// Invoked when the <see cref="IWindow"/> client size has changed.
         /// </summary>
-        [CanBeNull]
-        event Action Resized;
+        event Action? Resized;
 
         /// <summary>
         /// Invoked when the system keyboard layout has changed.
         /// </summary>
-        event Action KeymapChanged;
+        event Action? KeymapChanged;
+
+        /// <summary>
+        /// Invoked when the user drops a file into the window.
+        /// </summary>
+        public event Action<string>? DragDrop;
 
         /// <summary>
         /// Whether the OS cursor is currently contained within the game window.
@@ -83,11 +104,6 @@ namespace osu.Framework.Platform
         WindowState WindowState { get; set; }
 
         /// <summary>
-        /// Controls the vertical sync mode of the screen.
-        /// </summary>
-        bool VerticalSync { get; set; }
-
-        /// <summary>
         /// Returns the default <see cref="WindowMode"/> for the implementation.
         /// </summary>
         WindowMode DefaultWindowMode { get; }
@@ -107,7 +123,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// The <see cref="WindowMode"/>s supported by this <see cref="IWindow"/> implementation.
         /// </summary>
-        IBindableList<WindowMode> SupportedWindowModes { get; }
+        IEnumerable<WindowMode> SupportedWindowModes { get; }
 
         /// <summary>
         /// Provides a <see cref="Bindable{WindowMode}"/> that manages the current window mode.
@@ -116,15 +132,14 @@ namespace osu.Framework.Platform
         Bindable<WindowMode> WindowMode { get; }
 
         /// <summary>
-        /// Exposes the physical displays as an <see cref="IEnumerable{Display}"/>.
+        /// Contains information about the current physical displays.
         /// </summary>
-        IEnumerable<Display> Displays { get; }
+        ImmutableArray<Display> Displays { get; }
 
         /// <summary>
         /// Invoked when <see cref="Displays"/> has changed.
         /// </summary>
-        [CanBeNull]
-        event Action<IEnumerable<Display>> DisplaysChanged;
+        event Action<IEnumerable<Display>>? DisplaysChanged;
 
         /// <summary>
         /// Gets the <see cref="Display"/> that has been set as "primary" or "default" in the operating system.
@@ -142,19 +157,44 @@ namespace osu.Framework.Platform
         IBindable<DisplayMode> CurrentDisplayMode { get; }
 
         /// <summary>
-        /// Makes this window the current graphics context, if appropriate for the driver.
-        /// </summary>
-        void MakeCurrent();
-
-        /// <summary>
-        /// Clears the current graphics context, if appropriate for the driver.
-        /// </summary>
-        void ClearCurrent();
-
-        /// <summary>
         /// Forcefully closes the window.
         /// </summary>
         void Close();
+
+        /// <summary>
+        /// Attempts to raise the window, bringing it above other windows and requesting input focus.
+        /// </summary>
+        void Raise();
+
+        /// <summary>
+        /// Attempts to hide the window, making it invisible and hidden from the taskbar.
+        /// </summary>
+        void Hide();
+
+        /// <summary>
+        /// Attempts to show the window, making it visible.
+        /// </summary>
+        void Show();
+
+        /// <summary>
+        /// Attempts to flash the window in order to request the user's attention.
+        /// </summary>
+        /// <remarks>
+        /// On platforms which don't support any kind of flashing (ie. mobile), this will be a no-op.
+        /// </remarks>
+        /// <param name="flashUntilFocused">
+        /// When <c>true</c>, the window will flash until it is focused again.
+        /// When <c>false</c> it will only flash momentarily.
+        /// </param>
+        void Flash(bool flashUntilFocused = false);
+
+        /// <summary>
+        /// Attempts to cancel any window flash requested with <see cref="Flash"/>.
+        /// </summary>
+        /// <remarks>
+        /// On platforms which don't support any kind of flashing (ie. mobile), this will be a no-op.
+        /// </remarks>
+        void CancelFlash();
 
         /// <summary>
         /// Start the window's run loop.
@@ -163,14 +203,19 @@ namespace osu.Framework.Platform
         void Run();
 
         /// <summary>
-        /// Requests that the graphics backend perform a buffer swap.
+        /// Invoked once a draw session has finished.
         /// </summary>
-        void SwapBuffers();
+        void OnDraw();
 
         /// <summary>
         /// Whether the window currently has focus.
         /// </summary>
         bool Focused { get; }
+
+        /// <summary>
+        /// Sets the window icon to the provided <paramref name="imageStream"/>.
+        /// </summary>
+        public void SetIconFromStream(Stream imageStream);
 
         /// <summary>
         /// Convert a screen based coordinate to local window space.

@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using System;
 using System.IO;
@@ -23,22 +21,28 @@ namespace osu.Framework.iOS.Graphics.Textures
 
         protected override Image<TPixel> ImageFromStream<TPixel>(Stream stream)
         {
-            using (var uiImage = UIImage.LoadFromData(NSData.FromStream(stream)))
+            using (var nativeData = NSData.FromStream(stream))
             {
-                if (uiImage == null) throw new ArgumentException($"{nameof(Image)} could not be created from {nameof(stream)}.");
+                if (nativeData == null)
+                    throw new ArgumentException($"{nameof(Image)} could not be created from {nameof(stream)}.");
 
-                int width = (int)uiImage.Size.Width;
-                int height = (int)uiImage.Size.Height;
+                using (var uiImage = UIImage.LoadFromData(nativeData))
+                {
+                    if (uiImage == null) throw new ArgumentException($"{nameof(Image)} could not be created from {nameof(stream)}.");
 
-                // TODO: Use pool/memory when builds success with Xamarin.
-                // Probably at .NET Core 3.1 time frame.
-                byte[] data = new byte[width * height * 4];
-                using (CGBitmapContext textureContext = new CGBitmapContext(data, width, height, 8, width * 4, CGColorSpace.CreateDeviceRGB(), CGImageAlphaInfo.PremultipliedLast))
-                    textureContext.DrawImage(new CGRect(0, 0, width, height), uiImage.CGImage);
+                    int width = (int)uiImage.Size.Width;
+                    int height = (int)uiImage.Size.Height;
 
-                var image = Image.LoadPixelData<TPixel>(data, width, height);
+                    // TODO: Use pool/memory when builds success with Xamarin.
+                    // Probably at .NET Core 3.1 time frame.
+                    byte[] data = new byte[width * height * 4];
+                    using (CGBitmapContext textureContext = new CGBitmapContext(data, width, height, 8, width * 4, CGColorSpace.CreateDeviceRGB(), CGImageAlphaInfo.PremultipliedLast))
+                        textureContext.DrawImage(new CGRect(0, 0, width, height), uiImage.CGImage);
 
-                return image;
+                    var image = Image.LoadPixelData<TPixel>(data, width, height);
+
+                    return image;
+                }
             }
         }
     }

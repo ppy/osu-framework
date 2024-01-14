@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -13,7 +11,7 @@ using osuTK.Graphics;
 namespace osu.Framework.Tests.Visual.Containers
 {
     [System.ComponentModel.Description("changing depth of child dynamically")]
-    public class TestSceneDynamicDepth : FrameworkTestScene
+    public partial class TestSceneDynamicDepth : FrameworkTestScene
     {
         private void addDepthSteps(DepthBox box, Container container)
         {
@@ -49,7 +47,7 @@ namespace osu.Framework.Tests.Visual.Containers
             addDepthSteps(purple, container);
         }
 
-        private class DepthBox : Container
+        private partial class DepthBox : Container
         {
             private readonly SpriteText depthText;
 

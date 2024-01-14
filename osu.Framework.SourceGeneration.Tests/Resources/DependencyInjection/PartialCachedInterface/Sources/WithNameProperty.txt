@@ -1,0 +1,8 @@
+public partial class WithNameProperty : osu.Framework.Graphics.Drawable, IWithNameProperty
+{
+}
+
+[osu.Framework.Allocation.Cached(Name = "Custom Name")]
+public interface IWithNameProperty
+{
+}

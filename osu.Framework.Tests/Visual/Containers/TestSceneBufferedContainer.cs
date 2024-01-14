@@ -1,15 +1,13 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneBufferedContainer : TestSceneMasking
+    public partial class TestSceneBufferedContainer : TestSceneMasking
     {
         public TestSceneBufferedContainer()
         {

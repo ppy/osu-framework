@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using Android.OS;
 using Android.Views;
@@ -19,6 +20,8 @@ namespace osu.Framework.Android.Input
     /// </summary>
     public class AndroidMouseHandler : AndroidInputHandler
     {
+        private static readonly GlobalStatistic<ulong> statistic_total_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<AndroidMouseHandler>(), "Total events");
+
         /// <summary>
         /// Whether relative mode should be preferred when the window has focus, the cursor is contained and the OS cursor is not visible.
         /// </summary>
@@ -80,6 +83,7 @@ namespace osu.Framework.Android.Input
 
             Enabled.BindValueChanged(enabled =>
             {
+#nullable disable // Events misses nullable mark in .NET Android SDK (6.0.402)
                 if (enabled.NewValue)
                 {
                     View.GenericMotion += HandleGenericMotion;
@@ -89,7 +93,7 @@ namespace osu.Framework.Android.Input
                     View.Touch += HandleTouch;
 
                     // Pointer capture is only available on Android 8.0 and up
-                    if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+                    if (OperatingSystem.IsAndroidVersionAtLeast(26))
                         View.CapturedPointer += HandleCapturedPointer;
                 }
                 else
@@ -101,9 +105,10 @@ namespace osu.Framework.Android.Input
                     View.Touch -= HandleTouch;
 
                     // Pointer capture is only available on Android 8.0 and up
-                    if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+                    if (OperatingSystem.IsAndroidVersionAtLeast(26))
                         View.CapturedPointer -= HandleCapturedPointer;
                 }
+#nullable restore
 
                 updatePointerCapture();
             }, true);
@@ -120,7 +125,7 @@ namespace osu.Framework.Android.Input
         private void updatePointerCapture()
         {
             // Pointer capture is only available on Android 8.0 and up
-            if (Build.VERSION.SdkInt < BuildVersionCodes.O)
+            if (!OperatingSystem.IsAndroidVersionAtLeast(26))
                 return;
 
             bool shouldCapture =
@@ -251,8 +256,14 @@ namespace osu.Framework.Android.Input
         {
             bool pressed = buttonEvent.Action == MotionEventActions.ButtonPress;
 
-            foreach (var button in buttonEvent.ActionButton.ToMouseButtons())
-                handleMouseButton(button, pressed);
+            // ActionButton is not available before API 23
+            // https://developer.android.com/reference/android/view/MotionEvent#getActionButton()
+
+            if (OperatingSystem.IsAndroidVersionAtLeast(23))
+            {
+                foreach (var button in buttonEvent.ActionButton.ToMouseButtons())
+                    handleMouseButton(button, pressed);
+            }
         }
 
         private void handleScrollEvent(MotionEvent scrollEvent)
@@ -299,6 +310,7 @@ namespace osu.Framework.Android.Input
         {
             PendingInputs.Enqueue(input);
             FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
+            statistic_total_events.Value++;
         }
     }
 }

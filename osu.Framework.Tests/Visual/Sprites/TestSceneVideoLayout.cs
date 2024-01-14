@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -14,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneVideoLayout : FrameworkGridTestScene
+    public partial class TestSceneVideoLayout : FrameworkGridTestScene
     {
         public TestSceneVideoLayout()
             : base(1, 4)
@@ -24,7 +22,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         [BackgroundDependencyLoader]
         private void load(Game game)
         {
-            const string video_path = "Videos/sample-video.mp4";
+            const string video_path = "Videos/h264.mp4";
 
             Cell(0, 0).Child = createTest("video - auto size", () => new TestVideo(game.Resources.GetStream(video_path)));
             Cell(0, 1).Child = createTest("video - relative size + fit", () => new TestVideo(game.Resources.GetStream(video_path))

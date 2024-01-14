@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.Layout;
+using osu.Framework.Localisation;
 using osu.Framework.Utils;
 using osu.Framework.Threading;
 using osuTK;
@@ -21,7 +22,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class Menu : CompositeDrawable, IStateful<MenuState>
+    public abstract partial class Menu : CompositeDrawable, IStateful<MenuState>
     {
         /// <summary>
         /// Invoked when this <see cref="Menu"/>'s <see cref="State"/> changes.
@@ -47,7 +48,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The <see cref="Container{T}"/> that contains the items of this <see cref="Menu"/>.
         /// </summary>
-        protected FillFlowContainer<DrawableMenuItem> ItemsContainer => itemsFlow;
+        // this is intentionally not a FillFlowContainer, as to not allow the consumers to mutate the layout position of menu items,
+        // since we manage it ourselves to define a specific order for menu items and allow inserting ones between others.
+        protected Container<DrawableMenuItem> ItemsContainer => itemsFlow;
+
+        private FillFlowContainer<DrawableMenuItem> itemsFlow;
 
         /// <summary>
         /// The container that provides the masking effects for this <see cref="Menu"/>.
@@ -57,11 +62,10 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Gets the item representations contained by this <see cref="Menu"/>.
         /// </summary>
-        protected internal IReadOnlyList<DrawableMenuItem> Children => ItemsContainer.Children;
+        protected internal IReadOnlyList<DrawableMenuItem> Children => itemsFlow.Children;
 
         protected readonly Direction Direction;
 
-        private ItemsFlow itemsFlow;
         private Menu parentMenu;
         private Menu submenu;
 
@@ -101,7 +105,7 @@ namespace osu.Framework.Graphics.UserInterface
                         {
                             d.RelativeSizeAxes = Axes.Both;
                             d.Masking = false;
-                            d.Child = itemsFlow = new ItemsFlow { Direction = direction == Direction.Horizontal ? FillDirection.Horizontal : FillDirection.Vertical };
+                            d.Child = itemsFlow = (FillFlowContainer<DrawableMenuItem>)CreateItemsFlow(direction == Direction.Horizontal ? FillDirection.Horizontal : FillDirection.Vertical);
                         })
                     }
                 },
@@ -115,16 +119,16 @@ namespace osu.Framework.Graphics.UserInterface
             switch (direction)
             {
                 case Direction.Horizontal:
-                    ItemsContainer.AutoSizeAxes = Axes.X;
+                    itemsFlow.AutoSizeAxes = Axes.X;
                     break;
 
                 case Direction.Vertical:
-                    ItemsContainer.AutoSizeAxes = Axes.Y;
+                    itemsFlow.AutoSizeAxes = Axes.Y;
                     break;
             }
 
             // The menu will provide a valid size for the items container based on our own size
-            ItemsContainer.RelativeSizeAxes = Axes.Both & ~ItemsContainer.AutoSizeAxes;
+            itemsFlow.RelativeSizeAxes = Axes.Both & ~itemsFlow.AutoSizeAxes;
 
             AddLayout(positionLayout);
         }
@@ -140,7 +144,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public IReadOnlyList<MenuItem> Items
         {
-            get => ItemsContainer.Select(r => r.Item).ToList();
+            get => itemsFlow.Select(r => r.Item).ToList();
             set
             {
                 Clear();
@@ -181,7 +185,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 maxWidth = value;
 
-                itemsFlow.SizeCache.Invalidate();
+                ((IItemsFlow)itemsFlow).SizeCache.Invalidate();
             }
         }
 
@@ -200,7 +204,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 maxHeight = value;
 
-                itemsFlow.SizeCache.Invalidate();
+                ((IItemsFlow)itemsFlow).SizeCache.Invalidate();
             }
         }
 
@@ -270,14 +274,21 @@ namespace osu.Framework.Graphics.UserInterface
                 return;
 
             submenu?.Close();
-            itemsFlow.SizeCache.Invalidate();
+            ((IItemsFlow)itemsFlow).SizeCache.Invalidate();
         }
 
         /// <summary>
         /// Adds a <see cref="MenuItem"/> to this <see cref="Menu"/>.
         /// </summary>
         /// <param name="item">The <see cref="MenuItem"/> to add.</param>
-        public virtual void Add(MenuItem item)
+        public void Add(MenuItem item) => Insert(itemsFlow.Count, item);
+
+        /// <summary>
+        /// Inserts a <see cref="MenuItem"/> at a specified position inside this <see cref="Menu"/>.
+        /// </summary>
+        /// <param name="position">The position to insert this item at.</param>
+        /// <param name="item">The <see cref="MenuItem"/> to insert.</param>
+        public void Insert(int position, MenuItem item)
         {
             var drawableItem = CreateDrawableMenuItem(item);
             drawableItem.Clicked = menuItemClicked;
@@ -286,8 +297,13 @@ namespace osu.Framework.Graphics.UserInterface
 
             drawableItem.SetFlowDirection(Direction);
 
-            ItemsContainer.Add(drawableItem);
-            itemsFlow.SizeCache.Invalidate();
+            var items = Children.OrderBy(itemsFlow.GetLayoutPosition).ToList();
+
+            for (int i = position; i < items.Count; i++)
+                itemsFlow.SetLayoutPosition(items[i], i + 1);
+
+            itemsFlow.Insert(position, drawableItem);
+            ((IItemsFlow)itemsFlow).SizeCache.Invalidate();
         }
 
         private void itemStateChanged(DrawableMenuItem item, MenuItemState state)
@@ -306,10 +322,26 @@ namespace osu.Framework.Graphics.UserInterface
         /// <returns>Whether <paramref name="item"/> was successfully removed.</returns>
         public bool Remove(MenuItem item)
         {
-            bool result = ItemsContainer.RemoveAll(d => d.Item == item, true) > 0;
-            itemsFlow.SizeCache.Invalidate();
+            var items = Children.OrderBy(itemsFlow.GetLayoutPosition).ToList();
+            bool removed = false;
 
-            return result;
+            for (int i = 0; i < items.Count; i++)
+            {
+                var d = items[i];
+
+                if (d.Item == item)
+                {
+                    for (int j = i + 1; j < items.Count; j++)
+                        itemsFlow.SetLayoutPosition(items[j], j - 1);
+
+                    itemsFlow.Remove(d, true);
+                    items.RemoveAt(i--);
+                    removed = true;
+                }
+            }
+
+            ((IItemsFlow)itemsFlow).SizeCache.Invalidate();
+            return removed;
         }
 
         /// <summary>
@@ -317,7 +349,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public void Clear()
         {
-            ItemsContainer.Clear();
+            itemsFlow.Clear();
             resetState();
         }
 
@@ -439,7 +471,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.UpdateAfterChildren();
 
-            if (!itemsFlow.SizeCache.IsValid)
+            if (!((IItemsFlow)itemsFlow).SizeCache.IsValid)
             {
                 // Our children will be relatively-sized on the axis separate to the menu direction, so we need to compute
                 // that size ourselves, based on the content size of our children, to give them a valid relative size
@@ -453,11 +485,11 @@ namespace osu.Framework.Graphics.UserInterface
                     height = Math.Max(height, item.ContentDrawHeight);
                 }
 
-                // When scrolling in one direction, ItemsContainer is auto-sized in that direction and relative-sized in the other
+                // When scrolling in one direction, itemsFlow is auto-sized in that direction and relative-sized in the other
                 // In the case of the auto-sized direction, we want to use its size. In the case of the relative-sized direction, we want
                 // to use the (above) computed size.
-                width = Direction == Direction.Horizontal ? ItemsContainer.Width : width;
-                height = Direction == Direction.Vertical ? ItemsContainer.Height : height;
+                width = Direction == Direction.Horizontal ? itemsFlow.Width : width;
+                height = Direction == Direction.Vertical ? itemsFlow.Height : height;
 
                 width = Math.Min(MaxWidth, width);
                 height = Math.Min(MaxHeight, height);
@@ -473,7 +505,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 UpdateSize(new Vector2(width, height));
 
-                itemsFlow.SizeCache.Validate();
+                ((IItemsFlow)itemsFlow).SizeCache.Validate();
             }
         }
 
@@ -496,7 +528,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             // Check if there is a sub menu to display
-            if (item.Item.Items?.Count == 0)
+            if (item.Item.Items.Count == 0)
             {
                 // This item must have attempted to invoke an action - close all menus if item allows
                 if (item.CloseMenuOnClick)
@@ -625,7 +657,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (IsHovered || (parentMenu?.IsHovered ?? false)) return;
 
-            if (triggeringItem?.Item.Items?.Contains(source) ?? triggeringItem == null)
+            if (triggeringItem?.Item.Items.Contains(source) ?? triggeringItem == null)
             {
                 Close();
                 parentMenu?.closeFromChild(triggeringItem?.Item);
@@ -653,10 +685,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// <returns>The <see cref="ScrollContainer{T}"/>.</returns>
         protected abstract ScrollContainer<Drawable> CreateScrollContainer(Direction direction);
 
+        internal virtual IItemsFlow CreateItemsFlow(FillDirection direction) => new ItemsFlow { Direction = direction };
+
         #region DrawableMenuItem
 
         // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
-        public abstract class DrawableMenuItem : CompositeDrawable, IStateful<MenuItemState>
+        public abstract partial class DrawableMenuItem : CompositeDrawable, IStateful<MenuItemState>
         {
             /// <summary>
             /// Invoked when this <see cref="DrawableMenuItem"/>'s <see cref="State"/> changes.
@@ -664,8 +698,7 @@ namespace osu.Framework.Graphics.UserInterface
             public event Action<MenuItemState> StateChanged;
 
             /// <summary>
-            /// Invoked when this <see cref="DrawableMenuItem"/> is clicked. This occurs regardless of whether or not <see cref="MenuItem.Action"/> was
-            /// invoked or not, or whether <see cref="Item"/> contains any sub-<see cref="MenuItem"/>s.
+            /// Invoked when this <see cref="DrawableMenuItem"/> is clicked and successfully invokes an action or opens a submenu.
             /// </summary>
             internal Action<DrawableMenuItem> Clicked;
 
@@ -699,9 +732,24 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             public virtual bool CloseMenuOnClick => true;
 
+            public IEnumerable<LocalisableString> FilterTerms => Item.Text.Value.Yield();
+
             protected DrawableMenuItem(MenuItem item)
             {
                 Item = item;
+
+                // Edge case where action might be changed while item is already hovered.
+                Item.Action.BindDisabledChanged(_ =>
+                {
+                    Scheduler.AddOnce(UpdateBackgroundColour);
+                    Scheduler.AddOnce(UpdateForegroundColour);
+                });
+
+                Item.Action.BindValueChanged(_ =>
+                {
+                    Scheduler.AddOnce(UpdateBackgroundColour);
+                    Scheduler.AddOnce(UpdateForegroundColour);
+                });
 
                 InternalChildren = new[]
                 {
@@ -818,11 +866,18 @@ namespace osu.Framework.Graphics.UserInterface
             public float ContentDrawHeight => Content.DrawHeight;
 
             /// <summary>
+            /// Whether the underlying <see cref="Item"/> has an assigned action or a submenu, and is not in a disabled state.
+            /// </summary>
+            protected bool IsActionable => hasSubmenu || (!Item.Action.Disabled && Item.Action.Value != null);
+
+            private bool hasSubmenu => Item.Items.Count > 0;
+
+            /// <summary>
             /// Called after the <see cref="BackgroundColour"/> is modified or the hover state changes.
             /// </summary>
             protected virtual void UpdateBackgroundColour()
             {
-                Background.FadeColour(IsHovered ? BackgroundColourHover : BackgroundColour);
+                Background.FadeColour(IsHovered && IsActionable ? BackgroundColourHover : BackgroundColour);
             }
 
             /// <summary>
@@ -830,7 +885,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             protected virtual void UpdateForegroundColour()
             {
-                Foreground.FadeColour(IsHovered ? ForegroundColourHover : ForegroundColour);
+                Foreground.FadeColour(IsHovered && IsActionable ? ForegroundColourHover : ForegroundColour);
             }
 
             protected override void LoadComplete()
@@ -862,18 +917,19 @@ namespace osu.Framework.Graphics.UserInterface
                 base.OnHoverLost(e);
             }
 
-            private bool hasSubmenu => Item.Items?.Count > 0;
-
             protected override bool OnClick(ClickEvent e)
             {
-                if (Item.Action.Disabled)
+                if (hasSubmenu)
+                {
+                    Clicked?.Invoke(this);
+                    return true;
+                }
+
+                if (!IsActionable)
                     return true;
 
-                if (!hasSubmenu)
-                    Item.Action.Value?.Invoke();
-
+                Item.Action.Value?.Invoke();
                 Clicked?.Invoke(this);
-
                 return true;
             }
 
@@ -892,9 +948,14 @@ namespace osu.Framework.Graphics.UserInterface
 
         #endregion
 
-        private class ItemsFlow : FillFlowContainer<DrawableMenuItem>
+        internal interface IItemsFlow : IFillFlowContainer
         {
-            public readonly LayoutValue SizeCache = new LayoutValue(Invalidation.RequiredParentSizeToFit, InvalidationSource.Self);
+            LayoutValue SizeCache { get; }
+        }
+
+        private partial class ItemsFlow : FillFlowContainer<DrawableMenuItem>, IItemsFlow
+        {
+            public LayoutValue SizeCache { get; } = new LayoutValue(Invalidation.RequiredParentSizeToFit, InvalidationSource.Self);
 
             public ItemsFlow()
             {

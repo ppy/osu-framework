@@ -25,7 +25,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneScreenStack : FrameworkTestScene
+    public partial class TestSceneScreenStack : FrameworkTestScene
     {
         private TestScreen baseScreen;
         private ScreenStack stack;
@@ -799,6 +799,26 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestPushOnExitingWithoutBlocking()
+        {
+            TestScreen screen1 = null;
+
+            pushAndEnsureCurrent(() =>
+            {
+                screen1 = new TestScreen(id: 1);
+                screen1.Exiting = () =>
+                {
+                    screen1.Push(new TestScreen(id: 2));
+                    return false;
+                };
+                return screen1;
+            });
+
+            AddStep("ensure push throws", () => Assert.Throws<InvalidOperationException>(
+                () => screen1.Exit()));
+        }
+
+        [Test]
         public void TestInvalidPushBlocksNonImmediateSuspend()
         {
             TestScreen screen1 = null;
@@ -958,7 +978,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddUntilStep("ensure current", () => screen.IsCurrentScreen());
         }
 
-        private class TestScreenSlow : TestScreen
+        private partial class TestScreenSlow : TestScreen
         {
             public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim();
 
@@ -975,7 +995,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class TestScreen : Screen
+        private partial class TestScreen : Screen
         {
             public Func<bool> Exiting;
 
@@ -1099,7 +1119,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                 if (shouldTakeOutLease)
                 {
-                    DummyBindable.BindTo(((TestScreen)e.Last).DummyBindable);
+                    DummyBindable.BindTo(((TestScreen)e.Last!).DummyBindable);
                     LeasedCopy = DummyBindable.BeginLease(true);
                 }
 

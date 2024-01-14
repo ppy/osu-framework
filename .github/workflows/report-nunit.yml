@@ -17,17 +17,18 @@ jobs:
        fail-fast: false
        matrix:
           os:
-            - { prettyname: Windows }
-            - { prettyname: macOS }
-            - { prettyname: Linux }
+            - { prettyname: Windows, configuration: Debug }
+            - { prettyname: macOS, configuration: Debug }
+            - { prettyname: Linux, configuration: Debug }
+            - { prettyname: Linux, configuration: Release }
           threadingMode: ['SingleThread', 'MultiThreaded']
     timeout-minutes: 5
     steps:
       - name: Annotate CI run with test results
-        uses: dorny/test-reporter@v1.4.2
+        uses: dorny/test-reporter@v1.6.0
         with:
-          artifact: osu-framework-test-results-${{matrix.os.prettyname}}-${{matrix.threadingMode}}
-          name: Test Results (${{matrix.os.prettyname}}, ${{matrix.threadingMode}})
+          artifact: osu-framework-test-results-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.os.configuration}}
+          name: Test Results (${{matrix.os.prettyname}}, ${{matrix.threadingMode}}, ${{matrix.os.configuration}})
           path: "*.trx"
           reporter: dotnet-trx
           list-suites: 'failed'

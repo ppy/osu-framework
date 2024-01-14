@@ -14,6 +14,9 @@ namespace osu.Framework.Android.Input
 {
     public class AndroidTouchHandler : AndroidInputHandler
     {
+        private static readonly GlobalStatistic<ulong> statistic_touch_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<AndroidTouchHandler>(), "Touch events");
+        private static readonly GlobalStatistic<ulong> statistic_hover_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<AndroidTouchHandler>(), "Hover events");
+
         public override bool IsActive => true;
 
         protected override IEnumerable<InputSourceType> HandledEventSources => new[] { InputSourceType.BluetoothStylus, InputSourceType.Stylus, InputSourceType.Touchscreen };
@@ -30,6 +33,7 @@ namespace osu.Framework.Android.Input
 
             Enabled.BindValueChanged(enabled =>
             {
+#nullable disable // Events misses nullable mark in .NET Android SDK (6.0.402)
                 if (enabled.NewValue)
                 {
                     View.Hover += HandleHover;
@@ -39,6 +43,7 @@ namespace osu.Framework.Android.Input
                 {
                     View.Hover -= HandleHover;
                     View.Touch -= HandleTouch;
+#nullable restore
                 }
             }, true);
 
@@ -85,14 +90,20 @@ namespace osu.Framework.Android.Input
             void apply(MotionEvent e, int historyPosition)
             {
                 if (tryGetEventPosition(e, historyPosition, 0, out var position))
+                {
                     enqueueInput(new MousePositionAbsoluteInput { Position = position });
+                    statistic_hover_events.Value++;
+                }
             }
         }
 
         private void applyTouchInput(MotionEvent touchEvent, int historyPosition, int pointerIndex)
         {
             if (tryGetEventTouch(touchEvent, historyPosition, pointerIndex, out var touch))
+            {
                 enqueueInput(new TouchInput(touch, touchEvent.ActionMasked.IsTouchDownAction()));
+                statistic_touch_events.Value++;
+            }
         }
 
         private bool tryGetEventTouch(MotionEvent motionEvent, int historyPosition, int pointerIndex, out Touch touch)

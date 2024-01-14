@@ -13,7 +13,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.Cursor
 {
-    public class PopoverContainer : Container
+    public partial class PopoverContainer : Container
     {
         private readonly Container content;
         private readonly Container dismissOnMouseDownContainer;
@@ -88,22 +88,6 @@ namespace osu.Framework.Graphics.Cursor
             content.AutoSizeAxes = AutoSizeAxes;
         }
 
-        /// <summary>
-        /// The <see cref="Anchor"/>s to consider when auto-layouting the popover.
-        /// <see cref="Anchor.Centre"/> is not included, as it is used as a fallback if any other anchor fails.
-        /// </summary>
-        private static readonly Anchor[] candidate_anchors =
-        {
-            Anchor.TopLeft,
-            Anchor.TopCentre,
-            Anchor.TopRight,
-            Anchor.CentreLeft,
-            Anchor.CentreRight,
-            Anchor.BottomLeft,
-            Anchor.BottomCentre,
-            Anchor.BottomRight
-        };
-
         private void updatePopoverPositioning()
         {
             if (target == null || currentPopover == null)
@@ -116,7 +100,7 @@ namespace osu.Framework.Graphics.Cursor
 
             float totalSize = Math.Max(DrawSize.X * DrawSize.Y, 1);
 
-            foreach (var anchor in candidate_anchors)
+            foreach (var anchor in currentPopover.AllowableAnchors)
             {
                 // Compute how much free space is available on this side of the target.
                 var availableSize = availableSizeAroundTargetForAnchor(targetLocalQuad, anchor);
@@ -193,7 +177,7 @@ namespace osu.Framework.Graphics.Cursor
             return availableSize;
         }
 
-        private class DismissOnMouseDownContainer : Container
+        private partial class DismissOnMouseDownContainer : Container
         {
             protected override bool OnMouseDown(MouseDownEvent e)
             {

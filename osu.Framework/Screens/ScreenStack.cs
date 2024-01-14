@@ -19,7 +19,7 @@ namespace osu.Framework.Screens
     /// <summary>
     /// A component which provides functionality for displaying and handling transitions between multiple <see cref="IScreen"/>s.
     /// </summary>
-    public class ScreenStack : CompositeDrawable
+    public partial class ScreenStack : CompositeDrawable
     {
         /// <summary>
         /// Invoked when <see cref="ScreenExtensions.Push"/> is called on a <see cref="IScreen"/>.
@@ -304,7 +304,8 @@ namespace osu.Framework.Screens
                 if ((source == null || toExit.ValidForResume) && blockRequested)
                     return true;
 
-                stack.Pop();
+                if (toExit != stack.Pop())
+                    throw new InvalidOperationException($"Cannot push to {nameof(ScreenStack)} during exit without blocking the exit.");
             }
 
             // we will probably want to change this logic when we support returning to a screen after exiting.

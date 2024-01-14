@@ -108,12 +108,36 @@ namespace osu.Framework.Audio
             MaxValue = 1
         };
 
+        /// <summary>
+        /// Whether a global mixer is being used for audio routing.
+        /// For now, this is only the case on Windows when using shared mode WASAPI initialisation.
+        /// </summary>
+        public IBindable<bool> UsingGlobalMixer => usingGlobalMixer;
+
+        private readonly Bindable<bool> usingGlobalMixer = new BindableBool();
+
+        /// <summary>
+        /// If a global mixer is being used, this will be the BASS handle for it.
+        /// If non-null, all game mixers should be added to this mixer.
+        /// </summary>
+        /// <remarks>
+        /// When this is non-null, all mixers created via <see cref="CreateAudioMixer"/>
+        /// will themselves be added to the global mixer, which will handle playback itself.
+        ///
+        /// In this mode of operation, nested mixers will be created with the <see cref="BassFlags.Decode"/>
+        /// flag, meaning they no longer handle playback directly.
+        ///
+        /// An eventual goal would be to use a global mixer across all platforms as it can result
+        /// in more control and better playback performance.
+        /// </remarks>
+        internal readonly IBindable<int?> GlobalMixerHandle = new Bindable<int?>();
+
         public override bool IsLoaded => base.IsLoaded &&
                                          // bass default device is a null device (-1), not the actual system default.
                                          Bass.CurrentDevice != Bass.DefaultDevice;
 
         // Mutated by multiple threads, must be thread safe.
-        private ImmutableList<DeviceInfo> audioDevices = ImmutableList<DeviceInfo>.Empty;
+        private ImmutableArray<DeviceInfo> audioDevices = ImmutableArray<DeviceInfo>.Empty;
         private ImmutableList<string> audioDeviceNames = ImmutableList<string>.Empty;
 
         private Scheduler scheduler => thread.Scheduler;
@@ -121,7 +145,6 @@ namespace osu.Framework.Audio
         private Scheduler eventScheduler => EventScheduler ?? scheduler;
 
         private readonly CancellationTokenSource cancelSource = new CancellationTokenSource();
-        private readonly DeviceInfoUpdateComparer updateComparer = new DeviceInfoUpdateComparer();
 
         /// <summary>
         /// The scheduler used for invoking publicly exposed delegate events.
@@ -146,7 +169,12 @@ namespace osu.Framework.Audio
 
             thread.RegisterManager(this);
 
-            AudioDevice.ValueChanged += onDeviceChanged;
+            AudioDevice.ValueChanged += _ => onDeviceChanged();
+            GlobalMixerHandle.ValueChanged += handle =>
+            {
+                onDeviceChanged();
+                usingGlobalMixer.Value = handle.NewValue.HasValue;
+            };
 
             AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
             AddItem(SampleMixer = createAudioMixer(null, nameof(SampleMixer)));
@@ -169,7 +197,8 @@ namespace osu.Framework.Audio
 
             CancellationToken token = cancelSource.Token;
 
-            scheduler.Add(() =>
+            syncAudioDevices();
+            scheduler.AddDelayed(() =>
             {
                 // sync audioDevices every 1000ms
                 new Thread(() =>
@@ -178,7 +207,8 @@ namespace osu.Framework.Audio
                     {
                         try
                         {
-                            syncAudioDevices();
+                            if (CheckForDeviceChanges(audioDevices))
+                                syncAudioDevices();
                             Thread.Sleep(1000);
                         }
                         catch
@@ -189,7 +219,7 @@ namespace osu.Framework.Audio
                 {
                     IsBackground = true
                 }.Start();
-            });
+            }, 1000);
         }
 
         protected override void Dispose(bool disposing)
@@ -204,9 +234,9 @@ namespace osu.Framework.Audio
             base.Dispose(disposing);
         }
 
-        private void onDeviceChanged(ValueChangedEvent<string> args)
+        private void onDeviceChanged()
         {
-            scheduler.Add(() => setAudioDevice(args.NewValue));
+            scheduler.Add(() => setAudioDevice(AudioDevice.Value));
         }
 
         private void onDevicesChanged()
@@ -233,9 +263,9 @@ namespace osu.Framework.Audio
         public AudioMixer CreateAudioMixer(string identifier = default) =>
             createAudioMixer(SampleMixer, !string.IsNullOrEmpty(identifier) ? identifier : $"user #{Interlocked.Increment(ref userMixerID)}");
 
-        private AudioMixer createAudioMixer(AudioMixer globalMixer, string identifier)
+        private AudioMixer createAudioMixer(AudioMixer fallbackMixer, string identifier)
         {
-            var mixer = new BassAudioMixer(globalMixer, identifier);
+            var mixer = new BassAudioMixer(this, fallbackMixer, identifier);
             AddItem(mixer);
             return mixer;
         }
@@ -273,6 +303,11 @@ namespace osu.Framework.Audio
         /// Obtains the <see cref="SampleStore"/> corresponding to a given resource store.
         /// Returns the global <see cref="SampleStore"/> if no resource store is passed.
         /// </summary>
+        /// <remarks>
+        /// By default, <c>.wav</c> and <c>.ogg</c> extensions will be automatically appended to lookups on the returned store
+        /// if the lookup does not correspond directly to an existing filename.
+        /// Additional extensions can be added via <see cref="ISampleStore.AddExtension"/>.
+        /// </remarks>
         /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="SampleStore"/>.</param>
         /// <param name="mixer">The <see cref="AudioMixer"/> to use for samples created by this store. Defaults to the global <see cref="SampleMixer"/>.</param>
         public ISampleStore GetSampleStore(IResourceStore<byte[]> store = null, AudioMixer mixer = null)
@@ -306,7 +341,7 @@ namespace osu.Framework.Audio
             if (setAudioDevice(Bass.NoSoundDevice))
                 return true;
 
-            //we're fucked. even "No sound" device won't initialise.
+            // we're boned. even "No sound" device won't initialise.
             return false;
         }
 
@@ -384,22 +419,18 @@ namespace osu.Framework.Audio
             // See https://www.un4seen.com/forum/?topic=19601 for more information.
             Bass.Configure((ManagedBass.Configuration)70, false);
 
-            return AudioThread.InitDevice(device);
+            if (!thread.InitDevice(device))
+                return false;
+
+            return true;
         }
 
         private void syncAudioDevices()
         {
-            // audioDevices are updated if:
-            // - A new device is added
-            // - An existing device is Enabled/Disabled or set as Default
-            var updatedAudioDevices = EnumerateAllDevices().ToImmutableList();
-            if (audioDevices.SequenceEqual(updatedAudioDevices, updateComparer))
-                return;
-
-            audioDevices = updatedAudioDevices;
+            audioDevices = GetAllDevices();
 
             // Bass should always be providing "No sound" and "Default" device.
-            Trace.Assert(audioDevices.Count >= BASS_INTERNAL_DEVICE_COUNT, "Bass did not provide any audio devices.");
+            Trace.Assert(audioDevices.Length >= BASS_INTERNAL_DEVICE_COUNT, "Bass did not provide any audio devices.");
 
             var oldDeviceNames = audioDeviceNames;
             var newDeviceNames = audioDeviceNames = audioDevices.Skip(BASS_INTERNAL_DEVICE_COUNT).Where(d => d.IsEnabled).Select(d => d.Name).ToImmutableList();
@@ -421,11 +452,50 @@ namespace osu.Framework.Audio
             }
         }
 
-        protected virtual IEnumerable<DeviceInfo> EnumerateAllDevices()
+        /// <summary>
+        /// Check whether any audio device changes have occurred.
+        ///
+        /// Changes supported are:
+        /// - A new device is added
+        /// - An existing device is Enabled/Disabled or set as Default
+        /// </summary>
+        /// <remarks>
+        /// This method is optimised to incur the lowest overhead possible.
+        /// </remarks>
+        /// <param name="previousDevices">The previous audio devices array.</param>
+        /// <returns>Whether a change was detected.</returns>
+        protected virtual bool CheckForDeviceChanges(ImmutableArray<DeviceInfo> previousDevices)
         {
             int deviceCount = Bass.DeviceCount;
+
+            if (previousDevices.Length != deviceCount)
+                return true;
+
             for (int i = 0; i < deviceCount; i++)
-                yield return Bass.GetDeviceInfo(i);
+            {
+                var prevInfo = previousDevices[i];
+
+                Bass.GetDeviceInfo(i, out var info);
+
+                if (info.IsEnabled != prevInfo.IsEnabled)
+                    return true;
+
+                if (info.IsDefault != prevInfo.IsDefault)
+                    return true;
+            }
+
+            return false;
+        }
+
+        protected virtual ImmutableArray<DeviceInfo> GetAllDevices()
+        {
+            int deviceCount = Bass.DeviceCount;
+
+            var devices = ImmutableArray.CreateBuilder<DeviceInfo>(deviceCount);
+            for (int i = 0; i < deviceCount; i++)
+                devices.Add(Bass.GetDeviceInfo(i));
+
+            return devices.MoveToImmutable();
         }
 
         // The current device is considered valid if it is enabled, initialized, and not a fallback device.
@@ -440,13 +510,6 @@ namespace osu.Framework.Audio
         {
             string deviceName = audioDevices.ElementAtOrDefault(Bass.CurrentDevice).Name;
             return $@"{GetType().ReadableName()} ({deviceName ?? "Unknown"})";
-        }
-
-        private class DeviceInfoUpdateComparer : IEqualityComparer<DeviceInfo>
-        {
-            public bool Equals(DeviceInfo x, DeviceInfo y) => x.IsEnabled == y.IsEnabled && x.IsDefault == y.IsDefault;
-
-            public int GetHashCode(DeviceInfo obj) => obj.Name.GetHashCode();
         }
     }
 }

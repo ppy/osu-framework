@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -13,7 +11,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
-    public class TestSceneAllowSuspension : FrameworkTestScene
+    public partial class TestSceneAllowSuspension : FrameworkTestScene
     {
         private readonly Bindable<bool> allowSuspension = new Bindable<bool>(true);
 
@@ -34,7 +32,7 @@ namespace osu.Framework.Tests.Visual.Platform
             AddToggleStep("toggle allow suspension", v => allowSuspension.Value = v);
         }
 
-        private class SuspensionVisualiser : Box
+        private partial class SuspensionVisualiser : Box
         {
             private readonly IBindable<bool> allowSuspension = new Bindable<bool>();
 

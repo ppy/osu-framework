@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.Containers
     /// Adding duplicate items is not currently supported.
     /// </remarks>
     /// <typeparam name="TModel">The type of rearrangeable item.</typeparam>
-    public abstract class RearrangeableListContainer<TModel> : CompositeDrawable
+    public abstract partial class RearrangeableListContainer<TModel> : CompositeDrawable
     {
         private const float exp_base = 1.05f;
 

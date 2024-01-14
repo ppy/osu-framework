@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Performance
     /// <summary>
     /// Tracks global game statistics.
     /// </summary>
-    internal class GlobalStatisticsDisplay : ToolWindow
+    internal partial class GlobalStatisticsDisplay : ToolWindow
     {
         private readonly FillFlowContainer<StatisticsGroup> groups;
 
@@ -103,7 +103,7 @@ namespace osu.Framework.Graphics.Performance
             }
         });
 
-        private class StatisticsGroup : CompositeDrawable, IAlphabeticalSort
+        private partial class StatisticsGroup : CompositeDrawable, IAlphabeticalSort
         {
             public string GroupName { get; }
 
@@ -155,7 +155,7 @@ namespace osu.Framework.Graphics.Performance
                 items.FirstOrDefault(s => s.Statistic == stat)?.Expire();
             }
 
-            private class StatisticsItem : CompositeDrawable, IAlphabeticalSort
+            private partial class StatisticsItem : CompositeDrawable, IAlphabeticalSort
             {
                 public readonly IGlobalStatistic Statistic;
 
@@ -206,7 +206,7 @@ namespace osu.Framework.Graphics.Performance
             string SortString { get; }
         }
 
-        private class AlphabeticalFlow<T> : FillFlowContainer<T> where T : Drawable, IAlphabeticalSort
+        private partial class AlphabeticalFlow<T> : FillFlowContainer<T> where T : Drawable, IAlphabeticalSort
         {
             public override IEnumerable<Drawable> FlowingChildren => base.FlowingChildren.Cast<T>().OrderBy(d => d.SortString);
         }

@@ -13,6 +13,8 @@ namespace osu.Framework.Android.Input
 {
     public class AndroidKeyboardHandler : AndroidInputHandler
     {
+        private static readonly GlobalStatistic<ulong> statistic_total_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<AndroidKeyboardHandler>(), "Total events");
+
         protected override IEnumerable<InputSourceType> HandledEventSources => new[]
         {
             InputSourceType.Keyboard,
@@ -209,6 +211,7 @@ namespace osu.Framework.Android.Input
         {
             PendingInputs.Enqueue(input);
             FrameStatistics.Increment(StatisticsCounterType.KeyEvents);
+            statistic_total_events.Value++;
         }
     }
 }

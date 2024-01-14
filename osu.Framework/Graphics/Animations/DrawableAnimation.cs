@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Animations
     /// <summary>
     /// An animation that switches the displayed drawable when a new frame is displayed.
     /// </summary>
-    public class DrawableAnimation : Animation<Drawable>
+    public partial class DrawableAnimation : Animation<Drawable>
     {
         private Container container;
 

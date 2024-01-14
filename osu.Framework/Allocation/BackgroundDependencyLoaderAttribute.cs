@@ -10,6 +10,8 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using JetBrains.Annotations;
 using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.Statistics;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Allocation
 {
@@ -20,6 +22,8 @@ namespace osu.Framework.Allocation
     [AttributeUsage(AttributeTargets.Method)]
     public class BackgroundDependencyLoaderAttribute : Attribute
     {
+        private static readonly GlobalStatistic<int> count_reflection_attributes = GlobalStatistics.Get<int>("Dependencies", "Reflected [BackgroundDependencyLoader]s");
+
         private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
         private bool permitNulls { get; }
@@ -42,6 +46,8 @@ namespace osu.Framework.Allocation
 
         internal static InjectDependencyDelegate CreateActivator(Type type)
         {
+            count_reflection_attributes.Value++;
+
             var loaderMethods = type.GetMethods(activator_flags).Where(m => m.GetCustomAttribute<BackgroundDependencyLoaderAttribute>() != null).ToArray();
 
             switch (loaderMethods.Length)
@@ -84,13 +90,7 @@ namespace osu.Framework.Allocation
             }
         }
 
-        private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls) => dc =>
-        {
-            object val = dc.Get(type);
-            if (val == null && !permitNulls)
-                throw new DependencyNotRegisteredException(requestingType, type);
-
-            return val;
-        };
+        private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls)
+            => dc => SourceGeneratorUtils.GetDependency(dc, type, requestingType, null, null, permitNulls, false);
     }
 }

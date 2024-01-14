@@ -12,7 +12,7 @@ using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Visual.Audio
 {
-    public class TestSceneSampleChannels : FrameworkTestScene
+    public partial class TestSceneSampleChannels : FrameworkTestScene
     {
         [Resolved]
         private ISampleStore sampleStore { get; set; }

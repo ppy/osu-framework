@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Sprites;
 namespace osu.Framework.Benchmarks
 {
     [MemoryDiagnoser]
-    public class BenchmarkDrawableTypeAllocations
+    public partial class BenchmarkDrawableTypeAllocations
     {
         [Test]
         [Benchmark]
@@ -46,7 +46,7 @@ namespace osu.Framework.Benchmarks
             var _ = new SpriteText();
         }
 
-        public class SimpleComposite : CompositeDrawable
+        public partial class SimpleComposite : CompositeDrawable
         {
         }
     }
