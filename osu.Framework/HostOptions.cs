@@ -11,7 +11,9 @@ namespace osu.Framework
     public class HostOptions
     {
         /// <summary>
-        /// The IPC port to bind. See <see cref="IIpcHost"/> for more details on usage.
+        /// The IPC port to bind. This port should be between 1024 and 49151,
+        /// and should be unique to avoid conflicts with other osu!framework apps.
+        /// See <see cref="IIpcHost"/> for more details on usage.
         /// </summary>
         public int? IPCPort { get; set; }
 
