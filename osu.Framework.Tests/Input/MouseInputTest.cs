@@ -108,6 +108,7 @@ namespace osu.Framework.Tests.Input
         {
             InputReceptor receptor = null;
             Container receptorParent = null;
+            Vector2 lastPosition = Vector2.Zero;
 
             AddStep("create hierarchy", () =>
             {
@@ -123,12 +124,16 @@ namespace osu.Framework.Tests.Input
                 };
             });
 
-            AddStep("move mouse to receptor", () => InputManager.MoveMouseTo(receptor));
+            AddStep("move mouse to receptor", () =>
+            {
+                lastPosition = receptor.ToScreenSpace(receptor.LayoutRectangle.Centre);
+                InputManager.MoveMouseTo(lastPosition);
+            });
             AddStep("press button", () => InputManager.PressButton(MouseButton.Left));
 
             AddStep("remove receptor parent", () => Remove(receptorParent, true));
 
-            AddStep("drag mouse", () => InputManager.MoveMouseTo(receptor, new Vector2(10)));
+            AddStep("drag mouse", () => InputManager.MoveMouseTo(lastPosition + new Vector2(10)));
             AddAssert("receptor did not receive drag start", () => !receptor.DragStartReceived);
         }
 
