@@ -12,7 +12,8 @@ namespace osu.Framework
     {
         /// <summary>
         /// The IPC port to bind. This port should be between 1024 and 49151,
-        /// and should be unique to avoid conflicts with other osu!framework apps.
+        /// should be shared by all instances of a given osu!framework app,
+        /// but be distinct from IPC ports specified by other osu!framework apps.
         /// See <see cref="IIpcHost"/> for more details on usage.
         /// </summary>
         public int? IPCPort { get; set; }
