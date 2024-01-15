@@ -116,7 +116,7 @@ namespace osu.Framework.Platform
 
         public abstract IBindable<bool> IsActive { get; }
 
-        public virtual ImmutableArray<Display> Displays => new ImmutableArray<Display> { DisplayDevice.GetDisplay(DisplayIndex.Primary).ToDisplay() };
+        public virtual ImmutableArray<Display> Displays => ImmutableArray.Create(DisplayDevice.GetDisplay(DisplayIndex.Primary).ToDisplay());
 
 #pragma warning disable CS0067
         public event Action<IEnumerable<Display>> DisplaysChanged;

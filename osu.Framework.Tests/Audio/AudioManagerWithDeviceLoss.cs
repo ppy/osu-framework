@@ -1,7 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using ManagedBass;
 using osu.Framework.Audio;
@@ -40,12 +40,20 @@ namespace osu.Framework.Tests.Audio
             }
         }
 
-        protected override IEnumerable<DeviceInfo> EnumerateAllDevices()
+        protected override bool CheckForDeviceChanges(ImmutableArray<DeviceInfo> previousDevices)
         {
-            var devices = base.EnumerateAllDevices();
+            if (simulateLoss)
+                return true;
+
+            return base.CheckForDeviceChanges(previousDevices);
+        }
+
+        protected override ImmutableArray<DeviceInfo> GetAllDevices()
+        {
+            var devices = base.GetAllDevices();
 
             if (simulateLoss)
-                devices = devices.Take(BASS_INTERNAL_DEVICE_COUNT);
+                devices = devices.Take(BASS_INTERNAL_DEVICE_COUNT).ToImmutableArray();
 
             return devices;
         }

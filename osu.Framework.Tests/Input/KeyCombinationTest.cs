@@ -7,7 +7,7 @@ using osu.Framework.Input.Bindings;
 namespace osu.Framework.Tests.Input
 {
     [TestFixture]
-    public class KeyCombinationModifierTest
+    public class KeyCombinationTest
     {
         private static readonly object[][] key_combination_display_test_cases =
         {
@@ -50,5 +50,23 @@ namespace osu.Framework.Tests.Input
         [TestCaseSource(nameof(key_combination_display_test_cases))]
         public void TestLeftRightModifierHandling(KeyCombination candidate, KeyCombination pressed, KeyCombinationMatchingMode matchingMode, bool shouldContain)
             => Assert.AreEqual(shouldContain, KeyCombination.ContainsAll(candidate.Keys, pressed.Keys, matchingMode));
+
+        [Test]
+        public void TestCreationNoDuplicates()
+        {
+            var keyCombination = new KeyCombination(InputKey.A, InputKey.Control);
+
+            Assert.That(keyCombination.Keys[0], Is.EqualTo(InputKey.Control));
+            Assert.That(keyCombination.Keys[1], Is.EqualTo(InputKey.A));
+        }
+
+        [Test]
+        public void TestCreationWithDuplicates()
+        {
+            var keyCombination = new KeyCombination(InputKey.A, InputKey.Control, InputKey.A);
+
+            Assert.That(keyCombination.Keys[0], Is.EqualTo(InputKey.Control));
+            Assert.That(keyCombination.Keys[1], Is.EqualTo(InputKey.A));
+        }
     }
 }

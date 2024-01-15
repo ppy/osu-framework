@@ -593,8 +593,12 @@ namespace osu.Framework.Input
                 FrameStatistics.Increment(StatisticsCounterType.InputQueue);
 
             var children = AliveInternalChildren;
+
             for (int i = 0; i < children.Count; i++)
-                children[i].BuildNonPositionalInputQueue(inputQueue);
+            {
+                if (ShouldBeConsideredForInput(children[i]))
+                    children[i].BuildNonPositionalInputQueue(inputQueue);
+            }
 
             if (!unfocusIfNoLongerValid())
             {
@@ -620,8 +624,12 @@ namespace osu.Framework.Input
                 FrameStatistics.Increment(StatisticsCounterType.PositionalIQ);
 
             var children = AliveInternalChildren;
+
             for (int i = 0; i < children.Count; i++)
-                children[i].BuildPositionalInputQueue(screenSpacePos, positionalInputQueue);
+            {
+                if (ShouldBeConsideredForInput(children[i]))
+                    children[i].BuildPositionalInputQueue(screenSpacePos, positionalInputQueue);
+            }
 
             positionalInputQueue.Reverse();
             return positionalInputQueue.AsSlimReadOnly();
