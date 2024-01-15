@@ -264,7 +264,11 @@ namespace osu.Framework.Tests.Visual.Drawables
         [Test]
         public void TestGetFromNotLoadedPool()
         {
-            Assert.DoesNotThrow(() => new TestPool(100, 1).Get());
+            // could theoretically be made to work - and did previously work -
+            // but it would work in a counterintuitive manner
+            // (as it will not preload the initial count of drawables in advance on load thread),
+            // so to avoid a footgun make this throw.
+            Assert.Throws<InvalidOperationException>(() => new TestPool(100, 1).Get());
         }
 
         /// <summary>
