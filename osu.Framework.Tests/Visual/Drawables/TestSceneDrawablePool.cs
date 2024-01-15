@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,8 +20,8 @@ namespace osu.Framework.Tests.Visual.Drawables
 {
     public partial class TestSceneDrawablePool : TestScene
     {
-        private DrawablePool<TestDrawable> pool;
-        private SpriteText count;
+        private DrawablePool<TestDrawable> pool = null!;
+        private SpriteText? count;
 
         private readonly HashSet<TestDrawable> consumed = new HashSet<TestDrawable>();
 
@@ -85,7 +83,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             resetWithNewPool(() => new TestPool(TimePerAction, 1));
 
-            TestDrawable drawable = null;
+            TestDrawable drawable = null!;
 
             AddStep("consume without adding", () => drawable = pool.Get());
 
@@ -113,7 +111,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             resetWithNewPool(() => new TestPool(TimePerAction * 20, 1, 1));
 
-            TestDrawable first = null, second = null;
+            TestDrawable first = null!, second = null!;
 
             AddStep("consume item", () => first = consumeDrawable());
 
@@ -142,8 +140,8 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             resetWithNewPool(() => new TestPool(TimePerAction, 1));
 
-            TestDrawable drawable = null;
-            TestDrawable drawable2 = null;
+            TestDrawable drawable = null!;
+            TestDrawable drawable2 = null!;
 
             AddStep("consume item", () => drawable = consumeDrawable());
 
@@ -165,8 +163,8 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             resetWithNewPool(() => new TestPool(TimePerAction, 1));
 
-            TestDrawable drawable = null;
-            TestDrawable drawable2 = null;
+            TestDrawable drawable = null!;
+            TestDrawable drawable2 = null!;
 
             AddStep("consume item", () => drawable = consumeDrawable(false));
 
@@ -189,7 +187,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         [Test]
         public void TestUsePoolableDrawableWithoutPool()
         {
-            TestDrawable drawable = null;
+            TestDrawable drawable = null!;
 
             AddStep("consume item", () => Add(drawable = new TestDrawable()));
 
@@ -278,7 +276,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             resetWithNewPool(() => new TestPool(TimePerAction, 1));
 
-            TestDrawable drawable = null;
+            TestDrawable drawable = null!;
 
             AddStep("consume item", () => drawable = consumeDrawable(false));
             AddStep("add child", () => drawable.AddChild(Empty()));
@@ -290,7 +288,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             resetWithNewPool(() => new TestPool(TimePerAction, 1));
 
-            TestDrawable drawable = null;
+            TestDrawable drawable = null!;
 
             AddStep("consume item and rewind clock", () =>
             {
