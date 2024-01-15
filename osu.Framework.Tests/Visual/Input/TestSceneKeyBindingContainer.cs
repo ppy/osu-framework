@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Testing;
@@ -48,7 +49,7 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Test]
-        public void TestPressKeyBeforeKeyBindingContainerAdded()
+        public void TestPressHalfCombinationBeforeKeyBindingContainerAdded()
         {
             List<TestAction> pressedActions = new List<TestAction>();
             List<TestAction> releasedActions = new List<TestAction>();
@@ -66,6 +67,77 @@ namespace osu.Framework.Tests.Visual.Input
                     {
                         Pressed = a => pressedActions.Add(a),
                         Released = a => releasedActions.Add(a)
+                    }
+                };
+            });
+
+            AddStep("press key A", () => InputManager.PressKey(Key.A));
+            AddAssert("only one action triggered", () => pressedActions, () => Has.Count.EqualTo(1));
+            AddAssert("ActionA triggered", () => pressedActions[0], () => Is.EqualTo(TestAction.ActionA));
+            AddAssert("no actions released", () => releasedActions, () => Is.Empty);
+
+            AddStep("release key A", () => InputManager.ReleaseKey(Key.A));
+            AddAssert("only one action triggered", () => pressedActions, () => Has.Count.EqualTo(1));
+            AddAssert("only one action released", () => releasedActions, () => Has.Count.EqualTo(1));
+            AddAssert("ActionA released", () => releasedActions[0], () => Is.EqualTo(TestAction.ActionA));
+        }
+
+        [Test]
+        public void TestPressKeyBeforeKeyBindingContainerAdded()
+        {
+            List<TestAction> pressedActions = new List<TestAction>();
+            List<TestAction> releasedActions = new List<TestAction>();
+
+            AddStep("press enter", () => InputManager.PressKey(Key.Enter));
+
+            AddStep("add container", () =>
+            {
+                pressedActions.Clear();
+                releasedActions.Clear();
+
+                Child = new TestKeyBindingContainer(mode: SimultaneousBindingMode.All)
+                {
+                    Child = new TestKeyBindingReceptor
+                    {
+                        Pressed = a => pressedActions.Add(a),
+                        Released = a => releasedActions.Add(a)
+                    }
+                };
+            });
+
+            AddStep("press key A", () => InputManager.PressKey(Key.A));
+            AddAssert("only one action triggered", () => pressedActions, () => Has.Count.EqualTo(1));
+            AddAssert("ActionA triggered", () => pressedActions[0], () => Is.EqualTo(TestAction.ActionA));
+            AddAssert("no actions released", () => releasedActions, () => Is.Empty);
+
+            AddStep("release key A", () => InputManager.ReleaseKey(Key.A));
+            AddAssert("only one action triggered", () => pressedActions, () => Has.Count.EqualTo(1));
+            AddAssert("only one action released", () => releasedActions, () => Has.Count.EqualTo(1));
+            AddAssert("ActionA released", () => releasedActions[0], () => Is.EqualTo(TestAction.ActionA));
+        }
+
+        [Test]
+        public void TestPressKeyBeforeKeyBindingContainerAdded_WithPassThroughInputManager()
+        {
+            List<TestAction> pressedActions = new List<TestAction>();
+            List<TestAction> releasedActions = new List<TestAction>();
+
+            AddStep("press enter", () => InputManager.PressKey(Key.Enter));
+
+            AddStep("add container", () =>
+            {
+                pressedActions.Clear();
+                releasedActions.Clear();
+
+                Child = new PassThroughInputManager
+                {
+                    Child = new TestKeyBindingContainer(mode: SimultaneousBindingMode.All)
+                    {
+                        Child = new TestKeyBindingReceptor
+                        {
+                            Pressed = a => pressedActions.Add(a),
+                            Released = a => releasedActions.Add(a)
+                        },
                     }
                 };
             });
@@ -419,7 +491,8 @@ namespace osu.Framework.Tests.Visual.Input
 
             public Func<TestAction, bool>? Pressed;
 
-            public TestKeyBindingContainer(bool prioritised = false)
+            public TestKeyBindingContainer(bool prioritised = false, SimultaneousBindingMode mode = SimultaneousBindingMode.None)
+                : base(mode)
             {
                 Prioritised = prioritised;
             }
