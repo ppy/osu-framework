@@ -2,8 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using osuTK;
 
 namespace osu.Framework.Input.States
@@ -46,15 +44,33 @@ namespace osu.Framework.Input.States
         /// Enumerates the difference between this state and a <param ref="previous"/> state.
         /// </summary>
         /// <param name="previous">The previous state.</param>
-        public (IEnumerable<Touch> deactivated, IEnumerable<Touch> activated) EnumerateDifference(TouchState previous)
+        public (Touch[] deactivated, Touch[] activated) EnumerateDifference(TouchState previous)
         {
-            var activityDifference = ActiveSources.EnumerateDifference(previous.ActiveSources);
+            var diff = ActiveSources.EnumerateDifference(previous.ActiveSources);
 
-            return
-            (
-                activityDifference.Released.Select(s => new Touch(s, previous.TouchPositions[(int)s])),
-                activityDifference.Pressed.Select(s => new Touch(s, TouchPositions[(int)s]))
-            );
+            int pressedCount = diff.Pressed.Length;
+            int releasedCount = diff.Released.Length;
+
+            if (pressedCount == 0 && releasedCount == 0)
+                return (Array.Empty<Touch>(), Array.Empty<Touch>());
+
+            Touch[] pressedTouches = new Touch[pressedCount];
+
+            for (int i = 0; i < pressedCount; i++)
+            {
+                var s = diff.Pressed[i];
+                pressedTouches[i] = new Touch(s, TouchPositions[(int)s]);
+            }
+
+            Touch[] releasedTouches = new Touch[releasedCount];
+
+            for (int i = 0; i < releasedCount; i++)
+            {
+                var s = diff.Released[i];
+                releasedTouches[i] = new Touch(s, previous.TouchPositions[(int)s]);
+            }
+
+            return (releasedTouches, pressedTouches);
         }
     }
 }

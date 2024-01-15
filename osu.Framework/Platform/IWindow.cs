@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Drawing;
 using System.IO;
 using osu.Framework.Bindables;
@@ -131,9 +132,9 @@ namespace osu.Framework.Platform
         Bindable<WindowMode> WindowMode { get; }
 
         /// <summary>
-        /// Exposes the physical displays as an <see cref="IEnumerable{Display}"/>.
+        /// Contains information about the current physical displays.
         /// </summary>
-        IEnumerable<Display> Displays { get; }
+        ImmutableArray<Display> Displays { get; }
 
         /// <summary>
         /// Invoked when <see cref="Displays"/> has changed.

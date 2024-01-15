@@ -20,9 +20,11 @@ using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Graphics.Pooling;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Platform;
 using osuTK;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using WindowState = osu.Framework.Platform.WindowState;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -390,14 +392,21 @@ namespace osu.Framework.Graphics.Performance
 
             foreach (Drawable e in timeBars[(timeBarIndex + 1) % timeBars.Length])
             {
-                if (e is Box && e.DrawPosition.X <= timeBarX)
+                if (e is GCBox && e.DrawPosition.X <= timeBarX)
                     e.Expire();
             }
         }
 
+        [Resolved]
+        private GameHost host { get; set; }
+
         private void applyFrame(FrameStatistics frame)
         {
-            if (state == FrameStatisticsMode.Full)
+            // Don't process frames when minimised, as the draw thread may not be running and texture uploads
+            // from the graph displays will get out of hand.
+            bool isMinimised = host.Window.WindowState == WindowState.Minimised;
+
+            if (state == FrameStatisticsMode.Full && !isMinimised)
             {
                 applyFrameGC(frame);
                 applyFrameTime(frame);
