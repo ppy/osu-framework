@@ -43,9 +43,19 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public void Receive()
         {
-            Queue<GazePointData> dataQueue = new Queue<GazePointData>();
-            int queueSize = 7;
-            bool isNoPositionPeriod = false;
+            //Queue<GazePointData> dataQueue = new Queue<GazePointData>();
+            //int queueSize = 7;
+
+            const uint blink_time = 300; //ms
+            const uint wait_fblink = 300;
+
+            bool waiting_fblink = false;
+            bool draging = false;
+            int last_blink_timestamp = 0;
+
+            int frames_after_blinking = 10;
+            double old_post_coef = 0.8, new_pos_coef = 0.2;
+
             while (true)
             {
                 var sender = new IPEndPoint(IPAddress.Any, 0);
@@ -69,60 +79,40 @@ namespace osu.Framework.Input.Handlers.Mouse
                     return;
                 }
 
-
-                if (decodedData != null && decodedData.Valid && lastTimestamp != 0 && decodedData.TimestampNum - lastTimestamp > 500)
+                // if blink happened
+                if (decodedData != null && decodedData.Valid && lastTimestamp != 0 && decodedData.TimestampNum - lastTimestamp > blink_time)
                 {
-                    //if (!isNoPositionPeriod)
-                    //{
-                    // if queue is full, we invoke NoPositionPeriodEnded and dequeue and set isNoPositionPeriod to false
-                    // i.e. click
-                    //if (dataQueue.Count == queueSize) // >=?
-                    //{
-                    //    // remove all elements from queue
-                    //    while (dataQueue.Count > 0)
-                    //    { dataQueue.Dequeue(); }
-
-                    //    // end of click
-                    //    if (isNoPositionPeriod)
-                    //    {
-                    //        NoPositionPeriodEnded?.Invoke(MouseButton.Left);
-                    //        isNoPositionPeriod = false;
-                    //    }
-                    //    else
-                    //    {
-                    //        NoPositionPeriodStarted?.Invoke(MouseButton.Left);
-                    //        isNoPositionPeriod = true;
-                    //    }
-
-                    //}
-                    //dataQueue.Enqueue(decodedData);
-                    // end of click
-                    NoPositionPeriodStarted?.Invoke(MouseButton.Left);
-                    NoPositionPeriodEnded?.Invoke(MouseButton.Left);
-
-                    //if (!isNoPositionPeriod)
-                    //{
-                    //    NoPositionPeriodStarted?.Invoke(MouseButton.Left);
-                    //    isNoPositionPeriod = true;
-
-                    //}
-                    //else
-                    //{
-                    //    NoPositionPeriodEnded?.Invoke(MouseButton.Left);
-                    //    isNoPositionPeriod = false;
-                    //}
-
-                        //dataQueue.Enqueue(decodedData);
-
-
-                    //}
-
-                    //fout.Write(Encoding.ASCII.GetBytes("Clicking and skipping invalid data.\n"));
+                    if (draging)
+                    {
+                        NoPositionPeriodEnded?.Invoke(MouseButton.Left);
+                        draging = false;
+                    }
+                    else if (waiting_fblink)
+                    {
+                        // start click&drag
+                        NoPositionPeriodStarted?.Invoke(MouseButton.Left);
+                        draging = true;
+                    }
+                    else
+                    {
+                        // click down
+                        NoPositionPeriodStarted?.Invoke(MouseButton.Left);
+                        waiting_fblink = true;
+                        last_blink_timestamp = decodedData.TimestampNum;
+                    }
                     lastTimestamp = decodedData.TimestampNum;
-                    //var position2 = new Vector2(decodedData.X * bounds.Width + bounds.Left, decodedData.Y * bounds.Height + bounds.Top);
-                    //fout.Write(Encoding.ASCII.GetBytes($"Halt Position: {position2}\n"));
-                    //AbsolutePositionChanged?.Invoke(position2);
-                    //return;
+                    //fout.Write(Encoding.ASCII.GetBytes($"Blink: {d 
+
+                    //NoPositionPeriodEnded?.Invoke(MouseButton.Left);
+                    //lastTimestamp = decodedData.TimestampNum;
+
+                }
+                // blink did not happen 
+                else if (lastTimestamp != 0 && waiting_fblink && decodedData.TimestampNum - last_blink_timestamp >= wait_fblink)
+                {
+                    NoPositionPeriodEnded?.Invoke(MouseButton.Left);
+                    waiting_fblink = false;
+                    last_blink_timestamp = 0; // not necessary probably
                 }
 
                 lastTimestamp = decodedData.TimestampNum;
