@@ -402,9 +402,9 @@ namespace osu.Framework.Testing
 
             var methods = newTest.GetType().GetMethods();
 
-            var solo = methods.FirstOrDefault(m => m.GetCustomAttribute(typeof(SoloAttribute), false) != null);
-            if (solo != null)
-                methods = new[] { solo };
+            var soloTests = methods.Where(m => m.GetCustomAttribute(typeof(SoloAttribute), false) != null).ToArray();
+            if (soloTests.Any())
+                methods = soloTests;
 
             foreach (var m in methods)
             {
