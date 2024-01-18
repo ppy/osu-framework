@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osuTK.Input;
 using osuTK;
 using osu.Framework.Input.Events;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -27,7 +28,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// A custom step value for each key press which actuates a change on this control.
         /// </summary>
-        public float KeyboardStep;
+        public float KeyboardStep { get; set; }
+
+        /// <summary>
+        /// A custom step value for all user adjustments. This will apply as a final limiting factor, even after <see cref="KeyboardStep"/>.
+        /// </summary>
+        public double AdjustmentStep { get; set; }
 
         private readonly BindableNumber<T> currentNumberInstantaneous;
 
@@ -186,13 +192,11 @@ namespace osu.Framework.Graphics.UserInterface
             switch (e.Key)
             {
                 case Key.Right:
-                    currentNumberInstantaneous.Add(step);
-                    onUserChange(currentNumberInstantaneous.Value);
+                    setValue(Convert.ToDouble(currentNumberInstantaneous.Value) + step, e);
                     return true;
 
                 case Key.Left:
-                    currentNumberInstantaneous.Add(-step);
-                    onUserChange(currentNumberInstantaneous.Value);
+                    setValue(Convert.ToDouble(currentNumberInstantaneous.Value) - step, e);
                     return true;
 
                 default:
@@ -247,14 +251,30 @@ namespace osu.Framework.Graphics.UserInterface
                 newValue = (localX - RangePadding) / UsableWidth;
             }
 
-            currentNumberInstantaneous.SetProportional(newValue, e.ShiftPressed ? KeyboardStep : 0);
-            onUserChange(currentNumberInstantaneous.Value);
+            double min = currentNumberInstantaneous.MinValue.ToDouble(NumberFormatInfo.InvariantInfo);
+            double max = currentNumberInstantaneous.MaxValue.ToDouble(NumberFormatInfo.InvariantInfo);
+            double value = min + (max - min) * newValue;
+            setValue(value, e);
         }
 
-        private void onUserChange(T value)
+        private void setValue(double value, UIEvent e)
         {
+            double valueBefore = currentNumberInstantaneous.Value.ToDouble(NumberFormatInfo.InvariantInfo);
+
+            double step = AdjustmentStep > 0 ? AdjustmentStep : currentNumberInstantaneous.Precision.ToDouble(NumberFormatInfo.InvariantInfo);
+
+            if (e.ShiftPressed && KeyboardStep > 0)
+                step = KeyboardStep;
+
+            if (Precision.DefinitelyBigger(step, 0))
+                value = Math.Round(value / step) * step;
+
+            if (value == valueBefore)
+                return;
+
+            currentNumberInstantaneous.Parse(value, NumberFormatInfo.InvariantInfo);
             uncommittedChanges = true;
-            OnUserChange(value);
+            OnUserChange(currentNumberInstantaneous.Value);
         }
 
         /// <summary>
