@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// A custom step value for each key press which actuates a change on this control.
         /// </summary>
-        public float KeyboardStep { get; set; }
+        public double KeyboardStep { get; set; }
 
         /// <summary>
         /// A custom step value for all user adjustments. This will apply as a final limiting factor, even after <see cref="KeyboardStep"/>.
@@ -186,8 +186,8 @@ namespace osu.Framework.Graphics.UserInterface
             if (!IsHovered)
                 return false;
 
-            float step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;
-            if (currentNumberInstantaneous.IsInteger) step = MathF.Ceiling(step);
+            double step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToDouble(currentNumberInstantaneous.MaxValue) - Convert.ToDouble(currentNumberInstantaneous.MinValue)) / 20;
+            if (currentNumberInstantaneous.IsInteger) step = Math.Ceiling(step);
 
             switch (e.Key)
             {
