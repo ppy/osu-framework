@@ -257,7 +257,10 @@ namespace osu.Framework.Android
                 int cornerInsetTop = Math.Max(topLeftCorner?.Radius ?? 0, topRightCorner?.Radius ?? 0);
                 int cornerInsetBottom = Math.Max(bottomLeftCorner?.Radius ?? 0, bottomRightCorner?.Radius ?? 0);
 
-                var radiusInsetArea = screenArea.Shrink(cornerInsetLeft, cornerInsetRight, cornerInsetTop, cornerInsetBottom);
+                var radiusInsetArea = screenArea.Width >= screenArea.Height
+                    ? screenArea.Shrink(cornerInsetLeft, cornerInsetRight, 0, 0)
+                    : screenArea.Shrink(0, 0, cornerInsetTop, cornerInsetBottom);
+
                 usableScreenArea = usableScreenArea.Intersect(radiusInsetArea);
             }
 
