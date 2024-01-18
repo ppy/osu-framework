@@ -273,8 +273,6 @@ namespace osu.Framework.Android
                 usableScreenArea = usableScreenArea.Intersect(screenArea.Shrink(0, 0, statusBarHeight, 0));
             }
 
-            // TODO: add rounded corners support (Android 12): https://developer.android.com/guide/topics/ui/look-and-feel/rounded-corners
-
             // compute the location/area of this view on the screen.
 
             int[] location = new int[2];
