@@ -156,7 +156,7 @@ namespace osu.Framework.Tests.Clocks
             Assert.Greater(interpolatedCount, 10);
         }
 
-        // always failing on single-thread macOS CI, failing when test asserts interpolating.IsInterpolating = false
+        // Regularly failing on single-thread macOS CI, failing when test asserts interpolating.IsInterpolating = false
         //
         // CanSeekForwardsOnInterpolationFail
         //     Expected: False
