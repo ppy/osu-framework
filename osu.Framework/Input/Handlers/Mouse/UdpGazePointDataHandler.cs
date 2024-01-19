@@ -46,15 +46,22 @@ namespace osu.Framework.Input.Handlers.Mouse
             //Queue<GazePointData> dataQueue = new Queue<GazePointData>();
             //int queueSize = 7;
 
-            const uint blink_time = 300; //ms
+            const uint blink_time = 150; //ms
             const uint wait_fblink = 300;
 
             bool waiting_fblink = false;
             bool draging = false;
             int last_blink_timestamp = 0;
 
-            int frames_after_blinking = 10;
-            double old_post_coef = 0.8, new_pos_coef = 0.2;
+            // smoth filter
+            // 10 - for menu is ok, but for gameplay it is too much
+            const int frames_after_blinking = 5;
+            const double old_post_coef = 0.8, new_pos_coef = 0.2;
+
+            int frames_after_blinking_counter = 0;
+            Vector2 old_position = new Vector2(0, 0);
+            Vector2 pre_blink_position = new Vector2(0, 0);
+            bool after_blink = false;
 
             while (true)
             {
@@ -79,8 +86,11 @@ namespace osu.Framework.Input.Handlers.Mouse
                     return;
                 }
 
+                if (lastTimestamp == 0) goto skip_filter;
+
                 // if blink happened
-                if (decodedData != null && decodedData.Valid && lastTimestamp != 0 && decodedData.TimestampNum - lastTimestamp > blink_time)
+                //if (decodedData != null && decodedData.Valid && decodedData.TimestampNum - lastTimestamp > blink_time)
+                if (decodedData.TimestampNum - lastTimestamp > blink_time)
                 {
                     if (draging)
                     {
@@ -100,26 +110,41 @@ namespace osu.Framework.Input.Handlers.Mouse
                         waiting_fblink = true;
                         last_blink_timestamp = decodedData.TimestampNum;
                     }
-                    lastTimestamp = decodedData.TimestampNum;
-                    //fout.Write(Encoding.ASCII.GetBytes($"Blink: {d 
-
-                    //NoPositionPeriodEnded?.Invoke(MouseButton.Left);
-                    //lastTimestamp = decodedData.TimestampNum;
+                    after_blink = true;
+                    pre_blink_position = old_position;
+                    frames_after_blinking_counter = 0;
 
                 }
                 // blink did not happen 
-                else if (lastTimestamp != 0 && waiting_fblink && decodedData.TimestampNum - last_blink_timestamp >= wait_fblink)
+                else if (waiting_fblink && decodedData.TimestampNum - last_blink_timestamp >= wait_fblink)
                 {
                     NoPositionPeriodEnded?.Invoke(MouseButton.Left);
                     waiting_fblink = false;
                     last_blink_timestamp = 0; // not necessary probably
                 }
 
+            skip_filter:
                 lastTimestamp = decodedData.TimestampNum;
 
-                var position = new Vector2(decodedData.X * bounds.Width + bounds.Left, decodedData.Y * bounds.Height + bounds.Top);
-                fout.Write(Encoding.ASCII.GetBytes($"Position: {position}\n"));
-                AbsolutePositionChanged?.Invoke(position);
+                if (after_blink && frames_after_blinking_counter < frames_after_blinking)
+                {
+                    fout.Write(Encoding.ASCII.GetBytes($"Waiting for blink: {decodedData.TimestampNum} - {last_blink_timestamp} >= {wait_fblink}.\n"));
+
+                    old_position = new Vector2(
+                                              (float)(old_post_coef * old_position.X + new_pos_coef * pre_blink_position.X),
+                                              (float)(old_post_coef * old_position.Y + new_pos_coef * pre_blink_position.Y)
+                                              );
+
+                    frames_after_blinking_counter++;
+                }
+                else
+                {
+                    after_blink = false;
+                    // var position = new Vector2(decodedData.X * bounds.Width + bounds.Left, decodedData.Y * bounds.Height + bounds.Top);
+                    old_position = new Vector2(decodedData.X * bounds.Width + bounds.Left, decodedData.Y * bounds.Height + bounds.Top);
+                }
+                fout.Write(Encoding.ASCII.GetBytes($"Position_: {old_position}\n"));
+                AbsolutePositionChanged?.Invoke(old_position);
             }
         }
     }
