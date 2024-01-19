@@ -47,6 +47,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             //int queueSize = 7;
 
             const uint blink_time = 150; //ms
+            const uint max_blink_time = 600; //ms
             const uint wait_fblink = 300;
 
             bool waiting_fblink = false;
@@ -55,8 +56,8 @@ namespace osu.Framework.Input.Handlers.Mouse
 
             // smoth filter
             // 10 - for menu is ok, but for gameplay it is too much
-            const int frames_after_blinking = 5;
-            const double old_post_coef = 0.8, new_pos_coef = 0.2;
+            const int frames_after_blinking = 16;
+            const double old_post_coef_start = 0.8, new_pos_coef_start = 1 - old_post_coef_start;
 
             int frames_after_blinking_counter = 0;
             Vector2 old_position = new Vector2(0, 0);
@@ -90,7 +91,8 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                 // if blink happened
                 //if (decodedData != null && decodedData.Valid && decodedData.TimestampNum - lastTimestamp > blink_time)
-                if (decodedData.TimestampNum - lastTimestamp > blink_time)
+                int dt = decodedData.TimestampNum - lastTimestamp;
+                if (dt > blink_time && dt < max_blink_time)
                 {
                     if (draging)
                     {
@@ -102,6 +104,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                         // start click&drag
                         NoPositionPeriodStarted?.Invoke(MouseButton.Left);
                         draging = true;
+                        waiting_fblink = false;
                     }
                     else
                     {
@@ -129,7 +132,8 @@ namespace osu.Framework.Input.Handlers.Mouse
                 if (after_blink && frames_after_blinking_counter < frames_after_blinking)
                 {
                     fout.Write(Encoding.ASCII.GetBytes($"Waiting for blink: {decodedData.TimestampNum} - {last_blink_timestamp} >= {wait_fblink}.\n"));
-
+                    var new_pos_coef = new_pos_coef_start + (1 - new_pos_coef_start) / frames_after_blinking;
+                    var old_post_coef = old_post_coef_start - (old_post_coef_start) / frames_after_blinking;
                     old_position = new Vector2(
                                               (float)(old_post_coef * old_position.X + new_pos_coef * pre_blink_position.X),
                                               (float)(old_post_coef * old_position.Y + new_pos_coef * pre_blink_position.Y)
