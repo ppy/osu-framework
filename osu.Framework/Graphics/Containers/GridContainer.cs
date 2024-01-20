@@ -20,6 +20,16 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public partial class GridContainer : CompositeDrawable
     {
+        /// <summary>
+        /// Shrinks the space children may occupy within this <see cref="GridContainer"/>
+        /// by the specified amount on each side.
+        /// </summary>
+        public new MarginPadding Padding
+        {
+            get => base.Padding;
+            set => base.Padding = value;
+        }
+
         public GridContainer()
         {
             AddLayout(cellLayout);
@@ -206,8 +216,8 @@ namespace osu.Framework.Graphics.Containers
             if (cellLayout.IsValid)
                 return;
 
-            float[] widths = distribute(columnDimensions, DrawWidth, getCellSizesAlongAxis(Axes.X, DrawWidth));
-            float[] heights = distribute(rowDimensions, DrawHeight, getCellSizesAlongAxis(Axes.Y, DrawHeight));
+            float[] widths = distribute(columnDimensions, DrawWidth - Padding.TotalHorizontal, getCellSizesAlongAxis(Axes.X, DrawWidth - Padding.TotalHorizontal));
+            float[] heights = distribute(rowDimensions, DrawHeight - Padding.TotalVertical, getCellSizesAlongAxis(Axes.Y, DrawHeight - Padding.TotalVertical));
 
             for (int col = 0; col < cellColumns; col++)
             {
