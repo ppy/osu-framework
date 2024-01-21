@@ -227,6 +227,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 performLayout();
                 layout.Validate();
+                childLayout.Validate();
             }
         }
 
