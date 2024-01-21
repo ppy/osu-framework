@@ -90,12 +90,12 @@ namespace osu.Framework.Input.Handlers.Mouse
                 if (lastTimestamp == 0) goto skip_filter;
 
                 // if blink happened
-                //if (decodedData != null && decodedData.Valid && decodedData.TimestampNum - lastTimestamp > blink_time)
                 int dt = decodedData.TimestampNum - lastTimestamp;
                 if (dt > blink_time && dt < max_blink_time)
                 {
                     if (draging)
                     {
+                        // second blink happened - start draging
                         NoPositionPeriodEnded?.Invoke(MouseButton.Left);
                         draging = false;
                     }
@@ -144,7 +144,6 @@ namespace osu.Framework.Input.Handlers.Mouse
                 else
                 {
                     after_blink = false;
-                    // var position = new Vector2(decodedData.X * bounds.Width + bounds.Left, decodedData.Y * bounds.Height + bounds.Top);
                     old_position = new Vector2(decodedData.X * bounds.Width + bounds.Left, decodedData.Y * bounds.Height + bounds.Top);
                 }
                 fout.Write(Encoding.ASCII.GetBytes($"Position_: {old_position}\n"));
