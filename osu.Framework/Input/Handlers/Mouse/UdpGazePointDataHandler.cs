@@ -48,7 +48,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
             const uint blink_time = 150; //ms
             const uint max_blink_time = 600; //ms
-            const uint wait_fblink = 300;
+            const uint wait_fblink = 400;
 
             bool waiting_fblink = false;
             bool draging = false;
