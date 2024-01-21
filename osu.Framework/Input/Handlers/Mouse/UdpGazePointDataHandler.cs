@@ -72,9 +72,6 @@ namespace osu.Framework.Input.Handlers.Mouse
                 Console.WriteLine($"Received from {sender}: {stringData}");
                 var decodedData = JsonConvert.DeserializeObject<GazePointData>(stringData);
 
-
-
-
                 if (decodedData == null || !decodedData.Valid)
                 {
                     fout.Write(Encoding.ASCII.GetBytes("Skipping invalid data.\n"));
