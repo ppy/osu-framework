@@ -218,10 +218,7 @@ namespace osu.Framework.Graphics.Containers
             base.UpdateAfterChildren();
 
             if (!childLayout.IsValid)
-            {
                 InvalidateLayout();
-                childLayout.Validate();
-            }
 
             if (!layout.IsValid)
             {
