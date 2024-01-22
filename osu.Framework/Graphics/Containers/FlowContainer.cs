@@ -223,7 +223,9 @@ namespace osu.Framework.Graphics.Containers
             if (!layout.IsValid)
             {
                 performLayout();
+
                 layout.Validate();
+                // It's important to only validate childLayout after performLayout() is called to ensure it doesn't get re-invalidated.
                 childLayout.Validate();
             }
         }
