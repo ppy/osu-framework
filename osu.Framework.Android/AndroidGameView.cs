@@ -245,6 +245,25 @@ namespace osu.Framework.Android
                     usableScreenArea = usableScreenArea.Shrink(cutout.SafeInsetLeft, cutout.SafeInsetRight, cutout.SafeInsetTop, cutout.SafeInsetBottom);
             }
 
+            if (OperatingSystem.IsAndroidVersionAtLeast(31) && RootWindowInsets != null)
+            {
+                var topLeftCorner = RootWindowInsets.GetRoundedCorner((int)RoundedCornerPosition.TopLeft);
+                var topRightCorner = RootWindowInsets.GetRoundedCorner((int)RoundedCornerPosition.TopRight);
+                var bottomLeftCorner = RootWindowInsets.GetRoundedCorner((int)RoundedCornerPosition.BottomLeft);
+                var bottomRightCorner = RootWindowInsets.GetRoundedCorner((int)RoundedCornerPosition.BottomRight);
+
+                int cornerInsetLeft = Math.Max(topLeftCorner?.Radius ?? 0, bottomLeftCorner?.Radius ?? 0);
+                int cornerInsetRight = Math.Max(topRightCorner?.Radius ?? 0, bottomRightCorner?.Radius ?? 0);
+                int cornerInsetTop = Math.Max(topLeftCorner?.Radius ?? 0, topRightCorner?.Radius ?? 0);
+                int cornerInsetBottom = Math.Max(bottomLeftCorner?.Radius ?? 0, bottomRightCorner?.Radius ?? 0);
+
+                var radiusInsetArea = screenArea.Width >= screenArea.Height
+                    ? screenArea.Shrink(cornerInsetLeft, cornerInsetRight, 0, 0)
+                    : screenArea.Shrink(0, 0, cornerInsetTop, cornerInsetBottom);
+
+                usableScreenArea = usableScreenArea.Intersect(radiusInsetArea);
+            }
+
             if (OperatingSystem.IsAndroidVersionAtLeast(24) && Activity.IsInMultiWindowMode)
             {
                 // if we are in multi-window mode, the status bar is always visible (even if we request to hide it) and could be obstructing our view.
@@ -256,8 +275,6 @@ namespace osu.Framework.Android
 #pragma warning restore 618 //
                 usableScreenArea = usableScreenArea.Intersect(screenArea.Shrink(0, 0, statusBarHeight, 0));
             }
-
-            // TODO: add rounded corners support (Android 12): https://developer.android.com/guide/topics/ui/look-and-feel/rounded-corners
 
             // compute the location/area of this view on the screen.
 
