@@ -203,8 +203,6 @@ namespace osu.Framework.Audio
             if (deviceId > 0)
                 SDL.SDL_CloseAudioDevice(deviceId);
 
-            Logger.Log("Trying this device: " + deviceName);
-
             // Let audio driver adjust latency, this may set to a high value on Windows (but usually around 10ms), but let's just be safe
             const uint flag = SDL.SDL_AUDIO_ALLOW_SAMPLES_CHANGE;
             deviceId = SDL.SDL_OpenAudioDevice(deviceName, 0, ref spec, out var outspec, (int)flag);
