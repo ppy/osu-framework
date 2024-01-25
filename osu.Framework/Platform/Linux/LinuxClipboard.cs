@@ -6,12 +6,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using NuGet.Packaging;
+using osu.Framework.Platform.SDL2;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
 
 namespace osu.Framework.Platform.Linux
 {
-    public class LinuxClipboard : Clipboard
+    public class LinuxClipboard : SDL2Clipboard
     {
         protected Process Xclip(IEnumerable<string> args)
         {
@@ -28,12 +29,13 @@ namespace osu.Framework.Platform.Linux
         protected bool HasTarget(string target)
         {
             using Process xclip = Xclip(new[] { "-selection", "clipboard", "-t", "TARGETS", "-o" });
-            xclip.Start();
-
-            bool hasTarget = false;
 
             try
             {
+                xclip.Start();
+
+                bool hasTarget = false;
+
                 string? line;
                 while ((line = xclip.StandardOutput.ReadLine()) != null)
                 {
@@ -43,90 +45,115 @@ namespace osu.Framework.Platform.Linux
                         break;
                     }
                 }
+
+                xclip.StandardInput.Close();
+                xclip.WaitForExit();
+
+                return hasTarget;
             }
             catch (Exception)
             {
+                return false;
             }
-
-            xclip.StandardInput.Close();
-            xclip.WaitForExit();
-
-            return hasTarget;
         }
 
         public override Image<TPixel>? GetImage<TPixel>()
         {
             if (!HasTarget("image/png"))
-                return null;
+                return base.GetImage<TPixel>();
 
             using Process xclip = Xclip(new[] { "-selection", "clipboard", "-t", "image/png", "-o" });
-            xclip.Start();
 
-            // reserve 5 MB because it's a bit above a typical png size
-            using MemoryStream xclipStdout = new MemoryStream(5 * 1024 * 1024);
+            try
+            {
+                xclip.Start();
 
-            // If we don't read stdout before waiting, the process might hang because some internal buffer got full.
-            // I know, weird...
-            xclip.StandardOutput.BaseStream.CopyTo(xclipStdout);
-            xclipStdout.Position = 0;
+                // reserve 5 MB because it's a bit above a typical png size
+                using MemoryStream xclipStdout = new MemoryStream(5 * 1024 * 1024);
 
-            xclip.StandardInput.Close();
-            xclip.WaitForExit();
+                // If we don't read stdout before waiting, the process might hang because some internal buffer got full.
+                // I know, weird...
+                xclip.StandardOutput.BaseStream.CopyTo(xclipStdout);
+                xclipStdout.Position = 0;
 
-            if (xclip.ExitCode == 0)
-                return Image.Load<TPixel>(xclipStdout);
-            else
-                return null;
+                xclip.StandardInput.Close();
+                xclip.WaitForExit();
+
+                if (xclip.ExitCode == 0)
+                    return Image.Load<TPixel>(xclipStdout);
+                else
+                    return null;
+            }
+            catch (Exception)
+            {
+                return base.GetImage<TPixel>();
+            }
         }
 
         public override string? GetText()
         {
             if (!HasTarget("text/plain"))
-                return null;
+                return base.GetText();
 
             using Process xclip = Xclip(new[] { "-selection", "clipboard", "-t", "text/plain", "-o" });
-            xclip.Start();
 
-            string? stdout = null;
             try
             {
-                stdout = xclip.StandardOutput.ReadToEnd();
+                xclip.Start();
+
+                string? stdout = xclip.StandardOutput.ReadToEnd();
+
+                xclip.StandardInput.Close();
+                xclip.WaitForExit();
+
+                if (xclip.ExitCode == 0)
+                    return stdout;
+                else
+                    return null;
             }
             catch (Exception)
             {
+                return base.GetText();
             }
-
-            xclip.StandardInput.Close();
-            xclip.WaitForExit();
-
-            if (xclip.ExitCode == 0)
-                return stdout;
-            else
-                return null;
         }
 
         public override bool SetImage(Image image)
         {
             using Process xclip = Xclip(new[] { "-selection", "clipboard", "-t", "image/png", "-i" });
-            xclip.Start();
 
-            image.Save(xclip.StandardInput.BaseStream, PngFormat.Instance);
+            try
+            {
+                xclip.Start();
 
-            xclip.StandardInput.Close();
-            xclip.WaitForExit();
+                image.Save(xclip.StandardInput.BaseStream, PngFormat.Instance);
 
-            return xclip.ExitCode == 0;
+                xclip.StandardInput.Close();
+                xclip.WaitForExit();
+
+                return xclip.ExitCode == 0;
+            }
+            catch (Exception)
+            {
+                return base.SetImage(image);
+            }
         }
 
         public override void SetText(string text)
         {
             using Process xclip = Xclip(new[] { "-selection", "clipboard", "-t", "text/plain", "-i" });
-            xclip.Start();
 
-            xclip.StandardInput.Write(text);
+            try
+            {
+                xclip.Start();
 
-            xclip.StandardInput.Close();
-            xclip.WaitForExit();
+                xclip.StandardInput.Write(text);
+
+                xclip.StandardInput.Close();
+                xclip.WaitForExit();
+            }
+            catch (Exception)
+            {
+            }
         }
     }
 }
