@@ -51,6 +51,8 @@ namespace osu.Framework.Platform.Linux
             }
         }
 
+        protected override Clipboard CreateClipboard() => new LinuxClipboard();
+
         protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new SDL2DesktopWindow(preferredSurface);
 
         protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new LinuxReadableKeyCombinationProvider();
