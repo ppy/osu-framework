@@ -67,7 +67,7 @@ namespace osu.Framework.Audio.Track
 
         private readonly Task readTask;
 
-        private FileCallbacks? fileCallbacks;
+        private Stream? data;
 
         /// <summary>
         /// Constructs a new <see cref="Waveform"/> from provided audio data.
@@ -75,6 +75,8 @@ namespace osu.Framework.Audio.Track
         /// <param name="data">The sample data stream. If null, an empty waveform is constructed.</param>
         public Waveform(Stream? data)
         {
+            this.data = data;
+
             readTask = Task.Run(() =>
             {
                 if (data == null)
@@ -87,7 +89,7 @@ namespace osu.Framework.Audio.Track
                     return;
                 }
 
-                fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(data));
+                FileCallbacks fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(data));
 
                 const int bytes_per_sample = 4;
 
@@ -186,6 +188,11 @@ namespace osu.Framework.Audio.Track
                 finally
                 {
                     Bass.StreamFree(decodeStream);
+                    fileCallbacks.Dispose();
+
+                    data.Dispose();
+                    this.data = data = null;
+
                     if (sampleBuffer != null)
                         ArrayPool<float>.Shared.Return(sampleBuffer);
                 }
@@ -350,8 +357,9 @@ namespace osu.Framework.Audio.Track
             cancelSource.Dispose();
             points = Array.Empty<Point>();
 
-            fileCallbacks?.Dispose();
-            fileCallbacks = null;
+            // Try disposing the stream again in case the task was not started.
+            data?.Dispose();
+            data = null;
         }
 
         #endregion
