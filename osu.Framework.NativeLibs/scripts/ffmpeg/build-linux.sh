@@ -27,9 +27,8 @@ build_ffmpeg
 popd > /dev/null
 
 # gcc creates multiple symlinks per .so file for versioning.
-# We want to delete the symlinks to prevent weird behaviour with GitHub actions.
+# We delete the symlinks and rename the real files to include the major library version
 rm linux-x64/*.so
 for f in linux-x64/*.so.*.*.*; do
-    mv -v "$f" "${f%.*.*.*}"
+    mv -vf "$f" "${f%.*.*}"
 done
-rm linux-x64/*.so.*
