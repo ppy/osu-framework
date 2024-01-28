@@ -10,8 +10,6 @@ namespace osu.Framework.Audio.Sample
     {
         private readonly SampleSDL2AudioPlayer player;
 
-        private readonly SampleSDL2 sample;
-
         private volatile bool playing;
         public override bool Playing => playing;
 
@@ -22,15 +20,10 @@ namespace osu.Framework.Audio.Sample
             : base(sample.Name)
         {
             this.player = player;
-            this.sample = sample;
         }
 
         public override void Play()
         {
-            // Don't play if samples has enough concurrent channels playing.
-            if (!sample.StartPlayingChannel())
-                return;
-
             started = false;
             playing = true;
             base.Play();
@@ -65,9 +58,6 @@ namespace osu.Framework.Audio.Sample
             {
                 playing = false;
                 started = false;
-
-                // Let sample know that it has finished playing.
-                sample.DonePlayingChannel();
             }
 
             return ret;

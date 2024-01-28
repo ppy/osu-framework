@@ -19,10 +19,6 @@ namespace osu.Framework.Audio.Sample
             this.mixer = mixer;
         }
 
-        internal bool StartPlayingChannel() => factory.IncreaseConcurrentCount();
-
-        internal void DonePlayingChannel() => factory.DecreaseConcurrentCount();
-
         protected override SampleChannel CreateChannel()
         {
             var channel = new SampleChannelSDL2(this, factory.CreatePlayer());
