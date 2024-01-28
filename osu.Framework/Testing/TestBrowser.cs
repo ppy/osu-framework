@@ -400,7 +400,13 @@ namespace osu.Framework.Testing
 
             bool hadTestAttributeTest = false;
 
-            foreach (var m in newTest.GetType().GetMethods())
+            var methods = newTest.GetType().GetMethods();
+
+            var soloTests = methods.Where(m => m.GetCustomAttribute(typeof(SoloAttribute), false) != null).ToArray();
+            if (soloTests.Any())
+                methods = soloTests;
+
+            foreach (var m in methods)
             {
                 string name = m.Name;
 

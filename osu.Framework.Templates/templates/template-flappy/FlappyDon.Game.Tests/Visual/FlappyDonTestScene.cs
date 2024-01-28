@@ -2,7 +2,7 @@ using osu.Framework.Testing;
 
 namespace FlappyDon.Game.Tests.Visual
 {
-    public partial class FlappyDonTestScene : TestScene
+    public abstract partial class FlappyDonTestScene : TestScene
     {
         protected override ITestSceneTestRunner CreateRunner() => new FlappyDonTestSceneTestRunner();
 

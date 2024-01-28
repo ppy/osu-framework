@@ -302,8 +302,6 @@ namespace osu.Framework.Logging
             if (!Enabled || level < Level)
                 return;
 
-            ensureHeader();
-
             logCount.Value++;
 
             message = ApplyFilters(message);
@@ -394,6 +392,17 @@ namespace osu.Framework.Logging
                 using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append))
                 using (var writer = new StreamWriter(stream))
                 {
+                    if (!headerAdded)
+                    {
+                        writer.WriteLine("----------------------------------------------------------");
+                        writer.WriteLine($"{Name} Log for {UserIdentifier} (LogLevel: {Level})");
+                        writer.WriteLine($"Running {GameIdentifier} {VersionIdentifier} on .NET {Environment.Version}");
+                        writer.WriteLine($"Environment: {RuntimeInfo.OS} ({Environment.OSVersion}), {Environment.ProcessorCount} cores ");
+                        writer.WriteLine("----------------------------------------------------------");
+
+                        headerAdded = true;
+                    }
+
                     foreach (string line in lines)
                         writer.WriteLine(line);
                 }
@@ -433,19 +442,6 @@ namespace osu.Framework.Logging
             {
                 Log($"Cycling logs failed ({e})");
             }
-        }
-
-        private void ensureHeader()
-        {
-            if (headerAdded) return;
-
-            headerAdded = true;
-
-            add("----------------------------------------------------------", outputToListeners: false);
-            add($"{Name} Log for {UserIdentifier} (LogLevel: {Level})", outputToListeners: false);
-            add($"Running {GameIdentifier} {VersionIdentifier} on .NET {Environment.Version}", outputToListeners: false);
-            add($"Environment: {RuntimeInfo.OS} ({Environment.OSVersion}), {Environment.ProcessorCount} cores ", outputToListeners: false);
-            add("----------------------------------------------------------", outputToListeners: false);
         }
 
         private static readonly List<string> filters = new List<string>();

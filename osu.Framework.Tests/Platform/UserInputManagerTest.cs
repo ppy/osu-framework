@@ -13,7 +13,7 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void IsAliveTest()
         {
-            using (var client = new TestHeadlessGameHost(@"client", true))
+            using (var client = new TestHeadlessGameHost(@"client", 45356))
             {
                 var testGame = new TestTestGame();
                 client.Run(testGame);
@@ -25,8 +25,8 @@ namespace osu.Framework.Tests.Platform
         {
             public Drawable CurrentRoot => Root;
 
-            public TestHeadlessGameHost(string gameName, bool bindIPC)
-                : base(gameName, new HostOptions { BindIPC = bindIPC })
+            public TestHeadlessGameHost(string gameName, int? ipcPort)
+                : base(gameName, new HostOptions { IPCPort = ipcPort })
             {
             }
         }
