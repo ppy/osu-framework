@@ -114,12 +114,18 @@ namespace osu.Framework.Graphics.Video
         {
             if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
             {
+                void loadVersionedLibraryGlobally(string name)
+                {
+                    int version = FFmpeg.AutoGen.ffmpeg.LibraryVersionMap[name];
+                    Library.Load($"lib{name}.so.{version}", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+                }
+
                 // FFmpeg.AutoGen doesn't load libraries as RTLD_GLOBAL, so we must load them ourselves to fix inter-library dependencies
                 // otherwise they would fallback to the system-installed libraries that can differ in version installed.
-                Library.Load("libavutil.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
-                Library.Load("libavcodec.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
-                Library.Load("libavformat.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
-                Library.Load("libswscale.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+                loadVersionedLibraryGlobally("avutil");
+                loadVersionedLibraryGlobally("avcodec");
+                loadVersionedLibraryGlobally("avformat");
+                loadVersionedLibraryGlobally("swscale");
             }
         }
 
@@ -808,26 +814,17 @@ namespace osu.Framework.Graphics.Video
             {
                 int version = FFmpeg.AutoGen.ffmpeg.LibraryVersionMap[name];
 
-                string libraryName;
-
                 // "lib" prefix and extensions are resolved by .net core
-                switch (RuntimeInfo.OS)
+                string libraryName = RuntimeInfo.OS switch
                 {
-                    case RuntimeInfo.Platform.macOS:
-                        libraryName = $"{name}.{version}";
-                        break;
-
-                    case RuntimeInfo.Platform.Windows:
-                        libraryName = $"{name}-{version}";
-                        break;
-
-                    case RuntimeInfo.Platform.Linux:
-                        libraryName = name;
-                        break;
-
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(RuntimeInfo.OS), RuntimeInfo.OS, null);
-                }
+                    RuntimeInfo.Platform.macOS => $"{name}.{version}",
+                    RuntimeInfo.Platform.Windows => $"{name}-{version}",
+                    // To handle versioning in Linux, we have to specify the entire file name
+                    // because Linux uses a version suffix after the file extension (e.g. libavutil.so.56)
+                    // More info: https://learn.microsoft.com/en-us/dotnet/standard/native-interop/native-library-loading?view=net-6.0
+                    RuntimeInfo.Platform.Linux => $"lib{name}.so.{version}",
+                    _ => throw new ArgumentOutOfRangeException(nameof(RuntimeInfo.OS), RuntimeInfo.OS, null)
+                };
 
                 return NativeLibrary.Load(libraryName, System.Reflection.Assembly.GetEntryAssembly().AsNonNull(), DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
             };
