@@ -1,7 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Threading;
 using osu.Framework.Audio.Mixing.SDL2;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Audio.Sample
 {
@@ -17,7 +19,32 @@ namespace osu.Framework.Audio.Sample
         {
             this.factory = factory;
             this.mixer = mixer;
+
+            maxConcurrentCount = PlaybackConcurrency.Value;
+            PlaybackConcurrency.BindValueChanged(updatePlaybackConcurrency);
         }
+
+        private volatile int maxConcurrentCount;
+
+        private volatile int concurrentCount;
+
+        private void updatePlaybackConcurrency(ValueChangedEvent<int> concurrency)
+        {
+            maxConcurrentCount = concurrency.NewValue;
+        }
+
+        internal bool StartPlayingChannel()
+        {
+            if (Interlocked.Increment(ref concurrentCount) > maxConcurrentCount)
+            {
+                Interlocked.Decrement(ref concurrentCount);
+                return false;
+            }
+
+            return true;
+        }
+
+        internal void DonePlayingChannel() => Interlocked.Decrement(ref concurrentCount);
 
         protected override SampleChannel CreateChannel()
         {

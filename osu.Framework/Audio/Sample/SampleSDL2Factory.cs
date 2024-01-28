@@ -31,7 +31,7 @@ namespace osu.Framework.Audio.Sample
             this.spec = spec;
         }
 
-        private protected override void LoadSample()
+        protected override void LoadSample()
         {
             Debug.Assert(CanPerformInline);
             Debug.Assert(!IsLoaded);
@@ -68,7 +68,7 @@ namespace osu.Framework.Audio.Sample
 
         public override Sample CreateSample() => new SampleSDL2(this, mixer) { OnPlay = SampleFactoryOnPlay };
 
-        private protected override void UpdatePlaybackConcurrency(ValueChangedEvent<int> concurrency)
+        protected override void UpdatePlaybackConcurrency(ValueChangedEvent<int> concurrency)
         {
         }
 

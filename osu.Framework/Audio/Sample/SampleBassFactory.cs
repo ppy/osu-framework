@@ -33,7 +33,7 @@ namespace osu.Framework.Audio.Sample
             this.mixer = mixer;
         }
 
-        private protected override void UpdatePlaybackConcurrency(ValueChangedEvent<int> concurrency)
+        protected override void UpdatePlaybackConcurrency(ValueChangedEvent<int> concurrency)
         {
             EnqueueAction(() =>
             {
@@ -47,7 +47,7 @@ namespace osu.Framework.Audio.Sample
             });
         }
 
-        private protected override void LoadSample()
+        protected override void LoadSample()
         {
             Debug.Assert(CanPerformInline);
             Debug.Assert(!IsLoaded);

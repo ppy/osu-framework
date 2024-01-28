@@ -39,9 +39,9 @@ namespace osu.Framework.Audio.Sample
             PlaybackConcurrency.BindValueChanged(UpdatePlaybackConcurrency);
         }
 
-        private protected abstract void UpdatePlaybackConcurrency(ValueChangedEvent<int> concurrency);
+        protected abstract void UpdatePlaybackConcurrency(ValueChangedEvent<int> concurrency);
 
-        private protected abstract void LoadSample();
+        protected abstract void LoadSample();
 
         public abstract Sample CreateSample();
 
