@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using osu.Framework.Audio.Mixing.SDL2;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
@@ -22,6 +23,10 @@ namespace osu.Framework.Audio.Sample
         private float[] decodedAudio = Array.Empty<float>();
 
         private Stream? stream;
+
+        private volatile int concurrentCount;
+
+        private volatile int maxConcurrentCount = Sample.DEFAULT_CONCURRENCY;
 
         public SampleSDL2Factory(Stream stream, string name, SDL2AudioMixer mixer, int playbackConcurrency, SDL.SDL_AudioSpec spec)
             : base(name, playbackConcurrency)
@@ -70,7 +75,21 @@ namespace osu.Framework.Audio.Sample
 
         protected override void UpdatePlaybackConcurrency(ValueChangedEvent<int> concurrency)
         {
+            maxConcurrentCount = concurrency.NewValue;
         }
+
+        internal bool IncreaseConcurrentCount()
+        {
+            if (Interlocked.Increment(ref concurrentCount) > maxConcurrentCount)
+            {
+                Interlocked.Decrement(ref concurrentCount);
+                return false;
+            }
+
+            return true;
+        }
+
+        internal void DecreaseConcurrentCount() => Interlocked.Decrement(ref concurrentCount);
 
         ~SampleSDL2Factory()
         {
