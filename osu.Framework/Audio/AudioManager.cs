@@ -91,22 +91,19 @@ namespace osu.Framework.Audio
         public readonly Bindable<string> AudioDevice = new Bindable<string>();
 
         /// <summary>
+        /// Volume of all audio game-wide.
+        /// </summary>
+        public new readonly VolumeScaler Volume;
+
+        /// <summary>
         /// Volume of all samples played game-wide.
         /// </summary>
-        public readonly BindableDouble VolumeSample = new BindableDouble(1)
-        {
-            MinValue = 0,
-            MaxValue = 1
-        };
+        public readonly VolumeScaler VolumeSample = new VolumeScaler();
 
         /// <summary>
         /// Volume of all tracks played game-wide.
         /// </summary>
-        public readonly BindableDouble VolumeTrack = new BindableDouble(1)
-        {
-            MinValue = 0,
-            MaxValue = 1
-        };
+        public readonly VolumeScaler VolumeTrack = new VolumeScaler();
 
         /// <summary>
         /// Whether a global mixer is being used for audio routing.
@@ -179,11 +176,13 @@ namespace osu.Framework.Audio
             AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
             AddItem(SampleMixer = createAudioMixer(null, nameof(SampleMixer)));
 
+            Volume = new VolumeScaler(base.Volume);
+
             globalTrackStore = new Lazy<TrackStore>(() =>
             {
                 var store = new TrackStore(trackStore, TrackMixer);
                 AddItem(store);
-                store.AddAdjustment(AdjustableProperty.Volume, VolumeTrack);
+                store.AddAdjustment(AdjustableProperty.Volume, VolumeTrack.Real);
                 return store;
             });
 
@@ -191,7 +190,7 @@ namespace osu.Framework.Audio
             {
                 var store = new SampleStore(sampleStore, SampleMixer);
                 AddItem(store);
-                store.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
+                store.AddAdjustment(AdjustableProperty.Volume, VolumeSample.Real);
                 return store;
             });
 
