@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (icon.Equals(value)) return;
 
                 icon = value;
-                if (IsLoaded)
+                if (LoadState > LoadState.NotLoaded)
                     updateTexture();
             }
         }
