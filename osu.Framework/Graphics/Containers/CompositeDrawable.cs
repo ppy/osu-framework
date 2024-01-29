@@ -1310,6 +1310,9 @@ namespace osu.Framework.Graphics.Containers
             return SchedulerAfterChildren.Add(action);
         }
 
+        [ThreadStatic]
+        private static List<AbsoluteSequenceSender> absoluteSequenceActions;
+
         public override IDisposable BeginAbsoluteSequence(double newTransformStartTime, bool recursive = true)
         {
             EnsureTransformMutationAllowed();
@@ -1317,17 +1320,19 @@ namespace osu.Framework.Graphics.Containers
             if (!recursive || internalChildren.Count == 0)
                 return base.BeginAbsoluteSequence(newTransformStartTime, false);
 
-            List<AbsoluteSequenceSender> disposalActions = new List<AbsoluteSequenceSender>(internalChildren.Count + 1);
+            absoluteSequenceActions ??= new List<AbsoluteSequenceSender>();
+            absoluteSequenceActions.EnsureCapacity(internalChildren.Count + 1);
 
-            base.CollectAbsoluteSequenceActionsFromSubTree(newTransformStartTime, disposalActions);
+            base.CollectAbsoluteSequenceActionsFromSubTree(newTransformStartTime, absoluteSequenceActions);
 
             foreach (var c in internalChildren)
-                c.CollectAbsoluteSequenceActionsFromSubTree(newTransformStartTime, disposalActions);
+                c.CollectAbsoluteSequenceActionsFromSubTree(newTransformStartTime, absoluteSequenceActions);
 
-            return new ValueInvokeOnDisposal<List<AbsoluteSequenceSender>>(disposalActions, actions =>
+            return new ValueInvokeOnDisposal<List<AbsoluteSequenceSender>>(absoluteSequenceActions, actions =>
             {
                 foreach (var a in actions)
                     a.Dispose();
+                actions.Clear();
             });
         }
 
