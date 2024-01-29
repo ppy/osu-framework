@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -157,7 +158,10 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         [Test]
         public void TestResolveStructWithoutNullPermits()
         {
-            Assert.Throws<DependencyNotRegisteredException>(() => new DependencyContainer().Inject(new Receiver14()));
+            var receiver = new Receiver14();
+
+            Assert.DoesNotThrow(() => new DependencyContainer().Inject(receiver));
+            Assert.AreEqual(0, receiver.Obj);
         }
 
         [Test]
@@ -207,6 +211,26 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
 
             // Does not throw with the non-nullable dependency cached.
             Assert.DoesNotThrow(() => createDependencies(new Bindable<int>(10)).Inject(receiver));
+        }
+
+        [Test]
+        public void TestResolveDefaultStruct()
+        {
+            var receiver = new Receiver19();
+
+            createDependencies().Inject(receiver);
+
+            Assert.That(receiver.Token, Is.EqualTo(default(CancellationToken)));
+        }
+
+        [Test]
+        public void TestResolveNullStruct()
+        {
+            var receiver = new Receiver20();
+
+            createDependencies().Inject(receiver);
+
+            Assert.That(receiver.Token, Is.Null);
         }
 
         private DependencyContainer createDependencies(params object[] toCache)
@@ -303,7 +327,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         private partial class Receiver14 : IDependencyInjectionCandidate
         {
             [Resolved]
-            public int Obj { get; private set; }
+            public int Obj { get; private set; } = 1;
         }
 
         private partial class Receiver15 : IDependencyInjectionCandidate
@@ -332,6 +356,18 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         {
             [Resolved]
             public Bindable<int> Obj { get; private set; } = null!;
+        }
+
+        private partial class Receiver19 : IDependencyInjectionCandidate
+        {
+            [Resolved]
+            public CancellationToken Token { get; private set; }
+        }
+
+        private partial class Receiver20 : IDependencyInjectionCandidate
+        {
+            [Resolved]
+            public CancellationToken? Token { get; private set; }
         }
     }
 }

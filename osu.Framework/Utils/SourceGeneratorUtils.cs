@@ -5,7 +5,6 @@ using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
-using osu.Framework.Graphics;
 
 namespace osu.Framework.Utils
 {
@@ -27,15 +26,8 @@ namespace osu.Framework.Utils
         /// <exception cref="NullDependencyException">If <paramref name="obj"/> is <c>null</c>.</exception>
         public static void CacheDependency(DependencyContainer container, Type callerType, object? obj, CacheInfo info, Type? asType, string? cachedName, string? propertyName)
         {
-            bool allowValueTypes = callerType.Assembly == typeof(Drawable).Assembly;
-
             if (obj == null)
-            {
-                if (allowValueTypes)
-                    return;
-
                 throw new NullDependencyException($"Attempted to cache a null value: {callerType.ReadableName()}.{propertyName}.");
-            }
 
             CacheInfo cacheInfo = new CacheInfo(info.Name ?? cachedName);
 
@@ -45,7 +37,7 @@ namespace osu.Framework.Utils
                 cacheInfo = new CacheInfo(cacheInfo.Name ?? propertyName, info.Parent);
             }
 
-            container.CacheAs(asType ?? obj.GetType(), cacheInfo, obj, allowValueTypes);
+            container.CacheAs(asType ?? obj.GetType(), cacheInfo, obj);
         }
 
         /// <summary>
@@ -84,7 +76,7 @@ namespace osu.Framework.Utils
         {
             object? val = container.Get(type, new CacheInfo(cachedName, cachedParent));
 
-            if (val == null && !allowNulls)
+            if (val == null && !type.IsValueType && !allowNulls)
                 throw new DependencyNotRegisteredException(callerType, type);
 
             if (rebindBindables && val is IBindable bindableVal)

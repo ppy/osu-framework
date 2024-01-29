@@ -48,11 +48,13 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         }
 
         [Test]
-        public void TestAttemptToCacheStruct()
+        public void TestCacheStruct()
         {
             var provider = new Provider4();
 
-            Assert.Throws<ArgumentException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
+
+            Assert.IsNotNull(dependencies.Get<int?>());
         }
 
         [Test]
@@ -133,7 +135,9 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         {
             var provider = new Provider12();
 
-            Assert.Throws<ArgumentException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
+
+            Assert.IsNotNull(dependencies.Get<IProvidedInterface1>());
         }
 
         /// <summary>
@@ -146,13 +150,13 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
 
             var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
 
-            Assert.AreEqual(provider.CachedObject.Value, dependencies.GetValue<PartialCachedStructProvider.Struct>().Value);
+            Assert.AreEqual(provider.CachedObject.Value, dependencies.Get<PartialCachedStructProvider.Struct>().Value);
         }
 
         [Test]
         public void TestGetValueNullInternal()
         {
-            Assert.AreEqual(default(int), new DependencyContainer().GetValue<int>());
+            Assert.AreEqual(default(int), new DependencyContainer().Get<int>());
         }
 
         /// <summary>
@@ -168,7 +172,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
 
             var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
 
-            Assert.AreEqual(testValue, dependencies.GetValue<int?>());
+            Assert.AreEqual(testValue, dependencies.Get<int?>());
         }
 
         [Test]
@@ -457,9 +461,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             {
                 get => null;
                 // ReSharper disable once ValueParameterNotUsed
-                set
-                {
-                }
+                set { }
             }
         }
 
