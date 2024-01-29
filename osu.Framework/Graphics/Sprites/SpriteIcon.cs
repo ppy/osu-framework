@@ -29,11 +29,6 @@ namespace osu.Framework.Graphics.Sprites
         {
             this.store = store;
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-        }
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
             updateTexture();
         }
 
@@ -57,7 +52,9 @@ namespace osu.Framework.Graphics.Sprites
             }
 
             loadedIcon = loadableIcon;
-            Invalidate(Invalidation.DrawNode);
+
+            if (IsLoaded)
+                Invalidate(Invalidation.DrawNode);
         }
 
         private bool shadow;
