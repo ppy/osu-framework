@@ -1323,18 +1323,26 @@ namespace osu.Framework.Graphics.Containers
             absoluteSequenceActions ??= new List<AbsoluteSequenceSender>();
             absoluteSequenceActions.EnsureCapacity(internalChildren.Count + 1);
 
-            base.CollectAbsoluteSequenceActionsFromSubTree(newTransformStartTime, absoluteSequenceActions);
+            int startCount = absoluteSequenceActions.Count;
 
+            base.CollectAbsoluteSequenceActionsFromSubTree(newTransformStartTime, absoluteSequenceActions);
             foreach (var c in internalChildren)
                 c.CollectAbsoluteSequenceActionsFromSubTree(newTransformStartTime, absoluteSequenceActions);
 
-            return new ValueInvokeOnDisposal<List<AbsoluteSequenceSender>>(absoluteSequenceActions, actions =>
+            int sequenceLength = absoluteSequenceActions.Count - startCount;
+
+            return new ValueInvokeOnDisposal<AbsoluteSequenceRange>(new AbsoluteSequenceRange(absoluteSequenceActions, sequenceLength), static range =>
             {
-                foreach (var a in actions)
-                    a.Dispose();
-                actions.Clear();
+                int startIndex = range.Sequence.Count - range.Length;
+
+                for (int i = startIndex; i < range.Sequence.Count; i++)
+                    range.Sequence[i].Dispose();
+
+                range.Sequence.RemoveRange(startIndex, range.Length);
             });
         }
+
+        private readonly record struct AbsoluteSequenceRange(List<AbsoluteSequenceSender> Sequence, int Length);
 
         internal override void CollectAbsoluteSequenceActionsFromSubTree(double newTransformStartTime, List<AbsoluteSequenceSender> actions)
         {
