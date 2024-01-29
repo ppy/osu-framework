@@ -304,10 +304,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             dependencies = new DependencyContainer(dependencies);
             dependencies.CacheAs(2, info);
 
-            Assert.Multiple(() =>
-            {
-                Assert.AreEqual(2, dependencies.Get<int>(info));
-            });
+            Assert.Multiple(() => { Assert.AreEqual(2, dependencies.Get<int>(info)); });
         }
 
         [Test]
@@ -336,8 +333,19 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             Assert.That(new DependencyContainer().Get<CancellationToken?>(), Is.Null);
         }
 
+        [Test]
+        public void TestModifyBoxedStruct()
+        {
+            var dependencies = new DependencyContainer();
+            dependencies.CacheAs<IBaseInterface>(new BaseStructObject { TestValue = 1 });
+            dependencies.Get<IBaseInterface>().TestValue = 2;
+
+            Assert.That(dependencies.Get<IBaseInterface>().TestValue, Is.EqualTo(2));
+        }
+
         private interface IBaseInterface
         {
+            int TestValue { get; set; }
         }
 
         private class BaseObject
@@ -347,6 +355,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
 
         private struct BaseStructObject : IBaseInterface
         {
+            public int TestValue { get; set; }
         }
 
         private class DerivedObject : BaseObject

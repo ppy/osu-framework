@@ -45,10 +45,28 @@ namespace osu.Framework.Allocation
         }
 
         /// <summary>
+        /// Caches an instance of a type as its most derived type. This instance will be returned each time you <see cref="Get{T}()"/>.
+        /// </summary>
+        /// <param name="instance">The instance to cache.</param>
+        public void Cache<T>(T instance)
+            where T : notnull
+            => Cache(instance, default);
+
+        /// <summary>
+        /// Caches an instance of a type as its most derived type. This instance will be returned each time you <see cref="Get{T}()"/>.
+        /// </summary>
+        /// <param name="instance">The instance to cache.</param>
+        /// <param name="info">Extra information to identify <paramref name="instance"/> in the cache.</param>
+        public void Cache<T>(T instance, CacheInfo info)
+            where T : notnull
+            => CacheAs(instance.GetType(), info, instance);
+
+        /// <summary>
         /// Caches an instance of a type as a type of <typeparamref name="T"/>. This instance will be returned each time you <see cref="Get{T}()"/>.
         /// </summary>
         /// <param name="instance">The instance to cache. Must be or derive from <typeparamref name="T"/>.</param>
         public void CacheAs<T>(T instance)
+            where T : notnull
             => CacheAs(instance, default);
 
         /// <summary>
@@ -57,6 +75,7 @@ namespace osu.Framework.Allocation
         /// <param name="instance">The instance to cache. Must be or derive from <typeparamref name="T"/>.</param>
         /// <param name="info">Extra information to identify <paramref name="instance"/> in the cache.</param>
         public void CacheAs<T>(T instance, CacheInfo info)
+            where T : notnull
             => CacheAs(typeof(T), info, instance);
 
         /// <summary>
@@ -65,6 +84,7 @@ namespace osu.Framework.Allocation
         /// <param name="type">The type to cache <paramref name="instance"/> as.</param>
         /// <param name="instance">The instance to cache. Must be or derive from <paramref name="type"/>.</param>
         public void CacheAs<T>(Type type, T instance)
+            where T : notnull
             => CacheAs(type, instance, default);
 
         /// <summary>
@@ -74,6 +94,7 @@ namespace osu.Framework.Allocation
         /// <param name="instance">The instance to cache. Must be or derive from <paramref name="type"/>.</param>
         /// <param name="info">Extra information to identify <paramref name="instance"/> in the cache.</param>
         public void CacheAs<T>(Type type, T instance, CacheInfo info)
+            where T : notnull
             => CacheAs(type, info, instance);
 
         /// <summary>
