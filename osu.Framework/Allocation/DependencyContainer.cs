@@ -39,8 +39,7 @@ namespace osu.Framework.Allocation
         /// <param name="info">Extra information to identify <paramref name="instance"/> in the cache.</param>
         public void Cache(object instance, CacheInfo info)
         {
-            if (instance == null)
-                throw new ArgumentNullException(nameof(instance));
+            ArgumentNullException.ThrowIfNull(instance);
 
             CacheAs(instance.GetType(), info, instance);
         }
