@@ -146,7 +146,7 @@ namespace osu.Framework.Statistics
         [StructLayout(LayoutKind.Sequential)]
         private struct TypedReferenceAccess
         {
-            public IntPtr Value;
+            public readonly IntPtr Value;
             public IntPtr Type;
         }
 
