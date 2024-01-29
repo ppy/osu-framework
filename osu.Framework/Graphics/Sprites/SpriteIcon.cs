@@ -52,9 +52,7 @@ namespace osu.Framework.Graphics.Sprites
             }
 
             loadedIcon = loadableIcon;
-
-            if (IsLoaded)
-                Invalidate(Invalidation.DrawNode);
+            Invalidate(Invalidation.DrawNode);
         }
 
         private bool shadow;
