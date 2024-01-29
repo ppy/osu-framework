@@ -29,11 +29,6 @@ namespace osu.Framework.Graphics.Sprites
         {
             this.store = store;
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-        }
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
             updateTexture();
         }
 
@@ -121,7 +116,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (icon.Equals(value)) return;
 
                 icon = value;
-                if (IsLoaded)
+                if (LoadState > LoadState.NotLoaded)
                     updateTexture();
             }
         }
