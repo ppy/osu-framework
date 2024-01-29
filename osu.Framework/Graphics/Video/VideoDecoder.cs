@@ -815,16 +815,28 @@ namespace osu.Framework.Graphics.Video
                 int version = FFmpeg.AutoGen.ffmpeg.LibraryVersionMap[name];
 
                 // "lib" prefix and extensions are resolved by .net core
-                string libraryName = RuntimeInfo.OS switch
+                string libraryName;
+
+                switch (RuntimeInfo.OS)
                 {
-                    RuntimeInfo.Platform.macOS => $"{name}.{version}",
-                    RuntimeInfo.Platform.Windows => $"{name}-{version}",
+                    case RuntimeInfo.Platform.macOS:
+                        libraryName = $"{name}.{version}";
+                        break;
+
+                    case RuntimeInfo.Platform.Windows:
+                        libraryName = $"{name}-{version}";
+                        break;
+
                     // To handle versioning in Linux, we have to specify the entire file name
                     // because Linux uses a version suffix after the file extension (e.g. libavutil.so.56)
                     // More info: https://learn.microsoft.com/en-us/dotnet/standard/native-interop/native-library-loading?view=net-6.0
-                    RuntimeInfo.Platform.Linux => $"lib{name}.so.{version}",
-                    _ => throw new ArgumentOutOfRangeException(nameof(RuntimeInfo.OS), RuntimeInfo.OS, null)
-                };
+                    case RuntimeInfo.Platform.Linux:
+                        libraryName = $"lib{name}.so.{version}";
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(RuntimeInfo.OS), RuntimeInfo.OS, null);
+                }
 
                 return NativeLibrary.Load(libraryName, System.Reflection.Assembly.GetEntryAssembly().AsNonNull(), DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
             };
