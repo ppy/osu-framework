@@ -37,7 +37,5 @@ namespace osu.Framework.Bindables
 
         /// <inheritdoc cref="IBindable.GetBoundCopy"/>
         IBindableList<T> GetBoundCopy();
-
-        new List<T>.Enumerator GetEnumerator();
     }
 }
