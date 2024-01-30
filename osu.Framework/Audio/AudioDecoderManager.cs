@@ -109,10 +109,9 @@ namespace osu.Framework.Audio
 
         public delegate void PassDataDelegate(byte[] data, int length, AudioDecoder decoderData, bool done);
 
-        private Thread? decoderThread;
-        private AutoResetEvent? decoderWaitHandle;
-
-        private readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
+        private readonly Thread decoderThread;
+        private readonly AutoResetEvent decoderWaitHandle;
+        private readonly CancellationTokenSource tokenSource;
 
         internal static AudioDecoder CreateDecoder(int rate, int channels, bool isTrack, ushort format, Stream stream,
                                                    bool autoDisposeStream = true, PassDataDelegate? pass = null)
@@ -124,26 +123,27 @@ namespace osu.Framework.Audio
             return decoder;
         }
 
+        public AudioDecoderManager()
+        {
+            tokenSource = new CancellationTokenSource();
+            decoderWaitHandle = new AutoResetEvent(false);
+
+            decoderThread = new Thread(() => loop(tokenSource.Token))
+            {
+                IsBackground = true
+            };
+
+            decoderThread.Start();
+        }
+
         public AudioDecoder StartDecodingAsync(int rate, byte channels, ushort format, Stream stream, PassDataDelegate pass)
         {
-            if (decoderThread == null)
-            {
-                decoderWaitHandle = new AutoResetEvent(false);
-
-                decoderThread = new Thread(() => loop(tokenSource.Token))
-                {
-                    IsBackground = true
-                };
-
-                decoderThread.Start();
-            }
-
             AudioDecoder decoder = CreateDecoder(rate, channels, true, format, stream, true, pass);
 
             lock (jobs)
                 jobs.AddFirst(decoder);
 
-            decoderWaitHandle?.Set();
+            decoderWaitHandle.Set();
 
             return decoder;
         }
@@ -224,15 +224,12 @@ namespace osu.Framework.Audio
         {
             if (!disposedValue)
             {
-                if (disposing)
-                {
-                    tokenSource.Cancel();
-                    decoderWaitHandle?.Set();
+                tokenSource.Cancel();
+                decoderWaitHandle.Set();
 
-                    tokenSource.Dispose();
-                    decoderThread?.Join();
-                    decoderWaitHandle?.Dispose();
-                }
+                tokenSource.Dispose();
+                decoderThread.Join();
+                decoderWaitHandle.Dispose();
 
                 lock (jobs)
                 {
