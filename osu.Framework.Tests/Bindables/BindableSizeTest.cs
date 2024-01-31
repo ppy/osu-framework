@@ -3,6 +3,7 @@
 
 using NUnit.Framework;
 using System.Drawing;
+using System.Globalization;
 using osu.Framework.Bindables;
 
 namespace osu.Framework.Tests.Bindables
@@ -32,7 +33,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestParsingString(string value, int expectedWidth, int expectedHeight)
         {
             var bindable = new BindableSize();
-            bindable.Parse(value);
+            bindable.Parse(value, CultureInfo.InvariantCulture);
 
             Assert.AreEqual(new Size(expectedWidth, expectedHeight), bindable.Value);
         }
@@ -53,7 +54,7 @@ namespace osu.Framework.Tests.Bindables
             var expected = new Size(expectedWidth, expectedHeight);
 
             var bindable = new BindableSize { MinValue = minValue, MaxValue = maxValue };
-            bindable.Parse(value);
+            bindable.Parse(value, CultureInfo.InvariantCulture);
 
             Assert.AreEqual(expected, bindable.Value);
         }
@@ -67,7 +68,7 @@ namespace osu.Framework.Tests.Bindables
             var value = new Size(width, height);
 
             var bindable = new BindableSize();
-            bindable.Parse(value);
+            bindable.Parse(value, CultureInfo.InvariantCulture);
 
             Assert.AreEqual(value, bindable.Value);
         }

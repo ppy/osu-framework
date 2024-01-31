@@ -169,15 +169,22 @@ namespace osu.Framework.Graphics.UserInterface
                     Position = new Vector2(LeftRightPadding, 0),
                     Children = new Drawable[]
                     {
-                        Placeholder = CreatePlaceholder(),
-                        caret = CreateCaret(),
+                        Placeholder = CreatePlaceholder().With(p =>
+                        {
+                            p.Anchor = Anchor.CentreLeft;
+                            p.Origin = Anchor.CentreLeft;
+                        }),
+                        caret = CreateCaret().With(c =>
+                        {
+                            c.Anchor = Anchor.CentreLeft;
+                            c.Origin = Anchor.CentreLeft;
+                        }),
                         TextFlow = new FillFlowContainer
                         {
                             Anchor = Anchor.CentreLeft,
                             Origin = Anchor.CentreLeft,
                             Direction = FillDirection.Horizontal,
-                            AutoSizeAxes = Axes.X,
-                            RelativeSizeAxes = Axes.Y,
+                            AutoSizeAxes = Axes.Both,
                         },
                     },
                 },
@@ -240,12 +247,15 @@ namespace osu.Framework.Graphics.UserInterface
                 // Clipboard
                 case PlatformAction.Cut:
                 case PlatformAction.Copy:
-                    if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
+                    if (!AllowClipboardExport) return false;
 
-                    clipboard.SetText(SelectedText);
+                    if (!string.IsNullOrEmpty(SelectedText))
+                    {
+                        clipboard.SetText(SelectedText);
 
-                    if (e.Action == PlatformAction.Cut)
-                        DeleteBy(0);
+                        if (e.Action == PlatformAction.Cut)
+                            DeleteBy(0);
+                    }
 
                     return true;
 
@@ -262,9 +272,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return true;
 
                 case PlatformAction.SelectAll:
-                    selectionStart = 0;
-                    selectionEnd = text.Length;
-                    cursorAndLayout.Invalidate();
+                    SelectAll();
                     onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
                     return true;
 
@@ -357,6 +365,21 @@ namespace osu.Framework.Graphics.UserInterface
 
         public virtual void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
         {
+        }
+
+        /// <summary>
+        /// Selects all text in this <see cref="TextBox"/>. Focus must be acquired before calling this method.
+        /// </summary>
+        /// <returns>Whether text has been selected successfully. Returns <c>false</c> if the text box does not have focus.</returns>
+        public bool SelectAll()
+        {
+            if (!HasFocus)
+                return false;
+
+            selectionStart = 0;
+            selectionEnd = text.Length;
+            cursorAndLayout.Invalidate();
+            return true;
         }
 
         /// <summary>
@@ -491,7 +514,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateCursorAndLayout()
         {
-            Placeholder.Font = Placeholder.Font.With(size: CalculatedTextSize);
+            caret.Height = FontSize;
+            Placeholder.Font = Placeholder.Font.With(size: FontSize);
 
             float cursorPos = 0;
             if (text.Length > 0)
@@ -724,7 +748,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="c">The character that this <see cref="Drawable"/> should represent.</param>
         /// <returns>A <see cref="Drawable"/> that represents the character <paramref name="c"/> </returns>
-        protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), Font = new FontUsage(size: CalculatedTextSize) };
+        protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), Font = new FontUsage(size: FontSize) };
 
         protected virtual Drawable AddCharacterToFlow(char c)
         {
@@ -754,7 +778,16 @@ namespace osu.Framework.Graphics.UserInterface
 
         private float getDepthForCharacterIndex(int index) => -index;
 
-        protected float CalculatedTextSize => TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
+        private readonly float? customFontSize;
+
+        /// <summary>
+        /// A fixed size for the text displayed in this <see cref="TextBox"/>. If left unset, text size will be computed based on the dimensions of the <see cref="TextBox"/>.
+        /// </summary>
+        public float FontSize
+        {
+            get => customFontSize ?? TextContainer.DrawSize.Y;
+            init => customFontSize = value;
+        }
 
         protected void InsertString(string value)
         {

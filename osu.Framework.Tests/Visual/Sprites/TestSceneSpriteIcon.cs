@@ -26,6 +26,21 @@ namespace osu.Framework.Tests.Visual.Sprites
         private ScheduledDelegate? scheduledDelegate;
 
         [Test]
+        public void TestPreloadIcon()
+        {
+            SpriteIcon? icon = null;
+
+            AddStep("create icon", () => icon = new SpriteIcon
+            {
+                Size = new Vector2(20),
+                Icon = FontAwesome.Solid.Anchor
+            });
+            AddStep("preload icon", () => LoadComponent(icon));
+            AddStep("change icon", () => icon!.Icon = FontAwesome.Solid.Ad);
+            AddStep("add icon", () => Add(icon));
+        }
+
+        [Test]
         public void TestOneIconAtATime()
         {
             FillFlowContainer flow = null!;

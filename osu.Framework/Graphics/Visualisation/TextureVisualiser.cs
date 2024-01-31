@@ -237,7 +237,7 @@ namespace osu.Framework.Graphics.Visualisation
                     visualisedMipLevel = Source.visualisedMipLevel.Value;
                 }
 
-                public override void Draw(IRenderer renderer)
+                protected override void Draw(IRenderer renderer)
                 {
                     if (!textureReference.TryGetTarget(out var texture))
                         return;

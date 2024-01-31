@@ -53,6 +53,11 @@ namespace osu.Framework.Platform
     {
         public IWindow Window { get; private set; }
 
+        /// <summary>
+        /// Whether <see cref="Window"/> needs to be non-null for startup to succeed.
+        /// </summary>
+        protected virtual bool RequireWindowExists => true;
+
         public IRenderer Renderer { get; private set; }
 
         public string RendererInfo { get; private set; }
@@ -112,6 +117,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Func<Exception, bool> ExceptionThrown;
 
+        [CanBeNull]
         public event Func<IpcMessage, IpcMessage> MessageReceived;
 
         /// <summary>
@@ -469,16 +475,19 @@ namespace osu.Framework.Platform
                 buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
         }
 
-        private readonly DepthValue depthValue = new DepthValue();
-
         private bool didRenderFrame;
 
         protected virtual void DrawFrame()
         {
+            Debug.Assert(Window != null);
+
             if (Root == null)
                 return;
 
             if (ExecutionState != ExecutionState.Running)
+                return;
+
+            if (Window.WindowState == WindowState.Minimised)
                 return;
 
             Renderer.AllowTearing = windowMode.Value == WindowMode.Fullscreen;
@@ -509,15 +518,13 @@ namespace osu.Framework.Platform
 
                 if (!bypassFrontToBackPass.Value)
                 {
-                    depthValue.Reset();
-
                     Renderer.SetBlend(BlendingParameters.None);
 
                     Renderer.SetBlendMask(BlendingMask.None);
                     Renderer.PushDepthInfo(DepthInfo.Default);
 
                     // Front pass
-                    buffer.Object.DrawOpaqueInteriorSubTree(Renderer, depthValue);
+                    DrawNode.DrawOtherOpaqueInterior(buffer.Object, Renderer);
 
                     Renderer.PopDepthInfo();
                     Renderer.SetBlendMask(BlendingMask.All);
@@ -532,7 +539,7 @@ namespace osu.Framework.Platform
                 }
 
                 // Back pass
-                buffer.Object.Draw(Renderer);
+                DrawNode.DrawOther(buffer.Object, Renderer);
 
                 Renderer.PopDepthInfo();
 
@@ -723,6 +730,14 @@ namespace osu.Framework.Platform
                 SetupConfig(game.GetFrameworkConfigDefaults() ?? new Dictionary<FrameworkSetting, object>());
 
                 ChooseAndSetupRenderer();
+
+                // Window creation may fail in the case of a catastrophic failure (ie. graphics driver or SDL2 level).
+                // In such cases, we want to throw here to immediately mark this renderer setup as failed.
+                if (RequireWindowExists && Window == null)
+                {
+                    Logger.Log("Aborting startup as no window could be created.");
+                    return;
+                }
 
                 initialiseInputHandlers();
 
@@ -961,17 +976,20 @@ namespace osu.Framework.Platform
             Renderer = renderer;
             Renderer.CacheStorage = CacheStorage.GetStorageForDirectory("shaders");
 
-            // Prepare window
-            Window = CreateWindow(surfaceType);
-
-            if (Window == null)
-            {
-                Logger.Log("🖼️ Renderer could not be initialised, no window exists.");
-                return;
-            }
-
             try
             {
+                // Prepare window
+                Window = CreateWindow(surfaceType);
+
+                if (Window == null)
+                {
+                    // Can be null, usually via Headless execution.
+                    if (!RequireWindowExists)
+                        return;
+
+                    throw new InvalidOperationException("🖼️ Renderer could not be initialised as window creation failed.");
+                }
+
                 Window.SetupWindow(Config);
                 Window.Create();
                 Window.Title = $@"osu!framework (running ""{Name}"")";

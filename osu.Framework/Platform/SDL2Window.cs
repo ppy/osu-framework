@@ -174,6 +174,9 @@ namespace osu.Framework.Platform
         [UsedImplicitly]
         private SDL.SDL_EventFilter? eventFilterDelegate;
 
+        [UsedImplicitly]
+        private SDL.SDL_EventFilter? eventWatchDelegate;
+
         /// <summary>
         /// Represents a handle to this <see cref="SDL2Window"/> instance, used for unmanaged callbacks.
         /// </summary>
@@ -227,10 +230,10 @@ namespace osu.Framework.Platform
             flags |= graphicsSurface.Type.ToFlags();
 
             SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
-            SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_IME_SHOW_UI, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_MOUSE_RELATIVE_MODE_CENTER, "0");
-            SDL.SDL_SetHint(SDL.SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
+            SDL.SDL_SetHint(SDL.SDL_HINT_TOUCH_MOUSE_EVENTS, "0"); // disable touch events generating synthetic mouse events on desktop platforms
+            SDL.SDL_SetHint(SDL.SDL_HINT_MOUSE_TOUCH_EVENTS, "0"); // disable mouse events generating synthetic touch events on mobile platforms
 
             // we want text input to only be active when SDL2DesktopWindowTextInput is active.
             // SDL activates it by default on some platforms: https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/video/SDL_video.c#L573-L582
@@ -254,6 +257,7 @@ namespace osu.Framework.Platform
         public void Run()
         {
             SDL.SDL_SetEventFilter(eventFilterDelegate = eventFilter, ObjectHandle.Handle);
+            SDL.SDL_AddEventWatch(eventWatchDelegate = eventWatch, ObjectHandle.Handle);
 
             RunMainLoop();
         }
@@ -326,7 +330,13 @@ namespace osu.Framework.Platform
                 case SDL.SDL_EventType.SDL_APP_LOWMEMORY:
                     LowOnMemory?.Invoke();
                     break;
+            }
+        }
 
+        protected void HandleEventFromWatch(SDL.SDL_Event evt)
+        {
+            switch (evt.type)
+            {
                 case SDL.SDL_EventType.SDL_WINDOWEVENT:
                     // polling via SDL_PollEvent blocks on resizes (https://stackoverflow.com/a/50858339)
                     if (evt.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED && !updatingWindowStateAndSize)
@@ -342,6 +352,16 @@ namespace osu.Framework.Platform
             var handle = new ObjectHandle<SDL2Window>(userdata);
             if (handle.GetTarget(out SDL2Window window))
                 window.HandleEventFromFilter(Marshal.PtrToStructure<SDL.SDL_Event>(eventPtr));
+
+            return 1;
+        }
+
+        [MonoPInvokeCallback(typeof(SDL.SDL_EventFilter))]
+        private static int eventWatch(IntPtr userdata, IntPtr eventPtr)
+        {
+            var handle = new ObjectHandle<SDL2Window>(userdata);
+            if (handle.GetTarget(out SDL2Window window))
+                window.HandleEventFromWatch(Marshal.PtrToStructure<SDL.SDL_Event>(eventPtr));
 
             return 1;
         }
@@ -385,6 +405,37 @@ namespace osu.Framework.Platform
                 SDL.SDL_RestoreWindow(SDLWindowHandle);
 
             SDL.SDL_RaiseWindow(SDLWindowHandle);
+        });
+
+        public void Hide() => ScheduleCommand(() =>
+        {
+            SDL.SDL_HideWindow(SDLWindowHandle);
+        });
+
+        public void Show() => ScheduleCommand(() =>
+        {
+            SDL.SDL_ShowWindow(SDLWindowHandle);
+        });
+
+        public void Flash(bool flashUntilFocused = false) => ScheduleCommand(() =>
+        {
+            if (isActive.Value)
+                return;
+
+            if (!RuntimeInfo.IsDesktop)
+                return;
+
+            SDL.SDL_FlashWindow(SDLWindowHandle, flashUntilFocused
+                ? SDL.SDL_FlashOperation.SDL_FLASH_UNTIL_FOCUSED
+                : SDL.SDL_FlashOperation.SDL_FLASH_BRIEFLY);
+        });
+
+        public void CancelFlash() => ScheduleCommand(() =>
+        {
+            if (!RuntimeInfo.IsDesktop)
+                return;
+
+            SDL.SDL_FlashWindow(SDLWindowHandle, SDL.SDL_FlashOperation.SDL_FLASH_CANCEL);
         });
 
         /// <summary>
@@ -528,7 +579,7 @@ namespace osu.Framework.Platform
                 case SDL.SDL_EventType.SDL_FINGERDOWN:
                 case SDL.SDL_EventType.SDL_FINGERUP:
                 case SDL.SDL_EventType.SDL_FINGERMOTION:
-                    handleTouchFingerEvent(e.tfinger);
+                    HandleTouchFingerEvent(e.tfinger);
                     break;
 
                 case SDL.SDL_EventType.SDL_DROPFILE:

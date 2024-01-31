@@ -304,7 +304,8 @@ namespace osu.Framework.Screens
                 if ((source == null || toExit.ValidForResume) && blockRequested)
                     return true;
 
-                stack.Pop();
+                if (toExit != stack.Pop())
+                    throw new InvalidOperationException($"Cannot push to {nameof(ScreenStack)} during exit without blocking the exit.");
             }
 
             // we will probably want to change this logic when we support returning to a screen after exiting.

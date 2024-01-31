@@ -17,6 +17,7 @@ using osu.Framework.Development;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
@@ -57,6 +58,8 @@ namespace osu.Framework.Testing
         private GameHost host;
         private Task runTask;
         private ITestSceneTestRunner runner;
+
+        private readonly Box backgroundFill;
 
         /// <summary>
         /// A nested game instance, if added via <see cref="AddGame"/>.
@@ -166,11 +169,23 @@ namespace osu.Framework.Testing
                             Bottom = padding,
                         },
                         RelativeSizeAxes = Axes.Both,
-                        Child = content = new DrawFrameRecordingContainer
+                        Child = new Container
                         {
-                            Masking = true,
-                            RelativeSizeAxes = Axes.Both
-                        }
+                            RelativeSizeAxes = Axes.Both,
+                            Children = new Drawable[]
+                            {
+                                backgroundFill = new Box
+                                {
+                                    Colour = Color4.Black,
+                                    RelativeSizeAxes = Axes.Both,
+                                },
+                                content = new DrawFrameRecordingContainer
+                                {
+                                    Masking = true,
+                                    RelativeSizeAxes = Axes.Both
+                                }
+                            }
+                        },
                     },
                 }
             });
@@ -254,6 +269,9 @@ namespace osu.Framework.Testing
         public void AddStep(StepButton step) => schedule(() => StepsContainer.Add(step));
 
         private bool addStepsAsSetupSteps;
+
+        public void ChangeBackgroundColour(ColourInfo colour)
+            => backgroundFill.FadeColour(colour, 200, Easing.OutQuint);
 
         public StepButton AddStep(string description, Action action)
         {
@@ -473,7 +491,7 @@ namespace osu.Framework.Testing
         }
 
         [TearDown]
-        protected virtual void RunTestsFromNUnit()
+        public virtual void RunTestsFromNUnit()
         {
             RunTearDownSteps();
 

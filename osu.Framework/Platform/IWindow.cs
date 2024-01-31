@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Drawing;
 using System.IO;
 using osu.Framework.Bindables;
@@ -131,9 +132,9 @@ namespace osu.Framework.Platform
         Bindable<WindowMode> WindowMode { get; }
 
         /// <summary>
-        /// Exposes the physical displays as an <see cref="IEnumerable{Display}"/>.
+        /// Contains information about the current physical displays.
         /// </summary>
-        IEnumerable<Display> Displays { get; }
+        ImmutableArray<Display> Displays { get; }
 
         /// <summary>
         /// Invoked when <see cref="Displays"/> has changed.
@@ -164,6 +165,36 @@ namespace osu.Framework.Platform
         /// Attempts to raise the window, bringing it above other windows and requesting input focus.
         /// </summary>
         void Raise();
+
+        /// <summary>
+        /// Attempts to hide the window, making it invisible and hidden from the taskbar.
+        /// </summary>
+        void Hide();
+
+        /// <summary>
+        /// Attempts to show the window, making it visible.
+        /// </summary>
+        void Show();
+
+        /// <summary>
+        /// Attempts to flash the window in order to request the user's attention.
+        /// </summary>
+        /// <remarks>
+        /// On platforms which don't support any kind of flashing (ie. mobile), this will be a no-op.
+        /// </remarks>
+        /// <param name="flashUntilFocused">
+        /// When <c>true</c>, the window will flash until it is focused again.
+        /// When <c>false</c> it will only flash momentarily.
+        /// </param>
+        void Flash(bool flashUntilFocused = false);
+
+        /// <summary>
+        /// Attempts to cancel any window flash requested with <see cref="Flash"/>.
+        /// </summary>
+        /// <remarks>
+        /// On platforms which don't support any kind of flashing (ie. mobile), this will be a no-op.
+        /// </remarks>
+        void CancelFlash();
 
         /// <summary>
         /// Start the window's run loop.

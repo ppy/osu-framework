@@ -4,18 +4,16 @@
 #nullable disable
 
 using System;
-using System.Runtime.InteropServices;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.Utils;
 using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -60,7 +58,10 @@ namespace osu.Framework.Graphics.UserInterface
                     SelectionArea = new Container
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Child = box = new SaturationBox()
+                        Child = box = new SaturationBox
+                        {
+                            Colour = ColourInfo.GradientHorizontal(Color4.White, Color4.Red)
+                        }
                     },
                     marker = CreateMarker().With(d =>
                     {
@@ -148,7 +149,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             private void hueChanged()
             {
-                box.Hue = Hue.Value;
+                box.Colour = ColourInfo.GradientHorizontal(Color4.White, Colour4.FromHSV(Hue.Value, 1f, 1f));
                 updateCurrent();
             }
 
@@ -209,24 +210,8 @@ namespace osu.Framework.Graphics.UserInterface
                 public IBindable<Colour4> Current { get; } = new Bindable<Colour4>();
             }
 
-            private partial class SaturationBox : Box, ITexturedShaderDrawable
+            private partial class SaturationBox : Box
             {
-                public new IShader TextureShader { get; private set; }
-
-                private float hue;
-
-                public float Hue
-                {
-                    get => hue;
-                    set
-                    {
-                        if (hue == value) return;
-
-                        hue = value;
-                        Invalidate(Invalidation.DrawNode);
-                    }
-                }
-
                 public SaturationBox()
                 {
                     RelativeSizeAxes = Axes.Both;
@@ -236,51 +221,6 @@ namespace osu.Framework.Graphics.UserInterface
                 private void load(ShaderManager shaders)
                 {
                     TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "SaturationSelectorBackground");
-                }
-
-                protected override DrawNode CreateDrawNode() => new SaturationBoxDrawNode(this);
-
-                private class SaturationBoxDrawNode : SpriteDrawNode
-                {
-                    public new SaturationBox Source => (SaturationBox)base.Source;
-
-                    public SaturationBoxDrawNode(SaturationBox source)
-                        : base(source)
-                    {
-                    }
-
-                    private float hue;
-
-                    public override void ApplyState()
-                    {
-                        base.ApplyState();
-                        hue = Source.hue;
-                    }
-
-                    private IUniformBuffer<HueData> hueDataBuffer;
-
-                    protected override void BindUniformResources(IShader shader, IRenderer renderer)
-                    {
-                        base.BindUniformResources(shader, renderer);
-
-                        hueDataBuffer ??= renderer.CreateUniformBuffer<HueData>();
-                        hueDataBuffer.Data = hueDataBuffer.Data with { Hue = hue };
-
-                        shader.BindUniformBlock("m_HueData", hueDataBuffer);
-                    }
-
-                    protected override void Dispose(bool isDisposing)
-                    {
-                        base.Dispose(isDisposing);
-                        hueDataBuffer?.Dispose();
-                    }
-
-                    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-                    private record struct HueData
-                    {
-                        public UniformFloat Hue;
-                        private readonly UniformPadding12 pad1;
-                    }
                 }
             }
         }

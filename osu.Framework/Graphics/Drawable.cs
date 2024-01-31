@@ -238,7 +238,7 @@ namespace osu.Framework.Graphics
             lock (LoadLock)
             {
                 if (!isDirectAsyncContext && IsLongRunning)
-                    throw new InvalidOperationException("Tried to load a long-running drawable in a non-direct async context. See https://git.io/Je1YF for more details.");
+                    throw new InvalidOperationException($"Tried to load long-running drawable type {GetType().ReadableName()} in a non-direct async context. See https://git.io/Je1YF for more details.");
 
                 if (IsDisposed)
                     throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
@@ -414,7 +414,7 @@ namespace osu.Framework.Graphics
         /// <summary>.
         /// Fired after the <see cref="Invalidate"/> method is called.
         /// </summary>
-        internal event Action<Drawable> Invalidated;
+        internal event Action<Drawable, Invalidation> Invalidated;
 
         /// <summary>
         /// Fired after the <see cref="Dispose(bool)"/> method is called.
@@ -1804,7 +1804,7 @@ namespace osu.Framework.Graphics
             if (anyInvalidated)
                 InvalidationID++;
 
-            Invalidated?.Invoke(this);
+            Invalidated?.Invoke(this, invalidation);
 
             return anyInvalidated;
         }

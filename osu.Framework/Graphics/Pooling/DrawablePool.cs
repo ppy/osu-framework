@@ -111,6 +111,9 @@ namespace osu.Framework.Graphics.Pooling
         /// <returns>The drawable.</returns>
         public T Get(Action<T> setupAction = null)
         {
+            if (LoadState <= LoadState.Loading)
+                throw new InvalidOperationException($"A {nameof(DrawablePool<T>)} must be in a loaded state before retrieving pooled drawables.");
+
             if (!pool.TryPop(out var drawable))
             {
                 drawable = create();

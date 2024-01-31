@@ -165,7 +165,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 vectorPath.AddRange(ordered.Select(p => p.PointPosition.Value));
                 vectorPath.Add(new Vector2(DrawWidth, 0));
 
-                var bezierPath = PathApproximator.ApproximateBezier(vectorPath.ToArray());
+                var bezierPath = PathApproximator.BezierToPiecewiseLinear(vectorPath.ToArray());
                 path.Vertices = bezierPath;
                 path.Position = -path.PositionInBoundingBox(Vector2.Zero);
 

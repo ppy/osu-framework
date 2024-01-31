@@ -22,18 +22,18 @@ namespace osu.Framework.Allocation
         /// The freshest buffer index which has finished a write, and is waiting to be read.
         /// Will be set to <c>null</c> after being read once.
         /// </summary>
-        private int? pendingCompletedWriteIndex;
+        private int pendingCompletedWriteIndex = -1;
 
         /// <summary>
         /// The last buffer index which was obtained for writing.
         /// </summary>
-        private int? lastWriteIndex;
+        private int lastWriteIndex = -1;
 
         /// <summary>
         /// The last buffer index which was obtained for reading.
         /// Note that this will remain "active" even after a <see cref="GetForRead"/> ends, to give benefit of doubt that the usage may still be accessing it.
         /// </summary>
-        private int? lastReadIndex;
+        private int lastReadIndex = -1;
 
         private readonly ManualResetEventSlim writeCompletedEvent = new ManualResetEventSlim();
 
@@ -50,15 +50,7 @@ namespace osu.Framework.Allocation
             // Only one write should be allowed at once
             Debug.Assert(buffers.All(b => b.Usage != UsageType.Write));
 
-            ObjectUsage<T> buffer;
-
-            lock (buffers)
-            {
-                buffer = getNextWriteBuffer();
-
-                Debug.Assert(buffer.Usage == UsageType.None);
-                buffer.Usage = UsageType.Write;
-            }
+            ObjectUsage<T> buffer = getNextWriteBuffer();
 
             return buffer;
         }
@@ -70,19 +62,10 @@ namespace osu.Framework.Allocation
 
             writeCompletedEvent.Reset();
 
-            lock (buffers)
-            {
-                if (pendingCompletedWriteIndex != null)
-                {
-                    var buffer = buffers[pendingCompletedWriteIndex.Value];
-                    pendingCompletedWriteIndex = null;
-                    buffer.Usage = UsageType.Read;
+            var buffer = getPendingReadBuffer();
 
-                    Debug.Assert(lastReadIndex != buffer.Index);
-                    lastReadIndex = buffer.Index;
-                    return buffer;
-                }
-            }
+            if (buffer != null)
+                return buffer;
 
             // A completed write wasn't available, so wait for the next to complete.
             if (!writeCompletedEvent.Wait(100))
@@ -92,20 +75,50 @@ namespace osu.Framework.Allocation
             return GetForRead();
         }
 
+        private ObjectUsage<T>? getPendingReadBuffer()
+        {
+            // Avoid locking to see if there's a pending write.
+            int pendingWrite = Interlocked.Exchange(ref pendingCompletedWriteIndex, -1);
+
+            if (pendingWrite == -1)
+                return null;
+
+            lock (buffers)
+            {
+                var buffer = buffers[pendingWrite];
+
+                Debug.Assert(lastReadIndex != buffer.Index);
+                lastReadIndex = buffer.Index;
+
+                Debug.Assert(buffer.Usage == UsageType.None);
+                buffer.Usage = UsageType.Read;
+                return buffer;
+            }
+        }
+
         private ObjectUsage<T> getNextWriteBuffer()
         {
-            for (int i = 0; i < buffer_count; i++)
+            lock (buffers)
             {
-                // Never write to the last read index.
-                // We assume there could be some reads still occurring even after the usage is finished.
-                if (i == lastReadIndex) continue;
+                for (int i = 0; i < buffer_count; i++)
+                {
+                    // Never write to the last read index.
+                    // We assume there could be some reads still occurring even after the usage is finished.
+                    if (i == lastReadIndex) continue;
 
-                // Never write to the same buffer twice in a row.
-                // This would defeat the purpose of having a triple buffer.
-                if (i == lastWriteIndex) continue;
+                    // Never write to the same buffer twice in a row.
+                    // This would defeat the purpose of having a triple buffer.
+                    if (i == lastWriteIndex) continue;
 
-                lastWriteIndex = i;
-                return buffers[i];
+                    lastWriteIndex = i;
+
+                    var buffer = buffers[i];
+
+                    Debug.Assert(buffer.Usage == UsageType.None);
+                    buffer.Usage = UsageType.Write;
+
+                    return buffer;
+                }
             }
 
             throw new InvalidOperationException("No buffer could be obtained. This should never ever happen.");
@@ -113,19 +126,17 @@ namespace osu.Framework.Allocation
 
         private void finishUsage(ObjectUsage<T> obj)
         {
-            lock (buffers)
+            // This implementation is intentionally written this way to avoid requiring locking overhead.
+            bool wasWrite = obj.Usage == UsageType.Write;
+
+            obj.Usage = UsageType.None;
+
+            if (wasWrite)
             {
-                switch (obj.Usage)
-                {
-                    case UsageType.Write:
-                        Debug.Assert(pendingCompletedWriteIndex != obj.Index);
-                        pendingCompletedWriteIndex = obj.Index;
+                Debug.Assert(pendingCompletedWriteIndex != obj.Index);
+                Interlocked.Exchange(ref pendingCompletedWriteIndex, obj.Index);
 
-                        writeCompletedEvent.Set();
-                        break;
-                }
-
-                obj.Usage = UsageType.None;
+                writeCompletedEvent.Set();
             }
         }
     }

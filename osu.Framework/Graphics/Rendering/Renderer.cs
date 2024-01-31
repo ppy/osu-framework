@@ -9,7 +9,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
-using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Vertices;
@@ -70,9 +69,9 @@ namespace osu.Framework.Graphics.Rendering
         public WrapMode CurrentWrapModeS { get; private set; }
         public WrapMode CurrentWrapModeT { get; private set; }
         public bool IsMaskingActive => maskingStack.Count > 1;
-        public float BackbufferDrawDepth { get; private set; }
         public bool UsingBackbuffer => frameBufferStack.Count == 0;
         public Texture WhitePixel => whitePixel.Value;
+        DepthValue IRenderer.BackbufferDepth => backBufferDepth;
 
         public bool IsInitialised { get; private set; }
 
@@ -109,6 +108,8 @@ namespace osu.Framework.Graphics.Rendering
 
         private readonly Scheduler resetScheduler = new Scheduler(() => ThreadSafety.IsDrawThread, new StopwatchClock(true)); // force no thread set until we are actually on the draw thread.
 
+        private readonly DepthValue backBufferDepth = new DepthValue();
+
         private readonly Stack<IVertexBatch<TexturedVertex2D>> quadBatches = new Stack<IVertexBatch<TexturedVertex2D>>();
         private readonly List<IVertexBuffer> vertexBuffersInUse = new List<IVertexBuffer>();
         private readonly List<IVertexBatch> batchResetList = new List<IVertexBatch>();
@@ -130,7 +131,7 @@ namespace osu.Framework.Graphics.Rendering
         private readonly Lazy<TextureWhitePixel> whitePixel;
         private readonly LockedWeakList<Texture> allTextures = new LockedWeakList<Texture>();
 
-        private IUniformBuffer<GlobalUniformData>? globalUniformBuffer;
+        protected IUniformBuffer<GlobalUniformData>? GlobalUniformBuffer { get; private set; }
         private IVertexBatch<TexturedVertex2D>? defaultQuadBatch;
         private IVertexBatch? currentActiveBatch;
         private MaskingInfo currentMaskingInfo;
@@ -189,8 +190,8 @@ namespace osu.Framework.Graphics.Rendering
             foreach (var source in flush_source_statistics)
                 source.Value = 0;
 
-            globalUniformBuffer ??= ((IRenderer)this).CreateUniformBuffer<GlobalUniformData>();
-            globalUniformBuffer.Data = globalUniformBuffer.Data with
+            GlobalUniformBuffer ??= ((IRenderer)this).CreateUniformBuffer<GlobalUniformData>();
+            GlobalUniformBuffer.Data = GlobalUniformBuffer.Data with
             {
                 IsDepthRangeZeroToOne = IsDepthRangeZeroToOne,
                 IsClipSpaceYInverted = IsClipSpaceYInverted,
@@ -200,6 +201,8 @@ namespace osu.Framework.Graphics.Rendering
             Debug.Assert(defaultQuadBatch != null);
 
             FrameIndex++;
+
+            backBufferDepth.Reset();
 
             resetScheduler.Update();
 
@@ -324,13 +327,6 @@ namespace osu.Framework.Graphics.Rendering
         /// Returns an image containing the current content of the backbuffer, i.e. takes a screenshot.
         /// </summary>
         protected internal abstract Image<Rgba32> TakeScreenshot();
-
-        /// <summary>
-        /// Sets the current draw depth.
-        /// The draw depth is written to every vertex added to <see cref="IVertexBuffer"/>s.
-        /// </summary>
-        /// <param name="drawDepth">The draw depth.</param>
-        internal void SetDrawDepth(float drawDepth) => BackbufferDrawDepth = drawDepth;
 
         /// <summary>
         /// Performs a once-off initialisation of this <see cref="Renderer"/>.
@@ -606,7 +602,7 @@ namespace osu.Framework.Graphics.Rendering
 
             FlushCurrentBatch(FlushBatchSource.SetProjection);
 
-            globalUniformBuffer!.Data = globalUniformBuffer.Data with { ProjMatrix = matrix };
+            GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with { ProjMatrix = matrix };
             ProjectionMatrix = matrix;
         }
 
@@ -635,7 +631,7 @@ namespace osu.Framework.Graphics.Rendering
 
             FlushCurrentBatch(FlushBatchSource.SetMasking);
 
-            globalUniformBuffer!.Data = globalUniformBuffer.Data with
+            GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with
             {
                 IsMasking = IsMaskingActive,
                 MaskingRect = new Vector4(
@@ -669,14 +665,14 @@ namespace osu.Framework.Graphics.Rendering
                         maskingInfo.BorderColour.BottomRight.SRGB.G,
                         maskingInfo.BorderColour.BottomRight.SRGB.B,
                         maskingInfo.BorderColour.BottomRight.SRGB.A)
-                    : globalUniformBuffer.Data.BorderColour,
+                    : GlobalUniformBuffer.Data.BorderColour,
                 MaskingBlendRange = maskingInfo.BlendRange,
                 AlphaExponent = maskingInfo.AlphaExponent,
                 EdgeOffset = maskingInfo.EdgeOffset,
                 DiscardInner = maskingInfo.Hollow,
                 InnerCornerRadius = maskingInfo.Hollow
                     ? maskingInfo.HollowCornerRadius
-                    : globalUniformBuffer.Data.InnerCornerRadius
+                    : GlobalUniformBuffer.Data.InnerCornerRadius
             };
 
             if (isPushing)
@@ -872,14 +868,14 @@ namespace osu.Framework.Graphics.Rendering
             if (wrapModeS != CurrentWrapModeS)
             {
                 // Will flush the current batch internally.
-                globalUniformBuffer!.Data = globalUniformBuffer.Data with { WrapModeS = (int)wrapModeS };
+                GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with { WrapModeS = (int)wrapModeS };
                 CurrentWrapModeS = wrapModeS;
             }
 
             if (wrapModeT != CurrentWrapModeT)
             {
                 // Will flush the current batch internally.
-                globalUniformBuffer!.Data = globalUniformBuffer.Data with { WrapModeT = (int)wrapModeT };
+                GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with { WrapModeT = (int)wrapModeT };
                 CurrentWrapModeT = wrapModeT;
             }
 
@@ -957,7 +953,7 @@ namespace osu.Framework.Graphics.Rendering
 
             SetFrameBufferImplementation(frameBuffer);
 
-            globalUniformBuffer!.Data = globalUniformBuffer.Data with { BackbufferDraw = UsingBackbuffer };
+            GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with { BackbufferDraw = UsingBackbuffer };
 
             FrameBuffer = frameBuffer;
         }
@@ -1042,7 +1038,7 @@ namespace osu.Framework.Graphics.Rendering
         protected abstract IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType);
 
         /// <inheritdoc cref="IRenderer.CreateShader"/>
-        protected abstract IShader CreateShader(string name, IShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer, ShaderCompilationStore compilationStore);
+        protected abstract IShader CreateShader(string name, IShaderPart[] parts, ShaderCompilationStore compilationStore);
 
         private IShader? mipmapShader;
 
@@ -1062,7 +1058,7 @@ namespace osu.Framework.Graphics.Rendering
             {
                 CreateShaderPart(store, "mipmap.vs", store.GetRawData("sh_mipmap.vs"), ShaderPartType.Vertex),
                 CreateShaderPart(store, "mipmap.fs", store.GetRawData("sh_mipmap.fs"), ShaderPartType.Fragment),
-            }, globalUniformBuffer.AsNonNull(), shaderCompilationStore);
+            }, shaderCompilationStore);
 
             return mipmapShader;
         }
@@ -1075,6 +1071,9 @@ namespace osu.Framework.Graphics.Rendering
 
         /// <inheritdoc cref="IRenderer.CreateUniformBuffer{TData}"/>
         protected abstract IUniformBuffer<TData> CreateUniformBuffer<TData>() where TData : unmanaged, IEquatable<TData>;
+
+        /// <inheritdoc cref="IRenderer.CreateShaderStorageBufferObject{TData}"/>
+        protected abstract IShaderStorageBufferObject<TData> CreateShaderStorageBufferObject<TData>(int uboSize, int ssboSize) where TData : unmanaged, IEquatable<TData>;
 
         /// <summary>
         /// Creates a new <see cref="INativeTexture"/>.
@@ -1149,12 +1148,11 @@ namespace osu.Framework.Graphics.Rendering
         void IRenderer.MakeCurrent() => MakeCurrent();
         void IRenderer.ClearCurrent() => ClearCurrent();
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform) => SetUniform(uniform);
-        void IRenderer.SetDrawDepth(float drawDepth) => SetDrawDepth(drawDepth);
         void IRenderer.PushQuadBatch(IVertexBatch<TexturedVertex2D> quadBatch) => PushQuadBatch(quadBatch);
         void IRenderer.PopQuadBatch() => PopQuadBatch();
         Image<Rgba32> IRenderer.TakeScreenshot() => TakeScreenshot();
         IShaderPart IRenderer.CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType) => CreateShaderPart(store, name, rawData, partType);
-        IShader IRenderer.CreateShader(string name, IShaderPart[] parts) => CreateShader(name, parts, globalUniformBuffer!, shaderCompilationStore);
+        IShader IRenderer.CreateShader(string name, IShaderPart[] parts) => CreateShader(name, parts, shaderCompilationStore);
 
         IVertexBatch<TVertex> IRenderer.CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology)
         {
@@ -1188,10 +1186,22 @@ namespace osu.Framework.Graphics.Rendering
 
         IUniformBuffer<TData> IRenderer.CreateUniformBuffer<TData>()
         {
+            validateUniformLayout<TData>();
+            return CreateUniformBuffer<TData>();
+        }
+
+        IShaderStorageBufferObject<TData> IRenderer.CreateShaderStorageBufferObject<TData>(int uboSize, int ssboSize)
+        {
+            validateUniformLayout<TData>();
+            return CreateShaderStorageBufferObject<TData>(uboSize, ssboSize);
+        }
+
+        private void validateUniformLayout<TData>()
+        {
             Trace.Assert(ThreadSafety.IsDrawThread);
 
             if (validUboTypes.Contains(typeof(TData)))
-                return CreateUniformBuffer<TData>();
+                return;
 
             if (typeof(TData).StructLayoutAttribute?.Pack != 1)
                 throw new ArgumentException($"{typeof(TData).ReadableName()} requires a packing size of 1.");
@@ -1221,7 +1231,7 @@ namespace osu.Framework.Graphics.Rendering
                 throw new ArgumentException($"{typeof(TData).ReadableName()} alignment requires a {finalPadding} to be added at the end.");
 
             validUboTypes.Add(typeof(TData));
-            return CreateUniformBuffer<TData>();
+            return;
 
             static void checkValidType(FieldInfo field)
             {

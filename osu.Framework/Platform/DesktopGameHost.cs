@@ -9,20 +9,19 @@ using System.IO;
 using System.Threading.Tasks;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Platform
 {
     public abstract class DesktopGameHost : SDL2GameHost
     {
-        public const int IPC_PORT = 45356;
-
         private TcpIpcProvider ipcProvider;
-        private readonly bool bindIPCPort;
+        private readonly int? ipcPort;
 
         protected DesktopGameHost(string gameName, HostOptions options = null)
             : base(gameName, options)
         {
-            bindIPCPort = Options.BindIPC;
+            ipcPort = Options.IPCPort;
             IsPortableInstallation = Options.PortableInstallation;
         }
 
@@ -56,13 +55,13 @@ namespace osu.Framework.Platform
 
         private void ensureIPCReady()
         {
-            if (!bindIPCPort)
+            if (ipcPort == null)
                 return;
 
             if (ipcProvider != null)
                 return;
 
-            ipcProvider = new TcpIpcProvider(IPC_PORT);
+            ipcProvider = new TcpIpcProvider(ipcPort.Value);
             ipcProvider.MessageReceived += OnMessageReceived;
 
             IsPrimaryInstance = ipcProvider.Bind();
@@ -81,7 +80,14 @@ namespace osu.Framework.Platform
             if (!url.CheckIsValidUrl())
                 throw new ArgumentException("The provided URL must be one of either http://, https:// or mailto: protocols.", nameof(url));
 
-            openUsingShellExecute(url);
+            try
+            {
+                openUsingShellExecute(url);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Unable to open external link.");
+            }
         }
 
         public override bool PresentFileExternally(string filename)
