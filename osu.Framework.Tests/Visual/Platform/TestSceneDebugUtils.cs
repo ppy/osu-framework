@@ -41,7 +41,7 @@ namespace osu.Framework.Tests.Visual.Platform
                 textFlow.Clear();
                 log(DebugUtils.IsNUnitRunning);
                 log(DebugUtils.IsDebugBuild);
-                log(DebugUtils.GetEntryAssembly());
+                log(RuntimeInfo.EntryAssembly);
 #pragma warning disable RS0030
                 log(Assembly.GetEntryAssembly());
 #pragma warning restore RS0030
@@ -69,7 +69,7 @@ namespace osu.Framework.Tests.Visual.Platform
         [Test]
         public void TestEntryAssembly()
         {
-            AddAssert("check GetEntryAssembly()", () => DebugUtils.GetEntryAssembly().FullName, () => Does.StartWith("osu.Framework.Tests"));
+            AddAssert("check RuntimeInfo.EntryAssembly", () => RuntimeInfo.EntryAssembly.FullName, () => Does.StartWith("osu.Framework.Tests"));
         }
 
         /// <summary>

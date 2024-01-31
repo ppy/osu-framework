@@ -17,7 +17,9 @@ namespace osu.Framework.Development
 
         private static readonly Lazy<bool> is_nunit_running = new Lazy<bool>(() =>
             {
-                var entry = EntryAssembly;
+#pragma warning disable RS0030
+                var entry = Assembly.GetEntryAssembly();
+#pragma warning restore RS0030
 
                 string? assemblyName = entry?.GetName().Name;
 
@@ -35,6 +37,8 @@ namespace osu.Framework.Development
             }
         );
 
+        internal static Assembly NUnitTestAssembly => nunit_test_assembly.Value;
+
         private static readonly Lazy<Assembly> nunit_test_assembly = new Lazy<Assembly>(() =>
             {
                 Debug.Assert(IsNUnitRunning);
@@ -44,20 +48,10 @@ namespace osu.Framework.Development
             }
         );
 
-#pragma warning disable RS0030
-        /// <summary>
-        /// The entry assembly.
-        /// </summary>
-        /// <remarks>
-        /// Usually obtained via <see cref="Assembly.GetEntryAssembly"/>, but can be set by a different mechanism on platforms that don't support that.
-        /// </remarks>
-        internal static Assembly? EntryAssembly { private get; set; } = Assembly.GetEntryAssembly();
-#pragma warning restore RS0030
-
         public static bool IsDebugBuild => is_debug_build.Value;
 
         private static readonly Lazy<bool> is_debug_build = new Lazy<bool>(() =>
-            isDebugAssembly(typeof(DebugUtils).Assembly) || isDebugAssembly(GetEntryAssembly())
+            isDebugAssembly(typeof(DebugUtils).Assembly) || isDebugAssembly(RuntimeInfo.EntryAssembly)
         );
 
         /// <summary>
@@ -68,21 +62,5 @@ namespace osu.Framework.Development
 
         // https://stackoverflow.com/a/2186634
         private static bool isDebugAssembly(Assembly? assembly) => assembly?.GetCustomAttributes(false).OfType<DebuggableAttribute>().Any(da => da.IsJITTrackingEnabled) ?? false;
-
-        /// <summary>
-        /// Gets the entry assembly.
-        /// When running under NUnit, the assembly of the current test will be returned instead.
-        /// </summary>
-        /// <returns>The entry assembly.</returns>
-        public static Assembly GetEntryAssembly()
-        {
-            if (IsNUnitRunning)
-                return nunit_test_assembly.Value;
-
-            // can only be null when running under nunit, and that case is covered above.
-            Debug.Assert(EntryAssembly != null);
-
-            return EntryAssembly;
-        }
     }
 }
