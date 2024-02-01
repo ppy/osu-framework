@@ -18,6 +18,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using JetBrains.Annotations;
 using osu.Framework.Graphics.Pooling;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Platform;
@@ -70,6 +71,7 @@ namespace osu.Framework.Graphics.Performance
 
         private FrameStatisticsMode state;
 
+        [CanBeNull]
         public event Action<FrameStatisticsMode> StateChanged;
 
         public FrameStatisticsMode State

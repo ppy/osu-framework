@@ -355,7 +355,7 @@ namespace osu.Framework.Tests.IO
             bool hasThrown = false;
             request.Failed += exception => hasThrown = exception != null;
 
-            var _ = request.PerformAsync();
+            _ = request.PerformAsync();
 
             Assert.DoesNotThrow(request.Abort);
 

@@ -27,7 +27,7 @@ namespace osu.Framework.Platform.MacOS
                 return IntPtr.Zero;
 
             var result = generalPasteboard.ReadObjectsForClasses(classArray, null);
-            var objects = result?.ToArray();
+            IntPtr[]? objects = result?.ToArray();
 
             return objects?.Length > 0 ? objects[0] : IntPtr.Zero;
         }
