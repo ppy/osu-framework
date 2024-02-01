@@ -31,10 +31,7 @@ namespace osu.Framework.Graphics.Cursor
                 {
                     RelativeSizeAxes = Axes.Both,
                 },
-                dismissOnMouseDownContainer = new DismissOnMouseDownContainer
-                {
-                    RelativeSizeAxes = Axes.Both
-                }
+                dismissOnMouseDownContainer = CreateInternalPopoverContainer().With(x => x.RelativeSizeAxes = Axes.Both)
             };
         }
 
@@ -176,6 +173,11 @@ namespace osu.Framework.Graphics.Cursor
             // the final size is the intersection of the X/Y areas.
             return availableSize;
         }
+
+        /// <summary>
+        /// Creates a container where <see cref="Popover"/>s will be placed. This container is expected to dismiss popovers on mouse clicks.
+        /// </summary>
+        protected virtual Container<Drawable> CreateInternalPopoverContainer() => new DismissOnMouseDownContainer();
 
         private partial class DismissOnMouseDownContainer : Container<Drawable>
         {
