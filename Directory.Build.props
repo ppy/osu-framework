@@ -5,6 +5,10 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <PropertyGroup Label="Documentation">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
   <ItemGroup Label="License">
     <None Include="$(MSBuildThisFileDirectory)osu-framework.licenseheader">
       <Link>osu-framework.licenseheader</Link>
