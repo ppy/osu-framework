@@ -278,7 +278,7 @@ namespace osu.Framework.Graphics.Transforms
             EnsureTransformMutationAllowed();
 
             if (delay == 0)
-                return null;
+                return new ValueInvokeOnDisposal(() => { });
 
             AddDelay(delay, recursive);
             double newTransformDelay = TransformDelay;

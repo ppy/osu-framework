@@ -243,7 +243,7 @@ namespace osu.Framework.Tests.Visual.Layout
             {
                 for (int row = 0; row < getGrid().Content.Count; row++)
                 {
-                    if (!Precision.AlmostEquals(expectedHeight, getGrid().Content[row][0].Parent.DrawHeight))
+                    if (!Precision.AlmostEquals(expectedHeight, getGrid().Content[row][0].Parent!.DrawHeight))
                         return false;
                 }
 
