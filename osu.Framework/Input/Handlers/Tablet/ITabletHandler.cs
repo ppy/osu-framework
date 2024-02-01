@@ -23,6 +23,16 @@ namespace osu.Framework.Input.Handlers.Tablet
         Bindable<Vector2> AreaSize { get; }
 
         /// <summary>
+        /// Position of output area inside game window, 0 is top-left position, 1 is bottom-right.
+        /// </summary>
+        Bindable<Vector2> OutputAreaPosition { get; }
+
+        /// <summary>
+        /// Relative size of output area inside game window.
+        /// </summary>
+        Bindable<Vector2> OutputAreaSize { get; }
+
+        /// <summary>
         /// Information on the currently connected tablet device. May be null if no tablet is detected.
         /// </summary>
         IBindable<TabletInfo> Tablet { get; }
