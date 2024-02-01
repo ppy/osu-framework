@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -19,6 +20,7 @@ using osu.Framework.Input;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osuTK;
+using WindowState = osu.Framework.Platform.WindowState;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
@@ -161,6 +163,43 @@ namespace osu.Framework.Tests.Visual.Platform
             AddStep("set confined to never", () => config.SetValue(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Never));
             AddStep("set confined to fullscreen", () => config.SetValue(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen));
             AddStep("set confined to always", () => config.SetValue(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Always));
+        }
+
+        [Test]
+        public void TestMinimiseOnFocusLoss([Values] bool enabled, [Values] WindowMode mode)
+        {
+            if (window == null)
+            {
+                Assert.Ignore("This test cannot run in headless mode (a window instance is required).");
+                return;
+            }
+
+            AddStep($"set to {mode}", () => windowMode.Value = mode);
+            AddStep($"set minimise on focus: {enabled}", () => config.SetValue(FrameworkSetting.MinimiseOnFocusLossInFullscreen, enabled));
+            AddUntilStep("wait for window to lose focus", () => !window.IsActive.Value);
+
+            switch (mode)
+            {
+                case WindowMode.Windowed:
+                case WindowMode.Borderless:
+                    assertMinimised(false);
+                    break;
+
+                case WindowMode.Fullscreen:
+                    assertMinimised(enabled);
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
+            }
+
+            void assertMinimised(bool minimised)
+            {
+                if (minimised)
+                    AddAssert("window is minimised", () => window.WindowState, () => Is.EqualTo(WindowState.Minimised));
+                else
+                    AddAssert("window not minimised", () => window.WindowState, () => Is.Not.EqualTo(WindowState.Minimised));
+            }
         }
 
         protected override void Update()

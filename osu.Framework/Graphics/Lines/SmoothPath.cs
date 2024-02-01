@@ -78,9 +78,16 @@ namespace osu.Framework.Graphics.Lines
                 raw[i, 0] = new Rgba32(colour.R, colour.G, colour.B, colour.A * Math.Min(progress / aa_portion, 1));
             }
 
-            var texture = new DisposableTexture(renderer.CreateTexture(textureWidth, 1, true));
-            texture.SetData(new TextureUpload(raw));
-            Texture = texture;
+            if (Texture?.Width == textureWidth)
+            {
+                Texture.SetData(new TextureUpload(raw));
+            }
+            else
+            {
+                var texture = new DisposableTexture(renderer.CreateTexture(textureWidth, 1, true));
+                texture.SetData(new TextureUpload(raw));
+                Texture = texture;
+            }
 
             if (customBackgroundColour == null)
                 base.BackgroundColour = ColourAt(0).Opacity(0);

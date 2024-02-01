@@ -14,17 +14,17 @@ namespace osu.Framework.Audio.Mixing
     {
         public readonly string Identifier;
 
-        private readonly AudioMixer? globalMixer;
+        private readonly AudioMixer? fallbackMixer;
 
         /// <summary>
         /// Creates a new <see cref="AudioMixer"/>.
         /// </summary>
-        /// <param name="globalMixer">The global <see cref="AudioMixer"/>, which <see cref="IAudioChannel"/>s are moved to if removed from this one.
-        /// A <c>null</c> value indicates this is the global <see cref="AudioMixer"/>.</param>
+        /// <param name="fallbackMixer">A fallback <see cref="AudioMixer"/>, which <see cref="IAudioChannel"/>s are moved to if removed from this one.
+        /// A <c>null</c> value indicates this is the fallback <see cref="AudioMixer"/>.</param>
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
-        protected AudioMixer(AudioMixer? globalMixer, string identifier)
+        protected AudioMixer(AudioMixer? fallbackMixer, string identifier)
         {
-            this.globalMixer = globalMixer;
+            this.fallbackMixer = fallbackMixer;
             Identifier = identifier;
         }
 
@@ -56,7 +56,7 @@ namespace osu.Framework.Audio.Mixing
         protected void Remove(IAudioChannel channel, bool returnToDefault)
         {
             // If this is the default mixer, prevent removal.
-            if (returnToDefault && globalMixer == null)
+            if (returnToDefault && fallbackMixer == null)
                 return;
 
             channel.EnqueueAction(() =>
@@ -69,7 +69,7 @@ namespace osu.Framework.Audio.Mixing
 
                 // Add the channel back to the default mixer so audio can always be played.
                 if (returnToDefault)
-                    globalMixer.AsNonNull().Add(channel);
+                    fallbackMixer.AsNonNull().Add(channel);
             });
         }
 

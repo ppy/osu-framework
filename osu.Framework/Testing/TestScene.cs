@@ -491,7 +491,7 @@ namespace osu.Framework.Testing
         }
 
         [TearDown]
-        protected virtual void RunTestsFromNUnit()
+        public virtual void RunTestsFromNUnit()
         {
             RunTearDownSteps();
 

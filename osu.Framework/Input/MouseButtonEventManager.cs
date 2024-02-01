@@ -195,7 +195,7 @@ namespace osu.Framework.Input
             DragStarted = true;
 
             // also the laziness of IEnumerable here
-            var drawables = ButtonDownInputQueue.AsNonNull().Where(t => t.IsAlive && t.IsPresent);
+            var drawables = ButtonDownInputQueue.AsNonNull().Where(d => d.IsRootedAt(InputManager));
 
             var draggable = PropagateButtonEvent(drawables, new DragStartEvent(state, Button, MouseDownPosition));
             if (draggable != null)

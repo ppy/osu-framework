@@ -72,18 +72,24 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             if (bytes == null)
                 return string.Empty;
 
+            var builder = new StringBuilder();
+
+            if (mainFile)
+            {
+                builder.AppendLine(loadFile(store.GetRawData("Internal/sh_Compatibility.h"), false));
+                builder.AppendLine(loadFile(store.GetRawData("Internal/sh_GlobalUniforms.h"), false));
+            }
+
             using (MemoryStream ms = new MemoryStream(bytes))
             using (StreamReader sr = new StreamReader(ms))
             {
-                string result = string.Empty;
-
                 while (sr.Peek() != -1)
                 {
                     string? line = sr.ReadLine();
 
                     if (string.IsNullOrEmpty(line))
                     {
-                        result += line + '\n';
+                        builder.AppendLine(line);
                         continue;
                     }
 
@@ -105,35 +111,33 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     {
                         string includeName = includeMatch.Groups[1].Value.Trim();
 
-                        result += loadFile(store.GetRawData(includeName), false) + '\n';
+                        builder.AppendLine(loadFile(store.GetRawData(includeName), false));
                     }
                     else
-                        result += line + '\n';
+                        builder.AppendLine(line);
                 }
 
-                if (mainFile)
+                string output = builder.ToString();
+
+                if (!mainFile)
+                    return output;
+
+                Inputs.AddRange(
+                    shader_input_pattern.Matches(output).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value)));
+                Outputs.AddRange(
+                    shader_output_pattern.Matches(output).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value)));
+
+                string outputCode = loadFile(store.GetRawData($"Internal/sh_{Type}_Output.h"), false);
+
+                if (!string.IsNullOrEmpty(outputCode))
                 {
-                    string internalIncludes = loadFile(store.GetRawData("Internal/sh_Compatibility.h"), false) + "\n";
-                    internalIncludes += loadFile(store.GetRawData("Internal/sh_GlobalUniforms.h"), false) + "\n";
-                    result = internalIncludes + result;
+                    const string real_main_name = "__internal_real_main";
 
-                    Inputs.AddRange(
-                        shader_input_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value)).ToList());
-                    Outputs.AddRange(
-                        shader_output_pattern.Matches(result).Select(m => new VeldridShaderAttribute(int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture), m.Groups[2].Value)).ToList());
-
-                    string outputCode = loadFile(store.GetRawData($"Internal/sh_{Type}_Output.h"), false);
-
-                    if (!string.IsNullOrEmpty(outputCode))
-                    {
-                        const string real_main_name = "__internal_real_main";
-
-                        outputCode = outputCode.Replace("{{ real_main }}", real_main_name);
-                        result = Regex.Replace(result, @"void main\((.*)\)", $"void {real_main_name}()") + outputCode + '\n';
-                    }
+                    outputCode = outputCode.Replace("{{ real_main }}", real_main_name);
+                    output = Regex.Replace(output, @"void main\((.*)\)", $"void {real_main_name}()") + outputCode + '\n';
                 }
 
-                return result;
+                return output;
             }
         }
 

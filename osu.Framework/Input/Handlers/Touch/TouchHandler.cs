@@ -9,6 +9,8 @@ namespace osu.Framework.Input.Handlers.Touch
 {
     public class TouchHandler : InputHandler
     {
+        private static readonly GlobalStatistic<ulong> statistic_total_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<TouchHandler>(), "Total events");
+
         public override bool IsActive => true;
 
         public override bool Initialize(GameHost host)
@@ -50,6 +52,7 @@ namespace osu.Framework.Input.Handlers.Touch
         {
             PendingInputs.Enqueue(new TouchInput(touch, activate));
             FrameStatistics.Increment(StatisticsCounterType.TouchEvents);
+            statistic_total_events.Value++;
         }
     }
 }

@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Globalization;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Bindables;
@@ -32,8 +33,8 @@ namespace osu.Framework.Tests.Bindables
 
             foreach (object value in values.Append(expected))
             {
-                bindable.Parse(value);
-                nullable.Parse(value);
+                bindable.Parse(value, CultureInfo.InvariantCulture);
+                nullable.Parse(value, CultureInfo.InvariantCulture);
 
                 Assert.AreEqual(expected, bindable.Value);
                 Assert.AreEqual(expected, nullable.Value);
@@ -47,8 +48,8 @@ namespace osu.Framework.Tests.Bindables
             var bindable = new Bindable<TestEnum>();
             var nullable = new Bindable<TestEnum?>();
 
-            Assert.Throws<ArgumentException>(() => bindable.Parse(value));
-            Assert.Throws<ArgumentException>(() => nullable.Parse(value));
+            Assert.Throws<ArgumentException>(() => bindable.Parse(value, CultureInfo.InvariantCulture));
+            Assert.Throws<ArgumentException>(() => nullable.Parse(value, CultureInfo.InvariantCulture));
         }
 
         [Test]
@@ -57,8 +58,8 @@ namespace osu.Framework.Tests.Bindables
             var bindable = new Bindable<TestEnum>();
             var nullable = new Bindable<TestEnum?>();
 
-            Assert.Throws<ArgumentException>(() => bindable.Parse(string.Empty));
-            nullable.Parse(string.Empty);
+            Assert.Throws<ArgumentException>(() => bindable.Parse(string.Empty, CultureInfo.InvariantCulture));
+            nullable.Parse(string.Empty, CultureInfo.InvariantCulture);
 
             Assert.That(nullable.Value, Is.Null);
         }

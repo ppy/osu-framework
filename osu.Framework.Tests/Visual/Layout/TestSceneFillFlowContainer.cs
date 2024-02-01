@@ -397,6 +397,17 @@ namespace osu.Framework.Tests.Visual.Layout
                     label = new SpriteText(),
                 };
             }
+
+            protected override DropdownSearchBar CreateSearchBar() => new BasicDropdownSearchBar();
+
+            private partial class BasicDropdownSearchBar : DropdownSearchBar
+            {
+                protected override void PopIn() => this.FadeIn();
+
+                protected override void PopOut() => this.FadeOut();
+
+                protected override TextBox CreateTextBox() => new BasicTextBox();
+            }
         }
 
         private partial class AnchorDropdown : BasicDropdown<Anchor>

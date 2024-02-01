@@ -11,6 +11,7 @@ using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osuTK.Graphics;
 using SixLabors.ImageSharp;
@@ -188,28 +189,15 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         {
             lock (uploadQueue)
             {
+                if (uploadQueue.Count >= 100 && uploadQueue.Count % 100 == 0)
+                    Logger.Log($"Texture {Identifier}'s upload queue is large ({uploadQueue.Count})");
+
                 bool requireUpload = uploadQueue.Count == 0;
                 uploadQueue.Enqueue(upload);
 
                 if (requireUpload && !BypassTextureUploadQueueing)
                     Renderer.EnqueueTextureUpload(this);
             }
-        }
-
-        public virtual bool Bind(int unit, WrapMode wrapModeS, WrapMode wrapModeT)
-        {
-            if (!Available)
-                throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
-
-            Upload();
-
-            if (resources == null)
-                return false;
-
-            if (Renderer.BindTexture(this, wrapModeS: wrapModeS, wrapModeT: wrapModeT))
-                BindCount++;
-
-            return true;
         }
 
         public bool Upload()
