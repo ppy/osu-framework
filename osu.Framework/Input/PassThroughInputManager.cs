@@ -182,6 +182,7 @@ namespace osu.Framework.Input
 
             var keyDiff = (state?.Keyboard?.Keys ?? new ButtonStates<Key>()).EnumerateDifference(CurrentState.Keyboard.Keys);
             foreach (var key in keyDiff.Released)
+                // `default` as the character is ignored for key releases
                 new KeyboardKeyInput(new KeyboardKey(key, default), false).Apply(CurrentState, this);
             foreach (var key in keyDiff.Pressed)
                 new KeyboardKeyInput(new KeyboardKey(key, state?.Keyboard?.Characters.GetValueOrDefault(key) ?? key.GetDefaultCharacter()), true).Apply(CurrentState, this);
