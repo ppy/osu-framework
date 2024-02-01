@@ -110,6 +110,11 @@ namespace osu.Framework.Graphics.Containers
                     removeItems(e.OldItems);
                     addItems(e.NewItems);
                     break;
+
+                case NotifyCollectionChangedAction.Move:
+                    sortItems();
+                    OnItemsChanged();
+                    break;
             }
         }
 
