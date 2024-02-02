@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using Android.Views;
 using osu.Framework.Input;
@@ -19,7 +20,10 @@ namespace osu.Framework.Android.Input
 
         public override bool IsActive => true;
 
-        protected override IEnumerable<InputSourceType> HandledEventSources => new[] { InputSourceType.BluetoothStylus, InputSourceType.Stylus, InputSourceType.Touchscreen };
+        protected override IEnumerable<InputSourceType> HandledEventSources =>
+            OperatingSystem.IsAndroidVersionAtLeast(23)
+                ? new[] { InputSourceType.BluetoothStylus, InputSourceType.Stylus, InputSourceType.Touchscreen }
+                : new[] { InputSourceType.Stylus, InputSourceType.Touchscreen };
 
         public AndroidTouchHandler(AndroidGameView view)
             : base(view)
@@ -81,7 +85,9 @@ namespace osu.Framework.Android.Input
         protected override bool OnHover(MotionEvent hoverEvent)
         {
             hoverEvent.HandleHistorically(apply);
-            enqueueInput(new MouseButtonInput(MouseButton.Right, hoverEvent.IsButtonPressed(MotionEventButtonState.StylusPrimary)));
+
+            if (OperatingSystem.IsAndroidVersionAtLeast(23))
+                enqueueInput(new MouseButtonInput(MouseButton.Right, hoverEvent.IsButtonPressed(MotionEventButtonState.StylusPrimary)));
 
             // TODO: handle stylus events based on hoverEvent.Action
             // stylus should probably have it's own handler.

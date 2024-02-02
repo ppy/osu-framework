@@ -28,7 +28,7 @@ namespace osu.Framework.Android.Input
         /// <remarks>
         /// Only available in Android 8.0 Oreo (<see cref="BuildVersionCodes.O"/>) and up.
         /// </remarks>
-        public BindableBool UseRelativeMode { get; } = new BindableBool(true)
+        public BindableBool UseRelativeMode { get; } = new BindableBool(false)
         {
             Description = "Allows for sensitivity adjustment and tighter control of input",
         };
@@ -44,7 +44,10 @@ namespace osu.Framework.Android.Input
 
         public override bool IsActive => true;
 
-        protected override IEnumerable<InputSourceType> HandledEventSources => new[] { InputSourceType.Mouse, InputSourceType.MouseRelative, InputSourceType.Touchpad };
+        protected override IEnumerable<InputSourceType> HandledEventSources =>
+            OperatingSystem.IsAndroidVersionAtLeast(26)
+                ? new[] { InputSourceType.Mouse, InputSourceType.MouseRelative, InputSourceType.Touchpad }
+                : new[] { InputSourceType.Mouse, InputSourceType.Touchpad };
 
         private AndroidGameWindow window = null!;
 
