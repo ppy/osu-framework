@@ -192,13 +192,8 @@ namespace osu.Framework.Android.Input
                     handleMouseMoveEvent(touchEvent);
                     return true;
 
-                // fired when buttons are pressed, but these don't have reliable ActionButton information
-                case MotionEventActions.Up:
-                case MotionEventActions.Down:
-                    return true;
-
                 default:
-                    return false;
+                    return tryHandleButtonEvent(touchEvent);
             }
         }
 
@@ -206,22 +201,12 @@ namespace osu.Framework.Android.Input
         {
             switch (genericMotionEvent.Action)
             {
-                case MotionEventActions.ButtonPress:
-                case MotionEventActions.ButtonRelease:
-                    handleButtonEvent(genericMotionEvent);
-                    return true;
-
                 case MotionEventActions.Scroll:
                     handleScrollEvent(genericMotionEvent);
                     return true;
 
-                // fired when buttons are pressed, but these don't have reliable ActionButton information
-                case MotionEventActions.Up:
-                case MotionEventActions.Down:
-                    return true;
-
                 default:
-                    return false;
+                    return tryHandleButtonEvent(genericMotionEvent);
             }
         }
 
@@ -237,33 +222,48 @@ namespace osu.Framework.Android.Input
                     handleScrollEvent(capturedPointerEvent);
                     return true;
 
-                case MotionEventActions.ButtonPress:
-                case MotionEventActions.ButtonRelease:
-                    handleButtonEvent(capturedPointerEvent);
-                    return true;
-
-                // fired when buttons are pressed, but these don't have reliable ActionButton information
-                case MotionEventActions.Up:
-                case MotionEventActions.Down:
-                    return true;
-
                 default:
-                    return false;
+                    return tryHandleButtonEvent(capturedPointerEvent);
             }
         }
 
-        private void handleButtonEvent(MotionEvent buttonEvent)
+        /// <summary>
+        /// Handles an event that could potentially be a mouse button event.
+        /// </summary>
+        private bool tryHandleButtonEvent(MotionEvent motionEvent)
         {
-            bool pressed = buttonEvent.Action == MotionEventActions.ButtonPress;
-
-            // ActionButton is not available before API 23
-            // https://developer.android.com/reference/android/view/MotionEvent#getActionButton()
-
             if (OperatingSystem.IsAndroidVersionAtLeast(23))
             {
-                foreach (var button in buttonEvent.ActionButton.ToMouseButtons())
-                    handleMouseButton(button, pressed);
+                switch (motionEvent.Action)
+                {
+                    case MotionEventActions.ButtonPress:
+                    case MotionEventActions.ButtonRelease:
+                        bool pressed = motionEvent.Action == MotionEventActions.ButtonPress;
+
+                        foreach (var button in motionEvent.ActionButton.ToMouseButtons())
+                            handleMouseButton(button, pressed);
+
+                        return true;
+
+                    // fired when buttons are pressed, but these don't have reliable ActionButton information
+                    case MotionEventActions.Up:
+                    case MotionEventActions.Down:
+                        return true;
+                }
             }
+            else // on older android versions where button events are not supported
+            {
+                switch (motionEvent.Action)
+                {
+                    case MotionEventActions.Up:
+                    case MotionEventActions.Down:
+                        bool pressed = motionEvent.Action == MotionEventActions.Down;
+                        handleMouseButton(MouseButton.Left, pressed);
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         private void handleScrollEvent(MotionEvent scrollEvent)
