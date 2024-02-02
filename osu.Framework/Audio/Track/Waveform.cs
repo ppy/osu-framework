@@ -72,7 +72,11 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Constructs a new <see cref="Waveform"/> from provided audio data.
         /// </summary>
-        /// <param name="data">The sample data stream. If null, an empty waveform is constructed.</param>
+        /// <param name="data">
+        /// The sample data stream.
+        /// The <see cref="Waveform"/> will take ownership of this stream and dispose it when done reading track data.
+        /// If null, an empty waveform is constructed.
+        /// </param>
         public Waveform(Stream? data)
         {
             this.data = data;
