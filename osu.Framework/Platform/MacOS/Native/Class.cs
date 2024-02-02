@@ -22,7 +22,7 @@ namespace osu.Framework.Platform.MacOS.Native
 
         public static IntPtr Get(string name)
         {
-            var id = objc_getClass(name);
+            IntPtr id = objc_getClass(name);
             if (id == IntPtr.Zero)
                 throw new ArgumentException("Unknown class: " + name);
 
@@ -48,12 +48,12 @@ namespace osu.Framework.Platform.MacOS.Native
         /// <returns>A selector for the newly registered method, containing the old implementation.</returns>
         public static IntPtr SwizzleMethod(IntPtr classHandle, string selector, string typeString, Delegate action)
         {
-            var targetSelector = Selector.Get(selector);
-            var targetMethod = class_getInstanceMethod(classHandle, targetSelector);
-            var newMethodImplementation = Marshal.GetFunctionPointerForDelegate(action);
-            var newSelector = Selector.Get($"orig_{selector}");
+            IntPtr targetSelector = Selector.Get(selector);
+            IntPtr targetMethod = class_getInstanceMethod(classHandle, targetSelector);
+            IntPtr newMethodImplementation = Marshal.GetFunctionPointerForDelegate(action);
+            IntPtr newSelector = Selector.Get($"orig_{selector}");
             class_replaceMethod(classHandle, newSelector, newMethodImplementation, typeString);
-            var newMethod = class_getInstanceMethod(classHandle, newSelector);
+            IntPtr newMethod = class_getInstanceMethod(classHandle, newSelector);
             method_exchangeImplementations(targetMethod, newMethod);
             return newSelector;
         }

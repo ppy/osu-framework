@@ -6,6 +6,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using JetBrains.Annotations;
 using osu.Framework.Utils;
 
 namespace osu.Framework.Bindables
@@ -13,6 +14,7 @@ namespace osu.Framework.Bindables
     public class BindableNumber<T> : RangeConstrainedBindable<T>, IBindableNumber<T>
         where T : struct, IComparable<T>, IConvertible, IEquatable<T>
     {
+        [CanBeNull]
         public event Action<T> PrecisionChanged;
 
         public BindableNumber(T defaultValue = default)
