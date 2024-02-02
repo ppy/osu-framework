@@ -187,7 +187,7 @@ namespace osu.Framework.Graphics.Containers
 
                 // If the async load didn't complete, the item wouldn't exist in the container and an exception would be thrown
                 if (drawable.Parent == ListContainer)
-                    ListContainer.SetLayoutPosition(drawable, i);
+                    ListContainer!.SetLayoutPosition(drawable, i);
             }
         }
 

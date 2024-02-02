@@ -1022,7 +1022,7 @@ namespace osu.Framework.Platform.SDL2
         /// <returns><c>true</c> if the <paramref name="bytePointer"/> was successfully converted to a string.</returns>
         public static unsafe bool TryGetStringFromBytePointer(byte* bytePointer, out string str)
         {
-            var ptr = new IntPtr(bytePointer);
+            IntPtr ptr = new IntPtr(bytePointer);
 
             if (ptr == IntPtr.Zero)
             {

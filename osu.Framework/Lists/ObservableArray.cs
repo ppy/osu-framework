@@ -19,6 +19,7 @@ namespace osu.Framework.Lists
         /// <summary>
         /// Invoked when an element of the array is changed via <see cref="this[int]"/>.
         /// </summary>
+        [CanBeNull]
         public event Action ArrayElementChanged;
 
         [NotNull]
