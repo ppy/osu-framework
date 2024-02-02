@@ -12,10 +12,13 @@ namespace osu.Framework.Benchmarks
     public class BenchmarkSlimReadOnlyDictionary
     {
         private readonly Dictionary<int, int> dictionary = new Dictionary<int, int>();
+        private ReadOnlyDictionary<int, int> readOnlyDictionary = null!;
 
         [GlobalSetup]
         public void GlobalSetup()
         {
+            readOnlyDictionary = new ReadOnlyDictionary<int, int>(dictionary);
+
             int[] values = { 0, 1, 2, 3, 4, 5, 3, 2, 3, 1, 4, 5, -1 };
             for (int i = 0; i < values.Length; i++)
                 dictionary[i] = values[i];
@@ -39,8 +42,6 @@ namespace osu.Framework.Benchmarks
         public int DictionaryAsReadOnly()
         {
             int sum = 0;
-
-            ReadOnlyDictionary<int, int> readOnlyDictionary = new ReadOnlyDictionary<int, int>(dictionary);
 
             for (int i = 0; i < 1000; i++)
             {
@@ -84,8 +85,6 @@ namespace osu.Framework.Benchmarks
         {
             int sum = 0;
 
-            ReadOnlyDictionary<int, int> readOnlyDictionary = new ReadOnlyDictionary<int, int>(dictionary);
-
             for (int i = 0; i < 1000; i++)
             {
                 foreach (int v in readOnlyDictionary.Keys)
@@ -127,8 +126,6 @@ namespace osu.Framework.Benchmarks
         public int ValuesAsReadOnly()
         {
             int sum = 0;
-
-            ReadOnlyDictionary<int, int> readOnlyDictionary = new ReadOnlyDictionary<int, int>(dictionary);
 
             for (int i = 0; i < 1000; i++)
             {
