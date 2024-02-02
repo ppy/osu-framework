@@ -203,7 +203,9 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private void enqueueInput(IInput input)
         {
-            PendingInputs.Enqueue(input);
+            if(host.IsActive.Value) {
+                PendingInputs.Enqueue(input);
+            }
             FrameStatistics.Increment(StatisticsCounterType.TabletEvents);
             statistic_total_events.Value++;
         }
