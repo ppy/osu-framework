@@ -2,13 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using osuTK;
 
 namespace osu.Framework.Input
 {
     /// <summary>
-    /// Reduces cursor input to relevant nodes and corners that noticably affect the cursor path.
+    /// Reduces cursor input to relevant nodes and corners that noticeably affect the cursor path.
     /// If the input is a raw/HD input this won't omit any input nodes.
     /// Set SmoothRawInput to true to keep behaviour for HD inputs.
     /// </summary>
@@ -27,30 +26,21 @@ namespace osu.Framework.Input
         /// </summary>
         public bool ResampleRawInput { get; set; }
 
-        private readonly List<Vector2> returnedPositions = new List<Vector2>();
-
         /// <summary>
-        /// Function that takes in a <paramref name="position"/> and returns a list of positions
+        /// Function that takes in a <paramref name="position"/> and returns position
         /// that can be used by the caller to make the input path smoother or reduce it.
-        /// The current implementation always returns only none or exactly one vector which
+        /// The current implementation always returns only null or exactly one vector which
         /// reduces the input to the corner nodes.
         /// </summary>
-        /// <remarks>
-        /// To save on allocations, the returned enumerable is only valid until the next call of <see cref="AddPosition"/>.
-        /// </remarks>
-        public IEnumerable<Vector2> AddPosition(Vector2 position)
+        public Vector2? AddPosition(Vector2 position)
         {
-            returnedPositions.Clear();
-
             if (!ResampleRawInput)
             {
                 if (isRawInput)
                 {
                     lastRelevantPosition = position;
                     lastActualPosition = position;
-
-                    returnedPositions.Add(position);
-                    return returnedPositions;
+                    return position;
                 }
 
                 // HD if it has fractions
@@ -62,9 +52,7 @@ namespace osu.Framework.Input
             {
                 lastRelevantPosition = position;
                 lastActualPosition = position;
-
-                returnedPositions.Add(position);
-                return returnedPositions;
+                return position;
             }
 
             Vector2 diff = position - lastRelevantPosition.Value;
@@ -74,19 +62,17 @@ namespace osu.Framework.Input
             Vector2 realDiff = position - lastActualPosition.Value;
             float realMovementDistance = realDiff.Length;
             if (realMovementDistance < 1)
-                return returnedPositions;
+                return null;
 
             lastActualPosition = position;
 
             // don't update when it moved less than 10 pixels from the last position in a straight fashion
             // but never update when its less than 2 pixels
             if ((distance < 10 && Vector2.Dot(direction, realDiff / realMovementDistance) > 0.7) || distance < 2)
-                return returnedPositions;
+                return null;
 
             lastRelevantPosition = position;
-
-            returnedPositions.Add(position);
-            return returnedPositions;
+            return position;
         }
     }
 }

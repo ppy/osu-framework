@@ -147,19 +147,15 @@ namespace osu.Framework.Tests.Visual.Input
                 NumVertices++;
             }
 
-            protected bool AddSmoothedVertex(Vector2 pos)
+            protected void AddSmoothedVertex(Vector2 pos)
             {
                 NumRaw++;
-                bool foundOne = false;
 
-                foreach (Vector2 relevant in InputResampler.AddPosition(pos))
+                if (InputResampler.AddPosition(pos) is Vector2 relevant)
                 {
                     AddVertex(relevant);
                     NumVertices++;
-                    foundOne = true;
                 }
-
-                return foundOne;
             }
         }
 
