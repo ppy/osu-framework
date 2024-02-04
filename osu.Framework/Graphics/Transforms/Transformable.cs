@@ -283,7 +283,7 @@ namespace osu.Framework.Graphics.Transforms
             AddDelay(delay, recursive);
             double newTransformDelay = TransformDelay;
 
-            return new ValueInvokeOnDisposal<DelayedSequenceSender>(new DelayedSequenceSender(this, delay, recursive, newTransformDelay), sender =>
+            return new ValueInvokeOnDisposal<DelayedSequenceSender>(new DelayedSequenceSender(this, delay, recursive, newTransformDelay), static sender =>
             {
                 if (!Precision.AlmostEquals(sender.NewTransformDelay, sender.Transformable.TransformDelay))
                 {
@@ -292,7 +292,7 @@ namespace osu.Framework.Graphics.Transforms
                         $"(begin={sender.NewTransformDelay} end={sender.Transformable.TransformDelay})");
                 }
 
-                AddDelay(-sender.Delay, sender.Recursive);
+                sender.Transformable.AddDelay(-sender.Delay, sender.Recursive);
             });
         }
 
