@@ -19,5 +19,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ppy.osuTK.Android" Version="1.0.211" />
+    <PackageReference Include="Xamarin.AndroidX.Window" Version="1.2.0.1" />
   </ItemGroup>
 </Project>

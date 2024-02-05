@@ -11,6 +11,8 @@ using Android.Text;
 using Android.Util;
 using Android.Views;
 using Android.Views.InputMethods;
+using AndroidX.Core.View;
+using AndroidX.Window.Layout;
 using osu.Framework.Android.Input;
 using osu.Framework.Logging;
 using osu.Framework.Bindables;
@@ -228,21 +230,16 @@ namespace osu.Framework.Android
         /// </summary>
         private void updateSafeArea()
         {
-            // compute the usable screen area.
-
-            var screenSize = new Point();
-#pragma warning disable 618 // GetRealSize is deprecated
-            Display.AsNonNull().GetRealSize(screenSize);
-#pragma warning restore 618
-            var screenArea = new RectangleI(0, 0, screenSize.X, screenSize.Y);
-            var usableScreenArea = screenArea;
+            var metrics = WindowMetricsCalculator.Companion.OrCreate.ComputeCurrentWindowMetrics(Activity);
+            var windowArea = metrics.Bounds.ToRectangleI();
+            var usableWindowArea = windowArea;
 
             if (OperatingSystem.IsAndroidVersionAtLeast(28))
             {
                 var cutout = RootWindowInsets?.DisplayCutout;
 
                 if (cutout != null)
-                    usableScreenArea = usableScreenArea.Shrink(cutout.SafeInsetLeft, cutout.SafeInsetRight, cutout.SafeInsetTop, cutout.SafeInsetBottom);
+                    usableWindowArea = usableWindowArea.Shrink(cutout.SafeInsetLeft, cutout.SafeInsetRight, cutout.SafeInsetTop, cutout.SafeInsetBottom);
             }
 
             if (OperatingSystem.IsAndroidVersionAtLeast(31) && RootWindowInsets != null)
@@ -257,11 +254,11 @@ namespace osu.Framework.Android
                 int cornerInsetTop = Math.Max(topLeftCorner?.Radius ?? 0, topRightCorner?.Radius ?? 0);
                 int cornerInsetBottom = Math.Max(bottomLeftCorner?.Radius ?? 0, bottomRightCorner?.Radius ?? 0);
 
-                var radiusInsetArea = screenArea.Width >= screenArea.Height
-                    ? screenArea.Shrink(cornerInsetLeft, cornerInsetRight, 0, 0)
-                    : screenArea.Shrink(0, 0, cornerInsetTop, cornerInsetBottom);
+                var radiusInsetArea = windowArea.Width >= windowArea.Height
+                    ? windowArea.Shrink(cornerInsetLeft, cornerInsetRight, 0, 0)
+                    : windowArea.Shrink(0, 0, cornerInsetTop, cornerInsetBottom);
 
-                usableScreenArea = usableScreenArea.Intersect(radiusInsetArea);
+                usableWindowArea = usableWindowArea.Intersect(radiusInsetArea);
             }
 
             if (OperatingSystem.IsAndroidVersionAtLeast(24) && Activity.IsInMultiWindowMode)
@@ -273,25 +270,15 @@ namespace osu.Framework.Android
 #pragma warning disable 618 // StableInsetTop is deprecated
                 int statusBarHeight = RootWindowInsets?.StableInsetTop ?? 0;
 #pragma warning restore 618 //
-                usableScreenArea = usableScreenArea.Intersect(screenArea.Shrink(0, 0, statusBarHeight, 0));
+                usableWindowArea = usableWindowArea.Intersect(windowArea.Shrink(0, 0, statusBarHeight, 0));
             }
-
-            // compute the location/area of this view on the screen.
-
-            int[] location = new int[2];
-            GetLocationOnScreen(location);
-            var viewArea = new RectangleI(location[0], location[1], ((View)this).Width, ((View)this).Height);
-
-            // intersect with the usable area and treat the the difference as unsafe.
-
-            var usableViewArea = viewArea.Intersect(usableScreenArea);
 
             SafeAreaPadding.Value = new MarginPadding
             {
-                Left = usableViewArea.Left - viewArea.Left,
-                Top = usableViewArea.Top - viewArea.Top,
-                Right = viewArea.Right - usableViewArea.Right,
-                Bottom = viewArea.Bottom - usableViewArea.Bottom,
+                Left = usableWindowArea.Left - windowArea.Left,
+                Top = usableWindowArea.Top - windowArea.Top,
+                Right = windowArea.Right - usableWindowArea.Right,
+                Bottom = windowArea.Bottom - usableWindowArea.Bottom,
             };
         }
 
