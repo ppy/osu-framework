@@ -4,7 +4,6 @@
 using System;
 using System.Runtime.Versioning;
 using Android.Content;
-using Android.Graphics;
 using Android.OS;
 using Android.Runtime;
 using Android.Text;
@@ -16,9 +15,7 @@ using AndroidX.Window.Layout;
 using osu.Framework.Android.Input;
 using osu.Framework.Logging;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Platform;
 using osuTK.Graphics;
 
@@ -261,15 +258,12 @@ namespace osu.Framework.Android
                 usableWindowArea = usableWindowArea.Intersect(radiusInsetArea);
             }
 
-            if (OperatingSystem.IsAndroidVersionAtLeast(24) && Activity.IsInMultiWindowMode)
+            if (OperatingSystem.IsAndroidVersionAtLeast(24) && Activity.IsInMultiWindowMode && RootWindowInsets != null)
             {
                 // if we are in multi-window mode, the status bar is always visible (even if we request to hide it) and could be obstructing our view.
                 // if multi-window mode is not active, we can assume the status bar is hidden so we shouldn't consider it for safe area calculations.
-
-                // `SystemWindowInsetTop` should be the correct inset here, but it doesn't correctly work (gives `0` even if the view is obstructed).
-#pragma warning disable 618 // StableInsetTop is deprecated
-                int statusBarHeight = RootWindowInsets?.StableInsetTop ?? 0;
-#pragma warning restore 618 //
+                var insetsCompat = WindowInsetsCompat.ToWindowInsetsCompat(RootWindowInsets, this);
+                int statusBarHeight = insetsCompat.GetInsets(WindowInsetsCompat.Type.StatusBars()).Top;
                 usableWindowArea = usableWindowArea.Intersect(windowArea.Shrink(0, 0, statusBarHeight, 0));
             }
 
