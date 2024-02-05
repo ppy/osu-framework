@@ -36,9 +36,9 @@ namespace osu.Framework.Input
         /// reduces the input to the corner nodes.
         /// </summary>
         /// <remarks>
-        /// To save on allocations, the returned enumerable is only valid until the next call of <see cref="AddPosition"/>.
+        /// To save on allocations, the returned list is only valid until the next call of <see cref="AddPosition"/>.
         /// </remarks>
-        public IEnumerable<Vector2> AddPosition(Vector2 position)
+        public List<Vector2> AddPosition(Vector2 position)
         {
             returnedPositions.Clear();
 
