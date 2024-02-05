@@ -63,7 +63,7 @@ namespace osu.Framework.Allocation
         /// </summary>
         /// <param name="sender">The sender which should appear in the <paramref name="action"/> callback.</param>
         /// <param name="action">The action to invoke during disposal.</param>
-        public ValueInvokeOnDisposal(T sender, [RequireStaticDelegate] Action<T> action)
+        public ValueInvokeOnDisposal(T sender, [RequireStaticDelegate(IsError = true)] Action<T> action)
         {
             this.sender = sender;
             this.action = action ?? throw new ArgumentNullException(nameof(action));
