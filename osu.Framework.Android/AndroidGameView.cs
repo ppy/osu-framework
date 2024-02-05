@@ -187,24 +187,17 @@ namespace osu.Framework.Android
                 RenderGame();
         }
 
+        public override WindowInsets? OnApplyWindowInsets(WindowInsets? insets)
+        {
+            updateSafeArea();
+            return base.OnApplyWindowInsets(insets);
+        }
+
         [STAThread]
         public void RenderGame()
         {
             // request focus so that joystick input can immediately work.
             RequestFocus();
-
-            LayoutChange += (_, _) => updateSafeArea();
-
-            Activity.IsActive.BindValueChanged(active =>
-            {
-                // When rotating device 180 degrees in the background,
-                // LayoutChange doesn't trigger after returning to game.
-                // So update safe area once active again.
-                if (active.NewValue)
-                    updateSafeArea();
-            });
-
-            updateSafeArea();
 
             Host = new AndroidGameHost(this);
             Host.ExceptionThrown += handleException;
