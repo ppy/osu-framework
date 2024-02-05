@@ -308,7 +308,7 @@ namespace osu.Framework.Utils
         /// <param name="learningRate">The rate of optimization. Larger values converge faster but can be unstable.</param>
         /// <param name="b1">The B1 parameter for the Adam optimizer. Between 0 and 1.</param>
         /// <param name="b2">The B2 parameter for the Adam optimizer. Between 0 and 1.</param>
-        /// <param name="initialControlPoints">The initial bezier control points to use before optimization. The length of this list should be equal to <see cref="numControlPoints"/>.</param>
+        /// <param name="initialControlPoints">The initial bezier control points to use before optimization. The length of this list should be equal to <paramref name="numControlPoints"/>.</param>
         /// <param name="learnableMask">Mask determining which control point positions are fixed and cannot be changed by the optimiser.</param>
         /// <returns>A List of vectors representing the bezier control points.</returns>
         public static List<Vector2> PiecewiseLinearToBezier(ReadOnlySpan<Vector2> inputPath,
@@ -337,7 +337,7 @@ namespace osu.Framework.Utils
         /// <param name="learningRate">The rate of optimization. Larger values converge faster but can be unstable.</param>
         /// <param name="b1">The B1 parameter for the Adam optimizer. Between 0 and 1.</param>
         /// <param name="b2">The B2 parameter for the Adam optimizer. Between 0 and 1.</param>
-        /// <param name="initialControlPoints">The initial B-spline control points to use before optimization. The length of this list should be equal to <see cref="numControlPoints"/>.</param>
+        /// <param name="initialControlPoints">The initial B-spline control points to use before optimization. The length of this list should be equal to <paramref name="numControlPoints"/>.</param>
         /// <param name="learnableMask">Mask determining which control point positions are fixed and cannot be changed by the optimiser.</param>
         /// <returns>A List of vectors representing the B-spline control points.</returns>
         public static List<Vector2> PiecewiseLinearToBSpline(ReadOnlySpan<Vector2> inputPath,
