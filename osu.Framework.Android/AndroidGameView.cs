@@ -189,7 +189,7 @@ namespace osu.Framework.Android
 
         public override WindowInsets? OnApplyWindowInsets(WindowInsets? insets)
         {
-            updateSafeArea();
+            updateSafeArea(insets);
             return base.OnApplyWindowInsets(insets);
         }
 
@@ -218,7 +218,7 @@ namespace osu.Framework.Android
         /// <summary>
         /// Updates the <see cref="IWindow.SafeAreaPadding"/>, taking into account screen insets that may be obstructing this <see cref="AndroidGameView"/>.
         /// </summary>
-        private void updateSafeArea()
+        private void updateSafeArea(WindowInsets? windowInsets)
         {
             var metrics = WindowMetricsCalculator.Companion.OrCreate.ComputeCurrentWindowMetrics(Activity);
             var windowArea = metrics.Bounds.ToRectangleI();
@@ -226,18 +226,18 @@ namespace osu.Framework.Android
 
             if (OperatingSystem.IsAndroidVersionAtLeast(28))
             {
-                var cutout = RootWindowInsets?.DisplayCutout;
+                var cutout = windowInsets?.DisplayCutout;
 
                 if (cutout != null)
                     usableWindowArea = usableWindowArea.Shrink(cutout.SafeInsetLeft, cutout.SafeInsetRight, cutout.SafeInsetTop, cutout.SafeInsetBottom);
             }
 
-            if (OperatingSystem.IsAndroidVersionAtLeast(31) && RootWindowInsets != null)
+            if (OperatingSystem.IsAndroidVersionAtLeast(31) && windowInsets != null)
             {
-                var topLeftCorner = RootWindowInsets.GetRoundedCorner((int)RoundedCornerPosition.TopLeft);
-                var topRightCorner = RootWindowInsets.GetRoundedCorner((int)RoundedCornerPosition.TopRight);
-                var bottomLeftCorner = RootWindowInsets.GetRoundedCorner((int)RoundedCornerPosition.BottomLeft);
-                var bottomRightCorner = RootWindowInsets.GetRoundedCorner((int)RoundedCornerPosition.BottomRight);
+                var topLeftCorner = windowInsets.GetRoundedCorner((int)RoundedCornerPosition.TopLeft);
+                var topRightCorner = windowInsets.GetRoundedCorner((int)RoundedCornerPosition.TopRight);
+                var bottomLeftCorner = windowInsets.GetRoundedCorner((int)RoundedCornerPosition.BottomLeft);
+                var bottomRightCorner = windowInsets.GetRoundedCorner((int)RoundedCornerPosition.BottomRight);
 
                 int cornerInsetLeft = Math.Max(topLeftCorner?.Radius ?? 0, bottomLeftCorner?.Radius ?? 0);
                 int cornerInsetRight = Math.Max(topRightCorner?.Radius ?? 0, bottomRightCorner?.Radius ?? 0);
@@ -251,11 +251,11 @@ namespace osu.Framework.Android
                 usableWindowArea = usableWindowArea.Intersect(radiusInsetArea);
             }
 
-            if (OperatingSystem.IsAndroidVersionAtLeast(24) && Activity.IsInMultiWindowMode && RootWindowInsets != null)
+            if (OperatingSystem.IsAndroidVersionAtLeast(24) && Activity.IsInMultiWindowMode && windowInsets != null)
             {
                 // if we are in multi-window mode, the status bar is always visible (even if we request to hide it) and could be obstructing our view.
                 // if multi-window mode is not active, we can assume the status bar is hidden so we shouldn't consider it for safe area calculations.
-                var insetsCompat = WindowInsetsCompat.ToWindowInsetsCompat(RootWindowInsets, this);
+                var insetsCompat = WindowInsetsCompat.ToWindowInsetsCompat(windowInsets, this);
                 int statusBarHeight = insetsCompat.GetInsets(WindowInsetsCompat.Type.StatusBars()).Top;
                 usableWindowArea = usableWindowArea.Intersect(windowArea.Shrink(0, 0, statusBarHeight, 0));
             }
