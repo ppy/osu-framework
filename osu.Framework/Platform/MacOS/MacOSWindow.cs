@@ -34,7 +34,7 @@ namespace osu.Framework.Platform.MacOS
             base.Create();
 
             // replace [SDLView scrollWheel:(NSEvent *)] with our own version
-            var viewClass = Class.Get("SDLView");
+            IntPtr viewClass = Class.Get("SDLView");
             scrollWheelHandler = scrollWheel;
             originalScrollWheel = Class.SwizzleMethod(viewClass, "scrollWheel:", "v@:@", scrollWheelHandler);
         }

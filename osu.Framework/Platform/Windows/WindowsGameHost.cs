@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
+using System.Text;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Rendering;
@@ -36,6 +37,13 @@ namespace osu.Framework.Platform.Windows
         internal WindowsGameHost(string gameName, HostOptions? options)
             : base(gameName, options)
         {
+            try
+            {
+                Console.OutputEncoding = Encoding.UTF8;
+            }
+            catch
+            {
+            }
         }
 
         public override bool OpenFileExternally(string filename)

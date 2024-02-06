@@ -143,7 +143,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             int countVertices = endIndex - startIndex;
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, vboId);
-            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(startIndex * STRIDE), (IntPtr)(countVertices * STRIDE), ref getMemory().Span[startIndex]);
+            GL.BufferSubData(BufferTarget.ArrayBuffer, startIndex * STRIDE, (IntPtr)(countVertices * STRIDE), ref getMemory().Span[startIndex]);
 
             FrameStatistics.Add(StatisticsCounterType.VerticesUpl, countVertices);
         }

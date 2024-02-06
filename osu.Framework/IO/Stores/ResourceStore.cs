@@ -165,10 +165,8 @@ namespace osu.Framework.IO.Stores
                 return;
 
             // Check if there's already a reload action bound
-            if (actionList.ContainsKey(name))
+            if (!actionList.TryAdd(name, onReload))
                 throw new InvalidOperationException($"A reload delegate is already bound to the resource '{name}'.");
-
-            actionList[name] = onReload;
         }
 
         /// <summary>
