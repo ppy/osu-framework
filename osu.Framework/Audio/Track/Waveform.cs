@@ -60,6 +60,8 @@ namespace osu.Framework.Audio.Track
 
         private readonly Task readTask;
 
+        private Stream? data;
+
         /// <summary>
         /// Constructs a new <see cref="Waveform"/> from provided audio data.
         /// </summary>
@@ -74,6 +76,8 @@ namespace osu.Framework.Audio.Track
 
             readTask = Task.Run(() =>
             {
+                this.data = null;
+
                 if (data == null)
                     return;
 
@@ -177,6 +181,9 @@ namespace osu.Framework.Audio.Track
                 finally
                 {
                     ArrayPool<Complex>.Shared.Return(complexBuffer);
+
+                    data.Dispose();
+                    data = null;
                 }
             }, cancelSource.Token);
         }
@@ -338,6 +345,10 @@ namespace osu.Framework.Audio.Track
             cancelSource.Cancel();
             cancelSource.Dispose();
             points = Array.Empty<Point>();
+
+            // Try disposing the stream again in case the task was not started.
+            data?.Dispose();
+            data = null;
         }
 
         #endregion
