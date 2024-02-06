@@ -24,9 +24,9 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Returns a byte position converted into milliseconds with configuration set for this player.
         /// </summary>
-        /// <param name="bytePos">A byte position to convert</param>
+        /// <param name="pos">Position to convert</param>
         /// <returns></returns>
-        public double GetMsFromIndex(long bytePos) => bytePos * 1000.0d / SrcRate / SrcChannels;
+        public double GetMsFromIndex(long pos) => pos * 1000.0d / SrcRate / SrcChannels;
 
         /// <summary>
         /// Returns a position in milliseconds converted from a byte position with configuration set for this player.
