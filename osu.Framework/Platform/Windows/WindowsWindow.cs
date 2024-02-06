@@ -83,7 +83,6 @@ namespace osu.Framework.Platform.Windows
             base.Create();
 
             // disable all pen and touch feedback as this causes issues when running "optimised" fullscreen under Direct3D11.
-
             foreach (var feedbackType in Enum.GetValues<FeedbackType>())
                 Native.Input.SetWindowFeedbackSetting(WindowHandle, feedbackType, false);
 
