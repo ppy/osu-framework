@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using JetBrains.Annotations;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Effects;
@@ -132,7 +133,11 @@ namespace osu.Framework.Graphics.Containers
                 array[arrayIndex++] = c;
         }
 
-        bool ICollection<T>.Remove(T item) => Remove(item, true);
+        bool ICollection<T>.Remove(T item)
+        {
+            ArgumentNullException.ThrowIfNull(item);
+            return Remove(item, true);
+        }
 
         public Enumerator GetEnumerator() => new Enumerator(this);
 
@@ -297,7 +302,7 @@ namespace osu.Framework.Graphics.Containers
         /// Removes a range of children. This is equivalent to calling <see cref="Remove(T, bool)"/> on
         /// each element of the range in order.
         /// </summary>
-        public void RemoveRange(IEnumerable<T> range, bool disposeImmediately)
+        public void RemoveRange([CanBeNull] IEnumerable<T> range, bool disposeImmediately)
         {
             if (range == null)
                 return;

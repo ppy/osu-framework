@@ -238,7 +238,10 @@ namespace osu.Framework.Graphics
             lock (LoadLock)
             {
                 if (!isDirectAsyncContext && IsLongRunning)
-                    throw new InvalidOperationException($"Tried to load long-running drawable type {GetType().ReadableName()} in a non-direct async context. See https://git.io/Je1YF for more details.");
+                {
+                    throw new InvalidOperationException(
+                        $"Tried to load long-running drawable type {GetType().ReadableName()} in a non-direct async context. See https://git.io/Je1YF for more details.");
+                }
 
                 if (IsDisposed)
                     throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
@@ -1901,6 +1904,8 @@ namespace osu.Framework.Graphics
         /// <returns>The vector in other's coordinates.</returns>
         public Vector2 ToSpaceOfOtherDrawable(Vector2 input, IDrawable other)
         {
+            ArgumentNullException.ThrowIfNull(other);
+
             if (other == this)
                 return input;
 
@@ -1926,14 +1931,14 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="input">A vector in local coordinates.</param>
         /// <returns>The vector in Parent's coordinates.</returns>
-        public Vector2 ToParentSpace(Vector2 input) => ToSpaceOfOtherDrawable(input, Parent);
+        public Vector2 ToParentSpace(Vector2 input) => ToSpaceOfOtherDrawable(input, Parent!);
 
         /// <summary>
         /// Accepts a rectangle in local coordinates and converts it to a quad in Parent's space.
         /// </summary>
         /// <param name="input">A rectangle in local coordinates.</param>
         /// <returns>The quad in Parent's coordinates.</returns>
-        public Quad ToParentSpace(RectangleF input) => ToSpaceOfOtherDrawable(input, Parent);
+        public Quad ToParentSpace(RectangleF input) => ToSpaceOfOtherDrawable(input, Parent!);
 
         /// <summary>
         /// Accepts a vector in local coordinates and converts it to coordinates in screen space.

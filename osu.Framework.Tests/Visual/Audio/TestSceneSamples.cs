@@ -185,7 +185,7 @@ namespace osu.Framework.Tests.Visual.Audio
 
             protected override void OnDrag(DragEvent e)
             {
-                Y = (int)(e.MousePosition.Y / (Parent.DrawHeight / notes));
+                Y = (int)(e.MousePosition.Y / (Parent!.DrawHeight / notes));
             }
 
             public void Reset()

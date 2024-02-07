@@ -53,10 +53,10 @@ jobs:
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
 
-      - name: Install .NET 6.0.x
+      - name: Install .NET 8.0.x
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: "6.0.x"
+          dotnet-version: "8.0.x"
 
       - name: Pack (Framework)
         run: dotnet pack -c Release osu.Framework /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true /p:IncludeSymbols=true /p:SymbolPackageFormat=snupkg -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
@@ -84,10 +84,10 @@ jobs:
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}/artifacts"
 
-      - name: Install .NET 6.0.x
+      - name: Install .NET 8.0.x
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: "6.0.x"
+          dotnet-version: "8.0.x"
 
       - name: Replace project references
         run: osu.Framework.Templates/replace-references.sh ${{ github.ref_name }}
@@ -119,10 +119,10 @@ jobs:
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
 
-      - name: Install .NET 6.0.x
+      - name: Install .NET 8.0.x
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: "6.0.x"
+          dotnet-version: "8.0.x"
 
       - name: Setup JDK 11
         uses: actions/setup-java@v3
@@ -160,10 +160,10 @@ jobs:
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}/artifacts"
 
-      - name: Install .NET 6.0.x
+      - name: Install .NET 8.0.x
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: "6.0.x"
+          dotnet-version: "8.0.x"
 
       - name: Restore .NET Workloads
         # `dotnet workload restore` is bugged in .NET 7.0.101+ when restoring iOS projects,

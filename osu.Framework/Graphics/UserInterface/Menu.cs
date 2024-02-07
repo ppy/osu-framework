@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osuTK.Graphics;
@@ -27,6 +28,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Invoked when this <see cref="Menu"/>'s <see cref="State"/> changes.
         /// </summary>
+        [CanBeNull]
         public event Action<MenuState> StateChanged;
 
         /// <summary>
@@ -695,6 +697,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// <summary>
             /// Invoked when this <see cref="DrawableMenuItem"/>'s <see cref="State"/> changes.
             /// </summary>
+            [CanBeNull]
             public event Action<MenuItemState> StateChanged;
 
             /// <summary>
