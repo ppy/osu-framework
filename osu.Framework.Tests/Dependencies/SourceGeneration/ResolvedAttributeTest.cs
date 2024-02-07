@@ -139,22 +139,6 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             Assert.AreEqual(testObject.CachedObject.Value, receiver.Obj.Value);
         }
 
-        [TestCase(null)]
-        [TestCase(10)]
-        public void TestResolveNullableInternal(int? testValue)
-        {
-            var receiver = new Receiver13();
-
-            var testObject = new PartialCachedNullableProvider();
-            testObject.SetValue(testValue);
-
-            var dependencies = DependencyActivator.MergeDependencies(testObject, new DependencyContainer());
-
-            dependencies.Inject(receiver);
-
-            Assert.AreEqual(testValue, receiver.Obj);
-        }
-
         [Test]
         public void TestResolveStructWithoutNullPermits()
         {
@@ -316,12 +300,6 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         {
             [Resolved]
             public PartialCachedStructProvider.Struct Obj { get; private set; }
-        }
-
-        private partial class Receiver13 : IDependencyInjectionCandidate
-        {
-            [Resolved]
-            public int? Obj { get; private set; }
         }
 
         private partial class Receiver14 : IDependencyInjectionCandidate

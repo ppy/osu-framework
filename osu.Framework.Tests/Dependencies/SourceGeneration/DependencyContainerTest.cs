@@ -223,22 +223,6 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             Assert.AreEqual(testObject.CachedObject.Value, receiver.TestObject.Value);
         }
 
-        [TestCase(null)]
-        [TestCase(10)]
-        public void TestResolveNullableInternal(int? testValue)
-        {
-            var receiver = new Receiver11();
-
-            var testObject = new PartialCachedNullableProvider();
-            testObject.SetValue(testValue);
-
-            var dependencies = DependencyActivator.MergeDependencies(testObject, new DependencyContainer());
-
-            dependencies.Inject(receiver);
-
-            Assert.AreEqual(testValue, receiver.TestObject);
-        }
-
         [Test]
         public void TestAttemptCacheNullInternal()
         {
@@ -437,14 +421,6 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
 
             [BackgroundDependencyLoader]
             private void load(PartialCachedStructProvider.Struct testObject) => TestObject = testObject;
-        }
-
-        private partial class Receiver11 : IDependencyInjectionCandidate
-        {
-            public int? TestObject { get; private set; }
-
-            [BackgroundDependencyLoader]
-            private void load(int? testObject) => TestObject = testObject;
         }
 
         private partial class Receiver12 : IDependencyInjectionCandidate
