@@ -268,10 +268,7 @@ namespace osu.Framework.Extensions
             string hash;
 
             stream.Seek(0, SeekOrigin.Begin);
-
-            using (var alg = SHA256.Create())
-                hash = alg.ComputeHash(stream).toLowercaseHex();
-
+            hash = SHA256.HashData(stream).toLowercaseHex();
             stream.Seek(0, SeekOrigin.Begin);
 
             return hash;
@@ -289,8 +286,7 @@ namespace osu.Framework.Extensions
             string hash;
 
             stream.Seek(0, SeekOrigin.Begin);
-            using (var md5 = MD5.Create())
-                hash = md5.ComputeHash(stream).toLowercaseHex();
+            hash = MD5.HashData(stream).toLowercaseHex();
             stream.Seek(0, SeekOrigin.Begin);
 
             return hash;
