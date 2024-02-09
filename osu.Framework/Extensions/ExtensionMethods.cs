@@ -265,10 +265,8 @@ namespace osu.Framework.Extensions
         /// <returns>A lower-case hex string representation of the hash (64 characters).</returns>
         public static string ComputeSHA2Hash(this Stream stream)
         {
-            string hash;
-
             stream.Seek(0, SeekOrigin.Begin);
-            hash = SHA256.HashData(stream).toLowercaseHex();
+            string hash = SHA256.HashData(stream).toLowercaseHex();
             stream.Seek(0, SeekOrigin.Begin);
 
             return hash;
@@ -283,10 +281,8 @@ namespace osu.Framework.Extensions
 
         public static string ComputeMD5Hash(this Stream stream)
         {
-            string hash;
-
             stream.Seek(0, SeekOrigin.Begin);
-            hash = MD5.HashData(stream).toLowercaseHex();
+            string hash = MD5.HashData(stream).toLowercaseHex();
             stream.Seek(0, SeekOrigin.Begin);
 
             return hash;
