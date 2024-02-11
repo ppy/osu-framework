@@ -6,6 +6,7 @@
 using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osu.Framework.Testing;
@@ -99,10 +100,48 @@ namespace osu.Framework.Tests.Input
             AddAssert("receptor did not receive double click", () => !receptor.DoubleClickReceived);
         }
 
+        /// <summary>
+        /// Tests that a drawable whose parent is removed from the hierarchy (or is otherwise removed from the input queues) does not receive an OnDragStart() event.
+        /// </summary>
+        [Test]
+        public void TestNoLongerValidChildDrawableDoesNotReceiveDragStart()
+        {
+            InputReceptor receptor = null;
+            Container receptorParent = null;
+            Vector2 lastPosition = Vector2.Zero;
+
+            AddStep("create hierarchy", () =>
+            {
+                Children = new Drawable[]
+                {
+                    receptorParent = new Container
+                    {
+                        Children = new Drawable[]
+                        {
+                            receptor = new InputReceptor { Size = new Vector2(100) }
+                        }
+                    }
+                };
+            });
+
+            AddStep("move mouse to receptor", () =>
+            {
+                lastPosition = receptor.ToScreenSpace(receptor.LayoutRectangle.Centre);
+                InputManager.MoveMouseTo(lastPosition);
+            });
+            AddStep("press button", () => InputManager.PressButton(MouseButton.Left));
+
+            AddStep("remove receptor parent", () => Remove(receptorParent, true));
+
+            AddStep("drag mouse", () => InputManager.MoveMouseTo(lastPosition + new Vector2(10)));
+            AddAssert("receptor did not receive drag start", () => !receptor.DragStartReceived);
+        }
+
         private partial class InputReceptor : Box
         {
             public bool ClickReceived { get; set; }
             public bool DoubleClickReceived { get; set; }
+            public bool DragStartReceived { get; set; }
 
             public Func<bool> Click;
 
@@ -115,6 +154,12 @@ namespace osu.Framework.Tests.Input
             protected override bool OnDoubleClick(DoubleClickEvent e)
             {
                 DoubleClickReceived = true;
+                return true;
+            }
+
+            protected override bool OnDragStart(DragStartEvent e)
+            {
+                DragStartReceived = true;
                 return true;
             }
         }

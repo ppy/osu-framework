@@ -94,6 +94,8 @@ namespace osu.Framework.Testing
 
         public override void Add(Drawable drawable)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
+
             if (drawable is Game)
                 throw new InvalidOperationException($"Use {nameof(AddGame)} when testing a game instance.");
 
@@ -491,7 +493,7 @@ namespace osu.Framework.Testing
         }
 
         [TearDown]
-        protected virtual void RunTestsFromNUnit()
+        public virtual void RunTestsFromNUnit()
         {
             RunTearDownSteps();
 

@@ -836,6 +836,160 @@ namespace osu.Framework.Tests.Visual.Layout
             void assertContentChangeEventWasFired() => AddAssert("Content change event was fired", () => gridContentChangeEventWasFired);
         }
 
+        [Test]
+        public void TestPaddingRelativeSingle()
+        {
+            FillBox box = null;
+
+            AddStep("set content", () =>
+            {
+                grid.Content = new[] { new Drawable[] { box = new FillBox() }, };
+                grid.RowDimensions = grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Relative, 1f) };
+            });
+
+            checkCorrectBoxSize(new MarginPadding(20));
+            checkCorrectBoxSize(new MarginPadding { Horizontal = 20 });
+            checkCorrectBoxSize(new MarginPadding { Vertical = 20 });
+            checkCorrectBoxSize(new MarginPadding { Left = 20 });
+            checkCorrectBoxSize(new MarginPadding { Right = 20 });
+            checkCorrectBoxSize(new MarginPadding { Top = 20 });
+            checkCorrectBoxSize(new MarginPadding { Bottom = 20 });
+            return;
+
+            void checkCorrectBoxSize(MarginPadding padding)
+            {
+                setPadding(padding);
+                AddAssert("box size is correct", () => Precision.AlmostEquals(grid.DrawSize - padding.Total, box.DrawSize));
+            }
+        }
+
+        [Test]
+        public void TestPaddingAutosizeSingle()
+        {
+            FillBox box = null;
+
+            AddStep("set content", () =>
+            {
+                gridParent.RelativeSizeAxes = Axes.None;
+                gridParent.AutoSizeAxes = Axes.Both;
+
+                grid.RelativeSizeAxes = Axes.None;
+                grid.AutoSizeAxes = Axes.Both;
+                grid.Content = new[] { new Drawable[] { box = new FillBox { RelativeSizeAxes = Axes.None, Size = new Vector2(100) } }, };
+                grid.RowDimensions = grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.AutoSize) };
+            });
+
+            checkCorrectGridSize(new MarginPadding(20));
+            checkCorrectGridSize(new MarginPadding { Horizontal = 20 });
+            checkCorrectGridSize(new MarginPadding { Vertical = 20 });
+            checkCorrectGridSize(new MarginPadding { Left = 20 });
+            checkCorrectGridSize(new MarginPadding { Right = 20 });
+            checkCorrectGridSize(new MarginPadding { Top = 20 });
+            checkCorrectGridSize(new MarginPadding { Bottom = 20 });
+            return;
+
+            void checkCorrectGridSize(MarginPadding padding)
+            {
+                setPadding(padding);
+                AddAssert("grid size is correct", () => Precision.AlmostEquals(grid.DrawSize, box.DrawSize + padding.Total));
+            }
+        }
+
+        [Test]
+        public void TestPaddingAutosizeMultiple()
+        {
+            FillBox[] boxes = new FillBox[3];
+            const float box_size = 100f;
+
+            AddStep("set content", () =>
+            {
+                gridParent.RelativeSizeAxes = Axes.None;
+                gridParent.AutoSizeAxes = Axes.Both;
+
+                grid.RelativeSizeAxes = Axes.None;
+                grid.AutoSizeAxes = Axes.Both;
+                grid.RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) };
+                grid.ColumnDimensions = new[]
+                {
+                    new Dimension(GridSizeMode.AutoSize),
+                    new Dimension(GridSizeMode.AutoSize),
+                    new Dimension(GridSizeMode.AutoSize)
+                };
+                grid.Content = new[]
+                {
+                    new Drawable[]
+                    {
+                        boxes[0] = new FillBox
+                        {
+                            RelativeSizeAxes = Axes.None,
+                            Size = new Vector2(box_size)
+                        },
+                        boxes[1] = new FillBox
+                        {
+                            RelativeSizeAxes = Axes.None,
+                            Size = new Vector2(box_size)
+                        },
+                        boxes[2] = new FillBox
+                        {
+                            RelativeSizeAxes = Axes.None,
+                            Size = new Vector2(box_size)
+                        }
+                    }
+                };
+            });
+
+            checkCorrectGridSize(new MarginPadding(20));
+            checkCorrectGridSize(new MarginPadding { Horizontal = 20 });
+            checkCorrectGridSize(new MarginPadding { Vertical = 20 });
+            checkCorrectGridSize(new MarginPadding { Left = 20 });
+            checkCorrectGridSize(new MarginPadding { Right = 20 });
+            checkCorrectGridSize(new MarginPadding { Top = 20 });
+            checkCorrectGridSize(new MarginPadding { Bottom = 20 });
+            return;
+
+            void checkCorrectGridSize(MarginPadding padding)
+            {
+                setPadding(padding);
+                AddAssert("grid size is correct", () => Precision.AlmostEquals(grid.DrawSize, new Vector2(box_size * 3, box_size) + padding.Total));
+            }
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestPaddingRelativeMultiple(bool row)
+        {
+            FillBox[] boxes = new FillBox[3];
+
+            setSingleDimensionContent(() => new[]
+            {
+                new Drawable[] { boxes[0] = new FillBox(), boxes[1] = new FillBox(), boxes[2] = new FillBox() }
+            }, row: row);
+
+            checkSizes(new MarginPadding(20));
+            checkSizes(new MarginPadding { Horizontal = 20 });
+            checkSizes(new MarginPadding { Vertical = 20 });
+            checkSizes(new MarginPadding { Left = 20 });
+            checkSizes(new MarginPadding { Right = 20 });
+            checkSizes(new MarginPadding { Top = 20 });
+            checkSizes(new MarginPadding { Bottom = 20 });
+            return;
+
+            void checkSizes(MarginPadding padding)
+            {
+                setPadding(padding);
+
+                for (int i = 0; i < 3; i++)
+                {
+                    int local = i;
+
+                    if (row)
+                        AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, new Vector2((grid.DrawWidth - padding.TotalHorizontal) / 3f, grid.DrawHeight - padding.TotalVertical)));
+                    else
+                        AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, new Vector2(grid.DrawWidth - padding.TotalHorizontal, (grid.DrawHeight - padding.TotalVertical) / 3f)));
+                }
+            }
+        }
+
         /// <summary>
         /// Returns drawable dimension along desired axis.
         /// </summary>
@@ -886,6 +1040,11 @@ namespace osu.Framework.Tests.Visual.Layout
                 grid.RowDimensions = dimensions;
             else
                 grid.ColumnDimensions = dimensions;
+        });
+
+        private void setPadding(MarginPadding padding) => AddStep($"set padding {padding.Left}, {padding.Top}, {padding.Right}, {padding.Bottom}", () =>
+        {
+            grid.Padding = padding;
         });
 
         private partial class FillBox : Box

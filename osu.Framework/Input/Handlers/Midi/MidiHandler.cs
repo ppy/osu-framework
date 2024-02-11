@@ -86,34 +86,40 @@ namespace osu.Framework.Input.Handlers.Midi
         {
             try
             {
-                var inputs = MidiAccessManager.Default.Inputs.ToList();
-
                 lock (openedDevices)
                 {
-                    // check removed devices
-                    foreach (string key in openedDevices.Keys.ToArray())
+                    int accountedDevices = 0;
+
+                    foreach (var device in MidiAccessManager.Default.Inputs)
                     {
-                        var device = openedDevices[key];
+                        accountedDevices++;
 
-                        if (inputs.All(i => i.Id != key))
-                        {
-                            closeDevice(device);
-                            openedDevices.Remove(key);
+                        if (openedDevices.ContainsKey(device.Id))
+                            continue;
 
-                            Log($"Disconnected MIDI device: {device.Details.Name}");
-                        }
+                        var newInput = MidiAccessManager.Default.OpenInputAsync(device.Id).GetResultSafely();
+                        newInput.MessageReceived += onMidiMessageReceived;
+                        openedDevices[device.Id] = newInput;
+
+                        Log($"Connected MIDI device: {newInput.Details.Name}");
                     }
 
-                    // check added devices
-                    foreach (IMidiPortDetails input in inputs)
+                    if (accountedDevices != openedDevices.Count)
                     {
-                        if (openedDevices.All(x => x.Key != input.Id))
-                        {
-                            var newInput = MidiAccessManager.Default.OpenInputAsync(input.Id).GetResultSafely();
-                            newInput.MessageReceived += onMidiMessageReceived;
-                            openedDevices[input.Id] = newInput;
+                        // A device must have gone missing.
+                        // This loop is a bit expensive so only run when we have to.
+                        var inputs = MidiAccessManager.Default.Inputs.ToArray();
 
-                            Log($"Connected MIDI device: {newInput.Details.Name}");
+                        foreach (string key in openedDevices.Keys.ToArray())
+                        {
+                            var device = openedDevices[key];
+
+                            if (inputs.All(i => i.Id != key))
+                            {
+                                closeDevice(device);
+                                openedDevices.Remove(key);
+                                Log($"Disconnected MIDI device: {device.Details.Name}");
+                            }
                         }
                     }
                 }

@@ -9,6 +9,7 @@ using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
+using osuTK.Input;
 using SDL2;
 using Icon = osu.Framework.Platform.Windows.Native.Icon;
 
@@ -223,6 +224,33 @@ namespace osu.Framework.Platform.Windows
 
         #endregion
 
+        protected override void HandleTouchFingerEvent(SDL.SDL_TouchFingerEvent evtTfinger)
+        {
+            if (evtTfinger.TryGetTouchName(out string name) && name == "pen")
+            {
+                // Windows Ink tablet/pen handling
+                // InputManager expects to receive this as mouse events, to have proper `mouseSource` input priority (see InputManager.GetPendingInputs)
+                // osu! expects to get tablet events as mouse events, and touch events as touch events for touch device (TD mod) handling (see https://github.com/ppy/osu/issues/25590)
+
+                TriggerMouseMove(evtTfinger.x * ClientSize.Width, evtTfinger.y * ClientSize.Height);
+
+                switch (evtTfinger.type)
+                {
+                    case SDL.SDL_EventType.SDL_FINGERDOWN:
+                        TriggerMouseDown(MouseButton.Left);
+                        break;
+
+                    case SDL.SDL_EventType.SDL_FINGERUP:
+                        TriggerMouseUp(MouseButton.Left);
+                        break;
+                }
+
+                return;
+            }
+
+            base.HandleTouchFingerEvent(evtTfinger);
+        }
+
         public override Size Size
         {
             protected set
@@ -270,14 +298,14 @@ namespace osu.Framework.Platform.Windows
             smallIcon = iconGroup.CreateIcon(small_icon_size, small_icon_size);
             largeIcon = iconGroup.CreateIcon(large_icon_size, large_icon_size);
 
-            var windowHandle = WindowHandle;
+            IntPtr windowHandle = WindowHandle;
 
             if (windowHandle == IntPtr.Zero || largeIcon == null || smallIcon == null)
                 base.SetIconFromGroup(iconGroup);
             else
             {
-                SendMessage(windowHandle, seticon_message, (IntPtr)icon_small, smallIcon.Handle);
-                SendMessage(windowHandle, seticon_message, (IntPtr)icon_big, largeIcon.Handle);
+                SendMessage(windowHandle, seticon_message, icon_small, smallIcon.Handle);
+                SendMessage(windowHandle, seticon_message, icon_big, largeIcon.Handle);
             }
         }
 

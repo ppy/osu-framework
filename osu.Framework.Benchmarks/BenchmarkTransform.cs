@@ -4,7 +4,7 @@
 using System;
 using BenchmarkDotNet.Attributes;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Timing;
 using osuTK;
@@ -13,7 +13,7 @@ namespace osu.Framework.Benchmarks
 {
     public partial class BenchmarkTransform : BenchmarkTest
     {
-        private Drawable target = null!;
+        private Container target = null!;
 
         public override void SetUp()
         {
@@ -24,6 +24,60 @@ namespace osu.Framework.Benchmarks
 
         [Benchmark]
         public Transform CreateSingleBlank() => new TestTransform();
+
+        [Benchmark]
+        public void CreateSequenceThenRewind()
+        {
+            target.FadeIn(1000, Easing.OutQuint)
+                  .Then().FadeOut(1000)
+                  .Then().FadeOut(1000)
+                  .Then().FadeOut(1000)
+                  .Then().FadeOut(1000)
+                  .Then().FadeOut(1000)
+                  .Then().FadeOut(1000)
+                  .Then().FadeOut(1000)
+                  .Then().FadeOut(1000)
+                  .Then().FadeOut(1000)
+                  .Then().FadeOut(1000);
+
+            for (int i = 0; i < 1000; i++)
+            {
+                target.ApplyTransformsAt(50000);
+                target.ApplyTransformsAt(0);
+            }
+
+            target.ClearTransforms(true);
+        }
+
+        [Benchmark]
+        public void CreateSequenceThenRewindManyChildren()
+        {
+            var nested = target;
+
+            for (int i = 0; i < 5; i++)
+            {
+                nested.Add(new TestBox());
+                nested.FadeOutFromOne(1000)
+                      .Then().FadeOutFromOne(1000)
+                      .Then().FadeOutFromOne(1000)
+                      .Then().FadeOutFromOne(1000);
+
+                nested.Add(nested = new TestBox());
+                nested.FadeOutFromOne(1000)
+                      .Then().FadeOutFromOne(1000)
+                      .Then().FadeOutFromOne(1000)
+                      .Then().FadeOutFromOne(1000);
+            }
+
+            for (int i = 0; i < 1000; i++)
+            {
+                target.ApplyTransformsAt(50000, true);
+                target.ApplyTransformsAt(0, true);
+            }
+
+            target.ClearTransforms(true);
+            target.Clear();
+        }
 
         [Benchmark]
         public void CreateSequenceThenClearAfter()
@@ -117,21 +171,21 @@ namespace osu.Framework.Benchmarks
             public double ApplyEasing(double time) => 0;
         }
 
-        private partial class TestBox : Box
+        private partial class TestBox : Container
         {
             public override bool RemoveCompletedTransforms => false;
         }
 
-        private class TestTransform : Transform<float, Box>
+        private class TestTransform : Transform<float, TestBox>
         {
             public override string TargetMember => throw new NotImplementedException();
 
-            protected override void Apply(Box d, double time)
+            protected override void Apply(TestBox d, double time)
             {
                 throw new NotImplementedException();
             }
 
-            protected override void ReadIntoStartValue(Box d)
+            protected override void ReadIntoStartValue(TestBox d)
             {
                 throw new NotImplementedException();
             }

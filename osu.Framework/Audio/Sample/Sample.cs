@@ -37,10 +37,7 @@ namespace osu.Framework.Audio.Sample
                 throw new ObjectDisposedException(ToString(), "Can not get a channel from a disposed sample.");
 
             var channel = CreateChannel();
-
-            if (channel != null)
-                channel.OnPlay = onPlay;
-
+            channel.OnPlay = onPlay;
             return channel;
         }
 

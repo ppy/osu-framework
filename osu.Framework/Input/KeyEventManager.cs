@@ -24,7 +24,7 @@ namespace osu.Framework.Input
         public void HandleRepeat(InputState state)
         {
             // Only drawables that can still handle input should handle the repeat
-            var drawables = ButtonDownInputQueue.AsNonNull().Intersect(InputQueue).Where(t => t.IsAlive && t.IsPresent);
+            var drawables = ButtonDownInputQueue.AsNonNull().Intersect(InputQueue);
 
             PropagateButtonEvent(drawables, new KeyDownEvent(state, Button, true));
         }

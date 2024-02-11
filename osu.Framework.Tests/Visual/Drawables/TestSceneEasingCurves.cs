@@ -47,7 +47,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             AddSliderStep("resize easings", default_size / 2, default_size * 2, default_size, size =>
             {
-                easingsContainer?.Children?.OfType<Visualiser>().ForEach(easing => easing.ResizeTo(new Vector2(size)));
+                easingsContainer?.Children.OfType<Visualiser>().ForEach(easing => easing.ResizeTo(new Vector2(size)));
             });
         }
 

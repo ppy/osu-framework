@@ -1,9 +1,13 @@
 ﻿<!-- Contains required properties for osu!framework projects. -->
 <Project>
   <PropertyGroup Label="C#">
-    <LangVersion>10.0</LangVersion>
+    <LangVersion>12.0</LangVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <PropertyGroup Label="Documentation">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
   <ItemGroup Label="License">
     <None Include="$(MSBuildThisFileDirectory)osu-framework.licenseheader">
@@ -29,7 +33,7 @@
   <PropertyGroup Label="NuGet">
     <Authors>ppy Pty Ltd</Authors>
     <Company>ppy Pty Ltd</Company>
-    <Copyright>Copyright (c) 2021 ppy Pty Ltd</Copyright>
+    <Copyright>Copyright (c) 2024 ppy Pty Ltd</Copyright>
     <Product>osu!framework</Product>
     <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

@@ -10,6 +10,7 @@ namespace osu.Framework.Benchmarks
     public class BenchmarkBindableList
     {
         private readonly BindableList<int> list = new BindableList<int>();
+        private IBindableList<int> iList => list;
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -26,6 +27,20 @@ namespace osu.Framework.Benchmarks
             for (int i = 0; i < 100; i++)
             {
                 foreach (int val in list)
+                    result += val;
+            }
+
+            return result;
+        }
+
+        [Benchmark]
+        public int EnumerateInterface()
+        {
+            int result = 0;
+
+            for (int i = 0; i < 100; i++)
+            {
+                foreach (int val in iList)
                     result += val;
             }
 

@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="osu.Framework.Tests.Android" android:installLocation="auto">
-	<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="33" />
+	<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="34" />
 	<application android:label="osu!framework test" />
 	<!-- permissions below are mostly requested for testing the file selector -->
 	<uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />

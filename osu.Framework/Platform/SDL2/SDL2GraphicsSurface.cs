@@ -131,7 +131,7 @@ namespace osu.Framework.Platform.SDL2
             var namesInfo = type.GetRuntimeFields().First(x => x.Name == "_EntryPointNamesInstance");
             var offsetsInfo = type.GetRuntimeFields().First(x => x.Name == "_EntryPointNameOffsetsInstance");
 
-            var entryPointsInstance = (IntPtr[]?)pointsInfo.GetValue(bindings);
+            IntPtr[]? entryPointsInstance = (IntPtr[]?)pointsInfo.GetValue(bindings);
             byte[]? entryPointNamesInstance = (byte[]?)namesInfo.GetValue(bindings);
             int[]? entryPointNameOffsetsInstance = (int[]?)offsetsInfo.GetValue(bindings);
 

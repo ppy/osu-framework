@@ -7,6 +7,7 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Logging;
 
@@ -132,21 +133,20 @@ namespace osu.Framework.Statistics
         // ReSharper disable once UnusedParameter.Local
         private static unsafe Type getTypeFromHandle(IntPtr handle)
         {
-            // This is super unsafe code which is dependent upon internal CLR structures.
+#pragma warning disable CS8500
             TypedReferenceAccess tr = new TypedReferenceAccess { Type = handle };
-            return __reftype(*(TypedReference*)&tr);
+            return TypedReference.GetTargetType(*(TypedReference*)&tr);
+#pragma warning restore CS8500
         }
 
         /// <summary>
         /// Matches the internal layout of <see cref="TypedReference"/>.
         /// See: https://source.dot.net/#System.Private.CoreLib/src/System/TypedReference.cs
         /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
         private struct TypedReferenceAccess
         {
-            [JetBrains.Annotations.UsedImplicitly]
-            public IntPtr Value;
-
-            [JetBrains.Annotations.UsedImplicitly]
+            public readonly IntPtr Value;
             public IntPtr Type;
         }
 
