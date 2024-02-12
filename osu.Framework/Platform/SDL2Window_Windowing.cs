@@ -524,6 +524,7 @@ namespace osu.Framework.Platform
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SHOWN:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_HIDDEN:
+                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED when RuntimeInfo.IsMobile:
                     fetchDisplays();
                     break;
             }
