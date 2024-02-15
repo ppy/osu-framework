@@ -1402,14 +1402,23 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool Contains(Vector2 screenSpacePos)
         {
-            float cRadius = effectiveCornerRadius;
+            var cRadius = effectiveCornerRadius;
             float cExponent = CornerExponent;
 
             // Select a cheaper contains method when we don't need rounded edges.
-            if (cRadius == 0.0f)
+            if (cRadius.Max == 0.0f)
                 return base.Contains(screenSpacePos);
 
-            return DrawRectangle.Shrink(cRadius).DistanceExponentiated(ToLocalSpace(screenSpacePos), cExponent) <= Math.Pow(cRadius, cExponent);
+            var localSpacePos = ToLocalSpace(screenSpacePos);
+            var rect = DrawRectangle;
+            int cornerIndex = 0;
+            if (localSpacePos.X > rect.Width / 2)
+                cornerIndex += 2; // right corners are ZW (2, 3)
+            if (localSpacePos.Y > rect.Height / 2)
+                cornerIndex += 1; // bottom corners are YW (1, 3)
+
+            float localRadius = cRadius[cornerIndex]; // radius of closest corner
+            return DrawRectangle.Shrink(localRadius).DistanceExponentiated(localSpacePos, cExponent) <= Math.Pow(localRadius, cExponent);
         }
 
         /// <summary>
@@ -1506,13 +1515,13 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private float cornerRadius;
+        private CornersInfo cornerRadius;
 
         /// <summary>
         /// Determines how large of a radius is masked away around the corners.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
-        public float CornerRadius
+        public CornersInfo CornerRadius
         {
             get => cornerRadius;
             protected set
@@ -1554,7 +1563,7 @@ namespace osu.Framework.Graphics.Containers
 
         // This _hacky_ modification of the corner radius (obtained from playing around) ensures that the corner remains at roughly
         // equal size (perceptually) compared to the circular arc as the CornerExponent is adjusted within the range ~2-5.
-        private float effectiveCornerRadius => CornerRadius * 0.8f * CornerExponent / 2 + 0.2f * CornerRadius;
+        private CornersInfo effectiveCornerRadius => CornerRadius * 0.8f * CornerExponent / 2 + (CornerRadius * 0.2f);
 
         private float borderThickness;
 
@@ -1628,7 +1637,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                float cRadius = CornerRadius;
+                float cRadius = CornerRadius.Min; //TODO variable radius
                 if (cRadius == 0.0f)
                     return base.BoundingBox;
 
@@ -1648,7 +1657,7 @@ namespace osu.Framework.Graphics.Containers
                 // The above algorithm will return incorrect results if the rounded corners are not fully visible.
                 // To limit bad behavior we at least enforce here, that the bounding box with rounded corners
                 // is never larger than the bounding box without.
-                if (DrawSize.X < CornerRadius * 2 || DrawSize.Y < CornerRadius * 2)
+                if (DrawSize.X < CornerRadius.TopLeft * 2 || DrawSize.Y < CornerRadius.TopLeft * 2)
                     result.Intersect(base.BoundingBox);
 
                 return result;

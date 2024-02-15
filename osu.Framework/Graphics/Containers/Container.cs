@@ -382,7 +382,7 @@ namespace osu.Framework.Graphics.Containers
         /// Determines how large of a radius is masked away around the corners.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
-        public new float CornerRadius
+        public new CornersInfo CornerRadius
         {
             get => base.CornerRadius;
             set => base.CornerRadius = value;

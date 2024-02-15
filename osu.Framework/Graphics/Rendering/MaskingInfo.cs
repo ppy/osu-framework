@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         public Matrix3 ToMaskingSpace;
 
-        public float CornerRadius;
+        public CornersInfo CornerRadius;
         public float CornerExponent;
 
         public float BorderThickness;
@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Rendering
         public Vector2 EdgeOffset;
 
         public bool Hollow;
-        public float HollowCornerRadius;
+        public CornersInfo HollowCornerRadius;
 
         public readonly bool Equals(MaskingInfo other) => this == other;
 

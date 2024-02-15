@@ -36,7 +36,8 @@ namespace osu.Framework.Tests.Visual.Containers
                 @"Nested masking",
                 @"Rounded corner input",
                 @"Offset shadow",
-                @"Negative size"
+                @"Negative size",
+                @"Variable corners"
             };
 
             for (int i = 0; i < testNames.Length; i++)
@@ -523,6 +524,44 @@ namespace osu.Framework.Tests.Visual.Containers
                          .ResizeTo(new Vector2(200, 200), 1000).Loop();
                     }));
                     break;
+
+                case 9:
+                {
+                    var animated = new NonCircularContainerWithInput(new CornersInfo(0));
+                    TestContainer.Add(new FillFlowContainer
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Direction = FillDirection.Full,
+                        Spacing = new Vector2(40),
+                        Padding = new MarginPadding(20),
+                        Children = new Drawable[]
+                        {
+                            new NonCircularContainerWithInput(new CornersInfo(50, 50, 5, 5)),
+                            new NonCircularContainerWithInput(new CornersInfo(50, 5, 50, 50)),
+                            new NonCircularContainerWithInput(new CornersInfo(50, 0, 0, 0)),
+                            new NonCircularContainerWithInput(new CornersInfo(20, 0, 10, 50)),
+                            // border
+                            new NonCircularContainerWithInput(new CornersInfo(50, 5, 5, 50))
+                            {
+                                BorderThickness = 5,
+                                BorderColour = Colour4.Blue,
+                            },
+                            new NonCircularContainerWithInput(new CornersInfo(0, 50, 50, 0))
+                            {
+                                BorderThickness = 5,
+                                BorderColour = Colour4.Blue,
+                            },
+                            // reference
+                            new NonCircularContainerWithInput(new CornersInfo(0)),
+                            new NonCircularContainerWithInput(new CornersInfo(25)),
+                            new NonCircularContainerWithInput(new CornersInfo(50)),
+                            // transform
+                            animated
+                        }
+                    });
+                    animated.RoundCornersTo(25, 1000).Then().RoundCornersTo(new CornersInfo(50, 0, 50, 50), 1000).Then().RoundCornersTo(0, 1000).Loop();
+                    break;
+                }
             }
 
 #if DEBUG
@@ -542,6 +581,62 @@ namespace osu.Framework.Tests.Visual.Containers
             protected override void OnHoverLost(HoverLostEvent e)
             {
                 this.ScaleTo(1f, 100);
+            }
+        }
+
+        private partial class NonCircularContainerWithInput : Container
+        {
+            private readonly Box box;
+
+            public NonCircularContainerWithInput(CornersInfo corners)
+            {
+                Masking = true;
+                CornerRadius = corners;
+                Size = new Vector2(100);
+                Scale = new Vector2(2);
+                EdgeEffect = new EdgeEffectParameters
+                {
+                    Type = EdgeEffectType.Glow,
+                    Colour = Color4.Yellow,
+                    Radius = 10,
+                    Hollow = true,
+                };
+                Children = new Drawable[]
+                {
+                    box = new Box
+                    {
+                        Colour = Colour4.Gray,
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                    // these things are to know where is the box center
+                    new Box
+                    {
+                        Colour = Color4.White,
+                        RelativeSizeAxes = Axes.Y,
+                        Width = 2,
+                        Origin = Anchor.Centre,
+                        Anchor = Anchor.Centre,
+                    },
+                    new Box
+                    {
+                        Colour = Color4.White,
+                        RelativeSizeAxes = Axes.X,
+                        Height = 2,
+                        Origin = Anchor.Centre,
+                        Anchor = Anchor.Centre,
+                    }
+                };
+            }
+
+            protected override bool OnHover(HoverEvent e)
+            {
+                box.FadeColour(Colour4.Red, 100);
+                return true;
+            }
+
+            protected override void OnHoverLost(HoverLostEvent e)
+            {
+                box.FadeColour(Colour4.Gray, 100);
             }
         }
     }

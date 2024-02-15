@@ -61,6 +61,22 @@ lowp vec4 getBorderColour()
     return mix(top, bottom, relativeTexCoord.y);
 }
 
+highp float getCornerRadius()
+{
+	highp vec2 relativeTexCoord = v_MaskingPosition / ((g_MaskingRect.zw - g_MaskingRect.xy) - vec2(g_MaskingBlendRange * 2, g_MaskingBlendRange * 2));
+	highp float top = mix(g_CornerRadius.x, g_CornerRadius.z, step(0.5, relativeTexCoord.x));
+	highp float bottom = mix(g_CornerRadius.y, g_CornerRadius.w, step(0.5, relativeTexCoord.x));
+	return mix(top, bottom, step(0.5, relativeTexCoord.y));
+}
+
+highp float getInnerCornerRadius()
+{
+	highp vec2 relativeTexCoord = v_MaskingPosition / ((g_MaskingRect.zw - g_MaskingRect.xy) - vec2(g_MaskingBlendRange * 2, g_MaskingBlendRange * 2));
+	highp float top = mix(g_InnerCornerRadius.x, g_InnerCornerRadius.z, step(0.5, relativeTexCoord.x));
+	highp float bottom = mix(g_InnerCornerRadius.y, g_InnerCornerRadius.w, step(0.5, relativeTexCoord.x));
+	return mix(top, bottom, step(0.5, relativeTexCoord.y));
+}
+
 lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 {
 	if (!g_IsMasking && v_BlendRange == vec2(0.0))
@@ -68,19 +84,21 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 		return v_Colour * texel;
 	}
 
-	highp float dist = distanceFromRoundedRect(vec2(0.0), g_CornerRadius);
+	highp float cornerRadius = getCornerRadius();
+	highp float innerCornerRadius = getInnerCornerRadius();
+	highp float dist = distanceFromRoundedRect(vec2(0.0), cornerRadius);
 	lowp float alphaFactor = 1.0;
 
 	// Discard inner pixels
 	if (g_DiscardInner)
 	{
-		highp float innerDist = (g_EdgeOffset == vec2(0.0) && g_InnerCornerRadius == g_CornerRadius) ?
-			dist : distanceFromRoundedRect(g_EdgeOffset, g_InnerCornerRadius);
+		highp float innerDist = (g_EdgeOffset == vec2(0.0) && innerCornerRadius == cornerRadius) ?
+			dist : distanceFromRoundedRect(g_EdgeOffset, innerCornerRadius);
 
 		// v_BlendRange is set from outside in a hacky way to tell us the g_MaskingBlendRange used for the rounded
 		// corners of the edge effect container itself. We can then derive the alpha factor for smooth inner edge
 		// effect from that.
-		highp float innerBlendFactor = (g_InnerCornerRadius - g_MaskingBlendRange - innerDist) / v_BlendRange.x;
+		highp float innerBlendFactor = (innerCornerRadius - g_MaskingBlendRange - innerDist) / v_BlendRange.x;
 		if (innerBlendFactor > 1.0)
 		{
 			return vec4(0.0);
@@ -93,8 +111,8 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 	dist /= g_MaskingBlendRange;
 
 	// This correction is needed to avoid fading of the alpha value for radii below 1px.
-	highp float radiusCorrection = g_CornerRadius <= 0.0 ? g_MaskingBlendRange : max(0.0, g_MaskingBlendRange - g_CornerRadius);
-	highp float fadeStart = (g_CornerRadius + radiusCorrection) / g_MaskingBlendRange;
+	highp float radiusCorrection = cornerRadius <= 0.0 ? g_MaskingBlendRange : max(0.0, g_MaskingBlendRange - cornerRadius);
+	highp float fadeStart = (cornerRadius + radiusCorrection) / g_MaskingBlendRange;
 	alphaFactor *= min(fadeStart - dist, 1.0);
 
 	if (v_BlendRange.x > 0.0 || v_BlendRange.y > 0.0)

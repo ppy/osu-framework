@@ -301,6 +301,15 @@ namespace osu.Framework.Utils
                     startLinear.A + t * (endLinear.A - startLinear.A)).ToSRGB();
             }
 
+            public static CornersInfo ValueAt(double time, CornersInfo startInfo, CornersInfo endInfo, double startTime, double endTime, in TEasing easing)
+            {
+                return new CornersInfo(
+                    ValueAt(time, startInfo.TopLeft, endInfo.TopLeft, startTime, endTime, easing),
+                    ValueAt(time, startInfo.BottomLeft, endInfo.BottomLeft, startTime, endTime, easing),
+                    ValueAt(time, startInfo.TopRight, endInfo.TopRight, startTime, endTime, easing),
+                    ValueAt(time, startInfo.BottomRight, endInfo.BottomRight, startTime, endTime, easing));
+            }
+
             public static byte ValueAt(double time, byte val1, byte val2, double startTime, double endTime, in TEasing easing)
                 => (byte)Math.Round(ValueAt(time, (double)val1, val2, startTime, endTime, easing));
 
@@ -435,6 +444,8 @@ namespace osu.Framework.Utils
                     FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<Vector3, TEasing>)GenericInterpolation<TEasing>.ValueAt;
                 else if (typeof(TValue) == typeof(RectangleF))
                     FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<RectangleF, TEasing>)GenericInterpolation<TEasing>.ValueAt;
+                else if (typeof(TValue) == typeof(CornersInfo))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<CornersInfo, TEasing>)GenericInterpolation<TEasing>.ValueAt;
                 else
                     throw new NotSupportedException($"Type {typeof(TValue)} has no interpolation function. Implement the interface {typeof(IInterpolable<TValue>)} interface on the object.");
             }
