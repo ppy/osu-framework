@@ -74,8 +74,16 @@ namespace osu.Framework.Platform.Windows.Native
 
         public static unsafe void SetWindowFeedbackSetting(IntPtr hwnd, FeedbackType feedback, bool configuration)
         {
-            int config = configuration ? 1 : 0; // mimics win32 BOOL type.
-            SetWindowFeedbackSetting(hwnd, feedback, 0, sizeof(int), &config);
+            try
+            {
+                int config = configuration ? 1 : 0; // mimics win32 BOOL type.
+                SetWindowFeedbackSetting(hwnd, feedback, 0, sizeof(int), &config);
+            }
+            catch
+            {
+                // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowfeedbacksetting#requirements
+                // this API only exists in Win8+.
+            }
         }
     }
 

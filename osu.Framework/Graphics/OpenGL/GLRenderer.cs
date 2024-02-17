@@ -308,7 +308,7 @@ namespace osu.Framework.Graphics.OpenGL
                 }
             }
 
-            GL.DrawElements(type, verticesCount, DrawElementsType.UnsignedShort, (IntPtr)(vertexStart * sizeof(ushort)));
+            GL.DrawElements(type, verticesCount, DrawElementsType.UnsignedShort, vertexStart * sizeof(ushort));
         }
 
         protected override void SetScissorStateImplementation(bool enabled)

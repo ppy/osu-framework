@@ -416,7 +416,7 @@ namespace osu.Framework.Tests.IO
             bool hasThrown = false;
             request.Failed += exception => hasThrown = exception != null;
 
-            cancellationSource.Cancel();
+            await cancellationSource.CancelAsync().ConfigureAwait(false);
             await request.PerformAsync(cancellationSource.Token).ConfigureAwait(false);
 
             Assert.IsTrue(request.Completed);

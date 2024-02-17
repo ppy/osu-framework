@@ -298,14 +298,14 @@ namespace osu.Framework.Platform.Windows
             smallIcon = iconGroup.CreateIcon(small_icon_size, small_icon_size);
             largeIcon = iconGroup.CreateIcon(large_icon_size, large_icon_size);
 
-            var windowHandle = WindowHandle;
+            IntPtr windowHandle = WindowHandle;
 
             if (windowHandle == IntPtr.Zero || largeIcon == null || smallIcon == null)
                 base.SetIconFromGroup(iconGroup);
             else
             {
-                SendMessage(windowHandle, seticon_message, (IntPtr)icon_small, smallIcon.Handle);
-                SendMessage(windowHandle, seticon_message, (IntPtr)icon_big, largeIcon.Handle);
+                SendMessage(windowHandle, seticon_message, icon_small, smallIcon.Handle);
+                SendMessage(windowHandle, seticon_message, icon_big, largeIcon.Handle);
             }
         }
 
