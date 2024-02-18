@@ -8,7 +8,6 @@ using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Veldrid.Buffers;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
-using PrimitiveTopology = Veldrid.PrimitiveTopology;
 
 namespace osu.Framework.Graphics.Veldrid.Batches
 {

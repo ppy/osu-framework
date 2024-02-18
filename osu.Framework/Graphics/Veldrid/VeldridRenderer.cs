@@ -32,7 +32,7 @@ using Veldrid.OpenGL;
 using Veldrid.OpenGLBinding;
 using Image = SixLabors.ImageSharp.Image;
 using PixelFormat = Veldrid.PixelFormat;
-using PrimitiveTopology = Veldrid.PrimitiveTopology;
+using PrimitiveTopology = osu.Framework.Graphics.Rendering.PrimitiveTopology;
 
 namespace osu.Framework.Graphics.Veldrid
 {
@@ -490,52 +490,7 @@ namespace osu.Framework.Graphics.Veldrid
             SetFramebuffer(framebuffer);
         }
 
-        public void SetFramebuffer(Framebuffer framebuffer)
-        {
-            Commands.SetFramebuffer(framebuffer);
-            pipeline.Outputs = framebuffer.OutputDescription;
-        }
-
-        public void BindVertexBuffer<T>(IVeldridVertexBuffer<T> buffer)
-            where T : unmanaged, IEquatable<T>, IVertex
-        {
-            if (buffer == boundVertexBuffer)
-                return;
-
-            Commands.SetVertexBuffer(0, buffer.Buffer);
-            pipeline.ShaderSet.VertexLayouts[0] = IVeldridVertexBuffer<T>.LAYOUT;
-
-            FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
-
-            boundVertexBuffer = buffer;
-        }
-
-        public void BindIndexBuffer(VeldridIndexLayout layout, int verticesCount)
-        {
-            ref var indexBuffer = ref layout == VeldridIndexLayout.Quad
-                ? ref quadIndexBuffer
-                : ref linearIndexBuffer;
-
-            if (indexBuffer == null || indexBuffer.VertexCapacity < verticesCount)
-            {
-                indexBuffer?.Dispose();
-                indexBuffer = new VeldridIndexBuffer(this, layout, verticesCount);
-            }
-
-            Commands.SetIndexBuffer(indexBuffer.Buffer, VeldridIndexBuffer.FORMAT);
-            boundIndexBuffer = indexBuffer;
-        }
-
-        public void BindUniformBuffer(string blockName, IVeldridUniformBuffer veldridBuffer)
-        {
-            if (boundUniformBuffers.TryGetValue(blockName, out IVeldridUniformBuffer? current) && current == veldridBuffer)
-                return;
-
-            FlushCurrentBatch(FlushBatchSource.BindBuffer);
-            boundUniformBuffers[blockName] = veldridBuffer;
-        }
-
-        public void DrawVertices(PrimitiveTopology type, int vertexStart, int verticesCount)
+        public override void DrawVerticesImplementation(PrimitiveTopology topology, int vertexStart, int verticesCount)
         {
             // normally we would flush/submit all texture upload commands at the end of the frame, since no actual rendering by the GPU will happen until then,
             // but turns out on macOS with non-apple GPU, this results in rendering corruption.
@@ -546,9 +501,7 @@ namespace osu.Framework.Graphics.Veldrid
 
             var veldridShader = (VeldridShader)Shader!;
 
-            veldridShader.BindUniformBlock("g_GlobalUniforms", GlobalUniformBuffer!);
-
-            pipeline.PrimitiveTopology = type;
+            pipeline.PrimitiveTopology = topology.ToPrimitiveTopology();
             Array.Resize(ref pipeline.ResourceLayouts, veldridShader.LayoutCount);
 
             // Activate texture layouts.
@@ -599,6 +552,51 @@ namespace osu.Framework.Graphics.Veldrid
             int indexStart = boundIndexBuffer.TranslateToIndex(vertexStart);
             int indicesCount = boundIndexBuffer.TranslateToIndex(verticesCount);
             Commands.DrawIndexed((uint)indicesCount, 1, (uint)indexStart, 0, 0);
+        }
+
+        public void SetFramebuffer(Framebuffer framebuffer)
+        {
+            Commands.SetFramebuffer(framebuffer);
+            pipeline.Outputs = framebuffer.OutputDescription;
+        }
+
+        public void BindVertexBuffer<T>(IVeldridVertexBuffer<T> buffer)
+            where T : unmanaged, IEquatable<T>, IVertex
+        {
+            if (buffer == boundVertexBuffer)
+                return;
+
+            Commands.SetVertexBuffer(0, buffer.Buffer);
+            pipeline.ShaderSet.VertexLayouts[0] = IVeldridVertexBuffer<T>.LAYOUT;
+
+            FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
+
+            boundVertexBuffer = buffer;
+        }
+
+        public void BindIndexBuffer(VeldridIndexLayout layout, int verticesCount)
+        {
+            ref var indexBuffer = ref layout == VeldridIndexLayout.Quad
+                ? ref quadIndexBuffer
+                : ref linearIndexBuffer;
+
+            if (indexBuffer == null || indexBuffer.VertexCapacity < verticesCount)
+            {
+                indexBuffer?.Dispose();
+                indexBuffer = new VeldridIndexBuffer(this, layout, verticesCount);
+            }
+
+            Commands.SetIndexBuffer(indexBuffer.Buffer, VeldridIndexBuffer.FORMAT);
+            boundIndexBuffer = indexBuffer;
+        }
+
+        public void BindUniformBuffer(string blockName, IVeldridUniformBuffer veldridBuffer)
+        {
+            if (boundUniformBuffers.TryGetValue(blockName, out IVeldridUniformBuffer? current) && current == veldridBuffer)
+                return;
+
+            FlushCurrentBatch(FlushBatchSource.BindBuffer);
+            boundUniformBuffers[blockName] = veldridBuffer;
         }
 
         private void ensureTextureUploadCommandsBegan()
@@ -745,10 +743,10 @@ namespace osu.Framework.Graphics.Veldrid
         public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
             => new VeldridFrameBuffer(this, renderBufferFormats?.ToPixelFormats(), filteringMode.ToSamplerFilter());
 
-        protected override IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, Rendering.PrimitiveTopology primitiveType)
+        protected override IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology primitiveType)
         {
             // maxBuffers is ignored because batches are not allowed to wrap around in Veldrid.
-            return new VeldridLinearBatch<TVertex>(this, size, primitiveType.ToPrimitiveTopology());
+            return new VeldridLinearBatch<TVertex>(this, size, primitiveType);
         }
 
         protected override IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers)

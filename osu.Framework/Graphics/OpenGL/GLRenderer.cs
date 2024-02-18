@@ -278,12 +278,9 @@ namespace osu.Framework.Graphics.OpenGL
             boundUniformBuffers[blockName] = glBuffer;
         }
 
-        public void DrawVertices(PrimitiveType type, int vertexStart, int verticesCount)
+        public override void DrawVerticesImplementation(PrimitiveTopology topology, int vertexStart, int verticesCount)
         {
             var glShader = (GLShader)Shader!;
-
-            glShader.BindUniformBlock("g_GlobalUniforms", GlobalUniformBuffer!);
-
             int currentUniformBinding = 0;
             int currentStorageBinding = 0;
 
@@ -308,7 +305,7 @@ namespace osu.Framework.Graphics.OpenGL
                 }
             }
 
-            GL.DrawElements(type, verticesCount, DrawElementsType.UnsignedShort, vertexStart * sizeof(ushort));
+            GL.DrawElements(GLUtils.ToPrimitiveType(topology), verticesCount, DrawElementsType.UnsignedShort, vertexStart * sizeof(ushort));
         }
 
         protected override void SetScissorStateImplementation(bool enabled)
@@ -500,7 +497,7 @@ namespace osu.Framework.Graphics.OpenGL
         protected override INativeTexture CreateNativeVideoTexture(int width, int height) => new GLVideoTexture(this, width, height);
 
         protected override IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology)
-            => new GLLinearBatch<TVertex>(this, size, maxBuffers, GLUtils.ToPrimitiveType(topology));
+            => new GLLinearBatch<TVertex>(this, size, maxBuffers, topology);
 
         protected override IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) => new GLQuadBatch<TVertex>(this, size, maxBuffers);
     }
