@@ -36,8 +36,7 @@ namespace osu.Framework.Threading
         /// <param name="name">The thread name to give threads in this pool.</param>
         public ThreadedTaskScheduler(int numberOfThreads, string name)
         {
-            if (numberOfThreads < 1)
-                throw new ArgumentOutOfRangeException(nameof(numberOfThreads));
+            ArgumentOutOfRangeException.ThrowIfLessThan(numberOfThreads, 1);
 
             this.name = name;
             tasks = new BlockingCollection<Task>();

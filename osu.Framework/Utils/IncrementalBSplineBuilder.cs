@@ -94,8 +94,7 @@ namespace osu.Framework.Utils
             get => degree;
             set
             {
-                if (value < 0)
-                    throw new ArgumentOutOfRangeException(nameof(value), "Degree must not be negative.");
+                ArgumentOutOfRangeException.ThrowIfNegative(value);
 
                 if (value == degree)
                     return;
@@ -117,8 +116,7 @@ namespace osu.Framework.Utils
             get => tolerance;
             set
             {
-                if (tolerance < 0)
-                    throw new ArgumentOutOfRangeException(nameof(value), "Tolerance must not be negative.");
+                ArgumentOutOfRangeException.ThrowIfNegative(tolerance);
 
                 if (value == tolerance)
                     return;
@@ -140,8 +138,7 @@ namespace osu.Framework.Utils
             get => cornerThreshold;
             set
             {
-                if (cornerThreshold < 0)
-                    throw new ArgumentOutOfRangeException(nameof(value), "CornerThreshold must not be negative.");
+                ArgumentOutOfRangeException.ThrowIfNegative(cornerThreshold);
 
                 if (value == cornerThreshold)
                     return;

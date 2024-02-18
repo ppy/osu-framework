@@ -42,8 +42,7 @@ namespace osu.Framework.Bindables
                 if (precision.Equals(value))
                     return;
 
-                if (value.CompareTo(default) <= 0)
-                    throw new ArgumentOutOfRangeException(nameof(Precision), value, "Must be greater than 0.");
+                ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value.CompareTo(default));
 
                 SetPrecision(value, true, this);
             }
