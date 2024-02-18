@@ -590,15 +590,6 @@ namespace osu.Framework.Graphics.Veldrid
             boundIndexBuffer = indexBuffer;
         }
 
-        public void BindUniformBuffer(string blockName, IVeldridUniformBuffer veldridBuffer)
-        {
-            if (boundUniformBuffers.TryGetValue(blockName, out IVeldridUniformBuffer? current) && current == veldridBuffer)
-                return;
-
-            FlushCurrentBatch(FlushBatchSource.BindBuffer);
-            boundUniformBuffers[blockName] = veldridBuffer;
-        }
-
         private void ensureTextureUploadCommandsBegan()
         {
             if (beganTextureUpdateCommands)
@@ -804,10 +795,11 @@ namespace osu.Framework.Graphics.Veldrid
         {
         }
 
+        protected override void SetUniformBufferImplementation(string blockName, IUniformBuffer buffer)
+            => boundUniformBuffers[blockName] = (IVeldridUniformBuffer)buffer;
+
         public void RegisterUniformBufferForReset(IVeldridUniformBuffer buffer)
-        {
-            uniformBufferResetList.Add(buffer);
-        }
+            => uniformBufferResetList.Add(buffer);
 
         public void BindTextureResource(VeldridTextureResources resource, int unit) => boundTextureUnits[unit] = resource;
 

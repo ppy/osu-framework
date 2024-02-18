@@ -110,6 +110,7 @@ namespace osu.Framework.Graphics.Rendering
 
         private readonly DepthValue backBufferDepth = new DepthValue();
 
+        private readonly Dictionary<string, IUniformBuffer> boundUniformBuffers = new Dictionary<string, IUniformBuffer>();
         private readonly Stack<IVertexBatch<TexturedVertex2D>> quadBatches = new Stack<IVertexBatch<TexturedVertex2D>>();
         private readonly List<IVertexBuffer> vertexBuffersInUse = new List<IVertexBuffer>();
         private readonly List<IVertexBatch> batchResetList = new List<IVertexBatch>();
@@ -228,6 +229,7 @@ namespace osu.Framework.Graphics.Rendering
             Shader?.Unbind();
             Shader = null;
 
+            boundUniformBuffers.Clear();
             viewportStack.Clear();
             projectionMatrixStack.Clear();
             maskingStack.Clear();
@@ -1039,6 +1041,19 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         /// <param name="uniform">The uniform to update.</param>
         protected abstract void SetUniformImplementation<T>(IUniformWithValue<T> uniform) where T : unmanaged, IEquatable<T>;
+
+        public void BindUniformBuffer(string blockName, IUniformBuffer buffer)
+        {
+            if (boundUniformBuffers.TryGetValue(blockName, out IUniformBuffer? current) && current == buffer)
+                return;
+
+            FlushCurrentBatch(FlushBatchSource.BindBuffer);
+            SetUniformBufferImplementation(blockName, buffer);
+
+            boundUniformBuffers[blockName] = buffer;
+        }
+
+        protected abstract void SetUniformBufferImplementation(string blockName, IUniformBuffer buffer);
 
         #endregion
 

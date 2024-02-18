@@ -192,6 +192,9 @@ namespace osu.Framework.Graphics.OpenGL
             }
         }
 
+        protected override void SetUniformBufferImplementation(string blockName, IUniformBuffer buffer)
+            => boundUniformBuffers[blockName] = (IGLUniformBuffer)buffer;
+
         protected override bool SetTextureImplementation(INativeTexture? texture, int unit)
         {
             if (texture == null)
@@ -267,15 +270,6 @@ namespace osu.Framework.Graphics.OpenGL
                 GL.ClearStencil(clearInfo.Stencil);
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
-        }
-
-        public void BindUniformBuffer(string blockName, IGLUniformBuffer glBuffer)
-        {
-            if (boundUniformBuffers.TryGetValue(blockName, out IGLUniformBuffer? current) && current == glBuffer)
-                return;
-
-            FlushCurrentBatch(FlushBatchSource.BindBuffer);
-            boundUniformBuffers[blockName] = glBuffer;
         }
 
         public override void DrawVerticesImplementation(PrimitiveTopology topology, int vertexStart, int verticesCount)
