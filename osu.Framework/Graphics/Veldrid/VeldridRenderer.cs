@@ -20,6 +20,7 @@ using osu.Framework.Graphics.Veldrid.Buffers;
 using osu.Framework.Graphics.Veldrid.Buffers.Staging;
 using osu.Framework.Graphics.Veldrid.Shaders;
 using osu.Framework.Graphics.Veldrid.Textures;
+using osu.Framework.Graphics.Veldrid.Vertices;
 using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osuTK;
@@ -567,7 +568,7 @@ namespace osu.Framework.Graphics.Veldrid
                 return;
 
             Commands.SetVertexBuffer(0, buffer.Buffer);
-            pipeline.ShaderSet.VertexLayouts[0] = IVeldridVertexBuffer<T>.LAYOUT;
+            pipeline.ShaderSet.VertexLayouts[0] = VeldridVertexUtils<T>.Layout;
 
             FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
 
