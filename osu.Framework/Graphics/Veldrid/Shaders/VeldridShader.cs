@@ -59,8 +59,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
         internal void EnsureShaderInitialised()
         {
-            if (isDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not compile a disposed shader.");
+            ObjectDisposedException.ThrowIf(isDisposed, this);
 
             if (shaderInitialiseDelegate.State == RunState.Waiting)
                 shaderInitialiseDelegate.RunTask();
@@ -94,8 +93,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             if (buffer is not IVeldridUniformBuffer veldridBuffer)
                 throw new ArgumentException($"Buffer must be an {nameof(IVeldridUniformBuffer)}.");
 
-            if (isDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not retrieve uniforms from a disposed shader.");
+            ObjectDisposedException.ThrowIf(isDisposed, this);
 
             EnsureShaderInitialised();
 

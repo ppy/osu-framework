@@ -145,8 +145,7 @@ namespace osu.Framework.Graphics.Containers
 
             EnsureMutationAllowed($"load components via {nameof(LoadComponentsAsync)}");
 
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString());
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
             disposalCancellationSource ??= new CancellationTokenSource();
 
@@ -222,8 +221,7 @@ namespace osu.Framework.Graphics.Containers
             if (LoadState < LoadState.Loading)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponent)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString());
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
             loadComponents(components.ToList(), Dependencies, false);
         }

@@ -256,8 +256,7 @@ namespace osu.Framework.Audio.Track
 
         public override void Start()
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not start disposed tracks.");
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
             StartAsync().WaitSafely();
         }

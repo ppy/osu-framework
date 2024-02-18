@@ -97,8 +97,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public void Bind(bool forRendering)
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not bind disposed vertex buffers.");
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
             if (!isInitialised)
             {
