@@ -1391,7 +1391,7 @@ namespace osu.Framework.Platform
             Window?.Dispose();
 
             LoadingComponentsLogger.LogAndFlush();
-            Logger.Flush();
+            Logger.Dispose();
         }
 
         public void Dispose()
