@@ -10,6 +10,9 @@ using osu.Framework.Graphics.Veldrid.Textures;
 
 namespace osu.Framework.Graphics.Rendering.Deferred
 {
+    /// <summary>
+    /// Processes the render events for a single frame.
+    /// </summary>
     internal readonly ref struct EventProcessor
     {
         private readonly DeferredContext context;

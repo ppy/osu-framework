@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         }
 
         protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer)
-            => Context.EnqueueEvent(new SetFrameBufferEvent(frameBuffer == null ? Context.NullReference() : Context.Reference(frameBuffer)));
+            => Context.EnqueueEvent(new SetFrameBufferEvent(Context.Reference(frameBuffer)));
 
         protected override void SetUniformBufferImplementation(string blockName, IUniformBuffer buffer)
             => Context.EnqueueEvent(new SetUniformBufferEvent(Context.Reference(blockName), Context.Reference(buffer)));

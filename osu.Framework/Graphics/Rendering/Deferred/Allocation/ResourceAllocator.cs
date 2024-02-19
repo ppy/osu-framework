@@ -11,14 +11,20 @@ using osu.Framework.Development;
 
 namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
 {
+    /// <summary>
+    /// Handles allocation of objects in a deferred rendering context.
+    /// </summary>
     internal class ResourceAllocator
     {
-        private const int min_buffer_size = 1024 * 1024; // 1MB
+        private const int min_buffer_size = 1024 * 1024; // 1MB per buffer.
 
         private readonly List<object> resources = new List<object>();
         private readonly List<MemoryBuffer> memoryBuffers = new List<MemoryBuffer>();
 
-        public void Reset()
+        /// <summary>
+        /// Prepares this <see cref="ResourceAllocator"/> for a new frame.
+        /// </summary>
+        public void NewFrame()
         {
             ThreadSafety.EnsureDrawThread();
 
@@ -32,24 +38,44 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
             resources.Add(null!);
         }
 
+        /// <summary>
+        /// References an objet.
+        /// </summary>
+        /// <param name="obj">The object.</param>
+        /// <typeparam name="T">The object type.</typeparam>
+        /// <returns>A reference to the object. May be dereferenced via <see cref="Dereference{T}"/>.</returns>
         public ResourceReference Reference<T>(T obj)
-            where T : class
+            where T : class?
         {
             ThreadSafety.EnsureDrawThread();
+
+            if (obj == null)
+                return new ResourceReference(0);
 
             resources.Add(obj);
             return new ResourceReference(resources.Count - 1);
         }
 
-        public object Dereference(ResourceReference reference)
+        /// <summary>
+        /// Dereferences an object.
+        /// </summary>
+        /// <param name="reference">The reference.</param>
+        /// <typeparam name="T">The object type.</typeparam>
+        /// <returns>The object.</returns>
+        public T Dereference<T>(ResourceReference reference)
+            where T : class?
         {
             ThreadSafety.EnsureDrawThread();
 
-            return resources[reference.Id];
+            return (T)resources[reference.Id];
         }
 
-        public ResourceReference NullReference() => new ResourceReference(0);
-
+        /// <summary>
+        /// Allocates a region of memory containing an object.
+        /// </summary>
+        /// <param name="data">The object.</param>
+        /// <typeparam name="T">The object type.</typeparam>
+        /// <returns>A reference to the memory region containing the object.</returns>
         public MemoryReference AllocateObject<T>(T data)
             where T : unmanaged
         {
@@ -60,6 +86,12 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
             return reference;
         }
 
+        /// <summary>
+        /// Allocates a region of memory containing some data.
+        /// </summary>
+        /// <param name="data">The data.</param>
+        /// <typeparam name="T">The data type.</typeparam>
+        /// <returns>A reference to the memory region containing the data.</returns>
         public MemoryReference AllocateRegion<T>(ReadOnlySpan<T> data)
             where T : unmanaged
         {
@@ -72,6 +104,11 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
             return region;
         }
 
+        /// <summary>
+        /// Allocates an empty memory region of the specified length.
+        /// </summary>
+        /// <param name="length">The length.</param>
+        /// <returns>A reference to the memory region.</returns>
         public MemoryReference AllocateRegion(int length)
         {
             ThreadSafety.EnsureDrawThread();
@@ -82,6 +119,11 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
             return memoryBuffers[^1].Reserve(length);
         }
 
+        /// <summary>
+        /// Retrieves a <see cref="Span{T}"/> over a referenced memory region.
+        /// </summary>
+        /// <param name="reference">The memory reference.</param>
+        /// <returns>The <see cref="Span{T}"/>.</returns>
         public Span<byte> GetRegion(MemoryReference reference)
         {
             ThreadSafety.EnsureDrawThread();
@@ -116,7 +158,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
             public Span<byte> GetBuffer(MemoryReference reference)
             {
                 Debug.Assert(reference.BufferId == Id);
-                return buffer.AsSpan().Slice(reference.Index, reference.Length);
+                return buffer.AsSpan().Slice(reference.Offset, reference.Length);
             }
 
             public void Dispose()

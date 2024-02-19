@@ -9,6 +9,9 @@ using Veldrid;
 
 namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
 {
+    /// <summary>
+    /// Handles contiguous allocation of all uniform buffer memory.
+    /// </summary>
     internal class UniformBufferManager
     {
         /// <summary>
@@ -29,8 +32,8 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
         private const int max_buffer_size = 1024 * 1024;
 
         private readonly DeferredContext context;
-        private readonly DeferredBufferPool uniformBufferPool;
-        private readonly List<PooledBuffer> inUseBuffers = new List<PooledBuffer>();
+        private readonly DeviceBufferPool uniformBufferPool;
+        private readonly List<IPooledDeviceBuffer> inUseBuffers = new List<IPooledDeviceBuffer>();
         private readonly List<MappedResource> mappedBuffers = new List<MappedResource>();
 
         /// <summary>
@@ -46,9 +49,14 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
             this.context = context;
 
             bufferSize = context.Device.Features.BufferRangeBinding ? max_buffer_size : buffer_chunk_size;
-            uniformBufferPool = new DeferredBufferPool(context.VeldridDevice, (uint)bufferSize, BufferUsage.UniformBuffer, nameof(UniformBufferManager));
+            uniformBufferPool = new DeviceBufferPool(context.VeldridDevice, (uint)bufferSize, BufferUsage.UniformBuffer, nameof(UniformBufferManager));
         }
 
+        /// <summary>
+        /// Writes data to the uniform buffer.
+        /// </summary>
+        /// <param name="memory">The data to write.</param>
+        /// <returns>A reference to the written data.</returns>
         public UniformBufferReference Write(in MemoryReference memory)
         {
             if (currentWriteIndex + memory.Length > bufferSize)
@@ -59,7 +67,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
 
             if (currentBuffer == inUseBuffers.Count)
             {
-                PooledBuffer newBuffer = uniformBufferPool.Get();
+                IPooledDeviceBuffer newBuffer = uniformBufferPool.Get();
 
                 inUseBuffers.Add(newBuffer);
                 mappedBuffers.Add(context.Device.Map(newBuffer.Buffer, MapMode.Write));
@@ -91,6 +99,9 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
                 writeIndex);
         }
 
+        /// <summary>
+        /// Commits all written data.
+        /// </summary>
         public void Commit()
         {
             foreach (var b in mappedBuffers)
@@ -99,7 +110,10 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
             mappedBuffers.Clear();
         }
 
-        public void Reset()
+        /// <summary>
+        /// Prepares this <see cref="UniformBufferManager"/> for a new frame.
+        /// </summary>
+        public void NewFrame()
         {
             uniformBufferPool.NewFrame();
             inUseBuffers.Clear();

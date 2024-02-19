@@ -3,9 +3,9 @@
 
 namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
 {
-    internal readonly record struct ResourceReference(int Id)
-    {
-        public T Dereference<T>(DeferredRenderer renderer)
-            => (T)renderer.Context.Dereference(this);
-    }
+    /// <summary>
+    /// An object referenced via <see cref="ResourceAllocator"/>.
+    /// </summary>
+    /// <param name="Id">The object identifier.</param>
+    internal readonly record struct ResourceReference(int Id);
 }

@@ -9,6 +9,9 @@ using osu.Framework.Graphics.Rendering.Deferred.Events;
 
 namespace osu.Framework.Graphics.Rendering.Deferred
 {
+    /// <summary>
+    /// Reads an <see cref="EventList"/>. Semantically, this is very similar to <see cref="IEnumerator{T}"/>.
+    /// </summary>
     internal ref struct EventListReader
     {
         private readonly ResourceAllocator allocator;
@@ -24,6 +27,10 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             eventIndex = 0;
         }
 
+        /// <summary>
+        /// Advances to the next (or first) event in the list.
+        /// </summary>
+        /// <returns>Whether an event can be read.</returns>
         public bool Next()
         {
             if (eventIndex < events.Count)
@@ -37,16 +44,35 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             return false;
         }
 
+        /// <summary>
+        /// Reads the current event type.
+        /// </summary>
+        /// <remarks>
+        /// Not valid for use if <see cref="Next"/> returns <c>false</c>.
+        /// </remarks>
         public readonly ref RenderEventType CurrentType()
             => ref MemoryMarshal.AsRef<RenderEventType>(eventData);
 
+        /// <summary>
+        /// Reads the current event.
+        /// </summary>
+        /// <typeparam name="T">The expected event type.</typeparam>
+        /// <remarks>
+        /// Not valid for use if <see cref="Next"/> returns <c>false</c>.
+        /// </remarks>
         public readonly ref T Current<T>()
             where T : unmanaged, IRenderEvent
             => ref MemoryMarshal.AsRef<T>(eventData[1..]);
 
+        /// <summary>
+        /// The index of the current event in the list.
+        /// </summary>
         public int CurrentIndex()
             => eventIndex - 1;
 
+        /// <summary>
+        /// Resets this <see cref="EventListReader"/> to the start of the list.
+        /// </summary>
         public void Reset()
         {
             eventIndex = 0;

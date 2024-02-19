@@ -19,13 +19,27 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             this.allocator = allocator;
         }
 
-        public void Reset()
+        /// <summary>
+        /// Prepares this <see cref="EventList"/> for a new frame.
+        /// </summary>
+        public void NewFrame()
             => events.Clear();
 
+        /// <summary>
+        /// Enqueues a render event to the list.
+        /// </summary>
+        /// <param name="renderEvent">The render event.</param>
+        /// <typeparam name="T">The event type.</typeparam>
         public void Enqueue<T>(in T renderEvent)
             where T : unmanaged, IRenderEvent
             => events.Add(createEvent(renderEvent));
 
+        /// <summary>
+        /// Replaces the current event referenced by the <see cref="EventListReader"/> with a new one.
+        /// </summary>
+        /// <param name="reader">The <see cref="EventListReader"/>.</param>
+        /// <param name="newEvent">The new render event.</param>
+        /// <typeparam name="T">The new event type.</typeparam>
         public void ReplaceCurrent<T>(EventListReader reader, in T newEvent)
             where T : unmanaged, IRenderEvent
             => events[reader.CurrentIndex()] = createEvent(newEvent);
@@ -44,6 +58,10 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             return reference;
         }
 
+        /// <summary>
+        /// Creates a reader of this <see cref="EventList"/>.
+        /// </summary>
+        /// <returns>The <see cref="EventListReader"/>.</returns>
         public EventListReader CreateReader()
             => new EventListReader(allocator, events);
     }

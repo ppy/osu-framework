@@ -15,6 +15,9 @@ using Veldrid;
 
 namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
 {
+    /// <summary>
+    /// Handles contiguous allocation of all vertex memory.
+    /// </summary>
     internal class VertexManager
     {
         private const int buffer_size = 2 * 1024 * 1024; // 2MB per VBO.
@@ -23,8 +26,8 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
             => context.VeldridDevice.Graphics;
 
         private readonly DeferredContext context;
-        private readonly DeferredBufferPool vertexBufferPool;
-        private readonly List<PooledBuffer> inUseBuffers = new List<PooledBuffer>();
+        private readonly DeviceBufferPool vertexBufferPool;
+        private readonly List<IPooledDeviceBuffer> inUseBuffers = new List<IPooledDeviceBuffer>();
         private readonly List<MappedResource> mappedBuffers = new List<MappedResource>();
         private readonly VeldridIndexBuffer?[] indexBuffers = new VeldridIndexBuffer?[2];
 
@@ -36,9 +39,14 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
         public VertexManager(DeferredContext context)
         {
             this.context = context;
-            vertexBufferPool = new DeferredBufferPool(context.VeldridDevice, buffer_size, BufferUsage.VertexBuffer, nameof(VertexManager));
+            vertexBufferPool = new DeviceBufferPool(context.VeldridDevice, buffer_size, BufferUsage.VertexBuffer, nameof(VertexManager));
         }
 
+        /// <summary>
+        /// Writes a primitive to the vertex buffer.
+        /// </summary>
+        /// <param name="primitive">The primitive to write. This should be exactly the full size of a primitive (triangle or quad).</param>
+        /// <typeparam name="T">The type of primitive.</typeparam>
         public void Write<T>(in MemoryReference primitive)
             where T : unmanaged, IEquatable<T>, IVertex
         {
@@ -54,7 +62,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
 
             if (currentWriteBuffer == inUseBuffers.Count)
             {
-                PooledBuffer newBuffer = vertexBufferPool.Get();
+                IPooledDeviceBuffer newBuffer = vertexBufferPool.Get();
 
                 inUseBuffers.Add(newBuffer);
                 mappedBuffers.Add(context.Device.Map(newBuffer.Buffer, MapMode.Write));
@@ -66,6 +74,9 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
             FrameStatistics.Increment(StatisticsCounterType.VerticesUpl);
         }
 
+        /// <summary>
+        /// Commits all written data.
+        /// </summary>
         public void Commit()
         {
             foreach (var b in mappedBuffers)
@@ -74,6 +85,15 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
             mappedBuffers.Clear();
         }
 
+        /// <summary>
+        /// Draws vertices from the vertex buffer.
+        /// </summary>
+        /// <param name="vertexCount">The number of vertices to draw.</param>
+        /// <param name="topology">The vertex topology.</param>
+        /// <param name="indexLayout">The index buffer layout.</param>
+        /// <param name="primitiveSize">The number of vertices in a primitive.</param>
+        /// <typeparam name="T">The vertex type.</typeparam>
+        /// <exception cref="ArgumentOutOfRangeException">If the <paramref name="indexLayout"/> is not supported.</exception>
         public void Draw<T>(int vertexCount, PrimitiveTopology topology, VeldridIndexLayout indexLayout, int primitiveSize)
             where T : unmanaged, IEquatable<T>, IVertex
         {
