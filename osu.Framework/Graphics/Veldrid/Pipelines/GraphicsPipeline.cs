@@ -306,6 +306,17 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
             FrameStatistics.Add(StatisticsCounterType.VerticesDraw, verticesCount);
         }
 
+        /// <summary>
+        /// Generates mipmaps for a given texture.
+        /// </summary>
+        /// <param name="texture">The texture.</param>
+        public void GenerateMipmaps(VeldridTexture texture)
+        {
+            IReadOnlyList<VeldridTextureResources> resources = texture.GetResourceList();
+            for (int i = 0; i < resources.Count; i++)
+                Commands.GenerateMipmaps(resources[i].Texture);
+        }
+
         private Pipeline createPipeline()
         {
             if (!pipelineCache.TryGetValue(pipelineDesc, out var instance))

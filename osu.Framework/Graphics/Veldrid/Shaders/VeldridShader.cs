@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         private readonly string name;
         private readonly VeldridShaderPart[] parts;
         private readonly ShaderCompilationStore compilationStore;
-        private readonly VeldridRenderer renderer;
+        private readonly IVeldridRenderer renderer;
 
         public Shader[]? Shaders;
 
@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         private readonly Dictionary<string, VeldridUniformLayout> uniformLayouts = new Dictionary<string, VeldridUniformLayout>();
         private readonly List<VeldridUniformLayout> textureLayouts = new List<VeldridUniformLayout>();
 
-        public VeldridShader(VeldridRenderer renderer, string name, VeldridShaderPart[] parts, ShaderCompilationStore compilationStore)
+        public VeldridShader(IVeldridRenderer renderer, string name, VeldridShaderPart[] parts, ShaderCompilationStore compilationStore)
         {
             this.name = name;
             this.parts = parts;

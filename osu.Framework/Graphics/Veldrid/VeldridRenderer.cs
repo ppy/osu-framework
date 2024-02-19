@@ -26,7 +26,7 @@ using PrimitiveTopology = osu.Framework.Graphics.Rendering.PrimitiveTopology;
 
 namespace osu.Framework.Graphics.Veldrid
 {
-    internal class VeldridRenderer : Renderer
+    internal class VeldridRenderer : Renderer, IVeldridRenderer
     {
         protected internal override bool VerticalSync
         {
@@ -260,11 +260,20 @@ namespace osu.Framework.Graphics.Veldrid
         public void RegisterUniformBufferForReset(IVeldridUniformBuffer buffer)
             => uniformBufferResetList.Add(buffer);
 
-        public void GenerateMipmaps(global::Veldrid.Texture texture)
-            => graphicsPipeline.Commands.GenerateMipmaps(texture);
-
         public CommandList BufferUpdateCommands
             => bufferUpdatePipeline.Commands;
+
+        void IVeldridRenderer.BindShader(VeldridShader shader)
+            => BindShader(shader);
+
+        void IVeldridRenderer.UnbindShader(VeldridShader shader)
+            => UnbindShader(shader);
+
+        void IVeldridRenderer.EnqueueTextureUpload(VeldridTexture texture)
+            => EnqueueTextureUpload(texture);
+
+        void IVeldridRenderer.GenerateMipmaps(VeldridTexture texture)
+            => graphicsPipeline.GenerateMipmaps(texture);
 
         protected override IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType)
             => new VeldridShaderPart(this, rawData, partType, store);
