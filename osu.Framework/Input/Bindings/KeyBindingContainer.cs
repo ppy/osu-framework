@@ -6,10 +6,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Extensions.ListExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
+using osu.Framework.Lists;
 using osu.Framework.Logging;
 using osuTK;
 
@@ -45,7 +47,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// All actions in a currently pressed state.
         /// </summary>
-        public IEnumerable<T> PressedActions => pressedActions;
+        public SlimReadOnlyListWrapper<T> PressedActions => pressedActions.AsSlimReadOnly();
 
         private readonly Dictionary<IKeyBinding, List<Drawable>> keyBindingQueues = new Dictionary<IKeyBinding, List<Drawable>>();
         private readonly List<Drawable> queue = new List<Drawable>();
