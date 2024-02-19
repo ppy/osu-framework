@@ -301,9 +301,6 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
             int indexStart = currentIndexBuffer.TranslateToIndex(vertexStart);
             int indicesCount = currentIndexBuffer.TranslateToIndex(verticesCount);
             Commands.DrawIndexed((uint)indicesCount, 1, (uint)indexStart, vertexIndexOffset, 0);
-
-            FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
-            FrameStatistics.Add(StatisticsCounterType.VerticesDraw, verticesCount);
         }
 
         private Pipeline createPipeline()
