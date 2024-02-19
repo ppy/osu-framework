@@ -28,8 +28,6 @@ namespace osu.Framework.Graphics.Veldrid
 {
     internal class VeldridRenderer : Renderer
     {
-        public GraphicsSurfaceType SurfaceType => veldridDevice.SurfaceType;
-
         protected internal override bool VerticalSync
         {
             get => veldridDevice.VerticalSync;
@@ -42,15 +40,26 @@ namespace osu.Framework.Graphics.Veldrid
             set => veldridDevice.AllowTearing = value;
         }
 
-        public override bool IsDepthRangeZeroToOne => veldridDevice.IsDepthRangeZeroToOne;
-        public override bool IsUvOriginTopLeft => veldridDevice.IsUvOriginTopLeft;
-        public override bool IsClipSpaceYInverted => veldridDevice.IsClipSpaceYInverted;
+        public override bool IsDepthRangeZeroToOne
+            => veldridDevice.IsDepthRangeZeroToOne;
 
-        public bool UseStructuredBuffers => veldridDevice.UseStructuredBuffers;
+        public override bool IsUvOriginTopLeft
+            => veldridDevice.IsUvOriginTopLeft;
 
-        public GraphicsDevice Device => veldridDevice.Device;
+        public override bool IsClipSpaceYInverted
+            => veldridDevice.IsClipSpaceYInverted;
 
-        public ResourceFactory Factory => veldridDevice.Factory;
+        public bool UseStructuredBuffers
+            => veldridDevice.UseStructuredBuffers;
+
+        public GraphicsDevice Device
+            => veldridDevice.Device;
+
+        public ResourceFactory Factory
+            => veldridDevice.Factory;
+
+        public GraphicsSurfaceType SurfaceType
+            => veldridDevice.SurfaceType;
 
         private readonly HashSet<IVeldridUniformBuffer> uniformBufferResetList = new HashSet<IVeldridUniformBuffer>();
 
@@ -96,17 +105,26 @@ namespace osu.Framework.Graphics.Veldrid
             graphicsPipeline.End();
         }
 
-        protected internal override void SwapBuffers() => veldridDevice.SwapBuffers();
-        protected internal override void WaitUntilIdle() => veldridDevice.WaitUntilIdle();
-        protected internal override void WaitUntilNextFrameReady() => veldridDevice.WaitUntilNextFrameReady();
+        protected internal override void SwapBuffers()
+            => veldridDevice.SwapBuffers();
 
-        protected internal override void MakeCurrent() => veldridDevice.MakeCurrent();
+        protected internal override void WaitUntilIdle()
+            => veldridDevice.WaitUntilIdle();
 
-        protected internal override void ClearCurrent() => veldridDevice.ClearCurrent();
+        protected internal override void WaitUntilNextFrameReady()
+            => veldridDevice.WaitUntilNextFrameReady();
 
-        protected override void ClearImplementation(ClearInfo clearInfo) => graphicsPipeline.Clear(clearInfo);
+        protected internal override void MakeCurrent()
+            => veldridDevice.MakeCurrent();
 
-        protected override void SetScissorStateImplementation(bool enabled) => graphicsPipeline.SetScissorState(enabled);
+        protected internal override void ClearCurrent()
+            => veldridDevice.ClearCurrent();
+
+        protected override void ClearImplementation(ClearInfo clearInfo)
+            => graphicsPipeline.Clear(clearInfo);
+
+        protected override void SetScissorStateImplementation(bool enabled)
+            => graphicsPipeline.SetScissorState(enabled);
 
         protected override bool SetTextureImplementation(INativeTexture? texture, int unit)
         {
@@ -116,38 +134,6 @@ namespace osu.Framework.Graphics.Veldrid
             graphicsPipeline.AttachTexture(unit, veldridTexture);
             return true;
         }
-
-        /// <summary>
-        /// Updates a <see cref="global::Veldrid.Texture"/> with a <paramref name="data"/> at the specified coordinates.
-        /// </summary>
-        /// <param name="texture">The <see cref="global::Veldrid.Texture"/> to update.</param>
-        /// <param name="x">The X coordinate of the update region.</param>
-        /// <param name="y">The Y coordinate of the update region.</param>
-        /// <param name="width">The width of the update region.</param>
-        /// <param name="height">The height of the update region.</param>
-        /// <param name="level">The texture level.</param>
-        /// <param name="data">The texture data.</param>
-        /// <typeparam name="T">The pixel type.</typeparam>
-        public void UpdateTexture<T>(global::Veldrid.Texture texture, int x, int y, int width, int height, int level, ReadOnlySpan<T> data)
-            where T : unmanaged
-        {
-            ensureTextureUploadPipelineBegan();
-            textureUploadPipeline.UpdateTexture(texture, x, y, width, height, level, data);
-        }
-
-        /// <summary>
-        /// Updates a <see cref="global::Veldrid.Texture"/> with a <paramref name="data"/> at the specified coordinates.
-        /// </summary>
-        /// <param name="texture">The <see cref="global::Veldrid.Texture"/> to update.</param>
-        /// <param name="x">The X coordinate of the update region.</param>
-        /// <param name="y">The Y coordinate of the update region.</param>
-        /// <param name="width">The width of the update region.</param>
-        /// <param name="height">The height of the update region.</param>
-        /// <param name="level">The texture level.</param>
-        /// <param name="data">The texture data.</param>
-        /// <param name="rowLengthInBytes">The number of bytes per row of the image to read from <paramref name="data"/>.</param>
-        public void UpdateTexture(global::Veldrid.Texture texture, int x, int y, int width, int height, int level, IntPtr data, int rowLengthInBytes)
-            => bufferUpdatePipeline.UpdateTexture(texture, x, y, width, height, level, data, rowLengthInBytes);
 
         protected override void SetShaderImplementation(IShader shader)
             => graphicsPipeline.SetShader((VeldridShader)shader);
@@ -226,10 +212,59 @@ namespace osu.Framework.Graphics.Veldrid
         /// Checks whether the given frame buffer is currently bound.
         /// </summary>
         /// <param name="frameBuffer">The frame buffer to check.</param>
-        public bool IsFrameBufferBound(IFrameBuffer frameBuffer) => FrameBuffer == frameBuffer;
+        public bool IsFrameBufferBound(IFrameBuffer frameBuffer)
+            => FrameBuffer == frameBuffer;
 
         protected internal override Image<Rgba32> TakeScreenshot()
             => veldridDevice.TakeScreenshot();
+
+        /// <summary>
+        /// Updates a <see cref="global::Veldrid.Texture"/> with a <paramref name="data"/> at the specified coordinates.
+        /// </summary>
+        /// <param name="texture">The <see cref="global::Veldrid.Texture"/> to update.</param>
+        /// <param name="x">The X coordinate of the update region.</param>
+        /// <param name="y">The Y coordinate of the update region.</param>
+        /// <param name="width">The width of the update region.</param>
+        /// <param name="height">The height of the update region.</param>
+        /// <param name="level">The texture level.</param>
+        /// <param name="data">The texture data.</param>
+        /// <typeparam name="T">The pixel type.</typeparam>
+        public void UpdateTexture<T>(global::Veldrid.Texture texture, int x, int y, int width, int height, int level, ReadOnlySpan<T> data)
+            where T : unmanaged
+        {
+            ensureTextureUploadPipelineBegan();
+            textureUploadPipeline.UpdateTexture(texture, x, y, width, height, level, data);
+        }
+
+        /// <summary>
+        /// Updates a <see cref="global::Veldrid.Texture"/> with a <paramref name="data"/> at the specified coordinates.
+        /// </summary>
+        /// <param name="texture">The <see cref="global::Veldrid.Texture"/> to update.</param>
+        /// <param name="x">The X coordinate of the update region.</param>
+        /// <param name="y">The Y coordinate of the update region.</param>
+        /// <param name="width">The width of the update region.</param>
+        /// <param name="height">The height of the update region.</param>
+        /// <param name="level">The texture level.</param>
+        /// <param name="data">The texture data.</param>
+        /// <param name="rowLengthInBytes">The number of bytes per row of the image to read from <paramref name="data"/>.</param>
+        public void UpdateTexture(global::Veldrid.Texture texture, int x, int y, int width, int height, int level, IntPtr data, int rowLengthInBytes)
+            => bufferUpdatePipeline.UpdateTexture(texture, x, y, width, height, level, data, rowLengthInBytes);
+
+        protected override void SetUniformImplementation<T>(IUniformWithValue<T> uniform)
+        {
+        }
+
+        protected override void SetUniformBufferImplementation(string blockName, IUniformBuffer buffer)
+            => graphicsPipeline.AttachUniformBuffer(blockName, (IVeldridUniformBuffer)buffer);
+
+        public void RegisterUniformBufferForReset(IVeldridUniformBuffer buffer)
+            => uniformBufferResetList.Add(buffer);
+
+        public void GenerateMipmaps(global::Veldrid.Texture texture)
+            => graphicsPipeline.Commands.GenerateMipmaps(texture);
+
+        public CommandList BufferUpdateCommands
+            => bufferUpdatePipeline.Commands;
 
         protected override IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType)
             => new VeldridShaderPart(this, rawData, partType, store);
@@ -241,16 +276,12 @@ namespace osu.Framework.Graphics.Veldrid
             => new VeldridFrameBuffer(this, renderBufferFormats?.ToPixelFormats(), filteringMode.ToSamplerFilter());
 
         protected override IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology primitiveType)
-        {
             // maxBuffers is ignored because batches are not allowed to wrap around in Veldrid.
-            return new VeldridLinearBatch<TVertex>(this, size, primitiveType);
-        }
+            => new VeldridLinearBatch<TVertex>(this, size, primitiveType);
 
         protected override IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers)
-        {
             // maxBuffers is ignored because batches are not allowed to wrap around in Veldrid.
-            return new VeldridQuadBatch<TVertex>(this, size);
-        }
+            => new VeldridQuadBatch<TVertex>(this, size);
 
         protected override IUniformBuffer<TData> CreateUniformBuffer<TData>()
             => new VeldridUniformBuffer<TData>(this);
@@ -296,19 +327,5 @@ namespace osu.Framework.Graphics.Veldrid
                     }
             }
         }
-
-        protected override void SetUniformImplementation<T>(IUniformWithValue<T> uniform)
-        {
-        }
-
-        protected override void SetUniformBufferImplementation(string blockName, IUniformBuffer buffer)
-            => graphicsPipeline.AttachUniformBuffer(blockName, (IVeldridUniformBuffer)buffer);
-
-        public void RegisterUniformBufferForReset(IVeldridUniformBuffer buffer)
-            => uniformBufferResetList.Add(buffer);
-
-        public void GenerateMipmaps(global::Veldrid.Texture texture) => graphicsPipeline.Commands.GenerateMipmaps(texture);
-
-        public CommandList BufferUpdateCommands => bufferUpdatePipeline.Commands;
     }
 }
