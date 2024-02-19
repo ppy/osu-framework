@@ -184,6 +184,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     }
                     else
                     {
+                        layout.Elements[0].Options |= ResourceLayoutElementOptions.DynamicBinding;
+
                         switch (layout.Elements[0].Kind)
                         {
                             case ResourceKind.UniformBuffer:
