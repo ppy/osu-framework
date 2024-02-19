@@ -13,22 +13,13 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
     /// </summary>
     internal class BasicPipeline : IBasicPipeline
     {
-        /// <summary>
-        /// The platform graphics device.
-        /// </summary>
         public GraphicsDevice Device
             => device.Device;
 
-        /// <summary>
-        /// The platform graphics resource factory.
-        /// </summary>
         public ResourceFactory Factory
             => device.Factory;
 
-        /// <summary>
-        /// The command list.
-        /// </summary>
-        public readonly CommandList Commands;
+        public CommandList Commands { get; }
 
         private readonly VeldridDevice device;
 
