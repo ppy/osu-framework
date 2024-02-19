@@ -22,7 +22,7 @@ using Texture = Veldrid.Texture;
 
 namespace osu.Framework.Graphics.Veldrid.Textures
 {
-    internal class VeldridTexture : INativeTexture
+    internal class VeldridTexture : INativeTexture, IVeldridTexture
     {
         private readonly Queue<ITextureUpload> uploadQueue = new Queue<ITextureUpload>();
 
@@ -368,7 +368,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             if (uploadedRegions.Count != 0 && !manualMipmaps)
             {
                 Debug.Assert(resources != null);
-                Renderer.Commands.GenerateMipmaps(resources.Texture);
+                Renderer.GenerateMipmaps(resources.Texture);
             }
 
             #endregion

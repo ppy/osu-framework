@@ -14,7 +14,7 @@ using Texture = Veldrid.Texture;
 
 namespace osu.Framework.Graphics.Veldrid.Buffers
 {
-    internal class VeldridFrameBuffer : IFrameBuffer
+    internal class VeldridFrameBuffer : IFrameBuffer, IVeldridFrameBuffer
     {
         public osu.Framework.Graphics.Textures.Texture Texture { get; }
 
