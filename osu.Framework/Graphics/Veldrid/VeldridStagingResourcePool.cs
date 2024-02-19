@@ -12,14 +12,14 @@ namespace osu.Framework.Graphics.Veldrid
     internal abstract class VeldridStagingResourcePool<T>
         where T : class, IDisposable
     {
-        protected readonly SimplePipeline Pipeline;
+        protected readonly BasicPipeline Pipeline;
 
         private readonly List<PooledUsage> available = new List<PooledUsage>();
         private readonly List<PooledUsage> used = new List<PooledUsage>();
 
         private readonly GlobalStatistic<ResourcePoolUsageStatistic> usageStat;
 
-        protected VeldridStagingResourcePool(SimplePipeline pipeline, string name)
+        protected VeldridStagingResourcePool(BasicPipeline pipeline, string name)
         {
             Pipeline = pipeline;
 

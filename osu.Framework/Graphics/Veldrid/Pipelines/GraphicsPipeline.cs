@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
     /// <summary>
     /// A pipeline that facilitates drawing.
     /// </summary>
-    internal class GraphicsPipeline : SimplePipeline
+    internal class GraphicsPipeline : BasicPipeline
     {
         private static readonly GlobalStatistic<int> stat_graphics_pipeline_created = GlobalStatistics.Get<int>(nameof(VeldridRenderer), "Total pipelines created");
 

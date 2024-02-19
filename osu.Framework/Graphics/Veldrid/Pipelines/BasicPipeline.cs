@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
     /// <summary>
     /// A non-graphical pipeline that provides a command list and handles basic tasks like uploading textures.
     /// </summary>
-    internal class SimplePipeline
+    internal class BasicPipeline
     {
         public GraphicsDevice Device => device.Device;
 
@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
         private readonly VeldridStagingTexturePool stagingTexturePool;
         private readonly VeldridDevice device;
 
-        public SimplePipeline(VeldridDevice device)
+        public BasicPipeline(VeldridDevice device)
         {
             this.device = device;
 

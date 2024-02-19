@@ -8,7 +8,7 @@ namespace osu.Framework.Graphics.Veldrid
 {
     internal class VeldridStagingTexturePool : VeldridStagingResourcePool<Texture>
     {
-        public VeldridStagingTexturePool(SimplePipeline pipeline)
+        public VeldridStagingTexturePool(BasicPipeline pipeline)
             : base(pipeline, nameof(VeldridStagingTexturePool))
         {
         }

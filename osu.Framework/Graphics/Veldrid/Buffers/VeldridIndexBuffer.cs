@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         /// </summary>
         public int VertexCapacity { get; }
 
-        public VeldridIndexBuffer(SimplePipeline pipeline, VeldridIndexLayout layout, int verticesCount)
+        public VeldridIndexBuffer(BasicPipeline pipeline, VeldridIndexLayout layout, int verticesCount)
         {
             Layout = layout;
 

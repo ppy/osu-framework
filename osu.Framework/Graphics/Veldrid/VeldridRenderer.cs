@@ -65,8 +65,8 @@ namespace osu.Framework.Graphics.Veldrid
 
         private VeldridDevice veldridDevice = null!;
         private GraphicsPipeline graphicsPipeline = null!;
-        private SimplePipeline bufferUpdatePipeline = null!;
-        private SimplePipeline textureUploadPipeline = null!;
+        private BasicPipeline bufferUpdatePipeline = null!;
+        private BasicPipeline textureUploadPipeline = null!;
 
         private bool beganTextureUploadPipeline;
         private VeldridIndexBuffer? linearIndexBuffer;
@@ -76,8 +76,8 @@ namespace osu.Framework.Graphics.Veldrid
         {
             veldridDevice = new VeldridDevice(graphicsSurface);
             graphicsPipeline = new GraphicsPipeline(veldridDevice);
-            bufferUpdatePipeline = new SimplePipeline(veldridDevice);
-            textureUploadPipeline = new SimplePipeline(veldridDevice);
+            bufferUpdatePipeline = new BasicPipeline(veldridDevice);
+            textureUploadPipeline = new BasicPipeline(veldridDevice);
 
             MaxTextureSize = veldridDevice.MaxTextureSize;
         }
