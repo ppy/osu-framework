@@ -10,6 +10,21 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
     internal interface IBasicPipeline
     {
         /// <summary>
+        /// The platform graphics device.
+        /// </summary>
+        GraphicsDevice Device { get; }
+
+        /// <summary>
+        /// The platform graphics resource factory.
+        /// </summary>
+        ResourceFactory Factory { get; }
+
+        /// <summary>
+        /// The command list.
+        /// </summary>
+        CommandList Commands { get; }
+
+        /// <summary>
         /// Updates a <see cref="global::Veldrid.Texture"/> with a <paramref name="data"/> at the specified coordinates.
         /// </summary>
         /// <param name="texture">The <see cref="global::Veldrid.Texture"/> to update.</param>
