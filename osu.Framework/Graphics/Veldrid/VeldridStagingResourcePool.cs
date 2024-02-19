@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using osu.Framework.Graphics.Veldrid.Pipelines;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Veldrid
@@ -12,16 +11,16 @@ namespace osu.Framework.Graphics.Veldrid
     internal abstract class VeldridStagingResourcePool<T>
         where T : class, IDisposable
     {
-        protected readonly BasicPipeline Pipeline;
+        protected readonly VeldridDevice Device;
 
         private readonly List<PooledUsage> available = new List<PooledUsage>();
         private readonly List<PooledUsage> used = new List<PooledUsage>();
 
         private readonly GlobalStatistic<ResourcePoolUsageStatistic> usageStat;
 
-        protected VeldridStagingResourcePool(BasicPipeline pipeline, string name)
+        protected VeldridStagingResourcePool(VeldridDevice device, string name)
         {
-            Pipeline = pipeline;
+            Device = device;
 
             usageStat = GlobalStatistics.Get<ResourcePoolUsageStatistic>(nameof(VeldridRenderer), $"{name} usage");
             usageStat.Value = new ResourcePoolUsageStatistic();
@@ -38,7 +37,7 @@ namespace osu.Framework.Graphics.Veldrid
 
                 if (match(existing.Resource))
                 {
-                    existing.FrameUsageIndex = Pipeline.ExecutionIndex;
+                    existing.FrameUsageIndex = Device.ExecutionIndex;
 
                     available.Remove(existing);
                     used.Add(existing);
@@ -56,7 +55,7 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected void AddNewResource(T resource)
         {
-            used.Add(new PooledUsage(resource, Pipeline.ExecutionIndex));
+            used.Add(new PooledUsage(resource, Device.ExecutionIndex));
             updateStats();
         }
 
@@ -75,7 +74,7 @@ namespace osu.Framework.Graphics.Veldrid
                 var item = used[i];
 
                 // Usages are sequential so we can stop checking after the first non-completed usage.
-                if (item.FrameUsageIndex > Pipeline.LatestCompletedExecutionIndex)
+                if (item.FrameUsageIndex > Device.LatestCompletedExecutionIndex)
                     break;
 
                 available.Add(item);
@@ -87,7 +86,7 @@ namespace osu.Framework.Graphics.Veldrid
             {
                 var item = available[i];
 
-                ulong framesSinceUsage = Pipeline.LatestCompletedExecutionIndex - item.FrameUsageIndex;
+                ulong framesSinceUsage = Device.LatestCompletedExecutionIndex - item.FrameUsageIndex;
 
                 if (framesSinceUsage >= Rendering.Renderer.RESOURCE_FREE_NO_USAGE_LENGTH)
                 {
