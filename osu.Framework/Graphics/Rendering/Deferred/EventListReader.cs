@@ -69,14 +69,5 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         /// </summary>
         public int CurrentIndex()
             => eventIndex - 1;
-
-        /// <summary>
-        /// Resets this <see cref="EventListReader"/> to the start of the list.
-        /// </summary>
-        public void Reset()
-        {
-            eventIndex = 0;
-            eventData = Span<byte>.Empty;
-        }
     }
 }
