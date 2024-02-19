@@ -236,8 +236,8 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
         /// <remarks>
         /// The choice of value for <paramref name="vertexStart"/> and <paramref name="vertexIndexOffset"/> depends on the specific use-case:
         /// <list type="bullet">
-        ///   <item><see cref="vertexStart"/> offsets where in the index buffer to start reading from.</item>
-        ///   <item><see cref="vertexIndexOffset"/> offsets where in the vertex buffer to start reading from.</item>
+        ///   <item><paramref name="vertexStart"/> offsets where in the index buffer to start reading from.</item>
+        ///   <item><paramref name="vertexIndexOffset"/> offsets where in the vertex buffer to start reading from.</item>
         /// </list>
         /// </remarks>
         /// <exception cref="InvalidOperationException">If no shader or index buffer is active.</exception>
