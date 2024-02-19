@@ -395,8 +395,8 @@ namespace osu.Framework.Platform
 
             // In the case of an unhandled exception, it's feasible that the disposal flow for `GameHost` doesn't run.
             // This can result in the exception not being logged (or being partially logged) due to the logger running asynchronously.
-            // We force flushing the logger here to ensure logging completes.
-            Logger.Flush();
+            // We force flushing the logger here to ensure logging completes (and also unbind in the process since we're aborting execution from here).
+            Logger.Dispose();
 
             var captured = ExceptionDispatchInfo.Capture(exception);
             var thrownEvent = new ManualResetEventSlim(false);
