@@ -29,6 +29,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Deferred;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
@@ -844,12 +845,14 @@ namespace osu.Framework.Platform
             {
                 case RuntimeInfo.Platform.Windows:
                     yield return RendererType.Direct3D11;
+                    yield return RendererType.Deferred_Direct3D11;
 
                     break;
 
                 case RuntimeInfo.Platform.macOS:
                 case RuntimeInfo.Platform.iOS:
                     yield return RendererType.Metal;
+                    yield return RendererType.Deferred_Metal;
 
                     break;
             }
@@ -864,8 +867,13 @@ namespace osu.Framework.Platform
             // Other available renderers should also be returned (to make this method usable as "all available renderers for current platform"),
             // but will never be preferred as OpenGLLegacy will always work.
             yield return RendererType.OpenGL;
+            yield return RendererType.Deferred_OpenGL;
 
-            if (!RuntimeInfo.IsApple) yield return RendererType.Vulkan;
+            if (!RuntimeInfo.IsApple)
+            {
+                yield return RendererType.Vulkan;
+                yield return RendererType.Deferred_Vulkan;
+            }
         }
 
         protected virtual void ChooseAndSetupRenderer()
@@ -901,11 +909,24 @@ namespace osu.Framework.Platform
             {
                 try
                 {
-                    if (type == RendererType.OpenGLLegacy)
-                        // the legacy renderer. this is basically guaranteed to support all platforms.
-                        SetupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
-                    else
-                        SetupRendererAndWindow("veldrid", rendererToGraphicsSurfaceType(type));
+                    switch (type)
+                    {
+                        case RendererType.OpenGLLegacy:
+                            // the legacy renderer. this is basically guaranteed to support all platforms.
+                            SetupRendererAndWindow(new GLRenderer(), GraphicsSurfaceType.OpenGL);
+                            break;
+
+                        case RendererType.Deferred_Metal:
+                        case RendererType.Deferred_Vulkan:
+                        case RendererType.Deferred_Direct3D11:
+                        case RendererType.Deferred_OpenGL:
+                            SetupRendererAndWindow(new DeferredRenderer(), rendererToGraphicsSurfaceType(type));
+                            break;
+
+                        default:
+                            SetupRendererAndWindow(new VeldridRenderer(), rendererToGraphicsSurfaceType(type));
+                            break;
+                    }
 
                     ResolvedRenderer = type;
                     return;
@@ -931,18 +952,22 @@ namespace osu.Framework.Platform
 
             switch (renderer)
             {
+                case RendererType.Deferred_Metal:
                 case RendererType.Metal:
                     surface = GraphicsSurfaceType.Metal;
                     break;
 
+                case RendererType.Deferred_Vulkan:
                 case RendererType.Vulkan:
                     surface = GraphicsSurfaceType.Vulkan;
                     break;
 
+                case RendererType.Deferred_Direct3D11:
                 case RendererType.Direct3D11:
                     surface = GraphicsSurfaceType.Direct3D11;
                     break;
 
+                case RendererType.Deferred_OpenGL:
                 case RendererType.OpenGL:
                     surface = GraphicsSurfaceType.OpenGL;
                     break;
@@ -960,6 +985,10 @@ namespace osu.Framework.Platform
             {
                 case "veldrid":
                     SetupRendererAndWindow(new VeldridRenderer(), surfaceType);
+                    break;
+
+                case "deferred":
+                    SetupRendererAndWindow(new DeferredRenderer(), surfaceType);
                     break;
 
                 default:
