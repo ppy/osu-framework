@@ -183,6 +183,15 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         protected internal override Image<Rgba32> TakeScreenshot()
             => VeldridDevice.TakeScreenshot();
 
+        void IRenderer.EnterDrawNode(DrawNode node)
+        {
+            drawNodeStack.Push(node);
+            Context.EnqueueEvent(new DrawNodeActionEvent(Context.Reference(node), DrawNodeActionType.Enter));
+        }
+
+        void IRenderer.ExitDrawNode()
+            => Context.EnqueueEvent(new DrawNodeActionEvent(Context.Reference(drawNodeStack.Pop()), DrawNodeActionType.Exit));
+
         protected override IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType)
             => new VeldridShaderPart(this, rawData, partType, store);
 

@@ -97,7 +97,9 @@ namespace osu.Framework.Graphics
 
         protected internal static void DrawOther(DrawNode node, IRenderer renderer)
         {
+            renderer.EnterDrawNode(node);
             node.Draw(renderer);
+            renderer.ExitDrawNode();
         }
 
         /// <summary>
@@ -135,6 +137,8 @@ namespace osu.Framework.Graphics
         /// All <see cref="DrawNode"/>s start with a reference count of 1.
         /// </remarks>
         internal void Reference() => Interlocked.Increment(ref referenceCount);
+
+        public override string ToString() => Source.ToString();
 
         protected internal bool IsDisposed { get; private set; }
 

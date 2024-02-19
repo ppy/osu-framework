@@ -1,7 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Diagnostics;
+using System.IO;
+using System.Text;
 using osu.Framework.Graphics.Rendering.Deferred.Allocation;
 using osu.Framework.Graphics.Rendering.Deferred.Events;
 using osu.Framework.Graphics.Veldrid.Buffers;
@@ -26,62 +29,62 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
         public void ProcessEvents()
         {
-            // printEventsForDebug();
+            printEventsForDebug();
             processUploads();
             processEvents();
         }
 
-        // private void printEventsForDebug()
-        // {
-        //     if (string.IsNullOrEmpty(FrameworkEnvironment.DeferredRendererEventsOutputPath))
-        //         return;
-        //
-        //     EventListReader reader = context.RenderEvents.CreateReader();
-        //
-        //     StringBuilder builder = new StringBuilder();
-        //     int indent = 0;
-        //
-        //     while (reader.Next())
-        //     {
-        //         string info;
-        //         int indentChange = 0;
-        //
-        //         switch (reader.CurrentType())
-        //         {
-        //             case RenderEventType.DrawNodeAction:
-        //             {
-        //                 ref DrawNodeActionEvent e = ref reader.Current<DrawNodeActionEvent>();
-        //
-        //                 info = $"DrawNode.{e.Action} ({context.Dereference<DrawNode>(e.DrawNode)})";
-        //
-        //                 switch (e.Action)
-        //                 {
-        //                     case DrawNodeActionType.Enter:
-        //                         indentChange += 2;
-        //                         break;
-        //
-        //                     case DrawNodeActionType.Exit:
-        //                         indentChange -= 2;
-        //                         break;
-        //                 }
-        //
-        //                 break;
-        //             }
-        //
-        //             default:
-        //             {
-        //                 info = $"{reader.CurrentType().ToString()}";
-        //                 break;
-        //             }
-        //         }
-        //
-        //         indent += Math.Min(0, indentChange);
-        //         builder.AppendLine($"{new string(' ', indent)}{info}");
-        //         indent += Math.Max(0, indentChange);
-        //     }
-        //
-        //     File.WriteAllText(FrameworkEnvironment.DeferredRendererEventsOutputPath, builder.ToString());
-        // }
+        private void printEventsForDebug()
+        {
+            if (string.IsNullOrEmpty(FrameworkEnvironment.DeferredRendererEventsOutputPath))
+                return;
+
+            EventListReader reader = context.RenderEvents.CreateReader();
+
+            StringBuilder builder = new StringBuilder();
+            int indent = 0;
+
+            while (reader.Next())
+            {
+                string info;
+                int indentChange = 0;
+
+                switch (reader.CurrentType())
+                {
+                    case RenderEventType.DrawNodeAction:
+                    {
+                        ref DrawNodeActionEvent e = ref reader.Current<DrawNodeActionEvent>();
+
+                        info = $"DrawNode.{e.Action} ({context.Dereference<DrawNode>(e.DrawNode)})";
+
+                        switch (e.Action)
+                        {
+                            case DrawNodeActionType.Enter:
+                                indentChange += 2;
+                                break;
+
+                            case DrawNodeActionType.Exit:
+                                indentChange -= 2;
+                                break;
+                        }
+
+                        break;
+                    }
+
+                    default:
+                    {
+                        info = $"{reader.CurrentType().ToString()}";
+                        break;
+                    }
+                }
+
+                indent += Math.Min(0, indentChange);
+                builder.AppendLine($"{new string(' ', indent)}{info}");
+                indent += Math.Max(0, indentChange);
+            }
+
+            File.WriteAllText(FrameworkEnvironment.DeferredRendererEventsOutputPath, builder.ToString());
+        }
 
         private void processUploads()
         {
