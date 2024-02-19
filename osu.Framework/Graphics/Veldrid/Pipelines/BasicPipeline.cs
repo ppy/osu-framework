@@ -15,14 +15,31 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
     /// </summary>
     internal class BasicPipeline
     {
-        public GraphicsDevice Device => device.Device;
+        /// <summary>
+        /// The platform graphics device.
+        /// </summary>
+        public GraphicsDevice Device
+            => device.Device;
 
-        public ResourceFactory Factory => device.Factory;
+        /// <summary>
+        /// The platform graphics resource factory.
+        /// </summary>
+        public ResourceFactory Factory
+            => device.Factory;
 
+        /// <summary>
+        /// The command list.
+        /// </summary>
         public readonly CommandList Commands;
 
+        /// <summary>
+        /// The most recent execution of this <see cref="BasicPipeline"/> that's been completed by the device.
+        /// </summary>
         public ulong LatestCompletedExecutionIndex { get; private set; }
 
+        /// <summary>
+        /// The current execution of this <see cref="BasicPipeline"/>.
+        /// </summary>
         public ulong ExecutionIndex { get; private set; }
 
         /// <summary>
