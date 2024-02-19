@@ -368,7 +368,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             if (uploadedRegions.Count != 0 && !manualMipmaps)
             {
                 Debug.Assert(resources != null);
-                Renderer.GenerateMipmaps(resources.Texture);
+                Renderer.GenerateMipmaps(this);
             }
 
             #endregion
