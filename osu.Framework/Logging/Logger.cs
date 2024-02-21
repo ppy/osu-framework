@@ -479,10 +479,9 @@ namespace osu.Framework.Logging
         }
 
         /// <summary>
-        /// Pause execution until all logger writes have completed and file handles have been closed.
-        /// This will also unbind all handlers bound to <see cref="NewEntry"/>.
+        /// Perform a <see cref="Flush"/> and unbind all events in preparation for game host shutdown.
         /// </summary>
-        public static void Dispose()
+        internal static void FlushForShutdown()
         {
             Flush();
             NewEntry = null;
