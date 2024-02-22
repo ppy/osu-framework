@@ -25,7 +25,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Annotate CI run with test results
-        uses: dorny/test-reporter@v1.6.0
+        uses: dorny/test-reporter@v1.8.0
         with:
           artifact: osu-framework-test-results-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.os.configuration}}
           name: Test Results (${{matrix.os.prettyname}}, ${{matrix.threadingMode}}, ${{matrix.os.configuration}})
