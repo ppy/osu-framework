@@ -966,6 +966,20 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="frameBuffer">The framebuffer to use, or null to use the backbuffer (i.e. main framebuffer).</param>
         protected abstract void SetFrameBufferImplementation(IFrameBuffer? frameBuffer);
 
+        /// <summary>
+        /// Deletes a frame buffer.
+        /// </summary>
+        /// <param name="frameBuffer">The frame buffer to delete.</param>
+        public void DeleteFrameBuffer(IFrameBuffer frameBuffer)
+        {
+            while (FrameBuffer == frameBuffer)
+                UnbindFrameBuffer(frameBuffer);
+
+            ScheduleDisposal(DeleteFrameBufferImplementation, frameBuffer);
+        }
+
+        protected abstract void DeleteFrameBufferImplementation(IFrameBuffer frameBuffer);
+
         #endregion
 
         public void DrawVertices(PrimitiveTopology topology, int vertexStart, int verticesCount)

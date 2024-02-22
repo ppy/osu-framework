@@ -80,7 +80,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         private void recreateResources()
         {
             // The texture is created once and resized internally, so it should not be deleted.
-            deleteResources(false);
+            DeleteResources(false);
 
             if (depthFormat is PixelFormat depth)
             {
@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         /// Deletes the resources of this frame buffer.
         /// </summary>
         /// <param name="deleteTexture">Whether the texture should also be deleted.</param>
-        private void deleteResources(bool deleteTexture)
+        public void DeleteResources(bool deleteTexture)
         {
             if (deleteTexture && !externalColourTarget)
                 colourTarget.Dispose();
@@ -140,11 +140,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             if (isDisposed)
                 return;
 
-            while (renderer.IsFrameBufferBound(this))
-                Unbind();
-
-            deleteResources(true);
-
+            renderer.DeleteFrameBuffer(this);
             isDisposed = true;
         }
 
