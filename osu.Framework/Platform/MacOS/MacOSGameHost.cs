@@ -3,9 +3,7 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
@@ -22,24 +20,6 @@ namespace osu.Framework.Platform.MacOS
         }
 
         protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new MacOSWindow(preferredSurface);
-
-        public override IEnumerable<string> UserStoragePaths
-        {
-            get
-            {
-                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Application Support");
-
-                string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
-
-                if (!string.IsNullOrEmpty(xdg))
-                    yield return xdg;
-
-                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share");
-
-                foreach (string path in base.UserStoragePaths)
-                    yield return path;
-            }
-        }
 
         protected override Clipboard CreateClipboard() => new MacOSClipboard();
 
