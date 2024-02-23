@@ -206,7 +206,9 @@ namespace osu.Framework.Platform
         /// <summary>
         /// All valid user storage paths in order of usage priority.
         /// </summary>
-        public virtual IEnumerable<string> UserStoragePaths => Environment.GetFolderPath(Environment.SpecialFolder.Personal).Yield();
+        public virtual IEnumerable<string> UserStoragePaths
+            // This is common to _most_ operating systems, with some specific ones overriding this value where a better option exists.
+            => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create).Yield();
 
         /// <summary>
         /// The main storage as proposed by the host game.
