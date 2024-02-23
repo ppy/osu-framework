@@ -3,7 +3,9 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
@@ -20,6 +22,18 @@ namespace osu.Framework.Platform.MacOS
         }
 
         protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new MacOSWindow(preferredSurface);
+
+        public override IEnumerable<string> UserStoragePaths
+        {
+            get
+            {
+                foreach (string path in base.UserStoragePaths)
+                    yield return path;
+
+                // Some older builds of osu! incorrectly used ~/.local/share on macOS.
+                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share");
+            }
+        }
 
         protected override Clipboard CreateClipboard() => new MacOSClipboard();
 
