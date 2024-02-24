@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 
@@ -13,6 +14,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
     internal class DummyFrameBuffer : IFrameBuffer
     {
         public Texture Texture { get; }
+        public IReadOnlyList<RenderBufferFormat>? Formats => null;
 
         public Vector2 Size
         {

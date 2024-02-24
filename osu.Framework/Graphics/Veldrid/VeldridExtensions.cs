@@ -116,6 +116,27 @@ namespace osu.Framework.Graphics.Veldrid
             return writeMask;
         }
 
+        public static PixelFormat ToPixelFormat(this RenderBufferFormat renderBufferFormat)
+        {
+            switch (renderBufferFormat)
+            {
+                case RenderBufferFormat.D16:
+                    return PixelFormat.R16_UNorm;
+
+                case RenderBufferFormat.D32:
+                    return PixelFormat.R32_Float;
+
+                case RenderBufferFormat.D24S8:
+                    return PixelFormat.D24_UNorm_S8_UInt;
+
+                case RenderBufferFormat.D32S8:
+                    return PixelFormat.D32_Float_S8_UInt;
+
+                default:
+                    throw new ArgumentException($"Unsupported render buffer format: {renderBufferFormat}", nameof(renderBufferFormat));
+            }
+        }
+
         public static PixelFormat[] ToPixelFormats(this RenderBufferFormat[] renderBufferFormats)
         {
             var pixelFormats = new PixelFormat[renderBufferFormats.Length];

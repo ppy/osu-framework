@@ -420,7 +420,6 @@ namespace osu.Framework.Graphics.OpenGL
         public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
         {
             All glFilteringMode;
-            RenderbufferInternalFormat[]? glFormats = null;
 
             switch (filteringMode)
             {
@@ -436,37 +435,7 @@ namespace osu.Framework.Graphics.OpenGL
                     throw new ArgumentException($"Unsupported filtering mode: {filteringMode}", nameof(filteringMode));
             }
 
-            if (renderBufferFormats != null)
-            {
-                glFormats = new RenderbufferInternalFormat[renderBufferFormats.Length];
-
-                for (int i = 0; i < renderBufferFormats.Length; i++)
-                {
-                    switch (renderBufferFormats[i])
-                    {
-                        case RenderBufferFormat.D16:
-                            glFormats[i] = RenderbufferInternalFormat.DepthComponent16;
-                            break;
-
-                        case RenderBufferFormat.D32:
-                            glFormats[i] = RenderbufferInternalFormat.DepthComponent32f;
-                            break;
-
-                        case RenderBufferFormat.D24S8:
-                            glFormats[i] = RenderbufferInternalFormat.Depth24Stencil8;
-                            break;
-
-                        case RenderBufferFormat.D32S8:
-                            glFormats[i] = RenderbufferInternalFormat.Depth32fStencil8;
-                            break;
-
-                        default:
-                            throw new ArgumentException($"Unsupported render buffer format: {renderBufferFormats[i]}", nameof(renderBufferFormats));
-                    }
-                }
-            }
-
-            return new GLFrameBuffer(this, glFormats, glFilteringMode);
+            return new GLFrameBuffer(this, renderBufferFormats, glFilteringMode);
         }
 
         protected override IUniformBuffer<TData> CreateUniformBuffer<TData>()
