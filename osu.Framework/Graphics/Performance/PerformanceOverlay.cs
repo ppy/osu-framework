@@ -77,22 +77,27 @@ namespace osu.Framework.Graphics.Performance
 
         // for some reason PerformanceOverlay has 0 width despite using AutoSizeAxes, and it doesn't look simple to fix.
         // let's just work around it and consider frame statistics display dimensions for receiving input events.
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Children.OfType<FrameStatisticsDisplay>().Any(d => d.ReceivePositionalInputAt(screenSpacePos));
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
+        {
+            foreach (var child in this)
+            {
+                if (child is FrameStatisticsDisplay display && display.ReceivePositionalInputAt(screenSpacePos))
+                    return true;
+            }
+
+            return false;
+        }
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
             switch (e.Key)
             {
                 case Key.ControlLeft:
-                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
-                        display.Expanded = true;
-
+                    applyToDisplays(static d => d.Expanded = true);
                     break;
 
                 case Key.ShiftLeft:
-                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
-                        display.Running = false;
-
+                    applyToDisplays(static d => d.Running = false);
                     break;
             }
 
@@ -104,15 +109,11 @@ namespace osu.Framework.Graphics.Performance
             switch (e.Key)
             {
                 case Key.ControlLeft:
-                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
-                        display.Expanded = false;
-
+                    applyToDisplays(static d => d.Expanded = false);
                     break;
 
                 case Key.ShiftLeft:
-                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
-                        display.Running = true;
-
+                    applyToDisplays(static d => d.Running = true);
                     break;
             }
 
@@ -124,15 +125,11 @@ namespace osu.Framework.Graphics.Performance
             switch (e.Touch.Source)
             {
                 case TouchSource.Touch1:
-                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
-                        display.Expanded = true;
-
+                    applyToDisplays(static d => d.Expanded = true);
                     break;
 
                 case TouchSource.Touch2:
-                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
-                        display.Running = false;
-
+                    applyToDisplays(static d => d.Running = false);
                     break;
             }
 
@@ -144,15 +141,11 @@ namespace osu.Framework.Graphics.Performance
             switch (e.Touch.Source)
             {
                 case TouchSource.Touch1:
-                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
-                        display.Expanded = false;
-
+                    applyToDisplays(static d => d.Expanded = false);
                     break;
 
                 case TouchSource.Touch2:
-                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
-                        display.Running = true;
-
+                    applyToDisplays(static d => d.Running = true);
                     break;
             }
 
@@ -201,10 +194,22 @@ namespace osu.Framework.Graphics.Performance
                     break;
             }
 
-            foreach (FrameStatisticsDisplay d in Children.OfType<FrameStatisticsDisplay>())
-                d.State = state;
+            foreach (var child in this)
+            {
+                if (child is FrameStatisticsDisplay display)
+                    display.State = state;
+            }
 
             StateChanged?.Invoke(State);
+        }
+
+        private void applyToDisplays(Predicate<FrameStatisticsDisplay> predicate)
+        {
+            foreach (var child in this)
+            {
+                if (child is FrameStatisticsDisplay display)
+                    predicate.Invoke(display);
+            }
         }
 
         private void updateInfoText()
