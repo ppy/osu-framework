@@ -66,8 +66,10 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             foreach (((ChunkReference chunk, ResourceLayout layout) key, ResourceSet set) in bufferChunks)
             {
                 if (key.chunk.Buffer.IsDisposed)
+                {
                     dead_chunks.Add(key);
-                set.Dispose();
+                    set.Dispose();
+                }
             }
 
             foreach (var key in dead_chunks)
