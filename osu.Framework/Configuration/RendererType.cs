@@ -33,7 +33,7 @@ namespace osu.Framework.Configuration
         OpenGLLegacy,
 
         [Description("Metal (Experimental)")]
-        Deferred_Metal,
+        Deferred_Metal = 32,
 
         [Description("Vulkan (Experimental)")]
         Deferred_Vulkan,
