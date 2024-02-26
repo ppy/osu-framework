@@ -53,5 +53,92 @@ namespace osu.Framework.Benchmarks
 
             return totalVertices;
         }
+
+        [Benchmark]
+        public int ReplaceSame()
+        {
+            ResourceAllocator allocator = new ResourceAllocator();
+            EventList list = new EventList(allocator);
+
+            list.Enqueue(new FlushEvent());
+            list.Enqueue(new FlushEvent());
+            list.Enqueue(new FlushEvent());
+
+            var enumerator = filledEventList.CreateEnumerator();
+            enumerator.Next();
+            enumerator.Next();
+            enumerator.Replace(new FlushEvent());
+
+            int i = 0;
+            enumerator = filledEventList.CreateEnumerator();
+
+            while (enumerator.Next())
+            {
+                enumerator.CurrentType();
+                i++;
+            }
+
+            allocator.NewFrame();
+
+            return i;
+        }
+
+        [Benchmark]
+        public int ReplaceSmaller()
+        {
+            ResourceAllocator allocator = new ResourceAllocator();
+            EventList list = new EventList(allocator);
+
+            list.Enqueue(new FlushEvent());
+            list.Enqueue(new FlushEvent());
+            list.Enqueue(new FlushEvent());
+
+            var enumerator = filledEventList.CreateEnumerator();
+            enumerator.Next();
+            enumerator.Next();
+            enumerator.Replace(new SetScissorStateEvent());
+
+            int i = 0;
+            enumerator = filledEventList.CreateEnumerator();
+
+            while (enumerator.Next())
+            {
+                enumerator.CurrentType();
+                i++;
+            }
+
+            allocator.NewFrame();
+
+            return i;
+        }
+
+        [Benchmark]
+        public int ReplaceBigger()
+        {
+            ResourceAllocator allocator = new ResourceAllocator();
+            EventList list = new EventList(allocator);
+
+            list.Enqueue(new FlushEvent());
+            list.Enqueue(new FlushEvent());
+            list.Enqueue(new FlushEvent());
+
+            var enumerator = filledEventList.CreateEnumerator();
+            enumerator.Next();
+            enumerator.Next();
+            enumerator.Replace(new SetUniformBufferDataEvent());
+
+            int i = 0;
+            enumerator = filledEventList.CreateEnumerator();
+
+            while (enumerator.Next())
+            {
+                enumerator.CurrentType();
+                i++;
+            }
+
+            allocator.NewFrame();
+
+            return i;
+        }
     }
 }
