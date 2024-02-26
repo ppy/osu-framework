@@ -440,6 +440,8 @@ namespace osu.Framework.Bindables
 
         IBindable IBindable.GetBoundCopy() => GetBoundCopy();
 
+        public WeakReference<Bindable<T>> GetWeakReference() => weakReference;
+
         IBindable<T> IBindable<T>.GetBoundCopy() => GetBoundCopy();
 
         /// <inheritdoc cref="IBindable{T}.GetBoundCopy"/>

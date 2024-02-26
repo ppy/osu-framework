@@ -52,7 +52,7 @@ namespace osu.Framework.Bindables
                     return;
 
                 var boundCopy = bindable.GetBoundCopy();
-                sourceMapping.Add(new WeakRefPair(new WeakReference<IBindable<T>>(bindable), boundCopy));
+                sourceMapping.Add(new WeakRefPair(bindable.GetWeakReference(), boundCopy));
                 boundCopy.BindValueChanged(recalculateAggregate, true);
             }
         }
@@ -114,10 +114,10 @@ namespace osu.Framework.Bindables
 
         private class WeakRefPair
         {
-            public readonly WeakReference<IBindable<T>> WeakReference;
+            public readonly WeakReference<Bindable<T>> WeakReference;
             public readonly IBindable<T> BoundCopy;
 
-            public WeakRefPair(WeakReference<IBindable<T>> weakReference, IBindable<T> boundCopy)
+            public WeakRefPair(WeakReference<Bindable<T>> weakReference, IBindable<T> boundCopy)
             {
                 WeakReference = weakReference;
                 BoundCopy = boundCopy;
