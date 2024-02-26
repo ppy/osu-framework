@@ -192,6 +192,9 @@ namespace osu.Framework.Graphics.OpenGL
             }
         }
 
+        protected override void SetUniformBufferImplementation(string blockName, IUniformBuffer buffer)
+            => boundUniformBuffers[blockName] = (IGLUniformBuffer)buffer;
+
         protected override bool SetTextureImplementation(INativeTexture? texture, int unit)
         {
             if (texture == null)
@@ -230,17 +233,8 @@ namespace osu.Framework.Graphics.OpenGL
         protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer) =>
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLFrameBuffer?)frameBuffer)?.FrameBuffer ?? backbufferFramebuffer);
 
-        /// <summary>
-        /// Deletes a frame buffer.
-        /// </summary>
-        /// <param name="frameBuffer">The frame buffer to delete.</param>
-        public void DeleteFrameBuffer(IFrameBuffer frameBuffer)
-        {
-            while (FrameBuffer == frameBuffer)
-                UnbindFrameBuffer(frameBuffer);
-
-            ScheduleDisposal(GL.DeleteFramebuffer, ((GLFrameBuffer)frameBuffer).FrameBuffer);
-        }
+        protected override void DeleteFrameBufferImplementation(IFrameBuffer frameBuffer)
+            => GL.DeleteFramebuffer(((GLFrameBuffer)frameBuffer).FrameBuffer);
 
         protected override void ClearImplementation(ClearInfo clearInfo)
         {
@@ -269,21 +263,9 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
         }
 
-        public void BindUniformBuffer(string blockName, IGLUniformBuffer glBuffer)
-        {
-            if (boundUniformBuffers.TryGetValue(blockName, out IGLUniformBuffer? current) && current == glBuffer)
-                return;
-
-            FlushCurrentBatch(FlushBatchSource.BindBuffer);
-            boundUniformBuffers[blockName] = glBuffer;
-        }
-
-        public void DrawVertices(PrimitiveType type, int vertexStart, int verticesCount)
+        public override void DrawVerticesImplementation(PrimitiveTopology topology, int vertexStart, int verticesCount)
         {
             var glShader = (GLShader)Shader!;
-
-            glShader.BindUniformBlock("g_GlobalUniforms", GlobalUniformBuffer!);
-
             int currentUniformBinding = 0;
             int currentStorageBinding = 0;
 
@@ -308,7 +290,7 @@ namespace osu.Framework.Graphics.OpenGL
                 }
             }
 
-            GL.DrawElements(type, verticesCount, DrawElementsType.UnsignedShort, vertexStart * sizeof(ushort));
+            GL.DrawElements(GLUtils.ToPrimitiveType(topology), verticesCount, DrawElementsType.UnsignedShort, vertexStart * sizeof(ushort));
         }
 
         protected override void SetScissorStateImplementation(bool enabled)
@@ -500,7 +482,7 @@ namespace osu.Framework.Graphics.OpenGL
         protected override INativeTexture CreateNativeVideoTexture(int width, int height) => new GLVideoTexture(this, width, height);
 
         protected override IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology)
-            => new GLLinearBatch<TVertex>(this, size, maxBuffers, GLUtils.ToPrimitiveType(topology));
+            => new GLLinearBatch<TVertex>(this, size, maxBuffers, topology);
 
         protected override IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) => new GLQuadBatch<TVertex>(this, size, maxBuffers);
     }

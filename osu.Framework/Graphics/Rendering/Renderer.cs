@@ -110,6 +110,7 @@ namespace osu.Framework.Graphics.Rendering
 
         private readonly DepthValue backBufferDepth = new DepthValue();
 
+        private readonly Dictionary<string, IUniformBuffer> boundUniformBuffers = new Dictionary<string, IUniformBuffer>();
         private readonly Stack<IVertexBatch<TexturedVertex2D>> quadBatches = new Stack<IVertexBatch<TexturedVertex2D>>();
         private readonly List<IVertexBuffer> vertexBuffersInUse = new List<IVertexBuffer>();
         private readonly List<IVertexBatch> batchResetList = new List<IVertexBatch>();
@@ -131,7 +132,7 @@ namespace osu.Framework.Graphics.Rendering
         private readonly Lazy<TextureWhitePixel> whitePixel;
         private readonly LockedWeakList<Texture> allTextures = new LockedWeakList<Texture>();
 
-        protected IUniformBuffer<GlobalUniformData>? GlobalUniformBuffer { get; private set; }
+        private IUniformBuffer<GlobalUniformData>? globalUniformBuffer;
         private IVertexBatch<TexturedVertex2D>? defaultQuadBatch;
         private IVertexBatch? currentActiveBatch;
         private MaskingInfo currentMaskingInfo;
@@ -190,8 +191,8 @@ namespace osu.Framework.Graphics.Rendering
             foreach (var source in flush_source_statistics)
                 source.Value = 0;
 
-            GlobalUniformBuffer ??= ((IRenderer)this).CreateUniformBuffer<GlobalUniformData>();
-            GlobalUniformBuffer.Data = GlobalUniformBuffer.Data with
+            globalUniformBuffer ??= ((IRenderer)this).CreateUniformBuffer<GlobalUniformData>();
+            globalUniformBuffer.Data = globalUniformBuffer.Data with
             {
                 IsDepthRangeZeroToOne = IsDepthRangeZeroToOne,
                 IsClipSpaceYInverted = IsClipSpaceYInverted,
@@ -228,6 +229,7 @@ namespace osu.Framework.Graphics.Rendering
             Shader?.Unbind();
             Shader = null;
 
+            boundUniformBuffers.Clear();
             viewportStack.Clear();
             projectionMatrixStack.Clear();
             maskingStack.Clear();
@@ -602,7 +604,7 @@ namespace osu.Framework.Graphics.Rendering
 
             FlushCurrentBatch(FlushBatchSource.SetProjection);
 
-            GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with { ProjMatrix = matrix };
+            globalUniformBuffer!.Data = globalUniformBuffer.Data with { ProjMatrix = matrix };
             ProjectionMatrix = matrix;
         }
 
@@ -631,7 +633,7 @@ namespace osu.Framework.Graphics.Rendering
 
             FlushCurrentBatch(FlushBatchSource.SetMasking);
 
-            GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with
+            globalUniformBuffer!.Data = globalUniformBuffer.Data with
             {
                 IsMasking = IsMaskingActive,
                 MaskingRect = new Vector4(
@@ -665,14 +667,14 @@ namespace osu.Framework.Graphics.Rendering
                         maskingInfo.BorderColour.BottomRight.SRGB.G,
                         maskingInfo.BorderColour.BottomRight.SRGB.B,
                         maskingInfo.BorderColour.BottomRight.SRGB.A)
-                    : GlobalUniformBuffer.Data.BorderColour,
+                    : globalUniformBuffer.Data.BorderColour,
                 MaskingBlendRange = maskingInfo.BlendRange,
                 AlphaExponent = maskingInfo.AlphaExponent,
                 EdgeOffset = maskingInfo.EdgeOffset,
                 DiscardInner = maskingInfo.Hollow,
                 InnerCornerRadius = maskingInfo.Hollow
                     ? maskingInfo.HollowCornerRadius
-                    : GlobalUniformBuffer.Data.InnerCornerRadius
+                    : globalUniformBuffer.Data.InnerCornerRadius
             };
 
             if (isPushing)
@@ -868,14 +870,14 @@ namespace osu.Framework.Graphics.Rendering
             if (wrapModeS != CurrentWrapModeS)
             {
                 // Will flush the current batch internally.
-                GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with { WrapModeS = (int)wrapModeS };
+                globalUniformBuffer!.Data = globalUniformBuffer.Data with { WrapModeS = (int)wrapModeS };
                 CurrentWrapModeS = wrapModeS;
             }
 
             if (wrapModeT != CurrentWrapModeT)
             {
                 // Will flush the current batch internally.
-                GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with { WrapModeT = (int)wrapModeT };
+                globalUniformBuffer!.Data = globalUniformBuffer.Data with { WrapModeT = (int)wrapModeT };
                 CurrentWrapModeT = wrapModeT;
             }
 
@@ -953,7 +955,7 @@ namespace osu.Framework.Graphics.Rendering
 
             SetFrameBufferImplementation(frameBuffer);
 
-            GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with { BackbufferDraw = UsingBackbuffer };
+            globalUniformBuffer!.Data = globalUniformBuffer.Data with { BackbufferDraw = UsingBackbuffer };
 
             FrameBuffer = frameBuffer;
         }
@@ -964,7 +966,33 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="frameBuffer">The framebuffer to use, or null to use the backbuffer (i.e. main framebuffer).</param>
         protected abstract void SetFrameBufferImplementation(IFrameBuffer? frameBuffer);
 
+        /// <summary>
+        /// Deletes a frame buffer.
+        /// </summary>
+        /// <param name="frameBuffer">The frame buffer to delete.</param>
+        public void DeleteFrameBuffer(IFrameBuffer frameBuffer)
+        {
+            while (FrameBuffer == frameBuffer)
+                UnbindFrameBuffer(frameBuffer);
+
+            ScheduleDisposal(DeleteFrameBufferImplementation, frameBuffer);
+        }
+
+        protected abstract void DeleteFrameBufferImplementation(IFrameBuffer frameBuffer);
+
         #endregion
+
+        public void DrawVertices(PrimitiveTopology topology, int vertexStart, int verticesCount)
+        {
+            if (Shader == null)
+                throw new InvalidOperationException("No shader bound.");
+
+            Shader.BindUniformBlock("g_GlobalUniforms", globalUniformBuffer!);
+
+            DrawVerticesImplementation(topology, vertexStart, verticesCount);
+        }
+
+        public abstract void DrawVerticesImplementation(PrimitiveTopology topology, int vertexStart, int verticesCount);
 
         #region Shaders
 
@@ -1027,6 +1055,19 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         /// <param name="uniform">The uniform to update.</param>
         protected abstract void SetUniformImplementation<T>(IUniformWithValue<T> uniform) where T : unmanaged, IEquatable<T>;
+
+        public void BindUniformBuffer(string blockName, IUniformBuffer buffer)
+        {
+            if (boundUniformBuffers.TryGetValue(blockName, out IUniformBuffer? current) && current == buffer)
+                return;
+
+            FlushCurrentBatch(FlushBatchSource.BindBuffer);
+            SetUniformBufferImplementation(blockName, buffer);
+
+            boundUniformBuffers[blockName] = buffer;
+        }
+
+        protected abstract void SetUniformBufferImplementation(string blockName, IUniformBuffer buffer);
 
         #endregion
 
