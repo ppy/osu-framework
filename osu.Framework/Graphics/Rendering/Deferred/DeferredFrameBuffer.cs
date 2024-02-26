@@ -56,7 +56,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                     Math.Clamp((int)Math.Ceiling(value.X), 1, renderer.MaxTextureSize),
                     Math.Clamp((int)Math.Ceiling(value.Y), 1, renderer.MaxTextureSize));
 
-                renderer.Context.EnqueueEvent(new ResizeFrameBufferEvent(renderer.Context.Reference(this), size));
+                renderer.Context.EnqueueEvent(ResizeFrameBufferEvent.Create(renderer, this, size));
             }
         }
 

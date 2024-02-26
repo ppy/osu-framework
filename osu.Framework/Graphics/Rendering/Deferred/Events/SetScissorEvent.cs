@@ -5,8 +5,9 @@ using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Rendering.Deferred.Events
 {
-    internal readonly record struct SetScissorEvent(RectangleI Scissor) : IRenderEvent
+    internal readonly record struct SetScissorEvent(RenderEventType Type, RectangleI Scissor) : IRenderEvent
     {
-        public RenderEventType Type => RenderEventType.SetScissor;
+        public static SetScissorEvent Create(RectangleI scissor)
+            => new SetScissorEvent(RenderEventType.SetScissor, scissor);
     }
 }

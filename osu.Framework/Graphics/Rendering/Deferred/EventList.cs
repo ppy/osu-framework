@@ -38,13 +38,10 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         private MemoryReference createEvent<T>(in T renderEvent)
             where T : unmanaged, IRenderEvent
         {
-            int requiredSize = Unsafe.SizeOf<T>() + 1;
-
-            MemoryReference reference = allocator.AllocateRegion(requiredSize);
+            MemoryReference reference = allocator.AllocateRegion(Unsafe.SizeOf<T>());
             Span<byte> buffer = allocator.GetRegion(reference);
 
-            buffer[0] = (byte)renderEvent.Type;
-            Unsafe.WriteUnaligned(ref buffer[1], renderEvent);
+            Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), renderEvent);
 
             return reference;
         }
@@ -95,8 +92,8 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             /// <remarks>
             /// Not valid for use if <see cref="Next"/> returns <c>false</c>.
             /// </remarks>
-            public readonly ref RenderEventType CurrentType()
-                => ref MemoryMarshal.AsRef<RenderEventType>(eventData);
+            public readonly RenderEventType CurrentType()
+                => (RenderEventType)eventData[0];
 
             /// <summary>
             /// Reads the current event.
@@ -107,7 +104,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             /// </remarks>
             public readonly ref T Current<T>()
                 where T : unmanaged, IRenderEvent
-                => ref MemoryMarshal.AsRef<T>(eventData[1..]);
+                => ref MemoryMarshal.AsRef<T>(eventData);
 
             /// <summary>
             /// Replaces the current event with a new one.
@@ -120,8 +117,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                 if (Unsafe.SizeOf<T>() <= eventData.Length)
                 {
                     // Fast path where we can maintain contiguous data reads.
-                    eventData[0] = (byte)newEvent.Type;
-                    Unsafe.WriteUnaligned(ref eventData[1], newEvent);
+                    Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(eventData), newEvent);
                 }
                 else
                 {

@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                 return 0;
 
             renderer.DrawVertices(topology, 0, count);
-            renderer.Context.EnqueueEvent(new FlushEvent(renderer.Context.Reference(this), count));
+            renderer.Context.EnqueueEvent(FlushEvent.Create(renderer, this, count));
             return count;
         }
 

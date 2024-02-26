@@ -18,7 +18,7 @@ namespace osu.Framework.Benchmarks
             filledEventList = new EventList(new ResourceAllocator());
 
             for (int i = 0; i < 10000; i++)
-                filledEventList.Enqueue(new FlushEvent(new ResourceReference(1), 10));
+                filledEventList.Enqueue(new FlushEvent(RenderEventType.Flush, new ResourceReference(1), 10));
         }
 
         [Benchmark]

@@ -6,8 +6,9 @@ using osu.Framework.Graphics.Rendering.Deferred.Allocation;
 
 namespace osu.Framework.Graphics.Rendering.Deferred.Events
 {
-    internal readonly record struct ResizeFrameBufferEvent(ResourceReference FrameBuffer, Vector2I Size) : IRenderEvent
+    internal readonly record struct ResizeFrameBufferEvent(RenderEventType Type, ResourceReference FrameBuffer, Vector2I Size) : IRenderEvent
     {
-        public RenderEventType Type => RenderEventType.ResizeFrameBuffer;
+        public static ResizeFrameBufferEvent Create(DeferredRenderer renderer, DeferredFrameBuffer frameBuffer, Vector2I size)
+            => new ResizeFrameBufferEvent(RenderEventType.ResizeFrameBuffer, renderer.Context.Reference(frameBuffer), size);
     }
 }

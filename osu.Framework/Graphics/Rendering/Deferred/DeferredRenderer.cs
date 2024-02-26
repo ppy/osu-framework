@@ -66,15 +66,15 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             if (texture == null)
                 return false;
 
-            Context.EnqueueEvent(new SetTextureEvent(Context.Reference(texture), unit));
+            Context.EnqueueEvent(SetTextureEvent.Create(this, texture, unit));
             return true;
         }
 
         protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer)
-            => Context.EnqueueEvent(new SetFrameBufferEvent(Context.Reference(frameBuffer)));
+            => Context.EnqueueEvent(SetFrameBufferEvent.Create(this, frameBuffer));
 
         protected override void SetUniformBufferImplementation(string blockName, IUniformBuffer buffer)
-            => Context.EnqueueEvent(new SetUniformBufferEvent(Context.Reference(blockName), Context.Reference(buffer)));
+            => Context.EnqueueEvent(SetUniformBufferEvent.Create(this, blockName, buffer));
 
         public override void DrawVerticesImplementation(PrimitiveTopology type, int vertexStart, int verticesCount)
         {
@@ -82,31 +82,31 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         }
 
         protected override void ClearImplementation(ClearInfo clearInfo)
-            => Context.EnqueueEvent(new ClearEvent(clearInfo));
+            => Context.EnqueueEvent(ClearEvent.Create(clearInfo));
 
         protected override void SetScissorStateImplementation(bool enabled)
-            => Context.EnqueueEvent(new SetScissorStateEvent(enabled));
+            => Context.EnqueueEvent(SetScissorStateEvent.Create(enabled));
 
         protected override void SetBlendImplementation(BlendingParameters blendingParameters)
-            => Context.EnqueueEvent(new SetBlendEvent(blendingParameters));
+            => Context.EnqueueEvent(SetBlendEvent.Create(blendingParameters));
 
         protected override void SetBlendMaskImplementation(BlendingMask blendingMask)
-            => Context.EnqueueEvent(new SetBlendMaskEvent(blendingMask));
+            => Context.EnqueueEvent(SetBlendMaskEvent.Create(blendingMask));
 
         protected override void SetViewportImplementation(RectangleI viewport)
-            => Context.EnqueueEvent(new SetViewportEvent(viewport));
+            => Context.EnqueueEvent(SetViewportEvent.Create(viewport));
 
         protected override void SetScissorImplementation(RectangleI scissor)
-            => Context.EnqueueEvent(new SetScissorEvent(scissor));
+            => Context.EnqueueEvent(SetScissorEvent.Create(scissor));
 
         protected override void SetDepthInfoImplementation(DepthInfo depthInfo)
-            => Context.EnqueueEvent(new SetDepthInfoEvent(depthInfo));
+            => Context.EnqueueEvent(SetDepthInfoEvent.Create(depthInfo));
 
         protected override void SetStencilInfoImplementation(StencilInfo stencilInfo)
-            => Context.EnqueueEvent(new SetStencilInfoEvent(stencilInfo));
+            => Context.EnqueueEvent(SetStencilInfoEvent.Create(stencilInfo));
 
         protected override void SetShaderImplementation(IShader shader)
-            => Context.EnqueueEvent(new SetShaderEvent(Context.Reference(shader)));
+            => Context.EnqueueEvent(SetShaderEvent.Create(this, shader));
 
         protected override void SetUniformImplementation<T>(IUniformWithValue<T> uniform)
             => throw new NotSupportedException();
@@ -186,11 +186,11 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         void IRenderer.EnterDrawNode(DrawNode node)
         {
             drawNodeStack.Push(node);
-            Context.EnqueueEvent(new DrawNodeActionEvent(Context.Reference(node), DrawNodeActionType.Enter));
+            Context.EnqueueEvent(DrawNodeActionEvent.Create(this, node, DrawNodeActionType.Enter));
         }
 
         void IRenderer.ExitDrawNode()
-            => Context.EnqueueEvent(new DrawNodeActionEvent(Context.Reference(drawNodeStack.Pop()), DrawNodeActionType.Exit));
+            => Context.EnqueueEvent(DrawNodeActionEvent.Create(this, drawNodeStack.Pop(), DrawNodeActionType.Exit));
 
         protected override IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType)
             => new VeldridShaderPart(this, rawData, partType, store);
