@@ -92,8 +92,8 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             /// <remarks>
             /// Not valid for use if <see cref="Next"/> returns <c>false</c>.
             /// </remarks>
-            public readonly RenderEventType CurrentType()
-                => (RenderEventType)eventData[0];
+            public readonly ref RenderEventType CurrentType()
+                => ref Unsafe.As<byte, RenderEventType>(ref MemoryMarshal.GetReference(eventData));
 
             /// <summary>
             /// Reads the current event.
@@ -104,7 +104,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             /// </remarks>
             public readonly ref T Current<T>()
                 where T : unmanaged, IRenderEvent
-                => ref MemoryMarshal.AsRef<T>(eventData);
+                => ref Unsafe.As<byte, T>(ref MemoryMarshal.GetReference(eventData));
 
             /// <summary>
             /// Replaces the current event with a new one.
