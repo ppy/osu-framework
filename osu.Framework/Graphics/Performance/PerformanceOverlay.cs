@@ -3,6 +3,7 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -38,6 +39,8 @@ namespace osu.Framework.Graphics.Performance
         public event Action<FrameStatisticsMode>? StateChanged;
 
         private bool initialised;
+
+        private readonly List<FrameStatisticsDisplay> framedDisplays = new List<FrameStatisticsDisplay>();
 
         public FrameStatisticsMode State
         {
@@ -79,9 +82,9 @@ namespace osu.Framework.Graphics.Performance
         // let's just work around it and consider frame statistics display dimensions for receiving input events.
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
         {
-            foreach (var child in this)
+            foreach (var display in framedDisplays)
             {
-                if (child is FrameStatisticsDisplay display && display.ReceivePositionalInputAt(screenSpacePos))
+                if (display.ReceivePositionalInputAt(screenSpacePos))
                     return true;
             }
 
@@ -181,12 +184,15 @@ namespace osu.Framework.Graphics.Performance
 
                         foreach (GameThread t in host.Threads)
                         {
-                            Add(new FrameStatisticsDisplay(t, uploadPool)
+                            var display = new FrameStatisticsDisplay(t, uploadPool)
                             {
                                 Anchor = Anchor.TopRight,
                                 Origin = Anchor.TopRight,
                                 State = state
-                            });
+                            };
+
+                            Add(display);
+                            framedDisplays.Add(display);
                         }
                     }
 
@@ -194,22 +200,16 @@ namespace osu.Framework.Graphics.Performance
                     break;
             }
 
-            foreach (var child in this)
-            {
-                if (child is FrameStatisticsDisplay display)
-                    display.State = state;
-            }
+            foreach (var display in framedDisplays)
+                display.State = state;
 
             StateChanged?.Invoke(State);
         }
 
         private void applyToDisplays(Predicate<FrameStatisticsDisplay> predicate)
         {
-            foreach (var child in this)
-            {
-                if (child is FrameStatisticsDisplay display)
-                    predicate.Invoke(display);
-            }
+            foreach (var display in framedDisplays)
+                predicate.Invoke(display);
         }
 
         private void updateInfoText()
