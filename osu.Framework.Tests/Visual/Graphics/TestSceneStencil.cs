@@ -82,7 +82,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                         Size = new Vector2(circle_radius),
                         RelativePositionAxes = Axes.Both,
                         Position = new Vector2(xPos, yPos),
-                        Current = { Value = 1 }
+                        Progress = 1
                     });
 
                     circlesContainerBuffered.Add(new CircularProgress
@@ -91,7 +91,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                         Size = new Vector2(circle_radius),
                         RelativePositionAxes = Axes.Both,
                         Position = new Vector2(xPos, yPos),
-                        Current = { Value = 1 }
+                        Progress = 1
                     });
                 }
             }
