@@ -119,7 +119,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             {
                 if (Unsafe.SizeOf<T>() <= eventData.Length)
                 {
-                    // Fast path where we can maintain contiguous data references.
+                    // Fast path where we can maintain contiguous data reads.
                     eventData[0] = (byte)newEvent.Type;
                     Unsafe.WriteUnaligned(ref eventData[1], newEvent);
                 }
