@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using osu.Framework.Graphics.Rendering.Deferred.Allocation;
@@ -39,21 +38,21 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             if (string.IsNullOrEmpty(FrameworkEnvironment.DeferredRendererEventsOutputPath))
                 return;
 
-            EventListReader reader = context.RenderEvents.CreateReader();
+            EventList.Enumerator enumerator = context.RenderEvents.CreateEnumerator();
 
             StringBuilder builder = new StringBuilder();
             int indent = 0;
 
-            while (reader.Next())
+            while (enumerator.Next())
             {
                 string info;
                 int indentChange = 0;
 
-                switch (reader.CurrentType())
+                switch (enumerator.CurrentType())
                 {
                     case RenderEventType.DrawNodeAction:
                     {
-                        ref DrawNodeActionEvent e = ref reader.Current<DrawNodeActionEvent>();
+                        ref DrawNodeActionEvent e = ref enumerator.Current<DrawNodeActionEvent>();
 
                         info = $"DrawNode.{e.Action} ({context.Dereference<DrawNode>(e.DrawNode)})";
 
@@ -73,7 +72,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
                     default:
                     {
-                        info = $"{reader.CurrentType().ToString()}";
+                        info = $"{enumerator.CurrentType().ToString()}";
                         break;
                     }
                 }
@@ -88,15 +87,15 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
         private void processUploads()
         {
-            EventListReader reader = context.RenderEvents.CreateReader();
+            EventList.Enumerator enumerator = context.RenderEvents.CreateEnumerator();
 
-            while (reader.Next())
+            while (enumerator.Next())
             {
-                switch (reader.CurrentType())
+                switch (enumerator.CurrentType())
                 {
                     case RenderEventType.AddPrimitiveToBatch:
                     {
-                        ref AddPrimitiveToBatchEvent e = ref reader.Current<AddPrimitiveToBatchEvent>();
+                        ref AddPrimitiveToBatchEvent e = ref enumerator.Current<AddPrimitiveToBatchEvent>();
                         IDeferredVertexBatch batch = context.Dereference<IDeferredVertexBatch>(e.VertexBatch);
                         batch.Write(e.Memory);
                         break;
@@ -104,16 +103,16 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
                     case RenderEventType.SetUniformBufferData:
                     {
-                        ref SetUniformBufferDataEvent e = ref reader.Current<SetUniformBufferDataEvent>();
+                        ref SetUniformBufferDataEvent e = ref enumerator.Current<SetUniformBufferDataEvent>();
                         IDeferredUniformBuffer buffer = context.Dereference<IDeferredUniformBuffer>(e.Buffer);
-                        UniformBufferReference range = buffer.Write(e.Memory);
-                        context.RenderEvents.ReplaceCurrent(reader, new SetUniformBufferRangeEvent(e.Buffer, range));
+                        UniformBufferReference range = buffer.Write(e.Data.Memory);
+                        enumerator.Replace(e with { Data = new UniformBufferData(range) });
                         break;
                     }
 
                     case RenderEventType.SetShaderStorageBufferObjectData:
                     {
-                        ref SetShaderStorageBufferObjectDataEvent e = ref reader.Current<SetShaderStorageBufferObjectDataEvent>();
+                        ref SetShaderStorageBufferObjectDataEvent e = ref enumerator.Current<SetShaderStorageBufferObjectDataEvent>();
                         IDeferredShaderStorageBufferObject buffer = context.Dereference<IDeferredShaderStorageBufferObject>(e.Buffer);
                         buffer.Write(e.Index, e.Memory);
                         break;
@@ -127,74 +126,70 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
         private void processEvents()
         {
-            EventListReader reader = context.RenderEvents.CreateReader();
+            EventList.Enumerator enumerator = context.RenderEvents.CreateEnumerator();
 
-            while (reader.Next())
+            while (enumerator.Next())
             {
-                switch (reader.CurrentType())
+                switch (enumerator.CurrentType())
                 {
                     case RenderEventType.SetFrameBuffer:
-                        processEvent(reader.Current<SetFrameBufferEvent>());
+                        processEvent(enumerator.Current<SetFrameBufferEvent>());
                         break;
 
                     case RenderEventType.ResizeFrameBuffer:
-                        processEvent(reader.Current<ResizeFrameBufferEvent>());
+                        processEvent(enumerator.Current<ResizeFrameBufferEvent>());
                         break;
 
                     case RenderEventType.SetShader:
-                        processEvent(reader.Current<SetShaderEvent>());
+                        processEvent(enumerator.Current<SetShaderEvent>());
                         break;
 
                     case RenderEventType.SetTexture:
-                        processEvent(reader.Current<SetTextureEvent>());
+                        processEvent(enumerator.Current<SetTextureEvent>());
                         break;
 
                     case RenderEventType.SetUniformBuffer:
-                        processEvent(reader.Current<SetUniformBufferEvent>());
+                        processEvent(enumerator.Current<SetUniformBufferEvent>());
                         break;
 
                     case RenderEventType.Clear:
-                        processEvent(reader.Current<ClearEvent>());
+                        processEvent(enumerator.Current<ClearEvent>());
                         break;
 
                     case RenderEventType.SetDepthInfo:
-                        processEvent(reader.Current<SetDepthInfoEvent>());
+                        processEvent(enumerator.Current<SetDepthInfoEvent>());
                         break;
 
                     case RenderEventType.SetScissor:
-                        processEvent(reader.Current<SetScissorEvent>());
+                        processEvent(enumerator.Current<SetScissorEvent>());
                         break;
 
                     case RenderEventType.SetScissorState:
-                        processEvent(reader.Current<SetScissorStateEvent>());
+                        processEvent(enumerator.Current<SetScissorStateEvent>());
                         break;
 
                     case RenderEventType.SetStencilInfo:
-                        processEvent(reader.Current<SetStencilInfoEvent>());
+                        processEvent(enumerator.Current<SetStencilInfoEvent>());
                         break;
 
                     case RenderEventType.SetViewport:
-                        processEvent(reader.Current<SetViewportEvent>());
+                        processEvent(enumerator.Current<SetViewportEvent>());
                         break;
 
                     case RenderEventType.SetBlend:
-                        processEvent(reader.Current<SetBlendEvent>());
+                        processEvent(enumerator.Current<SetBlendEvent>());
                         break;
 
                     case RenderEventType.SetBlendMask:
-                        processEvent(reader.Current<SetBlendMaskEvent>());
+                        processEvent(enumerator.Current<SetBlendMaskEvent>());
                         break;
 
                     case RenderEventType.Flush:
-                        processEvent(reader.Current<FlushEvent>());
-                        break;
-
-                    case RenderEventType.SetUniformBufferRange:
-                        processEvent(reader.Current<SetUniformBufferRangeEvent>());
+                        processEvent(enumerator.Current<FlushEvent>());
                         break;
 
                     case RenderEventType.SetUniformBufferData:
-                        Debug.Fail($"Should be replaced by {nameof(SetUniformBufferRangeEvent)} during upload.");
+                        processEvent(enumerator.Current<SetUniformBufferDataEvent>());
                         break;
                 }
             }
@@ -242,12 +237,12 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         private void processEvent(in FlushEvent e)
             => context.Dereference<IDeferredVertexBatch>(e.VertexBatch).Draw(e.VertexCount);
 
-        private void processEvent(in SetUniformBufferRangeEvent e)
+        private void processEvent(in SetUniformBufferDataEvent e)
         {
-            IDeferredUniformBuffer buffer = context.Dereference<IDeferredUniformBuffer>(e.UniformBuffer);
+            IDeferredUniformBuffer buffer = context.Dereference<IDeferredUniformBuffer>(e.Buffer);
 
-            buffer.Activate(e.Range.Chunk);
-            graphics.SetUniformBufferOffset(buffer, (uint)e.Range.OffsetInChunk);
+            buffer.Activate(e.Data.Range.Chunk);
+            graphics.SetUniformBufferOffset(buffer, (uint)e.Data.Range.OffsetInChunk);
         }
     }
 }

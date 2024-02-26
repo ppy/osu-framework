@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using osu.Framework.Graphics.Rendering.Deferred.Allocation;
 using osu.Framework.Graphics.Rendering.Deferred.Events;
 
@@ -34,16 +35,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             where T : unmanaged, IRenderEvent
             => events.Add(createEvent(renderEvent));
 
-        /// <summary>
-        /// Replaces the current event referenced by the <see cref="EventListReader"/> with a new one.
-        /// </summary>
-        /// <param name="reader">The <see cref="EventListReader"/>.</param>
-        /// <param name="newEvent">The new render event.</param>
-        /// <typeparam name="T">The new event type.</typeparam>
-        public void ReplaceCurrent<T>(EventListReader reader, in T newEvent)
-            where T : unmanaged, IRenderEvent
-            => events[reader.CurrentIndex()] = createEvent(newEvent);
-
         private MemoryReference createEvent<T>(in T renderEvent)
             where T : unmanaged, IRenderEvent
         {
@@ -61,8 +52,83 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         /// <summary>
         /// Creates a reader of this <see cref="EventList"/>.
         /// </summary>
-        /// <returns>The <see cref="EventListReader"/>.</returns>
-        public EventListReader CreateReader()
-            => new EventListReader(allocator, events);
+        /// <returns>The <see cref="Enumerator"/>.</returns>
+        public Enumerator CreateEnumerator()
+            => new Enumerator(this);
+
+        /// <summary>
+        /// Reads an <see cref="EventList"/>. Semantically, this is very similar to <see cref="IEnumerator{T}"/>.
+        /// </summary>
+        internal ref struct Enumerator
+        {
+            private readonly EventList list;
+
+            private int eventIndex;
+            private Span<byte> eventData = Span<byte>.Empty;
+
+            public Enumerator(EventList list)
+            {
+                this.list = list;
+                eventIndex = 0;
+            }
+
+            /// <summary>
+            /// Advances to the next (or first) event in the list.
+            /// </summary>
+            /// <returns>Whether an event can be read.</returns>
+            public bool Next()
+            {
+                if (eventIndex < list.events.Count)
+                {
+                    eventData = list.allocator.GetRegion(list.events[eventIndex]);
+                    eventIndex++;
+                    return true;
+                }
+
+                eventData = Span<byte>.Empty;
+                return false;
+            }
+
+            /// <summary>
+            /// Reads the current event type.
+            /// </summary>
+            /// <remarks>
+            /// Not valid for use if <see cref="Next"/> returns <c>false</c>.
+            /// </remarks>
+            public readonly ref RenderEventType CurrentType()
+                => ref MemoryMarshal.AsRef<RenderEventType>(eventData);
+
+            /// <summary>
+            /// Reads the current event.
+            /// </summary>
+            /// <typeparam name="T">The expected event type.</typeparam>
+            /// <remarks>
+            /// Not valid for use if <see cref="Next"/> returns <c>false</c>.
+            /// </remarks>
+            public readonly ref T Current<T>()
+                where T : unmanaged, IRenderEvent
+                => ref MemoryMarshal.AsRef<T>(eventData[1..]);
+
+            /// <summary>
+            /// Replaces the current event with a new one.
+            /// </summary>
+            /// <param name="newEvent">The new render event.</param>
+            /// <typeparam name="T">The new event type.</typeparam>
+            public void Replace<T>(T newEvent)
+                where T : unmanaged, IRenderEvent
+            {
+                if (Unsafe.SizeOf<T>() <= eventData.Length)
+                {
+                    // Fast path where we can maintain contiguous data references.
+                    eventData[0] = (byte)newEvent.Type;
+                    Unsafe.WriteUnaligned(ref eventData[1], newEvent);
+                }
+                else
+                {
+                    // Slow path.
+                    eventData = list.allocator.GetRegion(list.events[eventIndex] = list.createEvent(newEvent));
+                }
+            }
+        }
     }
 }

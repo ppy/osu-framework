@@ -36,16 +36,16 @@ namespace osu.Framework.Benchmarks
         [Benchmark]
         public int Read()
         {
-            var reader = filledEventList.CreateReader();
+            var enumerator = filledEventList.CreateEnumerator();
 
             int totalVertices = 0;
 
-            while (reader.Next())
+            while (enumerator.Next())
             {
-                switch (reader.CurrentType())
+                switch (enumerator.CurrentType())
                 {
                     case RenderEventType.Flush:
-                        ref FlushEvent e = ref reader.Current<FlushEvent>();
+                        ref FlushEvent e = ref enumerator.Current<FlushEvent>();
                         totalVertices += e.VertexCount;
                         break;
                 }

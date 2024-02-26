@@ -24,6 +24,5 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
         Flush,
 
         DrawNodeAction,
-        SetUniformBufferRange
     }
 }
