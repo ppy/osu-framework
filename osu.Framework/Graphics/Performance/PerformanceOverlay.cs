@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Performance
 
         private bool initialised;
 
-        private readonly List<FrameStatisticsDisplay> framedDisplays = new List<FrameStatisticsDisplay>();
+        private readonly List<FrameStatisticsDisplay> frameDisplays = new List<FrameStatisticsDisplay>();
 
         public FrameStatisticsMode State
         {
@@ -82,7 +82,7 @@ namespace osu.Framework.Graphics.Performance
         // let's just work around it and consider frame statistics display dimensions for receiving input events.
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
         {
-            foreach (var display in framedDisplays)
+            foreach (var display in frameDisplays)
             {
                 if (display.ReceivePositionalInputAt(screenSpacePos))
                     return true;
@@ -192,7 +192,7 @@ namespace osu.Framework.Graphics.Performance
                             };
 
                             Add(display);
-                            framedDisplays.Add(display);
+                            frameDisplays.Add(display);
                         }
                     }
 
@@ -200,7 +200,7 @@ namespace osu.Framework.Graphics.Performance
                     break;
             }
 
-            foreach (var display in framedDisplays)
+            foreach (var display in frameDisplays)
                 display.State = state;
 
             StateChanged?.Invoke(State);
@@ -208,7 +208,7 @@ namespace osu.Framework.Graphics.Performance
 
         private void applyToDisplays(Predicate<FrameStatisticsDisplay> predicate)
         {
-            foreach (var display in framedDisplays)
+            foreach (var display in frameDisplays)
                 predicate.Invoke(display);
         }
 
