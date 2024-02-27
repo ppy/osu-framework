@@ -70,7 +70,7 @@ namespace osu.Framework.Graphics.Rendering
         public WrapMode CurrentWrapModeS { get; private set; }
         public WrapMode CurrentWrapModeT { get; private set; }
         public bool IsMaskingActive { get; private set; }
-        public bool UsingBackbuffer => FrameBuffer == null;
+        public bool UsingBackbuffer { get; private set; }
         public Texture WhitePixel => whitePixel.Value;
         DepthValue IRenderer.BackbufferDepth => backBufferDepth;
 
@@ -652,6 +652,7 @@ namespace osu.Framework.Graphics.Rendering
 
             currentMaskingInfo = maskingInfo;
 
+            // Masking is enabled for as long as any masking info is active that's not the default.
             IsMaskingActive = maskingStack.Count > 1;
             globalUniformsChanged = true;
         }
@@ -909,6 +910,8 @@ namespace osu.Framework.Graphics.Rendering
             SetFrameBufferImplementation(frameBuffer);
 
             FrameBuffer = frameBuffer;
+
+            UsingBackbuffer = frameBuffer == null;
             globalUniformsChanged = true;
         }
 
