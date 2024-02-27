@@ -156,6 +156,9 @@ namespace osu.Framework.Graphics.Veldrid
         protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer)
             => veldridDevice.Graphics.SetFrameBuffer((VeldridFrameBuffer?)frameBuffer);
 
+        protected override void DeleteFrameBufferImplementation(IFrameBuffer frameBuffer)
+            => ((VeldridFrameBuffer)frameBuffer).DeleteResources(true);
+
         public override void DrawVerticesImplementation(PrimitiveTopology topology, int vertexStart, int verticesCount)
         {
             // normally we would flush/submit all texture upload commands at the end of the frame, since no actual rendering by the GPU will happen until then,

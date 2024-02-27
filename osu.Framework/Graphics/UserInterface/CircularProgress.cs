@@ -6,7 +6,6 @@
 using System;
 using System.Runtime.InteropServices;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shaders.Types;
@@ -15,14 +14,26 @@ using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public partial class CircularProgress : Sprite, IHasCurrentValue<double>
+    public partial class CircularProgress : Sprite
     {
-        private readonly BindableWithCurrent<double> current = new BindableWithCurrent<double>();
+        private double progress;
 
-        public Bindable<double> Current
+        public double Progress
         {
-            get => current.Current;
-            set => current.Current = value;
+            get => progress;
+            set
+            {
+                if (!double.IsFinite(value))
+                    throw new ArgumentException($"{nameof(Progress)} must be finite, but is {value}.");
+
+                if (progress == value)
+                    return;
+
+                progress = value;
+
+                if (IsLoaded)
+                    Invalidate(Invalidation.DrawNode);
+            }
         }
 
         [BackgroundDependencyLoader]
@@ -32,27 +43,14 @@ namespace osu.Framework.Graphics.UserInterface
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CircularProgress");
         }
 
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-
-            Current.BindValueChanged(c =>
-            {
-                if (!double.IsFinite(c.NewValue))
-                    throw new ArgumentException($"{nameof(Current)} must be finite, but is {c.NewValue}.");
-
-                Invalidate(Invalidation.DrawNode);
-            }, true);
-        }
-
         protected override DrawNode CreateDrawNode() => new CircularProgressDrawNode(this);
 
-        public TransformSequence<CircularProgress> FillTo(double newValue, double duration = 0, Easing easing = Easing.None)
-            => FillTo(newValue, duration, new DefaultEasingFunction(easing));
+        public TransformSequence<CircularProgress> ProgressTo(double newValue, double duration = 0, Easing easing = Easing.None)
+            => ProgressTo(newValue, duration, new DefaultEasingFunction(easing));
 
-        public TransformSequence<CircularProgress> FillTo<TEasing>(double newValue, double duration, in TEasing easing)
+        public TransformSequence<CircularProgress> ProgressTo<TEasing>(double newValue, double duration, in TEasing easing)
             where TEasing : IEasingFunction
-            => this.TransformBindableTo(Current, newValue, duration, easing);
+            => this.TransformTo(nameof(Progress), newValue, duration, easing);
 
         private float innerRadius = 1;
 
@@ -108,7 +106,7 @@ namespace osu.Framework.Graphics.UserInterface
                 base.ApplyState();
 
                 InnerRadius = Source.innerRadius;
-                Progress = Math.Abs((float)Source.current.Value);
+                Progress = Math.Abs((float)Source.progress);
                 RoundedCaps = Source.roundedCaps;
 
                 // smoothstep looks too sharp with 1px, let's give it a bit more
@@ -162,11 +160,11 @@ namespace osu.Framework.Graphics.UserInterface
 
     public static class CircularProgressTransformSequenceExtensions
     {
-        public static TransformSequence<CircularProgress> FillTo(this TransformSequence<CircularProgress> t, double newValue, double duration = 0, Easing easing = Easing.None)
-            => t.FillTo(newValue, duration, new DefaultEasingFunction(easing));
+        public static TransformSequence<CircularProgress> ProgressTo(this TransformSequence<CircularProgress> t, double newValue, double duration = 0, Easing easing = Easing.None)
+            => t.ProgressTo(newValue, duration, new DefaultEasingFunction(easing));
 
-        public static TransformSequence<CircularProgress> FillTo<TEasing>(this TransformSequence<CircularProgress> t, double newValue, double duration, TEasing easing)
+        public static TransformSequence<CircularProgress> ProgressTo<TEasing>(this TransformSequence<CircularProgress> t, double newValue, double duration, TEasing easing)
             where TEasing : IEasingFunction
-            => t.Append(cp => cp.FillTo(newValue, duration, easing));
+            => t.Append(cp => cp.ProgressTo(newValue, duration, easing));
     }
 }
