@@ -73,6 +73,9 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer)
             => Context.EnqueueEvent(SetFrameBufferEvent.Create(this, frameBuffer));
 
+        protected override void DeleteFrameBufferImplementation(IFrameBuffer frameBuffer)
+            => ((DeferredFrameBuffer)frameBuffer).DeleteResources();
+
         protected override void SetUniformBufferImplementation(string blockName, IUniformBuffer buffer)
             => Context.EnqueueEvent(SetUniformBufferEvent.Create(this, blockName, buffer));
 

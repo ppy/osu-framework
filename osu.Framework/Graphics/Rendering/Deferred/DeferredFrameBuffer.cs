@@ -38,6 +38,9 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         public void Resize(Vector2I size)
             => nativeTexture.Resize(size);
 
+        public void DeleteResources()
+            => nativeTexture.Dispose();
+
         Framebuffer IVeldridFrameBuffer.Framebuffer
             => nativeTexture.Framebuffer;
 
@@ -78,8 +81,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             if (isDisposed)
                 return;
 
-            nativeTexture.Dispose();
-
+            renderer.DeleteFrameBuffer(this);
             isDisposed = true;
         }
 
@@ -238,13 +240,9 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                 if (isDisposed)
                     return;
 
-                deferredFrameBuffer.renderer.ScheduleDisposal(texture =>
-                {
-                    texture.resources?.Dispose();
-                    texture.framebuffer?.Dispose();
-                    texture.Available = false;
-                }, this);
-
+                resources?.Dispose();
+                framebuffer?.Dispose();
+                Available = false;
                 isDisposed = true;
             }
         }
