@@ -5,7 +5,6 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using osu.Framework.Extensions.ObjectExtensions;
-using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Veldrid.Textures;
 using osuTK;
@@ -14,7 +13,7 @@ using Texture = Veldrid.Texture;
 
 namespace osu.Framework.Graphics.Veldrid.Buffers
 {
-    internal class VeldridFrameBuffer : IFrameBuffer, IVeldridFrameBuffer
+    internal class VeldridFrameBuffer : IVeldridFrameBuffer
     {
         public osu.Framework.Graphics.Textures.Texture Texture { get; }
 
