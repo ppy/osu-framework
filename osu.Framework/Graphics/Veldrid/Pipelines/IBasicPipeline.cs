@@ -27,6 +27,7 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
         /// <summary>
         /// Updates a <see cref="global::Veldrid.Texture"/> with a <paramref name="data"/> at the specified coordinates.
         /// </summary>
+        /// <param name="stagingPool">The staging texture pool.</param>
         /// <param name="texture">The <see cref="global::Veldrid.Texture"/> to update.</param>
         /// <param name="x">The X coordinate of the update region.</param>
         /// <param name="y">The Y coordinate of the update region.</param>
@@ -35,12 +36,13 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
         /// <param name="level">The texture level.</param>
         /// <param name="data">The texture data.</param>
         /// <typeparam name="T">The pixel type.</typeparam>
-        void UpdateTexture<T>(Texture texture, int x, int y, int width, int height, int level, ReadOnlySpan<T> data)
+        void UpdateTexture<T>(VeldridStagingTexturePool stagingPool, Texture texture, int x, int y, int width, int height, int level, ReadOnlySpan<T> data)
             where T : unmanaged;
 
         /// <summary>
         /// Updates a <see cref="global::Veldrid.Texture"/> with a <paramref name="data"/> at the specified coordinates.
         /// </summary>
+        /// <param name="stagingPool">The staging texture pool.</param>
         /// <param name="texture">The <see cref="global::Veldrid.Texture"/> to update.</param>
         /// <param name="x">The X coordinate of the update region.</param>
         /// <param name="y">The Y coordinate of the update region.</param>
@@ -49,7 +51,7 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
         /// <param name="level">The texture level.</param>
         /// <param name="data">The texture data.</param>
         /// <param name="rowLengthInBytes">The number of bytes per row of the image to read from <paramref name="data"/>.</param>
-        void UpdateTexture(Texture texture, int x, int y, int width, int height, int level, IntPtr data, int rowLengthInBytes);
+        void UpdateTexture(VeldridStagingTexturePool stagingPool, Texture texture, int x, int y, int width, int height, int level, IntPtr data, int rowLengthInBytes);
 
         /// <summary>
         /// Generate mipmaps for the given texture.
