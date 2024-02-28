@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
     /// <summary>
     /// A non-graphical pipeline that provides a command list and handles basic tasks like uploading textures.
     /// </summary>
-    internal class BasicPipeline : IBasicPipeline
+    internal class BasicPipeline
     {
         /// <summary>
         /// Invoked when a new execution of this <see cref="BasicPipeline"/> is started.
@@ -25,12 +25,21 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
         /// </summary>
         public event Action<ulong>? ExecutionFinished;
 
+        /// <summary>
+        /// The platform graphics device.
+        /// </summary>
         public GraphicsDevice Device
             => device.Device;
 
+        /// <summary>
+        /// The platform graphics resource factory.
+        /// </summary>
         public ResourceFactory Factory
             => device.Factory;
 
+        /// <summary>
+        /// The command list.
+        /// </summary>
         public CommandList Commands { get; }
 
         /// <summary>
@@ -116,6 +125,18 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
             }
         }
 
+        /// <summary>
+        /// Updates a <see cref="global::Veldrid.Texture"/> with a <paramref name="data"/> at the specified coordinates.
+        /// </summary>
+        /// <param name="stagingPool">The staging texture pool.</param>
+        /// <param name="texture">The <see cref="global::Veldrid.Texture"/> to update.</param>
+        /// <param name="x">The X coordinate of the update region.</param>
+        /// <param name="y">The Y coordinate of the update region.</param>
+        /// <param name="width">The width of the update region.</param>
+        /// <param name="height">The height of the update region.</param>
+        /// <param name="level">The texture level.</param>
+        /// <param name="data">The texture data.</param>
+        /// <typeparam name="T">The pixel type.</typeparam>
         public void UpdateTexture<T>(VeldridStagingTexturePool stagingPool, Texture texture, int x, int y, int width, int height, int level, ReadOnlySpan<T> data)
             where T : unmanaged
         {
@@ -129,6 +150,18 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
             Commands.CopyTexture(staging, 0, 0, 0, 0, 0, texture, (uint)x, (uint)y, 0, (uint)level, 0, (uint)width, (uint)height, 1, 1);
         }
 
+        /// <summary>
+        /// Updates a <see cref="global::Veldrid.Texture"/> with a <paramref name="data"/> at the specified coordinates.
+        /// </summary>
+        /// <param name="stagingPool">The staging texture pool.</param>
+        /// <param name="texture">The <see cref="global::Veldrid.Texture"/> to update.</param>
+        /// <param name="x">The X coordinate of the update region.</param>
+        /// <param name="y">The Y coordinate of the update region.</param>
+        /// <param name="width">The width of the update region.</param>
+        /// <param name="height">The height of the update region.</param>
+        /// <param name="level">The texture level.</param>
+        /// <param name="data">The texture data.</param>
+        /// <param name="rowLengthInBytes">The number of bytes per row of the image to read from <paramref name="data"/>.</param>
         public void UpdateTexture(VeldridStagingTexturePool stagingPool, Texture texture, int x, int y, int width, int height, int level, IntPtr data, int rowLengthInBytes)
         {
             var staging = stagingPool.Get(width, height, texture.Format);
@@ -161,6 +194,10 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
                 texture, (uint)x, (uint)y, 0, (uint)level, 0, (uint)width, (uint)height, 1, 1);
         }
 
+        /// <summary>
+        /// Generate mipmaps for the given texture.
+        /// </summary>
+        /// <param name="texture">The texture.</param>
         public void GenerateMipmaps(VeldridTexture texture)
         {
             var resources = texture.GetResourceList();
