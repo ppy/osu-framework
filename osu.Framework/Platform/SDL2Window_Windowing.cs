@@ -127,7 +127,7 @@ namespace osu.Framework.Platform
         public bool Focused
         {
             get => focused;
-            private set
+            protected set
             {
                 if (value == focused)
                     return;
@@ -223,7 +223,9 @@ namespace osu.Framework.Platform
 
         public IBindable<bool> IsActive => isActive;
 
-        private readonly BindableBool cursorInWindow = new BindableBool();
+        // This is default to true because Android never gets this SDL_WINDOWEVENT_ENTER event.
+        // shouldn't harm so much to have true as default
+        private readonly BindableBool cursorInWindow = new BindableBool(true);
 
         public IBindable<bool> CursorInWindow => cursorInWindow;
 
@@ -522,6 +524,7 @@ namespace osu.Framework.Platform
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SHOWN:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_HIDDEN:
+                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED when RuntimeInfo.IsMobile:
                     fetchDisplays();
                     break;
             }

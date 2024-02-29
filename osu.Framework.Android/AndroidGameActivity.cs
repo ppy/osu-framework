@@ -8,15 +8,23 @@ using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
+using Java.Lang;
 using ManagedBass;
+using Org.Libsdl.App;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.ObjectExtensions;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Android
 {
     // since `ActivityAttribute` can't be inherited, the below is only provided as an illustrative example of how to setup an activity for best compatibility.
-    [Activity(ConfigurationChanges = DEFAULT_CONFIG_CHANGES, Exported = true, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
-    public abstract class AndroidGameActivity : Activity
+    [Activity(ConfigurationChanges = DEFAULT_CONFIG_CHANGES,
+              Exported = true,
+              LaunchMode = DEFAULT_LAUNCH_MODE,
+              HardwareAccelerated = true,
+              MainLauncher = true,
+              ScreenOrientation = ScreenOrientation.Landscape)]
+    public abstract class AndroidGameActivity : SDLActivity
     {
         protected const ConfigChanges DEFAULT_CONFIG_CHANGES = ConfigChanges.Keyboard
                                                                | ConfigChanges.KeyboardHidden
@@ -30,7 +38,13 @@ namespace osu.Framework.Android
 
         protected const LaunchMode DEFAULT_LAUNCH_MODE = LaunchMode.SingleInstance;
 
+        internal static AndroidGameSurface Surface => (AndroidGameSurface)MSurface!;
+
         protected abstract Game CreateGame();
+
+        private Game? game;
+
+        private GameHost? host;
 
         /// <summary>
         /// Whether this <see cref="AndroidGameActivity"/> is active (in the foreground).
@@ -54,13 +68,34 @@ namespace osu.Framework.Android
 
         private SystemUiFlags systemUiFlags;
 
-        private AndroidGameView gameView = null!;
-
         public override void OnTrimMemory([GeneratedEnum] TrimMemory level)
         {
             base.OnTrimMemory(level);
-            gameView.Host?.Collect();
+            host?.Collect();
         }
+
+        protected override string[] GetLibraries() => new string[] { "SDL2" };
+
+        protected override SDLSurface CreateSDLSurface(Context context) => new AndroidGameSurface(this, context);
+
+        protected override IRunnable CreateSDLMainRunnable() => new Runnable(() =>
+        {
+            // blocks back button
+            SDL2.SDL.SDL_SetHint(SDL2.SDL.SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1");
+
+            // accelerometer spams input thread
+            SDL2.SDL.SDL_SetHint(SDL2.SDL.SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");
+
+            // hints are here because they don't apply well in another location such as SDL2Window
+
+            host = new AndroidGameHost(this);
+            game = CreateGame();
+
+            host.Run(game);
+
+            if (!IsFinishing)
+                Finish();
+        });
 
         protected override void OnCreate(Bundle? savedInstanceState)
         {
@@ -69,11 +104,9 @@ namespace osu.Framework.Android
             // In order to have a consistent current directory on all devices the full path of the app data directory is set as the current directory.
             System.Environment.CurrentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile);
 
-            base.OnCreate(savedInstanceState);
+            UIVisibilityFlags = SystemUiFlags.LayoutFlags | SystemUiFlags.LayoutFullscreen | SystemUiFlags.ImmersiveSticky | SystemUiFlags.HideNavigation | SystemUiFlags.Fullscreen;
 
-            SetContentView(gameView = new AndroidGameView(this, CreateGame()));
-
-            UIVisibilityFlags = SystemUiFlags.LayoutFlags | SystemUiFlags.ImmersiveSticky | SystemUiFlags.HideNavigation | SystemUiFlags.Fullscreen;
+            RequestedOrientation = ScreenOrientation.Landscape;
 
             // Firing up the on-screen keyboard (eg: interacting with textboxes) may cause the UI visibility flags to be altered thus showing the navigation bar and potentially the status bar
             // This sets back the UI flags to hidden once the interaction with the on-screen keyboard has finished.
@@ -90,32 +123,18 @@ namespace osu.Framework.Android
                 Window.AsNonNull().Attributes.AsNonNull().LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.ShortEdges;
             }
 
-            gameView.HostStarted += host =>
-            {
-                host.AllowScreenSuspension.Result.BindValueChanged(allow =>
-                {
-                    RunOnUiThread(() =>
-                    {
-                        if (!allow.NewValue)
-                            Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
-                        else
-                            Window?.ClearFlags(WindowManagerFlags.KeepScreenOn);
-                    });
-                }, true);
-            };
+            base.OnCreate(savedInstanceState);
         }
 
         protected override void OnStop()
         {
             base.OnStop();
-            gameView.Host?.Suspend();
             Bass.Pause();
         }
 
         protected override void OnRestart()
         {
             base.OnRestart();
-            gameView.Host?.Resume();
             Bass.Start();
         }
 
@@ -123,30 +142,6 @@ namespace osu.Framework.Android
         {
             base.OnWindowFocusChanged(hasFocus);
             IsActive.Value = hasFocus;
-        }
-
-        public override void OnBackPressed()
-        {
-            // Avoid the default implementation that does close the app.
-            // This only happens when the back button could not be captured from OnKeyDown.
-        }
-
-        // On some devices and keyboard combinations the OnKeyDown event does not propagate the key event to the view.
-        // Here it is done manually to ensure that the keys actually land in the view.
-
-        public override bool OnKeyDown([GeneratedEnum] Keycode keyCode, KeyEvent? e)
-        {
-            return gameView.OnKeyDown(keyCode, e);
-        }
-
-        public override bool OnKeyUp([GeneratedEnum] Keycode keyCode, KeyEvent? e)
-        {
-            return gameView.OnKeyUp(keyCode, e);
-        }
-
-        public override bool OnKeyLongPress([GeneratedEnum] Keycode keyCode, KeyEvent? e)
-        {
-            return gameView.OnKeyLongPress(keyCode, e);
         }
     }
 }

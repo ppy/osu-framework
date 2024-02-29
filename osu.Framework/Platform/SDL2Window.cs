@@ -130,7 +130,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        public IntPtr DisplayHandle
+        public virtual IntPtr DisplayHandle
         {
             get
             {
