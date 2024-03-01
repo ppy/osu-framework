@@ -116,7 +116,7 @@ namespace osu.Framework.Utils
             get => tolerance;
             set
             {
-                ArgumentOutOfRangeException.ThrowIfNegative(tolerance);
+                ArgumentOutOfRangeException.ThrowIfNegative(value);
 
                 if (value == tolerance)
                     return;
@@ -138,7 +138,7 @@ namespace osu.Framework.Utils
             get => cornerThreshold;
             set
             {
-                ArgumentOutOfRangeException.ThrowIfNegative(cornerThreshold);
+                ArgumentOutOfRangeException.ThrowIfNegative(value);
 
                 if (value == cornerThreshold)
                     return;

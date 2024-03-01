@@ -45,7 +45,8 @@ namespace osu.Framework.Testing.Drawables
         {
             var tests = group.TestTypes;
 
-            ArgumentOutOfRangeException.ThrowIfZero(tests.Length);
+            if (tests.Length == 0)
+                throw new ArgumentOutOfRangeException(nameof(group), tests.Length, "Type array must not be empty!");
 
             Group = group;
 
