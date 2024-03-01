@@ -8,7 +8,6 @@ using System.Linq;
 using System.Text;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Veldrid.Buffers;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
@@ -90,14 +89,11 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
         public void BindUniformBlock(string blockName, IUniformBuffer buffer)
         {
-            if (buffer is not IVeldridUniformBuffer veldridBuffer)
-                throw new ArgumentException($"Buffer must be an {nameof(IVeldridUniformBuffer)}.");
-
             ObjectDisposedException.ThrowIf(isDisposed, this);
 
             EnsureShaderInitialised();
 
-            renderer.BindUniformBuffer(blockName, veldridBuffer);
+            renderer.BindUniformBuffer(blockName, buffer);
         }
 
         public VeldridUniformLayout? GetTextureLayout(int textureUnit) => textureUnit >= textureLayouts.Count ? null : textureLayouts[textureUnit];
