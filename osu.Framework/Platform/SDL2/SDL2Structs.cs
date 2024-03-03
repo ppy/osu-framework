@@ -3,7 +3,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-using SDL2;
+using static SDL2.SDL;
 
 // ReSharper disable MemberCanBePrivate.Global
 // (Some members not currently used)
@@ -37,13 +37,13 @@ namespace osu.Framework.Platform.SDL2
         }
 
         /// <summary>
-        /// Member <c>msg</c> of <see cref="SDL.SDL_SysWMEvent"/>.
+        /// Member <c>msg</c> of <see cref="SDL_SysWMEvent"/>.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct SDL_SysWMmsg
         {
-            public SDL.SDL_version version;
-            public SDL.SDL_SYSWM_TYPE subsystem;
+            public SDL_version version;
+            public SDL_SYSWM_TYPE subsystem;
             public INTERNAL_SysWMmsgUnion msg;
         }
     }

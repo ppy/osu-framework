@@ -10,7 +10,7 @@ using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform.Windows.Native;
 using osu.Framework.Statistics;
 using osuTK;
-using SDL2;
+using static SDL2.SDL;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -28,7 +28,7 @@ namespace osu.Framework.Platform.Windows
 
         private const int raw_input_coordinate_space = 65535;
 
-        private SDL.SDL_WindowsMessageHook callback = null!;
+        private SDL_WindowsMessageHook callback = null!;
         private WindowsWindow window = null!;
 
         public override bool IsActive => Enabled.Value;
@@ -44,7 +44,7 @@ namespace osu.Framework.Platform.Windows
 
             Enabled.BindValueChanged(enabled =>
             {
-                host.InputThread.Scheduler.Add(() => SDL.SDL_SetWindowsMessageHook(enabled.NewValue ? callback : null, IntPtr.Zero));
+                host.InputThread.Scheduler.Add(() => SDL_SetWindowsMessageHook(enabled.NewValue ? callback : null, IntPtr.Zero));
             }, true);
 
             return base.Initialize(host);

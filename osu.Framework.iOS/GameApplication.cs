@@ -9,7 +9,7 @@ using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
 using ObjCRuntime;
-using SDL2;
+using static SDL2.SDL;
 
 namespace osu.Framework.iOS
 {
@@ -30,11 +30,11 @@ namespace osu.Framework.iOS
 
             game = target;
 
-            SDL.PrepareLibraryForIOS();
-            SDL.SDL_UIKitRunApp(0, IntPtr.Zero, main);
+            PrepareLibraryForIOS();
+            SDL_UIKitRunApp(0, IntPtr.Zero, main);
         }
 
-        [MonoPInvokeCallback(typeof(SDL.SDL_main_func))]
+        [MonoPInvokeCallback(typeof(SDL_main_func))]
         private static int main(int argc, IntPtr argv)
         {
             var audioSession = AVAudioSession.SharedInstance();

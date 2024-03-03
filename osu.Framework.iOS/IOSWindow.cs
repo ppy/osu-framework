@@ -8,8 +8,8 @@ using ObjCRuntime;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Platform;
-using SDL2;
 using UIKit;
+using static SDL2.SDL;
 
 namespace osu.Framework.iOS
 {
@@ -37,7 +37,7 @@ namespace osu.Framework.iOS
         protected override void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
         {
             // This sets the status bar to hidden.
-            SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
+            SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
 
             // Don't run base logic at all. Let's keep things simple.
         }
@@ -60,11 +60,11 @@ namespace osu.Framework.iOS
             // iOS may be a good forward direction if this ever comes up, as a user may see a potentially higher
             // frame rate with multi-threaded mode turned on, but it is going to give them worse input latency
             // and higher power usage.
-            SDL.SDL_iPhoneSetEventPump(SDL.SDL_bool.SDL_FALSE);
-            SDL.SDL_iPhoneSetAnimationCallback(SDLWindowHandle, 1, runFrame, ObjectHandle.Handle);
+            SDL_iPhoneSetEventPump(SDL_bool.SDL_FALSE);
+            SDL_iPhoneSetAnimationCallback(SDLWindowHandle, 1, runFrame, ObjectHandle.Handle);
         }
 
-        [ObjCRuntime.MonoPInvokeCallback(typeof(SDL.SDL_iPhoneAnimationCallback))]
+        [ObjCRuntime.MonoPInvokeCallback(typeof(SDL_iPhoneAnimationCallback))]
         private static void runFrame(IntPtr userdata)
         {
             var handle = new ObjectHandle<IOSWindow>(userdata);
