@@ -332,7 +332,8 @@ namespace osu.Framework.Extensions
         /// </remarks>
         /// <param name="character">The character to check.</param>
         /// <returns>True if the character is an ASCII digit.</returns>
-        public static bool IsAsciiDigit(this char character) => character >= '0' && character <= '9';
+        [Obsolete("Use char.IsAsciiDigit.")] // can be removed 20240901
+        public static bool IsAsciiDigit(this char character) => char.IsAsciiDigit(character);
 
         /// <summary>
         /// Converts an osuTK <see cref="DisplayDevice"/> to a <see cref="Display"/> structure.
