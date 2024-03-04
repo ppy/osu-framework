@@ -22,8 +22,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         private readonly VeldridRenderer renderer;
         private readonly PixelFormat? depthFormat;
-
         private readonly VeldridTexture colourTarget;
+        private readonly bool externalColourTarget;
         private readonly int mipLevel;
         private Texture? depthTarget;
 
@@ -47,8 +47,6 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
                 recreateResources();
             }
         }
-
-        private readonly bool externalColourTarget;
 
         public VeldridFrameBuffer(VeldridRenderer renderer, PixelFormat[]? formats = null, SamplerFilter filteringMode = SamplerFilter.MinLinear_MagLinear_MipLinear)
         {

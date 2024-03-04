@@ -111,5 +111,10 @@ namespace osu.Framework.Bindables
 
         /// <inheritdoc cref="IBindable.GetBoundCopy"/>
         IBindable<T> GetBoundCopy();
+
+        /// <summary>
+        /// Retrieves a weak reference to this bindable.
+        /// </summary>
+        internal WeakReference<Bindable<T>> GetWeakReference();
     }
 }

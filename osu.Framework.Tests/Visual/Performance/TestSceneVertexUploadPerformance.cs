@@ -17,7 +17,7 @@ namespace osu.Framework.Tests.Visual.Performance
             base.Update();
 
             foreach (var p in Flow.OfType<CircularProgress>())
-                p.Current.Value = (p.Current.Value + (Time.Elapsed * RNG.NextSingle()) / 1000) % 1;
+                p.Progress = (p.Progress + (Time.Elapsed * RNG.NextSingle()) / 1000) % 1;
         }
     }
 }

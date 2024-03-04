@@ -12,7 +12,7 @@ namespace osu.Framework.Extensions
     {
         /// <summary>
         /// Checks whether this <see cref="MemberInfo"/> is supported on the current runtime platform as specified by
-        /// <see cref="SupportedOSPlatformAttribute"/> and <see cref="UnsupportedOSPlatformAttribute"/>.
+        /// [SupportedOSPlatform] and [UnsupportedOSPlatform].
         /// </summary>
         /// <param name="member">The <see cref="MemberInfo"/> to check the attributes of.</param>
         /// <returns><c>true</c> if this <paramref name="member"/> is supported, false otherwise.</returns>
@@ -34,7 +34,7 @@ namespace osu.Framework.Extensions
         }
 
         /// <summary>
-        /// Returns whether the provided <see cref="OSPlatformAttribute"/> matches the current (runtime) platform.
+        /// Returns whether the provided [OSPlatformAttribute] matches the current (runtime) platform.
         /// </summary>
         /// <remarks>This is currently a naive check which doesn't support specific OS versions.</remarks>
         private static bool matchesCurrentPlatform(OSPlatformAttribute attribute)

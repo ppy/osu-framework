@@ -206,7 +206,9 @@ namespace osu.Framework.Platform
         /// <summary>
         /// All valid user storage paths in order of usage priority.
         /// </summary>
-        public virtual IEnumerable<string> UserStoragePaths => Environment.GetFolderPath(Environment.SpecialFolder.Personal).Yield();
+        public virtual IEnumerable<string> UserStoragePaths
+            // This is common to _most_ operating systems, with some specific ones overriding this value where a better option exists.
+            => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create).Yield();
 
         /// <summary>
         /// The main storage as proposed by the host game.
@@ -395,8 +397,8 @@ namespace osu.Framework.Platform
 
             // In the case of an unhandled exception, it's feasible that the disposal flow for `GameHost` doesn't run.
             // This can result in the exception not being logged (or being partially logged) due to the logger running asynchronously.
-            // We force flushing the logger here to ensure logging completes.
-            Logger.Flush();
+            // We force flushing the logger here to ensure logging completes (and also unbind in the process since we're aborting execution from here).
+            Logger.FlushForShutdown();
 
             var captured = ExceptionDispatchInfo.Capture(exception);
             var thrownEvent = new ManualResetEventSlim(false);
@@ -855,15 +857,8 @@ namespace osu.Framework.Platform
             // See https://github.com/ppy/osu/issues/23003
             if (RuntimeInfo.OS != RuntimeInfo.Platform.iOS)
             {
-                // Non-veldrid "known-to-work".
-                yield return RendererType.OpenGLLegacy;
+                yield return RendererType.OpenGL;
             }
-
-            // Other available renderers should also be returned (to make this method usable as "all available renderers for current platform"),
-            // but will never be preferred as OpenGLLegacy will always work.
-            yield return RendererType.OpenGL;
-
-            if (!RuntimeInfo.IsApple) yield return RendererType.Vulkan;
         }
 
         protected virtual void ChooseAndSetupRenderer()
@@ -899,9 +894,12 @@ namespace osu.Framework.Platform
             {
                 try
                 {
-                    if (type == RendererType.OpenGLLegacy)
-                        // the legacy renderer. this is basically guaranteed to support all platforms.
+                    if (type == RendererType.OpenGL)
+                    {
+                        // Use the legacy GL renderer. This is basically guaranteed to support all platforms
+                        // and performs better than the Veldrid-GL renderer due to reduction in allocs.
                         SetupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
+                    }
                     else
                         SetupRendererAndWindow("veldrid", rendererToGraphicsSurfaceType(type));
 
@@ -1260,6 +1258,11 @@ namespace osu.Framework.Platform
             }, true);
 
             inputConfig = new InputConfigManager(Storage, AvailableInputHandlers);
+
+#pragma warning disable CS0612 // Type or member is obsolete
+            if (Config.Get<RendererType>(FrameworkSetting.Renderer) == RendererType.OpenGLLegacy)
+                Config.SetValue(FrameworkSetting.Renderer, RendererType.OpenGL);
+#pragma warning restore CS0612 // Type or member is obsolete
         }
 
         /// <summary>
@@ -1389,7 +1392,7 @@ namespace osu.Framework.Platform
             Window?.Dispose();
 
             LoadingComponentsLogger.LogAndFlush();
-            Logger.Flush();
+            Logger.FlushForShutdown();
         }
 
         public void Dispose()

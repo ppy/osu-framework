@@ -22,28 +22,28 @@ namespace osu.Framework.Benchmarks
         [Benchmark]
         public void TestSprite()
         {
-            var _ = new Sprite();
+            _ = new Sprite();
         }
 
         [Test]
         [Benchmark]
         public void TestCompositeDrawable()
         {
-            var _ = new SimpleComposite();
+            _ = new SimpleComposite();
         }
 
         [Test]
         [Benchmark]
         public void TestContainer()
         {
-            var _ = new Container();
+            _ = new Container();
         }
 
         [Test]
         [Benchmark]
         public void TestSpriteText()
         {
-            var _ = new SpriteText();
+            _ = new SpriteText();
         }
 
         public partial class SimpleComposite : CompositeDrawable

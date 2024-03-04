@@ -26,7 +26,7 @@ namespace osu.Framework.Physics
             Origin = Anchor.Centre;
         }
 
-        public Drawable Simulation { get; set; }
+        public Drawable Simulation { get; set; } = null!;
 
         /// <summary>
         /// Controls how elastic the material is. A value of 1 means perfect elasticity
@@ -96,7 +96,7 @@ namespace osu.Framework.Physics
         /// </summary>
         protected float ComputeI()
         {
-            Matrix3 mat = DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse;
+            Matrix3 mat = DrawInfo.Matrix * Parent!.DrawInfo.MatrixInverse;
             Vector2 size = DrawSize;
 
             // Inertial moment for a linearly transformed rectangle with a given size around its center.
@@ -256,7 +256,7 @@ namespace osu.Framework.Physics
         /// </summary>
         public void ReadState()
         {
-            Matrix3 mat = Parent.DrawInfo.Matrix * ScreenToSimulationSpace;
+            Matrix3 mat = Parent!.DrawInfo.Matrix * ScreenToSimulationSpace;
             Centre = Vector2Extensions.Transform(BoundingBox.Centre, mat);
             RotationRadians = MathUtils.DegreesToRadians(Rotation); // TODO: Fix rotations
 
@@ -269,7 +269,7 @@ namespace osu.Framework.Physics
         /// </summary>
         public virtual void ApplyState()
         {
-            Matrix3 mat = SimulationToScreenSpace * Parent.DrawInfo.MatrixInverse;
+            Matrix3 mat = SimulationToScreenSpace * Parent!.DrawInfo.MatrixInverse;
             Position = Vector2Extensions.Transform(Centre, mat) + (Position - BoundingBox.Centre);
             Rotation = MathUtils.RadiansToDegrees(RotationRadians); // TODO: Fix rotations
         }

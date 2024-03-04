@@ -142,7 +142,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         }
 
         /// <summary>
-        /// Creates a <see cref="VeldridShaderPart"/> based off this shader with a list of attributes passed through as input & output.
+        /// Creates a <see cref="VeldridShaderPart"/> based off this shader with a list of attributes passed through as input &amp; output.
         /// Attributes from the list that are already defined in this shader will be ignored.
         /// </summary>
         /// <remarks>
@@ -154,7 +154,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         /// This creates a new <see cref="VeldridShaderPart"/> rather than altering this existing instance since this is cached at a <see cref="IShaderStore"/> level and should remain immutable.
         /// </para>
         /// </remarks>
-        /// <param name="attributes">The list of attributes to include in the shader as input & output.</param>
+        /// <param name="attributes">The list of attributes to include in the shader as input &amp; output.</param>
         public VeldridShaderPart WithPassthroughInput(IReadOnlyList<VeldridShaderAttribute> attributes)
         {
             string result = code;
