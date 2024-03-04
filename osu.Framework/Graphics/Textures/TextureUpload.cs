@@ -6,7 +6,6 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using osu.Framework.Extensions;
 using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;

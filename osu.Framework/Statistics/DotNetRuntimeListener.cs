@@ -7,7 +7,6 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Logging;
 

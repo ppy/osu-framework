@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Utils;
 
 namespace osu.Framework.Physics
 {
