@@ -158,7 +158,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
             public Span<byte> GetBuffer(MemoryReference reference)
             {
                 Debug.Assert(reference.BufferId == Id);
-                return buffer.AsSpan().Slice(reference.Offset, reference.Length);
+                return buffer.AsSpan(reference.Offset, reference.Length);
             }
 
             public void Dispose()
