@@ -870,7 +870,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private partial class NumberTextBox : BasicTextBox
         {
-            protected override bool CanAddCharacter(char character) => character.IsAsciiDigit();
+            protected override bool CanAddCharacter(char character) => char.IsAsciiDigit(character);
 
             protected override bool AllowIme => false;
         }
