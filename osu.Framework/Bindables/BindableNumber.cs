@@ -6,6 +6,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using JetBrains.Annotations;
 using osu.Framework.Utils;
 
 namespace osu.Framework.Bindables
@@ -13,6 +14,7 @@ namespace osu.Framework.Bindables
     public class BindableNumber<T> : RangeConstrainedBindable<T>, IBindableNumber<T>
         where T : struct, IComparable<T>, IConvertible, IEquatable<T>
     {
+        [CanBeNull]
         public event Action<T> PrecisionChanged;
 
         public BindableNumber(T defaultValue = default)
@@ -78,10 +80,34 @@ namespace osu.Framework.Bindables
                 double doubleValue = ClampValue(value, MinValue, MaxValue).ToDouble(NumberFormatInfo.InvariantInfo);
                 doubleValue = Math.Round(doubleValue / Precision.ToDouble(NumberFormatInfo.InvariantInfo)) * Precision.ToDouble(NumberFormatInfo.InvariantInfo);
 
-                base.Value = (T)Convert.ChangeType(doubleValue, typeof(T), CultureInfo.InvariantCulture);
+                base.Value = convertFromDouble(doubleValue);
             }
             else
                 base.Value = value;
+        }
+
+        private T convertFromDouble(double value)
+        {
+            if (typeof(T) == typeof(sbyte))
+                return (T)(object)Convert.ToSByte(value);
+            if (typeof(T) == typeof(byte))
+                return (T)(object)Convert.ToByte(value);
+            if (typeof(T) == typeof(short))
+                return (T)(object)Convert.ToInt16(value);
+            if (typeof(T) == typeof(ushort))
+                return (T)(object)Convert.ToUInt16(value);
+            if (typeof(T) == typeof(int))
+                return (T)(object)Convert.ToInt32(value);
+            if (typeof(T) == typeof(uint))
+                return (T)(object)Convert.ToUInt32(value);
+            if (typeof(T) == typeof(long))
+                return (T)(object)Convert.ToInt64(value);
+            if (typeof(T) == typeof(ulong))
+                return (T)(object)Convert.ToUInt64(value);
+            if (typeof(T) == typeof(float))
+                return (T)(object)Convert.ToSingle(value);
+
+            return (T)(object)value;
         }
 
         protected override T DefaultMinValue

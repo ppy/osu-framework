@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Extensions.ObjectExtensions;
-using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;
@@ -142,15 +141,12 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         public virtual void BindUniformBlock(string blockName, IUniformBuffer buffer)
         {
-            if (buffer is not IGLUniformBuffer glBuffer)
-                throw new ArgumentException($"Buffer must be an {nameof(IGLUniformBuffer)}.");
-
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not retrieve uniforms from a disposed shader.");
 
             EnsureShaderCompiled();
 
-            renderer.BindUniformBuffer(blockName, glBuffer);
+            renderer.BindUniformBuffer(blockName, buffer);
         }
 
         private protected virtual bool CompileInternal()

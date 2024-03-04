@@ -81,7 +81,7 @@ namespace osu.Framework.Tests.Containers
                     Child = new Container(),
                 };
 
-                var unused2 = new Container { Child = unused1.Child };
+                _ = new Container { Child = unused1.Child };
             });
         }
 

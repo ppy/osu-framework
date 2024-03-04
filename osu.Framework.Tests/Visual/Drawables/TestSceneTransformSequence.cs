@@ -81,6 +81,27 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("zero child size", () => Assert.Throws<ArgumentException>(() => boxes[0].TransformRelativeChildSizeTo(Vector2.Zero)));
         }
 
+        [Test]
+        public void TestNestedAbsoluteSequence()
+        {
+            AddStep("Animate", () =>
+            {
+                setup();
+                animate();
+            });
+
+            AddStep("start absolute sequence", () =>
+            {
+                using (BeginAbsoluteSequence(0))
+                {
+                    using (boxes[0].BeginAbsoluteSequence(Time.Current))
+                    {
+                        boxes[0].FadeInFromZero(1000);
+                    }
+                }
+            });
+        }
+
         private void setup()
         {
             finalizeTriggered = false;

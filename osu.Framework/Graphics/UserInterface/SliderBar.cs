@@ -91,14 +91,7 @@ namespace osu.Framework.Graphics.UserInterface
                                                         + $" and {nameof(BindableNumber<T>.MaxValue)} to produce a valid {nameof(NormalizedValue)}.");
                 }
 
-                float min = Convert.ToSingle(currentNumberInstantaneous.MinValue);
-                float max = Convert.ToSingle(currentNumberInstantaneous.MaxValue);
-
-                if (max - min == 0)
-                    return 1;
-
-                float val = Convert.ToSingle(currentNumberInstantaneous.Value);
-                return (val - min) / (max - min);
+                return currentNumberInstantaneous.NormalizedValue;
             }
         }
 

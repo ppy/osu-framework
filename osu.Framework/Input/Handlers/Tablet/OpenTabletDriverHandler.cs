@@ -20,6 +20,8 @@ namespace osu.Framework.Input.Handlers.Tablet
 {
     public class OpenTabletDriverHandler : InputHandler, IAbsolutePointer, IRelativePointer, IPressureHandler, ITabletHandler
     {
+        private static readonly GlobalStatistic<ulong> statistic_total_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<OpenTabletDriverHandler>(), "Total events");
+
         private TabletDriver? tabletDriver;
 
         private InputDeviceTree? device;
@@ -203,6 +205,7 @@ namespace osu.Framework.Input.Handlers.Tablet
         {
             PendingInputs.Enqueue(input);
             FrameStatistics.Increment(StatisticsCounterType.TabletEvents);
+            statistic_total_events.Value++;
         }
     }
 }

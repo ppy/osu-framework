@@ -76,7 +76,7 @@ namespace osu.Framework.Graphics.Sprites
                 renderer.DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, textureCoords: TextureCoords);
         }
 
-        public override void Draw(IRenderer renderer)
+        protected override void Draw(IRenderer renderer)
         {
             base.Draw(renderer);
 

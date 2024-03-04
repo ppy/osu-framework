@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
@@ -36,7 +37,7 @@ namespace osu.Framework.Input
 
         private void handleTouchMove(InputState state, Vector2 position, Vector2 lastPosition)
         {
-            PropagateButtonEvent(ButtonDownInputQueue!, new TouchMoveEvent(state, new Touch(Button, position), TouchDownPosition, lastPosition));
+            PropagateButtonEvent(ButtonDownInputQueue!.Where(d => d.IsRootedAt(InputManager)), new TouchMoveEvent(state, new Touch(Button, position), TouchDownPosition, lastPosition));
         }
 
         protected override Drawable HandleButtonDown(InputState state, List<Drawable> targets)

@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         protected virtual int ToElementIndex(int vertexIndex) => vertexIndex;
 
-        protected abstract PrimitiveType Type { get; }
+        protected abstract PrimitiveTopology Topology { get; }
 
         public void Draw()
         {
@@ -128,7 +128,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         public void DrawRange(int startIndex, int endIndex)
         {
             Bind(true);
-            Renderer.DrawVertices(Type, ToElementIndex(startIndex), ToElements(endIndex - startIndex));
+            Renderer.DrawVertices(Topology, ToElementIndex(startIndex), ToElements(endIndex - startIndex));
         }
 
         public void Update()
@@ -143,7 +143,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             int countVertices = endIndex - startIndex;
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, vboId);
-            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(startIndex * STRIDE), (IntPtr)(countVertices * STRIDE), ref getMemory().Span[startIndex]);
+            GL.BufferSubData(BufferTarget.ArrayBuffer, startIndex * STRIDE, (IntPtr)(countVertices * STRIDE), ref getMemory().Span[startIndex]);
 
             FrameStatistics.Add(StatisticsCounterType.VerticesUpl, countVertices);
         }

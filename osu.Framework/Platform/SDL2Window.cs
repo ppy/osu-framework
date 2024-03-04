@@ -230,7 +230,6 @@ namespace osu.Framework.Platform
             flags |= graphicsSurface.Type.ToFlags();
 
             SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
-            SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_IME_SHOW_UI, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_MOUSE_RELATIVE_MODE_CENTER, "0");
             SDL.SDL_SetHint(SDL.SDL_HINT_TOUCH_MOUSE_EVENTS, "0"); // disable touch events generating synthetic mouse events on desktop platforms
@@ -408,6 +407,16 @@ namespace osu.Framework.Platform
             SDL.SDL_RaiseWindow(SDLWindowHandle);
         });
 
+        public void Hide() => ScheduleCommand(() =>
+        {
+            SDL.SDL_HideWindow(SDLWindowHandle);
+        });
+
+        public void Show() => ScheduleCommand(() =>
+        {
+            SDL.SDL_ShowWindow(SDLWindowHandle);
+        });
+
         public void Flash(bool flashUntilFocused = false) => ScheduleCommand(() =>
         {
             if (isActive.Value)
@@ -570,7 +579,7 @@ namespace osu.Framework.Platform
                 case SDL.SDL_EventType.SDL_FINGERDOWN:
                 case SDL.SDL_EventType.SDL_FINGERUP:
                 case SDL.SDL_EventType.SDL_FINGERMOTION:
-                    handleTouchFingerEvent(e.tfinger);
+                    HandleTouchFingerEvent(e.tfinger);
                     break;
 
                 case SDL.SDL_EventType.SDL_DROPFILE:
