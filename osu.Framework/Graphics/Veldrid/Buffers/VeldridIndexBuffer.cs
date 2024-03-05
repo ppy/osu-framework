@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Veldrid.Pipelines;
 using Veldrid;
 
 namespace osu.Framework.Graphics.Veldrid.Buffers
@@ -22,7 +23,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         /// </summary>
         public int VertexCapacity { get; }
 
-        public VeldridIndexBuffer(VeldridRenderer renderer, VeldridIndexLayout layout, int verticesCount)
+        public VeldridIndexBuffer(BasicPipeline pipeline, VeldridIndexLayout layout, int verticesCount)
         {
             Layout = layout;
 
@@ -50,10 +51,10 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
                     break;
             }
 
-            Buffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)indices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
+            Buffer = pipeline.Factory.CreateBuffer(new BufferDescription((uint)indices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
             VertexCapacity = verticesCount;
 
-            renderer.BufferUpdateCommands.UpdateBuffer(Buffer, 0, indices);
+            pipeline.Commands.UpdateBuffer(Buffer, 0, indices);
         }
 
         public int TranslateToIndex(int vertexIndex)
