@@ -2,13 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Veldrid.Pipelines;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using SixLabors.ImageSharp;
@@ -85,44 +83,11 @@ namespace osu.Framework.Graphics.Veldrid
             => !FrameworkEnvironment.NoStructuredBuffers && Device.Features.StructuredBuffer;
 
         /// <summary>
-        /// The graphics pipeline.
-        /// </summary>
-        public IGraphicsPipeline Graphics
-            => graphicsPipeline;
-
-        /// <summary>
         /// The maximum allowed texture size.
         /// </summary>
         public int MaxTextureSize { get; }
 
-        /// <summary>
-        /// The most recent execution of this <see cref="BasicPipeline"/> that's been completed by the device.
-        /// </summary>
-        public ulong LatestCompletedExecutionIndex { get; private set; }
-
-        /// <summary>
-        /// The current execution of this <see cref="BasicPipeline"/>.
-        /// </summary>
-        public ulong ExecutionIndex { get; private set; }
-
-        /// <summary>
-        /// The staging texture pool.
-        /// </summary>
-        public readonly VeldridStagingTexturePool StagingTexturePool;
-
-        /// <summary>
-        /// A list of fences which tracks in-flight frames for the purpose of knowing the last completed frame.
-        /// This is tracked for the purpose of exposing <see cref="LatestCompletedExecutionIndex"/>.
-        /// </summary>
-        private readonly List<FrameCompletionFence> pendingFramesFences = new List<FrameCompletionFence>();
-
-        /// <summary>
-        /// We are using fences every frame. Construction can be expensive, so let's pool some.
-        /// </summary>
-        private readonly Queue<Fence> perFrameFencePool = new Queue<Fence>();
-
         private readonly IGraphicsSurface graphicsSurface;
-        private readonly GraphicsPipeline graphicsPipeline;
         private Vector2I currentWindowSize;
 
         /// <summary>
@@ -245,39 +210,19 @@ namespace osu.Framework.Graphics.Veldrid
             Logger.Log($"{nameof(UseStructuredBuffers)}: {UseStructuredBuffers}");
 
             MaxTextureSize = maxTextureSize;
-
-            graphicsPipeline = new GraphicsPipeline(this);
-            StagingTexturePool = new VeldridStagingTexturePool(this);
         }
 
         /// <summary>
         /// Notifies the device that a new frame has started.
         /// </summary>
         /// <param name="windowSize">The window size.</param>
-        public void NewFrame(Vector2I windowSize)
+        public void Resize(Vector2I windowSize)
         {
-            updateLastCompletedFrameIndex();
-            ExecutionIndex++;
-
             if (windowSize != currentWindowSize)
             {
                 Device.ResizeMainWindow((uint)windowSize.X, (uint)windowSize.Y);
                 currentWindowSize = windowSize;
             }
-
-            StagingTexturePool.NewFrame();
-            graphicsPipeline.Begin();
-        }
-
-        public void FinishFrame()
-        {
-            // This is returned via the end-of-lifetime tracking in `pendingFrameFences`.
-            // See `updateLastCompletedFrameIndex`.
-            if (!perFrameFencePool.TryDequeue(out Fence? fence))
-                fence = Factory.CreateFence(false);
-            pendingFramesFences.Add(new FrameCompletionFence(fence, ExecutionIndex));
-
-            graphicsPipeline.End(fence);
         }
 
         /// <summary>
@@ -419,48 +364,5 @@ namespace osu.Framework.Graphics.Veldrid
 
             return Device.WaitForFence(fence, (ulong)(millisecondsTimeout * 1_000_000));
         }
-
-        private void updateLastCompletedFrameIndex()
-        {
-            int? lastSignalledFenceIndex = null;
-
-            // We have a sequential list of all fences which are in flight.
-            // Frame usages are assumed to be sequential and linear.
-            //
-            // Iterate backwards to find the last signalled fence, which can be considered the last completed frame index.
-            for (int i = pendingFramesFences.Count - 1; i >= 0; i--)
-            {
-                var fence = pendingFramesFences[i];
-
-                if (!fence.Fence.Signaled)
-                {
-                    // this rule is broken on metal, if a new command buffer has been submitted while a previous fence wasn't signalled yet,
-                    // then the previous fence will be thrown away and will never be signalled. keep iterating regardless of signal on metal.
-                    if (Device.BackendType != GraphicsBackend.Metal)
-                        Debug.Assert(lastSignalledFenceIndex == null, "A non-signalled fence was detected before the latest signalled frame.");
-
-                    continue;
-                }
-
-                lastSignalledFenceIndex ??= i;
-
-                Device.ResetFence(fence.Fence);
-                perFrameFencePool.Enqueue(fence.Fence);
-            }
-
-            if (lastSignalledFenceIndex != null)
-            {
-                ulong completedFrameIndex = pendingFramesFences[lastSignalledFenceIndex.Value].FrameIndex;
-
-                Debug.Assert(completedFrameIndex > LatestCompletedExecutionIndex);
-                LatestCompletedExecutionIndex = completedFrameIndex;
-
-                pendingFramesFences.RemoveRange(0, lastSignalledFenceIndex.Value + 1);
-            }
-
-            Debug.Assert(pendingFramesFences.Count < 16, "Completion frame fence leak detected");
-        }
-
-        private record struct FrameCompletionFence(Fence Fence, ulong FrameIndex);
     }
 }

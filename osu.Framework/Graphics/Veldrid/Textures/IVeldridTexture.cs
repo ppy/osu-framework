@@ -2,10 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics.Veldrid.Textures
 {
-    internal interface IVeldridTexture
+    internal interface IVeldridTexture : INativeTexture
     {
         IReadOnlyList<VeldridTextureResources> GetResourceList();
     }
