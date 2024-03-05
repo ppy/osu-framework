@@ -445,7 +445,7 @@ namespace osu.Framework.Platform
         private unsafe void setSDLIcon(Image<Rgba32> image)
         {
             var pixelMemory = image.CreateReadOnlyPixelMemory();
-            var imageSize = image.Size();
+            var imageSize = image.Size;
 
             ScheduleCommand(() =>
             {
