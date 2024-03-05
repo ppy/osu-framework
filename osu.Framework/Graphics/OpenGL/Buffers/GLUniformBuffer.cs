@@ -4,6 +4,7 @@
 using System;
 using System.Runtime.InteropServices;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Statistics;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
@@ -48,6 +49,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             GL.BindBuffer(BufferTarget.UniformBuffer, uboId);
             GL.BufferData(BufferTarget.UniformBuffer, size, ref data, BufferUsageHint.DynamicDraw);
             GL.BindBuffer(BufferTarget.UniformBuffer, 0);
+
+            FrameStatistics.Increment(StatisticsCounterType.UniformUpl);
         }
 
         #region Disposal

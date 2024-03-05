@@ -429,6 +429,9 @@ namespace osu.Framework.Logging
         {
             try
             {
+                if (!storage.ExistsDirectory(string.Empty))
+                    return;
+
                 DateTime logCycleCutoff = DateTime.UtcNow.AddDays(-7);
                 var logFiles = new DirectoryInfo(storage.GetFullPath(string.Empty)).GetFiles("*.log");
 
