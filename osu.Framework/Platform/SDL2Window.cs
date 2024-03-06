@@ -603,12 +603,15 @@ namespace osu.Framework.Platform
                 imageStream.CopyTo(ms);
                 ms.Position = 0;
 
-                var imageInfo = Image.Identify(ms);
-
-                if (imageInfo != null)
+                try
+                {
                     SetIconFromImage(Image.Load<Rgba32>(ms.GetBuffer()));
-                else if (IconGroup.TryParse(ms.GetBuffer(), out var iconGroup))
-                    SetIconFromGroup(iconGroup);
+                }
+                catch
+                {
+                    if (IconGroup.TryParse(ms.GetBuffer(), out var iconGroup))
+                        SetIconFromGroup(iconGroup);
+                }
             }
         }
 
