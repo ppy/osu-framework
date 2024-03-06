@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         private DeviceBuffer? buffer;
 
-        DeviceBuffer IVeldridVertexBuffer.Buffer => buffer ?? throw new InvalidOperationException("The buffer is not initialised yet.");
+        DeviceBuffer IVeldridVertexBuffer<T>.Buffer => buffer ?? throw new InvalidOperationException("The buffer is not initialised yet.");
 
         private int lastWrittenVertexIndex = -1;
 
