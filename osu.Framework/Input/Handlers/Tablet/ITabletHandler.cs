@@ -27,9 +27,6 @@ namespace osu.Framework.Input.Handlers.Tablet
         /// Values between zero and one for each axe will always place the area inside window:
         /// (0; 0) is most top-left position, (1;1) is most bottom-right position. Does nothing if <see cref="OutputAreaSize"/> equals to (1; 1).
         /// </summary>
-        /// <remarks>
-        /// This and <see cref="OutputAreaSize"/> behave like posX/posY/sizeX/sizeY properties on osu!'s ScalingContainer.
-        /// </remarks>
         Bindable<Vector2> OutputAreaPosition { get; }
 
         /// <summary>
