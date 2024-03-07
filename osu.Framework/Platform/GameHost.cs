@@ -716,10 +716,8 @@ namespace osu.Framework.Platform
                 Trace.Listeners.Clear();
                 Trace.Listeners.Add(new ThrowingTraceListener());
 
-                var assembly = DebugUtils.GetEntryAssembly();
-
                 Logger.GameIdentifier = Name;
-                Logger.VersionIdentifier = assembly.GetName().Version?.ToString() ?? Logger.VersionIdentifier;
+                Logger.VersionIdentifier = RuntimeInfo.EntryAssembly.GetName().Version?.ToString() ?? Logger.VersionIdentifier;
 
                 Dependencies.CacheAs(this);
                 Dependencies.CacheAs(Storage = game.CreateStorage(this, GetDefaultGameStorage()));

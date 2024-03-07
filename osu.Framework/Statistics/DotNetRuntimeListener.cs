@@ -7,7 +7,6 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Logging;
 
@@ -110,7 +109,7 @@ namespace osu.Framework.Statistics
                             if (data.Payload[0] == null)
                                 break;
 
-                            var type = getTypeFromHandle((IntPtr)data.Payload[0]);
+                            var type = Type.GetTypeFromHandle(RuntimeTypeHandle.FromIntPtr((IntPtr)data.Payload[0]));
                             if (type == null)
                                 break;
 
@@ -121,33 +120,6 @@ namespace osu.Framework.Statistics
 
                     break;
             }
-        }
-
-        /// <summary>
-        /// Retrieves a <see cref="Type"/> from a CLR type id.
-        /// </summary>
-        /// <remarks>
-        /// Attrib: https://stackoverflow.com/questions/26972066/type-from-intptr-handle/54469241#54469241
-        /// </remarks>
-        // ReSharper disable once RedundantUnsafeContext
-        // ReSharper disable once UnusedParameter.Local
-        private static unsafe Type getTypeFromHandle(IntPtr handle)
-        {
-#pragma warning disable CS8500
-            TypedReferenceAccess tr = new TypedReferenceAccess { Type = handle };
-            return TypedReference.GetTargetType(*(TypedReference*)&tr);
-#pragma warning restore CS8500
-        }
-
-        /// <summary>
-        /// Matches the internal layout of <see cref="TypedReference"/>.
-        /// See: https://source.dot.net/#System.Private.CoreLib/src/System/TypedReference.cs
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        private struct TypedReferenceAccess
-        {
-            public readonly IntPtr Value;
-            public IntPtr Type;
         }
 
         private void addStatistic<T>(string name, object data)

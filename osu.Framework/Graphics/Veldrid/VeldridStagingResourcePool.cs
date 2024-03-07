@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using osu.Framework.Graphics.Veldrid.Pipelines;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Veldrid
@@ -11,19 +12,24 @@ namespace osu.Framework.Graphics.Veldrid
     internal abstract class VeldridStagingResourcePool<T>
         where T : class, IDisposable
     {
-        protected readonly VeldridDevice Device;
+        protected readonly GraphicsPipeline Pipeline;
 
         private readonly List<PooledUsage> available = new List<PooledUsage>();
         private readonly List<PooledUsage> used = new List<PooledUsage>();
 
         private readonly GlobalStatistic<ResourcePoolUsageStatistic> usageStat;
 
-        protected VeldridStagingResourcePool(VeldridDevice device, string name)
+        private ulong currentExecutionIndex;
+
+        protected VeldridStagingResourcePool(GraphicsPipeline pipeline, string name)
         {
-            Device = device;
+            Pipeline = pipeline;
 
             usageStat = GlobalStatistics.Get<ResourcePoolUsageStatistic>(nameof(VeldridRenderer), $"{name} usage");
             usageStat.Value = new ResourcePoolUsageStatistic();
+
+            pipeline.ExecutionStarted += executionStarted;
+            pipeline.ExecutionFinished += executionFinished;
         }
 
         protected bool TryGet(Predicate<T> match, [NotNullWhen(true)] out T? resource)
@@ -37,7 +43,7 @@ namespace osu.Framework.Graphics.Veldrid
 
                 if (match(existing.Resource))
                 {
-                    existing.FrameUsageIndex = Device.ExecutionIndex;
+                    existing.FrameUsageIndex = currentExecutionIndex;
 
                     available.Remove(existing);
                     used.Add(existing);
@@ -55,8 +61,13 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected void AddNewResource(T resource)
         {
-            used.Add(new PooledUsage(resource, Device.ExecutionIndex));
+            used.Add(new PooledUsage(resource, currentExecutionIndex));
             updateStats();
+        }
+
+        private void executionStarted(ulong executionIndex)
+        {
+            currentExecutionIndex = executionIndex;
         }
 
         /// <summary>
@@ -66,7 +77,7 @@ namespace osu.Framework.Graphics.Veldrid
         /// <item>Frees any textures that have not been used for <see cref="Rendering.Renderer.RESOURCE_FREE_NO_USAGE_LENGTH"/> frames.</item>
         /// </list>
         /// </summary>
-        public void NewFrame()
+        private void executionFinished(ulong executionIndex)
         {
             // return any resource that the GPU has finished using in the last frame.
             for (int i = 0; i < used.Count; i++)
@@ -74,7 +85,7 @@ namespace osu.Framework.Graphics.Veldrid
                 var item = used[i];
 
                 // Usages are sequential so we can stop checking after the first non-completed usage.
-                if (item.FrameUsageIndex > Device.LatestCompletedExecutionIndex)
+                if (item.FrameUsageIndex > executionIndex)
                     break;
 
                 available.Add(item);
@@ -86,7 +97,7 @@ namespace osu.Framework.Graphics.Veldrid
             {
                 var item = available[i];
 
-                ulong framesSinceUsage = Device.LatestCompletedExecutionIndex - item.FrameUsageIndex;
+                ulong framesSinceUsage = executionIndex - item.FrameUsageIndex;
 
                 if (framesSinceUsage >= Rendering.Renderer.RESOURCE_FREE_NO_USAGE_LENGTH)
                 {
