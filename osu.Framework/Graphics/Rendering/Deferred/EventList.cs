@@ -122,7 +122,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                 else
                 {
                     // Slow path.
-                    eventData = list.allocator.GetRegion(list.events[eventIndex] = list.createEvent(newEvent));
+                    eventData = list.allocator.GetRegion(list.events[eventIndex - 1] = list.createEvent(newEvent));
                 }
             }
         }
