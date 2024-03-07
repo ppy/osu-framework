@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         {
             Renderer = renderer;
             Allocator = new ResourceAllocator();
-            RenderEvents = new EventList(Allocator);
+            RenderEvents = new EventList();
             UniformBufferManager = new UniformBufferManager(this);
             VertexManager = new VertexManager(this);
         }
@@ -100,9 +100,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         /// Enqueues a render event.
         /// </summary>
         /// <param name="renderEvent">The render event.</param>
-        /// <typeparam name="T">The event type.</typeparam>
-        public void EnqueueEvent<T>(in T renderEvent)
-            where T : unmanaged, IRenderEvent
+        public void EnqueueEvent(in RenderEvent renderEvent)
             => RenderEvents.Enqueue(renderEvent);
     }
 }

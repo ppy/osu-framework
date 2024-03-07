@@ -24,23 +24,23 @@ namespace osu.Framework.Benchmarks
         public void GlobalSetup()
         {
             localAllocator = new ResourceAllocator();
-            localEventList = new EventList(localAllocator);
+            localEventList = new EventList();
 
             for (int i = 0; i < staticItems.Length; i++)
             {
                 ResourceAllocator allocator = new ResourceAllocator();
-                staticItems[i] = (allocator, new EventList(allocator));
+                staticItems[i] = (allocator, new EventList());
             }
 
             for (int i = 0; i < 10000; i++)
             {
-                staticItems[0].list.Enqueue(new FlushEvent(RenderEventType.Flush, new ResourceReference(1), 10));
-                staticItems[1].list.Enqueue(new AddPrimitiveToBatchEvent(RenderEventType.AddPrimitiveToBatch, new ResourceReference(0), staticItems[1].allocator.AllocateRegion(1024)));
+                staticItems[0].list.Enqueue(new RenderEvent(new FlushEvent(new ResourceReference(1), 10)));
+                staticItems[1].list.Enqueue(new RenderEvent(new AddPrimitiveToBatchEvent(new ResourceReference(0), staticItems[1].allocator.AllocateRegion(1024))));
 
                 if (i % 2 == 0)
-                    staticItems[2].list.Enqueue(new FlushEvent(RenderEventType.Flush, new ResourceReference(1), 10));
+                    staticItems[2].list.Enqueue(new RenderEvent(new FlushEvent(new ResourceReference(1), 10)));
                 else
-                    staticItems[2].list.Enqueue(new AddPrimitiveToBatchEvent(RenderEventType.AddPrimitiveToBatch, new ResourceReference(0), staticItems[2].allocator.AllocateRegion(1024)));
+                    staticItems[2].list.Enqueue(new RenderEvent(new AddPrimitiveToBatchEvent(new ResourceReference(0), staticItems[2].allocator.AllocateRegion(1024))));
             }
         }
 
@@ -51,7 +51,7 @@ namespace osu.Framework.Benchmarks
             localAllocator.NewFrame();
 
             for (int i = 0; i < 10000; i++)
-                localEventList.Enqueue(new FlushEvent());
+                localEventList.Enqueue(new RenderEvent(new FlushEvent()));
         }
 
         [Benchmark]
@@ -61,7 +61,7 @@ namespace osu.Framework.Benchmarks
             localAllocator.NewFrame();
 
             for (int i = 0; i < 10000; i++)
-                localEventList.Enqueue(new AddPrimitiveToBatchEvent(RenderEventType.AddPrimitiveToBatch, new ResourceReference(0), localAllocator.AllocateRegion(1024)));
+                localEventList.Enqueue(new RenderEvent(new AddPrimitiveToBatchEvent(new ResourceReference(0), localAllocator.AllocateRegion(1024))));
         }
 
         [Benchmark]
@@ -73,10 +73,10 @@ namespace osu.Framework.Benchmarks
 
             while (enumerator.Next())
             {
-                switch (enumerator.CurrentType())
+                switch (enumerator.Current().Type)
                 {
                     case RenderEventType.Flush:
-                        ref FlushEvent e = ref enumerator.Current<FlushEvent>();
+                        enumerator.Current().Decompose(out FlushEvent e);
                         totalVertices += e.VertexCount;
                         break;
                 }
@@ -94,10 +94,10 @@ namespace osu.Framework.Benchmarks
 
             while (enumerator.Next())
             {
-                switch (enumerator.CurrentType())
+                switch (enumerator.Current().Type)
                 {
                     case RenderEventType.AddPrimitiveToBatch:
-                        ref AddPrimitiveToBatchEvent e = ref enumerator.Current<AddPrimitiveToBatchEvent>();
+                        enumerator.Current().Decompose(out AddPrimitiveToBatchEvent e);
                         foreach (byte b in staticItems[1].allocator.GetRegion(e.Memory))
                             data += b;
                         break;
@@ -116,18 +116,18 @@ namespace osu.Framework.Benchmarks
 
             while (enumerator.Next())
             {
-                switch (enumerator.CurrentType())
+                switch (enumerator.Current().Type)
                 {
                     case RenderEventType.Flush:
                     {
-                        ref FlushEvent e = ref enumerator.Current<FlushEvent>();
+                        enumerator.Current().Decompose(out FlushEvent e);
                         data += e.VertexCount;
                         break;
                     }
 
                     case RenderEventType.AddPrimitiveToBatch:
                     {
-                        ref AddPrimitiveToBatchEvent e = ref enumerator.Current<AddPrimitiveToBatchEvent>();
+                        enumerator.Current().Decompose(out AddPrimitiveToBatchEvent e);
                         foreach (byte b in staticItems[2].allocator.GetRegion(e.Memory))
                             data += b;
                         break;
@@ -144,21 +144,21 @@ namespace osu.Framework.Benchmarks
             localEventList.NewFrame();
             localAllocator.NewFrame();
 
-            localEventList.Enqueue(new FlushEvent());
-            localEventList.Enqueue(new FlushEvent());
-            localEventList.Enqueue(new FlushEvent());
+            localEventList.Enqueue(new RenderEvent(new FlushEvent()));
+            localEventList.Enqueue(new RenderEvent(new FlushEvent()));
+            localEventList.Enqueue(new RenderEvent(new FlushEvent()));
 
             var enumerator = localEventList.CreateEnumerator();
             enumerator.Next();
             enumerator.Next();
-            enumerator.Replace(new FlushEvent());
+            enumerator.Replace(new RenderEvent(new FlushEvent()));
 
             int i = 0;
             enumerator = localEventList.CreateEnumerator();
 
             while (enumerator.Next())
             {
-                enumerator.CurrentType();
+                enumerator.Current();
                 i++;
             }
 
@@ -173,21 +173,21 @@ namespace osu.Framework.Benchmarks
             localEventList.NewFrame();
             localAllocator.NewFrame();
 
-            localEventList.Enqueue(new FlushEvent());
-            localEventList.Enqueue(new FlushEvent());
-            localEventList.Enqueue(new FlushEvent());
+            localEventList.Enqueue(new RenderEvent(new FlushEvent()));
+            localEventList.Enqueue(new RenderEvent(new FlushEvent()));
+            localEventList.Enqueue(new RenderEvent(new FlushEvent()));
 
             var enumerator = localEventList.CreateEnumerator();
             enumerator.Next();
             enumerator.Next();
-            enumerator.Replace(new SetScissorStateEvent());
+            enumerator.Replace(new RenderEvent(new SetScissorStateEvent()));
 
             int i = 0;
             enumerator = localEventList.CreateEnumerator();
 
             while (enumerator.Next())
             {
-                enumerator.CurrentType();
+                enumerator.Current();
                 i++;
             }
 
@@ -202,21 +202,21 @@ namespace osu.Framework.Benchmarks
             localEventList.NewFrame();
             localAllocator.NewFrame();
 
-            localEventList.Enqueue(new FlushEvent());
-            localEventList.Enqueue(new FlushEvent());
-            localEventList.Enqueue(new FlushEvent());
+            localEventList.Enqueue(new RenderEvent(new FlushEvent()));
+            localEventList.Enqueue(new RenderEvent(new FlushEvent()));
+            localEventList.Enqueue(new RenderEvent(new FlushEvent()));
 
             var enumerator = localEventList.CreateEnumerator();
             enumerator.Next();
             enumerator.Next();
-            enumerator.Replace(new SetUniformBufferDataEvent());
+            enumerator.Replace(new RenderEvent(new SetUniformBufferDataEvent()));
 
             int i = 0;
             enumerator = localEventList.CreateEnumerator();
 
             while (enumerator.Next())
             {
-                enumerator.CurrentType();
+                enumerator.Current();
                 i++;
             }
 
