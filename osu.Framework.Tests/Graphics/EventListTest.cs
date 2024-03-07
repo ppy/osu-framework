@@ -11,8 +11,8 @@ namespace osu.Framework.Tests.Graphics
     [TestFixture]
     public class EventListTest
     {
-        private ResourceAllocator allocator;
-        private EventList list;
+        private ResourceAllocator allocator = null!;
+        private EventList list = null!;
 
         [SetUp]
         public void Setup()
