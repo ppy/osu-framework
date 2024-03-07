@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
 {
@@ -16,7 +17,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
     /// </summary>
     internal class ResourceAllocator
     {
-        private const int min_buffer_size = 1024 * 1024; // 1MB per buffer.
+        private const int min_buffer_size = 2 * 1024 * 1024; // 2MB per buffer.
 
         private readonly List<object> resources = new List<object>();
         private readonly List<MemoryBuffer> memoryBuffers = new List<MemoryBuffer>();
@@ -114,7 +115,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
             ThreadSafety.EnsureDrawThread();
 
             if (memoryBuffers.Count == 0 || memoryBuffers[^1].Remaining < length)
-                memoryBuffers.Add(new MemoryBuffer(memoryBuffers.Count, Math.Max(min_buffer_size * (1 << memoryBuffers.Count), length)));
+                memoryBuffers.Add(new MemoryBuffer(memoryBuffers.Count, Math.Max(min_buffer_size, length)));
 
             return memoryBuffers[^1].Reserve(length);
         }
@@ -133,6 +134,8 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
 
         private class MemoryBuffer : IDisposable
         {
+            private static readonly GlobalStatistic<long> statistic = GlobalStatistics.Get<long>(nameof(ResourceAllocator), $"Total Bytes");
+
             public readonly int Id;
             public int Size => buffer.Length;
             public int Remaining { get; private set; }
@@ -144,6 +147,8 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
                 Id = id;
                 buffer = ArrayPool<byte>.Shared.Rent(minSize);
                 Remaining = Size;
+
+                statistic.Value += buffer.Length;
             }
 
             public MemoryReference Reserve(int length)
@@ -164,6 +169,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
             public void Dispose()
             {
                 ArrayPool<byte>.Shared.Return(buffer);
+                statistic.Value -= buffer.Length;
             }
         }
     }
