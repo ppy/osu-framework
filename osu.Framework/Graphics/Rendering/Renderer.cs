@@ -1000,6 +1000,9 @@ namespace osu.Framework.Graphics.Rendering
             Shader.BindUniformBlock("g_GlobalUniforms", globalUniformBuffer!);
 
             DrawVerticesImplementation(topology, vertexStart, verticesCount);
+
+            FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
+            FrameStatistics.Add(StatisticsCounterType.VerticesDraw, verticesCount);
         }
 
         public abstract void DrawVerticesImplementation(PrimitiveTopology topology, int vertexStart, int verticesCount);

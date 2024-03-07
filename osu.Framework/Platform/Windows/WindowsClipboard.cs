@@ -7,7 +7,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.Formats.Bmp;
 
 namespace osu.Framework.Platform.Windows
@@ -96,7 +95,7 @@ namespace osu.Framework.Platform.Windows
 
             using (var stream = new MemoryStream())
             {
-                var encoder = image.GetConfiguration().ImageFormatsManager.FindEncoder(BmpFormat.Instance);
+                var encoder = image.Configuration.ImageFormatsManager.GetEncoder(BmpFormat.Instance);
                 image.Save(stream, encoder);
                 array = stream.ToArray().Skip(bitmap_file_header_length).ToArray();
             }
