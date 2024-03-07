@@ -846,26 +846,40 @@ namespace osu.Framework.Platform
                 case RuntimeInfo.Platform.Windows:
                     yield return RendererType.Direct3D11;
                     yield return RendererType.Deferred_Direct3D11;
+                    yield return RendererType.OpenGL;
+                    yield return RendererType.Deferred_OpenGL;
+                    yield return RendererType.Deferred_Vulkan;
+
+                    break;
+
+                case RuntimeInfo.Platform.Linux:
+                    yield return RendererType.OpenGL;
+                    yield return RendererType.Deferred_OpenGL;
+                    yield return RendererType.Deferred_Vulkan;
 
                     break;
 
                 case RuntimeInfo.Platform.macOS:
+                    yield return RendererType.Metal;
+                    yield return RendererType.Deferred_Metal;
+                    yield return RendererType.OpenGL;
+                    yield return RendererType.Deferred_OpenGL;
+
+                    break;
+
                 case RuntimeInfo.Platform.iOS:
+                    // GL renderer not supported, see: https://github.com/ppy/osu/issues/23003.
                     yield return RendererType.Metal;
                     yield return RendererType.Deferred_Metal;
 
                     break;
-            }
 
-            // See https://github.com/ppy/osu/issues/23003
-            if (RuntimeInfo.OS != RuntimeInfo.Platform.iOS)
-            {
-                yield return RendererType.OpenGL;
-                yield return RendererType.Deferred_OpenGL;
-            }
+                case RuntimeInfo.Platform.Android:
+                    // Still uses osuTK so only the legacy GL renderer is supported.
+                    yield return RendererType.OpenGL;
 
-            if (!RuntimeInfo.IsApple)
-                yield return RendererType.Deferred_Vulkan;
+                    break;
+            }
         }
 
         protected virtual void ChooseAndSetupRenderer()
