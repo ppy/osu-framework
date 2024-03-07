@@ -14,7 +14,7 @@ using Texture = osu.Framework.Graphics.Textures.Texture;
 
 namespace osu.Framework.Graphics.Rendering.Deferred
 {
-    internal class DeferredFrameBuffer : IFrameBuffer, IVeldridFrameBuffer
+    internal class DeferredFrameBuffer : IVeldridFrameBuffer
     {
         public Texture Texture { get; }
 
@@ -85,7 +85,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             isDisposed = true;
         }
 
-        private sealed class DeferredFrameBufferTexture : INativeTexture, IVeldridTexture
+        private sealed class DeferredFrameBufferTexture : IVeldridTexture
         {
             public bool Available { get; private set; } = true;
 

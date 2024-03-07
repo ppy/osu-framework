@@ -7,7 +7,6 @@ using System.Diagnostics;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Veldrid;
 using osu.Framework.Graphics.Veldrid.Buffers;
-using osu.Framework.Graphics.Veldrid.Pipelines;
 using osu.Framework.Graphics.Veldrid.Vertices;
 using osu.Framework.Statistics;
 using osu.Framework.Utils;
@@ -21,9 +20,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
     internal class VertexManager
     {
         private const int buffer_size = 2 * 1024 * 1024; // 2MB per VBO.
-
-        private IGraphicsPipeline pipeline
-            => context.VeldridDevice.Graphics;
 
         private readonly DeferredContext context;
         private readonly DeviceBufferPool vertexBufferPool;
@@ -39,7 +35,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
         public VertexManager(DeferredContext context)
         {
             this.context = context;
-            vertexBufferPool = new DeviceBufferPool(context.VeldridDevice, buffer_size, BufferUsage.VertexBuffer, nameof(VertexManager));
+            vertexBufferPool = new DeviceBufferPool(context.Graphics, buffer_size, BufferUsage.VertexBuffer, nameof(VertexManager));
         }
 
         /// <summary>
@@ -108,18 +104,18 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
             switch (indexLayout)
             {
                 case VeldridIndexLayout.Linear:
-                    indexBuffer ??= new VeldridIndexBuffer(pipeline, VeldridIndexLayout.Linear, IRenderer.MAX_VERTICES);
+                    indexBuffer ??= new VeldridIndexBuffer(context.Graphics, VeldridIndexLayout.Linear, IRenderer.MAX_VERTICES);
                     break;
 
                 case VeldridIndexLayout.Quad:
-                    indexBuffer ??= new VeldridIndexBuffer(pipeline, VeldridIndexLayout.Quad, IRenderer.MAX_QUADS * IRenderer.VERTICES_PER_QUAD);
+                    indexBuffer ??= new VeldridIndexBuffer(context.Graphics, VeldridIndexLayout.Quad, IRenderer.MAX_QUADS * IRenderer.VERTICES_PER_QUAD);
                     break;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(indexLayout), indexLayout, null);
             }
 
-            pipeline.SetIndexBuffer(indexBuffer);
+            context.Graphics.SetIndexBuffer(indexBuffer);
 
             while (vertexCount > 0)
             {
@@ -142,8 +138,8 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
                 int vertexOffset = currentDrawIndex / vertexStride;
 
                 // Bind the vertex buffer.
-                pipeline.SetVertexBuffer(inUseBuffers[currentDrawBuffer].Buffer, VeldridVertexUtils<T>.Layout);
-                pipeline.DrawVertices(topology.ToPrimitiveTopology(), 0, verticesToDraw, vertexOffset);
+                context.Graphics.SetVertexBuffer(inUseBuffers[currentDrawBuffer].Buffer, VeldridVertexUtils<T>.Layout);
+                context.Graphics.DrawVertices(topology.ToPrimitiveTopology(), 0, verticesToDraw, vertexOffset);
 
                 currentDrawIndex += verticesToDraw * vertexStride;
                 vertexCount -= verticesToDraw;
@@ -152,7 +148,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
 
         public void Reset()
         {
-            vertexBufferPool.NewFrame();
             inUseBuffers.Clear();
 
             currentWriteBuffer = 0;

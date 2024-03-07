@@ -4,7 +4,7 @@
 using System;
 using osu.Framework.Graphics.Rendering.Deferred.Allocation;
 using osu.Framework.Graphics.Rendering.Deferred.Events;
-using osu.Framework.Graphics.Veldrid;
+using osu.Framework.Graphics.Veldrid.Pipelines;
 using Veldrid;
 
 namespace osu.Framework.Graphics.Rendering.Deferred
@@ -14,8 +14,8 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         public GraphicsDevice Device
             => Renderer.Device;
 
-        public VeldridDevice VeldridDevice
-            => Renderer.VeldridDevice;
+        public GraphicsPipeline Graphics
+            => Renderer.Graphics;
 
         public readonly DeferredRenderer Renderer;
         public readonly ResourceAllocator Allocator;

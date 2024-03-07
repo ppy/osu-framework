@@ -18,12 +18,12 @@ namespace osu.Framework.Graphics.Rendering.Deferred
     internal readonly ref struct EventProcessor
     {
         private readonly DeferredContext context;
-        private readonly IGraphicsPipeline graphics;
+        private readonly GraphicsPipeline graphics;
 
         public EventProcessor(DeferredContext context)
         {
             this.context = context;
-            graphics = context.VeldridDevice.Graphics;
+            graphics = context.Renderer.Graphics;
         }
 
         public void ProcessEvents()

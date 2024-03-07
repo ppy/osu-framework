@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
             this.context = context;
 
             bufferSize = context.Device.Features.BufferRangeBinding ? max_buffer_size : buffer_chunk_size;
-            uniformBufferPool = new DeviceBufferPool(context.VeldridDevice, (uint)bufferSize, BufferUsage.UniformBuffer, nameof(UniformBufferManager));
+            uniformBufferPool = new DeviceBufferPool(context.Graphics, (uint)bufferSize, BufferUsage.UniformBuffer, nameof(UniformBufferManager));
         }
 
         /// <summary>
@@ -115,9 +115,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
         /// </summary>
         public void NewFrame()
         {
-            uniformBufferPool.NewFrame();
             inUseBuffers.Clear();
-
             currentBuffer = 0;
             currentWriteIndex = 0;
 
