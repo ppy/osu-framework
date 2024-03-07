@@ -26,7 +26,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
             elementSize = Unsafe.SizeOf<TData>();
 
-            // if (renderer.UseStructuredBuffers)
             Size = ssboSize;
             buffer = renderer.Factory.CreateBuffer(new BufferDescription((uint)(elementSize * Size), BufferUsage.StructuredBufferReadOnly | BufferUsage.Dynamic, (uint)elementSize, true));
 
