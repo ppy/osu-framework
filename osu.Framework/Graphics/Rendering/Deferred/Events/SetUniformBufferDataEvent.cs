@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using osu.Framework.Graphics.Rendering.Deferred.Allocation;
 
@@ -17,26 +18,49 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
     [StructLayout(LayoutKind.Explicit)]
     internal readonly struct UniformBufferData : IEquatable<UniformBufferData>
     {
-        [FieldOffset(0)]
-        public readonly MemoryReference Memory;
+        [field: FieldOffset(0)]
+        private readonly bool isRangeReference;
 
-        [FieldOffset(0)]
-        public readonly UniformBufferReference Range;
+        [FieldOffset(1)]
+        private readonly MemoryReference memory;
+
+        [FieldOffset(1)]
+        private readonly UniformBufferReference range;
 
         public UniformBufferData(MemoryReference memory)
         {
-            Memory = memory;
+            this.memory = memory;
+            isRangeReference = false;
         }
 
         public UniformBufferData(UniformBufferReference range)
         {
-            Range = range;
+            this.range = range;
+            isRangeReference = true;
+        }
+
+        public MemoryReference Memory
+        {
+            get
+            {
+                Debug.Assert(!isRangeReference);
+                return memory;
+            }
+        }
+
+        public UniformBufferReference Range
+        {
+            get
+            {
+                Debug.Assert(isRangeReference);
+                return range;
+            }
         }
 
         public bool Equals(UniformBufferData other)
         {
-            return Memory.Equals(other.Memory)
-                   && Range.Equals(other.Range);
+            return memory.Equals(other.memory)
+                   && range.Equals(other.range);
         }
 
         public override bool Equals(object? obj)
@@ -46,7 +70,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Memory, Range);
+            return HashCode.Combine(memory, range);
         }
     }
 }
