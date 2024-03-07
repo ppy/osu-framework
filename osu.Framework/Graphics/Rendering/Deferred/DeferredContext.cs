@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         }
 
         /// <summary>
-        /// References an objet.
+        /// References an object.
         /// </summary>
         /// <param name="obj">The object.</param>
         /// <typeparam name="T">The object type.</typeparam>
