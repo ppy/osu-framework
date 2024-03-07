@@ -134,7 +134,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
 
         private class MemoryBuffer : IDisposable
         {
-            private static readonly GlobalStatistic<long> statistic = GlobalStatistics.Get<long>(nameof(ResourceAllocator), $"Total Bytes");
+            private static readonly GlobalStatistic<long> statistic = GlobalStatistics.Get<long>(nameof(ResourceAllocator), "Total Bytes");
 
             public readonly int Id;
             public int Size => buffer.Length;
