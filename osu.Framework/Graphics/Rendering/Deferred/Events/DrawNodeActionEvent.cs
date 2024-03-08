@@ -8,7 +8,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
     internal readonly record struct DrawNodeActionEvent(ResourceReference DrawNode, DrawNodeActionType Action)
     {
         public static RenderEvent Create(DeferredRenderer renderer, DrawNode drawNode, DrawNodeActionType action)
-            => new RenderEvent(new DrawNodeActionEvent(renderer.Context.Reference(drawNode), action));
+            => RenderEvent.Init(new DrawNodeActionEvent(renderer.Context.Reference(drawNode), action));
     }
 
     internal enum DrawNodeActionType : byte

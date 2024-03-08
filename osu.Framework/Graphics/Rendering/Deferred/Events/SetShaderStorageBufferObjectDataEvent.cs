@@ -10,6 +10,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
     {
         public static RenderEvent Create<T>(DeferredRenderer renderer, IDeferredShaderStorageBufferObject buffer, int index, T data)
             where T : unmanaged, IEquatable<T>
-            => new RenderEvent(new SetShaderStorageBufferObjectDataEvent(renderer.Context.Reference(buffer), index, renderer.Context.AllocateObject(data)));
+            => RenderEvent.Init(new SetShaderStorageBufferObjectDataEvent(renderer.Context.Reference(buffer), index, renderer.Context.AllocateObject(data)));
     }
 }

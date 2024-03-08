@@ -34,13 +34,13 @@ namespace osu.Framework.Benchmarks
 
             for (int i = 0; i < 10000; i++)
             {
-                staticItems[0].list.Enqueue(new RenderEvent(new FlushEvent(new ResourceReference(1), 10)));
-                staticItems[1].list.Enqueue(new RenderEvent(new AddPrimitiveToBatchEvent(new ResourceReference(0), staticItems[1].allocator.AllocateRegion(1024))));
+                staticItems[0].list.Enqueue(RenderEvent.Init(new FlushEvent(new ResourceReference(1), 10)));
+                staticItems[1].list.Enqueue(RenderEvent.Init(new AddPrimitiveToBatchEvent(new ResourceReference(0), staticItems[1].allocator.AllocateRegion(1024))));
 
                 if (i % 2 == 0)
-                    staticItems[2].list.Enqueue(new RenderEvent(new FlushEvent(new ResourceReference(1), 10)));
+                    staticItems[2].list.Enqueue(RenderEvent.Init(new FlushEvent(new ResourceReference(1), 10)));
                 else
-                    staticItems[2].list.Enqueue(new RenderEvent(new AddPrimitiveToBatchEvent(new ResourceReference(0), staticItems[2].allocator.AllocateRegion(1024))));
+                    staticItems[2].list.Enqueue(RenderEvent.Init(new AddPrimitiveToBatchEvent(new ResourceReference(0), staticItems[2].allocator.AllocateRegion(1024))));
             }
         }
 
@@ -51,7 +51,7 @@ namespace osu.Framework.Benchmarks
             localAllocator.NewFrame();
 
             for (int i = 0; i < 10000; i++)
-                localEventList.Enqueue(new RenderEvent(new FlushEvent()));
+                localEventList.Enqueue(RenderEvent.Init(new FlushEvent()));
         }
 
         [Benchmark]
@@ -61,7 +61,7 @@ namespace osu.Framework.Benchmarks
             localAllocator.NewFrame();
 
             for (int i = 0; i < 10000; i++)
-                localEventList.Enqueue(new RenderEvent(new AddPrimitiveToBatchEvent(new ResourceReference(0), localAllocator.AllocateRegion(1024))));
+                localEventList.Enqueue(RenderEvent.Init(new AddPrimitiveToBatchEvent(new ResourceReference(0), localAllocator.AllocateRegion(1024))));
         }
 
         [Benchmark]
@@ -144,14 +144,14 @@ namespace osu.Framework.Benchmarks
             localEventList.NewFrame();
             localAllocator.NewFrame();
 
-            localEventList.Enqueue(new RenderEvent(new FlushEvent()));
-            localEventList.Enqueue(new RenderEvent(new FlushEvent()));
-            localEventList.Enqueue(new RenderEvent(new FlushEvent()));
+            localEventList.Enqueue(RenderEvent.Init(new FlushEvent()));
+            localEventList.Enqueue(RenderEvent.Init(new FlushEvent()));
+            localEventList.Enqueue(RenderEvent.Init(new FlushEvent()));
 
             var enumerator = localEventList.CreateEnumerator();
             enumerator.Next();
             enumerator.Next();
-            enumerator.Replace(new RenderEvent(new FlushEvent()));
+            enumerator.Replace(RenderEvent.Init(new FlushEvent()));
 
             int i = 0;
             enumerator = localEventList.CreateEnumerator();
@@ -173,14 +173,14 @@ namespace osu.Framework.Benchmarks
             localEventList.NewFrame();
             localAllocator.NewFrame();
 
-            localEventList.Enqueue(new RenderEvent(new FlushEvent()));
-            localEventList.Enqueue(new RenderEvent(new FlushEvent()));
-            localEventList.Enqueue(new RenderEvent(new FlushEvent()));
+            localEventList.Enqueue(RenderEvent.Init(new FlushEvent()));
+            localEventList.Enqueue(RenderEvent.Init(new FlushEvent()));
+            localEventList.Enqueue(RenderEvent.Init(new FlushEvent()));
 
             var enumerator = localEventList.CreateEnumerator();
             enumerator.Next();
             enumerator.Next();
-            enumerator.Replace(new RenderEvent(new SetScissorStateEvent()));
+            enumerator.Replace(RenderEvent.Init(new SetScissorStateEvent()));
 
             int i = 0;
             enumerator = localEventList.CreateEnumerator();
@@ -202,14 +202,14 @@ namespace osu.Framework.Benchmarks
             localEventList.NewFrame();
             localAllocator.NewFrame();
 
-            localEventList.Enqueue(new RenderEvent(new FlushEvent()));
-            localEventList.Enqueue(new RenderEvent(new FlushEvent()));
-            localEventList.Enqueue(new RenderEvent(new FlushEvent()));
+            localEventList.Enqueue(RenderEvent.Init(new FlushEvent()));
+            localEventList.Enqueue(RenderEvent.Init(new FlushEvent()));
+            localEventList.Enqueue(RenderEvent.Init(new FlushEvent()));
 
             var enumerator = localEventList.CreateEnumerator();
             enumerator.Next();
             enumerator.Next();
-            enumerator.Replace(new RenderEvent(new SetUniformBufferDataEvent()));
+            enumerator.Replace(RenderEvent.Init(new SetUniformBufferDataEvent()));
 
             int i = 0;
             enumerator = localEventList.CreateEnumerator();

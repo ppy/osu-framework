@@ -11,6 +11,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
     {
         public static RenderEvent Create<T>(DeferredRenderer renderer, DeferredVertexBatch<T> batch, ReadOnlySpan<T> vertices)
             where T : unmanaged, IVertex, IEquatable<T>
-            => new RenderEvent(new AddPrimitiveToBatchEvent(renderer.Context.Reference(batch), renderer.Context.AllocateRegion(vertices)));
+            => RenderEvent.Init(new AddPrimitiveToBatchEvent(renderer.Context.Reference(batch), renderer.Context.AllocateRegion(vertices)));
     }
 }

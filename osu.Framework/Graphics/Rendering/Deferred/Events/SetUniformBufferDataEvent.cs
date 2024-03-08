@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
     {
         public static RenderEvent Create<T>(DeferredRenderer renderer, IDeferredUniformBuffer uniformBuffer, T data)
             where T : unmanaged, IEquatable<T>
-            => new RenderEvent(new SetUniformBufferDataEvent(renderer.Context.Reference(uniformBuffer), new UniformBufferData(renderer.Context.AllocateObject(data))));
+            => RenderEvent.Init(new SetUniformBufferDataEvent(renderer.Context.Reference(uniformBuffer), new UniformBufferData(renderer.Context.AllocateObject(data))));
     }
 
     [StructLayout(LayoutKind.Explicit)]

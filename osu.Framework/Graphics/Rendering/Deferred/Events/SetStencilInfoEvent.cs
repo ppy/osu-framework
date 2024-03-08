@@ -6,6 +6,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
     internal readonly record struct SetStencilInfoEvent(StencilInfo Info)
     {
         public static RenderEvent Create(StencilInfo info)
-            => new RenderEvent(new SetStencilInfoEvent(info));
+            => RenderEvent.Init(new SetStencilInfoEvent(info));
     }
 }

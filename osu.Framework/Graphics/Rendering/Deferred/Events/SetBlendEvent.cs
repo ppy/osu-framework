@@ -6,6 +6,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
     internal readonly record struct SetBlendEvent(BlendingParameters Parameters)
     {
         public static RenderEvent Create(BlendingParameters parameters)
-            => new RenderEvent(new SetBlendEvent(parameters));
+            => RenderEvent.Init(new SetBlendEvent(parameters));
     }
 }

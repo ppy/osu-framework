@@ -8,6 +8,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
     internal readonly record struct FlushEvent(ResourceReference VertexBatch, int VertexCount)
     {
         public static RenderEvent Create(DeferredRenderer renderer, IDeferredVertexBatch vertexBatch, int vertexCount)
-            => new RenderEvent(new FlushEvent(renderer.Context.Reference(vertexBatch), vertexCount));
+            => RenderEvent.Init(new FlushEvent(renderer.Context.Reference(vertexBatch), vertexCount));
     }
 }

@@ -106,7 +106,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                         enumerator.Current().Decompose(out SetUniformBufferDataEvent e);
                         IDeferredUniformBuffer buffer = context.Dereference<IDeferredUniformBuffer>(e.Buffer);
                         UniformBufferReference range = buffer.Write(e.Data.Memory);
-                        enumerator.Replace(new RenderEvent(e with { Data = new UniformBufferData(range) }));
+                        enumerator.Replace(RenderEvent.Init(e with { Data = new UniformBufferData(range) }));
                         break;
                     }
 

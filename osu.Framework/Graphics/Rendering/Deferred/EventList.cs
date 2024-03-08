@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         /// Enqueues a render event to the list.
         /// </summary>
         /// <param name="renderEvent">The render event.</param>
-        public void Enqueue(in RenderEvent renderEvent)
+        public void Enqueue(RenderEvent renderEvent)
             => events.Add(renderEvent);
 
         /// <summary>
