@@ -346,8 +346,7 @@ namespace osu.Framework.Platform
 
         private static bool tryGetDisplayFromSDL(int displayIndex, [NotNullWhen(true)] out Display? display)
         {
-            if (displayIndex < 0)
-                throw new ArgumentOutOfRangeException(nameof(displayIndex), displayIndex, $"{nameof(displayIndex)} must be non-negative.");
+            ArgumentOutOfRangeException.ThrowIfNegative(displayIndex);
 
             if (SDL.SDL_GetDisplayBounds(displayIndex, out var rect) < 0)
             {

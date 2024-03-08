@@ -172,8 +172,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             get
             {
-                if (!Available)
-                    throw new ObjectDisposedException(ToString(), "Can not obtain ID of a disposed texture.");
+                ObjectDisposedException.ThrowIf(!Available, this);
 
                 return textureId;
             }

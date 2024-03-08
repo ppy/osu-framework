@@ -220,9 +220,7 @@ namespace osu.Framework.Graphics.Containers
                 throw new InvalidOperationException("Content may not be added to itself.");
 
             ArgumentNullException.ThrowIfNull(drawable);
-
-            if (drawable.IsDisposed)
-                throw new ObjectDisposedException(nameof(drawable));
+            ObjectDisposedException.ThrowIf(drawable.IsDisposed, drawable);
 
             if (Content == this)
                 AddInternal(drawable);

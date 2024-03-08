@@ -146,8 +146,7 @@ namespace osu.Framework.Graphics
             if (!isFinite(newValue))
                 throw new ArgumentException($"{nameof(newValue)} must be finite, but is {newValue}.", nameof(newValue));
 
-            if (duration < 0)
-                throw new ArgumentOutOfRangeException(nameof(duration), $"{nameof(duration)} must be positive.");
+            ArgumentOutOfRangeException.ThrowIfNegative(duration);
 
             if (transform.Target != null)
                 throw new InvalidOperationException($"May not {nameof(PopulateTransform)} the same {nameof(Transform<TValue, TThis>)} more than once.");
