@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using NUnit.Framework;
+using osu.Framework.Development;
 using osu.Framework.Graphics.Rendering.Deferred;
 using osu.Framework.Graphics.Rendering.Deferred.Allocation;
 using osu.Framework.Graphics.Rendering.Deferred.Events;
@@ -17,6 +18,8 @@ namespace osu.Framework.Tests.Graphics
         [SetUp]
         public void Setup()
         {
+            ThreadSafety.IsDrawThread = true;
+
             allocator = new ResourceAllocator();
             list = new EventList(allocator);
         }
@@ -25,6 +28,8 @@ namespace osu.Framework.Tests.Graphics
         public void TearDown()
         {
             allocator.NewFrame();
+
+            ThreadSafety.IsDrawThread = false;
         }
 
         [Test]
