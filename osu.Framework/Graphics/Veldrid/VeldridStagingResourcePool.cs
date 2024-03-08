@@ -74,17 +74,15 @@ namespace osu.Framework.Graphics.Veldrid
         {
             currentExecutionIndex = executionIndex;
 
-            for (int i = 0; i < available.Count; i++)
+            if (available.Count > 0)
             {
-                var item = available[i];
-
+                var item = available[0];
                 ulong framesSinceUsage = executionIndex - item.FrameUsageIndex;
 
                 if (framesSinceUsage >= Rendering.Renderer.RESOURCE_FREE_NO_USAGE_LENGTH)
                 {
                     item.Resource.Dispose();
                     available.Remove(item);
-                    break;
                 }
             }
 
