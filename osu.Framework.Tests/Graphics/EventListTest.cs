@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Graphics
             ThreadSafety.IsDrawThread = true;
 
             allocator = new ResourceAllocator();
-            list = new EventList(allocator);
+            list = new EventList();
         }
 
         [TearDown]
@@ -35,21 +35,21 @@ namespace osu.Framework.Tests.Graphics
         [Test]
         public void ReplaceWithSmallEvent()
         {
-            list.Enqueue(new FlushEvent());
+            list.Enqueue(RenderEvent.Init(new FlushEvent()));
 
             var enumerator = list.CreateEnumerator();
             enumerator.Next();
-            enumerator.Replace(new FlushEvent());
+            enumerator.Replace(RenderEvent.Init(new FlushEvent()));
         }
 
         [Test]
         public void ReplaceWithLargeEvent()
         {
-            list.Enqueue(new FlushEvent());
+            list.Enqueue(RenderEvent.Init(new FlushEvent()));
 
             var enumerator = list.CreateEnumerator();
             enumerator.Next();
-            enumerator.Replace(new SetUniformBufferDataEvent());
+            enumerator.Replace(RenderEvent.Init(new SetUniformBufferDataEvent()));
         }
     }
 }
