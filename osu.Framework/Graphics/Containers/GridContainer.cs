@@ -420,11 +420,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="maxSize">The maximum size of this row or column.</param>
         public Dimension(GridSizeMode mode = GridSizeMode.Distributed, float size = 0, float minSize = 0, float maxSize = float.MaxValue)
         {
-            if (minSize < 0)
-                throw new ArgumentOutOfRangeException(nameof(minSize), "Must be greater than 0.");
-
-            if (minSize > maxSize)
-                throw new ArgumentOutOfRangeException(nameof(minSize), $"Must be less than {nameof(maxSize)}.");
+            ArgumentOutOfRangeException.ThrowIfNegative(minSize);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(minSize, maxSize);
 
             Mode = mode;
             Size = size;
