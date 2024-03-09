@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -227,96 +228,115 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
 
         public void Decompose(out AddPrimitiveToBatchEvent @event)
         {
+            Debug.Assert(Type == RenderEventType.AddPrimitiveToBatch);
             @event = addPrimitiveToBatch;
         }
 
         public void Decompose(out ClearEvent @event)
         {
+            Debug.Assert(Type == RenderEventType.Clear);
             @event = clear;
         }
 
         public void Decompose(out DrawNodeActionEvent @event)
         {
+            Debug.Assert(Type == RenderEventType.DrawNodeAction);
             @event = drawNodeAction;
         }
 
         public void Decompose(out FlushEvent @event)
         {
+            Debug.Assert(Type == RenderEventType.Flush);
             @event = flush;
         }
 
         public void Decompose(out ResizeFrameBufferEvent @event)
         {
+            Debug.Assert(Type == RenderEventType.ResizeFrameBuffer);
             @event = resizeFrameBuffer;
         }
 
         public void Decompose(out SetBlendEvent @event)
         {
+            Debug.Assert(Type == RenderEventType.SetBlend);
             @event = setBlend;
         }
 
         public void Decompose(out SetBlendMaskEvent @event)
         {
+            Debug.Assert(Type == RenderEventType.SetBlendMask);
             @event = setBlendMask;
         }
 
         public void Decompose(out SetDepthInfoEvent @event)
         {
+            Debug.Assert(Type == RenderEventType.SetDepthInfo);
             @event = setDepthInfo;
         }
 
         public void Decompose(out SetFrameBufferEvent @event)
         {
+            Debug.Assert(Type == RenderEventType.SetFrameBuffer);
             @event = setFrameBuffer;
         }
 
         public void Decompose(out SetScissorEvent @event)
         {
+            Debug.Assert(Type == RenderEventType.SetScissor);
             @event = setScissor;
         }
 
         public void Decompose(out SetShaderEvent @event)
         {
+            Debug.Assert(Type == RenderEventType.SetShader);
             @event = setShader;
         }
 
         public void Decompose(out SetScissorStateEvent @event)
         {
+            Debug.Assert(Type == RenderEventType.SetScissorState);
             @event = setScissorState;
         }
 
         public void Decompose(out SetShaderStorageBufferObjectDataEvent @event)
         {
+            Debug.Assert(Type == RenderEventType.SetShaderStorageBufferObjectData);
             @event = setShaderStorageBufferObjectData;
         }
 
         public void Decompose(out SetStencilInfoEvent @event)
         {
+            Debug.Assert(Type == RenderEventType.SetStencilInfo);
             @event = setStencilInfo;
         }
 
         public void Decompose(out SetTextureEvent @event)
         {
+            Debug.Assert(Type == RenderEventType.SetTexture);
             @event = setTexture;
         }
 
         public void Decompose(out SetUniformBufferDataEvent @event)
         {
+            Debug.Assert(Type == RenderEventType.SetUniformBufferData);
             @event = setUniformBufferData;
         }
 
         public void Decompose(out SetUniformBufferDataRangeEvent @event)
         {
+            Debug.Assert(Type == RenderEventType.SetUniformBufferDataRange);
             @event = setUniformBufferDataRange;
         }
 
         public void Decompose(out SetUniformBufferEvent @event)
         {
+            Debug.Assert(Type == RenderEventType.SetUniformBuffer);
             @event = setUniformBuffer;
         }
 
         public void Decompose(out SetViewportEvent @event)
         {
+            Debug.Assert(Type == RenderEventType.SetViewport);
             @event = setViewport;
         }
     }
