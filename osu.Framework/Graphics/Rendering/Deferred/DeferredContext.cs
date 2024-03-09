@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using osu.Framework.Graphics.Rendering.Deferred.Allocation;
 using osu.Framework.Graphics.Rendering.Deferred.Events;
 using osu.Framework.Graphics.Veldrid.Pipelines;
@@ -17,9 +18,10 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         public GraphicsPipeline Graphics
             => Renderer.Graphics;
 
+        public readonly List<RenderEvent> RenderEvents = new List<RenderEvent>();
+
         public readonly DeferredRenderer Renderer;
         public readonly ResourceAllocator Allocator;
-        public readonly EventList RenderEvents;
         public readonly UniformBufferManager UniformBufferManager;
         public readonly VertexManager VertexManager;
 
@@ -27,15 +29,14 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         {
             Renderer = renderer;
             Allocator = new ResourceAllocator();
-            RenderEvents = new EventList();
             UniformBufferManager = new UniformBufferManager(this);
             VertexManager = new VertexManager(this);
         }
 
         public void NewFrame()
         {
+            RenderEvents.Clear();
             Allocator.NewFrame();
-            RenderEvents.NewFrame();
             UniformBufferManager.NewFrame();
             VertexManager.Reset();
         }
@@ -101,6 +102,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         /// </summary>
         /// <param name="renderEvent">The render event.</param>
         public void EnqueueEvent(in RenderEvent renderEvent)
-            => RenderEvents.Enqueue(renderEvent);
+            => RenderEvents.Add(renderEvent);
     }
 }

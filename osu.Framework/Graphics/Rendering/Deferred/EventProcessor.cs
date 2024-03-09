@@ -38,21 +38,19 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             if (string.IsNullOrEmpty(FrameworkEnvironment.DeferredRendererEventsOutputPath))
                 return;
 
-            EventList.Enumerator enumerator = context.RenderEvents.CreateEnumerator();
-
             StringBuilder builder = new StringBuilder();
             int indent = 0;
 
-            while (enumerator.Next())
+            foreach (var renderEvent in context.RenderEvents)
             {
                 string info;
                 int indentChange = 0;
 
-                switch (enumerator.Current().Type)
+                switch (renderEvent.Type)
                 {
                     case RenderEventType.DrawNodeAction:
                     {
-                        enumerator.Current().Decompose(out DrawNodeActionEvent e);
+                        renderEvent.Decompose(out DrawNodeActionEvent e);
 
                         info = $"DrawNode.{e.Action} ({context.Dereference<DrawNode>(e.DrawNode)})";
 
@@ -72,7 +70,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
                     default:
                     {
-                        info = $"{enumerator.Current().Type.ToString()}";
+                        info = $"{renderEvent.Type.ToString()}";
                         break;
                     }
                 }
@@ -87,15 +85,15 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
         private void processUploads()
         {
-            EventList.Enumerator enumerator = context.RenderEvents.CreateEnumerator();
-
-            while (enumerator.Next())
+            for (int i = 0; i < context.RenderEvents.Count; i++)
             {
-                switch (enumerator.Current().Type)
+                var renderEvent = context.RenderEvents[i];
+
+                switch (renderEvent.Type)
                 {
                     case RenderEventType.AddPrimitiveToBatch:
                     {
-                        enumerator.Current().Decompose(out AddPrimitiveToBatchEvent e);
+                        renderEvent.Decompose(out AddPrimitiveToBatchEvent e);
                         IDeferredVertexBatch batch = context.Dereference<IDeferredVertexBatch>(e.VertexBatch);
                         batch.Write(e.Memory);
                         break;
@@ -103,16 +101,16 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
                     case RenderEventType.SetUniformBufferData:
                     {
-                        enumerator.Current().Decompose(out SetUniformBufferDataEvent e);
+                        renderEvent.Decompose(out SetUniformBufferDataEvent e);
                         IDeferredUniformBuffer buffer = context.Dereference<IDeferredUniformBuffer>(e.Buffer);
                         UniformBufferReference range = buffer.Write(e.Data.Memory);
-                        enumerator.Replace(RenderEvent.Init(e with { Data = new UniformBufferData(range) }));
+                        context.RenderEvents[i] = RenderEvent.Init(e with { Data = new UniformBufferData(range) });
                         break;
                     }
 
                     case RenderEventType.SetShaderStorageBufferObjectData:
                     {
-                        enumerator.Current().Decompose(out SetShaderStorageBufferObjectDataEvent e);
+                        renderEvent.Decompose(out SetShaderStorageBufferObjectDataEvent e);
                         IDeferredShaderStorageBufferObject buffer = context.Dereference<IDeferredShaderStorageBufferObject>(e.Buffer);
                         buffer.Write(e.Index, e.Memory);
                         break;
@@ -126,113 +124,111 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
         private void processEvents()
         {
-            EventList.Enumerator enumerator = context.RenderEvents.CreateEnumerator();
-
-            while (enumerator.Next())
+            foreach (var renderEvent in context.RenderEvents)
             {
-                switch (enumerator.Current().Type)
+                switch (renderEvent.Type)
                 {
                     case RenderEventType.SetFrameBuffer:
                     {
-                        enumerator.Current().Decompose(out SetFrameBufferEvent e);
+                        renderEvent.Decompose(out SetFrameBufferEvent e);
                         processEvent(e);
                         break;
                     }
 
                     case RenderEventType.ResizeFrameBuffer:
                     {
-                        enumerator.Current().Decompose(out ResizeFrameBufferEvent e);
+                        renderEvent.Decompose(out ResizeFrameBufferEvent e);
                         processEvent(e);
                         break;
                     }
 
                     case RenderEventType.SetShader:
                     {
-                        enumerator.Current().Decompose(out SetShaderEvent e);
+                        renderEvent.Decompose(out SetShaderEvent e);
                         processEvent(e);
                         break;
                     }
 
                     case RenderEventType.SetTexture:
                     {
-                        enumerator.Current().Decompose(out SetTextureEvent e);
+                        renderEvent.Decompose(out SetTextureEvent e);
                         processEvent(e);
                         break;
                     }
 
                     case RenderEventType.SetUniformBuffer:
                     {
-                        enumerator.Current().Decompose(out SetUniformBufferEvent e);
+                        renderEvent.Decompose(out SetUniformBufferEvent e);
                         processEvent(e);
                         break;
                     }
 
                     case RenderEventType.Clear:
                     {
-                        enumerator.Current().Decompose(out ClearEvent e);
+                        renderEvent.Decompose(out ClearEvent e);
                         processEvent(e);
                         break;
                     }
 
                     case RenderEventType.SetDepthInfo:
                     {
-                        enumerator.Current().Decompose(out SetDepthInfoEvent e);
+                        renderEvent.Decompose(out SetDepthInfoEvent e);
                         processEvent(e);
                         break;
                     }
 
                     case RenderEventType.SetScissor:
                     {
-                        enumerator.Current().Decompose(out SetScissorEvent e);
+                        renderEvent.Decompose(out SetScissorEvent e);
                         processEvent(e);
                         break;
                     }
 
                     case RenderEventType.SetScissorState:
                     {
-                        enumerator.Current().Decompose(out SetScissorStateEvent e);
+                        renderEvent.Decompose(out SetScissorStateEvent e);
                         processEvent(e);
                         break;
                     }
 
                     case RenderEventType.SetStencilInfo:
                     {
-                        enumerator.Current().Decompose(out SetStencilInfoEvent e);
+                        renderEvent.Decompose(out SetStencilInfoEvent e);
                         processEvent(e);
                         break;
                     }
 
                     case RenderEventType.SetViewport:
                     {
-                        enumerator.Current().Decompose(out SetViewportEvent e);
+                        renderEvent.Decompose(out SetViewportEvent e);
                         processEvent(e);
                         break;
                     }
 
                     case RenderEventType.SetBlend:
                     {
-                        enumerator.Current().Decompose(out SetBlendEvent e);
+                        renderEvent.Decompose(out SetBlendEvent e);
                         processEvent(e);
                         break;
                     }
 
                     case RenderEventType.SetBlendMask:
                     {
-                        enumerator.Current().Decompose(out SetBlendMaskEvent e);
+                        renderEvent.Decompose(out SetBlendMaskEvent e);
                         processEvent(e);
                         break;
                     }
 
                     case RenderEventType.Flush:
                     {
-                        enumerator.Current().Decompose(out FlushEvent e);
+                        renderEvent.Decompose(out FlushEvent e);
                         processEvent(e);
                         break;
                     }
 
                     case RenderEventType.SetUniformBufferData:
                     {
-                        enumerator.Current().Decompose(out SetUniformBufferDataEvent e);
+                        renderEvent.Decompose(out SetUniformBufferDataEvent e);
                         processEvent(e);
                         break;
                     }
