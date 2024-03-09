@@ -20,6 +20,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
         SetBlend,
         SetBlendMask,
         SetUniformBufferData,
+        SetUniformBufferDataRange,
         SetShaderStorageBufferObjectData,
         Flush,
 

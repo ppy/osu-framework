@@ -65,6 +65,9 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
         private SetUniformBufferDataEvent setUniformBufferData;
 
         [FieldOffset(1)]
+        private SetUniformBufferDataRangeEvent setUniformBufferDataRange;
+
+        [FieldOffset(1)]
         private SetUniformBufferEvent setUniformBuffer;
 
         [FieldOffset(1)]
@@ -198,6 +201,14 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
             return e;
         }
 
+        public static RenderEvent Init(in SetUniformBufferDataRangeEvent @event)
+        {
+            Unsafe.SkipInit(out RenderEvent e);
+            e.Type = RenderEventType.SetUniformBufferDataRange;
+            e.setUniformBufferDataRange = @event;
+            return e;
+        }
+
         public static RenderEvent Init(in SetUniformBufferEvent @event)
         {
             Unsafe.SkipInit(out RenderEvent e);
@@ -292,6 +303,11 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
         public void Decompose(out SetUniformBufferDataEvent @event)
         {
             @event = setUniformBufferData;
+        }
+
+        public void Decompose(out SetUniformBufferDataRangeEvent @event)
+        {
+            @event = setUniformBufferDataRange;
         }
 
         public void Decompose(out SetUniformBufferEvent @event)

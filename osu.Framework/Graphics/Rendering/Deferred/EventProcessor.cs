@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using osu.Framework.Graphics.Rendering.Deferred.Allocation;
@@ -103,8 +104,8 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                     {
                         renderEvent.Decompose(out SetUniformBufferDataEvent e);
                         IDeferredUniformBuffer buffer = context.Dereference<IDeferredUniformBuffer>(e.Buffer);
-                        UniformBufferReference range = buffer.Write(e.Data.Memory);
-                        context.RenderEvents[i] = RenderEvent.Init(e with { Data = new UniformBufferData(range) });
+                        UniformBufferReference range = buffer.Write(e.Data);
+                        context.RenderEvents[i] = RenderEvent.Init(new SetUniformBufferDataRangeEvent(e.Buffer, range));
                         break;
                     }
 
@@ -228,7 +229,13 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
                     case RenderEventType.SetUniformBufferData:
                     {
-                        renderEvent.Decompose(out SetUniformBufferDataEvent e);
+                        Debug.Fail("Uniform buffers should be uploaded during the pre-draw upload process.");
+                        break;
+                    }
+
+                    case RenderEventType.SetUniformBufferDataRange:
+                    {
+                        renderEvent.Decompose(out SetUniformBufferDataRangeEvent e);
                         processEvent(e);
                         break;
                     }
@@ -278,12 +285,12 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         private void processEvent(in FlushEvent e)
             => context.Dereference<IDeferredVertexBatch>(e.VertexBatch).Draw(e.VertexCount);
 
-        private void processEvent(in SetUniformBufferDataEvent e)
+        private void processEvent(in SetUniformBufferDataRangeEvent e)
         {
             IDeferredUniformBuffer buffer = context.Dereference<IDeferredUniformBuffer>(e.Buffer);
 
-            buffer.Activate(e.Data.Range.Chunk);
-            graphics.SetUniformBufferOffset(buffer, (uint)e.Data.Range.OffsetInChunk);
+            buffer.Activate(e.Range.Chunk);
+            graphics.SetUniformBufferOffset(buffer, (uint)e.Range.OffsetInChunk);
         }
     }
 }
