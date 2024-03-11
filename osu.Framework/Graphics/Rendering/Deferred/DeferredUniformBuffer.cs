@@ -77,6 +77,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
             data = default;
             currentChunk = default;
+            dead_chunks.Clear();
         }
 
         public void Dispose()
