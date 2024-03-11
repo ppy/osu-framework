@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Veldrid.Textures;
 using Veldrid;
@@ -92,36 +91,18 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
 
         private void updatePendingExecutions()
         {
-            int? lastSignalledFenceIndex = null;
-
-            // We have a sequential list of all fences which are in flight.
-            // Usages are assumed to be sequential and linear.
-            //
-            // Iterate backwards to find the last signalled fence, which can be considered the last completed execution.
-            for (int i = pendingExecutions.Count - 1; i >= 0; i--)
+            for (int i = 0; i < pendingExecutions.Count; i++)
             {
                 var fence = pendingExecutions[i];
 
                 if (!fence.Fence.Signaled)
-                {
-                    // this rule is broken on metal, if a new command buffer has been submitted while a previous fence wasn't signalled yet,
-                    // then the previous fence will be thrown away and will never be signalled. keep iterating regardless of signal on metal.
-                    if (Device.BackendType != GraphicsBackend.Metal)
-                        Debug.Assert(lastSignalledFenceIndex == null, "A non-signalled fence was detected before the latest signalled fence.");
-
                     continue;
-                }
 
-                lastSignalledFenceIndex ??= i;
+                ExecutionFinished?.Invoke(fence.Index);
 
                 Device.ResetFence(fence.Fence);
                 fencePool.Enqueue(fence.Fence);
-            }
-
-            if (lastSignalledFenceIndex != null)
-            {
-                ExecutionFinished?.Invoke(pendingExecutions[lastSignalledFenceIndex.Value].Index);
-                pendingExecutions.RemoveRange(0, lastSignalledFenceIndex.Value + 1);
+                pendingExecutions.RemoveAt(i--);
             }
         }
 
