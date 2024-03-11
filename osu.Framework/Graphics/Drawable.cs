@@ -243,8 +243,7 @@ namespace osu.Framework.Graphics
                         $"Tried to load long-running drawable type {GetType().ReadableName()} in a non-direct async context. See https://git.io/Je1YF for more details.");
                 }
 
-                if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
+                ObjectDisposedException.ThrowIf(IsDisposed, this);
 
                 if (loadState == LoadState.NotLoaded)
                 {
@@ -466,8 +465,7 @@ namespace osu.Framework.Graphics
         /// <returns>False if the drawable should not be updated.</returns>
         public virtual bool UpdateSubTree()
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Disposed Drawables may never be in the scene graph.");
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
             if (ProcessCustomClock)
                 customClock?.ProcessFrame();
@@ -1484,8 +1482,7 @@ namespace osu.Framework.Graphics
             get => parent;
             internal set
             {
-                if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Disposed Drawables may never get a parent and return to the scene graph.");
+                ObjectDisposedException.ThrowIf(IsDisposed, this);
 
                 if (value == null)
                     ChildID = 0;

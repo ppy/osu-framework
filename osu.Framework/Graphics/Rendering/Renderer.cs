@@ -789,8 +789,7 @@ namespace osu.Framework.Graphics.Rendering
 
         public bool BindTexture(Texture texture, int unit, WrapMode? wrapModeS, WrapMode? wrapModeT)
         {
-            if (!texture.Available)
-                throw new ObjectDisposedException(nameof(texture), "Can not bind a disposed texture.");
+            ObjectDisposedException.ThrowIf(!texture.Available, texture);
 
             if (texture is TextureWhitePixel && lastBoundTextureIsAtlas[unit])
             {
