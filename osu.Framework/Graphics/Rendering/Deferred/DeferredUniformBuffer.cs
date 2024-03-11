@@ -80,11 +80,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             dead_chunks.Clear();
         }
 
-        ~DeferredUniformBuffer()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
             Dispose(true);
