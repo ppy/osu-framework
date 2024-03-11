@@ -60,12 +60,14 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected IEnumerable<DropdownMenuItem<T>> MenuItems => itemMap.Values;
 
+        private readonly List<T> orderedItems = new List<T>();
+
         /// <summary>
         /// Enumerate all values in the dropdown.
         /// </summary>
         public IEnumerable<T> Items
         {
-            get => MenuItems.Select(i => i.Value);
+            get => orderedItems;
             set
             {
                 if (boundItemSource != null)
@@ -126,7 +128,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (itemMap.ContainsKey(value))
                 throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<T>)}.");
 
-            var item = new DropdownMenuItem<T>(value, () =>
+            var menuItem = new DropdownMenuItem<T>(value, () =>
             {
                 if (!Current.Disabled)
                     Current.Value = value;
@@ -136,14 +138,20 @@ namespace osu.Framework.Graphics.UserInterface
 
             // inheritors expect that `virtual GenerateItemText` is only called when this dropdown's BDL has run to completion.
             if (LoadState >= LoadState.Ready)
-                item.Text.Value = GenerateItemText(value);
+                menuItem.Text.Value = GenerateItemText(value);
 
             if (position != null)
-                Menu.Insert(position.Value, item);
+            {
+                Menu.Insert(position.Value, menuItem);
+                orderedItems.Insert(position.Value, value);
+            }
             else
-                Menu.Add(item);
+            {
+                Menu.Add(menuItem);
+                orderedItems.Add(value);
+            }
 
-            itemMap[value] = item;
+            itemMap[value] = menuItem;
         }
 
         /// <summary>
@@ -168,6 +176,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Menu.Remove(item);
             itemMap.Remove(value);
+            orderedItems.Remove(value);
             return true;
         }
 
@@ -404,7 +413,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (Current.Value == null || !itemMap.ContainsKey(Current.Value))
             {
-                Current.Value = itemMap.Keys.FirstOrDefault();
+                Current.Value = orderedItems.FirstOrDefault();
                 return;
             }
 
@@ -441,6 +450,7 @@ namespace osu.Framework.Graphics.UserInterface
         private void clearItems()
         {
             itemMap.Clear();
+            orderedItems.Clear();
             Menu.Clear();
         }
 
