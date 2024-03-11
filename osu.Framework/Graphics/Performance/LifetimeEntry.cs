@@ -7,13 +7,17 @@ using System;
 
 namespace osu.Framework.Graphics.Performance
 {
+    public class LifetimeEntry : LifetimeEntry<LifetimeEntry>
+    {
+    }
+
     /// <summary>
     /// An object for a <see cref="LifetimeEntryManager"/> to consume, which provides a <see cref="LifetimeStart"/> and <see cref="LifetimeEnd"/>.
     /// </summary>
     /// <remarks>
     /// Management of the object which the <see cref="LifetimeEntry"/> refers to is left up to the consumer.
     /// </remarks>
-    public class LifetimeEntry
+    public abstract class LifetimeEntry<T> where T : LifetimeEntry<T>
     {
         private double lifetimeStart = double.MinValue;
 
@@ -42,12 +46,12 @@ namespace osu.Framework.Graphics.Performance
         /// Invoked before <see cref="LifetimeStart"/> or <see cref="LifetimeEnd"/> changes.
         /// It is used because <see cref="LifetimeChanged"/> cannot be used to ensure comparator stability.
         /// </summary>
-        internal event Action<LifetimeEntry> RequestLifetimeUpdate;
+        internal event Action<T> RequestLifetimeUpdate;
 
         /// <summary>
         /// Invoked after <see cref="LifetimeStart"/> or <see cref="LifetimeEnd"/> changes.
         /// </summary>
-        public event Action<LifetimeEntry> LifetimeChanged;
+        public event Action<T> LifetimeChanged;
 
         /// <summary>
         /// Update <see cref="LifetimeStart"/> of this <see cref="LifetimeEntry"/>.
@@ -74,12 +78,12 @@ namespace osu.Framework.Graphics.Performance
         /// <param name="end">The new <see cref="LifetimeEnd"/> value.</param>
         protected void SetLifetime(double start, double end)
         {
-            RequestLifetimeUpdate?.Invoke(this);
+            RequestLifetimeUpdate?.Invoke((T)this);
 
             lifetimeStart = start;
             lifetimeEnd = Math.Max(start, end); // Negative intervals are undesired.
 
-            LifetimeChanged?.Invoke(this);
+            LifetimeChanged?.Invoke((T)this);
         }
 
         /// <summary>

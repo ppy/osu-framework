@@ -13,6 +13,10 @@ using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Performance
 {
+    public class LifetimeEntryManager : LifetimeEntryManager<LifetimeEntry>
+    {
+    }
+
     /// <summary>
     /// Provides time-optimised updates for lifetime change notifications.
     /// This is used in specialised <see cref="CompositeDrawable"/>s to optimise lifetime changes (see: <see cref="LifetimeManagementContainer"/>).
@@ -20,45 +24,45 @@ namespace osu.Framework.Graphics.Performance
     /// <remarks>
     /// The time complexity of updating lifetimes is O(number of alive items).
     /// </remarks>
-    public class LifetimeEntryManager
+    public class LifetimeEntryManager<T> where T : LifetimeEntry<T>
     {
         /// <summary>
         /// Invoked immediately when a <see cref="LifetimeEntry"/> becomes alive.
         /// </summary>
-        public event Action<LifetimeEntry> EntryBecameAlive;
+        public event Action<T> EntryBecameAlive;
 
         /// <summary>
         /// Invoked immediately when a <see cref="LifetimeEntry"/> becomes dead.
         /// </summary>
-        public event Action<LifetimeEntry> EntryBecameDead;
+        public event Action<T> EntryBecameDead;
 
         /// <summary>
         /// Invoked when a <see cref="LifetimeEntry"/> crosses a lifetime boundary.
         /// </summary>
-        public event Action<LifetimeEntry, LifetimeBoundaryKind, LifetimeBoundaryCrossingDirection> EntryCrossedBoundary;
+        public event Action<T, LifetimeBoundaryKind, LifetimeBoundaryCrossingDirection> EntryCrossedBoundary;
 
         /// <summary>
         /// Contains all the newly-added (but not yet processed) entries.
         /// </summary>
-        private readonly List<LifetimeEntry> newEntries = new List<LifetimeEntry>();
+        private readonly List<T> newEntries = [];
 
         /// <summary>
         /// Contains all the currently-alive entries.
         /// </summary>
-        private readonly List<LifetimeEntry> activeEntries = new List<LifetimeEntry>();
+        private readonly List<T> activeEntries = [];
 
         /// <summary>
         /// Contains all entries that should come alive in the future.
         /// </summary>
-        private readonly SortedSet<LifetimeEntry> futureEntries = new SortedSet<LifetimeEntry>(new LifetimeStartComparator());
+        private readonly SortedSet<T> futureEntries = new(new LifetimeStartComparator());
 
         /// <summary>
         /// Contains all entries that were alive in the past.
         /// </summary>
-        private readonly SortedSet<LifetimeEntry> pastEntries = new SortedSet<LifetimeEntry>(new LifetimeEndComparator());
+        private readonly SortedSet<T> pastEntries = new(new LifetimeEndComparator());
 
-        private readonly Queue<(LifetimeEntry, LifetimeBoundaryKind, LifetimeBoundaryCrossingDirection)> eventQueue =
-            new Queue<(LifetimeEntry, LifetimeBoundaryKind, LifetimeBoundaryCrossingDirection)>();
+        private readonly Queue<(T, LifetimeBoundaryKind, LifetimeBoundaryCrossingDirection)> eventQueue =
+            new();
 
         /// <summary>
         /// Used to ensure a stable sort if multiple entries with the same lifetime are added.
@@ -69,7 +73,7 @@ namespace osu.Framework.Graphics.Performance
         /// Adds an entry.
         /// </summary>
         /// <param name="entry">The <see cref="LifetimeEntry"/> to add.</param>
-        public void AddEntry(LifetimeEntry entry)
+        public void AddEntry(T entry)
         {
             entry.RequestLifetimeUpdate += requestLifetimeUpdate;
             entry.ChildId = ++currentChildId;
@@ -83,7 +87,7 @@ namespace osu.Framework.Graphics.Performance
         /// </summary>
         /// <param name="entry">The <see cref="LifetimeEntry"/> to remove.</param>
         /// <returns>Whether <paramref name="entry"/> was contained by this <see cref="LifetimeEntryManager"/>.</returns>
-        public bool RemoveEntry(LifetimeEntry entry)
+        public bool RemoveEntry(T entry)
         {
             entry.RequestLifetimeUpdate -= requestLifetimeUpdate;
 
@@ -160,7 +164,7 @@ namespace osu.Framework.Graphics.Performance
         /// <summary>
         /// Invoked when the lifetime of an entry is going to changed.
         /// </summary>
-        private void requestLifetimeUpdate(LifetimeEntry entry)
+        private void requestLifetimeUpdate(T entry)
         {
             // Entries in the past/future sets need to be re-sorted to prevent the comparer from becoming unstable.
             // To prevent, e.g. CompositeDrawable alive children changing during enumeration, the entry's state must not be updated immediately.
@@ -185,7 +189,7 @@ namespace osu.Framework.Graphics.Performance
         /// <param name="state">The <see cref="LifetimeEntryState"/>.</param>
         /// <returns>Either <see cref="futureEntries"/>, <see cref="pastEntries"/>, or null.</returns>
         [CanBeNull]
-        private SortedSet<LifetimeEntry> futureOrPastEntries(LifetimeEntryState state)
+        private SortedSet<T> futureOrPastEntries(LifetimeEntryState state)
         {
             switch (state)
             {
@@ -284,7 +288,7 @@ namespace osu.Framework.Graphics.Performance
         /// <param name="mutateActiveEntries">Whether <see cref="activeEntries"/> should be mutated by this invocation.
         /// If <c>false</c>, the caller is expected to handle mutation of <see cref="activeEntries"/> based on any changes to the entry's state.</param>
         /// <returns>Whether the state of <paramref name="entry"/> has changed.</returns>
-        private bool updateChildEntry(LifetimeEntry entry, double startTime, double endTime, bool isNewEntry, bool mutateActiveEntries)
+        private bool updateChildEntry(T entry, double startTime, double endTime, bool isNewEntry, bool mutateActiveEntries)
         {
             LifetimeEntryState oldState = entry.State;
 
@@ -347,7 +351,7 @@ namespace osu.Framework.Graphics.Performance
         /// <param name="startTime">The start of the time range.</param>
         /// <param name="endTime">The end of the time range.</param>
         /// <returns>The state of <paramref name="entry"/>. Can be either <see cref="LifetimeEntryState.Past"/>, <see cref="LifetimeEntryState.Current"/>, or <see cref="LifetimeEntryState.Future"/>.</returns>
-        private LifetimeEntryState getState(LifetimeEntry entry, double startTime, double endTime)
+        private LifetimeEntryState getState(T entry, double startTime, double endTime)
         {
             // Consider a static entry and a moving time range:
             //                 [-----------Entry-----------]
@@ -367,7 +371,7 @@ namespace osu.Framework.Graphics.Performance
             return LifetimeEntryState.Current;
         }
 
-        private void enqueueEvents(LifetimeEntry entry, LifetimeEntryState oldState, LifetimeEntryState newState)
+        private void enqueueEvents(T entry, LifetimeEntryState oldState, LifetimeEntryState newState)
         {
             Debug.Assert(oldState != newState);
 
@@ -396,9 +400,9 @@ namespace osu.Framework.Graphics.Performance
         /// <summary>
         /// Compares by <see cref="LifetimeEntry.LifetimeStart"/>.
         /// </summary>
-        private sealed class LifetimeStartComparator : IComparer<LifetimeEntry>
+        private sealed class LifetimeStartComparator : IComparer<T>
         {
-            public int Compare(LifetimeEntry x, LifetimeEntry y)
+            public int Compare(T x, T y)
             {
                 ArgumentNullException.ThrowIfNull(x);
                 ArgumentNullException.ThrowIfNull(y);
@@ -411,9 +415,9 @@ namespace osu.Framework.Graphics.Performance
         /// <summary>
         /// Compares by <see cref="LifetimeEntry.LifetimeEnd"/>.
         /// </summary>
-        private sealed class LifetimeEndComparator : IComparer<LifetimeEntry>
+        private sealed class LifetimeEndComparator : IComparer<T>
         {
-            public int Compare(LifetimeEntry x, LifetimeEntry y)
+            public int Compare(T x, T y)
             {
                 ArgumentNullException.ThrowIfNull(x);
                 ArgumentNullException.ThrowIfNull(y);
