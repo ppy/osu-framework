@@ -38,13 +38,8 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
         private DeviceBuffer? currentVertexBuffer;
         private VertexLayoutDescription currentVertexLayout;
 
-        /// <summary>
-        /// Creates a new <see cref="GraphicsPipeline"/>.
-        /// </summary>
-        /// <param name="device">The veldrid device.</param>
-        /// <param name="trackExecutions">Whether to notify of execution status via <see cref="BasicPipeline.ExecutionStarted"/> and <see cref="BasicPipeline.ExecutionFinished"/>.</param>
-        public GraphicsPipeline(VeldridDevice device, bool trackExecutions = true)
-            : base(device, trackExecutions)
+        public GraphicsPipeline(VeldridDevice device)
+            : base(device)
         {
             pipelineDesc.Outputs = Device.SwapchainFramebuffer.OutputDescription;
         }

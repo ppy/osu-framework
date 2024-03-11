@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Veldrid.Textures;
 using Veldrid;
@@ -43,11 +42,6 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
         public CommandList Commands { get; }
 
         /// <summary>
-        /// Whether executions are being tracked via <see cref="ExecutionStarted"/> and <see cref="ExecutionFinished"/>.
-        /// </summary>
-        public readonly bool TrackingExecutions;
-
-        /// <summary>
         /// The current execution index.
         /// </summary>
         private ulong executionIndex;
@@ -64,16 +58,9 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
 
         private readonly VeldridDevice device;
 
-        /// <summary>
-        /// Creates a new <see cref="BasicPipeline"/>.
-        /// </summary>
-        /// <param name="device">The veldrid device.</param>
-        /// <param name="trackExecutions">Whether to notify of execution status via <see cref="BasicPipeline.ExecutionStarted"/> and <see cref="BasicPipeline.ExecutionFinished"/>.</param>
-        public BasicPipeline(VeldridDevice device, bool trackExecutions = false)
+        public BasicPipeline(VeldridDevice device)
         {
             this.device = device;
-            TrackingExecutions = trackExecutions;
-
             Commands = device.Factory.CreateCommandList();
         }
 
@@ -82,16 +69,11 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
         /// </summary>
         public virtual void Begin()
         {
-            if (TrackingExecutions)
-            {
-                updatePendingExecutions();
-                executionIndex++;
-            }
+            updatePendingExecutions();
+            executionIndex++;
 
             Commands.Begin();
-
-            if (TrackingExecutions)
-                ExecutionStarted?.Invoke(executionIndex);
+            ExecutionStarted?.Invoke(executionIndex);
         }
 
         /// <summary>
@@ -99,14 +81,9 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
         /// </summary>
         public void End()
         {
-            Fence? fence = null;
-
-            if (TrackingExecutions)
-            {
-                if (!fencePool.TryDequeue(out fence))
-                    fence = Factory.CreateFence(false);
-                pendingExecutions.Add(new ExecutionCompletionFence(fence, executionIndex));
-            }
+            if (!fencePool.TryDequeue(out Fence? fence))
+                fence = Factory.CreateFence(false);
+            pendingExecutions.Add(new ExecutionCompletionFence(fence, executionIndex));
 
             Commands.End();
             device.Device.SubmitCommands(Commands, fence);
@@ -114,8 +91,6 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
 
         private void updatePendingExecutions()
         {
-            Debug.Assert(TrackingExecutions);
-
             for (int i = 0; i < pendingExecutions.Count; i++)
             {
                 var fence = pendingExecutions[i];

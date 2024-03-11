@@ -23,9 +23,6 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected VeldridStagingResourcePool(GraphicsPipeline pipeline, string name)
         {
-            if (!pipeline.TrackingExecutions)
-                throw new ArgumentException($"An execution-tracking {nameof(GraphicsPipeline)} is required.", nameof(pipeline));
-
             Pipeline = pipeline;
 
             usageStat = GlobalStatistics.Get<ResourcePoolUsageStatistic>(nameof(VeldridRenderer), $"{name} usage");
