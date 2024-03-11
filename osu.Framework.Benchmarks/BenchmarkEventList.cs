@@ -70,7 +70,7 @@ namespace osu.Framework.Benchmarks
                 switch (renderEvent.Type)
                 {
                     case RenderEventType.Flush:
-                        renderEvent.Decompose(out FlushEvent e);
+                        FlushEvent e = (FlushEvent)renderEvent;
                         totalVertices += e.VertexCount;
                         break;
                 }
@@ -89,7 +89,7 @@ namespace osu.Framework.Benchmarks
                 switch (renderEvent.Type)
                 {
                     case RenderEventType.AddPrimitiveToBatch:
-                        renderEvent.Decompose(out AddPrimitiveToBatchEvent e);
+                        AddPrimitiveToBatchEvent e = (AddPrimitiveToBatchEvent)renderEvent;
                         foreach (byte b in staticItems[1].allocator.GetRegion(e.Memory))
                             data += b;
                         break;
@@ -110,14 +110,14 @@ namespace osu.Framework.Benchmarks
                 {
                     case RenderEventType.Flush:
                     {
-                        renderEvent.Decompose(out FlushEvent e);
+                        FlushEvent e = (FlushEvent)renderEvent;
                         data += e.VertexCount;
                         break;
                     }
 
                     case RenderEventType.AddPrimitiveToBatch:
                     {
-                        renderEvent.Decompose(out AddPrimitiveToBatchEvent e);
+                        AddPrimitiveToBatchEvent e = (AddPrimitiveToBatchEvent)renderEvent;
                         foreach (byte b in staticItems[2].allocator.GetRegion(e.Memory))
                             data += b;
                         break;

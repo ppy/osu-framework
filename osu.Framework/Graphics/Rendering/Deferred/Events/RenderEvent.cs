@@ -232,118 +232,118 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
             return e;
         }
 
-        public void Decompose(out AddPrimitiveToBatchEvent @event)
+        public static explicit operator AddPrimitiveToBatchEvent(RenderEvent @event)
         {
-            Debug.Assert(Type == RenderEventType.AddPrimitiveToBatch);
-            @event = addPrimitiveToBatch;
+            Debug.Assert(@event.Type == RenderEventType.AddPrimitiveToBatch);
+            return @event.addPrimitiveToBatch;
         }
 
-        public void Decompose(out ClearEvent @event)
+        public static explicit operator ClearEvent(RenderEvent @event)
         {
-            Debug.Assert(Type == RenderEventType.Clear);
-            @event = clear;
+            Debug.Assert(@event.Type == RenderEventType.Clear);
+            return @event.clear;
         }
 
-        public void Decompose(out DrawNodeActionEvent @event)
+        public static explicit operator DrawNodeActionEvent(RenderEvent @event)
         {
-            Debug.Assert(Type == RenderEventType.DrawNodeAction);
-            @event = drawNodeAction;
+            Debug.Assert(@event.Type == RenderEventType.DrawNodeAction);
+            return @event.drawNodeAction;
         }
 
-        public void Decompose(out FlushEvent @event)
+        public static explicit operator FlushEvent(RenderEvent @event)
         {
-            Debug.Assert(Type == RenderEventType.Flush);
-            @event = flush;
+            Debug.Assert(@event.Type == RenderEventType.Flush);
+            return @event.flush;
         }
 
-        public void Decompose(out ResizeFrameBufferEvent @event)
+        public static explicit operator ResizeFrameBufferEvent(RenderEvent @event)
         {
-            Debug.Assert(Type == RenderEventType.ResizeFrameBuffer);
-            @event = resizeFrameBuffer;
+            Debug.Assert(@event.Type == RenderEventType.ResizeFrameBuffer);
+            return @event.resizeFrameBuffer;
         }
 
-        public void Decompose(out SetBlendEvent @event)
+        public static explicit operator SetBlendEvent(RenderEvent @event)
         {
-            Debug.Assert(Type == RenderEventType.SetBlend);
-            @event = setBlend;
+            Debug.Assert(@event.Type == RenderEventType.SetBlend);
+            return @event.setBlend;
         }
 
-        public void Decompose(out SetBlendMaskEvent @event)
+        public static explicit operator SetBlendMaskEvent(RenderEvent @event)
         {
-            Debug.Assert(Type == RenderEventType.SetBlendMask);
-            @event = setBlendMask;
+            Debug.Assert(@event.Type == RenderEventType.SetBlendMask);
+            return @event.setBlendMask;
         }
 
-        public void Decompose(out SetDepthInfoEvent @event)
+        public static explicit operator SetDepthInfoEvent(RenderEvent @event)
         {
-            Debug.Assert(Type == RenderEventType.SetDepthInfo);
-            @event = setDepthInfo;
+            Debug.Assert(@event.Type == RenderEventType.SetDepthInfo);
+            return @event.setDepthInfo;
         }
 
-        public void Decompose(out SetFrameBufferEvent @event)
+        public static explicit operator SetFrameBufferEvent(RenderEvent @event)
         {
-            Debug.Assert(Type == RenderEventType.SetFrameBuffer);
-            @event = setFrameBuffer;
+            Debug.Assert(@event.Type == RenderEventType.SetFrameBuffer);
+            return @event.setFrameBuffer;
         }
 
-        public void Decompose(out SetScissorEvent @event)
+        public static explicit operator SetScissorEvent(RenderEvent @event)
         {
-            Debug.Assert(Type == RenderEventType.SetScissor);
-            @event = setScissor;
+            Debug.Assert(@event.Type == RenderEventType.SetScissor);
+            return @event.setScissor;
         }
 
-        public void Decompose(out SetShaderEvent @event)
+        public static explicit operator SetShaderEvent(RenderEvent @event)
         {
-            Debug.Assert(Type == RenderEventType.SetShader);
-            @event = setShader;
+            Debug.Assert(@event.Type == RenderEventType.SetShader);
+            return @event.setShader;
         }
 
-        public void Decompose(out SetScissorStateEvent @event)
+        public static explicit operator SetScissorStateEvent(RenderEvent @event)
         {
-            Debug.Assert(Type == RenderEventType.SetScissorState);
-            @event = setScissorState;
+            Debug.Assert(@event.Type == RenderEventType.SetScissorState);
+            return @event.setScissorState;
         }
 
-        public void Decompose(out SetShaderStorageBufferObjectDataEvent @event)
+        public static explicit operator SetShaderStorageBufferObjectDataEvent(RenderEvent @event)
         {
-            Debug.Assert(Type == RenderEventType.SetShaderStorageBufferObjectData);
-            @event = setShaderStorageBufferObjectData;
+            Debug.Assert(@event.Type == RenderEventType.SetShaderStorageBufferObjectData);
+            return @event.setShaderStorageBufferObjectData;
         }
 
-        public void Decompose(out SetStencilInfoEvent @event)
+        public static explicit operator SetStencilInfoEvent(RenderEvent @event)
         {
-            Debug.Assert(Type == RenderEventType.SetStencilInfo);
-            @event = setStencilInfo;
+            Debug.Assert(@event.Type == RenderEventType.SetStencilInfo);
+            return @event.setStencilInfo;
         }
 
-        public void Decompose(out SetTextureEvent @event)
+        public static explicit operator SetTextureEvent(RenderEvent @event)
         {
-            Debug.Assert(Type == RenderEventType.SetTexture);
-            @event = setTexture;
+            Debug.Assert(@event.Type == RenderEventType.SetTexture);
+            return @event.setTexture;
         }
 
-        public void Decompose(out SetUniformBufferDataEvent @event)
+        public static explicit operator SetUniformBufferDataEvent(RenderEvent @event)
         {
-            Debug.Assert(Type == RenderEventType.SetUniformBufferData);
-            @event = setUniformBufferData;
+            Debug.Assert(@event.Type == RenderEventType.SetUniformBufferData);
+            return @event.setUniformBufferData;
         }
 
-        public void Decompose(out SetUniformBufferDataRangeEvent @event)
+        public static explicit operator SetUniformBufferDataRangeEvent(RenderEvent @event)
         {
-            Debug.Assert(Type == RenderEventType.SetUniformBufferDataRange);
-            @event = setUniformBufferDataRange;
+            Debug.Assert(@event.Type == RenderEventType.SetUniformBufferDataRange);
+            return @event.setUniformBufferDataRange;
         }
 
-        public void Decompose(out SetUniformBufferEvent @event)
+        public static explicit operator SetUniformBufferEvent(RenderEvent @event)
         {
-            Debug.Assert(Type == RenderEventType.SetUniformBuffer);
-            @event = setUniformBuffer;
+            Debug.Assert(@event.Type == RenderEventType.SetUniformBuffer);
+            return @event.setUniformBuffer;
         }
 
-        public void Decompose(out SetViewportEvent @event)
+        public static explicit operator SetViewportEvent(RenderEvent @event)
         {
-            Debug.Assert(Type == RenderEventType.SetViewport);
-            @event = setViewport;
+            Debug.Assert(@event.Type == RenderEventType.SetViewport);
+            return @event.setViewport;
         }
     }
 }

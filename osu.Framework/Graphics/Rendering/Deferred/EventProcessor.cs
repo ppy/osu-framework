@@ -51,7 +51,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                 {
                     case RenderEventType.DrawNodeAction:
                     {
-                        renderEvent.Decompose(out DrawNodeActionEvent e);
+                        DrawNodeActionEvent e = (DrawNodeActionEvent)renderEvent;
 
                         info = $"DrawNode.{e.Action} ({context.Dereference<DrawNode>(e.DrawNode)})";
 
@@ -94,7 +94,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                 {
                     case RenderEventType.AddPrimitiveToBatch:
                     {
-                        renderEvent.Decompose(out AddPrimitiveToBatchEvent e);
+                        AddPrimitiveToBatchEvent e = (AddPrimitiveToBatchEvent)renderEvent;
                         IDeferredVertexBatch batch = context.Dereference<IDeferredVertexBatch>(e.VertexBatch);
                         batch.Write(e.Memory);
                         break;
@@ -102,7 +102,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
                     case RenderEventType.SetUniformBufferData:
                     {
-                        renderEvent.Decompose(out SetUniformBufferDataEvent e);
+                        SetUniformBufferDataEvent e = (SetUniformBufferDataEvent)renderEvent;
                         IDeferredUniformBuffer buffer = context.Dereference<IDeferredUniformBuffer>(e.Buffer);
                         UniformBufferReference range = buffer.Write(e.Data);
                         context.RenderEvents[i] = RenderEvent.Init(new SetUniformBufferDataRangeEvent(e.Buffer, range));
@@ -111,7 +111,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
                     case RenderEventType.SetShaderStorageBufferObjectData:
                     {
-                        renderEvent.Decompose(out SetShaderStorageBufferObjectDataEvent e);
+                        SetShaderStorageBufferObjectDataEvent e = (SetShaderStorageBufferObjectDataEvent)renderEvent;
                         IDeferredShaderStorageBufferObject buffer = context.Dereference<IDeferredShaderStorageBufferObject>(e.Buffer);
                         buffer.Write(e.Index, e.Memory);
                         break;
@@ -131,99 +131,85 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                 {
                     case RenderEventType.SetFrameBuffer:
                     {
-                        renderEvent.Decompose(out SetFrameBufferEvent e);
-                        processEvent(e);
+                        processEvent((SetFrameBufferEvent)renderEvent);
                         break;
                     }
 
                     case RenderEventType.ResizeFrameBuffer:
                     {
-                        renderEvent.Decompose(out ResizeFrameBufferEvent e);
-                        processEvent(e);
+                        processEvent((ResizeFrameBufferEvent)renderEvent);
                         break;
                     }
 
                     case RenderEventType.SetShader:
                     {
-                        renderEvent.Decompose(out SetShaderEvent e);
-                        processEvent(e);
+                        processEvent((SetShaderEvent)renderEvent);
                         break;
                     }
 
                     case RenderEventType.SetTexture:
                     {
-                        renderEvent.Decompose(out SetTextureEvent e);
-                        processEvent(e);
+                        processEvent((SetTextureEvent)renderEvent);
                         break;
                     }
 
                     case RenderEventType.SetUniformBuffer:
                     {
-                        renderEvent.Decompose(out SetUniformBufferEvent e);
-                        processEvent(e);
+                        processEvent((SetUniformBufferEvent)renderEvent);
                         break;
                     }
 
                     case RenderEventType.Clear:
                     {
-                        renderEvent.Decompose(out ClearEvent e);
-                        processEvent(e);
+                        processEvent((ClearEvent)renderEvent);
                         break;
                     }
 
                     case RenderEventType.SetDepthInfo:
                     {
-                        renderEvent.Decompose(out SetDepthInfoEvent e);
-                        processEvent(e);
+                        processEvent((SetDepthInfoEvent)renderEvent);
                         break;
                     }
 
                     case RenderEventType.SetScissor:
                     {
-                        renderEvent.Decompose(out SetScissorEvent e);
-                        processEvent(e);
+                        processEvent((SetScissorEvent)renderEvent);
                         break;
                     }
 
                     case RenderEventType.SetScissorState:
                     {
-                        renderEvent.Decompose(out SetScissorStateEvent e);
-                        processEvent(e);
+                        processEvent((SetScissorStateEvent)renderEvent);
                         break;
                     }
 
                     case RenderEventType.SetStencilInfo:
                     {
-                        renderEvent.Decompose(out SetStencilInfoEvent e);
-                        processEvent(e);
+                        processEvent((SetStencilInfoEvent)renderEvent);
                         break;
                     }
 
                     case RenderEventType.SetViewport:
                     {
-                        renderEvent.Decompose(out SetViewportEvent e);
-                        processEvent(e);
+                        processEvent((SetViewportEvent)renderEvent);
                         break;
                     }
 
                     case RenderEventType.SetBlend:
                     {
-                        renderEvent.Decompose(out SetBlendEvent e);
-                        processEvent(e);
+                        processEvent((SetBlendEvent)renderEvent);
                         break;
                     }
 
                     case RenderEventType.SetBlendMask:
                     {
-                        renderEvent.Decompose(out SetBlendMaskEvent e);
-                        processEvent(e);
+                        processEvent((SetBlendMaskEvent)renderEvent);
                         break;
                     }
 
                     case RenderEventType.Flush:
                     {
-                        renderEvent.Decompose(out FlushEvent e);
-                        processEvent(e);
+                        processEvent((FlushEvent)renderEvent);
                         break;
                     }
 
@@ -235,8 +221,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
                     case RenderEventType.SetUniformBufferDataRange:
                     {
-                        renderEvent.Decompose(out SetUniformBufferDataRangeEvent e);
-                        processEvent(e);
+                        processEvent((SetUniformBufferDataRangeEvent)renderEvent);
                         break;
                     }
                 }
