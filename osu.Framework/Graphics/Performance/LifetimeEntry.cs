@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 
 namespace osu.Framework.Graphics.Performance
@@ -46,12 +44,12 @@ namespace osu.Framework.Graphics.Performance
         /// Invoked before <see cref="LifetimeStart"/> or <see cref="LifetimeEnd"/> changes.
         /// It is used because <see cref="LifetimeChanged"/> cannot be used to ensure comparator stability.
         /// </summary>
-        internal event Action<T> RequestLifetimeUpdate;
+        internal event Action<T>? RequestLifetimeUpdate;
 
         /// <summary>
         /// Invoked after <see cref="LifetimeStart"/> or <see cref="LifetimeEnd"/> changes.
         /// </summary>
-        public event Action<T> LifetimeChanged;
+        public event Action<T>? LifetimeChanged;
 
         /// <summary>
         /// Update <see cref="LifetimeStart"/> of this <see cref="LifetimeEntry"/>.
