@@ -17,61 +17,61 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
         [FieldOffset(0)]
         public RenderEventType Type;
 
-        [FieldOffset(1)]
+        [FieldOffset(8)]
         private AddPrimitiveToBatchEvent addPrimitiveToBatch;
 
-        [FieldOffset(1)]
+        [FieldOffset(8)]
         private ClearEvent clear;
 
-        [FieldOffset(1)]
+        [FieldOffset(8)]
         private DrawNodeActionEvent drawNodeAction;
 
-        [FieldOffset(1)]
+        [FieldOffset(8)]
         private FlushEvent flush;
 
-        [FieldOffset(1)]
+        [FieldOffset(8)]
         private ResizeFrameBufferEvent resizeFrameBuffer;
 
-        [FieldOffset(1)]
+        [FieldOffset(8)]
         private SetBlendEvent setBlend;
 
-        [FieldOffset(1)]
+        [FieldOffset(8)]
         private SetBlendMaskEvent setBlendMask;
 
-        [FieldOffset(1)]
+        [FieldOffset(8)]
         private SetDepthInfoEvent setDepthInfo;
 
-        [FieldOffset(1)]
+        [FieldOffset(8)]
         private SetFrameBufferEvent setFrameBuffer;
 
-        [FieldOffset(1)]
+        [FieldOffset(8)]
         private SetScissorEvent setScissor;
 
-        [FieldOffset(1)]
+        [FieldOffset(8)]
         private SetShaderEvent setShader;
 
-        [FieldOffset(1)]
+        [FieldOffset(8)]
         private SetScissorStateEvent setScissorState;
 
-        [FieldOffset(1)]
+        [FieldOffset(8)]
         private SetShaderStorageBufferObjectDataEvent setShaderStorageBufferObjectData;
 
-        [FieldOffset(1)]
+        [FieldOffset(8)]
         private SetStencilInfoEvent setStencilInfo;
 
-        [FieldOffset(1)]
+        [FieldOffset(8)]
         private SetTextureEvent setTexture;
 
-        [FieldOffset(1)]
+        [FieldOffset(8)]
         private SetUniformBufferDataEvent setUniformBufferData;
 
-        [FieldOffset(1)]
+        [FieldOffset(8)]
         private SetUniformBufferDataRangeEvent setUniformBufferDataRange;
 
-        [FieldOffset(1)]
+        [FieldOffset(8)]
         private SetUniformBufferEvent setUniformBuffer;
 
-        [FieldOffset(1)]
+        [FieldOffset(8)]
         private SetViewportEvent setViewport;
 
         public static RenderEvent Init(in AddPrimitiveToBatchEvent @event)
