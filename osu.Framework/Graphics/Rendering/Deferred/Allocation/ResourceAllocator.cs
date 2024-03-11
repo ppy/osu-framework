@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
     {
         private const int min_buffer_size = 2 * 1024 * 1024; // 2MB per buffer.
 
-        private readonly List<object> resources = new List<object>();
+        private readonly List<object?> resources = new List<object?>();
         private readonly List<MemoryBuffer> memoryBuffers = new List<MemoryBuffer>();
 
         /// <summary>
@@ -34,9 +34,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
 
             resources.Clear();
             memoryBuffers.Clear();
-
-            // Special value used by NullReference().
-            resources.Add(null!);
         }
 
         /// <summary>
@@ -49,9 +46,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
             where T : class?
         {
             ThreadSafety.EnsureDrawThread();
-
-            if (obj == null)
-                return new ResourceReference(0);
 
             resources.Add(obj);
             return new ResourceReference(resources.Count - 1);
@@ -68,7 +62,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
         {
             ThreadSafety.EnsureDrawThread();
 
-            return (T)resources[reference.Id];
+            return (T)resources[reference.Id]!;
         }
 
         /// <summary>
