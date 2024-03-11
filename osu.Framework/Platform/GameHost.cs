@@ -29,6 +29,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Deferred;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
@@ -844,20 +845,40 @@ namespace osu.Framework.Platform
             {
                 case RuntimeInfo.Platform.Windows:
                     yield return RendererType.Direct3D11;
+                    yield return RendererType.Deferred_Direct3D11;
+                    yield return RendererType.OpenGL;
+                    yield return RendererType.Deferred_OpenGL;
+                    yield return RendererType.Deferred_Vulkan;
+
+                    break;
+
+                case RuntimeInfo.Platform.Linux:
+                    yield return RendererType.OpenGL;
+                    yield return RendererType.Deferred_OpenGL;
+                    yield return RendererType.Deferred_Vulkan;
 
                     break;
 
                 case RuntimeInfo.Platform.macOS:
-                case RuntimeInfo.Platform.iOS:
                     yield return RendererType.Metal;
+                    yield return RendererType.Deferred_Metal;
+                    yield return RendererType.OpenGL;
+                    yield return RendererType.Deferred_OpenGL;
 
                     break;
-            }
 
-            // See https://github.com/ppy/osu/issues/23003
-            if (RuntimeInfo.OS != RuntimeInfo.Platform.iOS)
-            {
-                yield return RendererType.OpenGL;
+                case RuntimeInfo.Platform.iOS:
+                    // GL renderer not supported, see: https://github.com/ppy/osu/issues/23003.
+                    yield return RendererType.Metal;
+                    yield return RendererType.Deferred_Metal;
+
+                    break;
+
+                case RuntimeInfo.Platform.Android:
+                    // Still uses osuTK so only the legacy GL renderer is supported.
+                    yield return RendererType.OpenGL;
+
+                    break;
             }
         }
 
@@ -894,14 +915,25 @@ namespace osu.Framework.Platform
             {
                 try
                 {
-                    if (type == RendererType.OpenGL)
+                    switch (type)
                     {
-                        // Use the legacy GL renderer. This is basically guaranteed to support all platforms
-                        // and performs better than the Veldrid-GL renderer due to reduction in allocs.
-                        SetupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
+                        case RendererType.OpenGL:
+                            // Use the legacy GL renderer. This is basically guaranteed to support all platforms
+                            // and performs better than the Veldrid-GL renderer due to reduction in allocs.
+                            SetupRendererAndWindow(new GLRenderer(), GraphicsSurfaceType.OpenGL);
+                            break;
+
+                        case RendererType.Deferred_Metal:
+                        case RendererType.Deferred_Vulkan:
+                        case RendererType.Deferred_Direct3D11:
+                        case RendererType.Deferred_OpenGL:
+                            SetupRendererAndWindow(new DeferredRenderer(), rendererToGraphicsSurfaceType(type));
+                            break;
+
+                        default:
+                            SetupRendererAndWindow(new VeldridRenderer(), rendererToGraphicsSurfaceType(type));
+                            break;
                     }
-                    else
-                        SetupRendererAndWindow("veldrid", rendererToGraphicsSurfaceType(type));
 
                     ResolvedRenderer = type;
                     return;
@@ -927,18 +959,22 @@ namespace osu.Framework.Platform
 
             switch (renderer)
             {
+                case RendererType.Deferred_Metal:
                 case RendererType.Metal:
                     surface = GraphicsSurfaceType.Metal;
                     break;
 
+                case RendererType.Deferred_Vulkan:
                 case RendererType.Vulkan:
                     surface = GraphicsSurfaceType.Vulkan;
                     break;
 
+                case RendererType.Deferred_Direct3D11:
                 case RendererType.Direct3D11:
                     surface = GraphicsSurfaceType.Direct3D11;
                     break;
 
+                case RendererType.Deferred_OpenGL:
                 case RendererType.OpenGL:
                     surface = GraphicsSurfaceType.OpenGL;
                     break;
@@ -956,6 +992,10 @@ namespace osu.Framework.Platform
             {
                 case "veldrid":
                     SetupRendererAndWindow(new VeldridRenderer(), surfaceType);
+                    break;
+
+                case "deferred":
+                    SetupRendererAndWindow(new DeferredRenderer(), surfaceType);
                     break;
 
                 default:

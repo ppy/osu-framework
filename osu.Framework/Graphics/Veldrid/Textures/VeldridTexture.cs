@@ -108,17 +108,17 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         public void Dispose()
         {
-            if (isDisposed)
-                return;
-
-            isDisposed = true;
-
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool isDisposing)
         {
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
+
             Renderer.ScheduleDisposal(texture =>
             {
                 while (texture.tryGetNextUpload(out var upload))

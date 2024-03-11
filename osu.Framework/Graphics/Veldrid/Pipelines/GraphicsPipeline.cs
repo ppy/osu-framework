@@ -292,10 +292,8 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
                 if (layout == null)
                     continue;
 
-                if (uniformBufferOffsets.TryGetValue(buffer, out uint bufferOffset))
-                    Commands.SetGraphicsResourceSet((uint)layout.Set, buffer.GetResourceSet(layout.Layout), 1, ref bufferOffset);
-                else
-                    Commands.SetGraphicsResourceSet((uint)layout.Set, buffer.GetResourceSet(layout.Layout));
+                uint bufferOffset = uniformBufferOffsets.GetValueOrDefault(buffer);
+                Commands.SetGraphicsResourceSet((uint)layout.Set, buffer.GetResourceSet(layout.Layout), 1, ref bufferOffset);
             }
 
             int indexStart = currentIndexBuffer.TranslateToIndex(vertexStart);
