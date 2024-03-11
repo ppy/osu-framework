@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -73,6 +74,11 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
 
         [FieldOffset(8)]
         private SetViewportEvent setViewport;
+
+        [Obsolete("RenderEvent must be initialised via Init().", true)]
+        public RenderEvent()
+        {
+        }
 
         public static RenderEvent Init(in AddPrimitiveToBatchEvent @event)
         {
