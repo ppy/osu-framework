@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,17 +27,17 @@ namespace osu.Framework.Graphics.Performance
         /// <summary>
         /// Invoked immediately when a <see cref="LifetimeEntry"/> becomes alive.
         /// </summary>
-        public event Action<T> EntryBecameAlive;
+        public event Action<T>? EntryBecameAlive;
 
         /// <summary>
         /// Invoked immediately when a <see cref="LifetimeEntry"/> becomes dead.
         /// </summary>
-        public event Action<T> EntryBecameDead;
+        public event Action<T>? EntryBecameDead;
 
         /// <summary>
         /// Invoked when a <see cref="LifetimeEntry"/> crosses a lifetime boundary.
         /// </summary>
-        public event Action<T, LifetimeBoundaryKind, LifetimeBoundaryCrossingDirection> EntryCrossedBoundary;
+        public event Action<T, LifetimeBoundaryKind, LifetimeBoundaryCrossingDirection>? EntryCrossedBoundary;
 
         /// <summary>
         /// Contains all the newly-added (but not yet processed) entries.
@@ -189,7 +187,7 @@ namespace osu.Framework.Graphics.Performance
         /// <param name="state">The <see cref="LifetimeEntryState"/>.</param>
         /// <returns>Either <see cref="futureEntries"/>, <see cref="pastEntries"/>, or null.</returns>
         [CanBeNull]
-        private SortedSet<T> futureOrPastEntries(LifetimeEntryState state)
+        private SortedSet<T>? futureOrPastEntries(LifetimeEntryState state)
         {
             switch (state)
             {
@@ -398,11 +396,11 @@ namespace osu.Framework.Graphics.Performance
         }
 
         /// <summary>
-        /// Compares by <see cref="LifetimeEntry.LifetimeStart"/>.
+        /// Compares by <see cref="LifetimeEntry{T}.LifetimeStart"/>.
         /// </summary>
         private sealed class LifetimeStartComparator : IComparer<T>
         {
-            public int Compare(T x, T y)
+            public int Compare(T? x, T? y)
             {
                 ArgumentNullException.ThrowIfNull(x);
                 ArgumentNullException.ThrowIfNull(y);
@@ -413,11 +411,11 @@ namespace osu.Framework.Graphics.Performance
         }
 
         /// <summary>
-        /// Compares by <see cref="LifetimeEntry.LifetimeEnd"/>.
+        /// Compares by <see cref="LifetimeEntry{T}.LifetimeEnd"/>.
         /// </summary>
         private sealed class LifetimeEndComparator : IComparer<T>
         {
-            public int Compare(T x, T y)
+            public int Compare(T? x, T? y)
             {
                 ArgumentNullException.ThrowIfNull(x);
                 ArgumentNullException.ThrowIfNull(y);
