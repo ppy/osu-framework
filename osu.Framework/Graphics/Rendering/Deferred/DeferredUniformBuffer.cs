@@ -77,10 +77,34 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
             data = default;
             currentChunk = default;
+            dead_chunks.Clear();
+        }
+
+        ~DeferredUniformBuffer()
+        {
+            Dispose(false);
         }
 
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private bool isDisposed;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
+
+            renderer.ScheduleDisposal(static b =>
+            {
+                foreach ((_, ResourceSet set) in b.bufferChunks)
+                    set.Dispose();
+            }, this);
         }
 
         private readonly record struct ChunkReference
