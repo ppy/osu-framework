@@ -3,9 +3,9 @@
 
 namespace osu.Framework.Graphics.Rendering.Deferred.Events
 {
-    internal readonly record struct SetScissorStateEvent(RenderEventType Type, bool Enabled) : IRenderEvent
+    internal readonly record struct SetScissorStateEvent(bool Enabled)
     {
-        public static SetScissorStateEvent Create(bool enabled)
-            => new SetScissorStateEvent(RenderEventType.SetScissorState, enabled);
+        public static RenderEvent Create(bool enabled)
+            => RenderEvent.Init(new SetScissorStateEvent(enabled));
     }
 }

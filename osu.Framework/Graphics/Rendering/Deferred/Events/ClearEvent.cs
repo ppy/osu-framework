@@ -3,9 +3,9 @@
 
 namespace osu.Framework.Graphics.Rendering.Deferred.Events
 {
-    internal readonly record struct ClearEvent(RenderEventType Type, ClearInfo Info) : IRenderEvent
+    internal readonly record struct ClearEvent(ClearInfo Info)
     {
-        public static ClearEvent Create(ClearInfo info)
-            => new ClearEvent(RenderEventType.Clear, info);
+        public static RenderEvent Create(ClearInfo info)
+            => RenderEvent.Init(new ClearEvent(info));
     }
 }

@@ -6,9 +6,9 @@ using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.Rendering.Deferred.Events
 {
-    internal readonly record struct SetShaderEvent(RenderEventType Type, ResourceReference Shader) : IRenderEvent
+    internal readonly record struct SetShaderEvent(ResourceReference Shader)
     {
-        public static SetShaderEvent Create(DeferredRenderer renderer, IShader shader)
-            => new SetShaderEvent(RenderEventType.SetShader, renderer.Context.Reference(shader));
+        public static RenderEvent Create(DeferredRenderer renderer, IShader shader)
+            => RenderEvent.Init(new SetShaderEvent(renderer.Context.Reference(shader)));
     }
 }

@@ -5,9 +5,9 @@ using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Rendering.Deferred.Events
 {
-    internal readonly record struct SetViewportEvent(RenderEventType Type, RectangleI Viewport) : IRenderEvent
+    internal readonly record struct SetViewportEvent(RectangleI Viewport)
     {
-        public static SetViewportEvent Create(RectangleI viewport)
-            => new SetViewportEvent(RenderEventType.SetViewport, viewport);
+        public static RenderEvent Create(RectangleI viewport)
+            => RenderEvent.Init(new SetViewportEvent(viewport));
     }
 }

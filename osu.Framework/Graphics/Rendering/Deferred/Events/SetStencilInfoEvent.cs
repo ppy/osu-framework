@@ -3,9 +3,9 @@
 
 namespace osu.Framework.Graphics.Rendering.Deferred.Events
 {
-    internal readonly record struct SetStencilInfoEvent(RenderEventType Type, StencilInfo Info) : IRenderEvent
+    internal readonly record struct SetStencilInfoEvent(StencilInfo Info)
     {
-        public static SetStencilInfoEvent Create(StencilInfo info)
-            => new SetStencilInfoEvent(RenderEventType.SetStencilInfo, info);
+        public static RenderEvent Create(StencilInfo info)
+            => RenderEvent.Init(new SetStencilInfoEvent(info));
     }
 }

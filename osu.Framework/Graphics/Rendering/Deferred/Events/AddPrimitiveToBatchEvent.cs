@@ -7,10 +7,10 @@ using osu.Framework.Graphics.Rendering.Vertices;
 
 namespace osu.Framework.Graphics.Rendering.Deferred.Events
 {
-    internal readonly record struct AddPrimitiveToBatchEvent(RenderEventType Type, ResourceReference VertexBatch, MemoryReference Memory) : IRenderEvent
+    internal readonly record struct AddPrimitiveToBatchEvent(ResourceReference VertexBatch, MemoryReference Memory)
     {
-        public static AddPrimitiveToBatchEvent Create<T>(DeferredRenderer renderer, DeferredVertexBatch<T> batch, ReadOnlySpan<T> vertices)
+        public static RenderEvent Create<T>(DeferredRenderer renderer, DeferredVertexBatch<T> batch, ReadOnlySpan<T> vertices)
             where T : unmanaged, IVertex, IEquatable<T>
-            => new AddPrimitiveToBatchEvent(RenderEventType.AddPrimitiveToBatch, renderer.Context.Reference(batch), renderer.Context.AllocateRegion(vertices));
+            => RenderEvent.Init(new AddPrimitiveToBatchEvent(renderer.Context.Reference(batch), renderer.Context.AllocateRegion(vertices)));
     }
 }
