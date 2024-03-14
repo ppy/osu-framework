@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.Performance
     public enum LifetimeEntryState
     {
         /// <summary>
-        /// The <see cref="LifetimeEntry{T}"/> hasn't been processed within the <see cref="LifetimeEntryManager"/> yet.
+        /// The <see cref="LifetimeEntry{T}"/> hasn't been processed within the <see cref="LifetimeEntryManager{T}"/> yet.
         /// </summary>
         New,
 
