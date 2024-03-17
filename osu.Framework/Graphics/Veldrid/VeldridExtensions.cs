@@ -2,8 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -405,7 +405,7 @@ namespace osu.Framework.Graphics.Veldrid
             Debug.Assert(device.BackendType == GraphicsBackend.Vulkan);
 
             var info = device.GetVulkanInfo();
-            var physicalDevice = info.PhysicalDevice;
+            IntPtr physicalDevice = info.PhysicalDevice;
 
             uint instanceExtensionsCount = 0;
             var result = VulkanNative.vkEnumerateInstanceExtensionProperties((byte*)null, ref instanceExtensionsCount, IntPtr.Zero);
@@ -427,7 +427,13 @@ namespace osu.Framework.Graphics.Veldrid
             maxTextureSize = (int)properties.limits.maxImageDimension2D;
 
             string vulkanName = RuntimeInfo.IsApple ? "MoltenVK" : "Vulkan";
-            string extensions = string.Join(" ", instanceExtensions.Concat(deviceExtensions).Select(e => Marshal.PtrToStringUTF8((IntPtr)e.extensionName)));
+
+            List<string?> extensionNames = new List<string?>();
+
+            foreach (var ext in instanceExtensions)
+                extensionNames.Add(Marshal.PtrToStringUTF8((IntPtr)ext.extensionName));
+            foreach (var ext in deviceExtensions)
+                extensionNames.Add(Marshal.PtrToStringUTF8((IntPtr)ext.extensionName));
 
             string apiVersion = $"{properties.apiVersion >> 22}.{(properties.apiVersion >> 12) & 0x3FFU}.{properties.apiVersion & 0xFFFU}";
             string driverVersion;
@@ -444,7 +450,7 @@ namespace osu.Framework.Graphics.Veldrid
                                     {vulkanName} API Version:    {apiVersion}
                                     {vulkanName} Driver Version: {driverVersion}
                                     {vulkanName} Device:         {Marshal.PtrToStringUTF8((IntPtr)properties.deviceName)}
-                                    {vulkanName} Extensions:     {extensions}");
+                                    {vulkanName} Extensions:     {string.Join(',', extensionNames)}");
         }
 
         public static void LogMetal(this GraphicsDevice device, out int maxTextureSize)

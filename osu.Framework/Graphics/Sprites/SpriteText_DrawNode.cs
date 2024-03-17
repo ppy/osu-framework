@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Sprites
                 }
             }
 
-            public override void Draw(IRenderer renderer)
+            protected override void Draw(IRenderer renderer)
             {
                 Debug.Assert(parts != null);
 

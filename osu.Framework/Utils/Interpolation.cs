@@ -191,6 +191,9 @@ namespace osu.Framework.Utils
         public static Vector2 ValueAt(double time, Vector2 val1, Vector2 val2, double startTime, double endTime, Easing easing = Easing.None)
             => ValueAt(time, val1, val2, startTime, endTime, new DefaultEasingFunction(easing));
 
+        public static Vector3 ValueAt(double time, Vector3 val1, Vector3 val2, double startTime, double endTime, Easing easing = Easing.None)
+            => ValueAt(time, val1, val2, startTime, endTime, new DefaultEasingFunction(easing));
+
         public static RectangleF ValueAt(double time, RectangleF val1, RectangleF val2, double startTime, double endTime, Easing easing = Easing.None)
             => ValueAt(time, val1, val2, startTime, endTime, new DefaultEasingFunction(easing));
 
@@ -396,6 +399,18 @@ namespace osu.Framework.Utils
                 return val1 + t * (val2 - val1);
             }
 
+            public static Vector3 ValueAt(double time, Vector3 val1, Vector3 val2, double startTime, double endTime, in TEasing easing)
+            {
+                float current = (float)(time - startTime);
+                float duration = (float)(endTime - startTime);
+
+                if (duration == 0 || current == 0)
+                    return val1;
+
+                float t = (float)easing.ApplyEasing(current / duration);
+                return val1 + t * (val2 - val1);
+            }
+
             public static RectangleF ValueAt(double time, RectangleF val1, RectangleF val2, double startTime, double endTime, in TEasing easing)
             {
                 float current = (float)(time - startTime);
@@ -455,6 +470,8 @@ namespace osu.Framework.Utils
                     FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<double, TEasing>)GenericInterpolation<TEasing>.ValueAt;
                 else if (typeof(TValue) == typeof(Vector2))
                     FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<Vector2, TEasing>)GenericInterpolation<TEasing>.ValueAt;
+                else if (typeof(TValue) == typeof(Vector3))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<Vector3, TEasing>)GenericInterpolation<TEasing>.ValueAt;
                 else if (typeof(TValue) == typeof(RectangleF))
                     FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<RectangleF, TEasing>)GenericInterpolation<TEasing>.ValueAt;
                 else if (typeof(TValue) == typeof(Quaternion))

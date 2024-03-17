@@ -10,7 +10,6 @@ using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Bindables;
-using osu.Framework.Development;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Statistics;
@@ -22,6 +21,8 @@ namespace osu.Framework.Audio.Mixing.Bass
     /// </summary>
     internal class BassAudioMixer : AudioMixer, IBassAudio
     {
+        private readonly AudioManager? manager;
+
         /// <summary>
         /// The handle for this mixer.
         /// </summary>
@@ -42,11 +43,13 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <summary>
         /// Creates a new <see cref="BassAudioMixer"/>.
         /// </summary>
-        /// <param name="globalMixer"><inheritdoc /></param>
+        /// <param name="manager">The game's audio manager.</param>
+        /// <param name="fallbackMixer"><inheritdoc /></param>
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
-        public BassAudioMixer(AudioMixer? globalMixer, string identifier)
-            : base(globalMixer, identifier)
+        public BassAudioMixer(AudioManager? manager, AudioMixer? fallbackMixer, string identifier)
+            : base(fallbackMixer, identifier)
         {
+            this.manager = manager;
             EnqueueAction(createMixer);
         }
 
@@ -248,7 +251,12 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (Handle == 0)
                 createMixer();
             else
+            {
                 ManagedBass.Bass.ChannelSetDevice(Handle, deviceIndex);
+
+                if (manager?.GlobalMixerHandle.Value != null)
+                    BassMix.MixerAddChannel(manager.GlobalMixerHandle.Value.Value, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
+            }
         }
 
         protected override void UpdateState()
@@ -277,7 +285,10 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (!ManagedBass.Bass.GetDeviceInfo(ManagedBass.Bass.CurrentDevice, out var deviceInfo) || !deviceInfo.IsInitialized)
                 return;
 
-            Handle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop);
+            Handle = manager?.GlobalMixerHandle.Value != null
+                ? BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Decode)
+                : BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop);
+
             if (Handle == 0)
                 return;
 
@@ -291,6 +302,9 @@ namespace osu.Framework.Audio.Mixing.Bass
                 AddChannelToBassMix(channel);
 
             Effects.BindCollectionChanged(onEffectsChanged, true);
+
+            if (manager?.GlobalMixerHandle.Value != null)
+                BassMix.MixerAddChannel(manager.GlobalMixerHandle.Value.Value, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
 
             ManagedBass.Bass.ChannelPlay(Handle);
         }
@@ -406,13 +420,7 @@ namespace osu.Framework.Audio.Mixing.Bass
                     // Effects with greatest priority are stored at the front of the list.
                     effect.Priority = -i;
 
-                    if (effect.Handle != 0)
-                    {
-                        // Todo: Temporary bypass to attempt to fix failing test runs.
-                        if (!DebugUtils.IsNUnitRunning)
-                            ManagedBass.Bass.FXSetPriority(effect.Handle, effect.Priority);
-                    }
-                    else
+                    if (effect.Handle == 0)
                         effect.Handle = ManagedBass.Bass.ChannelSetFX(Handle, effect.Effect.FXType, effect.Priority);
 
                     ManagedBass.Bass.FXSetParameters(effect.Handle, effect.Effect);

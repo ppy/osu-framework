@@ -21,6 +21,12 @@ namespace osu.Framework.Platform
     {
         private void setupWindowing(FrameworkConfigManager config)
         {
+            config.BindWith(FrameworkSetting.MinimiseOnFocusLossInFullscreen, minimiseOnFocusLoss);
+            minimiseOnFocusLoss.BindValueChanged(e =>
+            {
+                ScheduleCommand(() => SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, e.NewValue ? "1" : "0"));
+            }, true);
+
             fetchDisplays();
 
             DisplaysChanged += _ => CurrentDisplayBindable.Default = PrimaryDisplay;
@@ -279,7 +285,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Queries the physical displays and their supported resolutions.
         /// </summary>
-        public IEnumerable<Display> Displays { get; private set; } = null!;
+        public ImmutableArray<Display> Displays { get; private set; } = ImmutableArray<Display>.Empty;
 
         public event Action<IEnumerable<Display>>? DisplaysChanged;
 
@@ -318,7 +324,7 @@ namespace osu.Framework.Platform
             Debug.Assert(actualDisplays.SequenceEqual(Displays), message, detailedMessage);
         }
 
-        private static IEnumerable<Display> getSDLDisplays()
+        private static ImmutableArray<Display> getSDLDisplays()
         {
             int numDisplays = SDL.SDL_GetNumVideoDisplays();
 
@@ -335,13 +341,12 @@ namespace osu.Framework.Platform
                     Logger.Log($"Failed to retrieve SDL display at index ({i})", level: LogLevel.Error);
             }
 
-            return builder.ToImmutable();
+            return builder.MoveToImmutable();
         }
 
         private static bool tryGetDisplayFromSDL(int displayIndex, [NotNullWhen(true)] out Display? display)
         {
-            if (displayIndex < 0)
-                throw new ArgumentOutOfRangeException(nameof(displayIndex), displayIndex, $"{nameof(displayIndex)} must be non-negative.");
+            ArgumentOutOfRangeException.ThrowIfNegative(displayIndex);
 
             if (SDL.SDL_GetDisplayBounds(displayIndex, out var rect) < 0)
             {
@@ -429,6 +434,8 @@ namespace osu.Framework.Platform
         /// Bound to <see cref="FrameworkSetting.LastDisplayDevice"/>.
         /// </summary>
         private readonly Bindable<DisplayIndex> windowDisplayIndexBindable = new Bindable<DisplayIndex>();
+
+        private readonly BindableBool minimiseOnFocusLoss = new BindableBool();
 
         /// <summary>
         /// Updates <see cref="Size"/> and <see cref="Scale"/> according to SDL state.

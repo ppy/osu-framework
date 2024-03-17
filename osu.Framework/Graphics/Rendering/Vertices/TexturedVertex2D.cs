@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.Rendering.Vertices
         public TexturedVertex2D(IRenderer renderer)
         {
             this = default; // explicitly initialise all members to default values
-            backbufferDrawDepth = renderer.BackbufferDrawDepth;
+            backbufferDrawDepth = renderer.BackbufferDepth;
         }
 
         public readonly bool Equals(TexturedVertex2D other) =>

@@ -47,22 +47,22 @@ jobs:
         shell: powershell
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set artifacts directory
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
 
-      - name: Install .NET 6.0.x
-        uses: actions/setup-dotnet@v3
+      - name: Install .NET 8.0.x
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "6.0.x"
+          dotnet-version: "8.0.x"
 
       - name: Pack (Framework)
         run: dotnet pack -c Release osu.Framework /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true /p:IncludeSymbols=true /p:SymbolPackageFormat=snupkg -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: osu-framework
           path: |
@@ -78,16 +78,16 @@ jobs:
     environment: production
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set artifacts Directory
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}/artifacts"
 
-      - name: Install .NET 6.0.x
-        uses: actions/setup-dotnet@v3
+      - name: Install .NET 8.0.x
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "6.0.x"
+          dotnet-version: "8.0.x"
 
       - name: Replace project references
         run: osu.Framework.Templates/replace-references.sh ${{ github.ref_name }}
@@ -96,7 +96,7 @@ jobs:
         run: dotnet pack -c Release osu.Framework.Templates /p:Configuration=Release /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true /p:NoDefaultExcludes=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: osu-framework-templates
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg
@@ -113,16 +113,22 @@ jobs:
         shell: powershell
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set artifacts directory
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
 
-      - name: Install .NET 6.0.x
-        uses: actions/setup-dotnet@v3
+      - name: Install .NET 8.0.x
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "6.0.x"
+          dotnet-version: "8.0.x"
+
+      - name: Setup JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: microsoft
+          java-version: 11
 
       - name: Restore .NET workloads
         run: dotnet workload install android
@@ -131,7 +137,7 @@ jobs:
         run: dotnet pack -c Release osu.Framework.Android /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true  -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: osu-framework-android
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
@@ -148,16 +154,16 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set artifacts directory
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}/artifacts"
 
-      - name: Install .NET 6.0.x
-        uses: actions/setup-dotnet@v3
+      - name: Install .NET 8.0.x
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "6.0.x"
+          dotnet-version: "8.0.x"
 
       - name: Restore .NET Workloads
         # `dotnet workload restore` is bugged in .NET 7.0.101+ when restoring iOS projects,
@@ -168,7 +174,7 @@ jobs:
         run: dotnet pack -c Release osu.Framework.iOS /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: osu-framework-ios
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg

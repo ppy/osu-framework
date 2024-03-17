@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
@@ -184,7 +183,7 @@ namespace osu.Framework.Graphics.Cursor
             object targetContent = getTargetContent(target);
 
             if (targetContent is LocalisableString localisableString)
-                return !string.IsNullOrEmpty(localisableString.Data?.ToString());
+                return !LocalisableString.IsNullOrEmpty(localisableString);
 
             return targetContent != null;
         }
@@ -255,24 +254,34 @@ namespace osu.Framework.Graphics.Cursor
             if (appearDelay > 0 && (recentMousePositions.Count == 0 || lastRecordedPositionTime - recentMousePositions[0].Time < appearDelay - positionRecordInterval))
                 return null;
 
-            recentMousePositions.RemoveAll(t => Time.Current - t.Time > appearDelay);
+            for (int i = recentMousePositions.Count - 1; i >= 0; i--)
+            {
+                if (Time.Current - recentMousePositions[i].Time > appearDelay)
+                    recentMousePositions.RemoveAt(i);
+            }
 
             // For determining whether to show a tooltip we first select only those positions
             // which happened within a shorter, alpha-adjusted appear delay.
             double alphaModifiedAppearDelay = (1 - CurrentTooltip.Alpha) * appearDelay;
-            var relevantPositions = recentMousePositions.Where(t => Time.Current - t.Time <= alphaModifiedAppearDelay);
 
             // We then check whether all relevant positions fall within a radius of AppearRadius within the
             // first relevant position. If so, then the mouse has stayed within a small circular region of
             // AppearRadius for the duration of the modified appear delay, and we therefore want to display
             // the tooltip.
-            Vector2 first = relevantPositions.FirstOrDefault().Position;
+            Vector2? first = null;
             float appearRadiusSq = AppearRadius * AppearRadius;
 
-            if (relevantPositions.All(t => Vector2Extensions.DistanceSquared(t.Position, first) < appearRadiusSq))
-                return targetCandidate;
+            foreach (var mPos in recentMousePositions)
+            {
+                if (Time.Current - mPos.Time > alphaModifiedAppearDelay)
+                    continue;
 
-            return null;
+                first ??= mPos.Position;
+                if (Vector2Extensions.DistanceSquared(mPos.Position, (Vector2)first) > appearRadiusSq)
+                    return null;
+            }
+
+            return targetCandidate;
         }
 
         /// <summary>

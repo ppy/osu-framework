@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Shaders;
 using osuTK;
 using osu.Framework.Graphics.Colour;
 using System;
-using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
@@ -184,7 +183,7 @@ namespace osu.Framework.Graphics.Containers
                     quadBatch = renderer.CreateQuadBatch<TexturedVertex2D>(100, 1000);
             }
 
-            public override void Draw(IRenderer renderer)
+            protected override void Draw(IRenderer renderer)
             {
                 updateQuadBatch(renderer);
 
@@ -219,7 +218,7 @@ namespace osu.Framework.Graphics.Containers
                 if (Children != null)
                 {
                     for (int i = 0; i < Children.Count; i++)
-                        Children[i].Draw(renderer);
+                        DrawOther(Children[i], renderer);
                 }
 
                 if (maskingInfo != null)
@@ -232,21 +231,11 @@ namespace osu.Framework.Graphics.Containers
                     renderer.PopQuadBatch();
             }
 
-            internal override void DrawOpaqueInteriorSubTree(IRenderer renderer, DepthValue depthValue)
+            protected override void DrawOpaqueInterior(IRenderer renderer)
             {
-                DrawChildrenOpaqueInteriors(renderer, depthValue);
-                base.DrawOpaqueInteriorSubTree(renderer, depthValue);
-            }
+                base.DrawOpaqueInterior(renderer);
 
-            /// <summary>
-            /// Performs <see cref="DrawOpaqueInteriorSubTree"/> on all children of this <see cref="CompositeDrawableDrawNode"/>.
-            /// </summary>
-            /// <param name="renderer">The renderer to draw with.</param>
-            /// <param name="depthValue">The previous depth value.</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            protected virtual void DrawChildrenOpaqueInteriors(IRenderer renderer, DepthValue depthValue)
-            {
-                bool canIncrement = depthValue.CanIncrement;
+                bool canIncrement = renderer.BackbufferDepth.CanIncrement;
 
                 // Assume that if we can't increment the depth value, no child can, thus nothing will be drawn.
                 if (canIncrement)
@@ -265,7 +254,7 @@ namespace osu.Framework.Graphics.Containers
                 if (Children != null)
                 {
                     for (int i = Children.Count - 1; i >= 0; i--)
-                        Children[i].DrawOpaqueInteriorSubTree(renderer, depthValue);
+                        DrawOtherOpaqueInterior(Children[i], renderer);
                 }
 
                 // Assume that if we can't increment the depth value, no child can, thus nothing will be drawn.
@@ -278,6 +267,9 @@ namespace osu.Framework.Graphics.Containers
                         renderer.PopQuadBatch();
                 }
             }
+
+            protected internal override bool CanDrawOpaqueInterior => true;
+            protected override bool HasOwnOpaqueInterior => false;
 
             protected override void Dispose(bool isDisposing)
             {

@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Drawing;
-using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.Handlers;
@@ -102,7 +101,13 @@ namespace osu.Framework.Input
             int x = (int)MathF.Floor(windowLocation.X + mousePosition.X);
             int y = (int)MathF.Floor(windowLocation.Y + mousePosition.Y);
 
-            return !Host.Window.Displays.Any(d => d.Bounds.Contains(x, y));
+            foreach (var display in Host.Window.Displays)
+            {
+                if (display.Bounds.Contains(x, y))
+                    return false;
+            }
+
+            return true;
         }
     }
 }

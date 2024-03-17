@@ -3,6 +3,7 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -38,6 +39,8 @@ namespace osu.Framework.Graphics.Performance
         public event Action<FrameStatisticsMode>? StateChanged;
 
         private bool initialised;
+
+        private readonly List<FrameStatisticsDisplay> frameDisplays = new List<FrameStatisticsDisplay>();
 
         public FrameStatisticsMode State
         {
@@ -77,22 +80,27 @@ namespace osu.Framework.Graphics.Performance
 
         // for some reason PerformanceOverlay has 0 width despite using AutoSizeAxes, and it doesn't look simple to fix.
         // let's just work around it and consider frame statistics display dimensions for receiving input events.
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Children.OfType<FrameStatisticsDisplay>().Any(d => d.ReceivePositionalInputAt(screenSpacePos));
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
+        {
+            foreach (var display in frameDisplays)
+            {
+                if (display.ReceivePositionalInputAt(screenSpacePos))
+                    return true;
+            }
+
+            return false;
+        }
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
             switch (e.Key)
             {
                 case Key.ControlLeft:
-                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
-                        display.Expanded = true;
-
+                    applyToDisplays(static d => d.Expanded = true);
                     break;
 
                 case Key.ShiftLeft:
-                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
-                        display.Running = false;
-
+                    applyToDisplays(static d => d.Running = false);
                     break;
             }
 
@@ -104,15 +112,11 @@ namespace osu.Framework.Graphics.Performance
             switch (e.Key)
             {
                 case Key.ControlLeft:
-                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
-                        display.Expanded = false;
-
+                    applyToDisplays(static d => d.Expanded = false);
                     break;
 
                 case Key.ShiftLeft:
-                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
-                        display.Running = true;
-
+                    applyToDisplays(static d => d.Running = true);
                     break;
             }
 
@@ -124,15 +128,11 @@ namespace osu.Framework.Graphics.Performance
             switch (e.Touch.Source)
             {
                 case TouchSource.Touch1:
-                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
-                        display.Expanded = true;
-
+                    applyToDisplays(static d => d.Expanded = true);
                     break;
 
                 case TouchSource.Touch2:
-                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
-                        display.Running = false;
-
+                    applyToDisplays(static d => d.Running = false);
                     break;
             }
 
@@ -144,15 +144,11 @@ namespace osu.Framework.Graphics.Performance
             switch (e.Touch.Source)
             {
                 case TouchSource.Touch1:
-                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
-                        display.Expanded = false;
-
+                    applyToDisplays(static d => d.Expanded = false);
                     break;
 
                 case TouchSource.Touch2:
-                    foreach (var display in Children.OfType<FrameStatisticsDisplay>())
-                        display.Running = true;
-
+                    applyToDisplays(static d => d.Running = true);
                     break;
             }
 
@@ -188,12 +184,15 @@ namespace osu.Framework.Graphics.Performance
 
                         foreach (GameThread t in host.Threads)
                         {
-                            Add(new FrameStatisticsDisplay(t, uploadPool)
+                            var display = new FrameStatisticsDisplay(t, uploadPool)
                             {
                                 Anchor = Anchor.TopRight,
                                 Origin = Anchor.TopRight,
                                 State = state
-                            });
+                            };
+
+                            Add(display);
+                            frameDisplays.Add(display);
                         }
                     }
 
@@ -201,10 +200,16 @@ namespace osu.Framework.Graphics.Performance
                     break;
             }
 
-            foreach (FrameStatisticsDisplay d in Children.OfType<FrameStatisticsDisplay>())
-                d.State = state;
+            foreach (var display in frameDisplays)
+                display.State = state;
 
             StateChanged?.Invoke(State);
+        }
+
+        private void applyToDisplays(Predicate<FrameStatisticsDisplay> predicate)
+        {
+            foreach (var display in frameDisplays)
+                predicate.Invoke(display);
         }
 
         private void updateInfoText()

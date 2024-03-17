@@ -5,7 +5,6 @@
 
 using System.Linq;
 using NUnit.Framework;
-using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
@@ -16,7 +15,6 @@ using osu.Framework.Input;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
@@ -871,14 +869,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private partial class NumberTextBox : BasicTextBox
         {
-            protected override bool CanAddCharacter(char character) => character.IsAsciiDigit();
+            protected override bool CanAddCharacter(char character) => char.IsAsciiDigit(character);
 
             protected override bool AllowIme => false;
         }
 
         private partial class CustomTextBox : BasicTextBox
         {
-            protected override Drawable GetDrawableCharacter(char c) => new ScalingText(c, CalculatedTextSize);
+            protected override Drawable GetDrawableCharacter(char c) => new ScalingText(c, FontSize);
 
             private partial class ScalingText : CompositeDrawable
             {
@@ -923,16 +921,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                 public BorderCaret()
                 {
-                    RelativeSizeAxes = Axes.Y;
-
-                    Masking = true;
-                    BorderColour = Color4.White;
-                    BorderThickness = 3;
-
-                    InternalChild = new Box
+                    InternalChild = new Container
                     {
+                        Anchor = Anchor.CentreLeft,
+                        Origin = Anchor.CentreLeft,
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Transparent
+                        Masking = true,
+                        BorderColour = Colour4.White,
+                        BorderThickness = 3f,
+                        Child = new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = Colour4.Transparent,
+                        },
                     };
                 }
 

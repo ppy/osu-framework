@@ -15,15 +15,13 @@ namespace osu.Framework.Platform
 {
     public abstract class DesktopGameHost : SDL2GameHost
     {
-        public const int IPC_PORT = 45356;
-
         private TcpIpcProvider ipcProvider;
-        private readonly bool bindIPCPort;
+        private readonly int? ipcPort;
 
         protected DesktopGameHost(string gameName, HostOptions options = null)
             : base(gameName, options)
         {
-            bindIPCPort = Options.BindIPC;
+            ipcPort = Options.IPCPort;
             IsPortableInstallation = Options.PortableInstallation;
         }
 
@@ -57,13 +55,13 @@ namespace osu.Framework.Platform
 
         private void ensureIPCReady()
         {
-            if (!bindIPCPort)
+            if (ipcPort == null)
                 return;
 
             if (ipcProvider != null)
                 return;
 
-            ipcProvider = new TcpIpcProvider(IPC_PORT);
+            ipcProvider = new TcpIpcProvider(ipcPort.Value);
             ipcProvider.MessageReceived += OnMessageReceived;
 
             IsPrimaryInstance = ipcProvider.Bind();

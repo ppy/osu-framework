@@ -41,9 +41,9 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public WrapMode CurrentWrapModeS => WrapMode.None;
         public WrapMode CurrentWrapModeT => WrapMode.None;
         public bool IsMaskingActive => false;
-        public float BackbufferDrawDepth => 0;
         public bool UsingBackbuffer => false;
         public Texture WhitePixel { get; }
+        DepthValue IRenderer.BackbufferDepth { get; } = new DepthValue();
 
         public bool IsInitialised { get; private set; }
 
@@ -217,10 +217,6 @@ namespace osu.Framework.Graphics.Rendering.Dummy
             => new DummyShaderStorageBufferObject<TData>(ssboSize);
 
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform)
-        {
-        }
-
-        void IRenderer.SetDrawDepth(float drawDepth)
         {
         }
 

@@ -68,7 +68,7 @@ namespace osu.Framework.Graphics.Sprites
             // Pre-cache the characters in the texture store
             foreach (char character in localisedText.Value)
             {
-                var unused = store.Get(font.FontName, character) ?? store.Get(null, character);
+                _ = store.Get(font.FontName, character) ?? store.Get(null, character);
             }
         }
 

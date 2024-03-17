@@ -46,8 +46,7 @@ namespace osu.Framework.Graphics.Audio
             get => resolution;
             set
             {
-                if (value < 0)
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                ArgumentOutOfRangeException.ThrowIfNegative(value);
 
                 if (resolution == value)
                     return;
@@ -317,7 +316,7 @@ namespace osu.Framework.Graphics.Audio
 
             private IVertexBatch<TexturedVertex2D>? vertexBatch;
 
-            public override void Draw(IRenderer renderer)
+            protected override void Draw(IRenderer renderer)
             {
                 base.Draw(renderer);
 

@@ -3,9 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
+using System.Text;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Rendering;
@@ -26,15 +28,22 @@ namespace osu.Framework.Platform.Windows
 
         protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new WindowsReadableKeyCombinationProvider();
 
-        public override IEnumerable<string> UserStoragePaths =>
-            // on windows this is guaranteed to exist (and be usable) so don't fallback to the base/default.
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Yield();
+        public override IEnumerable<string> UserStoragePaths
+            // The base implementation returns %LOCALAPPDATA%, but %APPDATA% is a better default on Windows.
+            => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create).Yield();
 
         public override bool CapsLockEnabled => Console.CapsLock;
 
         internal WindowsGameHost(string gameName, HostOptions? options)
             : base(gameName, options)
         {
+            try
+            {
+                Console.OutputEncoding = Encoding.UTF8;
+            }
+            catch
+            {
+            }
         }
 
         public override bool OpenFileExternally(string filename)
@@ -93,13 +102,29 @@ namespace osu.Framework.Platform.Windows
         protected override void OnActivated()
         {
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous | Execution.ExecutionState.SystemRequired | Execution.ExecutionState.DisplayRequired);
+            setGamePriority(true);
             base.OnActivated();
         }
 
         protected override void OnDeactivated()
         {
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous);
+            setGamePriority(false);
             base.OnDeactivated();
+        }
+
+        private void setGamePriority(bool active)
+        {
+            try
+            {
+                // We set process priority after the window becomes active, because for whatever reason windows will
+                // reset this when the window becomes active after being inactive when game mode is enabled.
+                Process.GetCurrentProcess().PriorityClass = active ? ProcessPriorityClass.High : ProcessPriorityClass.Normal;
+            }
+            catch
+            {
+                // Failure to set priority is not critical.
+            }
         }
     }
 }

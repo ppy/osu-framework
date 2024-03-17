@@ -11,6 +11,7 @@ using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osuTK.Graphics;
 using SixLabors.ImageSharp;
@@ -21,7 +22,7 @@ using Texture = Veldrid.Texture;
 
 namespace osu.Framework.Graphics.Veldrid.Textures
 {
-    internal class VeldridTexture : INativeTexture
+    internal class VeldridTexture : IVeldridTexture
     {
         private readonly Queue<ITextureUpload> uploadQueue = new Queue<ITextureUpload>();
 
@@ -73,7 +74,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             }
         }
 
-        protected readonly VeldridRenderer Renderer;
+        protected readonly IVeldridRenderer Renderer;
 
         /// <summary>
         /// Creates a new <see cref="VeldridTexture"/>.
@@ -84,7 +85,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
         /// <param name="filteringMode">The filtering mode.</param>
         /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads). If null, no initialisation is provided out-of-the-box.</param>
-        public VeldridTexture(VeldridRenderer renderer, int width, int height, bool manualMipmaps = false, SamplerFilter filteringMode = SamplerFilter.MinLinear_MagLinear_MipLinear,
+        public VeldridTexture(IVeldridRenderer renderer, int width, int height, bool manualMipmaps = false, SamplerFilter filteringMode = SamplerFilter.MinLinear_MagLinear_MipLinear,
                               Color4? initialisationColour = null)
         {
             this.manualMipmaps = manualMipmaps;
@@ -107,17 +108,17 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         public void Dispose()
         {
-            if (isDisposed)
-                return;
-
-            isDisposed = true;
-
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool isDisposing)
         {
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
+
             Renderer.ScheduleDisposal(texture =>
             {
                 while (texture.tryGetNextUpload(out var upload))
@@ -188,28 +189,15 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         {
             lock (uploadQueue)
             {
+                if (uploadQueue.Count >= 100 && uploadQueue.Count % 100 == 0)
+                    Logger.Log($"Texture {Identifier}'s upload queue is large ({uploadQueue.Count})");
+
                 bool requireUpload = uploadQueue.Count == 0;
                 uploadQueue.Enqueue(upload);
 
                 if (requireUpload && !BypassTextureUploadQueueing)
                     Renderer.EnqueueTextureUpload(this);
             }
-        }
-
-        public virtual bool Bind(int unit, WrapMode wrapModeS, WrapMode wrapModeT)
-        {
-            if (!Available)
-                throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
-
-            Upload();
-
-            if (resources == null)
-                return false;
-
-            if (Renderer.BindTexture(this, wrapModeS: wrapModeS, wrapModeT: wrapModeT))
-                BindCount++;
-
-            return true;
         }
 
         public bool Upload()
@@ -380,7 +368,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             if (uploadedRegions.Count != 0 && !manualMipmaps)
             {
                 Debug.Assert(resources != null);
-                Renderer.Commands.GenerateMipmaps(resources.Texture);
+                Renderer.GenerateMipmaps(this);
             }
 
             #endregion

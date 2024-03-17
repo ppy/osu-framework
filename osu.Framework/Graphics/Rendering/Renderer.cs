@@ -26,6 +26,7 @@ using osuTK.Graphics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
+using Texture = osu.Framework.Graphics.Textures.Texture;
 
 namespace osu.Framework.Graphics.Rendering
 {
@@ -68,10 +69,10 @@ namespace osu.Framework.Graphics.Rendering
         public StencilInfo CurrentStencilInfo { get; private set; }
         public WrapMode CurrentWrapModeS { get; private set; }
         public WrapMode CurrentWrapModeT { get; private set; }
-        public bool IsMaskingActive => maskingStack.Count > 1;
-        public float BackbufferDrawDepth { get; private set; }
-        public bool UsingBackbuffer => frameBufferStack.Count == 0;
+        public bool IsMaskingActive { get; private set; }
+        public bool UsingBackbuffer { get; private set; }
         public Texture WhitePixel => whitePixel.Value;
+        DepthValue IRenderer.BackbufferDepth => backBufferDepth;
 
         public bool IsInitialised { get; private set; }
 
@@ -108,6 +109,9 @@ namespace osu.Framework.Graphics.Rendering
 
         private readonly Scheduler resetScheduler = new Scheduler(() => ThreadSafety.IsDrawThread, new StopwatchClock(true)); // force no thread set until we are actually on the draw thread.
 
+        private readonly DepthValue backBufferDepth = new DepthValue();
+
+        private readonly Dictionary<string, IUniformBuffer> boundUniformBuffers = new Dictionary<string, IUniformBuffer>();
         private readonly Stack<IVertexBatch<TexturedVertex2D>> quadBatches = new Stack<IVertexBatch<TexturedVertex2D>>();
         private readonly List<IVertexBuffer> vertexBuffersInUse = new List<IVertexBuffer>();
         private readonly List<IVertexBatch> batchResetList = new List<IVertexBatch>();
@@ -129,11 +133,12 @@ namespace osu.Framework.Graphics.Rendering
         private readonly Lazy<TextureWhitePixel> whitePixel;
         private readonly LockedWeakList<Texture> allTextures = new LockedWeakList<Texture>();
 
-        protected IUniformBuffer<GlobalUniformData>? GlobalUniformBuffer { get; private set; }
+        private IUniformBuffer<GlobalUniformData>? globalUniformBuffer;
         private IVertexBatch<TexturedVertex2D>? defaultQuadBatch;
         private IVertexBatch? currentActiveBatch;
         private MaskingInfo currentMaskingInfo;
         private int lastActiveTextureUnit;
+        private bool globalUniformsChanged;
 
         private static readonly GlobalStatistic<int>[] flush_source_statistics;
 
@@ -188,17 +193,13 @@ namespace osu.Framework.Graphics.Rendering
             foreach (var source in flush_source_statistics)
                 source.Value = 0;
 
-            GlobalUniformBuffer ??= ((IRenderer)this).CreateUniformBuffer<GlobalUniformData>();
-            GlobalUniformBuffer.Data = GlobalUniformBuffer.Data with
-            {
-                IsDepthRangeZeroToOne = IsDepthRangeZeroToOne,
-                IsClipSpaceYInverted = IsClipSpaceYInverted,
-                IsUvOriginTopLeft = IsUvOriginTopLeft
-            };
+            globalUniformBuffer ??= ((IRenderer)this).CreateUniformBuffer<GlobalUniformData>();
 
             Debug.Assert(defaultQuadBatch != null);
 
             FrameIndex++;
+
+            backBufferDepth.Reset();
 
             resetScheduler.Update();
 
@@ -213,6 +214,7 @@ namespace osu.Framework.Graphics.Rendering
                 }
             }
 
+            globalUniformsChanged = true;
             currentActiveBatch = null;
             CurrentBlendingParameters = new BlendingParameters();
             currentMaskingInfo = default;
@@ -224,6 +226,7 @@ namespace osu.Framework.Graphics.Rendering
             Shader?.Unbind();
             Shader = null;
 
+            boundUniformBuffers.Clear();
             viewportStack.Clear();
             projectionMatrixStack.Clear();
             maskingStack.Clear();
@@ -323,13 +326,6 @@ namespace osu.Framework.Graphics.Rendering
         /// Returns an image containing the current content of the backbuffer, i.e. takes a screenshot.
         /// </summary>
         protected internal abstract Image<Rgba32> TakeScreenshot();
-
-        /// <summary>
-        /// Sets the current draw depth.
-        /// The draw depth is written to every vertex added to <see cref="IVertexBuffer"/>s.
-        /// </summary>
-        /// <param name="drawDepth">The draw depth.</param>
-        internal void SetDrawDepth(float drawDepth) => BackbufferDrawDepth = drawDepth;
 
         /// <summary>
         /// Performs a once-off initialisation of this <see cref="Renderer"/>.
@@ -599,7 +595,7 @@ namespace osu.Framework.Graphics.Rendering
 
             FlushCurrentBatch(FlushBatchSource.SetProjection);
 
-            GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with { ProjMatrix = matrix };
+            globalUniformsChanged = true;
             ProjectionMatrix = matrix;
         }
 
@@ -628,50 +624,6 @@ namespace osu.Framework.Graphics.Rendering
 
             FlushCurrentBatch(FlushBatchSource.SetMasking);
 
-            GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with
-            {
-                IsMasking = IsMaskingActive,
-                MaskingRect = new Vector4(
-                    maskingInfo.MaskingRect.Left,
-                    maskingInfo.MaskingRect.Top,
-                    maskingInfo.MaskingRect.Right,
-                    maskingInfo.MaskingRect.Bottom),
-                ToMaskingSpace = maskingInfo.ToMaskingSpace,
-                CornerRadius = maskingInfo.CornerRadius,
-                CornerExponent = maskingInfo.CornerExponent,
-                BorderThickness = maskingInfo.BorderThickness / maskingInfo.BlendRange,
-                BorderColour = maskingInfo.BorderThickness > 0
-                    ? new Matrix4(
-                        // TopLeft
-                        maskingInfo.BorderColour.TopLeft.SRGB.R,
-                        maskingInfo.BorderColour.TopLeft.SRGB.G,
-                        maskingInfo.BorderColour.TopLeft.SRGB.B,
-                        maskingInfo.BorderColour.TopLeft.SRGB.A,
-                        // BottomLeft
-                        maskingInfo.BorderColour.BottomLeft.SRGB.R,
-                        maskingInfo.BorderColour.BottomLeft.SRGB.G,
-                        maskingInfo.BorderColour.BottomLeft.SRGB.B,
-                        maskingInfo.BorderColour.BottomLeft.SRGB.A,
-                        // TopRight
-                        maskingInfo.BorderColour.TopRight.SRGB.R,
-                        maskingInfo.BorderColour.TopRight.SRGB.G,
-                        maskingInfo.BorderColour.TopRight.SRGB.B,
-                        maskingInfo.BorderColour.TopRight.SRGB.A,
-                        // BottomRight
-                        maskingInfo.BorderColour.BottomRight.SRGB.R,
-                        maskingInfo.BorderColour.BottomRight.SRGB.G,
-                        maskingInfo.BorderColour.BottomRight.SRGB.B,
-                        maskingInfo.BorderColour.BottomRight.SRGB.A)
-                    : GlobalUniformBuffer.Data.BorderColour,
-                MaskingBlendRange = maskingInfo.BlendRange,
-                AlphaExponent = maskingInfo.AlphaExponent,
-                EdgeOffset = maskingInfo.EdgeOffset,
-                DiscardInner = maskingInfo.Hollow,
-                InnerCornerRadius = maskingInfo.Hollow
-                    ? maskingInfo.HollowCornerRadius
-                    : GlobalUniformBuffer.Data.InnerCornerRadius
-            };
-
             if (isPushing)
             {
                 // When drawing to a viewport that doesn't match the projection size (e.g. via framebuffers), the resultant image will be scaled
@@ -693,6 +645,10 @@ namespace osu.Framework.Graphics.Rendering
                 PopScissor();
 
             currentMaskingInfo = maskingInfo;
+
+            // Masking is enabled for as long as any masking info is active that's not the default.
+            IsMaskingActive = maskingStack.Count > 1;
+            globalUniformsChanged = true;
         }
 
         #endregion
@@ -827,8 +783,7 @@ namespace osu.Framework.Graphics.Rendering
 
         public bool BindTexture(Texture texture, int unit, WrapMode? wrapModeS, WrapMode? wrapModeT)
         {
-            if (!texture.Available)
-                throw new ObjectDisposedException(nameof(texture), "Can not bind a disposed texture.");
+            ObjectDisposedException.ThrowIf(!texture.Available, texture);
 
             if (texture is TextureWhitePixel && lastBoundTextureIsAtlas[unit])
             {
@@ -864,16 +819,14 @@ namespace osu.Framework.Graphics.Rendering
 
             if (wrapModeS != CurrentWrapModeS)
             {
-                // Will flush the current batch internally.
-                GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with { WrapModeS = (int)wrapModeS };
                 CurrentWrapModeS = wrapModeS;
+                globalUniformsChanged = true;
             }
 
             if (wrapModeT != CurrentWrapModeT)
             {
-                // Will flush the current batch internally.
-                GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with { WrapModeT = (int)wrapModeT };
                 CurrentWrapModeT = wrapModeT;
+                globalUniformsChanged = true;
             }
 
             lastBoundTexture[unit] = texture;
@@ -947,12 +900,12 @@ namespace osu.Framework.Graphics.Rendering
                 return;
 
             FlushCurrentBatch(FlushBatchSource.SetFrameBuffer);
-
             SetFrameBufferImplementation(frameBuffer);
 
-            GlobalUniformBuffer!.Data = GlobalUniformBuffer.Data with { BackbufferDraw = UsingBackbuffer };
-
             FrameBuffer = frameBuffer;
+
+            UsingBackbuffer = frameBuffer == null;
+            globalUniformsChanged = true;
         }
 
         /// <summary>
@@ -961,7 +914,92 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="frameBuffer">The framebuffer to use, or null to use the backbuffer (i.e. main framebuffer).</param>
         protected abstract void SetFrameBufferImplementation(IFrameBuffer? frameBuffer);
 
+        /// <summary>
+        /// Deletes a frame buffer.
+        /// </summary>
+        /// <param name="frameBuffer">The frame buffer to delete.</param>
+        public void DeleteFrameBuffer(IFrameBuffer frameBuffer)
+        {
+            while (FrameBuffer == frameBuffer)
+                UnbindFrameBuffer(frameBuffer);
+
+            ScheduleDisposal(DeleteFrameBufferImplementation, frameBuffer);
+        }
+
+        protected abstract void DeleteFrameBufferImplementation(IFrameBuffer frameBuffer);
+
         #endregion
+
+        public void DrawVertices(PrimitiveTopology topology, int vertexStart, int verticesCount)
+        {
+            if (Shader == null)
+                throw new InvalidOperationException("No shader bound.");
+
+            if (globalUniformsChanged)
+            {
+                globalUniformBuffer!.Data = new GlobalUniformData
+                {
+                    BackbufferDraw = UsingBackbuffer,
+                    IsDepthRangeZeroToOne = IsDepthRangeZeroToOne,
+                    IsClipSpaceYInverted = IsClipSpaceYInverted,
+                    IsUvOriginTopLeft = IsUvOriginTopLeft,
+                    ProjMatrix = ProjectionMatrix,
+                    ToMaskingSpace = currentMaskingInfo.ToMaskingSpace,
+                    IsMasking = IsMaskingActive,
+                    CornerRadius = currentMaskingInfo.CornerRadius,
+                    CornerExponent = currentMaskingInfo.CornerExponent,
+                    MaskingRect = new Vector4(
+                        currentMaskingInfo.MaskingRect.Left,
+                        currentMaskingInfo.MaskingRect.Top,
+                        currentMaskingInfo.MaskingRect.Right,
+                        currentMaskingInfo.MaskingRect.Bottom),
+                    BorderThickness = currentMaskingInfo.BorderThickness / currentMaskingInfo.BlendRange,
+                    BorderColour = currentMaskingInfo.BorderThickness > 0
+                        ? new Matrix4(
+                            // TopLeft
+                            currentMaskingInfo.BorderColour.TopLeft.SRGB.R,
+                            currentMaskingInfo.BorderColour.TopLeft.SRGB.G,
+                            currentMaskingInfo.BorderColour.TopLeft.SRGB.B,
+                            currentMaskingInfo.BorderColour.TopLeft.SRGB.A,
+                            // BottomLeft
+                            currentMaskingInfo.BorderColour.BottomLeft.SRGB.R,
+                            currentMaskingInfo.BorderColour.BottomLeft.SRGB.G,
+                            currentMaskingInfo.BorderColour.BottomLeft.SRGB.B,
+                            currentMaskingInfo.BorderColour.BottomLeft.SRGB.A,
+                            // TopRight
+                            currentMaskingInfo.BorderColour.TopRight.SRGB.R,
+                            currentMaskingInfo.BorderColour.TopRight.SRGB.G,
+                            currentMaskingInfo.BorderColour.TopRight.SRGB.B,
+                            currentMaskingInfo.BorderColour.TopRight.SRGB.A,
+                            // BottomRight
+                            currentMaskingInfo.BorderColour.BottomRight.SRGB.R,
+                            currentMaskingInfo.BorderColour.BottomRight.SRGB.G,
+                            currentMaskingInfo.BorderColour.BottomRight.SRGB.B,
+                            currentMaskingInfo.BorderColour.BottomRight.SRGB.A)
+                        : globalUniformBuffer.Data.BorderColour,
+                    MaskingBlendRange = currentMaskingInfo.BlendRange,
+                    AlphaExponent = currentMaskingInfo.AlphaExponent,
+                    EdgeOffset = currentMaskingInfo.EdgeOffset,
+                    DiscardInner = currentMaskingInfo.Hollow,
+                    InnerCornerRadius = currentMaskingInfo.Hollow
+                        ? currentMaskingInfo.HollowCornerRadius
+                        : globalUniformBuffer.Data.InnerCornerRadius,
+                    WrapModeS = (int)CurrentWrapModeS,
+                    WrapModeT = (int)CurrentWrapModeT
+                };
+
+                globalUniformsChanged = false;
+            }
+
+            Shader.BindUniformBlock("g_GlobalUniforms", globalUniformBuffer!);
+
+            DrawVerticesImplementation(topology, vertexStart, verticesCount);
+
+            FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
+            FrameStatistics.Add(StatisticsCounterType.VerticesDraw, verticesCount);
+        }
+
+        public abstract void DrawVerticesImplementation(PrimitiveTopology topology, int vertexStart, int verticesCount);
 
         #region Shaders
 
@@ -1024,6 +1062,19 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         /// <param name="uniform">The uniform to update.</param>
         protected abstract void SetUniformImplementation<T>(IUniformWithValue<T> uniform) where T : unmanaged, IEquatable<T>;
+
+        public void BindUniformBuffer(string blockName, IUniformBuffer buffer)
+        {
+            if (boundUniformBuffers.TryGetValue(blockName, out IUniformBuffer? current) && current == buffer)
+                return;
+
+            FlushCurrentBatch(FlushBatchSource.BindBuffer);
+            SetUniformBufferImplementation(blockName, buffer);
+
+            boundUniformBuffers[blockName] = buffer;
+        }
+
+        protected abstract void SetUniformBufferImplementation(string blockName, IUniformBuffer buffer);
 
         #endregion
 
@@ -1145,7 +1196,6 @@ namespace osu.Framework.Graphics.Rendering
         void IRenderer.MakeCurrent() => MakeCurrent();
         void IRenderer.ClearCurrent() => ClearCurrent();
         void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform) => SetUniform(uniform);
-        void IRenderer.SetDrawDepth(float drawDepth) => SetDrawDepth(drawDepth);
         void IRenderer.PushQuadBatch(IVertexBatch<TexturedVertex2D> quadBatch) => PushQuadBatch(quadBatch);
         void IRenderer.PopQuadBatch() => PopQuadBatch();
         Image<Rgba32> IRenderer.TakeScreenshot() => TakeScreenshot();

@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace osu.Framework.Bindables
 {
@@ -52,7 +51,7 @@ namespace osu.Framework.Bindables
                     return;
 
                 var boundCopy = bindable.GetBoundCopy();
-                sourceMapping.Add(new WeakRefPair(new WeakReference<IBindable<T>>(bindable), boundCopy));
+                sourceMapping.Add(new WeakRefPair(bindable.GetWeakReference(), boundCopy));
                 boundCopy.BindValueChanged(recalculateAggregate, true);
             }
         }
@@ -65,20 +64,26 @@ namespace osu.Framework.Bindables
         {
             lock (sourceMapping)
             {
-                var weak = findExistingPair(bindable);
-
-                if (weak != null)
+                if (findExistingPair(bindable) is WeakRefPair pair)
                 {
-                    weak.BoundCopy.UnbindAll();
-                    sourceMapping.Remove(weak);
+                    pair.BoundCopy.UnbindAll();
+                    sourceMapping.Remove(pair);
                 }
 
                 recalculateAggregate();
             }
         }
 
-        private WeakRefPair findExistingPair(IBindable<T> bindable) =>
-            sourceMapping.FirstOrDefault(p => p.WeakReference.TryGetTarget(out var target) && target == bindable);
+        private WeakRefPair? findExistingPair(IBindable<T> bindable)
+        {
+            foreach (var p in sourceMapping)
+            {
+                if (p.WeakReference.TryGetTarget(out var target) && target == bindable)
+                    return p;
+            }
+
+            return null;
+        }
 
         private void recalculateAggregate(ValueChangedEvent<T> obj = null)
         {
@@ -112,16 +117,6 @@ namespace osu.Framework.Bindables
             }
         }
 
-        private class WeakRefPair
-        {
-            public readonly WeakReference<IBindable<T>> WeakReference;
-            public readonly IBindable<T> BoundCopy;
-
-            public WeakRefPair(WeakReference<IBindable<T>> weakReference, IBindable<T> boundCopy)
-            {
-                WeakReference = weakReference;
-                BoundCopy = boundCopy;
-            }
-        }
+        private readonly record struct WeakRefPair(WeakReference<Bindable<T>> WeakReference, IBindable<T> BoundCopy);
     }
 }

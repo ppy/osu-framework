@@ -89,8 +89,7 @@ namespace osu.Framework.Platform
         {
             path = GetFullPath(path, access != FileAccess.Read);
 
-            if (string.IsNullOrEmpty(path))
-                throw new ArgumentNullException(nameof(path));
+            ArgumentException.ThrowIfNullOrEmpty(path);
 
             switch (access)
             {

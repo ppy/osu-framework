@@ -29,6 +29,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Deferred;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
@@ -117,6 +118,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Func<Exception, bool> ExceptionThrown;
 
+        [CanBeNull]
         public event Func<IpcMessage, IpcMessage> MessageReceived;
 
         /// <summary>
@@ -205,7 +207,9 @@ namespace osu.Framework.Platform
         /// <summary>
         /// All valid user storage paths in order of usage priority.
         /// </summary>
-        public virtual IEnumerable<string> UserStoragePaths => Environment.GetFolderPath(Environment.SpecialFolder.Personal).Yield();
+        public virtual IEnumerable<string> UserStoragePaths
+            // This is common to _most_ operating systems, with some specific ones overriding this value where a better option exists.
+            => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create).Yield();
 
         /// <summary>
         /// The main storage as proposed by the host game.
@@ -394,8 +398,8 @@ namespace osu.Framework.Platform
 
             // In the case of an unhandled exception, it's feasible that the disposal flow for `GameHost` doesn't run.
             // This can result in the exception not being logged (or being partially logged) due to the logger running asynchronously.
-            // We force flushing the logger here to ensure logging completes.
-            Logger.Flush();
+            // We force flushing the logger here to ensure logging completes (and also unbind in the process since we're aborting execution from here).
+            Logger.FlushForShutdown();
 
             var captured = ExceptionDispatchInfo.Capture(exception);
             var thrownEvent = new ManualResetEventSlim(false);
@@ -474,16 +478,19 @@ namespace osu.Framework.Platform
                 buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
         }
 
-        private readonly DepthValue depthValue = new DepthValue();
-
         private bool didRenderFrame;
 
         protected virtual void DrawFrame()
         {
+            Debug.Assert(Window != null);
+
             if (Root == null)
                 return;
 
             if (ExecutionState != ExecutionState.Running)
+                return;
+
+            if (Window.WindowState == WindowState.Minimised)
                 return;
 
             Renderer.AllowTearing = windowMode.Value == WindowMode.Fullscreen;
@@ -514,15 +521,13 @@ namespace osu.Framework.Platform
 
                 if (!bypassFrontToBackPass.Value)
                 {
-                    depthValue.Reset();
-
                     Renderer.SetBlend(BlendingParameters.None);
 
                     Renderer.SetBlendMask(BlendingMask.None);
                     Renderer.PushDepthInfo(DepthInfo.Default);
 
                     // Front pass
-                    buffer.Object.DrawOpaqueInteriorSubTree(Renderer, depthValue);
+                    DrawNode.DrawOtherOpaqueInterior(buffer.Object, Renderer);
 
                     Renderer.PopDepthInfo();
                     Renderer.SetBlendMask(BlendingMask.All);
@@ -537,7 +542,7 @@ namespace osu.Framework.Platform
                 }
 
                 // Back pass
-                buffer.Object.Draw(Renderer);
+                DrawNode.DrawOther(buffer.Object, Renderer);
 
                 Renderer.PopDepthInfo();
 
@@ -711,10 +716,8 @@ namespace osu.Framework.Platform
                 Trace.Listeners.Clear();
                 Trace.Listeners.Add(new ThrowingTraceListener());
 
-                var assembly = DebugUtils.GetEntryAssembly();
-
                 Logger.GameIdentifier = Name;
-                Logger.VersionIdentifier = assembly.GetName().Version?.ToString() ?? Logger.VersionIdentifier;
+                Logger.VersionIdentifier = RuntimeInfo.EntryAssembly.GetName().Version?.ToString() ?? Logger.VersionIdentifier;
 
                 Dependencies.CacheAs(this);
                 Dependencies.CacheAs(Storage = game.CreateStorage(this, GetDefaultGameStorage()));
@@ -842,28 +845,41 @@ namespace osu.Framework.Platform
             {
                 case RuntimeInfo.Platform.Windows:
                     yield return RendererType.Direct3D11;
+                    yield return RendererType.Deferred_Direct3D11;
+                    yield return RendererType.OpenGL;
+                    yield return RendererType.Deferred_OpenGL;
+                    yield return RendererType.Deferred_Vulkan;
+
+                    break;
+
+                case RuntimeInfo.Platform.Linux:
+                    yield return RendererType.OpenGL;
+                    yield return RendererType.Deferred_OpenGL;
+                    yield return RendererType.Deferred_Vulkan;
 
                     break;
 
                 case RuntimeInfo.Platform.macOS:
-                case RuntimeInfo.Platform.iOS:
                     yield return RendererType.Metal;
+                    yield return RendererType.Deferred_Metal;
+                    yield return RendererType.OpenGL;
+                    yield return RendererType.Deferred_OpenGL;
+
+                    break;
+
+                case RuntimeInfo.Platform.iOS:
+                    // GL renderer not supported, see: https://github.com/ppy/osu/issues/23003.
+                    yield return RendererType.Metal;
+                    yield return RendererType.Deferred_Metal;
+
+                    break;
+
+                case RuntimeInfo.Platform.Android:
+                    // Still uses osuTK so only the legacy GL renderer is supported.
+                    yield return RendererType.OpenGL;
 
                     break;
             }
-
-            // See https://github.com/ppy/osu/issues/23003
-            if (RuntimeInfo.OS != RuntimeInfo.Platform.iOS)
-            {
-                // Non-veldrid "known-to-work".
-                yield return RendererType.OpenGLLegacy;
-            }
-
-            // Other available renderers should also be returned (to make this method usable as "all available renderers for current platform"),
-            // but will never be preferred as OpenGLLegacy will always work.
-            yield return RendererType.OpenGL;
-
-            if (!RuntimeInfo.IsApple) yield return RendererType.Vulkan;
         }
 
         protected virtual void ChooseAndSetupRenderer()
@@ -899,11 +915,25 @@ namespace osu.Framework.Platform
             {
                 try
                 {
-                    if (type == RendererType.OpenGLLegacy)
-                        // the legacy renderer. this is basically guaranteed to support all platforms.
-                        SetupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
-                    else
-                        SetupRendererAndWindow("veldrid", rendererToGraphicsSurfaceType(type));
+                    switch (type)
+                    {
+                        case RendererType.OpenGL:
+                            // Use the legacy GL renderer. This is basically guaranteed to support all platforms
+                            // and performs better than the Veldrid-GL renderer due to reduction in allocs.
+                            SetupRendererAndWindow(new GLRenderer(), GraphicsSurfaceType.OpenGL);
+                            break;
+
+                        case RendererType.Deferred_Metal:
+                        case RendererType.Deferred_Vulkan:
+                        case RendererType.Deferred_Direct3D11:
+                        case RendererType.Deferred_OpenGL:
+                            SetupRendererAndWindow(new DeferredRenderer(), rendererToGraphicsSurfaceType(type));
+                            break;
+
+                        default:
+                            SetupRendererAndWindow(new VeldridRenderer(), rendererToGraphicsSurfaceType(type));
+                            break;
+                    }
 
                     ResolvedRenderer = type;
                     return;
@@ -929,18 +959,22 @@ namespace osu.Framework.Platform
 
             switch (renderer)
             {
+                case RendererType.Deferred_Metal:
                 case RendererType.Metal:
                     surface = GraphicsSurfaceType.Metal;
                     break;
 
+                case RendererType.Deferred_Vulkan:
                 case RendererType.Vulkan:
                     surface = GraphicsSurfaceType.Vulkan;
                     break;
 
+                case RendererType.Deferred_Direct3D11:
                 case RendererType.Direct3D11:
                     surface = GraphicsSurfaceType.Direct3D11;
                     break;
 
+                case RendererType.Deferred_OpenGL:
                 case RendererType.OpenGL:
                     surface = GraphicsSurfaceType.OpenGL;
                     break;
@@ -958,6 +992,10 @@ namespace osu.Framework.Platform
             {
                 case "veldrid":
                     SetupRendererAndWindow(new VeldridRenderer(), surfaceType);
+                    break;
+
+                case "deferred":
+                    SetupRendererAndWindow(new DeferredRenderer(), surfaceType);
                     break;
 
                 default:
@@ -1260,6 +1298,11 @@ namespace osu.Framework.Platform
             }, true);
 
             inputConfig = new InputConfigManager(Storage, AvailableInputHandlers);
+
+#pragma warning disable CS0612 // Type or member is obsolete
+            if (Config.Get<RendererType>(FrameworkSetting.Renderer) == RendererType.OpenGLLegacy)
+                Config.SetValue(FrameworkSetting.Renderer, RendererType.OpenGL);
+#pragma warning restore CS0612 // Type or member is obsolete
         }
 
         /// <summary>
@@ -1389,7 +1432,7 @@ namespace osu.Framework.Platform
             Window?.Dispose();
 
             LoadingComponentsLogger.LogAndFlush();
-            Logger.Flush();
+            Logger.FlushForShutdown();
         }
 
         public void Dispose()
