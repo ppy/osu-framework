@@ -366,18 +366,21 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="tab">The tab to select.</param>
         protected void SelectTab(TabItem<T> tab)
         {
-            UpdateTabSelection(tab);
-            OnUserTabSelectionChanged(tab);
+            if (UpdateTabSelection(tab))
+                OnUserTabSelectionChanged(tab);
         }
 
         /// <summary>
         /// Selects a <see cref="TabItem{T}"/>.
         /// </summary>
         /// <param name="tab">The tab to select.</param>
-        protected virtual void UpdateTabSelection(TabItem<T> tab)
+        protected virtual bool UpdateTabSelection(TabItem<T> tab)
         {
+            var lastTab = SelectedTab;
+
             updateSelectedTab(tab);
             Current.Value = SelectedTab != null ? SelectedTab.Value : default;
+            return SelectedTab != lastTab;
         }
 
         private void updateSelectedTab(TabItem<T> tab)

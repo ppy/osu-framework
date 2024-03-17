@@ -35,14 +35,28 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestClickSendsEvent()
         {
+            AddStep("click second tab", () =>
+            {
+                InputManager.MoveMouseTo(this.ChildrenOfType<TabItem<TestEnum>>().ElementAt(1));
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("selected tab = second", () => tabControl.Current.Value == TestEnum.Second);
+            AddAssert("selected tab queue has \"second\"", () => tabControl.UserTabSelectionChangedQueue.Dequeue().Value == TestEnum.Second);
+        }
+
+        [Test]
+        public void TestClickSameTabDoesNotSendEvent()
+        {
+            AddAssert("first tab selected", () => tabControl.Current.Value == TestEnum.First);
             AddStep("click first tab", () =>
             {
                 InputManager.MoveMouseTo(this.ChildrenOfType<TabItem<TestEnum>>().First());
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddAssert("selected tab = first", () => tabControl.Current.Value == TestEnum.First);
-            AddAssert("selected tab queue has \"first\"", () => tabControl.UserTabSelectionChangedQueue.Dequeue().Value == TestEnum.First);
+            AddAssert("first tab still selected", () => tabControl.Current.Value == TestEnum.First);
+            AddAssert("selected tab queue empty", () => tabControl.UserTabSelectionChangedQueue.Count == 0);
         }
 
         [Test]
@@ -76,6 +90,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("set selected tab = second", () => tabControl.Current.Value = TestEnum.Second);
             AddAssert("selected tab queue still empty", () => tabControl.UserTabSelectionChangedQueue.Count == 0);
+        }
+
+        [TearDownSteps]
+        public void TearDownSteps()
+        {
+            AddAssert("selected tab queue empty", () => tabControl.UserTabSelectionChangedQueue.Count == 0);
         }
 
         private partial class EventQueuesTabControl : BasicTabControl<TestEnum>
