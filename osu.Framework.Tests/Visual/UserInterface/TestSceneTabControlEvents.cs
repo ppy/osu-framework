@@ -67,12 +67,27 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestSwitchTabMethodSendsEvent()
+        {
+            AddStep("set switchable", () => tabControl.IsSwitchable = true);
+            AddStep("call switch tab", () => tabControl.SwitchTab(1));
+            AddAssert("selected tab = second", () => tabControl.Current.Value == TestEnum.Second);
+            AddAssert("selected tab queue has \"second\"", () => tabControl.UserTabSelectionChangedQueue.Dequeue().Value == TestEnum.Second);
+            AddStep("call switch tab", () => tabControl.SwitchTab(-1));
+            AddAssert("selected tab = second", () => tabControl.Current.Value == TestEnum.First);
+            AddAssert("selected tab queue has \"second\"", () => tabControl.UserTabSelectionChangedQueue.Dequeue().Value == TestEnum.First);
+        }
+
+        [Test]
         public void TestSwitchUsingKeyBindingSendsEvent()
         {
             AddStep("set switchable", () => tabControl.IsSwitchable = true);
             AddStep("switch forward", () => InputManager.Keys(PlatformAction.DocumentNext));
             AddAssert("selected tab = second", () => tabControl.Current.Value == TestEnum.Second);
             AddAssert("selected tab queue has \"second\"", () => tabControl.UserTabSelectionChangedQueue.Dequeue().Value == TestEnum.Second);
+            AddStep("switch backward", () => InputManager.Keys(PlatformAction.DocumentPrevious));
+            AddAssert("selected tab = second", () => tabControl.Current.Value == TestEnum.First);
+            AddAssert("selected tab queue has \"second\"", () => tabControl.UserTabSelectionChangedQueue.Dequeue().Value == TestEnum.First);
         }
 
         [Test]

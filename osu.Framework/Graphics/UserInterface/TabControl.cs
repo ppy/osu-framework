@@ -323,7 +323,10 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     // check all tabs as to include self (in correct iteration order)
                     bool anySwitchableTabsToRight = AllTabs.SkipWhile(t => t != tab).Skip(1).Any(t => t.IsSwitchable);
-                    SwitchTab(anySwitchableTabsToRight ? 1 : -1);
+
+                    // switching tab on removal is not directly caused by the user.
+                    // call the private method to not trigger a user change event.
+                    switchTab(anySwitchableTabsToRight ? 1 : -1);
                 }
             }
 
@@ -403,8 +406,15 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="direction">Pass 1 to move to the next tab, or -1 to move to the previous tab.</param>
         /// <param name="wrap">If <c>true</c>, moving past the start or the end of the tab list will wrap to the opposite end.</param>
-        /// <returns>Whether tab selection has changed as a result of this call.</returns>
-        public virtual bool SwitchTab(int direction, bool wrap = true)
+        public virtual void SwitchTab(int direction, bool wrap = true)
+        {
+            bool changed = switchTab(direction, wrap);
+
+            if (changed)
+                OnUserTabSelectionChanged(SelectedTab);
+        }
+
+        private bool switchTab(int direction, bool wrap = true)
         {
             if (Math.Abs(direction) != 1) throw new ArgumentException("value must be -1 or 1", nameof(direction));
 
@@ -454,13 +464,11 @@ namespace osu.Framework.Graphics.UserInterface
                 switch (e.Action)
                 {
                     case PlatformAction.DocumentNext:
-                        if (SwitchTab(1))
-                            OnUserTabSelectionChanged(SelectedTab);
+                        SwitchTab(1);
                         return true;
 
                     case PlatformAction.DocumentPrevious:
-                        if (SwitchTab(-1))
-                            OnUserTabSelectionChanged(SelectedTab);
+                        SwitchTab(-1);
                         return true;
                 }
             }
