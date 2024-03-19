@@ -57,7 +57,7 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("Press A", () => InputManager.PressKey(Key.A));
             AddStep("Press Joystick", () => InputManager.PressJoystickButton(JoystickButton.Button1));
             addTestInputManagerStep();
-            AddAssert("mouse left pressed", () => mouse.IsPressed(MouseButton.Left));
+            AddAssert("mouse left not pressed", () => !mouse.IsPressed(MouseButton.Left));
             AddAssert("A pressed", () => keyboard.IsPressed(Key.A));
             AddAssert("Joystick pressed", () => joystick.IsPressed(JoystickButton.Button1));
             AddStep("Release", () =>
@@ -109,13 +109,13 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Test]
-        public void TestMouseInput()
+        public void TestMouseDownNoSync([Values] bool syncNewPresses)
         {
-            addTestInputManagerStep();
+            addTestInputManagerStep(syncNewPresses);
             AddStep("UseParentInput = false", () => testInputManager.UseParentInput = false);
             AddStep("Press left", () => InputManager.PressButton(MouseButton.Left));
             AddStep("UseParentInput = true", () => testInputManager.UseParentInput = true);
-            AddAssert("pressed", () => mouse.IsPressed(MouseButton.Left));
+            AddAssert("not pressed", () => !mouse.IsPressed(MouseButton.Left));
         }
 
         [Test]
@@ -259,16 +259,6 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("release mouse", () => InputManager.ReleaseButton(MouseButton.Left));
             AddAssert("key still not pressed", () => !testInputManager.CurrentState.Keyboard.Keys.HasAnyButtonPressed);
             AddAssert("mouse still not pressed", () => !testInputManager.CurrentState.Mouse.Buttons.HasAnyButtonPressed);
-        }
-
-        [Test]
-        public void TestMouseInput_DisabledSyncNewPresses()
-        {
-            addTestInputManagerStep(false);
-            AddStep("UseParentInput = false", () => testInputManager.UseParentInput = false);
-            AddStep("Press left", () => InputManager.PressButton(MouseButton.Left));
-            AddStep("UseParentInput = true", () => testInputManager.UseParentInput = true);
-            AddAssert("not pressed", () => !mouse.IsPressed(MouseButton.Left));
         }
 
         [Test]
