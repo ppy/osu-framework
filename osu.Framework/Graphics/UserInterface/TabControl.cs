@@ -369,15 +369,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="tab">The tab to select.</param>
         protected void SelectTab(TabItem<T> tab)
         {
-            if (UpdateTabSelection(tab))
+            if (selectTab(tab))
                 OnUserTabSelectionChanged(tab);
         }
 
-        /// <summary>
-        /// Updates <see cref="SelectedTab"/> and <see cref="Current"/> bindable to the given tab.
-        /// </summary>
-        /// <param name="tab">The tab to select.</param>
-        protected virtual bool UpdateTabSelection(TabItem<T> tab)
+        private bool selectTab(TabItem<T> tab)
         {
             var lastTab = SelectedTab;
 
@@ -433,7 +429,7 @@ namespace osu.Framework.Graphics.UserInterface
                 found = allTabs.FirstOrDefault(t => t != SelectedTab);
 
             if (found != null)
-                UpdateTabSelection(found);
+                selectTab(found);
 
             return SelectedTab != lastTab;
         }
