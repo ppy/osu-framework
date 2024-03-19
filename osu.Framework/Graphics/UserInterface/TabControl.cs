@@ -374,7 +374,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Selects a <see cref="TabItem{T}"/>.
+        /// Updates <see cref="SelectedTab"/> and <see cref="Current"/> bindable to the given tab.
         /// </summary>
         /// <param name="tab">The tab to select.</param>
         protected virtual bool UpdateTabSelection(TabItem<T> tab)
