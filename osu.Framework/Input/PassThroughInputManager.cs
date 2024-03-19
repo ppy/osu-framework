@@ -94,11 +94,6 @@ namespace osu.Framework.Input
 
             switch (e)
             {
-                case MouseMoveEvent mouseMove:
-                    if (mouseMove.ScreenSpaceMousePosition != CurrentState.Mouse.Position)
-                        new MousePositionAbsoluteInput { Position = mouseMove.ScreenSpaceMousePosition }.Apply(CurrentState, this);
-                    break;
-
                 case MouseDownEvent mouseDown:
                     // safe-guard for edge cases.
                     if (!CurrentState.Mouse.IsPressed(mouseDown.Button))
@@ -111,24 +106,63 @@ namespace osu.Framework.Input
                         new MouseButtonInput(mouseUp.Button, false).Apply(CurrentState, this);
                     break;
 
+                case MouseMoveEvent mouseMove:
+                    if (mouseMove.ScreenSpaceMousePosition != CurrentState.Mouse.Position)
+                        new MousePositionAbsoluteInput { Position = mouseMove.ScreenSpaceMousePosition }.Apply(CurrentState, this);
+                    break;
+
                 case ScrollEvent scroll:
                     new MouseScrollRelativeInput { Delta = scroll.ScrollDelta, IsPrecise = scroll.IsPrecise }.Apply(CurrentState, this);
+                    break;
+
+                case KeyDownEvent keyDown:
+                    if (!keyDown.Repeat)
+                        new KeyboardKeyInput(keyDown.Key, true).Apply(CurrentState, this);
+
+                    break;
+
+                case KeyUpEvent keyUp:
+                    new KeyboardKeyInput(keyUp.Key, false).Apply(CurrentState, this);
                     break;
 
                 case TouchEvent touch:
                     new TouchInput(touch.ScreenSpaceTouch, touch.IsActive(touch.ScreenSpaceTouch)).Apply(CurrentState, this);
                     break;
 
-                case MidiEvent midi:
-                    new MidiKeyInput(midi.Key, midi.Velocity, midi.IsPressed(midi.Key)).Apply(CurrentState, this);
+                case JoystickPressEvent joystickPress:
+                    new JoystickButtonInput(joystickPress.Button, true).Apply(CurrentState, this);
                     break;
 
-                case KeyboardEvent:
-                case JoystickButtonEvent:
-                case JoystickAxisMoveEvent:
-                case TabletPenButtonEvent:
-                case TabletAuxiliaryButtonEvent:
-                    SyncInputState(e.CurrentState);
+                case JoystickReleaseEvent joystickRelease:
+                    new JoystickButtonInput(joystickRelease.Button, false).Apply(CurrentState, this);
+                    break;
+
+                case JoystickAxisMoveEvent joystickAxisMove:
+                    new JoystickAxisInput(joystickAxisMove.Axis).Apply(CurrentState, this);
+                    break;
+
+                case MidiDownEvent midiDown:
+                    new MidiKeyInput(midiDown.Key, midiDown.Velocity, true).Apply(CurrentState, this);
+                    break;
+
+                case MidiUpEvent midiUp:
+                    new MidiKeyInput(midiUp.Key, midiUp.Velocity, false).Apply(CurrentState, this);
+                    break;
+
+                case TabletPenButtonPressEvent tabletPenButtonPress:
+                    new TabletPenButtonInput(tabletPenButtonPress.Button, true).Apply(CurrentState, this);
+                    break;
+
+                case TabletPenButtonReleaseEvent tabletPenButtonRelease:
+                    new TabletPenButtonInput(tabletPenButtonRelease.Button, false).Apply(CurrentState, this);
+                    break;
+
+                case TabletAuxiliaryButtonPressEvent tabletAuxiliaryButtonPress:
+                    new TabletAuxiliaryButtonInput(tabletAuxiliaryButtonPress.Button, true).Apply(CurrentState, this);
+                    break;
+
+                case TabletAuxiliaryButtonReleaseEvent tabletAuxiliaryButtonPress:
+                    new TabletAuxiliaryButtonInput(tabletAuxiliaryButtonPress.Button, true).Apply(CurrentState, this);
                     break;
             }
 
@@ -140,7 +174,7 @@ namespace osu.Framework.Input
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            Sync();
+            Sync(applyPresses: true);
         }
 
         protected override void Update()
@@ -156,46 +190,52 @@ namespace osu.Framework.Input
         /// Call this when parent <see cref="InputManager"/> changed somehow.
         /// </summary>
         /// <param name="useCachedParentInputManager">If this is false, assume parent input manager is unchanged from before.</param>
-        public void Sync(bool useCachedParentInputManager = false)
+        /// <param name="applyPresses">Whether to also apply press inputs for buttons that are shown to be pressed in the parent input manager.</param>
+        public void Sync(bool useCachedParentInputManager = false, bool applyPresses = false)
         {
             if (!UseParentInput) return;
 
             if (!useCachedParentInputManager)
                 parentInputManager = GetContainingInputManager();
 
-            SyncInputState(parentInputManager?.CurrentState);
+            SyncInputState(parentInputManager?.CurrentState, applyPresses);
         }
 
         /// <summary>
         /// Sync current state to a certain state.
         /// </summary>
         /// <param name="state">The state to synchronise current with. If this is null, it is regarded as an empty state.</param>
-        protected virtual void SyncInputState(InputState state)
+        /// <param name="applyPresses">Whether to also apply press inputs for buttons that are shown to be pressed in the parent input manager.</param>
+        protected virtual void SyncInputState(InputState state, bool applyPresses)
         {
-            // invariant: if mouse button is currently pressed, then it has been pressed in parent (but not the converse)
-            // therefore, mouse up events are always synced from parent
-            // mouse down events are not synced to prevent false clicks
             var mouseDiff = (state?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
+            var keyDiff = (state?.Keyboard.Keys ?? new ButtonStates<Key>()).EnumerateDifference(CurrentState.Keyboard.Keys);
+            var touchDiff = (state?.Touch ?? new TouchState()).EnumerateDifference(CurrentState.Touch);
+            var joyButtonDiff = (state?.Joystick?.Buttons ?? new ButtonStates<JoystickButton>()).EnumerateDifference(CurrentState.Joystick.Buttons);
+            var midiDiff = (state?.Midi?.Keys ?? new ButtonStates<MidiKey>()).EnumerateDifference(CurrentState.Midi.Keys);
+            var tabletPenDiff = (state?.Tablet?.PenButtons ?? new ButtonStates<TabletPenButton>()).EnumerateDifference(CurrentState.Tablet.PenButtons);
+            var tabletAuxiliaryDiff = (state?.Tablet?.AuxiliaryButtons ?? new ButtonStates<TabletAuxiliaryButton>()).EnumerateDifference(CurrentState.Tablet.AuxiliaryButtons);
+
             if (mouseDiff.Released.Length > 0)
                 new MouseButtonInput(mouseDiff.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false))).Apply(CurrentState, this);
 
-            var keyDiff = (state?.Keyboard.Keys ?? new ButtonStates<Key>()).EnumerateDifference(CurrentState.Keyboard.Keys);
             foreach (var key in keyDiff.Released)
                 new KeyboardKeyInput(key, false).Apply(CurrentState, this);
-            foreach (var key in keyDiff.Pressed)
-                new KeyboardKeyInput(key, true).Apply(CurrentState, this);
 
-            var touchDiff = (state?.Touch ?? new TouchState()).EnumerateDifference(CurrentState.Touch);
             if (touchDiff.deactivated.Length > 0)
                 new TouchInput(touchDiff.deactivated, false).Apply(CurrentState, this);
-            if (touchDiff.activated.Length > 0)
-                new TouchInput(touchDiff.activated, true).Apply(CurrentState, this);
 
-            var joyButtonDiff = (state?.Joystick?.Buttons ?? new ButtonStates<JoystickButton>()).EnumerateDifference(CurrentState.Joystick.Buttons);
             foreach (var button in joyButtonDiff.Released)
                 new JoystickButtonInput(button, false).Apply(CurrentState, this);
-            foreach (var button in joyButtonDiff.Pressed)
-                new JoystickButtonInput(button, true).Apply(CurrentState, this);
+
+            foreach (var key in midiDiff.Released)
+                new MidiKeyInput(key, state?.Midi?.Velocities.GetValueOrDefault(key) ?? 0, false).Apply(CurrentState, this);
+
+            foreach (var button in tabletPenDiff.Released)
+                new TabletPenButtonInput(button, false).Apply(CurrentState, this);
+
+            foreach (var button in tabletAuxiliaryDiff.Released)
+                new TabletAuxiliaryButtonInput(button, false).Apply(CurrentState, this);
 
             // Basically only perform the full state diff if we have found that any axis changed.
             // This avoids unnecessary alloc overhead.
@@ -208,23 +248,23 @@ namespace osu.Framework.Input
                 }
             }
 
-            var midiDiff = (state?.Midi?.Keys ?? new ButtonStates<MidiKey>()).EnumerateDifference(CurrentState.Midi.Keys);
-            foreach (var key in midiDiff.Released)
-                new MidiKeyInput(key, state?.Midi?.Velocities.GetValueOrDefault(key) ?? 0, false).Apply(CurrentState, this);
-            foreach (var key in midiDiff.Pressed)
-                new MidiKeyInput(key, state?.Midi?.Velocities.GetValueOrDefault(key) ?? 0, true).Apply(CurrentState, this);
-
-            var tabletPenDiff = (state?.Tablet?.PenButtons ?? new ButtonStates<TabletPenButton>()).EnumerateDifference(CurrentState.Tablet.PenButtons);
-            foreach (var button in tabletPenDiff.Released)
-                new TabletPenButtonInput(button, false).Apply(CurrentState, this);
-            foreach (var button in tabletPenDiff.Pressed)
-                new TabletPenButtonInput(button, true).Apply(CurrentState, this);
-
-            var tabletAuxiliaryDiff = (state?.Tablet?.AuxiliaryButtons ?? new ButtonStates<TabletAuxiliaryButton>()).EnumerateDifference(CurrentState.Tablet.AuxiliaryButtons);
-            foreach (var button in tabletAuxiliaryDiff.Released)
-                new TabletAuxiliaryButtonInput(button, false).Apply(CurrentState, this);
-            foreach (var button in tabletAuxiliaryDiff.Pressed)
-                new TabletAuxiliaryButtonInput(button, true).Apply(CurrentState, this);
+            if (applyPresses)
+            {
+                if (mouseDiff.Pressed.Length > 0)
+                    new MouseButtonInput(mouseDiff.Pressed.Select(button => new ButtonInputEntry<MouseButton>(button, true))).Apply(CurrentState, this);
+                foreach (var key in keyDiff.Pressed)
+                    new KeyboardKeyInput(key, true).Apply(CurrentState, this);
+                if (touchDiff.activated.Length > 0)
+                    new TouchInput(touchDiff.activated, true).Apply(CurrentState, this);
+                foreach (var button in joyButtonDiff.Pressed)
+                    new JoystickButtonInput(button, true).Apply(CurrentState, this);
+                foreach (var key in midiDiff.Pressed)
+                    new MidiKeyInput(key, state?.Midi?.Velocities.GetValueOrDefault(key) ?? 0, true).Apply(CurrentState, this);
+                foreach (var button in tabletPenDiff.Pressed)
+                    new TabletPenButtonInput(button, true).Apply(CurrentState, this);
+                foreach (var button in tabletAuxiliaryDiff.Pressed)
+                    new TabletAuxiliaryButtonInput(button, true).Apply(CurrentState, this);
+            }
         }
     }
 }
