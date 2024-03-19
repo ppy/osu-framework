@@ -52,6 +52,9 @@ namespace osu.Framework.Input
         /// Whether to synchronise newly pressed buttons on <see cref="Sync"/>.
         /// Pressed buttons are still synchronised at the point of loading the input manager.
         /// </summary>
+        /// <remarks>
+        /// This does not apply for mouse buttons.
+        /// </remarks>
         public bool SyncNewPresses { get; init; } = true;
 
         public override bool HandleHoverEvents => UseParentInput ? parentInputManager.HandleHoverEvents : base.HandleHoverEvents;
@@ -250,8 +253,12 @@ namespace osu.Framework.Input
 
             if (SyncNewPresses || applyPresses)
             {
-                if (mouseDiff.Pressed.Length > 0)
-                    new MouseButtonInput(mouseDiff.Pressed.Select(button => new ButtonInputEntry<MouseButton>(button, true))).Apply(CurrentState, this);
+                // since we have a flag for syncing new presses, it is expected that we apply mouse button presses as well.
+                // this wasn't the case before the existence of the flag for another reason that's irrelevant here,
+                // but we still cannot apply mouse button presses because it conflicts with the mouse-from-touch logic.
+                // e.g. if a parent input manager does not have a drawable handling touch and transforms touch1 to left mouse,
+                // then this input manager shouldn't apply left mouse, as it may have a drawable handling touch. this is covered in tests.
+
                 foreach (var key in keyDiff.Pressed)
                     new KeyboardKeyInput(key, true).Apply(CurrentState, this);
                 if (touchDiff.activated.Length > 0)

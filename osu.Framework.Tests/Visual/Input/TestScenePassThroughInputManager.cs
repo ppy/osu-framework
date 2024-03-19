@@ -31,11 +31,11 @@ namespace osu.Framework.Tests.Visual.Input
         private ButtonStates<Key> keyboard;
         private ButtonStates<JoystickButton> joystick;
 
-        private void addTestInputManagerStep()
+        private void addTestInputManagerStep(bool syncNewPresses = true)
         {
             AddStep("Add InputManager", () =>
             {
-                testInputManager = new TestInputManager();
+                testInputManager = new TestInputManager { SyncNewPresses = syncNewPresses };
                 Add(testInputManager);
                 state = testInputManager.CurrentState;
                 mouse = state.Mouse.Buttons;
@@ -57,7 +57,7 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("Press A", () => InputManager.PressKey(Key.A));
             AddStep("Press Joystick", () => InputManager.PressJoystickButton(JoystickButton.Button1));
             addTestInputManagerStep();
-            AddAssert("mouse left not pressed", () => !mouse.IsPressed(MouseButton.Left));
+            AddAssert("mouse left pressed", () => mouse.IsPressed(MouseButton.Left));
             AddAssert("A pressed", () => keyboard.IsPressed(Key.A));
             AddAssert("Joystick pressed", () => joystick.IsPressed(JoystickButton.Button1));
             AddStep("Release", () =>
@@ -109,17 +109,17 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Test]
-        public void MouseDownNoSync()
+        public void TestMouseInput()
         {
             addTestInputManagerStep();
             AddStep("UseParentInput = false", () => testInputManager.UseParentInput = false);
             AddStep("Press left", () => InputManager.PressButton(MouseButton.Left));
             AddStep("UseParentInput = true", () => testInputManager.UseParentInput = true);
-            AddAssert("not pressed", () => !mouse.IsPressed(MouseButton.Left));
+            AddAssert("pressed", () => mouse.IsPressed(MouseButton.Left));
         }
 
         [Test]
-        public void NoMouseUp()
+        public void TestNoMouseUp()
         {
             addTestInputManagerStep();
             AddStep("Press left", () => InputManager.PressButton(MouseButton.Left));
@@ -181,6 +181,30 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Test]
+        public void TestTabletButtonInput()
+        {
+            addTestInputManagerStep();
+
+            AddStep("press primary pen button", () => InputManager.PressTabletPenButton(TabletPenButton.Primary));
+            AddStep("press auxiliary button 4", () => InputManager.PressTabletAuxiliaryButton(TabletAuxiliaryButton.Button4));
+
+            AddStep("UseParentInput = false", () => testInputManager.UseParentInput = false);
+
+            AddStep("release primary pen button", () => InputManager.ReleaseTabletPenButton(TabletPenButton.Primary));
+            AddStep("press tertiary pen button", () => InputManager.PressTabletPenButton(TabletPenButton.Tertiary));
+            AddStep("release auxiliary button 4", () => InputManager.ReleaseTabletAuxiliaryButton(TabletAuxiliaryButton.Button4));
+            AddStep("press auxiliary button 2", () => InputManager.PressTabletAuxiliaryButton(TabletAuxiliaryButton.Button2));
+
+            AddStep("UseParentInput = true", () => testInputManager.UseParentInput = true);
+            AddAssert("pen buttons synced properly", () =>
+                !testInputManager.CurrentState.Tablet.PenButtons.Contains(TabletPenButton.Primary)
+                && testInputManager.CurrentState.Tablet.PenButtons.Contains(TabletPenButton.Tertiary));
+            AddAssert("auxiliary buttons synced properly", () =>
+                !testInputManager.CurrentState.Tablet.AuxiliaryButtons.Contains(TabletAuxiliaryButton.Button4)
+                && testInputManager.CurrentState.Tablet.AuxiliaryButtons.Contains(TabletAuxiliaryButton.Button2));
+        }
+
+        [Test]
         public void TestMouseTouchProductionOnPassThrough()
         {
             addTestInputManagerStep();
@@ -218,9 +242,77 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Test]
-        public void TestTabletButtonInput()
+        public void TestKeyInput_DisabledSyncNewPresses()
         {
-            addTestInputManagerStep();
+            addTestInputManagerStep(false);
+            AddStep("UseParentInput = false", () => testInputManager.UseParentInput = false);
+            AddStep("press keyboard", () => InputManager.PressKey(Key.A));
+            AddStep("press mouse", () => InputManager.PressButton(MouseButton.Left));
+            AddAssert("key not pressed", () => !testInputManager.CurrentState.Keyboard.Keys.HasAnyButtonPressed);
+            AddAssert("mouse not pressed", () => !testInputManager.CurrentState.Mouse.Buttons.HasAnyButtonPressed);
+
+            AddStep("UseParentInput = true", () => testInputManager.UseParentInput = true);
+            AddAssert("key still not pressed", () => !testInputManager.CurrentState.Keyboard.Keys.HasAnyButtonPressed);
+            AddAssert("mouse still not pressed", () => !testInputManager.CurrentState.Mouse.Buttons.HasAnyButtonPressed);
+
+            AddStep("release keyboard", () => InputManager.ReleaseKey(Key.A));
+            AddStep("release mouse", () => InputManager.ReleaseButton(MouseButton.Left));
+            AddAssert("key still not pressed", () => !testInputManager.CurrentState.Keyboard.Keys.HasAnyButtonPressed);
+            AddAssert("mouse still not pressed", () => !testInputManager.CurrentState.Mouse.Buttons.HasAnyButtonPressed);
+        }
+
+        [Test]
+        public void TestMouseInput_DisabledSyncNewPresses()
+        {
+            addTestInputManagerStep(false);
+            AddStep("UseParentInput = false", () => testInputManager.UseParentInput = false);
+            AddStep("Press left", () => InputManager.PressButton(MouseButton.Left));
+            AddStep("UseParentInput = true", () => testInputManager.UseParentInput = true);
+            AddAssert("not pressed", () => !mouse.IsPressed(MouseButton.Left));
+        }
+
+        [Test]
+        public void TestTouchInput_DisabledSyncNewPresses()
+        {
+            addTestInputManagerStep(false);
+            AddStep("begin first touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, Vector2.Zero)));
+            AddAssert("synced properly", () =>
+                testInputManager.CurrentState.Touch.ActiveSources.Single() == TouchSource.Touch1 &&
+                testInputManager.CurrentState.Touch.TouchPositions[(int)TouchSource.Touch1] == Vector2.Zero);
+
+            AddStep("UseParentInput = false", () => testInputManager.UseParentInput = false);
+            AddStep("end first touch", () => InputManager.EndTouch(new Touch(TouchSource.Touch1, Vector2.Zero)));
+            AddStep("begin second touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch2, Vector2.One)));
+
+            AddStep("UseParentInput = true", () => testInputManager.UseParentInput = true);
+            AddAssert("synced release only", () => !testInputManager.CurrentState.Touch.ActiveSources.HasAnyButtonPressed);
+
+            AddStep("end second touch", () => InputManager.EndTouch(new Touch(TouchSource.Touch2, new Vector2(2))));
+            AddAssert("synced release only", () => !testInputManager.CurrentState.Touch.ActiveSources.HasAnyButtonPressed);
+        }
+
+        [Test]
+        public void TestMidiInput_DisabledSyncNewPresses()
+        {
+            addTestInputManagerStep(false);
+
+            AddStep("press C3", () => InputManager.PressMidiKey(MidiKey.C3, 70));
+            AddAssert("synced properly", () =>
+                testInputManager.CurrentState.Midi.Keys.IsPressed(MidiKey.C3)
+                && testInputManager.CurrentState.Midi.Velocities[MidiKey.C3] == 70);
+
+            AddStep("UseParentInput = false", () => testInputManager.UseParentInput = false);
+            AddStep("release C3", () => InputManager.ReleaseMidiKey(MidiKey.C3, 40));
+            AddStep("press F#3", () => InputManager.PressMidiKey(MidiKey.FSharp3, 65));
+
+            AddStep("UseParentInput = true", () => testInputManager.UseParentInput = true);
+            AddAssert("synced release only", () => !testInputManager.CurrentState.Midi.Keys.HasAnyButtonPressed);
+        }
+
+        [Test]
+        public void TestTabletButtonInput_DisabledSyncNewPresses()
+        {
+            addTestInputManagerStep(false);
 
             AddStep("press primary pen button", () => InputManager.PressTabletPenButton(TabletPenButton.Primary));
             AddStep("press auxiliary button 4", () => InputManager.PressTabletAuxiliaryButton(TabletAuxiliaryButton.Button4));
@@ -233,12 +325,8 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("press auxiliary button 2", () => InputManager.PressTabletAuxiliaryButton(TabletAuxiliaryButton.Button2));
 
             AddStep("UseParentInput = true", () => testInputManager.UseParentInput = true);
-            AddAssert("pen buttons synced properly", () =>
-                !testInputManager.CurrentState.Tablet.PenButtons.Contains(TabletPenButton.Primary)
-                && testInputManager.CurrentState.Tablet.PenButtons.Contains(TabletPenButton.Tertiary));
-            AddAssert("auxiliary buttons synced properly", () =>
-                !testInputManager.CurrentState.Tablet.AuxiliaryButtons.Contains(TabletAuxiliaryButton.Button4)
-                && testInputManager.CurrentState.Tablet.AuxiliaryButtons.Contains(TabletAuxiliaryButton.Button2));
+            AddAssert("synced release only", () => !testInputManager.CurrentState.Tablet.PenButtons.HasAnyButtonPressed);
+            AddAssert("auxiliary buttons synced release only", () => !testInputManager.CurrentState.Tablet.AuxiliaryButtons.HasAnyButtonPressed);
         }
 
         public partial class TestInputManager : ManualInputManager
