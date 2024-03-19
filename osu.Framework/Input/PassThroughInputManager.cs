@@ -48,6 +48,12 @@ namespace osu.Framework.Input
 
         private bool useParentInput = true;
 
+        /// <summary>
+        /// Whether to synchronise newly pressed buttons on <see cref="Sync"/>.
+        /// Pressed buttons are still synchronised at the point of loading the input manager.
+        /// </summary>
+        public bool SyncNewPresses { get; init; } = true;
+
         public override bool HandleHoverEvents => UseParentInput ? parentInputManager.HandleHoverEvents : base.HandleHoverEvents;
 
         internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
@@ -218,22 +224,16 @@ namespace osu.Framework.Input
 
             if (mouseDiff.Released.Length > 0)
                 new MouseButtonInput(mouseDiff.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false))).Apply(CurrentState, this);
-
             foreach (var key in keyDiff.Released)
                 new KeyboardKeyInput(key, false).Apply(CurrentState, this);
-
             if (touchDiff.deactivated.Length > 0)
                 new TouchInput(touchDiff.deactivated, false).Apply(CurrentState, this);
-
             foreach (var button in joyButtonDiff.Released)
                 new JoystickButtonInput(button, false).Apply(CurrentState, this);
-
             foreach (var key in midiDiff.Released)
                 new MidiKeyInput(key, state?.Midi?.Velocities.GetValueOrDefault(key) ?? 0, false).Apply(CurrentState, this);
-
             foreach (var button in tabletPenDiff.Released)
                 new TabletPenButtonInput(button, false).Apply(CurrentState, this);
-
             foreach (var button in tabletAuxiliaryDiff.Released)
                 new TabletAuxiliaryButtonInput(button, false).Apply(CurrentState, this);
 
@@ -248,7 +248,7 @@ namespace osu.Framework.Input
                 }
             }
 
-            if (applyPresses)
+            if (SyncNewPresses || applyPresses)
             {
                 if (mouseDiff.Pressed.Length > 0)
                     new MouseButtonInput(mouseDiff.Pressed.Select(button => new ButtonInputEntry<MouseButton>(button, true))).Apply(CurrentState, this);
