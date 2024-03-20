@@ -718,14 +718,10 @@ namespace osu.Framework.Graphics.Containers
         {
             bool anyAliveChanged = false;
 
-            for (int i = 0; i < internalChildren.Count; i++)
+            for (int i = internalChildren.Count - 1; i >= 0; i--)
             {
                 var state = checkChildLife(internalChildren[i]);
-
                 anyAliveChanged |= state.HasFlagFast(ChildLifeStateChange.MadeAlive) || state.HasFlagFast(ChildLifeStateChange.MadeDead);
-
-                if (state.HasFlagFast(ChildLifeStateChange.Removed))
-                    i--;
             }
 
             FrameStatistics.Add(StatisticsCounterType.CCL, internalChildren.Count);
