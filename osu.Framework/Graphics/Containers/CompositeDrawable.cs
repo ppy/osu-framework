@@ -719,10 +719,7 @@ namespace osu.Framework.Graphics.Containers
             bool anyAliveChanged = false;
 
             for (int i = internalChildren.Count - 1; i >= 0; i--)
-            {
-                var state = checkChildLife(internalChildren[i]);
-                anyAliveChanged |= state.HasFlagFast(ChildLifeStateChange.MadeAlive) || state.HasFlagFast(ChildLifeStateChange.MadeDead);
-            }
+                anyAliveChanged |= checkChildLife(internalChildren[i]);
 
             FrameStatistics.Add(StatisticsCounterType.CCL, internalChildren.Count);
 
@@ -739,47 +736,32 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="child">The child to check.</param>
         /// <returns>Whether the child's alive state has changed.</returns>
-        private ChildLifeStateChange checkChildLife(Drawable child)
+        private bool checkChildLife(Drawable child)
         {
-            ChildLifeStateChange state = ChildLifeStateChange.None;
-
             if (child.ShouldBeAlive)
             {
-                if (!child.IsAlive)
+                if (child.IsAlive)
+                    return false;
+
+                if (child.LoadState < LoadState.Ready)
                 {
+                    // If we're already loaded, we can eagerly allow children to be loaded
+                    loadChild(child);
                     if (child.LoadState < LoadState.Ready)
-                    {
-                        // If we're already loaded, we can eagerly allow children to be loaded
-                        loadChild(child);
-                        if (child.LoadState < LoadState.Ready)
-                            return ChildLifeStateChange.None;
-                    }
-
-                    MakeChildAlive(child);
-                    state = ChildLifeStateChange.MadeAlive;
+                        return false;
                 }
+
+                MakeChildAlive(child);
+                return true;
             }
-            else
+
+            if (child.IsAlive || child.RemoveWhenNotAlive)
             {
-                if (child.IsAlive || child.RemoveWhenNotAlive)
-                {
-                    if (MakeChildDead(child))
-                        state |= ChildLifeStateChange.Removed;
-
-                    state |= ChildLifeStateChange.MadeDead;
-                }
+                MakeChildDead(child);
+                return true;
             }
 
-            return state;
-        }
-
-        [Flags]
-        private enum ChildLifeStateChange
-        {
-            None = 0,
-            MadeAlive = 1,
-            MadeDead = 1 << 1,
-            Removed = 1 << 2,
+            return false;
         }
 
         /// <summary>
