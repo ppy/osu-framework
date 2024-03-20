@@ -208,10 +208,22 @@ namespace osu.Framework.Graphics.UserInterface
 
             Current.BindValueChanged(v =>
             {
-                if (v.NewValue != null && tabMap.TryGetValue(v.NewValue, out var found))
-                    updateSelectedTab(found);
-                else
-                    updateSelectedTab(null);
+                TabItem<T> tab = null;
+
+                if (v.NewValue != null)
+                    tabMap.TryGetValue(v.NewValue, out tab);
+
+                // Only reorder if not pinned and not showing
+                if (AutoSort && tab != null && !tab.IsPresent && !tab.Pinned)
+                    performTabSort(tab);
+
+                // Deactivate previously selected tab
+                if (SelectedTab != null && SelectedTab != tab) SelectedTab.Active.Value = false;
+
+                SelectedTab = tab;
+
+                if (SelectedTab != null)
+                    SelectedTab.Active.Value = true;
             }, true);
 
             // TabContainer doesn't have valid layout yet, so TabItems all have y=0 and selectTab() didn't call performTabSort() so we call it here instead
@@ -263,7 +275,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public void Clear() => Items = Array.Empty<T>();
 
-        private TabItem<T> addTab(T value, bool addToDropdown = true)
+        private void addTab(T value, bool addToDropdown = true)
         {
             // Do not allow duplicate adding
             if (tabMap.ContainsKey(value))
@@ -271,16 +283,14 @@ namespace osu.Framework.Graphics.UserInterface
 
             var tab = CreateTabItem(value);
             AddTabItem(tab, addToDropdown);
-
-            return tab;
         }
 
         private void removeTab(T value, bool removeFromDropdown = true)
         {
-            if (!tabMap.ContainsKey(value))
+            if (!tabMap.TryGetValue(value, out var tab))
                 throw new InvalidOperationException($"Item {value} doesn't exist in this {nameof(TabControl<T>)}.");
 
-            RemoveTabItem(tabMap[value], removeFromDropdown);
+            RemoveTabItem(tab, removeFromDropdown);
         }
 
         /// <summary>
@@ -383,21 +393,6 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        private void updateSelectedTab(TabItem<T> tab)
-        {
-            // Only reorder if not pinned and not showing
-            if (AutoSort && tab != null && !tab.IsPresent && !tab.Pinned)
-                performTabSort(tab);
-
-            // Deactivate previously selected tab
-            if (SelectedTab != null && SelectedTab != tab) SelectedTab.Active.Value = false;
-
-            SelectedTab = tab;
-
-            if (SelectedTab != null)
-                SelectedTab.Active.Value = true;
-        }
-
         /// <summary>
         /// Switches the currently selected tab forward or backward one index, optionally wrapping.
         /// </summary>
@@ -413,8 +408,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (Math.Abs(direction) != 1) throw new ArgumentException("value must be -1 or 1", nameof(direction));
 
-            var lastTab = SelectedTab;
-
             // the current selected tab may be an non-switchable tab, so search all tabs for a candidate.
             // this is done to ensure ordering (ie. if an non-switchable tab is in the middle).
             var allTabs = TabContainer.AllTabItems.Where(t => t.IsSwitchable || t == SelectedTab);
@@ -427,10 +420,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (found == null && wrap)
                 found = allTabs.FirstOrDefault(t => t != SelectedTab);
 
-            if (found != null)
-                selectTab(found);
-
-            return SelectedTab != lastTab;
+            return found != null && selectTab(found);
         }
 
         private void activationRequested(TabItem<T> tab)
