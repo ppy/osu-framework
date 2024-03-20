@@ -376,11 +376,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         private bool selectTab(TabItem<T> tab)
         {
-            var lastTab = SelectedTab;
+            if (tab == SelectedTab)
+                return false;
 
-            updateSelectedTab(tab);
-            Current.Value = SelectedTab != null ? SelectedTab.Value : default;
-            return SelectedTab != lastTab;
+            Current.Value = tab != null ? tab.Value : default;
+            return true;
         }
 
         private void updateSelectedTab(TabItem<T> tab)
