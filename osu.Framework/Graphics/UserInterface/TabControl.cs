@@ -384,15 +384,6 @@ namespace osu.Framework.Graphics.UserInterface
                 OnUserTabSelectionChanged(tab);
         }
 
-        private bool selectTab(TabItem<T> tab)
-        {
-            if (tab == SelectedTab)
-                return false;
-
-            Current.Value = tab != null ? tab.Value : default;
-            return true;
-        }
-
         /// <summary>
         /// Switches the currently selected tab forward or backward one index, optionally wrapping.
         /// </summary>
@@ -421,6 +412,15 @@ namespace osu.Framework.Graphics.UserInterface
                 found = allTabs.FirstOrDefault(t => t != SelectedTab);
 
             return found != null && selectTab(found);
+        }
+
+        private bool selectTab(TabItem<T> tab)
+        {
+            if (tab == SelectedTab)
+                return false;
+
+            Current.Value = tab != null ? tab.Value : default;
+            return true;
         }
 
         private void activationRequested(TabItem<T> tab)
