@@ -352,9 +352,10 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Selects a <see cref="TabItem{T}"/> and signals an event that the user selected the given tab value via <see cref="OnUserTabSelectionChanged"/>.
+        /// Selects the tab representing the provided item.
         /// </summary>
         /// <param name="item">The item to select.</param>
+        /// <exception cref="InvalidOperationException">Thrown when the provided item doesn't exist in the tab control.</exception>
         public void SelectItem(T item)
         {
             if (!tabMap.TryGetValue(item, out var tab))
