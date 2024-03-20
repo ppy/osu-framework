@@ -403,11 +403,9 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="direction">Pass 1 to move to the next tab, or -1 to move to the previous tab.</param>
         /// <param name="wrap">If <c>true</c>, moving past the start or the end of the tab list will wrap to the opposite end.</param>
-        public virtual void SwitchTab(int direction, bool wrap = true)
+        public void SwitchTab(int direction, bool wrap = true)
         {
-            bool changed = switchTab(direction, wrap);
-
-            if (changed)
+            if (switchTab(direction, wrap))
                 OnUserTabSelectionChanged(SelectedTab);
         }
 
