@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Testing;
@@ -117,7 +119,24 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             public readonly Queue<TabItem<TestEnum>> UserTabSelectionChangedQueue = new Queue<TabItem<TestEnum>>();
 
-            protected override void OnUserTabSelectionChanged(TabItem<TestEnum> item) => UserTabSelectionChangedQueue.Enqueue(item);
+            private Box background = null!;
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                AddInternal(background = new Box
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Colour = FrameworkColour.YellowGreen,
+                    Alpha = 0,
+                });
+            }
+
+            protected override void OnUserTabSelectionChanged(TabItem<TestEnum> item)
+            {
+                UserTabSelectionChangedQueue.Enqueue(item);
+                background.FadeOutFromOne(500);
+            }
         }
 
         private enum TestEnum
