@@ -5,7 +5,6 @@
 
 using System.Linq;
 using NUnit.Framework;
-using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
@@ -870,7 +869,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private partial class NumberTextBox : BasicTextBox
         {
-            protected override bool CanAddCharacter(char character) => character.IsAsciiDigit();
+            protected override bool CanAddCharacter(char character) => char.IsAsciiDigit(character);
 
             protected override bool AllowIme => false;
         }

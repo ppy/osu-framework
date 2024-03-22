@@ -18,7 +18,7 @@ namespace osu.Framework.Bindables
 
         public override void Parse(object? input, IFormatProvider provider)
         {
-            if (input == null) throw new ArgumentNullException(nameof(input));
+            ArgumentNullException.ThrowIfNull(input);
 
             switch (input)
             {

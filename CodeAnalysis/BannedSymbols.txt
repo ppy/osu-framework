@@ -12,3 +12,4 @@ M:System.Char.ToLower(System.Char);char.ToLower() changes behaviour depending on
 M:System.Char.ToUpper(System.Char);char.ToUpper() changes behaviour depending on CultureInfo.CurrentCulture. Use char.ToUpperInvariant() instead. If wanting culture-sensitive behaviour, explicitly provide CultureInfo.CurrentCulture.
 M:System.String.ToLower();string.ToLower() changes behaviour depending on CultureInfo.CurrentCulture. Use string.ToLowerInvariant() instead. If wanting culture-sensitive behaviour, explicitly provide CultureInfo.CurrentCulture or use LocalisableString.
 M:System.String.ToUpper();string.ToUpper() changes behaviour depending on CultureInfo.CurrentCulture. Use string.ToUpperInvariant() instead. If wanting culture-sensitive behaviour, explicitly provide CultureInfo.CurrentCulture or use LocalisableString.
+M:System.Reflection.Assembly.GetEntryAssembly();Use osu.Framework.RuntimeInfo.EntryAssembly instead

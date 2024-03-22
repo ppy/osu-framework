@@ -139,7 +139,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private readonly Cached cellContent = new Cached();
-        private readonly LayoutValue cellLayout = new LayoutValue(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit);
+        private readonly LayoutValue cellLayout = new LayoutValue(Invalidation.DrawSize);
         private readonly LayoutValue cellChildLayout = new LayoutValue(Invalidation.RequiredParentSizeToFit | Invalidation.Presence, InvalidationSource.Child);
 
         private CellContainer[,] cells = new CellContainer[0, 0];
@@ -420,11 +420,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="maxSize">The maximum size of this row or column.</param>
         public Dimension(GridSizeMode mode = GridSizeMode.Distributed, float size = 0, float minSize = 0, float maxSize = float.MaxValue)
         {
-            if (minSize < 0)
-                throw new ArgumentOutOfRangeException(nameof(minSize), "Must be greater than 0.");
-
-            if (minSize > maxSize)
-                throw new ArgumentOutOfRangeException(nameof(minSize), $"Must be less than {nameof(maxSize)}.");
+            ArgumentOutOfRangeException.ThrowIfNegative(minSize);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(minSize, maxSize);
 
             Mode = mode;
             Size = size;

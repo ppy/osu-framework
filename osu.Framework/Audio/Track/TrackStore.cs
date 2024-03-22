@@ -33,7 +33,7 @@ namespace osu.Framework.Audio.Track
 
         public Track GetVirtual(double length = double.PositiveInfinity, string name = "virtual")
         {
-            if (IsDisposed) throw new ObjectDisposedException($"Cannot retrieve items for an already disposed {nameof(TrackStore)}");
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
             var track = new TrackVirtual(length, name);
             AddItem(track);
@@ -42,7 +42,7 @@ namespace osu.Framework.Audio.Track
 
         public Track Get(string name)
         {
-            if (IsDisposed) throw new ObjectDisposedException($"Cannot retrieve items for an already disposed {nameof(TrackStore)}");
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
             if (string.IsNullOrEmpty(name)) return null;
 
