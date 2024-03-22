@@ -597,7 +597,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private int getCharacterClosestTo(Vector2 pos)
         {
-            pos = Parent.ToSpaceOfOtherDrawable(pos, TextFlow);
+            pos = Parent!.ToSpaceOfOtherDrawable(pos, TextFlow);
 
             int i = 0;
 

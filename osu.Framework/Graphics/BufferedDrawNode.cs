@@ -150,7 +150,7 @@ namespace osu.Framework.Graphics
 
             frameBuffer.Bind();
 
-            return new ValueInvokeOnDisposal<IFrameBuffer>(frameBuffer, b => b.Unbind());
+            return new ValueInvokeOnDisposal<IFrameBuffer>(frameBuffer, static b => b.Unbind());
         }
 
         private IDisposable establishFrameBufferViewport(IRenderer renderer)
@@ -175,7 +175,7 @@ namespace osu.Framework.Graphics
             renderer.PushScissor(new RectangleI(0, 0, (int)frameBufferSize.X, (int)frameBufferSize.Y));
             renderer.PushScissorOffset(screenSpaceMaskingRect.Location);
 
-            return new ValueInvokeOnDisposal<(BufferedDrawNode node, IRenderer renderer)>((this, renderer), tup => tup.node.returnViewport(tup.renderer));
+            return new ValueInvokeOnDisposal<(BufferedDrawNode node, IRenderer renderer)>((this, renderer), static tup => tup.node.returnViewport(tup.renderer));
         }
 
         private void returnViewport(IRenderer renderer)

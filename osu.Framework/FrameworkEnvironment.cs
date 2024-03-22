@@ -17,6 +17,7 @@ namespace osu.Framework
         public static int? StagingBufferType { get; }
         public static int? VertexBufferCount { get; }
         public static bool NoStructuredBuffers { get; }
+        public static string? DeferredRendererEventsOutputPath { get; }
 
         static FrameworkEnvironment()
         {
@@ -34,6 +35,8 @@ namespace osu.Framework
                 StagingBufferType = stagingBufferImplementation;
 
             NoStructuredBuffers = parseBool(Environment.GetEnvironmentVariable("OSU_GRAPHICS_NO_SSBO")) ?? false;
+
+            DeferredRendererEventsOutputPath = Environment.GetEnvironmentVariable("DEFERRED_RENDERER_EVENTS_OUTPUT");
         }
 
         private static bool? parseBool(string? value)

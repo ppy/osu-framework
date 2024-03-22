@@ -71,6 +71,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.SourceGenerat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.SourceGeneration.Tests", "osu.Framework.SourceGeneration.Tests\osu.Framework.SourceGeneration.Tests.csproj", "{A0DDCF0A-A352-4CC6-8E6E-0E16CAA50CDD}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CodeAnalysis", "CodeAnalysis", "{50334A1F-990D-45FA-A1FE-C92F1994D97B}"
+	ProjectSection(SolutionItems) = preProject
+		CodeAnalysis\BannedSymbols.txt = CodeAnalysis\BannedSymbols.txt
+		CodeAnalysis\osu-framework.ruleset = CodeAnalysis\osu-framework.ruleset
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -386,5 +392,6 @@ Global
 		{0309CF11-621A-4F23-8FBA-A583303A8531} = {139F6FAA-EF59-4ADC-A69B-33CA7D1C1D4E}
 		{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB} = {5307589D-87A1-459B-BBD2-1077AA25EB1E}
 		{48783186-230D-4048-A97A-E4F1DF43BF5C} = {139F6FAA-EF59-4ADC-A69B-33CA7D1C1D4E}
+		{50334A1F-990D-45FA-A1FE-C92F1994D97B} = {D29A2153-C171-457E-A147-720976BA430F}
 	EndGlobalSection
 EndGlobal

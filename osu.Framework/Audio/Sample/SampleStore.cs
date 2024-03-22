@@ -38,7 +38,7 @@ namespace osu.Framework.Audio.Sample
 
         public Sample Get(string name)
         {
-            if (IsDisposed) throw new ObjectDisposedException($"Cannot retrieve items for an already disposed {nameof(SampleStore)}");
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
             if (string.IsNullOrEmpty(name)) return null;
 

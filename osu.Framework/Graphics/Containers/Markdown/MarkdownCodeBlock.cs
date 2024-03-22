@@ -9,23 +9,32 @@ using osuTK.Graphics;
 namespace osu.Framework.Graphics.Containers.Markdown
 {
     /// <summary>
-    /// Visualises a fenced code block.
+    /// Visualises an indented/fenced code block.
     /// </summary>
     /// <code>
     /// ```
-    /// code
+    /// code1
+    /// code2
+    /// code3
     /// ```
     /// </code>
-    public partial class MarkdownFencedCodeBlock : CompositeDrawable, IMarkdownTextFlowComponent
+    /// <code>
+    ///
+    ///     code1
+    ///     code2
+    ///     code3
+    ///
+    /// </code>
+    public partial class MarkdownCodeBlock : CompositeDrawable, IMarkdownTextFlowComponent
     {
-        private readonly FencedCodeBlock fencedCodeBlock;
+        private readonly CodeBlock codeBlock;
 
         [Resolved]
         private IMarkdownTextFlowComponent parentFlowComponent { get; set; } = null!;
 
-        public MarkdownFencedCodeBlock(FencedCodeBlock fencedCodeBlock)
+        public MarkdownCodeBlock(CodeBlock codeBlock)
         {
-            this.fencedCodeBlock = fencedCodeBlock;
+            this.codeBlock = codeBlock;
 
             AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;
@@ -42,8 +51,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
             };
 
             // Markdig sometimes appends empty lines to the processed block, only add original lines to the container
-            for (int i = 0; i < fencedCodeBlock.Lines.Count; i++)
-                textFlowContainer.AddParagraph(fencedCodeBlock.Lines.Lines[i].ToString());
+            for (int i = 0; i < codeBlock.Lines.Count; i++)
+                textFlowContainer.AddParagraph(codeBlock.Lines.Lines[i].ToString());
         }
 
         protected virtual Drawable CreateBackground() => new Box

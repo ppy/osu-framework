@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup Label="Project">
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyTitle>osu!framework</AssemblyTitle>
@@ -28,11 +28,11 @@
     <PackageReference Include="ppy.ManagedBass.Fx" Version="2022.1216.0" />
     <PackageReference Include="ppy.ManagedBass.Mix" Version="2022.1216.0" />
     <PackageReference Include="ppy.ManagedBass.Wasapi" Version="2022.1216.0" />
-    <PackageReference Include="ppy.Veldrid" Version="4.9.3-g91ce5a6cda" />
+    <PackageReference Include="ppy.Veldrid" Version="4.9.9-ga61b647961" />
     <PackageReference Include="ppy.Veldrid.SPIRV" Version="1.0.15-gca6cec7843" />
     <PackageReference Include="SharpFNT" Version="2.0.0" />
     <!-- Preview version of ImageSharp causes NU5104. -->
-    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.3" />
     <PackageReference Include="NUnit" Version="3.13.3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OpenTabletDriver" Version="0.6.4.0" />

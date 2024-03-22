@@ -63,7 +63,7 @@ namespace osu.Framework.Extensions
         public static byte[] ReadBytesToArray(this Stream stream, int length)
         {
             byte[] bytes = new byte[length];
-            stream.ReadToFill(bytes);
+            stream.ReadExactly(bytes);
             return bytes;
         }
 
@@ -78,7 +78,7 @@ namespace osu.Framework.Extensions
         public static async Task<byte[]> ReadBytesToArrayAsync(this Stream stream, int length, CancellationToken cancellationToken = default)
         {
             byte[] bytes = new byte[length];
-            await stream.ReadToFillAsync(bytes, cancellationToken).ConfigureAwait(false);
+            await stream.ReadExactlyAsync(bytes, cancellationToken).ConfigureAwait(false);
             return bytes;
         }
 
@@ -117,19 +117,8 @@ namespace osu.Framework.Extensions
         /// <param name="stream">The stream to read.</param>
         /// <param name="buffer">The buffer to read into.</param>
         /// <exception cref="EndOfStreamException">Throws if the stream didn't have enough content to fill the buffer.</exception>
-        public static void ReadToFill(this Stream stream, Span<byte> buffer)
-        {
-            Span<byte> remainingBuffer = buffer;
-
-            while (!remainingBuffer.IsEmpty)
-            {
-                int bytesRead = stream.Read(remainingBuffer);
-                remainingBuffer = remainingBuffer[bytesRead..];
-
-                if (bytesRead == 0)
-                    throw new EndOfStreamException();
-            }
-        }
+        [Obsolete("Use Stream.ReadExactly")] // can be removed 20240901
+        public static void ReadToFill(this Stream stream, Span<byte> buffer) => stream.ReadExactly(buffer);
 
         /// <summary>
         /// Reads bytes from a stream until the provided buffer is full.
@@ -138,18 +127,7 @@ namespace osu.Framework.Extensions
         /// <param name="buffer">The buffer to read into.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <exception cref="EndOfStreamException">Throws if the stream didn't have enough content to fill the buffer.</exception>
-        public static async Task ReadToFillAsync(this Stream stream, Memory<byte> buffer, CancellationToken cancellationToken = default)
-        {
-            Memory<byte> remainingBuffer = buffer;
-
-            while (!remainingBuffer.IsEmpty)
-            {
-                int bytesRead = await stream.ReadAsync(remainingBuffer, cancellationToken).ConfigureAwait(false);
-                remainingBuffer = remainingBuffer[bytesRead..];
-
-                if (bytesRead == 0)
-                    throw new EndOfStreamException();
-            }
-        }
+        [Obsolete("Use Stream.ReadExactlyAsync")] // can be removed 20240901
+        public static Task ReadToFillAsync(this Stream stream, Memory<byte> buffer, CancellationToken cancellationToken = default) => stream.ReadExactlyAsync(buffer, cancellationToken).AsTask();
     }
 }

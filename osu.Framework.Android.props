@@ -7,5 +7,6 @@
     <!-- NullabilityInfoContextSupport is disabled by default for Android -->
     <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <NoWarn>$(NoWarn);XA4218</NoWarn>
   </PropertyGroup>
 </Project>

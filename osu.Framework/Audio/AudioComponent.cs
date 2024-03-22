@@ -74,8 +74,7 @@ namespace osu.Framework.Audio
         {
             ThreadSafety.EnsureNotUpdateThread();
 
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not update disposed audio components.");
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
             FrameStatistics.Add(StatisticsCounterType.TasksRun, PendingActions.Count);
             FrameStatistics.Increment(StatisticsCounterType.Components);

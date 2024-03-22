@@ -28,11 +28,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         private readonly int amountVertices;
 
-        public GLLinearBuffer(GLRenderer renderer, int amountVertices, PrimitiveType type, BufferUsageHint usage)
+        public GLLinearBuffer(GLRenderer renderer, int amountVertices, PrimitiveTopology topology, BufferUsageHint usage)
             : base(renderer, amountVertices, usage)
         {
             this.amountVertices = amountVertices;
-            Type = type;
+            Topology = topology;
 
             Debug.Assert(amountVertices <= IRenderer.MAX_VERTICES);
         }
@@ -57,6 +57,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             }
         }
 
-        protected override PrimitiveType Type { get; }
+        protected override PrimitiveTopology Topology { get; }
     }
 }

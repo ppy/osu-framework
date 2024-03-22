@@ -192,8 +192,7 @@ namespace osu.Framework.Graphics.Textures
 
         internal virtual void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? opacity)
         {
-            if (!Available)
-                throw new ObjectDisposedException(ToString(), "Can not set data of a disposed texture.");
+            ObjectDisposedException.ThrowIf(!Available, this);
 
             if (upload.Bounds.Width > NativeTexture.MaxSize || upload.Bounds.Height > NativeTexture.MaxSize)
                 throw new TextureTooLargeForGLException();

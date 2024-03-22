@@ -46,8 +46,7 @@ namespace osu.Framework.Graphics.Audio
             get => resolution;
             set
             {
-                if (value < 0)
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                ArgumentOutOfRangeException.ThrowIfNegative(value);
 
                 if (resolution == value)
                     return;
