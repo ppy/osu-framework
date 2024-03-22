@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +27,8 @@ namespace osu.Framework.Input
     /// </remarks>
     public partial class PassThroughInputManager : CustomInputManager, IRequireHighFrequencyMousePosition
     {
+        private bool useParentInput = true;
+
         /// <summary>
         /// If there's an InputManager above us, decide whether we should use their available state.
         /// </summary>
@@ -42,22 +42,32 @@ namespace osu.Framework.Input
                 useParentInput = value;
 
                 if (UseParentInput)
-                    Sync();
+                    syncReleasedButtons();
             }
         }
 
-        private bool useParentInput = true;
+        private InputManager? parentInputManager;
 
-        /// <summary>
-        /// Whether to synchronise newly pressed buttons on <see cref="Sync"/>.
-        /// Pressed buttons are still synchronised at the point of loading the input manager.
-        /// </summary>
-        /// <remarks>
-        /// This does not apply for mouse buttons.
-        /// </remarks>
-        public bool SyncNewPresses { get; init; } = true;
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
 
-        public override bool HandleHoverEvents => UseParentInput ? parentInputManager.HandleHoverEvents : base.HandleHoverEvents;
+            parentInputManager = GetContainingInputManager();
+            applyInitialState();
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            // this is usually not needed because we're guaranteed to receive release events as long as we have received press events beforehand.
+            // however, we sync our state with parent input manager on load, and we cannot receive release events for those inputs,
+            // therefore we're forced to check every update frame.
+            if (UseParentInput)
+                syncReleasedButtons();
+        }
+
+        public override bool HandleHoverEvents => parentInputManager != null && UseParentInput ? parentInputManager.HandleHoverEvents : base.HandleHoverEvents;
 
         internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
@@ -85,9 +95,7 @@ namespace osu.Framework.Input
             var pendingInputs = base.GetPendingInputs();
 
             if (UseParentInput)
-            {
                 pendingInputs.Clear();
-            }
 
             return pendingInputs;
         }
@@ -104,15 +112,11 @@ namespace osu.Framework.Input
             switch (e)
             {
                 case MouseDownEvent mouseDown:
-                    // safe-guard for edge cases.
-                    if (!CurrentState.Mouse.IsPressed(mouseDown.Button))
-                        new MouseButtonInput(mouseDown.Button, true).Apply(CurrentState, this);
+                    new MouseButtonInput(mouseDown.Button, true).Apply(CurrentState, this);
                     break;
 
                 case MouseUpEvent mouseUp:
-                    // safe-guard for edge cases.
-                    if (CurrentState.Mouse.IsPressed(mouseUp.Button))
-                        new MouseButtonInput(mouseUp.Button, false).Apply(CurrentState, this);
+                    new MouseButtonInput(mouseUp.Button, false).Apply(CurrentState, this);
                     break;
 
                 case MouseMoveEvent mouseMove:
@@ -125,9 +129,10 @@ namespace osu.Framework.Input
                     break;
 
                 case KeyDownEvent keyDown:
-                    if (!keyDown.Repeat)
-                        new KeyboardKeyInput(keyDown.Key, true).Apply(CurrentState, this);
+                    if (keyDown.Repeat)
+                        return false;
 
+                    new KeyboardKeyInput(keyDown.Key, true).Apply(CurrentState, this);
                     break;
 
                 case KeyUpEvent keyUp:
@@ -178,52 +183,53 @@ namespace osu.Framework.Input
             return false;
         }
 
-        private InputManager parentInputManager;
-
-        protected override void LoadComplete()
+        private void applyInitialState()
         {
-            base.LoadComplete();
-            Sync(applyPresses: true);
+            if (parentInputManager == null)
+                return;
+
+            var parentState = parentInputManager.CurrentState;
+            var mouseDiff = (parentState?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
+            var keyDiff = (parentState?.Keyboard.Keys ?? new ButtonStates<Key>()).EnumerateDifference(CurrentState.Keyboard.Keys);
+            var touchDiff = (parentState?.Touch ?? new TouchState()).EnumerateDifference(CurrentState.Touch);
+            var joyButtonDiff = (parentState?.Joystick?.Buttons ?? new ButtonStates<JoystickButton>()).EnumerateDifference(CurrentState.Joystick.Buttons);
+            var midiDiff = (parentState?.Midi?.Keys ?? new ButtonStates<MidiKey>()).EnumerateDifference(CurrentState.Midi.Keys);
+            var tabletPenDiff = (parentState?.Tablet?.PenButtons ?? new ButtonStates<TabletPenButton>()).EnumerateDifference(CurrentState.Tablet.PenButtons);
+            var tabletAuxiliaryDiff = (parentState?.Tablet?.AuxiliaryButtons ?? new ButtonStates<TabletAuxiliaryButton>()).EnumerateDifference(CurrentState.Tablet.AuxiliaryButtons);
+
+            // we should not read mouse button presses from parent as the source of those presses may originate from touch.
+            // e.g. if a parent input manager does not have a drawable handling touch and transforms touch1 to left mouse,
+            // then this input manager shouldn't apply left mouse, as it may have a drawable handling touch. this is covered in tests.
+
+            foreach (var key in keyDiff.Pressed)
+                new KeyboardKeyInput(key, true).Apply(CurrentState, this);
+            if (touchDiff.deactivated.Length > 0)
+                new TouchInput(touchDiff.deactivated, true).Apply(CurrentState, this);
+            foreach (var button in joyButtonDiff.Pressed)
+                new JoystickButtonInput(button, true).Apply(CurrentState, this);
+            foreach (var key in midiDiff.Pressed)
+                new MidiKeyInput(key, parentState?.Midi?.Velocities.GetValueOrDefault(key) ?? 0, true).Apply(CurrentState, this);
+            foreach (var button in tabletPenDiff.Pressed)
+                new TabletPenButtonInput(button, true).Apply(CurrentState, this);
+            foreach (var button in tabletAuxiliaryDiff.Pressed)
+                new TabletAuxiliaryButtonInput(button, true).Apply(CurrentState, this);
+
+            syncJoystickAxes();
         }
 
-        protected override void Update()
+        private void syncReleasedButtons()
         {
-            base.Update();
+            if (parentInputManager == null)
+                return;
 
-            // Some non-positional events are blocked. Sync every frame.
-            if (UseParentInput) Sync(true);
-        }
-
-        /// <summary>
-        /// Sync input state to parent <see cref="InputManager"/>'s <see cref="InputState"/>.
-        /// Call this when parent <see cref="InputManager"/> changed somehow.
-        /// </summary>
-        /// <param name="useCachedParentInputManager">If this is false, assume parent input manager is unchanged from before.</param>
-        /// <param name="applyPresses">Whether to also apply press inputs for buttons that are shown to be pressed in the parent input manager.</param>
-        public void Sync(bool useCachedParentInputManager = false, bool applyPresses = false)
-        {
-            if (!UseParentInput) return;
-
-            if (!useCachedParentInputManager)
-                parentInputManager = GetContainingInputManager();
-
-            SyncInputState(parentInputManager?.CurrentState, applyPresses);
-        }
-
-        /// <summary>
-        /// Sync current state to a certain state.
-        /// </summary>
-        /// <param name="state">The state to synchronise current with. If this is null, it is regarded as an empty state.</param>
-        /// <param name="applyPresses">Whether to also apply press inputs for buttons that are shown to be pressed in the parent input manager.</param>
-        protected virtual void SyncInputState(InputState state, bool applyPresses)
-        {
-            var mouseDiff = (state?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
-            var keyDiff = (state?.Keyboard.Keys ?? new ButtonStates<Key>()).EnumerateDifference(CurrentState.Keyboard.Keys);
-            var touchDiff = (state?.Touch ?? new TouchState()).EnumerateDifference(CurrentState.Touch);
-            var joyButtonDiff = (state?.Joystick?.Buttons ?? new ButtonStates<JoystickButton>()).EnumerateDifference(CurrentState.Joystick.Buttons);
-            var midiDiff = (state?.Midi?.Keys ?? new ButtonStates<MidiKey>()).EnumerateDifference(CurrentState.Midi.Keys);
-            var tabletPenDiff = (state?.Tablet?.PenButtons ?? new ButtonStates<TabletPenButton>()).EnumerateDifference(CurrentState.Tablet.PenButtons);
-            var tabletAuxiliaryDiff = (state?.Tablet?.AuxiliaryButtons ?? new ButtonStates<TabletAuxiliaryButton>()).EnumerateDifference(CurrentState.Tablet.AuxiliaryButtons);
+            var parentState = parentInputManager.CurrentState;
+            var mouseDiff = (parentState?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
+            var keyDiff = (parentState?.Keyboard.Keys ?? new ButtonStates<Key>()).EnumerateDifference(CurrentState.Keyboard.Keys);
+            var touchDiff = (parentState?.Touch ?? new TouchState()).EnumerateDifference(CurrentState.Touch);
+            var joyButtonDiff = (parentState?.Joystick?.Buttons ?? new ButtonStates<JoystickButton>()).EnumerateDifference(CurrentState.Joystick.Buttons);
+            var midiDiff = (parentState?.Midi?.Keys ?? new ButtonStates<MidiKey>()).EnumerateDifference(CurrentState.Midi.Keys);
+            var tabletPenDiff = (parentState?.Tablet?.PenButtons ?? new ButtonStates<TabletPenButton>()).EnumerateDifference(CurrentState.Tablet.PenButtons);
+            var tabletAuxiliaryDiff = (parentState?.Tablet?.AuxiliaryButtons ?? new ButtonStates<TabletAuxiliaryButton>()).EnumerateDifference(CurrentState.Tablet.AuxiliaryButtons);
 
             if (mouseDiff.Released.Length > 0)
                 new MouseButtonInput(mouseDiff.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false))).Apply(CurrentState, this);
@@ -234,43 +240,31 @@ namespace osu.Framework.Input
             foreach (var button in joyButtonDiff.Released)
                 new JoystickButtonInput(button, false).Apply(CurrentState, this);
             foreach (var key in midiDiff.Released)
-                new MidiKeyInput(key, state?.Midi?.Velocities.GetValueOrDefault(key) ?? 0, false).Apply(CurrentState, this);
+                new MidiKeyInput(key, parentState?.Midi?.Velocities.GetValueOrDefault(key) ?? 0, false).Apply(CurrentState, this);
             foreach (var button in tabletPenDiff.Released)
                 new TabletPenButtonInput(button, false).Apply(CurrentState, this);
             foreach (var button in tabletAuxiliaryDiff.Released)
                 new TabletAuxiliaryButtonInput(button, false).Apply(CurrentState, this);
 
+            syncJoystickAxes();
+        }
+
+        private void syncJoystickAxes()
+        {
+            if (parentInputManager == null)
+                return;
+
+            var parentState = parentInputManager.CurrentState;
+
             // Basically only perform the full state diff if we have found that any axis changed.
             // This avoids unnecessary alloc overhead.
             for (int i = 0; i < JoystickState.MAX_AXES; i++)
             {
-                if (state?.Joystick?.AxesValues[i] != CurrentState.Joystick.AxesValues[i])
+                if (parentState?.Joystick?.AxesValues[i] != CurrentState.Joystick.AxesValues[i])
                 {
-                    new JoystickAxisInput(state?.Joystick?.GetAxes() ?? Array.Empty<JoystickAxis>()).Apply(CurrentState, this);
+                    new JoystickAxisInput(parentState?.Joystick?.GetAxes() ?? Array.Empty<JoystickAxis>()).Apply(CurrentState, this);
                     break;
                 }
-            }
-
-            if (SyncNewPresses || applyPresses)
-            {
-                // since we have a flag for syncing new presses, it is expected that we apply mouse button presses as well.
-                // this wasn't the case before the existence of the flag for another reason that's irrelevant here,
-                // but we still cannot apply mouse button presses because it conflicts with the mouse-from-touch logic.
-                // e.g. if a parent input manager does not have a drawable handling touch and transforms touch1 to left mouse,
-                // then this input manager shouldn't apply left mouse, as it may have a drawable handling touch. this is covered in tests.
-
-                foreach (var key in keyDiff.Pressed)
-                    new KeyboardKeyInput(key, true).Apply(CurrentState, this);
-                if (touchDiff.activated.Length > 0)
-                    new TouchInput(touchDiff.activated, true).Apply(CurrentState, this);
-                foreach (var button in joyButtonDiff.Pressed)
-                    new JoystickButtonInput(button, true).Apply(CurrentState, this);
-                foreach (var key in midiDiff.Pressed)
-                    new MidiKeyInput(key, state?.Midi?.Velocities.GetValueOrDefault(key) ?? 0, true).Apply(CurrentState, this);
-                foreach (var button in tabletPenDiff.Pressed)
-                    new TabletPenButtonInput(button, true).Apply(CurrentState, this);
-                foreach (var button in tabletAuxiliaryDiff.Pressed)
-                    new TabletAuxiliaryButtonInput(button, true).Apply(CurrentState, this);
             }
         }
     }
