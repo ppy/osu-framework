@@ -64,20 +64,21 @@ namespace osu.Framework.Audio.Mixing.SDL2
             base.UpdateState();
         }
 
-        // https://github.com/libsdl-org/SDL/blob/SDL2/src/audio/SDL_mixer.c#L292
-        private const float max_vol = 3.402823466e+38F;
-        private const float min_vol = -3.402823466e+38F;
-
-        private void mixAudio(float[] dst, float[] src, int samples, float left, float right)
+        private unsafe void mixAudio(float* dst, float* src, ref int filled, int samples, float left, float right)
         {
             if (left <= 0 && right <= 0)
                 return;
 
             for (int i = 0; i < samples; i++)
-                dst[i] = Math.Clamp(src[i] * ((i % 2) == 0 ? left : right) + dst[i], min_vol, max_vol);
+                *(dst + i) = (*(src + i) * ((i % 2) == 0 ? left : right)) + (i < filled ? *(dst + i) : 0);
+
+            if (samples > filled)
+                filled = samples;
         }
 
         private float[]? ret;
+
+        private float[]? filterArray;
 
         private volatile int channelCount;
 
@@ -85,16 +86,25 @@ namespace osu.Framework.Audio.Mixing.SDL2
         /// Mix <see cref="activeChannels"/> into a float array given as an argument.
         /// </summary>
         /// <param name="data">A float array that audio will be mixed into.</param>
-        public void MixChannelsInto(float[] data)
+        /// <param name="sampleCount">Size of data</param>
+        /// <param name="filledSamples">Count of usable audio samples in data</param>
+        public unsafe void MixChannelsInto(float* data, int sampleCount, ref int filledSamples)
         {
             lock (syncRoot)
             {
-                int sampleCount = data.Length;
                 if (ret == null || sampleCount != ret.Length)
+                {
                     ret = new float[sampleCount];
+                }
 
                 bool useFilters = audioFilters.Count > 0;
-                float[] put = useFilters ? new float[sampleCount] : data;
+
+                if (useFilters && (filterArray == null || filterArray.Length != sampleCount))
+                {
+                    filterArray = new float[sampleCount];
+                }
+
+                int filterArrayFilled = 0;
 
                 var node = activeChannels.First;
 
@@ -115,7 +125,21 @@ namespace osu.Framework.Audio.Mixing.SDL2
                         {
                             var (left, right) = channel.Volume;
 
-                            mixAudio(put, ret, size, left, right);
+                            if (!useFilters)
+                            {
+                                fixed (float* retPtr = ret)
+                                {
+                                    mixAudio(data, retPtr, ref filledSamples, size, left, right);
+                                }
+                            }
+                            else
+                            {
+                                fixed (float* filterArrPtr = filterArray)
+                                fixed (float* retPtr = ret)
+                                {
+                                    mixAudio(filterArrPtr, retPtr, ref filterArrayFilled, size, left, right);
+                                }
+                            }
                         }
                     }
 
@@ -126,16 +150,21 @@ namespace osu.Framework.Audio.Mixing.SDL2
 
                 if (useFilters)
                 {
-                    for (int i = 0; i < sampleCount; i++)
+                    for (int i = 0; i < filterArrayFilled; i++)
                     {
                         foreach (var filter in audioFilters)
                         {
                             if (filter.BiQuadFilter != null)
-                                put[i] = filter.BiQuadFilter.Transform(put[i]);
+                            {
+                                filterArray![i] = filter.BiQuadFilter.Transform(filterArray[i]);
+                            }
                         }
                     }
 
-                    mixAudio(data, put, sampleCount, 1, 1);
+                    fixed (float* filterArrPtr = filterArray)
+                    {
+                        mixAudio(data, filterArrPtr, ref filledSamples, filterArrayFilled, 1, 1);
+                    }
                 }
             }
         }

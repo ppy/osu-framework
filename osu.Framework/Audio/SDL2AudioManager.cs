@@ -130,23 +130,21 @@ namespace osu.Framework.Audio
             }
         }
 
-        private void internalAudioCallback(IntPtr stream, int bufsize)
+        private unsafe void internalAudioCallback(IntPtr stream, int bufsize)
         {
             try
             {
-                float[] main = new float[bufsize / 4];
+                float* main = (float*)stream.ToPointer();
+                int filled = 0;
 
                 foreach (var mixer in sdlMixerList)
                 {
                     if (mixer.IsAlive)
-                        mixer.MixChannelsInto(main);
+                        mixer.MixChannelsInto(main, bufsize / 4, ref filled);
                 }
 
-                unsafe
-                {
-                    fixed (float* mainPtr = main)
-                        Buffer.MemoryCopy(mainPtr, stream.ToPointer(), bufsize, bufsize);
-                }
+                for (; filled < bufsize / 4; filled++)
+                    *(main + filled) = 0;
             }
             catch (Exception e)
             {
