@@ -63,8 +63,7 @@ namespace osu.Framework.Audio.Sample
             return ret;
         }
 
-        private volatile float volume = 1.0f;
-        private volatile float balance;
+        private (float, float) volume = (1.0f, 1.0f);
 
         private double rate = 1.0f;
 
@@ -72,17 +71,15 @@ namespace osu.Framework.Audio.Sample
         {
             base.OnStateChanged();
 
-            volume = (float)AggregateVolume.Value;
-            balance = (float)AggregateBalance.Value;
+            double balance = AggregateBalance.Value;
+            volume = ((float)(AggregateVolume.Value * (balance > 0 ? balance : 1.0)), (float)(AggregateVolume.Value * (balance < 0 ? -balance : 1.0)));
 
             Interlocked.Exchange(ref rate, AggregateFrequency.Value);
         }
 
-        float ISDL2AudioChannel.Volume => volume;
+        (float, float) ISDL2AudioChannel.Volume => volume;
 
         bool ISDL2AudioChannel.Playing => playing;
-
-        float ISDL2AudioChannel.Balance => balance;
 
         ~SampleChannelSDL2()
         {

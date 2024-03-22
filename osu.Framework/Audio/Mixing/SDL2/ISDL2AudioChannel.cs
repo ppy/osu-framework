@@ -23,11 +23,6 @@ namespace osu.Framework.Audio.Mixing.SDL2
         /// <summary>
         /// Mixer uses this as volume, Value should be within 0 and 1.
         /// </summary>
-        float Volume { get; }
-
-        /// <summary>
-        /// Mixer uses this to adjust channel balance. Value should be within -1.0 and 1.0
-        /// </summary>
-        float Balance { get; }
+        (float left, float right) Volume { get; }
     }
 }

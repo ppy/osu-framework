@@ -113,16 +113,7 @@ namespace osu.Framework.Audio.Mixing.SDL2
 
                         if (size > 0)
                         {
-                            float left = 1;
-                            float right = 1;
-
-                            if (channel.Balance < 0)
-                                right += channel.Balance;
-                            else if (channel.Balance > 0)
-                                left -= channel.Balance;
-
-                            right *= channel.Volume;
-                            left *= channel.Volume;
+                            var (left, right) = channel.Volume;
 
                             mixAudio(put, ret, size, left, right);
                         }

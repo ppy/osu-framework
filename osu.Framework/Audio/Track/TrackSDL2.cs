@@ -250,8 +250,7 @@ namespace osu.Framework.Audio.Track
             return ret;
         }
 
-        private volatile float volume = 1.0f;
-        private volatile float balance;
+        private (float, float) volume = (1.0f, 1.0f);
 
         internal override void OnStateChanged()
         {
@@ -268,15 +267,13 @@ namespace osu.Framework.Audio.Track
                 player.Tempo = AggregateTempo.Value;
             }
 
-            volume = (float)AggregateVolume.Value;
-            balance = (float)AggregateBalance.Value;
+            double balance = AggregateBalance.Value;
+            volume = ((float)(AggregateVolume.Value * (balance > 0 ? balance : 1.0)), (float)(AggregateVolume.Value * (balance < 0 ? -balance : 1.0)));
         }
 
         bool ISDL2AudioChannel.Playing => isRunning && !player.Done;
 
-        float ISDL2AudioChannel.Volume => volume;
-
-        float ISDL2AudioChannel.Balance => balance;
+        (float, float) ISDL2AudioChannel.Volume => volume;
 
         ~TrackSDL2()
         {
