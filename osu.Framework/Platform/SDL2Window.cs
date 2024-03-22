@@ -186,7 +186,7 @@ namespace osu.Framework.Platform
         {
             ObjectHandle = new ObjectHandle<SDL2Window>(this, GCHandleType.Normal);
 
-            if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER) < 0)
+            if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER | SDL.SDL_INIT_AUDIO) < 0)
             {
                 throw new InvalidOperationException($"Failed to initialise SDL: {SDL.SDL_GetError()}");
             }
@@ -588,6 +588,28 @@ namespace osu.Framework.Platform
                 case SDL.SDL_EventType.SDL_DROPCOMPLETE:
                     handleDropEvent(e.drop);
                     break;
+
+                case SDL.SDL_EventType.SDL_AUDIODEVICEADDED:
+                case SDL.SDL_EventType.SDL_AUDIODEVICEREMOVED:
+                    handleAudioDeviceEvent(e.adevice);
+                    break;
+            }
+        }
+
+        private void handleAudioDeviceEvent(SDL.SDL_AudioDeviceEvent evtAudioDevice)
+        {
+            if (evtAudioDevice.iscapture != 0) // capture device
+                return;
+
+            switch (evtAudioDevice.type)
+            {
+                case SDL.SDL_EventType.SDL_AUDIODEVICEADDED:
+                    AudioDeviceAdded?.Invoke((int)evtAudioDevice.which);
+                    break;
+
+                case SDL.SDL_EventType.SDL_AUDIODEVICEREMOVED:
+                    AudioDeviceRemoved?.Invoke(evtAudioDevice.which); // it is only uint if a device is removed
+                    break;
             }
         }
 
@@ -663,6 +685,16 @@ namespace osu.Framework.Platform
         /// Invoked when the user drops a file into the window.
         /// </summary>
         public event Action<string>? DragDrop;
+
+        /// <summary>
+        /// Invoked when a new audio device is added, only when using SDL2 audio
+        /// </summary>
+        public event Action<int>? AudioDeviceAdded;
+
+        /// <summary>
+        /// Invoked when a new audio device is removed, only when using SDL2 audio
+        /// </summary>
+        public event Action<uint>? AudioDeviceRemoved;
 
         #endregion
 

@@ -21,7 +21,7 @@ namespace osu.Framework.Audio.Mixing.Bass
     /// </summary>
     internal class BassAudioMixer : AudioMixer, IBassAudio
     {
-        private readonly AudioManager? manager;
+        private readonly BassAudioManager? manager;
 
         /// <summary>
         /// The handle for this mixer.
@@ -49,7 +49,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         public BassAudioMixer(AudioManager? manager, AudioMixer? fallbackMixer, string identifier)
             : base(fallbackMixer, identifier)
         {
-            this.manager = manager;
+            this.manager = (BassAudioManager?)manager;
             EnqueueAction(createMixer);
         }
 

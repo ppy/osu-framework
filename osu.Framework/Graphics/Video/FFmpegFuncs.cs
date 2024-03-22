@@ -87,6 +87,24 @@ namespace osu.Framework.Graphics.Video
 
         public delegate int SwsScaleDelegate(SwsContext* c, byte*[] srcSlice, int[] srcStride, int srcSliceY, int srcSliceH, byte*[] dst, int[] dstStride);
 
+        public delegate SwrContext* SwrAllocSetOptsDelegate(SwrContext* s, long outChLayout, AVSampleFormat outSampleFmt, int outSampleRate, long inChLayout, AVSampleFormat inSampleFmt, int inSampleRate, int logOffset, void* logCtx);
+
+        public delegate int SwrInitDelegate(SwrContext* s);
+
+        public delegate int SwrIsInitializedDelegate(SwrContext* s);
+
+        public delegate void SwrFreeDelegate(SwrContext** s);
+
+        public delegate void SwrCloseDelegate(SwrContext* s);
+
+        public delegate int SwrConvertDelegate(SwrContext* s, byte** dst, int outCount, byte** src, int inCount);
+
+        public delegate long SwrGetDelayDelegate(SwrContext* s, long value);
+
+        public delegate int AvSamplesGetBufferSizeDelegate(int* linesize, int nbChannels, int nbSamples, AVSampleFormat sampleFmt, int align);
+
+        public delegate long AvGetDefaultChannelLayoutDelegate(int nbChannels);
+
         #endregion
 
         public AvFrameAllocDelegate av_frame_alloc;
@@ -125,6 +143,15 @@ namespace osu.Framework.Graphics.Video
         public SwsFreeContextDelegate sws_freeContext;
         public SwsGetCachedContextDelegate sws_getCachedContext;
         public SwsScaleDelegate sws_scale;
+        public SwrAllocSetOptsDelegate swr_alloc_set_opts;
+        public SwrInitDelegate swr_init;
+        public SwrIsInitializedDelegate swr_is_initialized;
+        public SwrFreeDelegate swr_free;
+        public SwrCloseDelegate swr_close;
+        public SwrConvertDelegate swr_convert;
+        public SwrGetDelayDelegate swr_get_delay;
+        public AvSamplesGetBufferSizeDelegate av_samples_get_buffer_size;
+        public AvGetDefaultChannelLayoutDelegate av_get_default_channel_layout;
 
         // Touching AutoGen.ffmpeg or its LibraryLoader in any way on non-Desktop platforms
         // will cause it to throw in static constructor, which can't be bypassed.

@@ -165,8 +165,23 @@ namespace osu.Framework
             samples.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
             samples.AddStore(new OnlineStore());
 
-            Audio = new AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
-            dependencies.Cache(Audio);
+            switch (config.Get<AudioDriver>(FrameworkSetting.AudioDriver))
+            {
+                case AudioDriver.SDL2 when Host.Window is SDL2Window sdl2Window:
+                {
+                    SDL2AudioManager sdl2Audio = new SDL2AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
+                    sdl2Window.AudioDeviceAdded += sdl2Audio.OnNewDeviceEvent;
+                    sdl2Window.AudioDeviceRemoved += sdl2Audio.OnLostDeviceEvent;
+                    Audio = sdl2Audio;
+                    break;
+                }
+
+                default:
+                    Audio = new BassAudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
+                    break;
+            }
+
+            dependencies.CacheAs(typeof(AudioManager), Audio);
 
             dependencies.CacheAs(Audio.Tracks);
             dependencies.CacheAs(Audio.Samples);
