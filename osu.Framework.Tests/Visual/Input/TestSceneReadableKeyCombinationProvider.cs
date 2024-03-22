@@ -140,7 +140,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             protected override bool OnKeyDown(KeyDownEvent e)
             {
-                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.KeyboardKey)), KeyCombinationMatchingMode.Any))
+                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.KeyboardKey).ToArray()), KeyCombinationMatchingMode.Any))
                     box.Colour = Color4.Navy;
 
                 return base.OnKeyDown(e);
@@ -148,7 +148,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             protected override void OnKeyUp(KeyUpEvent e)
             {
-                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.KeyboardKey)), KeyCombinationMatchingMode.Any))
+                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.KeyboardKey).ToArray()), KeyCombinationMatchingMode.Any))
                     box.Colour = Color4.DarkGray;
 
                 base.OnKeyUp(e);
@@ -205,8 +205,8 @@ namespace osu.Framework.Tests.Visual.Input
                 var state = new InputState(keyboard: e.CurrentState.Keyboard);
                 var keyCombination = KeyCombination.FromInputState(state);
 
-                var onlyKeys = keyCombination.Keys.Where(k => !KeyCombination.IsKeycode(k));
-                var onlyKeycodes = keyCombination.Keys.Where(KeyCombination.IsKeycode);
+                var onlyKeys = keyCombination.Keys.Where(k => !KeyCombination.IsKeycode(k)).ToArray();
+                var onlyKeycodes = keyCombination.Keys.Where(KeyCombination.IsKeycode).ToArray();
 
                 string keys = readableKeyCombinationProvider.GetReadableString(new KeyCombination(onlyKeys));
                 string keycodes = readableKeyCombinationProvider.GetReadableString(new KeyCombination(onlyKeycodes));
