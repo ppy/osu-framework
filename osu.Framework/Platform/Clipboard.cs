@@ -20,7 +20,12 @@ namespace osu.Framework.Platform
         /// Copy text to the clipboard.
         /// </summary>
         /// <param name="text">Text to copy to the clipboard</param>
-        public abstract void SetText(string text);
+        public void SetText(string text)
+        {
+            SetData(
+                new ClipboardTextEntry(text)
+            );
+        }
 
         /// <summary>
         /// Retrieve an image from the clipboard.
@@ -33,6 +38,34 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="image">The image to copy to the clipboard</param>
         /// <returns>Whether the image was successfully copied or not</returns>
-        public abstract bool SetImage(Image image);
+        public bool SetImage(Image image)
+        {
+            return SetData(
+                new ClipboardImageEntry(image)
+            );
+        }
+
+        /// <summary>
+        /// Get clipboard content with custom format
+        /// </summary>
+        /// <returns></returns>
+        public abstract string? GetCustom(string format);
+
+        /// <summary>
+        /// Get clipboard content with custom format
+        /// </summary>
+        /// <returns></returns>
+        public void SetCustom(string format, string text)
+        {
+            SetData(
+                new ClipboardCustomEntry(format, text)
+            );
+        }
+
+        /// <summary>
+        /// Copy multiple values to the clipboard
+        /// </summary>
+        /// <param name="entries"></param>
+        public abstract bool SetData(params ClipboardEntry[] entries);
     }
 }
