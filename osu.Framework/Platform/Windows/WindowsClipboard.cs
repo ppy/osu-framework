@@ -138,6 +138,7 @@ namespace osu.Framework.Platform.Windows
 
             var rawEntries = new List<RawClipboardEntry>();
 
+            // Required for compatibility with browser clipboard https://github.com/w3c/editing/blob/gh-pages/docs/clipboard-pickling/explainer.md#on-windows
             var webCustomFormats = new Dictionary<string, string>();
 
             foreach (var entry in entries)
