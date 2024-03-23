@@ -3,6 +3,9 @@
 
 namespace osu.Framework.Platform
 {
+    /// <summary>
+    /// Represents a value with a custom format in the clipboard
+    /// </summary>
     public class ClipboardCustomEntry : ClipboardEntry
     {
         public readonly string Format;

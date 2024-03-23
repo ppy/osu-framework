@@ -3,6 +3,9 @@
 
 namespace osu.Framework.Platform
 {
+    /// <summary>
+    /// Represents a single item in the clipboard
+    /// </summary>
     public abstract class ClipboardEntry
     {
     }

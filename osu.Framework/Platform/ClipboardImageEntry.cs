@@ -5,6 +5,9 @@ using SixLabors.ImageSharp;
 
 namespace osu.Framework.Platform
 {
+    /// <summary>
+    /// Represents an image value in the clipboard
+    /// </summary>
     public class ClipboardImageEntry : ClipboardEntry
     {
         public readonly Image Value;

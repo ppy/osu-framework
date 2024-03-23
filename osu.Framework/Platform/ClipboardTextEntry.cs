@@ -3,6 +3,9 @@
 
 namespace osu.Framework.Platform
 {
+    /// <summary>
+    /// Represents a plain-text value in the clipboard
+    /// </summary>
     public class ClipboardTextEntry : ClipboardEntry
     {
         public readonly string Value;
