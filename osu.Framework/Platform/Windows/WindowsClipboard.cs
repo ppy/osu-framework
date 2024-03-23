@@ -2,10 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using Newtonsoft.Json;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Bmp;
 
@@ -22,6 +24,9 @@ namespace osu.Framework.Platform.Windows
 
         [DllImport("user32.dll")]
         private static extern IntPtr SetClipboardData(uint uFormat, IntPtr hMem);
+
+        [DllImport("user32.dll")]
+        private static extern uint RegisterClipboardFormatW(IntPtr lpszFormat);
 
         [DllImport("User32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -63,17 +68,11 @@ namespace osu.Framework.Platform.Windows
 
         private static readonly byte[] bmp_header_field = { 0x42, 0x4D };
 
+        private readonly Dictionary<string, uint> customFormats = new Dictionary<string, uint>();
+
         public override string? GetText()
         {
             return getClipboard(cf_unicodetext, bytes => Encoding.Unicode.GetString(bytes).TrimEnd('\0'));
-        }
-
-        public override void SetText(string text)
-        {
-            int bytes = (text.Length + 1) * 2;
-            IntPtr source = Marshal.StringToHGlobalUni(text);
-
-            setClipboard(source, bytes, cf_unicodetext);
         }
 
         public override Image<TPixel>? GetImage<TPixel>()
@@ -89,7 +88,118 @@ namespace osu.Framework.Platform.Windows
             });
         }
 
-        public override bool SetImage(Image image)
+        public override string? GetCustom(string formatName)
+        {
+            string? value = getClipboard(getFormat(formatName), bytes => Encoding.Unicode.GetString(bytes).TrimEnd('\0'));
+            if (value != null)
+                return value;
+
+            var webCustomFormats = getClipboard(getFormat("Web Custom Format Map"), bytes =>
+                JsonConvert.DeserializeObject<Dictionary<string, string>>(
+                    Encoding.ASCII.GetString(bytes))
+            );
+
+            if (webCustomFormats?[formatName] != null)
+            {
+                string? webValue = getClipboard(getFormat(webCustomFormats[formatName]), bytes => Encoding.ASCII.GetString(bytes).TrimEnd('\0'));
+                return webValue;
+            }
+
+            return null;
+        }
+
+        private uint getFormat(string formatName)
+        {
+            if (customFormats.TryGetValue(formatName, out uint format))
+            {
+                return format;
+            }
+
+            IntPtr source = Marshal.StringToHGlobalUni(formatName);
+
+            uint createdFormat = RegisterClipboardFormatW(source);
+
+            if (createdFormat != 0)
+            {
+                GlobalFree(source);
+            }
+
+            customFormats[formatName] = createdFormat;
+
+            return createdFormat;
+        }
+
+        public override bool SetData(params ClipboardEntry[] entries)
+        {
+            if (entries.Length == 0)
+            {
+                return false;
+            }
+
+            var rawEntries = new List<RawClipboardEntry>();
+
+            var webCustomFormats = new Dictionary<string, string>();
+
+            foreach (var entry in entries)
+            {
+                switch (entry)
+                {
+                    case ClipboardTextEntry textEntry:
+                        rawEntries.Add(createTextEntry(textEntry.Value, cf_unicodetext));
+                        break;
+
+                    case ClipboardImageEntry imageEntry:
+                        rawEntries.Add(createImageEntry(imageEntry.Value));
+                        break;
+
+                    case ClipboardCustomEntry customEntry:
+                        rawEntries.Add(
+                            createTextEntry(
+                                customEntry.Value,
+                                getFormat(customEntry.Format)
+                            )
+                        );
+
+                        string webCustomFormatName = $"Web Custom Format{webCustomFormats.Count}";
+
+                        rawEntries.Add(createAnsiTextEntry(customEntry.Value, getFormat(webCustomFormatName)));
+
+                        webCustomFormats[customEntry.Format] = webCustomFormatName;
+                        break;
+                }
+            }
+
+            if (webCustomFormats.Count > 0)
+            {
+                rawEntries.Add(
+                    createAnsiTextEntry(
+                        JsonConvert.SerializeObject(webCustomFormats),
+                        getFormat("Web Custom Format Map")
+                    )
+                );
+            }
+
+            return setClipboard(rawEntries);
+        }
+
+        private RawClipboardEntry createTextEntry(string text, uint format)
+        {
+            int bytes = (text.Length + 1) * 2;
+            IntPtr source = Marshal.StringToHGlobalUni(text);
+
+            return new RawClipboardEntry(source, bytes, format);
+        }
+
+        private RawClipboardEntry createAnsiTextEntry(string text, uint format)
+        {
+            // Deliberately dropping the last byte here because browsers refuse to parse it otherwise
+            int bytes = text.Length * Marshal.SystemMaxDBCSCharSize;
+            IntPtr source = Marshal.StringToHGlobalAnsi(text);
+
+            return new RawClipboardEntry(source, bytes, format);
+        }
+
+        private RawClipboardEntry createImageEntry(Image image)
         {
             byte[] array;
 
@@ -103,12 +213,33 @@ namespace osu.Framework.Platform.Windows
             IntPtr unmanagedPointer = Marshal.AllocHGlobal(array.Length);
             Marshal.Copy(array, 0, unmanagedPointer, array.Length);
 
-            return setClipboard(unmanagedPointer, array.Length, cf_dib);
+            return new RawClipboardEntry(unmanagedPointer, array.Length, cf_dib);
         }
 
-        private static bool setClipboard(IntPtr pointer, int bytes, uint format)
+        private readonly struct RawClipboardEntry
         {
-            bool success = false;
+            public readonly IntPtr Pointer;
+            public readonly int Bytes;
+            public readonly uint Format;
+
+            public RawClipboardEntry(IntPtr pointer, int bytes, uint format)
+            {
+                Pointer = pointer;
+                Bytes = bytes;
+                Format = format;
+            }
+        }
+
+        private static bool setClipboard(List<RawClipboardEntry> entries)
+        {
+            if (entries.Count == 0)
+            {
+                return false;
+            }
+
+            bool success = true;
+
+            List<IntPtr> toFree = new List<IntPtr>();
 
             try
             {
@@ -117,45 +248,56 @@ namespace osu.Framework.Platform.Windows
 
                 EmptyClipboard();
 
-                // IMPORTANT: SetClipboardData requires memory that was acquired with GlobalAlloc using GMEM_MOVABLE.
-                IntPtr hGlobal = GlobalAlloc(ghnd, (UIntPtr)bytes);
-
-                try
+                foreach (var entry in entries)
                 {
-                    IntPtr target = GlobalLock(hGlobal);
-                    if (target == IntPtr.Zero)
-                        return false;
+                    // IMPORTANT: SetClipboardData requires memory that was acquired with GlobalAlloc using GMEM_MOVABLE.
+                    IntPtr hGlobal = GlobalAlloc(ghnd, (UIntPtr)entry.Bytes);
 
                     try
                     {
-                        unsafe
+                        IntPtr target = GlobalLock(hGlobal);
+                        if (target == IntPtr.Zero)
+                            return false;
+
+                        try
                         {
-                            Buffer.MemoryCopy((void*)pointer, (void*)target, bytes, bytes);
+                            unsafe
+                            {
+                                Buffer.MemoryCopy((void*)entry.Pointer, (void*)target, entry.Bytes, entry.Bytes);
+                            }
+                        }
+                        finally
+                        {
+                            if (target != IntPtr.Zero)
+                                GlobalUnlock(target);
+
+                            Marshal.FreeHGlobal(entry.Pointer);
+                        }
+
+                        if (SetClipboardData(entry.Format, hGlobal).ToInt64() != 0)
+                        {
+                            // IMPORTANT: SetClipboardData takes ownership of hGlobal upon success.
+                            hGlobal = IntPtr.Zero;
+                        }
+                        else
+                        {
+                            success = false;
                         }
                     }
                     finally
                     {
-                        if (target != IntPtr.Zero)
-                            GlobalUnlock(target);
-
-                        Marshal.FreeHGlobal(pointer);
+                        if (hGlobal != IntPtr.Zero)
+                            toFree.Add(hGlobal);
                     }
-
-                    if (SetClipboardData(format, hGlobal).ToInt64() != 0)
-                    {
-                        // IMPORTANT: SetClipboardData takes ownership of hGlobal upon success.
-                        hGlobal = IntPtr.Zero;
-                        success = true;
-                    }
-                }
-                finally
-                {
-                    if (hGlobal != IntPtr.Zero)
-                        GlobalFree(hGlobal);
                 }
             }
             finally
             {
+                foreach (IntPtr free in toFree)
+                {
+                    GlobalFree(free);
+                }
+
                 CloseClipboard();
             }
 
