@@ -113,6 +113,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public bool CommitOnFocusLost { get; set; }
 
+        /// <summary>
+        /// Whether this <see cref="TextBox"/> should manage focus state. If <c>false</c>, focus is assumed to be managed by a parent UI component (e.g. <see cref="Dropdown{T}"/>).
+        /// </summary>
+        internal bool ManageFocus { get; set; } = true;
+
         public override bool CanBeTabbedTo => !ReadOnly;
 
         [Resolved]
@@ -1080,11 +1085,16 @@ namespace osu.Framework.Graphics.UserInterface
             switch (e.Key)
             {
                 case Key.Escape:
-                    // if keypress is repeating, the IME was probably closed with the first, non-repeating keypress
-                    // so don't kill focus unless the user has explicitly released and pressed the key again.
-                    if (!e.Repeat)
-                        KillFocus();
-                    return true;
+                    if (ManageFocus)
+                    {
+                        // if keypress is repeating, the IME was probably closed with the first, non-repeating keypress
+                        // so don't kill focus unless the user has explicitly released and pressed the key again.
+                        if (!e.Repeat)
+                            KillFocus();
+                        return true;
+                    }
+
+                    return false;
 
                 case Key.KeypadEnter:
                 case Key.Enter:
@@ -1122,7 +1132,8 @@ namespace osu.Framework.Graphics.UserInterface
         private void killFocus()
         {
             var manager = GetContainingInputManager();
-            if (manager?.FocusedDrawable == this)
+
+            if (HasFocus)
                 manager.ChangeFocus(null);
         }
 
@@ -1283,7 +1294,7 @@ namespace osu.Framework.Graphics.UserInterface
             // let's say that a focus loss is not a user event as focus is commonly indirectly lost.
             FinalizeImeComposition(false);
 
-            unbindInput(e.NextFocused is TextBox);
+            unbindInput(e.NextFocused.Any(d => d is TextBox));
 
             updateCaretVisibility();
 
@@ -1291,19 +1302,19 @@ namespace osu.Framework.Graphics.UserInterface
                 Commit();
         }
 
-        public override bool AcceptsFocus => true;
+        public override bool AcceptsFocus => ManageFocus;
 
         protected override bool OnClick(ClickEvent e)
         {
             if (!ReadOnly && textInputBound)
                 textInput.EnsureActivated(AllowIme);
 
-            return !ReadOnly;
+            return ManageFocus && !ReadOnly;
         }
 
         protected override void OnFocus(FocusEvent e)
         {
-            bindInput(e.PreviouslyFocused is TextBox);
+            bindInput(e.PreviouslyFocused.Any(d => d is TextBox));
 
             updateCaretVisibility();
         }
@@ -1317,7 +1328,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private bool textInputBound;
 
-        private void bindInput(bool previousFocusWasTextBox)
+        private void bindInput(bool textBoxFocusedPreviously)
         {
             if (textInputBound)
             {
@@ -1328,7 +1339,7 @@ namespace osu.Framework.Graphics.UserInterface
             // TextBox has special handling of text input activation when focus is changed directly from one TextBox to another.
             // We don't deactivate and activate, but instead keep text input active during the focus handoff, so that virtual keyboards on phones don't flicker.
 
-            if (previousFocusWasTextBox)
+            if (textBoxFocusedPreviously)
                 textInput.EnsureActivated(AllowIme);
             else
                 textInput.Activate(AllowIme);
@@ -1340,7 +1351,7 @@ namespace osu.Framework.Graphics.UserInterface
             textInputBound = true;
         }
 
-        private void unbindInput(bool nextFocusIsTextBox)
+        private void unbindInput(bool textBoxFocusedNext)
         {
             if (!textInputBound)
                 return;
@@ -1348,7 +1359,7 @@ namespace osu.Framework.Graphics.UserInterface
             textInputBound = false;
 
             // see the comment above, in `bindInput(bool)`.
-            if (!nextFocusIsTextBox)
+            if (!textBoxFocusedNext)
                 textInput.Deactivate();
 
             textInput.OnTextInput -= handleTextInput;

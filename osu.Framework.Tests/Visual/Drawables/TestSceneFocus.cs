@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
@@ -243,6 +244,49 @@ namespace osu.Framework.Tests.Visual.Drawables
                 focusBottomRight.JoystickPressCount == 1 && focusBottomRight.JoystickReleaseCount == 1);
         }
 
+        [Test]
+        public void TestAdditionalFocusTargets()
+        {
+            FocusBoxWithTargets parent = null;
+            FocusBox target = null;
+            FocusBox other = null;
+
+            AddStep("setup", () =>
+            {
+                Child = parent = new FocusBoxWithTargets
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Children = new[]
+                    {
+                        target = new FocusBox { Colour = Color4.Red, AllowAcceptingFocus = false },
+                        other = new FocusBox { Colour = Color4.Green, AllowAcceptingFocus = false },
+                    }
+                };
+
+                parent.FocusTargets.Add(target);
+            });
+
+            AddStep("focus by click", () =>
+            {
+                InputManager.MoveMouseTo(parent);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            checkFocused(() => parent);
+            checkFocused(() => target);
+            checkNotFocused(() => other);
+
+            AddStep("click away", () =>
+            {
+                InputManager.MoveMouseTo(Vector2.Zero);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            checkNotFocused(() => parent);
+            checkNotFocused(() => target);
+            checkNotFocused(() => other);
+        }
+
         private void checkFocused(Func<Drawable> d) => AddAssert("check focus", () => d().HasFocus);
         private void checkNotFocused(Func<Drawable> d) => AddAssert("check not focus", () => !d().HasFocus);
 
@@ -340,10 +384,12 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        public partial class FocusBox : CompositeDrawable
+        public partial class FocusBox : Container
         {
             protected Box Box;
             public int KeyDownCount, KeyUpCount, JoystickPressCount, JoystickReleaseCount;
+
+            protected override Container<Drawable> Content { get; }
 
             public FocusBox()
             {
@@ -352,6 +398,11 @@ namespace osu.Framework.Tests.Visual.Drawables
                     RelativeSizeAxes = Axes.Both,
                     Alpha = 0.5f,
                     Colour = Color4.Red
+                });
+
+                AddInternal(Content = new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
                 });
 
                 RelativeSizeAxes = Axes.Both;
@@ -400,6 +451,13 @@ namespace osu.Framework.Tests.Visual.Drawables
                 ++JoystickReleaseCount;
                 base.OnJoystickRelease(e);
             }
+        }
+
+        public partial class FocusBoxWithTargets : FocusBox
+        {
+            public readonly List<Drawable> FocusTargets = new List<Drawable>();
+
+            protected internal override IEnumerable<Drawable> AdditionalFocusTargets => FocusTargets;
         }
     }
 }

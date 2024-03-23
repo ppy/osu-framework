@@ -169,6 +169,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Dropdown.Anchor = Anchor.TopRight;
                 Dropdown.Origin = Anchor.TopRight;
                 Dropdown.Current = Current;
+                Dropdown.Searchable = false;
 
                 AddInternal(Dropdown);
 
