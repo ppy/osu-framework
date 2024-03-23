@@ -48,13 +48,14 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Get clipboard content with custom format
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Name of the custom format</returns>
         public abstract string? GetCustom(string format);
 
         /// <summary>
         /// Get clipboard content with custom format
         /// </summary>
-        /// <returns></returns>
+        /// <param name="format">Name of the custom format</param>
+        /// <param name="text">Text to copy to the clipboard</param>
         public void SetCustom(string format, string text)
         {
             SetData(
@@ -65,7 +66,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Copy multiple values to the clipboard
         /// </summary>
-        /// <param name="entries"></param>
+        /// <param name="entries">Entries to copy the clipboard</param>
         public abstract bool SetData(params ClipboardEntry[] entries);
     }
 }
