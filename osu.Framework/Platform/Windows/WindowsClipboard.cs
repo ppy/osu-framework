@@ -129,50 +129,40 @@ namespace osu.Framework.Platform.Windows
             return createdFormat;
         }
 
-        public override bool SetData(params ClipboardEntry[] entries)
+        public override bool SetData(ClipboardData data)
         {
-            if (entries.Length == 0)
+            if (data.IsEmpty())
             {
                 return false;
             }
 
-            var rawEntries = new List<RawClipboardEntry>();
+            var clipboardEntries = new List<ClipboardEntry>();
 
-            // Required for compatibility with browser clipboard https://github.com/w3c/editing/blob/gh-pages/docs/clipboard-pickling/explainer.md#on-windows
-            var webCustomFormats = new Dictionary<string, string>();
+            if (data.Text != null)
+                clipboardEntries.Add(createTextEntry(cf_unicodetext, data.Text));
 
-            foreach (var entry in entries)
+            if (data.Image != null)
+                clipboardEntries.Add(createImageEntry(data.Image));
+
+            if (data.CustomFormatValues.Count > 0)
             {
-                switch (entry)
+                // Required for compatibility with browser clipboard https://github.com/w3c/editing/blob/gh-pages/docs/clipboard-pickling/explainer.md#on-windows
+                var webCustomFormats = new Dictionary<string, string>();
+
+                foreach (var entry in data.CustomFormatValues)
                 {
-                    case ClipboardTextEntry textEntry:
-                        rawEntries.Add(createTextEntry(textEntry.Value, cf_unicodetext));
-                        break;
+                    string webCustomFormatName = $"Web Custom Format{webCustomFormats.Count}";
 
-                    case ClipboardImageEntry imageEntry:
-                        rawEntries.Add(createImageEntry(imageEntry.Value));
-                        break;
+                    clipboardEntries.Add(
+                        createTextEntry(getFormat(entry.Key), entry.Value)
+                    );
 
-                    case ClipboardCustomEntry customEntry:
-                        rawEntries.Add(
-                            createTextEntry(
-                                customEntry.Value,
-                                getFormat(customEntry.Format)
-                            )
-                        );
+                    clipboardEntries.Add(createAnsiTextEntry(entry.Value, getFormat(webCustomFormatName)));
 
-                        string webCustomFormatName = $"Web Custom Format{webCustomFormats.Count}";
-
-                        rawEntries.Add(createAnsiTextEntry(customEntry.Value, getFormat(webCustomFormatName)));
-
-                        webCustomFormats[customEntry.Format] = webCustomFormatName;
-                        break;
+                    webCustomFormats[entry.Key] = webCustomFormatName;
                 }
-            }
 
-            if (webCustomFormats.Count > 0)
-            {
-                rawEntries.Add(
+                clipboardEntries.Add(
                     createAnsiTextEntry(
                         JsonConvert.SerializeObject(webCustomFormats),
                         getFormat("Web Custom Format Map")
@@ -180,27 +170,27 @@ namespace osu.Framework.Platform.Windows
                 );
             }
 
-            return setClipboard(rawEntries);
+            return setClipboard(clipboardEntries);
         }
 
-        private RawClipboardEntry createTextEntry(string text, uint format)
+        private ClipboardEntry createTextEntry(uint format, string text)
         {
             int bytes = (text.Length + 1) * 2;
             IntPtr source = Marshal.StringToHGlobalUni(text);
 
-            return new RawClipboardEntry(source, bytes, format);
+            return new ClipboardEntry(source, bytes, format);
         }
 
-        private RawClipboardEntry createAnsiTextEntry(string text, uint format)
+        private ClipboardEntry createAnsiTextEntry(string text, uint format)
         {
-            // Deliberately dropping the last byte here because browsers refuse to parse it otherwise
+            // Deliberately dropping the 0-terminator here because browsers refuse to parse it otherwise
             int bytes = text.Length * Marshal.SystemMaxDBCSCharSize;
             IntPtr source = Marshal.StringToHGlobalAnsi(text);
 
-            return new RawClipboardEntry(source, bytes, format);
+            return new ClipboardEntry(source, bytes, format);
         }
 
-        private RawClipboardEntry createImageEntry(Image image)
+        private ClipboardEntry createImageEntry(Image image)
         {
             byte[] array;
 
@@ -214,16 +204,16 @@ namespace osu.Framework.Platform.Windows
             IntPtr unmanagedPointer = Marshal.AllocHGlobal(array.Length);
             Marshal.Copy(array, 0, unmanagedPointer, array.Length);
 
-            return new RawClipboardEntry(unmanagedPointer, array.Length, cf_dib);
+            return new ClipboardEntry(unmanagedPointer, array.Length, cf_dib);
         }
 
-        private readonly struct RawClipboardEntry
+        private readonly struct ClipboardEntry
         {
             public readonly IntPtr Pointer;
             public readonly int Bytes;
             public readonly uint Format;
 
-            public RawClipboardEntry(IntPtr pointer, int bytes, uint format)
+            public ClipboardEntry(IntPtr pointer, int bytes, uint format)
             {
                 Pointer = pointer;
                 Bytes = bytes;
@@ -231,7 +221,7 @@ namespace osu.Framework.Platform.Windows
             }
         }
 
-        private static bool setClipboard(List<RawClipboardEntry> entries)
+        private static bool setClipboard(List<ClipboardEntry> entries)
         {
             if (entries.Count == 0)
             {

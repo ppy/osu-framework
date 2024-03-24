@@ -23,7 +23,10 @@ namespace osu.Framework.Platform
         public void SetText(string text)
         {
             SetData(
-                new ClipboardTextEntry(text)
+                new ClipboardData
+                {
+                    Text = text
+                }
             );
         }
 
@@ -41,7 +44,10 @@ namespace osu.Framework.Platform
         public bool SetImage(Image image)
         {
             return SetData(
-                new ClipboardImageEntry(image)
+                new ClipboardData
+                {
+                    Image = image
+                }
             );
         }
 
@@ -58,15 +64,16 @@ namespace osu.Framework.Platform
         /// <param name="text">Text to copy to the clipboard</param>
         public void SetCustom(string format, string text)
         {
-            SetData(
-                new ClipboardCustomEntry(format, text)
-            );
+            var data = new ClipboardData();
+            data.AddCustom(format, text);
+
+            SetData(data);
         }
 
         /// <summary>
         /// Copy multiple values to the clipboard
         /// </summary>
-        /// <param name="entries">Entries to copy the clipboard</param>
-        public abstract bool SetData(params ClipboardEntry[] entries);
+        /// <param name="data">Data to copy the clipboard</param>
+        public abstract bool SetData(ClipboardData data);
     }
 }

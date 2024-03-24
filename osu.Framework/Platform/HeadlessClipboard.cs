@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using NuGet.Packaging;
 using SixLabors.ImageSharp;
 
 namespace osu.Framework.Platform
@@ -27,29 +28,13 @@ namespace osu.Framework.Platform
             return customValues[format];
         }
 
-        public override bool SetData(params ClipboardEntry[] entries)
+        public override bool SetData(ClipboardData data)
         {
-            clipboardText = null;
-            clipboardImage = null;
+            clipboardText = data.Text;
+            clipboardImage = data.Image;
             customValues.Clear();
 
-            foreach (var entry in entries)
-            {
-                switch (entry)
-                {
-                    case ClipboardTextEntry textEntry:
-                        clipboardText = textEntry.Value;
-                        break;
-
-                    case ClipboardImageEntry imageEntry:
-                        clipboardImage = imageEntry.Value;
-                        break;
-
-                    case ClipboardCustomEntry customEntry:
-                        customValues[customEntry.Format] = customEntry.Value;
-                        break;
-                }
-            }
+            customValues.AddRange(data.CustomFormatValues);
 
             return true;
         }

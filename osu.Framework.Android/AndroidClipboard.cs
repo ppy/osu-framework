@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using Android.Content;
+using NuGet.Packaging;
 using osu.Framework.Platform;
 using SixLabors.ImageSharp;
 
@@ -22,7 +23,7 @@ namespace osu.Framework.Android
 
         public override Image<TPixel>? GetImage<TPixel>() => null;
 
-        public override bool SetData(params ClipboardEntry[] entries)
+        public override bool SetData(ClipboardData data)
         {
             if (clipboardManager == null)
                 return false;
@@ -30,28 +31,18 @@ namespace osu.Framework.Android
             customFormatValues.Clear();
             clipboardManager.PrimaryClip = null;
 
-            if (entries.Length == 0)
+            if (data.IsEmpty())
                 return false;
 
             bool success = true;
 
-            foreach (var entry in entries)
-            {
-                switch (entry)
-                {
-                    case ClipboardTextEntry textEntry:
-                        clipboardManager.PrimaryClip = ClipData.NewPlainText(null, textEntry.Value);
-                        break;
+            if (data.Text != null)
+                clipboardManager.PrimaryClip = ClipData.NewPlainText(null, data.Text);
 
-                    case ClipboardCustomEntry customEntry:
-                        customFormatValues[customEntry.Format] = customFormatValues[customEntry.Value];
-                        break;
+            if (data.Image != null)
+                success = false;
 
-                    default:
-                        success = false;
-                        break;
-                }
-            }
+            customFormatValues.AddRange(data.CustomFormatValues);
 
             return success;
         }

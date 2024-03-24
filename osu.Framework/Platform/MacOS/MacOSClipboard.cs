@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using NuGet.Packaging;
 using osu.Framework.Platform.MacOS.Native;
 using SixLabors.ImageSharp;
 
@@ -36,30 +37,22 @@ namespace osu.Framework.Platform.MacOS
             return objects?.Length > 0 ? objects[0] : IntPtr.Zero;
         }
 
-        public override bool SetData(params ClipboardEntry[] entries)
+        public override bool SetData(ClipboardData data)
         {
             generalPasteboard.ClearContents();
             customFormatValues.Clear();
 
-            foreach (var entry in entries)
-            {
-                switch (entry)
-                {
-                    case ClipboardTextEntry textEntry:
-                        setToPasteboard(Cocoa.ToNSString(textEntry.Value));
-                        break;
+            bool success = true;
 
-                    case ClipboardImageEntry imageEntry:
-                        setToPasteboard(Cocoa.ToNSImage(imageEntry.Value));
-                        break;
+            if (data.Text != null)
+                success &= setToPasteboard(Cocoa.ToNSString(data.Text));
 
-                    case ClipboardCustomEntry customEntry:
-                        customFormatValues[customEntry.Format] = customEntry.Value;
-                        break;
-                }
-            }
+            if (data.Image != null)
+                success &= setToPasteboard(Cocoa.ToNSImage(data.Image));
 
-            return true;
+            customFormatValues.AddRange(data.CustomFormatValues);
+
+            return success;
         }
 
         private bool setToPasteboard(IntPtr handle)

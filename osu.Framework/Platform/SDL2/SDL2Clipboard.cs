@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using System.Linq;
+using NuGet.Packaging;
 using SDL2;
 using SixLabors.ImageSharp;
 
@@ -27,28 +27,20 @@ namespace osu.Framework.Platform.SDL2
             return customFormatValues[format];
         }
 
-        public override bool SetData(params ClipboardEntry[] entries)
+        public override bool SetData(ClipboardData data)
         {
             customFormatValues.Clear();
 
-            if (entries.Any(e => e is ClipboardImageEntry))
-            {
+            if (data.IsEmpty())
                 return false;
-            }
 
-            foreach (var entry in entries)
-            {
-                switch (entry)
-                {
-                    case ClipboardTextEntry textEntry:
-                        SDL.SDL_SetClipboardText(textEntry.Value);
-                        break;
+            if (data.Image != null)
+                return false;
 
-                    case ClipboardCustomEntry customEntry:
-                        customFormatValues[customEntry.Format] = customEntry.Value;
-                        break;
-                }
-            }
+            if (data.Text != null)
+                SDL.SDL_SetClipboardText(data.Text);
+
+            customFormatValues.AddRange(data.CustomFormatValues);
 
             return true;
         }
