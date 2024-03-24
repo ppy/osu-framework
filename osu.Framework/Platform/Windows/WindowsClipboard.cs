@@ -240,8 +240,6 @@ namespace osu.Framework.Platform.Windows
 
             bool success = true;
 
-            List<IntPtr> toFree = new List<IntPtr>();
-
             try
             {
                 if (!OpenClipboard(IntPtr.Zero))
@@ -288,17 +286,12 @@ namespace osu.Framework.Platform.Windows
                     finally
                     {
                         if (hGlobal != IntPtr.Zero)
-                            toFree.Add(hGlobal);
+                            GlobalFree(hGlobal);
                     }
                 }
             }
             finally
             {
-                foreach (IntPtr free in toFree)
-                {
-                    GlobalFree(free);
-                }
-
                 CloseClipboard();
             }
 
