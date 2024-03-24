@@ -175,6 +175,14 @@ namespace osu.Framework.Tests.Visual.Input
                 return base.OnHover(e);
             }
 
+            public int KeyDownCount;
+
+            protected override bool OnKeyDown(KeyDownEvent e)
+            {
+                ++KeyDownCount;
+                return base.OnKeyDown(e);
+            }
+
             protected override bool OnClick(ClickEvent e)
             {
                 this.MoveToOffset(new Vector2(100, 0)).Then().MoveToOffset(new Vector2(-100, 0), 1000, Easing.In);

@@ -240,6 +240,53 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("pass-through handled mouse", () => testInputManager.CurrentState.Mouse.Buttons.Single() == MouseButton.Left);
         }
 
+        /// <summary>
+        /// Ensures that <see cref="PassThroughInputManager"/> does not handle input within the frame that <see cref="PassThroughInputManager.UseParentInput"/> is enabled.
+        /// </summary>
+        [Test]
+        public void TestInputPropagation()
+        {
+            addTestInputManagerStep();
+            AddStep("setup hierarchy", () =>
+            {
+                Add(new PassThroughInputManager
+                {
+                    Name = "other input manager",
+                    Child = new HandlingBox
+                    {
+                        Alpha = 0.5f,
+                        RelativeSizeAxes = Axes.Both,
+                        OnHandle = e =>
+                        {
+                            if (e is KeyDownEvent keyDown && !keyDown.Repeat)
+                            {
+                                testInputManager.UseParentInput = true;
+                                return true;
+                            }
+
+                            return false;
+                        }
+                    },
+                });
+            });
+
+            AddStep("turn off parent input", () => testInputManager.UseParentInput = false);
+            AddStep("press key", () => InputManager.PressKey(Key.A));
+            AddAssert("key not pressed in pass-through", () => !keyboard.IsPressed(Key.A));
+            AddAssert("no key down event inside pass-through", () => testInputManager.Status.KeyDownCount == 0);
+
+            // parent input should be turned on by the box handler above.
+            AddAssert("parent input turned on", () => testInputManager.UseParentInput);
+            AddStep("release key", () => InputManager.ReleaseKey(Key.A));
+
+            AddStep("press key", () => InputManager.PressKey(Key.A));
+            AddStep("turn off parent input", () => testInputManager.UseParentInput = false);
+            AddAssert("key pressed in pass-through", () => keyboard.IsPressed(Key.A));
+
+            AddStep("release key", () => InputManager.ReleaseKey(Key.A));
+            AddAssert("key still pressed in pass-through", () => keyboard.IsPressed(Key.A));
+        }
+
         public partial class TestInputManager : ManualInputManager
         {
             public readonly TestSceneInputManager.ContainingInputManagerStatusText Status;
