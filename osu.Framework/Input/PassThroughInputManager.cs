@@ -162,8 +162,8 @@ namespace osu.Framework.Input
                     new TabletAuxiliaryButtonInput(tabletAuxiliaryButtonPress.Button, true).Apply(CurrentState, this);
                     break;
 
-                case TabletAuxiliaryButtonReleaseEvent tabletAuxiliaryButtonPress:
-                    new TabletAuxiliaryButtonInput(tabletAuxiliaryButtonPress.Button, true).Apply(CurrentState, this);
+                case TabletAuxiliaryButtonReleaseEvent tabletAuxiliaryButtonRelease:
+                    new TabletAuxiliaryButtonInput(tabletAuxiliaryButtonRelease.Button, false).Apply(CurrentState, this);
                     break;
             }
 
