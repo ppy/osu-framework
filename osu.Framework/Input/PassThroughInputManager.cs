@@ -54,6 +54,9 @@ namespace osu.Framework.Input
             parentInputManager = GetContainingInputManager();
         }
 
+        public override bool PropagateNonPositionalInputSubTree => UseParentInput;
+        public override bool PropagatePositionalInputSubTree => UseParentInput;
+
         public override bool HandleHoverEvents => parentInputManager != null && UseParentInput ? parentInputManager.HandleHoverEvents : base.HandleHoverEvents;
 
         internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
