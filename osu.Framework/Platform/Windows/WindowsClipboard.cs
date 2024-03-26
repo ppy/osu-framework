@@ -136,7 +136,7 @@ namespace osu.Framework.Platform.Windows
             var clipboardEntries = new List<ClipboardEntry>();
 
             if (data.Text != null)
-                clipboardEntries.Add(createTextEntry(cf_unicodetext, data.Text));
+                clipboardEntries.Add(createTextEntry(data.Text, cf_unicodetext));
 
             if (data.Image != null)
                 clipboardEntries.Add(createImageEntry(data.Image));
@@ -144,7 +144,7 @@ namespace osu.Framework.Platform.Windows
             foreach (var entry in data.CustomFormatValues)
             {
                 uint format = getFormat(entry.Key);
-                clipboardEntries.Add(createTextEntry(format, entry.Value));
+                clipboardEntries.Add(createTextEntry(entry.Value, format));
             }
 
             if (data.CustomFormatValues.Count > 0)
@@ -193,7 +193,7 @@ namespace osu.Framework.Platform.Windows
             return setClipboard(clipboardEntries);
         }
 
-        private ClipboardEntry createTextEntry(uint format, string text)
+        private ClipboardEntry createTextEntry(string text, uint format)
         {
             int bytes = (text.Length + 1) * 2;
             IntPtr source = Marshal.StringToHGlobalUni(text);
