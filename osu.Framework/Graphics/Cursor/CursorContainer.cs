@@ -148,8 +148,8 @@ namespace osu.Framework.Graphics.Cursor
                     progress.FadeColour(Color4.SkyBlue)
                             .TransformTo(nameof(progress.InnerRadius), 0.2f)
                             .TransformTo(nameof(progress.InnerRadius), 0.3f, 150, Easing.OutQuint)
-                            .TransformBindableTo(progress.Current, 0)
-                            .TransformBindableTo(progress.Current, 1, duration / 3 * 2);
+                            .ProgressTo(0)
+                            .ProgressTo(1, duration / 3 * 2);
 
                     using (BeginDelayedSequence(duration / 3 * 2))
                     {
@@ -165,7 +165,7 @@ namespace osu.Framework.Graphics.Cursor
             {
                 this.FadeOut(400, Easing.OutQuint);
 
-                progress.TransformBindableTo(progress.Current, 0, 400, Easing.OutQuint)
+                progress.ProgressTo(0, 400, Easing.OutQuint)
                         .TransformTo(nameof(progress.InnerRadius), 0.2f, 50, Easing.OutQuint);
             }
         }

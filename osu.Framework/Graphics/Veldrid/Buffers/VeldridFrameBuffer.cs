@@ -5,7 +5,6 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using osu.Framework.Extensions.ObjectExtensions;
-using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Veldrid.Textures;
 using osuTK;
@@ -14,7 +13,7 @@ using Texture = Veldrid.Texture;
 
 namespace osu.Framework.Graphics.Veldrid.Buffers
 {
-    internal class VeldridFrameBuffer : IFrameBuffer
+    internal class VeldridFrameBuffer : IVeldridFrameBuffer
     {
         public osu.Framework.Graphics.Textures.Texture Texture { get; }
 
@@ -22,8 +21,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         private readonly VeldridRenderer renderer;
         private readonly PixelFormat? depthFormat;
-
         private readonly VeldridTexture colourTarget;
+        private readonly bool externalColourTarget;
         private readonly int mipLevel;
         private Texture? depthTarget;
 
@@ -47,8 +46,6 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
                 recreateResources();
             }
         }
-
-        private readonly bool externalColourTarget;
 
         public VeldridFrameBuffer(VeldridRenderer renderer, PixelFormat[]? formats = null, SamplerFilter filteringMode = SamplerFilter.MinLinear_MagLinear_MipLinear)
         {

@@ -58,29 +58,7 @@ namespace osu.Framework.Platform.SDL2
 
         public Size GetDrawableSize()
         {
-            int width, height;
-
-            switch (Type)
-            {
-                case GraphicsSurfaceType.OpenGL:
-                default:
-                    SDL.SDL_GL_GetDrawableSize(window.SDLWindowHandle, out width, out height);
-                    break;
-
-                case GraphicsSurfaceType.Vulkan:
-                    SDL.SDL_Vulkan_GetDrawableSize(window.SDLWindowHandle, out width, out height);
-                    break;
-
-                case GraphicsSurfaceType.Metal:
-                    SDL.SDL_Metal_GetDrawableSize(window.SDLWindowHandle, out width, out height);
-                    break;
-
-                case GraphicsSurfaceType.Direct3D11:
-                    // todo: SDL has no "drawable size" method for D3D11, return window size for now.
-                    SDL.SDL_GetWindowSize(window.SDLWindowHandle, out width, out height);
-                    break;
-            }
-
+            SDL.SDL_GetWindowSizeInPixels(window.SDLWindowHandle, out int width, out int height);
             return new Size(width, height);
         }
 
@@ -131,7 +109,7 @@ namespace osu.Framework.Platform.SDL2
             var namesInfo = type.GetRuntimeFields().First(x => x.Name == "_EntryPointNamesInstance");
             var offsetsInfo = type.GetRuntimeFields().First(x => x.Name == "_EntryPointNameOffsetsInstance");
 
-            var entryPointsInstance = (IntPtr[]?)pointsInfo.GetValue(bindings);
+            IntPtr[]? entryPointsInstance = (IntPtr[]?)pointsInfo.GetValue(bindings);
             byte[]? entryPointNamesInstance = (byte[]?)namesInfo.GetValue(bindings);
             int[]? entryPointNameOffsetsInstance = (int[]?)offsetsInfo.GetValue(bindings);
 

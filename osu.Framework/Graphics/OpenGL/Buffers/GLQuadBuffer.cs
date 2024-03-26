@@ -63,6 +63,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         protected override int ToElementIndex(int vertexIndex) => 3 * vertexIndex / 2;
 
-        protected override PrimitiveType Type => PrimitiveType.Triangles;
+        protected override PrimitiveTopology Topology => PrimitiveTopology.Triangles;
     }
 }

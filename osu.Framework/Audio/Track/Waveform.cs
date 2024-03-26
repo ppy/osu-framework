@@ -67,14 +67,20 @@ namespace osu.Framework.Audio.Track
 
         private readonly Task readTask;
 
-        private FileCallbacks? fileCallbacks;
+        private Stream? data;
 
         /// <summary>
         /// Constructs a new <see cref="Waveform"/> from provided audio data.
         /// </summary>
-        /// <param name="data">The sample data stream. If null, an empty waveform is constructed.</param>
+        /// <param name="data">
+        /// The sample data stream.
+        /// The <see cref="Waveform"/> will take ownership of this stream and dispose it when done reading track data.
+        /// If null, an empty waveform is constructed.
+        /// </param>
         public Waveform(Stream? data)
         {
+            this.data = data;
+
             readTask = Task.Run(() =>
             {
                 if (data == null)
@@ -87,19 +93,35 @@ namespace osu.Framework.Audio.Track
                     return;
                 }
 
-                fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(data));
+                FileCallbacks fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(data));
 
                 const int bytes_per_sample = 4;
 
                 int decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode | BassFlags.Float, fileCallbacks.Callbacks, fileCallbacks.Handle);
 
+                if (decodeStream == 0)
+                {
+                    logBassError("could not create stream");
+                    return;
+                }
+
                 float[]? sampleBuffer = null;
 
                 try
                 {
-                    Bass.ChannelGetInfo(decodeStream, out ChannelInfo info);
+                    if (!Bass.ChannelGetInfo(decodeStream, out ChannelInfo info))
+                    {
+                        logBassError("could not retrieve channel information");
+                        return;
+                    }
 
                     long length = Bass.ChannelGetLength(decodeStream);
+
+                    if (length < 0)
+                    {
+                        logBassError("could not retrieve channel length");
+                        return;
+                    }
 
                     // Each "point" is generated from a number of samples, each sample contains a number of channels
                     int samplesPerPoint = (int)(info.Frequency * resolution * info.Channels);
@@ -121,6 +143,13 @@ namespace osu.Framework.Audio.Track
                     while (length > 0)
                     {
                         length = Bass.ChannelGetData(decodeStream, sampleBuffer, bytesPerIteration);
+
+                        if (length < 0 && Bass.LastError != Errors.Ended)
+                        {
+                            logBassError("could not retrieve sample data");
+                            return;
+                        }
+
                         int samplesRead = (int)(length / bytes_per_sample);
 
                         // Each point is composed of multiple samples
@@ -151,8 +180,19 @@ namespace osu.Framework.Audio.Track
                         }
                     }
 
-                    Bass.ChannelSetPosition(decodeStream, 0);
+                    if (!Bass.ChannelSetPosition(decodeStream, 0))
+                    {
+                        logBassError("could not reset channel position");
+                        return;
+                    }
+
                     length = Bass.ChannelGetLength(decodeStream);
+
+                    if (length < 0)
+                    {
+                        logBassError("could not retrieve channel length");
+                        return;
+                    }
 
                     // Read FFT data
                     float[] bins = new float[fft_bins];
@@ -162,6 +202,13 @@ namespace osu.Framework.Audio.Track
                     while (length > 0)
                     {
                         length = Bass.ChannelGetData(decodeStream, bins, (int)fft_samples);
+
+                        if (length < 0 && Bass.LastError != Errors.Ended)
+                        {
+                            logBassError("could not retrieve FFT data");
+                            return;
+                        }
+
                         currentByte += length;
 
                         float lowIntensity = computeIntensity(info, bins, low_min, mid_min);
@@ -185,11 +232,20 @@ namespace osu.Framework.Audio.Track
                 }
                 finally
                 {
-                    Bass.StreamFree(decodeStream);
+                    if (!Bass.StreamFree(decodeStream))
+                        logBassError("failed to free decode stream");
+
+                    fileCallbacks.Dispose();
+
+                    data.Dispose();
+                    this.data = data = null;
+
                     if (sampleBuffer != null)
                         ArrayPool<float>.Shared.Return(sampleBuffer);
                 }
             }, cancelSource.Token);
+
+            void logBassError(string reason) => Logger.Log($"BASS failure while reading waveform: {reason} ({Bass.LastError})");
         }
 
         private float computeIntensity(ChannelInfo info, float[] bins, float startFrequency, float endFrequency)
@@ -350,8 +406,9 @@ namespace osu.Framework.Audio.Track
             cancelSource.Dispose();
             points = Array.Empty<Point>();
 
-            fileCallbacks?.Dispose();
-            fileCallbacks = null;
+            // Try disposing the stream again in case the task was not started.
+            data?.Dispose();
+            data = null;
         }
 
         #endregion

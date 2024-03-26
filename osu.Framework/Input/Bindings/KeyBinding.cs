@@ -9,7 +9,7 @@ namespace osu.Framework.Input.Bindings
     {
         public KeyCombination KeyCombination { get; set; }
 
-        public object Action { get; set; }
+        public object Action { get; set; } = null!;
 
         /// <summary>
         /// Construct a new instance.

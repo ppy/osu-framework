@@ -8,7 +8,6 @@ using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Veldrid.Buffers;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
-using PrimitiveTopology = Veldrid.PrimitiveTopology;
 
 namespace osu.Framework.Graphics.Veldrid.Batches
 {
@@ -19,7 +18,7 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         /// Most documentation recommends that three buffers are used to avoid contention.
         ///
         /// We already have a triple buffer (see <see cref="GameHost.DrawRoots"/>) governing draw nodes.
-        /// In theory we could set this to two, but there's also a global usage of a vertex batch in <see cref="VeldridRenderer"/> (see <see cref="VeldridRenderer.DefaultQuadBatch"/>).
+        /// In theory we could set this to two, but there's also a global usage of a vertex batch in <see cref="VeldridRenderer"/> (see <see cref="Renderer.DefaultQuadBatch"/>).
         ///
         /// So this is for now an unfortunate memory overhead. Further work could be done to provide
         /// these in a way they were not created per draw-node, reducing buffer overhead from 9 to 3.
@@ -162,9 +161,6 @@ namespace osu.Framework.Graphics.Veldrid.Batches
 
             // When using multiple buffers we advance to the next one with every draw to prevent contention on the same buffer with future vertex updates.
             synchronisationBeginIndex = -1;
-
-            FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
-            FrameStatistics.Add(StatisticsCounterType.VerticesDraw, countToDraw);
 
             return countToDraw;
         }

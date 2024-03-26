@@ -17,5 +17,17 @@ namespace osu.Framework.Extensions.ListExtensions
         /// <returns>The read-only view.</returns>
         public static SlimReadOnlyListWrapper<T> AsSlimReadOnly<T>(this List<T> list)
             => new SlimReadOnlyListWrapper<T>(list);
+
+        /// <summary>
+        /// Creates a new read-only view into a <see cref="Dictionary{TKey, TValue}"/>.
+        /// </summary>
+        /// <remarks>Enumeration does not allocate the enumerator.</remarks>
+        /// <param name="dictionary">The dictionary to create the view of.</param>
+        /// <typeparam name="TKey">The type of keys in the dictionary.</typeparam>
+        /// <typeparam name="TValue">The type of values in the dictionary.</typeparam>
+        /// <returns>The read-only view.</returns>
+        public static SlimReadOnlyDictionaryWrapper<TKey, TValue> AsSlimReadOnly<TKey, TValue>(this Dictionary<TKey, TValue> dictionary)
+            where TKey : notnull
+            => new SlimReadOnlyDictionaryWrapper<TKey, TValue>(dictionary);
     }
 }

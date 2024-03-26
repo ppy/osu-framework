@@ -290,6 +290,43 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddUntilStep("only one item", () => delayedList.ChildrenOfType<BasicRearrangeableListItem<int>>().Count() == 1);
         }
 
+        [Test]
+        public void TestDragSynchronisation()
+        {
+            TestRearrangeableList another = null!;
+
+            addItems(3);
+            AddStep("add another list", () =>
+            {
+                another = new TestRearrangeableList
+                {
+                    Origin = Anchor.BottomCentre,
+                    Anchor = Anchor.BottomCentre,
+                    Size = new Vector2(300, 200),
+                };
+                Add(another);
+            });
+            AddStep("bind lists", () =>
+            {
+                another.Items.BindTo(list.Items);
+            });
+
+            AddStep("move mouse to first dragger", () => InputManager.MoveMouseTo(getDragger(0)));
+            AddStep("begin a drag", () => InputManager.PressButton(MouseButton.Left));
+            AddStep("move the mouse", () => InputManager.MoveMouseTo(getDragger(0), new Vector2(0, 80)));
+            AddStep("end the drag", () => InputManager.ReleaseButton(MouseButton.Left));
+
+            AddUntilStep("0 is the last in original", () => list.Items.Last() == 0);
+
+            AddAssert("0 is the last in bound", () => another.Items.Last() == 0);
+
+            AddAssert("items flow updated", () =>
+            {
+                var item = (BasicRearrangeableListItem<int>)another.ListContainer.FlowingChildren.Last();
+                return item.Model == 0;
+            });
+        }
+
         private void addDragSteps(int from, int to, int[] expectedSequence)
         {
             AddStep($"move to {from}", () =>
