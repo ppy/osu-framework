@@ -94,14 +94,18 @@ namespace osu.Framework.Platform.Windows
             if (value != null)
                 return value;
 
-            var webCustomFormats = getClipboard(getFormat("Web Custom Format Map"), bytes =>
+            /*
+             * Web browsers store clipboard entries with custom mime types differently, so we will need to check if an equivalent entry has been created.
+             * https://github.com/w3c/editing/blob/gh-pages/docs/clipboard-pickling/explainer.md#os-interaction-format-naming
+             */
+            var webCustomFormatMap = getClipboard(getFormat("Web Custom Format Map"), bytes =>
                 JsonConvert.DeserializeObject<Dictionary<string, string>>(
                     Encoding.ASCII.GetString(bytes))
             );
 
-            if (webCustomFormats?[mimeType] != null)
+            if (webCustomFormatMap?[mimeType] != null)
             {
-                string? webValue = getClipboard(getFormat(webCustomFormats[mimeType]), bytes => Encoding.ASCII.GetString(bytes).TrimEnd('\0'));
+                string? webValue = getClipboard(getFormat(webCustomFormatMap[mimeType]), bytes => Encoding.UTF8.GetString(bytes).TrimEnd('\0'));
                 return webValue;
             }
 
