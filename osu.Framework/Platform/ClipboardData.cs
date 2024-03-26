@@ -7,7 +7,7 @@ using SixLabors.ImageSharp;
 namespace osu.Framework.Platform
 {
     /// <summary>
-    /// Holds multiple values that can be copied to the clipboard
+    /// Holds multiple concurrent representations of some data to be copied to the clipboard.
     /// </summary>
     public struct ClipboardData
     {
@@ -22,7 +22,8 @@ namespace osu.Framework.Platform
         public Image? Image;
 
         /// <summary>
-        /// Values to be stored as custom formats on the clipboard.
+        /// Contains Values to be stored as an entry custom mime type in the clipboard.
+        /// Keyed by mime type.
         /// </summary>
         public readonly Dictionary<string, string> CustomFormatValues = new Dictionary<string, string>();
 
@@ -30,16 +31,6 @@ namespace osu.Framework.Platform
         {
             Text = null;
             Image = null;
-        }
-
-        /// <summary>
-        /// Adds a clipboard entry with a custom format
-        /// </summary>
-        /// <param name="format">format of the clipboard entry</param>
-        /// <param name="value">value of the clipboard entry</param>
-        public void AddCustom(string format, string value)
-        {
-            CustomFormatValues[format] = value;
         }
 
         /// <summary>

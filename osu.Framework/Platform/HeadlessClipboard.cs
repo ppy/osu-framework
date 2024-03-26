@@ -23,9 +23,9 @@ namespace osu.Framework.Platform
 
         public override Image<TPixel>? GetImage<TPixel>() => clipboardImage?.CloneAs<TPixel>();
 
-        public override string? GetCustom(string format)
+        public override string? GetCustom(string mimeType)
         {
-            return customValues[format];
+            return customValues[mimeType];
         }
 
         public override bool SetData(ClipboardData data)

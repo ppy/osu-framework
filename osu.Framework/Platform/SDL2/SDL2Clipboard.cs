@@ -22,9 +22,9 @@ namespace osu.Framework.Platform.SDL2
             return null;
         }
 
-        public override string? GetCustom(string format)
+        public override string? GetCustom(string mimeType)
         {
-            return customFormatValues[format];
+            return customFormatValues[mimeType];
         }
 
         public override bool SetData(ClipboardData data)

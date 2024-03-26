@@ -19,9 +19,9 @@ namespace osu.Framework.Platform.MacOS
 
         public override Image<TPixel>? GetImage<TPixel>() => Cocoa.FromNSImage<TPixel>(getFromPasteboard(Class.Get("NSImage")));
 
-        public override string? GetCustom(string format)
+        public override string? GetCustom(string mimeType)
         {
-            return customFormatValues[format];
+            return customFormatValues[mimeType];
         }
 
         private IntPtr getFromPasteboard(IntPtr @class)

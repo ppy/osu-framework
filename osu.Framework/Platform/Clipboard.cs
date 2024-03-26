@@ -52,20 +52,25 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
-        /// Get clipboard content with custom format
+        /// Retrieve content with custom mime type from the clipboard.
         /// </summary>
-        /// <returns>Name of the custom format</returns>
-        public abstract string? GetCustom(string format);
+        /// <returns>Mime type of the clipboard item to retrieve</returns>
+        public abstract string? GetCustom(string mimeType);
 
         /// <summary>
-        /// Get clipboard content with custom format
+        /// Copy item with custom mime type to the clipboard
         /// </summary>
-        /// <param name="format">Name of the custom format</param>
+        /// <param name="mimeType">Mime type of the clipboard item</param>
         /// <param name="text">Text to copy to the clipboard</param>
-        public void SetCustom(string format, string text)
+        public void SetCustom(string mimeType, string text)
         {
-            var data = new ClipboardData();
-            data.AddCustom(format, text);
+            var data = new ClipboardData
+            {
+                CustomFormatValues =
+                {
+                    [mimeType] = text
+                }
+            };
 
             SetData(data);
         }

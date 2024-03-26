@@ -88,9 +88,9 @@ namespace osu.Framework.Platform.Windows
             });
         }
 
-        public override string? GetCustom(string formatName)
+        public override string? GetCustom(string mimeType)
         {
-            string? value = getClipboard(getFormat(formatName), bytes => Encoding.Unicode.GetString(bytes).TrimEnd('\0'));
+            string? value = getClipboard(getFormat(mimeType), bytes => Encoding.Unicode.GetString(bytes).TrimEnd('\0'));
             if (value != null)
                 return value;
 
@@ -99,9 +99,9 @@ namespace osu.Framework.Platform.Windows
                     Encoding.ASCII.GetString(bytes))
             );
 
-            if (webCustomFormats?[formatName] != null)
+            if (webCustomFormats?[mimeType] != null)
             {
-                string? webValue = getClipboard(getFormat(webCustomFormats[formatName]), bytes => Encoding.ASCII.GetString(bytes).TrimEnd('\0'));
+                string? webValue = getClipboard(getFormat(webCustomFormats[mimeType]), bytes => Encoding.ASCII.GetString(bytes).TrimEnd('\0'));
                 return webValue;
             }
 
