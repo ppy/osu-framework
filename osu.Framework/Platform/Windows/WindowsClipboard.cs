@@ -119,10 +119,7 @@ namespace osu.Framework.Platform.Windows
 
             uint createdFormat = RegisterClipboardFormatW(source);
 
-            if (createdFormat != 0)
-            {
-                GlobalFree(source);
-            }
+            GlobalFree(source);
 
             customFormats[formatName] = createdFormat;
 
