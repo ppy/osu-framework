@@ -383,7 +383,12 @@ namespace osu.Framework.Platform.Windows
             try
             {
                 if (!OpenClipboard(IntPtr.Zero))
+                {
+                    int error = Marshal.GetLastWin32Error();
+                    Logger.Log($"Failed to open clipboard with Win32 API with error code {error}", level: LogLevel.Error);
+
                     return default;
+                }
 
                 IntPtr handle = GetClipboardData(format);
                 if (handle == IntPtr.Zero)
@@ -413,7 +418,11 @@ namespace osu.Framework.Platform.Windows
             }
             finally
             {
-                CloseClipboard();
+                if (!CloseClipboard())
+                {
+                    int error = Marshal.GetLastWin32Error();
+                    Logger.Log($"Failed to close clipboard with Win32 API with error code {error}", level: LogLevel.Error);
+                }
             }
         }
     }
