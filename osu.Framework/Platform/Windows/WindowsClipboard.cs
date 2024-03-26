@@ -23,20 +23,20 @@ namespace osu.Framework.Platform.Windows
         [DllImport("User32.dll")]
         private static extern IntPtr GetClipboardData(uint uFormat);
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr SetClipboardData(uint uFormat, IntPtr hMem);
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern uint RegisterClipboardFormatW(IntPtr lpszFormat);
 
-        [DllImport("User32.dll")]
+        [DllImport("User32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool OpenClipboard(IntPtr hWndNewOwner);
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", SetLastError = true)]
         private static extern bool EmptyClipboard();
 
-        [DllImport("User32.dll")]
+        [DllImport("User32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool CloseClipboard();
 
@@ -127,7 +127,7 @@ namespace osu.Framework.Platform.Windows
         }
 
         /// <summary>
-        /// Retrieves the identifier for to a given clipboard format, and registers a new format with the win32 API if needed.
+        /// Retrieves the identifier for to a given clipboard format, and registers a new format with the Win32 API if needed.
         /// </summary>
         /// <param name="formatName">Name of the clipboard format</param>
         /// <returns>Identifier of the created format. Will return 0 if registering the format failed.</returns>
@@ -147,7 +147,7 @@ namespace osu.Framework.Platform.Windows
             if (createdFormat == 0)
             {
                 int error = Marshal.GetLastWin32Error();
-                Logger.Log($"Failed to register clipboard format \"{formatName}\" with win32 api with error code ${error}.", level: LogLevel.Error);
+                Logger.Log($"Failed to register clipboard format \"{formatName}\" with Win32 API with error code ${error}.", level: LogLevel.Error);
 
                 return 0;
             }
@@ -300,9 +300,20 @@ namespace osu.Framework.Platform.Windows
             try
             {
                 if (!OpenClipboard(IntPtr.Zero))
-                    return false;
+                {
+                    int error = Marshal.GetLastWin32Error();
+                    Logger.Log($"Failed to open clipboard with Win32 API with error code {error}", level: LogLevel.Error);
 
-                EmptyClipboard();
+                    return false;
+                }
+
+                if (!EmptyClipboard())
+                {
+                    int error = Marshal.GetLastWin32Error();
+                    Logger.Log($"Failed to empty clipboard with Win32 API with error code {error}", level: LogLevel.Error);
+
+                    return false;
+                }
 
                 foreach (var entry in entries)
                 {
@@ -337,6 +348,9 @@ namespace osu.Framework.Platform.Windows
                         }
                         else
                         {
+                            int error = Marshal.GetLastWin32Error();
+                            Logger.Log($"Failed to set clipboard data with Win32 API with error code {error}", level: LogLevel.Error);
+
                             success = false;
                         }
                     }
@@ -349,7 +363,13 @@ namespace osu.Framework.Platform.Windows
             }
             finally
             {
-                CloseClipboard();
+                if (!CloseClipboard())
+                {
+                    int error = Marshal.GetLastWin32Error();
+                    Logger.Log($"Failed to close clipboard with Win32 API with error code {error}", level: LogLevel.Error);
+
+                    success = false;
+                }
             }
 
             return success;
