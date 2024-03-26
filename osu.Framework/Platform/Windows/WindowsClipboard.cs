@@ -91,7 +91,11 @@ namespace osu.Framework.Platform.Windows
 
         public override string? GetCustom(string mimeType)
         {
-            string? value = getClipboard(getFormat(mimeType), bytes => Encoding.Unicode.GetString(bytes).TrimEnd('\0'));
+            uint formatIdentifier = getFormatIdentifier(mimeType);
+            if (formatIdentifier == 0)
+                return null;
+
+            string? value = getClipboard(formatIdentifier, bytes => Encoding.Unicode.GetString(bytes).TrimEnd('\0'));
             if (value != null)
                 return value;
 
@@ -99,15 +103,24 @@ namespace osu.Framework.Platform.Windows
              * Web browsers store clipboard entries with custom mime types differently, so we will need to check if an equivalent entry has been created.
              * https://github.com/w3c/editing/blob/gh-pages/docs/clipboard-pickling/explainer.md#os-interaction-format-naming
              */
-            var webCustomFormatMap = getClipboard(getFormat("Web Custom Format Map"), bytes =>
-                JsonConvert.DeserializeObject<Dictionary<string, string>>(
-                    Encoding.ASCII.GetString(bytes))
-            );
+            uint webCustomFormatMapIdentifier = getFormatIdentifier("Web Custom Format Map");
 
-            if (webCustomFormatMap?[mimeType] != null)
+            if (webCustomFormatMapIdentifier != 0)
             {
-                string? webValue = getClipboard(getFormat(webCustomFormatMap[mimeType]), bytes => Encoding.UTF8.GetString(bytes).TrimEnd('\0'));
-                return webValue;
+                var webCustomFormatMap = getClipboard(webCustomFormatMapIdentifier, bytes =>
+                    JsonConvert.DeserializeObject<Dictionary<string, string>>(
+                        Encoding.ASCII.GetString(bytes))
+                );
+
+                if (webCustomFormatMap?[mimeType] != null)
+                {
+                    uint webCustomFormatIdentifier = getFormatIdentifier(webCustomFormatMap[mimeType]);
+
+                    if (webCustomFormatIdentifier != 0)
+                    {
+                        return getClipboard(webCustomFormatIdentifier, bytes => Encoding.UTF8.GetString(bytes).TrimEnd('\0'));
+                    }
+                }
             }
 
             return null;
@@ -118,7 +131,7 @@ namespace osu.Framework.Platform.Windows
         /// </summary>
         /// <param name="formatName">Name of the clipboard format</param>
         /// <returns>Identifier of the created format. Will return 0 if registering the format failed.</returns>
-        private uint getFormat(string formatName)
+        private uint getFormatIdentifier(string formatName)
         {
             if (customFormats.TryGetValue(formatName, out uint format))
             {
@@ -134,7 +147,7 @@ namespace osu.Framework.Platform.Windows
             if (createdFormat == 0)
             {
                 int error = Marshal.GetLastWin32Error();
-                Logger.Log($"Failed to register clipboard format with win32 api with error code ${error}.", level: LogLevel.Error);
+                Logger.Log($"Failed to register clipboard format \"{formatName}\" with win32 api with error code ${error}.", level: LogLevel.Error);
 
                 return 0;
             }
@@ -161,14 +174,12 @@ namespace osu.Framework.Platform.Windows
 
             foreach (var entry in data.CustomFormatValues)
             {
-                uint format = getFormat(entry.Key);
+                uint formatIdentifier = getFormatIdentifier(entry.Key);
 
-                if (format == null)
-                {
+                if (formatIdentifier == 0)
+                    return false;
 
-                }
-
-                clipboardEntries.Add(createTextEntryUtf16(entry.Value, format));
+                clipboardEntries.Add(createTextEntryUtf16(entry.Value, formatIdentifier));
             }
 
             if (data.CustomFormatValues.Count > 0)
@@ -203,13 +214,22 @@ namespace osu.Framework.Platform.Windows
 
                     webCustomFormatMap[formatName] = webCustomFormatName;
 
-                    clipboardEntries.Add(createTextEntryUtf8(content, getFormat(webCustomFormatName)));
+                    uint webCustomFormatIdentifier = getFormatIdentifier(webCustomFormatName);
+                    if (webCustomFormatIdentifier == 0)
+                        return false;
+
+                    clipboardEntries.Add(createTextEntryUtf8(content, webCustomFormatIdentifier));
                 }
+
+                uint webCustomFormatMapIdentifier = getFormatIdentifier("Web Custom Format Map");
+
+                if (webCustomFormatMapIdentifier == 0)
+                    return false;
 
                 clipboardEntries.Add(
                     createTextEntryUtf8(
                         JsonConvert.SerializeObject(webCustomFormatMap),
-                        getFormat("Web Custom Format Map")
+                        webCustomFormatMapIdentifier
                     )
                 );
             }
