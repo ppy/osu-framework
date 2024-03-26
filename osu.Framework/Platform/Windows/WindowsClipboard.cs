@@ -203,14 +203,14 @@ namespace osu.Framework.Platform.Windows
 
         private ClipboardEntry createTextEntryUtf8(string text, uint format)
         {
-            int len = Encoding.UTF8.GetByteCount(text);
-            byte[] buffer = new byte[len + 1];
+            int bytes = Encoding.UTF8.GetByteCount(text);
+            byte[] buffer = new byte[bytes + 1];
 
             Encoding.UTF8.GetBytes(text, 0, text.Length, buffer, 0);
-            IntPtr nativeUtf8 = Marshal.AllocHGlobal(buffer.Length);
-            Marshal.Copy(buffer, 0, nativeUtf8, buffer.Length);
+            IntPtr source = Marshal.AllocHGlobal(buffer.Length);
+            Marshal.Copy(buffer, 0, source, buffer.Length);
 
-            return new ClipboardEntry(nativeUtf8, len, format);
+            return new ClipboardEntry(source, bytes, format);
         }
 
         private ClipboardEntry createImageEntry(Image image)
