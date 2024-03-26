@@ -22,12 +22,7 @@ namespace osu.Framework.Platform
         /// <param name="text">Text to copy to the clipboard</param>
         public void SetText(string text)
         {
-            SetData(
-                new ClipboardData
-                {
-                    Text = text
-                }
-            );
+            SetData(new ClipboardData { Text = text });
         }
 
         /// <summary>
@@ -43,12 +38,7 @@ namespace osu.Framework.Platform
         /// <returns>Whether the image was successfully copied or not</returns>
         public bool SetImage(Image image)
         {
-            return SetData(
-                new ClipboardData
-                {
-                    Image = image
-                }
-            );
+            return SetData(new ClipboardData { Image = image });
         }
 
         /// <summary>
@@ -66,10 +56,7 @@ namespace osu.Framework.Platform
         {
             var data = new ClipboardData
             {
-                CustomFormatValues =
-                {
-                    [mimeType] = text
-                }
+                CustomFormatValues = { [mimeType] = text }
             };
 
             SetData(data);
