@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using Newtonsoft.Json;
+using osu.Framework.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Bmp;
 
@@ -25,7 +26,7 @@ namespace osu.Framework.Platform.Windows
         [DllImport("user32.dll")]
         private static extern IntPtr SetClipboardData(uint uFormat, IntPtr hMem);
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", SetLastError = true)]
         private static extern uint RegisterClipboardFormatW(IntPtr lpszFormat);
 
         [DllImport("User32.dll")]
@@ -112,6 +113,11 @@ namespace osu.Framework.Platform.Windows
             return null;
         }
 
+        /// <summary>
+        /// Retrieves the identifier for to a given clipboard format, and registers a new format with the win32 API if needed.
+        /// </summary>
+        /// <param name="formatName">Name of the clipboard format</param>
+        /// <returns>Identifier of the created format. Will return 0 if registering the format failed.</returns>
         private uint getFormat(string formatName)
         {
             if (customFormats.TryGetValue(formatName, out uint format))
@@ -124,6 +130,14 @@ namespace osu.Framework.Platform.Windows
             uint createdFormat = RegisterClipboardFormatW(source);
 
             GlobalFree(source);
+
+            if (createdFormat == 0)
+            {
+                int error = Marshal.GetLastWin32Error();
+                Logger.Log($"Failed to register clipboard format with win32 api with error code ${error}.", level: LogLevel.Error);
+
+                return 0;
+            }
 
             customFormats[formatName] = createdFormat;
 
@@ -148,6 +162,12 @@ namespace osu.Framework.Platform.Windows
             foreach (var entry in data.CustomFormatValues)
             {
                 uint format = getFormat(entry.Key);
+
+                if (format == null)
+                {
+
+                }
+
                 clipboardEntries.Add(createTextEntryUtf16(entry.Value, format));
             }
 

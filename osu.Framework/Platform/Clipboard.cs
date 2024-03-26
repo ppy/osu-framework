@@ -79,6 +79,7 @@ namespace osu.Framework.Platform
         /// Copy multiple values to the clipboard
         /// </summary>
         /// <param name="data">Data to copy the clipboard</param>
+        /// <returns>Whether the data was successfully copied or not</returns>
         public abstract bool SetData(ClipboardData data);
     }
 }
