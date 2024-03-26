@@ -149,6 +149,23 @@ namespace osu.Framework.Platform.Windows
 
             if (data.CustomFormatValues.Count > 0)
             {
+                /*
+                 * Required for compatibility with browser clipboard https://github.com/w3c/editing/blob/gh-pages/docs/clipboard-pickling/explainer.md
+                 * Clipboard entries are stored in a predefined range of clipboard format names, on Windows being `Web Custom Format<n>`, where `n` is 0-indexed
+                 * and incrementing with each custom mime type.
+                 * To resolve the original mime types, a special clipboard entry is required (`Web Custom Format Map` on Windows) that maps the original mime types
+                 * to the actual clipboard entries:
+                 * ```json
+                 * {
+                 *   "text/foo": "Web Custom Format0",
+                 *   "text/bar": "Web Custom Format1"
+                 *  }
+                 * ```
+                 *
+                 * This limitation is in place to prevent websites from creating arbitrary amounts of clipboard formats (Notably on Windows, the number of clipboard
+                 * formats is limited to about 16,000), as well as allowing unicode values in clipboard format names on MacOS.
+                 */
+
                 var webCustomFormats = new Dictionary<string, string>();
 
                 var customEntries = data.CustomFormatValues.ToList();
