@@ -136,7 +136,7 @@ namespace osu.Framework.Platform.Windows
             var clipboardEntries = new List<ClipboardEntry>();
 
             if (data.Text != null)
-                clipboardEntries.Add(createTextEntry(data.Text, cf_unicodetext));
+                clipboardEntries.Add(createTextEntryUtf16(data.Text, cf_unicodetext));
 
             if (data.Image != null)
                 clipboardEntries.Add(createImageEntry(data.Image));
@@ -144,7 +144,7 @@ namespace osu.Framework.Platform.Windows
             foreach (var entry in data.CustomFormatValues)
             {
                 uint format = getFormat(entry.Key);
-                clipboardEntries.Add(createTextEntry(entry.Value, format));
+                clipboardEntries.Add(createTextEntryUtf16(entry.Value, format));
             }
 
             if (data.CustomFormatValues.Count > 0)
@@ -179,11 +179,11 @@ namespace osu.Framework.Platform.Windows
 
                     webCustomFormats[formatName] = webCustomFormatName;
 
-                    clipboardEntries.Add(createAnsiTextEntry(content, getFormat(webCustomFormatName)));
+                    clipboardEntries.Add(createTextEntryUtf8(content, getFormat(webCustomFormatName)));
                 }
 
                 clipboardEntries.Add(
-                    createAnsiTextEntry(
+                    createTextEntryUtf8(
                         JsonConvert.SerializeObject(webCustomFormats),
                         getFormat("Web Custom Format Map")
                     )
@@ -193,7 +193,7 @@ namespace osu.Framework.Platform.Windows
             return setClipboard(clipboardEntries);
         }
 
-        private ClipboardEntry createTextEntry(string text, uint format)
+        private ClipboardEntry createTextEntryUtf16(string text, uint format)
         {
             int bytes = (text.Length + 1) * 2;
             IntPtr source = Marshal.StringToHGlobalUni(text);
@@ -201,13 +201,16 @@ namespace osu.Framework.Platform.Windows
             return new ClipboardEntry(source, bytes, format);
         }
 
-        private ClipboardEntry createAnsiTextEntry(string text, uint format)
+        private ClipboardEntry createTextEntryUtf8(string text, uint format)
         {
-            // Deliberately dropping the 0-terminator here because browsers refuse to parse it otherwise
-            int bytes = text.Length * Marshal.SystemMaxDBCSCharSize;
-            IntPtr source = Marshal.StringToHGlobalAnsi(text);
+            int len = Encoding.UTF8.GetByteCount(text);
+            byte[] buffer = new byte[len + 1];
 
-            return new ClipboardEntry(source, bytes, format);
+            Encoding.UTF8.GetBytes(text, 0, text.Length, buffer, 0);
+            IntPtr nativeUtf8 = Marshal.AllocHGlobal(buffer.Length);
+            Marshal.Copy(buffer, 0, nativeUtf8, buffer.Length);
+
+            return new ClipboardEntry(nativeUtf8, len, format);
         }
 
         private ClipboardEntry createImageEntry(Image image)
