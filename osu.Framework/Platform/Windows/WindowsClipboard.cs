@@ -166,7 +166,7 @@ namespace osu.Framework.Platform.Windows
                  * formats is limited to about 16,000), as well as allowing unicode values in clipboard format names on MacOS.
                  */
 
-                var webCustomFormats = new Dictionary<string, string>();
+                var webCustomFormatMap = new Dictionary<string, string>();
 
                 var customEntries = data.CustomFormatValues.ToList();
 
@@ -177,14 +177,14 @@ namespace osu.Framework.Platform.Windows
 
                     string webCustomFormatName = $"Web Custom Format{i}";
 
-                    webCustomFormats[formatName] = webCustomFormatName;
+                    webCustomFormatMap[formatName] = webCustomFormatName;
 
                     clipboardEntries.Add(createTextEntryUtf8(content, getFormat(webCustomFormatName)));
                 }
 
                 clipboardEntries.Add(
                     createTextEntryUtf8(
-                        JsonConvert.SerializeObject(webCustomFormats),
+                        JsonConvert.SerializeObject(webCustomFormatMap),
                         getFormat("Web Custom Format Map")
                     )
                 );
