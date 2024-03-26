@@ -141,22 +141,28 @@ namespace osu.Framework.Platform.Windows
             if (data.Image != null)
                 clipboardEntries.Add(createImageEntry(data.Image));
 
+            foreach (var entry in data.CustomFormatValues)
+            {
+                uint format = getFormat(entry.Key);
+                clipboardEntries.Add(createTextEntry(format, entry.Value));
+            }
+
             if (data.CustomFormatValues.Count > 0)
             {
-                // Required for compatibility with browser clipboard https://github.com/w3c/editing/blob/gh-pages/docs/clipboard-pickling/explainer.md#on-windows
                 var webCustomFormats = new Dictionary<string, string>();
 
-                foreach (var entry in data.CustomFormatValues)
+                var customEntries = data.CustomFormatValues.ToList();
+
+                for (int i = 0; i < customEntries.Count; i++)
                 {
-                    string webCustomFormatName = $"Web Custom Format{webCustomFormats.Count}";
+                    string formatName = customEntries[i].Key;
+                    string content = customEntries[i].Value;
 
-                    clipboardEntries.Add(
-                        createTextEntry(getFormat(entry.Key), entry.Value)
-                    );
+                    string webCustomFormatName = $"Web Custom Format{i}";
 
-                    clipboardEntries.Add(createAnsiTextEntry(entry.Value, getFormat(webCustomFormatName)));
+                    webCustomFormats[formatName] = webCustomFormatName;
 
-                    webCustomFormats[entry.Key] = webCustomFormatName;
+                    clipboardEntries.Add(createAnsiTextEntry(content, getFormat(webCustomFormatName)));
                 }
 
                 clipboardEntries.Add(
