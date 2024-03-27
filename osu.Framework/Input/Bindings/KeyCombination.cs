@@ -197,41 +197,41 @@ namespace osu.Framework.Input.Bindings
 
         /// <summary>
         /// Check whether a single key from a candidate binding is relevant to the currently pressed keys.
-        /// If the <paramref name="key"/> contains a left/right specific modifier, the <paramref name="candidate"/> must also for this to match.
+        /// If the <paramref name="pressedKeys"/> contain a left/right specific modifier, the <paramref name="candidateKey"/> needs to be either that specific modifier or its generic variant to match.
         /// </summary>
-        /// <param name="candidate">The candidate key binding to match against.</param>
-        /// <param name="key">The key which has been pressed by a user.</param>
+        /// <param name="pressedKeys">The currently pressed keys to match against.</param>
+        /// <param name="candidateKey">The candidate key to check.</param>
         /// <returns>Whether this is a match.</returns>
-        internal static bool ContainsKey(ImmutableArray<InputKey> candidate, InputKey key)
+        internal static bool ContainsKey(ImmutableArray<InputKey> pressedKeys, InputKey candidateKey)
         {
-            switch (key)
+            switch (candidateKey)
             {
                 case InputKey.Control:
-                    if (candidate.Contains(InputKey.LControl) || candidate.Contains(InputKey.RControl))
+                    if (pressedKeys.Contains(InputKey.LControl) || pressedKeys.Contains(InputKey.RControl))
                         return true;
 
                     break;
 
                 case InputKey.Shift:
-                    if (candidate.Contains(InputKey.LShift) || candidate.Contains(InputKey.RShift))
+                    if (pressedKeys.Contains(InputKey.LShift) || pressedKeys.Contains(InputKey.RShift))
                         return true;
 
                     break;
 
                 case InputKey.Alt:
-                    if (candidate.Contains(InputKey.LAlt) || candidate.Contains(InputKey.RAlt))
+                    if (pressedKeys.Contains(InputKey.LAlt) || pressedKeys.Contains(InputKey.RAlt))
                         return true;
 
                     break;
 
                 case InputKey.Super:
-                    if (candidate.Contains(InputKey.LSuper) || candidate.Contains(InputKey.RSuper))
+                    if (pressedKeys.Contains(InputKey.LSuper) || pressedKeys.Contains(InputKey.RSuper))
                         return true;
 
                     break;
             }
 
-            return candidate.Contains(key);
+            return pressedKeys.Contains(candidateKey);
         }
 
         public bool Equals(KeyCombination other) => Keys.SequenceEqual(other.Keys);
