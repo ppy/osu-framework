@@ -280,9 +280,7 @@ namespace osu.Framework.Graphics.UserInterface
                 case PlatformAction.MoveBackwardChar:
                     if (hasSelection)
                     {
-                        selectionStart = selectionEnd = selectionLeft;
-                        cursorAndLayout.Invalidate();
-                        onTextDeselected(lastSelectionBounds);
+                        MoveCursorBy(selectionLeft - selectionEnd);
                     }
                     else
                     {
@@ -294,9 +292,7 @@ namespace osu.Framework.Graphics.UserInterface
                 case PlatformAction.MoveForwardChar:
                     if (hasSelection)
                     {
-                        selectionStart = selectionEnd = selectionRight;
-                        cursorAndLayout.Invalidate();
-                        onTextDeselected(lastSelectionBounds);
+                        MoveCursorBy(selectionRight - selectionEnd);
                     }
                     else
                     {
