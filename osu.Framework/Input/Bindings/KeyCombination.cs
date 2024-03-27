@@ -106,39 +106,39 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// Check whether the provided set of pressed keys matches the candidate binding.
         /// </summary>
-        /// <param name="candidateKey">The candidate key binding to match against.</param>
-        /// <param name="pressedKey">The keys which have been pressed by a user.</param>
+        /// <param name="candidate">The candidate key binding to match against.</param>
+        /// <param name="pressedKeys">The keys which have been pressed by a user.</param>
         /// <param name="matchingMode">The matching mode to be used when checking.</param>
         /// <returns>Whether this is a match.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool ContainsAll(ImmutableArray<InputKey> candidateKey, ImmutableArray<InputKey> pressedKey, KeyCombinationMatchingMode matchingMode)
+        internal static bool ContainsAll(ImmutableArray<InputKey> candidate, ImmutableArray<InputKey> pressedKeys, KeyCombinationMatchingMode matchingMode)
         {
             // first, check that all the candidate keys are contained in the provided pressed keys.
             // regardless of the matching mode, every key needs to at least be present (matching modes only change
             // the behaviour of excess keys).
-            foreach (var key in candidateKey)
+            foreach (var key in candidate)
             {
-                if (!ContainsKey(pressedKey, key))
+                if (!ContainsKey(pressedKeys, key))
                     return false;
             }
 
             switch (matchingMode)
             {
                 case KeyCombinationMatchingMode.Exact:
-                    foreach (var key in pressedKey)
+                    foreach (var key in pressedKeys)
                     {
                         // in exact matching mode, every pressed key needs to be in the candidate.
-                        if (!ContainsKeyPermissive(candidateKey, key))
+                        if (!ContainsKeyPermissive(candidate, key))
                             return false;
                     }
 
                     break;
 
                 case KeyCombinationMatchingMode.Modifiers:
-                    foreach (var key in pressedKey)
+                    foreach (var key in pressedKeys)
                     {
                         // in modifiers match mode, the same check applies as exact but only for modifier keys.
-                        if (IsModifierKey(key) && !ContainsKeyPermissive(candidateKey, key))
+                        if (IsModifierKey(key) && !ContainsKeyPermissive(candidate, key))
                             return false;
                     }
 
