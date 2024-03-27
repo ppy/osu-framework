@@ -103,6 +103,30 @@ namespace osu.Framework.Input.Bindings
             return ContainsAll(Keys, pressedKeys.Keys, matchingMode);
         }
 
+        private static InputKey? getVirtualKey(InputKey key)
+        {
+            switch (key)
+            {
+                case InputKey.LShift:
+                case InputKey.RShift:
+                    return InputKey.Shift;
+
+                case InputKey.LControl:
+                case InputKey.RControl:
+                    return InputKey.Control;
+
+                case InputKey.LAlt:
+                case InputKey.RAlt:
+                    return InputKey.Alt;
+
+                case InputKey.LSuper:
+                case InputKey.RSuper:
+                    return InputKey.Super;
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Check whether the provided set of pressed keys matches the candidate binding.
         /// </summary>
@@ -113,32 +137,34 @@ namespace osu.Framework.Input.Bindings
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool ContainsAll(ImmutableArray<InputKey> candidate, ImmutableArray<InputKey> pressedKeys, KeyCombinationMatchingMode matchingMode)
         {
+            ImmutableArray<(InputKey Physical, InputKey? Virtual)> pressed = pressedKeys.Select(k => (k, getVirtualKey(k))).ToImmutableArray();
+
             // first, check that all the candidate keys are contained in the provided pressed keys.
             // regardless of the matching mode, every key needs to at least be present (matching modes only change
             // the behaviour of excess keys).
             foreach (var key in candidate)
             {
-                if (!ContainsKey(pressedKeys, key))
+                if (!ContainsKey(pressed, key))
                     return false;
             }
 
             switch (matchingMode)
             {
                 case KeyCombinationMatchingMode.Exact:
-                    foreach (var key in pressedKeys)
+                    foreach (var key in pressed)
                     {
                         // in exact matching mode, every pressed key needs to be in the candidate.
-                        if (!ContainsKeyPermissive(candidate, key))
+                        if (!ContainsKeyPermissive(candidate, key.Physical, key.Virtual))
                             return false;
                     }
 
                     break;
 
                 case KeyCombinationMatchingMode.Modifiers:
-                    foreach (var key in pressedKeys)
+                    foreach (var key in pressed)
                     {
                         // in modifiers match mode, the same check applies as exact but only for modifier keys.
-                        if (IsModifierKey(key) && !ContainsKeyPermissive(candidate, key))
+                        if (IsModifierKey(key.Physical) && !ContainsKeyPermissive(candidate, key.Physical, key.Virtual))
                             return false;
                     }
 
@@ -157,42 +183,12 @@ namespace osu.Framework.Input.Bindings
         /// This will match bidirectionally for modifier keys (LShift and Shift being present in both of the two parameters in either order will return true).
         /// </summary>
         /// <param name="candidate">The candidate key binding to match against.</param>
-        /// <param name="key">The key which has been pressed by a user.</param>
+        /// <param name="physicalKey">The key which has been pressed by a user.</param>
+        /// <param name="virtualKey">The virtual key corresponding to the physical key, if any.</param>
         /// <returns>Whether this is a match.</returns>
-        internal static bool ContainsKeyPermissive(ImmutableArray<InputKey> candidate, InputKey key)
+        internal static bool ContainsKeyPermissive(ImmutableArray<InputKey> candidate, InputKey physicalKey, InputKey? virtualKey)
         {
-            switch (key)
-            {
-                case InputKey.LControl:
-                case InputKey.RControl:
-                    if (candidate.Contains(InputKey.Control))
-                        return true;
-
-                    break;
-
-                case InputKey.LShift:
-                case InputKey.RShift:
-                    if (candidate.Contains(InputKey.Shift))
-                        return true;
-
-                    break;
-
-                case InputKey.RAlt:
-                case InputKey.LAlt:
-                    if (candidate.Contains(InputKey.Alt))
-                        return true;
-
-                    break;
-
-                case InputKey.LSuper:
-                case InputKey.RSuper:
-                    if (candidate.Contains(InputKey.Super))
-                        return true;
-
-                    break;
-            }
-
-            return candidate.Contains(key);
+            return candidate.Contains(physicalKey) || (virtualKey != null && candidate.Contains(virtualKey.Value));
         }
 
         /// <summary>
@@ -202,36 +198,9 @@ namespace osu.Framework.Input.Bindings
         /// <param name="pressedKeys">The currently pressed keys to match against.</param>
         /// <param name="candidateKey">The candidate key to check.</param>
         /// <returns>Whether this is a match.</returns>
-        internal static bool ContainsKey(ImmutableArray<InputKey> pressedKeys, InputKey candidateKey)
+        internal static bool ContainsKey(ImmutableArray<(InputKey Physical, InputKey? Virtual)> pressedKeys, InputKey candidateKey)
         {
-            switch (candidateKey)
-            {
-                case InputKey.Control:
-                    if (pressedKeys.Contains(InputKey.LControl) || pressedKeys.Contains(InputKey.RControl))
-                        return true;
-
-                    break;
-
-                case InputKey.Shift:
-                    if (pressedKeys.Contains(InputKey.LShift) || pressedKeys.Contains(InputKey.RShift))
-                        return true;
-
-                    break;
-
-                case InputKey.Alt:
-                    if (pressedKeys.Contains(InputKey.LAlt) || pressedKeys.Contains(InputKey.RAlt))
-                        return true;
-
-                    break;
-
-                case InputKey.Super:
-                    if (pressedKeys.Contains(InputKey.LSuper) || pressedKeys.Contains(InputKey.RSuper))
-                        return true;
-
-                    break;
-            }
-
-            return pressedKeys.Contains(candidateKey);
+            return pressedKeys.Any(k => candidateKey == k.Physical || candidateKey == k.Virtual);
         }
 
         public bool Equals(KeyCombination other) => Keys.SequenceEqual(other.Keys);
