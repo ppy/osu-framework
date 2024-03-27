@@ -701,10 +701,16 @@ namespace osu.Framework.Graphics.UserInterface
 
                 protected virtual void UpdateFilteringState(bool filtered) => this.FadeTo(filtered ? 1 : 0);
 
-                protected override bool OnHover(HoverEvent e)
+                protected override bool OnMouseMove(MouseMoveEvent e)
                 {
                     PreselectionRequested?.Invoke(Item as DropdownMenuItem<T>);
-                    return base.OnHover(e);
+                    return base.OnMouseMove(e);
+                }
+
+                protected override bool OnMouseDown(MouseDownEvent e)
+                {
+                    PreselectionRequested?.Invoke(Item as DropdownMenuItem<T>);
+                    return base.OnMouseDown(e);
                 }
             }
 
