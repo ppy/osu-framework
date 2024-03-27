@@ -192,7 +192,7 @@ namespace osu.Framework.Input.Bindings
                     break;
             }
 
-            return ContainsKey(candidate, key);
+            return candidate.Contains(key);
         }
 
         /// <summary>
