@@ -854,15 +854,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("select next word", () => InputManager.Keys(PlatformAction.SelectForwardWord));
             AddAssert("first word selected", () => textBox.SelectedText == "cwm");
 
-            // forward word move should jump from right end of selection
+            // forward word move should put cursor at right end of selection
             AddStep("move cursor forward (word)", () => InputManager.Keys(PlatformAction.MoveForwardWord));
-            AddStep("select previous word", () => InputManager.Keys(PlatformAction.SelectBackwardWord));
-            AddAssert("second word selected", () => textBox.SelectedText == "fjord");
+            AddStep("select next word", () => InputManager.Keys(PlatformAction.SelectForwardWord));
+            AddAssert("second word selected", () => textBox.SelectedText == " fjord");
 
             // same thing but for "back-facing" selection
             AddStep("move cursor forward (word)", () => InputManager.Keys(PlatformAction.MoveForwardWord));
-            AddStep("select next word", () => InputManager.Keys(PlatformAction.SelectForwardWord));
-            AddAssert("fourth word selected", () => textBox.SelectedText == " vext");
+            AddStep("select previous word", () => InputManager.Keys(PlatformAction.SelectBackwardWord));
+            AddAssert("second word selected", () => textBox.SelectedText == "fjord");
 
             // right char move should put cursor at right end of selection
             AddStep("select all", () => textBox.SelectAll());
@@ -870,15 +870,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("select previous word", () => InputManager.Keys(PlatformAction.SelectBackwardWord));
             AddAssert("last word selected", () => textBox.SelectedText == "quiz");
 
-            // backward word move should jump from left end of selection
+            // backward word move should put cursor at left end of selection
             AddStep("move cursor backward (word)", () => InputManager.Keys(PlatformAction.MoveBackwardWord));
-            AddStep("select forward (word)", () => InputManager.Keys(PlatformAction.SelectForwardWord));
-            AddAssert("second-from-last word selected", () => textBox.SelectedText == "bank");
+            AddStep("select previous word", () => InputManager.Keys(PlatformAction.SelectBackwardWord));
+            AddAssert("second-from-last word selected", () => textBox.SelectedText == "bank ");
 
             // same thing but for "front-facing" selection
             AddStep("move cursor backward (word)", () => InputManager.Keys(PlatformAction.MoveBackwardWord));
-            AddStep("select previous word", () => InputManager.Keys(PlatformAction.SelectBackwardWord));
-            AddAssert("fourth-from-last word selected", () => textBox.SelectedText == "glyphs ");
+            AddStep("select next word", () => InputManager.Keys(PlatformAction.SelectForwardWord));
+            AddAssert("second-from-last word selected", () => textBox.SelectedText == "bank");
         }
 
         private void prependString(InsertableTextBox textBox, string text)
