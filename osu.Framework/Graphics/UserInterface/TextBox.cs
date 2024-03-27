@@ -302,23 +302,27 @@ namespace osu.Framework.Graphics.UserInterface
                     return true;
 
                 case PlatformAction.MoveBackwardWord:
-                    if (hasSelection && selectionEnd != selectionLeft)
+                    if (hasSelection)
                     {
-                        selectionEnd = selectionLeft;
-                        selectionStart = lastSelectionBounds.end;
+                        MoveCursorBy(selectionLeft - selectionEnd);
+                    }
+                    else
+                    {
+                        MoveCursorBy(GetBackwardWordAmount());
                     }
 
-                    MoveCursorBy(GetBackwardWordAmount());
                     return true;
 
                 case PlatformAction.MoveForwardWord:
-                    if (hasSelection && selectionEnd != selectionRight)
+                    if (hasSelection)
                     {
-                        selectionEnd = selectionRight;
-                        selectionStart = lastSelectionBounds.end;
+                        MoveCursorBy(selectionRight - selectionEnd);
+                    }
+                    else
+                    {
+                        MoveCursorBy(GetForwardWordAmount());
                     }
 
-                    MoveCursorBy(GetForwardWordAmount());
                     return true;
 
                 case PlatformAction.MoveBackwardLine:
