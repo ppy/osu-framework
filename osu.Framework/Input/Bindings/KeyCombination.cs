@@ -192,8 +192,7 @@ namespace osu.Framework.Input.Bindings
         }
 
         /// <summary>
-        /// Check whether a single key from a candidate binding is relevant to the currently pressed keys.
-        /// If the <paramref name="pressedKeys"/> contain a left/right specific modifier, the <paramref name="candidateKey"/> needs to be either that specific modifier or its generic variant to match.
+        /// Check whether a single physical or virtual key from a candidate binding is relevant to the currently pressed keys.
         /// </summary>
         /// <param name="pressedKeys">The currently pressed keys to match against.</param>
         /// <param name="candidateKey">The candidate key to check.</param>
