@@ -180,7 +180,6 @@ namespace osu.Framework.Input.Bindings
 
         /// <summary>
         /// Check whether the provided key is part of the candidate binding.
-        /// This will match bidirectionally for modifier keys (LShift and Shift being present in both of the two parameters in either order will return true).
         /// </summary>
         /// <param name="candidate">The candidate key binding to match against.</param>
         /// <param name="physicalKey">The key which has been pressed by a user.</param>
