@@ -263,6 +263,33 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Test]
+        public void SpecialKeys()
+        {
+            wrapTest(() =>
+            {
+                toggleKey(Key.NonUSBackSlash);
+                checkPressed(TestAction.NonUSBackSlash, 1, 1, 1, 1, 1);
+                toggleKey(Key.NonUSBackSlash);
+                checkReleased(TestAction.NonUSBackSlash, 1, 1, 1, 1, 1);
+
+                toggleKey(Key.Minus);
+                checkPressed(TestAction.Minus, 1, 1, 1, 1, 1);
+                toggleKey(Key.Minus);
+                checkReleased(TestAction.Minus, 1, 1, 1, 1, 1);
+
+                toggleKey(Key.Tilde);
+                checkPressed(TestAction.Tilde, 1, 1, 1, 1, 1);
+                toggleKey(Key.Tilde);
+                checkReleased(TestAction.Tilde, 1, 1, 1, 1, 1);
+
+                toggleKey(Key.Quote);
+                checkPressed(TestAction.Quote, 1, 1, 1, 1, 1);
+                toggleKey(Key.Quote);
+                checkReleased(TestAction.Quote, 1, 1, 1, 1, 1);
+            });
+        }
+
+        [Test]
         public void MouseScrollAndButtons()
         {
             wrapTest(() =>
@@ -393,7 +420,11 @@ namespace osu.Framework.Tests.Visual.Input
             WheelRight,
             Ctrl_and_WheelUp,
             AnyShift_A,
-            AnyShift
+            AnyShift,
+            NonUSBackSlash,
+            Minus,
+            Tilde,
+            Quote
         }
 
         private partial class TestInputManager : KeyBindingContainer<TestAction>
@@ -409,6 +440,10 @@ namespace osu.Framework.Tests.Visual.Input
                 new KeyBinding(InputKey.S, TestAction.S),
                 new KeyBinding(InputKey.D, TestAction.D_or_F),
                 new KeyBinding(InputKey.F, TestAction.D_or_F),
+                new KeyBinding(InputKey.NonUSBackSlash, TestAction.NonUSBackSlash),
+                new KeyBinding(InputKey.Minus, TestAction.Minus),
+                new KeyBinding(InputKey.Tilde, TestAction.Tilde),
+                new KeyBinding(InputKey.Quote, TestAction.Quote),
 
                 new KeyBinding(new[] { InputKey.Control, InputKey.A }, TestAction.Ctrl_A),
                 new KeyBinding(new[] { InputKey.Control, InputKey.S }, TestAction.Ctrl_S),
