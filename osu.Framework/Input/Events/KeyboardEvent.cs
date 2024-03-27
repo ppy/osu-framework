@@ -17,7 +17,7 @@ namespace osu.Framework.Input.Events
         public readonly Key Key;
 
         /// <inheritdoc cref="Input.KeyboardKey.Character"/>
-        public readonly char Character;
+        public readonly char? Character;
 
         public KeyboardKey KeyboardKey => new KeyboardKey(Key, Character);
 

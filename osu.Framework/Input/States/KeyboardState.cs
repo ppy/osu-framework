@@ -15,7 +15,7 @@ namespace osu.Framework.Input.States
         /// Mapping of <see cref="Key"/>s to <see cref="KeyboardKey.Character"/>s printed on them.
         /// </summary>
         /// <seealso cref="KeyboardKey"/>
-        internal readonly Dictionary<Key, char> Characters = new Dictionary<Key, char>();
+        internal readonly Dictionary<Key, char?> Characters = new Dictionary<Key, char?>();
 
         /// <summary>
         /// Whether a specific <see cref="Key"/> is pressed.
@@ -25,11 +25,11 @@ namespace osu.Framework.Input.States
         /// <summary>
         /// Whether a specific <see cref="KeyboardKey.Character"/> is pressed.
         /// </summary>
-        public bool IsPressed(char character) => character != default && PressedKeys.Any(key => Characters[key] == character);
+        public bool IsPressed(char character) => PressedKeys.Any(key => Characters[key] == character);
 
         public IEnumerable<Key> PressedKeys => Keys;
 
-        public IEnumerable<char> PressedCharacters => PressedKeys.Select(key => Characters[key]).Where(c => c != default).Distinct();
+        public IEnumerable<char> PressedCharacters => PressedKeys.Select(key => Characters[key]).Where(c => c != null).Select(c => c!.Value).Distinct();
 
         /// <summary>
         /// Whether left or right control key is pressed.

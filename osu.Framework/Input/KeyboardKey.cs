@@ -37,9 +37,9 @@ namespace osu.Framework.Input
         /// or appear in a shifted / AltGr state (something not currently provided by <see cref="KeyboardKey"/>).
         /// </remarks>
         /// <seealso cref="Key"/>
-        public char Character { get; }
+        public char? Character { get; }
 
-        public KeyboardKey(Key key, char character)
+        public KeyboardKey(Key key, char? character)
         {
             Key = key;
             Character = character;
@@ -52,8 +52,8 @@ namespace osu.Framework.Input
         /// </summary>
         public static KeyboardKey FromKey(Key key) => new KeyboardKey(key, key.GetDefaultCharacter());
 
-        public static string ToString(Key key, char c) => c == default
+        public static string ToString(Key key, char? c) => c == null
             ? $@"{key}"
-            : $@"{key}, {c.StringRepresentation()}";
+            : $@"{key}, {c.Value.StringRepresentation()}";
     }
 }

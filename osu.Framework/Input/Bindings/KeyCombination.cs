@@ -300,7 +300,7 @@ namespace osu.Framework.Input.Bindings
             yield return fromKey(key.Key);
 
             if (key.Character >= 'a' && key.Character <= 'z')
-                yield return key.Character - 'a' + InputKey.KeycodeA;
+                yield return key.Character.Value - 'a' + InputKey.KeycodeA;
         }
 
         private static InputKey fromKey(Key key)

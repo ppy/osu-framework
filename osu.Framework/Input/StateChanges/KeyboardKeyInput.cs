@@ -13,7 +13,7 @@ namespace osu.Framework.Input.StateChanges
 {
     public class KeyboardKeyInput : ButtonInput<Key>
     {
-        public readonly IReadOnlyList<(Key, char)> Characters;
+        public readonly IReadOnlyList<(Key, char?)> Characters;
 
         public KeyboardKeyInput(IEnumerable<ButtonInputEntry<Key>> entries)
             : base(entries)
@@ -25,10 +25,10 @@ namespace osu.Framework.Input.StateChanges
             : base(key.Key, isPressed)
         {
             if (isPressed)
-                Characters = new List<(Key, char)> { (key.Key, key.Character) };
+                Characters = new List<(Key, char?)> { (key.Key, key.Character) };
             else
                 // if the character changes between the first press and the release, don't update and use the original character for consistency
-                Characters = ImmutableList<(Key, char)>.Empty;
+                Characters = ImmutableList<(Key, char?)>.Empty;
         }
 
         public KeyboardKeyInput(KeyboardState current, KeyboardState previous)
@@ -41,7 +41,7 @@ namespace osu.Framework.Input.StateChanges
 
         public override void Apply(InputState state, IInputStateChangeHandler handler)
         {
-            foreach ((Key key, char character) in Characters)
+            foreach ((Key key, char? character) in Characters)
                 state.Keyboard.Characters[key] = character;
 
             base.Apply(state, handler);

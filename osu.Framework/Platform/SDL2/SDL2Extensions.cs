@@ -456,7 +456,7 @@ namespace osu.Framework.Platform.SDL2
             }
         }
 
-        public static char GetCharacter(this SDL.SDL_Keycode keycode, bool numLockOn)
+        public static char? GetCharacter(this SDL.SDL_Keycode keycode, bool numLockOn)
         {
             switch (keycode)
             {
@@ -545,7 +545,7 @@ namespace osu.Framework.Platform.SDL2
             bool numLockOn = sdlKeysym.mod.HasFlagFast(SDL.SDL_Keymod.KMOD_NUM) || RuntimeInfo.IsApple;
 
             var key = sdlKeysym.ToKey(numLockOn);
-            char c = sdlKeysym.sym.GetCharacter(numLockOn);
+            char? c = sdlKeysym.sym.GetCharacter(numLockOn);
             return new KeyboardKey(key, c);
         }
 

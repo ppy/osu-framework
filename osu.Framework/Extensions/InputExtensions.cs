@@ -13,7 +13,7 @@ namespace osu.Framework.Extensions
         /// </summary>
         /// <param name="key">A keyboard key</param>
         /// <returns>The <see cref="KeyboardKey.Character"/> this <paramref name="key"/> would produce on a en-us keyboard layout.</returns>
-        public static char GetDefaultCharacter(this Key key)
+        public static char? GetDefaultCharacter(this Key key)
         {
             static bool inBetween(Key key, Key first, Key last, char firstCharacter, out char result)
             {
