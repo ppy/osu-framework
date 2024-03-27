@@ -278,18 +278,50 @@ namespace osu.Framework.Graphics.UserInterface
 
                 // Cursor Manipulation
                 case PlatformAction.MoveBackwardChar:
-                    MoveCursorBy(-1);
+                    if (selectionLength > 0)
+                    {
+                        selectionStart = selectionEnd = selectionLeft;
+                        cursorAndLayout.Invalidate();
+                        onTextDeselected(lastSelectionBounds);
+                    }
+                    else
+                    {
+                        MoveCursorBy(-1);
+                    }
+
                     return true;
 
                 case PlatformAction.MoveForwardChar:
-                    MoveCursorBy(1);
+                    if (selectionLength > 0)
+                    {
+                        selectionStart = selectionEnd = selectionRight;
+                        cursorAndLayout.Invalidate();
+                        onTextDeselected(lastSelectionBounds);
+                    }
+                    else
+                    {
+                        MoveCursorBy(1);
+                    }
+
                     return true;
 
                 case PlatformAction.MoveBackwardWord:
+                    if (selectionLength > 0 && selectionEnd != selectionLeft)
+                    {
+                        selectionEnd = selectionLeft;
+                        selectionStart = lastSelectionBounds.end;
+                    }
+
                     MoveCursorBy(GetBackwardWordAmount());
                     return true;
 
                 case PlatformAction.MoveForwardWord:
+                    if (selectionLength > 0 && selectionEnd != selectionRight)
+                    {
+                        selectionEnd = selectionRight;
+                        selectionStart = lastSelectionBounds.end;
+                    }
+
                     MoveCursorBy(GetForwardWordAmount());
                     return true;
 
