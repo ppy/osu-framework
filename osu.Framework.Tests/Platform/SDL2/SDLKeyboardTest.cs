@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Platform.SDL2
             mod = SDL_Keymod.KMOD_NUM
         };
 
-        private static KeyboardKey key(Key key, char c = default) => new KeyboardKey(key, c);
+        private static KeyboardKey key(Key key, char? c = null) => new KeyboardKey(key, c);
 
         private static object[][] testCases =
         {
