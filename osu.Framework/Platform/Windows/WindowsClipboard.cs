@@ -69,7 +69,7 @@ namespace osu.Framework.Platform.Windows
 
         private static readonly byte[] bmp_header_field = { 0x42, 0x4D };
 
-        private readonly Dictionary<string, uint> customFormats = new Dictionary<string, uint>();
+        private readonly Dictionary<string, uint> registeredFormatIdentifiers = new Dictionary<string, uint>();
 
         public override string? GetText()
         {
@@ -133,7 +133,7 @@ namespace osu.Framework.Platform.Windows
         /// <returns>Identifier of the created format. Will return 0 if registering the format failed.</returns>
         private uint getFormatIdentifier(string formatName)
         {
-            if (customFormats.TryGetValue(formatName, out uint format))
+            if (registeredFormatIdentifiers.TryGetValue(formatName, out uint format))
             {
                 return format;
             }
@@ -152,7 +152,7 @@ namespace osu.Framework.Platform.Windows
                 return 0;
             }
 
-            customFormats[formatName] = createdFormat;
+            registeredFormatIdentifiers[formatName] = createdFormat;
 
             return createdFormat;
         }
