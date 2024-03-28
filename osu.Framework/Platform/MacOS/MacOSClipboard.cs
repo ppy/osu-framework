@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
+using NuGet.Packaging;
 using osu.Framework.Platform.MacOS.Native;
 using SixLabors.ImageSharp;
 
@@ -11,13 +13,16 @@ namespace osu.Framework.Platform.MacOS
     {
         private readonly NSPasteboard generalPasteboard = NSPasteboard.GeneralPasteboard();
 
+        private readonly Dictionary<string, string> customFormatValues = new Dictionary<string, string>();
+
         public override string? GetText() => Cocoa.FromNSString(getFromPasteboard(Class.Get("NSString")));
 
         public override Image<TPixel>? GetImage<TPixel>() => Cocoa.FromNSImage<TPixel>(getFromPasteboard(Class.Get("NSImage")));
 
-        public override void SetText(string text) => setToPasteboard(Cocoa.ToNSString(text));
-
-        public override bool SetImage(Image image) => setToPasteboard(Cocoa.ToNSImage(image));
+        public override string? GetCustom(string mimeType)
+        {
+            return customFormatValues[mimeType];
+        }
 
         private IntPtr getFromPasteboard(IntPtr @class)
         {
@@ -32,12 +37,29 @@ namespace osu.Framework.Platform.MacOS
             return objects?.Length > 0 ? objects[0] : IntPtr.Zero;
         }
 
+        public override bool SetData(ClipboardData data)
+        {
+            generalPasteboard.ClearContents();
+            customFormatValues.Clear();
+
+            bool success = true;
+
+            if (data.Text != null)
+                success &= setToPasteboard(Cocoa.ToNSString(data.Text));
+
+            if (data.Image != null)
+                success &= setToPasteboard(Cocoa.ToNSImage(data.Image));
+
+            customFormatValues.AddRange(data.CustomFormatValues);
+
+            return success;
+        }
+
         private bool setToPasteboard(IntPtr handle)
         {
             if (handle == IntPtr.Zero)
                 return false;
 
-            generalPasteboard.ClearContents();
             generalPasteboard.WriteObjects(NSArray.ArrayWithObject(handle));
             return true;
         }

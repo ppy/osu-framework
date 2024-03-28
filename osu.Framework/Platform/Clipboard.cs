@@ -20,7 +20,10 @@ namespace osu.Framework.Platform
         /// Copy text to the clipboard.
         /// </summary>
         /// <param name="text">Text to copy to the clipboard</param>
-        public abstract void SetText(string text);
+        public void SetText(string text)
+        {
+            SetData(new ClipboardData { Text = text });
+        }
 
         /// <summary>
         /// Retrieve an image from the clipboard.
@@ -33,6 +36,37 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="image">The image to copy to the clipboard</param>
         /// <returns>Whether the image was successfully copied or not</returns>
-        public abstract bool SetImage(Image image);
+        public bool SetImage(Image image)
+        {
+            return SetData(new ClipboardData { Image = image });
+        }
+
+        /// <summary>
+        /// Retrieve content with custom mime type from the clipboard.
+        /// </summary>
+        /// <returns>Mime type of the clipboard item to retrieve</returns>
+        public abstract string? GetCustom(string mimeType);
+
+        /// <summary>
+        /// Copy item with custom mime type to the clipboard
+        /// </summary>
+        /// <param name="mimeType">Mime type of the clipboard item</param>
+        /// <param name="text">Text to copy to the clipboard</param>
+        public void SetCustom(string mimeType, string text)
+        {
+            var data = new ClipboardData
+            {
+                CustomFormatValues = { [mimeType] = text }
+            };
+
+            SetData(data);
+        }
+
+        /// <summary>
+        /// Copy multiple values to the clipboard
+        /// </summary>
+        /// <param name="data">Data to copy the clipboard</param>
+        /// <returns>Whether the data was successfully copied or not</returns>
+        public abstract bool SetData(ClipboardData data);
     }
 }
