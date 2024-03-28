@@ -60,6 +60,35 @@ namespace osu.Framework.Tests.Input
             AddAssert("receptorBelow received release", () => receptorBelow.ReleasedReceived);
         }
 
+        [Test]
+        public void TestKeycodeBindings()
+        {
+            InputReceptor receptor = null;
+
+            AddStep("setup", () =>
+            {
+                Child = new TestKeyBindingContainer
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Children = new Drawable[]
+                    {
+                        receptor = new InputReceptor(true)
+                        {
+                            Size = new Vector2(100),
+                        },
+                    }
+                };
+            });
+
+            AddStep("move mouse to receptor", () => InputManager.MoveMouseTo(receptor));
+            AddStep("press keybind3", () => InputManager.PressKey(new KeyboardKey(Key.B, 'a')));
+            AddAssert("receptor received press", () => receptor.PressedReceived);
+
+            // simulate changing keyboard layout mid-press (not sure how valid this test is, but it doesn't hurt to cover)
+            AddStep("release keybind3 with different character", () => InputManager.ReleaseKey(new KeyboardKey(Key.B, 'b')));
+            AddAssert("receptor received release", () => receptor.ReleasedReceived);
+        }
+
         private partial class InputReceptor : Box, IKeyBindingHandler<TestKeyBinding>
         {
             public bool PressedReceived { get; private set; }
@@ -121,13 +150,15 @@ namespace osu.Framework.Tests.Input
             {
                 new KeyBinding(InputKey.Up, TestKeyBinding.Binding1),
                 new KeyBinding(InputKey.Down, TestKeyBinding.Binding2),
+                new KeyBinding(InputKey.KeycodeA, TestKeyBinding.Binding3),
             };
         }
 
         private enum TestKeyBinding
         {
             Binding1,
-            Binding2
+            Binding2,
+            Binding3,
         }
     }
 }

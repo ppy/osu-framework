@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -139,7 +140,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             protected override bool OnKeyDown(KeyDownEvent e)
             {
-                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.Key)), KeyCombinationMatchingMode.Any))
+                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.KeyboardKey).ToArray()), KeyCombinationMatchingMode.Any))
                     box.Colour = Color4.Navy;
 
                 return base.OnKeyDown(e);
@@ -147,7 +148,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             protected override void OnKeyUp(KeyUpEvent e)
             {
-                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.Key)), KeyCombinationMatchingMode.Any))
+                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.KeyboardKey).ToArray()), KeyCombinationMatchingMode.Any))
                     box.Colour = Color4.DarkGray;
 
                 base.OnKeyUp(e);
@@ -177,7 +178,7 @@ namespace osu.Framework.Tests.Visual.Input
             [Resolved]
             private ReadableKeyCombinationProvider readableKeyCombinationProvider { get; set; } = null!;
 
-            private readonly SpriteText text;
+            private readonly TextFlowContainer text;
 
             public PressedKeyCombinationDisplay()
             {
@@ -187,9 +188,13 @@ namespace osu.Framework.Tests.Visual.Input
 
                 InternalChildren = new[]
                 {
-                    text = new SpriteText
+                    text = new TextFlowContainer(t =>
                     {
-                        Font = new FontUsage(size: 20),
+                        t.Font = new FontUsage(size: 20);
+                    })
+                    {
+                        TextAnchor = Anchor.TopCentre,
+                        AutoSizeAxes = Axes.Both,
                         Text = "press a key",
                     }
                 };
@@ -199,13 +204,20 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 var state = new InputState(keyboard: e.CurrentState.Keyboard);
                 var keyCombination = KeyCombination.FromInputState(state);
-                string str = readableKeyCombinationProvider.GetReadableString(keyCombination);
-                text.Text = $"pressed: {str}";
+
+                var onlyKeys = keyCombination.Keys.Where(k => !KeyCombination.IsKeycode(k)).ToArray();
+                var onlyKeycodes = keyCombination.Keys.Where(KeyCombination.IsKeycode).ToArray();
+
+                string keys = readableKeyCombinationProvider.GetReadableString(new KeyCombination(onlyKeys));
+                string keycodes = readableKeyCombinationProvider.GetReadableString(new KeyCombination(onlyKeycodes));
+                text.Text = $"pressed: {keys}\nkeycodes: {keycodes}";
             }
 
             protected override bool OnKeyDown(KeyDownEvent e)
             {
-                updateText(e);
+                if (!e.Repeat)
+                    updateText(e);
+
                 return base.OnKeyDown(e);
             }
 

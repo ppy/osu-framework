@@ -2518,5 +2518,165 @@ namespace osu.Framework.Input.Bindings
         TabletAuxiliaryButton16,
 
         #endregion
+
+        #region Keyboard keycodes
+
+        /// <summary>
+        /// Key that produces the 'a' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="A"/>.</remarks>
+        KeycodeA = 10752 + 1,
+
+        /// <summary>
+        /// Key that produces the 'b' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="B"/>.</remarks>
+        KeycodeB,
+
+        /// <summary>
+        /// Key that produces the 'c' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="C"/>.</remarks>
+        KeycodeC,
+
+        /// <summary>
+        /// Key that produces the 'd' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="D"/>.</remarks>
+        KeycodeD,
+
+        /// <summary>
+        /// Key that produces the 'e' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="E"/>.</remarks>
+        KeycodeE,
+
+        /// <summary>
+        /// Key that produces the 'f' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="F"/>.</remarks>
+        KeycodeF,
+
+        /// <summary>
+        /// Key that produces the 'g' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="G"/>.</remarks>
+        KeycodeG,
+
+        /// <summary>
+        /// Key that produces the 'h' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="H"/>.</remarks>
+        KeycodeH,
+
+        /// <summary>
+        /// Key that produces the 'i' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="I"/>.</remarks>
+        KeycodeI,
+
+        /// <summary>
+        /// Key that produces the 'j' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="J"/>.</remarks>
+        KeycodeJ,
+
+        /// <summary>
+        /// Key that produces the 'k' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="K"/>.</remarks>
+        KeycodeK,
+
+        /// <summary>
+        /// Key that produces the 'l' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="L"/>.</remarks>
+        KeycodeL,
+
+        /// <summary>
+        /// Key that produces the 'm' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="M"/>.</remarks>
+        KeycodeM,
+
+        /// <summary>
+        /// Key that produces the 'n' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="N"/>.</remarks>
+        KeycodeN,
+
+        /// <summary>
+        /// Key that produces the 'o' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="O"/>.</remarks>
+        KeycodeO,
+
+        /// <summary>
+        /// Key that produces the 'p' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="P"/>.</remarks>
+        KeycodeP,
+
+        /// <summary>
+        /// Key that produces the 'q' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="Q"/>.</remarks>
+        KeycodeQ,
+
+        /// <summary>
+        /// Key that produces the 'r' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="R"/>.</remarks>
+        KeycodeR,
+
+        /// <summary>
+        /// Key that produces the 's' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="S"/>.</remarks>
+        KeycodeS,
+
+        /// <summary>
+        /// Key that produces the 't' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="T"/>.</remarks>
+        KeycodeT,
+
+        /// <summary>
+        /// Key that produces the 'u' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="U"/>.</remarks>
+        KeycodeU,
+
+        /// <summary>
+        /// Key that produces the 'v' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="V"/>.</remarks>
+        KeycodeV,
+
+        /// <summary>
+        /// Key that produces the 'w' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="W"/>.</remarks>
+        KeycodeW,
+
+        /// <summary>
+        /// Key that produces the 'x' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="X"/>.</remarks>
+        KeycodeX,
+
+        /// <summary>
+        /// Key that produces the 'y' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="Y"/>.</remarks>
+        KeycodeY,
+
+        /// <summary>
+        /// Key that produces the 'z' character when pressed. Depends on the current keyboard layout.
+        /// </summary>
+        /// <remarks>Different from <see cref="Z"/>.</remarks>
+        KeycodeZ,
+
+        #endregion
     }
 }

@@ -20,6 +20,6 @@ namespace osu.Framework.Input.Events
             Repeat = repeat;
         }
 
-        public override string ToString() => $"{GetType().ReadableName()}({Key}, {Repeat})";
+        public override string ToString() => $"{GetType().ReadableName()}({KeyboardKey.ToString(Key, Character)}, {Repeat})";
     }
 }
