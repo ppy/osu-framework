@@ -22,7 +22,7 @@ namespace osu.Framework.Platform
         public Image? Image;
 
         /// <summary>
-        /// Contains Values to be stored as an entry custom mime type in the clipboard.
+        /// Contains values to be stored with custom mime type in the clipboard.
         /// Keyed by mime type.
         /// </summary>
         public readonly Dictionary<string, string> CustomFormatValues = new Dictionary<string, string>();
