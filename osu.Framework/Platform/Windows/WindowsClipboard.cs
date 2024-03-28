@@ -16,11 +16,11 @@ namespace osu.Framework.Platform.Windows
 {
     public class WindowsClipboard : Clipboard
     {
-        [DllImport("User32.dll")]
+        [DllImport("User32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool IsClipboardFormatAvailable(uint format);
 
-        [DllImport("User32.dll")]
+        [DllImport("User32.dll", SetLastError = true)]
         private static extern IntPtr GetClipboardData(uint uFormat);
 
         [DllImport("user32.dll", SetLastError = true)]
