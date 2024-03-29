@@ -148,7 +148,7 @@ namespace osu.Framework.Input.Bindings
             // the behaviour of excess keys).
             foreach (var key in candidate)
             {
-                if (!ContainsKey(pressed, key))
+                if (!IsPressed(pressed, key))
                     return false;
             }
 
@@ -158,7 +158,7 @@ namespace osu.Framework.Input.Bindings
                     foreach (var key in pressed)
                     {
                         // in exact matching mode, every pressed key needs to be in the candidate.
-                        if (!ContainsKeyPermissive(candidate, key.Physical, key.Virtual))
+                        if (!ContainsKey(candidate, key.Physical, key.Virtual))
                             return false;
                     }
 
@@ -168,7 +168,7 @@ namespace osu.Framework.Input.Bindings
                     foreach (var key in pressed)
                     {
                         // in modifiers match mode, the same check applies as exact but only for modifier keys.
-                        if (IsModifierKey(key.Physical) && !ContainsKeyPermissive(candidate, key.Physical, key.Virtual))
+                        if (IsModifierKey(key.Physical) && !ContainsKey(candidate, key.Physical, key.Virtual))
                             return false;
                     }
 
@@ -189,7 +189,7 @@ namespace osu.Framework.Input.Bindings
         /// <param name="physicalKey">The key which has been pressed by a user.</param>
         /// <param name="virtualKey">The virtual key corresponding to the physical key, if any.</param>
         /// <returns>Whether this is a match.</returns>
-        internal static bool ContainsKeyPermissive(ImmutableArray<InputKey> candidate, InputKey physicalKey, InputKey? virtualKey)
+        internal static bool ContainsKey(ImmutableArray<InputKey> candidate, InputKey physicalKey, InputKey? virtualKey)
         {
             return candidate.Contains(physicalKey) || (virtualKey != null && candidate.Contains(virtualKey.Value));
         }
@@ -200,7 +200,7 @@ namespace osu.Framework.Input.Bindings
         /// <param name="pressedKeys">The currently pressed keys to match against.</param>
         /// <param name="candidateKey">The candidate key to check.</param>
         /// <returns>Whether this is a match.</returns>
-        internal static bool ContainsKey(ImmutableArray<(InputKey Physical, InputKey? Virtual)> pressedKeys, InputKey candidateKey)
+        internal static bool IsPressed(ImmutableArray<(InputKey Physical, InputKey? Virtual)> pressedKeys, InputKey candidateKey)
         {
             if (candidateKey.IsPhysical())
             {
