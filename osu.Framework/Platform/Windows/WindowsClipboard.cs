@@ -112,9 +112,9 @@ namespace osu.Framework.Platform.Windows
                         Encoding.ASCII.GetString(bytes))
                 );
 
-                if (webCustomFormatMap?[mimeType] != null)
+                if (webCustomFormatMap != null && webCustomFormatMap.TryGetValue(mimeType, out string? formatName))
                 {
-                    uint webCustomFormatIdentifier = getFormatIdentifier(webCustomFormatMap[mimeType]);
+                    uint webCustomFormatIdentifier = getFormatIdentifier(formatName);
 
                     if (webCustomFormatIdentifier != 0)
                     {
