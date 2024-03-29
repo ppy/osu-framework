@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using osu.Framework.Extensions;
 using osu.Framework.Input.States;
 using osuTK;
 using osuTK.Input;
@@ -137,7 +138,10 @@ namespace osu.Framework.Input.Bindings
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool ContainsAll(ImmutableArray<InputKey> candidate, ImmutableArray<InputKey> pressedKeys, KeyCombinationMatchingMode matchingMode)
         {
+            Debug.Assert(pressedKeys.All(k => k.IsPhysical()));
             ImmutableArray<(InputKey Physical, InputKey? Virtual)> pressed = pressedKeys.Select(k => (k, getVirtualKey(k))).ToImmutableArray();
+
+            Debug.Assert(pressed.All(k => k.Virtual == null || k.Virtual.Value.IsVirtual()));
 
             // first, check that all the candidate keys are contained in the provided pressed keys.
             // regardless of the matching mode, every key needs to at least be present (matching modes only change
@@ -198,7 +202,13 @@ namespace osu.Framework.Input.Bindings
         /// <returns>Whether this is a match.</returns>
         internal static bool ContainsKey(ImmutableArray<(InputKey Physical, InputKey? Virtual)> pressedKeys, InputKey candidateKey)
         {
-            return pressedKeys.Any(k => candidateKey == k.Physical || candidateKey == k.Virtual);
+            if (candidateKey.IsPhysical())
+            {
+                return pressedKeys.Any(k => k.Physical == candidateKey);
+            }
+
+            Debug.Assert(candidateKey.IsVirtual());
+            return pressedKeys.Any(k => k.Virtual == candidateKey);
         }
 
         public bool Equals(KeyCombination other) => Keys.SequenceEqual(other.Keys);
