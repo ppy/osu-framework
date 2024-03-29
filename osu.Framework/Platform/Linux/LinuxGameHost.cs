@@ -30,6 +30,7 @@ namespace osu.Framework.Platform.Linux
         protected override void SetupForRun()
         {
             SDL.SDL_SetHint(SDL.SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, BypassCompositor ? "1" : "0");
+            SDL.SDL_SetHint(SDL.SDL_HINT_APP_NAME, Name);
             base.SetupForRun();
         }
 
