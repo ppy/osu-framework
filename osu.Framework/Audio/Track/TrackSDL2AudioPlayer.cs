@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Buffers;
 using System.Threading;
 
 namespace osu.Framework.Audio.Track
@@ -42,8 +41,6 @@ namespace osu.Framework.Audio.Track
 
         protected long AudioDataPosition;
 
-        private bool dataRented;
-
         private long audioDataLength;
 
         /// <summary>
@@ -68,30 +65,12 @@ namespace osu.Framework.Audio.Track
             if (wanted <= AudioData?.LongLength)
                 return;
 
-            float[] temp;
-            bool rent;
-
-            if (wanted > int.MaxValue)
-            {
-                rent = false;
-                temp = new float[wanted];
-            }
-            else
-            {
-                rent = true;
-                temp = ArrayPool<float>.Shared.Rent((int)wanted);
-            }
+            float[] temp = new float[wanted];
 
             if (AudioData != null)
-            {
                 Array.Copy(AudioData, 0, temp, 0, audioDataLength);
 
-                if (dataRented)
-                    ArrayPool<float>.Shared.Return(AudioData);
-            }
-
             AudioData = temp;
-            dataRented = rent;
         }
 
         internal void PrepareStream(long byteLength)
@@ -286,9 +265,6 @@ namespace osu.Framework.Audio.Track
         {
             if (!disposedValue)
             {
-                if (dataRented && AudioData != null)
-                    ArrayPool<float>.Shared.Return(AudioData);
-
                 AudioData = null;
                 disposedValue = true;
             }
