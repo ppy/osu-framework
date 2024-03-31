@@ -47,6 +47,13 @@ namespace osu.Framework.Audio.Sample
             });
         }
 
+        internal override void UpdateDevice(int deviceIndex)
+        {
+            // The sample may not have already loaded if a device wasn't present in a previous load attempt.
+            if (!IsLoaded)
+                LoadSample();
+        }
+
         protected override void LoadSample()
         {
             Debug.Assert(CanPerformInline);
@@ -73,13 +80,6 @@ namespace osu.Framework.Audio.Sample
             memoryLease = NativeMemoryTracker.AddMemory(this, dataLength);
         }
 
-        internal override void UpdateDevice(int deviceIndex)
-        {
-            // The sample may not have already loaded if a device wasn't present in a previous load attempt.
-            if (!IsLoaded)
-                LoadSample();
-        }
-
         public override Sample CreateSample() => new SampleBass(this, mixer) { OnPlay = SampleFactoryOnPlay };
 
         ~SampleBassFactory()
@@ -92,8 +92,13 @@ namespace osu.Framework.Audio.Sample
             if (IsDisposed)
                 return;
 
-            Bass.SampleFree(SampleId);
-            memoryLease?.Dispose();
+            if (IsLoaded)
+            {
+                Bass.SampleFree(SampleId);
+                memoryLease?.Dispose();
+            }
+
+            base.Dispose(disposing);
         }
     }
 }
