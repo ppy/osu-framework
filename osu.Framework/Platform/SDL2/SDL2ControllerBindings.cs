@@ -69,7 +69,7 @@ namespace osu.Framework.Platform.SDL2
         {
             for (int i = 0; i < AxisBindings.Length; i++)
             {
-                if (AxisBindings[i].bindType != SDL.SDL_GameControllerBindType.SDL_CONTROLLER_BINDTYPE_NONE && AxisBindings[i].value.button == index)
+                if (AxisBindings[i].bindType != SDL.SDL_GameControllerBindType.SDL_CONTROLLER_BINDTYPE_NONE && AxisBindings[i].value.axis == index)
                     return true;
             }
 
