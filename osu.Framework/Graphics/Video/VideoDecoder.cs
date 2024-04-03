@@ -774,6 +774,15 @@ namespace osu.Framework.Graphics.Video
                     if (!hwVideoDecoder.HasValue || !targetHwDecoders.HasFlagFast(hwVideoDecoder.Value))
                         continue;
 
+                    // VP9 Hardware decoding hangs on macOS on x64 platforms: https://trac.ffmpeg.org/ticket/9599
+                    if (codec.Id == AVCodecID.AV_CODEC_ID_VP9
+                        && hwVideoDecoder == HardwareVideoDecoder.VideoToolbox
+                        && RuntimeInfo.OS == RuntimeInfo.Platform.macOS
+                        && RuntimeInformation.OSArchitecture == Architecture.X64)
+                    {
+                        continue;
+                    }
+
                     codecs.Add((codec, hwDeviceType));
                 }
             }
