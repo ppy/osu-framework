@@ -357,7 +357,7 @@ namespace osu.Framework.Platform
         private void handleJoyButtonEvent(SDL.SDL_JoyButtonEvent evtJbutton)
         {
             // if this button exists in the controller bindings, skip it
-            if (controllers.TryGetValue(evtJbutton.which, out var state) && state.GetButtonForIndex(evtJbutton.button) != SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_INVALID)
+            if (controllers.TryGetValue(evtJbutton.which, out var state) && state.IsJoystickButtonBound(evtJbutton.button))
                 return;
 
             var button = JoystickButton.FirstButton + evtJbutton.button;
@@ -387,7 +387,7 @@ namespace osu.Framework.Platform
         private void handleJoyAxisEvent(SDL.SDL_JoyAxisEvent evtJaxis)
         {
             // if this axis exists in the controller bindings, skip it
-            if (controllers.TryGetValue(evtJaxis.which, out var state) && state.GetAxisForIndex(evtJaxis.axis) != SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_INVALID)
+            if (controllers.TryGetValue(evtJaxis.which, out var state) && state.IsJoystickAxisBound(evtJaxis.axis))
                 return;
 
             enqueueJoystickAxisInput(JoystickAxisSource.Axis1 + evtJaxis.axis, evtJaxis.axisValue);
