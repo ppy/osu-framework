@@ -54,22 +54,22 @@ namespace osu.Framework.Platform.SDL2
                                      .Select(i => SDL.SDL_GameControllerGetBindForAxis(ControllerHandle, (SDL.SDL_GameControllerAxis)i)).ToArray();
         }
 
-        public bool IsJoystickButtonBound(byte index)
+        public bool IsJoystickButtonBound(byte buttonIndex)
         {
             for (int i = 0; i < ButtonBindings.Length; i++)
             {
-                if (ButtonBindings[i].bindType != SDL.SDL_GameControllerBindType.SDL_CONTROLLER_BINDTYPE_NONE && ButtonBindings[i].value.button == index)
+                if (ButtonBindings[i].bindType != SDL.SDL_GameControllerBindType.SDL_CONTROLLER_BINDTYPE_NONE && ButtonBindings[i].value.button == buttonIndex)
                     return true;
             }
 
             return false;
         }
 
-        public bool IsJoystickAxisBound(byte index)
+        public bool IsJoystickAxisBound(byte axisIndex)
         {
             for (int i = 0; i < AxisBindings.Length; i++)
             {
-                if (AxisBindings[i].bindType != SDL.SDL_GameControllerBindType.SDL_CONTROLLER_BINDTYPE_NONE && AxisBindings[i].value.axis == index)
+                if (AxisBindings[i].bindType != SDL.SDL_GameControllerBindType.SDL_CONTROLLER_BINDTYPE_NONE && AxisBindings[i].value.axis == axisIndex)
                     return true;
             }
 
