@@ -13,7 +13,7 @@ namespace osu.Framework.Platform.SDL2
     /// Maintain a copy of the SDL-provided bindings for the given controller.
     /// Used to determine whether a given event's joystick button or axis is unmapped.
     /// </summary>
-    public class SDL2ControllerBindings
+    internal class SDL2ControllerBindings
     {
         public readonly IntPtr JoystickHandle;
         public readonly IntPtr ControllerHandle;
