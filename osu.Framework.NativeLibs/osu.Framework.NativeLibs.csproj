@@ -4,7 +4,7 @@
     <OutputType>Library</OutputType>
     <AssemblyTitle>osu!framework Libraries</AssemblyTitle>
     <AssemblyName>osu.Framework.NativeLibs</AssemblyName>
-    <Version>2024.0.1</Version>
+    <Version></Version>
   </PropertyGroup>
   <PropertyGroup Label="Nuget">
     <IsPackable>true</IsPackable>
