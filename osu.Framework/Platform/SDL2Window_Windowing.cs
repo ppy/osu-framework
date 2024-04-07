@@ -577,7 +577,7 @@ namespace osu.Framework.Platform
             }
             else
             {
-                windowState = ((SDL_WindowFlags)SDL3.SDL_GetWindowFlags(SDLWindowHandle)).ToWindowState();
+                windowState = SDL3.SDL_GetWindowFlags(SDLWindowHandle).ToWindowState();
             }
 
             if (windowState != stateBefore)

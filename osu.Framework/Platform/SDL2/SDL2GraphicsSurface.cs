@@ -104,7 +104,7 @@ namespace osu.Framework.Platform.SDL2
             loadEntryPoints(new GL());
         }
 
-        private unsafe void loadEntryPoints(GraphicsBindingsBase bindings)
+        private void loadEntryPoints(GraphicsBindingsBase bindings)
         {
             var type = bindings.GetType();
             var pointsInfo = type.GetRuntimeFields().First(x => x.Name == "_EntryPointsInstance");

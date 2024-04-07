@@ -361,7 +361,7 @@ namespace osu.Framework.Platform
 
         public void Raise() => ScheduleCommand(() =>
         {
-            var flags = (SDL_WindowFlags)SDL3.SDL_GetWindowFlags(SDLWindowHandle);
+            var flags = SDL3.SDL_GetWindowFlags(SDLWindowHandle);
 
             if (flags.HasFlagFast(SDL_WindowFlags.SDL_WINDOW_MINIMIZED))
                 SDL3.SDL_RestoreWindow(SDLWindowHandle);
@@ -404,7 +404,7 @@ namespace osu.Framework.Platform
         /// Attempts to set the window's icon to the specified image.
         /// </summary>
         /// <param name="image">An <see cref="Image{Rgba32}"/> to set as the window icon.</param>
-        private unsafe void setSDLIcon(Image<Rgba32> image)
+        private void setSDLIcon(Image<Rgba32> image)
         {
             var pixelMemory = image.CreateReadOnlyPixelMemory();
             var imageSize = image.Size;
