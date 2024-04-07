@@ -735,8 +735,11 @@ namespace osu.Framework.Platform
         /// <param name="display">The <see cref="Display"/> to center the window on.</param>
         private unsafe void ensureWindowOnDisplay(Display display)
         {
-            if (display.Index == SDL3.SDL_GetDisplayForWindow(SDLWindowHandle))
-                return;
+            if (tryGetDisplayAtIndex(display.Index, out var requestedID))
+            {
+                if (requestedID == SDL3.SDL_GetDisplayForWindow(SDLWindowHandle))
+                    return;
+            }
 
             moveWindowTo(display, new Vector2(0.5f));
         }
@@ -835,6 +838,31 @@ namespace osu.Framework.Platform
         }
 
         #region Helper functions
+
+        /// <summary>
+        /// Gets the <see cref="SDL_DisplayID"/> of the display at the specified index.
+        /// </summary>
+        /// <param name="index">Index of the display.</param>
+        /// <param name="displayID">The <see cref="SDL_DisplayID"/> of the display at the specified index.</param>
+        /// <returns><c>true</c> if the display at the requested index is available, <c>false</c> otherwise.</returns>
+        private static bool tryGetDisplayAtIndex(int index, out SDL_DisplayID displayID)
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(index);
+
+            using var displays = SDL3.SDL_GetDisplays();
+
+            if (displays == null)
+                throw new InvalidOperationException($"Unable to get displays. SDL error: {SDL3.SDL_GetError()}");
+
+            if (index >= displays.Count)
+            {
+                displayID = default;
+                return false;
+            }
+
+            displayID = displays[index];
+            return true;
+        }
 
         private static unsafe SDL_DisplayMode getClosestDisplayMode(SDL_Window* windowHandle, Size size, Display display, DisplayMode requestedMode)
         {
