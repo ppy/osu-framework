@@ -315,7 +315,7 @@ namespace osu.Framework.Platform
         }
 
         private void handleControllerAxisEvent(SDL_GamepadAxisEvent evtCaxis) =>
-            enqueueJoystickAxisInput(evtCaxis.Axis.ToJoystickAxisSource(), evtCaxis.axis);
+            enqueueJoystickAxisInput(evtCaxis.Axis.ToJoystickAxisSource(), evtCaxis.value);
 
         private unsafe void addJoystick(SDL_JoystickID instanceID)
         {
