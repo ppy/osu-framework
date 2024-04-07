@@ -286,7 +286,7 @@ namespace osu.Framework.Platform
                     break;
 
                 case SDL_EventType.SDL_EVENT_GAMEPAD_REMOVED:
-                    SDL3.SDL_CloseGamepad(controllers[evtCdevice.which].ControllerHandle);
+                    SDL3.SDL_CloseGamepad(controllers[evtCdevice.which].GamepadHandle);
                     controllers.Remove(evtCdevice.which);
                     break;
 

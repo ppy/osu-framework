@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Linq;
 using SDL;
 
 namespace osu.Framework.Platform.SDL2
@@ -13,52 +12,52 @@ namespace osu.Framework.Platform.SDL2
     /// Maintain a copy of the SDL-provided bindings for the given controller.
     /// Used to determine whether a given event's joystick button or axis is unmapped.
     /// </summary>
-    internal class SDL2ControllerBindings
+    internal unsafe class SDL2ControllerBindings
     {
-        public readonly unsafe SDL_Joystick* JoystickHandle;
-        public readonly unsafe SDL_Gamepad* ControllerHandle;
+        public readonly SDL_Joystick* JoystickHandle;
+        public readonly SDL_Gamepad* GamepadHandle;
 
         /// <summary>
-        /// Bindings returned from <see cref="SDL_GameControllerGetBindForButton"/>, indexed by <see cref="SDL_GamepadButton"/>.
-        /// Empty if the joystick does not have a corresponding ControllerHandle.
+        /// Bindings returned from <see cref="SDL3.SDL_GetGamepadBindings(SDL.SDL_Gamepad*)"/>.
+        /// Empty if the joystick does not have a corresponding GamepadHandle.
         /// </summary>
-        public SDL_GameControllerButtonBind[] ButtonBindings;
+        public SDL_GamepadBinding[] Bindings;
 
-        /// <summary>
-        /// Bindings returned from <see cref="SDL_GameControllerGetBindForAxis"/>, indexed by <see cref="SDL_GamepadAxis"/>.
-        /// Empty if the joystick does not have a corresponding ControllerHandle.
-        /// </summary>
-        public SDL_GameControllerButtonBind[] AxisBindings;
-
-        public unsafe SDL2ControllerBindings(SDL_Joystick* joystickHandle, SDL_Gamepad* controllerHandle)
+        public SDL2ControllerBindings(SDL_Joystick* joystickHandle, SDL_Gamepad* gamepadHandle)
         {
             JoystickHandle = joystickHandle;
-            ControllerHandle = controllerHandle;
+            GamepadHandle = gamepadHandle;
 
             PopulateBindings();
         }
 
-        public unsafe void PopulateBindings()
+        public void PopulateBindings()
         {
-            if (ControllerHandle == null)
+            if (GamepadHandle == null)
             {
-                ButtonBindings = Array.Empty<SDL_GameControllerButtonBind>();
-                AxisBindings = Array.Empty<SDL_GameControllerButtonBind>();
+                Bindings = Array.Empty<SDL_GamepadBinding>();
                 return;
             }
 
-            ButtonBindings = Enumerable.Range(0, (int)SDL_GamepadButton.SDL_GAMEPAD_BUTTON_MAX)
-                                       .Select(i => SDL_GameControllerGetBindForButton(ControllerHandle, (SDL_GamepadButton)i)).ToArray();
+            using var bindings = SDL3.SDL_GetGamepadBindings(GamepadHandle);
 
-            AxisBindings = Enumerable.Range(0, (int)SDL_GamepadAxis.SDL_GAMEPAD_AXIS_MAX)
-                                     .Select(i => SDL_GameControllerGetBindForAxis(ControllerHandle, (SDL_GamepadAxis)i)).ToArray();
+            if (bindings == null)
+            {
+                Bindings = Array.Empty<SDL_GamepadBinding>();
+                return;
+            }
+
+            Bindings = new SDL_GamepadBinding[bindings.Count];
+
+            for (int i = 0; i < bindings.Count; i++)
+                Bindings[i] = bindings[i];
         }
 
         public bool IsJoystickButtonBound(byte buttonIndex)
         {
-            for (int i = 0; i < ButtonBindings.Length; i++)
+            for (int i = 0; i < Bindings.Length; i++)
             {
-                if (ButtonBindings[i].bindType != SDL_GamepadBindingType.SDL_GAMEPAD_BINDTYPE_NONE && ButtonBindings[i].value.button == buttonIndex)
+                if (Bindings[i].input_type == SDL_GamepadBindingType.SDL_GAMEPAD_BINDTYPE_BUTTON && Bindings[i].input.button == buttonIndex)
                     return true;
             }
 
@@ -67,9 +66,9 @@ namespace osu.Framework.Platform.SDL2
 
         public bool IsJoystickAxisBound(byte axisIndex)
         {
-            for (int i = 0; i < AxisBindings.Length; i++)
+            for (int i = 0; i < Bindings.Length; i++)
             {
-                if (AxisBindings[i].bindType != SDL_GamepadBindingType.SDL_GAMEPAD_BINDTYPE_NONE && AxisBindings[i].value.axis == axisIndex)
+                if (Bindings[i].input_type == SDL_GamepadBindingType.SDL_GAMEPAD_BINDTYPE_AXIS && Bindings[i].input.axis.axis == axisIndex)
                     return true;
             }
 
