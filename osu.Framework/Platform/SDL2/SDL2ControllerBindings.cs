@@ -13,7 +13,7 @@ namespace osu.Framework.Platform.SDL2
     /// Maintain a copy of the SDL-provided bindings for the given controller.
     /// Used to determine whether a given event's joystick button or axis is unmapped.
     /// </summary>
-    public class SDL2ControllerBindings
+    internal class SDL2ControllerBindings
     {
         public readonly IntPtr JoystickHandle;
         public readonly IntPtr ControllerHandle;
@@ -54,26 +54,26 @@ namespace osu.Framework.Platform.SDL2
                                      .Select(i => SDL.SDL_GameControllerGetBindForAxis(ControllerHandle, (SDL.SDL_GameControllerAxis)i)).ToArray();
         }
 
-        public SDL.SDL_GameControllerButton GetButtonForIndex(byte index)
+        public bool IsJoystickButtonBound(byte buttonIndex)
         {
             for (int i = 0; i < ButtonBindings.Length; i++)
             {
-                if (ButtonBindings[i].bindType != SDL.SDL_GameControllerBindType.SDL_CONTROLLER_BINDTYPE_NONE && ButtonBindings[i].value.button == index)
-                    return (SDL.SDL_GameControllerButton)i;
+                if (ButtonBindings[i].bindType != SDL.SDL_GameControllerBindType.SDL_CONTROLLER_BINDTYPE_NONE && ButtonBindings[i].value.button == buttonIndex)
+                    return true;
             }
 
-            return SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_INVALID;
+            return false;
         }
 
-        public SDL.SDL_GameControllerAxis GetAxisForIndex(byte index)
+        public bool IsJoystickAxisBound(byte axisIndex)
         {
             for (int i = 0; i < AxisBindings.Length; i++)
             {
-                if (AxisBindings[i].bindType != SDL.SDL_GameControllerBindType.SDL_CONTROLLER_BINDTYPE_NONE && AxisBindings[i].value.button == index)
-                    return (SDL.SDL_GameControllerAxis)i;
+                if (AxisBindings[i].bindType != SDL.SDL_GameControllerBindType.SDL_CONTROLLER_BINDTYPE_NONE && AxisBindings[i].value.axis == axisIndex)
+                    return true;
             }
 
-            return SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_INVALID;
+            return false;
         }
     }
 }
