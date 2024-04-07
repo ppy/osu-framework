@@ -12,7 +12,6 @@ using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osuTK.Input;
 using SDL;
-using static SDL.SDL3;
 
 namespace osu.Framework.Platform.SDL2
 {
@@ -1037,8 +1036,8 @@ namespace osu.Framework.Platform.SDL2
 
         public static DisplayMode ToDisplayMode(this SDL_DisplayMode mode, int displayIndex)
         {
-            SDL_GetMasksForPixelFormatEnum(mode.format, out int bpp, out _, out _, out _, out _);
-            return new DisplayMode(SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, displayIndex);
+            SDL3.SDL_GetMasksForPixelFormatEnum(mode.format, out int bpp, out _, out _, out _, out _);
+            return new DisplayMode(SDL3.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, displayIndex);
         }
 
         public static string ReadableName(this SDL_LogCategory category)
@@ -1117,8 +1116,8 @@ namespace osu.Framework.Platform.SDL2
         /// </summary>
         public static string GetAndClearError()
         {
-            string error = SDL_GetError();
-            SDL_ClearError();
+            string error = SDL3.SDL_GetError();
+            SDL3.SDL_ClearError();
             return error;
         }
 

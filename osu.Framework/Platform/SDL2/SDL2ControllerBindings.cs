@@ -6,7 +6,6 @@
 using System;
 using System.Linq;
 using SDL;
-using static SDL.SDL3;
 
 namespace osu.Framework.Platform.SDL2
 {

@@ -3,7 +3,6 @@
 
 using SDL;
 using SixLabors.ImageSharp;
-using static SDL.SDL3;
 
 namespace osu.Framework.Platform.SDL2
 {
@@ -12,9 +11,9 @@ namespace osu.Framework.Platform.SDL2
         // SDL cannot differentiate between string.Empty and no text (eg. empty clipboard or an image)
         // doesn't matter as text editors don't really allow copying empty strings.
         // assume that empty text means no text.
-        public override string? GetText() => SDL_HasClipboardText() == SDL_bool.SDL_TRUE ? SDL_GetClipboardText() : null;
+        public override string? GetText() => SDL3.SDL_HasClipboardText() == SDL_bool.SDL_TRUE ? SDL3.SDL_GetClipboardText() : null;
 
-        public override void SetText(string text) => SDL_SetClipboardText(text);
+        public override void SetText(string text) => SDL3.SDL_SetClipboardText(text);
 
         public override Image<TPixel>? GetImage<TPixel>()
         {

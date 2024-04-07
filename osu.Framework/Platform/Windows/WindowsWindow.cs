@@ -11,7 +11,6 @@ using osu.Framework.Platform.Windows.Native;
 using osuTK;
 using osuTK.Input;
 using SDL;
-using static SDL.SDL3;
 using Icon = osu.Framework.Platform.Windows.Native.Icon;
 
 namespace osu.Framework.Platform.Windows
@@ -135,7 +134,7 @@ namespace osu.Framework.Platform.Windows
                 && RelativeMouseMode)
             {
                 var pt = PointToScreen(new Point((int)LastMousePosition.Value.X, (int)LastMousePosition.Value.Y));
-                SDL_WarpMouseGlobal(pt.X, pt.Y); // this directly calls the SetCursorPos win32 API
+                SDL3.SDL_WarpMouseGlobal(pt.X, pt.Y); // this directly calls the SetCursorPos win32 API
             }
         }
 
@@ -273,7 +272,7 @@ namespace osu.Framework.Platform.Windows
 
         protected override Size SetBorderless(Display display)
         {
-            SDL_SetWindowBordered(SDLWindowHandle, SDL_bool.SDL_FALSE);
+            SDL3.SDL_SetWindowBordered(SDLWindowHandle, SDL_bool.SDL_FALSE);
 
             var newSize = display.Bounds.Size;
 
@@ -282,7 +281,7 @@ namespace osu.Framework.Platform.Windows
                 // we also trick the game into thinking the window has normal size: see Size setter override
                 newSize += new Size(windows_borderless_width_hack, 0);
 
-            SDL_SetWindowSize(SDLWindowHandle, newSize.Width, newSize.Height);
+            SDL3.SDL_SetWindowSize(SDLWindowHandle, newSize.Width, newSize.Height);
             Position = display.Bounds.Location;
 
             return newSize;

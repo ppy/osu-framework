@@ -6,7 +6,7 @@ using System.Linq;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
-using static SDL.SDL3;
+using SDL;
 
 namespace osu.Framework.Platform.Linux
 {
@@ -29,7 +29,7 @@ namespace osu.Framework.Platform.Linux
 
         protected override void SetupForRun()
         {
-            SDL_SetHint(SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, BypassCompositor ? "1" : "0");
+            SDL3.SDL_SetHint(SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, BypassCompositor ? "1" : "0");
             base.SetupForRun();
         }
 

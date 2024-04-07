@@ -4,7 +4,6 @@
 using System;
 using System.Runtime.InteropServices;
 using SDL;
-using static SDL.SDL3;
 
 // ReSharper disable MemberCanBePrivate.Global
 // (Some members not currently used)

@@ -4,7 +4,6 @@
 using osu.Framework.Input.Bindings;
 using osu.Framework.Platform.SDL2;
 using SDL;
-using static SDL.SDL3;
 
 namespace osu.Framework.Platform.Linux
 {

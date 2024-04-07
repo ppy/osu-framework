@@ -10,7 +10,7 @@ using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform.Windows.Native;
 using osu.Framework.Statistics;
 using osuTK;
-using static SDL.SDL3;
+using SDL;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -44,7 +44,7 @@ namespace osu.Framework.Platform.Windows
 
             Enabled.BindValueChanged(enabled =>
             {
-                host.InputThread.Scheduler.Add(() => SDL_SetWindowsMessageHook(enabled.NewValue ? callback : null, IntPtr.Zero));
+                host.InputThread.Scheduler.Add(() => SDL3.SDL_SetWindowsMessageHook(enabled.NewValue ? callback : null, IntPtr.Zero));
             }, true);
 
             return base.Initialize(host);
