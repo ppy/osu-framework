@@ -394,7 +394,7 @@ namespace osu.Framework.Platform
         public virtual Display PrimaryDisplay => Displays.First();
 
         private Display currentDisplay = null!;
-        private int displayIndex = -1;
+        private SDL_DisplayID displayID;
 
         private readonly Bindable<DisplayMode> currentDisplayMode = new Bindable<DisplayMode>();
 
@@ -403,11 +403,12 @@ namespace osu.Framework.Platform
         /// </summary>
         public IBindable<DisplayMode> CurrentDisplayMode => currentDisplayMode;
 
-        private Rectangle windowDisplayBounds
+        private unsafe Rectangle windowDisplayBounds
         {
             get
             {
-                SDL3.SDL_GetDisplayBounds(displayIndex, out var rect);
+                SDL_Rect rect;
+                SDL3.SDL_GetDisplayBounds(displayID, &rect);
                 return new Rectangle(rect.x, rect.y, rect.w, rect.h);
             }
         }
@@ -587,12 +588,12 @@ namespace osu.Framework.Platform
                     windowMaximised = maximized;
             }
 
-            int newDisplayIndex = SDL3.SDL_GetDisplayForWindow(SDLWindowHandle);
+            var newDisplayID = SDL3.SDL_GetDisplayForWindow(SDLWindowHandle);
 
-            if (displayIndex != newDisplayIndex)
+            if (displayID != newDisplayID)
             {
-                displayIndex = newDisplayIndex;
-                currentDisplay = Displays.ElementAtOrDefault(displayIndex) ?? PrimaryDisplay;
+                displayID = newDisplayID;
+                currentDisplay = Displays.ElementAtOrDefault(displayID) ?? PrimaryDisplay;
                 CurrentDisplayBindable.Value = currentDisplay;
             }
         }
