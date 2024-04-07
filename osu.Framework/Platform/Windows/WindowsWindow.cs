@@ -50,33 +50,6 @@ namespace osu.Framework.Platform.Windows
                     applyBorderlessWindowHack = false;
                     break;
             }
-
-            if (!declareDpiAwareV2())
-                declareDpiAware();
-        }
-
-        private bool declareDpiAwareV2()
-        {
-            try
-            {
-                return SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT.DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        private bool declareDpiAware()
-        {
-            try
-            {
-                return SetProcessDpiAwareness(ProcessDpiAwareness.Process_Per_Monitor_DPI_Aware);
-            }
-            catch
-            {
-                return false;
-            }
         }
 
         public override void Create()
@@ -335,30 +308,6 @@ namespace osu.Framework.Platform.Windows
         {
             ClientToScreen(WindowHandle, ref point);
             return point;
-        }
-
-        [DllImport("SHCore.dll", SetLastError = true)]
-        internal static extern bool SetProcessDpiAwareness(ProcessDpiAwareness awareness);
-
-        internal enum ProcessDpiAwareness
-        {
-            Process_DPI_Unaware = 0,
-            Process_System_DPI_Aware = 1,
-            Process_Per_Monitor_DPI_Aware = 2
-        }
-
-        [DllImport("User32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT value);
-
-        // ReSharper disable once InconsistentNaming
-        internal enum DPI_AWARENESS_CONTEXT
-        {
-            DPI_AWARENESS_CONTEXT_UNAWARE = -1,
-            DPI_AWARENESS_CONTEXT_SYSTEM_AWARE = -2,
-            DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE = -3,
-            DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = -4,
-            DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED = -5,
         }
 
         [DllImport("user32.dll", SetLastError = true)]
