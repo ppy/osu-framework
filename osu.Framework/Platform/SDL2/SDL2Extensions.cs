@@ -3,9 +3,7 @@
 
 #nullable disable
 
-using System;
 using System.Drawing;
-using System.Runtime.InteropServices;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
@@ -1011,27 +1009,6 @@ namespace osu.Framework.Platform.SDL2
                 h = rectangle.Height,
                 w = rectangle.Width,
             };
-
-        /// <summary>
-        /// Converts a UTF-8 byte pointer to a string.
-        /// </summary>
-        /// <remarks>Most commonly used with SDL text events.</remarks>
-        /// <param name="bytePointer">Pointer to UTF-8 encoded byte array.</param>
-        /// <param name="str">The resulting string</param>
-        /// <returns><c>true</c> if the <paramref name="bytePointer"/> was successfully converted to a string.</returns>
-        public static unsafe bool TryGetStringFromBytePointer(byte* bytePointer, out string str)
-        {
-            IntPtr ptr = new IntPtr(bytePointer);
-
-            if (ptr == IntPtr.Zero)
-            {
-                str = null;
-                return false;
-            }
-
-            str = Marshal.PtrToStringUTF8(ptr) ?? string.Empty;
-            return true;
-        }
 
         public static unsafe DisplayMode ToDisplayMode(this SDL_DisplayMode mode, int displayIndex)
         {

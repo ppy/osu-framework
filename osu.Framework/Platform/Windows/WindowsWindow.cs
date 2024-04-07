@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -157,10 +158,10 @@ namespace osu.Framework.Platform.Windows
 
         public override void ResetIme() => ScheduleCommand(() => Imm.CancelComposition(WindowHandle));
 
-        protected override unsafe void HandleTextInputEvent(SDL_TextInputEvent evtText)
+        protected override void HandleTextInputEvent(SDL_TextInputEvent evtText)
         {
-            if (!SDL2Extensions.TryGetStringFromBytePointer(evtText.text, out string sdlResult))
-                return;
+            string? sdlResult = evtText.GetText();
+            Debug.Assert(sdlResult != null);
 
             // Block SDL text input if it was already handled by `handleImeMessage()`.
             // SDL truncates text over 32 bytes and sends it as multiple events.

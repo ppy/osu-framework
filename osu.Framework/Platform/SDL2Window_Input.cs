@@ -210,7 +210,7 @@ namespace osu.Framework.Platform
             switch (evtDrop.type)
             {
                 case SDL_EventType.SDL_EVENT_DROP_FILE:
-                    string str = UTF8_ToManaged(evtDrop.file, true);
+                    string? str = evtDrop.GetData();
                     if (str != null)
                         DragDrop?.Invoke(str);
 
@@ -447,19 +447,17 @@ namespace osu.Framework.Platform
                 MouseMoveRelative?.Invoke(new Vector2(evtMotion.xrel * Scale, evtMotion.yrel * Scale));
         }
 
-        protected virtual unsafe void HandleTextInputEvent(SDL_TextInputEvent evtText)
+        protected virtual void HandleTextInputEvent(SDL_TextInputEvent evtText)
         {
-            if (!SDL2Extensions.TryGetStringFromBytePointer(evtText.text, out string text))
-                return;
-
+            string? text = evtText.GetText();
+            Debug.Assert(text != null);
             TriggerTextInput(text);
         }
 
-        protected virtual unsafe void HandleTextEditingEvent(SDL_TextEditingEvent evtEdit)
+        protected virtual void HandleTextEditingEvent(SDL_TextEditingEvent evtEdit)
         {
-            if (!SDL2Extensions.TryGetStringFromBytePointer(evtEdit.text, out string text))
-                return;
-
+            string? text = evtEdit.GetText();
+            Debug.Assert(text != null);
             TriggerTextEditing(text, evtEdit.start, evtEdit.length);
         }
 
