@@ -59,9 +59,9 @@ namespace osu.Framework.Platform
         /// Only works with <see cref="RelativeMouseMode"/> disabled.
         /// </summary>
         /// <remarks>
-        /// If the cursor leaves the window while it's captured, <see cref="SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE"/> is not sent until the button(s) are released.
-        /// And if the cursor leaves and enters the window while captured, <see cref="SDL_WindowEventID.SDL_WINDOWEVENT_ENTER"/> is not sent either.
-        /// We disable relative mode when the cursor exits window bounds (not on the event), but we only enable it again on <see cref="SDL_WindowEventID.SDL_WINDOWEVENT_ENTER"/>.
+        /// If the cursor leaves the window while it's captured, <see cref="SDL_WindowEventID.SDL_EVENT_WINDOW_MOUSE_LEAVE"/> is not sent until the button(s) are released.
+        /// And if the cursor leaves and enters the window while captured, <see cref="SDL_WindowEventID.SDL_EVENT_WINDOW_MOUSE_ENTER"/> is not sent either.
+        /// We disable relative mode when the cursor exits window bounds (not on the event), but we only enable it again on <see cref="SDL_WindowEventID.SDL_EVENT_WINDOW_MOUSE_ENTER"/>.
         /// The above culminate in <see cref="RelativeMouseMode"/> staying off when the cursor leaves and enters the window bounds when any buttons are pressed.
         /// This is an invalid state, as the cursor is inside the window, and <see cref="RelativeMouseMode"/> is off.
         /// </remarks>
@@ -199,7 +199,7 @@ namespace osu.Framework.Platform
         {
             switch (evtDrop.type)
             {
-                case SDL_EventType.SDL_DROPFILE:
+                case SDL_EventType.SDL_EVENT_DROP_FILE:
                     string str = UTF8_ToManaged(evtDrop.file, true);
                     if (str != null)
                         DragDrop?.Invoke(str);
@@ -239,7 +239,7 @@ namespace osu.Framework.Platform
         {
             var existingSource = getTouchSource(evtTfinger.fingerId);
 
-            if (evtTfinger.type == SDL_EventType.SDL_FINGERDOWN)
+            if (evtTfinger.type == SDL_EventType.SDL_EVENT_FINGER_DOWN)
             {
                 Debug.Assert(existingSource == null);
                 existingSource = assignNextAvailableTouchSource(evtTfinger.fingerId);
@@ -255,32 +255,32 @@ namespace osu.Framework.Platform
 
             switch (evtTfinger.type)
             {
-                case SDL_EventType.SDL_FINGERDOWN:
-                case SDL_EventType.SDL_FINGERMOTION:
+                case SDL_EventType.SDL_EVENT_FINGER_DOWN:
+                case SDL_EventType.SDL_EVENT_FINGER_MOTION:
                     TouchDown?.Invoke(touch);
                     break;
 
-                case SDL_EventType.SDL_FINGERUP:
+                case SDL_EventType.SDL_EVENT_FINGER_UP:
                     TouchUp?.Invoke(touch);
                     activeTouches[(int)existingSource] = null;
                     break;
             }
         }
 
-        private void handleControllerDeviceEvent(SDL_ControllerDeviceEvent evtCdevice)
+        private void handleControllerDeviceEvent(SDL_GamepadDeviceEvent evtCdevice)
         {
             switch (evtCdevice.type)
             {
-                case SDL_EventType.SDL_CONTROLLERDEVICEADDED:
+                case SDL_EventType.SDL_EVENT_GAMEPAD_ADDED:
                     addJoystick(evtCdevice.which);
                     break;
 
-                case SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
-                    SDL_GameControllerClose(controllers[evtCdevice.which].ControllerHandle);
+                case SDL_EventType.SDL_EVENT_GAMEPAD_REMOVED:
+                    SDL_CloseGamepad(controllers[evtCdevice.which].ControllerHandle);
                     controllers.Remove(evtCdevice.which);
                     break;
 
-                case SDL_EventType.SDL_CONTROLLERDEVICEREMAPPED:
+                case SDL_EventType.SDL_EVENT_GAMEPAD_REMAPPED:
                     if (controllers.TryGetValue(evtCdevice.which, out var state))
                         state.PopulateBindings();
 
@@ -288,24 +288,24 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void handleControllerButtonEvent(SDL_ControllerButtonEvent evtCbutton)
+        private void handleControllerButtonEvent(SDL_GamepadButtonEvent evtCbutton)
         {
-            var button = ((SDL_GameControllerButton)evtCbutton.button).ToJoystickButton();
+            var button = ((SDL_GamepadButton)evtCbutton.button).ToJoystickButton();
 
             switch (evtCbutton.type)
             {
-                case SDL_EventType.SDL_CONTROLLERBUTTONDOWN:
+                case SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_DOWN:
                     enqueueJoystickButtonInput(button, true);
                     break;
 
-                case SDL_EventType.SDL_CONTROLLERBUTTONUP:
+                case SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_UP:
                     enqueueJoystickButtonInput(button, false);
                     break;
             }
         }
 
-        private void handleControllerAxisEvent(SDL_ControllerAxisEvent evtCaxis) =>
-            enqueueJoystickAxisInput(((SDL_GameControllerAxis)evtCaxis.axis).ToJoystickAxisSource(), evtCaxis.axisValue);
+        private void handleControllerAxisEvent(SDL_GamepadAxisEvent evtCaxis) =>
+            enqueueJoystickAxisInput(((SDL_GamepadAxis)evtCaxis.axis).ToJoystickAxisSource(), evtCaxis.axisValue);
 
         private void addJoystick(int which)
         {
@@ -315,11 +315,11 @@ namespace osu.Framework.Platform
             if (controllers.ContainsKey(instanceID))
                 return;
 
-            IntPtr joystick = SDL_JoystickOpen(which);
+            IntPtr joystick = SDL_OpenJoystick(which);
 
             IntPtr controller = IntPtr.Zero;
-            if (SDL_IsGameController(which) == SDL_bool.SDL_TRUE)
-                controller = SDL_GameControllerOpen(which);
+            if (SDL_IsGamepad(which) == SDL_bool.SDL_TRUE)
+                controller = SDL_OpenGamepad(which);
 
             controllers[instanceID] = new SDL2ControllerBindings(joystick, controller);
         }
@@ -339,16 +339,16 @@ namespace osu.Framework.Platform
         {
             switch (evtJdevice.type)
             {
-                case SDL_EventType.SDL_JOYDEVICEADDED:
+                case SDL_EventType.SDL_EVENT_JOYSTICK_ADDED:
                     addJoystick(evtJdevice.which);
                     break;
 
-                case SDL_EventType.SDL_JOYDEVICEREMOVED:
+                case SDL_EventType.SDL_EVENT_JOYSTICK_REMOVED:
                     // if the joystick is already closed, ignore it
                     if (!controllers.ContainsKey(evtJdevice.which))
                         break;
 
-                    SDL_JoystickClose(controllers[evtJdevice.which].JoystickHandle);
+                    SDL_CloseJoystick(controllers[evtJdevice.which].JoystickHandle);
                     controllers.Remove(evtJdevice.which);
                     break;
             }
@@ -364,11 +364,11 @@ namespace osu.Framework.Platform
 
             switch (evtJbutton.type)
             {
-                case SDL_EventType.SDL_JOYBUTTONDOWN:
+                case SDL_EventType.SDL_EVENT_JOYSTICK_BUTTON_DOWN:
                     enqueueJoystickButtonInput(button, true);
                     break;
 
-                case SDL_EventType.SDL_JOYBUTTONUP:
+                case SDL_EventType.SDL_EVENT_JOYSTICK_BUTTON_UP:
                     enqueueJoystickButtonInput(button, false);
                     break;
             }
@@ -417,12 +417,12 @@ namespace osu.Framework.Platform
 
             switch (evtButton.type)
             {
-                case SDL_EventType.SDL_MOUSEBUTTONDOWN:
+                case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN:
                     pressedButtons |= mask;
                     MouseDown?.Invoke(button);
                     break;
 
-                case SDL_EventType.SDL_MOUSEBUTTONUP:
+                case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP:
                     pressedButtons &= ~mask;
                     MouseUp?.Invoke(button);
                     break;
@@ -465,11 +465,11 @@ namespace osu.Framework.Platform
 
             switch (evtKey.type)
             {
-                case SDL_EventType.SDL_KEYDOWN:
+                case SDL_EventType.SDL_EVENT_KEY_DOWN:
                     KeyDown?.Invoke(key);
                     break;
 
-                case SDL_EventType.SDL_KEYUP:
+                case SDL_EventType.SDL_EVENT_KEY_UP:
                     KeyUp?.Invoke(key);
                     break;
             }

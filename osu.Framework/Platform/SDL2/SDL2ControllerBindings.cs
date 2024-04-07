@@ -19,13 +19,13 @@ namespace osu.Framework.Platform.SDL2
         public readonly IntPtr ControllerHandle;
 
         /// <summary>
-        /// Bindings returned from <see cref="SDL_GameControllerGetBindForButton"/>, indexed by <see cref="SDL_GameControllerButton"/>.
+        /// Bindings returned from <see cref="SDL_GameControllerGetBindForButton"/>, indexed by <see cref="SDL_GamepadButton"/>.
         /// Empty if the joystick does not have a corresponding ControllerHandle.
         /// </summary>
         public SDL_GameControllerButtonBind[] ButtonBindings;
 
         /// <summary>
-        /// Bindings returned from <see cref="SDL_GameControllerGetBindForAxis"/>, indexed by <see cref="SDL_GameControllerAxis"/>.
+        /// Bindings returned from <see cref="SDL_GameControllerGetBindForAxis"/>, indexed by <see cref="SDL_GamepadAxis"/>.
         /// Empty if the joystick does not have a corresponding ControllerHandle.
         /// </summary>
         public SDL_GameControllerButtonBind[] AxisBindings;
@@ -47,18 +47,18 @@ namespace osu.Framework.Platform.SDL2
                 return;
             }
 
-            ButtonBindings = Enumerable.Range(0, (int)SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_MAX)
-                                       .Select(i => SDL_GameControllerGetBindForButton(ControllerHandle, (SDL_GameControllerButton)i)).ToArray();
+            ButtonBindings = Enumerable.Range(0, (int)SDL_GamepadButton.SDL_GAMEPAD_BUTTON_MAX)
+                                       .Select(i => SDL_GameControllerGetBindForButton(ControllerHandle, (SDL_GamepadButton)i)).ToArray();
 
-            AxisBindings = Enumerable.Range(0, (int)SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_MAX)
-                                     .Select(i => SDL_GameControllerGetBindForAxis(ControllerHandle, (SDL_GameControllerAxis)i)).ToArray();
+            AxisBindings = Enumerable.Range(0, (int)SDL_GamepadAxis.SDL_GAMEPAD_AXIS_MAX)
+                                     .Select(i => SDL_GameControllerGetBindForAxis(ControllerHandle, (SDL_GamepadAxis)i)).ToArray();
         }
 
         public bool IsJoystickButtonBound(byte buttonIndex)
         {
             for (int i = 0; i < ButtonBindings.Length; i++)
             {
-                if (ButtonBindings[i].bindType != SDL_GameControllerBindType.SDL_CONTROLLER_BINDTYPE_NONE && ButtonBindings[i].value.button == buttonIndex)
+                if (ButtonBindings[i].bindType != SDL_GamepadBindingType.SDL_GAMEPAD_BINDTYPE_NONE && ButtonBindings[i].value.button == buttonIndex)
                     return true;
             }
 
@@ -69,7 +69,7 @@ namespace osu.Framework.Platform.SDL2
         {
             for (int i = 0; i < AxisBindings.Length; i++)
             {
-                if (AxisBindings[i].bindType != SDL_GameControllerBindType.SDL_CONTROLLER_BINDTYPE_NONE && AxisBindings[i].value.axis == axisIndex)
+                if (AxisBindings[i].bindType != SDL_GamepadBindingType.SDL_GAMEPAD_BINDTYPE_NONE && AxisBindings[i].value.axis == axisIndex)
                     return true;
             }
 

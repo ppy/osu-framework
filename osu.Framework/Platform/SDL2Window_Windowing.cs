@@ -466,7 +466,7 @@ namespace osu.Framework.Platform
 
             switch (evtWindow.windowEvent)
             {
-                case SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
+                case SDL_WindowEventID.SDL_EVENT_WINDOW_MOVED:
                     // explicitly requery as there are occasions where what SDL has provided us with is not up-to-date.
                     SDL_GetWindowPosition(SDLWindowHandle, out int x, out int y);
                     var newPosition = new Point(x, y);
@@ -482,31 +482,31 @@ namespace osu.Framework.Platform
 
                     break;
 
-                case SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
+                case SDL_WindowEventID.SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
                     fetchWindowSize();
                     break;
 
-                case SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
+                case SDL_WindowEventID.SDL_EVENT_WINDOW_MOUSE_ENTER:
                     cursorInWindow.Value = true;
                     MouseEntered?.Invoke();
                     break;
 
-                case SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
+                case SDL_WindowEventID.SDL_EVENT_WINDOW_MOUSE_LEAVE:
                     cursorInWindow.Value = false;
                     MouseLeft?.Invoke();
                     break;
 
-                case SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
-                case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
+                case SDL_WindowEventID.SDL_EVENT_WINDOW_RESTORED:
+                case SDL_WindowEventID.SDL_EVENT_WINDOW_FOCUS_GAINED:
                     Focused = true;
                     break;
 
-                case SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
-                case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
+                case SDL_WindowEventID.SDL_EVENT_WINDOW_MINIMIZED:
+                case SDL_WindowEventID.SDL_EVENT_WINDOW_FOCUS_LOST:
                     Focused = false;
                     break;
 
-                case SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
+                case SDL_WindowEventID.SDL_EVENT_WINDOW_CLOSE_REQUESTED:
                     break;
             }
 
@@ -515,12 +515,12 @@ namespace osu.Framework.Platform
             // eg. this covers scenarios when changing resolution outside of the game, and then tabbing in.
             switch (evtWindow.windowEvent)
             {
-                case SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
-                case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
-                case SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
-                case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
-                case SDL_WindowEventID.SDL_WINDOWEVENT_SHOWN:
-                case SDL_WindowEventID.SDL_WINDOWEVENT_HIDDEN:
+                case SDL_WindowEventID.SDL_EVENT_WINDOW_RESTORED:
+                case SDL_WindowEventID.SDL_EVENT_WINDOW_FOCUS_GAINED:
+                case SDL_WindowEventID.SDL_EVENT_WINDOW_MINIMIZED:
+                case SDL_WindowEventID.SDL_EVENT_WINDOW_FOCUS_LOST:
+                case SDL_WindowEventID.SDL_EVENT_WINDOW_SHOWN:
+                case SDL_WindowEventID.SDL_EVENT_WINDOW_HIDDEN:
                     fetchDisplays();
                     break;
             }
@@ -583,7 +583,7 @@ namespace osu.Framework.Platform
                     windowMaximised = maximized;
             }
 
-            int newDisplayIndex = SDL_GetWindowDisplayIndex(SDLWindowHandle);
+            int newDisplayIndex = SDL_GetDisplayForWindow(SDLWindowHandle);
 
             if (displayIndex != newDisplayIndex)
             {
@@ -620,7 +620,7 @@ namespace osu.Framework.Platform
 
                     ensureWindowOnDisplay(display);
 
-                    SDL_SetWindowDisplayMode(SDLWindowHandle, ref closestMode);
+                    SDL_SetWindowFullscreenMode(SDLWindowHandle, ref closestMode);
                     SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
                     break;
 
@@ -648,7 +648,7 @@ namespace osu.Framework.Platform
             // TODO: displayIndex should be valid here at all times.
             // on startup, the displayIndex will be invalid (-1) due to it being set later in the startup sequence.
             // related to order of operations in `updateWindowSpecifics()`.
-            int localIndex = SDL_GetWindowDisplayIndex(windowHandle);
+            int localIndex = SDL_GetDisplayForWindow(windowHandle);
 
             if (localIndex != display.Index)
                 Logger.Log($"Stored display index ({display.Index}) doesn't match current index ({localIndex})");
@@ -657,7 +657,7 @@ namespace osu.Framework.Platform
             SDL_DisplayMode mode;
 
             if (windowState == WindowState.Fullscreen)
-                success = SDL_GetWindowDisplayMode(windowHandle, out mode) >= 0;
+                success = SDL_GetWindowFullscreenMode(windowHandle, out mode) >= 0;
             else
                 success = SDL_GetCurrentDisplayMode(localIndex, out mode) >= 0;
 
@@ -705,7 +705,7 @@ namespace osu.Framework.Platform
         /// <param name="display">The <see cref="Display"/> to center the window on.</param>
         private void ensureWindowOnDisplay(Display display)
         {
-            if (display.Index == SDL_GetWindowDisplayIndex(SDLWindowHandle))
+            if (display.Index == SDL_GetDisplayForWindow(SDLWindowHandle))
                 return;
 
             moveWindowTo(display, new Vector2(0.5f));
@@ -824,7 +824,7 @@ namespace osu.Framework.Platform
 
             var targetMode = new SDL_DisplayMode { w = size.Width, h = size.Height, refresh_rate = requestedMode.RefreshRate };
 
-            if (SDL_GetClosestDisplayMode(display.Index, ref targetMode, out var mode) != IntPtr.Zero)
+            if (SDL_GetClosestFullscreenDisplayMode(display.Index, ref targetMode, out var mode) != IntPtr.Zero)
                 return mode;
             else
                 Logger.Log($"Unable to get preferred display mode (try #1/2). Target display: {display.Index}, mode: {targetMode.ReadableString()}. SDL error: {SDL2Extensions.GetAndClearError()}");
@@ -834,7 +834,7 @@ namespace osu.Framework.Platform
             targetMode.h = display.Bounds.Height;
             targetMode.refresh_rate = 0;
 
-            if (SDL_GetClosestDisplayMode(display.Index, ref targetMode, out mode) != IntPtr.Zero)
+            if (SDL_GetClosestFullscreenDisplayMode(display.Index, ref targetMode, out mode) != IntPtr.Zero)
                 return mode;
             else
                 Logger.Log($"Unable to get preferred display mode (try #2/2). Target display: {display.Index}, mode: {targetMode.ReadableString()}. SDL error: {SDL2Extensions.GetAndClearError()}");
@@ -858,7 +858,7 @@ namespace osu.Framework.Platform
                 Logger.Log($"Failed to get desktop display mode (try #3/3). Target display: primary. SDL error: {SDL2Extensions.GetAndClearError()}", level: LogLevel.Error);
 
             // finally return the current mode if everything else fails.
-            if (SDL_GetWindowDisplayMode(windowHandle, out mode) >= 0)
+            if (SDL_GetWindowFullscreenMode(windowHandle, out mode) >= 0)
                 return mode;
             else
                 Logger.Log($"Failed to get window display mode. SDL error: {SDL2Extensions.GetAndClearError()}", level: LogLevel.Error);

@@ -164,7 +164,7 @@ namespace osu.Framework.Platform
             return wmInfo;
         }
 
-        public bool CapsLockPressed => SDL_GetModState().HasFlagFast(SDL_Keymod.KMOD_CAPS);
+        public bool CapsLockPressed => SDL_GetModState().HasFlagFast(SDL_Keymod.SDL_KMOD_CAPS);
 
         // references must be kept to avoid GC, see https://stackoverflow.com/a/6193914
 
@@ -186,13 +186,13 @@ namespace osu.Framework.Platform
         {
             ObjectHandle = new ObjectHandle<SDL2Window>(this, GCHandleType.Normal);
 
-            if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0)
+            if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD) < 0)
             {
                 throw new InvalidOperationException($"Failed to initialise SDL: {SDL_GetError()}");
             }
 
             SDL_LogSetPriority((int)SDL_LogCategory.SDL_LOG_CATEGORY_ERROR, SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG);
-            SDL_LogSetOutputFunction(logOutputDelegate = logOutput, IntPtr.Zero);
+            SDL_SetLogOutputFunction(logOutputDelegate = logOutput, IntPtr.Zero);
 
             graphicsSurface = new SDL2GraphicsSurface(this, surfaceType);
 
@@ -223,7 +223,7 @@ namespace osu.Framework.Platform
         public virtual void Create()
         {
             SDL_WindowFlags flags = SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
-                                    SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI |
+                                    SDL_WindowFlags.SDL_WINDOW_HIGH_PIXEL_DENSITY |
                                     SDL_WindowFlags.SDL_WINDOW_HIDDEN; // shown after first swap to avoid white flash on startup (windows)
 
             flags |= WindowState.ToFlags();
@@ -315,19 +315,19 @@ namespace osu.Framework.Platform
         {
             switch (evt.type)
             {
-                case SDL_EventType.SDL_APP_TERMINATING:
+                case SDL_EventType.SDL_EVENT_TERMINATING:
                     handleQuitEvent(evt.quit);
                     break;
 
-                case SDL_EventType.SDL_APP_DIDENTERBACKGROUND:
+                case SDL_EventType.SDL_EVENT_DID_ENTER_BACKGROUND:
                     Suspended?.Invoke();
                     break;
 
-                case SDL_EventType.SDL_APP_WILLENTERFOREGROUND:
+                case SDL_EventType.SDL_EVENT_WILL_ENTER_FOREGROUND:
                     Resumed?.Invoke();
                     break;
 
-                case SDL_EventType.SDL_APP_LOWMEMORY:
+                case SDL_EventType.SDL_EVENT_LOW_MEMORY:
                     LowOnMemory?.Invoke();
                     break;
             }
@@ -339,7 +339,7 @@ namespace osu.Framework.Platform
             {
                 case SDL_EventType.SDL_WINDOWEVENT:
                     // polling via SDL_PollEvent blocks on resizes (https://stackoverflow.com/a/50858339)
-                    if (evt.window.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED && !updatingWindowStateAndSize)
+                    if (evt.window.windowEvent == SDL_WindowEventID.SDL_EVENT_WINDOW_RESIZED && !updatingWindowStateAndSize)
                         fetchWindowSize();
 
                     break;
@@ -456,7 +456,7 @@ namespace osu.Framework.Platform
                     surface = SDL_CreateRGBSurfaceFrom(new IntPtr(ptr), imageSize.Width, imageSize.Height, 32, imageSize.Width * 4, 0xff, 0xff00, 0xff0000, 0xff000000);
 
                 SDL_SetWindowIcon(SDLWindowHandle, surface);
-                SDL_FreeSurface(surface);
+                SDL_DestroySurface(surface);
             });
         }
 
@@ -484,7 +484,7 @@ namespace osu.Framework.Platform
 
             do
             {
-                eventsRead = SDL_PeepEvents(events, events_per_peep, SDL_eventaction.SDL_GETEVENT, SDL_EventType.SDL_FIRSTEVENT, SDL_EventType.SDL_LASTEVENT);
+                eventsRead = SDL_PeepEvents(events, events_per_peep, SDL_eventaction.SDL_GETEVENT, SDL_EventType.SDL_EVENT_FIRST, SDL_EventType.SDL_EVENT_LAST);
                 for (int i = 0; i < eventsRead; i++)
                     HandleEvent(events[i]);
             } while (eventsRead == events_per_peep);
@@ -497,7 +497,7 @@ namespace osu.Framework.Platform
         {
             switch (e.type)
             {
-                case SDL_EventType.SDL_QUIT:
+                case SDL_EventType.SDL_EVENT_QUIT:
                     handleQuitEvent(e.quit);
                     break;
 
@@ -509,83 +509,83 @@ namespace osu.Framework.Platform
                     handleWindowEvent(e.window);
                     break;
 
-                case SDL_EventType.SDL_KEYDOWN:
-                case SDL_EventType.SDL_KEYUP:
+                case SDL_EventType.SDL_EVENT_KEY_DOWN:
+                case SDL_EventType.SDL_EVENT_KEY_UP:
                     handleKeyboardEvent(e.key);
                     break;
 
-                case SDL_EventType.SDL_TEXTEDITING:
+                case SDL_EventType.SDL_EVENT_TEXT_EDITING:
                     HandleTextEditingEvent(e.edit);
                     break;
 
-                case SDL_EventType.SDL_TEXTINPUT:
+                case SDL_EventType.SDL_EVENT_TEXT_INPUT:
                     HandleTextInputEvent(e.text);
                     break;
 
-                case SDL_EventType.SDL_KEYMAPCHANGED:
+                case SDL_EventType.SDL_EVENT_KEYMAP_CHANGED:
                     handleKeymapChangedEvent();
                     break;
 
-                case SDL_EventType.SDL_MOUSEMOTION:
+                case SDL_EventType.SDL_EVENT_MOUSE_MOTION:
                     handleMouseMotionEvent(e.motion);
                     break;
 
-                case SDL_EventType.SDL_MOUSEBUTTONDOWN:
-                case SDL_EventType.SDL_MOUSEBUTTONUP:
+                case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN:
+                case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP:
                     handleMouseButtonEvent(e.button);
                     break;
 
-                case SDL_EventType.SDL_MOUSEWHEEL:
+                case SDL_EventType.SDL_EVENT_MOUSE_WHEEL:
                     handleMouseWheelEvent(e.wheel);
                     break;
 
-                case SDL_EventType.SDL_JOYAXISMOTION:
+                case SDL_EventType.SDL_EVENT_JOYSTICK_AXIS_MOTION:
                     handleJoyAxisEvent(e.jaxis);
                     break;
 
-                case SDL_EventType.SDL_JOYBALLMOTION:
+                case SDL_EventType.SDL_EVENT_JOYSTICK_BALL_MOTION:
                     handleJoyBallEvent(e.jball);
                     break;
 
-                case SDL_EventType.SDL_JOYHATMOTION:
+                case SDL_EventType.SDL_EVENT_JOYSTICK_HAT_MOTION:
                     handleJoyHatEvent(e.jhat);
                     break;
 
-                case SDL_EventType.SDL_JOYBUTTONDOWN:
-                case SDL_EventType.SDL_JOYBUTTONUP:
+                case SDL_EventType.SDL_EVENT_JOYSTICK_BUTTON_DOWN:
+                case SDL_EventType.SDL_EVENT_JOYSTICK_BUTTON_UP:
                     handleJoyButtonEvent(e.jbutton);
                     break;
 
-                case SDL_EventType.SDL_JOYDEVICEADDED:
-                case SDL_EventType.SDL_JOYDEVICEREMOVED:
+                case SDL_EventType.SDL_EVENT_JOYSTICK_ADDED:
+                case SDL_EventType.SDL_EVENT_JOYSTICK_REMOVED:
                     handleJoyDeviceEvent(e.jdevice);
                     break;
 
-                case SDL_EventType.SDL_CONTROLLERAXISMOTION:
+                case SDL_EventType.SDL_EVENT_GAMEPAD_AXIS_MOTION:
                     handleControllerAxisEvent(e.caxis);
                     break;
 
-                case SDL_EventType.SDL_CONTROLLERBUTTONDOWN:
-                case SDL_EventType.SDL_CONTROLLERBUTTONUP:
+                case SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+                case SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_UP:
                     handleControllerButtonEvent(e.cbutton);
                     break;
 
-                case SDL_EventType.SDL_CONTROLLERDEVICEADDED:
-                case SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
-                case SDL_EventType.SDL_CONTROLLERDEVICEREMAPPED:
+                case SDL_EventType.SDL_EVENT_GAMEPAD_ADDED:
+                case SDL_EventType.SDL_EVENT_GAMEPAD_REMOVED:
+                case SDL_EventType.SDL_EVENT_GAMEPAD_REMAPPED:
                     handleControllerDeviceEvent(e.cdevice);
                     break;
 
-                case SDL_EventType.SDL_FINGERDOWN:
-                case SDL_EventType.SDL_FINGERUP:
-                case SDL_EventType.SDL_FINGERMOTION:
+                case SDL_EventType.SDL_EVENT_FINGER_DOWN:
+                case SDL_EventType.SDL_EVENT_FINGER_UP:
+                case SDL_EventType.SDL_EVENT_FINGER_MOTION:
                     HandleTouchFingerEvent(e.tfinger);
                     break;
 
-                case SDL_EventType.SDL_DROPFILE:
-                case SDL_EventType.SDL_DROPTEXT:
-                case SDL_EventType.SDL_DROPBEGIN:
-                case SDL_EventType.SDL_DROPCOMPLETE:
+                case SDL_EventType.SDL_EVENT_DROP_FILE:
+                case SDL_EventType.SDL_EVENT_DROP_TEXT:
+                case SDL_EventType.SDL_EVENT_DROP_BEGIN:
+                case SDL_EventType.SDL_EVENT_DROP_COMPLETE:
                     handleDropEvent(e.drop);
                     break;
             }

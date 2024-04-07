@@ -21,7 +21,7 @@ namespace osu.Framework.Platform.SDL2
         {
             // Apple devices don't have the notion of NumLock (they have a Clear key instead).
             // treat them as if they always have NumLock on (the numpad always performs its primary actions).
-            bool numLockOn = sdlKeysym.mod.HasFlagFast(SDL_Keymod.KMOD_NUM) || RuntimeInfo.IsApple;
+            bool numLockOn = sdlKeysym.mod.HasFlagFast(SDL_Keymod.SDL_KMOD_NUM) || RuntimeInfo.IsApple;
 
             switch (sdlKeysym.scancode)
             {
@@ -921,85 +921,85 @@ namespace osu.Framework.Platform.SDL2
             return 0;
         }
 
-        public static JoystickAxisSource ToJoystickAxisSource(this SDL_GameControllerAxis axis)
+        public static JoystickAxisSource ToJoystickAxisSource(this SDL_GamepadAxis axis)
         {
             switch (axis)
             {
                 default:
-                case SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_INVALID:
+                case SDL_GamepadAxis.SDL_GAMEPAD_AXIS_INVALID:
                     return 0;
 
-                case SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTX:
+                case SDL_GamepadAxis.SDL_GAMEPAD_AXIS_LEFTX:
                     return JoystickAxisSource.GamePadLeftStickX;
 
-                case SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTY:
+                case SDL_GamepadAxis.SDL_GAMEPAD_AXIS_LEFTY:
                     return JoystickAxisSource.GamePadLeftStickY;
 
-                case SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT:
+                case SDL_GamepadAxis.SDL_GAMEPAD_AXIS_LEFT_TRIGGER:
                     return JoystickAxisSource.GamePadLeftTrigger;
 
-                case SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTX:
+                case SDL_GamepadAxis.SDL_GAMEPAD_AXIS_RIGHTX:
                     return JoystickAxisSource.GamePadRightStickX;
 
-                case SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTY:
+                case SDL_GamepadAxis.SDL_GAMEPAD_AXIS_RIGHTY:
                     return JoystickAxisSource.GamePadRightStickY;
 
-                case SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
+                case SDL_GamepadAxis.SDL_GAMEPAD_AXIS_RIGHT_TRIGGER:
                     return JoystickAxisSource.GamePadRightTrigger;
             }
         }
 
-        public static JoystickButton ToJoystickButton(this SDL_GameControllerButton button)
+        public static JoystickButton ToJoystickButton(this SDL_GamepadButton button)
         {
             switch (button)
             {
                 default:
-                case SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_INVALID:
+                case SDL_GamepadButton.SDL_GAMEPAD_BUTTON_INVALID:
                     return 0;
 
-                case SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_A:
+                case SDL_GamepadButton.SDL_GAMEPAD_BUTTON_SOUTH:
                     return JoystickButton.GamePadA;
 
-                case SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_B:
+                case SDL_GamepadButton.SDL_GAMEPAD_BUTTON_EAST:
                     return JoystickButton.GamePadB;
 
-                case SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_X:
+                case SDL_GamepadButton.SDL_GAMEPAD_BUTTON_WEST:
                     return JoystickButton.GamePadX;
 
-                case SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_Y:
+                case SDL_GamepadButton.SDL_GAMEPAD_BUTTON_NORTH:
                     return JoystickButton.GamePadY;
 
-                case SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_BACK:
+                case SDL_GamepadButton.SDL_GAMEPAD_BUTTON_BACK:
                     return JoystickButton.GamePadBack;
 
-                case SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_GUIDE:
+                case SDL_GamepadButton.SDL_GAMEPAD_BUTTON_GUIDE:
                     return JoystickButton.GamePadGuide;
 
-                case SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_START:
+                case SDL_GamepadButton.SDL_GAMEPAD_BUTTON_START:
                     return JoystickButton.GamePadStart;
 
-                case SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSTICK:
+                case SDL_GamepadButton.SDL_GAMEPAD_BUTTON_LEFT_STICK:
                     return JoystickButton.GamePadLeftStick;
 
-                case SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSTICK:
+                case SDL_GamepadButton.SDL_GAMEPAD_BUTTON_RIGHT_STICK:
                     return JoystickButton.GamePadRightStick;
 
-                case SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+                case SDL_GamepadButton.SDL_GAMEPAD_BUTTON_LEFT_SHOULDER:
                     return JoystickButton.GamePadLeftShoulder;
 
-                case SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+                case SDL_GamepadButton.SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER:
                     return JoystickButton.GamePadRightShoulder;
 
-                case SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_UP:
+                case SDL_GamepadButton.SDL_GAMEPAD_BUTTON_DPAD_UP:
                     return JoystickButton.GamePadDPadUp;
 
-                case SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+                case SDL_GamepadButton.SDL_GAMEPAD_BUTTON_DPAD_DOWN:
                     return JoystickButton.GamePadDPadDown;
 
-                case SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+                case SDL_GamepadButton.SDL_GAMEPAD_BUTTON_DPAD_LEFT:
                     return JoystickButton.GamePadDPadLeft;
 
-                case SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+                case SDL_GamepadButton.SDL_GAMEPAD_BUTTON_DPAD_RIGHT:
                     return JoystickButton.GamePadDPadRight;
             }
         }
@@ -1036,7 +1036,7 @@ namespace osu.Framework.Platform.SDL2
 
         public static DisplayMode ToDisplayMode(this SDL_DisplayMode mode, int displayIndex)
         {
-            SDL_PixelFormatEnumToMasks(mode.format, out int bpp, out _, out _, out _, out _);
+            SDL_GetMasksForPixelFormatEnum(mode.format, out int bpp, out _, out _, out _, out _);
             return new DisplayMode(SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, displayIndex);
         }
 

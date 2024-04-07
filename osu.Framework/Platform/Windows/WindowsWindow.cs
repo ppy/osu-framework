@@ -236,11 +236,11 @@ namespace osu.Framework.Platform.Windows
 
                 switch (evtTfinger.type)
                 {
-                    case SDL_EventType.SDL_FINGERDOWN:
+                    case SDL_EventType.SDL_EVENT_FINGER_DOWN:
                         TriggerMouseDown(MouseButton.Left);
                         break;
 
-                    case SDL_EventType.SDL_FINGERUP:
+                    case SDL_EventType.SDL_EVENT_FINGER_UP:
                         TriggerMouseUp(MouseButton.Left);
                         break;
                 }

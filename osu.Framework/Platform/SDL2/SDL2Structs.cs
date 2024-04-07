@@ -42,7 +42,7 @@ namespace osu.Framework.Platform.SDL2
         [StructLayout(LayoutKind.Sequential)]
         public struct SDL_SysWMmsg
         {
-            public SDL_version version;
+            public SDL_Version version;
             public SDL_SYSWM_TYPE subsystem;
             public INTERNAL_SysWMmsgUnion msg;
         }
