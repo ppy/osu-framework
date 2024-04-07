@@ -77,16 +77,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Whether the current display server is Wayland.
         /// </summary>
-        internal bool IsWayland
-        {
-            get
-            {
-                if (SDLWindowHandle == null)
-                    return false;
-
-                return GetWindowSystemInformation().subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND;
-            }
-        }
+        internal bool IsWayland => SDL3.SDL_GetCurrentVideoDriver() == "wayland";
 
         /// <summary>
         /// Gets the native window handle as provided by the operating system.
@@ -98,35 +89,33 @@ namespace osu.Framework.Platform
                 if (SDLWindowHandle == null)
                     return IntPtr.Zero;
 
-                var wmInfo = GetWindowSystemInformation();
+                var props = SDL3.SDL_GetWindowProperties(SDLWindowHandle);
 
-                // Window handle is selected per subsystem as defined at:
-                // https://wiki.libsdl.org/SDL_SysWMinfo
-                switch (wmInfo.subsystem)
+                switch (RuntimeInfo.OS)
                 {
-                    case SDL_SYSWM_TYPE.SDL_SYSWM_WINDOWS:
-                        return wmInfo.info.win.window;
+                    case RuntimeInfo.Platform.Windows:
+                        return SDL3.SDL_GetProperty(props, SDL3.SDL_PROP_WINDOW_WIN32_HWND_POINTER, IntPtr.Zero);
 
-                    case SDL_SYSWM_TYPE.SDL_SYSWM_X11:
-                        return wmInfo.info.x11.window;
+                    case RuntimeInfo.Platform.Linux:
+                        if (IsWayland)
+                            return SDL3.SDL_GetProperty(props, SDL3.SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, IntPtr.Zero);
 
-                    case SDL_SYSWM_TYPE.SDL_SYSWM_DIRECTFB:
-                        return wmInfo.info.dfb.window;
+                        if (SDL3.SDL_GetCurrentVideoDriver() == "x11")
+                            return SDL3.SDL_GetProperty(props, SDL3.SDL_PROP_WINDOW_X11_WINDOW_NUMBER, IntPtr.Zero);
 
-                    case SDL_SYSWM_TYPE.SDL_SYSWM_COCOA:
-                        return wmInfo.info.cocoa.window;
+                        return IntPtr.Zero;
 
-                    case SDL_SYSWM_TYPE.SDL_SYSWM_UIKIT:
-                        return wmInfo.info.uikit.window;
+                    case RuntimeInfo.Platform.macOS:
+                        return SDL3.SDL_GetProperty(props, SDL3.SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, IntPtr.Zero);
 
-                    case SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND:
-                        return wmInfo.info.wl.surface;
+                    case RuntimeInfo.Platform.iOS:
+                        return SDL3.SDL_GetProperty(props, SDL3.SDL_PROP_WINDOW_UIKIT_WINDOW_POINTER, IntPtr.Zero);
 
-                    case SDL_SYSWM_TYPE.SDL_SYSWM_ANDROID:
-                        return wmInfo.info.android.window;
+                    case RuntimeInfo.Platform.Android:
+                        return SDL3.SDL_GetProperty(props, SDL3.SDL_PROP_WINDOW_ANDROID_WINDOW_POINTER, IntPtr.Zero);
 
                     default:
-                        return IntPtr.Zero;
+                        throw new ArgumentOutOfRangeException();
                 }
             }
         }
@@ -138,31 +127,16 @@ namespace osu.Framework.Platform
                 if (SDLWindowHandle == null)
                     return IntPtr.Zero;
 
-                var wmInfo = GetWindowSystemInformation();
+                var props = SDL3.SDL_GetWindowProperties(SDLWindowHandle);
 
-                switch (wmInfo.subsystem)
-                {
-                    case SDL_SYSWM_TYPE.SDL_SYSWM_X11:
-                        return wmInfo.info.x11.display;
+                if (IsWayland)
+                    return SDL3.SDL_GetProperty(props, SDL3.SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, IntPtr.Zero);
 
-                    case SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND:
-                        return wmInfo.info.wl.display;
+                if (SDL3.SDL_GetCurrentVideoDriver() == "x11")
+                    return SDL3.SDL_GetProperty(props, SDL3.SDL_PROP_WINDOW_X11_DISPLAY_POINTER, IntPtr.Zero);
 
-                    default:
-                        return IntPtr.Zero;
-                }
+                return IntPtr.Zero;
             }
-        }
-
-        internal SDL_SysWMinfo GetWindowSystemInformation()
-        {
-            if (SDLWindowHandle == null)
-                return default;
-
-            var wmInfo = new SDL_SysWMinfo();
-            SDL3.SDL_GetVersion(out wmInfo.version);
-            SDL_GetWindowWMInfo(SDLWindowHandle, ref wmInfo);
-            return wmInfo;
         }
 
         public bool CapsLockPressed => SDL3.SDL_GetModState().HasFlagFast(SDL_Keymod.SDL_KMOD_CAPS);
