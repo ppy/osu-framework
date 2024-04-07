@@ -93,7 +93,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private readonly Dictionary<int, SDL2ControllerBindings> controllers = new Dictionary<int, SDL2ControllerBindings>();
+        private readonly Dictionary<SDL_JoystickID, SDL2ControllerBindings> controllers = new Dictionary<SDL_JoystickID, SDL2ControllerBindings>();
 
         private void updateCursorVisibility(bool cursorVisible) =>
             ScheduleCommand(() =>
@@ -277,7 +277,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void handleControllerDeviceEvent(SDL_GamepadDeviceEvent evtCdevice)
+        private unsafe void handleControllerDeviceEvent(SDL_GamepadDeviceEvent evtCdevice)
         {
             switch (evtCdevice.type)
             {
@@ -317,19 +317,17 @@ namespace osu.Framework.Platform
         private void handleControllerAxisEvent(SDL_GamepadAxisEvent evtCaxis) =>
             enqueueJoystickAxisInput(((SDL_GamepadAxis)evtCaxis.axis).ToJoystickAxisSource(), evtCaxis.axis);
 
-        private unsafe void addJoystick(int which)
+        private unsafe void addJoystick(SDL_JoystickID instanceID)
         {
-            int instanceID = SDL_JoystickGetDeviceInstanceID(which);
-
             // if the joystick is already opened, ignore it
             if (controllers.ContainsKey(instanceID))
                 return;
 
-            SDL_Joystick* joystick = SDL3.SDL_OpenJoystick(which);
+            SDL_Joystick* joystick = SDL3.SDL_OpenJoystick(instanceID);
 
             SDL_Gamepad* controller = null;
-            if (SDL3.SDL_IsGamepad(which) == SDL_bool.SDL_TRUE)
-                controller = SDL3.SDL_OpenGamepad(which);
+            if (SDL3.SDL_IsGamepad(instanceID) == SDL_bool.SDL_TRUE)
+                controller = SDL3.SDL_OpenGamepad(instanceID);
 
             controllers[instanceID] = new SDL2ControllerBindings(joystick, controller);
         }
@@ -339,13 +337,18 @@ namespace osu.Framework.Platform
         /// </summary>
         private void populateJoysticks()
         {
-            for (int i = 0; i < SDL_NumJoysticks(); i++)
+            using var joysticks = SDL3.SDL_GetJoysticks();
+
+            if (joysticks == null)
+                return;
+
+            for (int i = 0; i < joysticks.Count; i++)
             {
-                addJoystick(i);
+                addJoystick(joysticks[i]);
             }
         }
 
-        private void handleJoyDeviceEvent(SDL_JoyDeviceEvent evtJdevice)
+        private unsafe void handleJoyDeviceEvent(SDL_JoyDeviceEvent evtJdevice)
         {
             switch (evtJdevice.type)
             {
@@ -400,7 +403,7 @@ namespace osu.Framework.Platform
             if (controllers.TryGetValue(evtJaxis.which, out var state) && state.IsJoystickAxisBound(evtJaxis.axis))
                 return;
 
-            enqueueJoystickAxisInput(JoystickAxisSource.Axis1 + evtJaxis.axis, evtJaxis.axisValue);
+            enqueueJoystickAxisInput(JoystickAxisSource.Axis1 + evtJaxis.axis, evtJaxis.axis);
         }
 
         private ulong lastPreciseScroll;
