@@ -325,9 +325,9 @@ namespace osu.Framework.Platform
         {
             switch (evt.type)
             {
-                case SDL_EventType.SDL_WINDOWEVENT:
+                case SDL_EventType.SDL_EVENT_WINDOW_RESIZED:
                     // polling via SDL_PollEvent blocks on resizes (https://stackoverflow.com/a/50858339)
-                    if (evt.window.windowEvent == SDL_WindowEventID.SDL_EVENT_WINDOW_RESIZED && !updatingWindowStateAndSize)
+                    if (!updatingWindowStateAndSize)
                         fetchWindowSize();
 
                     break;
@@ -483,18 +483,22 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual void HandleEvent(SDL_Event e)
         {
+            if (e.type >= SDL_EventType.SDL_EVENT_DISPLAY_FIRST && e.type <= SDL_EventType.SDL_EVENT_DISPLAY_LAST)
+            {
+                handleDisplayEvent(e.display);
+                return;
+            }
+
+            if (e.type >= SDL_EventType.SDL_EVENT_WINDOW_FIRST && e.type <= SDL_EventType.SDL_EVENT_WINDOW_LAST)
+            {
+                handleWindowEvent(e.window);
+                return;
+            }
+
             switch (e.type)
             {
                 case SDL_EventType.SDL_EVENT_QUIT:
                     handleQuitEvent(e.quit);
-                    break;
-
-                case SDL_EventType.SDL_DISPLAYEVENT:
-                    handleDisplayEvent(e.display);
-                    break;
-
-                case SDL_EventType.SDL_WINDOWEVENT:
-                    handleWindowEvent(e.window);
                     break;
 
                 case SDL_EventType.SDL_EVENT_KEY_DOWN:
@@ -550,18 +554,18 @@ namespace osu.Framework.Platform
                     break;
 
                 case SDL_EventType.SDL_EVENT_GAMEPAD_AXIS_MOTION:
-                    handleControllerAxisEvent(e.caxis);
+                    handleControllerAxisEvent(e.gaxis);
                     break;
 
                 case SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_DOWN:
                 case SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_UP:
-                    handleControllerButtonEvent(e.cbutton);
+                    handleControllerButtonEvent(e.gbutton);
                     break;
 
                 case SDL_EventType.SDL_EVENT_GAMEPAD_ADDED:
                 case SDL_EventType.SDL_EVENT_GAMEPAD_REMOVED:
                 case SDL_EventType.SDL_EVENT_GAMEPAD_REMAPPED:
-                    handleControllerDeviceEvent(e.cdevice);
+                    handleControllerDeviceEvent(e.gdevice);
                     break;
 
                 case SDL_EventType.SDL_EVENT_FINGER_DOWN:

@@ -59,9 +59,9 @@ namespace osu.Framework.Platform
         /// Only works with <see cref="RelativeMouseMode"/> disabled.
         /// </summary>
         /// <remarks>
-        /// If the cursor leaves the window while it's captured, <see cref="SDL_WindowEventID.SDL_EVENT_WINDOW_MOUSE_LEAVE"/> is not sent until the button(s) are released.
-        /// And if the cursor leaves and enters the window while captured, <see cref="SDL_WindowEventID.SDL_EVENT_WINDOW_MOUSE_ENTER"/> is not sent either.
-        /// We disable relative mode when the cursor exits window bounds (not on the event), but we only enable it again on <see cref="SDL_WindowEventID.SDL_EVENT_WINDOW_MOUSE_ENTER"/>.
+        /// If the cursor leaves the window while it's captured, <see cref="SDL_EventType.SDL_EVENT_WINDOW_MOUSE_LEAVE"/> is not sent until the button(s) are released.
+        /// And if the cursor leaves and enters the window while captured, <see cref="SDL_EventType.SDL_EVENT_WINDOW_MOUSE_ENTER"/> is not sent either.
+        /// We disable relative mode when the cursor exits window bounds (not on the event), but we only enable it again on <see cref="SDL_EventType.SDL_EVENT_WINDOW_MOUSE_ENTER"/>.
         /// The above culminate in <see cref="RelativeMouseMode"/> staying off when the cursor leaves and enters the window bounds when any buttons are pressed.
         /// This is an invalid state, as the cursor is inside the window, and <see cref="RelativeMouseMode"/> is off.
         /// </remarks>

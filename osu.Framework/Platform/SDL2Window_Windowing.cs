@@ -464,9 +464,9 @@ namespace osu.Framework.Platform
         {
             updateAndFetchWindowSpecifics();
 
-            switch (evtWindow.windowEvent)
+            switch (evtWindow.type)
             {
-                case SDL_WindowEventID.SDL_EVENT_WINDOW_MOVED:
+                case SDL_EventType.SDL_EVENT_WINDOW_MOVED:
                     // explicitly requery as there are occasions where what SDL has provided us with is not up-to-date.
                     SDL3.SDL_GetWindowPosition(SDLWindowHandle, out int x, out int y);
                     var newPosition = new Point(x, y);
@@ -482,45 +482,45 @@ namespace osu.Framework.Platform
 
                     break;
 
-                case SDL_WindowEventID.SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+                case SDL_EventType.SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
                     fetchWindowSize();
                     break;
 
-                case SDL_WindowEventID.SDL_EVENT_WINDOW_MOUSE_ENTER:
+                case SDL_EventType.SDL_EVENT_WINDOW_MOUSE_ENTER:
                     cursorInWindow.Value = true;
                     MouseEntered?.Invoke();
                     break;
 
-                case SDL_WindowEventID.SDL_EVENT_WINDOW_MOUSE_LEAVE:
+                case SDL_EventType.SDL_EVENT_WINDOW_MOUSE_LEAVE:
                     cursorInWindow.Value = false;
                     MouseLeft?.Invoke();
                     break;
 
-                case SDL_WindowEventID.SDL_EVENT_WINDOW_RESTORED:
-                case SDL_WindowEventID.SDL_EVENT_WINDOW_FOCUS_GAINED:
+                case SDL_EventType.SDL_EVENT_WINDOW_RESTORED:
+                case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_GAINED:
                     Focused = true;
                     break;
 
-                case SDL_WindowEventID.SDL_EVENT_WINDOW_MINIMIZED:
-                case SDL_WindowEventID.SDL_EVENT_WINDOW_FOCUS_LOST:
+                case SDL_EventType.SDL_EVENT_WINDOW_MINIMIZED:
+                case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST:
                     Focused = false;
                     break;
 
-                case SDL_WindowEventID.SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+                case SDL_EventType.SDL_EVENT_WINDOW_CLOSE_REQUESTED:
                     break;
             }
 
             // displays can change without a SDL_DISPLAYEVENT being sent, eg. changing resolution.
             // force update displays when gaining keyboard focus to always have up-to-date information.
             // eg. this covers scenarios when changing resolution outside of the game, and then tabbing in.
-            switch (evtWindow.windowEvent)
+            switch (evtWindow.type)
             {
-                case SDL_WindowEventID.SDL_EVENT_WINDOW_RESTORED:
-                case SDL_WindowEventID.SDL_EVENT_WINDOW_FOCUS_GAINED:
-                case SDL_WindowEventID.SDL_EVENT_WINDOW_MINIMIZED:
-                case SDL_WindowEventID.SDL_EVENT_WINDOW_FOCUS_LOST:
-                case SDL_WindowEventID.SDL_EVENT_WINDOW_SHOWN:
-                case SDL_WindowEventID.SDL_EVENT_WINDOW_HIDDEN:
+                case SDL_EventType.SDL_EVENT_WINDOW_RESTORED:
+                case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_GAINED:
+                case SDL_EventType.SDL_EVENT_WINDOW_MINIMIZED:
+                case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST:
+                case SDL_EventType.SDL_EVENT_WINDOW_SHOWN:
+                case SDL_EventType.SDL_EVENT_WINDOW_HIDDEN:
                     fetchDisplays();
                     break;
             }
