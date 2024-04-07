@@ -140,21 +140,22 @@ namespace osu.Framework.Platform
                 JoystickButtonUp?.Invoke(button);
         }
 
-        private Point previousPolledPoint = Point.Empty;
+        private PointF previousPolledPoint = PointF.Empty;
 
         private SDLButtonMask pressedButtons;
 
-        private void pollMouse()
+        private unsafe void pollMouse()
         {
-            SDLButtonMask globalButtons = (SDLButtonMask)SDL3.SDL_GetGlobalMouseState(out int x, out int y);
+            float x, y;
+            SDLButtonMask globalButtons = (SDLButtonMask)SDL3.SDL_GetGlobalMouseState(&x, &y);
 
             if (previousPolledPoint.X != x || previousPolledPoint.Y != y)
             {
-                previousPolledPoint = new Point(x, y);
+                previousPolledPoint = new PointF(x, y);
 
                 var pos = WindowMode.Value == Configuration.WindowMode.Windowed ? Position : windowDisplayBounds.Location;
-                int rx = x - pos.X;
-                int ry = y - pos.Y;
+                float rx = x - pos.X;
+                float ry = y - pos.Y;
 
                 MouseMove?.Invoke(new Vector2(rx * Scale, ry * Scale));
             }
