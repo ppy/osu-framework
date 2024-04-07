@@ -300,7 +300,7 @@ namespace osu.Framework.Platform
 
         private void handleControllerButtonEvent(SDL_GamepadButtonEvent evtCbutton)
         {
-            var button = ((SDL_GamepadButton)evtCbutton.button).ToJoystickButton();
+            var button = evtCbutton.Button.ToJoystickButton();
 
             switch (evtCbutton.type)
             {
@@ -315,7 +315,7 @@ namespace osu.Framework.Platform
         }
 
         private void handleControllerAxisEvent(SDL_GamepadAxisEvent evtCaxis) =>
-            enqueueJoystickAxisInput(((SDL_GamepadAxis)evtCaxis.axis).ToJoystickAxisSource(), evtCaxis.axis);
+            enqueueJoystickAxisInput(evtCaxis.Axis.ToJoystickAxisSource(), evtCaxis.axis);
 
         private unsafe void addJoystick(SDL_JoystickID instanceID)
         {
