@@ -859,48 +859,37 @@ namespace osu.Framework.Platform
         {
             SDL3.SDL_ClearError(); // clear any stale error.
 
+            if (!tryGetDisplayAtIndex(display.Index, out var displayID))
+                throw new ArgumentException($"Requested display index ({display}) is invalid.", nameof(display));
+
             // default size means to use the display's native size.
             if (size.Width == 9999 && size.Height == 9999)
                 size = display.Bounds.Size;
 
-            var targetMode = new SDL_DisplayMode { w = size.Width, h = size.Height, refresh_rate = requestedMode.RefreshRate };
-
-            if (SDL3.SDL_GetClosestFullscreenDisplayMode(display.Index, ref targetMode, out var mode) != IntPtr.Zero)
-                return mode;
+            var mode = SDL3.SDL_GetClosestFullscreenDisplayMode(displayID, size.Width, size.Height, requestedMode.RefreshRate, SDL_bool.SDL_TRUE);
+            if (mode != null)
+                return *mode;
             else
-                Logger.Log($"Unable to get preferred display mode (try #1/2). Target display: {display.Index}, mode: {targetMode.ReadableString()}. SDL error: {SDL2Extensions.GetAndClearError()}");
+                Logger.Log($"Unable to get preferred display mode (try #1/2). Target display: {display.Index}, mode: {size.Width}x{size.Height}@{requestedMode.RefreshRate}. SDL error: {SDL2Extensions.GetAndClearError()}");
 
             // fallback to current display's native bounds
-            targetMode.w = display.Bounds.Width;
-            targetMode.h = display.Bounds.Height;
-            targetMode.refresh_rate = 0;
-
-            if (SDL3.SDL_GetClosestFullscreenDisplayMode(display.Index, ref targetMode, out mode) != IntPtr.Zero)
-                return mode;
+            mode = SDL3.SDL_GetClosestFullscreenDisplayMode(displayID, display.Bounds.Width, display.Bounds.Height, 0f, SDL_bool.SDL_TRUE);
+            if (mode != null)
+                return *mode;
             else
-                Logger.Log($"Unable to get preferred display mode (try #2/2). Target display: {display.Index}, mode: {targetMode.ReadableString()}. SDL error: {SDL2Extensions.GetAndClearError()}");
+                Logger.Log($"Unable to get preferred display mode (try #2/2). Target display: {display.Index}, mode: {display.Bounds.Width}x{display.Bounds.Height}@default. SDL error: {SDL2Extensions.GetAndClearError()}");
 
             // try the display's native display mode.
-            if (SDL3.SDL_GetDesktopDisplayMode(display.Index, out mode) == 0)
-                return mode;
+            mode = SDL3.SDL_GetDesktopDisplayMode(displayID);
+            if (mode != null)
+                return *mode;
             else
-                Logger.Log($"Failed to get desktop display mode (try #1/3). Target display: {display.Index}. SDL error: {SDL2Extensions.GetAndClearError()}", level: LogLevel.Error);
-
-            // try the primary display mode.
-            if (SDL_GetDisplayMode(display.Index, 0, out mode) == 0)
-                return mode;
-            else
-                Logger.Log($"Failed to get desktop display mode (try #2/3). Target display: {display.Index}. SDL error: {SDL2Extensions.GetAndClearError()}", level: LogLevel.Error);
-
-            // try the primary display's primary display mode.
-            if (SDL_GetDisplayMode(0, 0, out mode) == 0)
-                return mode;
-            else
-                Logger.Log($"Failed to get desktop display mode (try #3/3). Target display: primary. SDL error: {SDL2Extensions.GetAndClearError()}", level: LogLevel.Error);
+                Logger.Log($"Failed to get desktop display mode (try #1/1). Target display: {display.Index}. SDL error: {SDL2Extensions.GetAndClearError()}", level: LogLevel.Error);
 
             // finally return the current mode if everything else fails.
-            if (SDL3.SDL_GetWindowFullscreenMode(windowHandle, out mode) >= 0)
-                return mode;
+            mode = SDL3.SDL_GetWindowFullscreenMode(windowHandle);
+            if (mode != null)
+                return *mode;
             else
                 Logger.Log($"Failed to get window display mode. SDL error: {SDL2Extensions.GetAndClearError()}", level: LogLevel.Error);
 
