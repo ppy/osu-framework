@@ -101,7 +101,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Updates OS cursor confinement based on the current <see cref="CursorState"/>, <see cref="CursorConfineRect"/> and <see cref="RelativeMouseMode"/>.
         /// </summary>
-        private void updateCursorConfinement()
+        private unsafe void updateCursorConfinement()
         {
             bool confined = CursorState.HasFlagFast(CursorState.Confined);
 
@@ -307,7 +307,7 @@ namespace osu.Framework.Platform
         private void handleControllerAxisEvent(SDL_GamepadAxisEvent evtCaxis) =>
             enqueueJoystickAxisInput(((SDL_GamepadAxis)evtCaxis.axis).ToJoystickAxisSource(), evtCaxis.axisValue);
 
-        private void addJoystick(int which)
+        private unsafe void addJoystick(int which)
         {
             int instanceID = SDL_JoystickGetDeviceInstanceID(which);
 
@@ -315,9 +315,9 @@ namespace osu.Framework.Platform
             if (controllers.ContainsKey(instanceID))
                 return;
 
-            IntPtr joystick = SDL3.SDL_OpenJoystick(which);
+            SDL_Joystick* joystick = SDL3.SDL_OpenJoystick(which);
 
-            IntPtr controller = IntPtr.Zero;
+            SDL_Gamepad* controller = null;
             if (SDL3.SDL_IsGamepad(which) == SDL_bool.SDL_TRUE)
                 controller = SDL3.SDL_OpenGamepad(which);
 
@@ -529,7 +529,7 @@ namespace osu.Framework.Platform
         /// Update the host window manager's cursor position based on a location relative to window coordinates.
         /// </summary>
         /// <param name="mousePosition">A position inside the window.</param>
-        public void UpdateMousePosition(Vector2 mousePosition) => ScheduleCommand(() => SDL3.SDL_WarpMouseInWindow(SDLWindowHandle, (int)(mousePosition.X / Scale), (int)(mousePosition.Y / Scale)));
+        public unsafe void UpdateMousePosition(Vector2 mousePosition) => ScheduleCommand(() => SDL3.SDL_WarpMouseInWindow(SDLWindowHandle, (int)(mousePosition.X / Scale), (int)(mousePosition.Y / Scale)));
 
         private void updateConfineMode()
         {

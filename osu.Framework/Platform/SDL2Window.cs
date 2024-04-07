@@ -24,9 +24,9 @@ namespace osu.Framework.Platform
     /// <summary>
     /// Default implementation of a window, using SDL for windowing and graphics support.
     /// </summary>
-    internal abstract partial class SDL2Window : IWindow
+    internal abstract unsafe partial class SDL2Window : IWindow
     {
-        internal IntPtr SDLWindowHandle { get; private set; } = IntPtr.Zero;
+        internal SDL_Window* SDLWindowHandle { get; private set; } = null;
 
         private readonly SDL2GraphicsSurface graphicsSurface;
         IGraphicsSurface IWindow.GraphicsSurface => graphicsSurface;
@@ -80,7 +80,7 @@ namespace osu.Framework.Platform
         {
             get
             {
-                if (SDLWindowHandle == IntPtr.Zero)
+                if (SDLWindowHandle == null)
                     return false;
 
                 return GetWindowSystemInformation().subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND;
@@ -94,7 +94,7 @@ namespace osu.Framework.Platform
         {
             get
             {
-                if (SDLWindowHandle == IntPtr.Zero)
+                if (SDLWindowHandle == null)
                     return IntPtr.Zero;
 
                 var wmInfo = GetWindowSystemInformation();
@@ -134,7 +134,7 @@ namespace osu.Framework.Platform
         {
             get
             {
-                if (SDLWindowHandle == IntPtr.Zero)
+                if (SDLWindowHandle == null)
                     return IntPtr.Zero;
 
                 var wmInfo = GetWindowSystemInformation();
@@ -155,7 +155,7 @@ namespace osu.Framework.Platform
 
         internal SDL_SysWMinfo GetWindowSystemInformation()
         {
-            if (SDLWindowHandle == IntPtr.Zero)
+            if (SDLWindowHandle == null)
                 return default;
 
             var wmInfo = new SDL_SysWMinfo();
@@ -242,7 +242,7 @@ namespace osu.Framework.Platform
 
             SDLWindowHandle = SDL3.SDL_CreateWindow(title, Position.X, Position.Y, Size.Width, Size.Height, flags);
 
-            if (SDLWindowHandle == IntPtr.Zero)
+            if (SDLWindowHandle == null)
                 throw new InvalidOperationException($"Failed to create SDL window. SDL Error: {SDL3.SDL_GetError()}");
 
             graphicsSurface.Initialise();
@@ -389,10 +389,10 @@ namespace osu.Framework.Platform
             }
             else
             {
-                if (SDLWindowHandle != IntPtr.Zero)
+                if (SDLWindowHandle != null)
                 {
                     SDL3.SDL_DestroyWindow(SDLWindowHandle);
-                    SDLWindowHandle = IntPtr.Zero;
+                    SDLWindowHandle = null;
                 }
             }
         }
@@ -451,7 +451,7 @@ namespace osu.Framework.Platform
             {
                 var pixelSpan = pixelMemory.Span;
 
-                IntPtr surface;
+                SDL_Surface* surface;
                 fixed (Rgba32* ptr = pixelSpan)
                     surface = SDL_CreateRGBSurfaceFrom(new IntPtr(ptr), imageSize.Width, imageSize.Height, 32, imageSize.Width * 4, 0xff, 0xff00, 0xff0000, 0xff000000);
 

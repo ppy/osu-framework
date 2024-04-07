@@ -34,7 +34,7 @@ namespace osu.Framework.iOS
         {
         }
 
-        protected override void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
+        protected override unsafe void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
         {
             // This sets the status bar to hidden.
             SDL3.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
@@ -50,7 +50,7 @@ namespace osu.Framework.iOS
             updateSafeArea();
         }
 
-        protected override void RunMainLoop()
+        protected override unsafe void RunMainLoop()
         {
             // Delegate running the main loop to CADisplayLink.
             //

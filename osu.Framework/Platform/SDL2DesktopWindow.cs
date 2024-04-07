@@ -12,7 +12,7 @@ namespace osu.Framework.Platform
         {
         }
 
-        protected override void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
+        protected override unsafe void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
         {
             // this reset is required even on changing from one fullscreen resolution to another.
             // if it is not included, the GL context will not get the correct size.

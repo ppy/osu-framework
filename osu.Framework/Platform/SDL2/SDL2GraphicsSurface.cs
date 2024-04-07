@@ -13,7 +13,7 @@ using SDL;
 
 namespace osu.Framework.Platform.SDL2
 {
-    internal class SDL2GraphicsSurface : IGraphicsSurface, IOpenGLGraphicsSurface, IMetalGraphicsSurface, ILinuxGraphicsSurface
+    internal unsafe class SDL2GraphicsSurface : IGraphicsSurface, IOpenGLGraphicsSurface, IMetalGraphicsSurface, ILinuxGraphicsSurface
     {
         private readonly SDL2Window window;
 
@@ -151,7 +151,7 @@ namespace osu.Framework.Platform.SDL2
         {
             get
             {
-                if (window.SDLWindowHandle == IntPtr.Zero)
+                if (window.SDLWindowHandle == null)
                     return null;
 
                 var wmInfo = window.GetWindowSystemInformation();

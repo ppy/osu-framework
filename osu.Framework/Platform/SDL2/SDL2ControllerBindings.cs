@@ -15,8 +15,8 @@ namespace osu.Framework.Platform.SDL2
     /// </summary>
     internal class SDL2ControllerBindings
     {
-        public readonly IntPtr JoystickHandle;
-        public readonly IntPtr ControllerHandle;
+        public readonly unsafe SDL_Joystick* JoystickHandle;
+        public readonly unsafe SDL_Gamepad* ControllerHandle;
 
         /// <summary>
         /// Bindings returned from <see cref="SDL_GameControllerGetBindForButton"/>, indexed by <see cref="SDL_GamepadButton"/>.
@@ -30,7 +30,7 @@ namespace osu.Framework.Platform.SDL2
         /// </summary>
         public SDL_GameControllerButtonBind[] AxisBindings;
 
-        public SDL2ControllerBindings(IntPtr joystickHandle, IntPtr controllerHandle)
+        public unsafe SDL2ControllerBindings(SDL_Joystick* joystickHandle, SDL_Gamepad* controllerHandle)
         {
             JoystickHandle = joystickHandle;
             ControllerHandle = controllerHandle;
@@ -38,9 +38,9 @@ namespace osu.Framework.Platform.SDL2
             PopulateBindings();
         }
 
-        public void PopulateBindings()
+        public unsafe void PopulateBindings()
         {
-            if (ControllerHandle == IntPtr.Zero)
+            if (ControllerHandle == null)
             {
                 ButtonBindings = Array.Empty<SDL_GameControllerButtonBind>();
                 AxisBindings = Array.Empty<SDL_GameControllerButtonBind>();

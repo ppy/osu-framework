@@ -19,7 +19,7 @@ namespace osu.Framework.Platform
 {
     internal partial class SDL2Window
     {
-        private void setupWindowing(FrameworkConfigManager config)
+        private unsafe void setupWindowing(FrameworkConfigManager config)
         {
             config.BindWith(FrameworkSetting.MinimiseOnFocusLossInFullscreen, minimiseOnFocusLoss);
             minimiseOnFocusLoss.BindValueChanged(e =>
@@ -155,7 +155,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Returns or sets the window's position in screen space. Only valid when in <see cref="osu.Framework.Configuration.WindowMode.Windowed"/>
         /// </summary>
-        public Point Position
+        public unsafe Point Position
         {
             get => position;
             set
@@ -170,7 +170,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Returns or sets whether the window is resizable or not. Only valid when in <see cref="osu.Framework.Platform.WindowState.Normal"/>.
         /// </summary>
-        public bool Resizable
+        public unsafe bool Resizable
         {
             get => resizable;
             set
@@ -232,7 +232,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Enables or disables the window visibility.
         /// </summary>
-        public bool Visible
+        public unsafe bool Visible
         {
             get => visible;
             set
@@ -441,7 +441,7 @@ namespace osu.Framework.Platform
         /// Updates <see cref="Size"/> and <see cref="Scale"/> according to SDL state.
         /// </summary>
         /// <returns>Whether the window size has been changed after updating.</returns>
-        private void fetchWindowSize()
+        private unsafe void fetchWindowSize()
         {
             SDL3.SDL_GetWindowSize(SDLWindowHandle, out int w, out int h);
 
@@ -460,7 +460,7 @@ namespace osu.Framework.Platform
 
         #region SDL Event Handling
 
-        private void handleWindowEvent(SDL_WindowEvent evtWindow)
+        private unsafe void handleWindowEvent(SDL_WindowEvent evtWindow)
         {
             updateAndFetchWindowSpecifics();
 
@@ -542,10 +542,10 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Should be run on a regular basis to check for external window state changes.
         /// </summary>
-        private void updateAndFetchWindowSpecifics()
+        private unsafe void updateAndFetchWindowSpecifics()
         {
             // don't attempt to run before the window is initialised, as Create() will do so anyway.
-            if (SDLWindowHandle == IntPtr.Zero)
+            if (SDLWindowHandle == null)
                 return;
 
             var stateBefore = windowState;
@@ -599,7 +599,7 @@ namespace osu.Framework.Platform
         /// <remarks>
         /// Call sites need to set <see cref="updatingWindowStateAndSize"/> appropriately.
         /// </remarks>
-        protected virtual void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
+        protected virtual unsafe void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
         {
             switch (state)
             {
@@ -643,7 +643,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private static bool tryFetchDisplayMode(IntPtr windowHandle, WindowState windowState, Display display, out DisplayMode displayMode)
+        private static unsafe bool tryFetchDisplayMode(SDL_Window* windowHandle, WindowState windowState, Display display, out DisplayMode displayMode)
         {
             // TODO: displayIndex should be valid here at all times.
             // on startup, the displayIndex will be invalid (-1) due to it being set later in the startup sequence.
@@ -703,7 +703,7 @@ namespace osu.Framework.Platform
         /// Ensures that the window is located on the provided <see cref="Display"/>.
         /// </summary>
         /// <param name="display">The <see cref="Display"/> to center the window on.</param>
-        private void ensureWindowOnDisplay(Display display)
+        private unsafe void ensureWindowOnDisplay(Display display)
         {
             if (display.Index == SDL3.SDL_GetDisplayForWindow(SDLWindowHandle))
                 return;
@@ -775,7 +775,7 @@ namespace osu.Framework.Platform
         /// <returns>
         /// The size of the borderless window's draw area.
         /// </returns>
-        protected virtual Size SetBorderless(Display display)
+        protected virtual unsafe Size SetBorderless(Display display)
         {
             ensureWindowOnDisplay(display);
 
@@ -814,7 +814,7 @@ namespace osu.Framework.Platform
 
         #region Helper functions
 
-        private static SDL_DisplayMode getClosestDisplayMode(IntPtr windowHandle, Size size, Display display, DisplayMode requestedMode)
+        private static unsafe SDL_DisplayMode getClosestDisplayMode(SDL_Window* windowHandle, Size size, Display display, DisplayMode requestedMode)
         {
             SDL3.SDL_ClearError(); // clear any stale error.
 

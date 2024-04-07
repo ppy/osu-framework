@@ -270,7 +270,7 @@ namespace osu.Framework.Platform.Windows
         /// <remarks>Used on <see cref="GraphicsSurfaceType.OpenGL"/> and <see cref="GraphicsSurfaceType.Vulkan"/>.</remarks>
         private const int windows_borderless_width_hack = 1;
 
-        protected override Size SetBorderless(Display display)
+        protected override unsafe Size SetBorderless(Display display)
         {
             SDL3.SDL_SetWindowBordered(SDLWindowHandle, SDL_bool.SDL_FALSE);
 
