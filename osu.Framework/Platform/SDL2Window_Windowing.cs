@@ -593,9 +593,34 @@ namespace osu.Framework.Platform
             if (displayID != newDisplayID)
             {
                 displayID = newDisplayID;
-                currentDisplay = Displays.ElementAtOrDefault(displayID) ?? PrimaryDisplay;
+
+                if (tryGetDisplayIndex(newDisplayID, out int index) && tryGetDisplayFromSDL(index, newDisplayID, out var display))
+                    currentDisplay = display;
+                else
+                    currentDisplay = PrimaryDisplay;
+
                 CurrentDisplayBindable.Value = currentDisplay;
             }
+        }
+
+        private static bool tryGetDisplayIndex(SDL_DisplayID id, out int index)
+        {
+            using var displays = SDL3.SDL_GetDisplays();
+
+            if (displays == null)
+                throw new InvalidOperationException($"Failed to get SDL displays. SDL error: {SDL3.SDL_GetError()}");
+
+            for (int i = 0; i < displays.Count; i++)
+            {
+                if (displays[i] == id)
+                {
+                    index = i;
+                    return true;
+                }
+            }
+
+            index = default;
+            return false;
         }
 
         /// <summary>
