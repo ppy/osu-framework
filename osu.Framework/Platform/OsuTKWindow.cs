@@ -137,7 +137,7 @@ namespace osu.Framework.Platform
             get
             {
                 var display = CurrentDisplayDevice;
-                return new Bindable<DisplayMode>(new DisplayMode(null, new Size(display.Width, display.Height), display.BitsPerPixel, (int)Math.Round(display.RefreshRate), 0));
+                return new Bindable<DisplayMode>(new DisplayMode(null, new Size(display.Width, display.Height), display.BitsPerPixel, display.RefreshRate, 0));
             }
         }
 

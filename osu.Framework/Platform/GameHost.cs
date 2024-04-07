@@ -1323,7 +1323,7 @@ namespace osu.Framework.Platform
             if (Window == null)
                 return;
 
-            int refreshRate = Window.CurrentDisplayMode.Value.RefreshRate;
+            int refreshRate = (int)MathF.Round(Window.CurrentDisplayMode.Value.RefreshRate);
 
             // For invalid refresh rates let's assume 60 Hz as it is most common.
             if (refreshRate <= 0)
