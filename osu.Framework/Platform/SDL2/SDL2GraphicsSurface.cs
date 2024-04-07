@@ -156,13 +156,14 @@ namespace osu.Framework.Platform.SDL2
                 if (window.SDLWindowHandle == null)
                     return null;
 
-                var wmInfo = window.GetWindowSystemInformation();
-
-                switch (wmInfo.subsystem)
-                {
-                    case SDL_SYSWM_TYPE.SDL_SYSWM_UIKIT:
-                        return (int)wmInfo.info.uikit.framebuffer;
-                }
+                // TODO: Migrate to SDL3 when https://github.com/libsdl-org/SDL/issues/9430 is resolved
+                // var wmInfo = window.GetWindowSystemInformation();
+                //
+                // switch (wmInfo.subsystem)
+                // {
+                //     case SDL_SYSWM_TYPE.SDL_SYSWM_UIKIT:
+                //         return (int)wmInfo.info.uikit.framebuffer;
+                // }
 
                 return null;
             }
