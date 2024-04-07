@@ -228,7 +228,7 @@ namespace osu.Framework.Platform
             // so we deactivate it on startup.
             SDL3.SDL_StopTextInput();
 
-            SDLWindowHandle = SDL3.SDL_CreateWindow(Encoding.UTF8.GetBytes(title), Position.X, Position.Y, Size.Width, Size.Height, flags);
+            SDLWindowHandle = SDL3.SDL_CreateWindow(Encoding.UTF8.GetBytes(title), Size.Width, Size.Height, flags);
 
             if (SDLWindowHandle == null)
                 throw new InvalidOperationException($"Failed to create SDL window. SDL Error: {SDL3.SDL_GetError()}");
@@ -440,8 +440,12 @@ namespace osu.Framework.Platform
                 var pixelSpan = pixelMemory.Span;
 
                 SDL_Surface* surface;
+
                 fixed (Rgba32* ptr = pixelSpan)
-                    surface = SDL_CreateRGBSurfaceFrom(new IntPtr(ptr), imageSize.Width, imageSize.Height, 32, imageSize.Width * 4, 0xff, 0xff00, 0xff0000, 0xff000000);
+                {
+                    var pixelFormat = SDL3.SDL_GetPixelFormatEnumForMasks(32, 0xff, 0xff00, 0xff0000, 0xff000000);
+                    surface = SDL3.SDL_CreateSurfaceFrom(new IntPtr(ptr), imageSize.Width, imageSize.Height, imageSize.Width * 4, pixelFormat);
+                }
 
                 SDL3.SDL_SetWindowIcon(SDLWindowHandle, surface);
                 SDL3.SDL_DestroySurface(surface);

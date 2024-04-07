@@ -96,7 +96,13 @@ namespace osu.Framework.Platform
         private readonly Dictionary<int, SDL2ControllerBindings> controllers = new Dictionary<int, SDL2ControllerBindings>();
 
         private void updateCursorVisibility(bool cursorVisible) =>
-            ScheduleCommand(() => SDL3.SDL_ShowCursor(cursorVisible ? SDL_ENABLE : SDL_DISABLE));
+            ScheduleCommand(() =>
+            {
+                if (cursorVisible)
+                    SDL3.SDL_ShowCursor();
+                else
+                    SDL3.SDL_HideCursor();
+            });
 
         /// <summary>
         /// Updates OS cursor confinement based on the current <see cref="CursorState"/>, <see cref="CursorConfineRect"/> and <see cref="RelativeMouseMode"/>.
@@ -105,18 +111,21 @@ namespace osu.Framework.Platform
         {
             bool confined = CursorState.HasFlagFast(CursorState.Confined);
 
-            ScheduleCommand(() => SDL_SetWindowGrab(SDLWindowHandle, confined ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE));
+            ScheduleCommand(() => SDL3.SDL_SetWindowMouseGrab(SDLWindowHandle, confined ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE));
 
             // Don't use SDL_SetWindowMouseRect when relative mode is enabled, as relative mode already confines the OS cursor to the window.
             // This is fine for our use case, as UserInputManager will clamp the mouse position.
             if (CursorConfineRect != null && confined && !RelativeMouseMode)
             {
-                var rect = ((RectangleI)(CursorConfineRect / Scale)).ToSDLRect();
-                ScheduleCommand(() => SDL3.SDL_SetWindowMouseRect(SDLWindowHandle, ref rect));
+                ScheduleCommand(() =>
+                {
+                    var rect = ((RectangleI)(CursorConfineRect / Scale)).ToSDLRect();
+                    SDL3.SDL_SetWindowMouseRect(SDLWindowHandle, &rect);
+                });
             }
             else
             {
-                ScheduleCommand(() => SDL3.SDL_SetWindowMouseRect(SDLWindowHandle, IntPtr.Zero));
+                ScheduleCommand(() => SDL3.SDL_SetWindowMouseRect(SDLWindowHandle, null));
             }
         }
 
@@ -188,10 +197,10 @@ namespace osu.Framework.Platform
             SDL3.SDL_StartTextInput();
         });
 
-        public void SetTextInputRect(RectangleF rect) => ScheduleCommand(() =>
+        public unsafe void SetTextInputRect(RectangleF rect) => ScheduleCommand(() =>
         {
             var sdlRect = ((RectangleI)(rect / Scale)).ToSDLRect();
-            SDL3.SDL_SetTextInputRect(ref sdlRect);
+            SDL3.SDL_SetTextInputRect(&sdlRect);
         });
 
         #region SDL Event Handling

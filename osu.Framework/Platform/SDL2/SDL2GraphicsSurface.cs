@@ -59,7 +59,8 @@ namespace osu.Framework.Platform.SDL2
 
         public Size GetDrawableSize()
         {
-            SDL3.SDL_GetWindowSizeInPixels(window.SDLWindowHandle, out int width, out int height);
+            int width, height;
+            SDL3.SDL_GetWindowSizeInPixels(window.SDLWindowHandle, &width, &height);
             return new Size(width, height);
         }
 
@@ -178,7 +179,9 @@ namespace osu.Framework.Platform.SDL2
                 if (verticalSync != null)
                     return verticalSync.Value;
 
-                return (verticalSync = SDL3.SDL_GL_GetSwapInterval() != 0).Value;
+                int interval;
+                SDL3.SDL_GL_GetSwapInterval(&interval);
+                return (verticalSync = interval != 0).Value;
             }
             set
             {

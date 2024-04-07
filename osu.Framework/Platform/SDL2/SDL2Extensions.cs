@@ -1034,9 +1034,11 @@ namespace osu.Framework.Platform.SDL2
             return true;
         }
 
-        public static DisplayMode ToDisplayMode(this SDL_DisplayMode mode, int displayIndex)
+        public static unsafe DisplayMode ToDisplayMode(this SDL_DisplayMode mode, int displayIndex)
         {
-            SDL3.SDL_GetMasksForPixelFormatEnum(mode.format, out int bpp, out _, out _, out _, out _);
+            int bpp;
+            uint unused;
+            SDL3.SDL_GetMasksForPixelFormatEnum(mode.format, &bpp, &unused, &unused, &unused, &unused);
             return new DisplayMode(SDL3.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, displayIndex);
         }
 

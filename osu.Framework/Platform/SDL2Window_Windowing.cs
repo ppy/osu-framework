@@ -443,7 +443,8 @@ namespace osu.Framework.Platform
         /// <returns>Whether the window size has been changed after updating.</returns>
         private unsafe void fetchWindowSize()
         {
-            SDL3.SDL_GetWindowSize(SDLWindowHandle, out int w, out int h);
+            int w, h;
+            SDL3.SDL_GetWindowSize(SDLWindowHandle, &w, &h);
 
             int drawableW = graphicsSurface.GetDrawableSize().Width;
 
@@ -468,7 +469,8 @@ namespace osu.Framework.Platform
             {
                 case SDL_EventType.SDL_EVENT_WINDOW_MOVED:
                     // explicitly requery as there are occasions where what SDL has provided us with is not up-to-date.
-                    SDL3.SDL_GetWindowPosition(SDLWindowHandle, out int x, out int y);
+                    int x, y;
+                    SDL3.SDL_GetWindowPosition(SDLWindowHandle, &x, &y);
                     var newPosition = new Point(x, y);
 
                     if (!newPosition.Equals(Position))
@@ -620,7 +622,7 @@ namespace osu.Framework.Platform
 
                     ensureWindowOnDisplay(display);
 
-                    SDL3.SDL_SetWindowFullscreenMode(SDLWindowHandle, ref closestMode);
+                    SDL3.SDL_SetWindowFullscreenMode(SDLWindowHandle, &closestMode);
                     SDL3.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
                     break;
 
