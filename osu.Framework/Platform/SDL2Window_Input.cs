@@ -218,9 +218,9 @@ namespace osu.Framework.Platform
             }
         }
 
-        private readonly long?[] activeTouches = new long?[TouchState.MAX_TOUCH_COUNT];
+        private readonly SDL_FingerID?[] activeTouches = new SDL_FingerID?[TouchState.MAX_TOUCH_COUNT];
 
-        private TouchSource? getTouchSource(long fingerId)
+        private TouchSource? getTouchSource(SDL_FingerID fingerId)
         {
             for (int i = 0; i < activeTouches.Length; i++)
             {
@@ -231,7 +231,7 @@ namespace osu.Framework.Platform
             return null;
         }
 
-        private TouchSource? assignNextAvailableTouchSource(long fingerId)
+        private TouchSource? assignNextAvailableTouchSource(SDL_FingerID fingerId)
         {
             for (int i = 0; i < activeTouches.Length; i++)
             {
@@ -247,12 +247,12 @@ namespace osu.Framework.Platform
 
         protected virtual void HandleTouchFingerEvent(SDL_TouchFingerEvent evtTfinger)
         {
-            var existingSource = getTouchSource(evtTfinger.fingerId);
+            var existingSource = getTouchSource(evtTfinger.fingerID);
 
             if (evtTfinger.type == SDL_EventType.SDL_EVENT_FINGER_DOWN)
             {
                 Debug.Assert(existingSource == null);
-                existingSource = assignNextAvailableTouchSource(evtTfinger.fingerId);
+                existingSource = assignNextAvailableTouchSource(evtTfinger.fingerID);
             }
 
             if (existingSource == null)
