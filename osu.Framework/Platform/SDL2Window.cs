@@ -217,7 +217,7 @@ namespace osu.Framework.Platform
             flags |= WindowState.ToFlags();
             flags |= graphicsSurface.Type.ToFlags();
 
-            SDL3.SDL_SetHint(SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1"u8);
+            SDL3.SDL_SetHint(SDL3.SDL_HINT_WINDOWS_CLOSE_ON_ALT_F4, "0"u8);
             SDL3.SDL_SetHint(SDL3.SDL_HINT_IME_SHOW_UI, "1"u8);
             SDL3.SDL_SetHint(SDL3.SDL_HINT_MOUSE_RELATIVE_MODE_CENTER, "0"u8);
             SDL3.SDL_SetHint(SDL3.SDL_HINT_TOUCH_MOUSE_EVENTS, "0"u8); // disable touch events generating synthetic mouse events on desktop platforms
