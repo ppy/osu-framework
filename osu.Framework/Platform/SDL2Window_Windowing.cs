@@ -146,7 +146,10 @@ namespace osu.Framework.Platform
                 if (RuntimeInfo.IsMobile)
                     return new[] { Configuration.WindowMode.Fullscreen };
 
-                return Enum.GetValues<WindowMode>();
+                if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows)
+                    return Enum.GetValues<WindowMode>();
+
+                return new[] { Configuration.WindowMode.Windowed, Configuration.WindowMode.Fullscreen };
             }
         }
 
@@ -623,7 +626,7 @@ namespace osu.Framework.Platform
                     ensureWindowOnDisplay(display);
 
                     SDL3.SDL_SetWindowFullscreenMode(SDLWindowHandle, &closestMode);
-                    SDL3.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
+                    SDL3.SDL_SetWindowFullscreen(SDLWindowHandle, SDL_bool.SDL_TRUE);
                     break;
 
                 case WindowState.FullscreenBorderless:
@@ -777,15 +780,7 @@ namespace osu.Framework.Platform
         /// <returns>
         /// The size of the borderless window's draw area.
         /// </returns>
-        protected virtual unsafe Size SetBorderless(Display display)
-        {
-            ensureWindowOnDisplay(display);
-
-            // this is a generally sane method of handling borderless, and works well on macOS and linux.
-            SDL3.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
-
-            return display.Bounds.Size;
-        }
+        protected virtual Size SetBorderless(Display display) => throw new PlatformNotSupportedException();
 
         #endregion
 

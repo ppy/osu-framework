@@ -18,7 +18,7 @@ namespace osu.Framework.Platform
             // if it is not included, the GL context will not get the correct size.
             // this is mentioned by multiple sources as an SDL issue, which seems to resolve by similar means (see https://discourse.libsdl.org/t/sdl-setwindowsize-does-not-work-in-fullscreen/20711/4).
             SDL3.SDL_SetWindowBordered(SDLWindowHandle, SDL_bool.SDL_TRUE);
-            SDL3.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL_bool.SDL_FALSE);
+            SDL3.SDL_SetWindowFullscreen(SDLWindowHandle, SDL_bool.SDL_FALSE);
             SDL3.SDL_RestoreWindow(SDLWindowHandle);
 
             base.UpdateWindowStateAndSize(state, display, displayMode);

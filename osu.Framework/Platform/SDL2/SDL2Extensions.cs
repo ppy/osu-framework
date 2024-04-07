@@ -864,8 +864,7 @@ namespace osu.Framework.Platform.SDL2
 
         public static WindowState ToWindowState(this SDL_WindowFlags windowFlags)
         {
-            if (windowFlags.HasFlagFast(SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP) ||
-                windowFlags.HasFlagFast(SDL_WindowFlags.SDL_WINDOW_BORDERLESS))
+            if (windowFlags.HasFlagFast(SDL_WindowFlags.SDL_WINDOW_BORDERLESS))
                 return WindowState.FullscreenBorderless;
 
             if (windowFlags.HasFlagFast(SDL_WindowFlags.SDL_WINDOW_MINIMIZED))
@@ -897,7 +896,7 @@ namespace osu.Framework.Platform.SDL2
                     return SDL_WindowFlags.SDL_WINDOW_MINIMIZED;
 
                 case WindowState.FullscreenBorderless:
-                    return SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP;
+                    return SDL_WindowFlags.SDL_WINDOW_BORDERLESS;
             }
 
             return 0;
