@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 using SDL;
@@ -139,7 +140,7 @@ namespace osu.Framework.Platform.SDL2
             // Prevent logging calls to SDL_GL_GetProcAddress() that fail on systems which don't have the requested symbol (typically macOS).
             SDL3.SDL_LogSetPriority(error_category, SDL_LogPriority.SDL_LOG_PRIORITY_INFO);
 
-            IntPtr ret = SDL3.SDL_GL_GetProcAddress(symbol);
+            IntPtr ret = SDL3.SDL_GL_GetProcAddress(Encoding.UTF8.GetBytes(symbol));
 
             // Reset the logging behaviour.
             SDL3.SDL_LogSetPriority(error_category, oldPriority);

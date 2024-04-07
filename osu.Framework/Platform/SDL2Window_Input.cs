@@ -67,7 +67,7 @@ namespace osu.Framework.Platform
         /// </remarks>
         internal bool MouseAutoCapture
         {
-            set => ScheduleCommand(() => SDL3.SDL_SetHint(SDL3.SDL_HINT_MOUSE_AUTO_CAPTURE, value ? "1" : "0"));
+            set => ScheduleCommand(() => SDL3.SDL_SetHint(SDL3.SDL_HINT_MOUSE_AUTO_CAPTURE, value ? "1"u8 : "0"u8));
         }
 
         /// <summary>

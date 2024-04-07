@@ -24,7 +24,7 @@ namespace osu.Framework.Platform
             config.BindWith(FrameworkSetting.MinimiseOnFocusLossInFullscreen, minimiseOnFocusLoss);
             minimiseOnFocusLoss.BindValueChanged(e =>
             {
-                ScheduleCommand(() => SDL3.SDL_SetHint(SDL3.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, e.NewValue ? "1" : "0"));
+                ScheduleCommand(() => SDL3.SDL_SetHint(SDL3.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, e.NewValue ? "1"u8 : "0"u8));
             }, true);
 
             fetchDisplays();
