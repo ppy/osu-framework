@@ -8,8 +8,9 @@ using ObjCRuntime;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Platform;
+using SDL;
 using UIKit;
-using static SDL2.SDL;
+using static SDL.SDL3;
 
 namespace osu.Framework.iOS
 {

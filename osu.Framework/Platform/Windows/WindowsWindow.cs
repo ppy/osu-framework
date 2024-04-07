@@ -10,7 +10,8 @@ using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
 using osuTK.Input;
-using static SDL2.SDL;
+using SDL;
+using static SDL.SDL3;
 using Icon = osu.Framework.Platform.Windows.Native.Icon;
 
 namespace osu.Framework.Platform.Windows

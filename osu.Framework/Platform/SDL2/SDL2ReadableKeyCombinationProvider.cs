@@ -4,7 +4,8 @@
 using System.Globalization;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
-using static SDL2.SDL;
+using SDL;
+using static SDL.SDL3;
 
 namespace osu.Framework.Platform.SDL2
 {

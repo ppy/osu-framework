@@ -9,7 +9,8 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
-using static SDL2.SDL;
+using SDL;
+using static SDL.SDL3;
 
 namespace osu.Framework.Platform.SDL2
 {

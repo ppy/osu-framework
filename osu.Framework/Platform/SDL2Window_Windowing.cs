@@ -13,7 +13,8 @@ using osu.Framework.Configuration;
 using osu.Framework.Logging;
 using osu.Framework.Platform.SDL2;
 using osuTK;
-using static SDL2.SDL;
+using SDL;
+using static SDL.SDL3;
 
 namespace osu.Framework.Platform
 {

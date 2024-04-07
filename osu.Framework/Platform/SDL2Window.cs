@@ -13,11 +13,12 @@ using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Logging;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Threading;
+using SDL;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Image = SixLabors.ImageSharp.Image;
 using Point = System.Drawing.Point;
-using static SDL2.SDL;
+using static SDL.SDL3;
 
 namespace osu.Framework.Platform
 {

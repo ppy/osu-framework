@@ -6,7 +6,7 @@ using System.Linq;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
-using static SDL2.SDL;
+using static SDL.SDL3;
 
 namespace osu.Framework.Platform.Linux
 {

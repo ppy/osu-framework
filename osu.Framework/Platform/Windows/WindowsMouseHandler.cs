@@ -10,7 +10,7 @@ using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform.Windows.Native;
 using osu.Framework.Statistics;
 using osuTK;
-using static SDL2.SDL;
+using static SDL.SDL3;
 
 namespace osu.Framework.Platform.Windows
 {

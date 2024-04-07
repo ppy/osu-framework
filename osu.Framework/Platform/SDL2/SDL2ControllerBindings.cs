@@ -5,7 +5,8 @@
 
 using System;
 using System.Linq;
-using static SDL2.SDL;
+using SDL;
+using static SDL.SDL3;
 
 namespace osu.Framework.Platform.SDL2
 {

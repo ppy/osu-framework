@@ -3,7 +3,8 @@
 
 using System;
 using System.Runtime.InteropServices;
-using static SDL2.SDL;
+using SDL;
+using static SDL.SDL3;
 
 // ReSharper disable MemberCanBePrivate.Global
 // (Some members not currently used)

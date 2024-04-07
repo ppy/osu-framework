@@ -9,7 +9,7 @@ using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
 using ObjCRuntime;
-using static SDL2.SDL;
+using static SDL.SDL3;
 
 namespace osu.Framework.iOS
 {
