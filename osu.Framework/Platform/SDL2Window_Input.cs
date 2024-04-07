@@ -163,13 +163,13 @@ namespace osu.Framework.Platform
             SDLButtonMask buttonsToRelease = pressedButtons & (globalButtons ^ pressedButtons);
 
             // the outer if just optimises for the common case that there are no buttons to release.
-            if (buttonsToRelease != SDLButtonMask.None)
+            if (buttonsToRelease != 0)
             {
-                if (buttonsToRelease.HasFlagFast(SDLButtonMask.Left)) MouseUp?.Invoke(MouseButton.Left);
-                if (buttonsToRelease.HasFlagFast(SDLButtonMask.Middle)) MouseUp?.Invoke(MouseButton.Middle);
-                if (buttonsToRelease.HasFlagFast(SDLButtonMask.Right)) MouseUp?.Invoke(MouseButton.Right);
-                if (buttonsToRelease.HasFlagFast(SDLButtonMask.X1)) MouseUp?.Invoke(MouseButton.Button1);
-                if (buttonsToRelease.HasFlagFast(SDLButtonMask.X2)) MouseUp?.Invoke(MouseButton.Button2);
+                if (buttonsToRelease.HasFlagFast(SDLButtonMask.SDL_BUTTON_LMASK)) MouseUp?.Invoke(MouseButton.Left);
+                if (buttonsToRelease.HasFlagFast(SDLButtonMask.SDL_BUTTON_MMASK)) MouseUp?.Invoke(MouseButton.Middle);
+                if (buttonsToRelease.HasFlagFast(SDLButtonMask.SDL_BUTTON_RMASK)) MouseUp?.Invoke(MouseButton.Right);
+                if (buttonsToRelease.HasFlagFast(SDLButtonMask.SDL_BUTTON_X1MASK)) MouseUp?.Invoke(MouseButton.Button1);
+                if (buttonsToRelease.HasFlagFast(SDLButtonMask.SDL_BUTTON_X2MASK)) MouseUp?.Invoke(MouseButton.Button2);
             }
         }
 
@@ -305,7 +305,7 @@ namespace osu.Framework.Platform
         }
 
         private void handleControllerAxisEvent(SDL_GamepadAxisEvent evtCaxis) =>
-            enqueueJoystickAxisInput(((SDL_GamepadAxis)evtCaxis.axis).ToJoystickAxisSource(), evtCaxis.axisValue);
+            enqueueJoystickAxisInput(((SDL_GamepadAxis)evtCaxis.axis).ToJoystickAxisSource(), evtCaxis.axis);
 
         private unsafe void addJoystick(int which)
         {
@@ -393,26 +393,26 @@ namespace osu.Framework.Platform
             enqueueJoystickAxisInput(JoystickAxisSource.Axis1 + evtJaxis.axis, evtJaxis.axisValue);
         }
 
-        private uint lastPreciseScroll;
+        private ulong lastPreciseScroll;
         private const uint precise_scroll_debounce = 100;
 
         private void handleMouseWheelEvent(SDL_MouseWheelEvent evtWheel)
         {
             bool isPrecise(float f) => f % 1 != 0;
 
-            if (isPrecise(evtWheel.preciseX) || isPrecise(evtWheel.preciseY))
+            if (isPrecise(evtWheel.x) || isPrecise(evtWheel.y))
                 lastPreciseScroll = evtWheel.timestamp;
 
             bool precise = evtWheel.timestamp < lastPreciseScroll + precise_scroll_debounce;
 
             // SDL reports horizontal scroll opposite of what framework expects (in non-"natural" mode, scrolling to the right gives positive deltas while we want negative).
-            TriggerMouseWheel(new Vector2(-evtWheel.preciseX, evtWheel.preciseY), precise);
+            TriggerMouseWheel(new Vector2(-evtWheel.x, evtWheel.y), precise);
         }
 
         private void handleMouseButtonEvent(SDL_MouseButtonEvent evtButton)
         {
             MouseButton button = mouseButtonFromEvent(evtButton.button);
-            SDLButtonMask mask = (SDLButtonMask)SDL3.SDL_BUTTON(evtButton.button);
+            SDLButtonMask mask = SDL3.SDL_BUTTON(evtButton.Button);
             Debug.Assert(Enum.IsDefined(mask));
 
             switch (evtButton.type)
@@ -497,30 +497,6 @@ namespace osu.Framework.Platform
                 case SDL3.SDL_BUTTON_X2:
                     return MouseButton.Button2;
             }
-        }
-
-        /// <summary>
-        /// Button mask as returned from <see cref="SDL_GetGlobalMouseState(out int,out int)"/> and <see cref="SDL_BUTTON"/>.
-        /// </summary>
-        [Flags]
-        private enum SDLButtonMask
-        {
-            None = 0,
-
-            /// <see cref="SDL_BUTTON_LMASK"/>
-            Left = 1 << 0,
-
-            /// <see cref="SDL_BUTTON_MMASK"/>
-            Middle = 1 << 1,
-
-            /// <see cref="SDL_BUTTON_RMASK"/>
-            Right = 1 << 2,
-
-            /// <see cref="SDL_BUTTON_X1MASK"/>
-            X1 = 1 << 3,
-
-            /// <see cref="SDL_BUTTON_X2MASK"/>
-            X2 = 1 << 4
         }
 
         #endregion

@@ -69,7 +69,7 @@ namespace osu.Framework.Platform.SDL2
         {
             if (RuntimeInfo.IsMobile)
             {
-                SDL3.SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_ES);
+                SDL3.SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_ES);
 
                 // Minimum OpenGL version for ES profile:
                 SDL3.SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -77,7 +77,7 @@ namespace osu.Framework.Platform.SDL2
             }
             else
             {
-                SDL3.SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
+                SDL3.SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
 
                 // Minimum OpenGL version for core profile:
                 SDL3.SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -134,7 +134,7 @@ namespace osu.Framework.Platform.SDL2
 
         private IntPtr getProcAddress(string symbol)
         {
-            const int error_category = (int)SDL_LogCategory.SDL_LOG_CATEGORY_ERROR;
+            const SDL_LogCategory error_category = SDL_LogCategory.SDL_LOG_CATEGORY_ERROR;
             SDL_LogPriority oldPriority = SDL3.SDL_LogGetPriority(error_category);
 
             // Prevent logging calls to SDL_GL_GetProcAddress() that fail on systems which don't have the requested symbol (typically macOS).

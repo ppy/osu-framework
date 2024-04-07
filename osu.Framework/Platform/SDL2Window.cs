@@ -176,12 +176,12 @@ namespace osu.Framework.Platform
         {
             ObjectHandle = new ObjectHandle<SDL2Window>(this, GCHandleType.Normal);
 
-            if (SDL3.SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD) < 0)
+            if (SDL3.SDL_Init(SDL_InitFlags.SDL_INIT_VIDEO | SDL_InitFlags.SDL_INIT_GAMEPAD) < 0)
             {
                 throw new InvalidOperationException($"Failed to initialise SDL: {SDL3.SDL_GetError()}");
             }
 
-            SDL3.SDL_LogSetPriority((int)SDL_LogCategory.SDL_LOG_CATEGORY_ERROR, SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG);
+            SDL3.SDL_LogSetPriority(SDL_LogCategory.SDL_LOG_CATEGORY_ERROR, SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG);
             SDL3.SDL_SetLogOutputFunction(&logOutput, IntPtr.Zero);
 
             graphicsSurface = new SDL2GraphicsSurface(this, surfaceType);
