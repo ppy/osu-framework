@@ -4,6 +4,8 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using ObjCRuntime;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -61,10 +63,10 @@ namespace osu.Framework.iOS
             // frame rate with multi-threaded mode turned on, but it is going to give them worse input latency
             // and higher power usage.
             SDL3.SDL_iPhoneSetEventPump(SDL_bool.SDL_FALSE);
-            SDL3.SDL_iPhoneSetAnimationCallback(SDLWindowHandle, 1, runFrame, ObjectHandle.Handle);
+            SDL3.SDL_iPhoneSetAnimationCallback(SDLWindowHandle, 1, &runFrame, ObjectHandle.Handle);
         }
 
-        [ObjCRuntime.MonoPInvokeCallback(typeof(SDL_iPhoneAnimationCallback))]
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
         private static void runFrame(IntPtr userdata)
         {
             var handle = new ObjectHandle<IOSWindow>(userdata);

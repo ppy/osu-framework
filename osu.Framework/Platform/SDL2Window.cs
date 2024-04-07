@@ -3,9 +3,9 @@
 
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
-using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -167,17 +167,6 @@ namespace osu.Framework.Platform
 
         public bool CapsLockPressed => SDL3.SDL_GetModState().HasFlagFast(SDL_Keymod.SDL_KMOD_CAPS);
 
-        // references must be kept to avoid GC, see https://stackoverflow.com/a/6193914
-
-        [UsedImplicitly]
-        private SDL_LogOutputFunction logOutputDelegate;
-
-        [UsedImplicitly]
-        private SDL_EventFilter? eventFilterDelegate;
-
-        [UsedImplicitly]
-        private SDL_EventFilter? eventWatchDelegate;
-
         /// <summary>
         /// Represents a handle to this <see cref="SDL2Window"/> instance, used for unmanaged callbacks.
         /// </summary>
@@ -193,7 +182,7 @@ namespace osu.Framework.Platform
             }
 
             SDL3.SDL_LogSetPriority((int)SDL_LogCategory.SDL_LOG_CATEGORY_ERROR, SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG);
-            SDL3.SDL_SetLogOutputFunction(logOutputDelegate = logOutput, IntPtr.Zero);
+            SDL3.SDL_SetLogOutputFunction(&logOutput, IntPtr.Zero);
 
             graphicsSurface = new SDL2GraphicsSurface(this, surfaceType);
 
@@ -206,12 +195,10 @@ namespace osu.Framework.Platform
             populateJoysticks();
         }
 
-        [MonoPInvokeCallback(typeof(SDL_LogOutputFunction))]
-        private static void logOutput(IntPtr _, int categoryInt, SDL_LogPriority priority, IntPtr messagePtr)
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+        private static void logOutput(IntPtr _, SDL_LogCategory category, SDL_LogPriority priority, byte* messagePtr)
         {
-            var category = (SDL_LogCategory)categoryInt;
-            string? message = Marshal.PtrToStringUTF8(messagePtr);
-
+            string? message = SDL3.PtrToStringUTF8(messagePtr);
             Logger.Log($@"SDL {category.ReadableName()} log [{priority.ReadableName()}]: {message}");
         }
 
@@ -257,8 +244,8 @@ namespace osu.Framework.Platform
         /// </summary>
         public void Run()
         {
-            SDL3.SDL_SetEventFilter(eventFilterDelegate = eventFilter, ObjectHandle.Handle);
-            SDL3.SDL_AddEventWatch(eventWatchDelegate = eventWatch, ObjectHandle.Handle);
+            SDL3.SDL_SetEventFilter(&eventFilter, ObjectHandle.Handle);
+            SDL3.SDL_AddEventWatch(&eventWatch, ObjectHandle.Handle);
 
             RunMainLoop();
         }
@@ -347,22 +334,22 @@ namespace osu.Framework.Platform
             }
         }
 
-        [MonoPInvokeCallback(typeof(SDL_EventFilter))]
-        private static int eventFilter(IntPtr userdata, IntPtr eventPtr)
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+        private static int eventFilter(IntPtr userdata, SDL_Event* eventPtr)
         {
             var handle = new ObjectHandle<SDL2Window>(userdata);
             if (handle.GetTarget(out SDL2Window window))
-                window.HandleEventFromFilter(Marshal.PtrToStructure<SDL_Event>(eventPtr));
+                window.HandleEventFromFilter(*eventPtr);
 
             return 1;
         }
 
-        [MonoPInvokeCallback(typeof(SDL_EventFilter))]
-        private static int eventWatch(IntPtr userdata, IntPtr eventPtr)
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+        private static int eventWatch(IntPtr userdata, SDL_Event* eventPtr)
         {
             var handle = new ObjectHandle<SDL2Window>(userdata);
             if (handle.GetTarget(out SDL2Window window))
-                window.HandleEventFromWatch(Marshal.PtrToStructure<SDL_Event>(eventPtr));
+                window.HandleEventFromWatch(*eventPtr);
 
             return 1;
         }
