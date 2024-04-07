@@ -1122,25 +1122,6 @@ namespace osu.Framework.Platform.SDL2
             return error;
         }
 
-        private static bool tryGetTouchDeviceIndex(long touchId, out int index)
-        {
-            int n = SDL_GetNumTouchDevices();
-
-            for (int i = 0; i < n; i++)
-            {
-                long currentTouchId = SDL_GetTouchDevice(i);
-
-                if (touchId == currentTouchId)
-                {
-                    index = i;
-                    return true;
-                }
-            }
-
-            index = -1;
-            return false;
-        }
-
         /// <summary>
         /// Gets the <paramref name="name"/> of the touch device for this <see cref="SDL_TouchFingerEvent"/>.
         /// </summary>
@@ -1149,14 +1130,8 @@ namespace osu.Framework.Platform.SDL2
         /// </remarks>
         public static bool TryGetTouchName(this SDL_TouchFingerEvent e, out string name)
         {
-            if (tryGetTouchDeviceIndex(e.touchId, out int index))
-            {
-                name = SDL_GetTouchName(index);
-                return name != null;
-            }
-
-            name = null;
-            return false;
+            name = SDL3.SDL_GetTouchDeviceName(e.touchID);
+            return name != null;
         }
     }
 }
