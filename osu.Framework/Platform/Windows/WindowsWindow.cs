@@ -31,8 +31,6 @@ namespace osu.Framework.Platform.Windows
         private Icon? smallIcon;
         private Icon? largeIcon;
 
-        private const int wm_killfocus = 8;
-
         /// <summary>
         /// Whether to apply the <see cref="windows_borderless_width_hack"/>.
         /// </summary>
@@ -110,10 +108,6 @@ namespace osu.Framework.Platform.Windows
         {
             switch (msg.message)
             {
-                case wm_killfocus:
-                    warpCursorFromFocusLoss();
-                    break;
-
                 case Imm.WM_IME_STARTCOMPOSITION:
                 case Imm.WM_IME_COMPOSITION:
                 case Imm.WM_IME_ENDCOMPOSITION:
@@ -122,6 +116,18 @@ namespace osu.Framework.Platform.Windows
             }
 
             return SDL_bool.SDL_TRUE;
+        }
+
+        protected override void HandleEventFromFilter(SDL_Event evt)
+        {
+            switch (evt.type)
+            {
+                case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST:
+                    warpCursorFromFocusLoss();
+                    break;
+            }
+
+            base.HandleEventFromFilter(evt);
         }
 
         /// <summary>
@@ -135,7 +141,7 @@ namespace osu.Framework.Platform.Windows
         /// <remarks>
         /// The normal warp in <see cref="MouseHandler.transferLastPositionToHostCursor"/> doesn't work in fullscreen,
         /// as it is called when the window has already lost focus and is minimized.
-        /// So we do an out-of-band warp, immediately after receiving the <see cref="wm_killfocus"/> message.
+        /// So we do an out-of-band warp, immediately after receiving the <see cref="SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST"/> message.
         /// </remarks>
         private void warpCursorFromFocusLoss()
         {
