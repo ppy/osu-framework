@@ -329,16 +329,16 @@ namespace osu.Framework.Platform
 
         private static ImmutableArray<Display> getSDLDisplays()
         {
-            int numDisplays = SDL_GetNumVideoDisplays();
+            using var displays = SDL3.SDL_GetDisplays();
 
-            if (numDisplays <= 0)
-                throw new InvalidOperationException($"Failed to get number of SDL displays. Return code: {numDisplays}. SDL Error: {SDL3.SDL_GetError()}");
+            if (displays == null)
+                throw new InvalidOperationException($"Failed to get number of SDL displays. SDL Error: {SDL3.SDL_GetError()}");
 
-            var builder = ImmutableArray.CreateBuilder<Display>(numDisplays);
+            var builder = ImmutableArray.CreateBuilder<Display>(displays.Count);
 
-            for (int i = 0; i < numDisplays; i++)
+            for (int i = 0; i < displays.Count; i++)
             {
-                if (tryGetDisplayFromSDL(i, out Display? display))
+                if (tryGetDisplayFromSDL(i, displays[i], out Display? display))
                     builder.Add(display);
                 else
                     Logger.Log($"Failed to retrieve SDL display at index ({i})", level: LogLevel.Error);
@@ -347,11 +347,13 @@ namespace osu.Framework.Platform
             return builder.MoveToImmutable();
         }
 
-        private static bool tryGetDisplayFromSDL(int displayIndex, [NotNullWhen(true)] out Display? display)
+        private static unsafe bool tryGetDisplayFromSDL(int displayIndex, SDL_DisplayID displayID, [NotNullWhen(true)] out Display? display)
         {
             ArgumentOutOfRangeException.ThrowIfNegative(displayIndex);
 
-            if (SDL3.SDL_GetDisplayBounds(displayIndex, out var rect) < 0)
+            SDL_Rect rect;
+
+            if (SDL3.SDL_GetDisplayBounds(displayID, &rect) < 0)
             {
                 Logger.Log($"Failed to get display bounds for display at index ({displayIndex}). SDL Error: {SDL3.SDL_GetError()}");
                 display = null;
@@ -362,28 +364,25 @@ namespace osu.Framework.Platform
 
             if (RuntimeInfo.IsDesktop)
             {
-                int numModes = SDL_GetNumDisplayModes(displayIndex);
+                using var modes = SDL3.SDL_GetFullscreenDisplayModes(displayID);
 
-                if (numModes < 0)
+                if (modes == null)
                 {
-                    Logger.Log($"Failed to get display modes for display at index ({displayIndex}) ({rect.w}x{rect.h}). SDL Error: {SDL3.SDL_GetError()} ({numModes})");
+                    Logger.Log($"Failed to get display modes for display at index ({displayIndex}) ({rect.w}x{rect.h}). SDL Error: {SDL3.SDL_GetError()}");
                     display = null;
                     return false;
                 }
 
-                if (numModes == 0)
+                if (modes.Count == 0)
                     Logger.Log($"Display at index ({displayIndex}) ({rect.w}x{rect.h}) has no display modes. Fullscreen might not work.");
 
-                displayModes = Enumerable.Range(0, numModes)
-                                         .Select(modeIndex =>
-                                         {
-                                             SDL_GetDisplayMode(displayIndex, modeIndex, out var mode);
-                                             return mode.ToDisplayMode(displayIndex);
-                                         })
-                                         .ToArray();
+                displayModes = new DisplayMode[modes.Count];
+
+                for (int i = 0; i < modes.Count; i++)
+                    displayModes[i] = modes[i].ToDisplayMode(displayIndex);
             }
 
-            display = new Display(displayIndex, SDL3.SDL_GetDisplayName(displayIndex), new Rectangle(rect.x, rect.y, rect.w, rect.h), displayModes);
+            display = new Display(displayIndex, SDL3.SDL_GetDisplayName(displayID), new Rectangle(rect.x, rect.y, rect.w, rect.h), displayModes);
             return true;
         }
 
