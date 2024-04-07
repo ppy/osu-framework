@@ -675,33 +675,24 @@ namespace osu.Framework.Platform
 
         private static unsafe bool tryFetchDisplayMode(SDL_Window* windowHandle, WindowState windowState, Display display, out DisplayMode displayMode)
         {
-            // TODO: displayIndex should be valid here at all times.
-            // on startup, the displayIndex will be invalid (-1) due to it being set later in the startup sequence.
-            // related to order of operations in `updateWindowSpecifics()`.
-            int localIndex = SDL3.SDL_GetDisplayForWindow(windowHandle);
+            if (!tryGetDisplayAtIndex(display.Index, out var displayID))
+            {
+                displayMode = default;
+                return false;
+            }
 
-            if (localIndex != display.Index)
-                Logger.Log($"Stored display index ({display.Index}) doesn't match current index ({localIndex})");
-
-            bool success;
-            SDL_DisplayMode mode;
-
-            if (windowState == WindowState.Fullscreen)
-                success = SDL3.SDL_GetWindowFullscreenMode(windowHandle, out mode) >= 0;
-            else
-                success = SDL3.SDL_GetCurrentDisplayMode(localIndex, out mode) >= 0;
-
+            var mode = windowState == WindowState.Fullscreen ? SDL3.SDL_GetWindowFullscreenMode(windowHandle) : SDL3.SDL_GetDesktopDisplayMode(displayID);
             string type = windowState == WindowState.Fullscreen ? "fullscreen" : "desktop";
 
-            if (success)
+            if (mode != null)
             {
-                displayMode = mode.ToDisplayMode(localIndex);
-                Logger.Log($"Updated display mode to {type} resolution: {mode.w}x{mode.h}@{mode.refresh_rate}, {displayMode.Format}");
+                displayMode = mode->ToDisplayMode(display.Index);
+                Logger.Log($"Updated display mode to {type} resolution: {mode->w}x{mode->h}@{mode->refresh_rate}, {displayMode.Format}");
                 return true;
             }
             else
             {
-                Logger.Log($"Failed to get {type} display mode. Display index: {localIndex}. SDL error: {SDL3.SDL_GetError()}");
+                Logger.Log($"Failed to get {type} display mode. Display index: {display.Index}. SDL error: {SDL3.SDL_GetError()}");
                 displayMode = default;
                 return false;
             }
