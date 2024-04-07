@@ -424,7 +424,7 @@ namespace osu.Framework.Platform
 
         private void handleMouseButtonEvent(SDL_MouseButtonEvent evtButton)
         {
-            MouseButton button = mouseButtonFromEvent(evtButton.button);
+            MouseButton button = mouseButtonFromEvent(evtButton.Button);
             SDLButtonMask mask = SDL3.SDL_BUTTON(evtButton.Button);
             Debug.Assert(Enum.IsDefined(mask));
 
@@ -488,25 +488,28 @@ namespace osu.Framework.Platform
 
         private void handleKeymapChangedEvent() => KeymapChanged?.Invoke();
 
-        private MouseButton mouseButtonFromEvent(byte button)
+        private MouseButton mouseButtonFromEvent(SDLButton button)
         {
-            switch ((uint)button)
+            switch (button)
             {
-                default:
-                case SDL3.SDL_BUTTON_LEFT:
+                case SDLButton.SDL_BUTTON_LEFT:
                     return MouseButton.Left;
 
-                case SDL3.SDL_BUTTON_RIGHT:
+                case SDLButton.SDL_BUTTON_RIGHT:
                     return MouseButton.Right;
 
-                case SDL3.SDL_BUTTON_MIDDLE:
+                case SDLButton.SDL_BUTTON_MIDDLE:
                     return MouseButton.Middle;
 
-                case SDL3.SDL_BUTTON_X1:
+                case SDLButton.SDL_BUTTON_X1:
                     return MouseButton.Button1;
 
-                case SDL3.SDL_BUTTON_X2:
+                case SDLButton.SDL_BUTTON_X2:
                     return MouseButton.Button2;
+
+                default:
+                    Logger.Log($"unknown mouse button: {button}, defaulting to left button");
+                    return MouseButton.Left;
             }
         }
 
