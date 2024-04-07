@@ -3,8 +3,10 @@
 
 using System;
 using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using osu.Framework.Allocation;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
@@ -85,33 +87,40 @@ namespace osu.Framework.Platform.Windows
             // disable all pen and touch feedback as this causes issues when running "optimised" fullscreen under Direct3D11.
             foreach (var feedbackType in Enum.GetValues<FeedbackType>())
                 Native.Input.SetWindowFeedbackSetting(WindowHandle, feedbackType, false);
-
-            // enable window message events to use with `OnSDLEvent` below.
-            SDL_EventState(SDL_EventType.SDL_SYSWMEVENT, SDL_ENABLE);
         }
 
-        protected override void HandleEventFromFilter(SDL_Event e)
+        public override unsafe void Run()
         {
-            if (e.type == SDL_EventType.SDL_SYSWMEVENT)
+            SDL3.SDL_SetWindowsMessageHook(&messageHook, ObjectHandle.Handle);
+            base.Run();
+        }
+
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+        private static unsafe SDL_bool messageHook(IntPtr userdata, MSG* msg)
+        {
+            var handle = new ObjectHandle<WindowsWindow>(userdata);
+            if (handle.GetTarget(out WindowsWindow window))
+                return window.handleEventFromHook(*msg);
+
+            return SDL_bool.SDL_TRUE;
+        }
+
+        private SDL_bool handleEventFromHook(MSG msg)
+        {
+            switch (msg.message)
             {
-                var wmMsg = Marshal.PtrToStructure<SDL2Structs.SDL_SysWMmsg>(e.syswm.msg);
-                var m = wmMsg.msg.win;
+                case wm_killfocus:
+                    warpCursorFromFocusLoss();
+                    break;
 
-                switch (m.msg)
-                {
-                    case wm_killfocus:
-                        warpCursorFromFocusLoss();
-                        break;
-
-                    case Imm.WM_IME_STARTCOMPOSITION:
-                    case Imm.WM_IME_COMPOSITION:
-                    case Imm.WM_IME_ENDCOMPOSITION:
-                        handleImeMessage(m.hwnd, m.msg, m.lParam);
-                        break;
-                }
+                case Imm.WM_IME_STARTCOMPOSITION:
+                case Imm.WM_IME_COMPOSITION:
+                case Imm.WM_IME_ENDCOMPOSITION:
+                    handleImeMessage(msg.hwnd, msg.message, msg.lParam);
+                    break;
             }
 
-            base.HandleEventFromFilter(e);
+            return SDL_bool.SDL_TRUE;
         }
 
         /// <summary>

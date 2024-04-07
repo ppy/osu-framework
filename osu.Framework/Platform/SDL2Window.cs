@@ -242,7 +242,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Starts the window's run loop.
         /// </summary>
-        public void Run()
+        public virtual void Run()
         {
             SDL3.SDL_SetEventFilter(&eventFilter, ObjectHandle.Handle);
             SDL3.SDL_AddEventWatch(&eventWatch, ObjectHandle.Handle);
