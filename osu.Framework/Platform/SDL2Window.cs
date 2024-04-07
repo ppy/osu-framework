@@ -472,7 +472,8 @@ namespace osu.Framework.Platform
 
             do
             {
-                eventsRead = SDL3.SDL_PeepEvents(events, events_per_peep, SDL_eventaction.SDL_GETEVENT, SDL_EventType.SDL_EVENT_FIRST, SDL_EventType.SDL_EVENT_LAST);
+                fixed (SDL_Event* buf = events)
+                    eventsRead = SDL3.SDL_PeepEvents(buf, events_per_peep, SDL_eventaction.SDL_GETEVENT, SDL_EventType.SDL_EVENT_FIRST, SDL_EventType.SDL_EVENT_LAST);
                 for (int i = 0; i < eventsRead; i++)
                     HandleEvent(events[i]);
             } while (eventsRead == events_per_peep);
