@@ -43,7 +43,7 @@ namespace osu.Framework.Platform.Linux
 
             foreach (var h in handlers.OfType<MouseHandler>())
             {
-                // There are several bugs we need to fix with Linux / SDL2 cursor handling before switching this on.
+                // There are several bugs we need to fix with Linux / SDL3 cursor handling before switching this on.
                 h.UseRelativeMode.Value = false;
                 h.UseRelativeMode.Default = false;
             }

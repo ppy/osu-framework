@@ -88,7 +88,7 @@ namespace osu.Framework.Platform.SDL
             context = SDL3.SDL_GL_CreateContext(window.SDLWindowHandle);
 
             if (context == IntPtr.Zero)
-                throw new InvalidOperationException($"Failed to create an SDL2 GL context ({SDL3.SDL_GetError()})");
+                throw new InvalidOperationException($"Failed to create an SDL3 GL context ({SDL3.SDL_GetError()})");
 
             SDL3.SDL_GL_MakeCurrent(window.SDLWindowHandle, context);
 

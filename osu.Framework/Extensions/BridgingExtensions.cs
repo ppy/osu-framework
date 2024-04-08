@@ -12,7 +12,7 @@ namespace osu.Framework.Extensions
 {
     /// <summary>
     /// Temporary extension functions for bridging between osuTK, System.Drawing, and System.Numerics
-    /// Can be removed when the SDL2 migration is complete.
+    /// Can be removed when the SDL3 migration is complete.
     /// </summary>
     public static class BridgingExtensions
     {

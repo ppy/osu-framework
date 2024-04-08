@@ -732,7 +732,7 @@ namespace osu.Framework.Platform
 
                 ChooseAndSetupRenderer();
 
-                // Window creation may fail in the case of a catastrophic failure (ie. graphics driver or SDL2 level).
+                // Window creation may fail in the case of a catastrophic failure (ie. graphics driver or SDL3 level).
                 // In such cases, we want to throw here to immediately mark this renderer setup as failed.
                 if (RequireWindowExists && Window == null)
                 {

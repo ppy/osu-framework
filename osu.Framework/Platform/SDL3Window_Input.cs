@@ -33,7 +33,7 @@ namespace osu.Framework.Platform
         private bool relativeMouseMode;
 
         /// <summary>
-        /// Set the state of SDL2's RelativeMouseMode (https://wiki.libsdl.org/SDL_SetRelativeMouseMode).
+        /// Set the state of SDL3's RelativeMouseMode (https://wiki.libsdl.org/SDL_SetRelativeMouseMode).
         /// On all platforms, this will lock the mouse to the window (although escaping by setting <see cref="ConfineMouseMode"/> is still possible via a local implementation).
         /// On windows, this will use raw input if available.
         /// </summary>

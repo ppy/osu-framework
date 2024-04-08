@@ -197,7 +197,7 @@ namespace osu.Framework.Platform
             SDL3.SDL_SetHint(SDL3.SDL_HINT_TOUCH_MOUSE_EVENTS, "0"u8); // disable touch events generating synthetic mouse events on desktop platforms
             SDL3.SDL_SetHint(SDL3.SDL_HINT_MOUSE_TOUCH_EVENTS, "0"u8); // disable mouse events generating synthetic touch events on mobile platforms
 
-            // we want text input to only be active when SDL2DesktopWindowTextInput is active.
+            // we want text input to only be active when SDL3DesktopWindowTextInput is active.
             // SDL activates it by default on some platforms: https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/video/SDL_video.c#L573-L582
             // so we deactivate it on startup.
             SDL3.SDL_StopTextInput();
@@ -271,7 +271,7 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <remarks>
         /// As per SDL's recommendation, application events should always be handled via the event filter.
-        /// See: https://wiki.libsdl.org/SDL2/SDL_EventType#android_ios_and_winrt_events
+        /// See: https://wiki.libsdl.org/SDL3/SDL_EventType#android_ios_and_winrt_events
         /// </remarks>
         protected virtual void HandleEventFromFilter(SDL_Event evt)
         {

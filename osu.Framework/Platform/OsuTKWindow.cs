@@ -130,7 +130,7 @@ namespace osu.Framework.Platform
         /// osuTK's reference to the current <see cref="DisplayResolution"/> instance is private.
         /// Instead we construct a <see cref="DisplayMode"/> based on the metrics of <see cref="CurrentDisplayBindable"/>,
         /// as it defers to the current resolution. Note that we round the refresh rate, as osuTK can sometimes
-        /// report refresh rates such as 59.992863 where SDL2 will report 60.
+        /// report refresh rates such as 59.992863 where SDL3 will report 60.
         /// </summary>
         public virtual IBindable<DisplayMode> CurrentDisplayMode
         {

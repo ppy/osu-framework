@@ -8,7 +8,7 @@ using osuTK;
 namespace osu.Framework.Platform.Windows
 {
     /// <summary>
-    /// A windows specific mouse input handler which overrides the SDL2 implementation of raw input.
+    /// A windows specific mouse input handler which overrides the SDL3 implementation of raw input.
     /// This is done to better handle quirks of some devices.
     /// </summary>
     [SupportedOSPlatform("windows")]
