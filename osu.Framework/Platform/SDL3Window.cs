@@ -25,11 +25,11 @@ namespace osu.Framework.Platform
     /// <summary>
     /// Default implementation of a window, using SDL for windowing and graphics support.
     /// </summary>
-    internal abstract unsafe partial class SDL2Window : IWindow
+    internal abstract unsafe partial class SDL3Window : IWindow
     {
         internal SDL_Window* SDLWindowHandle { get; private set; } = null;
 
-        private readonly SDL2GraphicsSurface graphicsSurface;
+        private readonly SDL3GraphicsSurface graphicsSurface;
         IGraphicsSurface IWindow.GraphicsSurface => graphicsSurface;
 
         /// <summary>
@@ -142,13 +142,13 @@ namespace osu.Framework.Platform
         public bool CapsLockPressed => SDL3.SDL_GetModState().HasFlagFast(SDL_Keymod.SDL_KMOD_CAPS);
 
         /// <summary>
-        /// Represents a handle to this <see cref="SDL2Window"/> instance, used for unmanaged callbacks.
+        /// Represents a handle to this <see cref="SDL3Window"/> instance, used for unmanaged callbacks.
         /// </summary>
-        protected ObjectHandle<SDL2Window> ObjectHandle { get; private set; }
+        protected ObjectHandle<SDL3Window> ObjectHandle { get; private set; }
 
-        protected SDL2Window(GraphicsSurfaceType surfaceType)
+        protected SDL3Window(GraphicsSurfaceType surfaceType)
         {
-            ObjectHandle = new ObjectHandle<SDL2Window>(this, GCHandleType.Normal);
+            ObjectHandle = new ObjectHandle<SDL3Window>(this, GCHandleType.Normal);
 
             if (SDL3.SDL_Init(SDL_InitFlags.SDL_INIT_VIDEO | SDL_InitFlags.SDL_INIT_GAMEPAD) < 0)
             {
@@ -158,7 +158,7 @@ namespace osu.Framework.Platform
             SDL3.SDL_LogSetPriority(SDL_LogCategory.SDL_LOG_CATEGORY_ERROR, SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG);
             SDL3.SDL_SetLogOutputFunction(&logOutput, IntPtr.Zero);
 
-            graphicsSurface = new SDL2GraphicsSurface(this, surfaceType);
+            graphicsSurface = new SDL3GraphicsSurface(this, surfaceType);
 
             CursorStateBindable.ValueChanged += evt =>
             {
@@ -311,8 +311,8 @@ namespace osu.Framework.Platform
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
         private static int eventFilter(IntPtr userdata, SDL_Event* eventPtr)
         {
-            var handle = new ObjectHandle<SDL2Window>(userdata);
-            if (handle.GetTarget(out SDL2Window window))
+            var handle = new ObjectHandle<SDL3Window>(userdata);
+            if (handle.GetTarget(out SDL3Window window))
                 window.HandleEventFromFilter(*eventPtr);
 
             return 1;
@@ -321,8 +321,8 @@ namespace osu.Framework.Platform
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
         private static int eventWatch(IntPtr userdata, SDL_Event* eventPtr)
         {
-            var handle = new ObjectHandle<SDL2Window>(userdata);
-            if (handle.GetTarget(out SDL2Window window))
+            var handle = new ObjectHandle<SDL3Window>(userdata);
+            if (handle.GetTarget(out SDL3Window window))
                 window.HandleEventFromWatch(*eventPtr);
 
             return 1;

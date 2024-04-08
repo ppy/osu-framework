@@ -7,7 +7,7 @@ using SDL;
 
 namespace osu.Framework.Platform.MacOS
 {
-    public class MacOSReadableKeyCombinationProvider : SDL2ReadableKeyCombinationProvider
+    public class MacOSReadableKeyCombinationProvider : SDL3ReadableKeyCombinationProvider
     {
         protected override string GetReadableKey(InputKey key)
         {

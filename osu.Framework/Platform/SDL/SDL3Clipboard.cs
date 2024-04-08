@@ -7,7 +7,7 @@ using SixLabors.ImageSharp;
 
 namespace osu.Framework.Platform.SDL
 {
-    public class SDL2Clipboard : Clipboard
+    public class SDL3Clipboard : Clipboard
     {
         // SDL cannot differentiate between string.Empty and no text (eg. empty clipboard or an image)
         // doesn't matter as text editors don't really allow copying empty strings.

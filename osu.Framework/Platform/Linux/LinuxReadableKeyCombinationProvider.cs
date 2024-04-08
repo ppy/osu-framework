@@ -7,7 +7,7 @@ using SDL;
 
 namespace osu.Framework.Platform.Linux
 {
-    public class LinuxReadableKeyCombinationProvider : SDL2ReadableKeyCombinationProvider
+    public class LinuxReadableKeyCombinationProvider : SDL3ReadableKeyCombinationProvider
     {
         protected override string GetReadableKey(InputKey key)
         {

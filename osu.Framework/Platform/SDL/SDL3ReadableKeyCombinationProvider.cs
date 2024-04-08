@@ -8,7 +8,7 @@ using SDL;
 
 namespace osu.Framework.Platform.SDL
 {
-    public class SDL2ReadableKeyCombinationProvider : ReadableKeyCombinationProvider
+    public class SDL3ReadableKeyCombinationProvider : ReadableKeyCombinationProvider
     {
         protected override string GetReadableKey(InputKey key)
         {

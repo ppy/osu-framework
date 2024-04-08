@@ -14,9 +14,9 @@ using SDL;
 
 namespace osu.Framework.Platform.SDL
 {
-    internal unsafe class SDL2GraphicsSurface : IGraphicsSurface, IOpenGLGraphicsSurface, IMetalGraphicsSurface, ILinuxGraphicsSurface
+    internal unsafe class SDL3GraphicsSurface : IGraphicsSurface, IOpenGLGraphicsSurface, IMetalGraphicsSurface, ILinuxGraphicsSurface
     {
-        private readonly SDL2Window window;
+        private readonly SDL3Window window;
 
         private IntPtr context;
 
@@ -25,7 +25,7 @@ namespace osu.Framework.Platform.SDL
 
         public GraphicsSurfaceType Type { get; }
 
-        public SDL2GraphicsSurface(SDL2Window window, GraphicsSurfaceType surfaceType)
+        public SDL3GraphicsSurface(SDL3Window window, GraphicsSurfaceType surfaceType)
         {
             this.window = window;
             Type = surfaceType;

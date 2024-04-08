@@ -15,7 +15,7 @@ using UIKit;
 
 namespace osu.Framework.iOS
 {
-    internal class IOSWindow : SDL2Window
+    internal class IOSWindow : SDL3Window
     {
         private UIWindow? window;
 

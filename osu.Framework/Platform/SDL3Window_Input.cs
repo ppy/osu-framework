@@ -20,7 +20,7 @@ using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Platform
 {
-    internal partial class SDL2Window
+    internal partial class SDL3Window
     {
         private void setupInput(FrameworkConfigManager config)
         {
@@ -93,7 +93,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private readonly Dictionary<SDL_JoystickID, SDL2ControllerBindings> controllers = new Dictionary<SDL_JoystickID, SDL2ControllerBindings>();
+        private readonly Dictionary<SDL_JoystickID, SDL3ControllerBindings> controllers = new Dictionary<SDL_JoystickID, SDL3ControllerBindings>();
 
         private void updateCursorVisibility(bool cursorVisible) =>
             ScheduleCommand(() =>
@@ -329,7 +329,7 @@ namespace osu.Framework.Platform
             if (SDL3.SDL_IsGamepad(instanceID) == SDL_bool.SDL_TRUE)
                 controller = SDL3.SDL_OpenGamepad(instanceID);
 
-            controllers[instanceID] = new SDL2ControllerBindings(joystick, controller);
+            controllers[instanceID] = new SDL3ControllerBindings(joystick, controller);
         }
 
         /// <summary>

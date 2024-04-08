@@ -31,12 +31,12 @@ namespace osu.Framework.Tests.Visual.Platform
         [Resolved]
         private FrameworkConfigManager config { get; set; }
 
-        private SDL2Window sdlWindow;
+        private SDL3Window sdlWindow;
 
         [BackgroundDependencyLoader]
         private void load()
         {
-            sdlWindow = (SDL2Window)host.Window;
+            sdlWindow = (SDL3Window)host.Window;
             Children = new Drawable[]
             {
                 new FillFlowContainer

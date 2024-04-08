@@ -13,7 +13,7 @@ using SDL;
 
 namespace osu.Framework.Platform.SDL
 {
-    public static class SDL2Extensions
+    public static class SDL3Extensions
     {
         public static Key ToKey(this SDL_Keysym sdlKeysym)
         {

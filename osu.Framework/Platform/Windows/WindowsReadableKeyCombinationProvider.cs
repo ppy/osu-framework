@@ -7,7 +7,7 @@ using SDL;
 
 namespace osu.Framework.Platform.Windows
 {
-    public class WindowsReadableKeyCombinationProvider : SDL2ReadableKeyCombinationProvider
+    public class WindowsReadableKeyCombinationProvider : SDL3ReadableKeyCombinationProvider
     {
         protected override string GetReadableKey(InputKey key)
         {

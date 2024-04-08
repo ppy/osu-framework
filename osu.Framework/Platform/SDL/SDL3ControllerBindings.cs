@@ -12,7 +12,7 @@ namespace osu.Framework.Platform.SDL
     /// Maintain a copy of the SDL-provided bindings for the given controller.
     /// Used to determine whether a given event's joystick button or axis is unmapped.
     /// </summary>
-    internal unsafe class SDL2ControllerBindings
+    internal unsafe class SDL3ControllerBindings
     {
         public readonly SDL_Joystick* JoystickHandle;
         public readonly SDL_Gamepad* GamepadHandle;
@@ -23,7 +23,7 @@ namespace osu.Framework.Platform.SDL
         /// </summary>
         public SDL_GamepadBinding[] Bindings;
 
-        public SDL2ControllerBindings(SDL_Joystick* joystickHandle, SDL_Gamepad* gamepadHandle)
+        public SDL3ControllerBindings(SDL_Joystick* joystickHandle, SDL_Gamepad* gamepadHandle)
         {
             JoystickHandle = joystickHandle;
             GamepadHandle = gamepadHandle;
