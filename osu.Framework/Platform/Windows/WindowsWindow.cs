@@ -91,7 +91,7 @@ namespace osu.Framework.Platform.Windows
             return SDL_bool.SDL_TRUE;
         }
 
-        protected override void HandleEventFromFilter(SDL_Event evt)
+        protected override int HandleEventFromFilter(SDL_Event evt)
         {
             switch (evt.type)
             {
@@ -100,7 +100,7 @@ namespace osu.Framework.Platform.Windows
                     break;
             }
 
-            base.HandleEventFromFilter(evt);
+            return base.HandleEventFromFilter(evt);
         }
 
         /// <summary>

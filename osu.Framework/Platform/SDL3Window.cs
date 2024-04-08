@@ -267,13 +267,25 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
+        /// Drop event from SDL event queue.
+        /// </summary>
+        /// <remarks>Return value of <see cref="HandleEventFromFilter"/></remarks>
+        protected const int DROP_EVENT = 0;
+
+        /// <summary>
+        /// Keep event in SDL event queue (it'll get processed later in <see cref="pollSDLEvents"/>).
+        /// </summary>
+        /// <remarks>Return value of <see cref="HandleEventFromFilter"/></remarks>
+        protected const int KEEP_EVENT = 1;
+
+        /// <summary>
         /// Handles <see cref="SDL_Event"/>s fired from the SDL event filter.
         /// </summary>
         /// <remarks>
         /// As per SDL's recommendation, application events should always be handled via the event filter.
         /// See: https://wiki.libsdl.org/SDL3/SDL_EventType#android_ios_and_winrt_events
         /// </remarks>
-        protected virtual void HandleEventFromFilter(SDL_Event evt)
+        protected virtual int HandleEventFromFilter(SDL_Event evt)
         {
             switch (evt.type)
             {
@@ -293,6 +305,8 @@ namespace osu.Framework.Platform
                     LowOnMemory?.Invoke();
                     break;
             }
+
+            return KEEP_EVENT;
         }
 
         protected void HandleEventFromWatch(SDL_Event evt)
@@ -313,9 +327,9 @@ namespace osu.Framework.Platform
         {
             var handle = new ObjectHandle<SDL3Window>(userdata);
             if (handle.GetTarget(out SDL3Window window))
-                window.HandleEventFromFilter(*eventPtr);
+                return window.HandleEventFromFilter(*eventPtr);
 
-            return 1;
+            return KEEP_EVENT;
         }
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
