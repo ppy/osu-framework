@@ -93,8 +93,20 @@ namespace osu.Framework.Platform.Windows
 
         protected override int HandleEventFromFilter(SDL_Event evt)
         {
+            bool rawMouse = SDL3.SDL_GetRelativeMouseMode() == SDL_bool.SDL_TRUE;
+
             switch (evt.type)
             {
+                // handle raw mouse and keyboard events in SDL_EventFilter for lower latency are resilience against SDL_PumpEvents() lag
+                case SDL_EventType.SDL_EVENT_MOUSE_MOTION when rawMouse:
+                case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN when rawMouse:
+                case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP when rawMouse:
+                case SDL_EventType.SDL_EVENT_MOUSE_WHEEL when rawMouse:
+                case SDL_EventType.SDL_EVENT_KEY_DOWN:
+                case SDL_EventType.SDL_EVENT_KEY_UP:
+                    HandleEvent(evt);
+                    return DROP_EVENT;
+
                 case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST:
                     warpCursorFromFocusLoss();
                     break;
