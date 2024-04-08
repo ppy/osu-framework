@@ -215,7 +215,7 @@ namespace osu.Framework.Platform.Windows
 
         protected override void HandleTouchFingerEvent(SDL_TouchFingerEvent evtTfinger)
         {
-            if (evtTfinger.TryGetTouchName(out string name) && name == "pen")
+            if (evtTfinger.TryGetTouchName(out string? name) && name == "pen")
             {
                 // Windows Ink tablet/pen handling
                 // InputManager expects to receive this as mouse events, to have proper `mouseSource` input priority (see InputManager.GetPendingInputs)

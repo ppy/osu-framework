@@ -1,8 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Primitives;
@@ -1092,9 +1091,9 @@ namespace osu.Framework.Platform.SDL
         /// <summary>
         /// Gets the SDL error, and then clears it.
         /// </summary>
-        public static string GetAndClearError()
+        public static string? GetAndClearError()
         {
-            string error = SDL3.SDL_GetError();
+            string? error = SDL3.SDL_GetError();
             SDL3.SDL_ClearError();
             return error;
         }
@@ -1105,7 +1104,7 @@ namespace osu.Framework.Platform.SDL
         /// <remarks>
         /// On Windows, this will return <c>"touch"</c> for touchscreen events or <c>"pen"</c> for pen/tablet events.
         /// </remarks>
-        public static bool TryGetTouchName(this SDL_TouchFingerEvent e, out string name)
+        public static bool TryGetTouchName(this SDL_TouchFingerEvent e, [NotNullWhen(true)] out string? name)
         {
             name = SDL3.SDL_GetTouchDeviceName(e.touchID);
             return name != null;
