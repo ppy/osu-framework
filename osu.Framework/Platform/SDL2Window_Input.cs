@@ -519,7 +519,7 @@ namespace osu.Framework.Platform
         /// Update the host window manager's cursor position based on a location relative to window coordinates.
         /// </summary>
         /// <param name="mousePosition">A position inside the window.</param>
-        public unsafe void UpdateMousePosition(Vector2 mousePosition) => ScheduleCommand(() => SDL3.SDL_WarpMouseInWindow(SDLWindowHandle, (int)(mousePosition.X / Scale), (int)(mousePosition.Y / Scale)));
+        public unsafe void UpdateMousePosition(Vector2 mousePosition) => ScheduleCommand(() => SDL3.SDL_WarpMouseInWindow(SDLWindowHandle, mousePosition.X / Scale, mousePosition.Y / Scale));
 
         private void updateConfineMode()
         {
