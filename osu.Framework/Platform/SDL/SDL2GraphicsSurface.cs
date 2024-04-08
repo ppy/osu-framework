@@ -12,7 +12,7 @@ using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 using SDL;
 
-namespace osu.Framework.Platform.SDL2
+namespace osu.Framework.Platform.SDL
 {
     internal unsafe class SDL2GraphicsSurface : IGraphicsSurface, IOpenGLGraphicsSurface, IMetalGraphicsSurface, ILinuxGraphicsSurface
     {

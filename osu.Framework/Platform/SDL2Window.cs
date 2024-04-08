@@ -12,7 +12,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Logging;
-using osu.Framework.Platform.SDL2;
+using osu.Framework.Platform.SDL;
 using osu.Framework.Threading;
 using SDL;
 using SixLabors.ImageSharp;

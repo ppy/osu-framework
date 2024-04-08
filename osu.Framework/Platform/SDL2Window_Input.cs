@@ -12,7 +12,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Input.States;
 using osu.Framework.Logging;
-using osu.Framework.Platform.SDL2;
+using osu.Framework.Platform.SDL;
 using osuTK;
 using osuTK.Input;
 using SDL;

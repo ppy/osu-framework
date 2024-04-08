@@ -5,7 +5,7 @@ using System.Text;
 using SDL;
 using SixLabors.ImageSharp;
 
-namespace osu.Framework.Platform.SDL2
+namespace osu.Framework.Platform.SDL
 {
     public class SDL2Clipboard : Clipboard
     {

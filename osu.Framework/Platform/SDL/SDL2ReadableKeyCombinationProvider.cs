@@ -6,7 +6,7 @@ using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using SDL;
 
-namespace osu.Framework.Platform.SDL2
+namespace osu.Framework.Platform.SDL
 {
     public class SDL2ReadableKeyCombinationProvider : ReadableKeyCombinationProvider
     {

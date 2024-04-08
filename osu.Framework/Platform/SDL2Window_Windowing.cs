@@ -11,7 +11,7 @@ using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Logging;
-using osu.Framework.Platform.SDL2;
+using osu.Framework.Platform.SDL;
 using osuTK;
 using SDL;
 

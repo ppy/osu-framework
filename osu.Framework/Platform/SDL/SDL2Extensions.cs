@@ -11,7 +11,7 @@ using osu.Framework.Input.Bindings;
 using osuTK.Input;
 using SDL;
 
-namespace osu.Framework.Platform.SDL2
+namespace osu.Framework.Platform.SDL
 {
     public static class SDL2Extensions
     {

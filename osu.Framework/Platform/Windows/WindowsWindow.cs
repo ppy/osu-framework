@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using osu.Framework.Allocation;
 using osu.Framework.Input.Handlers.Mouse;
-using osu.Framework.Platform.SDL2;
+using osu.Framework.Platform.SDL;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
 using osuTK.Input;
