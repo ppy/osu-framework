@@ -10,28 +10,28 @@ using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Input.Handlers.Tablet;
 using osu.Framework.Input.Handlers.Touch;
-using osu.Framework.Platform.SDL2;
+using osu.Framework.Platform.SDL;
 
 namespace osu.Framework.Platform
 {
-    public abstract class SDL2GameHost : GameHost
+    public abstract class SDL3GameHost : GameHost
     {
-        public override bool CapsLockEnabled => (Window as SDL2Window)?.CapsLockPressed == true;
+        public override bool CapsLockEnabled => (Window as SDL3Window)?.CapsLockPressed == true;
 
-        protected SDL2GameHost(string gameName, HostOptions? options = null)
+        protected SDL3GameHost(string gameName, HostOptions? options = null)
             : base(gameName, options)
         {
         }
 
         protected override TextInputSource CreateTextInput()
         {
-            if (Window is SDL2Window window)
-                return new SDL2WindowTextInput(window);
+            if (Window is SDL3Window window)
+                return new SDL3WindowTextInput(window);
 
             return base.CreateTextInput();
         }
 
-        protected override Clipboard CreateClipboard() => new SDL2Clipboard();
+        protected override Clipboard CreateClipboard() => new SDL3Clipboard();
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
             new InputHandler[]

@@ -11,20 +11,20 @@ using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Logging;
-using osu.Framework.Platform.SDL2;
+using osu.Framework.Platform.SDL;
 using osuTK;
-using SDL2;
+using SDL;
 
 namespace osu.Framework.Platform
 {
-    internal partial class SDL2Window
+    internal partial class SDL3Window
     {
-        private void setupWindowing(FrameworkConfigManager config)
+        private unsafe void setupWindowing(FrameworkConfigManager config)
         {
             config.BindWith(FrameworkSetting.MinimiseOnFocusLossInFullscreen, minimiseOnFocusLoss);
             minimiseOnFocusLoss.BindValueChanged(e =>
             {
-                ScheduleCommand(() => SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, e.NewValue ? "1" : "0"));
+                ScheduleCommand(() => SDL3.SDL_SetHint(SDL3.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, e.NewValue ? "1"u8 : "0"u8));
             }, true);
 
             fetchDisplays();
@@ -69,7 +69,7 @@ namespace osu.Framework.Platform
                 if (min.Width > sizeWindowed.MaxValue.Width || min.Height > sizeWindowed.MaxValue.Height)
                     throw new InvalidOperationException($"Expected a size less than max window size ({sizeWindowed.MaxValue}), got {min}");
 
-                ScheduleCommand(() => SDL.SDL_SetWindowMinimumSize(SDLWindowHandle, min.Width, min.Height));
+                ScheduleCommand(() => SDL3.SDL_SetWindowMinimumSize(SDLWindowHandle, min.Width, min.Height));
             };
 
             sizeWindowed.MaxValueChanged += max =>
@@ -80,7 +80,7 @@ namespace osu.Framework.Platform
                 if (max.Width < sizeWindowed.MinValue.Width || max.Height < sizeWindowed.MinValue.Height)
                     throw new InvalidOperationException($"Expected a size greater than min window size ({sizeWindowed.MinValue}), got {max}");
 
-                ScheduleCommand(() => SDL.SDL_SetWindowMaximumSize(SDLWindowHandle, max.Width, max.Height));
+                ScheduleCommand(() => SDL3.SDL_SetWindowMaximumSize(SDLWindowHandle, max.Width, max.Height));
             };
 
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
@@ -146,7 +146,10 @@ namespace osu.Framework.Platform
                 if (RuntimeInfo.IsMobile)
                     return new[] { Configuration.WindowMode.Fullscreen };
 
-                return Enum.GetValues<WindowMode>();
+                if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows)
+                    return Enum.GetValues<WindowMode>();
+
+                return new[] { Configuration.WindowMode.Windowed, Configuration.WindowMode.Fullscreen };
             }
         }
 
@@ -155,13 +158,13 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Returns or sets the window's position in screen space. Only valid when in <see cref="osu.Framework.Configuration.WindowMode.Windowed"/>
         /// </summary>
-        public Point Position
+        public unsafe Point Position
         {
             get => position;
             set
             {
                 position = value;
-                ScheduleCommand(() => SDL.SDL_SetWindowPosition(SDLWindowHandle, value.X, value.Y));
+                ScheduleCommand(() => SDL3.SDL_SetWindowPosition(SDLWindowHandle, value.X, value.Y));
             }
         }
 
@@ -170,7 +173,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Returns or sets whether the window is resizable or not. Only valid when in <see cref="osu.Framework.Platform.WindowState.Normal"/>.
         /// </summary>
-        public bool Resizable
+        public unsafe bool Resizable
         {
             get => resizable;
             set
@@ -179,7 +182,7 @@ namespace osu.Framework.Platform
                     return;
 
                 resizable = value;
-                ScheduleCommand(() => SDL.SDL_SetWindowResizable(SDLWindowHandle, value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
+                ScheduleCommand(() => SDL3.SDL_SetWindowResizable(SDLWindowHandle, value ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE));
             }
         }
 
@@ -232,7 +235,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Enables or disables the window visibility.
         /// </summary>
-        public bool Visible
+        public unsafe bool Visible
         {
             get => visible;
             set
@@ -241,9 +244,9 @@ namespace osu.Framework.Platform
                 ScheduleCommand(() =>
                 {
                     if (value)
-                        SDL.SDL_ShowWindow(SDLWindowHandle);
+                        SDL3.SDL_ShowWindow(SDLWindowHandle);
                     else
-                        SDL.SDL_HideWindow(SDLWindowHandle);
+                        SDL3.SDL_HideWindow(SDLWindowHandle);
                 });
             }
         }
@@ -290,7 +293,7 @@ namespace osu.Framework.Platform
         public event Action<IEnumerable<Display>>? DisplaysChanged;
 
         // ReSharper disable once UnusedParameter.Local
-        private void handleDisplayEvent(SDL.SDL_DisplayEvent evtDisplay) => fetchDisplays();
+        private void handleDisplayEvent(SDL_DisplayEvent evtDisplay) => fetchDisplays();
 
         /// <summary>
         /// Updates <see cref="Displays"/> with the latest display information reported by SDL.
@@ -326,16 +329,16 @@ namespace osu.Framework.Platform
 
         private static ImmutableArray<Display> getSDLDisplays()
         {
-            int numDisplays = SDL.SDL_GetNumVideoDisplays();
+            using var displays = SDL3.SDL_GetDisplays();
 
-            if (numDisplays <= 0)
-                throw new InvalidOperationException($"Failed to get number of SDL displays. Return code: {numDisplays}. SDL Error: {SDL.SDL_GetError()}");
+            if (displays == null)
+                throw new InvalidOperationException($"Failed to get number of SDL displays. SDL Error: {SDL3.SDL_GetError()}");
 
-            var builder = ImmutableArray.CreateBuilder<Display>(numDisplays);
+            var builder = ImmutableArray.CreateBuilder<Display>(displays.Count);
 
-            for (int i = 0; i < numDisplays; i++)
+            for (int i = 0; i < displays.Count; i++)
             {
-                if (tryGetDisplayFromSDL(i, out Display? display))
+                if (tryGetDisplayFromSDL(i, displays[i], out Display? display))
                     builder.Add(display);
                 else
                     Logger.Log($"Failed to retrieve SDL display at index ({i})", level: LogLevel.Error);
@@ -344,13 +347,15 @@ namespace osu.Framework.Platform
             return builder.MoveToImmutable();
         }
 
-        private static bool tryGetDisplayFromSDL(int displayIndex, [NotNullWhen(true)] out Display? display)
+        private static unsafe bool tryGetDisplayFromSDL(int displayIndex, SDL_DisplayID displayID, [NotNullWhen(true)] out Display? display)
         {
             ArgumentOutOfRangeException.ThrowIfNegative(displayIndex);
 
-            if (SDL.SDL_GetDisplayBounds(displayIndex, out var rect) < 0)
+            SDL_Rect rect;
+
+            if (SDL3.SDL_GetDisplayBounds(displayID, &rect) < 0)
             {
-                Logger.Log($"Failed to get display bounds for display at index ({displayIndex}). SDL Error: {SDL.SDL_GetError()}");
+                Logger.Log($"Failed to get display bounds for display at index ({displayIndex}). SDL Error: {SDL3.SDL_GetError()}");
                 display = null;
                 return false;
             }
@@ -359,28 +364,25 @@ namespace osu.Framework.Platform
 
             if (RuntimeInfo.IsDesktop)
             {
-                int numModes = SDL.SDL_GetNumDisplayModes(displayIndex);
+                using var modes = SDL3.SDL_GetFullscreenDisplayModes(displayID);
 
-                if (numModes < 0)
+                if (modes == null)
                 {
-                    Logger.Log($"Failed to get display modes for display at index ({displayIndex}) ({rect.w}x{rect.h}). SDL Error: {SDL.SDL_GetError()} ({numModes})");
+                    Logger.Log($"Failed to get display modes for display at index ({displayIndex}) ({rect.w}x{rect.h}). SDL Error: {SDL3.SDL_GetError()}");
                     display = null;
                     return false;
                 }
 
-                if (numModes == 0)
+                if (modes.Count == 0)
                     Logger.Log($"Display at index ({displayIndex}) ({rect.w}x{rect.h}) has no display modes. Fullscreen might not work.");
 
-                displayModes = Enumerable.Range(0, numModes)
-                                         .Select(modeIndex =>
-                                         {
-                                             SDL.SDL_GetDisplayMode(displayIndex, modeIndex, out var mode);
-                                             return mode.ToDisplayMode(displayIndex);
-                                         })
-                                         .ToArray();
+                displayModes = new DisplayMode[modes.Count];
+
+                for (int i = 0; i < modes.Count; i++)
+                    displayModes[i] = modes[i].ToDisplayMode(displayIndex);
             }
 
-            display = new Display(displayIndex, SDL.SDL_GetDisplayName(displayIndex), new Rectangle(rect.x, rect.y, rect.w, rect.h), displayModes);
+            display = new Display(displayIndex, SDL3.SDL_GetDisplayName(displayID), new Rectangle(rect.x, rect.y, rect.w, rect.h), displayModes);
             return true;
         }
 
@@ -392,7 +394,7 @@ namespace osu.Framework.Platform
         public virtual Display PrimaryDisplay => Displays.First();
 
         private Display currentDisplay = null!;
-        private int displayIndex = -1;
+        private SDL_DisplayID displayID;
 
         private readonly Bindable<DisplayMode> currentDisplayMode = new Bindable<DisplayMode>();
 
@@ -401,11 +403,12 @@ namespace osu.Framework.Platform
         /// </summary>
         public IBindable<DisplayMode> CurrentDisplayMode => currentDisplayMode;
 
-        private Rectangle windowDisplayBounds
+        private unsafe Rectangle windowDisplayBounds
         {
             get
             {
-                SDL.SDL_GetDisplayBounds(displayIndex, out var rect);
+                SDL_Rect rect;
+                SDL3.SDL_GetDisplayBounds(displayID, &rect);
                 return new Rectangle(rect.x, rect.y, rect.w, rect.h);
             }
         }
@@ -441,9 +444,10 @@ namespace osu.Framework.Platform
         /// Updates <see cref="Size"/> and <see cref="Scale"/> according to SDL state.
         /// </summary>
         /// <returns>Whether the window size has been changed after updating.</returns>
-        private void fetchWindowSize()
+        private unsafe void fetchWindowSize()
         {
-            SDL.SDL_GetWindowSize(SDLWindowHandle, out int w, out int h);
+            int w, h;
+            SDL3.SDL_GetWindowSize(SDLWindowHandle, &w, &h);
 
             int drawableW = graphicsSurface.GetDrawableSize().Width;
 
@@ -460,15 +464,16 @@ namespace osu.Framework.Platform
 
         #region SDL Event Handling
 
-        private void handleWindowEvent(SDL.SDL_WindowEvent evtWindow)
+        private unsafe void handleWindowEvent(SDL_WindowEvent evtWindow)
         {
             updateAndFetchWindowSpecifics();
 
-            switch (evtWindow.windowEvent)
+            switch (evtWindow.type)
             {
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
+                case SDL_EventType.SDL_EVENT_WINDOW_MOVED:
                     // explicitly requery as there are occasions where what SDL has provided us with is not up-to-date.
-                    SDL.SDL_GetWindowPosition(SDLWindowHandle, out int x, out int y);
+                    int x, y;
+                    SDL3.SDL_GetWindowPosition(SDLWindowHandle, &x, &y);
                     var newPosition = new Point(x, y);
 
                     if (!newPosition.Equals(Position))
@@ -482,45 +487,45 @@ namespace osu.Framework.Platform
 
                     break;
 
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
+                case SDL_EventType.SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
                     fetchWindowSize();
                     break;
 
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
+                case SDL_EventType.SDL_EVENT_WINDOW_MOUSE_ENTER:
                     cursorInWindow.Value = true;
                     MouseEntered?.Invoke();
                     break;
 
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
+                case SDL_EventType.SDL_EVENT_WINDOW_MOUSE_LEAVE:
                     cursorInWindow.Value = false;
                     MouseLeft?.Invoke();
                     break;
 
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
+                case SDL_EventType.SDL_EVENT_WINDOW_RESTORED:
+                case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_GAINED:
                     Focused = true;
                     break;
 
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
+                case SDL_EventType.SDL_EVENT_WINDOW_MINIMIZED:
+                case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST:
                     Focused = false;
                     break;
 
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
+                case SDL_EventType.SDL_EVENT_WINDOW_CLOSE_REQUESTED:
                     break;
             }
 
             // displays can change without a SDL_DISPLAYEVENT being sent, eg. changing resolution.
             // force update displays when gaining keyboard focus to always have up-to-date information.
             // eg. this covers scenarios when changing resolution outside of the game, and then tabbing in.
-            switch (evtWindow.windowEvent)
+            switch (evtWindow.type)
             {
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SHOWN:
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_HIDDEN:
+                case SDL_EventType.SDL_EVENT_WINDOW_RESTORED:
+                case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_GAINED:
+                case SDL_EventType.SDL_EVENT_WINDOW_MINIMIZED:
+                case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST:
+                case SDL_EventType.SDL_EVENT_WINDOW_SHOWN:
+                case SDL_EventType.SDL_EVENT_WINDOW_HIDDEN:
                     fetchDisplays();
                     break;
             }
@@ -542,10 +547,10 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Should be run on a regular basis to check for external window state changes.
         /// </summary>
-        private void updateAndFetchWindowSpecifics()
+        private unsafe void updateAndFetchWindowSpecifics()
         {
             // don't attempt to run before the window is initialised, as Create() will do so anyway.
-            if (SDLWindowHandle == IntPtr.Zero)
+            if (SDLWindowHandle == null)
                 return;
 
             var stateBefore = windowState;
@@ -572,7 +577,7 @@ namespace osu.Framework.Platform
             }
             else
             {
-                windowState = ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SDLWindowHandle)).ToWindowState();
+                windowState = SDL3.SDL_GetWindowFlags(SDLWindowHandle).ToWindowState();
             }
 
             if (windowState != stateBefore)
@@ -583,14 +588,39 @@ namespace osu.Framework.Platform
                     windowMaximised = maximized;
             }
 
-            int newDisplayIndex = SDL.SDL_GetWindowDisplayIndex(SDLWindowHandle);
+            var newDisplayID = SDL3.SDL_GetDisplayForWindow(SDLWindowHandle);
 
-            if (displayIndex != newDisplayIndex)
+            if (displayID != newDisplayID)
             {
-                displayIndex = newDisplayIndex;
-                currentDisplay = Displays.ElementAtOrDefault(displayIndex) ?? PrimaryDisplay;
+                displayID = newDisplayID;
+
+                if (tryGetDisplayIndex(newDisplayID, out int index) && tryGetDisplayFromSDL(index, newDisplayID, out var display))
+                    currentDisplay = display;
+                else
+                    currentDisplay = PrimaryDisplay;
+
                 CurrentDisplayBindable.Value = currentDisplay;
             }
+        }
+
+        private static bool tryGetDisplayIndex(SDL_DisplayID id, out int index)
+        {
+            using var displays = SDL3.SDL_GetDisplays();
+
+            if (displays == null)
+                throw new InvalidOperationException($"Failed to get SDL displays. SDL error: {SDL3.SDL_GetError()}");
+
+            for (int i = 0; i < displays.Count; i++)
+            {
+                if (displays[i] == id)
+                {
+                    index = i;
+                    return true;
+                }
+            }
+
+            index = default;
+            return false;
         }
 
         /// <summary>
@@ -599,16 +629,16 @@ namespace osu.Framework.Platform
         /// <remarks>
         /// Call sites need to set <see cref="updatingWindowStateAndSize"/> appropriately.
         /// </remarks>
-        protected virtual void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
+        protected virtual unsafe void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
         {
             switch (state)
             {
                 case WindowState.Normal:
                     Size = sizeWindowed.Value;
 
-                    SDL.SDL_RestoreWindow(SDLWindowHandle);
-                    SDL.SDL_SetWindowSize(SDLWindowHandle, Size.Width, Size.Height);
-                    SDL.SDL_SetWindowResizable(SDLWindowHandle, Resizable ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE);
+                    SDL3.SDL_RestoreWindow(SDLWindowHandle);
+                    SDL3.SDL_SetWindowSize(SDLWindowHandle, Size.Width, Size.Height);
+                    SDL3.SDL_SetWindowResizable(SDLWindowHandle, Resizable ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE);
 
                     readWindowPositionFromConfig(state, display);
                     break;
@@ -620,8 +650,8 @@ namespace osu.Framework.Platform
 
                     ensureWindowOnDisplay(display);
 
-                    SDL.SDL_SetWindowDisplayMode(SDLWindowHandle, ref closestMode);
-                    SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
+                    SDL3.SDL_SetWindowFullscreenMode(SDLWindowHandle, &closestMode);
+                    SDL3.SDL_SetWindowFullscreen(SDLWindowHandle, SDL_bool.SDL_TRUE);
                     break;
 
                 case WindowState.FullscreenBorderless:
@@ -629,49 +659,40 @@ namespace osu.Framework.Platform
                     break;
 
                 case WindowState.Maximised:
-                    SDL.SDL_RestoreWindow(SDLWindowHandle);
+                    SDL3.SDL_RestoreWindow(SDLWindowHandle);
 
                     ensureWindowOnDisplay(display);
 
-                    SDL.SDL_MaximizeWindow(SDLWindowHandle);
+                    SDL3.SDL_MaximizeWindow(SDLWindowHandle);
                     break;
 
                 case WindowState.Minimised:
                     ensureWindowOnDisplay(display);
-                    SDL.SDL_MinimizeWindow(SDLWindowHandle);
+                    SDL3.SDL_MinimizeWindow(SDLWindowHandle);
                     break;
             }
         }
 
-        private static bool tryFetchDisplayMode(IntPtr windowHandle, WindowState windowState, Display display, out DisplayMode displayMode)
+        private static unsafe bool tryFetchDisplayMode(SDL_Window* windowHandle, WindowState windowState, Display display, out DisplayMode displayMode)
         {
-            // TODO: displayIndex should be valid here at all times.
-            // on startup, the displayIndex will be invalid (-1) due to it being set later in the startup sequence.
-            // related to order of operations in `updateWindowSpecifics()`.
-            int localIndex = SDL.SDL_GetWindowDisplayIndex(windowHandle);
+            if (!tryGetDisplayAtIndex(display.Index, out var displayID))
+            {
+                displayMode = default;
+                return false;
+            }
 
-            if (localIndex != display.Index)
-                Logger.Log($"Stored display index ({display.Index}) doesn't match current index ({localIndex})");
-
-            bool success;
-            SDL.SDL_DisplayMode mode;
-
-            if (windowState == WindowState.Fullscreen)
-                success = SDL.SDL_GetWindowDisplayMode(windowHandle, out mode) >= 0;
-            else
-                success = SDL.SDL_GetCurrentDisplayMode(localIndex, out mode) >= 0;
-
+            var mode = windowState == WindowState.Fullscreen ? SDL3.SDL_GetWindowFullscreenMode(windowHandle) : SDL3.SDL_GetDesktopDisplayMode(displayID);
             string type = windowState == WindowState.Fullscreen ? "fullscreen" : "desktop";
 
-            if (success)
+            if (mode != null)
             {
-                displayMode = mode.ToDisplayMode(localIndex);
-                Logger.Log($"Updated display mode to {type} resolution: {mode.w}x{mode.h}@{mode.refresh_rate}, {displayMode.Format}");
+                displayMode = mode->ToDisplayMode(display.Index);
+                Logger.Log($"Updated display mode to {type} resolution: {mode->w}x{mode->h}@{mode->refresh_rate}, {displayMode.Format}");
                 return true;
             }
             else
             {
-                Logger.Log($"Failed to get {type} display mode. Display index: {localIndex}. SDL error: {SDL.SDL_GetError()}");
+                Logger.Log($"Failed to get {type} display mode. Display index: {display.Index}. SDL error: {SDL3.SDL_GetError()}");
                 displayMode = default;
                 return false;
             }
@@ -703,10 +724,13 @@ namespace osu.Framework.Platform
         /// Ensures that the window is located on the provided <see cref="Display"/>.
         /// </summary>
         /// <param name="display">The <see cref="Display"/> to center the window on.</param>
-        private void ensureWindowOnDisplay(Display display)
+        private unsafe void ensureWindowOnDisplay(Display display)
         {
-            if (display.Index == SDL.SDL_GetWindowDisplayIndex(SDLWindowHandle))
-                return;
+            if (tryGetDisplayAtIndex(display.Index, out var requestedID))
+            {
+                if (requestedID == SDL3.SDL_GetDisplayForWindow(SDLWindowHandle))
+                    return;
+            }
 
             moveWindowTo(display, new Vector2(0.5f));
         }
@@ -775,15 +799,7 @@ namespace osu.Framework.Platform
         /// <returns>
         /// The size of the borderless window's draw area.
         /// </returns>
-        protected virtual Size SetBorderless(Display display)
-        {
-            ensureWindowOnDisplay(display);
-
-            // this is a generally sane method of handling borderless, and works well on macOS and linux.
-            SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
-
-            return display.Bounds.Size;
-        }
+        protected virtual Size SetBorderless(Display display) => throw new PlatformNotSupportedException();
 
         #endregion
 
@@ -814,54 +830,68 @@ namespace osu.Framework.Platform
 
         #region Helper functions
 
-        private static SDL.SDL_DisplayMode getClosestDisplayMode(IntPtr windowHandle, Size size, Display display, DisplayMode requestedMode)
+        /// <summary>
+        /// Gets the <see cref="SDL_DisplayID"/> of the display at the specified index.
+        /// </summary>
+        /// <param name="index">Index of the display.</param>
+        /// <param name="displayID">The <see cref="SDL_DisplayID"/> of the display at the specified index.</param>
+        /// <returns><c>true</c> if the display at the requested index is available, <c>false</c> otherwise.</returns>
+        private static bool tryGetDisplayAtIndex(int index, out SDL_DisplayID displayID)
         {
-            SDL.SDL_ClearError(); // clear any stale error.
+            ArgumentOutOfRangeException.ThrowIfNegative(index);
+
+            using var displays = SDL3.SDL_GetDisplays();
+
+            if (displays == null)
+                throw new InvalidOperationException($"Unable to get displays. SDL error: {SDL3.SDL_GetError()}");
+
+            if (index >= displays.Count)
+            {
+                displayID = default;
+                return false;
+            }
+
+            displayID = displays[index];
+            return true;
+        }
+
+        private static unsafe SDL_DisplayMode getClosestDisplayMode(SDL_Window* windowHandle, Size size, Display display, DisplayMode requestedMode)
+        {
+            SDL3.SDL_ClearError(); // clear any stale error.
+
+            if (!tryGetDisplayAtIndex(display.Index, out var displayID))
+                throw new ArgumentException($"Requested display index ({display}) is invalid.", nameof(display));
 
             // default size means to use the display's native size.
             if (size.Width == 9999 && size.Height == 9999)
                 size = display.Bounds.Size;
 
-            var targetMode = new SDL.SDL_DisplayMode { w = size.Width, h = size.Height, refresh_rate = requestedMode.RefreshRate };
-
-            if (SDL.SDL_GetClosestDisplayMode(display.Index, ref targetMode, out var mode) != IntPtr.Zero)
-                return mode;
+            var mode = SDL3.SDL_GetClosestFullscreenDisplayMode(displayID, size.Width, size.Height, requestedMode.RefreshRate, SDL_bool.SDL_TRUE);
+            if (mode != null)
+                return *mode;
             else
-                Logger.Log($"Unable to get preferred display mode (try #1/2). Target display: {display.Index}, mode: {targetMode.ReadableString()}. SDL error: {SDL2Extensions.GetAndClearError()}");
+                Logger.Log($"Unable to get preferred display mode (try #1/2). Target display: {display.Index}, mode: {size.Width}x{size.Height}@{requestedMode.RefreshRate}. SDL error: {SDL3Extensions.GetAndClearError()}");
 
             // fallback to current display's native bounds
-            targetMode.w = display.Bounds.Width;
-            targetMode.h = display.Bounds.Height;
-            targetMode.refresh_rate = 0;
-
-            if (SDL.SDL_GetClosestDisplayMode(display.Index, ref targetMode, out mode) != IntPtr.Zero)
-                return mode;
+            mode = SDL3.SDL_GetClosestFullscreenDisplayMode(displayID, display.Bounds.Width, display.Bounds.Height, 0f, SDL_bool.SDL_TRUE);
+            if (mode != null)
+                return *mode;
             else
-                Logger.Log($"Unable to get preferred display mode (try #2/2). Target display: {display.Index}, mode: {targetMode.ReadableString()}. SDL error: {SDL2Extensions.GetAndClearError()}");
+                Logger.Log($"Unable to get preferred display mode (try #2/2). Target display: {display.Index}, mode: {display.Bounds.Width}x{display.Bounds.Height}@default. SDL error: {SDL3Extensions.GetAndClearError()}");
 
             // try the display's native display mode.
-            if (SDL.SDL_GetDesktopDisplayMode(display.Index, out mode) == 0)
-                return mode;
+            mode = SDL3.SDL_GetDesktopDisplayMode(displayID);
+            if (mode != null)
+                return *mode;
             else
-                Logger.Log($"Failed to get desktop display mode (try #1/3). Target display: {display.Index}. SDL error: {SDL2Extensions.GetAndClearError()}", level: LogLevel.Error);
-
-            // try the primary display mode.
-            if (SDL.SDL_GetDisplayMode(display.Index, 0, out mode) == 0)
-                return mode;
-            else
-                Logger.Log($"Failed to get desktop display mode (try #2/3). Target display: {display.Index}. SDL error: {SDL2Extensions.GetAndClearError()}", level: LogLevel.Error);
-
-            // try the primary display's primary display mode.
-            if (SDL.SDL_GetDisplayMode(0, 0, out mode) == 0)
-                return mode;
-            else
-                Logger.Log($"Failed to get desktop display mode (try #3/3). Target display: primary. SDL error: {SDL2Extensions.GetAndClearError()}", level: LogLevel.Error);
+                Logger.Log($"Failed to get desktop display mode (try #1/1). Target display: {display.Index}. SDL error: {SDL3Extensions.GetAndClearError()}", level: LogLevel.Error);
 
             // finally return the current mode if everything else fails.
-            if (SDL.SDL_GetWindowDisplayMode(windowHandle, out mode) >= 0)
-                return mode;
+            mode = SDL3.SDL_GetWindowFullscreenMode(windowHandle);
+            if (mode != null)
+                return *mode;
             else
-                Logger.Log($"Failed to get window display mode. SDL error: {SDL2Extensions.GetAndClearError()}", level: LogLevel.Error);
+                Logger.Log($"Failed to get window display mode. SDL error: {SDL3Extensions.GetAndClearError()}", level: LogLevel.Error);
 
             throw new InvalidOperationException("couldn't retrieve valid display mode");
         }
