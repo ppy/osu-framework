@@ -4,7 +4,7 @@
 using System;
 using System.IO;
 using osu.Framework.Graphics.Video;
-using SDL2;
+using SDL;
 using static osu.Framework.Audio.AudioDecoderManager;
 
 namespace osu.Framework.Audio
@@ -14,7 +14,7 @@ namespace osu.Framework.Audio
         private VideoDecoder? ffmpeg;
         private byte[]? decodeData;
 
-        public FFmpegAudioDecoder(int rate, int channels, bool isTrack, ushort format, Stream stream, bool autoDisposeStream, PassDataDelegate? pass)
+        public FFmpegAudioDecoder(int rate, int channels, bool isTrack, SDL_AudioFormat format, Stream stream, bool autoDisposeStream, PassDataDelegate? pass)
             : base(rate, channels, isTrack, format, stream, autoDisposeStream, pass)
         {
         }
@@ -31,14 +31,14 @@ namespace osu.Framework.Audio
         {
             if (ffmpeg == null)
             {
-                ffmpeg = new VideoDecoder(Stream, Rate, Channels, SDL.SDL_AUDIO_ISFLOAT(Format), SDL.SDL_AUDIO_BITSIZE(Format), SDL.SDL_AUDIO_ISSIGNED(Format));
+                ffmpeg = new VideoDecoder(Stream, Rate, Channels, SDL3.SDL_AUDIO_ISFLOAT(Format), SDL3.SDL_AUDIO_BITSIZE(Format), SDL3.SDL_AUDIO_ISSIGNED(Format));
 
                 ffmpeg.PrepareDecoding();
                 ffmpeg.RecreateCodecContext();
 
                 Bitrate = (int)ffmpeg.Bitrate;
                 Length = ffmpeg.Duration;
-                ByteLength = (long)Math.Ceiling(ffmpeg.Duration / 1000.0d * Rate) * Channels * (SDL.SDL_AUDIO_BITSIZE(Format) / 8); // FIXME
+                ByteLength = (long)Math.Ceiling(ffmpeg.Duration / 1000.0d * Rate) * Channels * (SDL3.SDL_AUDIO_BITSIZE(Format) / 8); // FIXME
 
                 Loading = true;
             }

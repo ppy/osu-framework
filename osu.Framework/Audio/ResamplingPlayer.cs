@@ -25,14 +25,14 @@ namespace osu.Framework.Audio
         private WdlResampler? resampler;
 
         internal readonly int SrcRate;
-        internal readonly byte SrcChannels;
+        internal readonly int SrcChannels;
 
         /// <summary>
         /// Creates a new <see cref="ResamplingPlayer"/>.
         /// </summary>
         /// <param name="srcRate">Sampling rate of audio that's given from <see cref="GetRemainingRawFloats(float[], int, int)"/></param>
         /// <param name="srcChannels">Channels of audio that's given from <see cref="GetRemainingRawFloats(float[], int, int)"/></param>
-        protected ResamplingPlayer(int srcRate, byte srcChannels)
+        protected ResamplingPlayer(int srcRate, int srcChannels)
         {
             SrcRate = srcRate;
             SrcChannels = srcChannels;

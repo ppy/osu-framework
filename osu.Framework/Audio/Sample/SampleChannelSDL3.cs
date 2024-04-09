@@ -2,13 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Threading;
-using osu.Framework.Audio.Mixing.SDL2;
+using osu.Framework.Audio.Mixing.SDL3;
 
 namespace osu.Framework.Audio.Sample
 {
-    internal sealed class SampleChannelSDL2 : SampleChannel, ISDL2AudioChannel
+    internal sealed class SampleChannelSDL3 : SampleChannel, ISDL3AudioChannel
     {
-        private readonly SampleSDL2AudioPlayer player;
+        private readonly SampleSDL3AudioPlayer player;
 
         private volatile bool playing;
         public override bool Playing => playing;
@@ -16,7 +16,7 @@ namespace osu.Framework.Audio.Sample
         private volatile bool looping;
         public override bool Looping { get => looping; set => looping = value; }
 
-        public SampleChannelSDL2(SampleSDL2 sample, SampleSDL2AudioPlayer player)
+        public SampleChannelSDL3(SampleSDL3 sample, SampleSDL3AudioPlayer player)
             : base(sample.Name)
         {
             this.player = player;
@@ -38,7 +38,7 @@ namespace osu.Framework.Audio.Sample
 
         private volatile bool started;
 
-        int ISDL2AudioChannel.GetRemainingSamples(float[] data)
+        int ISDL3AudioChannel.GetRemainingSamples(float[] data)
         {
             if (player.RelativeRate != rate)
                 player.RelativeRate = rate;
@@ -77,11 +77,11 @@ namespace osu.Framework.Audio.Sample
             Interlocked.Exchange(ref rate, AggregateFrequency.Value);
         }
 
-        (float, float) ISDL2AudioChannel.Volume => volume;
+        (float, float) ISDL3AudioChannel.Volume => volume;
 
-        bool ISDL2AudioChannel.Playing => playing;
+        bool ISDL3AudioChannel.Playing => playing;
 
-        ~SampleChannelSDL2()
+        ~SampleChannelSDL3()
         {
             Dispose(false);
         }
@@ -91,7 +91,7 @@ namespace osu.Framework.Audio.Sample
             if (IsDisposed)
                 return;
 
-            (Mixer as SDL2AudioMixer)?.StreamFree(this);
+            (Mixer as SDL3AudioMixer)?.StreamFree(this);
 
             base.Dispose(disposing);
         }

@@ -6,13 +6,13 @@ using System.IO;
 using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Audio.Callbacks;
-using SDL2;
+using SDL;
 using static osu.Framework.Audio.AudioDecoderManager;
 
 namespace osu.Framework.Audio
 {
     /// <summary>
-    /// This is only for using BASS as a decoder for SDL2 backend!
+    /// This is only for using BASS as a decoder for SDL3 backend!
     /// </summary>
     internal class BassAudioDecoder : AudioDecoder
     {
@@ -30,24 +30,18 @@ namespace osu.Framework.Audio
         {
             get
             {
-                switch (Format)
-                {
-                    case SDL.AUDIO_S8:
-                        return Resolution.Byte;
-
-                    case SDL.AUDIO_S16:
-                        return Resolution.Short;
-
-                    case SDL.AUDIO_F32:
-                    default:
-                        return Resolution.Float;
-                }
+                if ((int)Format == SDL3.SDL_AUDIO_S8)
+                    return Resolution.Byte;
+                else if (Format == SDL3.SDL_AUDIO_S16)
+                    return Resolution.Short;
+                else
+                    return Resolution.Float;
             }
         }
 
-        private ushort bits => SDL.SDL_AUDIO_BITSIZE(Format);
+        private ushort bits => (ushort)SDL3.SDL_AUDIO_BITSIZE(Format);
 
-        public BassAudioDecoder(int rate, int channels, bool isTrack, ushort format, Stream stream, bool autoDisposeStream, PassDataDelegate? pass)
+        public BassAudioDecoder(int rate, int channels, bool isTrack, SDL_AudioFormat format, Stream stream, bool autoDisposeStream, PassDataDelegate? pass)
             : base(rate, channels, isTrack, format, stream, autoDisposeStream, pass)
         {
         }

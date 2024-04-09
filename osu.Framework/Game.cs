@@ -167,12 +167,12 @@ namespace osu.Framework
 
             switch (config.Get<AudioDriver>(FrameworkSetting.AudioDriver))
             {
-                case AudioDriver.SDL2 when Host.Window is SDL2Window sdl2Window:
+                case AudioDriver.SDL3 when Host.Window is SDL3Window sdl3Window:
                 {
-                    SDL2AudioManager sdl2Audio = new SDL2AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
-                    sdl2Window.AudioDeviceAdded += sdl2Audio.OnNewDeviceEvent;
-                    sdl2Window.AudioDeviceRemoved += sdl2Audio.OnLostDeviceEvent;
-                    Audio = sdl2Audio;
+                    SDL3AudioManager sdl3Audio = new SDL3AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
+                    sdl3Window.AudioDeviceAdded += sdl3Audio.OnNewDeviceEvent;
+                    sdl3Window.AudioDeviceRemoved += sdl3Audio.OnLostDeviceEvent;
+                    Audio = sdl3Audio;
                     break;
                 }
 

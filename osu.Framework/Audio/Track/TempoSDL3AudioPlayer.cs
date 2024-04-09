@@ -6,7 +6,7 @@ using SoundTouch;
 
 namespace osu.Framework.Audio.Track
 {
-    internal class TempoSDL2AudioPlayer : TrackSDL2AudioPlayer
+    internal class TempoSDL3AudioPlayer : TrackSDL3AudioPlayer
     {
         private SoundTouchProcessor? soundTouch;
 
@@ -29,12 +29,12 @@ namespace osu.Framework.Audio.Track
         public override bool Done => base.Done && (soundTouch == null || donePlaying);
 
         /// <summary>
-        /// Creates a new <see cref="TempoSDL2AudioPlayer"/>.
+        /// Creates a new <see cref="TempoSDL3AudioPlayer"/>.
         /// </summary>
         /// <param name="rate"><inheritdoc /></param>
         /// <param name="channels"><inheritdoc /></param>
-        /// <param name="samples"><see cref="TempoSDL2AudioPlayer"/> will prepare this amount of samples (or more) on every update.</param>
-        public TempoSDL2AudioPlayer(int rate, byte channels, int samples)
+        /// <param name="samples"><see cref="TempoSDL3AudioPlayer"/> will prepare this amount of samples (or more) on every update.</param>
+        public TempoSDL3AudioPlayer(int rate, int channels, int samples)
             : base(rate, channels)
         {
             samplesize = samples;

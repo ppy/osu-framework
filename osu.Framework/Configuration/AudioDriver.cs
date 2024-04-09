@@ -6,6 +6,6 @@ namespace osu.Framework.Configuration
     public enum AudioDriver
     {
         BASS,
-        SDL2
+        SDL3
     }
 }

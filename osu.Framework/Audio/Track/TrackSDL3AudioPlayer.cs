@@ -7,9 +7,9 @@ using System.Threading;
 namespace osu.Framework.Audio.Track
 {
     /// <summary>
-    /// Mainly returns audio data to <see cref="TrackSDL2"/>.
+    /// Mainly returns audio data to <see cref="TrackSDL3"/>.
     /// </summary>
-    internal class TrackSDL2AudioPlayer : ResamplingPlayer, IDisposable
+    internal class TrackSDL3AudioPlayer : ResamplingPlayer, IDisposable
     {
         private volatile bool isLoaded;
         public bool IsLoaded => isLoaded;
@@ -49,11 +49,11 @@ namespace osu.Framework.Audio.Track
         public bool ReversePlayback { get; set; }
 
         /// <summary>
-        /// Creates a new <see cref="TrackSDL2AudioPlayer"/>. Use <see cref="TempoSDL2AudioPlayer"/> if you want to adjust tempo.
+        /// Creates a new <see cref="TrackSDL3AudioPlayer"/>. Use <see cref="TempoSDL3AudioPlayer"/> if you want to adjust tempo.
         /// </summary>
         /// <param name="rate">Sampling rate of audio</param>
         /// <param name="channels">Channels of audio</param>
-        public TrackSDL2AudioPlayer(int rate, byte channels)
+        public TrackSDL3AudioPlayer(int rate, int channels)
             : base(rate, channels)
         {
             isLoading = false;
@@ -270,7 +270,7 @@ namespace osu.Framework.Audio.Track
             }
         }
 
-        ~TrackSDL2AudioPlayer()
+        ~TrackSDL3AudioPlayer()
         {
             Dispose(false);
         }

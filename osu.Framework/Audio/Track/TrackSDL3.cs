@@ -5,14 +5,14 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NAudio.Dsp;
-using osu.Framework.Audio.Mixing.SDL2;
+using osu.Framework.Audio.Mixing.SDL3;
 using osu.Framework.Extensions;
 
 namespace osu.Framework.Audio.Track
 {
-    public sealed class TrackSDL2 : Track, ISDL2AudioChannel
+    public sealed class TrackSDL3 : Track, ISDL3AudioChannel
     {
-        private readonly TempoSDL2AudioPlayer player;
+        private readonly TempoSDL3AudioPlayer player;
 
         public override bool IsDummyDevice => false;
 
@@ -31,7 +31,7 @@ namespace osu.Framework.Audio.Track
         private volatile int bitrate;
         public override int? Bitrate => bitrate;
 
-        public TrackSDL2(string name, int rate, byte channels, int samples)
+        public TrackSDL3(string name, int rate, int channels, int samples)
             : base(name)
         {
             // SoundTouch limitation
@@ -39,10 +39,10 @@ namespace osu.Framework.Audio.Track
             AggregateTempo.ValueChanged += t =>
             {
                 if (t.NewValue < tempo_minimum_supported)
-                    throw new ArgumentException($"{nameof(TrackSDL2)} does not support {nameof(Tempo)} specifications below {tempo_minimum_supported}. Use {nameof(Frequency)} instead.");
+                    throw new ArgumentException($"{nameof(TrackSDL3)} does not support {nameof(Tempo)} specifications below {tempo_minimum_supported}. Use {nameof(Frequency)} instead.");
             };
 
-            player = new TempoSDL2AudioPlayer(rate, channels, samples);
+            player = new TempoSDL3AudioPlayer(rate, channels, samples);
         }
 
         private readonly object syncRoot = new object();
@@ -226,7 +226,7 @@ namespace osu.Framework.Audio.Track
             isRunning = false;
         });
 
-        int ISDL2AudioChannel.GetRemainingSamples(float[] data)
+        int ISDL3AudioChannel.GetRemainingSamples(float[] data)
         {
             if (!IsLoaded) return 0;
 
@@ -271,11 +271,11 @@ namespace osu.Framework.Audio.Track
             volume = ((float)(AggregateVolume.Value * (balance > 0 ? balance : 1.0)), (float)(AggregateVolume.Value * (balance < 0 ? -balance : 1.0)));
         }
 
-        bool ISDL2AudioChannel.Playing => isRunning && !player.Done;
+        bool ISDL3AudioChannel.Playing => isRunning && !player.Done;
 
-        (float, float) ISDL2AudioChannel.Volume => volume;
+        (float, float) ISDL3AudioChannel.Volume => volume;
 
-        ~TrackSDL2()
+        ~TrackSDL3()
         {
             Dispose(false);
         }
@@ -286,7 +286,7 @@ namespace osu.Framework.Audio.Track
                 return;
 
             isRunning = false;
-            (Mixer as SDL2AudioMixer)?.StreamFree(this);
+            (Mixer as SDL3AudioMixer)?.StreamFree(this);
 
             decodeData?.Stop();
 

@@ -13,26 +13,26 @@ using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Statistics;
 using NAudio.Dsp;
 
-namespace osu.Framework.Audio.Mixing.SDL2
+namespace osu.Framework.Audio.Mixing.SDL3
 {
     /// <summary>
-    /// Mixes <see cref="ISDL2AudioChannel"/> instances and applies effects on top of them.
+    /// Mixes <see cref="ISDL3AudioChannel"/> instances and applies effects on top of them.
     /// </summary>
-    internal class SDL2AudioMixer : AudioMixer
+    internal class SDL3AudioMixer : AudioMixer
     {
         private readonly object syncRoot = new object();
 
         /// <summary>
-        /// List of <see cref="ISDL2AudioChannel"/> instances that are active.
+        /// List of <see cref="ISDL3AudioChannel"/> instances that are active.
         /// </summary>
-        private readonly LinkedList<ISDL2AudioChannel> activeChannels = new LinkedList<ISDL2AudioChannel>();
+        private readonly LinkedList<ISDL3AudioChannel> activeChannels = new LinkedList<ISDL3AudioChannel>();
 
         /// <summary>
-        /// Creates a new <see cref="SDL2AudioMixer"/>
+        /// Creates a new <see cref="SDL3AudioMixer"/>
         /// </summary>
         /// <param name="globalMixer"><inheritdoc /></param>
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
-        public SDL2AudioMixer(AudioMixer? globalMixer, string identifier)
+        public SDL3AudioMixer(AudioMixer? globalMixer, string identifier)
             : base(globalMixer, identifier)
         {
             EnqueueAction(() => Effects.BindCollectionChanged(onEffectsChanged, true));
@@ -42,7 +42,7 @@ namespace osu.Framework.Audio.Mixing.SDL2
 
         protected override void AddInternal(IAudioChannel channel)
         {
-            if (channel is not ISDL2AudioChannel sdlChannel)
+            if (channel is not ISDL3AudioChannel sdlChannel)
                 return;
 
             lock (syncRoot)
@@ -51,7 +51,7 @@ namespace osu.Framework.Audio.Mixing.SDL2
 
         protected override void RemoveInternal(IAudioChannel channel)
         {
-            if (channel is not ISDL2AudioChannel sdlChannel)
+            if (channel is not ISDL3AudioChannel sdlChannel)
                 return;
 
             lock (syncRoot)
@@ -227,7 +227,7 @@ namespace osu.Framework.Audio.Mixing.SDL2
             {
                 // allowing non-bqf to keep index of list
                 if (param is BQFParameters bqfp)
-                    BiQuadFilter = getFilter(SDL2AudioManager.AUDIO_FREQ, bqfp);
+                    BiQuadFilter = getFilter(SDL3AudioManager.AUDIO_FREQ, bqfp);
             }
         }
 

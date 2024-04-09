@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using osu.Framework.Logging;
 using System.Collections.Generic;
+using SDL;
 
 namespace osu.Framework.Audio
 {
@@ -19,7 +20,7 @@ namespace osu.Framework.Audio
             protected readonly int Rate;
             protected readonly int Channels;
             protected readonly bool IsTrack;
-            protected readonly ushort Format;
+            protected readonly SDL_AudioFormat Format;
             protected readonly Stream Stream;
             protected readonly bool AutoDisposeStream;
             protected readonly PassDataDelegate? Pass;
@@ -51,7 +52,7 @@ namespace osu.Framework.Audio
             internal volatile bool StopJob;
             internal volatile bool Loading;
 
-            protected AudioDecoder(int rate, int channels, bool isTrack, ushort format, Stream stream, bool autoDisposeStream, PassDataDelegate? pass)
+            protected AudioDecoder(int rate, int channels, bool isTrack, SDL_AudioFormat format, Stream stream, bool autoDisposeStream, PassDataDelegate? pass)
             {
                 Rate = rate;
                 Channels = channels;
@@ -113,7 +114,7 @@ namespace osu.Framework.Audio
         private readonly AutoResetEvent decoderWaitHandle;
         private readonly CancellationTokenSource tokenSource;
 
-        internal static AudioDecoder CreateDecoder(int rate, int channels, bool isTrack, ushort format, Stream stream,
+        internal static AudioDecoder CreateDecoder(int rate, int channels, bool isTrack, SDL_AudioFormat format, Stream stream,
                                                    bool autoDisposeStream = true, PassDataDelegate? pass = null)
         {
             AudioDecoder decoder = ManagedBass.Bass.CurrentDevice >= 0
@@ -136,7 +137,7 @@ namespace osu.Framework.Audio
             decoderThread.Start();
         }
 
-        public AudioDecoder StartDecodingAsync(int rate, byte channels, ushort format, Stream stream, PassDataDelegate pass)
+        public AudioDecoder StartDecodingAsync(int rate, int channels, SDL_AudioFormat format, Stream stream, PassDataDelegate pass)
         {
             AudioDecoder decoder = CreateDecoder(rate, channels, true, format, stream, true, pass);
 
@@ -148,7 +149,7 @@ namespace osu.Framework.Audio
             return decoder;
         }
 
-        public static byte[] DecodeAudio(int freq, int channels, ushort format, Stream stream, out int size)
+        public static byte[] DecodeAudio(int freq, int channels, SDL_AudioFormat format, Stream stream, out int size)
         {
             AudioDecoder decoder = CreateDecoder(freq, channels, false, format, stream);
 

@@ -4,26 +4,26 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using osu.Framework.Audio.Mixing.SDL2;
+using osu.Framework.Audio.Mixing.SDL3;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
-using SDL2;
+using SDL;
 
 namespace osu.Framework.Audio.Sample
 {
-    internal class SampleSDL2Factory : SampleFactory
+    internal class SampleSDL3Factory : SampleFactory
     {
         private bool isLoaded;
         public override bool IsLoaded => isLoaded;
 
-        private readonly SDL2AudioMixer mixer;
-        private readonly SDL.SDL_AudioSpec spec;
+        private readonly SDL3AudioMixer mixer;
+        private readonly SDL_AudioSpec spec;
 
         private float[] decodedAudio = Array.Empty<float>();
 
         private Stream? stream;
 
-        public SampleSDL2Factory(Stream stream, string name, SDL2AudioMixer mixer, int playbackConcurrency, SDL.SDL_AudioSpec spec)
+        public SampleSDL3Factory(Stream stream, string name, SDL3AudioMixer mixer, int playbackConcurrency, SDL_AudioSpec spec)
             : base(name, playbackConcurrency)
         {
             this.stream = stream;
@@ -59,20 +59,20 @@ namespace osu.Framework.Audio.Sample
             }
         }
 
-        public SampleSDL2AudioPlayer CreatePlayer()
+        public SampleSDL3AudioPlayer CreatePlayer()
         {
             LoadSampleTask?.WaitSafely();
 
-            return new SampleSDL2AudioPlayer(decodedAudio, spec.freq, spec.channels);
+            return new SampleSDL3AudioPlayer(decodedAudio, spec.freq, spec.channels);
         }
 
-        public override Sample CreateSample() => new SampleSDL2(this, mixer) { OnPlay = SampleFactoryOnPlay };
+        public override Sample CreateSample() => new SampleSDL3(this, mixer) { OnPlay = SampleFactoryOnPlay };
 
         protected override void UpdatePlaybackConcurrency(ValueChangedEvent<int> concurrency)
         {
         }
 
-        ~SampleSDL2Factory()
+        ~SampleSDL3Factory()
         {
             Dispose(false);
         }

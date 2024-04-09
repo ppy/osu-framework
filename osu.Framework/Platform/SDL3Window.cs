@@ -567,7 +567,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void handleAudioDeviceEvent(SDL.SDL_AudioDeviceEvent evtAudioDevice)
+        private void handleAudioDeviceEvent(SDL_AudioDeviceEvent evtAudioDevice)
         {
             if (evtAudioDevice.iscapture != 0) // capture device
                 return;
@@ -575,7 +575,7 @@ namespace osu.Framework.Platform
             switch (evtAudioDevice.type)
             {
                 case SDL_EventType.SDL_EVENT_AUDIO_DEVICE_ADDED:
-                    AudioDeviceAdded?.Invoke((int)evtAudioDevice.which);
+                    AudioDeviceAdded?.Invoke(evtAudioDevice.which);
                     break;
 
                 case SDL_EventType.SDL_EVENT_AUDIO_DEVICE_REMOVED:
@@ -658,14 +658,14 @@ namespace osu.Framework.Platform
         public event Action<string>? DragDrop;
 
         /// <summary>
-        /// Invoked when a new audio device is added, only when using SDL2 audio
+        /// Invoked when a new audio device is added, only when using SDL3 audio
         /// </summary>
-        public event Action<int>? AudioDeviceAdded;
+        public event Action<SDL_AudioDeviceID>? AudioDeviceAdded;
 
         /// <summary>
-        /// Invoked when a new audio device is removed, only when using SDL2 audio
+        /// Invoked when a new audio device is removed, only when using SDL3 audio
         /// </summary>
-        public event Action<uint>? AudioDeviceRemoved;
+        public event Action<SDL_AudioDeviceID>? AudioDeviceRemoved;
 
         #endregion
 

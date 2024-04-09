@@ -5,7 +5,7 @@ using System;
 
 namespace osu.Framework.Audio.Sample
 {
-    internal class SampleSDL2AudioPlayer : ResamplingPlayer
+    internal class SampleSDL3AudioPlayer : ResamplingPlayer
     {
         private int position;
 
@@ -16,7 +16,7 @@ namespace osu.Framework.Audio.Sample
 
         public bool Loop { get; set; }
 
-        public SampleSDL2AudioPlayer(float[] audioData, int rate, byte channels)
+        public SampleSDL3AudioPlayer(float[] audioData, int rate, int channels)
             : base(rate, channels)
         {
             this.audioData = audioData;
