@@ -101,7 +101,7 @@ namespace osu.Framework.Platform
                             return SDL3.SDL_GetProperty(props, SDL3.SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, IntPtr.Zero);
 
                         if (SDL3.SDL_GetCurrentVideoDriver() == "x11")
-                            return SDL3.SDL_GetProperty(props, SDL3.SDL_PROP_WINDOW_X11_WINDOW_NUMBER, IntPtr.Zero);
+                            return new IntPtr(SDL3.SDL_GetNumberProperty(props, SDL3.SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0));
 
                         return IntPtr.Zero;
 
