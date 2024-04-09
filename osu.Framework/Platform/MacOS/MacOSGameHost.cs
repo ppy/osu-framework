@@ -54,7 +54,7 @@ namespace osu.Framework.Platform.MacOS
 
             foreach (var h in handlers.OfType<MouseHandler>())
             {
-                // There are several bugs we need to fix with macOS / SDL2 cursor handling before switching this on.
+                // There are several bugs we need to fix with macOS / SDL3 cursor handling before switching this on.
                 h.UseRelativeMode.Value = false;
                 h.UseRelativeMode.Default = false;
             }

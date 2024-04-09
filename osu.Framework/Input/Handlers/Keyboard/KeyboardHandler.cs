@@ -21,7 +21,7 @@ namespace osu.Framework.Input.Handlers.Keyboard
             if (!base.Initialize(host))
                 return false;
 
-            if (!(host.Window is SDL2Window window))
+            if (!(host.Window is SDL3Window window))
                 return false;
 
             Enabled.BindValueChanged(e =>

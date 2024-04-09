@@ -351,7 +351,7 @@ namespace osu.Framework.Extensions
         /// <param name="resolution">The <see cref="DisplayResolution"/> to convert.</param>
         /// <returns>A <see cref="DisplayMode"/> structure populated with the corresponding properties.</returns>
         internal static DisplayMode ToDisplayMode(this DisplayResolution resolution) =>
-            new DisplayMode(null, new Size(resolution.Width, resolution.Height), resolution.BitsPerPixel, (int)Math.Round(resolution.RefreshRate), 0);
+            new DisplayMode(null, new Size(resolution.Width, resolution.Height), resolution.BitsPerPixel, resolution.RefreshRate, 0);
 
         /// <summary>
         /// Checks whether the provided URL is a safe protocol to execute a system <see cref="Process.Start()"/> call with.

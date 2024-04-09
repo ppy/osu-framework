@@ -732,7 +732,7 @@ namespace osu.Framework.Platform
 
                 ChooseAndSetupRenderer();
 
-                // Window creation may fail in the case of a catastrophic failure (ie. graphics driver or SDL2 level).
+                // Window creation may fail in the case of a catastrophic failure (ie. graphics driver or SDL3 level).
                 // In such cases, we want to throw here to immediately mark this renderer setup as failed.
                 if (RequireWindowExists && Window == null)
                 {
@@ -780,7 +780,7 @@ namespace osu.Framework.Platform
                     {
                         switch (Window)
                         {
-                            case SDL2Window window:
+                            case SDL3Window window:
                                 window.Update += windowUpdate;
                                 break;
 
@@ -1323,7 +1323,7 @@ namespace osu.Framework.Platform
             if (Window == null)
                 return;
 
-            int refreshRate = Window.CurrentDisplayMode.Value.RefreshRate;
+            int refreshRate = (int)MathF.Round(Window.CurrentDisplayMode.Value.RefreshRate);
 
             // For invalid refresh rates let's assume 60 Hz as it is most common.
             if (refreshRate <= 0)
