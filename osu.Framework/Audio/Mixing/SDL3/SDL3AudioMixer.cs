@@ -64,13 +64,18 @@ namespace osu.Framework.Audio.Mixing.SDL3
             base.UpdateState();
         }
 
-        private unsafe void mixAudio(float* dst, float* src, ref int filled, int samples, float left, float right)
+        private unsafe void mixAudio(float[] dst, float[] src, ref int filled, int samples, float left, float right)
         {
             if (left <= 0 && right <= 0)
                 return;
 
-            for (int i = 0; i < samples; i++)
-                *(dst + i) = (*(src + i) * ((i % 2) == 0 ? left : right)) + (i < filled ? *(dst + i) : 0);
+            int i = 0;
+
+            for (; i < filled; i++)
+                dst[i] += src[i] * ((i % 2) == 0 ? left : right);
+
+            for (; i < samples; i++)
+                dst[i] = src[i] * ((i % 2) == 0 ? left : right);
 
             if (samples > filled)
                 filled = samples;
@@ -88,7 +93,7 @@ namespace osu.Framework.Audio.Mixing.SDL3
         /// <param name="data">A float array that audio will be mixed into.</param>
         /// <param name="sampleCount">Size of data</param>
         /// <param name="filledSamples">Count of usable audio samples in data</param>
-        public unsafe void MixChannelsInto(float* data, int sampleCount, ref int filledSamples)
+        public unsafe void MixChannelsInto(float[] data, int sampleCount, ref int filledSamples)
         {
             lock (syncRoot)
             {
@@ -127,18 +132,11 @@ namespace osu.Framework.Audio.Mixing.SDL3
 
                             if (!useFilters)
                             {
-                                fixed (float* retPtr = ret)
-                                {
-                                    mixAudio(data, retPtr, ref filledSamples, size, left, right);
-                                }
+                                mixAudio(data, ret, ref filledSamples, size, left, right);
                             }
                             else
                             {
-                                fixed (float* filterArrPtr = filterArray)
-                                fixed (float* retPtr = ret)
-                                {
-                                    mixAudio(filterArrPtr, retPtr, ref filterArrayFilled, size, left, right);
-                                }
+                                mixAudio(filterArray!, ret, ref filterArrayFilled, size, left, right);
                             }
                         }
                     }
@@ -161,10 +159,7 @@ namespace osu.Framework.Audio.Mixing.SDL3
                         }
                     }
 
-                    fixed (float* filterArrPtr = filterArray)
-                    {
-                        mixAudio(data, filterArrPtr, ref filledSamples, filterArrayFilled, 1, 1);
-                    }
+                    mixAudio(data, filterArray!, ref filledSamples, filterArrayFilled, 1, 1);
                 }
             }
         }

@@ -68,6 +68,9 @@ namespace osu.Framework.Audio
                 format = AUDIO_FORMAT
             };
 
+            // determines latency, but some audio servers may not make use of this hint
+            SDL3.SDL_SetHint(SDL3.SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES, "256"u8);
+
             AudioScheduler.Add(() =>
             {
                 syncAudioDevices();
@@ -142,33 +145,31 @@ namespace osu.Framework.Audio
                 audioManager.internalAudioCallback(stream, additionalAmount);
         }
 
+        private float[] audioBuffer;
+
         private void internalAudioCallback(SDL_AudioStream* stream, int additionalAmount)
         {
             additionalAmount /= 4;
-            float[] buf = ArrayPool<float>.Shared.Rent(additionalAmount);
+
+            if (audioBuffer == null || audioBuffer.Length < additionalAmount)
+                audioBuffer = new float[additionalAmount];
 
             try
             {
-                fixed (float* main = buf)
+                int filled = 0;
+
+                foreach (var mixer in sdlMixerList)
                 {
-                    int filled = 0;
-
-                    foreach (var mixer in sdlMixerList)
-                    {
-                        if (mixer.IsAlive)
-                            mixer.MixChannelsInto(main, additionalAmount, ref filled);
-                    }
-
-                    SDL3.SDL_PutAudioStreamData(stream, (IntPtr)main, filled * 4);
+                    if (mixer.IsAlive)
+                        mixer.MixChannelsInto(audioBuffer, additionalAmount, ref filled);
                 }
+
+                fixed (float* ptr = audioBuffer)
+                    SDL3.SDL_PutAudioStreamData(stream, (IntPtr)ptr, filled * 4);
             }
             catch (Exception e)
             {
                 Logger.Error(e, "Error while pushing audio to SDL");
-            }
-            finally
-            {
-                ArrayPool<float>.Shared.Return(buf);
             }
         }
 
@@ -315,7 +316,9 @@ namespace osu.Framework.Audio
             {
                 SDL3.SDL_DestroyAudioStream(deviceStream);
                 deviceStream = null;
-                deviceId = 0; // Destroying audio stream will close audio device
+                deviceId = 0;
+                // Destroying audio stream will close audio device because we use SDL3 OpenAudioDeviceStream
+                // won't use multiple AudioStream for now since it's barely useful
             }
 
             ObjectHandle.Dispose();
