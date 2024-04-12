@@ -54,9 +54,9 @@ namespace osu.Framework.Input.Handlers.Tablet
 
             host.Window.Resized += () => updateOutputArea(host.Window);
 
-            AreaOffset.BindValueChanged(_ => updateInputArea(device));
-            AreaSize.BindValueChanged(_ => updateInputArea(device), true);
-            Rotation.BindValueChanged(_ => updateInputArea(device), true);
+            AreaOffset.BindValueChanged(_ => updateTabletAndInputArea(device));
+            AreaSize.BindValueChanged(_ => updateTabletAndInputArea(device), true);
+            Rotation.BindValueChanged(_ => updateTabletAndInputArea(device), true);
 
             Enabled.BindValueChanged(enabled =>
             {
@@ -103,7 +103,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                 device.OutputMode = outputMode;
                 outputMode.Tablet = device.CreateReference();
 
-                updateInputArea(device);
+                updateTabletAndInputArea(device);
                 updateOutputArea(host.Window);
             }
         }
@@ -140,7 +140,7 @@ namespace osu.Framework.Input.Handlers.Tablet
             }
         }
 
-        private void updateInputArea(InputDeviceTree? inputDevice)
+        private void updateTabletAndInputArea(InputDeviceTree? inputDevice)
         {
             if (inputDevice == null)
                 return;
