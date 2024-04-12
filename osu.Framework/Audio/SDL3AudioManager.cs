@@ -33,7 +33,7 @@ namespace osu.Framework.Audio
         private volatile SDL_AudioStream* deviceStream;
 
         private SDL_AudioSpec spec;
-        private int bufferSize = (int)(44100 * 0.01);
+        private int bufferSize = (int)(AUDIO_FREQ * 0.01); // 10ms, will be calculated later when opening audio device, it works as a base value until then.
 
         private static readonly AudioDecoderManager decoder = new AudioDecoderManager();
 
@@ -60,7 +60,7 @@ namespace osu.Framework.Audio
         {
             ObjectHandle = new ObjectHandle<SDL3AudioManager>(this, GCHandleType.Normal);
 
-            // Must not edit this except for samples, as components (especially mixer) expects this to match.
+            // Must not edit this, as components (especially mixer) expects this to match.
             spec = new SDL_AudioSpec
             {
                 freq = AUDIO_FREQ,
@@ -70,7 +70,7 @@ namespace osu.Framework.Audio
 
             AudioScheduler.Add(() =>
             {
-                updateDeviceList();
+                syncAudioDevices();
 
                 // comment below lines if you want to use FFmpeg to decode audio, AudioDecoder will use FFmpeg if no BASS device is available
                 ManagedBass.Bass.Configure((ManagedBass.Configuration)68, 1);
@@ -144,7 +144,8 @@ namespace osu.Framework.Audio
 
         private void internalAudioCallback(SDL_AudioStream* stream, int additionalAmount)
         {
-            float[] buf = ArrayPool<float>.Shared.Rent(additionalAmount / 4);
+            additionalAmount /= 4;
+            float[] buf = ArrayPool<float>.Shared.Rent(additionalAmount);
 
             try
             {
@@ -155,11 +156,8 @@ namespace osu.Framework.Audio
                     foreach (var mixer in sdlMixerList)
                     {
                         if (mixer.IsAlive)
-                            mixer.MixChannelsInto(main, additionalAmount / 4, ref filled);
+                            mixer.MixChannelsInto(main, additionalAmount, ref filled);
                     }
-
-                    for (; filled < additionalAmount / 4; filled++)
-                        *(main + filled) = 0;
 
                     SDL3.SDL_PutAudioStreamData(stream, (IntPtr)main, filled * 4);
                 }
@@ -181,7 +179,7 @@ namespace osu.Framework.Audio
                 // the index is only vaild until next SDL_GetNumAudioDevices call, so get the name first.
                 string name = SDL3.SDL_GetAudioDeviceName(addedDeviceIndex);
 
-                updateDeviceList();
+                syncAudioDevices();
                 InvokeOnNewDevice(name);
             });
         }
@@ -191,7 +189,7 @@ namespace osu.Framework.Audio
             AudioScheduler.Add(() =>
             {
                 // SDL doesn't retain information about removed device.
-                updateDeviceList();
+                syncAudioDevices();
 
                 if (!IsCurrentDeviceValid()) // current device lost
                 {
@@ -206,7 +204,7 @@ namespace osu.Framework.Audio
             });
         }
 
-        private void updateDeviceList()
+        private void syncAudioDevices()
         {
             int count = 0;
             SDL_AudioDeviceID* idArrayPtr = SDL3.SDL_GetAudioOutputDevices(&count);
@@ -217,14 +215,19 @@ namespace osu.Framework.Audio
             for (int i = 0; i < count; i++)
             {
                 SDL_AudioDeviceID id = *(idArrayPtr + i);
-                idArray.Add(id);
-                nameArray.Add(SDL3.SDL_GetAudioDeviceName(id));
+                string name = SDL3.SDL_GetAudioDeviceName(id);
 
-                Logger.Log($"audio update {id} : {nameArray[i]}");
+                if (name == null || name.Length == 0)
+                    continue;
+
+                idArray.Add(id);
+                nameArray.Add(name);
             }
 
-            deviceIdArray = idArray.ToImmutableArray();
+            deviceIdArray = idArray.ToImmutable();
             DeviceNames = nameArray.ToImmutableList();
+
+            Logger.Log($"count {count} , id {deviceIdArray.Length} , names {DeviceNames.Count}");
         }
 
         private bool setAudioDevice(SDL_AudioDeviceID targetId)
