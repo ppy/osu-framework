@@ -40,9 +40,9 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public Bindable<float> Rotation { get; } = new Bindable<float>();
 
-        public IBindable<TabletInfo> Tablet => tablet;
+        public IBindable<TabletInfo?> Tablet => tablet;
 
-        private readonly Bindable<TabletInfo> tablet = new Bindable<TabletInfo>();
+        private readonly Bindable<TabletInfo?> tablet = new Bindable<TabletInfo?>();
 
         private Task? lastInitTask;
 
@@ -106,6 +106,8 @@ namespace osu.Framework.Input.Handlers.Tablet
                 updateTabletAndInputArea(device);
                 updateOutputArea(host.Window);
             }
+            else
+                tablet.Value = null;
         }
 
         private void handleDeviceReported(object? sender, IDeviceReport report)
