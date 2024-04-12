@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -218,7 +217,7 @@ namespace osu.Framework.Audio
                 SDL_AudioDeviceID id = *(idArrayPtr + i);
                 string name = SDL3.SDL_GetAudioDeviceName(id);
 
-                if (name == null || name.Length == 0)
+                if (string.IsNullOrEmpty(name))
                     continue;
 
                 idArray.Add(id);

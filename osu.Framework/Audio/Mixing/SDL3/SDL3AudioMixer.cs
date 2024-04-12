@@ -64,7 +64,7 @@ namespace osu.Framework.Audio.Mixing.SDL3
             base.UpdateState();
         }
 
-        private unsafe void mixAudio(float[] dst, float[] src, ref int filled, int samples, float left, float right)
+        private void mixAudio(float[] dst, float[] src, ref int filled, int samples, float left, float right)
         {
             if (left <= 0 && right <= 0)
                 return;
@@ -93,7 +93,7 @@ namespace osu.Framework.Audio.Mixing.SDL3
         /// <param name="data">A float array that audio will be mixed into.</param>
         /// <param name="sampleCount">Size of data</param>
         /// <param name="filledSamples">Count of usable audio samples in data</param>
-        public unsafe void MixChannelsInto(float[] data, int sampleCount, ref int filledSamples)
+        public void MixChannelsInto(float[] data, int sampleCount, ref int filledSamples)
         {
             lock (syncRoot)
             {
