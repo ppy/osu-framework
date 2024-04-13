@@ -26,7 +26,7 @@ namespace osu.Framework.Platform.SDL
             unsafe
             {
                 nuint size = 0;
-                byte* data = (byte*)SDL3.SDL_GetClipboardData(Encoding.UTF8.GetBytes("image/png"), &size);
+                byte* data = (byte*)SDL3.SDL_GetClipboardData("image/png\0"u8, &size);
                 if (data == null)
                     return null;
 
@@ -77,6 +77,7 @@ namespace osu.Framework.Platform.SDL
         private static unsafe nint clipboardDataCallback(nint userdata, byte* mimeType, nuint* length)
         {
             string mimeTypeStr = new string((sbyte*)mimeType);
+
             if (mimeTypeStr == "image/png")
             {
                 byte* rawBuffer = (byte*)SDL3.SDL_malloc(png_data.Length);
