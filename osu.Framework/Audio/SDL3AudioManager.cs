@@ -67,9 +67,6 @@ namespace osu.Framework.Audio
                 format = AUDIO_FORMAT
             };
 
-            // determines latency, but some audio servers may not make use of this hint
-            SDL3.SDL_SetHint(SDL3.SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES, "256"u8);
-
             AudioScheduler.Add(() =>
             {
                 syncAudioDevices();
@@ -226,8 +223,6 @@ namespace osu.Framework.Audio
 
             deviceIdArray = idArray.ToImmutable();
             DeviceNames = nameArray.ToImmutableList();
-
-            Logger.Log($"count {count} , id {deviceIdArray.Length} , names {DeviceNames.Count}");
         }
 
         private bool setAudioDevice(SDL_AudioDeviceID targetId)
