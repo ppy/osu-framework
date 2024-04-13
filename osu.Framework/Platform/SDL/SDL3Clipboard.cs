@@ -26,9 +26,7 @@ namespace osu.Framework.Platform.SDL
             unsafe
             {
                 nuint size = 0;
-                byte* data;
-
-                data = (byte*)SDL3.SDL_GetClipboardData(Encoding.UTF8.GetBytes("image/png"), &size);
+                byte* data = (byte*)SDL3.SDL_GetClipboardData(Encoding.UTF8.GetBytes("image/png"), &size);
                 if (data == null)
                     return null;
 
@@ -42,16 +40,13 @@ namespace osu.Framework.Platform.SDL
             return Image.Load<TPixel>(buffer);
         }
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private unsafe delegate nint ClipboardDataCallback(nint userdata, byte* mime_type, nuint* length);
-
         private unsafe class ClipboardImageData
         {
             public byte* Buffer;
             public nuint Length;
         }
 
-        private static ClipboardImageData pngData = new ClipboardImageData();
+        private static readonly ClipboardImageData png_data = new ClipboardImageData();
 
         public override bool SetImage(Image image)
         {
@@ -63,10 +58,11 @@ namespace osu.Framework.Platform.SDL
             {
                 fixed (byte* pngBufferPtr = pngBuffer)
                 {
-                    pngData.Buffer = pngBufferPtr;
-                    pngData.Length = (nuint)pngBuffer.Length;
+                    png_data.Buffer = pngBufferPtr;
+                    png_data.Length = (nuint)pngBuffer.Length;
 
                     byte[] pngMimeType = Encoding.UTF8.GetBytes("image/png");
+
                     fixed (byte* pngMimeTypePtr = pngMimeType)
                     {
                         SDL3.SDL_SetClipboardData(&clipboardDataCallback, null, (nint)null, &pngMimeTypePtr, 1);
@@ -78,22 +74,22 @@ namespace osu.Framework.Platform.SDL
         }
 
         [UnmanagedCallersOnly(EntryPoint = "clipboardDataCallback", CallConvs = [typeof(CallConvCdecl)])]
-        private static unsafe nint clipboardDataCallback(nint userdata, byte* mime_type, nuint* length)
+        private static unsafe nint clipboardDataCallback(nint userdata, byte* mimeType, nuint* length)
         {
-            string mimeType = new string((sbyte*)mime_type);
-            if (mimeType == "image/png")
+            string mimeTypeStr = new string((sbyte*)mimeType);
+            if (mimeTypeStr == "image/png")
             {
-                byte* rawBuffer = (byte*)SDL3.SDL_malloc(pngData.Length);
+                byte* rawBuffer = (byte*)SDL3.SDL_malloc(png_data.Length);
 
-                byte* buffer = pngData.Buffer;
-                for (nuint i = 0; i < pngData.Length; i++)
+                byte* buffer = png_data.Buffer;
+                for (nuint i = 0; i < png_data.Length; i++)
                     rawBuffer[i] = buffer[i];
 
-                *length = pngData.Length;
+                *length = png_data.Length;
                 return (nint)rawBuffer;
             }
 
-            return (nint)null;
+            return 0;
         }
     }
 }
