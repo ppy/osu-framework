@@ -83,12 +83,13 @@ namespace osu.Framework.Platform.SDL
         {
             ClipboardImageData* pngData = (ClipboardImageData*)userdata;
 
-            string mimeTypeStr = new string((sbyte*)mimeType);
-
-            if (mimeTypeStr == "image/png")
+            fixed (byte* pngMimetypeStr = "image/png"u8)
             {
-                *length = pngData->Length;
-                return (nint)pngData->RawBuffer;
+                if (SDL3.SDL_strcmp(mimeType, pngMimetypeStr) == 0)
+                {
+                    *length = pngData->Length;
+                    return (nint)pngData->RawBuffer;
+                }
             }
 
             return 0;
