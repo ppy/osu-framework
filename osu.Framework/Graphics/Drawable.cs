@@ -495,6 +495,8 @@ namespace osu.Framework.Graphics
             return true;
         }
 
+        private RectangleF? lastMaskingBounds;
+
         /// <summary>
         /// Updates all masking calculations for this <see cref="Drawable"/>.
         /// This occurs post-<see cref="UpdateSubTree"/> to ensure that all <see cref="Drawable"/> updates have taken place.
@@ -510,8 +512,11 @@ namespace osu.Framework.Graphics
             if (HasProxy && source != proxy)
                 return false;
 
-            if (!maskingBacking.IsValid)
+            if (!maskingBacking.IsValid || lastMaskingBounds != maskingBounds)
+            {
+                lastMaskingBounds = maskingBounds;
                 IsMaskedAway = maskingBacking.Value = ComputeIsMaskedAway(maskingBounds);
+            }
 
             return true;
         }
