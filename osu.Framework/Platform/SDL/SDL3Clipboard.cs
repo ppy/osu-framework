@@ -25,6 +25,12 @@ namespace osu.Framework.Platform.SDL
 
             unsafe
             {
+                // It appears that SDL_GetClipboardData still returns the clipboard data
+                // even if it doesn't have the mimetype that we requested.
+                // So instead we ensure it's at least not text before trying to get it.
+                if (SDL3.SDL_HasClipboardText() == SDL3.SDL_TRUE)
+                    return null;
+
                 nuint size = 0;
                 byte* data = (byte*)SDL3.SDL_GetClipboardData("image/png\0"u8, &size);
                 if (data == null)
