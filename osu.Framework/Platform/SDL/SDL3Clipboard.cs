@@ -78,7 +78,7 @@ namespace osu.Framework.Platform.SDL
             }
         }
 
-        [UnmanagedCallersOnly(EntryPoint = "clipboardDataCallback", CallConvs = [typeof(CallConvCdecl)])]
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
         private static unsafe nint clipboardDataCallback(nint userdata, byte* mimeType, nuint* length)
         {
             ClipboardImageData* pngData = (ClipboardImageData*)userdata;
@@ -95,7 +95,7 @@ namespace osu.Framework.Platform.SDL
             return 0;
         }
 
-        [UnmanagedCallersOnly(EntryPoint = "clipboardCleanupCallback", CallConvs = [typeof(CallConvCdecl)])]
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
         private static unsafe void clipboardCleanupCallback(nint userdata)
         {
             ClipboardImageData* pngData = (ClipboardImageData*)userdata;
