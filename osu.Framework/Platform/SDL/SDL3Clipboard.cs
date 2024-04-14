@@ -46,57 +46,61 @@ namespace osu.Framework.Platform.SDL
             return Image.Load<TPixel>(buffer);
         }
 
-        private unsafe class ClipboardImageData
+        private unsafe struct ClipboardImageData
         {
-            public byte* Buffer;
+            public byte* RawBuffer;
             public nuint Length;
         }
-
-        private static readonly ClipboardImageData png_data = new ClipboardImageData();
 
         public override bool SetImage(Image image)
         {
             MemoryStream pngStream = new MemoryStream();
             image.SaveAsPng(pngStream);
-            byte[] pngBuffer = pngStream.GetBuffer();
+            byte[] buffer = pngStream.GetBuffer();
 
             unsafe
             {
-                fixed (byte* pngBufferPtr = pngBuffer)
+                ClipboardImageData* pngData = (ClipboardImageData*)SDL3.SDL_malloc((nuint)sizeof(ClipboardImageData));
+
+                byte* rawBuffer = (byte*)SDL3.SDL_malloc((nuint)buffer.Length);
+
+                for (int i = 0; i < buffer.Length; i++)
+                    rawBuffer[i] = buffer[i];
+
+                pngData->RawBuffer = rawBuffer;
+                pngData->Length = (nuint)buffer.Length;
+
+                fixed (byte* pngMimeTypePtr = "image/png\0"u8)
                 {
-                    png_data.Buffer = pngBufferPtr;
-                    png_data.Length = (nuint)pngBuffer.Length;
-
-                    byte[] pngMimeType = Encoding.UTF8.GetBytes("image/png");
-
-                    fixed (byte* pngMimeTypePtr = pngMimeType)
-                    {
-                        SDL3.SDL_SetClipboardData(&clipboardDataCallback, null, (nint)null, &pngMimeTypePtr, 1);
-                    }
+                    int status = SDL3.SDL_SetClipboardData(&clipboardDataCallback, &clipboardCleanupCallback, (nint)pngData, &pngMimeTypePtr, 1);
+                    return status == 0;
                 }
             }
-
-            return false;
         }
 
         [UnmanagedCallersOnly(EntryPoint = "clipboardDataCallback", CallConvs = [typeof(CallConvCdecl)])]
         private static unsafe nint clipboardDataCallback(nint userdata, byte* mimeType, nuint* length)
         {
+            ClipboardImageData* pngData = (ClipboardImageData*)userdata;
+
             string mimeTypeStr = new string((sbyte*)mimeType);
 
             if (mimeTypeStr == "image/png")
             {
-                byte* rawBuffer = (byte*)SDL3.SDL_malloc(png_data.Length);
-
-                byte* buffer = png_data.Buffer;
-                for (nuint i = 0; i < png_data.Length; i++)
-                    rawBuffer[i] = buffer[i];
-
-                *length = png_data.Length;
-                return (nint)rawBuffer;
+                *length = pngData->Length;
+                return (nint)pngData->RawBuffer;
             }
 
             return 0;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "clipboardCleanupCallback", CallConvs = [typeof(CallConvCdecl)])]
+        private static unsafe void clipboardCleanupCallback(nint userdata)
+        {
+            ClipboardImageData* pngData = (ClipboardImageData*)userdata;
+
+            SDL3.SDL_free(pngData->RawBuffer);
+            SDL3.SDL_free(pngData);
         }
     }
 }
