@@ -66,6 +66,7 @@ namespace osu.Framework.Graphics
             AddLayout(screenSpaceDrawQuadBacking);
             AddLayout(drawColourInfoBacking);
             AddLayout(requiredParentSizeToFitBacking);
+            AddLayout(maskingBacking);
         }
 
         private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), "Total constructed");
@@ -511,10 +512,10 @@ namespace osu.Framework.Graphics
             if (HasProxy && source != proxy)
                 return false;
 
-            if (!screenSpaceDrawQuadBacking.IsValid || lastMaskingBounds != maskingBounds)
+            if (!maskingBacking.IsValid || lastMaskingBounds != maskingBounds)
             {
                 lastMaskingBounds = maskingBounds;
-                IsMaskedAway = ComputeIsMaskedAway(maskingBounds);
+                IsMaskedAway = maskingBacking.Value = ComputeIsMaskedAway(maskingBounds);
             }
 
             return true;
@@ -1562,6 +1563,8 @@ namespace osu.Framework.Graphics
         /// actually masked away, but it may be false, even if the Drawable was masked away.
         /// </summary>
         internal bool IsMaskedAway { get; private set; }
+
+        private readonly LayoutValue<bool> maskingBacking = new LayoutValue<bool>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence);
 
         private readonly LayoutValue<Quad> screenSpaceDrawQuadBacking = new LayoutValue<Quad>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence);
 
