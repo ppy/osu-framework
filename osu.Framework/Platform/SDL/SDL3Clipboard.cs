@@ -83,7 +83,7 @@ namespace osu.Framework.Platform.SDL
         {
             ClipboardImageData* pngData = (ClipboardImageData*)userdata;
 
-            fixed (byte* pngMimetypeStr = "image/png"u8)
+            fixed (byte* pngMimetypeStr = "image/png\0"u8)
             {
                 if (SDL3.SDL_strcmp(mimeType, pngMimetypeStr) == 0)
                 {
