@@ -32,7 +32,7 @@
     <PackageReference Include="ppy.Veldrid.SPIRV" Version="1.0.15-gca6cec7843" />
     <PackageReference Include="SharpFNT" Version="2.0.0" />
     <!-- Preview version of ImageSharp causes NU5104. -->
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.3" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.4" />
     <PackageReference Include="NUnit" Version="3.13.3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OpenTabletDriver" Version="0.6.4.0" />
