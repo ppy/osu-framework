@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Text;
 using SDL;
 using SixLabors.ImageSharp;
 
@@ -14,7 +13,7 @@ namespace osu.Framework.Platform.SDL
         // assume that empty text means no text.
         public override string? GetText() => SDL3.SDL_HasClipboardText() == SDL_bool.SDL_TRUE ? SDL3.SDL_GetClipboardText() : null;
 
-        public override void SetText(string text) => SDL3.SDL_SetClipboardText(Encoding.UTF8.GetBytes(text));
+        public override void SetText(string text) => SDL3.SDL_SetClipboardText(SDL3.UTF8GetBytes(text));
 
         public override Image<TPixel>? GetImage<TPixel>()
         {
