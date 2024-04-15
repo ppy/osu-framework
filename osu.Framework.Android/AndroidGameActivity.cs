@@ -24,8 +24,7 @@ namespace osu.Framework.Android
               Exported = true,
               LaunchMode = DEFAULT_LAUNCH_MODE,
               HardwareAccelerated = true,
-              MainLauncher = true,
-              ScreenOrientation = ScreenOrientation.Landscape)]
+              MainLauncher = true)]
     public abstract class AndroidGameActivity : SDLActivity
     {
         protected const ConfigChanges DEFAULT_CONFIG_CHANGES = ConfigChanges.Keyboard
@@ -106,9 +105,9 @@ namespace osu.Framework.Android
             // In order to have a consistent current directory on all devices the full path of the app data directory is set as the current directory.
             System.Environment.CurrentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile);
 
-            UIVisibilityFlags = SystemUiFlags.LayoutFlags | SystemUiFlags.LayoutFullscreen | SystemUiFlags.ImmersiveSticky | SystemUiFlags.HideNavigation | SystemUiFlags.Fullscreen;
+            base.OnCreate(savedInstanceState);
 
-            RequestedOrientation = ScreenOrientation.Landscape;
+            UIVisibilityFlags = SystemUiFlags.LayoutFlags | SystemUiFlags.ImmersiveSticky | SystemUiFlags.HideNavigation | SystemUiFlags.Fullscreen;
 
             // Firing up the on-screen keyboard (eg: interacting with textboxes) may cause the UI visibility flags to be altered thus showing the navigation bar and potentially the status bar
             // This sets back the UI flags to hidden once the interaction with the on-screen keyboard has finished.
@@ -124,8 +123,6 @@ namespace osu.Framework.Android
             {
                 Window.AsNonNull().Attributes.AsNonNull().LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.ShortEdges;
             }
-
-            base.OnCreate(savedInstanceState);
         }
 
         protected override void OnStop()
