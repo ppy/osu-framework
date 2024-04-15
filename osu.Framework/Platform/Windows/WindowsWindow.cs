@@ -97,7 +97,7 @@ namespace osu.Framework.Platform.Windows
 
             switch (evt.type)
             {
-                // handle raw mouse and keyboard events in SDL_EventFilter for lower latency are resilience against SDL_PumpEvents() lag
+                // handle raw mouse and keyboard events in SDL_EventFilter for lower latency and resilience against SDL_PumpEvents() lag
                 case SDL_EventType.SDL_EVENT_MOUSE_MOTION when rawMouse:
                 case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN when rawMouse:
                 case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP when rawMouse:
