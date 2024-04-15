@@ -64,8 +64,8 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="ssboSize">Must be at least 2. See <see cref="IRenderer.CreateShaderStorageBufferObject{TData}"/></param>
         public ShaderStorageBufferObjectStack(IRenderer renderer, int uboSize, int ssboSize)
         {
-            if (uboSize < 2) throw new ArgumentOutOfRangeException(nameof(uboSize), "The size of the buffer must be at least 2.");
-            if (ssboSize < 2) throw new ArgumentOutOfRangeException(nameof(ssboSize), "The size of the buffer must be at least 2.");
+            ArgumentOutOfRangeException.ThrowIfLessThan(uboSize, 2);
+            ArgumentOutOfRangeException.ThrowIfLessThan(ssboSize, 2);
 
             this.renderer = renderer;
             this.uboSize = uboSize;

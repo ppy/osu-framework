@@ -21,7 +21,7 @@ namespace osu.Framework.Android
 
         public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
-        public AndroidGameSurface(AndroidGameActivity activity, Context context)
+        public AndroidGameSurface(AndroidGameActivity activity, Context? context)
             : base(context)
         {
             init();

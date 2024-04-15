@@ -6,7 +6,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Android
 {
-    internal class AndroidGameWindow : SDL2Window
+    internal class AndroidGameWindow : SDL3Window
     {
         public override IntPtr DisplayHandle => AndroidGameActivity.Surface.NativeSurface?.Handle ?? IntPtr.Zero;
 

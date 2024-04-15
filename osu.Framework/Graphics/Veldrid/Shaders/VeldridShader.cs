@@ -8,7 +8,6 @@ using System.Linq;
 using System.Text;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Veldrid.Buffers;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
@@ -23,7 +22,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         private readonly string name;
         private readonly VeldridShaderPart[] parts;
         private readonly ShaderCompilationStore compilationStore;
-        private readonly VeldridRenderer renderer;
+        private readonly IVeldridRenderer renderer;
 
         public Shader[]? Shaders;
 
@@ -42,7 +41,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         private readonly Dictionary<string, VeldridUniformLayout> uniformLayouts = new Dictionary<string, VeldridUniformLayout>();
         private readonly List<VeldridUniformLayout> textureLayouts = new List<VeldridUniformLayout>();
 
-        public VeldridShader(VeldridRenderer renderer, string name, VeldridShaderPart[] parts, ShaderCompilationStore compilationStore)
+        public VeldridShader(IVeldridRenderer renderer, string name, VeldridShaderPart[] parts, ShaderCompilationStore compilationStore)
         {
             this.name = name;
             this.parts = parts;
@@ -59,8 +58,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
         internal void EnsureShaderInitialised()
         {
-            if (isDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not compile a disposed shader.");
+            ObjectDisposedException.ThrowIf(isDisposed, this);
 
             if (shaderInitialiseDelegate.State == RunState.Waiting)
                 shaderInitialiseDelegate.RunTask();
@@ -91,15 +89,11 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
         public void BindUniformBlock(string blockName, IUniformBuffer buffer)
         {
-            if (buffer is not IVeldridUniformBuffer veldridBuffer)
-                throw new ArgumentException($"Buffer must be an {nameof(IVeldridUniformBuffer)}.");
-
-            if (isDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not retrieve uniforms from a disposed shader.");
+            ObjectDisposedException.ThrowIf(isDisposed, this);
 
             EnsureShaderInitialised();
 
-            renderer.BindUniformBuffer(blockName, veldridBuffer);
+            renderer.BindUniformBuffer(blockName, buffer);
         }
 
         public VeldridUniformLayout? GetTextureLayout(int textureUnit) => textureUnit >= textureLayouts.Count ? null : textureLayouts[textureUnit];
@@ -188,6 +182,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     }
                     else
                     {
+                        layout.Elements[0].Options |= ResourceLayoutElementOptions.DynamicBinding;
+
                         switch (layout.Elements[0].Kind)
                         {
                             case ResourceKind.UniformBuffer:

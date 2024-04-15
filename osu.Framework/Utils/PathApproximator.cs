@@ -52,8 +52,7 @@ namespace osu.Framework.Utils
             // Zero-th degree splines would be piecewise-constant, which cannot be represented by the piecewise-
             // linear output of this function. Negative degrees would require rational splines which this code
             // does not support.
-            if (degree < 1)
-                throw new ArgumentOutOfRangeException(nameof(degree), $"{nameof(degree)} must be >=1 but was {degree}.");
+            ArgumentOutOfRangeException.ThrowIfLessThan(degree, 1);
 
             // Spline fitting does not make sense when the input contains no points or just one point. In this case
             // the user likely wants this function to behave like a no-op.
@@ -82,8 +81,7 @@ namespace osu.Framework.Utils
             // Zero-th degree splines would be piecewise-constant, which cannot be represented by the piecewise-
             // linear output of this function. Negative degrees would require rational splines which this code
             // does not support.
-            if (degree < 1)
-                throw new ArgumentOutOfRangeException(nameof(degree), $"{nameof(degree)} must be >=1 but was {degree}.");
+            ArgumentOutOfRangeException.ThrowIfLessThan(degree, 1);
 
             // Spline fitting does not make sense when the input contains no points or just one point. In this case
             // the user likely wants this function to behave like a no-op.
@@ -662,11 +660,9 @@ namespace osu.Framework.Utils
         /// <returns>Matrix array of B-spline basis function values.</returns>
         private static float[,] generateBSplineWeights(int numControlPoints, int numTestPoints, int degree)
         {
-            if (numControlPoints < 2)
-                throw new ArgumentOutOfRangeException(nameof(numControlPoints), $"{nameof(numControlPoints)} must be >=2 but was {numControlPoints}.");
+            ArgumentOutOfRangeException.ThrowIfLessThan(numControlPoints, 2);
 
-            if (numTestPoints < 2)
-                throw new ArgumentOutOfRangeException(nameof(numTestPoints), $"{nameof(numTestPoints)} must be >=2 but was {numTestPoints}.");
+            ArgumentOutOfRangeException.ThrowIfLessThan(numTestPoints, 2);
 
             if (degree < 0 || degree >= numControlPoints)
                 throw new ArgumentOutOfRangeException(nameof(degree), $"{nameof(degree)} must be >=0 and <{nameof(numControlPoints)} but was {degree}.");
@@ -723,11 +719,8 @@ namespace osu.Framework.Utils
 
         private static float[,] generateBezierWeights(int numControlPoints, int numTestPoints)
         {
-            if (numControlPoints < 2)
-                throw new ArgumentOutOfRangeException(nameof(numControlPoints), $"{nameof(numControlPoints)} must be >=2 but was {numControlPoints}.");
-
-            if (numTestPoints < 2)
-                throw new ArgumentOutOfRangeException(nameof(numTestPoints), $"{nameof(numTestPoints)} must be >=2 but was {numTestPoints}.");
+            ArgumentOutOfRangeException.ThrowIfLessThan(numControlPoints, 2);
+            ArgumentOutOfRangeException.ThrowIfLessThan(numTestPoints, 2);
 
             long[] coefficients = binomialCoefficients(numControlPoints - 1);
             float[,] p = new float[numTestPoints, numControlPoints];

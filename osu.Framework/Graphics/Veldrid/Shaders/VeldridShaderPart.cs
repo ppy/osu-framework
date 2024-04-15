@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         public readonly List<VeldridShaderAttribute> Inputs = new List<VeldridShaderAttribute>();
         public readonly List<VeldridShaderAttribute> Outputs = new List<VeldridShaderAttribute>();
 
-        public VeldridShaderPart(VeldridRenderer renderer, byte[]? data, ShaderPartType type, IShaderStore store)
+        public VeldridShaderPart(IVeldridRenderer renderer, byte[]? data, ShaderPartType type, IShaderStore store)
         {
             this.store = store;
 

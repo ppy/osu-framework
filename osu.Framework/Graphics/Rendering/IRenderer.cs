@@ -447,6 +447,14 @@ namespace osu.Framework.Graphics.Rendering
 
         internal void PopQuadBatch();
 
+        internal void EnterDrawNode(DrawNode node)
+        {
+        }
+
+        internal void ExitDrawNode()
+        {
+        }
+
         #region TextureVisualiser Support
 
         /// <summary>

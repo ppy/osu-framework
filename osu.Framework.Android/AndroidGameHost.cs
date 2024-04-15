@@ -10,6 +10,7 @@ using osu.Framework.Android.Graphics.Textures;
 using osu.Framework.Android.Graphics.Video;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
@@ -20,7 +21,7 @@ using Uri = Android.Net.Uri;
 
 namespace osu.Framework.Android
 {
-    public class AndroidGameHost : SDL2GameHost
+    public class AndroidGameHost : SDL3GameHost
     {
         private readonly AndroidGameActivity activity;
 
@@ -56,11 +57,9 @@ namespace osu.Framework.Android
 
         public override Storage GetStorage(string path) => new AndroidStorage(path, this);
 
-        public override IEnumerable<string> UserStoragePaths => new[]
-        {
+        public override IEnumerable<string> UserStoragePaths
             // not null as internal "external storage" is always available.
-            Application.Context.GetExternalFilesDir(string.Empty).AsNonNull().ToString(),
-        };
+            => Application.Context.GetExternalFilesDir(string.Empty).AsNonNull().ToString().Yield();
 
         public override bool OpenFileExternally(string filename) => false;
 
