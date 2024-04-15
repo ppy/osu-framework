@@ -37,8 +37,7 @@ namespace osu.Framework.Platform.SDL
                     return null;
 
                 buffer = new byte[size];
-                for (nuint i = 0; i < size; i++)
-                    buffer[i] = data[i];
+                Marshal.Copy((nint)data, buffer, 0, (int)size);
 
                 SDL3.SDL_free(data);
             }
