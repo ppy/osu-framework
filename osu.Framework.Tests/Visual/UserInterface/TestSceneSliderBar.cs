@@ -60,6 +60,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         BackgroundColour = Color4.White,
                         SelectionColour = Color4.Pink,
                         KeyboardStep = 1,
+                        AdjustmentStep = 0.25f,
                         Current = sliderBarValue
                     },
                     new SpriteText
@@ -272,7 +273,65 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkValue(0);
         }
 
-        private void checkValue(int expected) =>
+        [Test]
+        public void TestAdjustmentStepRelativeClick()
+        {
+            checkValue(0);
+            AddStep("Move Cursor",
+                () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.799f, 0.5f))); });
+            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+            AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
+            checkValue(6);
+
+            AddStep("Move Cursor",
+                () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.801f, 0.5f))); });
+            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+            AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
+            checkValue(6);
+
+            AddStep("Move Cursor",
+                () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.81f, 0.5f))); });
+            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+            AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
+            checkValue(6.25f);
+
+            AddStep("Move Cursor",
+                () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.79f, 0.5f))); });
+            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+            AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
+            checkValue(5.75f);
+        }
+
+        [Test]
+        public void TestAdjustmentStepKeyboardFromWeirdValue()
+        {
+            AddStep("set value to non-tick value", () => sliderBar.Current.Value = 6.01);
+
+            AddStep("move mouse inside", () =>
+            {
+                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.25f, 0.5f)));
+            });
+
+            AddStep("Press right arrow key", () =>
+            {
+                InputManager.PressKey(Key.Right);
+                InputManager.ReleaseKey(Key.Right);
+            });
+
+            checkValue(7);
+
+            AddStep("set value to non-tick value", () => sliderBar.Current.Value = 6.05);
+
+            AddStep("Press left arrow key", () =>
+            {
+                InputManager.PressKey(Key.Left);
+                InputManager.ReleaseKey(Key.Left);
+            });
+
+            checkValue(5);
+        }
+
+        private void checkValue(float expected) =>
             AddAssert($"Value == {expected}", () => sliderBarValue.Value, () => Is.EqualTo(expected).Within(Precision.FLOAT_EPSILON));
 
         private void sliderBarValueChanged(ValueChangedEvent<double> args)
