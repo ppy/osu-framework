@@ -14,17 +14,12 @@ using Org.Libsdl.App;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Platform;
-using SDL;
 using Debug = System.Diagnostics.Debug;
 
 namespace osu.Framework.Android
 {
     // since `ActivityAttribute` can't be inherited, the below is only provided as an illustrative example of how to setup an activity for best compatibility.
-    [Activity(ConfigurationChanges = DEFAULT_CONFIG_CHANGES,
-              Exported = true,
-              LaunchMode = DEFAULT_LAUNCH_MODE,
-              HardwareAccelerated = true,
-              MainLauncher = true)]
+    [Activity(ConfigurationChanges = DEFAULT_CONFIG_CHANGES, Exported = true, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
     public abstract class AndroidGameActivity : SDLActivity
     {
         protected const ConfigChanges DEFAULT_CONFIG_CHANGES = ConfigChanges.Keyboard
@@ -52,23 +47,6 @@ namespace osu.Framework.Android
         /// </summary>
         public BindableBool IsActive { get; } = new BindableBool();
 
-        /// <summary>
-        /// The visibility flags for the system UI (status and navigation bars)
-        /// </summary>
-        public SystemUiFlags UIVisibilityFlags
-        {
-#pragma warning disable 618 // SystemUiVisibility is deprecated
-            get => (SystemUiFlags)Window.AsNonNull().DecorView.SystemUiVisibility;
-            set
-            {
-                systemUiFlags = value;
-                Window.AsNonNull().DecorView.SystemUiVisibility = (StatusBarVisibility)value;
-#pragma warning restore 618
-            }
-        }
-
-        private SystemUiFlags systemUiFlags;
-
         public override void OnTrimMemory([GeneratedEnum] TrimMemory level)
         {
             base.OnTrimMemory(level);
@@ -82,12 +60,23 @@ namespace osu.Framework.Android
         protected override IRunnable CreateSDLMainRunnable() => new Runnable(() =>
         {
             // blocks back button
-            SDL3.SDL_SetHint(SDL3.SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1"u8);
+            SDL.SDL3.SDL_SetHint(SDL.SDL3.SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1"u8);
 
             // hints are here because they don't apply well in another location such as SDL2Window
 
             host = new AndroidGameHost(this);
             game = CreateGame();
+
+            host.AllowScreenSuspension.Result.BindValueChanged(allow =>
+            {
+                RunOnUiThread(() =>
+                {
+                    if (!allow.NewValue)
+                        Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
+                    else
+                        Window?.ClearFlags(WindowManagerFlags.KeepScreenOn);
+                });
+            }, true);
 
             host.Run(game);
 
@@ -106,18 +95,6 @@ namespace osu.Framework.Android
             System.Environment.CurrentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile);
 
             base.OnCreate(savedInstanceState);
-
-            UIVisibilityFlags = SystemUiFlags.LayoutFlags | SystemUiFlags.ImmersiveSticky | SystemUiFlags.HideNavigation | SystemUiFlags.Fullscreen;
-
-            // Firing up the on-screen keyboard (eg: interacting with textboxes) may cause the UI visibility flags to be altered thus showing the navigation bar and potentially the status bar
-            // This sets back the UI flags to hidden once the interaction with the on-screen keyboard has finished.
-            Window.AsNonNull().DecorView.SystemUiVisibilityChange += (_, e) =>
-            {
-                if ((SystemUiFlags)e.Visibility != systemUiFlags)
-                {
-                    UIVisibilityFlags = systemUiFlags;
-                }
-            };
 
             if (OperatingSystem.IsAndroidVersionAtLeast(28))
             {
