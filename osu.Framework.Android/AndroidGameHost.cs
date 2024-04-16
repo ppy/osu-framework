@@ -43,7 +43,7 @@ namespace osu.Framework.Android
 
         protected override void DrawFrame()
         {
-            if (AndroidGameActivity.Surface.MIsSurfaceReady)
+            if (AndroidGameActivity.Surface.IsSurfaceReady)
                 base.DrawFrame();
         }
 

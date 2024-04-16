@@ -43,6 +43,22 @@ namespace osu.Framework.Android
             }
         }
 
+        private volatile bool isSurfaceReady;
+
+        public bool IsSurfaceReady => isSurfaceReady;
+
+        public override void HandlePause()
+        {
+            base.HandlePause();
+            isSurfaceReady = false;
+        }
+
+        public override void HandleResume()
+        {
+            base.HandleResume();
+            isSurfaceReady = true;
+        }
+
         public override WindowInsets? OnApplyWindowInsets(WindowInsets? insets)
         {
             updateSafeArea(insets);
