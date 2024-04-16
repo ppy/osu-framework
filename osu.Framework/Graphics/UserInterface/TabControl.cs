@@ -381,7 +381,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected void SelectTab(TabItem<T> tab)
         {
             if (selectTab(tab))
-                OnUserTabSelectionChanged(tab);
+                tab.OnActivatedByUser();
         }
 
         /// <summary>
@@ -392,7 +392,7 @@ namespace osu.Framework.Graphics.UserInterface
         public void SwitchTab(int direction, bool wrap = true)
         {
             if (switchTab(direction, wrap))
-                OnUserTabSelectionChanged(SelectedTab);
+                SelectedTab.OnActivatedByUser();
         }
 
         private bool switchTab(int direction, bool wrap = true)
@@ -462,15 +462,6 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         public void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
-        {
-        }
-
-        /// <summary>
-        /// Invoked when the user directly changed tab selection, either by clicking on another tab or switching to the tab using <see cref="PlatformAction"/> key bindings.
-        /// Note that this does not get invoked when tab selection is changed as a result of a user closing the currently selected tab (see <see cref="SwitchTabOnRemove"/>).
-        /// </summary>
-        /// <param name="item">The new tab item.</param>
-        protected virtual void OnUserTabSelectionChanged(TabItem<T> item)
         {
         }
 
