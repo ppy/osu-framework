@@ -69,7 +69,7 @@ namespace osu.Framework.Platform
             set
             {
                 title = value;
-                ScheduleCommand(() => SDL3.SDL_SetWindowTitle(SDLWindowHandle, SDL3.UTF8GetBytes(title)));
+                ScheduleCommand(() => SDL3.SDL_SetWindowTitle(SDLWindowHandle, title));
             }
         }
 
@@ -201,7 +201,7 @@ namespace osu.Framework.Platform
             // so we deactivate it on startup.
             SDL3.SDL_StopTextInput();
 
-            SDLWindowHandle = SDL3.SDL_CreateWindow(SDL3.UTF8GetBytes(title), Size.Width, Size.Height, flags);
+            SDLWindowHandle = SDL3.SDL_CreateWindow(title, Size.Width, Size.Height, flags);
 
             if (SDLWindowHandle == null)
                 throw new InvalidOperationException($"Failed to create SDL window. SDL Error: {SDL3.SDL_GetError()}");

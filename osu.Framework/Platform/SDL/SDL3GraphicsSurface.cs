@@ -140,7 +140,7 @@ namespace osu.Framework.Platform.SDL
             // Prevent logging calls to SDL_GL_GetProcAddress() that fail on systems which don't have the requested symbol (typically macOS).
             SDL3.SDL_LogSetPriority(error_category, SDL_LogPriority.SDL_LOG_PRIORITY_INFO);
 
-            IntPtr ret = SDL3.SDL_GL_GetProcAddress(SDL3.UTF8GetBytes(symbol));
+            IntPtr ret = SDL3.SDL_GL_GetProcAddress(symbol);
 
             // Reset the logging behaviour.
             SDL3.SDL_LogSetPriority(error_category, oldPriority);
