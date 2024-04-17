@@ -375,12 +375,12 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Selects a <see cref="TabItem{T}"/> and signals an event that the user selected the given tab via <see cref="OnUserTabSelectionChanged"/>.
+        /// Selects a <see cref="TabItem{T}"/> and signals an event that the user selected the given tab via <see cref="TabItem{T}.OnActivatedByUser"/>.
         /// </summary>
         /// <param name="tab">The tab to select.</param>
         protected void SelectTab(TabItem<T> tab)
         {
-            if (selectTab(tab))
+            if (selectTab(tab) && tab != null)
                 tab.OnActivatedByUser();
         }
 
