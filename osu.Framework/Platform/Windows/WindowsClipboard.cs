@@ -94,16 +94,11 @@ namespace osu.Framework.Platform.Windows
             {
                 var encoder = image.Configuration.ImageFormatsManager.GetEncoder(BmpFormat.Instance);
                 image.Save(stream, encoder);
-                var span = new ReadOnlySpan<byte>(stream.GetBuffer(), bitmap_file_header_length, (int)stream.Length - bitmap_file_header_length);
-                IntPtr unmanagedPointer = Marshal.AllocHGlobal(span.Length);
 
-                unsafe
-                {
-                    fixed (void* source = span)
-                        Buffer.MemoryCopy(source, unmanagedPointer.ToPointer(), span.Length, span.Length);
-                }
-
-                return setClipboard(unmanagedPointer, span.Length, cf_dib);
+                int bitmapDataLength = (int)stream.Length - bitmap_file_header_length;
+                IntPtr unmanagedPointer = Marshal.AllocHGlobal(bitmapDataLength);
+                Marshal.Copy(stream.GetBuffer(), bitmap_file_header_length, unmanagedPointer, bitmapDataLength);
+                return setClipboard(unmanagedPointer, bitmapDataLength, cf_dib);
             }
         }
 
