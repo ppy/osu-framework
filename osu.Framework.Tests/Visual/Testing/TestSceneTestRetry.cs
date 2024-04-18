@@ -8,7 +8,7 @@ using osu.Framework.Testing;
 namespace osu.Framework.Tests.Visual.Testing
 {
     [HeadlessTest]
-    public class TestSceneTestRetry : FrameworkTestScene
+    public partial class TestSceneTestRetry : FrameworkTestScene
     {
         private int runCount;
         private string? currentTest;
