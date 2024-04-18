@@ -63,7 +63,7 @@ namespace osu.Framework.Testing.Drawables.Steps
                     if (getFailureMessage != null)
                         builder.Append($": {getFailureMessage()}");
 
-                    throw new AssertionException(null, new TimeoutException(builder.ToString()));
+                    throw new AssertionException(builder.ToString());
                 }
 
                 Action?.Invoke();
