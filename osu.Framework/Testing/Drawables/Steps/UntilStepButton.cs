@@ -6,6 +6,7 @@
 using System;
 using System.Diagnostics;
 using System.Text;
+using NUnit.Framework;
 using osu.Framework.Graphics;
 using osuTK.Graphics;
 
@@ -62,7 +63,7 @@ namespace osu.Framework.Testing.Drawables.Steps
                     if (getFailureMessage != null)
                         builder.Append($": {getFailureMessage()}");
 
-                    throw new TimeoutException(builder.ToString());
+                    throw new AssertionException(null, new TimeoutException(builder.ToString()));
                 }
 
                 Action?.Invoke();
