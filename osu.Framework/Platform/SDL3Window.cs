@@ -5,7 +5,6 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -70,7 +69,7 @@ namespace osu.Framework.Platform
             set
             {
                 title = value;
-                ScheduleCommand(() => SDL3.SDL_SetWindowTitle(SDLWindowHandle, Encoding.UTF8.GetBytes(title)));
+                ScheduleCommand(() => SDL3.SDL_SetWindowTitle(SDLWindowHandle, title));
             }
         }
 
@@ -202,7 +201,7 @@ namespace osu.Framework.Platform
             // so we deactivate it on startup.
             SDL3.SDL_StopTextInput();
 
-            SDLWindowHandle = SDL3.SDL_CreateWindow(Encoding.UTF8.GetBytes(title), Size.Width, Size.Height, flags);
+            SDLWindowHandle = SDL3.SDL_CreateWindow(title, Size.Width, Size.Height, flags);
 
             if (SDLWindowHandle == null)
                 throw new InvalidOperationException($"Failed to create SDL window. SDL Error: {SDL3.SDL_GetError()}");
@@ -275,7 +274,7 @@ namespace osu.Framework.Platform
         /// </remarks>
         protected virtual void HandleEventFromFilter(SDL_Event evt)
         {
-            switch (evt.type)
+            switch (evt.Type)
             {
                 case SDL_EventType.SDL_EVENT_TERMINATING:
                     handleQuitEvent(evt.quit);
@@ -297,7 +296,7 @@ namespace osu.Framework.Platform
 
         protected void HandleEventFromWatch(SDL_Event evt)
         {
-            switch (evt.type)
+            switch (evt.Type)
             {
                 case SDL_EventType.SDL_EVENT_WINDOW_RESIZED:
                     // polling via SDL_PollEvent blocks on resizes (https://stackoverflow.com/a/50858339)
@@ -450,8 +449,7 @@ namespace osu.Framework.Platform
 
             do
             {
-                fixed (SDL_Event* buf = events)
-                    eventsRead = SDL3.SDL_PeepEvents(buf, events_per_peep, SDL_eventaction.SDL_GETEVENT, SDL_EventType.SDL_EVENT_FIRST, SDL_EventType.SDL_EVENT_LAST);
+                eventsRead = SDL3.SDL_PeepEvents(events, SDL_eventaction.SDL_GETEVENT, SDL_EventType.SDL_EVENT_FIRST, SDL_EventType.SDL_EVENT_LAST);
                 for (int i = 0; i < eventsRead; i++)
                     HandleEvent(events[i]);
             } while (eventsRead == events_per_peep);
@@ -462,19 +460,19 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual void HandleEvent(SDL_Event e)
         {
-            if (e.type >= SDL_EventType.SDL_EVENT_DISPLAY_FIRST && e.type <= SDL_EventType.SDL_EVENT_DISPLAY_LAST)
+            if (e.Type >= SDL_EventType.SDL_EVENT_DISPLAY_FIRST && e.Type <= SDL_EventType.SDL_EVENT_DISPLAY_LAST)
             {
                 handleDisplayEvent(e.display);
                 return;
             }
 
-            if (e.type >= SDL_EventType.SDL_EVENT_WINDOW_FIRST && e.type <= SDL_EventType.SDL_EVENT_WINDOW_LAST)
+            if (e.Type >= SDL_EventType.SDL_EVENT_WINDOW_FIRST && e.Type <= SDL_EventType.SDL_EVENT_WINDOW_LAST)
             {
                 handleWindowEvent(e.window);
                 return;
             }
 
-            switch (e.type)
+            switch (e.Type)
             {
                 case SDL_EventType.SDL_EVENT_QUIT:
                     handleQuitEvent(e.quit);
