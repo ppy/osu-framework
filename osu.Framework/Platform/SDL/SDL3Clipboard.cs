@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using SDL;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
 
 namespace osu.Framework.Platform.SDL
 {
@@ -18,6 +19,8 @@ namespace osu.Framework.Platform.SDL
         public override string? GetText() => SDL3.SDL_HasClipboardText() == SDL_bool.SDL_TRUE ? SDL3.SDL_GetClipboardText() : null;
 
         public override void SetText(string text) => SDL3.SDL_SetClipboardText(Encoding.UTF8.GetBytes(text));
+
+        private static readonly ImageFormatManager image_format_manager = SixLabors.ImageSharp.Configuration.Default.ImageFormatsManager;
 
         public override Image<TPixel>? GetImage<TPixel>()
         {
@@ -31,8 +34,26 @@ namespace osu.Framework.Platform.SDL
                 if (SDL3.SDL_HasClipboardText() == SDL3.SDL_TRUE)
                     return null;
 
+                byte* data = null;
                 nuint size = 0;
-                byte* data = (byte*)SDL3.SDL_GetClipboardData("image/png\0"u8, &size);
+
+                foreach (IImageFormat? imageFormat in image_format_manager.ImageFormats)
+                {
+                    foreach (string mimeType in imageFormat.MimeTypes)
+                    {
+                        fixed (byte* zmimeType = Encoding.UTF8.GetBytes(mimeType + '\0'))
+                        {
+                            data = (byte*)SDL3.SDL_GetClipboardData(zmimeType, &size);
+                        }
+
+                        if (data != null)
+                            break;
+                    }
+
+                    if (data != null)
+                        break;
+                }
+
                 if (data == null)
                     return null;
 
@@ -45,62 +66,58 @@ namespace osu.Framework.Platform.SDL
             return Image.Load<TPixel>(buffer);
         }
 
-        private unsafe struct ClipboardImageData
-        {
-            public byte* RawBuffer;
-            public nuint Length;
-        }
+        // Used by the clipboard callbacks to access the image that has to be copied.
+        // When SetImage is called, the previous image is not immediately cleaned up
+        // by the cleanup callback (it is called only after we create the next image),
+        // which is why there are two of them to allow some overlap.
+        private static readonly Image?[] cb_images = { null, null };
+        private static int currentCbImageIdx;
 
         public override bool SetImage(Image image)
         {
-            MemoryStream pngStream = new MemoryStream();
-            image.SaveAsPng(pngStream);
-            byte[] buffer = pngStream.GetBuffer();
-
             unsafe
             {
-                ClipboardImageData* pngData = (ClipboardImageData*)SDL3.SDL_malloc((nuint)sizeof(ClipboardImageData));
-
-                byte* rawBuffer = (byte*)SDL3.SDL_malloc((nuint)buffer.Length);
-
-                for (int i = 0; i < buffer.Length; i++)
-                    rawBuffer[i] = buffer[i];
-
-                pngData->RawBuffer = rawBuffer;
-                pngData->Length = (nuint)buffer.Length;
+                currentCbImageIdx = currentCbImageIdx == 0 ? 1 : 0;
+                cb_images[currentCbImageIdx] = image;
 
                 fixed (byte* pngMimeTypePtr = "image/png\0"u8)
                 {
-                    int status = SDL3.SDL_SetClipboardData(&clipboardDataCallback, &clipboardCleanupCallback, (nint)pngData, &pngMimeTypePtr, 1);
+                    int status = SDL3.SDL_SetClipboardData(&clipboardDataCallback, &clipboardCleanupCallback, currentCbImageIdx, &pngMimeTypePtr, 1);
                     return status == 0;
                 }
             }
         }
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-        private static unsafe nint clipboardDataCallback(nint userdata, byte* mimeType, nuint* length)
+        private static unsafe nint clipboardDataCallback(nint userdata, byte* mimetype, nuint* length)
         {
-            ClipboardImageData* pngData = (ClipboardImageData*)userdata;
+            Image? image = cb_images[(int)userdata];
+            if (image == null)
+                return 0;
 
-            fixed (byte* pngMimetypeStr = "image/png\0"u8)
-            {
-                if (SDL3.SDL_strcmp(mimeType, pngMimetypeStr) == 0)
-                {
-                    *length = pngData->Length;
-                    return (nint)pngData->RawBuffer;
-                }
-            }
+            string? mimeType = SDL3.PtrToStringUTF8(mimetype);
+            if (mimeType == null)
+                return 0;
 
-            return 0;
+            image_format_manager.TryFindFormatByMimeType(mimeType, out IImageFormat? imageFormat);
+            if (imageFormat == null)
+                return 0;
+
+            MemoryStream imgStream = new MemoryStream();
+            image.Save(imgStream, imageFormat);
+            byte[] buffer = imgStream.GetBuffer();
+
+            byte* rawBuffer = (byte*)SDL3.SDL_malloc((nuint)buffer.Length);
+            Marshal.Copy(buffer, 0, (nint)rawBuffer, buffer.Length);
+
+            *length = (nuint)buffer.Length;
+            return (nint)rawBuffer;
         }
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-        private static unsafe void clipboardCleanupCallback(nint userdata)
+        private static void clipboardCleanupCallback(nint userdata)
         {
-            ClipboardImageData* pngData = (ClipboardImageData*)userdata;
-
-            SDL3.SDL_free(pngData->RawBuffer);
-            SDL3.SDL_free(pngData);
+            cb_images[(int)userdata] = null;
         }
     }
 }
