@@ -7,6 +7,7 @@ FFMPEG_FLAGS=(
     # General options
     --disable-static
     --enable-shared
+    --disable-debug
     --disable-all
     --disable-autodetect
     --enable-lto
