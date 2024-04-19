@@ -339,3 +339,8 @@ inspectcode
 
 .idea/.idea.osu-framework.Desktop/.idea/misc.xml
 .idea/.idea.osu-framework.Android/.idea/deploymentTargetDropDown.xml
+
+# NativeLibs build folders and tarballs
+osu.Framework.NativeLibs/scripts/ffmpeg/*/
+osu.Framework.NativeLibs/scripts/ffmpeg/*.tar.gz
+
