@@ -3,7 +3,10 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -11,11 +14,29 @@ using osu.Framework.Allocation;
 using osu.Framework.Logging;
 using SDL;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
 
 namespace osu.Framework.Platform.SDL
 {
     public class SDL3Clipboard : Clipboard
     {
+        /// <summary>
+        /// Supported formats for decoding images from the clipboard.
+        /// </summary>
+        // It's possible for a format to not have a registered decoder, but all default formats will have one:
+        // https://github.com/SixLabors/ImageSharp/discussions/1353#discussioncomment-9142056
+        private static IEnumerable<string> supportedImageMimeTypes => SixLabors.ImageSharp.Configuration.Default.ImageFormats.SelectMany(f => f.MimeTypes);
+
+        /// <summary>
+        /// Format used for encoding (saving) images to the clipboard.
+        /// </summary>
+        private readonly IImageFormat imageFormat;
+
+        public SDL3Clipboard(IImageFormat imageFormat)
+        {
+            this.imageFormat = imageFormat;
+        }
+
         // SDL cannot differentiate between string.Empty and no text (eg. empty clipboard or an image)
         // doesn't matter as text editors don't really allow copying empty strings.
         // assume that empty text means no text.
@@ -25,12 +46,35 @@ namespace osu.Framework.Platform.SDL
 
         public override Image<TPixel>? GetImage<TPixel>()
         {
+            foreach (string mimeType in supportedImageMimeTypes)
+            {
+                if (tryGetData(mimeType, Image.Load<TPixel>, out var image))
+                {
+                    Logger.Log($"Decoded {mimeType} from clipboard.");
+                    return image;
+                }
+            }
+
             return null;
         }
 
         public override bool SetImage(Image image)
         {
-            return false;
+            ReadOnlyMemory<byte> memory;
+
+            // we can't save the image in the callback as the caller owns the image and might dispose it from under us.
+
+            using (var stream = new MemoryStream())
+            {
+                image.Save(stream, imageFormat);
+
+                // The buffer is allowed to escape the lifetime of the MemoryStream.
+                // https://learn.microsoft.com/en-us/dotnet/api/system.io.memorystream.getbuffer?view=net-8.0
+                // "This method works when the memory stream is closed."
+                memory = new ReadOnlyMemory<byte>(stream.GetBuffer(), 0, (int)stream.Length);
+            }
+
+            return trySetData(imageFormat.DefaultMimeType, () => memory);
         }
 
         /// <summary>

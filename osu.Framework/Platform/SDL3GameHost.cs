@@ -11,6 +11,7 @@ using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Input.Handlers.Tablet;
 using osu.Framework.Input.Handlers.Touch;
 using osu.Framework.Platform.SDL;
+using SixLabors.ImageSharp.Formats.Bmp;
 
 namespace osu.Framework.Platform
 {
@@ -31,7 +32,7 @@ namespace osu.Framework.Platform
             return base.CreateTextInput();
         }
 
-        protected override Clipboard CreateClipboard() => new SDL3Clipboard();
+        protected override Clipboard CreateClipboard() => new SDL3Clipboard(BmpFormat.Instance);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
             new InputHandler[]
