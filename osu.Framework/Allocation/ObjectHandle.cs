@@ -83,6 +83,12 @@ namespace osu.Framework.Allocation
             return false;
         }
 
+        public void FreeUnsafe()
+        {
+            if (handle.IsAllocated)
+                handle.Free();
+        }
+
         #region IDisposable Support
 
         public void Dispose()
