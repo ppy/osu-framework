@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
@@ -119,23 +118,31 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             public readonly Queue<TabItem<TestEnum>> UserTabSelectionChangedQueue = new Queue<TabItem<TestEnum>>();
 
-            private Box background = null!;
+            protected override TabItem<TestEnum> CreateTabItem(TestEnum value) => new EventQueuesTabItem(value, UserTabSelectionChangedQueue);
 
-            [BackgroundDependencyLoader]
-            private void load()
+            private partial class EventQueuesTabItem : BasicTabItem
             {
-                AddInternal(background = new Box
+                private readonly Box background;
+                private readonly Queue<TabItem<TestEnum>> queue;
+
+                public EventQueuesTabItem(TestEnum value, Queue<TabItem<TestEnum>> queue)
+                    : base(value)
                 {
-                    RelativeSizeAxes = Axes.Both,
-                    Colour = FrameworkColour.YellowGreen,
-                    Alpha = 0,
-                });
-            }
+                    this.queue = queue;
 
-            protected override void OnUserTabSelectionChanged(TabItem<TestEnum> item)
-            {
-                UserTabSelectionChangedQueue.Enqueue(item);
-                background.FadeOutFromOne(500);
+                    AddInternal(background = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = FrameworkColour.YellowGreen,
+                        Alpha = 0,
+                    });
+                }
+
+                protected internal override void OnActivatedByUser()
+                {
+                    queue.Enqueue(this);
+                    background.FadeOutFromOne(500);
+                }
             }
         }
 

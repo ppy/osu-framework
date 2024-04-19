@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using NUnit.Framework;
 
 namespace osu.Framework.Tests
@@ -18,7 +17,7 @@ namespace osu.Framework.Tests
         }
 
         public FlakyTestAttribute(int tryCount)
-            : base(Environment.GetEnvironmentVariable("OSU_TESTS_FAIL_FLAKY") == "1" ? 1 : tryCount)
+            : base(FrameworkEnvironment.FailFlakyTests ? 1 : tryCount)
         {
         }
     }

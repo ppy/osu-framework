@@ -11,6 +11,7 @@ namespace osu.Framework
         public static ExecutionMode? StartupExecutionMode { get; }
         public static bool NoTestTimeout { get; }
         public static bool ForceTestGC { get; }
+        public static bool FailFlakyTests { get; }
         public static bool FrameStatisticsViaTouch { get; }
         public static GraphicsSurfaceType? PreferredGraphicsSurface { get; }
         public static string? PreferredGraphicsRenderer { get; }
@@ -22,8 +23,11 @@ namespace osu.Framework
         static FrameworkEnvironment()
         {
             StartupExecutionMode = Enum.TryParse<ExecutionMode>(Environment.GetEnvironmentVariable("OSU_EXECUTION_MODE"), true, out var mode) ? mode : null;
+
             NoTestTimeout = parseBool(Environment.GetEnvironmentVariable("OSU_TESTS_NO_TIMEOUT")) ?? false;
             ForceTestGC = parseBool(Environment.GetEnvironmentVariable("OSU_TESTS_FORCED_GC")) ?? false;
+            FailFlakyTests = Environment.GetEnvironmentVariable("OSU_TESTS_FAIL_FLAKY") == "1";
+
             FrameStatisticsViaTouch = parseBool(Environment.GetEnvironmentVariable("OSU_FRAME_STATISTICS_VIA_TOUCH")) ?? true;
             PreferredGraphicsSurface = Enum.TryParse<GraphicsSurfaceType>(Environment.GetEnvironmentVariable("OSU_GRAPHICS_SURFACE"), true, out var surface) ? surface : null;
             PreferredGraphicsRenderer = Environment.GetEnvironmentVariable("OSU_GRAPHICS_RENDERER")?.ToLowerInvariant();
