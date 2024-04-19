@@ -76,10 +76,12 @@ namespace osu.Framework.Bindables
         {
             if (Precision > DefaultPrecision)
             {
-                double doubleValue = double.CreateTruncating(T.Clamp(value, MinValue, MaxValue));
-                doubleValue = Math.Round(doubleValue / double.CreateTruncating(Precision)) * double.CreateTruncating(Precision);
+                // this rounding is purposefully performed on `decimal` to ensure that the resulting value is the closest possible floating-point
+                // number to actual real-world base-10 decimals, as that is the most common usage of precision.
+                decimal accurateResult = decimal.CreateTruncating(T.Clamp(value, MinValue, MaxValue));
+                accurateResult = Math.Round(accurateResult / decimal.CreateTruncating(Precision)) * decimal.CreateTruncating(Precision);
 
-                base.Value = T.CreateTruncating(doubleValue);
+                base.Value = T.CreateTruncating(accurateResult);
             }
             else
                 base.Value = value;

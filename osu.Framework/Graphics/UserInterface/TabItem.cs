@@ -63,8 +63,26 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        /// <summary>
+        /// Invoked when this tab item became selected.
+        /// </summary>
         protected abstract void OnActivated();
+
+        /// <summary>
+        /// Invoked when this tab item lost selection.
+        /// </summary>
         protected abstract void OnDeactivated();
+
+        /// <summary>
+        /// Invoked when this tab item became selected by user.
+        /// Unlike <see cref="OnActivated"/>, this is only called when selection is gained as a result of the user directly clicking on the tab or via <see cref="TabControl{T}.SelectTab"/>.
+        /// </summary>
+        /// <remarks>
+        /// This is defined for implementations to add sound feedback as a result of the user selecting this tab item.
+        /// </remarks>
+        protected internal virtual void OnActivatedByUser()
+        {
+        }
 
         protected override bool OnClick(ClickEvent e)
         {
