@@ -4,7 +4,6 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -144,13 +143,11 @@ namespace osu.Framework.Platform.SDL
         {
             var objectHandle = new ObjectHandle<ClipboardCallbackContext>(userdata);
 
-            if (!objectHandle.GetTarget(out var context))
+            if (!objectHandle.GetTarget(out var context) || context.MimeType != SDL3.PtrToStringUTF8(mimeType))
             {
                 *length = 0;
                 return IntPtr.Zero;
             }
-
-            Debug.Assert(context.MimeType == SDL3.PtrToStringUTF8(mimeType));
 
             var memory = context.GetAndPinData();
             *length = (UIntPtr)memory.Length;
