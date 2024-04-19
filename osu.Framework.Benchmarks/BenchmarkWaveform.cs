@@ -16,7 +16,7 @@ namespace osu.Framework.Benchmarks
     [MemoryDiagnoser]
     public class BenchmarkWaveform : BenchmarkTest
     {
-        private Stream data = null!;
+        private byte[] data = null!;
         private Waveform preloadedWaveform = null!;
 
         public override void SetUp()
@@ -27,11 +27,11 @@ namespace osu.Framework.Benchmarks
 
             var store = new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(FrameworkTestScene).Assembly), "Resources");
 
-            data = store.GetStream("Tracks/sample-track.mp3");
+            data = store.Get("Tracks/sample-track.mp3");
 
             Debug.Assert(data != null);
 
-            preloadedWaveform = new Waveform(data);
+            preloadedWaveform = new Waveform(new MemoryStream(data));
             // wait for load
             preloadedWaveform.GetPoints();
         }
@@ -40,7 +40,7 @@ namespace osu.Framework.Benchmarks
         [Test]
         public async Task TestCreate()
         {
-            var waveform = new Waveform(data);
+            var waveform = new Waveform(new MemoryStream(data));
 
             var originalPoints = await waveform.GetPointsAsync().ConfigureAwait(false);
             Debug.Assert(originalPoints.Length > 0);

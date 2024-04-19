@@ -66,6 +66,7 @@ namespace osu.Framework.Graphics
             AddLayout(screenSpaceDrawQuadBacking);
             AddLayout(drawColourInfoBacking);
             AddLayout(requiredParentSizeToFitBacking);
+            AddLayout(maskingBacking);
         }
 
         private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), "Total constructed");
@@ -238,10 +239,12 @@ namespace osu.Framework.Graphics
             lock (LoadLock)
             {
                 if (!isDirectAsyncContext && IsLongRunning)
-                    throw new InvalidOperationException($"Tried to load long-running drawable type {GetType().ReadableName()} in a non-direct async context. See https://git.io/Je1YF for more details.");
+                {
+                    throw new InvalidOperationException(
+                        $"Tried to load long-running drawable type {GetType().ReadableName()} in a non-direct async context. See https://git.io/Je1YF for more details.");
+                }
 
-                if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
+                ObjectDisposedException.ThrowIf(IsDisposed, this);
 
                 if (loadState == LoadState.NotLoaded)
                 {
@@ -463,8 +466,7 @@ namespace osu.Framework.Graphics
         /// <returns>False if the drawable should not be updated.</returns>
         public virtual bool UpdateSubTree()
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Disposed Drawables may never be in the scene graph.");
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
             if (ProcessCustomClock)
                 customClock?.ProcessFrame();
@@ -493,6 +495,8 @@ namespace osu.Framework.Graphics
             return true;
         }
 
+        private RectangleF? lastMaskingBounds;
+
         /// <summary>
         /// Updates all masking calculations for this <see cref="Drawable"/>.
         /// This occurs post-<see cref="UpdateSubTree"/> to ensure that all <see cref="Drawable"/> updates have taken place.
@@ -508,7 +512,12 @@ namespace osu.Framework.Graphics
             if (HasProxy && source != proxy)
                 return false;
 
-            IsMaskedAway = ComputeIsMaskedAway(maskingBounds);
+            if (!maskingBacking.IsValid || lastMaskingBounds != maskingBounds)
+            {
+                lastMaskingBounds = maskingBounds;
+                IsMaskedAway = maskingBacking.Value = ComputeIsMaskedAway(maskingBounds);
+            }
+
             return true;
         }
 
@@ -1481,8 +1490,7 @@ namespace osu.Framework.Graphics
             get => parent;
             internal set
             {
-                if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Disposed Drawables may never get a parent and return to the scene graph.");
+                ObjectDisposedException.ThrowIf(IsDisposed, this);
 
                 if (value == null)
                     ChildID = 0;
@@ -1555,6 +1563,8 @@ namespace osu.Framework.Graphics
         /// actually masked away, but it may be false, even if the Drawable was masked away.
         /// </summary>
         internal bool IsMaskedAway { get; private set; }
+
+        private readonly LayoutValue<bool> maskingBacking = new LayoutValue<bool>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence);
 
         private readonly LayoutValue<Quad> screenSpaceDrawQuadBacking = new LayoutValue<Quad>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence);
 
@@ -1901,6 +1911,8 @@ namespace osu.Framework.Graphics
         /// <returns>The vector in other's coordinates.</returns>
         public Vector2 ToSpaceOfOtherDrawable(Vector2 input, IDrawable other)
         {
+            ArgumentNullException.ThrowIfNull(other);
+
             if (other == this)
                 return input;
 
@@ -1926,14 +1938,14 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="input">A vector in local coordinates.</param>
         /// <returns>The vector in Parent's coordinates.</returns>
-        public Vector2 ToParentSpace(Vector2 input) => ToSpaceOfOtherDrawable(input, Parent);
+        public Vector2 ToParentSpace(Vector2 input) => ToSpaceOfOtherDrawable(input, Parent!);
 
         /// <summary>
         /// Accepts a rectangle in local coordinates and converts it to a quad in Parent's space.
         /// </summary>
         /// <param name="input">A rectangle in local coordinates.</param>
         /// <returns>The quad in Parent's coordinates.</returns>
-        public Quad ToParentSpace(RectangleF input) => ToSpaceOfOtherDrawable(input, Parent);
+        public Quad ToParentSpace(RectangleF input) => ToSpaceOfOtherDrawable(input, Parent!);
 
         /// <summary>
         /// Accepts a vector in local coordinates and converts it to coordinates in screen space.

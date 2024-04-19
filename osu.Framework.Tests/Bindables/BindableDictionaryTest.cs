@@ -863,7 +863,8 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestGetEnumeratorDoesNotReturnNull()
         {
-            Assert.NotNull(bindableStringByteDictionary.GetEnumerator());
+            using var enumerator = bindableStringByteDictionary.GetEnumerator();
+            Assert.NotNull(enumerator);
         }
 
         [Test]
@@ -873,8 +874,10 @@ namespace osu.Framework.Tests.Bindables
 
             var dict = new BindableDictionary<string, byte>(array);
 
-            var enumerator = dict.GetEnumerator();
+            using var enumerator = dict.GetEnumerator();
 
+            // ReSharper disable once NotDisposedResource
+            // Array enumerator is not disposable
             Assert.AreNotEqual(array.GetEnumerator(), enumerator);
         }
 

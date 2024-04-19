@@ -400,7 +400,13 @@ namespace osu.Framework.Testing
 
             bool hadTestAttributeTest = false;
 
-            foreach (var m in newTest.GetType().GetMethods())
+            var methods = newTest.GetType().GetMethods();
+
+            var soloTests = methods.Where(m => m.GetCustomAttribute(typeof(SoloAttribute), false) != null).ToArray();
+            if (soloTests.Any())
+                methods = soloTests;
+
+            foreach (var m in methods)
             {
                 string name = m.Name;
 
@@ -511,8 +517,7 @@ namespace osu.Framework.Testing
 
             void addSetUpSteps()
             {
-                var setUpMethods = ReflectionUtils.GetMethodsWithAttribute(newTest.GetType(), typeof(SetUpAttribute), true)
-                                                  .Where(m => m.Name != nameof(TestScene.SetUpTestForNUnit));
+                var setUpMethods = ReflectionUtils.GetMethodsWithAttribute(newTest.GetType(), typeof(SetUpAttribute), true);
 
                 if (setUpMethods.Any())
                 {

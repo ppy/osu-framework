@@ -3,11 +3,9 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.Formats.Bmp;
 
 namespace osu.Framework.Platform.Windows
@@ -72,7 +70,7 @@ namespace osu.Framework.Platform.Windows
         public override void SetText(string text)
         {
             int bytes = (text.Length + 1) * 2;
-            var source = Marshal.StringToHGlobalUni(text);
+            IntPtr source = Marshal.StringToHGlobalUni(text);
 
             setClipboard(source, bytes, cf_unicodetext);
         }
@@ -92,19 +90,16 @@ namespace osu.Framework.Platform.Windows
 
         public override bool SetImage(Image image)
         {
-            byte[] array;
-
             using (var stream = new MemoryStream())
             {
-                var encoder = image.GetConfiguration().ImageFormatsManager.FindEncoder(BmpFormat.Instance);
+                var encoder = image.Configuration.ImageFormatsManager.GetEncoder(BmpFormat.Instance);
                 image.Save(stream, encoder);
-                array = stream.ToArray().Skip(bitmap_file_header_length).ToArray();
+
+                int bitmapDataLength = (int)stream.Length - bitmap_file_header_length;
+                IntPtr unmanagedPointer = Marshal.AllocHGlobal(bitmapDataLength);
+                Marshal.Copy(stream.GetBuffer(), bitmap_file_header_length, unmanagedPointer, bitmapDataLength);
+                return setClipboard(unmanagedPointer, bitmapDataLength, cf_dib);
             }
-
-            IntPtr unmanagedPointer = Marshal.AllocHGlobal(array.Length);
-            Marshal.Copy(array, 0, unmanagedPointer, array.Length);
-
-            return setClipboard(unmanagedPointer, array.Length, cf_dib);
         }
 
         private static bool setClipboard(IntPtr pointer, int bytes, uint format)
@@ -119,11 +114,11 @@ namespace osu.Framework.Platform.Windows
                 EmptyClipboard();
 
                 // IMPORTANT: SetClipboardData requires memory that was acquired with GlobalAlloc using GMEM_MOVABLE.
-                var hGlobal = GlobalAlloc(ghnd, (UIntPtr)bytes);
+                IntPtr hGlobal = GlobalAlloc(ghnd, (UIntPtr)bytes);
 
                 try
                 {
-                    var target = GlobalLock(hGlobal);
+                    IntPtr target = GlobalLock(hGlobal);
                     if (target == IntPtr.Zero)
                         return false;
 

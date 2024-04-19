@@ -64,35 +64,31 @@ namespace osu.Framework.Tests.Visual.Sprites
                         Origin = Anchor.TopCentre,
                         Text = $"useManaulMipmaps: {useManualMipmaps}"
                     },
-                    new Container
+                    new GridContainer
                     {
                         RelativeSizeAxes = Axes.Both,
                         Padding = new MarginPadding { Top = 20 },
-                        Child = new GridContainer
+                        ColumnDimensions = new[]
                         {
-                            RelativeSizeAxes = Axes.Both,
-                            ColumnDimensions = new[]
+                            new Dimension(GridSizeMode.Relative, 0.5f),
+                            new Dimension(GridSizeMode.Relative, 0.5f),
+                        },
+                        RowDimensions = new[]
+                        {
+                            new Dimension(GridSizeMode.Relative, 0.5f),
+                            new Dimension(GridSizeMode.Relative, 0.5f),
+                        },
+                        Content = new[]
+                        {
+                            new Drawable[]
                             {
-                                new Dimension(GridSizeMode.Relative, 0.5f),
-                                new Dimension(GridSizeMode.Relative, 0.5f),
+                                new MipmapSprite(0),
+                                new MipmapSprite(1)
                             },
-                            RowDimensions = new[]
+                            new Drawable[]
                             {
-                                new Dimension(GridSizeMode.Relative, 0.5f),
-                                new Dimension(GridSizeMode.Relative, 0.5f),
-                            },
-                            Content = new[]
-                            {
-                                new Drawable[]
-                                {
-                                    new MipmapSprite(0),
-                                    new MipmapSprite(1)
-                                },
-                                new Drawable[]
-                                {
-                                    new MipmapSprite(2),
-                                    new MipmapSprite(3)
-                                }
+                                new MipmapSprite(2),
+                                new MipmapSprite(3)
                             }
                         }
                     }

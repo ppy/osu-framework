@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
     {
         private VeldridTextureResources[]? resourceList;
 
-        public VeldridVideoTexture(VeldridRenderer renderer, int width, int height)
+        public VeldridVideoTexture(IVeldridRenderer renderer, int width, int height)
             : base(renderer, width, height, true)
         {
         }

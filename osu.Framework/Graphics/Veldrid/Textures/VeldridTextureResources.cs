@@ -39,15 +39,15 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         /// <summary>
         /// Creates a <see cref="ResourceSet"/> from the <see cref="global::Veldrid.Texture"/> and <see cref="global::Veldrid.Sampler"/>.
         /// </summary>
-        /// <param name="renderer">The renderer to create the resource set for.</param>
+        /// <param name="factory">The resource set factory.</param>
         /// <param name="layout">The resource layout which this set will be attached to. Assumes a layout with the texture in slot 0 and the sampler in slot 1.</param>
         /// <returns>The resource set.</returns>
-        public ResourceSet GetResourceSet(VeldridRenderer renderer, ResourceLayout layout)
+        public ResourceSet GetResourceSet(ResourceFactory factory, ResourceLayout layout)
         {
             if (Sampler == null)
                 throw new InvalidOperationException("Attempting to create resource set without a sampler attached to the resources.");
 
-            return Set ??= renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, Texture, Sampler));
+            return Set ??= factory.CreateResourceSet(new ResourceSetDescription(layout, Texture, Sampler));
         }
 
         public void Dispose()

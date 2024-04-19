@@ -140,7 +140,7 @@ namespace osu.Framework.Allocation
             public void Register(Type type, InjectDependencyDelegate injectDel, CacheDependencyDelegate cacheDel)
             {
                 // The DependencyActivator constructor stores itself to a static dictionary.
-                var _ = new DependencyActivator(
+                _ = new DependencyActivator(
                     type,
                     injectDel ?? ((_, _) => { }),
                     cacheDel ?? ((_, d, _) => d));

@@ -466,7 +466,7 @@ namespace osu.Framework.Input
 
         private readonly List<Drawable> highFrequencyDrawables = new List<Drawable>();
 
-        private MouseMoveEvent highFrequencyMoveEvent;
+        private MouseMoveEvent lastMouseMove;
 
         protected override void Update()
         {
@@ -480,10 +480,11 @@ namespace osu.Framework.Input
 
             var pendingInputs = GetPendingInputs();
 
+            if (pendingInputs.Count > 0)
+                lastMouseMove = null;
+
             foreach (var result in pendingInputs)
-            {
                 result.Apply(CurrentState, this);
-            }
 
             if (CurrentState.Mouse.IsPositionValid)
             {
@@ -499,10 +500,9 @@ namespace osu.Framework.Input
                 {
                     // conditional avoid allocs of MouseMoveEvent when state is guaranteed to not have been mutated.
                     // can be removed if we pool/change UIEvent allocation to be more efficient.
-                    if (highFrequencyMoveEvent == null || pendingInputs.Count > 0)
-                        highFrequencyMoveEvent = new MouseMoveEvent(CurrentState);
+                    lastMouseMove ??= new MouseMoveEvent(CurrentState);
 
-                    PropagateBlockableEvent(highFrequencyDrawables.AsSlimReadOnly(), highFrequencyMoveEvent);
+                    PropagateBlockableEvent(highFrequencyDrawables.AsSlimReadOnly(), lastMouseMove);
                 }
 
                 highFrequencyDrawables.Clear();
@@ -615,8 +615,12 @@ namespace osu.Framework.Input
                 FrameStatistics.Increment(StatisticsCounterType.InputQueue);
 
             var children = AliveInternalChildren;
+
             for (int i = 0; i < children.Count; i++)
-                children[i].BuildNonPositionalInputQueue(inputQueue);
+            {
+                if (ShouldBeConsideredForInput(children[i]))
+                    children[i].BuildNonPositionalInputQueue(inputQueue);
+            }
 
             if (!unfocusIfNoLongerValid())
             {
@@ -654,8 +658,12 @@ namespace osu.Framework.Input
                 FrameStatistics.Increment(StatisticsCounterType.PositionalIQ);
 
             var children = AliveInternalChildren;
+
             for (int i = 0; i < children.Count; i++)
-                children[i].BuildPositionalInputQueue(screenSpacePos, positionalInputQueue);
+            {
+                if (ShouldBeConsideredForInput(children[i]))
+                    children[i].BuildPositionalInputQueue(screenSpacePos, positionalInputQueue);
+            }
 
             positionalInputQueue.Reverse();
             return positionalInputQueue.AsSlimReadOnly();
@@ -999,7 +1007,7 @@ namespace osu.Framework.Input
                 manager.HandleButtonStateChange(e.State, e.Kind);
         }
 
-        private bool handleMouseMove(InputState state, Vector2 lastPosition) => PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, lastPosition));
+        private bool handleMouseMove(InputState state, Vector2 lastPosition) => PropagateBlockableEvent(PositionalInputQueue, lastMouseMove = new MouseMoveEvent(state, lastPosition));
 
         private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise) =>
             PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));

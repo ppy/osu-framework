@@ -29,9 +29,9 @@ namespace osu.Framework.Tests.Containers
         {
             Assert.Throws<InvalidOperationException>(() =>
             {
-                var unused = new Container
+                _ = new Container
                 {
-                    Children = (IReadOnlyList<Drawable>)Activator.CreateInstance(containerType)
+                    Children = (IReadOnlyList<Drawable>)Activator.CreateInstance(containerType)!
                 };
             });
 
@@ -39,12 +39,12 @@ namespace osu.Framework.Tests.Containers
             {
                 var unused = new Container();
 
-                unused.AddRange((IEnumerable<Drawable>)Activator.CreateInstance(containerType));
+                unused.AddRange((IEnumerable<Drawable>)Activator.CreateInstance(containerType)!);
             });
 
             Assert.Throws<InvalidOperationException>(() =>
             {
-                var unused = new AudioContainer
+                _ = new AudioContainer
                 {
                     Children = (IReadOnlyList<Drawable>)Activator.CreateInstance(containerType)!
                 };

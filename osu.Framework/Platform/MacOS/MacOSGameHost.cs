@@ -27,17 +27,11 @@ namespace osu.Framework.Platform.MacOS
         {
             get
             {
-                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Application Support");
-
-                string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
-
-                if (!string.IsNullOrEmpty(xdg))
-                    yield return xdg;
-
-                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share");
-
                 foreach (string path in base.UserStoragePaths)
                     yield return path;
+
+                // Some older builds of osu! incorrectly used ~/.local/share on macOS.
+                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share");
             }
         }
 
@@ -60,7 +54,7 @@ namespace osu.Framework.Platform.MacOS
 
             foreach (var h in handlers.OfType<MouseHandler>())
             {
-                // There are several bugs we need to fix with macOS / SDL2 cursor handling before switching this on.
+                // There are several bugs we need to fix with macOS / SDL3 cursor handling before switching this on.
                 h.UseRelativeMode.Value = false;
                 h.UseRelativeMode.Default = false;
             }

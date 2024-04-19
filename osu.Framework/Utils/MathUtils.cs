@@ -12,40 +12,32 @@ namespace osu.Framework.Utils
         /// </summary>
         /// <param name="degrees">An angle in degrees.</param>
         /// <returns>The angle expressed in radians.</returns>
-        public static float DegreesToRadians(float degrees)
-        {
-            return degrees * MathF.PI / 180.0f;
-        }
+        [Obsolete("Use float.DegressToRadians.")] // can be removed 20240901
+        public static float DegreesToRadians(float degrees) => float.DegreesToRadians(degrees);
 
         /// <summary>
         /// Converts degrees to radians.
         /// </summary>
         /// <param name="degrees">An angle in degrees.</param>
         /// <returns>The angle expressed in radians.</returns>
-        public static double DegreesToRadians(double degrees)
-        {
-            return degrees * Math.PI / 180.0;
-        }
+        [Obsolete("Use double.DegressToRadians.")] // can be removed 20240901
+        public static double DegreesToRadians(double degrees) => double.DegreesToRadians(degrees);
 
         /// <summary>
         /// Converts radians to degrees.
         /// </summary>
         /// <param name="radians">An angle in radians.</param>
         /// <returns>The angle expressed in degrees.</returns>
-        public static float RadiansToDegrees(float radians)
-        {
-            return radians * (180.0f / MathF.PI);
-        }
+        [Obsolete("Use float.RadiansToDegrees.")] // can be removed 20240901
+        public static float RadiansToDegrees(float radians) => float.RadiansToDegrees(radians);
 
         /// <summary>
         /// Converts radians to degrees.
         /// </summary>
         /// <param name="radians">An angle in radians.</param>
         /// <returns>The angle expressed in degrees.</returns>
-        public static double RadiansToDegrees(double radians)
-        {
-            return radians * (180.0 / Math.PI);
-        }
+        [Obsolete("Use double.RadiansToDegrees.")] // can be removed 20240901
+        public static double RadiansToDegrees(double radians) => double.RadiansToDegrees(radians);
 
         /// <summary>
         /// Integer division with rounding up instead of down.

@@ -22,10 +22,6 @@
     <RuntimeIdentifiers>iossimulator-x64</RuntimeIdentifiers>
   </PropertyGroup>
   <ItemGroup>
-    <!-- Dependency for osuTK.iOS, removing will fail loading the AOT module -->
-    <PackageReference Include="System.Drawing.Common" Version="5.0.2"/>
-  </ItemGroup>
-  <ItemGroup>
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\bass.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\bass_fx.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\bassmix.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />

@@ -100,7 +100,7 @@ namespace osu.Framework.Graphics.Containers
             loadDrawable(() => CreateDrawable(model) ?? Empty());
         }
 
-        private void loadDrawable(Func<Drawable>? createDrawableFunc)
+        private void loadDrawable(Func<Drawable?>? createDrawableFunc)
         {
             // Remove the previous wrapper if the inner drawable hasn't finished loading.
             if (currentWrapper?.DelayedLoadCompleted == false)
@@ -174,7 +174,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="createContentFunc">A function that creates the wrapped <see cref="Drawable"/>.</param>
         /// <param name="timeBeforeLoad">The time before loading should begin.</param>
         /// <returns>A <see cref="DelayedLoadWrapper"/> or null if <paramref name="createContentFunc"/> returns null.</returns>
-        private DelayedLoadWrapper createWrapper(Func<Drawable> createContentFunc, double timeBeforeLoad)
+        private DelayedLoadWrapper createWrapper(Func<Drawable?> createContentFunc, double timeBeforeLoad)
         {
             // Note that this only becomes null after the first consumption.
             // ie. the `createContentFunc` cannot provide a null.
@@ -185,7 +185,7 @@ namespace osu.Framework.Graphics.Containers
                 try
                 {
                     // optimisation to use already constructed object (used above for null check).
-                    return content ?? createContentFunc();
+                    return content ?? createContentFunc()!;
                 }
                 finally
                 {

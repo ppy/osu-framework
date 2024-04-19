@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
+using NUnit.Framework.Interfaces;
 using NUnit.Framework.Internal;
 using osu.Framework.Allocation;
 using osu.Framework.Development;
@@ -32,6 +33,7 @@ using Logger = osu.Framework.Logging.Logger;
 namespace osu.Framework.Testing
 {
     [TestFixture]
+    [UseTestSceneRunner]
     public abstract partial class TestScene : Container
     {
         public readonly FillFlowContainer<Drawable> StepsContainer;
@@ -94,6 +96,8 @@ namespace osu.Framework.Testing
 
         public override void Add(Drawable drawable)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
+
             if (drawable is Game)
                 throw new InvalidOperationException($"Use {nameof(AddGame)} when testing a game instance.");
 
@@ -460,51 +464,8 @@ namespace osu.Framework.Testing
             }
         }
 
-        [SetUp]
-        public void SetUpTestForNUnit()
+        internal virtual void RunAfterTest()
         {
-            if (DebugUtils.IsNUnitRunning)
-            {
-                // Since the host is created in OneTimeSetUp, all game threads will have the fixture's execution context
-                // This is undesirable since each test is run using those same threads, so we must make sure the execution context
-                // for the game threads refers to the current _test_ execution context for each test
-                var executionContext = TestExecutionContext.CurrentContext;
-
-                foreach (var thread in host.Threads)
-                {
-                    thread.Scheduler.Add(() =>
-                    {
-                        TestExecutionContext.CurrentContext.CurrentResult = executionContext.CurrentResult;
-                        TestExecutionContext.CurrentContext.CurrentTest = executionContext.CurrentTest;
-                        TestExecutionContext.CurrentContext.CurrentCulture = executionContext.CurrentCulture;
-                        TestExecutionContext.CurrentContext.CurrentPrincipal = executionContext.CurrentPrincipal;
-                        TestExecutionContext.CurrentContext.CurrentRepeatCount = executionContext.CurrentRepeatCount;
-                        TestExecutionContext.CurrentContext.CurrentUICulture = executionContext.CurrentUICulture;
-                    });
-                }
-
-                if (TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
-                    schedule(() => StepsContainer.Clear());
-
-                RunSetUpSteps();
-            }
-        }
-
-        [TearDown]
-        protected virtual void RunTestsFromNUnit()
-        {
-            RunTearDownSteps();
-
-            checkForErrors();
-            runner.RunTestBlocking(this);
-            checkForErrors();
-
-            if (FrameworkEnvironment.ForceTestGC)
-            {
-                // Force any unobserved exceptions to fire against the current test run.
-                // Without this they could be delayed until a future test scene is running, making tracking down the cause difficult.
-                collectAndFireUnobserved();
-            }
         }
 
         [OneTimeTearDown]
@@ -540,12 +501,6 @@ namespace osu.Framework.Testing
                 throw runTask.Exception;
         }
 
-        private static void collectAndFireUnobserved()
-        {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-        }
-
         private class TestSceneHost : TestRunHeadlessGameHost
         {
             private readonly Action onExitRequest;
@@ -564,6 +519,62 @@ namespace osu.Framework.Testing
             }
 
             public void ExitFromRunner() => base.PerformExit(false);
+        }
+
+        private class UseTestSceneRunnerAttribute : TestActionAttribute
+        {
+            public override void BeforeTest(ITest test)
+            {
+                if (test.Fixture is not TestScene testScene)
+                    return;
+
+                // Since the host is created in OneTimeSetUp, all game threads will have the fixture's execution context
+                // This is undesirable since each test is run using those same threads, so we must make sure the execution context
+                // for the game threads refers to the current _test_ execution context for each test
+                var executionContext = TestExecutionContext.CurrentContext;
+
+                foreach (var thread in testScene.host.Threads)
+                {
+                    thread.Scheduler.Add(() =>
+                    {
+                        TestExecutionContext.CurrentContext.CurrentResult = executionContext.CurrentResult;
+                        TestExecutionContext.CurrentContext.CurrentTest = executionContext.CurrentTest;
+                        TestExecutionContext.CurrentContext.CurrentCulture = executionContext.CurrentCulture;
+                        TestExecutionContext.CurrentContext.CurrentPrincipal = executionContext.CurrentPrincipal;
+                        TestExecutionContext.CurrentContext.CurrentRepeatCount = executionContext.CurrentRepeatCount;
+                        TestExecutionContext.CurrentContext.CurrentUICulture = executionContext.CurrentUICulture;
+                    });
+                }
+
+                if (TestContext.CurrentContext.Test.MethodName != nameof(TestScene.TestConstructor))
+                    testScene.Schedule(() => testScene.StepsContainer.Clear());
+
+                testScene.RunSetUpSteps();
+            }
+
+            public override void AfterTest(ITest test)
+            {
+                if (test.Fixture is not TestScene testScene)
+                    return;
+
+                testScene.RunTearDownSteps();
+
+                testScene.checkForErrors();
+                testScene.runner.RunTestBlocking(testScene);
+                testScene.checkForErrors();
+
+                if (FrameworkEnvironment.ForceTestGC)
+                {
+                    // Force any unobserved exceptions to fire against the current test run.
+                    // Without this they could be delayed until a future test scene is running, making tracking down the cause difficult.
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                }
+
+                testScene.RunAfterTest();
+            }
+
+            public override ActionTargets Targets => ActionTargets.Test;
         }
     }
 

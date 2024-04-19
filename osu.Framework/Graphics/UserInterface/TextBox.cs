@@ -278,19 +278,51 @@ namespace osu.Framework.Graphics.UserInterface
 
                 // Cursor Manipulation
                 case PlatformAction.MoveBackwardChar:
-                    MoveCursorBy(-1);
+                    if (hasSelection)
+                    {
+                        MoveCursorBy(selectionLeft - selectionEnd);
+                    }
+                    else
+                    {
+                        MoveCursorBy(-1);
+                    }
+
                     return true;
 
                 case PlatformAction.MoveForwardChar:
-                    MoveCursorBy(1);
+                    if (hasSelection)
+                    {
+                        MoveCursorBy(selectionRight - selectionEnd);
+                    }
+                    else
+                    {
+                        MoveCursorBy(1);
+                    }
+
                     return true;
 
                 case PlatformAction.MoveBackwardWord:
-                    MoveCursorBy(GetBackwardWordAmount());
+                    if (hasSelection)
+                    {
+                        MoveCursorBy(selectionLeft - selectionEnd);
+                    }
+                    else
+                    {
+                        MoveCursorBy(GetBackwardWordAmount());
+                    }
+
                     return true;
 
                 case PlatformAction.MoveForwardWord:
-                    MoveCursorBy(GetForwardWordAmount());
+                    if (hasSelection)
+                    {
+                        MoveCursorBy(selectionRight - selectionEnd);
+                    }
+                    else
+                    {
+                        MoveCursorBy(GetForwardWordAmount());
+                    }
+
                     return true;
 
                 case PlatformAction.MoveBackwardLine:
@@ -447,7 +479,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (selectionLength == 0)
                 selectionEnd = Math.Clamp(selectionStart + amount, 0, text.Length);
 
-            if (selectionLength > 0)
+            if (hasSelection)
             {
                 string removedText = removeSelection();
                 OnUserTextRemoved(removedText);
@@ -524,7 +556,7 @@ namespace osu.Framework.Graphics.UserInterface
             float cursorPosEnd = getPositionAt(selectionEnd);
 
             float? selectionWidth = null;
-            if (selectionLength > 0)
+            if (hasSelection)
                 selectionWidth = getPositionAt(selectionRight) - cursorPos;
 
             float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / (DrawWidth - 2 * LeftRightPadding);
@@ -597,7 +629,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private int getCharacterClosestTo(Vector2 pos)
         {
-            pos = Parent.ToSpaceOfOtherDrawable(pos, TextFlow);
+            pos = Parent!.ToSpaceOfOtherDrawable(pos, TextFlow);
 
             int i = 0;
 
@@ -616,6 +648,7 @@ namespace osu.Framework.Graphics.UserInterface
         private int selectionEnd;
 
         private int selectionLength => Math.Abs(selectionEnd - selectionStart);
+        private bool hasSelection => selectionLength > 0;
 
         private int selectionLeft => Math.Min(selectionStart, selectionEnd);
         private int selectionRight => Math.Max(selectionStart, selectionEnd);
@@ -633,7 +666,7 @@ namespace osu.Framework.Graphics.UserInterface
                 selectionEnd = Math.Clamp(selectionEnd + offset, 0, text.Length);
             else
             {
-                if (selectionLength > 0 && Math.Abs(offset) <= 1)
+                if (hasSelection && Math.Abs(offset) <= 1)
                 {
                     //we don't want to move the location when "removing" an existing selection, just set the new location.
                     if (offset > 0)
@@ -818,7 +851,7 @@ namespace osu.Framework.Graphics.UserInterface
                     continue;
                 }
 
-                if (selectionLength > 0)
+                if (hasSelection)
                     removeSelection();
 
                 if (text.Length + 1 > LengthLimit)
@@ -898,7 +931,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (lastSelectionBounds.start == selectionStart && lastSelectionBounds.end == selectionEnd)
                 return;
 
-            if (selectionLength > 0)
+            if (hasSelection)
                 OnTextSelectionChanged(selectionType);
             else
                 onTextDeselected(lastSelectionBounds);
@@ -1032,7 +1065,7 @@ namespace osu.Framework.Graphics.UserInterface
             cursorAndLayout.Invalidate();
         }
 
-        public string SelectedText => selectionLength > 0 ? Text.Substring(selectionLeft, selectionLength) : string.Empty;
+        public string SelectedText => hasSelection ? Text.Substring(selectionLeft, selectionLength) : string.Empty;
 
         /// <summary>
         /// Whether <see cref="KeyDownEvent"/>s should be blocked because of recent text input from a <see cref="TextInputSource"/>.
@@ -1190,7 +1223,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (text.Length == 0) return;
 
                 selectionEnd = getCharacterClosestTo(e.MousePosition);
-                if (selectionLength > 0)
+                if (hasSelection)
                     GetContainingInputManager().ChangeFocus(this);
             }
 
@@ -1554,7 +1587,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return;
                 }
 
-                if (selectionLength > 0)
+                if (hasSelection)
                     removeSelection();
             }
 
