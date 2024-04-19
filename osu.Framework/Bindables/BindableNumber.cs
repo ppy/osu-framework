@@ -206,6 +206,6 @@ namespace osu.Framework.Bindables
 
         protected sealed override T ClampValue(T value, T minValue, T maxValue) => T.Clamp(value, minValue, maxValue);
 
-        protected sealed override bool IsValidRange(T min, T max) => min < max;
+        protected sealed override bool IsValidRange(T min, T max) => min <= max;
     }
 }
