@@ -4,6 +4,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -149,8 +150,8 @@ namespace osu.Framework.Platform.SDL
                 return IntPtr.Zero;
             }
 
-            var memory = context.GetAndPinData();
-            *length = (UIntPtr)memory.Length;
+            context.EnsureDataValid();
+            *length = context.DataLength;
             return context.Address;
         }
 
@@ -174,7 +175,7 @@ namespace osu.Framework.Platform.SDL
             /// Provider of data suitable for the <see cref="MimeType"/>.
             /// </summary>
             /// <remarks>Called when another application requests that mime type from the OS clipboard.</remarks>
-            private Func<ReadOnlyMemory<byte>> dataProvider;
+            private Func<ReadOnlyMemory<byte>>? dataProvider;
 
             private MemoryHandle memoryHandle;
 
@@ -184,23 +185,36 @@ namespace osu.Framework.Platform.SDL
             /// <remarks>Pinned and suitable for passing to unmanaged code.</remarks>
             public unsafe IntPtr Address => (IntPtr)memoryHandle.Pointer;
 
+            /// <summary>
+            /// Length of the <see cref="ReadOnlyMemory{T}"/> returned by the <see cref="dataProvider"/>.
+            /// </summary>
+            public UIntPtr DataLength;
+
             public ClipboardCallbackContext(string mimeType, Func<ReadOnlyMemory<byte>> dataProvider)
             {
                 MimeType = mimeType;
                 this.dataProvider = dataProvider;
             }
 
-            public ReadOnlyMemory<byte> GetAndPinData()
+            public void EnsureDataValid()
             {
+                if (dataProvider == null)
+                {
+                    Debug.Assert(Address != IntPtr.Zero);
+                    Debug.Assert(DataLength != 0);
+                    return;
+                }
+
                 var data = dataProvider();
                 dataProvider = null!;
+                DataLength = (UIntPtr)data.Length;
                 memoryHandle = data.Pin();
-                return data;
             }
 
             public void Dispose()
             {
                 memoryHandle.Dispose();
+                DataLength = 0;
             }
         }
     }
