@@ -474,7 +474,7 @@ namespace osu.Framework.Platform
             Root.UpdateSubTree();
 
             using (var buffer = DrawRoots.GetForWrite())
-                buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
+                buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false, true);
         }
 
         private bool didRenderFrame;

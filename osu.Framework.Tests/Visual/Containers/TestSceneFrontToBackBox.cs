@@ -229,8 +229,8 @@ namespace osu.Framework.Tests.Visual.Containers
 
             protected override DrawNode CreateDrawNode() => new TestBoxDrawNode(this);
 
-            internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
-                => currentDrawNode = base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
+            internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode, bool propagateMasking)
+                => currentDrawNode = base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode, propagateMasking);
 
             private class TestBoxDrawNode : SpriteDrawNode
             {

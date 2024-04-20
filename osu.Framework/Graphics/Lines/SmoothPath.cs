@@ -95,10 +95,10 @@ namespace osu.Framework.Graphics.Lines
             textureCache.Validate();
         }
 
-        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
+        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode, bool propagateMasking)
         {
             validateTexture();
-            return base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
+            return base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode, propagateMasking);
         }
 
         /// <summary>

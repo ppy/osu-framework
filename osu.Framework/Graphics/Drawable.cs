@@ -1881,8 +1881,9 @@ namespace osu.Framework.Graphics
         /// <param name="frame">The frame which the <see cref="DrawNode"/> sub-tree should be generated for.</param>
         /// <param name="treeIndex">The index of the <see cref="DrawNode"/> to use.</param>
         /// <param name="forceNewDrawNode">Whether the creation of a new <see cref="DrawNode"/> should be forced, rather than re-using an existing <see cref="DrawNode"/>.</param>
+        /// <param name="propagateMasking">Whether masking calculations will be propagated within this sub-tree.</param>
         /// <returns>A complete and updated <see cref="DrawNode"/>, or null if the <see cref="DrawNode"/> would be invisible.</returns>
-        internal virtual DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
+        internal virtual DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode, bool propagateMasking)
         {
             DrawNode node = drawNodes[treeIndex];
 

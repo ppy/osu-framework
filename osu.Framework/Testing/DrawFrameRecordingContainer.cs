@@ -41,7 +41,7 @@ namespace osu.Framework.Testing
 
         protected override bool CanBeFlattened => false;
 
-        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
+        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode, bool propagateMasking)
         {
             switch (recordState.Value)
             {
@@ -54,10 +54,10 @@ namespace osu.Framework.Testing
 
                     currentFrame.Value = currentFrame.MaxValue = 0;
 
-                    return base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
+                    return base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode, propagateMasking);
 
                 case RecordState.Recording:
-                    var node = base.GenerateDrawNodeSubtree(frame, treeIndex, true);
+                    var node = base.GenerateDrawNodeSubtree(frame, treeIndex, true, propagateMasking);
 
                     referenceRecursively(node);
 

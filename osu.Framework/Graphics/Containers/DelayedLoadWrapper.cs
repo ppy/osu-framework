@@ -210,7 +210,7 @@ namespace osu.Framework.Graphics.Containers
             return result;
         }
 
-        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
+        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode, bool propagateMasking)
         {
             // We can accurately compute intersections - the scheduled reset is no longer required.
             isIntersectingResetDelegate?.Cancel();
@@ -233,7 +233,7 @@ namespace osu.Framework.Graphics.Containers
                 isIntersectingCache.Validate();
             }
 
-            return base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
+            return base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode, propagateMasking);
         }
 
         /// <summary>

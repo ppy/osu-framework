@@ -37,9 +37,9 @@ namespace osu.Framework.Graphics
 
             protected override DrawNode CreateDrawNode() => new ProxyDrawNode(this);
 
-            internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
+            internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode, bool propagateMasking)
             {
-                var node = (ProxyDrawNode)base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
+                var node = (ProxyDrawNode)base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode, propagateMasking);
 
                 node.DrawNodeIndex = treeIndex;
                 node.FrameCount = frame;

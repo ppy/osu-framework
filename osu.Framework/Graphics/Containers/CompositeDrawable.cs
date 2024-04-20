@@ -904,6 +904,16 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected virtual bool RequiresChildrenUpdate => !WasMaskedAway || !childrenSizeDependencies.IsValid;
 
+        /// <summary>
+        /// Whether this <see cref="CompositeDrawable"/> requires a masking update of any of its descendants.
+        /// If the return value is false, then descendants don't perform their masking calculations.
+        /// </summary>
+        /// <remarks>
+        /// Useful in cases when we are certain that all the descendants within this <see cref="CompositeDrawable"/> will not be masked away as long as
+        /// it's not masked away.
+        /// </remarks>
+        protected virtual bool UpdateChildrenMasking => true;
+
         public override bool UpdateSubTree()
         {
             if (!base.UpdateSubTree()) return false;
@@ -957,9 +967,9 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool ComputeIsMaskedAway(RectangleF maskingBounds)
         {
-            // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad)
-            // when only few children exist.
-            if (CanBeFlattened && aliveInternalChildren.Count < amount_children_required_for_masking_check)
+            // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad) when only few children exist.
+            // However, masking must be computed regardless whenever UpdateChildrenMasking is set to false, since children will rely on masking of this composite.
+            if (UpdateChildrenMasking && aliveInternalChildren.Count >= amount_children_required_for_masking_check && CanBeFlattened)
                 return false;
 
             return base.ComputeIsMaskedAway(maskingBounds);
@@ -1129,9 +1139,11 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="j">The running index into the target List.</param>
         /// <param name="parentComposite">The <see cref="CompositeDrawable"/> whose children's <see cref="DrawNode"/>s to add.</param>
         /// <param name="target">The target list to fill with DrawNodes.</param>
-        private static void addFromComposite(ulong frame, int treeIndex, bool forceNewDrawNode, ref int j, CompositeDrawable parentComposite, List<DrawNode> target)
+        /// <param name="propagateMasking">Whether masking calculations will be propagated within this sub-tree.</param>
+        private static void addFromComposite(ulong frame, int treeIndex, bool forceNewDrawNode, ref int j, CompositeDrawable parentComposite, List<DrawNode> target, bool propagateMasking)
         {
             SortedList<Drawable> children = parentComposite.aliveInternalChildren;
+            propagateMasking &= parentComposite.UpdateChildrenMasking;
 
             for (int i = 0; i < children.Count; ++i)
             {
@@ -1145,21 +1157,25 @@ namespace osu.Framework.Graphics.Containers
                     if (!drawable.IsPresent)
                         continue;
 
-                    bool isMaskedAway = drawable.IsMaskedAway;
-                    drawable.WasMaskedAway = isMaskedAway;
-                    if (isMaskedAway)
-                        continue;
+                    if (propagateMasking)
+                    {
+                        bool isMaskedAway = drawable.IsMaskedAway;
+                        drawable.WasMaskedAway = isMaskedAway;
+
+                        if (isMaskedAway)
+                            continue;
+                    }
 
                     CompositeDrawable composite = drawable as CompositeDrawable;
 
                     if (composite?.CanBeFlattened == true)
                     {
-                        addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, composite, target);
+                        addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, composite, target, propagateMasking);
                         continue;
                     }
                 }
 
-                DrawNode next = drawable.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
+                DrawNode next = drawable.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode, propagateMasking);
                 if (next == null)
                     continue;
 
@@ -1176,13 +1192,13 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
+        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode, bool propagateMasking)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
             if (aliveInternalChildren.Count == 0 && CanBeFlattened)
                 return null;
 
-            DrawNode node = base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
+            DrawNode node = base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode, propagateMasking);
 
             if (!(node is ICompositeDrawNode cNode))
                 return null;
@@ -1192,7 +1208,7 @@ namespace osu.Framework.Graphics.Containers
             if (cNode.AddChildDrawNodes)
             {
                 int j = 0;
-                addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, this, cNode.Children);
+                addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, this, cNode.Children, propagateMasking);
 
                 if (j < cNode.Children.Count)
                     cNode.Children.RemoveRange(j, cNode.Children.Count - j);
