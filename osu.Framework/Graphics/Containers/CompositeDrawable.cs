@@ -58,6 +58,7 @@ namespace osu.Framework.Graphics.Containers
             childrenSizeDependencies.Validate();
 
             AddLayout(childrenSizeDependencies);
+            AddLayout(childMaskingBoundsBacking);
         }
 
         /// <summary>
@@ -901,7 +902,7 @@ namespace osu.Framework.Graphics.Containers
         /// If the return value is false, then children are not updated and
         /// <see cref="UpdateAfterChildren"/> is not called.
         /// </summary>
-        protected virtual bool RequiresChildrenUpdate => !IsMaskedAway || !childrenSizeDependencies.IsValid;
+        protected virtual bool RequiresChildrenUpdate => !WasMaskedAway || !childrenSizeDependencies.IsValid;
 
         public override bool UpdateSubTree()
         {
@@ -954,51 +955,25 @@ namespace osu.Framework.Graphics.Containers
             c.UpdateSubTree();
         }
 
-        /// <summary>
-        /// Updates all masking calculations for this <see cref="CompositeDrawable"/> and its <see cref="AliveInternalChildren"/>.
-        /// This occurs post-<see cref="UpdateSubTree"/> to ensure that all <see cref="Drawable"/> updates have taken place.
-        /// </summary>
-        /// <param name="source">The parent that triggered this update on this <see cref="Drawable"/>.</param>
-        /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds.</param>
-        /// <returns>Whether masking calculations have taken place.</returns>
-        public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
-        {
-            if (!base.UpdateSubTreeMasking(source, maskingBounds))
-                return false;
-
-            if (IsMaskedAway)
-                return true;
-
-            if (aliveInternalChildren.Count == 0)
-                return true;
-
-            if (RequiresChildrenUpdate)
-            {
-                var childMaskingBounds = ComputeChildMaskingBounds(maskingBounds);
-
-                for (int i = 0; i < aliveInternalChildren.Count; i++)
-                    aliveInternalChildren[i].UpdateSubTreeMasking(this, childMaskingBounds);
-            }
-
-            return true;
-        }
-
         protected override bool ComputeIsMaskedAway(RectangleF maskingBounds)
         {
-            if (!CanBeFlattened)
-                return base.ComputeIsMaskedAway(maskingBounds);
-
             // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad)
             // when only few children exist.
-            return aliveInternalChildren.Count >= amount_children_required_for_masking_check && base.ComputeIsMaskedAway(maskingBounds);
+            if (CanBeFlattened && aliveInternalChildren.Count < amount_children_required_for_masking_check)
+                return false;
+
+            return base.ComputeIsMaskedAway(maskingBounds);
         }
+
+        private readonly LayoutValue<RectangleF> childMaskingBoundsBacking = new LayoutValue<RectangleF>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence | Invalidation.DrawNode | Invalidation.Parent);
+
+        public RectangleF ChildMaskingBounds => childMaskingBoundsBacking.IsValid ? childMaskingBoundsBacking : childMaskingBoundsBacking.Value = ComputeChildMaskingBounds();
 
         /// <summary>
         /// Computes the <see cref="RectangleF"/> to be used as the masking bounds for all <see cref="AliveInternalChildren"/>.
         /// </summary>
-        /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds for this <see cref="CompositeDrawable"/>.</param>
         /// <returns>The <see cref="RectangleF"/> to be used as the masking bounds for <see cref="AliveInternalChildren"/>.</returns>
-        protected virtual RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => Masking ? RectangleF.Intersect(maskingBounds, ScreenSpaceDrawQuad.AABBFloat) : maskingBounds;
+        protected virtual RectangleF ComputeChildMaskingBounds() => Masking ? RectangleF.Intersect(ComputeMaskingBounds(), ScreenSpaceDrawQuad.AABBFloat) : ComputeMaskingBounds();
 
         /// <summary>
         /// Invoked after <see cref="UpdateChildrenLife"/> and <see cref="Drawable.IsPresent"/> state checks have taken place,
@@ -1170,7 +1145,9 @@ namespace osu.Framework.Graphics.Containers
                     if (!drawable.IsPresent)
                         continue;
 
-                    if (drawable.IsMaskedAway)
+                    bool isMaskedAway = drawable.IsMaskedAway;
+                    drawable.WasMaskedAway = isMaskedAway;
+                    if (isMaskedAway)
                         continue;
 
                     CompositeDrawable composite = drawable as CompositeDrawable;

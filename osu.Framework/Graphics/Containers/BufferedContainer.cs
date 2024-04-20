@@ -271,16 +271,13 @@ namespace osu.Framework.Graphics.Containers
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(this, sharedData);
 
-        public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
+        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
         {
-            bool result = base.UpdateSubTreeMasking(source, maskingBounds);
-
             childrenUpdateVersion = updateVersion;
-
-            return result;
+            return base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
         }
 
-        protected override RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => ScreenSpaceDrawQuad.AABBFloat; // Make sure children never get masked away
+        protected override RectangleF ComputeChildMaskingBounds() => ScreenSpaceDrawQuad.AABBFloat; // Make sure children never get masked away
 
         private Vector2 lastScreenSpaceSize;
 

@@ -495,31 +495,18 @@ namespace osu.Framework.Graphics
             return true;
         }
 
-        private RectangleF? lastMaskingBounds;
-
-        /// <summary>
-        /// Updates all masking calculations for this <see cref="Drawable"/>.
-        /// This occurs post-<see cref="UpdateSubTree"/> to ensure that all <see cref="Drawable"/> updates have taken place.
-        /// </summary>
-        /// <param name="source">The parent that triggered this update on this <see cref="Drawable"/>.</param>
-        /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds.</param>
-        /// <returns>Whether masking calculations have taken place.</returns>
-        public virtual bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
+        protected RectangleF ComputeMaskingBounds()
         {
-            if (!IsPresent)
-                return false;
+            if (HasProxy)
+                return proxy.ComputeMaskingBounds();
 
-            if (HasProxy && source != proxy)
-                return false;
+            if (parent == null)
+                return ScreenSpaceDrawQuad.AABBFloat;
 
-            if (!maskingBacking.IsValid || lastMaskingBounds != maskingBounds)
-            {
-                lastMaskingBounds = maskingBounds;
-                IsMaskedAway = maskingBacking.Value = ComputeIsMaskedAway(maskingBounds);
-            }
-
-            return true;
+            return parent.ChildMaskingBounds;
         }
+
+        private RectangleF? lastMaskingBounds;
 
         /// <summary>
         /// Computes whether this <see cref="Drawable"/> is masked away.
@@ -1558,11 +1545,32 @@ namespace osu.Framework.Graphics
         #region Caching & invalidation (for things too expensive to compute every frame)
 
         /// <summary>
+        /// Whether this Drawable is masked away completely.
+        /// This is measured conservatively, i.e. it is only true when the Drawable was
+        /// actually masked away, but it may be false, even if the Drawable was masked away.
+        /// </summary>
+        internal bool IsMaskedAway
+        {
+            get
+            {
+                var maskingBounds = ComputeMaskingBounds();
+
+                if (!maskingBacking.IsValid || lastMaskingBounds != maskingBounds)
+                {
+                    lastMaskingBounds = maskingBounds;
+                    maskingBacking.Value = ComputeIsMaskedAway(maskingBounds);
+                }
+
+                return maskingBacking.Value;
+            }
+        }
+
+        /// <summary>
         /// Was this Drawable masked away completely during the last frame?
         /// This is measured conservatively, i.e. it is only true when the Drawable was
         /// actually masked away, but it may be false, even if the Drawable was masked away.
         /// </summary>
-        internal bool IsMaskedAway { get; private set; }
+        internal bool WasMaskedAway { get; set; }
 
         private readonly LayoutValue<bool> maskingBacking = new LayoutValue<bool>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence);
 
@@ -2419,7 +2427,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Whether positional input should be propagated to the sub-tree rooted at this drawable.
         /// </summary>
-        public virtual bool PropagatePositionalInputSubTree => IsPresent && RequestsPositionalInputSubTree && !IsMaskedAway;
+        public virtual bool PropagatePositionalInputSubTree => IsPresent && RequestsPositionalInputSubTree && !WasMaskedAway;
 
         /// <summary>
         /// Whether clicks should be blocked when this drawable is in a dragged state.
