@@ -6,14 +6,11 @@ using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
-using Android.Runtime;
 using Android.Views;
 using Java.Lang;
 using ManagedBass;
 using Org.Libsdl.App;
-using osu.Framework.Bindables;
 using osu.Framework.Extensions.ObjectExtensions;
-using osu.Framework.Platform;
 using Debug = System.Diagnostics.Debug;
 
 namespace osu.Framework.Android
@@ -38,21 +35,6 @@ namespace osu.Framework.Android
 
         protected abstract Game CreateGame();
 
-        private Game? game;
-
-        private GameHost? host;
-
-        /// <summary>
-        /// Whether this <see cref="AndroidGameActivity"/> is active (in the foreground).
-        /// </summary>
-        public BindableBool IsActive { get; } = new BindableBool();
-
-        public override void OnTrimMemory([GeneratedEnum] TrimMemory level)
-        {
-            base.OnTrimMemory(level);
-            host?.Collect();
-        }
-
         protected override string[] GetLibraries() => new string[] { "SDL3" };
 
         protected override SDLSurface CreateSDLSurface(Context? context) => new AndroidGameSurface(this, context);
@@ -62,23 +44,23 @@ namespace osu.Framework.Android
             // blocks back button
             SDL.SDL3.SDL_SetHint(SDL.SDL3.SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1"u8);
 
-            // hints are here because they don't apply well in another location such as SDL2Window
+            // hints are here because they don't apply well in another location such as SDL3Window
 
-            host = new AndroidGameHost(this);
-            game = CreateGame();
-
-            host.AllowScreenSuspension.Result.BindValueChanged(allow =>
+            using (AndroidGameHost host = new AndroidGameHost(this))
             {
-                RunOnUiThread(() =>
+                host.AllowScreenSuspension.Result.BindValueChanged(allow =>
                 {
-                    if (!allow.NewValue)
-                        Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
-                    else
-                        Window?.ClearFlags(WindowManagerFlags.KeepScreenOn);
-                });
-            }, true);
+                    RunOnUiThread(() =>
+                    {
+                        if (!allow.NewValue)
+                            Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
+                        else
+                            Window?.ClearFlags(WindowManagerFlags.KeepScreenOn);
+                    });
+                }, true);
 
-            host.Run(game);
+                host.Run(CreateGame());
+            }
 
             if (!IsFinishing)
                 Finish();
@@ -112,12 +94,6 @@ namespace osu.Framework.Android
         {
             base.OnRestart();
             Bass.Start();
-        }
-
-        public override void OnWindowFocusChanged(bool hasFocus)
-        {
-            base.OnWindowFocusChanged(hasFocus);
-            IsActive.Value = hasFocus;
         }
     }
 }

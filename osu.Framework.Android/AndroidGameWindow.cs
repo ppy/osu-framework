@@ -2,11 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Bindables;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Android
 {
-    internal class AndroidGameWindow : SDL3Window
+    internal class AndroidGameWindow : SDL3MobileWindow
     {
         public override IntPtr DisplayHandle => AndroidGameActivity.Surface.NativeSurface?.Handle ?? IntPtr.Zero;
 
@@ -21,7 +22,8 @@ namespace osu.Framework.Android
 
             SafeAreaPadding.BindTo(AndroidGameActivity.Surface.SafeAreaPadding);
 
-            // Same as cursorInWindow, Android SDL doesn't push these events at start, so it never receives focus until it comes back from background
+            // Android SDL doesn't receive these events at start, so it never receives focus until it comes back from background
+            ((BindableBool)CursorInWindow).Value = true;
             Focused = true;
         }
     }

@@ -226,9 +226,7 @@ namespace osu.Framework.Platform
 
         public IBindable<bool> IsActive => isActive;
 
-        // This is default to true because Android never gets window enter event.
-        // shouldn't harm so much to have true as default
-        private readonly BindableBool cursorInWindow = new BindableBool(true);
+        private readonly BindableBool cursorInWindow = new BindableBool();
 
         public IBindable<bool> CursorInWindow => cursorInWindow;
 
@@ -528,7 +526,9 @@ namespace osu.Framework.Platform
                 case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST:
                 case SDL_EventType.SDL_EVENT_WINDOW_SHOWN:
                 case SDL_EventType.SDL_EVENT_WINDOW_HIDDEN:
-                case SDL_EventType.SDL_EVENT_WINDOW_RESIZED when RuntimeInfo.IsMobile:
+
+                // See https://github.com/libsdl-org/SDL/issues/9585
+                case SDL_EventType.SDL_EVENT_WINDOW_RESIZED when RuntimeInfo.OS == RuntimeInfo.Platform.Android:
                     fetchDisplays();
                     break;
             }

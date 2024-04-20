@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 using SDL;
@@ -219,9 +220,8 @@ namespace osu.Framework.Platform.SDL
 
         #region Android-specific implementation
 
-#pragma warning disable CA1416 // This is only usable in Android
+        [SupportedOSPlatform("android")]
         IntPtr IAndroidGraphicsSurface.JniEnvHandle => SDL3.SDL_AndroidGetJNIEnv();
-#pragma warning restore CA1416
 
         #endregion
     }

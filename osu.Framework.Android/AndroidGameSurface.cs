@@ -17,7 +17,7 @@ namespace osu.Framework.Android
 {
     internal class AndroidGameSurface : SDLSurface
     {
-        public AndroidGameActivity Activity { get; } = null!;
+        private AndroidGameActivity activity { get; } = null!;
 
         public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
@@ -25,7 +25,7 @@ namespace osu.Framework.Android
             : base(context)
         {
             init();
-            Activity = activity;
+            this.activity = activity;
         }
 
         protected AndroidGameSurface(IntPtr javaReference, JniHandleOwnership transfer)
@@ -70,7 +70,7 @@ namespace osu.Framework.Android
         /// </summary>
         private void updateSafeArea(WindowInsets? windowInsets)
         {
-            var metrics = WindowMetricsCalculator.Companion.OrCreate.ComputeCurrentWindowMetrics(Activity);
+            var metrics = WindowMetricsCalculator.Companion.OrCreate.ComputeCurrentWindowMetrics(activity);
             var windowArea = metrics.Bounds.ToRectangleI();
             var usableWindowArea = windowArea;
 
@@ -101,7 +101,7 @@ namespace osu.Framework.Android
                 usableWindowArea = usableWindowArea.Intersect(radiusInsetArea);
             }
 
-            if (OperatingSystem.IsAndroidVersionAtLeast(24) && Activity.IsInMultiWindowMode && windowInsets != null)
+            if (OperatingSystem.IsAndroidVersionAtLeast(24) && activity.IsInMultiWindowMode && windowInsets != null)
             {
                 // if we are in multi-window mode, the status bar is always visible (even if we request to hide it) and could be obstructing our view.
                 // if multi-window mode is not active, we can assume the status bar is hidden so we shouldn't consider it for safe area calculations.
