@@ -909,8 +909,9 @@ namespace osu.Framework.Graphics.Containers
         /// If the return value is false, then descendants don't perform their masking calculations.
         /// </summary>
         /// <remarks>
-        /// Useful in cases when we are certain that all the descendants within this <see cref="CompositeDrawable"/> will not be masked away as long as
+        /// Useful in cases when we are certain that all the descendants of this <see cref="CompositeDrawable"/> will not be masked away as long as
         /// it's not masked away.
+        /// Alternative to setting <see cref="ComputeIsMaskedAway"/> to false for every descendant of this <see cref="CompositeDrawable"/>.
         /// </remarks>
         protected virtual bool UpdateChildrenMasking => true;
 
