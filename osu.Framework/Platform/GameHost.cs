@@ -1031,7 +1031,7 @@ namespace osu.Framework.Platform
 
                 Window.SetupWindow(Config);
                 Window.Create();
-                Window.Title = $@"osu!framework (running ""{Name}"")";
+                Window.Title = Options.FriendlyGameName;
 
                 Renderer.Initialise(Window.GraphicsSurface);
 
