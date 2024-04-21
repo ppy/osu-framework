@@ -970,7 +970,7 @@ namespace osu.Framework.Graphics.Containers
         {
             // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad) when only few children exist.
             // However, masking must be computed regardless whenever UpdateChildrenMasking is set to false, since children will rely on masking of this composite.
-            if (UpdateChildrenMasking && aliveInternalChildren.Count >= amount_children_required_for_masking_check && CanBeFlattened)
+            if (UpdateChildrenMasking && aliveInternalChildren.Count < amount_children_required_for_masking_check && CanBeFlattened)
                 return false;
 
             return base.ComputeIsMaskedAway(maskingBounds);
