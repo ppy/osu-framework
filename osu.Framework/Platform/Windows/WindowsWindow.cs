@@ -36,8 +36,8 @@ namespace osu.Framework.Platform.Windows
         /// </summary>
         private readonly bool applyBorderlessWindowHack;
 
-        public WindowsWindow(GraphicsSurfaceType surfaceType)
-            : base(surfaceType)
+        public WindowsWindow(GraphicsSurfaceType surfaceType, string appName)
+            : base(surfaceType, appName)
         {
             switch (surfaceType)
             {

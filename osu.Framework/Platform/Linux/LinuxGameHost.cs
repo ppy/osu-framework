@@ -33,7 +33,7 @@ namespace osu.Framework.Platform.Linux
             base.SetupForRun();
         }
 
-        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new SDL3DesktopWindow(preferredSurface);
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new SDL3DesktopWindow(preferredSurface, Options.FriendlyGameName);
 
         protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new LinuxReadableKeyCombinationProvider();
 

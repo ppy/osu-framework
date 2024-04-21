@@ -145,9 +145,11 @@ namespace osu.Framework.Platform
         /// </summary>
         protected ObjectHandle<SDL3Window> ObjectHandle { get; private set; }
 
-        protected SDL3Window(GraphicsSurfaceType surfaceType)
+        protected SDL3Window(GraphicsSurfaceType surfaceType, string appName)
         {
             ObjectHandle = new ObjectHandle<SDL3Window>(this, GCHandleType.Normal);
+
+            SDL3.SDL_SetHint(SDL3.SDL_HINT_APP_NAME, appName);
 
             if (SDL3.SDL_Init(SDL_InitFlags.SDL_INIT_VIDEO | SDL_InitFlags.SDL_INIT_GAMEPAD) < 0)
             {

@@ -24,8 +24,8 @@ namespace osu.Framework.Platform.MacOS
         private IntPtr originalScrollWheel;
         private ScrollWheelDelegate scrollWheelHandler;
 
-        public MacOSWindow(GraphicsSurfaceType surfaceType)
-            : base(surfaceType)
+        public MacOSWindow(GraphicsSurfaceType surfaceType, string appName)
+            : base(surfaceType, appName)
         {
         }
 
