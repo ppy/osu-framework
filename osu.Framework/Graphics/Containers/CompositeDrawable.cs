@@ -976,7 +976,7 @@ namespace osu.Framework.Graphics.Containers
             return base.ComputeIsMaskedAway(maskingBounds);
         }
 
-        private readonly LayoutValue<RectangleF> childMaskingBoundsBacking = new LayoutValue<RectangleF>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence | Invalidation.DrawNode | Invalidation.Parent);
+        private readonly LayoutValue<RectangleF> childMaskingBoundsBacking = new LayoutValue<RectangleF>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence | Invalidation.Parent);
 
         public RectangleF ChildMaskingBounds => childMaskingBoundsBacking.IsValid ? childMaskingBoundsBacking : childMaskingBoundsBacking.Value = ComputeChildMaskingBounds();
 
@@ -1472,6 +1472,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 masking = value;
+                childMaskingBoundsBacking.Invalidate();
                 Invalidate(Invalidation.DrawNode);
             }
         }

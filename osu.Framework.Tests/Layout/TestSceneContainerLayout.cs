@@ -7,6 +7,7 @@ using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Layout;
 using osu.Framework.Testing;
@@ -496,6 +497,29 @@ namespace osu.Framework.Tests.Layout
             });
 
             AddAssert("still valid", () => isValid);
+        }
+
+        /// <summary>
+        /// Tests that changing Masking property will invalidate child masking bounds.
+        /// </summary>
+        [Test]
+        public void TestChildMaskingInvalidationOnMaskingChange()
+        {
+            Container container = null;
+            RectangleF childMaskingBounds = new RectangleF();
+
+            AddStep("createTest", () =>
+            {
+                Child = container = new Container
+                {
+                    Size = new Vector2(100)
+                };
+            });
+
+            AddAssert("Masking is off", () => container.Masking == false);
+            AddStep("Save child bounds", () => childMaskingBounds = container.ChildMaskingBounds);
+            AddStep("Disable masking", () => container.Masking = true);
+            AddAssert("Child masking bounds has changed", () => childMaskingBounds != container.ChildMaskingBounds);
         }
 
         private partial class TestBox1 : Box
