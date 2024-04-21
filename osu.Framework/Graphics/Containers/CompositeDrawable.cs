@@ -976,7 +976,7 @@ namespace osu.Framework.Graphics.Containers
             return base.ComputeIsMaskedAway(maskingBounds);
         }
 
-        private readonly LayoutValue<RectangleF> childMaskingBoundsBacking = new LayoutValue<RectangleF>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence | Invalidation.Parent);
+        private readonly LayoutValue<RectangleF> childMaskingBoundsBacking = new LayoutValue<RectangleF>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence);
 
         public RectangleF ChildMaskingBounds => childMaskingBoundsBacking.IsValid ? childMaskingBoundsBacking : childMaskingBoundsBacking.Value = ComputeChildMaskingBounds();
 
