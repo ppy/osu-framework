@@ -251,6 +251,11 @@ namespace osu.Framework.Platform
 
             if (evtTfinger.type == SDL_EventType.SDL_EVENT_FINGER_DOWN)
             {
+                // TODO: remove when upstream fixes https://github.com/libsdl-org/SDL/issues/9591
+                // ignore SDL_EVENT_FINGER_DOWN for fingers that are already pressed
+                if (existingSource != null)
+                    return;
+
                 Debug.Assert(existingSource == null);
                 existingSource = assignNextAvailableTouchSource(evtTfinger.fingerID);
             }

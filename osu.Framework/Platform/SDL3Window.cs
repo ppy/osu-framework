@@ -156,6 +156,7 @@ namespace osu.Framework.Platform
 
             SDL3.SDL_LogSetPriority(SDL_LogCategory.SDL_LOG_CATEGORY_ERROR, SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG);
             SDL3.SDL_SetLogOutputFunction(&logOutput, IntPtr.Zero);
+            SDL3.SDL_SetEventFilter(&eventFilter, ObjectHandle.Handle);
 
             graphicsSurface = new SDL3GraphicsSurface(this, surfaceType);
 
@@ -217,7 +218,6 @@ namespace osu.Framework.Platform
         /// </summary>
         public virtual void Run()
         {
-            SDL3.SDL_SetEventFilter(&eventFilter, ObjectHandle.Handle);
             SDL3.SDL_AddEventWatch(&eventWatch, ObjectHandle.Handle);
 
             RunMainLoop();
