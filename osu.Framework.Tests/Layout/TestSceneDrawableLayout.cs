@@ -134,6 +134,36 @@ namespace osu.Framework.Tests.Layout
             });
         }
 
+        [Test]
+        public void TestIsMaskedAwayUpdatedIndependentOfScreenSpaceDrawQuad()
+        {
+            TestBox1 box = null;
+
+            AddStep("create test", () =>
+            {
+                Child = new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Masking = true,
+                    Child = box = new TestBox1
+                    {
+                        Size = new Vector2(100, 100),
+                        Position = new Vector2(10000, 10000)
+                    }
+                };
+            });
+
+            AddUntilStep("masked away", () => box.IsMaskedAway);
+
+            AddStep("move onto screen and validate immediately", () =>
+            {
+                box.Position = Vector2.Zero;
+                _ = box.ScreenSpaceDrawQuad; // Validate everything.
+            });
+
+            AddUntilStep("not masked away", () => !box.IsMaskedAway);
+        }
+
         private partial class TestContainer1 : Container<Drawable>
         {
             public void AdjustScale(float scale = 1.0f)

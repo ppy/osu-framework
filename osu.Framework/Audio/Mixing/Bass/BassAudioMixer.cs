@@ -10,7 +10,6 @@ using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Bindables;
-using osu.Framework.Development;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Statistics;
@@ -158,7 +157,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// If successful, the position is returned.
         /// </returns>
         public long ChannelGetPosition(IBassAudioChannel channel, PositionFlags mode = PositionFlags.Bytes)
-            => BassMix.ChannelGetPosition(channel.Handle);
+            => BassMix.ChannelGetPosition(channel.Handle, mode);
 
         /// <summary>
         /// Sets the playback position of a channel.
@@ -421,13 +420,7 @@ namespace osu.Framework.Audio.Mixing.Bass
                     // Effects with greatest priority are stored at the front of the list.
                     effect.Priority = -i;
 
-                    if (effect.Handle != 0)
-                    {
-                        // Todo: Temporary bypass to attempt to fix failing test runs.
-                        if (!DebugUtils.IsNUnitRunning)
-                            ManagedBass.Bass.FXSetPriority(effect.Handle, effect.Priority);
-                    }
-                    else
+                    if (effect.Handle == 0)
                         effect.Handle = ManagedBass.Bass.ChannelSetFX(Handle, effect.Effect.FXType, effect.Priority);
 
                     ManagedBass.Bass.FXSetParameters(effect.Handle, effect.Effect);

@@ -5,7 +5,6 @@
 
 using System.Linq;
 using NUnit.Framework;
-using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
@@ -828,6 +827,60 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("all text selected", () => textBox.SelectedText, () => Is.EqualTo(textBox.Text));
         }
 
+        [Test]
+        public void TestCursorMovementWithSelection()
+        {
+            TextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new BasicTextBox
+                {
+                    Size = new Vector2(300, 40),
+                    Text = "cwm fjord glyphs vext bank quiz",
+                    ReadOnly = false
+                });
+            });
+
+            AddStep("focus textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            // left char move should put cursor at left end of selection
+            AddStep("select all", () => textBox.SelectAll());
+            AddStep("move cursor backward (char)", () => InputManager.Keys(PlatformAction.MoveBackwardChar));
+            AddStep("select next word", () => InputManager.Keys(PlatformAction.SelectForwardWord));
+            AddAssert("first word selected", () => textBox.SelectedText == "cwm");
+
+            // forward word move should put cursor at right end of selection
+            AddStep("move cursor forward (word)", () => InputManager.Keys(PlatformAction.MoveForwardWord));
+            AddStep("select next word", () => InputManager.Keys(PlatformAction.SelectForwardWord));
+            AddAssert("second word selected", () => textBox.SelectedText == " fjord");
+
+            // same thing but for "back-facing" selection
+            AddStep("move cursor forward (word)", () => InputManager.Keys(PlatformAction.MoveForwardWord));
+            AddStep("select previous word", () => InputManager.Keys(PlatformAction.SelectBackwardWord));
+            AddAssert("second word selected", () => textBox.SelectedText == "fjord");
+
+            // right char move should put cursor at right end of selection
+            AddStep("select all", () => textBox.SelectAll());
+            AddStep("move cursor forward (char)", () => InputManager.Keys(PlatformAction.MoveForwardChar));
+            AddStep("select previous word", () => InputManager.Keys(PlatformAction.SelectBackwardWord));
+            AddAssert("last word selected", () => textBox.SelectedText == "quiz");
+
+            // backward word move should put cursor at left end of selection
+            AddStep("move cursor backward (word)", () => InputManager.Keys(PlatformAction.MoveBackwardWord));
+            AddStep("select previous word", () => InputManager.Keys(PlatformAction.SelectBackwardWord));
+            AddAssert("second-from-last word selected", () => textBox.SelectedText == "bank ");
+
+            // same thing but for "front-facing" selection
+            AddStep("move cursor backward (word)", () => InputManager.Keys(PlatformAction.MoveBackwardWord));
+            AddStep("select next word", () => InputManager.Keys(PlatformAction.SelectForwardWord));
+            AddAssert("second-from-last word selected", () => textBox.SelectedText == "bank");
+        }
+
         private void prependString(InsertableTextBox textBox, string text)
         {
             InputManager.Keys(PlatformAction.MoveBackwardLine);
@@ -870,7 +923,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private partial class NumberTextBox : BasicTextBox
         {
-            protected override bool CanAddCharacter(char character) => character.IsAsciiDigit();
+            protected override bool CanAddCharacter(char character) => char.IsAsciiDigit(character);
 
             protected override bool AllowIme => false;
         }

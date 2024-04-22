@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Extensions.ObjectExtensions;
-using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;
@@ -73,8 +72,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private void compile()
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not compile a disposed shader.");
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
             if (IsLoaded)
                 throw new InvalidOperationException("Attempting to compile an already-compiled shader.");
@@ -92,8 +90,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         internal void EnsureShaderCompiled()
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not compile a disposed shader.");
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
             if (shaderCompileDelegate.State == RunState.Waiting)
                 shaderCompileDelegate.RunTask();
@@ -101,8 +98,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         public void Bind()
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not bind a disposed shader.");
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
             if (IsBound)
                 return;
@@ -130,8 +126,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
         public Uniform<T> GetUniform<T>(string name)
             where T : unmanaged, IEquatable<T>
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not retrieve uniforms from a disposed shader.");
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
             EnsureShaderCompiled();
 
@@ -142,15 +137,11 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         public virtual void BindUniformBlock(string blockName, IUniformBuffer buffer)
         {
-            if (buffer is not IGLUniformBuffer glBuffer)
-                throw new ArgumentException($"Buffer must be an {nameof(IGLUniformBuffer)}.");
-
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not retrieve uniforms from a disposed shader.");
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
             EnsureShaderCompiled();
 
-            renderer.BindUniformBuffer(blockName, glBuffer);
+            renderer.BindUniformBuffer(blockName, buffer);
         }
 
         private protected virtual bool CompileInternal()

@@ -3,6 +3,7 @@
 
 using System;
 using System.Globalization;
+using System.Numerics;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -167,45 +168,45 @@ namespace osu.Framework.Tests.Visual.Bindables
         private bool checkExact(decimal value) => checkExact(value, value);
 
         private bool checkExact(decimal floatValue, decimal intValue)
-            => bindableInt.Value == Convert.ToInt32(intValue)
-               && bindableLong.Value == Convert.ToInt64(intValue)
-               && bindableFloat.Value == Convert.ToSingle(floatValue)
-               && bindableDouble.Value == Convert.ToDouble(floatValue);
+            => bindableInt.Value == (int)intValue
+               && bindableLong.Value == (long)intValue
+               && bindableFloat.Value == (float)floatValue
+               && bindableDouble.Value == (double)floatValue;
 
-        private void setMin<T>(T value)
+        private void setMin<T>(T value) where T : INumber<T>
         {
-            bindableInt.MinValue = Convert.ToInt32(value);
-            bindableLong.MinValue = Convert.ToInt64(value);
-            bindableFloat.MinValue = Convert.ToSingle(value);
-            bindableDouble.MinValue = Convert.ToDouble(value);
+            bindableInt.MinValue = int.CreateTruncating(value);
+            bindableLong.MinValue = long.CreateTruncating(value);
+            bindableFloat.MinValue = float.CreateTruncating(value);
+            bindableDouble.MinValue = double.CreateTruncating(value);
         }
 
-        private void setMax<T>(T value)
+        private void setMax<T>(T value) where T : INumber<T>
         {
-            bindableInt.MaxValue = Convert.ToInt32(value);
-            bindableLong.MaxValue = Convert.ToInt64(value);
-            bindableFloat.MaxValue = Convert.ToSingle(value);
-            bindableDouble.MaxValue = Convert.ToDouble(value);
+            bindableInt.MaxValue = int.CreateTruncating(value);
+            bindableLong.MaxValue = long.CreateTruncating(value);
+            bindableFloat.MaxValue = float.CreateTruncating(value);
+            bindableDouble.MaxValue = double.CreateTruncating(value);
         }
 
-        private void setValue<T>(T value)
+        private void setValue<T>(T value) where T : INumber<T>
         {
-            bindableInt.Value = Convert.ToInt32(value);
-            bindableLong.Value = Convert.ToInt64(value);
-            bindableFloat.Value = Convert.ToSingle(value);
-            bindableDouble.Value = Convert.ToDouble(value);
+            bindableInt.Value = int.CreateTruncating(value);
+            bindableLong.Value = long.CreateTruncating(value);
+            bindableFloat.Value = float.CreateTruncating(value);
+            bindableDouble.Value = double.CreateTruncating(value);
         }
 
-        private void setPrecision<T>(T precision)
+        private void setPrecision<T>(T precision) where T : INumber<T>
         {
-            bindableInt.Precision = Convert.ToInt32(precision);
-            bindableLong.Precision = Convert.ToInt64(precision);
-            bindableFloat.Precision = Convert.ToSingle(precision);
-            bindableDouble.Precision = Convert.ToDouble(precision);
+            bindableInt.Precision = int.CreateTruncating(precision);
+            bindableLong.Precision = long.CreateTruncating(precision);
+            bindableFloat.Precision = float.CreateTruncating(precision);
+            bindableDouble.Precision = double.CreateTruncating(precision);
         }
 
         private partial class BindableDisplayContainer<T> : CompositeDrawable
-            where T : struct, IComparable<T>, IConvertible, IEquatable<T>
+            where T : struct, INumber<T>, IMinMaxValue<T>, IConvertible
         {
             public BindableDisplayContainer(BindableNumber<T> bindable)
             {

@@ -156,7 +156,13 @@ namespace osu.Framework.Tests.Clocks
             Assert.Greater(interpolatedCount, 10);
         }
 
+        // Regularly failing on single-thread macOS CI, failing when test asserts interpolating.IsInterpolating = false
+        //
+        // CanSeekForwardsOnInterpolationFail
+        //     Expected: False
+        //     But was:  True
         [Test]
+        [FlakyTest]
         public void CanSeekForwardsOnInterpolationFail()
         {
             const int sleep_time = 20;

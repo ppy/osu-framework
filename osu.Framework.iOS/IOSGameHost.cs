@@ -21,7 +21,7 @@ using UIKit;
 
 namespace osu.Framework.iOS
 {
-    public class IOSGameHost : SDL2GameHost
+    public class IOSGameHost : SDL3GameHost
     {
         public IOSGameHost()
             : base(string.Empty)

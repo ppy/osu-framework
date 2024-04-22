@@ -265,13 +265,8 @@ namespace osu.Framework.Extensions
         /// <returns>A lower-case hex string representation of the hash (64 characters).</returns>
         public static string ComputeSHA2Hash(this Stream stream)
         {
-            string hash;
-
             stream.Seek(0, SeekOrigin.Begin);
-
-            using (var alg = SHA256.Create())
-                hash = alg.ComputeHash(stream).toLowercaseHex();
-
+            string hash = SHA256.HashData(stream).toLowercaseHex();
             stream.Seek(0, SeekOrigin.Begin);
 
             return hash;
@@ -286,11 +281,8 @@ namespace osu.Framework.Extensions
 
         public static string ComputeMD5Hash(this Stream stream)
         {
-            string hash;
-
             stream.Seek(0, SeekOrigin.Begin);
-            using (var md5 = MD5.Create())
-                hash = md5.ComputeHash(stream).toLowercaseHex();
+            string hash = MD5.HashData(stream).toLowercaseHex();
             stream.Seek(0, SeekOrigin.Begin);
 
             return hash;
@@ -340,7 +332,8 @@ namespace osu.Framework.Extensions
         /// </remarks>
         /// <param name="character">The character to check.</param>
         /// <returns>True if the character is an ASCII digit.</returns>
-        public static bool IsAsciiDigit(this char character) => character >= '0' && character <= '9';
+        [Obsolete("Use char.IsAsciiDigit.")] // can be removed 20240901
+        public static bool IsAsciiDigit(this char character) => char.IsAsciiDigit(character);
 
         /// <summary>
         /// Converts an osuTK <see cref="DisplayDevice"/> to a <see cref="Display"/> structure.
@@ -357,7 +350,7 @@ namespace osu.Framework.Extensions
         /// <param name="resolution">The <see cref="DisplayResolution"/> to convert.</param>
         /// <returns>A <see cref="DisplayMode"/> structure populated with the corresponding properties.</returns>
         internal static DisplayMode ToDisplayMode(this DisplayResolution resolution) =>
-            new DisplayMode(null, new Size(resolution.Width, resolution.Height), resolution.BitsPerPixel, (int)Math.Round(resolution.RefreshRate), 0);
+            new DisplayMode(null, new Size(resolution.Width, resolution.Height), resolution.BitsPerPixel, resolution.RefreshRate, 0);
 
         /// <summary>
         /// Checks whether the provided URL is a safe protocol to execute a system <see cref="Process.Start()"/> call with.

@@ -1452,7 +1452,8 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestGetEnumeratorDoesNotReturnNull()
         {
-            Assert.NotNull(bindableStringList.GetEnumerator());
+            using var enumerator = bindableStringList.GetEnumerator();
+            Assert.NotNull(enumerator);
         }
 
         [Test]
@@ -1461,8 +1462,10 @@ namespace osu.Framework.Tests.Bindables
             string[] array = { "" };
             var list = new BindableList<string>(array);
 
-            var enumerator = list.GetEnumerator();
+            using var enumerator = list.GetEnumerator();
 
+            // ReSharper disable once NotDisposedResource
+            // Array enumerator is not disposable
             Assert.AreNotEqual(array.GetEnumerator(), enumerator);
         }
 

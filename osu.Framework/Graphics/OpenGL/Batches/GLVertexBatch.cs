@@ -122,9 +122,6 @@ namespace osu.Framework.Graphics.OpenGL.Batches
             currentBufferIndex = (currentBufferIndex + 1) % maxBuffers;
             changeBeginIndex = -1;
 
-            FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
-            FrameStatistics.Add(StatisticsCounterType.VerticesDraw, countToDraw);
-
             return countToDraw;
         }
     }

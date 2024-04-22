@@ -67,8 +67,7 @@ namespace osu.Framework.Graphics
         /// <exception cref="ArgumentOutOfRangeException">If <paramref name="effectBufferCount"/> is less than 0.</exception>
         public BufferedDrawNodeSharedData(int effectBufferCount, RenderBufferFormat[] mainBufferFormats = null, bool pixelSnapping = false, bool clipToRootNode = false)
         {
-            if (effectBufferCount < 0)
-                throw new ArgumentOutOfRangeException(nameof(effectBufferCount), "Must be positive.");
+            ArgumentOutOfRangeException.ThrowIfNegative(effectBufferCount);
 
             this.mainBufferFormats = mainBufferFormats;
             PixelSnapping = pixelSnapping;

@@ -87,8 +87,7 @@ namespace osu.Framework.Graphics.UserInterface
             get => itemSource;
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+                ArgumentNullException.ThrowIfNull(value);
 
                 if (boundItemSource != null) itemSource.UnbindFrom(boundItemSource);
                 itemSource.BindTo(boundItemSource = value);

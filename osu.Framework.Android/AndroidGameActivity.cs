@@ -11,6 +11,7 @@ using Android.Views;
 using ManagedBass;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.ObjectExtensions;
+using Debug = System.Diagnostics.Debug;
 
 namespace osu.Framework.Android
 {
@@ -64,6 +65,9 @@ namespace osu.Framework.Android
 
         protected override void OnCreate(Bundle? savedInstanceState)
         {
+            Debug.Assert(RuntimeInfo.EntryAssembly.IsNull(), "RuntimeInfo.EntryAssembly should be null on Android and therefore needs to be manually updated.");
+            RuntimeInfo.EntryAssembly = GetType().Assembly;
+
             // The default current directory on android is '/'.
             // On some devices '/' maps to the app data directory. On others it maps to the root of the internal storage.
             // In order to have a consistent current directory on all devices the full path of the app data directory is set as the current directory.
