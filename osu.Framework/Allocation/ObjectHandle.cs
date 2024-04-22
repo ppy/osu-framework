@@ -54,6 +54,18 @@ namespace osu.Framework.Allocation
         }
 
         /// <summary>
+        /// Recreates an <see cref="ObjectHandle{T}" /> based on the passed <see cref="IntPtr" />.
+        /// If <paramref name="ownsHandle"/> is <c>true</c>, disposing this object will free the handle.
+        /// </summary>
+        /// <param name="handle">Handle.</param>
+        /// <param name="ownsHandle">Whether this instance owns the underlying <see cref="GCHandle"/>. This should always be <c>true</c>.</param>
+        public ObjectHandle(IntPtr handle, bool ownsHandle)
+        {
+            this.handle = GCHandle.FromIntPtr(handle);
+            canFree = ownsHandle;
+        }
+
+        /// <summary>
         /// Gets the object being referenced.
         /// Returns true if successful and populates <paramref name="target"/> with the referenced object.
         /// Returns false If the handle is not allocated or the target is not of type <typeparamref name="T"/>.
@@ -81,12 +93,6 @@ namespace osu.Framework.Allocation
 
             target = default;
             return false;
-        }
-
-        public void FreeUnsafe()
-        {
-            if (handle.IsAllocated)
-                handle.Free();
         }
 
         #region IDisposable Support
