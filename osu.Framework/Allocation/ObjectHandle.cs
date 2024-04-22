@@ -44,22 +44,11 @@ namespace osu.Framework.Allocation
 
         /// <summary>
         /// Recreates an <see cref="ObjectHandle{T}" /> based on the passed <see cref="IntPtr" />.
-        /// Disposing this object will not free the handle, the original object must be disposed instead.
-        /// </summary>
-        /// <param name="handle">Handle.</param>
-        public ObjectHandle(IntPtr handle)
-        {
-            this.handle = GCHandle.FromIntPtr(handle);
-            canFree = false;
-        }
-
-        /// <summary>
-        /// Recreates an <see cref="ObjectHandle{T}" /> based on the passed <see cref="IntPtr" />.
         /// If <paramref name="ownsHandle"/> is <c>true</c>, disposing this object will free the handle.
         /// </summary>
         /// <param name="handle">Handle.</param>
-        /// <param name="ownsHandle">Whether this instance owns the underlying <see cref="GCHandle"/>. This should always be <c>true</c>.</param>
-        public ObjectHandle(IntPtr handle, bool ownsHandle)
+        /// <param name="ownsHandle">Whether this instance owns the underlying <see cref="GCHandle"/>.</param>
+        public ObjectHandle(IntPtr handle, bool ownsHandle = false)
         {
             this.handle = GCHandle.FromIntPtr(handle);
             canFree = ownsHandle;
