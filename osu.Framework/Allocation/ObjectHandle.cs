@@ -29,7 +29,7 @@ namespace osu.Framework.Allocation
 
         private GCHandle handle;
 
-        private readonly bool fromPointer;
+        private readonly bool canFree;
 
         /// <summary>
         /// Wraps the provided object with a <see cref="GCHandle" />, using the given <see cref="GCHandleType" />.
@@ -39,7 +39,7 @@ namespace osu.Framework.Allocation
         public ObjectHandle(T target, GCHandleType handleType)
         {
             handle = GCHandle.Alloc(target, handleType);
-            fromPointer = false;
+            canFree = true;
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace osu.Framework.Allocation
         public ObjectHandle(IntPtr handle)
         {
             this.handle = GCHandle.FromIntPtr(handle);
-            fromPointer = true;
+            canFree = false;
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace osu.Framework.Allocation
 
         public void Dispose()
         {
-            if (!fromPointer && handle.IsAllocated)
+            if (canFree && handle.IsAllocated)
                 handle.Free();
         }
 
