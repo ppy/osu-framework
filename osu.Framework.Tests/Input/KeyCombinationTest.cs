@@ -3,6 +3,7 @@
 
 using NUnit.Framework;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.States;
 
 namespace osu.Framework.Tests.Input
 {
@@ -30,7 +31,7 @@ namespace osu.Framework.Tests.Input
 
         [TestCaseSource(nameof(key_combination_display_test_cases))]
         public void TestLeftRightModifierHandling(KeyCombination candidate, KeyCombination pressed, KeyCombinationMatchingMode matchingMode, bool shouldContain)
-            => Assert.AreEqual(shouldContain, KeyCombination.ContainsAll(candidate.Keys, pressed.Keys, matchingMode));
+            => Assert.AreEqual(shouldContain, KeyCombination.ContainsAll(candidate.Keys, pressed.Keys, new InputState(), matchingMode));
 
         [Test]
         public void TestCreationNoDuplicates()
