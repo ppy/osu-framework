@@ -139,23 +139,20 @@ namespace osu.Framework.Input.Bindings
         internal static bool ContainsAll(ImmutableArray<InputKey> candidateKeyBinding, ImmutableArray<InputKey> pressedPhysicalKeys, KeyCombinationMatchingMode matchingMode)
         {
             Debug.Assert(pressedPhysicalKeys.All(k => k.IsPhysical()));
-            ImmutableArray<(InputKey Physical, InputKey? Virtual)> pressed = pressedPhysicalKeys.Select(k => (k, getVirtualKey(k))).ToImmutableArray();
-
-            Debug.Assert(pressed.All(k => k.Virtual == null || k.Virtual.Value.IsVirtual()));
 
             // first, check that all the candidate keys are contained in the provided pressed keys.
             // regardless of the matching mode, every key needs to at least be present (matching modes only change
             // the behaviour of excess keys).
             foreach (var key in candidateKeyBinding)
             {
-                if (!IsPressed(pressed, key))
+                if (!IsPressed(pressedPhysicalKeys, key))
                     return false;
             }
 
             switch (matchingMode)
             {
                 case KeyCombinationMatchingMode.Exact:
-                    foreach (var key in pressed)
+                    foreach (var key in pressedPhysicalKeys)
                     {
                         // in exact matching mode, every pressed key needs to be in the candidate.
                         if (!KeyBindingContains(candidateKeyBinding, key))
@@ -165,10 +162,10 @@ namespace osu.Framework.Input.Bindings
                     break;
 
                 case KeyCombinationMatchingMode.Modifiers:
-                    foreach (var key in pressed)
+                    foreach (var key in pressedPhysicalKeys)
                     {
                         // in modifiers match mode, the same check applies as exact but only for modifier keys.
-                        if (IsModifierKey(key.Physical) && !KeyBindingContains(candidateKeyBinding, key))
+                        if (IsModifierKey(key) && !KeyBindingContains(candidateKeyBinding, key))
                             return false;
                     }
 
@@ -186,28 +183,27 @@ namespace osu.Framework.Input.Bindings
         /// Check whether the provided key is part of the candidate binding.
         /// </summary>
         /// <param name="candidateKeyBinding">The candidate key binding to match against.</param>
-        /// <param name="key">Tuple of a physical key that has been pressed by a user and its corresponding virtual key (if any).</param>
+        /// <param name="physicalKey">The physical key that has been pressed.</param>
         /// <returns>Whether this is a match.</returns>
-        internal static bool KeyBindingContains(ImmutableArray<InputKey> candidateKeyBinding, (InputKey Physical, InputKey? Virtual) key)
+        internal static bool KeyBindingContains(ImmutableArray<InputKey> candidateKeyBinding, InputKey physicalKey)
         {
-            return candidateKeyBinding.Contains(key.Physical) || (key.Virtual != null && candidateKeyBinding.Contains(key.Virtual.Value));
+            return candidateKeyBinding.Contains(physicalKey)
+                   || (getVirtualKey(physicalKey) is InputKey vKey && candidateKeyBinding.Contains(vKey));
         }
 
         /// <summary>
         /// Check whether a single physical or virtual key from a candidate binding is relevant to the currently pressed keys.
         /// </summary>
-        /// <param name="pressedKeys">The currently pressed keys to match against.</param>
+        /// <param name="pressedPhysicalKeys">The currently pressed keys to match against.</param>
         /// <param name="candidateKey">The candidate key to check.</param>
         /// <returns>Whether this is a match.</returns>
-        internal static bool IsPressed(ImmutableArray<(InputKey Physical, InputKey? Virtual)> pressedKeys, InputKey candidateKey)
+        internal static bool IsPressed(ImmutableArray<InputKey> pressedPhysicalKeys, InputKey candidateKey)
         {
             if (candidateKey.IsPhysical())
-            {
-                return pressedKeys.Any(k => k.Physical == candidateKey);
-            }
+                return pressedPhysicalKeys.Contains(candidateKey);
 
             Debug.Assert(candidateKey.IsVirtual());
-            return pressedKeys.Any(k => k.Virtual == candidateKey);
+            return pressedPhysicalKeys.Any(k => getVirtualKey(k) == candidateKey);
         }
 
         public bool Equals(KeyCombination other) => Keys.SequenceEqual(other.Keys);
