@@ -46,7 +46,7 @@ namespace osu.Framework.Allocation
         /// Recreates an <see cref="ObjectHandle{T}" /> based on the passed <see cref="IntPtr" />.
         /// If <paramref name="ownsHandle"/> is <c>true</c>, disposing this object will free the handle.
         /// </summary>
-        /// <param name="handle">Handle.</param>
+        /// <param name="handle"><see cref="Handle"/> from a previously constructed <see cref="ObjectHandle{T}(T, GCHandleType)"/>.</param>
         /// <param name="ownsHandle">Whether this instance owns the underlying <see cref="GCHandle"/>.</param>
         public ObjectHandle(IntPtr handle, bool ownsHandle = false)
         {
