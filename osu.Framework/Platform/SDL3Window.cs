@@ -154,6 +154,12 @@ namespace osu.Framework.Platform
                 throw new InvalidOperationException($"Failed to initialise SDL: {SDL3.SDL_GetError()}");
             }
 
+            SDL_Version version;
+            SDL3.SDL_GetVersion(&version);
+            Logger.Log($@"SDL3 Initialized
+                          SDL3 Version: {version.major}.{version.minor}.{version.patch}
+                          SDL3 Revision: {SDL3.SDL_GetRevision()}");
+
             SDL3.SDL_LogSetPriority(SDL_LogCategory.SDL_LOG_CATEGORY_ERROR, SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG);
             SDL3.SDL_SetLogOutputFunction(&logOutput, IntPtr.Zero);
             SDL3.SDL_SetEventFilter(&eventFilter, ObjectHandle.Handle);
