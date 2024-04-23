@@ -806,8 +806,6 @@ namespace osu.Framework.Graphics.Video
 
         protected virtual FFmpegFuncs CreateFuncs()
         {
-            DynamicallyLoadedBindings.FunctionResolver ??= new FFmpegFunctionResolver();
-
             return new FFmpegFuncs
             {
                 av_dict_set = FFmpeg.AutoGen.ffmpeg.av_dict_set,
