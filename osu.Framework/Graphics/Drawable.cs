@@ -495,22 +495,34 @@ namespace osu.Framework.Graphics
             return true;
         }
 
+        /// <summary>
+        /// Computes the masking bounds of this <see cref="Drawable"/>.
+        /// </summary>
+        /// <returns>The <see cref="RectangleF"/> that defines the masking bounds.</returns>
+        public virtual RectangleF ComputeMaskingBounds()
+        {
+            if (HasProxy)
+                return proxy.ComputeMaskingBounds();
+
+            if (parent == null)
+                return ScreenSpaceDrawQuad.AABBFloat;
+
+            return parent.ChildMaskingBounds;
+        }
+
         private RectangleF? lastMaskingBounds;
 
         /// <summary>
         /// Updates all masking calculations for this <see cref="Drawable"/>.
         /// This occurs post-<see cref="UpdateSubTree"/> to ensure that all <see cref="Drawable"/> updates have taken place.
         /// </summary>
-        /// <param name="source">The parent that triggered this update on this <see cref="Drawable"/>.</param>
-        /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds.</param>
         /// <returns>Whether masking calculations have taken place.</returns>
-        public virtual bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
+        public virtual bool UpdateSubTreeMasking()
         {
             if (!IsPresent)
                 return false;
 
-            if (HasProxy && source != proxy)
-                return false;
+            var maskingBounds = ComputeMaskingBounds();
 
             if (!maskingBacking.IsValid || lastMaskingBounds != maskingBounds)
             {

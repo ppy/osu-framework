@@ -211,9 +211,9 @@ namespace osu.Framework.Graphics.Containers
             return result;
         }
 
-        public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
+        public override bool UpdateSubTreeMasking()
         {
-            bool result = base.UpdateSubTreeMasking(source, maskingBounds);
+            bool result = base.UpdateSubTreeMasking();
 
             // We can accurately compute intersections - the scheduled reset is no longer required.
             isIntersectingResetDelegate?.Cancel();
@@ -230,7 +230,7 @@ namespace osu.Framework.Graphics.Containers
                 // The first condition is an intersection against the hierarchy, including any parents that may be masking this wrapper.
                 // It is the same calculation as Drawable.IsMaskedAway, however IsMaskedAway is optimised out for some CompositeDrawables (which this wrapper is).
                 // The second condition is an exact intersection against the optimising container, which further optimises rotated AABBs where the wrapper content is not visible.
-                IsIntersecting = maskingBounds.IntersectsWith(ScreenSpaceDrawQuad.AABBFloat)
+                IsIntersecting = ComputeMaskingBounds().IntersectsWith(ScreenSpaceDrawQuad.AABBFloat)
                                  && OptimisingContainer?.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad) != false;
 
                 isIntersectingCache.Validate();
