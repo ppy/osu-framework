@@ -13,6 +13,11 @@ namespace osu.Framework.Graphics.Video
 {
     public unsafe class FFmpegFuncs
     {
+        static FFmpegFuncs()
+        {
+            DynamicallyLoadedBindings.FunctionResolver = new FFmpegFunctionResolver();
+        }
+
         #region Delegates
 
         public delegate AVFrame* AvFrameAllocDelegate();

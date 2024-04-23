@@ -797,8 +797,6 @@ namespace osu.Framework.Graphics.Video
 
         protected virtual FFmpegFuncs CreateFuncs()
         {
-            DynamicallyLoadedBindings.FunctionResolver ??= new FFmpegFunctionResolver();
-
             return new FFmpegFuncs
             {
                 av_frame_alloc = FFmpeg.AutoGen.ffmpeg.av_frame_alloc,
