@@ -7,7 +7,6 @@ using System;
 using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.PolygonExtensions;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Layout;
 using osu.Framework.Threading;
 
