@@ -31,8 +31,8 @@ namespace osu.Framework.iOS
             }
         }
 
-        public IOSWindow(GraphicsSurfaceType surfaceType)
-            : base(surfaceType)
+        public IOSWindow(GraphicsSurfaceType surfaceType, string appName)
+            : base(surfaceType, appName)
         {
         }
 
