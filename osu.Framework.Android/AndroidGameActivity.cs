@@ -44,11 +44,6 @@ namespace osu.Framework.Android
 
         protected override IRunnable CreateSDLMainRunnable() => new Runnable(() =>
         {
-            // blocks back button
-            SDL.SDL3.SDL_SetHint(SDL.SDL3.SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1"u8);
-
-            // hints are here because they don't apply well in another location such as SDL3Window
-
             host = new AndroidGameHost(this);
             host.AllowScreenSuspension.Result.BindValueChanged(allow =>
             {
