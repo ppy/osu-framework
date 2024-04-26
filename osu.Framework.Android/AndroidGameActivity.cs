@@ -11,6 +11,7 @@ using Java.Lang;
 using ManagedBass;
 using Org.Libsdl.App;
 using osu.Framework.Extensions.ObjectExtensions;
+using osu.Framework.Platform;
 using Debug = System.Diagnostics.Debug;
 
 namespace osu.Framework.Android
@@ -33,6 +34,8 @@ namespace osu.Framework.Android
 
         internal static AndroidGameSurface Surface => (AndroidGameSurface)MSurface!;
 
+        private GameHost? host;
+
         protected abstract Game CreateGame();
 
         protected override string[] GetLibraries() => new string[] { "SDL3" };
@@ -46,21 +49,19 @@ namespace osu.Framework.Android
 
             // hints are here because they don't apply well in another location such as SDL3Window
 
-            using (AndroidGameHost host = new AndroidGameHost(this))
+            host = new AndroidGameHost(this);
+            host.AllowScreenSuspension.Result.BindValueChanged(allow =>
             {
-                host.AllowScreenSuspension.Result.BindValueChanged(allow =>
+                RunOnUiThread(() =>
                 {
-                    RunOnUiThread(() =>
-                    {
-                        if (!allow.NewValue)
-                            Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
-                        else
-                            Window?.ClearFlags(WindowManagerFlags.KeepScreenOn);
-                    });
-                }, true);
+                    if (!allow.NewValue)
+                        Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
+                    else
+                        Window?.ClearFlags(WindowManagerFlags.KeepScreenOn);
+                });
+            }, true);
 
-                host.Run(CreateGame());
-            }
+            host.Run(CreateGame());
 
             if (!IsFinishing)
                 Finish();
@@ -82,6 +83,12 @@ namespace osu.Framework.Android
             {
                 Window.AsNonNull().Attributes.AsNonNull().LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.ShortEdges;
             }
+        }
+
+        public override void OnTrimMemory(TrimMemory level)
+        {
+            base.OnTrimMemory(level);
+            host?.Collect();
         }
 
         protected override void OnStop()
