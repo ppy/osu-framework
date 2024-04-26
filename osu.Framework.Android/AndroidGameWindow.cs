@@ -9,7 +9,7 @@ namespace osu.Framework.Android
 {
     internal class AndroidGameWindow : SDL3MobileWindow
     {
-        public override IntPtr DisplayHandle => AndroidGameActivity.Surface.NativeSurface?.Handle ?? IntPtr.Zero;
+        public override IntPtr SurfaceHandle => AndroidGameActivity.Surface.NativeSurface?.Handle ?? IntPtr.Zero;
 
         public AndroidGameWindow(GraphicsSurfaceType surfaceType, string appName)
             : base(surfaceType, appName)

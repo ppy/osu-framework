@@ -170,7 +170,7 @@ namespace osu.Framework.Graphics.Veldrid
                 case RuntimeInfo.Platform.Android:
                 {
                     var androidGraphics = (IAndroidGraphicsSurface)this.graphicsSurface;
-                    swapchain.Source = SwapchainSource.CreateAndroidSurface(this.graphicsSurface.DisplayHandle, androidGraphics.JniEnvHandle);
+                    swapchain.Source = SwapchainSource.CreateAndroidSurface(androidGraphics.SurfaceHandle, androidGraphics.JniEnvHandle);
                     break;
                 }
             }
