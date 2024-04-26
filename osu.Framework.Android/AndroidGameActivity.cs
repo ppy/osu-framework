@@ -33,7 +33,7 @@ namespace osu.Framework.Android
 
         internal static AndroidGameSurface Surface => (AndroidGameSurface)MSurface!;
 
-        protected abstract Game CreateGame();
+        protected virtual Game CreateGame() => throw new NotImplementedException();
 
         protected override string[] GetLibraries() => new string[] { "SDL3" };
 
@@ -41,12 +41,21 @@ namespace osu.Framework.Android
 
         protected override IRunnable CreateSDLMainRunnable() => new Runnable(() =>
         {
-            var host = new AndroidGameHost(this);
-            host.Run(CreateGame());
+            Main();
 
             if (!IsFinishing)
                 Finish();
         });
+
+        /// <summary>
+        /// The main function. Set up the <see cref="AndroidGameHost"/> and run your game.
+        /// Return to exit this activity.
+        /// </summary>
+        protected virtual void Main()
+        {
+            var host = new AndroidGameHost(this);
+            host.Run(CreateGame());
+        }
 
         protected override void OnCreate(Bundle? savedInstanceState)
         {
