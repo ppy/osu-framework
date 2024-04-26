@@ -336,6 +336,11 @@ namespace osu.Framework.Platform
         {
             Options = options ?? new HostOptions();
 
+            if (string.IsNullOrEmpty(Options.FriendlyGameName))
+            {
+                Options.FriendlyGameName = $@"osu!framework (running ""{gameName}"")";
+            }
+
             Name = gameName;
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
@@ -1026,7 +1031,7 @@ namespace osu.Framework.Platform
 
                 Window.SetupWindow(Config);
                 Window.Create();
-                Window.Title = $@"osu!framework (running ""{Name}"")";
+                Window.Title = Options.FriendlyGameName;
 
                 Renderer.Initialise(Window.GraphicsSurface);
 

@@ -145,17 +145,26 @@ namespace osu.Framework.Platform
         /// </summary>
         protected ObjectHandle<SDL3Window> ObjectHandle { get; private set; }
 
-        protected SDL3Window(GraphicsSurfaceType surfaceType)
+        protected SDL3Window(GraphicsSurfaceType surfaceType, string appName)
         {
             ObjectHandle = new ObjectHandle<SDL3Window>(this, GCHandleType.Normal);
+
+            SDL3.SDL_SetHint(SDL3.SDL_HINT_APP_NAME, appName);
 
             if (SDL3.SDL_Init(SDL_InitFlags.SDL_INIT_VIDEO | SDL_InitFlags.SDL_INIT_GAMEPAD) < 0)
             {
                 throw new InvalidOperationException($"Failed to initialise SDL: {SDL3.SDL_GetError()}");
             }
 
+            SDL_Version version;
+            SDL3.SDL_GetVersion(&version);
+            Logger.Log($@"SDL3 Initialized
+                          SDL3 Version: {version.major}.{version.minor}.{version.patch}
+                          SDL3 Revision: {SDL3.SDL_GetRevision()}");
+
             SDL3.SDL_LogSetPriority(SDL_LogCategory.SDL_LOG_CATEGORY_ERROR, SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG);
             SDL3.SDL_SetLogOutputFunction(&logOutput, IntPtr.Zero);
+            SDL3.SDL_SetEventFilter(&eventFilter, ObjectHandle.Handle);
 
             graphicsSurface = new SDL3GraphicsSurface(this, surfaceType);
 
@@ -217,7 +226,6 @@ namespace osu.Framework.Platform
         /// </summary>
         public virtual void Run()
         {
-            SDL3.SDL_SetEventFilter(&eventFilter, ObjectHandle.Handle);
             SDL3.SDL_AddEventWatch(&eventWatch, ObjectHandle.Handle);
 
             RunMainLoop();

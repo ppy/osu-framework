@@ -90,6 +90,9 @@ namespace osu.Framework.Platform
 
             config.BindWith(FrameworkSetting.WindowMode, WindowMode);
 
+            if (!SupportedWindowModes.Contains(WindowMode.Value))
+                WindowMode.Value = DefaultWindowMode;
+
             WindowMode.BindValueChanged(evt =>
             {
                 switch (evt.NewValue)

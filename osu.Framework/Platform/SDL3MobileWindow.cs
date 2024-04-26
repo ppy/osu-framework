@@ -7,8 +7,8 @@ namespace osu.Framework.Platform
 {
     internal class SDL3MobileWindow : SDL3Window
     {
-        public SDL3MobileWindow(GraphicsSurfaceType surfaceType)
-            : base(surfaceType)
+        public SDL3MobileWindow(GraphicsSurfaceType surfaceType, string appName)
+            : base(surfaceType, appName)
         {
         }
 

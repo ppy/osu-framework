@@ -11,8 +11,8 @@ namespace osu.Framework.Android
     {
         public override IntPtr DisplayHandle => AndroidGameActivity.Surface.NativeSurface?.Handle ?? IntPtr.Zero;
 
-        public AndroidGameWindow(GraphicsSurfaceType surfaceType)
-            : base(surfaceType)
+        public AndroidGameWindow(GraphicsSurfaceType surfaceType, string appName)
+            : base(surfaceType, appName)
         {
         }
 
