@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using Android.App;
 using Android.Content;
+using Android.Views;
 using osu.Framework.Android.Graphics.Textures;
 using osu.Framework.Android.Graphics.Video;
 using osu.Framework.Configuration;
@@ -29,6 +30,22 @@ namespace osu.Framework.Android
             : base(string.Empty)
         {
             this.activity = activity;
+        }
+
+        protected override void SetupForRun()
+        {
+            base.SetupForRun();
+
+            AllowScreenSuspension.Result.BindValueChanged(allow =>
+            {
+                activity.RunOnUiThread(() =>
+                {
+                    if (!allow.NewValue)
+                        activity.Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
+                    else
+                        activity.Window?.ClearFlags(WindowManagerFlags.KeepScreenOn);
+                });
+            }, true);
         }
 
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
