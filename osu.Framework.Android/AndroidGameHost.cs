@@ -26,8 +26,8 @@ namespace osu.Framework.Android
     {
         private readonly AndroidGameActivity activity;
 
-        public AndroidGameHost(AndroidGameActivity activity)
-            : base(string.Empty)
+        public AndroidGameHost(AndroidGameActivity activity, string gameName, HostOptions? options = null)
+            : base(gameName, options)
         {
             this.activity = activity;
         }

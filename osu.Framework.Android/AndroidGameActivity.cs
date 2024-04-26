@@ -53,7 +53,7 @@ namespace osu.Framework.Android
         /// </summary>
         protected virtual void Main()
         {
-            var host = new AndroidGameHost(this);
+            var host = new AndroidGameHost(this, string.Empty);
             host.Run(CreateGame());
         }
 
