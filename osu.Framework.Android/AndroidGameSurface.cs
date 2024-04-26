@@ -7,7 +7,6 @@ using Android.Runtime;
 using Org.Libsdl.App;
 using osu.Framework.Graphics;
 using osu.Framework.Platform;
-using osuTK.Android;
 using osu.Framework.Bindables;
 using Android.Views;
 using AndroidX.Core.View;
@@ -66,7 +65,7 @@ namespace osu.Framework.Android
         }
 
         /// <summary>
-        /// Updates the <see cref="IWindow.SafeAreaPadding"/>, taking into account screen insets that may be obstructing this <see cref="AndroidGameView"/>.
+        /// Updates the <see cref="IWindow.SafeAreaPadding"/>, taking into account screen insets that may be obstructing this <see cref="AndroidGameSurface"/>.
         /// </summary>
         private void updateSafeArea(WindowInsets? windowInsets)
         {
