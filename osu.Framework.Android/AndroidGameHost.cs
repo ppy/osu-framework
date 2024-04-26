@@ -36,6 +36,7 @@ namespace osu.Framework.Android
         {
             base.SetupForRun();
 
+            activity.TrimMemory += Collect;
             AllowScreenSuspension.Result.BindValueChanged(allow =>
             {
                 activity.RunOnUiThread(() =>
@@ -111,6 +112,14 @@ namespace osu.Framework.Android
         public override bool SuspendToBackground()
         {
             return activity.MoveTaskToBack(true);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (activity.IsNotNull())
+                activity.TrimMemory -= Collect;
+
+            base.Dispose(disposing);
         }
     }
 }

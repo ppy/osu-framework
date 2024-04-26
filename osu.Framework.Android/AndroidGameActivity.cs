@@ -72,8 +72,10 @@ namespace osu.Framework.Android
         public override void OnTrimMemory(TrimMemory level)
         {
             base.OnTrimMemory(level);
-            host?.Collect();
+            TrimMemory?.Invoke();
         }
+
+        internal event Action? TrimMemory;
 
         protected override void OnStop()
         {
