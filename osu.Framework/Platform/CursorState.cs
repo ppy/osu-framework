@@ -19,18 +19,18 @@ namespace osu.Framework.Platform
         Default = 0,
 
         /// <summary>
-        /// The OS cursor is hidden while hovering the <see cref="OsuTKWindow"/>, but can still move anywhere.
+        /// The OS cursor is hidden while hovering the <see cref="IWindow"/>, but can still move anywhere.
         /// </summary>
         Hidden = 1,
 
         /// <summary>
-        /// The OS cursor is confined to the <see cref="OsuTKWindow"/> while the window is in focus.
+        /// The OS cursor is confined to the <see cref="IWindow"/> while the window is in focus.
         /// </summary>
         Confined = 2,
 
         /// <summary>
-        /// The OS cursor is hidden while hovering the <see cref="OsuTKWindow"/>.
-        /// It is confined to the <see cref="OsuTKWindow"/> while the window is in focus and can move freely otherwise.
+        /// The OS cursor is hidden while hovering the <see cref="IWindow"/>.
+        /// It is confined to the <see cref="IWindow"/> while the window is in focus and can move freely otherwise.
         /// </summary>
         HiddenAndConfined = Hidden | Confined,
     }
