@@ -166,6 +166,13 @@ namespace osu.Framework.Graphics.Veldrid
                         : SwapchainSource.CreateXlib(this.graphicsSurface.DisplayHandle, this.graphicsSurface.WindowHandle);
                     break;
                 }
+
+                case RuntimeInfo.Platform.Android:
+                {
+                    var androidGraphics = (IAndroidGraphicsSurface)this.graphicsSurface;
+                    swapchain.Source = SwapchainSource.CreateAndroidSurface(this.graphicsSurface.DisplayHandle, androidGraphics.JniEnvHandle);
+                    break;
+                }
             }
 
             switch (this.graphicsSurface.Type)
