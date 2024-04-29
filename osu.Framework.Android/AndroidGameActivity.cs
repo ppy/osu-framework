@@ -33,6 +33,10 @@ namespace osu.Framework.Android
 
         internal static AndroidGameSurface Surface => (AndroidGameSurface)MSurface!;
 
+        /// <summary>
+        /// Create the game to be run.
+        /// </summary>
+        /// <remarks>Either override this or <see cref="Main"/>.</remarks>
         protected virtual Game CreateGame() => throw new NotImplementedException();
 
         protected override string[] GetLibraries() => new string[] { "SDL3" };
@@ -51,6 +55,7 @@ namespace osu.Framework.Android
         /// The main function. Set up the <see cref="AndroidGameHost"/> and run your game.
         /// Return to exit this activity.
         /// </summary>
+        /// <remarks>Either override this or <see cref="CreateGame"/>.</remarks>
         protected virtual void Main()
         {
             var host = new AndroidGameHost(this, string.Empty);
