@@ -202,6 +202,16 @@ namespace osu.Framework.Platform
         void CancelFlash();
 
         /// <summary>
+        /// Enable any system level timers that might dim or turn off the screen.
+        /// </summary>
+        void EnableScreenSuspension();
+
+        /// <summary>
+        /// Disable any system level timers that might dim or turn off the screen.
+        /// </summary>
+        void DisableScreenSuspension();
+
+        /// <summary>
         /// Start the window's run loop.
         /// Is a blocking call on desktop platforms, and a non-blocking call on mobile platforms.
         /// </summary>

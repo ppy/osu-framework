@@ -1054,6 +1054,14 @@ namespace osu.Framework.Platform
             }, true);
 
             IsActive.BindTo(Window.IsActive);
+
+            AllowScreenSuspension.Result.BindValueChanged(e =>
+            {
+                if (e.NewValue)
+                    Window.EnableScreenSuspension();
+                else
+                    Window.DisableScreenSuspension();
+            }, true);
         }
 
         /// <summary>

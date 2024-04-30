@@ -407,6 +407,10 @@ namespace osu.Framework.Platform
             SDL3.SDL_FlashWindow(SDLWindowHandle, SDL_FlashOperation.SDL_FLASH_CANCEL);
         });
 
+        public void EnableScreenSuspension() => ScheduleCommand(() => SDL3.SDL_EnableScreenSaver());
+
+        public void DisableScreenSuspension() => ScheduleCommand(() => SDL3.SDL_DisableScreenSaver());
+
         /// <summary>
         /// Attempts to set the window's icon to the specified image.
         /// </summary>
