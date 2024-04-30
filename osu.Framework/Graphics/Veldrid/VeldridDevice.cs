@@ -162,15 +162,15 @@ namespace osu.Framework.Graphics.Veldrid
                 {
                     var linuxGraphics = (ILinuxGraphicsSurface)this.graphicsSurface;
                     swapchain.Source = linuxGraphics.IsWayland
-                        ? SwapchainSource.CreateWayland(this.graphicsSurface.DisplayHandle, this.graphicsSurface.WindowHandle)
-                        : SwapchainSource.CreateXlib(this.graphicsSurface.DisplayHandle, this.graphicsSurface.WindowHandle);
+                        ? SwapchainSource.CreateWayland(linuxGraphics.DisplayHandle, this.graphicsSurface.WindowHandle)
+                        : SwapchainSource.CreateXlib(linuxGraphics.DisplayHandle, this.graphicsSurface.WindowHandle);
                     break;
                 }
 
                 case RuntimeInfo.Platform.Android:
                 {
                     var androidGraphics = (IAndroidGraphicsSurface)this.graphicsSurface;
-                    swapchain.Source = SwapchainSource.CreateAndroidSurface(this.graphicsSurface.DisplayHandle, androidGraphics.JniEnvHandle);
+                    swapchain.Source = SwapchainSource.CreateAndroidSurface(androidGraphics.SurfaceHandle, androidGraphics.JniEnvHandle);
                     break;
                 }
             }

@@ -11,5 +11,11 @@ namespace osu.Framework.Platform
         /// Returns JNI environment handle.
         /// </summary>
         IntPtr JniEnvHandle { get; }
+
+        /// <summary>
+        /// Android Surface handle.
+        /// </summary>
+        /// <remarks>https://developer.android.com/reference/android/view/Surface.html</remarks>
+        IntPtr SurfaceHandle { get; }
     }
 }

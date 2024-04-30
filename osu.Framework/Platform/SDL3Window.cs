@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -119,7 +120,8 @@ namespace osu.Framework.Platform
             }
         }
 
-        public virtual IntPtr DisplayHandle
+        [SupportedOSPlatform("linux")]
+        public IntPtr DisplayHandle
         {
             get
             {
@@ -137,6 +139,9 @@ namespace osu.Framework.Platform
                 return IntPtr.Zero;
             }
         }
+
+        [SupportedOSPlatform("android")]
+        public virtual IntPtr SurfaceHandle => throw new PlatformNotSupportedException();
 
         public bool CapsLockPressed => SDL3.SDL_GetModState().HasFlagFast(SDL_Keymod.SDL_KMOD_CAPS);
 
