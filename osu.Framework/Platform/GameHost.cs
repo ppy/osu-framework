@@ -783,13 +783,7 @@ namespace osu.Framework.Platform
                 {
                     if (Window != null)
                     {
-                        switch (Window)
-                        {
-                            case SDL3Window window:
-                                window.Update += windowUpdate;
-                                break;
-                        }
-
+                        Window.Update += windowUpdate;
                         Window.Suspended += Suspend;
                         Window.Resumed += Resume;
                         Window.LowOnMemory += Collect;
