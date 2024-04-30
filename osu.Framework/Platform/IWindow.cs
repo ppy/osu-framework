@@ -39,6 +39,11 @@ namespace osu.Framework.Platform
         void Create();
 
         /// <summary>
+        /// Invoked once every window event loop.
+        /// </summary>
+        event Action? Update;
+
+        /// <summary>
         /// Invoked when the window close (X) button or another platform-native exit action has been pressed.
         /// </summary>
         event Action? ExitRequested;
