@@ -45,17 +45,6 @@ namespace osu.Framework.Android
         protected override IRunnable CreateSDLMainRunnable() => new Runnable(() =>
         {
             host = new AndroidGameHost(this);
-            host.AllowScreenSuspension.Result.BindValueChanged(allow =>
-            {
-                RunOnUiThread(() =>
-                {
-                    if (!allow.NewValue)
-                        Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
-                    else
-                        Window?.ClearFlags(WindowManagerFlags.KeepScreenOn);
-                });
-            }, true);
-
             host.Run(CreateGame());
 
             if (!IsFinishing)
