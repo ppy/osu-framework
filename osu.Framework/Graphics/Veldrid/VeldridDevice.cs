@@ -162,8 +162,8 @@ namespace osu.Framework.Graphics.Veldrid
                 {
                     var linuxGraphics = (ILinuxGraphicsSurface)this.graphicsSurface;
                     swapchain.Source = linuxGraphics.IsWayland
-                        ? SwapchainSource.CreateWayland(this.graphicsSurface.DisplayHandle, this.graphicsSurface.WindowHandle)
-                        : SwapchainSource.CreateXlib(this.graphicsSurface.DisplayHandle, this.graphicsSurface.WindowHandle);
+                        ? SwapchainSource.CreateWayland(linuxGraphics.DisplayHandle, this.graphicsSurface.WindowHandle)
+                        : SwapchainSource.CreateXlib(linuxGraphics.DisplayHandle, this.graphicsSurface.WindowHandle);
                     break;
                 }
 

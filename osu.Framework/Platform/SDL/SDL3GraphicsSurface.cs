@@ -21,7 +21,6 @@ namespace osu.Framework.Platform.SDL
         private IntPtr context;
 
         public IntPtr WindowHandle => window.WindowHandle;
-        public IntPtr DisplayHandle => window.DisplayHandle;
 
         public GraphicsSurfaceType Type { get; }
 
@@ -215,6 +214,9 @@ namespace osu.Framework.Platform.SDL
         #region Linux-specific implementation
 
         bool ILinuxGraphicsSurface.IsWayland => window.IsWayland;
+
+        [SupportedOSPlatform("linux")]
+        IntPtr ILinuxGraphicsSurface.DisplayHandle => window.DisplayHandle;
 
         #endregion
 

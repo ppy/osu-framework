@@ -120,6 +120,7 @@ namespace osu.Framework.Platform
             }
         }
 
+        [SupportedOSPlatform("linux")]
         public IntPtr DisplayHandle
         {
             get
