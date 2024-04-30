@@ -788,10 +788,6 @@ namespace osu.Framework.Platform
                             case SDL3Window window:
                                 window.Update += windowUpdate;
                                 break;
-
-                            case OsuTKWindow tkWindow:
-                                tkWindow.UpdateFrame += (_, _) => windowUpdate();
-                                break;
                         }
 
                         Window.Suspended += Suspend;
