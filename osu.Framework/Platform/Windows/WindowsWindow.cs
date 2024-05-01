@@ -36,8 +36,8 @@ namespace osu.Framework.Platform.Windows
         /// </summary>
         private readonly bool applyBorderlessWindowHack;
 
-        public WindowsWindow(GraphicsSurfaceType surfaceType)
-            : base(surfaceType)
+        public WindowsWindow(GraphicsSurfaceType surfaceType, string appName)
+            : base(surfaceType, appName)
         {
             switch (surfaceType)
             {
@@ -93,7 +93,7 @@ namespace osu.Framework.Platform.Windows
 
         protected override void HandleEventFromFilter(SDL_Event evt)
         {
-            switch (evt.type)
+            switch (evt.Type)
             {
                 case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST:
                     warpCursorFromFocusLoss();

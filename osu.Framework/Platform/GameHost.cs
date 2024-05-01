@@ -336,6 +336,11 @@ namespace osu.Framework.Platform
         {
             Options = options ?? new HostOptions();
 
+            if (string.IsNullOrEmpty(Options.FriendlyGameName))
+            {
+                Options.FriendlyGameName = $@"osu!framework (running ""{gameName}"")";
+            }
+
             Name = gameName;
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
@@ -778,17 +783,7 @@ namespace osu.Framework.Platform
                 {
                     if (Window != null)
                     {
-                        switch (Window)
-                        {
-                            case SDL3Window window:
-                                window.Update += windowUpdate;
-                                break;
-
-                            case OsuTKWindow tkWindow:
-                                tkWindow.UpdateFrame += (_, _) => windowUpdate();
-                                break;
-                        }
-
+                        Window.Update += windowUpdate;
                         Window.Suspended += Suspend;
                         Window.Resumed += Resume;
                         Window.LowOnMemory += Collect;
@@ -1026,7 +1021,7 @@ namespace osu.Framework.Platform
 
                 Window.SetupWindow(Config);
                 Window.Create();
-                Window.Title = $@"osu!framework (running ""{Name}"")";
+                Window.Title = Options.FriendlyGameName;
 
                 Renderer.Initialise(Window.GraphicsSurface);
 
@@ -1059,6 +1054,14 @@ namespace osu.Framework.Platform
             }, true);
 
             IsActive.BindTo(Window.IsActive);
+
+            AllowScreenSuspension.Result.BindValueChanged(e =>
+            {
+                if (e.NewValue)
+                    Window.EnableScreenSuspension();
+                else
+                    Window.DisableScreenSuspension();
+            }, true);
         }
 
         /// <summary>

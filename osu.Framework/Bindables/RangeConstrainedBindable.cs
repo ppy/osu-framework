@@ -205,8 +205,10 @@ namespace osu.Framework.Bindables
             // as Value assignment (in the base call below) automatically clamps to [MinValue, MaxValue].
             if (them is RangeConstrainedBindable<T> other)
             {
-                other.MinValue = MinValue;
-                other.MaxValue = MaxValue;
+                // copy the bounds over without updating the current value, to avoid clamping on invalid ranges.
+                // there is no need to clamp `Value` after that directly - the `base.CopyTo()` call will change `Value` anyway.
+                other.SetMinValue(MinValue, false, this);
+                other.SetMaxValue(MaxValue, false, this);
             }
 
             base.CopyTo(them);
