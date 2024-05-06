@@ -93,8 +93,7 @@ namespace osu.Framework.Graphics
         /// <param name="scalar">The value that the existing alpha will be multiplied by.</param>
         public Colour4 MultiplyAlpha(float scalar)
         {
-            if (scalar < 0)
-                throw new ArgumentOutOfRangeException(nameof(scalar), scalar, "Cannot multiply alpha by a negative value.");
+            ArgumentOutOfRangeException.ThrowIfNegative(scalar);
 
             return new Colour4(R, G, B, Math.Min(1f, A * scalar));
         }
@@ -174,8 +173,7 @@ namespace osu.Framework.Graphics
         /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="scalar"/> is negative.</exception>
         public static Colour4 operator *(Colour4 colour, float scalar)
         {
-            if (scalar < 0)
-                throw new ArgumentOutOfRangeException(nameof(scalar), scalar, "Cannot multiply colours by negative values.");
+            ArgumentOutOfRangeException.ThrowIfNegative(scalar);
 
             return new Colour4(Vector4.Min(colour.Vector * scalar, Vector4.One));
         }
@@ -188,8 +186,7 @@ namespace osu.Framework.Graphics
         /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="scalar"/> is zero or negative.</exception>
         public static Colour4 operator /(Colour4 colour, float scalar)
         {
-            if (scalar <= 0)
-                throw new ArgumentOutOfRangeException(nameof(scalar), scalar, "Cannot divide colours by non-positive values.");
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(scalar);
 
             return colour * (1 / scalar);
         }

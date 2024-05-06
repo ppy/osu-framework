@@ -47,8 +47,7 @@ namespace osu.Framework.Utils
         /// <returns>A double-precision floating point number in the range [0,maxValue).</returns>
         public static double NextDouble(double maxValue)
         {
-            if (maxValue < 0.0)
-                throw new ArgumentOutOfRangeException(nameof(maxValue), "The given maximum value must be greater than or equal to 0.");
+            ArgumentOutOfRangeException.ThrowIfNegative(maxValue);
 
             return random.NextDouble() * maxValue;
         }
@@ -61,8 +60,7 @@ namespace osu.Framework.Utils
         /// <returns>A double-precision floating point number in the range [minValue,maxValue).</returns>
         public static double NextDouble(double minValue, double maxValue)
         {
-            if (minValue > maxValue)
-                throw new ArgumentOutOfRangeException(nameof(minValue), "The given minimum value must be less than or equal to the given maximum value.");
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(minValue, maxValue);
 
             return minValue + random.NextDouble() * (maxValue - minValue);
         }
@@ -80,8 +78,7 @@ namespace osu.Framework.Utils
         /// <returns>A single-precision floating point number in the range [0,maxValue).</returns>
         public static float NextSingle(float maxValue)
         {
-            if (maxValue < 0.0f)
-                throw new ArgumentOutOfRangeException(nameof(maxValue), "The given maximum value must be greater than or equal to 0.");
+            ArgumentOutOfRangeException.ThrowIfNegative(maxValue);
 
             return NextSingle() * maxValue;
         }
@@ -94,8 +91,7 @@ namespace osu.Framework.Utils
         /// <returns>A single-precision floating point number in the range [minValue,maxValue).</returns>
         public static float NextSingle(float minValue, float maxValue)
         {
-            if (minValue > maxValue)
-                throw new ArgumentOutOfRangeException(nameof(minValue), "The given minimum value must be less than or equal to the given maximum value.");
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(minValue, maxValue);
 
             return minValue + NextSingle() * (maxValue - minValue);
         }

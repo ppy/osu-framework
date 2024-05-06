@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Drawing;
 using System.IO;
 using osu.Framework.Bindables;
@@ -36,6 +37,11 @@ namespace osu.Framework.Platform
         /// Creates the concrete window implementation.
         /// </summary>
         void Create();
+
+        /// <summary>
+        /// Invoked once every window event loop.
+        /// </summary>
+        event Action? Update;
 
         /// <summary>
         /// Invoked when the window close (X) button or another platform-native exit action has been pressed.
@@ -131,9 +137,9 @@ namespace osu.Framework.Platform
         Bindable<WindowMode> WindowMode { get; }
 
         /// <summary>
-        /// Exposes the physical displays as an <see cref="IEnumerable{Display}"/>.
+        /// Contains information about the current physical displays.
         /// </summary>
-        IEnumerable<Display> Displays { get; }
+        ImmutableArray<Display> Displays { get; }
 
         /// <summary>
         /// Invoked when <see cref="Displays"/> has changed.
@@ -166,6 +172,16 @@ namespace osu.Framework.Platform
         void Raise();
 
         /// <summary>
+        /// Attempts to hide the window, making it invisible and hidden from the taskbar.
+        /// </summary>
+        void Hide();
+
+        /// <summary>
+        /// Attempts to show the window, making it visible.
+        /// </summary>
+        void Show();
+
+        /// <summary>
         /// Attempts to flash the window in order to request the user's attention.
         /// </summary>
         /// <remarks>
@@ -184,6 +200,16 @@ namespace osu.Framework.Platform
         /// On platforms which don't support any kind of flashing (ie. mobile), this will be a no-op.
         /// </remarks>
         void CancelFlash();
+
+        /// <summary>
+        /// Enable any system level timers that might dim or turn off the screen.
+        /// </summary>
+        void EnableScreenSuspension();
+
+        /// <summary>
+        /// Disable any system level timers that might dim or turn off the screen.
+        /// </summary>
+        void DisableScreenSuspension();
 
         /// <summary>
         /// Start the window's run loop.

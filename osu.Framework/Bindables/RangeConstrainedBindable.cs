@@ -74,6 +74,47 @@ namespace osu.Framework.Bindables
             setValue(defaultValue);
         }
 
+        public float NormalizedValue
+        {
+            get
+            {
+                float min = convertToSingle(MinValue);
+                float max = convertToSingle(MaxValue);
+
+                if (max - min == 0)
+                    return 1;
+
+                float val = convertToSingle(Value);
+                return (val - min) / (max - min);
+            }
+        }
+
+        private static float convertToSingle(T val)
+        {
+            if (typeof(T) == typeof(sbyte))
+                return Convert.ToSingle((sbyte)(object)val);
+            if (typeof(T) == typeof(byte))
+                return Convert.ToSingle((byte)(object)val);
+            if (typeof(T) == typeof(short))
+                return Convert.ToSingle((short)(object)val);
+            if (typeof(T) == typeof(ushort))
+                return Convert.ToSingle((ushort)(object)val);
+            if (typeof(T) == typeof(int))
+                return Convert.ToSingle((int)(object)val);
+            if (typeof(T) == typeof(uint))
+                return Convert.ToSingle((uint)(object)val);
+            if (typeof(T) == typeof(long))
+                return Convert.ToSingle((long)(object)val);
+            if (typeof(T) == typeof(ulong))
+                return Convert.ToSingle((ulong)(object)val);
+            if (typeof(T) == typeof(double))
+                return Convert.ToSingle((double)(object)val);
+            if (typeof(T) == typeof(float))
+                return (float)(object)val;
+
+            throw new InvalidOperationException();
+        }
+
         /// <summary>
         /// Sets the minimum value. This method does no equality comparisons.
         /// </summary>
@@ -164,8 +205,10 @@ namespace osu.Framework.Bindables
             // as Value assignment (in the base call below) automatically clamps to [MinValue, MaxValue].
             if (them is RangeConstrainedBindable<T> other)
             {
-                other.MinValue = MinValue;
-                other.MaxValue = MaxValue;
+                // copy the bounds over without updating the current value, to avoid clamping on invalid ranges.
+                // there is no need to clamp `Value` after that directly - the `base.CopyTo()` call will change `Value` anyway.
+                other.SetMinValue(MinValue, false, this);
+                other.SetMaxValue(MaxValue, false, this);
             }
 
             base.CopyTo(them);

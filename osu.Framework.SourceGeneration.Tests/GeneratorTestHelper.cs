@@ -90,7 +90,7 @@ namespace osu.Framework.SourceGeneration.Tests
         {
             var newTree = CSharpSyntaxTree.ParseText(content, path: filename);
 
-            if (sources.ContainsKey(filename))
+            if (!sources.TryAdd(filename, newTree))
             {
                 var oldTree = sources[filename];
                 sources[filename] = newTree;
@@ -104,7 +104,6 @@ namespace osu.Framework.SourceGeneration.Tests
             }
             else
             {
-                sources.Add(filename, newTree);
                 Compilation = Compilation.AddSyntaxTrees(newTree);
             }
         }

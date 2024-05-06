@@ -21,23 +21,14 @@ using UIKit;
 
 namespace osu.Framework.iOS
 {
-    public class IOSGameHost : SDL2GameHost
+    public class IOSGameHost : SDL3GameHost
     {
         public IOSGameHost()
             : base(string.Empty)
         {
         }
 
-        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new IOSWindow(preferredSurface);
-
-        protected override void SetupForRun()
-        {
-            base.SetupForRun();
-
-            AllowScreenSuspension.Result.BindValueChanged(allow =>
-                    InputThread.Scheduler.Add(() => UIApplication.SharedApplication.IdleTimerDisabled = !allow.NewValue),
-                true);
-        }
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new IOSWindow(preferredSurface, Options.FriendlyGameName);
 
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {

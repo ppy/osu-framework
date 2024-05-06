@@ -1,14 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using SDL2;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
+using SDL;
 
 namespace osu.Framework.Platform.Linux
 {
@@ -31,27 +29,11 @@ namespace osu.Framework.Platform.Linux
 
         protected override void SetupForRun()
         {
-            SDL.SDL_SetHint(SDL.SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, BypassCompositor ? "1" : "0");
+            SDL3.SDL_SetHint(SDL3.SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, BypassCompositor ? "1"u8 : "0"u8);
             base.SetupForRun();
         }
 
-        public override IEnumerable<string> UserStoragePaths
-        {
-            get
-            {
-                string? xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
-
-                if (!string.IsNullOrEmpty(xdg))
-                    yield return xdg;
-
-                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share");
-
-                foreach (string path in base.UserStoragePaths)
-                    yield return path;
-            }
-        }
-
-        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new SDL2DesktopWindow(preferredSurface);
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new SDL3DesktopWindow(preferredSurface, Options.FriendlyGameName);
 
         protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new LinuxReadableKeyCombinationProvider();
 
@@ -61,7 +43,7 @@ namespace osu.Framework.Platform.Linux
 
             foreach (var h in handlers.OfType<MouseHandler>())
             {
-                // There are several bugs we need to fix with Linux / SDL2 cursor handling before switching this on.
+                // There are several bugs we need to fix with Linux / SDL3 cursor handling before switching this on.
                 h.UseRelativeMode.Value = false;
                 h.UseRelativeMode.Default = false;
             }

@@ -157,11 +157,10 @@ namespace osu.Framework.Graphics.UserInterface
             Background.Colour = IsHovered && Enabled.Value ? BackgroundColourHover : BackgroundColour;
         }
 
+        public override bool HandleNonPositionalInput => IsHovered;
+
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (!IsHovered)
-                return false;
-
             if (!Enabled.Value)
                 return true;
 

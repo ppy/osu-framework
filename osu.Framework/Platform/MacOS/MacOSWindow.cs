@@ -10,9 +10,9 @@ using osuTK;
 namespace osu.Framework.Platform.MacOS
 {
     /// <summary>
-    /// macOS-specific subclass of <see cref="SDL2Window"/>.
+    /// macOS-specific subclass of <see cref="SDL3Window"/>.
     /// </summary>
-    internal class MacOSWindow : SDL2DesktopWindow
+    internal class MacOSWindow : SDL3DesktopWindow
     {
         private static readonly IntPtr sel_hasprecisescrollingdeltas = Selector.Get("hasPreciseScrollingDeltas");
         private static readonly IntPtr sel_scrollingdeltax = Selector.Get("scrollingDeltaX");
@@ -24,8 +24,8 @@ namespace osu.Framework.Platform.MacOS
         private IntPtr originalScrollWheel;
         private ScrollWheelDelegate scrollWheelHandler;
 
-        public MacOSWindow(GraphicsSurfaceType surfaceType)
-            : base(surfaceType)
+        public MacOSWindow(GraphicsSurfaceType surfaceType, string appName)
+            : base(surfaceType, appName)
         {
         }
 
@@ -34,7 +34,7 @@ namespace osu.Framework.Platform.MacOS
             base.Create();
 
             // replace [SDLView scrollWheel:(NSEvent *)] with our own version
-            var viewClass = Class.Get("SDLView");
+            IntPtr viewClass = Class.Get("SDLView");
             scrollWheelHandler = scrollWheel;
             originalScrollWheel = Class.SwizzleMethod(viewClass, "scrollWheel:", "v@:@", scrollWheelHandler);
         }

@@ -28,21 +28,21 @@ namespace osu.Framework.Lists
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public void Add(T item) => throw new NotImplementedException();
+        public void Add(T item) => throw new NotSupportedException();
 
-        public int Add(object? value) => throw new NotImplementedException();
+        public int Add(object? value) => throw new NotSupportedException();
 
-        void IList.Clear() => throw new NotImplementedException();
+        void IList.Clear() => throw new NotSupportedException();
 
         public bool Contains(object? value) => ((IList)list).Contains(value);
 
         public int IndexOf(object? value) => ((IList)list).IndexOf(value);
 
-        public void Insert(int index, object? value) => ((IList)list).Insert(index, value);
+        public void Insert(int index, object? value) => throw new NotSupportedException();
 
-        public void Remove(object? value) => throw new NotImplementedException();
+        public void Remove(object? value) => throw new NotSupportedException();
 
-        void IList.RemoveAt(int index) => throw new NotImplementedException();
+        void IList.RemoveAt(int index) => throw new NotSupportedException();
 
         public bool IsFixedSize => ((IList)list).IsFixedSize;
 
@@ -51,16 +51,16 @@ namespace osu.Framework.Lists
         object? IList.this[int index]
         {
             get => ((IList)list)[index];
-            set => throw new NotImplementedException();
+            set => throw new NotSupportedException();
         }
 
-        void ICollection<T>.Clear() => throw new NotImplementedException();
+        void ICollection<T>.Clear() => throw new NotSupportedException();
 
         public bool Contains(T item) => list.Contains(item);
 
         public void CopyTo(T[] array, int arrayIndex) => list.CopyTo(array, arrayIndex);
 
-        public bool Remove(T item) => throw new NotImplementedException();
+        public bool Remove(T item) => throw new NotSupportedException();
 
         public void CopyTo(Array array, int index) => ((ICollection)list).CopyTo(array, index);
 
@@ -76,14 +76,14 @@ namespace osu.Framework.Lists
 
         public int IndexOf(T item) => list.IndexOf(item);
 
-        public void Insert(int index, T item) => throw new NotImplementedException();
+        public void Insert(int index, T item) => throw new NotSupportedException();
 
-        void IList<T>.RemoveAt(int index) => throw new NotImplementedException();
+        void IList<T>.RemoveAt(int index) => throw new NotSupportedException();
 
         public T this[int index]
         {
             get => list[index];
-            set => throw new NotImplementedException();
+            set => throw new NotSupportedException();
         }
     }
 }

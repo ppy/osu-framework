@@ -30,8 +30,7 @@ namespace osu.Framework.Graphics.Rendering
         public static void DrawTriangle(this IRenderer renderer, Texture texture, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null,
                                         Action<TexturedVertex2D>? vertexAction = null, Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
         {
-            if (!texture.Available)
-                throw new ObjectDisposedException(texture.ToString(), "Can not draw a triangle with a disposed texture.");
+            ObjectDisposedException.ThrowIf(!texture.Available, texture);
 
             if (!renderer.BindTexture(texture))
                 return;
@@ -121,8 +120,7 @@ namespace osu.Framework.Graphics.Rendering
         public static void DrawQuad(this IRenderer renderer, Texture texture, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D>? vertexAction = null,
                                     Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
         {
-            if (!texture.Available)
-                throw new ObjectDisposedException(texture.ToString(), "Can not draw a quad with a disposed texture.");
+            ObjectDisposedException.ThrowIf(!texture.Available, texture);
 
             if (!renderer.BindTexture(texture))
                 return;
