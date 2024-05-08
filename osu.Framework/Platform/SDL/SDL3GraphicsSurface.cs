@@ -7,20 +7,20 @@ using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 using SDL;
 
 namespace osu.Framework.Platform.SDL
 {
-    internal unsafe class SDL3GraphicsSurface : IGraphicsSurface, IOpenGLGraphicsSurface, IMetalGraphicsSurface, ILinuxGraphicsSurface
+    internal unsafe class SDL3GraphicsSurface : IGraphicsSurface, IOpenGLGraphicsSurface, IMetalGraphicsSurface, ILinuxGraphicsSurface, IAndroidGraphicsSurface
     {
         private readonly SDL3Window window;
 
         private IntPtr context;
 
         public IntPtr WindowHandle => window.WindowHandle;
-        public IntPtr DisplayHandle => window.DisplayHandle;
 
         public GraphicsSurfaceType Type { get; }
 
@@ -214,6 +214,19 @@ namespace osu.Framework.Platform.SDL
         #region Linux-specific implementation
 
         bool ILinuxGraphicsSurface.IsWayland => window.IsWayland;
+
+        [SupportedOSPlatform("linux")]
+        IntPtr ILinuxGraphicsSurface.DisplayHandle => window.DisplayHandle;
+
+        #endregion
+
+        #region Android-specific implementation
+
+        [SupportedOSPlatform("android")]
+        IntPtr IAndroidGraphicsSurface.JniEnvHandle => SDL3.SDL_AndroidGetJNIEnv();
+
+        [SupportedOSPlatform("android")]
+        IntPtr IAndroidGraphicsSurface.SurfaceHandle => window.SurfaceHandle;
 
         #endregion
     }

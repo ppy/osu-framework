@@ -783,17 +783,7 @@ namespace osu.Framework.Platform
                 {
                     if (Window != null)
                     {
-                        switch (Window)
-                        {
-                            case SDL3Window window:
-                                window.Update += windowUpdate;
-                                break;
-
-                            case OsuTKWindow tkWindow:
-                                tkWindow.UpdateFrame += (_, _) => windowUpdate();
-                                break;
-                        }
-
+                        Window.Update += windowUpdate;
                         Window.Suspended += Suspend;
                         Window.Resumed += Resume;
                         Window.LowOnMemory += Collect;
@@ -1064,6 +1054,14 @@ namespace osu.Framework.Platform
             }, true);
 
             IsActive.BindTo(Window.IsActive);
+
+            AllowScreenSuspension.Result.BindValueChanged(e =>
+            {
+                if (e.NewValue)
+                    Window.EnableScreenSuspension();
+                else
+                    Window.DisableScreenSuspension();
+            }, true);
         }
 
         /// <summary>

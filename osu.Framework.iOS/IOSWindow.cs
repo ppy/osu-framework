@@ -15,7 +15,7 @@ using UIKit;
 
 namespace osu.Framework.iOS
 {
-    internal class IOSWindow : SDL3Window
+    internal class IOSWindow : SDL3MobileWindow
     {
         private UIWindow? window;
 
@@ -34,14 +34,6 @@ namespace osu.Framework.iOS
         public IOSWindow(GraphicsSurfaceType surfaceType, string appName)
             : base(surfaceType, appName)
         {
-        }
-
-        protected override unsafe void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
-        {
-            // This sets the status bar to hidden.
-            SDL3.SDL_SetWindowFullscreen(SDLWindowHandle, SDL_bool.SDL_TRUE);
-
-            // Don't run base logic at all. Let's keep things simple.
         }
 
         public override void Create()

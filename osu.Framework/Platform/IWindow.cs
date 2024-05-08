@@ -39,6 +39,11 @@ namespace osu.Framework.Platform
         void Create();
 
         /// <summary>
+        /// Invoked once every window event loop.
+        /// </summary>
+        event Action? Update;
+
+        /// <summary>
         /// Invoked when the window close (X) button or another platform-native exit action has been pressed.
         /// </summary>
         event Action? ExitRequested;
@@ -195,6 +200,16 @@ namespace osu.Framework.Platform
         /// On platforms which don't support any kind of flashing (ie. mobile), this will be a no-op.
         /// </remarks>
         void CancelFlash();
+
+        /// <summary>
+        /// Enable any system level timers that might dim or turn off the screen.
+        /// </summary>
+        void EnableScreenSuspension();
+
+        /// <summary>
+        /// Disable any system level timers that might dim or turn off the screen.
+        /// </summary>
+        void DisableScreenSuspension();
 
         /// <summary>
         /// Start the window's run loop.
