@@ -505,21 +505,34 @@ namespace osu.Framework.Tests.Layout
         [Test]
         public void TestChildMaskingInvalidationOnMaskingChange()
         {
-            Container container = null;
+            Container parent = null;
+            Container child = null;
             RectangleF childMaskingBounds = new RectangleF();
+            RectangleF actualChildMaskingBounds = new RectangleF();
 
             AddStep("createTest", () =>
             {
-                Child = container = new Container
+                Child = parent = new Container
                 {
-                    Size = new Vector2(100)
+                    Size = new Vector2(100),
+                    Child = child = new Container
+                    {
+                        RelativeSizeAxes = Axes.Both
+                    }
                 };
             });
 
-            AddAssert("Masking is off", () => container.Masking == false);
-            AddStep("Save child bounds", () => childMaskingBounds = container.ChildMaskingBounds);
-            AddStep("Disable masking", () => container.Masking = true);
-            AddAssert("Child masking bounds has changed", () => childMaskingBounds != container.ChildMaskingBounds);
+            AddAssert("Parent's masking is off", () => parent.Masking == false);
+            AddStep("Save masking bounds", () =>
+            {
+                childMaskingBounds = parent.ChildMaskingBounds;
+                actualChildMaskingBounds = child.ChildMaskingBounds;
+            });
+            AddAssert("Parent and child have the same masking bounds", () => childMaskingBounds == actualChildMaskingBounds);
+            AddStep("Enable parent masking", () => parent.Masking = true);
+            AddAssert("Parent's ChildMaskingBounds has changed", () => childMaskingBounds != parent.ChildMaskingBounds);
+            AddAssert("Child's masking bounds has changed", () => actualChildMaskingBounds != child.ChildMaskingBounds);
+            AddAssert("Parent and child have the same masking bounds", () => parent.ChildMaskingBounds == child.ChildMaskingBounds);
         }
 
         private partial class TestBox1 : Box
