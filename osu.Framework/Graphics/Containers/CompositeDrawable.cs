@@ -1481,8 +1481,10 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 masking = value;
-                childMaskingBoundsBacking.Invalidate();
-                Invalidate(Invalidation.DrawNode);
+                // DrawInfo invalidation will propagate masking bounds changes in the sub-tree.
+                // While this can invalidate other layouts, there are rarely any use cases of enabling/disabling masking "on the fly"
+                // so this won't hurt performance under normal circumstances.
+                Invalidate(Invalidation.DrawNode | Invalidation.DrawInfo);
             }
         }
 
