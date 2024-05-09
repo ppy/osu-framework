@@ -187,7 +187,7 @@ namespace osu.Framework.Platform.SDL
             /// <summary>
             /// Length of the <see cref="ReadOnlyMemory{T}"/> returned by the <see cref="dataProvider"/>.
             /// </summary>
-            public UIntPtr DataLength;
+            public UIntPtr DataLength { get; private set; }
 
             public ClipboardCallbackContext(string mimeType, Func<ReadOnlyMemory<byte>> dataProvider)
             {
