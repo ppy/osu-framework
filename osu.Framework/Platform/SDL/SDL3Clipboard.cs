@@ -142,7 +142,7 @@ namespace osu.Framework.Platform.SDL
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
         private static unsafe IntPtr dataCallback(IntPtr userdata, byte* mimeType, UIntPtr* length)
         {
-            var objectHandle = new ObjectHandle<ClipboardCallbackContext>(userdata, true);
+            using var objectHandle = new ObjectHandle<ClipboardCallbackContext>(userdata);
 
             if (!objectHandle.GetTarget(out var context) || context.MimeType != SDL3.PtrToStringUTF8(mimeType))
             {
@@ -158,12 +158,11 @@ namespace osu.Framework.Platform.SDL
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
         private static void cleanupCallback(IntPtr userdata)
         {
-            var objectHandle = new ObjectHandle<ClipboardCallbackContext>(userdata, true);
+            using var objectHandle = new ObjectHandle<ClipboardCallbackContext>(userdata, true);
 
             if (objectHandle.GetTarget(out var context))
             {
                 context.Dispose();
-                objectHandle.Dispose();
             }
         }
 
