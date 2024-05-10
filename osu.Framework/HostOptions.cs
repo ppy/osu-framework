@@ -33,5 +33,14 @@ namespace osu.Framework
         /// If the SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR environment variable is set, this property will have no effect.
         /// </remarks>
         public bool BypassCompositor { get; set; } = true;
+
+        /// <summary>
+        /// The friendly name of the game to be hosted. This is used to display the name to the user,
+        /// for example in the window title bar or in OS windows and prompts.
+        /// </summary>
+        /// <remarks>
+        /// If empty, GameHost will choose a default name based on the gameName.
+        /// </remarks>
+        public string FriendlyGameName { get; set; } = string.Empty;
     }
 }

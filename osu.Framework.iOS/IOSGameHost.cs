@@ -28,16 +28,7 @@ namespace osu.Framework.iOS
         {
         }
 
-        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new IOSWindow(preferredSurface);
-
-        protected override void SetupForRun()
-        {
-            base.SetupForRun();
-
-            AllowScreenSuspension.Result.BindValueChanged(allow =>
-                    InputThread.Scheduler.Add(() => UIApplication.SharedApplication.IdleTimerDisabled = !allow.NewValue),
-                true);
-        }
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new IOSWindow(preferredSurface, Options.FriendlyGameName);
 
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {

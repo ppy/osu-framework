@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics
@@ -60,13 +59,7 @@ namespace osu.Framework.Graphics
             // We do not want to receive updates. That is the business of the original drawable.
             public override bool IsPresent => false;
 
-            public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
-            {
-                if (Original.IsDisposed)
-                    return false;
-
-                return Original.UpdateSubTreeMasking(this, maskingBounds);
-            }
+            public override bool UpdateSubTreeMasking() => true;
 
             private class ProxyDrawNode : DrawNode
             {

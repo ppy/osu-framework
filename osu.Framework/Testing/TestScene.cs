@@ -6,6 +6,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -26,9 +27,9 @@ using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Threading;
-using osuTK;
 using osuTK.Graphics;
 using Logger = osu.Framework.Logging.Logger;
+using Vector2 = osuTK.Vector2;
 
 namespace osu.Framework.Testing
 {
@@ -366,7 +367,7 @@ namespace osu.Framework.Testing
             });
         });
 
-        protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged) where T : struct, IComparable<T>, IConvertible, IEquatable<T> => schedule(() =>
+        protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged) where T : struct, INumber<T>, IMinMaxValue<T> => schedule(() =>
         {
             StepsContainer.Add(new StepSlider<T>(description, min, max, start)
             {

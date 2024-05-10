@@ -90,6 +90,9 @@ namespace osu.Framework.Platform
 
             config.BindWith(FrameworkSetting.WindowMode, WindowMode);
 
+            if (!SupportedWindowModes.Contains(WindowMode.Value))
+                WindowMode.Value = DefaultWindowMode;
+
             WindowMode.BindValueChanged(evt =>
             {
                 switch (evt.NewValue)
@@ -127,7 +130,7 @@ namespace osu.Framework.Platform
         public bool Focused
         {
             get => focused;
-            private set
+            protected set
             {
                 if (value == focused)
                     return;
@@ -526,6 +529,9 @@ namespace osu.Framework.Platform
                 case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST:
                 case SDL_EventType.SDL_EVENT_WINDOW_SHOWN:
                 case SDL_EventType.SDL_EVENT_WINDOW_HIDDEN:
+
+                // See https://github.com/libsdl-org/SDL/issues/9585
+                case SDL_EventType.SDL_EVENT_WINDOW_RESIZED when RuntimeInfo.OS == RuntimeInfo.Platform.Android:
                     fetchDisplays();
                     break;
             }

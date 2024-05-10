@@ -1362,9 +1362,9 @@ namespace osu.Framework.Graphics.UserInterface
             // We don't deactivate and activate, but instead keep text input active during the focus handoff, so that virtual keyboards on phones don't flicker.
 
             if (previousFocusWasTextBox)
-                textInput.EnsureActivated(AllowIme);
+                textInput.EnsureActivated(AllowIme, ScreenSpaceDrawQuad.AABBFloat);
             else
-                textInput.Activate(AllowIme);
+                textInput.Activate(AllowIme, ScreenSpaceDrawQuad.AABBFloat);
 
             textInput.OnTextInput += handleTextInput;
             textInput.OnImeComposition += handleImeComposition;
