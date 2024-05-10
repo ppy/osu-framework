@@ -34,5 +34,24 @@ namespace osu.Framework.Audio
                     throw new ArgumentOutOfRangeException(nameof(type), "Invalid adjustable property type.");
             }
         }
+
+        /// <summary>
+        /// Get aggregated stereo volume by decreasing the opponent channel.
+        /// </summary>
+        /// <param name="adjustment">The audio adjustments to return from.</param>
+        /// <returns>Aggregated stereo volume.</returns>
+        internal static (double, double) GetAggregatedStereoVolume(this IAggregateAudioAdjustment adjustment)
+        {
+            double volume = adjustment.AggregateVolume.Value;
+            double balance = adjustment.AggregateBalance.Value;
+            double balanceAbs = 1.0 - Math.Abs(balance);
+
+            if (balance < 0)
+                return (volume, volume * balanceAbs);
+            else if (balance > 0)
+                return (volume * balanceAbs, volume);
+
+            return (volume, volume);
+        }
     }
 }

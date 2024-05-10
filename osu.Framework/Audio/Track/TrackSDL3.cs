@@ -267,8 +267,7 @@ namespace osu.Framework.Audio.Track
                 player.Tempo = AggregateTempo.Value;
             }
 
-            double balance = AggregateBalance.Value;
-            volume = ((float)(AggregateVolume.Value * (balance > 0 ? balance : 1.0)), (float)(AggregateVolume.Value * (balance < 0 ? -balance : 1.0)));
+            volume = ((float, float))Adjustments.GetAggregatedStereoVolume();
         }
 
         bool ISDL3AudioChannel.Playing => isRunning && !player.Done;

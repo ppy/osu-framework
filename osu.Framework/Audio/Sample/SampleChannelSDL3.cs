@@ -71,8 +71,7 @@ namespace osu.Framework.Audio.Sample
         {
             base.OnStateChanged();
 
-            double balance = AggregateBalance.Value;
-            volume = ((float)(AggregateVolume.Value * (balance > 0 ? balance : 1.0)), (float)(AggregateVolume.Value * (balance < 0 ? -balance : 1.0)));
+            volume = ((float, float))Adjustments.GetAggregatedStereoVolume();
 
             Interlocked.Exchange(ref rate, AggregateFrequency.Value);
         }
