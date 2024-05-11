@@ -234,8 +234,7 @@ namespace osu.Framework.Graphics.Containers
 
             for (int row = 0; row < cellRows; row++)
             {
-                if (row > 0)
-                    rows[row].Y = cumulativeHeight;
+                rows[row].Y = cumulativeHeight;
 
                 for (int col = 0; col < cellColumns; col++)
                 {
