@@ -206,7 +206,6 @@ namespace osu.Framework.Graphics.Containers
                     rows[r].Add(cells[r, c]);
                 }
 
-                rows[r].Depth = r;
                 AddInternal(rows[r]);
             }
 
