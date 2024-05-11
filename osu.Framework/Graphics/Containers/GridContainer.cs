@@ -143,7 +143,7 @@ namespace osu.Framework.Graphics.Containers
         private readonly LayoutValue cellChildLayout = new LayoutValue(Invalidation.RequiredParentSizeToFit | Invalidation.Presence, InvalidationSource.Child);
 
         private CellContainer[,] cells = new CellContainer[0, 0];
-        private CellsRow[] rows = new CellsRow[0];
+        private CellsRow[] rows = Array.Empty<CellsRow>();
 
         private int cellRows => rows.Length;
         private int cellColumns => cells.GetLength(1);
