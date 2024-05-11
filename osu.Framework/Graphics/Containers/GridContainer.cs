@@ -143,7 +143,9 @@ namespace osu.Framework.Graphics.Containers
         private readonly LayoutValue cellChildLayout = new LayoutValue(Invalidation.RequiredParentSizeToFit | Invalidation.Presence, InvalidationSource.Child);
 
         private CellContainer[,] cells = new CellContainer[0, 0];
-        private int cellRows => cells.GetLength(0);
+        private CellsRow[] rows = new CellsRow[0];
+
+        private int cellRows => rows.Length;
         private int cellColumns => cells.GetLength(1);
 
         /// <summary>
@@ -158,6 +160,9 @@ namespace osu.Framework.Graphics.Containers
             int requiredColumns = requiredRows == 0 ? 0 : Content?.Max(c => c?.Count ?? 0) ?? 0;
 
             // Clear cell containers without disposing, as the content might be reused
+            foreach (var row in rows)
+                row.Clear(false);
+
             foreach (var cell in cells)
                 cell.Clear(false);
 
@@ -167,10 +172,13 @@ namespace osu.Framework.Graphics.Containers
             cellLayout.Invalidate();
 
             // Create the new cell containers and add content
+            rows = new CellsRow[requiredRows];
             cells = new CellContainer[requiredRows, requiredColumns];
 
             for (int r = 0; r < cellRows; r++)
             {
+                rows[r] = new CellsRow();
+
                 for (int c = 0; c < cellColumns; c++)
                 {
                     // Content should not be null since the number of rows/columns is non-zero.
@@ -195,8 +203,11 @@ namespace osu.Framework.Graphics.Containers
                     cells[r, c].Add(Content[r][c]);
                     cells[r, c].Depth = Content[r][c].Depth;
 
-                    AddInternal(cells[r, c]);
+                    rows[r].Add(cells[r, c]);
                 }
+
+                rows[r].Depth = r;
+                AddInternal(rows[r]);
             }
 
             cellContent.Validate();
@@ -219,18 +230,22 @@ namespace osu.Framework.Graphics.Containers
             float[] widths = distribute(columnDimensions, DrawWidth - Padding.TotalHorizontal, getCellSizesAlongAxis(Axes.X, DrawWidth - Padding.TotalHorizontal));
             float[] heights = distribute(rowDimensions, DrawHeight - Padding.TotalVertical, getCellSizesAlongAxis(Axes.Y, DrawHeight - Padding.TotalVertical));
 
-            for (int col = 0; col < cellColumns; col++)
+            float cumulativeHeight = 0;
+
+            for (int row = 0; row < cellRows; row++)
             {
-                for (int row = 0; row < cellRows; row++)
+                if (row > 0)
+                    rows[row].Y = cumulativeHeight;
+
+                for (int col = 0; col < cellColumns; col++)
                 {
                     cells[row, col].Size = new Vector2(widths[col], heights[row]);
 
                     if (col > 0)
                         cells[row, col].X = cells[row, col - 1].X + cells[row, col - 1].Width;
-
-                    if (row > 0)
-                        cells[row, col].Y = cells[row - 1, col].Y + cells[row - 1, col].Height;
                 }
+
+                cumulativeHeight += heights[row];
             }
 
             cellLayout.Validate();
@@ -373,6 +388,24 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private partial class CellContainer : Container
         {
+            protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
+            {
+                bool result = base.OnInvalidate(invalidation, source);
+
+                if (source == InvalidationSource.Child && (invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
+                    result |= Parent?.Invalidate(invalidation, InvalidationSource.Child) ?? false;
+
+                return result;
+            }
+        }
+
+        private partial class CellsRow : Container<CellContainer>
+        {
+            public CellsRow()
+            {
+                AutoSizeAxes = Axes.Both;
+            }
+
             protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
             {
                 bool result = base.OnInvalidate(invalidation, source);
