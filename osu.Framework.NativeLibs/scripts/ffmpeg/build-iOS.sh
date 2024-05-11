@@ -29,6 +29,7 @@ cpu=''
 cross_arch=''
 cc=''
 as=''
+sysroot=''
 cflags=''
 
 case $arch in
@@ -37,6 +38,7 @@ case $arch in
         cross_arch='arm64'
         cc='xcrun -sdk iphoneos clang'
         as="$GAS_PREPROCESSOR -arch arm64 -- $cc"
+        sysroot=$(xcrun -sdk iphoneos --show-sdk-path)
         cflags="-mios-version-min=$DEPLOYMENT_TARGET"
         ;;
 
@@ -45,6 +47,7 @@ case $arch in
         cross_arch='arm64'
         cc='xcrun -sdk iphonesimulator clang'
         as="$GAS_PREPROCESSOR -arch arm64 -- $cc"
+        sysroot=$(xcrun -sdk iphonesimulator --show-sdk-path)
         cflags="-mios-simulator-version-min=$DEPLOYMENT_TARGET"
         ;;
 
@@ -53,6 +56,7 @@ case $arch in
         cross_arch='x86_64'
         cc='xcrun -sdk iphonesimulator clang'
         as="$GAS_PREPROCESSOR -- $cc"
+        sysroot=$(xcrun -sdk iphonesimulator --show-sdk-path)
         cflags="-mios-simulator-version-min=$DEPLOYMENT_TARGET"
         ;;
 esac
@@ -70,8 +74,10 @@ FFMPEG_FLAGS+=(
     --arch=$cross_arch
     --cc="$cc"
     --as="$as"
-    --extra-cflags="-arch $cross_arch $cflags"
-    --extra-ldflags="-arch $cross_arch $cflags"
+    --extra-cflags="-isysroot $sysroot -arch $cross_arch $cflags"
+    --extra-ldflags="-isysroot $sysroot -arch $cross_arch $cflags"
+
+    --install-name-dir='@rpath'
 )
 
 pushd . > /dev/null
