@@ -1453,13 +1453,18 @@ namespace osu.Framework.Graphics.Containers
             if (!ReceivePositionalInputAtSubTree(screenSpacePos))
                 return false;
 
+            PropagatePositionalInputQueue(screenSpacePos, queue);
+
+            return true;
+        }
+
+        internal virtual void PropagatePositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
+        {
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
             {
                 if (ShouldBeConsideredForInput(aliveInternalChildren[i]))
                     aliveInternalChildren[i].BuildPositionalInputQueue(screenSpacePos, queue);
             }
-
-            return true;
         }
 
         #endregion

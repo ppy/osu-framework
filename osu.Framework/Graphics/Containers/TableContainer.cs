@@ -4,11 +4,13 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
+using osuTK;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -17,11 +19,11 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public partial class TableContainer : CompositeDrawable
     {
-        private readonly GridContainer grid;
+        private readonly TableGrid grid;
 
         public TableContainer()
         {
-            InternalChild = grid = new GridContainer { RelativeSizeAxes = Axes.Both };
+            InternalChild = grid = new TableGrid { RelativeSizeAxes = Axes.Both };
         }
 
         private Drawable[,] content;
@@ -256,6 +258,37 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="column">The column definition.</param>
         /// <returns>The cell content.</returns>
         protected virtual Drawable CreateHeader(int index, [CanBeNull] TableColumn column) => new SpriteText { Text = column?.Header ?? string.Empty };
+
+        /// <summary>
+        /// A <see cref="GridContainer"/> with optimised positional input handling by assuming all the content inside cells won't overlap other cells.
+        /// </summary>
+        private partial class TableGrid : GridContainer
+        {
+            private Drawable lastHandledCell;
+
+            internal override void PropagatePositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
+            {
+                if (lastHandledCell != null && !lastHandledCell.IsDisposed && shouldReceiveInput(lastHandledCell, screenSpacePos))
+                {
+                    lastHandledCell.BuildPositionalInputQueue(screenSpacePos, queue);
+                    return;
+                }
+
+                foreach (var cell in InternalChildren)
+                {
+                    if (shouldReceiveInput(cell, screenSpacePos))
+                    {
+                        cell.BuildPositionalInputQueue(screenSpacePos, queue);
+                        lastHandledCell = cell;
+                        return;
+                    }
+                }
+
+                lastHandledCell = null;
+            }
+
+            private bool shouldReceiveInput(Drawable cell, Vector2 screenSpacePos) => ShouldBeConsideredForInput(cell) && cell.Contains(screenSpacePos);
+        }
     }
 
     /// <summary>
