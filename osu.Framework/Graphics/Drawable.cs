@@ -1492,6 +1492,8 @@ namespace osu.Framework.Graphics
         /// <returns>The first parent <see cref="InputManager"/>.</returns>
         protected InputManager GetContainingInputManager() => this.FindClosestParent<InputManager>();
 
+        protected IFocusManager GetContainingFocusManager() => this.FindClosestParent<IFocusManager>();
+
         private CompositeDrawable parent;
 
         /// <summary>

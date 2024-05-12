@@ -1154,7 +1154,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void killFocus()
         {
-            var manager = GetContainingInputManager();
+            var manager = GetContainingFocusManager();
             if (manager?.FocusedDrawable == this)
                 manager.ChangeFocus(null);
         }
@@ -1224,7 +1224,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 selectionEnd = getCharacterClosestTo(e.MousePosition);
                 if (hasSelection)
-                    GetContainingInputManager().ChangeFocus(this);
+                    GetContainingFocusManager().ChangeFocus(this);
             }
 
             cursorAndLayout.Invalidate();
