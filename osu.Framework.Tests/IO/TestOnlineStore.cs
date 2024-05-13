@@ -107,5 +107,15 @@ namespace osu.Framework.Tests.IO
 
             Assert.That(result, Is.Null);
         }
+
+        [Test]
+        public void TestBadWebRequest([ValueSource(nameof(protocols))] string protocol, [Values(true, false)] bool async)
+        {
+            byte[]? result = async
+                ? store.GetAsync($"{protocol}://{host}/status/500").GetResultSafely()
+                : store.Get($"{protocol}://{host}/status/500");
+
+            Assert.That(result, Is.Null);
+        }
     }
 }
