@@ -26,12 +26,6 @@ namespace osu.Framework.IO.Network
         internal const int MAX_RETRIES = 1;
 
         /// <summary>
-        /// Whether non-SSL requests should be allowed. Defaults to disabled.
-        /// In the default state, http:// requests will be automatically converted to https://.
-        /// </summary>
-        public bool AllowInsecureRequests;
-
-        /// <summary>
         /// Invoked when a response has been received, but not data has been received.
         /// </summary>
         public event Action Started;
@@ -243,6 +237,21 @@ namespace osu.Framework.IO.Network
         }
 
         public HttpResponseHeaders ResponseHeaders => response.Headers;
+
+        private bool? allowInsecureRequests;
+
+        /// <summary>
+        /// Whether non-SSL requests should be allowed. Defaults to disabled.
+        /// In the default state, http:// requests will be automatically converted to https://.
+        /// </summary>
+        /// <remarks>
+        /// Setting this overrides the <c>OSU_INSECURE_REQUESTS</c> environment variable.
+        /// </remarks>
+        public bool AllowInsecureRequests
+        {
+            get => allowInsecureRequests ?? FrameworkEnvironment.AllowInsecureRequests;
+            set => allowInsecureRequests = value;
+        }
 
         /// <summary>
         /// Performs the request asynchronously.
