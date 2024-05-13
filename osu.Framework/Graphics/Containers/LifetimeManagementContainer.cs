@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.Containers
         {
         }
 
-        private class DrawableLifetimeEntry : LifetimeEntry<DrawableLifetimeEntry>, IDisposable
+        private class DrawableLifetimeEntry : LifetimeEntryBase<DrawableLifetimeEntry>, IDisposable
         {
             public readonly Drawable Drawable;
 
