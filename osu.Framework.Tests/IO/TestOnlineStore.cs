@@ -94,5 +94,18 @@ namespace osu.Framework.Tests.IO
             byte[]? result = store.Get(null);
             Assert.That(result, Is.Null);
         }
+
+        [Test]
+        public void TestFileUrlFails([Values(true, false)] bool async)
+        {
+            // Known, guaranteed file path.
+            string path = new Uri(RuntimeInfo.EntryAssembly.Location).AbsoluteUri;
+
+            byte[]? result = async
+                ? store.GetAsync(path).GetResultSafely()
+                : store.Get(path);
+
+            Assert.That(result, Is.Null);
+        }
     }
 }
