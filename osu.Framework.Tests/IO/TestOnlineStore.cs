@@ -60,7 +60,7 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test, Retry(5)]
-        public void TestValidGet([ValueSource(nameof(protocols))] string protocol, [Values(true, false)] bool async)
+        public void TestValidUrlReturnsData([ValueSource(nameof(protocols))] string protocol, [Values(true, false)] bool async)
         {
             byte[]? result = async
                 ? store.GetAsync($"{protocol}://{host}/image/png").GetResultSafely()
@@ -71,7 +71,7 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test]
-        public void TestInvalidGet([ValueSource(nameof(protocols))] string protocol, [Values(true, false)] bool async)
+        public void TestMissingSchemeReturnsNull([Values(true, false)] bool async)
         {
             byte[]? result = async
                 ? store.GetAsync($"{host}/image/png").GetResultSafely()
@@ -81,14 +81,14 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test]
-        public void TestInvalidUrl()
+        public void TestInvalidUrlReturnsNull()
         {
             byte[]? result = store.Get("this is not a valid url");
             Assert.That(result, Is.Null);
         }
 
         [Test]
-        public void TestNullUrl()
+        public void TestNullUrlReturnsNull()
         {
             // Not sure if this store should accept a null URL, but let's test it anyway.
             byte[]? result = store.Get(null);
