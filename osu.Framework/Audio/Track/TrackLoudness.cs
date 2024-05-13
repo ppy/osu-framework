@@ -46,7 +46,7 @@ namespace osu.Framework.Audio.Track
 
                 if (Bass.CurrentDevice < 0)
                 {
-                    Logger.Log("Failed to measure loudness as no bass device is available.");
+                    Logger.Log("Failed to measure loudness as no bass device is available.", level: LogLevel.Error);
                     return;
                 }
 
@@ -56,7 +56,7 @@ namespace osu.Framework.Audio.Track
 
                 if (decodeStream == 0)
                 {
-                    Logger.Log($"Bass failed to create a stream while trying to measure loudness: {Bass.LastError}");
+                    Logger.Log($"Bass failed to create a stream while trying to measure loudness: {Bass.LastError}", level: LogLevel.Error);
                     fileCallbacks.Dispose();
                     return;
                 }
@@ -68,26 +68,24 @@ namespace osu.Framework.Audio.Track
                     int loudHandle = BassLoud.Start(decodeStream, BassFlags.BassLoudnessIntegrated | BassFlags.BassLoudnessAutofree, 0);
 
                     if (loudHandle == 0)
-                    {
-                        Logger.Log($"Failed to start BassLoud: {Bass.LastError}");
-                        return;
-                    }
+                        throw new InvalidOperationException("Failed to start BassLoud");
 
                     while (Bass.ChannelGetData(decodeStream, buffer, buffer.Length) >= 0)
                     {
                     }
 
-                    float integratedLoudness = 1;
-                    bool gotLevel = BassLoud.GetLevel(loudHandle, BassFlags.BassLoudnessIntegrated, ref integratedLoudness);
+                    float bassIntegratedLoudness = 1;
+                    bool gotLevel = BassLoud.GetLevel(loudHandle, BassFlags.BassLoudnessIntegrated, ref bassIntegratedLoudness);
 
                     if (!gotLevel)
-                    {
-                        Logger.Log($"Failed to get loudness level: {Bass.LastError}");
-                        return;
-                    }
+                        throw new InvalidOperationException("Failed to get loudness level");
 
-                    if (integratedLoudness < 0)
-                        this.integratedLoudness = integratedLoudness;
+                    if (bassIntegratedLoudness < 0)
+                        integratedLoudness = bassIntegratedLoudness;
+                }
+                catch (Exception e)
+                {
+                    Logger.Error(e, $"{e.Message}: {Bass.LastError}");
                 }
                 finally
                 {
@@ -114,6 +112,8 @@ namespace osu.Framework.Audio.Track
         /// Returns integrated loudness.
         /// </summary>
         public float? GetIntegratedLoudness() => GetIntegratedLoudnessAsync().GetResultSafely();
+
+        public static double ConvertToVolumeOffset(int targetLevel, float integratedLoudness) => Math.Pow(10, (targetLevel - (double)integratedLoudness) / 20);
 
         protected virtual void Dispose(bool disposing)
         {
