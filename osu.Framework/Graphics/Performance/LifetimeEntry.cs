@@ -6,25 +6,25 @@ using System;
 namespace osu.Framework.Graphics.Performance
 {
     /// <summary>
-    /// An object for a <see cref="LifetimeEntryManager"/> to consume, which provides a <see cref="LifetimeEntry{T}.LifetimeStart"/> and <see cref="LifetimeEntry{T}.LifetimeEnd"/>.
+    /// An object for a <see cref="LifetimeEntryManager"/> to consume, which provides a <see cref="LifetimeEntryBase{T}.LifetimeStart"/> and <see cref="LifetimeEntryBase{T}.LifetimeEnd"/>.
     /// </summary>
     /// <remarks>
     /// Management of the object which the <see cref="LifetimeEntry"/> refers to is left up to the consumer.
     /// </remarks>
-    public class LifetimeEntry : LifetimeEntry<LifetimeEntry>
+    public class LifetimeEntry : LifetimeEntryBase<LifetimeEntry>
     {
     }
 
     /// <summary>
-    /// The required base type for the <see cref="LifetimeEntryManager{T}"/> to consume, which provides a <see cref="LifetimeEntry{T}.LifetimeStart"/> and <see cref="LifetimeEntry{T}.LifetimeEnd"/>.
+    /// The required base type for the <see cref="LifetimeEntryManager{T}"/> to consume, which provides a <see cref="LifetimeEntryBase{T}.LifetimeStart"/> and <see cref="LifetimeEntryBase{T}.LifetimeEnd"/>.
     /// </summary>
     /// <typeparam name="TDerived">The implemented class itself. Used to provide derived category information for base categories using the Curiously Recurring Template Pattern(CRTP).</typeparam>
-    public abstract class LifetimeEntry<TDerived> where TDerived : LifetimeEntry<TDerived>
+    public abstract class LifetimeEntryBase<TDerived> where TDerived : LifetimeEntryBase<TDerived>
     {
         private double lifetimeStart = double.MinValue;
 
         /// <summary>
-        /// The time at which this <see cref="LifetimeEntry{T}"/> becomes alive in a <see cref="LifetimeEntryManager{T}"/>.
+        /// The time at which this <see cref="LifetimeEntryBase{T}"/> becomes alive in a <see cref="LifetimeEntryManager{T}"/>.
         /// </summary>
         public double LifetimeStart
         {
@@ -36,7 +36,7 @@ namespace osu.Framework.Graphics.Performance
         private double lifetimeEnd = double.MaxValue;
 
         /// <summary>
-        /// The time at which this <see cref="LifetimeEntry{T}"/> becomes dead in a <see cref="LifetimeEntryManager{T}"/>.
+        /// The time at which this <see cref="LifetimeEntryBase{T}"/> becomes dead in a <see cref="LifetimeEntryManager{T}"/>.
         /// </summary>
         public double LifetimeEnd
         {
@@ -56,7 +56,7 @@ namespace osu.Framework.Graphics.Performance
         public event Action<TDerived>? LifetimeChanged;
 
         /// <summary>
-        /// Update <see cref="LifetimeStart"/> of this <see cref="LifetimeEntry{T}"/>.
+        /// Update <see cref="LifetimeStart"/> of this <see cref="LifetimeEntryBase{T}"/>.
         /// </summary>
         protected virtual void SetLifetimeStart(double start)
         {
@@ -65,7 +65,7 @@ namespace osu.Framework.Graphics.Performance
         }
 
         /// <summary>
-        /// Update <see cref="LifetimeEnd"/> of this <see cref="LifetimeEntry{T}"/>.
+        /// Update <see cref="LifetimeEnd"/> of this <see cref="LifetimeEntryBase{T}"/>.
         /// </summary>
         protected virtual void SetLifetimeEnd(double end)
         {
@@ -74,7 +74,7 @@ namespace osu.Framework.Graphics.Performance
         }
 
         /// <summary>
-        /// Updates the stored lifetimes of this <see cref="LifetimeEntry{T}"/>.
+        /// Updates the stored lifetimes of this <see cref="LifetimeEntryBase{T}"/>.
         /// </summary>
         /// <param name="start">The new <see cref="LifetimeStart"/> value.</param>
         /// <param name="end">The new <see cref="LifetimeEnd"/> value.</param>
@@ -106,12 +106,12 @@ namespace osu.Framework.Graphics.Performance
         }
 
         /// <summary>
-        /// The current state of this <see cref="LifetimeEntry{T}"/>.
+        /// The current state of this <see cref="LifetimeEntryBase{T}"/>.
         /// </summary>
         internal LifetimeEntryState State { get; set; }
 
         /// <summary>
-        /// Uniquely identifies this <see cref="LifetimeEntry{T}"/> in a <see cref="LifetimeEntryManager{T}"/>.
+        /// Uniquely identifies this <see cref="LifetimeEntryBase{T}"/> in a <see cref="LifetimeEntryManager{T}"/>.
         /// </summary>
         internal ulong ChildId { get; set; }
     }

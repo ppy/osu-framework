@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Performance
     /// <summary>
     /// Provides time-optimised updates for lifetime change notifications.
     /// This is used in specialised <see cref="CompositeDrawable"/>s to optimise lifetime changes (see: <see cref="LifetimeManagementContainer"/>).
-    /// If you wish to implement your own <see cref="LifetimeEntry{T}"/>, please use the generic version <see cref="LifetimeEntryManager{T}"/>.
+    /// If you wish to implement your own <see cref="LifetimeEntryBase{T}"/>, please use the generic version <see cref="LifetimeEntryManager{T}"/>.
     /// </summary>
     /// <remarks>
     /// The time complexity of updating lifetimes is O(number of alive items).
@@ -28,21 +28,21 @@ namespace osu.Framework.Graphics.Performance
     /// <summary>
     /// Provides time-optimised updates for lifetime change notifications.
     /// </summary>
-    /// <typeparam name="T">Implementation of <see cref="LifetimeEntry{T}"/>. Note that your own class must inherit from the generic version <see cref="LifetimeEntry{T}"/> rather than <see cref="LifetimeEntry"/>.</typeparam>
-    public class LifetimeEntryManager<T> where T : LifetimeEntry<T>
+    /// <typeparam name="T">Implementation of <see cref="LifetimeEntryBase{T}"/>. Note that your own class must inherit from the generic version <see cref="LifetimeEntryBase{T}"/> rather than <see cref="LifetimeEntry"/>.</typeparam>
+    public class LifetimeEntryManager<T> where T : LifetimeEntryBase<T>
     {
         /// <summary>
-        /// Invoked immediately when a <see cref="LifetimeEntry{T}"/> becomes alive.
+        /// Invoked immediately when a <see cref="LifetimeEntryBase{T}"/> becomes alive.
         /// </summary>
         public event Action<T>? EntryBecameAlive;
 
         /// <summary>
-        /// Invoked immediately when a <see cref="LifetimeEntry{T}"/> becomes dead.
+        /// Invoked immediately when a <see cref="LifetimeEntryBase{T}"/> becomes dead.
         /// </summary>
         public event Action<T>? EntryBecameDead;
 
         /// <summary>
-        /// Invoked when a <see cref="LifetimeEntry{T}"/> crosses a lifetime boundary.
+        /// Invoked when a <see cref="LifetimeEntryBase{T}"/> crosses a lifetime boundary.
         /// </summary>
         public event Action<T, LifetimeBoundaryKind, LifetimeBoundaryCrossingDirection>? EntryCrossedBoundary;
 
@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics.Performance
         /// <summary>
         /// Adds an entry.
         /// </summary>
-        /// <param name="entry">The <see cref="LifetimeEntry{T}"/> to add.</param>
+        /// <param name="entry">The <see cref="LifetimeEntryBase{T}"/> to add.</param>
         public void AddEntry(T entry)
         {
             entry.RequestLifetimeUpdate += requestLifetimeUpdate;
@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.Performance
         /// <summary>
         /// Removes an entry.
         /// </summary>
-        /// <param name="entry">The <see cref="LifetimeEntry{T}"/> to remove.</param>
+        /// <param name="entry">The <see cref="LifetimeEntryBase{T}"/> to remove.</param>
         /// <returns>Whether <paramref name="entry"/> was contained by this <see cref="LifetimeEntryManager{T}"/>.</returns>
         public bool RemoveEntry(T entry)
         {
@@ -283,9 +283,9 @@ namespace osu.Framework.Graphics.Performance
         }
 
         /// <summary>
-        /// Updates the state of a single <see cref="LifetimeEntry{T}"/>.
+        /// Updates the state of a single <see cref="LifetimeEntryBase{T}"/>.
         /// </summary>
-        /// <param name="entry">The <see cref="LifetimeEntry{T}"/> to update.</param>
+        /// <param name="entry">The <see cref="LifetimeEntryBase{T}"/> to update.</param>
         /// <param name="startTime">The start of the time range.</param>
         /// <param name="endTime">The end of the time range.</param>
         /// <param name="isNewEntry">Whether <paramref name="entry"/> is part of the new entries set.
@@ -352,7 +352,7 @@ namespace osu.Framework.Graphics.Performance
         /// <summary>
         /// Retrieves the new state for an entry.
         /// </summary>
-        /// <param name="entry">The <see cref="LifetimeEntry{T}"/>.</param>
+        /// <param name="entry">The <see cref="LifetimeEntryBase{T}"/>.</param>
         /// <param name="startTime">The start of the time range.</param>
         /// <param name="endTime">The end of the time range.</param>
         /// <returns>The state of <paramref name="entry"/>. Can be either <see cref="LifetimeEntryState.Past"/>, <see cref="LifetimeEntryState.Current"/>, or <see cref="LifetimeEntryState.Future"/>.</returns>
@@ -403,7 +403,7 @@ namespace osu.Framework.Graphics.Performance
         }
 
         /// <summary>
-        /// Compares by <see cref="LifetimeEntry{T}.LifetimeStart"/>.
+        /// Compares by <see cref="LifetimeEntryBase{T}.LifetimeStart"/>.
         /// </summary>
         private sealed class LifetimeStartComparator : IComparer<T>
         {
@@ -418,7 +418,7 @@ namespace osu.Framework.Graphics.Performance
         }
 
         /// <summary>
-        /// Compares by <see cref="LifetimeEntry{T}.LifetimeEnd"/>.
+        /// Compares by <see cref="LifetimeEntryBase{T}.LifetimeEnd"/>.
         /// </summary>
         private sealed class LifetimeEndComparator : IComparer<T>
         {
