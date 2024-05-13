@@ -19,7 +19,7 @@ namespace osu.Framework.Tests.IO
         private static readonly IEnumerable<string> protocols;
 
         private bool oldAllowInsecureRequests;
-        private OnlineStore store;
+        private OnlineStore store = null!;
 
         static TestOnlineStore()
         {
