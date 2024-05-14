@@ -51,14 +51,14 @@ function prep_ffmpeg() {
         echo "-> $build_dir already exists, skipping unpacking."
     fi
 
-    echo "-> Configuring..."
     cd "$build_dir"
-    ./configure "${FFMPEG_FLAGS[@]}"
 }
 
 function build_ffmpeg() {
-    echo "-> Building using $CORES threads..."
+    echo "-> Configuring..."
+    ./configure "${FFMPEG_FLAGS[@]}"
 
+    echo "-> Building using $CORES threads..."
     make -j$CORES
     make install-libs
 }
