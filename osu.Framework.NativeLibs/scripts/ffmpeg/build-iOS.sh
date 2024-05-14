@@ -82,6 +82,10 @@ FFMPEG_FLAGS+=(
 
 pushd . > /dev/null
 prep_ffmpeg "iOS-$arch"
+# Change the `-install_name` from
+# "<prefix>/libavcodec.dylib.61" to "<prefix>/libavcodec.framework/libavcodec".
+# This is required for framework bundles and xcframeworks to load correctly.
+patch -p1 < "$SCRIPT_PATH/iOS-set-install-name-for-xcframework.patch"
 build_ffmpeg
 popd > /dev/null
 
