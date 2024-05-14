@@ -15,7 +15,6 @@ using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
-using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
 
@@ -350,11 +349,11 @@ namespace osu.Framework.Graphics.Audio
                     Color4 frequencyColour = baseColour;
 
                     // colouring is applied in the order of interest to a viewer.
-                    frequencyColour = Interpolation.ValueAt(points[i].MidIntensity / midMax, frequencyColour, midColour, 0, 1);
+                    frequencyColour = linearInterpolate(midColour, frequencyColour, (float)(points[i].MidIntensity / midMax));
                     // high end (cymbal) can help find beat, so give it priority over mids.
-                    frequencyColour = Interpolation.ValueAt(points[i].HighIntensity / highMax, frequencyColour, highColour, 0, 1);
+                    frequencyColour = linearInterpolate(highColour, frequencyColour, (float)(points[i].HighIntensity / highMax));
                     // low end (bass drum) is generally the best visual aid for beat matching, so give it priority over high/mid.
-                    frequencyColour = Interpolation.ValueAt(points[i].LowIntensity / lowMax, frequencyColour, lowColour, 0, 1);
+                    frequencyColour = linearInterpolate(lowColour, frequencyColour, (float)(points[i].LowIntensity / lowMax));
 
                     ColourInfo finalColour = DrawColourInfo.Colour;
                     finalColour.ApplyChild(frequencyColour);
@@ -375,6 +374,17 @@ namespace osu.Framework.Graphics.Audio
                 }
 
                 shader.Unbind();
+            }
+
+            // Ideally we would want to use Interpolation.ValueAt
+            // however converting the colour between colour spaces multiple times for all the quads is expensive.
+            private static Color4 linearInterpolate(Color4 first, Color4 second, float value)
+            {
+                return new Color4(
+                    first.R * value + second.R * (1 - value),
+                    first.G * value + second.G * (1 - value),
+                    first.B * value + second.B * (1 - value),
+                    first.A * value + second.A * (1 - value));
             }
 
             protected override void Dispose(bool isDisposing)
