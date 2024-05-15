@@ -16,7 +16,8 @@ namespace osu.Framework.Graphics.Video
     {
         static FFmpegFuncs()
         {
-            DynamicallyLoadedBindings.FunctionResolver = new FFmpegFunctionResolver();
+            if (RuntimeInfo.IsDesktop)
+                DynamicallyLoadedBindings.FunctionResolver = new FFmpegFunctionResolver();
         }
 
         #region Delegates
