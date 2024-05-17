@@ -1492,6 +1492,11 @@ namespace osu.Framework.Graphics
         /// <returns>The first parent <see cref="InputManager"/>.</returns>
         protected InputManager GetContainingInputManager() => this.FindClosestParent<InputManager>();
 
+        /// <summary>
+        /// Retrieve the first parent in the tree which implements <see cref="IFocusManager"/>.
+        /// As this is performing an upward tree traversal, avoid calling every frame.
+        /// </summary>
+        /// <returns>The first parent <see cref="IFocusManager"/>.</returns>
         protected IFocusManager GetContainingFocusManager() => this.FindClosestParent<IFocusManager>();
 
         private CompositeDrawable parent;

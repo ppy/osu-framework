@@ -157,8 +157,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected abstract TextBox CreateTextBox();
 
-        Drawable IFocusManager.FocusedDrawable => GetContainingFocusManager().FocusedDrawable;
-
         void IFocusManager.TriggerFocusContention(Drawable? triggerSource)
         {
             // Clear search text first without releasing focus.

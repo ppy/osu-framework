@@ -8,11 +8,6 @@ namespace osu.Framework.Input
     public interface IFocusManager : IDrawable
     {
         /// <summary>
-        /// The currently focused <see cref="Drawable"/>. Null if there is no current focus.
-        /// </summary>
-        Drawable FocusedDrawable { get; }
-
-        /// <summary>
         /// Reset current focused drawable to the top-most drawable which is <see cref="Drawable.RequestsFocus"/>.
         /// </summary>
         /// <param name="triggerSource">The source which triggered this event.</param>
@@ -20,7 +15,7 @@ namespace osu.Framework.Input
 
         /// <summary>
         /// Changes the currently-focused drawable. First checks that <paramref name="potentialFocusTarget"/> is in a valid state to receive focus,
-        /// then unfocuses the current <see cref="FocusedDrawable"/> and focuses <paramref name="potentialFocusTarget"/>.
+        /// then unfocuses the current <see cref="InputManager.FocusedDrawable"/> and focuses <paramref name="potentialFocusTarget"/>.
         /// <paramref name="potentialFocusTarget"/> can be null to reset focus.
         /// If the given drawable is already focused, nothing happens and no events are fired.
         /// </summary>

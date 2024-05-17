@@ -785,8 +785,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         #region IFocusManager
 
-        Drawable IFocusManager.FocusedDrawable => GetContainingFocusManager().FocusedDrawable;
-
         // Isolate input so that the Menu doesn't disturb focus. Focus is managed via the IDropdown interface.
         void IFocusManager.TriggerFocusContention(Drawable triggerSource) { }
 

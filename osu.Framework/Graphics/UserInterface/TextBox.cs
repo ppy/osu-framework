@@ -1154,9 +1154,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void killFocus()
         {
-            var manager = GetContainingFocusManager();
-            if (manager?.FocusedDrawable == this)
-                manager.ChangeFocus(null);
+            if (GetContainingInputManager()?.FocusedDrawable == this)
+                GetContainingFocusManager()?.ChangeFocus(null);
         }
 
         /// <summary>
