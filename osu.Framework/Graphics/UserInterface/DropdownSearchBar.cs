@@ -176,8 +176,24 @@ namespace osu.Framework.Graphics.UserInterface
 
         // Focus management is isolated to the IDropdown interface by Dropdown.
         Drawable IFocusManager.FocusedDrawable => GetContainingFocusManager().FocusedDrawable;
-        void IFocusManager.TriggerFocusContention(Drawable? triggerSource) => dropdown.TriggerFocusContention(triggerSource);
-        bool IFocusManager.ChangeFocus(Drawable? potentialFocusTarget) => dropdown.ChangeFocus(potentialFocusTarget);
+
+        void IFocusManager.TriggerFocusContention(Drawable? triggerSource)
+        {
+            // Clear search text first without releasing focus.
+            if (Back())
+                return;
+
+            dropdown.TriggerFocusContention(triggerSource);
+        }
+
+        bool IFocusManager.ChangeFocus(Drawable? potentialFocusTarget)
+        {
+            // Clear search text first without releasing focus.
+            if (Back())
+                return false;
+
+            return dropdown.ChangeFocus(potentialFocusTarget);
+        }
 
         private partial class ClickHandler : Drawable
         {
