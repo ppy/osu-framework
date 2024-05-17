@@ -3,31 +3,18 @@
 
 using BenchmarkDotNet.Attributes;
 using osu.Framework.Graphics.Colour;
-using osuTK.Graphics;
 
 namespace osu.Framework.Benchmarks
 {
     public class BenchmarkSRGBColourMultiplication : BenchmarkTest
     {
-        private static readonly SRGBColour white = new SRGBColour
-        {
-            SRGB = new Color4(1f, 1f, 1f, 1f)
-        };
+        private static readonly SRGBColour white = SRGBColour.White;
 
-        private static readonly SRGBColour white_with_opacity = new SRGBColour
-        {
-            SRGB = new Color4(1f, 1f, 1f, 0.5f)
-        };
+        private static readonly SRGBColour white_with_opacity = SRGBColour.White.Opacity(0.5f);
 
-        private static readonly SRGBColour gray = new SRGBColour
-        {
-            SRGB = Color4.Gray
-        };
+        private static readonly SRGBColour gray = SRGBColour.Gray;
 
-        private static readonly SRGBColour gray_light = new SRGBColour
-        {
-            SRGB = Color4.LightGray
-        };
+        private static readonly SRGBColour gray_light = SRGBColour.LightGray;
 
         [Benchmark]
         public SRGBColour MultiplyNonWhite()
