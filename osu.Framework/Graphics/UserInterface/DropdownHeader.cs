@@ -64,7 +64,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected internal abstract LocalisableString Label { get; set; }
 
-        private readonly IBindable<bool> enabled = new Bindable<bool>(true);
+        public readonly IBindable<bool> Enabled = new Bindable<bool>(true);
 
         [Resolved]
         private IDropdown dropdown { get; set; } = null!;
@@ -107,8 +107,8 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.LoadComplete();
 
-            enabled.BindTo(dropdown.Enabled);
-            enabled.BindValueChanged(_ => updateState(), true);
+            Enabled.BindTo(dropdown.Enabled);
+            Enabled.BindValueChanged(_ => updateState(), true);
         }
 
         protected override bool OnHover(HoverEvent e)
@@ -125,15 +125,15 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateState()
         {
-            Colour = enabled.Value ? Color4.White : DisabledColour;
-            Background.Colour = IsHovered && enabled.Value ? BackgroundColourHover : BackgroundColour;
+            Colour = Enabled.Value ? Color4.White : DisabledColour;
+            Background.Colour = IsHovered && Enabled.Value ? BackgroundColourHover : BackgroundColour;
         }
 
         public override bool HandleNonPositionalInput => IsHovered;
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (!enabled.Value)
+            if (!Enabled.Value)
                 return true;
 
             switch (e.Key)
@@ -153,7 +153,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
         {
-            if (!enabled.Value)
+            if (!Enabled.Value)
                 return true;
 
             switch (e.Action)
