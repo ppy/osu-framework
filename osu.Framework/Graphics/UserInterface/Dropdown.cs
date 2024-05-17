@@ -252,7 +252,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Children = new Drawable[]
                 {
                     Header = CreateHeader(),
-                    Menu = CreateMenu().With(d => d.Depth = -1)
+                    Menu = CreateMenu()
                 },
                 Direction = FillDirection.Vertical,
                 RelativeSizeAxes = Axes.X,
