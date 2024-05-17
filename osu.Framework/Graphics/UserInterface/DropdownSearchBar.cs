@@ -116,7 +116,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Handles textbox commits to select the current item.
         /// </summary>
-        private void onTextBoxCommit(TextBox sender, bool newText) => dropdown.CommitPreselection();
+        private void onTextBoxCommit(TextBox sender, bool newText)
+        {
+            dropdown.CommitPreselection();
+            dropdown.CloseMenu();
+        }
 
         /// <summary>
         /// Handles changes to the menu visibility.

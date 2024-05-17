@@ -488,6 +488,22 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestAfterSelectingSearchedItem()
+        {
+            ManualTextDropdown dropdown = null!;
+
+            AddStep("setup dropdown", () => dropdown = createDropdowns<ManualTextDropdown>(1)[0]);
+            toggleDropdownViaClick(() => dropdown);
+
+            AddStep("trigger text", () => dropdown.TextInput.Text("test 4"));
+            AddAssert("search bar visible", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Visible));
+
+            AddStep("press enter", () => InputManager.Key(Key.Enter));
+            AddAssert("search bar hidden", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
+            AddAssert("dropdown closed", () => dropdown.Menu.State == MenuState.Closed);
+        }
+
+        [Test]
         public void TestAlwaysShowSearchBar()
         {
             ManualTextDropdown dropdown = null!;
