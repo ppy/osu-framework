@@ -27,10 +27,52 @@ namespace osu.Framework.Graphics.UserInterface
 {
     internal interface IDropdown
     {
+        event Action<MenuState> MenuStateChanged;
+
+        /// <summary>
+        /// Whether the dropdown is currently enabled.
+        /// </summary>
+        IBindable<bool> Enabled { get; }
+
+        /// <summary>
+        /// The current menu state.
+        /// </summary>
+        MenuState MenuState { get; }
+
+        /// <summary>
+        /// Toggles the menu.
+        /// </summary>
         void ToggleMenu();
 
+        /// <summary>
+        /// Shows the menu.
+        /// </summary>
+        void ShowMenu();
+
+        /// <summary>
+        /// Hides the menu.
+        /// </summary>
+        void HideMenu();
+
+        /// <summary>
+        /// Commits the current pre-selected value.
+        /// </summary>
+        void CommitPreselection();
+
+        /// <summary>
+        /// Triggers focus contention on the parenting <see cref="IFocusManager"/>.
+        /// </summary>
+        /// <remarks>
+        /// Focus management is isolated by the <see cref="Dropdown{T}"/>. This invokes the method on the parenting <see cref="IFocusManager"/> un-interrupted.
+        /// </remarks>
         void TriggerFocusContention(Drawable triggerSource);
 
+        /// <summary>
+        /// Triggers a change of focus on the parenting <see cref="IFocusManager"/>.
+        /// </summary>
+        /// <remarks>
+        /// Focus management is isolated by the <see cref="Dropdown{T}"/>. This invokes the method on the parenting <see cref="IFocusManager"/> un-interrupted.
+        /// </remarks>
         bool ChangeFocus(Drawable potentialFocusTarget);
     }
 
@@ -106,6 +148,8 @@ namespace osu.Framework.Graphics.UserInterface
                 setItems(value);
             }
         }
+
+        private readonly BindableBool enabled = new BindableBool(true);
 
         private void setItems(IEnumerable<T> value)
         {
@@ -270,24 +314,16 @@ namespace osu.Framework.Graphics.UserInterface
             Header.SearchTerm.ValueChanged += t => Menu.SearchTerm = t.NewValue;
 
             Menu.RelativeSizeAxes = Axes.X;
-            Menu.PreselectionConfirmed += preselectionConfirmed;
             Menu.FilterCompleted += filterCompleted;
 
             Current.ValueChanged += val => Scheduler.AddOnce(updateItemSelection, val.NewValue);
             Current.DisabledChanged += disabled =>
             {
-                Header.Enabled.Value = !disabled;
                 if (disabled && Menu.State == MenuState.Open)
                     Menu.State = MenuState.Closed;
             };
 
             ItemSource.CollectionChanged += collectionChanged;
-        }
-
-        private void preselectionConfirmed(DropdownMenuItem<T> item)
-        {
-            SelectedItem = item;
-            Menu.State = MenuState.Closed;
         }
 
         private void filterCompleted()
@@ -525,8 +561,6 @@ namespace osu.Framework.Graphics.UserInterface
             public DrawableDropdownMenuItem PreselectedItem => VisibleMenuItems.FirstOrDefault(c => c.IsPreSelected)
                                                                ?? VisibleMenuItems.FirstOrDefault(c => c.IsSelected);
 
-            public event Action<DropdownMenuItem<T>> PreselectionConfirmed;
-
             /// <summary>
             /// Selects an item from this <see cref="DropdownMenu"/>.
             /// </summary>
@@ -749,11 +783,6 @@ namespace osu.Framework.Graphics.UserInterface
                             else
                                 PreselectItem(visibleMenuItemsList.IndexOf(lastVisibleItem));
                             return true;
-
-                        case Key.Enter:
-                            var preselectedItem = VisibleMenuItems.ElementAt(targetPreselectionIndex);
-                            PreselectionConfirmed?.Invoke((DropdownMenuItem<T>)preselectedItem.Item);
-                            return true;
                     }
                 }
 
@@ -806,21 +835,54 @@ namespace osu.Framework.Graphics.UserInterface
 
         Drawable IFocusManager.FocusedDrawable => GetContainingFocusManager().FocusedDrawable;
 
-        void IFocusManager.TriggerFocusContention(Drawable triggerSource)
+        // Isolate input so that the Menu doesn't disturb focus. Focus is managed via the IDropdown interface.
+        void IFocusManager.TriggerFocusContention(Drawable triggerSource) { }
+
+        // Isolate input so that the Menu doesn't disturb focus. Focus is managed via the IDropdown interface.
+        bool IFocusManager.ChangeFocus(Drawable potentialFocusTarget) => false;
+
+        event Action<MenuState> IDropdown.MenuStateChanged
         {
-            // May be triggered by the dropdown -- ignore.
+            add => Menu.StateChanged += value;
+            remove => Menu.StateChanged -= value;
         }
 
-        bool IFocusManager.ChangeFocus(Drawable potentialFocusTarget)
-        {
-            // May be triggered by the dropdown -- ignore.
-            return false;
-        }
+        IBindable<bool> IDropdown.Enabled => enabled;
+
+        MenuState IDropdown.MenuState => Menu.State;
 
         void IDropdown.ToggleMenu()
         {
             if (!Current.Disabled)
                 Menu.Toggle();
+        }
+
+        void IDropdown.ShowMenu()
+        {
+            if (!Current.Disabled)
+                Menu.State = MenuState.Open;
+        }
+
+        void IDropdown.HideMenu()
+        {
+            if (!Current.Disabled)
+                Menu.State = MenuState.Closed;
+        }
+
+        void IDropdown.CommitPreselection()
+        {
+            if (Current.Disabled)
+                return;
+
+            var visibleMenuItemsList = Menu.VisibleMenuItems.ToList();
+
+            if (visibleMenuItemsList.Count == 0)
+                return;
+
+            int targetPreselectionIndex = visibleMenuItemsList.IndexOf(Menu.PreselectedItem);
+            var preselectedItem = Menu.VisibleMenuItems.ElementAt(targetPreselectionIndex);
+
+            SelectedItem = (DropdownMenuItem<T>)preselectedItem.Item;
         }
 
         void IDropdown.TriggerFocusContention(Drawable triggerSource) => GetContainingFocusManager().TriggerFocusContention(triggerSource);

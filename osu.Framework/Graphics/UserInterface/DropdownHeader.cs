@@ -5,6 +5,7 @@
 
 using osuTK.Graphics;
 using System;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -63,7 +64,10 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected internal abstract LocalisableString Label { get; set; }
 
-        public BindableBool Enabled { get; } = new BindableBool(true);
+        private readonly IBindable<bool> enabled = new Bindable<bool>(true);
+
+        [Resolved]
+        private IDropdown dropdown { get; set; } = null!;
 
         protected DropdownHeader()
         {
@@ -103,7 +107,8 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.LoadComplete();
 
-            Enabled.BindValueChanged(_ => updateState(), true);
+            enabled.BindTo(dropdown.Enabled);
+            enabled.BindValueChanged(_ => updateState(), true);
         }
 
         protected override bool OnHover(HoverEvent e)
@@ -120,15 +125,15 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateState()
         {
-            Colour = Enabled.Value ? Color4.White : DisabledColour;
-            Background.Colour = IsHovered && Enabled.Value ? BackgroundColourHover : BackgroundColour;
+            Colour = enabled.Value ? Color4.White : DisabledColour;
+            Background.Colour = IsHovered && enabled.Value ? BackgroundColourHover : BackgroundColour;
         }
 
         public override bool HandleNonPositionalInput => IsHovered;
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (!Enabled.Value)
+            if (!enabled.Value)
                 return true;
 
             switch (e.Key)
@@ -148,7 +153,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
         {
-            if (!Enabled.Value)
+            if (!enabled.Value)
                 return true;
 
             switch (e.Action)
