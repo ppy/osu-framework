@@ -19,7 +19,6 @@ namespace osu.Framework.Graphics.UserInterface
         private IDropdown dropdown { get; set; } = null!;
 
         private TextBox textBox = null!;
-        private bool hasFocus;
 
         private bool alwaysDisplayOnFocus;
 
@@ -31,7 +30,7 @@ namespace osu.Framework.Graphics.UserInterface
                 alwaysDisplayOnFocus = value;
 
                 if (IsLoaded)
-                    updateVisibility();
+                    updateTextBoxVisibility();
             }
         }
 
@@ -50,7 +49,7 @@ namespace osu.Framework.Graphics.UserInterface
                     t.Current = SearchTerm;
                     t.ReleaseFocusOnCommit = true;
                     t.CommitOnFocusLost = false;
-                    t.OnCommit += (_, _) => dropdown.CommitPreselection();
+                    t.OnCommit += onTextBoxCommit;
                 }),
                 new ClickHandler
                 {
@@ -59,25 +58,14 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             };
 
-            dropdown.MenuStateChanged += state =>
-            {
-                if (state == MenuState.Closed && textBox.HasFocus)
-                    dropdown.ChangeFocus(null);
-            };
-
-            dropdown.Enabled.BindValueChanged(enabled =>
-            {
-                if (!enabled.NewValue && textBox.HasFocus)
-                    dropdown.ChangeFocus(null);
-            });
+            dropdown.MenuStateChanged += onMenuStateChanged;
+            dropdown.Enabled.BindValueChanged(onDropdownEnabledChanged);
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
-
-            SearchTerm.BindValueChanged(v => updateVisibility());
-            updateVisibility();
+            SearchTerm.BindValueChanged(_ => updateTextBoxVisibility(), true);
         }
 
         public override bool PropagateNonPositionalInputSubTree => dropdown.Enabled.Value && base.PropagateNonPositionalInputSubTree;
@@ -88,61 +76,102 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void Update()
         {
             base.Update();
-            updateFocus();
+
+            updateMenuState();
+            updateTextBoxVisibility();
         }
 
-        private void updateFocus()
-        {
-            if (hasFocus == textBox.HasFocus)
-                return;
-
-            hasFocus = textBox.HasFocus;
-
-            if (hasFocus)
-                dropdown.ShowMenu();
-            else
-                dropdown.HideMenu();
-
-            if (!hasFocus)
-                SearchTerm.Value = string.Empty;
-
-            updateVisibility();
-        }
-
+        /// <summary>
+        /// Clears the search term.
+        /// </summary>
+        /// <returns>If the search term was cleared.</returns>
         public bool Back()
         {
-            if (!string.IsNullOrEmpty(SearchTerm.Value))
-            {
-                SearchTerm.Value = string.Empty;
-                return true;
-            }
+            if (string.IsNullOrEmpty(SearchTerm.Value))
+                return false;
 
-            return false;
+            SearchTerm.Value = string.Empty;
+            return true;
         }
 
-        private void updateVisibility()
+        /// <summary>
+        /// Opens or closes the menu depending on whether the textbox is focused.
+        /// </summary>
+        private void updateMenuState()
+        {
+            if (textBox.HasFocus)
+                dropdown.OpenMenu();
+            else
+                dropdown.CloseMenu();
+        }
+
+        /// <summary>
+        /// Updates the textbox visibility.
+        /// </summary>
+        private void updateTextBoxVisibility()
         {
             bool showTextBox = AlwaysDisplayOnFocus || !string.IsNullOrEmpty(SearchTerm.Value);
-
-            State.Value = hasFocus && showTextBox
-                ? Visibility.Visible
-                : Visibility.Hidden;
+            State.Value = textBox.HasFocus && showTextBox ? Visibility.Visible : Visibility.Hidden;
         }
 
+        /// <summary>
+        /// Handles textbox commits to select the current item.
+        /// </summary>
+        private void onTextBoxCommit(TextBox sender, bool newText) => dropdown.CommitPreselection();
+
+        /// <summary>
+        /// Handles changes to the menu visibility.
+        /// </summary>
+        private void onMenuStateChanged(MenuState state)
+        {
+            // Reset states when the menu is closed via external means.
+            if (state == MenuState.Closed)
+                resetState();
+        }
+
+        /// <summary>
+        /// Handles changes to dropdown enablement.
+        /// </summary>
+        private void onDropdownEnabledChanged(ValueChangedEvent<bool> enabled)
+        {
+            // Reset states when the dropdown is disabled.
+            if (!enabled.NewValue)
+                resetState();
+        }
+
+        /// <summary>
+        /// Handles clicks on the search bar.
+        /// </summary>
         private bool onClick(ClickEvent e)
         {
-            // Always allow input to fall through if the textbox is visible.
+            // Allow input to fall through to the textbox if it's visible.
             if (State.Value == Visibility.Visible)
                 return false;
 
-            // Otherwise, the search box acts as a hook to show/hide the menu.
+            // Otherwise, the search box acts as a button to show/hide the menu.
             dropdown.ToggleMenu();
 
-            // Importantly, when the menu is closed as a result of the above toggle,
+            // And importantly, when the menu is closed as a result of the above toggle,
             // block the textbox from receiving input so that it doesn't get re-focused.
             return dropdown.MenuState == MenuState.Closed;
         }
 
+        /// <summary>
+        /// Un-focuses the textbox, clears the search term, and closes the menu.
+        /// </summary>
+        private void resetState()
+        {
+            SearchTerm.Value = string.Empty;
+
+            if (textBox.HasFocus)
+                dropdown.ChangeFocus(null);
+
+            dropdown.CloseMenu();
+        }
+
+        /// <summary>
+        /// Creates the <see cref="TextBox"/>.
+        /// </summary>
         protected abstract TextBox CreateTextBox();
 
         // Focus management is isolated to the IDropdown interface by Dropdown.
@@ -153,7 +182,6 @@ namespace osu.Framework.Graphics.UserInterface
         private partial class ClickHandler : Drawable
         {
             public required Func<ClickEvent, bool> Click { get; init; }
-
             protected override bool OnClick(ClickEvent e) => Click(e);
         }
     }

@@ -25,57 +25,6 @@ using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    internal interface IDropdown
-    {
-        event Action<MenuState> MenuStateChanged;
-
-        /// <summary>
-        /// Whether the dropdown is currently enabled.
-        /// </summary>
-        IBindable<bool> Enabled { get; }
-
-        /// <summary>
-        /// The current menu state.
-        /// </summary>
-        MenuState MenuState { get; }
-
-        /// <summary>
-        /// Toggles the menu.
-        /// </summary>
-        void ToggleMenu();
-
-        /// <summary>
-        /// Shows the menu.
-        /// </summary>
-        void ShowMenu();
-
-        /// <summary>
-        /// Hides the menu.
-        /// </summary>
-        void HideMenu();
-
-        /// <summary>
-        /// Commits the current pre-selected value.
-        /// </summary>
-        void CommitPreselection();
-
-        /// <summary>
-        /// Triggers focus contention on the parenting <see cref="IFocusManager"/>.
-        /// </summary>
-        /// <remarks>
-        /// Focus management is isolated by the <see cref="Dropdown{T}"/>. This invokes the method on the parenting <see cref="IFocusManager"/> un-interrupted.
-        /// </remarks>
-        void TriggerFocusContention(Drawable triggerSource);
-
-        /// <summary>
-        /// Triggers a change of focus on the parenting <see cref="IFocusManager"/>.
-        /// </summary>
-        /// <remarks>
-        /// Focus management is isolated by the <see cref="Dropdown{T}"/>. This invokes the method on the parenting <see cref="IFocusManager"/> un-interrupted.
-        /// </remarks>
-        bool ChangeFocus(Drawable potentialFocusTarget);
-    }
-
     /// <summary>
     /// A drop-down menu to select from a group of values.
     /// </summary>
@@ -833,6 +782,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         #endregion
 
+        #region IFocusManager
+
         Drawable IFocusManager.FocusedDrawable => GetContainingFocusManager().FocusedDrawable;
 
         // Isolate input so that the Menu doesn't disturb focus. Focus is managed via the IDropdown interface.
@@ -840,6 +791,10 @@ namespace osu.Framework.Graphics.UserInterface
 
         // Isolate input so that the Menu doesn't disturb focus. Focus is managed via the IDropdown interface.
         bool IFocusManager.ChangeFocus(Drawable potentialFocusTarget) => false;
+
+        #endregion
+
+        #region IDropdown
 
         event Action<MenuState> IDropdown.MenuStateChanged
         {
@@ -857,13 +812,13 @@ namespace osu.Framework.Graphics.UserInterface
                 Menu.Toggle();
         }
 
-        void IDropdown.ShowMenu()
+        void IDropdown.OpenMenu()
         {
             if (!Current.Disabled)
                 Menu.State = MenuState.Open;
         }
 
-        void IDropdown.HideMenu()
+        void IDropdown.CloseMenu()
         {
             if (!Current.Disabled)
                 Menu.State = MenuState.Closed;
@@ -888,5 +843,7 @@ namespace osu.Framework.Graphics.UserInterface
         void IDropdown.TriggerFocusContention(Drawable triggerSource) => GetContainingFocusManager().TriggerFocusContention(triggerSource);
 
         bool IDropdown.ChangeFocus(Drawable potentialFocusTarget) => GetContainingFocusManager().ChangeFocus(potentialFocusTarget);
+
+        #endregion
     }
 }
