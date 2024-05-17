@@ -5,8 +5,10 @@ using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
+using osu.Framework.Platform;
 using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -19,6 +21,7 @@ namespace osu.Framework.Graphics.UserInterface
         private IDropdown dropdown { get; set; } = null!;
 
         private TextBox textBox = null!;
+        private DropdownTextInputSource? inputSource;
 
         private bool alwaysDisplayOnFocus;
 
@@ -28,6 +31,9 @@ namespace osu.Framework.Graphics.UserInterface
             set
             {
                 alwaysDisplayOnFocus = value;
+
+                if (inputSource != null)
+                    inputSource.AlwaysDisplayOnFocus = value;
 
                 if (IsLoaded)
                     updateTextBoxVisibility();
@@ -59,6 +65,18 @@ namespace osu.Framework.Graphics.UserInterface
             };
 
             dropdown.MenuStateChanged += onMenuStateChanged;
+        }
+
+        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
+        {
+            inputSource = new DropdownTextInputSource(parent.Get<TextInputSource>(), parent.Get<GameHost>())
+            {
+                AlwaysDisplayOnFocus = AlwaysDisplayOnFocus
+            };
+
+            var dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
+            dependencies.CacheAs(typeof(TextInputSource), inputSource);
+            return dependencies;
         }
 
         protected override void LoadComplete()
@@ -183,6 +201,71 @@ namespace osu.Framework.Graphics.UserInterface
         {
             public required Func<ClickEvent, bool> Click { get; init; }
             protected override bool OnClick(ClickEvent e) => Click(e);
+        }
+
+        private class DropdownTextInputSource : TextInputSource
+        {
+            public bool AlwaysDisplayOnFocus { get; set; }
+
+            private bool allowTextInput => !host.OnScreenKeyboardOverlapsGameWindow || AlwaysDisplayOnFocus;
+
+            private readonly TextInputSource platformSource;
+            private readonly GameHost host;
+            private RectangleF? imeRectangle;
+
+            public DropdownTextInputSource(TextInputSource platformSource, GameHost host)
+            {
+                this.platformSource = platformSource;
+                this.host = host;
+
+                platformSource.OnTextInput += TriggerTextInput;
+                platformSource.OnImeComposition += TriggerImeComposition;
+                platformSource.OnImeResult += TriggerImeResult;
+            }
+
+            protected override void ActivateTextInput(bool allowIme)
+            {
+                base.ActivateTextInput(allowIme);
+
+                if (allowTextInput)
+                    platformSource.Activate(allowIme, imeRectangle ?? RectangleF.Empty);
+            }
+
+            protected override void EnsureTextInputActivated(bool allowIme)
+            {
+                base.EnsureTextInputActivated(allowIme);
+
+                if (allowTextInput)
+                    platformSource.EnsureActivated(allowIme, imeRectangle);
+            }
+
+            protected override void DeactivateTextInput()
+            {
+                base.DeactivateTextInput();
+
+                imeRectangle = null;
+
+                if (allowTextInput)
+                    platformSource.Deactivate();
+            }
+
+            public override void SetImeRectangle(RectangleF rectangle)
+            {
+                base.SetImeRectangle(rectangle);
+
+                imeRectangle = rectangle;
+
+                if (allowTextInput)
+                    platformSource.SetImeRectangle(rectangle);
+            }
+
+            public override void ResetIme()
+            {
+                base.ResetIme();
+
+                if (allowTextInput)
+                    platformSource.ResetIme();
+            }
         }
     }
 }
