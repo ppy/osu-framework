@@ -11,10 +11,11 @@ using osuTK.Graphics;
 namespace osu.Framework.Graphics
 {
     /// <summary>
-    /// Represents an RGBA colour in the linear colour space, having colour components in the range 0-1.
+    /// Represents an RGBA colour with colour components in the range 0-1.
+    /// Only stores raw colour values and does not imply any colour space.
     /// Stored internally as a <see cref="Vector4"/> for performance.
     /// </summary>
-    public readonly struct Colour4 : IEquatable<Colour4>
+    public readonly record struct Colour4
     {
         /// <summary>
         /// <see cref="Vector4"/> representation of the colour, where XYZW maps to RGBA,
@@ -23,17 +24,17 @@ namespace osu.Framework.Graphics
         public readonly Vector4 Vector;
 
         /// <summary>
-        /// Represents the red component of the linear RGBA colour in the 0-1 range.
+        /// Represents the red component of the RGBA colour in the 0-1 range.
         /// </summary>
         public float R => Vector.X;
 
         /// <summary>
-        /// Represents the green component of the linear RGBA colour in the 0-1 range.
+        /// Represents the green component of the RGBA colour in the 0-1 range.
         /// </summary>
         public float G => Vector.Y;
 
         /// <summary>
-        /// Represents the blue component of the linear RGBA colour in the 0-1 range.
+        /// Represents the blue component of the RGBA colour in the 0-1 range.
         /// </summary>
         public float B => Vector.Z;
 
@@ -52,8 +53,8 @@ namespace osu.Framework.Graphics
         /// <param name="b">The blue component, in the 0-1 range.</param>
         /// <param name="a">The alpha component, in the 0-1 range.</param>
         public Colour4(float r, float g, float b, float a)
+            : this(new Vector4(r, g, b, a))
         {
-            Vector = new Vector4(r, g, b, a);
         }
 
         /// <summary>
@@ -64,12 +65,8 @@ namespace osu.Framework.Graphics
         /// <param name="b">The blue component, in the 0-255 range.</param>
         /// <param name="a">The alpha component, in the 0-255 range.</param>
         public Colour4(byte r, byte g, byte b, byte a)
+            : this(new Vector4(r, g, b, a) / byte.MaxValue)
         {
-            Vector = new Vector4(
-                r / (float)byte.MaxValue,
-                g / (float)byte.MaxValue,
-                b / (float)byte.MaxValue,
-                a / (float)byte.MaxValue);
         }
 
         /// <summary>
@@ -142,7 +139,7 @@ namespace osu.Framework.Graphics
         #region Operator Overloads
 
         /// <summary>
-        /// Multiplies two colours in the linear colour space.
+        /// Multiplies all values of two colours.
         /// </summary>
         /// <param name="first">The left hand side of the multiplication.</param>
         /// <param name="second">The right hand side of the multiplication.</param>
@@ -150,7 +147,7 @@ namespace osu.Framework.Graphics
             new Colour4(first.Vector * second.Vector);
 
         /// <summary>
-        /// Adds two colours in the linear colour space. The final value is clamped to the 0-1 range.
+        /// Adds all values of two colours. The final value is clamped to the 0-1 range.
         /// </summary>
         /// <param name="first">The left hand side of the addition.</param>
         /// <param name="second">The right hand side of the addition.</param>
@@ -166,7 +163,7 @@ namespace osu.Framework.Graphics
             new Colour4(Vector4.Max(first.Vector - second.Vector, Vector4.Zero));
 
         /// <summary>
-        /// Linearly multiplies a colour by a scalar value. The final value is clamped to the 0-1 range.
+        /// Multiplies all colour components by a scalar value. The final values are clamped to the 0-1 range.
         /// </summary>
         /// <param name="colour">The original colour.</param>
         /// <param name="scalar">The scalar value to multiply by. Must not be negative.</param>
@@ -179,7 +176,7 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Linearly divides a colour by a scalar value. The final value is clamped to the 0-1 range.
+        /// Divides all colour components by a scalar value. The final values are clamped to the 0-1 range.
         /// </summary>
         /// <param name="colour">The original colour.</param>
         /// <param name="scalar">The scalar value to divide by. Must be positive.</param>
@@ -190,20 +187,6 @@ namespace osu.Framework.Graphics
 
             return colour * (1 / scalar);
         }
-
-        /// <summary>
-        /// Performs a <see cref="Colour4"/> equality check using the <see cref="IEquatable{T}"/> implementation.
-        /// </summary>
-        /// <param name="first">The left hand side of the equation.</param>
-        /// <param name="second">The right hand side of the equation.</param>
-        public static bool operator ==(Colour4 first, Colour4 second) => first.Equals(second);
-
-        /// <summary>
-        /// Performs a <see cref="Colour4"/> inequality check using the <see cref="IEquatable{T}"/> implementation.
-        /// </summary>
-        /// <param name="first">The left hand side of the equation.</param>
-        /// <param name="second">The right hand side of the equation.</param>
-        public static bool operator !=(Colour4 first, Colour4 second) => !first.Equals(second);
 
         /// <summary>
         /// Converts an osuTK <see cref="Color4"/> to an osu!framework <see cref="Colour4"/>.
@@ -567,15 +550,13 @@ namespace osu.Framework.Graphics
 
         #endregion
 
-        #region Equality
-
-        public bool Equals(Colour4 other) => Vector.Equals(other.Vector);
-
-        public override bool Equals(object obj) => obj is Colour4 other && Equals(other);
-
-        public override int GetHashCode() => Vector.GetHashCode();
-
-        #endregion
+        public void Deconstruct(out float r, out float g, out float b, out float a)
+        {
+            r = R;
+            g = G;
+            b = B;
+            a = A;
+        }
 
         public override string ToString() => $"(R, G, B, A) = ({R:F}, {G:F}, {B:F}, {A:F})";
 
