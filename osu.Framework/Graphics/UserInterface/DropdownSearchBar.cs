@@ -59,7 +59,6 @@ namespace osu.Framework.Graphics.UserInterface
             };
 
             dropdown.MenuStateChanged += onMenuStateChanged;
-            dropdown.Enabled.BindValueChanged(onDropdownEnabledChanged);
         }
 
         protected override void LoadComplete()
@@ -124,19 +123,16 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private void onMenuStateChanged(MenuState state)
         {
-            // Reset states when the menu is closed via external means.
+            // Reset states when the menu is closed by any means.
             if (state == MenuState.Closed)
-                resetState();
-        }
+            {
+                SearchTerm.Value = string.Empty;
 
-        /// <summary>
-        /// Handles changes to dropdown enablement.
-        /// </summary>
-        private void onDropdownEnabledChanged(ValueChangedEvent<bool> enabled)
-        {
-            // Reset states when the dropdown is disabled.
-            if (!enabled.NewValue)
-                resetState();
+                if (textBox.HasFocus)
+                    dropdown.ChangeFocus(null);
+
+                dropdown.CloseMenu();
+            }
         }
 
         /// <summary>
@@ -157,24 +153,10 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Un-focuses the textbox, clears the search term, and closes the menu.
-        /// </summary>
-        private void resetState()
-        {
-            SearchTerm.Value = string.Empty;
-
-            if (textBox.HasFocus)
-                dropdown.ChangeFocus(null);
-
-            dropdown.CloseMenu();
-        }
-
-        /// <summary>
         /// Creates the <see cref="TextBox"/>.
         /// </summary>
         protected abstract TextBox CreateTextBox();
 
-        // Focus management is isolated to the IDropdown interface by Dropdown.
         Drawable IFocusManager.FocusedDrawable => GetContainingFocusManager().FocusedDrawable;
 
         void IFocusManager.TriggerFocusContention(Drawable? triggerSource)

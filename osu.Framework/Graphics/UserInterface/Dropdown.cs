@@ -268,6 +268,7 @@ namespace osu.Framework.Graphics.UserInterface
             Current.ValueChanged += val => Scheduler.AddOnce(updateItemSelection, val.NewValue);
             Current.DisabledChanged += disabled =>
             {
+                enabled.Value = !disabled;
                 if (disabled && Menu.State == MenuState.Open)
                     Menu.State = MenuState.Closed;
             };
