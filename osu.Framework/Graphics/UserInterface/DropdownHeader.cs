@@ -65,8 +65,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         public BindableBool Enabled { get; } = new BindableBool(true);
 
-        public Action ToggleMenu;
-
         protected DropdownHeader()
         {
             Masking = true;
@@ -108,15 +106,6 @@ namespace osu.Framework.Graphics.UserInterface
             Enabled.BindValueChanged(_ => updateState(), true);
         }
 
-        protected override bool OnClick(ClickEvent e)
-        {
-            if (!Enabled.Value)
-                return false;
-
-            ToggleMenu?.Invoke();
-            return false;
-        }
-
         protected override bool OnHover(HoverEvent e)
         {
             updateState();
@@ -127,14 +116,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             updateState();
             base.OnHoverLost(e);
-        }
-
-        public void UpdateSearchBarFocus(MenuState state)
-        {
-            if (state == MenuState.Open)
-                SearchBar.ObtainFocus();
-            else
-                SearchBar.ReleaseFocus();
         }
 
         private void updateState()

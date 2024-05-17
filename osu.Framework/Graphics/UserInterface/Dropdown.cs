@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -24,11 +25,21 @@ using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
+    internal interface IDropdown
+    {
+        void ToggleMenu();
+
+        void TriggerFocusContention(Drawable triggerSource);
+
+        bool ChangeFocus(Drawable potentialFocusTarget);
+    }
+
     /// <summary>
     /// A drop-down menu to select from a group of values.
     /// </summary>
     /// <typeparam name="T">Type of value to select.</typeparam>
-    public abstract partial class Dropdown<T> : CompositeDrawable, IHasCurrentValue<T>
+    [Cached(typeof(IDropdown))]
+    public abstract partial class Dropdown<T> : CompositeDrawable, IHasCurrentValue<T>, IFocusManager, IDropdown
     {
         protected internal DropdownHeader Header;
         protected internal DropdownMenu Menu;
@@ -248,27 +259,19 @@ namespace osu.Framework.Graphics.UserInterface
                 Children = new Drawable[]
                 {
                     Header = CreateHeader(),
-                    Menu = CreateMenu()
+                    Menu = CreateMenu().With(d => d.Depth = -1)
                 },
                 Direction = FillDirection.Vertical,
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y
             };
 
-            Header.ToggleMenu = Menu.Toggle;
             Header.ChangeSelection += selectionKeyPressed;
-
             Header.SearchTerm.ValueChanged += t => Menu.SearchTerm = t.NewValue;
 
             Menu.RelativeSizeAxes = Axes.X;
             Menu.PreselectionConfirmed += preselectionConfirmed;
             Menu.FilterCompleted += filterCompleted;
-
-            Menu.StateChanged += state =>
-            {
-                Menu.State = state;
-                Header.UpdateSearchBarFocus(state);
-            };
 
             Current.ValueChanged += val => Scheduler.AddOnce(updateItemSelection, val.NewValue);
             Current.DisabledChanged += disabled =>
@@ -800,5 +803,28 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         #endregion
+
+        Drawable IFocusManager.FocusedDrawable => GetContainingFocusManager().FocusedDrawable;
+
+        void IFocusManager.TriggerFocusContention(Drawable triggerSource)
+        {
+            // May be triggered by the dropdown -- ignore.
+        }
+
+        bool IFocusManager.ChangeFocus(Drawable potentialFocusTarget)
+        {
+            // May be triggered by the dropdown -- ignore.
+            return false;
+        }
+
+        void IDropdown.ToggleMenu()
+        {
+            if (!Current.Disabled)
+                Menu.Toggle();
+        }
+
+        void IDropdown.TriggerFocusContention(Drawable triggerSource) => GetContainingFocusManager().TriggerFocusContention(triggerSource);
+
+        bool IDropdown.ChangeFocus(Drawable potentialFocusTarget) => GetContainingFocusManager().ChangeFocus(potentialFocusTarget);
     }
 }
