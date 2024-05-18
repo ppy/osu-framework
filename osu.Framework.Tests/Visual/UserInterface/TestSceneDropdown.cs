@@ -491,7 +491,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        public void TestAfterSelectingSearchedItem()
+        public void TestSelectSearchedItem()
         {
             ManualTextDropdown dropdown = null!;
 
