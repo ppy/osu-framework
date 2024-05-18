@@ -13,10 +13,12 @@ layout(location = 0) out vec4 o_Colour;
 
 void main(void)
 {
-    highp vec2 resolution = v_TexRect.zw - v_TexRect.xy;
-    highp vec2 pixelPos = v_TexCoord / resolution;
+    highp vec2 pixelPos = v_TexCoord / v_TexRect.zw;
+    highp vec2 pixelSize = vec2(1.5) / v_TexRect.zw;
 
-    o_Colour = getRoundedColor(distance(pixelPos, vec2(0.5)) < 0.5 ? vec4(1.0) : vec4(vec3(1.0), 0.0), v_TexCoord);
+    highp float alpha = smoothstep(0.5, 0.5 - min(max(pixelSize.x, pixelSize.y), 0.1), distance(pixelPos, vec2(0.5)));
+
+    o_Colour = getRoundedColor(vec4(vec3(1.0), alpha), vec2(0.0));
 }
 
 #endif
