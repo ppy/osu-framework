@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Containers
                 return false;
 
             var nextTab = nextTabStop(TabbableContentContainer, e.ShiftPressed);
-            if (nextTab != null) GetContainingInputManager().ChangeFocus(nextTab);
+            if (nextTab != null) GetContainingFocusManager().ChangeFocus(nextTab);
             return true;
         }
 
