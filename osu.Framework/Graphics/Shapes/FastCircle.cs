@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
@@ -18,6 +19,17 @@ namespace osu.Framework.Graphics.Shapes
         private void load(ShaderManager shaders)
         {
             shader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "FastCircle");
+        }
+
+        public float Radius => MathF.Min(DrawSize.X, DrawSize.Y) * 0.5f;
+
+        public override bool Contains(Vector2 screenSpacePos)
+        {
+            if (!base.Contains(screenSpacePos))
+                return false;
+
+            float cRadius = Radius;
+            return DrawRectangle.Shrink(cRadius).DistanceExponentiated(ToLocalSpace(screenSpacePos), 2f) <= cRadius * cRadius;
         }
 
         protected override DrawNode CreateDrawNode() => new FastCircleDrawNode(this);
