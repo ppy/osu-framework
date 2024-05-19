@@ -127,6 +127,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: ${{ matrix.container }}
+          options: -v ${{ github.workspace }}:/workspace -w /workspace
           run: |
             sudo apt-get update
             sudo apt-get install nasm libva-dev libvdpau-dev
