@@ -34,9 +34,6 @@ function prep_ffmpeg() {
         --shlibdir="$PWD/$1"
     )
 
-    echo "--prefix=$PWD/$1"
-    echo "--shlibdir=$PWD/$1"
-
     local build_dir="$1-build"
     if [ ! -e "$FFMPEG_FILE" ]; then
         echo "-> Downloading $FFMPEG_FILE..."

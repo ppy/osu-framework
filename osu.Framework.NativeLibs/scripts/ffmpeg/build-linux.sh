@@ -20,25 +20,12 @@ FFMPEG_FLAGS+=(
 pushd . > /dev/null
 
 if [ $(uname -m) == "x86_64" ]; then
-    FFMPEG_FLAGS+=(
-        --arch=x64
-    )
     ARCH="x64"
 elif [ $(uname -m) == "i686" ]; then
-    FFMPEG_FLAGS+=(
-        --arch=x86
-    )
     ARCH="x86"
-
 elif [ $(uname -m) == "aarch64" ]; then
-    FFMPEG_FLAGS+=(
-        --arch=arm64
-    )
     ARCH="arm64"
 elif [ $(uname -m) == "armv7l" ]; then
-    FFMPEG_FLAGS+=(
-        --arch=arm
-    )
     ARCH="arm"
 else
     echo "Unsupported architecture: $(uname -m)"
@@ -55,7 +42,7 @@ popd > /dev/null
 
 # gcc creates multiple symlinks per .so file for versioning.
 # We delete the symlinks and rename the real files to include the major library version
-rm linux-x64/*.so
-for f in linux-x64/*.so.*.*.*; do
+rm linux-$ARCH/*.so
+for f in linux-$ARCH/*.so.*.*.*; do
     mv -vf "$f" "${f%.*.*}"
 done

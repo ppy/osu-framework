@@ -105,26 +105,38 @@ jobs:
           path: win-arm64
 
   build-linux:
-    name: Build Linux (x64)
+    name: Build Linux (${{ matrix.arch }})
     # Use 20.04 to target glibc 2.31 like the other native libs
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        include:
+          - { arch: x64, container: ubuntu:20.04 }
+          - { arch: x86, container: i386/ubuntu:20.04 }
+          - { arch: arm64, container: arm64v8/ubuntu:20.04 }
+          - { arch: arm, container: arm32v7/ubuntu:20.04 }
     steps:
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install nasm libva-dev libvdpau-dev
-
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup QEMU
+        if: ${{ contains(matrix.arch, 'arm') }}
+        uses: docker/setup-qemu-action@v2
+
       - name: Build
-        run: osu.Framework.NativeLibs/scripts/ffmpeg/build-linux.sh
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ${{ matrix.container }}
+          run: |
+            sudo apt-get update
+            sudo apt-get install nasm libva-dev libvdpau-dev
+            osu.Framework.NativeLibs/scripts/ffmpeg/build-linux.sh
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: linux-x64
-          path: linux-x64
+          name: linux-${{ matrix.arch }}
+          path: linux-${{ matrix.arch }}
 
   make-pr:
     name: Create pull request
