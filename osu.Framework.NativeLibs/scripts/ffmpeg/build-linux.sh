@@ -21,9 +21,9 @@ pushd . > /dev/null
 
 if [ $(uname -m) == "x86_64" ]; then
     FFMPEG_FLAGS+=(
-        --arch=x86_64
+        --arch=x64
     )
-    ARCH="x86_64"
+    ARCH="x64"
 elif [ $(uname -m) == "i686" ]; then
     FFMPEG_FLAGS+=(
         --arch=x86
