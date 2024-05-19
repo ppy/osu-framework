@@ -5,6 +5,8 @@ using System;
 using NUnit.Framework;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using osuTK;
@@ -14,17 +16,59 @@ namespace osu.Framework.Tests.Visual.Drawables
 {
     public partial class TestSceneFastCircle : ManualInputManagerTestScene
     {
-        private TestCircle circle = null!;
+        private TestCircle fastCircle = null!;
+        private Circle circle = null!;
 
         [SetUp]
         public void Setup()
         {
-            Child = circle = new TestCircle
+            Child = new GridContainer
             {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                Size = new Vector2(100),
-                Clicked = onClick
+                RelativeSizeAxes = Axes.Both,
+                RowDimensions = new[]
+                {
+                    new Dimension(GridSizeMode.Absolute, 100),
+                    new Dimension(),
+                },
+                ColumnDimensions = new[]
+                {
+                    new Dimension(GridSizeMode.Relative, 0.5f),
+                    new Dimension()
+                },
+                Content = new[]
+                {
+                    new Drawable[]
+                    {
+                        new SpriteText
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Text = "FastCircle"
+                        },
+                        new SpriteText
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Text = "Circle"
+                        }
+                    },
+                    new Drawable[]
+                    {
+                        fastCircle = new TestCircle
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Size = new Vector2(100),
+                            Clicked = onClick
+                        },
+                        circle = new Circle
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Size = new Vector2(100)
+                        }
+                    }
+                }
             };
         }
 
@@ -33,7 +77,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             AddStep("Resize to 100x50", () =>
             {
-                circle.Size = new Vector2(100, 50);
+                fastCircle.Size = circle.Size = new Vector2(100, 50);
             });
             AddStep("Click outside the corner", () => clickNearCorner(Vector2.Zero));
             AddAssert("input not received", () => clicked == false);
@@ -42,7 +86,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddStep("Resize to 50x100", () =>
             {
-                circle.Size = new Vector2(50, 100);
+                fastCircle.Size = circle.Size = new Vector2(50, 100);
             });
             AddStep("Click outside the corner", () => clickNearCorner(Vector2.Zero));
             AddAssert("input not received", () => clicked == false);
@@ -53,15 +97,15 @@ namespace osu.Framework.Tests.Visual.Drawables
         [Test]
         public void TestSmoothness()
         {
-            AddStep("Change smoothness to 0", () => circle.EdgeSmoothness = 0);
-            AddStep("Change smoothness to 1", () => circle.EdgeSmoothness = 1);
-            AddStep("Change smoothness to 5", () => circle.EdgeSmoothness = 5);
+            AddStep("Change smoothness to 0", () => fastCircle.EdgeSmoothness = circle.MaskingSmoothness = 0);
+            AddStep("Change smoothness to 1", () => fastCircle.EdgeSmoothness = circle.MaskingSmoothness = 1);
+            AddStep("Change smoothness to 5", () => fastCircle.EdgeSmoothness = circle.MaskingSmoothness = 5);
         }
 
         private void clickNearCorner(Vector2 offset)
         {
             clicked = false;
-            InputManager.MoveMouseTo(circle.ToScreenSpace(new Vector2(circle.Radius * (1f - MathF.Sqrt(0.5f))) + offset));
+            InputManager.MoveMouseTo(fastCircle.ToScreenSpace(new Vector2(fastCircle.Radius * (1f - MathF.Sqrt(0.5f))) + offset));
             InputManager.Click(MouseButton.Left);
         }
 
