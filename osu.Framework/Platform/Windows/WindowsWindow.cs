@@ -91,16 +91,31 @@ namespace osu.Framework.Platform.Windows
             return SDL_bool.SDL_TRUE;
         }
 
-        protected override void HandleEventFromFilter(SDL_Event evt)
+        protected override int HandleEventFromFilter(SDL_Event evt)
         {
             switch (evt.Type)
             {
+                // handle raw mouse and keyboard events in SDL_EventFilter for lower latency and resilience against SDL_PumpEvents() lag
+                case SDL_EventType.SDL_EVENT_MOUSE_MOTION:
+                case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN:
+                case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP:
+                case SDL_EventType.SDL_EVENT_MOUSE_WHEEL:
+                    if (SDL3.SDL_GetRelativeMouseMode() != SDL_bool.SDL_TRUE) break;
+
+                    HandleEvent(evt);
+                    return DROP_EVENT;
+
+                case SDL_EventType.SDL_EVENT_KEY_DOWN:
+                case SDL_EventType.SDL_EVENT_KEY_UP:
+                    HandleEvent(evt);
+                    return DROP_EVENT;
+
                 case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST:
                     warpCursorFromFocusLoss();
                     break;
             }
 
-            base.HandleEventFromFilter(evt);
+            return base.HandleEventFromFilter(evt);
         }
 
         /// <summary>
