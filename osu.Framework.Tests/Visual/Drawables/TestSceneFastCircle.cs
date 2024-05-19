@@ -18,6 +18,8 @@ namespace osu.Framework.Tests.Visual.Drawables
     {
         private TestCircle fastCircle = null!;
         private Circle circle = null!;
+        private CircularContainer fastCircleMask = null!;
+        private CircularContainer circleMask = null!;
 
         [SetUp]
         public void Setup()
@@ -54,19 +56,31 @@ namespace osu.Framework.Tests.Visual.Drawables
                     },
                     new Drawable[]
                     {
-                        fastCircle = new TestCircle
+                        fastCircleMask = new CircularContainer
                         {
                             Anchor = Anchor.Centre,
-                            Origin = Anchor.Centre,
+                            Origin = Anchor.TopRight,
                             Size = new Vector2(200),
-                            Clicked = onClick
+                            Child = fastCircle = new TestCircle
+                            {
+                                Anchor = Anchor.TopRight,
+                                Origin = Anchor.Centre,
+                                Size = new Vector2(200),
+                                Clicked = onClick
+                            }
                         },
-                        circle = new Circle
+                        circleMask = new CircularContainer
                         {
                             Anchor = Anchor.Centre,
-                            Origin = Anchor.Centre,
-                            Size = new Vector2(200)
-                        }
+                            Origin = Anchor.TopRight,
+                            Size = new Vector2(200),
+                            Child = circle = new Circle
+                            {
+                                Anchor = Anchor.TopRight,
+                                Origin = Anchor.Centre,
+                                Size = new Vector2(200)
+                            }
+                        },
                     }
                 }
             };
@@ -86,6 +100,12 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("Change smoothness to 0", () => fastCircle.EdgeSmoothness = circle.MaskingSmoothness = 0);
             AddStep("Change smoothness to 1", () => fastCircle.EdgeSmoothness = circle.MaskingSmoothness = 1);
             AddStep("Change smoothness to 5", () => fastCircle.EdgeSmoothness = circle.MaskingSmoothness = 5);
+        }
+
+        [Test]
+        public void TestNestedMasking()
+        {
+            AddToggleStep("Toggle parent masking", m => fastCircleMask.Masking = circleMask.Masking = m);
         }
 
         private void testInput(Vector2 size)
