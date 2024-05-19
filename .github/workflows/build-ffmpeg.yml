@@ -72,8 +72,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install nasm mingw-w64
+          apt-get update
+          apt-get install nasm mingw-w64
 
       - name: Build
         run: osu.Framework.NativeLibs/scripts/ffmpeg/build-win.sh
