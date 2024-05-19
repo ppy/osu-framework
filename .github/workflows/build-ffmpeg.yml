@@ -130,7 +130,7 @@ jobs:
           options: -v ${{ github.workspace }}:/workspace -w /workspace
           run: |
             sudo apt-get update
-            sudo apt-get install build-essential curl nasm libva-dev libvdpau-dev
+            sudo apt-get install build-essential curl sudo nasm libva-dev libvdpau-dev
             osu.Framework.NativeLibs/scripts/ffmpeg/build-linux.sh
 
       - name: Upload
