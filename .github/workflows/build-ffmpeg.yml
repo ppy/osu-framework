@@ -4,7 +4,7 @@ on: workflow_dispatch
 jobs:
   build-macos:
     name: Build macOS
-    runs-on: macos-12
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
