@@ -108,16 +108,38 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddToggleStep("Toggle parent masking", m => fastCircleMask.Masking = circleMask.Masking = m);
         }
 
+        [Test]
+        public void TestRotation()
+        {
+            resize(new Vector2(200, 100));
+            AddToggleStep("Toggle rotation", rotate =>
+            {
+                fastCircle.ClearTransforms();
+                circle.ClearTransforms();
+
+                if (rotate)
+                {
+                    fastCircle.Spin(2000, RotationDirection.Clockwise);
+                    circle.Spin(2000, RotationDirection.Clockwise);
+                }
+            });
+        }
+
         private void testInput(Vector2 size)
+        {
+            resize(size);
+            AddStep("Click outside the corner", () => clickNearCorner(-Vector2.One));
+            AddAssert("input not received", () => clicked == false);
+            AddStep("Click inside the corner", () => clickNearCorner(Vector2.One));
+            AddAssert("input received", () => clicked);
+        }
+
+        private void resize(Vector2 size)
         {
             AddStep($"Resize to {size}", () =>
             {
                 fastCircle.Size = circle.Size = size;
             });
-            AddStep("Click outside the corner", () => clickNearCorner(-Vector2.One));
-            AddAssert("input not received", () => clicked == false);
-            AddStep("Click inside the corner", () => clickNearCorner(Vector2.One));
-            AddAssert("input received", () => clicked);
         }
 
         private void clickNearCorner(Vector2 offset)
