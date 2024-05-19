@@ -55,14 +55,17 @@ jobs:
           path: macOS-universal
 
   build-win:
-    name: Build Windows
+    name: Build Windows (${{ matrix.arch }})
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         arch:
-          - x86
           - x64
+          - x86
+          - arm64
+    container:
+      image: mstorsjo/llvm-mingw:latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -82,27 +85,6 @@ jobs:
         with:
           name: win-${{ matrix.arch }}
           path: win-${{ matrix.arch }}
-
-  # The win-arm64 build runs in a special MinGW container to cross-compile successfully.
-  build-win-arm64:
-    name: Build Windows (arm64)
-    runs-on: ubuntu-22.04
-    container:
-      image: mstorsjo/llvm-mingw:latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build
-        run: osu.Framework.NativeLibs/scripts/ffmpeg/build-win.sh
-        env:
-          arch: arm64
-
-      - name: Upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: win-arm64
-          path: win-arm64
 
   build-linux:
     name: Build Linux (${{ matrix.arch }})
@@ -145,7 +127,6 @@ jobs:
     needs:
       - combine-macos
       - build-win
-      - build-win-arm64
       - build-linux
     strategy:
       matrix:
