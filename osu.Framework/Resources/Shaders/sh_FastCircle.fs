@@ -13,10 +13,14 @@ layout(location = 0) out vec4 o_Colour;
 
 void main(void)
 {
-    highp vec2 pixelPos = v_TexCoord / v_TexRect.zw;
-    highp vec2 pixelSize = vec2(1.5) / v_TexRect.zw;
+    const float smoothness = 1.5; // in screen-space
 
-    highp float alpha = smoothstep(0.5, 0.5 - min(max(pixelSize.x, pixelSize.y), 0.1), distance(pixelPos, vec2(0.5)));
+    highp vec2 pixelPos = v_TexRect.zw * 0.5 - abs(v_TexCoord - v_TexRect.zw * 0.5);
+    highp float radius = min(v_TexRect.z, v_TexRect.w) * 0.5;
+
+    highp float dst = max(pixelPos.x, pixelPos.y) > radius ? radius - min(pixelPos.x, pixelPos.y) : distance(pixelPos, vec2(radius));
+
+    highp float alpha = smoothstep(radius, radius - smoothness, dst);
 
     o_Colour = getRoundedColor(vec4(vec3(1.0), alpha), vec2(0.0));
 }
