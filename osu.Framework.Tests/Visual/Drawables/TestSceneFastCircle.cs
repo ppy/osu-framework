@@ -50,6 +50,14 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddAssert("input received", () => clicked);
         }
 
+        [Test]
+        public void TestSmoothness()
+        {
+            AddStep("Change smoothness to 0", () => circle.EdgeSmoothness = 0);
+            AddStep("Change smoothness to 1", () => circle.EdgeSmoothness = 1);
+            AddStep("Change smoothness to 5", () => circle.EdgeSmoothness = 5);
+        }
+
         private void clickNearCorner(Vector2 offset)
         {
             clicked = false;

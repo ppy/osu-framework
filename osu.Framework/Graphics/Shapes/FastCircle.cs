@@ -13,6 +13,23 @@ namespace osu.Framework.Graphics.Shapes
 {
     public partial class FastCircle : Drawable
     {
+        private float edgeSmoothness = 1f;
+
+        public float EdgeSmoothness
+        {
+            get => edgeSmoothness;
+            set
+            {
+                if (edgeSmoothness == value)
+                    return;
+
+                edgeSmoothness = value;
+
+                if (IsLoaded)
+                    Invalidate(Invalidation.DrawNode);
+            }
+        }
+
         private IShader shader = null!;
 
         [BackgroundDependencyLoader]
@@ -45,6 +62,7 @@ namespace osu.Framework.Graphics.Shapes
 
             private Quad screenSpaceDrawQuad;
             private Vector4 drawRectangle;
+            private Vector2 edgeSmoothness;
             private IShader shader = null!;
 
             public override void ApplyState()
@@ -54,6 +72,7 @@ namespace osu.Framework.Graphics.Shapes
                 screenSpaceDrawQuad = Source.ScreenSpaceDrawQuad;
                 drawRectangle = new Vector4(0, 0, screenSpaceDrawQuad.Width, screenSpaceDrawQuad.Height);
                 shader = Source.shader;
+                edgeSmoothness = new Vector2(Source.edgeSmoothness);
             }
 
             protected override void Draw(IRenderer renderer)
@@ -69,7 +88,7 @@ namespace osu.Framework.Graphics.Shapes
                     Position = screenSpaceDrawQuad.BottomLeft,
                     TexturePosition = new Vector2(0, screenSpaceDrawQuad.Height),
                     TextureRect = drawRectangle,
-                    BlendRange = Vector2.Zero,
+                    BlendRange = edgeSmoothness,
                     Colour = DrawColourInfo.Colour.BottomLeft.SRGB,
                 });
                 vertexAction(new TexturedVertex2D(renderer)
@@ -77,7 +96,7 @@ namespace osu.Framework.Graphics.Shapes
                     Position = screenSpaceDrawQuad.BottomRight,
                     TexturePosition = new Vector2(screenSpaceDrawQuad.Width, screenSpaceDrawQuad.Height),
                     TextureRect = drawRectangle,
-                    BlendRange = Vector2.Zero,
+                    BlendRange = edgeSmoothness,
                     Colour = DrawColourInfo.Colour.BottomRight.SRGB,
                 });
                 vertexAction(new TexturedVertex2D(renderer)
@@ -85,7 +104,7 @@ namespace osu.Framework.Graphics.Shapes
                     Position = screenSpaceDrawQuad.TopRight,
                     TexturePosition = new Vector2(screenSpaceDrawQuad.Width, 0),
                     TextureRect = drawRectangle,
-                    BlendRange = Vector2.Zero,
+                    BlendRange = edgeSmoothness,
                     Colour = DrawColourInfo.Colour.TopRight.SRGB,
                 });
                 vertexAction(new TexturedVertex2D(renderer)
@@ -93,7 +112,7 @@ namespace osu.Framework.Graphics.Shapes
                     Position = screenSpaceDrawQuad.TopLeft,
                     TexturePosition = new Vector2(0, 0),
                     TextureRect = drawRectangle,
-                    BlendRange = Vector2.Zero,
+                    BlendRange = edgeSmoothness,
                     Colour = DrawColourInfo.Colour.TopLeft.SRGB,
                 });
 
