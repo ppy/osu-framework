@@ -135,7 +135,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         /// <summary>
-        /// Ensures that performing <see cref="InputManager.ChangeFocus(Drawable)"/> to a drawable with disabled <see cref="Drawable.AcceptsFocus"/> returns <see langword="false"/>.
+        /// Ensures that performing <see cref="IFocusManager.ChangeFocus(Drawable)"/> to a drawable with disabled <see cref="Drawable.AcceptsFocus"/> returns <see langword="false"/>.
         /// </summary>
         [Test]
         public void DisabledFocusDrawableCannotReceiveFocusViaChangeFocus()
@@ -143,13 +143,13 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkFocused(() => requestingFocus);
 
             AddStep("disable focus from top left", () => focusTopLeft.AllowAcceptingFocus = false);
-            AddAssert("cannot switch focus to top left", () => !InputManager.ChangeFocus(focusTopLeft));
+            AddAssert("cannot switch focus to top left", () => !((IFocusManager)InputManager).ChangeFocus(focusTopLeft));
 
             checkFocused(() => requestingFocus);
         }
 
         /// <summary>
-        /// Ensures that performing <see cref="InputManager.ChangeFocus(Drawable)"/> to a non-present drawable returns <see langword="false"/>.
+        /// Ensures that performing <see cref="IFocusManager.ChangeFocus(Drawable)"/> to a non-present drawable returns <see langword="false"/>.
         /// </summary>
         [Test]
         public void NotPresentDrawableCannotReceiveFocusViaChangeFocus()
@@ -157,13 +157,13 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkFocused(() => requestingFocus);
 
             AddStep("hide top left", () => focusTopLeft.Alpha = 0);
-            AddAssert("cannot switch focus to top left", () => !InputManager.ChangeFocus(focusTopLeft));
+            AddAssert("cannot switch focus to top left", () => !((IFocusManager)InputManager).ChangeFocus(focusTopLeft));
 
             checkFocused(() => requestingFocus);
         }
 
         /// <summary>
-        /// Ensures that performing <see cref="InputManager.ChangeFocus(Drawable)"/> to a drawable of a non-present parent returns <see langword="false"/>.
+        /// Ensures that performing <see cref="IFocusManager.ChangeFocus(Drawable)"/> to a drawable of a non-present parent returns <see langword="false"/>.
         /// </summary>
         [Test]
         public void DrawableOfNotPresentParentCannotReceiveFocusViaChangeFocus()
@@ -183,7 +183,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 Remove(focusTopLeft, false);
                 container.Add(focusTopLeft);
             });
-            AddAssert("cannot switch focus to top left", () => !InputManager.ChangeFocus(focusTopLeft));
+            AddAssert("cannot switch focus to top left", () => !((IFocusManager)InputManager).ChangeFocus(focusTopLeft));
 
             checkFocused(() => requestingFocus);
         }

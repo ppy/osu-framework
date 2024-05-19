@@ -249,7 +249,7 @@ namespace osu.Framework.Graphics.UserInterface
                     AnimateClose();
 
                     if (HasFocus)
-                        GetContainingInputManager()?.ChangeFocus(parentMenu);
+                        GetContainingFocusManager()?.ChangeFocus(parentMenu);
                     break;
 
                 case MenuState.Open:
@@ -262,7 +262,7 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         Schedule(delegate
                         {
-                            if (State == MenuState.Open) GetContainingInputManager().ChangeFocus(this);
+                            if (State == MenuState.Open) GetContainingFocusManager().ChangeFocus(this);
                         });
                     }
 
@@ -570,7 +570,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (item.Item.Items.Count > 0)
             {
                 if (submenu.State == MenuState.Open)
-                    Schedule(delegate { GetContainingInputManager().ChangeFocus(submenu); });
+                    Schedule(delegate { GetContainingFocusManager().ChangeFocus(submenu); });
                 else
                     submenu.Open();
             }
