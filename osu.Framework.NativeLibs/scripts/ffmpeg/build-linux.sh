@@ -20,19 +20,32 @@ FFMPEG_FLAGS+=(
 pushd . > /dev/null
 
 if [ $(uname -m) == "x86_64" ]; then
+    FFMPEG_FLAGS+=(
+        --arch=x86_64
+    )
     ARCH="x86_64"
 elif [ $(uname -m) == "i686" ]; then
+    FFMPEG_FLAGS+=(
+        --arch=x86
+    )
     ARCH="x86"
+
 elif [ $(uname -m) == "aarch64" ]; then
+    FFMPEG_FLAGS+=(
+        --arch=arm64
+    )
     ARCH="arm64"
 elif [ $(uname -m) == "armv7l" ]; then
+    FFMPEG_FLAGS+=(
+        --arch=arm
+    )
     ARCH="arm"
 else
     echo "Unsupported architecture: $(uname -m)"
     exit 1
 fi
 
-prep_ffmpeg "linux-${ARCH}"
+prep_ffmpeg linux-$ARCH
 # Apply patch from upstream to fix errors with new binutils versions:
 # Ticket: https://fftrac-bg.ffmpeg.org/ticket/10405
 # This patch should be removed when FFmpeg is updated to >=6.1
