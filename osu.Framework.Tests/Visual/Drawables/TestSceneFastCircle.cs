@@ -58,14 +58,14 @@ namespace osu.Framework.Tests.Visual.Drawables
                         {
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
-                            Size = new Vector2(100),
+                            Size = new Vector2(200),
                             Clicked = onClick
                         },
                         circle = new Circle
                         {
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
-                            Size = new Vector2(100)
+                            Size = new Vector2(200)
                         }
                     }
                 }
@@ -75,23 +75,9 @@ namespace osu.Framework.Tests.Visual.Drawables
         [Test]
         public void TestInput()
         {
-            AddStep("Resize to 100x50", () =>
-            {
-                fastCircle.Size = circle.Size = new Vector2(100, 50);
-            });
-            AddStep("Click outside the corner", () => clickNearCorner(Vector2.Zero));
-            AddAssert("input not received", () => clicked == false);
-            AddStep("Click inside the corner", () => clickNearCorner(Vector2.One));
-            AddAssert("input received", () => clicked);
-
-            AddStep("Resize to 50x100", () =>
-            {
-                fastCircle.Size = circle.Size = new Vector2(50, 100);
-            });
-            AddStep("Click outside the corner", () => clickNearCorner(Vector2.Zero));
-            AddAssert("input not received", () => clicked == false);
-            AddStep("Click inside the corner", () => clickNearCorner(Vector2.One));
-            AddAssert("input received", () => clicked);
+            testInput(new Vector2(200, 100));
+            testInput(new Vector2(100, 200));
+            testInput(new Vector2(200, 200));
         }
 
         [Test]
@@ -100,6 +86,18 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("Change smoothness to 0", () => fastCircle.EdgeSmoothness = circle.MaskingSmoothness = 0);
             AddStep("Change smoothness to 1", () => fastCircle.EdgeSmoothness = circle.MaskingSmoothness = 1);
             AddStep("Change smoothness to 5", () => fastCircle.EdgeSmoothness = circle.MaskingSmoothness = 5);
+        }
+
+        private void testInput(Vector2 size)
+        {
+            AddStep($"Resize to {size}", () =>
+            {
+                fastCircle.Size = circle.Size = size;
+            });
+            AddStep("Click outside the corner", () => clickNearCorner(-Vector2.One));
+            AddAssert("input not received", () => clicked == false);
+            AddStep("Click inside the corner", () => clickNearCorner(Vector2.One));
+            AddAssert("input received", () => clicked);
         }
 
         private void clickNearCorner(Vector2 offset)
