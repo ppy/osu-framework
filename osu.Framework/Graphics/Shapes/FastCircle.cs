@@ -79,6 +79,9 @@ namespace osu.Framework.Graphics.Shapes
             {
                 base.Draw(renderer);
 
+                if (!renderer.BindTexture(renderer.WhitePixel))
+                    return;
+
                 shader.Bind();
 
                 var vertexAction = renderer.DefaultQuadBatch.AddAction;
