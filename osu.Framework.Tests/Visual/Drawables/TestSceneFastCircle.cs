@@ -22,7 +22,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         private CircularContainer circleMask = null!;
 
         [SetUp]
-        public void Setup()
+        public void Setup() => Schedule(() =>
         {
             Child = new GridContainer
             {
@@ -84,7 +84,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     }
                 }
             };
-        }
+        });
 
         [Test]
         public void TestInput()
