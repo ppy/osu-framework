@@ -102,10 +102,10 @@ namespace osu.Framework.Input.Bindings
             if (Keys == pressedKeys.Keys) // Fast test for reference equality of underlying array
                 return true;
 
-            return ContainsAll(Keys, pressedKeys.Keys, inputState, matchingMode);
+            return ContainsAll(Keys, pressedKeys.Keys, matchingMode);
         }
 
-        private static InputKey? getVirtualKey(InputKey key, InputState inputState)
+        private static InputKey? getVirtualKey(InputKey key)
         {
             switch (key)
             {
@@ -134,11 +134,10 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         /// <param name="candidateKeyBinding">The candidate key binding to match against.</param>
         /// <param name="pressedPhysicalKeys">The keys which have been pressed by a user.</param>
-        /// <param name="inputState">The current input state.</param>
         /// <param name="matchingMode">The matching mode to be used when checking.</param>
         /// <returns>Whether this is a match.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool ContainsAll(ImmutableArray<InputKey> candidateKeyBinding, ImmutableArray<InputKey> pressedPhysicalKeys, InputState inputState, KeyCombinationMatchingMode matchingMode)
+        internal static bool ContainsAll(ImmutableArray<InputKey> candidateKeyBinding, ImmutableArray<InputKey> pressedPhysicalKeys, KeyCombinationMatchingMode matchingMode)
         {
             Debug.Assert(pressedPhysicalKeys.All(k => k.IsPhysical()));
 
@@ -147,7 +146,7 @@ namespace osu.Framework.Input.Bindings
             // the behaviour of excess keys).
             foreach (var key in candidateKeyBinding)
             {
-                if (!IsPressed(pressedPhysicalKeys, key, inputState))
+                if (!IsPressed(pressedPhysicalKeys, key))
                     return false;
             }
 
@@ -157,7 +156,7 @@ namespace osu.Framework.Input.Bindings
                     foreach (var key in pressedPhysicalKeys)
                     {
                         // in exact matching mode, every pressed key needs to be in the candidate.
-                        if (!KeyBindingContains(candidateKeyBinding, key, inputState))
+                        if (!KeyBindingContains(candidateKeyBinding, key))
                             return false;
                     }
 
@@ -167,7 +166,7 @@ namespace osu.Framework.Input.Bindings
                     foreach (var key in pressedPhysicalKeys)
                     {
                         // in modifiers match mode, the same check applies as exact but only for modifier keys.
-                        if (IsModifierKey(key) && !KeyBindingContains(candidateKeyBinding, key, inputState))
+                        if (IsModifierKey(key) && !KeyBindingContains(candidateKeyBinding, key))
                             return false;
                     }
 
@@ -186,12 +185,11 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         /// <param name="candidateKeyBinding">The candidate key binding to match against.</param>
         /// <param name="physicalKey">The physical key that has been pressed.</param>
-        /// <param name="inputState">The current input state.</param>
         /// <returns>Whether this is a match.</returns>
-        internal static bool KeyBindingContains(ImmutableArray<InputKey> candidateKeyBinding, InputKey physicalKey, InputState inputState)
+        internal static bool KeyBindingContains(ImmutableArray<InputKey> candidateKeyBinding, InputKey physicalKey)
         {
             return candidateKeyBinding.Contains(physicalKey) ||
-                   (getVirtualKey(physicalKey, inputState) is InputKey vKey && candidateKeyBinding.Contains(vKey));
+                   (getVirtualKey(physicalKey) is InputKey vKey && candidateKeyBinding.Contains(vKey));
         }
 
         /// <summary>
@@ -199,15 +197,14 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         /// <param name="pressedPhysicalKeys">The currently pressed keys to match against.</param>
         /// <param name="candidateKey">The candidate key to check.</param>
-        /// <param name="inputState">The current input state.</param>
         /// <returns>Whether this is a match.</returns>
-        internal static bool IsPressed(ImmutableArray<InputKey> pressedPhysicalKeys, InputKey candidateKey, InputState inputState)
+        internal static bool IsPressed(ImmutableArray<InputKey> pressedPhysicalKeys, InputKey candidateKey)
         {
             if (candidateKey.IsPhysical())
                 return pressedPhysicalKeys.Contains(candidateKey);
 
             Debug.Assert(candidateKey.IsVirtual());
-            return pressedPhysicalKeys.Any(k => getVirtualKey(k, inputState) == candidateKey);
+            return pressedPhysicalKeys.Any(k => getVirtualKey(k) == candidateKey);
         }
 
         public bool Equals(KeyCombination other) => Keys.SequenceEqual(other.Keys);
