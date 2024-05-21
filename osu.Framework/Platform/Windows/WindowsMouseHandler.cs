@@ -10,46 +10,54 @@ using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform.Windows.Native;
 using osu.Framework.Statistics;
 using osuTK;
-using static SDL2.SDL;
 
 namespace osu.Framework.Platform.Windows
 {
     /// <summary>
-    /// A windows specific mouse input handler which overrides the SDL2 implementation of raw input.
+    /// A windows specific mouse input handler which overrides the SDL3 implementation of raw input.
     /// This is done to better handle quirks of some devices.
     /// </summary>
     [SupportedOSPlatform("windows")]
-    internal unsafe class SDL2WindowsMouseHandler : MouseHandler
+    internal class WindowsMouseHandler : MouseHandler
     {
-        private static readonly GlobalStatistic<ulong> statistic_relative_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<SDL2WindowsMouseHandler>(), "Relative events");
-        private static readonly GlobalStatistic<ulong> statistic_absolute_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<SDL2WindowsMouseHandler>(), "Absolute events");
-        private static readonly GlobalStatistic<ulong> statistic_dropped_touch_inputs = GlobalStatistics.Get<ulong>(StatisticGroupFor<SDL2WindowsMouseHandler>(), "Dropped native touch inputs");
+        private static readonly GlobalStatistic<ulong> statistic_relative_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<WindowsMouseHandler>(), "Relative events");
+        private static readonly GlobalStatistic<ulong> statistic_absolute_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<WindowsMouseHandler>(), "Absolute events");
+        private static readonly GlobalStatistic<ulong> statistic_dropped_touch_inputs = GlobalStatistics.Get<ulong>(StatisticGroupFor<WindowsMouseHandler>(), "Dropped native touch inputs");
 
         private static readonly GlobalStatistic<ulong> statistic_inputs_with_extra_information =
-            GlobalStatistics.Get<ulong>(StatisticGroupFor<SDL2WindowsMouseHandler>(), "Native inputs with ExtraInformation");
+            GlobalStatistics.Get<ulong>(StatisticGroupFor<WindowsMouseHandler>(), "Native inputs with ExtraInformation");
 
         private const int raw_input_coordinate_space = 65535;
 
-        private SDL_WindowsMessageHook callback = null!;
-        private SDL2WindowsWindow window = null!;
+        private global::SDL2.SDL.SDL_WindowsMessageHook callback = null!;
+        private IWindowsWindow window = null!;
 
         public override bool IsActive => Enabled.Value;
 
         public override bool Initialize(GameHost host)
         {
-            if (!(host.Window is SDL2WindowsWindow desktopWindow))
+            if (host.Window is not IWindowsWindow windowsWindow)
                 return false;
 
-            window = desktopWindow;
+            window = windowsWindow;
+            bindHandler(host);
+
+            return base.Initialize(host);
+        }
+
+        private void bindHandler(GameHost host)
+        {
+            // SDL3 does not (yet?) support binding to WndProc.
+            if (window is SDL3WindowsWindow)
+                return;
+
             // ReSharper disable once ConvertClosureToMethodGroup
             callback = (ptr, wnd, u, param, l) => onWndProc(ptr, wnd, u, param, l);
 
             Enabled.BindValueChanged(enabled =>
             {
-                host.InputThread.Scheduler.Add(() => SDL_SetWindowsMessageHook(enabled.NewValue ? callback : null, IntPtr.Zero));
+                host.InputThread.Scheduler.Add(() => global::SDL2.SDL.SDL_SetWindowsMessageHook(enabled.NewValue ? callback : null, IntPtr.Zero));
             }, true);
-
-            return base.Initialize(host);
         }
 
         public override void FeedbackMousePositionChange(Vector2 position, bool isSelfFeedback)
@@ -60,10 +68,14 @@ namespace osu.Framework.Platform.Windows
 
         protected override void HandleMouseMoveRelative(Vector2 delta)
         {
-            // handled via custom logic below.
+            // SDL2 reports relative movement via the WndProc handler.
+            if (window is SDL2WindowsWindow)
+                return;
+
+            base.HandleMouseMoveRelative(delta);
         }
 
-        private IntPtr onWndProc(IntPtr userData, IntPtr hWnd, uint message, ulong wParam, long lParam)
+        private unsafe IntPtr onWndProc(IntPtr userData, IntPtr hWnd, uint message, ulong wParam, long lParam)
         {
             if (!Enabled.Value)
                 return IntPtr.Zero;

@@ -20,7 +20,7 @@ using static SDL.SDL3;
 namespace osu.Framework.Platform.Windows
 {
     [SupportedOSPlatform("windows")]
-    internal class SDL3WindowsWindow : SDL3DesktopWindow
+    internal class SDL3WindowsWindow : SDL3DesktopWindow, IWindowsWindow
     {
         private const int seticon_message = 0x0080;
         private const int icon_big = 1;
@@ -104,10 +104,7 @@ namespace osu.Framework.Platform.Windows
             base.HandleEventFromFilter(evt);
         }
 
-        /// <summary>
-        /// The last mouse position as reported by <see cref="SDL3WindowsMouseHandler.FeedbackMousePositionChange"/>.
-        /// </summary>
-        internal Vector2? LastMousePosition { private get; set; }
+        public Vector2? LastMousePosition { get; set; }
 
         /// <summary>
         /// If required, warps the OS cursor to match the framework cursor position.
