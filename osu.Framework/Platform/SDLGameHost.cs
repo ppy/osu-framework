@@ -33,9 +33,10 @@ namespace osu.Framework.Platform
             return base.CreateTextInput();
         }
 
-        protected override Clipboard CreateClipboard() => Window is SDL3Window
-            ? new SDL3Clipboard(PngFormat.Instance) // PNG works well on linux
-            : new SDL2Clipboard();
+        protected override Clipboard CreateClipboard()
+            => FrameworkEnvironment.UseSDL3
+                ? new SDL3Clipboard(PngFormat.Instance) // PNG works well on linux
+                : new SDL2Clipboard();
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
             new InputHandler[]
