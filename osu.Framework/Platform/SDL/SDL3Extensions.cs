@@ -862,8 +862,9 @@ namespace osu.Framework.Platform.SDL
             }
         }
 
-        public static WindowState ToWindowState(this SDL_WindowFlags windowFlags)
+        public static WindowState ToWindowState(this SDL_WindowFlags windowFlags, bool isFullscreenBorderless)
         {
+            // for windows
             if (windowFlags.HasFlagFast(SDL_WindowFlags.SDL_WINDOW_BORDERLESS))
                 return WindowState.FullscreenBorderless;
 
@@ -871,7 +872,7 @@ namespace osu.Framework.Platform.SDL
                 return WindowState.Minimised;
 
             if (windowFlags.HasFlagFast(SDL_WindowFlags.SDL_WINDOW_FULLSCREEN))
-                return WindowState.Fullscreen;
+                return isFullscreenBorderless ? WindowState.FullscreenBorderless : WindowState.Fullscreen;
 
             if (windowFlags.HasFlagFast(SDL_WindowFlags.SDL_WINDOW_MAXIMIZED))
                 return WindowState.Maximised;
