@@ -18,7 +18,7 @@ namespace osu.Framework.Platform.Windows
     /// This is done to better handle quirks of some devices.
     /// </summary>
     [SupportedOSPlatform("windows")]
-    internal class WindowsMouseHandler : MouseHandler
+    internal partial class WindowsMouseHandler : MouseHandler
     {
         private static readonly GlobalStatistic<ulong> statistic_relative_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<WindowsMouseHandler>(), "Relative events");
         private static readonly GlobalStatistic<ulong> statistic_absolute_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<WindowsMouseHandler>(), "Absolute events");
@@ -29,8 +29,8 @@ namespace osu.Framework.Platform.Windows
 
         private const int raw_input_coordinate_space = 65535;
 
-        private global::SDL2.SDL.SDL_WindowsMessageHook callback = null!;
         private IWindowsWindow window = null!;
+        private bool handlerBound;
 
         public override bool IsActive => Enabled.Value;
 
@@ -40,24 +40,11 @@ namespace osu.Framework.Platform.Windows
                 return false;
 
             window = windowsWindow;
-            bindHandler(host);
+            handlerBound = window is SDL2WindowsWindow
+                ? bindHandlerSDL2(host)
+                : bindHandlerSDL3(host);
 
             return base.Initialize(host);
-        }
-
-        private void bindHandler(GameHost host)
-        {
-            // SDL3 does not (yet?) support binding to WndProc.
-            if (window is SDL3WindowsWindow)
-                return;
-
-            // ReSharper disable once ConvertClosureToMethodGroup
-            callback = (ptr, wnd, u, param, l) => onWndProc(ptr, wnd, u, param, l);
-
-            Enabled.BindValueChanged(enabled =>
-            {
-                host.InputThread.Scheduler.Add(() => global::SDL2.SDL.SDL_SetWindowsMessageHook(enabled.NewValue ? callback : null, IntPtr.Zero));
-            }, true);
         }
 
         public override void FeedbackMousePositionChange(Vector2 position, bool isSelfFeedback)
@@ -68,14 +55,16 @@ namespace osu.Framework.Platform.Windows
 
         protected override void HandleMouseMoveRelative(Vector2 delta)
         {
-            // SDL2 reports relative movement via the WndProc handler.
-            if (window is SDL2WindowsWindow)
+            if (handlerBound)
+            {
+                // When bound, relative movement is reported via the WndProc handler below.
                 return;
+            }
 
             base.HandleMouseMoveRelative(delta);
         }
 
-        private unsafe IntPtr onWndProc(IntPtr userData, IntPtr hWnd, uint message, ulong wParam, long lParam)
+        private unsafe IntPtr onWndProcSDL2(IntPtr userData, IntPtr hWnd, uint message, ulong wParam, long lParam)
         {
             if (!Enabled.Value)
                 return IntPtr.Zero;
