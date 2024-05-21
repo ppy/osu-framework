@@ -3,6 +3,7 @@
 
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
+using osu.Framework.Platform.SDL3;
 using osu.Framework.Statistics;
 using TKKey = osuTK.Input.Key;
 

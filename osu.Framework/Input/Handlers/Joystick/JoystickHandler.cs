@@ -5,6 +5,7 @@ using System;
 using osu.Framework.Bindables;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
+using osu.Framework.Platform.SDL3;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Input.Handlers.Joystick

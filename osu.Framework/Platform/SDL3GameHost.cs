@@ -10,7 +10,7 @@ using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Input.Handlers.Tablet;
 using osu.Framework.Input.Handlers.Touch;
-using osu.Framework.Platform.SDL;
+using osu.Framework.Platform.SDL3;
 using SixLabors.ImageSharp.Formats.Png;
 
 namespace osu.Framework.Platform

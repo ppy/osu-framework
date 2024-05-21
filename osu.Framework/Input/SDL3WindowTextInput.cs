@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Platform;
+using osu.Framework.Platform.SDL3;
 
 namespace osu.Framework.Input
 {

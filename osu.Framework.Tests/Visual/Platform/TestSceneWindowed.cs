@@ -12,6 +12,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Platform;
+using osu.Framework.Platform.SDL3;
 using osuTK;
 using WindowState = osu.Framework.Platform.WindowState;
 

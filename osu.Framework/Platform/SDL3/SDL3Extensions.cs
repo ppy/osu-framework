@@ -10,7 +10,7 @@ using osu.Framework.Input.Bindings;
 using osuTK.Input;
 using SDL;
 
-namespace osu.Framework.Platform.SDL
+namespace osu.Framework.Platform.SDL3
 {
     public static class SDL3Extensions
     {
@@ -1016,8 +1016,8 @@ namespace osu.Framework.Platform.SDL
         {
             int bpp;
             uint unused;
-            SDL3.SDL_GetMasksForPixelFormatEnum(mode.format, &bpp, &unused, &unused, &unused, &unused);
-            return new DisplayMode(SDL3.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, displayIndex);
+            SDL.SDL3.SDL_GetMasksForPixelFormatEnum(mode.format, &bpp, &unused, &unused, &unused, &unused);
+            return new DisplayMode(SDL.SDL3.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, displayIndex);
         }
 
         public static string ReadableName(this SDL_LogCategory category)
@@ -1096,8 +1096,8 @@ namespace osu.Framework.Platform.SDL
         /// </summary>
         public static string? GetAndClearError()
         {
-            string? error = SDL3.SDL_GetError();
-            SDL3.SDL_ClearError();
+            string? error = SDL.SDL3.SDL_GetError();
+            SDL.SDL3.SDL_ClearError();
             return error;
         }
 
@@ -1109,7 +1109,7 @@ namespace osu.Framework.Platform.SDL
         /// </remarks>
         public static bool TryGetTouchName(this SDL_TouchFingerEvent e, [NotNullWhen(true)] out string? name)
         {
-            name = SDL3.SDL_GetTouchDeviceName(e.touchID);
+            name = SDL.SDL3.SDL_GetTouchDeviceName(e.touchID);
             return name != null;
         }
     }

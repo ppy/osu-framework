@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Platform;
+using osu.Framework.Platform.SDL3;
 using osuTK;
 using osuTK.Graphics;
 

@@ -16,7 +16,7 @@ using SDL;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 
-namespace osu.Framework.Platform.SDL
+namespace osu.Framework.Platform.SDL3
 {
     public class SDL3Clipboard : Clipboard
     {
@@ -40,9 +40,9 @@ namespace osu.Framework.Platform.SDL
         // SDL cannot differentiate between string.Empty and no text (eg. empty clipboard or an image)
         // doesn't matter as text editors don't really allow copying empty strings.
         // assume that empty text means no text.
-        public override string? GetText() => SDL3.SDL_HasClipboardText() == SDL_bool.SDL_TRUE ? SDL3.SDL_GetClipboardText() : null;
+        public override string? GetText() => SDL.SDL3.SDL_HasClipboardText() == SDL_bool.SDL_TRUE ? SDL.SDL3.SDL_GetClipboardText() : null;
 
-        public override void SetText(string text) => SDL3.SDL_SetClipboardText(text);
+        public override void SetText(string text) => SDL.SDL3.SDL_SetClipboardText(text);
 
         public override Image<TPixel>? GetImage<TPixel>()
         {
@@ -85,18 +85,18 @@ namespace osu.Framework.Platform.SDL
 
         private static unsafe bool tryGetData<T>(string mimeType, SpanDecoder<T> decoder, out T? data)
         {
-            if (SDL3.SDL_HasClipboardData(mimeType) == SDL_bool.SDL_FALSE)
+            if (SDL.SDL3.SDL_HasClipboardData(mimeType) == SDL_bool.SDL_FALSE)
             {
                 data = default;
                 return false;
             }
 
             UIntPtr nativeSize;
-            IntPtr pointer = SDL3.SDL_GetClipboardData(mimeType, &nativeSize);
+            IntPtr pointer = SDL.SDL3.SDL_GetClipboardData(mimeType, &nativeSize);
 
             if (pointer == IntPtr.Zero)
             {
-                Logger.Log($"Failed to get SDL clipboard data for {mimeType}. SDL error: {SDL3.SDL_GetError()}");
+                Logger.Log($"Failed to get SDL clipboard data for {mimeType}. SDL error: {SDL.SDL3.SDL_GetError()}");
                 data = default;
                 return false;
             }
@@ -115,7 +115,7 @@ namespace osu.Framework.Platform.SDL
             }
             finally
             {
-                SDL3.SDL_free(pointer);
+                SDL.SDL3.SDL_free(pointer);
             }
         }
 
@@ -127,12 +127,12 @@ namespace osu.Framework.Platform.SDL
             // TODO: support multiple mime types in a single callback
             fixed (byte* ptr = Encoding.UTF8.GetBytes(mimeType + '\0'))
             {
-                int ret = SDL3.SDL_SetClipboardData(&dataCallback, &cleanupCallback, objectHandle.Handle, &ptr, 1);
+                int ret = SDL.SDL3.SDL_SetClipboardData(&dataCallback, &cleanupCallback, objectHandle.Handle, &ptr, 1);
 
                 if (ret < 0)
                 {
                     objectHandle.Dispose();
-                    Logger.Log($"Failed to set clipboard data callback. SDL error: {SDL3.SDL_GetError()}");
+                    Logger.Log($"Failed to set clipboard data callback. SDL error: {SDL.SDL3.SDL_GetError()}");
                 }
 
                 return ret == 0;
@@ -144,7 +144,7 @@ namespace osu.Framework.Platform.SDL
         {
             using var objectHandle = new ObjectHandle<ClipboardCallbackContext>(userdata);
 
-            if (!objectHandle.GetTarget(out var context) || context.MimeType != SDL3.PtrToStringUTF8(mimeType))
+            if (!objectHandle.GetTarget(out var context) || context.MimeType != SDL.SDL3.PtrToStringUTF8(mimeType))
             {
                 *length = 0;
                 return IntPtr.Zero;

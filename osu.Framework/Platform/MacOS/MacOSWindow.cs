@@ -5,6 +5,7 @@
 
 using System;
 using osu.Framework.Platform.MacOS.Native;
+using osu.Framework.Platform.SDL3;
 using osuTK;
 
 namespace osu.Framework.Platform.MacOS

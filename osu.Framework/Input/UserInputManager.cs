@@ -10,6 +10,7 @@ using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Platform;
+using osu.Framework.Platform.SDL3;
 using osuTK;
 using osuTK.Input;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;

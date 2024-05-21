@@ -19,6 +19,7 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
+using osu.Framework.Platform.SDL3;
 using osuTK;
 using WindowState = osu.Framework.Platform.WindowState;
 
