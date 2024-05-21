@@ -13,7 +13,7 @@ using osu.Framework.Logging;
 
 namespace osu.Framework.Platform
 {
-    public abstract class DesktopGameHost : SDL3GameHost
+    public abstract class DesktopGameHost : SDLGameHost
     {
         private TcpIpcProvider ipcProvider;
         private readonly int? ipcPort;

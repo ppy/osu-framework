@@ -7,6 +7,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Input;
 using osuTK;
 using osuTK.Input;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Platform
 {
@@ -24,6 +25,8 @@ namespace osu.Framework.Platform
         event Action<Vector2, bool> MouseWheel;
         event Action<Key> KeyDown;
         event Action<Key> KeyUp;
+        event Action<string> TextInput;
+        event TextEditingDelegate TextEditing;
 
         Bindable<CursorState> CursorStateBindable { get; }
 
@@ -31,7 +34,21 @@ namespace osu.Framework.Platform
         Size Size { get; }
         bool MouseAutoCapture { set; }
         bool RelativeMouseMode { get; set; }
+        bool CapsLockPressed { get; }
 
         void UpdateMousePosition(Vector2 position);
+
+        void StartTextInput(bool allowIme);
+        void StopTextInput();
+        void SetTextInputRect(RectangleF rectangle);
+        void ResetIme();
     }
+
+    /// <summary>
+    /// Fired when text is edited, usually via IME composition.
+    /// </summary>
+    /// <param name="text">The composition text.</param>
+    /// <param name="start">The index of the selection start.</param>
+    /// <param name="length">The length of the selection.</param>
+    public delegate void TextEditingDelegate(string text, int start, int length);
 }

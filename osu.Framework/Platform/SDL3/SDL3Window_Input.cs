@@ -648,13 +648,5 @@ namespace osu.Framework.Platform.SDL3
         public event Action<Touch>? TouchUp;
 
         #endregion
-
-        /// <summary>
-        /// Fired when text is edited, usually via IME composition.
-        /// </summary>
-        /// <param name="text">The composition text.</param>
-        /// <param name="start">The index of the selection start.</param>
-        /// <param name="length">The length of the selection.</param>
-        public delegate void TextEditingDelegate(string text, int start, int length);
     }
 }

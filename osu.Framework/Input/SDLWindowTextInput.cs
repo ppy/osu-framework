@@ -2,15 +2,15 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Platform.SDL3;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Input
 {
-    internal class SDL3WindowTextInput : TextInputSource
+    internal class SDLWindowTextInput : TextInputSource
     {
-        private readonly SDL3Window window;
+        private readonly ISDLWindow window;
 
-        public SDL3WindowTextInput(SDL3Window window)
+        public SDLWindowTextInput(ISDLWindow window)
         {
             this.window = window;
         }
