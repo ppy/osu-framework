@@ -33,6 +33,9 @@ namespace osu.Framework.Platform
 
         Point Position { get; }
         Size Size { get; }
+        float Scale { get; }
+        bool Resizable { get; set; }
+
         bool MouseAutoCapture { set; }
         bool RelativeMouseMode { get; set; }
         bool CapsLockPressed { get; }

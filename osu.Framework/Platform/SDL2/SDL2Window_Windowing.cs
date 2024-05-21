@@ -277,7 +277,7 @@ namespace osu.Framework.Platform.SDL2
         /// </summary>
         public Size ClientSize => new Size((int)(Size.Width * Scale), (int)(Size.Height * Scale));
 
-        public float Scale = 1;
+        public float Scale { get; private set; } = 1;
 
         #region Displays (mostly self-contained)
 

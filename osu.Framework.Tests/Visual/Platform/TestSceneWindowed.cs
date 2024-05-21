@@ -12,7 +12,6 @@ using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Platform;
-using osu.Framework.Platform.SDL3;
 using osuTK;
 using WindowState = osu.Framework.Platform.WindowState;
 
@@ -32,12 +31,12 @@ namespace osu.Framework.Tests.Visual.Platform
         [Resolved]
         private FrameworkConfigManager config { get; set; }
 
-        private SDL3Window sdlWindow;
+        private ISDLWindow sdlWindow;
 
         [BackgroundDependencyLoader]
         private void load()
         {
-            sdlWindow = (SDL3Window)host.Window;
+            sdlWindow = (ISDLWindow)host.Window;
             Children = new Drawable[]
             {
                 new FillFlowContainer

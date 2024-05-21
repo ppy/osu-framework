@@ -284,7 +284,7 @@ namespace osu.Framework.Platform.SDL3
         /// </summary>
         public Size ClientSize => new Size((int)(Size.Width * Scale), (int)(Size.Height * Scale));
 
-        public float Scale = 1;
+        public float Scale { get; private set; } = 1;
 
         #region Displays (mostly self-contained)
 
@@ -876,14 +876,16 @@ namespace osu.Framework.Platform.SDL3
             if (mode != null)
                 return *mode;
             else
-                Logger.Log($"Unable to get preferred display mode (try #1/2). Target display: {display.Index}, mode: {size.Width}x{size.Height}@{requestedMode.RefreshRate}. SDL error: {SDL3Extensions.GetAndClearError()}");
+                Logger.Log(
+                    $"Unable to get preferred display mode (try #1/2). Target display: {display.Index}, mode: {size.Width}x{size.Height}@{requestedMode.RefreshRate}. SDL error: {SDL3Extensions.GetAndClearError()}");
 
             // fallback to current display's native bounds
             mode = SDL_GetClosestFullscreenDisplayMode(displayID, display.Bounds.Width, display.Bounds.Height, 0f, SDL_bool.SDL_TRUE);
             if (mode != null)
                 return *mode;
             else
-                Logger.Log($"Unable to get preferred display mode (try #2/2). Target display: {display.Index}, mode: {display.Bounds.Width}x{display.Bounds.Height}@default. SDL error: {SDL3Extensions.GetAndClearError()}");
+                Logger.Log(
+                    $"Unable to get preferred display mode (try #2/2). Target display: {display.Index}, mode: {display.Bounds.Width}x{display.Bounds.Height}@default. SDL error: {SDL3Extensions.GetAndClearError()}");
 
             // try the display's native display mode.
             mode = SDL_GetDesktopDisplayMode(displayID);

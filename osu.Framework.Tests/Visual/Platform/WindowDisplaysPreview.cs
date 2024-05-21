@@ -14,7 +14,6 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Platform;
-using osu.Framework.Platform.SDL3;
 using osuTK;
 using osuTK.Graphics;
 
@@ -37,7 +36,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private static readonly Color4 window_fill = new Color4(95, 113, 197, 255);
         private static readonly Color4 window_stroke = new Color4(36, 59, 166, 255);
 
-        private SDL3Window? window;
+        private ISDLWindow? window;
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
         private readonly Bindable<Display> currentDisplay = new Bindable<Display>();
 
@@ -91,7 +90,7 @@ namespace osu.Framework.Tests.Visual.Platform
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager config, GameHost host)
         {
-            window = host.Window as SDL3Window;
+            window = host.Window as ISDLWindow;
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
 
             if (window != null)

@@ -19,7 +19,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
-using osu.Framework.Platform.SDL3;
 using osuTK;
 using WindowState = osu.Framework.Platform.WindowState;
 
@@ -130,7 +129,7 @@ namespace osu.Framework.Tests.Visual.Platform
             if (window.SupportedWindowModes.Contains(WindowMode.Fullscreen))
             {
                 AddStep("change to fullscreen", () => windowMode.Value = WindowMode.Fullscreen);
-                AddAssert("window position updated", () => ((SDL3Window)window).Position, () => Is.EqualTo(window.CurrentDisplayBindable.Value.Bounds.Location));
+                AddAssert("window position updated", () => ((ISDLWindow)window).Position, () => Is.EqualTo(window.CurrentDisplayBindable.Value.Bounds.Location));
                 testResolution(1920, 1080);
                 testResolution(1280, 960);
                 testResolution(9999, 9999);
