@@ -5,7 +5,6 @@ using System;
 using osu.Framework.Bindables;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
-using osu.Framework.Platform.SDL3;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Input.Handlers.Joystick
@@ -30,7 +29,7 @@ namespace osu.Framework.Input.Handlers.Joystick
             if (!base.Initialize(host))
                 return false;
 
-            if (!(host.Window is SDL3Window window))
+            if (!(host.Window is ISDLWindow window))
                 return false;
 
             Enabled.BindValueChanged(e =>

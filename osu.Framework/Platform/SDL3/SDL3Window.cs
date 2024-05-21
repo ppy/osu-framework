@@ -25,7 +25,7 @@ namespace osu.Framework.Platform.SDL3
     /// <summary>
     /// Default implementation of a window, using SDL for windowing and graphics support.
     /// </summary>
-    internal abstract unsafe partial class SDL3Window : IWindow
+    internal abstract unsafe partial class SDL3Window : ISDLWindow
     {
         internal SDL_Window* SDLWindowHandle { get; private set; } = null;
 

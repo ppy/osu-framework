@@ -3,7 +3,6 @@
 
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
-using osu.Framework.Platform.SDL3;
 using osu.Framework.Statistics;
 using TKKey = osuTK.Input.Key;
 
@@ -22,7 +21,7 @@ namespace osu.Framework.Input.Handlers.Keyboard
             if (!base.Initialize(host))
                 return false;
 
-            if (!(host.Window is SDL3Window window))
+            if (!(host.Window is ISDLWindow window))
                 return false;
 
             Enabled.BindValueChanged(e =>

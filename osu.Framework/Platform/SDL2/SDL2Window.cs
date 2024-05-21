@@ -23,7 +23,7 @@ namespace osu.Framework.Platform.SDL2
     /// <summary>
     /// Default implementation of a window, using SDL for windowing and graphics support.
     /// </summary>
-    internal abstract partial class SDL2Window : IWindow
+    internal abstract partial class SDL2Window : ISDLWindow
     {
         internal IntPtr SDLWindowHandle { get; private set; } = IntPtr.Zero;
 

@@ -3,7 +3,6 @@
 
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
-using osu.Framework.Platform.SDL3;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Input.Handlers.Touch
@@ -19,7 +18,7 @@ namespace osu.Framework.Input.Handlers.Touch
             if (!base.Initialize(host))
                 return false;
 
-            if (!(host.Window is SDL3Window window))
+            if (!(host.Window is ISDLWindow window))
                 return false;
 
             Enabled.BindValueChanged(enabled =>

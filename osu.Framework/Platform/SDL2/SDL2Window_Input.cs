@@ -64,7 +64,7 @@ namespace osu.Framework.Platform.SDL2
         /// The above culminate in <see cref="RelativeMouseMode"/> staying off when the cursor leaves and enters the window bounds when any buttons are pressed.
         /// This is an invalid state, as the cursor is inside the window, and <see cref="RelativeMouseMode"/> is off.
         /// </remarks>
-        internal bool MouseAutoCapture
+        public bool MouseAutoCapture
         {
             set => ScheduleCommand(() => SDL_SetHint(SDL_HINT_MOUSE_AUTO_CAPTURE, value ? "1" : "0"));
         }
