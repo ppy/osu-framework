@@ -115,7 +115,7 @@ namespace osu.Framework.Platform.Windows
         }
 
         /// <summary>
-        /// The last mouse position as reported by <see cref="WindowsMouseHandler.FeedbackMousePositionChange"/>.
+        /// The last mouse position as reported by <see cref="SDL3WindowsMouseHandler.FeedbackMousePositionChange"/>.
         /// </summary>
         internal Vector2? LastMousePosition { private get; set; }
 

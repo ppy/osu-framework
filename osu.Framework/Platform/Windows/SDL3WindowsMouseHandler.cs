@@ -12,13 +12,13 @@ namespace osu.Framework.Platform.Windows
     /// This is done to better handle quirks of some devices.
     /// </summary>
     [SupportedOSPlatform("windows")]
-    internal class WindowsMouseHandler : MouseHandler
+    internal class SDL3WindowsMouseHandler : MouseHandler
     {
-        private WindowsWindow window = null!;
+        private SDL3WindowsWindow window = null!;
 
         public override bool Initialize(GameHost host)
         {
-            if (!(host.Window is WindowsWindow desktopWindow))
+            if (!(host.Window is SDL3WindowsWindow desktopWindow))
                 return false;
 
             window = desktopWindow;
