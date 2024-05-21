@@ -40,7 +40,7 @@ namespace osu.Framework.Platform.SDL3
                 return;
             }
 
-            using var bindings = SDL.SDL3.SDL_GetGamepadBindings(GamepadHandle);
+            using var bindings = SDL_GetGamepadBindings(GamepadHandle);
 
             if (bindings == null)
             {
