@@ -7,6 +7,7 @@ using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
+using osuTK;
 using osuTK.Input;
 using SDL;
 
@@ -1112,5 +1113,10 @@ namespace osu.Framework.Platform.SDL
             name = SDL3.SDL_GetTouchDeviceName(e.touchID);
             return name != null;
         }
+
+        /// <summary>
+        /// Converts <see cref="DisplayIndex"/> to the appropriate display index for use in SDL display-related functions.
+        /// </summary>
+        public static int ToSDLDisplayIndex(this DisplayIndex index) => index == DisplayIndex.Primary ? 0 : (int)index;
     }
 }
