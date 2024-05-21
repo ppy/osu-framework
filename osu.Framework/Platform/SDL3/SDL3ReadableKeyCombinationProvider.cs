@@ -11,9 +11,25 @@ namespace osu.Framework.Platform.SDL3
 {
     public class SDL3ReadableKeyCombinationProvider : ReadableKeyCombinationProvider
     {
+        private static SDL_Keycode getKeyFromScancode(SDL_Scancode scancode)
+        {
+            if (FrameworkEnvironment.UseSDL3)
+                return SDL_GetKeyFromScancode(scancode);
+
+            return (SDL_Keycode)global::SDL2.SDL.SDL_GetKeyFromScancode((global::SDL2.SDL.SDL_Scancode)scancode);
+        }
+
+        private static string? getKeyName(SDL_Keycode keycode)
+        {
+            if (FrameworkEnvironment.UseSDL3)
+                return SDL_GetKeyName(keycode);
+
+            return global::SDL2.SDL.SDL_GetKeyName((global::SDL2.SDL.SDL_Keycode)keycode);
+        }
+
         protected override string GetReadableKey(InputKey key)
         {
-            var keycode = SDL_GetKeyFromScancode(key.ToScancode());
+            var keycode = getKeyFromScancode(key.ToScancode());
 
             // early return if unknown. probably because key isn't a keyboard key, or doesn't map to an `SDL_Scancode`.
             if (keycode == SDL_Keycode.SDLK_UNKNOWN)
@@ -25,7 +41,7 @@ namespace osu.Framework.Platform.SDL3
             if (TryGetNameFromKeycode(keycode, out name))
                 return name;
 
-            name = SDL_GetKeyName(keycode);
+            name = getKeyName(keycode);
 
             // fall back if SDL couldn't find a name.
             if (string.IsNullOrEmpty(name))
