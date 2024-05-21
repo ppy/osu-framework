@@ -6,8 +6,6 @@ using System.Linq;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
-using osu.Framework.Platform.SDL3;
-using static SDL.SDL3;
 
 namespace osu.Framework.Platform.Linux
 {
@@ -28,13 +26,10 @@ namespace osu.Framework.Platform.Linux
             BypassCompositor = Options.BypassCompositor;
         }
 
-        protected override void SetupForRun()
-        {
-            SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, BypassCompositor ? "1"u8 : "0"u8);
-            base.SetupForRun();
-        }
-
-        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new SDL3DesktopWindow(preferredSurface, Options.FriendlyGameName);
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface)
+            => FrameworkEnvironment.UseSDL3
+                ? new SDL3LinuxWindow(preferredSurface, Options.FriendlyGameName, BypassCompositor)
+                : new SDL2LinuxWindow(preferredSurface, Options.FriendlyGameName, BypassCompositor);
 
         protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new LinuxReadableKeyCombinationProvider();
 
