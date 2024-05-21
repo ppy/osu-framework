@@ -1377,20 +1377,21 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void unbindInput([CanBeNull] TextBox next)
         {
-            Debug.Assert(textInput != null);
-
             if (!textInputBound)
                 return;
 
             textInputBound = false;
 
-            // see the comment above, in `bindInput(bool)`.
-            if (next?.textInput != textInput)
-                textInput.Deactivate();
+            if (textInput != null)
+            {
+                // see the comment above, in `bindInput(bool)`.
+                if (next?.textInput != textInput)
+                    textInput.Deactivate();
 
-            textInput.OnTextInput -= handleTextInput;
-            textInput.OnImeComposition -= handleImeComposition;
-            textInput.OnImeResult -= handleImeResult;
+                textInput.OnTextInput -= handleTextInput;
+                textInput.OnImeComposition -= handleImeComposition;
+                textInput.OnImeResult -= handleImeResult;
+            }
 
             // in case keys are held and we lose focus, we should no longer block key events
             textInputBlocking = false;
