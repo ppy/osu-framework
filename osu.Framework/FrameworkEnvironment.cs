@@ -20,6 +20,7 @@ namespace osu.Framework
         public static int? VertexBufferCount { get; }
         public static bool NoStructuredBuffers { get; }
         public static string? DeferredRendererEventsOutputPath { get; }
+        public static bool UseSDL3 { get; }
 
         /// <summary>
         /// Whether non-SSL requests should be allowed. Debug only. Defaults to disabled.
@@ -51,6 +52,8 @@ namespace osu.Framework
 
             if (DebugUtils.IsDebugBuild)
                 AllowInsecureRequests = parseBool(Environment.GetEnvironmentVariable("OSU_INSECURE_REQUESTS")) ?? false;
+
+            UseSDL3 = parseBool(Environment.GetEnvironmentVariable("OSU_SDL3")) ?? false;
         }
 
         private static bool? parseBool(string? value)

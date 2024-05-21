@@ -27,6 +27,7 @@ namespace osu.Framework.Platform
         event Action<Key> KeyUp;
         event Action<string> TextInput;
         event TextEditingDelegate TextEditing;
+        event Action<WindowState> WindowStateChanged;
 
         Bindable<CursorState> CursorStateBindable { get; }
 
