@@ -7,8 +7,8 @@ namespace osu.Framework.Platform.SDL2
 {
     internal class SDL2DesktopWindow : SDL2Window
     {
-        public SDL2DesktopWindow(GraphicsSurfaceType surfaceType)
-            : base(surfaceType)
+        public SDL2DesktopWindow(GraphicsSurfaceType surfaceType, string appName)
+            : base(surfaceType, appName)
         {
         }
 

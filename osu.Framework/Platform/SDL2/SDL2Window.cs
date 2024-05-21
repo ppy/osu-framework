@@ -181,9 +181,11 @@ namespace osu.Framework.Platform.SDL2
         /// </summary>
         protected ObjectHandle<SDL2Window> ObjectHandle { get; private set; }
 
-        protected SDL2Window(GraphicsSurfaceType surfaceType)
+        protected SDL2Window(GraphicsSurfaceType surfaceType, string appName)
         {
             ObjectHandle = new ObjectHandle<SDL2Window>(this, GCHandleType.Normal);
+
+            SDL_SetHint(SDL_HINT_APP_NAME, appName);
 
             if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0)
             {
