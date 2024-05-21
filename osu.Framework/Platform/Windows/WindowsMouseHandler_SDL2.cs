@@ -8,16 +8,16 @@ namespace osu.Framework.Platform.Windows
 {
     internal partial class WindowsMouseHandler
     {
-        private SDL_WindowsMessageHook callback = null!;
+        private SDL_WindowsMessageHook sdl2Callback = null!;
 
         private bool bindHandlerSDL2(GameHost host)
         {
             // ReSharper disable once ConvertClosureToMethodGroup
-            callback = (ptr, wnd, u, param, l) => onWndProcSDL2(ptr, wnd, u, param, l);
+            sdl2Callback = (ptr, wnd, u, param, l) => onWndProcSDL2(ptr, wnd, u, param, l);
 
             Enabled.BindValueChanged(enabled =>
             {
-                host.InputThread.Scheduler.Add(() => SDL_SetWindowsMessageHook(enabled.NewValue ? callback : null, IntPtr.Zero));
+                host.InputThread.Scheduler.Add(() => SDL_SetWindowsMessageHook(enabled.NewValue ? sdl2Callback : null, IntPtr.Zero));
             }, true);
 
             return true;
