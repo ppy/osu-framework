@@ -2404,6 +2404,11 @@ namespace osu.Framework.Graphics
         public virtual bool AcceptsFocus => false;
 
         /// <summary>
+        /// If true, returning true in <see cref="OnClick"/> causes the current focus target to be unfocused.
+        /// </summary>
+        public virtual bool ChangeFocusOnClick => true;
+
+        /// <summary>
         /// Whether this Drawable is currently hovered over.
         /// </summary>
         /// <remarks>This is updated only if <see cref="HandlePositionalInput"/> is true.</remarks>
