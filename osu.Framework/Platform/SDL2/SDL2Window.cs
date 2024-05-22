@@ -192,6 +192,11 @@ namespace osu.Framework.Platform.SDL2
                 throw new InvalidOperationException($"Failed to initialise SDL: {SDL_GetError()}");
             }
 
+            SDL_GetVersion(out SDL_version version);
+            Logger.Log($@"SDL2 Initialized
+                          SDL2 Version: {version.major}.{version.minor}.{version.patch}
+                          SDL2 Revision: {SDL_GetRevision()}");
+
             SDL_LogSetPriority((int)SDL_LogCategory.SDL_LOG_CATEGORY_ERROR, SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG);
             SDL_LogSetOutputFunction(logOutputDelegate = logOutput, IntPtr.Zero);
 
