@@ -145,15 +145,21 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private void onMenuStateChanged(MenuState state)
         {
-            // Reset states when the menu is closed by any means.
             if (state == MenuState.Closed)
             {
+                // Reset states when the menu is closed by any means.
                 SearchTerm.Value = string.Empty;
 
                 if (textBox.HasFocus)
                     dropdown.ChangeFocus(null);
 
                 dropdown.CloseMenu();
+            }
+            else
+            {
+                // This exists because the menu is _sometimes_ opened via external means rather than a direct click.
+                // _Sometimes_, this occurs via a click on an external button (such as a test scene step button), and so it needs to be scheduled for the next frame.
+                Schedule(() => dropdown.ChangeFocus(textBox));
             }
         }
 
