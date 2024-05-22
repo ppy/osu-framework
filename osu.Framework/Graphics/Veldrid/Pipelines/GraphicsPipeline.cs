@@ -27,8 +27,8 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
 
         private GraphicsPipelineDescription pipelineDesc = new GraphicsPipelineDescription
         {
-            RasterizerState = RasterizerStateDescription.CULL_NONE,
-            BlendState = BlendStateDescription.SINGLE_OVERRIDE_BLEND,
+            RasterizerState = RasterizerStateDescription.CullNone,
+            BlendState = BlendStateDescription.SingleOverrideBlend,
             ShaderSet = { VertexLayouts = new VertexLayoutDescription[1] }
         };
 
