@@ -161,13 +161,12 @@ namespace osu.Framework.Platform.SDL3
                 throw new InvalidOperationException($"Failed to initialise SDL: {SDL_GetError()}");
             }
 
-            SDL_Version version;
-            SDL_GetVersion(&version);
+            int version = SDL_GetVersion();
             Logger.Log($@"SDL3 Initialized
-                          SDL3 Version: {version.major}.{version.minor}.{version.patch}
+                          SDL3 Version: {SDL_VERSIONNUM_MAJOR(version)}.{SDL_VERSIONNUM_MINOR(version)}.{SDL_VERSIONNUM_MICRO(version)}
                           SDL3 Revision: {SDL_GetRevision()}");
 
-            SDL_LogSetPriority(SDL_LogCategory.SDL_LOG_CATEGORY_ERROR, SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG);
+            SDL_SetLogPriority(SDL_LogCategory.SDL_LOG_CATEGORY_ERROR, SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG);
             SDL_SetLogOutputFunction(&logOutput, IntPtr.Zero);
             SDL_SetEventFilter(&eventFilter, ObjectHandle.Handle);
 
@@ -466,7 +465,7 @@ namespace osu.Framework.Platform.SDL3
 
             do
             {
-                eventsRead = SDL_PeepEvents(events, SDL_eventaction.SDL_GETEVENT, SDL_EventType.SDL_EVENT_FIRST, SDL_EventType.SDL_EVENT_LAST);
+                eventsRead = SDL_PeepEvents(events, SDL_EventAction.SDL_GETEVENT, SDL_EventType.SDL_EVENT_FIRST, SDL_EventType.SDL_EVENT_LAST);
                 for (int i = 0; i < eventsRead; i++)
                     HandleEvent(events[i]);
             } while (eventsRead == events_per_peep);
