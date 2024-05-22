@@ -12,6 +12,8 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Platform;
+using osu.Framework.Platform.SDL2;
+using osu.Framework.Platform.SDL3;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
@@ -230,6 +232,17 @@ namespace osu.Framework.Graphics.Performance
             addValue(configExecutionMode.ToString());
             addHeader("Mode:");
             addValue(configWindowMode.ToString());
+
+            switch (host.Window)
+            {
+                case SDL3Window:
+                    addValue(" (SDL3)");
+                    break;
+
+                case SDL2Window:
+                    addValue(" (SDL2)");
+                    break;
+            }
 
             void addHeader(string text) => infoText.AddText($"{text} ", cp =>
             {
