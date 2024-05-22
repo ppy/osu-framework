@@ -14,7 +14,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using Veldrid;
 using Veldrid.OpenGL;
-using Veldrid.OpenGLBinding;
+using Veldrid.OpenGLBindings;
 
 namespace osu.Framework.Graphics.Veldrid
 {
@@ -106,7 +106,7 @@ namespace osu.Framework.Graphics.Veldrid
             var options = new GraphicsDeviceOptions
             {
                 HasMainSwapchain = true,
-                SwapchainDepthFormat = PixelFormat.R16_UNorm,
+                SwapchainDepthFormat = PixelFormat.R16UNorm,
                 SyncToVerticalBlank = true,
                 ResourceBindingModel = ResourceBindingModel.Improved,
             };
