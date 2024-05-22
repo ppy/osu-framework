@@ -335,7 +335,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             // Open via setting state directly
 
             AddStep("open dropdown directly", openExternally);
-            AddAssert("dropdown open", () => dropdown.Menu.State == MenuState.Open);
+            AddAssert("dropdown open", () => dropdown.Menu.State, () => Is.EqualTo(MenuState.Open));
             AddAssert("search bar visible", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Visible));
             AddStep("press escape", () => InputManager.Key(Key.Escape));
 
@@ -347,16 +347,16 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddAssert("dropdown open", () => dropdown.Menu.State == MenuState.Open);
+            AddAssert("dropdown open", () => dropdown.Menu.State, () => Is.EqualTo(MenuState.Open));
             AddAssert("search bar visible", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Visible));
             AddStep("press escape", () => InputManager.Key(Key.Escape));
 
             // Close via setting state directly
 
             AddStep("open dropdown directly", openExternally);
-            AddAssert("dropdown open", () => dropdown.Menu.State == MenuState.Open);
+            AddAssert("dropdown open", () => dropdown.Menu.State, () => Is.EqualTo(MenuState.Open));
             AddStep("close dropdown directly", () => dropdown.ChildrenOfType<Menu>().Single().Close());
-            AddAssert("dropdown closed", () => dropdown.Menu.State == MenuState.Closed);
+            AddAssert("dropdown closed", () => dropdown.Menu.State, () => Is.EqualTo(MenuState.Closed));
             AddAssert("search bar not visible", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
 
             void openExternally() => dropdown.ChildrenOfType<Menu>().Single().Open();
