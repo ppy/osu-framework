@@ -26,6 +26,9 @@ namespace osu.Framework.Extensions
 
         public static bool IsVirtual(this InputKey key)
         {
+            if (key >= InputKey.KeycodeA && key <= InputKey.KeycodeZ)
+                return true;
+
             switch (key)
             {
                 case InputKey.Shift:
