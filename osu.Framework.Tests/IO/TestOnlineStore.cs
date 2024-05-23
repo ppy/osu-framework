@@ -99,7 +99,7 @@ namespace osu.Framework.Tests.IO
         public void TestFileUrlFails([Values(true, false)] bool async)
         {
             // Known, guaranteed file path.
-            string path = new Uri(RuntimeInfo.EntryAssembly.Location).AbsoluteUri;
+            string path = new Uri(AppContext.BaseDirectory).AbsoluteUri;
 
             byte[]? result = async
                 ? store.GetAsync(path).GetResultSafely()
