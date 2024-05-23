@@ -7,11 +7,11 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
-using osu.Framework.Platform.SDL2;
+using osu.Framework.Platform.SDL3;
 using osuTK.Input;
-using static SDL2.SDL;
+using SDL;
 
-namespace osu.Framework.Tests.Platform.SDL2
+namespace osu.Framework.Tests.Platform.SDL3
 {
     [TestFixture]
     public class SDLKeyboardTest
@@ -20,7 +20,7 @@ namespace osu.Framework.Tests.Platform.SDL2
         {
             scancode = scancode,
             sym = keycode,
-            mod = SDL_Keymod.KMOD_NUM
+            mod = SDL_Keymod.SDL_KMOD_NUM
         };
 
         private static KeyboardKey key(Key key, char? c = null) => new KeyboardKey(key, c);
