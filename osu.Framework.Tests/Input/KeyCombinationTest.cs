@@ -26,6 +26,22 @@ namespace osu.Framework.Tests.Input
             new object[] { new KeyCombination(InputKey.Shift), new KeyCombination(InputKey.RShift), KeyCombinationMatchingMode.Modifiers, true },
             new object[] { new KeyCombination(InputKey.LShift), new KeyCombination(InputKey.RShift), KeyCombinationMatchingMode.Modifiers, false },
             new object[] { new KeyCombination(InputKey.RShift), new KeyCombination(InputKey.RShift), KeyCombinationMatchingMode.Modifiers, true },
+
+            // test multiple combination matches.
+            new object[] { new KeyCombination(InputKey.Shift), new KeyCombination(InputKey.LShift, InputKey.RShift), KeyCombinationMatchingMode.Any, true },
+            new object[] { new KeyCombination(InputKey.LShift), new KeyCombination(InputKey.LShift, InputKey.RShift), KeyCombinationMatchingMode.Any, true },
+            new object[] { new KeyCombination(InputKey.RShift), new KeyCombination(InputKey.LShift, InputKey.RShift), KeyCombinationMatchingMode.Any, true },
+            new object[] { new KeyCombination(InputKey.RShift), new KeyCombination(InputKey.RShift, InputKey.A), KeyCombinationMatchingMode.Any, true },
+
+            new object[] { new KeyCombination(InputKey.Shift), new KeyCombination(InputKey.LShift, InputKey.RShift), KeyCombinationMatchingMode.Exact, true },
+            new object[] { new KeyCombination(InputKey.LShift), new KeyCombination(InputKey.LShift, InputKey.RShift), KeyCombinationMatchingMode.Exact, false },
+            new object[] { new KeyCombination(InputKey.RShift), new KeyCombination(InputKey.LShift, InputKey.RShift), KeyCombinationMatchingMode.Exact, false },
+            new object[] { new KeyCombination(InputKey.RShift), new KeyCombination(InputKey.RShift, InputKey.A), KeyCombinationMatchingMode.Exact, false },
+
+            new object[] { new KeyCombination(InputKey.Shift), new KeyCombination(InputKey.LShift, InputKey.RShift), KeyCombinationMatchingMode.Modifiers, true },
+            new object[] { new KeyCombination(InputKey.LShift), new KeyCombination(InputKey.LShift, InputKey.RShift), KeyCombinationMatchingMode.Modifiers, false },
+            new object[] { new KeyCombination(InputKey.RShift), new KeyCombination(InputKey.LShift, InputKey.RShift), KeyCombinationMatchingMode.Modifiers, false },
+            new object[] { new KeyCombination(InputKey.RShift), new KeyCombination(InputKey.RShift, InputKey.A), KeyCombinationMatchingMode.Modifiers, true },
         };
 
         [TestCaseSource(nameof(key_combination_display_test_cases))]
