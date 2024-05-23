@@ -31,7 +31,7 @@ using MouseState = osu.Framework.Input.States.MouseState;
 
 namespace osu.Framework.Input
 {
-    public abstract partial class InputManager : Container, IInputStateChangeHandler
+    public abstract partial class InputManager : Container, IInputStateChangeHandler, IFocusManager
     {
         /// <summary>
         /// The initial delay before key repeat begins.
@@ -366,17 +366,17 @@ namespace osu.Framework.Input
             return joystickAxisEventManagers[source] = manager;
         }
 
-        /// <summary>
-        /// Reset current focused drawable to the top-most drawable which is <see cref="Drawable.RequestsFocus"/>.
-        /// </summary>
-        /// <param name="triggerSource">The source which triggered this event.</param>
+        [Obsolete("This method does not allow trapping focus. Use GetContainingFocusManager().TriggerFocusContention instead.")] // Can be removed 20241118
         public void TriggerFocusContention(Drawable triggerSource)
         {
             if (FocusedDrawable == null) return;
 
             Logger.Log($"Focus contention triggered by {triggerSource}.");
-            ChangeFocus(null);
+            changeFocus(null);
         }
+
+        [Obsolete("This method does not allow trapping focus. Use GetContainingFocusManager().ChangeFocus() instead.")] // Can be removed 20241118
+        public bool ChangeFocus(Drawable potentialFocusTarget) => changeFocus(potentialFocusTarget);
 
         /// <summary>
         /// Changes the currently-focused drawable. First checks that <paramref name="potentialFocusTarget"/> is in a valid state to receive focus,
@@ -386,7 +386,7 @@ namespace osu.Framework.Input
         /// </summary>
         /// <param name="potentialFocusTarget">The drawable to become focused.</param>
         /// <returns>True if the given drawable is now focused (or focus is dropped in the case of a null target).</returns>
-        public bool ChangeFocus(Drawable potentialFocusTarget) => ChangeFocus(potentialFocusTarget, CurrentState);
+        private bool changeFocus(Drawable potentialFocusTarget) => ChangeFocus(potentialFocusTarget, CurrentState);
 
         /// <summary>
         /// Changes the currently-focused drawable. First checks that <paramref name="potentialFocusTarget"/> is in a valid state to receive focus,
@@ -1031,7 +1031,7 @@ namespace osu.Framework.Input
                 return false;
 
             Logger.Log($"Focus on \"{FocusedDrawable}\" no longer valid as a result of {nameof(unfocusIfNoLongerValid)}.", LoggingTarget.Runtime, LogLevel.Debug);
-            ChangeFocus(null);
+            changeFocus(null);
             return true;
         }
 
@@ -1090,7 +1090,7 @@ namespace osu.Framework.Input
                 }
             }
 
-            ChangeFocus(focusTarget);
+            changeFocus(focusTarget);
         }
 
         private void focusTopMostRequestingDrawable()
@@ -1100,12 +1100,12 @@ namespace osu.Framework.Input
             {
                 if (d.RequestsFocus)
                 {
-                    ChangeFocus(d);
+                    changeFocus(d);
                     return;
                 }
             }
 
-            ChangeFocus(null);
+            changeFocus(null);
         }
 
         private class MouseLeftButtonEventManager : MouseButtonEventManager

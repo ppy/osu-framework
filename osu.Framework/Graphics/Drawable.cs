@@ -66,6 +66,7 @@ namespace osu.Framework.Graphics
             AddLayout(screenSpaceDrawQuadBacking);
             AddLayout(drawColourInfoBacking);
             AddLayout(requiredParentSizeToFitBacking);
+            AddLayout(maskingBacking);
         }
 
         private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), "Total constructed");
@@ -495,21 +496,40 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Computes the masking bounds of this <see cref="Drawable"/>.
+        /// </summary>
+        /// <returns>The <see cref="RectangleF"/> that defines the masking bounds.</returns>
+        public virtual RectangleF ComputeMaskingBounds()
+        {
+            if (HasProxy)
+                return proxy.ComputeMaskingBounds();
+
+            if (parent == null)
+                return ScreenSpaceDrawQuad.AABBFloat;
+
+            return parent.ChildMaskingBounds;
+        }
+
+        private RectangleF? lastMaskingBounds;
+
+        /// <summary>
         /// Updates all masking calculations for this <see cref="Drawable"/>.
         /// This occurs post-<see cref="UpdateSubTree"/> to ensure that all <see cref="Drawable"/> updates have taken place.
         /// </summary>
-        /// <param name="source">The parent that triggered this update on this <see cref="Drawable"/>.</param>
-        /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds.</param>
         /// <returns>Whether masking calculations have taken place.</returns>
-        public virtual bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
+        public virtual bool UpdateSubTreeMasking()
         {
             if (!IsPresent)
                 return false;
 
-            if (HasProxy && source != proxy)
-                return false;
+            var maskingBounds = ComputeMaskingBounds();
 
-            IsMaskedAway = ComputeIsMaskedAway(maskingBounds);
+            if (!maskingBacking.IsValid || lastMaskingBounds != maskingBounds)
+            {
+                lastMaskingBounds = maskingBounds;
+                IsMaskedAway = maskingBacking.Value = ComputeIsMaskedAway(maskingBounds);
+            }
+
             return true;
         }
 
@@ -1472,6 +1492,13 @@ namespace osu.Framework.Graphics
         /// <returns>The first parent <see cref="InputManager"/>.</returns>
         protected InputManager GetContainingInputManager() => this.FindClosestParent<InputManager>();
 
+        /// <summary>
+        /// Retrieve the first parent in the tree which implements <see cref="IFocusManager"/>.
+        /// As this is performing an upward tree traversal, avoid calling every frame.
+        /// </summary>
+        /// <returns>The first parent <see cref="IFocusManager"/>.</returns>
+        protected IFocusManager GetContainingFocusManager() => this.FindClosestParent<IFocusManager>();
+
         private CompositeDrawable parent;
 
         /// <summary>
@@ -1555,6 +1582,8 @@ namespace osu.Framework.Graphics
         /// actually masked away, but it may be false, even if the Drawable was masked away.
         /// </summary>
         internal bool IsMaskedAway { get; private set; }
+
+        private readonly LayoutValue<bool> maskingBacking = new LayoutValue<bool>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence);
 
         private readonly LayoutValue<Quad> screenSpaceDrawQuadBacking = new LayoutValue<Quad>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence);
 
@@ -2373,6 +2402,11 @@ namespace osu.Framework.Graphics
         /// If true, we will gain focus (receiving priority on keyboard input) (and receive an <see cref="OnFocus"/> event) on returning true in <see cref="OnClick"/>.
         /// </summary>
         public virtual bool AcceptsFocus => false;
+
+        /// <summary>
+        /// If true, returning true in <see cref="OnClick"/> causes the current focus target to be unfocused.
+        /// </summary>
+        public virtual bool ChangeFocusOnClick => true;
 
         /// <summary>
         /// Whether this Drawable is currently hovered over.

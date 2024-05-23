@@ -1,30 +1,27 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
+using osu.Framework.Input.Events;
 using osu.Framework.Platform;
 using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract partial class DropdownSearchBar : VisibilityContainer
+    public abstract partial class DropdownSearchBar : VisibilityContainer, IFocusManager
     {
-        [Resolved]
-        private GameHost? host { get; set; }
-
-        private TextBox textBox = null!;
-        private PassThroughInputManager textBoxInputManager = null!;
-
         public Bindable<string> SearchTerm { get; } = new Bindable<string>();
 
-        // handling mouse input on dropdown header is not easy, since the menu would lose focus on release and automatically close
-        public override bool HandlePositionalInput => false;
-        public override bool PropagatePositionalInputSubTree => false;
+        [Resolved]
+        private IDropdown dropdown { get; set; } = null!;
 
-        private bool obtainedFocus;
+        private TextBox textBox = null!;
+        private DropdownTextInputSource? inputSource;
 
         private bool alwaysDisplayOnFocus;
 
@@ -35,90 +32,246 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 alwaysDisplayOnFocus = value;
 
+                if (inputSource != null)
+                    inputSource.AlwaysDisplayOnFocus = value;
+
                 if (IsLoaded)
-                    updateVisibility();
+                    updateTextBoxVisibility();
             }
         }
 
         [BackgroundDependencyLoader]
         private void load()
         {
-            AlwaysPresent = true;
             RelativeSizeAxes = Axes.Both;
+            AlwaysPresent = true;
 
-            // Dropdown menus rely on their focus state to determine when they should be closed.
-            // On the other hand, text boxes require to be focused in order for the user to interact with them.
-            // To handle that matter, we'll wrap the search text box inside a local input manager, and manage its focus state accordingly.
-            InternalChild = textBoxInputManager = new PassThroughInputManager
+            InternalChildren = new Drawable[]
             {
-                RelativeSizeAxes = Axes.Both,
-                Child = textBox = CreateTextBox().With(t =>
+                textBox = CreateTextBox().With(t =>
                 {
-                    t.ReleaseFocusOnCommit = false;
                     t.RelativeSizeAxes = Axes.Both;
                     t.Size = new Vector2(1f);
                     t.Current = SearchTerm;
-                })
+                    t.ReleaseFocusOnCommit = true;
+                    t.CommitOnFocusLost = false;
+                    t.OnCommit += onTextBoxCommit;
+                }),
+                new ClickHandler
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Click = onClick
+                }
             };
+
+            dropdown.MenuStateChanged += onMenuStateChanged;
+        }
+
+        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
+        {
+            inputSource = new DropdownTextInputSource(parent.Get<TextInputSource>(), parent.Get<GameHost>())
+            {
+                AlwaysDisplayOnFocus = AlwaysDisplayOnFocus
+            };
+
+            var dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
+            dependencies.CacheAs(typeof(TextInputSource), inputSource);
+            return dependencies;
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
-
-            SearchTerm.BindValueChanged(v => updateVisibility());
-            updateVisibility();
+            SearchTerm.BindValueChanged(_ => updateTextBoxVisibility(), true);
         }
 
-        public void ObtainFocus()
+        public override bool PropagateNonPositionalInputSubTree => dropdown.Enabled.Value && base.PropagateNonPositionalInputSubTree;
+
+        // Importantly, this also removes the visibility condition of the base implementation - this element is always present even though it may not be physically visible on the screen.
+        public override bool PropagatePositionalInputSubTree => dropdown.Enabled.Value && RequestsPositionalInputSubTree && !IsMaskedAway;
+
+        protected override void Update()
         {
-            // On mobile platforms, let's not make the keyboard popup unless the dropdown is intentionally searchable.
-            // Unfortunately it is not enough to just early-return here,
-            // as even despite that the text box will receive focus via the text box input manager;
-            // it is necessary to cut off the text box input manager from parent input entirely.
-            // TODO: preferably figure out a better way to do this.
-            bool willShowOverlappingKeyboard = host?.OnScreenKeyboardOverlapsGameWindow == true;
+            base.Update();
 
-            if (willShowOverlappingKeyboard && !AlwaysDisplayOnFocus)
-            {
-                textBoxInputManager.UseParentInput = false;
-                return;
-            }
-
-            textBoxInputManager.ChangeFocus(textBox);
-            obtainedFocus = true;
-
-            updateVisibility();
+            updateMenuState();
+            updateTextBoxVisibility();
         }
 
-        public void ReleaseFocus()
-        {
-            textBoxInputManager.ChangeFocus(null);
-            SearchTerm.Value = string.Empty;
-            obtainedFocus = false;
-
-            updateVisibility();
-        }
-
+        /// <summary>
+        /// Clears the search term.
+        /// </summary>
+        /// <returns>If the search term was cleared.</returns>
         public bool Back()
         {
-            // text box may have lost focus from pressing escape, retain it.
-            if (obtainedFocus && !textBox.HasFocus)
-                ObtainFocus();
+            if (string.IsNullOrEmpty(SearchTerm.Value))
+                return false;
 
-            if (!string.IsNullOrEmpty(SearchTerm.Value))
-            {
-                SearchTerm.Value = string.Empty;
-                return true;
-            }
-
-            return false;
+            SearchTerm.Value = string.Empty;
+            return true;
         }
 
-        private void updateVisibility() => State.Value = obtainedFocus && (AlwaysDisplayOnFocus || !string.IsNullOrEmpty(SearchTerm.Value))
-            ? Visibility.Visible
-            : Visibility.Hidden;
+        /// <summary>
+        /// Opens or closes the menu depending on whether the textbox is focused.
+        /// </summary>
+        private void updateMenuState()
+        {
+            if (textBox.HasFocus)
+                dropdown.OpenMenu();
+            else
+                dropdown.CloseMenu();
+        }
 
+        /// <summary>
+        /// Updates the textbox visibility.
+        /// </summary>
+        private void updateTextBoxVisibility()
+        {
+            bool showTextBox = AlwaysDisplayOnFocus || !string.IsNullOrEmpty(SearchTerm.Value);
+            State.Value = textBox.HasFocus && showTextBox ? Visibility.Visible : Visibility.Hidden;
+        }
+
+        /// <summary>
+        /// Handles textbox commits to select the current item.
+        /// </summary>
+        private void onTextBoxCommit(TextBox sender, bool newText)
+        {
+            dropdown.CommitPreselection();
+            dropdown.CloseMenu();
+        }
+
+        /// <summary>
+        /// Handles changes to the menu visibility.
+        /// </summary>
+        private void onMenuStateChanged(MenuState state)
+        {
+            if (state == MenuState.Closed)
+            {
+                // Reset states when the menu is closed by any means.
+                SearchTerm.Value = string.Empty;
+
+                if (textBox.HasFocus)
+                    dropdown.ChangeFocus(null);
+
+                dropdown.CloseMenu();
+            }
+            else
+            {
+                // This exists because the menu is _sometimes_ opened via external means rather than a direct click.
+                // _Sometimes_, this occurs via a click on an external button (such as a test scene step button), and so it needs to be scheduled for the next frame.
+                Schedule(() => dropdown.ChangeFocus(textBox));
+            }
+        }
+
+        /// <summary>
+        /// Handles clicks on the search bar.
+        /// </summary>
+        private bool onClick(ClickEvent e)
+        {
+            // Allow input to fall through to the textbox if it's visible.
+            if (State.Value == Visibility.Visible)
+                return false;
+
+            // Otherwise, the search box acts as a button to show/hide the menu.
+            dropdown.ToggleMenu();
+
+            // And importantly, when the menu is closed as a result of the above toggle,
+            // block the textbox from receiving input so that it doesn't get re-focused.
+            return dropdown.MenuState == MenuState.Closed;
+        }
+
+        /// <summary>
+        /// Creates the <see cref="TextBox"/>.
+        /// </summary>
         protected abstract TextBox CreateTextBox();
+
+        void IFocusManager.TriggerFocusContention(Drawable? triggerSource)
+        {
+            // Clear search text first without releasing focus.
+            if (Back())
+                return;
+
+            dropdown.TriggerFocusContention(triggerSource);
+        }
+
+        bool IFocusManager.ChangeFocus(Drawable? potentialFocusTarget)
+        {
+            // Clear search text first without releasing focus.
+            if (Back())
+                return false;
+
+            return dropdown.ChangeFocus(potentialFocusTarget);
+        }
+
+        private partial class ClickHandler : Drawable
+        {
+            public required Func<ClickEvent, bool> Click { get; init; }
+            protected override bool OnClick(ClickEvent e) => Click(e);
+        }
+
+        private class DropdownTextInputSource : TextInputSource
+        {
+            public bool AlwaysDisplayOnFocus { get; set; }
+
+            private bool allowTextInput => !host.OnScreenKeyboardOverlapsGameWindow || AlwaysDisplayOnFocus;
+
+            private readonly TextInputSource platformSource;
+            private readonly GameHost host;
+            private RectangleF? imeRectangle;
+
+            public DropdownTextInputSource(TextInputSource platformSource, GameHost host)
+            {
+                this.platformSource = platformSource;
+                this.host = host;
+
+                platformSource.OnTextInput += TriggerTextInput;
+                platformSource.OnImeComposition += TriggerImeComposition;
+                platformSource.OnImeResult += TriggerImeResult;
+            }
+
+            protected override void ActivateTextInput(bool allowIme)
+            {
+                base.ActivateTextInput(allowIme);
+
+                if (allowTextInput)
+                    platformSource.Activate(allowIme, imeRectangle ?? RectangleF.Empty);
+            }
+
+            protected override void EnsureTextInputActivated(bool allowIme)
+            {
+                base.EnsureTextInputActivated(allowIme);
+
+                if (allowTextInput)
+                    platformSource.EnsureActivated(allowIme, imeRectangle);
+            }
+
+            protected override void DeactivateTextInput()
+            {
+                base.DeactivateTextInput();
+
+                imeRectangle = null;
+
+                if (allowTextInput)
+                    platformSource.Deactivate();
+            }
+
+            public override void SetImeRectangle(RectangleF rectangle)
+            {
+                base.SetImeRectangle(rectangle);
+
+                imeRectangle = rectangle;
+
+                if (allowTextInput)
+                    platformSource.SetImeRectangle(rectangle);
+            }
+
+            public override void ResetIme()
+            {
+                base.ResetIme();
+
+                if (allowTextInput)
+                    platformSource.ResetIme();
+            }
+        }
     }
 }

@@ -13,11 +13,12 @@ using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Input.Events;
 using osuTK.Input;
+using System.Numerics;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
     public partial class StepSlider<T> : SliderBar<T>
-        where T : struct, IComparable<T>, IConvertible, IEquatable<T>
+        where T : struct, INumber<T>, IMinMaxValue<T>
     {
         private readonly Box selection;
         private readonly Box background;

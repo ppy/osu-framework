@@ -2,12 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Input.Bindings;
-using osu.Framework.Platform.SDL2;
-using SDL2;
+using osu.Framework.Platform.SDL3;
+using SDL;
 
 namespace osu.Framework.Platform.MacOS
 {
-    public class MacOSReadableKeyCombinationProvider : SDL2ReadableKeyCombinationProvider
+    public class MacOSReadableKeyCombinationProvider : SDL3ReadableKeyCombinationProvider
     {
         protected override string GetReadableKey(InputKey key)
         {
@@ -24,23 +24,23 @@ namespace osu.Framework.Platform.MacOS
             }
         }
 
-        protected override bool TryGetNameFromKeycode(SDL.SDL_Keycode keycode, out string name)
+        protected override bool TryGetNameFromKeycode(SDL_Keycode keycode, out string name)
         {
             switch (keycode)
             {
-                case SDL.SDL_Keycode.SDLK_LGUI:
+                case SDL_Keycode.SDLK_LGUI:
                     name = "LCmd";
                     return true;
 
-                case SDL.SDL_Keycode.SDLK_RGUI:
+                case SDL_Keycode.SDLK_RGUI:
                     name = "RCmd";
                     return true;
 
-                case SDL.SDL_Keycode.SDLK_LALT:
+                case SDL_Keycode.SDLK_LALT:
                     name = "LOpt";
                     return true;
 
-                case SDL.SDL_Keycode.SDLK_RALT:
+                case SDL_Keycode.SDLK_RALT:
                     name = "ROpt";
                     return true;
 

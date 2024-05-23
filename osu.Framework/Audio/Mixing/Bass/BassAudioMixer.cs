@@ -157,7 +157,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// If successful, the position is returned.
         /// </returns>
         public long ChannelGetPosition(IBassAudioChannel channel, PositionFlags mode = PositionFlags.Bytes)
-            => BassMix.ChannelGetPosition(channel.Handle);
+            => BassMix.ChannelGetPosition(channel.Handle, mode);
 
         /// <summary>
         /// Sets the playback position of a channel.

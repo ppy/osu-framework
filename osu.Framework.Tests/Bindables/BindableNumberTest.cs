@@ -57,6 +57,33 @@ namespace osu.Framework.Tests.Bindables
         }
 
         /// <summary>
+        /// This test exercises that when sitting a decimal <see cref="BindableNumber{T}.Precision"/> like 0.1 on a <c>BindableNumber&lt;float&gt;</c>,
+        /// the resulting <see cref="BindableNumber{T}.Value"/> is the closest to the actual closest <c>float</c> number
+        /// to the real-world decimal.
+        /// This matters because certain methods of rounding to the precision specified on the <see cref="BindableNumber{T}"/>
+        /// cause rounding errors that show up elsewhere in undesirable ways.
+        /// </summary>
+        [Test]
+        public void TestDecimalPrecision()
+        {
+            var bindable = new BindableNumber<float>
+            {
+                Precision = 0.1f,
+                Value = 5.2f
+            };
+            Assert.That(bindable.Value, Is.EqualTo(5.2f));
+
+            bindable.Value = 4.3f;
+            Assert.That(bindable.Value, Is.EqualTo(4.3f));
+
+            bindable.Precision = 0.01f;
+            Assert.That(bindable.Value, Is.EqualTo(4.3f));
+
+            bindable.Value = 9.87f;
+            Assert.That(bindable.Value, Is.EqualTo(9.87f));
+        }
+
+        /// <summary>
         /// Tests that value can be added to on all supported <see cref="BindableNumber{T}"/> types.
         /// </summary>
         [TestCaseSource(nameof(typeSource))]
