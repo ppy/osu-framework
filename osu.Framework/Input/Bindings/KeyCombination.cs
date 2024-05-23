@@ -264,29 +264,7 @@ namespace osu.Framework.Input.Bindings
             return false;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsKeycode(InputKey key) => key >= InputKey.KeycodeA && key <= InputKey.KeycodeZ;
-
-        /// <summary>
-        /// Returns 1 or 2 <see cref="InputKey"/>s based on the <see cref="KeyboardKey"/>.
-        /// </summary>
-        /// <param name="key">The <see cref="KeyboardKey"/> to get the <see cref="InputKey"/>s from</param>
-        /// <returns>
-        /// 1 or 2 <see cref="InputKey"/>s:
-        /// <list>
-        ///     <item>The first <see cref="InputKey"/> is from the <see cref="KeyboardKey.Key"/>.</item>
-        ///     <item>The second one (if available) is from the <see cref="KeyboardKey.Character"/>.</item>
-        /// </list>
-        /// </returns>
-        public static IEnumerable<InputKey> FromKey(KeyboardKey key)
-        {
-            yield return fromKey(key.Key);
-
-            if (key.Character >= 'a' && key.Character <= 'z')
-                yield return key.Character.Value - 'a' + InputKey.KeycodeA;
-        }
-
-        private static InputKey fromKey(Key key)
+        public static InputKey FromKey(Key key)
         {
             switch (key)
             {
@@ -375,13 +353,7 @@ namespace osu.Framework.Input.Bindings
             if (state.Keyboard != null)
             {
                 foreach (var key in state.Keyboard.Keys)
-                {
-                    foreach (var iKey in FromKey(new KeyboardKey(key, state.Keyboard.Characters[key])))
-                    {
-                        if (!keys.Contains(iKey))
-                            keys.Add(iKey);
-                    }
-                }
+                    keys.Add(FromKey(key));
             }
 
             if (state.Joystick != null)

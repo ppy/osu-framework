@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -140,7 +139,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             protected override bool OnKeyDown(KeyDownEvent e)
             {
-                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.KeyboardKey).ToArray()), e.CurrentState, KeyCombinationMatchingMode.Any))
+                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.Key)), e.CurrentState, KeyCombinationMatchingMode.Any))
                     box.Colour = Color4.Navy;
 
                 return base.OnKeyDown(e);
@@ -148,7 +147,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             protected override void OnKeyUp(KeyUpEvent e)
             {
-                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.KeyboardKey).ToArray()), e.CurrentState, KeyCombinationMatchingMode.Any))
+                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.Key)), e.CurrentState, KeyCombinationMatchingMode.Any))
                     box.Colour = Color4.DarkGray;
 
                 base.OnKeyUp(e);
@@ -205,12 +204,8 @@ namespace osu.Framework.Tests.Visual.Input
                 var state = new InputState(keyboard: e.CurrentState.Keyboard);
                 var keyCombination = KeyCombination.FromInputState(state);
 
-                var onlyKeys = keyCombination.Keys.Where(k => !KeyCombination.IsKeycode(k)).ToArray();
-                var onlyKeycodes = keyCombination.Keys.Where(KeyCombination.IsKeycode).ToArray();
-
-                string keys = readableKeyCombinationProvider.GetReadableString(new KeyCombination(onlyKeys));
-                string keycodes = readableKeyCombinationProvider.GetReadableString(new KeyCombination(onlyKeycodes));
-                text.Text = $"pressed: {keys}\nkeycodes: {keycodes}";
+                string keys = readableKeyCombinationProvider.GetReadableString(keyCombination);
+                text.Text = $"pressed: {keys}";
             }
 
             protected override bool OnKeyDown(KeyDownEvent e)
