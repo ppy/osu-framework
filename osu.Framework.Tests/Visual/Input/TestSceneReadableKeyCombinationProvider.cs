@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -203,9 +204,13 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 var state = new InputState(keyboard: e.CurrentState.Keyboard);
                 var keyCombination = KeyCombination.FromInputState(state);
+                var virtualKeys = keyCombination.Keys.Select(k => KeyCombination.GetVirtualKey(k, state.Keyboard.Characters))
+                                                .Where(k => k != null)
+                                                .Select(k => k!.Value).ToArray();
 
                 string keys = readableKeyCombinationProvider.GetReadableString(keyCombination);
-                text.Text = $"pressed: {keys}";
+                string @virtual = readableKeyCombinationProvider.GetReadableString(new KeyCombination(virtualKeys));
+                text.Text = $"pressed: {keys}\nvirtual: {@virtual}";
             }
 
             protected override bool OnKeyDown(KeyDownEvent e)

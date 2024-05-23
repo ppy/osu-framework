@@ -105,7 +105,7 @@ namespace osu.Framework.Input.Bindings
             return ContainsAll(Keys, pressedKeys.Keys, matchingMode, inputState.Keyboard.Characters);
         }
 
-        private static InputKey? getVirtualKey(InputKey key, Dictionary<Key, char?> keyboardCharacters)
+        internal static InputKey? GetVirtualKey(InputKey key, Dictionary<Key, char?> keyboardCharacters)
         {
             switch (key)
             {
@@ -198,7 +198,7 @@ namespace osu.Framework.Input.Bindings
         internal static bool KeyBindingContains(ImmutableArray<InputKey> candidateKeyBinding, InputKey physicalKey, Dictionary<Key, char?> keyboardCharacters)
         {
             return candidateKeyBinding.Contains(physicalKey) ||
-                   (getVirtualKey(physicalKey, keyboardCharacters) is InputKey vKey && candidateKeyBinding.Contains(vKey));
+                   (GetVirtualKey(physicalKey, keyboardCharacters) is InputKey vKey && candidateKeyBinding.Contains(vKey));
         }
 
         /// <summary>
@@ -214,7 +214,7 @@ namespace osu.Framework.Input.Bindings
                 return pressedPhysicalKeys.Contains(candidateKey);
 
             Debug.Assert(candidateKey.IsVirtual());
-            return pressedPhysicalKeys.Any(k => getVirtualKey(k, keyboardCharacters) == candidateKey);
+            return pressedPhysicalKeys.Any(k => GetVirtualKey(k, keyboardCharacters) == candidateKey);
         }
 
         public bool Equals(KeyCombination other) => Keys.SequenceEqual(other.Keys);
