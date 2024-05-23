@@ -45,19 +45,14 @@ namespace osu.Framework.Tests.Input
         [TestCase(KeyCombinationMatchingMode.Any)]
         [TestCase(KeyCombinationMatchingMode.Exact)]
         [TestCase(KeyCombinationMatchingMode.Modifiers)]
-        public void TestBrokenInExactMode(KeyCombinationMatchingMode mode)
+        public void TestExactMode(KeyCombinationMatchingMode mode)
         {
             create(test_bindings, SimultaneousBindingMode.Unique, mode);
 
             press(new KeyboardKey(Key.U, 'a'));
-
-            if (mode == KeyCombinationMatchingMode.Exact)
-                check(); // in an ideal implementation, this would not be empty
-            else
-                check(TestKeyBinding.KeycodeA);
+            check(TestKeyBinding.KeycodeA);
 
             release(new KeyboardKey(Key.U, 'a'));
-
             check();
         }
 
