@@ -135,7 +135,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         /// <summary>
-        /// Ensures that performing <see cref="InputManager.ChangeFocus(Drawable)"/> to a drawable with disabled <see cref="Drawable.AcceptsFocus"/> returns <see langword="false"/>.
+        /// Ensures that performing <see cref="IFocusManager.ChangeFocus(Drawable)"/> to a drawable with disabled <see cref="Drawable.AcceptsFocus"/> returns <see langword="false"/>.
         /// </summary>
         [Test]
         public void DisabledFocusDrawableCannotReceiveFocusViaChangeFocus()
@@ -143,13 +143,13 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkFocused(() => requestingFocus);
 
             AddStep("disable focus from top left", () => focusTopLeft.AllowAcceptingFocus = false);
-            AddAssert("cannot switch focus to top left", () => !InputManager.ChangeFocus(focusTopLeft));
+            AddAssert("cannot switch focus to top left", () => !((IFocusManager)InputManager).ChangeFocus(focusTopLeft));
 
             checkFocused(() => requestingFocus);
         }
 
         /// <summary>
-        /// Ensures that performing <see cref="InputManager.ChangeFocus(Drawable)"/> to a non-present drawable returns <see langword="false"/>.
+        /// Ensures that performing <see cref="IFocusManager.ChangeFocus(Drawable)"/> to a non-present drawable returns <see langword="false"/>.
         /// </summary>
         [Test]
         public void NotPresentDrawableCannotReceiveFocusViaChangeFocus()
@@ -157,13 +157,13 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkFocused(() => requestingFocus);
 
             AddStep("hide top left", () => focusTopLeft.Alpha = 0);
-            AddAssert("cannot switch focus to top left", () => !InputManager.ChangeFocus(focusTopLeft));
+            AddAssert("cannot switch focus to top left", () => !((IFocusManager)InputManager).ChangeFocus(focusTopLeft));
 
             checkFocused(() => requestingFocus);
         }
 
         /// <summary>
-        /// Ensures that performing <see cref="InputManager.ChangeFocus(Drawable)"/> to a drawable of a non-present parent returns <see langword="false"/>.
+        /// Ensures that performing <see cref="IFocusManager.ChangeFocus(Drawable)"/> to a drawable of a non-present parent returns <see langword="false"/>.
         /// </summary>
         [Test]
         public void DrawableOfNotPresentParentCannotReceiveFocusViaChangeFocus()
@@ -183,7 +183,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 Remove(focusTopLeft, false);
                 container.Add(focusTopLeft);
             });
-            AddAssert("cannot switch focus to top left", () => !InputManager.ChangeFocus(focusTopLeft));
+            AddAssert("cannot switch focus to top left", () => !((IFocusManager)InputManager).ChangeFocus(focusTopLeft));
 
             checkFocused(() => requestingFocus);
         }
@@ -241,6 +241,49 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddAssert("Received the joystick button", () =>
                 focusBottomLeft.JoystickPressCount == 1 && focusBottomLeft.JoystickReleaseCount == 1 &&
                 focusBottomRight.JoystickPressCount == 1 && focusBottomRight.JoystickReleaseCount == 1);
+        }
+
+        [Test]
+        public void TestDrawableWithNoFocusChangeOnClick()
+        {
+            FocusBox focusableBox = null!;
+            FocusBox noFocusChangeBox = null!;
+
+            AddStep("setup", () =>
+            {
+                Children = new Drawable[]
+                {
+                    focusableBox = new FocusBox
+                    {
+                        Anchor = Anchor.CentreLeft,
+                        Origin = Anchor.CentreLeft,
+                    },
+                    noFocusChangeBox = new NoFocusChangeBox
+                    {
+                        Anchor = Anchor.CentreRight,
+                        Origin = Anchor.CentreRight,
+                        AllowAcceptingFocus = false
+                    }
+                };
+            });
+
+            AddStep("click focusable box", () =>
+            {
+                InputManager.MoveMouseTo(focusableBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            checkFocused(() => focusableBox);
+
+            AddStep("click no focus change box", () =>
+            {
+                InputManager.MoveMouseTo(noFocusChangeBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            checkFocused(() => focusableBox);
+            checkNotFocused(() => noFocusChangeBox);
+            AddAssert("no focus change box received click", () => noFocusChangeBox.ClickCount, () => Is.GreaterThan(0));
         }
 
         private void checkFocused(Func<Drawable> d) => AddAssert("check focus", () => d().HasFocus);
@@ -343,7 +386,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         public partial class FocusBox : CompositeDrawable
         {
             protected Box Box;
-            public int KeyDownCount, KeyUpCount, JoystickPressCount, JoystickReleaseCount;
+            public int KeyDownCount, KeyUpCount, JoystickPressCount, JoystickReleaseCount, ClickCount;
 
             public FocusBox()
             {
@@ -358,7 +401,11 @@ namespace osu.Framework.Tests.Visual.Drawables
                 Size = new Vector2(0.4f);
             }
 
-            protected override bool OnClick(ClickEvent e) => true;
+            protected override bool OnClick(ClickEvent e)
+            {
+                ++ClickCount;
+                return true;
+            }
 
             public bool AllowAcceptingFocus = true;
 
@@ -400,6 +447,23 @@ namespace osu.Framework.Tests.Visual.Drawables
                 ++JoystickReleaseCount;
                 base.OnJoystickRelease(e);
             }
+        }
+
+        public partial class NoFocusChangeBox : FocusBox
+        {
+            public NoFocusChangeBox()
+            {
+                Box.Colour = Color4.Green;
+
+                AddInternal(new SpriteText
+                {
+                    Text = "ChangeFocusOnClick = false",
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                });
+            }
+
+            public override bool ChangeFocusOnClick => false;
         }
     }
 }

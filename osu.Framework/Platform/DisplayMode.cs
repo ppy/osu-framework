@@ -29,14 +29,14 @@ namespace osu.Framework.Platform
         /// <summary>
         /// The refresh rate in hertz.
         /// </summary>
-        public readonly int RefreshRate;
+        public readonly float RefreshRate;
 
         /// <summary>
         /// The index of the display this mode belongs to as determined by the windowing backend.
         /// </summary>
         public readonly int DisplayIndex;
 
-        public DisplayMode(string? format, Size size, int bitsPerPixel, int refreshRate, int displayIndex)
+        public DisplayMode(string? format, Size size, int bitsPerPixel, float refreshRate, int displayIndex)
         {
             Format = format ?? "Unknown";
             Size = size;

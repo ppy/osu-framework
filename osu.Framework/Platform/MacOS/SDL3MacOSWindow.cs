@@ -5,14 +5,15 @@
 
 using System;
 using osu.Framework.Platform.MacOS.Native;
+using osu.Framework.Platform.SDL3;
 using osuTK;
 
 namespace osu.Framework.Platform.MacOS
 {
     /// <summary>
-    /// macOS-specific subclass of <see cref="SDL2Window"/>.
+    /// macOS-specific subclass of <see cref="SDL3Window"/>.
     /// </summary>
-    internal class MacOSWindow : SDL2DesktopWindow
+    internal class SDL3MacOSWindow : SDL3DesktopWindow
     {
         private static readonly IntPtr sel_hasprecisescrollingdeltas = Selector.Get("hasPreciseScrollingDeltas");
         private static readonly IntPtr sel_scrollingdeltax = Selector.Get("scrollingDeltaX");
@@ -24,8 +25,8 @@ namespace osu.Framework.Platform.MacOS
         private IntPtr originalScrollWheel;
         private ScrollWheelDelegate scrollWheelHandler;
 
-        public MacOSWindow(GraphicsSurfaceType surfaceType)
-            : base(surfaceType)
+        public SDL3MacOSWindow(GraphicsSurfaceType surfaceType, string appName)
+            : base(surfaceType, appName)
         {
         }
 

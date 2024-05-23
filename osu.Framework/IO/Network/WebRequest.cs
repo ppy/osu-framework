@@ -23,13 +23,15 @@ namespace osu.Framework.IO.Network
 {
     public class WebRequest : IDisposable
     {
+        public const int DEFAULT_TIMEOUT = 10000;
+
         internal const int MAX_RETRIES = 1;
 
-        /// <summary>
-        /// Whether non-SSL requests should be allowed. Defaults to disabled.
-        /// In the default state, http:// requests will be automatically converted to https://.
-        /// </summary>
-        public bool AllowInsecureRequests;
+        private const int buffer_size = 32768;
+        private const string form_boundary = "-----------------------------28947758029299";
+        private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
+
+        private static readonly Logger logger = Logger.GetLogger(LoggingTarget.Network);
 
         /// <summary>
         /// Invoked when a response has been received, but not data has been received.
@@ -61,33 +63,48 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public bool Aborted { get; private set; }
 
-        private bool completed;
-
         /// <summary>
-        /// Whether the <see cref="WebRequest"/> has been run.
+        /// The response stream.
         /// </summary>
-        public bool Completed
-        {
-            get => completed;
-            private set
-            {
-                completed = value;
-                if (!completed) return;
+        public Stream ResponseStream { get; private set; }
 
-                // WebRequests can only be used once - no need to keep events bound
-                // This helps with disposal in PerformAsync usages
-                Started = null;
-                Finished = null;
-                Failed = null;
-                DownloadProgress = null;
-                UploadProgress = null;
-            }
-        }
+        public HttpResponseHeaders ResponseHeaders => response.Headers;
 
         /// <summary>
         /// The URL of this request.
         /// </summary>
         public string Url;
+
+        public HttpMethod Method = HttpMethod.Get;
+
+        /// <summary>
+        /// The amount of time from last sent or received data to trigger a timeout and abort the request.
+        /// </summary>
+        public int Timeout = DEFAULT_TIMEOUT;
+
+        /// <summary>
+        /// Whether this request should internally retry (up to <see cref="MAX_RETRIES"/> times) on a timeout before throwing an exception.
+        /// </summary>
+        public bool AllowRetryOnTimeout = true;
+
+        /// <summary>
+        /// The content type when POST content is provided.
+        /// </summary>
+        public string ContentType;
+
+        /// <summary>
+        /// The type of content expected by this web request.
+        /// </summary>
+        protected virtual string Accept => string.Empty;
+
+        /// <summary>
+        /// The value of the User-agent HTTP header.
+        /// </summary>
+        protected virtual string UserAgent => "osu-framework";
+
+        internal int RetryCount { get; private set; }
+
+        private long contentLength => requestStream?.Length ?? 0;
 
         /// <summary>
         /// Query string parameters.
@@ -109,32 +126,6 @@ namespace osu.Framework.IO.Network
         /// </summary>
         private readonly IDictionary<string, string> headers = new Dictionary<string, string>();
 
-        public const int DEFAULT_TIMEOUT = 10000;
-
-        public HttpMethod Method = HttpMethod.Get;
-
-        /// <summary>
-        /// The amount of time from last sent or received data to trigger a timeout and abort the request.
-        /// </summary>
-        public int Timeout = DEFAULT_TIMEOUT;
-
-        /// <summary>
-        /// The type of content expected by this web request.
-        /// </summary>
-        protected virtual string Accept => string.Empty;
-
-        /// <summary>
-        /// The value of the User-agent HTTP header.
-        /// </summary>
-        protected virtual string UserAgent => "osu-framework";
-
-        internal int RetryCount { get; private set; }
-
-        /// <summary>
-        /// Whether this request should internally retry (up to <see cref="MAX_RETRIES"/> times) on a timeout before throwing an exception.
-        /// </summary>
-        public bool AllowRetryOnTimeout { get; set; } = true;
-
         private CancellationToken? userToken;
         private CancellationTokenSource abortToken;
         private CancellationTokenSource timeoutToken;
@@ -142,11 +133,11 @@ namespace osu.Framework.IO.Network
         private LengthTrackingStream requestStream;
         private HttpResponseMessage response;
 
-        private long contentLength => requestStream?.Length ?? 0;
-
-        private const string form_boundary = "-----------------------------28947758029299";
-
-        private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
+        private MemoryStream rawContent;
+        private int responseBytesRead;
+        private byte[] buffer;
+        private bool? allowInsecureRequests;
+        private bool completed;
 
         private static readonly HttpClient client = new HttpClient(
             // SocketsHttpHandler causes crash in Android Debug, and seems to have compatibility issue on SSL
@@ -171,26 +162,45 @@ namespace osu.Framework.IO.Network
             Timeout = System.Threading.Timeout.InfiniteTimeSpan
         };
 
-        private static readonly Logger logger = Logger.GetLogger(LoggingTarget.Network);
-
         public WebRequest(string url = null, params object[] args)
         {
             if (!string.IsNullOrEmpty(url))
                 Url = args.Length == 0 ? url : string.Format(url, args);
         }
 
-        private int responseBytesRead;
+        /// <summary>
+        /// Whether non-SSL requests should be allowed. Defaults to disabled.
+        /// In the default state, http:// requests will be automatically converted to https://.
+        /// </summary>
+        /// <remarks>
+        /// Setting this overrides the <c>OSU_INSECURE_REQUESTS</c> environment variable.
+        /// </remarks>
+        public bool AllowInsecureRequests
+        {
+            get => allowInsecureRequests ?? FrameworkEnvironment.AllowInsecureRequests;
+            set => allowInsecureRequests = value;
+        }
 
-        private const int buffer_size = 32768;
-        private byte[] buffer;
+        /// <summary>
+        /// Whether the <see cref="WebRequest"/> has been run.
+        /// </summary>
+        public bool Completed
+        {
+            get => completed;
+            private set
+            {
+                completed = value;
+                if (!completed) return;
 
-        private MemoryStream rawContent;
-
-        public string ContentType;
-
-        protected virtual Stream CreateOutputStream() => new MemoryStream();
-
-        public Stream ResponseStream;
+                // WebRequests can only be used once - no need to keep events bound
+                // This helps with disposal in PerformAsync usages
+                Started = null;
+                Finished = null;
+                Failed = null;
+                DownloadProgress = null;
+                UploadProgress = null;
+            }
+        }
 
         /// <summary>
         /// Retrieve the full response body as a UTF8 encoded string.
@@ -242,7 +252,7 @@ namespace osu.Framework.IO.Network
             }
         }
 
-        public HttpResponseHeaders ResponseHeaders => response.Headers;
+        protected virtual Stream CreateOutputStream() => new MemoryStream();
 
         /// <summary>
         /// Performs the request asynchronously.
@@ -275,7 +285,7 @@ namespace osu.Framework.IO.Network
             if (!AllowInsecureRequests && !url.StartsWith(@"https://", StringComparison.Ordinal))
             {
                 logger.Add($"Insecure request was automatically converted to https ({Url})");
-                url = @"https://" + url.Replace(@"http://", @"");
+                url = "https://" + url.Replace("http://", string.Empty);
             }
 
             // If a user token already exists, keep it. Otherwise, take on the previous user token, as this could be a retry of the request.

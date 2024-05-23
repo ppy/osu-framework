@@ -10,13 +10,13 @@ using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
 using osuTK.Input;
-using SDL2;
 using Icon = osu.Framework.Platform.Windows.Native.Icon;
+using static SDL2.SDL;
 
 namespace osu.Framework.Platform.Windows
 {
     [SupportedOSPlatform("windows")]
-    internal class WindowsWindow : SDL2DesktopWindow
+    internal class SDL2WindowsWindow : SDL2DesktopWindow, IWindowsWindow
     {
         private const int seticon_message = 0x0080;
         private const int icon_big = 1;
@@ -35,8 +35,8 @@ namespace osu.Framework.Platform.Windows
         /// </summary>
         private readonly bool applyBorderlessWindowHack;
 
-        public WindowsWindow(GraphicsSurfaceType surfaceType)
-            : base(surfaceType)
+        public SDL2WindowsWindow(GraphicsSurfaceType surfaceType, string appName)
+            : base(surfaceType, appName)
         {
             switch (surfaceType)
             {
@@ -87,12 +87,12 @@ namespace osu.Framework.Platform.Windows
                 Native.Input.SetWindowFeedbackSetting(WindowHandle, feedbackType, false);
 
             // enable window message events to use with `OnSDLEvent` below.
-            SDL.SDL_EventState(SDL.SDL_EventType.SDL_SYSWMEVENT, SDL.SDL_ENABLE);
+            SDL_EventState(SDL_EventType.SDL_SYSWMEVENT, SDL_ENABLE);
         }
 
-        protected override void HandleEventFromFilter(SDL.SDL_Event e)
+        protected override void HandleEventFromFilter(SDL_Event e)
         {
-            if (e.type == SDL.SDL_EventType.SDL_SYSWMEVENT)
+            if (e.type == SDL_EventType.SDL_SYSWMEVENT)
             {
                 var wmMsg = Marshal.PtrToStructure<SDL2Structs.SDL_SysWMmsg>(e.syswm.msg);
                 var m = wmMsg.msg.win;
@@ -114,10 +114,7 @@ namespace osu.Framework.Platform.Windows
             base.HandleEventFromFilter(e);
         }
 
-        /// <summary>
-        /// The last mouse position as reported by <see cref="WindowsMouseHandler.FeedbackMousePositionChange"/>.
-        /// </summary>
-        internal Vector2? LastMousePosition { private get; set; }
+        public Vector2? LastMousePosition { get; set; }
 
         /// <summary>
         /// If required, warps the OS cursor to match the framework cursor position.
@@ -134,7 +131,7 @@ namespace osu.Framework.Platform.Windows
                 && RelativeMouseMode)
             {
                 var pt = PointToScreen(new Point((int)LastMousePosition.Value.X, (int)LastMousePosition.Value.Y));
-                SDL.SDL_WarpMouseGlobal(pt.X, pt.Y); // this directly calls the SetCursorPos win32 API
+                SDL_WarpMouseGlobal(pt.X, pt.Y); // this directly calls the SetCursorPos win32 API
             }
         }
 
@@ -148,7 +145,7 @@ namespace osu.Framework.Platform.Windows
 
         public override void ResetIme() => ScheduleCommand(() => Imm.CancelComposition(WindowHandle));
 
-        protected override unsafe void HandleTextInputEvent(SDL.SDL_TextInputEvent evtText)
+        protected override unsafe void HandleTextInputEvent(SDL_TextInputEvent evtText)
         {
             if (!SDL2Extensions.TryGetStringFromBytePointer(evtText.text, out string sdlResult))
                 return;
@@ -169,7 +166,7 @@ namespace osu.Framework.Platform.Windows
             base.HandleTextInputEvent(evtText);
         }
 
-        protected override void HandleTextEditingEvent(SDL.SDL_TextEditingEvent evtEdit)
+        protected override void HandleTextEditingEvent(SDL_TextEditingEvent evtEdit)
         {
             // handled by custom logic below
         }
@@ -224,7 +221,7 @@ namespace osu.Framework.Platform.Windows
 
         #endregion
 
-        protected override void HandleTouchFingerEvent(SDL.SDL_TouchFingerEvent evtTfinger)
+        protected override void HandleTouchFingerEvent(SDL_TouchFingerEvent evtTfinger)
         {
             if (evtTfinger.TryGetTouchName(out string name) && name == "pen")
             {
@@ -236,11 +233,11 @@ namespace osu.Framework.Platform.Windows
 
                 switch (evtTfinger.type)
                 {
-                    case SDL.SDL_EventType.SDL_FINGERDOWN:
+                    case SDL_EventType.SDL_FINGERDOWN:
                         TriggerMouseDown(MouseButton.Left);
                         break;
 
-                    case SDL.SDL_EventType.SDL_FINGERUP:
+                    case SDL_EventType.SDL_FINGERUP:
                         TriggerMouseUp(MouseButton.Left);
                         break;
                 }
@@ -272,7 +269,7 @@ namespace osu.Framework.Platform.Windows
 
         protected override Size SetBorderless(Display display)
         {
-            SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_FALSE);
+            SDL_SetWindowBordered(SDLWindowHandle, SDL_bool.SDL_FALSE);
 
             var newSize = display.Bounds.Size;
 
@@ -281,7 +278,7 @@ namespace osu.Framework.Platform.Windows
                 // we also trick the game into thinking the window has normal size: see Size setter override
                 newSize += new Size(windows_borderless_width_hack, 0);
 
-            SDL.SDL_SetWindowSize(SDLWindowHandle, newSize.Width, newSize.Height);
+            SDL_SetWindowSize(SDLWindowHandle, newSize.Width, newSize.Height);
             Position = display.Bounds.Location;
 
             return newSize;
