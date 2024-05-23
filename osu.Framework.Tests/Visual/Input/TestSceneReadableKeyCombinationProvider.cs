@@ -138,9 +138,23 @@ namespace osu.Framework.Tests.Visual.Input
                 updateText();
             }
 
+            /// <summary>
+            /// Checked whether the <see cref="keyCombination"/> is pressed given the current <paramref name="state"/>.
+            /// </summary>
+            private bool isPressed(InputState state)
+            {
+                var currentCombination = KeyCombination.FromInputState(state);
+
+                if (currentCombination.Keys.Contains(InputKey.None))
+                    // if no keys are pressed
+                    return false;
+
+                return keyCombination.IsPressed(currentCombination, state, KeyCombinationMatchingMode.Any);
+            }
+
             protected override bool OnKeyDown(KeyDownEvent e)
             {
-                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.Key)), e.CurrentState, KeyCombinationMatchingMode.Any))
+                if (isPressed(e.CurrentState))
                     box.Colour = Color4.Navy;
 
                 return base.OnKeyDown(e);
@@ -148,7 +162,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             protected override void OnKeyUp(KeyUpEvent e)
             {
-                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.Key)), e.CurrentState, KeyCombinationMatchingMode.Any))
+                if (!isPressed(e.CurrentState))
                     box.Colour = Color4.DarkGray;
 
                 base.OnKeyUp(e);
