@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Layout;
 using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Lines
@@ -305,9 +306,44 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
+        public long PathInvalidationID { get; private set; }
+
+        protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
+        {
+            bool result = base.OnInvalidate(invalidation, source);
+
+            // Colour is being applied to the buffer instead of the actual drawable, thus removing the need to redraw the path on colour invalidation.
+            invalidation &= ~Invalidation.Colour;
+
+            if (invalidation != Invalidation.None)
+                PathInvalidationID++;
+
+            return result;
+        }
+
         private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(new[] { RenderBufferFormat.D16 }, clipToRootNode: true);
 
-        protected override DrawNode CreateDrawNode() => new BufferedDrawNode(this, new PathDrawNode(this), sharedData);
+        protected override DrawNode CreateDrawNode() => new PathBufferedDrawNode(this, new PathDrawNode(this), sharedData);
+
+        private class PathBufferedDrawNode : BufferedDrawNode
+        {
+            protected new Path Source => (Path)base.Source;
+
+            public PathBufferedDrawNode(Path source, PathDrawNode child, BufferedDrawNodeSharedData sharedData)
+                : base(source, child, sharedData)
+            {
+            }
+
+            private long pathInvalidationID = -1;
+
+            public override void ApplyState()
+            {
+                base.ApplyState();
+                pathInvalidationID = Source.PathInvalidationID;
+            }
+
+            protected override long GetDrawVersion() => pathInvalidationID;
+        }
 
         protected override void Dispose(bool isDisposing)
         {

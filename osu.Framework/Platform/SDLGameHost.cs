@@ -10,28 +10,33 @@ using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Input.Handlers.Tablet;
 using osu.Framework.Input.Handlers.Touch;
-using osu.Framework.Platform.SDL;
+using osu.Framework.Platform.SDL2;
+using osu.Framework.Platform.SDL3;
+using SixLabors.ImageSharp.Formats.Png;
 
 namespace osu.Framework.Platform
 {
-    public abstract class SDL3GameHost : GameHost
+    public abstract class SDLGameHost : GameHost
     {
-        public override bool CapsLockEnabled => (Window as SDL3Window)?.CapsLockPressed == true;
+        public override bool CapsLockEnabled => (Window as ISDLWindow)?.CapsLockPressed == true;
 
-        protected SDL3GameHost(string gameName, HostOptions? options = null)
+        protected SDLGameHost(string gameName, HostOptions? options = null)
             : base(gameName, options)
         {
         }
 
         protected override TextInputSource CreateTextInput()
         {
-            if (Window is SDL3Window window)
-                return new SDL3WindowTextInput(window);
+            if (Window is ISDLWindow window)
+                return new SDLWindowTextInput(window);
 
             return base.CreateTextInput();
         }
 
-        protected override Clipboard CreateClipboard() => new SDL3Clipboard();
+        protected override Clipboard CreateClipboard()
+            => FrameworkEnvironment.UseSDL3
+                ? new SDL3Clipboard(PngFormat.Instance) // PNG works well on linux
+                : new SDL2Clipboard();
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
             new InputHandler[]

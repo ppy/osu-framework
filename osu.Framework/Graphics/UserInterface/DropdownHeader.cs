@@ -5,6 +5,7 @@
 
 using osuTK.Graphics;
 using System;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -63,9 +64,10 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected internal abstract LocalisableString Label { get; set; }
 
-        public BindableBool Enabled { get; } = new BindableBool(true);
+        public readonly IBindable<bool> Enabled = new Bindable<bool>(true);
 
-        public Action ToggleMenu;
+        [Resolved]
+        private IDropdown dropdown { get; set; } = null!;
 
         protected DropdownHeader()
         {
@@ -105,16 +107,8 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.LoadComplete();
 
+            Enabled.BindTo(dropdown.Enabled);
             Enabled.BindValueChanged(_ => updateState(), true);
-        }
-
-        protected override bool OnClick(ClickEvent e)
-        {
-            if (!Enabled.Value)
-                return false;
-
-            ToggleMenu?.Invoke();
-            return false;
         }
 
         protected override bool OnHover(HoverEvent e)
@@ -127,14 +121,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             updateState();
             base.OnHoverLost(e);
-        }
-
-        public void UpdateSearchBarFocus(MenuState state)
-        {
-            if (state == MenuState.Open)
-                SearchBar.ObtainFocus();
-            else
-                SearchBar.ReleaseFocus();
         }
 
         private void updateState()

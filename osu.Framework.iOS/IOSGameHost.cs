@@ -21,7 +21,7 @@ using UIKit;
 
 namespace osu.Framework.iOS
 {
-    public class IOSGameHost : SDL3GameHost
+    public class IOSGameHost : SDLGameHost
     {
         public IOSGameHost()
             : base(string.Empty)
@@ -29,15 +29,6 @@ namespace osu.Framework.iOS
         }
 
         protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new IOSWindow(preferredSurface, Options.FriendlyGameName);
-
-        protected override void SetupForRun()
-        {
-            base.SetupForRun();
-
-            AllowScreenSuspension.Result.BindValueChanged(allow =>
-                    InputThread.Scheduler.Add(() => UIApplication.SharedApplication.IdleTimerDisabled = !allow.NewValue),
-                true);
-        }
 
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {

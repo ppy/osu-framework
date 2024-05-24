@@ -224,7 +224,7 @@ namespace osu.Framework.Input.Bindings
                     if (pressedBindings.Contains(binding))
                         continue;
 
-                    if (binding.KeyCombination.IsPressed(pressedCombination, matchingMode))
+                    if (binding.KeyCombination.IsPressed(pressedCombination, state, matchingMode))
                         newlyPressed.Add(binding);
                 }
             }
@@ -251,7 +251,7 @@ namespace osu.Framework.Input.Bindings
             if (simultaneousMode == SimultaneousBindingMode.None && (matchingMode == KeyCombinationMatchingMode.Exact || matchingMode == KeyCombinationMatchingMode.Modifiers))
             {
                 // only want to release pressed actions if no existing bindings would still remain pressed
-                if (pressedBindings.Count > 0 && !pressedBindings.Any(m => m.KeyCombination.IsPressed(pressedCombination, matchingMode)))
+                if (pressedBindings.Count > 0 && !pressedBindings.Any(m => m.KeyCombination.IsPressed(pressedCombination, state, matchingMode)))
                     releasePressedActions(state);
             }
 
@@ -365,7 +365,7 @@ namespace osu.Framework.Input.Bindings
             {
                 var binding = pressedBindings[i];
 
-                if (pressedInputKeys.Count == 0 || !binding.KeyCombination.IsPressed(pressedCombination, KeyCombinationMatchingMode.Any))
+                if (pressedInputKeys.Count == 0 || !binding.KeyCombination.IsPressed(pressedCombination, state, KeyCombinationMatchingMode.Any))
                 {
                     pressedBindings.RemoveAt(i--);
                     PropagateReleased(getInputQueue(binding).Where(d => d.IsRootedAt(this)), state, binding.GetAction<T>());

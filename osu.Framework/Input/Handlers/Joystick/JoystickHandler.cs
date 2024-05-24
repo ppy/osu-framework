@@ -29,7 +29,7 @@ namespace osu.Framework.Input.Handlers.Joystick
             if (!base.Initialize(host))
                 return false;
 
-            if (!(host.Window is SDL3Window window))
+            if (!(host.Window is ISDLWindow window))
                 return false;
 
             Enabled.BindValueChanged(e =>

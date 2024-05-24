@@ -5,8 +5,9 @@
 
 using System;
 using SDL;
+using static SDL.SDL3;
 
-namespace osu.Framework.Platform.SDL
+namespace osu.Framework.Platform.SDL3
 {
     /// <summary>
     /// Maintain a copy of the SDL-provided bindings for the given controller.
@@ -18,7 +19,7 @@ namespace osu.Framework.Platform.SDL
         public readonly SDL_Gamepad* GamepadHandle;
 
         /// <summary>
-        /// Bindings returned from <see cref="SDL3.SDL_GetGamepadBindings(SDL_Gamepad*)"/>.
+        /// Bindings returned from <see cref="SDL_GetGamepadBindings(SDL_Gamepad*)"/>.
         /// Empty if the joystick does not have a corresponding GamepadHandle.
         /// </summary>
         public SDL_GamepadBinding[] Bindings;
@@ -39,7 +40,7 @@ namespace osu.Framework.Platform.SDL
                 return;
             }
 
-            using var bindings = SDL3.SDL_GetGamepadBindings(GamepadHandle);
+            using var bindings = SDL_GetGamepadBindings(GamepadHandle);
 
             if (bindings == null)
             {

@@ -14,7 +14,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using Veldrid;
 using Veldrid.OpenGL;
-using Veldrid.OpenGLBinding;
+using Veldrid.OpenGLBindings;
 
 namespace osu.Framework.Graphics.Veldrid
 {
@@ -106,7 +106,7 @@ namespace osu.Framework.Graphics.Veldrid
             var options = new GraphicsDeviceOptions
             {
                 HasMainSwapchain = true,
-                SwapchainDepthFormat = PixelFormat.R16_UNorm,
+                SwapchainDepthFormat = PixelFormat.R16UNorm,
                 SyncToVerticalBlank = true,
                 ResourceBindingModel = ResourceBindingModel.Improved,
             };
@@ -162,15 +162,15 @@ namespace osu.Framework.Graphics.Veldrid
                 {
                     var linuxGraphics = (ILinuxGraphicsSurface)this.graphicsSurface;
                     swapchain.Source = linuxGraphics.IsWayland
-                        ? SwapchainSource.CreateWayland(this.graphicsSurface.DisplayHandle, this.graphicsSurface.WindowHandle)
-                        : SwapchainSource.CreateXlib(this.graphicsSurface.DisplayHandle, this.graphicsSurface.WindowHandle);
+                        ? SwapchainSource.CreateWayland(linuxGraphics.DisplayHandle, this.graphicsSurface.WindowHandle)
+                        : SwapchainSource.CreateXlib(linuxGraphics.DisplayHandle, this.graphicsSurface.WindowHandle);
                     break;
                 }
 
                 case RuntimeInfo.Platform.Android:
                 {
                     var androidGraphics = (IAndroidGraphicsSurface)this.graphicsSurface;
-                    swapchain.Source = SwapchainSource.CreateAndroidSurface(this.graphicsSurface.DisplayHandle, androidGraphics.JniEnvHandle);
+                    swapchain.Source = SwapchainSource.CreateAndroidSurface(androidGraphics.SurfaceHandle, androidGraphics.JniEnvHandle);
                     break;
                 }
             }

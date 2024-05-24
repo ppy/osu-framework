@@ -4,12 +4,13 @@
 using System;
 using osu.Framework.Bindables;
 using osu.Framework.Platform;
+using osu.Framework.Platform.SDL3;
 
 namespace osu.Framework.Android
 {
     internal class AndroidGameWindow : SDL3MobileWindow
     {
-        public override IntPtr DisplayHandle => AndroidGameActivity.Surface.NativeSurface?.Handle ?? IntPtr.Zero;
+        public override IntPtr SurfaceHandle => AndroidGameActivity.Surface.NativeSurface?.Handle ?? IntPtr.Zero;
 
         public AndroidGameWindow(GraphicsSurfaceType surfaceType, string appName)
             : base(surfaceType, appName)
