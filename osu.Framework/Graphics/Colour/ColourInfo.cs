@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Colour
 {
     /// <summary>
     /// ColourInfo contains information about the colours of all 4 vertices of a quad.
-    /// These colours are always stored in linear space.
+    /// These colours are stored as gamma-corrected sRGB.
     /// </summary>
     public struct ColourInfo : IEquatable<ColourInfo>, IEquatable<SRGBColour>
     {
@@ -23,9 +23,9 @@ namespace osu.Framework.Graphics.Colour
         public bool HasSingleColour;
 
         /// <summary>
-        /// Creates a ColourInfo with a single linear colour assigned to all vertices.
+        /// Creates a ColourInfo with a single colour assigned to all vertices.
         /// </summary>
-        /// <param name="colour">The single linear colour to be assigned to all vertices.</param>
+        /// <param name="colour">The single colour to be assigned to all vertices.</param>
         /// <returns>The created ColourInfo.</returns>
         public static ColourInfo SingleColour(SRGBColour colour)
         {
