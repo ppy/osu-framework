@@ -125,6 +125,26 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
         }
 
+        [Test]
+        public void TestShear()
+        {
+            resize(new Vector2(200, 100));
+            AddToggleStep("Toggle shear", shear =>
+            {
+                fastCircle.Shear = circle.Shear = shear ? new Vector2(0.5f, 0) : Vector2.Zero;
+            });
+        }
+
+        [Test]
+        public void TestScale()
+        {
+            resize(new Vector2(200, 100));
+            AddToggleStep("Toggle scale", scale =>
+            {
+                fastCircle.Scale = circle.Scale = scale ? new Vector2(2f, 1f) : Vector2.One;
+            });
+        }
+
         private void testInput(Vector2 size)
         {
             resize(size);
