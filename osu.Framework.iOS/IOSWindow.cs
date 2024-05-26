@@ -10,6 +10,7 @@ using ObjCRuntime;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Platform;
+using osu.Framework.Platform.SDL3;
 using SDL;
 using UIKit;
 

@@ -5,14 +5,31 @@ using System.Globalization;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using SDL;
+using static SDL.SDL3;
 
-namespace osu.Framework.Platform.SDL
+namespace osu.Framework.Platform.SDL3
 {
     public class SDL3ReadableKeyCombinationProvider : ReadableKeyCombinationProvider
     {
+        private static SDL_Keycode getKeyFromScancode(SDL_Scancode scancode)
+        {
+            if (FrameworkEnvironment.UseSDL3)
+                return SDL_GetKeyFromScancode(scancode);
+
+            return (SDL_Keycode)global::SDL2.SDL.SDL_GetKeyFromScancode((global::SDL2.SDL.SDL_Scancode)scancode);
+        }
+
+        private static string? getKeyName(SDL_Keycode keycode)
+        {
+            if (FrameworkEnvironment.UseSDL3)
+                return SDL_GetKeyName(keycode);
+
+            return global::SDL2.SDL.SDL_GetKeyName((global::SDL2.SDL.SDL_Keycode)keycode);
+        }
+
         protected override string GetReadableKey(InputKey key)
         {
-            var keycode = SDL3.SDL_GetKeyFromScancode(key.ToScancode());
+            var keycode = getKeyFromScancode(key.ToScancode());
 
             // early return if unknown. probably because key isn't a keyboard key, or doesn't map to an `SDL_Scancode`.
             if (keycode == SDL_Keycode.SDLK_UNKNOWN)
@@ -24,7 +41,7 @@ namespace osu.Framework.Platform.SDL
             if (TryGetNameFromKeycode(keycode, out name))
                 return name;
 
-            name = SDL3.SDL_GetKeyName(keycode);
+            name = getKeyName(keycode);
 
             // fall back if SDL couldn't find a name.
             if (string.IsNullOrEmpty(name))
@@ -32,7 +49,7 @@ namespace osu.Framework.Platform.SDL
 
             // true if SDL_GetKeyName() returned a proper key/scancode name.
             // see https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/events/SDL_keyboard.c#L1012
-            if (((int)keycode & SDL3.SDLK_SCANCODE_MASK) != 0)
+            if (((int)keycode & SDLK_SCANCODE_MASK) != 0)
                 return name;
 
             // SDL_GetKeyName() returned a unicode character that would be produced if that key was pressed.

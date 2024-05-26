@@ -159,7 +159,7 @@ namespace osu.Framework.Input
 
             ClickedDrawable.SetTarget(clicked!);
 
-            if (ChangeFocusOnClick)
+            if (ChangeFocusOnClick && clicked?.ChangeFocusOnClick != false)
                 InputManager.ChangeFocusFromClick(clicked);
 
             if (clicked != null)

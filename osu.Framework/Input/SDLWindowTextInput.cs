@@ -6,11 +6,11 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Input
 {
-    internal class SDL3WindowTextInput : TextInputSource
+    internal class SDLWindowTextInput : TextInputSource
     {
-        private readonly SDL3Window window;
+        private readonly ISDLWindow window;
 
-        public SDL3WindowTextInput(SDL3Window window)
+        public SDLWindowTextInput(ISDLWindow window)
         {
             this.window = window;
         }

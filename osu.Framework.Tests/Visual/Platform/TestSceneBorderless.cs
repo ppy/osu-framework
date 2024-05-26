@@ -24,7 +24,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private readonly SpriteText currentWindowMode = new SpriteText();
         private readonly SpriteText currentDisplay = new SpriteText();
 
-        private SDL3Window? window;
+        private ISDLWindow? window;
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
 
         public TestSceneBorderless()
@@ -57,7 +57,7 @@ namespace osu.Framework.Tests.Visual.Platform
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager config, GameHost host)
         {
-            window = host.Window as SDL3Window;
+            window = host.Window as ISDLWindow;
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
 
             windowMode.BindValueChanged(mode => currentWindowMode.Text = $"Window Mode: {mode.NewValue}", true);

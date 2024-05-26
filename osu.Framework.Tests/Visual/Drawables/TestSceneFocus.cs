@@ -243,6 +243,49 @@ namespace osu.Framework.Tests.Visual.Drawables
                 focusBottomRight.JoystickPressCount == 1 && focusBottomRight.JoystickReleaseCount == 1);
         }
 
+        [Test]
+        public void TestDrawableWithNoFocusChangeOnClick()
+        {
+            FocusBox focusableBox = null!;
+            FocusBox noFocusChangeBox = null!;
+
+            AddStep("setup", () =>
+            {
+                Children = new Drawable[]
+                {
+                    focusableBox = new FocusBox
+                    {
+                        Anchor = Anchor.CentreLeft,
+                        Origin = Anchor.CentreLeft,
+                    },
+                    noFocusChangeBox = new NoFocusChangeBox
+                    {
+                        Anchor = Anchor.CentreRight,
+                        Origin = Anchor.CentreRight,
+                        AllowAcceptingFocus = false
+                    }
+                };
+            });
+
+            AddStep("click focusable box", () =>
+            {
+                InputManager.MoveMouseTo(focusableBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            checkFocused(() => focusableBox);
+
+            AddStep("click no focus change box", () =>
+            {
+                InputManager.MoveMouseTo(noFocusChangeBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            checkFocused(() => focusableBox);
+            checkNotFocused(() => noFocusChangeBox);
+            AddAssert("no focus change box received click", () => noFocusChangeBox.ClickCount, () => Is.GreaterThan(0));
+        }
+
         private void checkFocused(Func<Drawable> d) => AddAssert("check focus", () => d().HasFocus);
         private void checkNotFocused(Func<Drawable> d) => AddAssert("check not focus", () => !d().HasFocus);
 
@@ -343,7 +386,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         public partial class FocusBox : CompositeDrawable
         {
             protected Box Box;
-            public int KeyDownCount, KeyUpCount, JoystickPressCount, JoystickReleaseCount;
+            public int KeyDownCount, KeyUpCount, JoystickPressCount, JoystickReleaseCount, ClickCount;
 
             public FocusBox()
             {
@@ -358,7 +401,11 @@ namespace osu.Framework.Tests.Visual.Drawables
                 Size = new Vector2(0.4f);
             }
 
-            protected override bool OnClick(ClickEvent e) => true;
+            protected override bool OnClick(ClickEvent e)
+            {
+                ++ClickCount;
+                return true;
+            }
 
             public bool AllowAcceptingFocus = true;
 
@@ -400,6 +447,23 @@ namespace osu.Framework.Tests.Visual.Drawables
                 ++JoystickReleaseCount;
                 base.OnJoystickRelease(e);
             }
+        }
+
+        public partial class NoFocusChangeBox : FocusBox
+        {
+            public NoFocusChangeBox()
+            {
+                Box.Colour = Color4.Green;
+
+                AddInternal(new SpriteText
+                {
+                    Text = "ChangeFocusOnClick = false",
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                });
+            }
+
+            public override bool ChangeFocusOnClick => false;
         }
     }
 }

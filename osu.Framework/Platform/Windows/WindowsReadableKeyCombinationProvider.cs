@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Input.Bindings;
-using osu.Framework.Platform.SDL;
+using osu.Framework.Platform.SDL3;
 using SDL;
 
 namespace osu.Framework.Platform.Windows
