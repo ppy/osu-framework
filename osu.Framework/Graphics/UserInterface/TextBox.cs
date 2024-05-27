@@ -1414,7 +1414,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// Reverts the <see cref="textInputBlocking"/> flag to <c>false</c> if no keys are pressed.
         /// </summary>
         private void revertBlockingStateIfRequired() =>
-            textInputBlocking &= GetContainingInputManager().CurrentState.Keyboard.Keys.HasAnyButtonPressed;
+            textInputBlocking &= GetContainingInputManager()?.CurrentState.Keyboard.Keys.HasAnyButtonPressed == true;
 
         private void handleImeComposition(string composition, int selectionStart, int selectionLength)
         {

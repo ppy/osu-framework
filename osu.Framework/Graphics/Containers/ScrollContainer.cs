@@ -7,6 +7,7 @@ using System;
 using System.Diagnostics;
 using JetBrains.Annotations;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
@@ -274,7 +275,7 @@ namespace osu.Framework.Graphics.Containers
 
             IsDragging = true;
 
-            dragButtonManager = GetContainingInputManager().GetButtonEventManagerFor(e.Button);
+            dragButtonManager = GetContainingInputManager().AsNonNull().GetButtonEventManagerFor(e.Button);
 
             return true;
         }
