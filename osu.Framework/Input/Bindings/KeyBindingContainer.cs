@@ -131,8 +131,8 @@ namespace osu.Framework.Input.Bindings
                 case KeyDownEvent keyDown:
                     if (keyDown.Repeat)
                         return handleRepeat(state);
-                    else
-                        return handleNewPressed(state, KeyCombination.FromKey(keyDown.Key));
+
+                    return handleNewPressed(state, KeyCombination.FromKey(keyDown.Key));
 
                 case KeyUpEvent keyUp:
                     handleNewReleased(state, KeyCombination.FromKey(keyUp.Key));

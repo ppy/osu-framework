@@ -3,9 +3,11 @@
 
 using System.Linq;
 using System;
+using System.Diagnostics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
+using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
@@ -80,29 +82,50 @@ namespace osu.Framework.Testing.Input
         }
 
         /// <summary>
-        /// Press a key down. Release with <see cref="ReleaseKey"/>.
+        /// Press a key down. Release with <see cref="ReleaseKey(osu.Framework.Input.KeyboardKey)"/>.
         /// </summary>
         /// <remarks>
-        /// To press and release a key immediately, use <see cref="Key"/>.
+        /// To press and release a key immediately, use <see cref="Key(osu.Framework.Input.KeyboardKey)"/>.
+        /// </remarks>
+        /// <param name="keyboardKey">The key to press.</param>
+        public void PressKey(KeyboardKey keyboardKey) => Input(new KeyboardKeyInput(keyboardKey, true));
+
+        /// <summary>
+        /// Press a key down. Release with <see cref="ReleaseKey(osuTK.Input.Key)"/>.
+        /// </summary>
+        /// <remarks>
+        /// To press and release a key immediately, use <see cref="Key(osuTK.Input.Key)"/>.
         /// </remarks>
         /// <param name="key">The key to press.</param>
-        public void PressKey(Key key) => Input(new KeyboardKeyInput(key, true));
+        public void PressKey(Key key) => PressKey(KeyboardKey.FromKey(key));
+
+        /// <summary>
+        /// Release a pressed key.
+        /// </summary>
+        /// <param name="keyboardKey">The key to release.</param>
+        public void ReleaseKey(KeyboardKey keyboardKey) => Input(new KeyboardKeyInput(keyboardKey, false));
 
         /// <summary>
         /// Release a pressed key.
         /// </summary>
         /// <param name="key">The key to release.</param>
-        public void ReleaseKey(Key key) => Input(new KeyboardKeyInput(key, false));
+        public void ReleaseKey(Key key) => ReleaseKey(KeyboardKey.FromKey(key));
+
+        /// <summary>
+        /// Press and release the specified key.
+        /// </summary>
+        /// <param name="keyboardKey">The key to actuate.</param>
+        public void Key(KeyboardKey keyboardKey)
+        {
+            PressKey(keyboardKey);
+            ReleaseKey(keyboardKey);
+        }
 
         /// <summary>
         /// Press and release the specified key.
         /// </summary>
         /// <param name="key">The key to actuate.</param>
-        public void Key(Key key)
-        {
-            PressKey(key);
-            ReleaseKey(key);
-        }
+        public void Key(Key key) => Key(KeyboardKey.FromKey(key));
 
         /// <summary>
         /// Press and release the keys in the specified <see cref="PlatformAction"/>.
@@ -113,10 +136,25 @@ namespace osu.Framework.Testing.Input
             var binding = Host.PlatformKeyBindings.First(b => (PlatformAction)b.Action == action);
 
             foreach (var k in binding.KeyCombination.Keys)
-                PressKey((Key)k);
+                PressKey(toKeyboardKey(k));
 
             foreach (var k in binding.KeyCombination.Keys)
-                ReleaseKey((Key)k);
+                ReleaseKey(toKeyboardKey(k));
+
+            return;
+
+            KeyboardKey toKeyboardKey(InputKey inputKey)
+            {
+                if (inputKey >= InputKey.KeycodeA && inputKey <= InputKey.KeycodeZ)
+                {
+                    int diff = inputKey - InputKey.KeycodeA;
+                    return new KeyboardKey(osuTK.Input.Key.A + diff, (char)('a' + diff));
+                }
+
+                var key = (Key)inputKey;
+                Debug.Assert(Enum.IsDefined(key));
+                return KeyboardKey.FromKey(key);
+            }
         }
 
         public void ScrollBy(Vector2 delta, bool isPrecise = false) => Input(new MouseScrollRelativeInput { Delta = delta, IsPrecise = isPrecise });

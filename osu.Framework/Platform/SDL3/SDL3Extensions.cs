@@ -3,6 +3,8 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using System.Runtime.CompilerServices;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
@@ -15,12 +17,14 @@ namespace osu.Framework.Platform.SDL3
 {
     public static class SDL3Extensions
     {
-        public static Key ToKey(this SDL_Keysym sdlKeysym)
-        {
-            // Apple devices don't have the notion of NumLock (they have a Clear key instead).
-            // treat them as if they always have NumLock on (the numpad always performs its primary actions).
-            bool numLockOn = sdlKeysym.mod.HasFlagFast(SDL_Keymod.SDL_KMOD_NUM) || RuntimeInfo.IsApple;
+        /// <summary>
+        /// Whether this <paramref name="keycode"/> has the <see cref="SDLK_SCANCODE_MASK"/> bit set.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool HasScancodeMask(this SDL_Keycode keycode) => keycode.HasFlagFast((SDL_Keycode)SDLK_SCANCODE_MASK);
 
+        public static Key ToKey(this SDL_Keysym sdlKeysym, bool numLockOn)
+        {
             switch (sdlKeysym.scancode)
             {
                 default:
@@ -451,6 +455,99 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_Scancode.SDL_SCANCODE_AC_BACK:
                     return Key.Escape;
             }
+        }
+
+        public static char? GetCharacter(this SDL_Keycode keycode, bool numLockOn)
+        {
+            switch (keycode)
+            {
+                case SDL_Keycode.SDLK_UNKNOWN:
+                    return default;
+
+                case SDL_Keycode.SDLK_RETURN: // SDLK_RETURN is '\r'
+                    return '\n';
+            }
+
+            if (!keycode.HasScancodeMask())
+            {
+                // keycode is a UCS4 (UTF-32) unicode character.
+                return ((int)keycode).GetCharacter();
+            }
+
+            // key is a scancode
+            switch (keycode)
+            {
+                case SDL_Keycode.SDLK_KP_DIVIDE:
+                    return '/';
+
+                case SDL_Keycode.SDLK_KP_MULTIPLY:
+                    return '*';
+
+                case SDL_Keycode.SDLK_KP_MINUS:
+                    return '-';
+
+                case SDL_Keycode.SDLK_KP_PLUS:
+                    return '+';
+
+                case SDL_Keycode.SDLK_KP_ENTER:
+                    return '\n';
+
+                case SDL_Keycode.SDLK_KP_1:
+                    return numLockOn ? '1' : default;
+
+                case SDL_Keycode.SDLK_KP_2:
+                    return numLockOn ? '2' : default;
+
+                case SDL_Keycode.SDLK_KP_3:
+                    return numLockOn ? '3' : default;
+
+                case SDL_Keycode.SDLK_KP_4:
+                    return numLockOn ? '4' : default;
+
+                case SDL_Keycode.SDLK_KP_5:
+                    return numLockOn ? '5' : default;
+
+                case SDL_Keycode.SDLK_KP_6:
+                    return numLockOn ? '6' : default;
+
+                case SDL_Keycode.SDLK_KP_7:
+                    return numLockOn ? '7' : default;
+
+                case SDL_Keycode.SDLK_KP_8:
+                    return numLockOn ? '8' : default;
+
+                case SDL_Keycode.SDLK_KP_9:
+                    return numLockOn ? '9' : default;
+
+                case SDL_Keycode.SDLK_KP_0:
+                    return numLockOn ? '0' : default;
+
+                case SDL_Keycode.SDLK_KP_PERIOD:
+                    // potentially return ',' as decimal separator based on keyboard layout.
+                    return numLockOn ? '.' : '\x7f'; // char for delete
+
+                case SDL_Keycode.SDLK_KP_COMMA:
+                    // this keycode isn't sent for a keyboard that has a comma as a decimal separator.
+                    // handle it anyway for prosperity.
+                    return ',';
+
+                // there are a lot of SDLK_KP_ keys that don't exits on regular keyboards.
+                // can be added if needed.
+
+                default:
+                    return default;
+            }
+        }
+
+        public static KeyboardKey ToKeyboardKey(this SDL_Keysym sdlKeysym)
+        {
+            // Apple devices don't have the notion of NumLock (they have a Clear key instead).
+            // treat them as if they always have NumLock on (the numpad always performs its primary actions).
+            bool numLockOn = sdlKeysym.mod.HasFlagFast(SDL_Keymod.SDL_KMOD_NUM) || RuntimeInfo.IsApple;
+
+            var key = sdlKeysym.ToKey(numLockOn);
+            char? c = sdlKeysym.sym.GetCharacter(numLockOn);
+            return new KeyboardKey(key, c);
         }
 
         /// <summary>

@@ -102,10 +102,10 @@ namespace osu.Framework.Input.Bindings
             if (Keys == pressedKeys.Keys) // Fast test for reference equality of underlying array
                 return true;
 
-            return ContainsAll(Keys, pressedKeys.Keys, matchingMode);
+            return ContainsAll(Keys, pressedKeys.Keys, matchingMode, inputState.Keyboard.Characters);
         }
 
-        private static InputKey? getVirtualKey(InputKey key)
+        internal static InputKey? GetVirtualKey(InputKey key, Dictionary<Key, char?> keyboardCharacters)
         {
             switch (key)
             {
@@ -126,6 +126,12 @@ namespace osu.Framework.Input.Bindings
                     return InputKey.Super;
             }
 
+            if (key.IsKeyboardKey(out var keyboardKey) && keyboardCharacters.TryGetValue(keyboardKey, out char? c) && c != null)
+            {
+                if (c.Value >= 'a' && c.Value <= 'z')
+                    return InputKey.KeycodeA + (c.Value - 'a');
+            }
+
             return null;
         }
 
@@ -135,9 +141,11 @@ namespace osu.Framework.Input.Bindings
         /// <param name="candidateKeyBinding">The candidate key binding to match against.</param>
         /// <param name="pressedPhysicalKeys">The keys which have been pressed by a user.</param>
         /// <param name="matchingMode">The matching mode to be used when checking.</param>
+        /// <param name="keyboardCharacters"><see cref="States.KeyboardState.Characters"/> of the current <see cref="InputState"/>.</param>
         /// <returns>Whether this is a match.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool ContainsAll(ImmutableArray<InputKey> candidateKeyBinding, ImmutableArray<InputKey> pressedPhysicalKeys, KeyCombinationMatchingMode matchingMode)
+        internal static bool ContainsAll(ImmutableArray<InputKey> candidateKeyBinding, ImmutableArray<InputKey> pressedPhysicalKeys, KeyCombinationMatchingMode matchingMode,
+                                         Dictionary<Key, char?> keyboardCharacters)
         {
             Debug.Assert(pressedPhysicalKeys.All(k => k.IsPhysical()));
 
@@ -146,7 +154,7 @@ namespace osu.Framework.Input.Bindings
             // the behaviour of excess keys).
             foreach (var key in candidateKeyBinding)
             {
-                if (!IsPressed(pressedPhysicalKeys, key))
+                if (!IsPressed(pressedPhysicalKeys, key, keyboardCharacters))
                     return false;
             }
 
@@ -156,7 +164,7 @@ namespace osu.Framework.Input.Bindings
                     foreach (var key in pressedPhysicalKeys)
                     {
                         // in exact matching mode, every pressed key needs to be in the candidate.
-                        if (!KeyBindingContains(candidateKeyBinding, key))
+                        if (!KeyBindingContains(candidateKeyBinding, key, keyboardCharacters))
                             return false;
                     }
 
@@ -166,7 +174,7 @@ namespace osu.Framework.Input.Bindings
                     foreach (var key in pressedPhysicalKeys)
                     {
                         // in modifiers match mode, the same check applies as exact but only for modifier keys.
-                        if (IsModifierKey(key) && !KeyBindingContains(candidateKeyBinding, key))
+                        if (IsModifierKey(key) && !KeyBindingContains(candidateKeyBinding, key, keyboardCharacters))
                             return false;
                     }
 
@@ -185,11 +193,12 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         /// <param name="candidateKeyBinding">The candidate key binding to match against.</param>
         /// <param name="physicalKey">The physical key that has been pressed.</param>
+        /// <param name="keyboardCharacters"><see cref="States.KeyboardState.Characters"/> of the current <see cref="InputState"/>.</param>
         /// <returns>Whether this is a match.</returns>
-        internal static bool KeyBindingContains(ImmutableArray<InputKey> candidateKeyBinding, InputKey physicalKey)
+        internal static bool KeyBindingContains(ImmutableArray<InputKey> candidateKeyBinding, InputKey physicalKey, Dictionary<Key, char?> keyboardCharacters)
         {
             return candidateKeyBinding.Contains(physicalKey) ||
-                   (getVirtualKey(physicalKey) is InputKey vKey && candidateKeyBinding.Contains(vKey));
+                   (GetVirtualKey(physicalKey, keyboardCharacters) is InputKey vKey && candidateKeyBinding.Contains(vKey));
         }
 
         /// <summary>
@@ -197,14 +206,15 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         /// <param name="pressedPhysicalKeys">The currently pressed keys to match against.</param>
         /// <param name="candidateKey">The candidate key to check.</param>
+        /// <param name="keyboardCharacters"><see cref="States.KeyboardState.Characters"/> of the current <see cref="InputState"/>.</param>
         /// <returns>Whether this is a match.</returns>
-        internal static bool IsPressed(ImmutableArray<InputKey> pressedPhysicalKeys, InputKey candidateKey)
+        internal static bool IsPressed(ImmutableArray<InputKey> pressedPhysicalKeys, InputKey candidateKey, Dictionary<Key, char?> keyboardCharacters)
         {
             if (candidateKey.IsPhysical())
                 return pressedPhysicalKeys.Contains(candidateKey);
 
             Debug.Assert(candidateKey.IsVirtual());
-            return pressedPhysicalKeys.Any(k => getVirtualKey(k) == candidateKey);
+            return pressedPhysicalKeys.Any(k => GetVirtualKey(k, keyboardCharacters) == candidateKey);
         }
 
         public bool Equals(KeyCombination other) => Keys.SequenceEqual(other.Keys);
@@ -275,6 +285,7 @@ namespace osu.Framework.Input.Bindings
                 case Key.RWin: return InputKey.RSuper;
             }
 
+            Debug.Assert(Enum.IsDefined(key));
             return (InputKey)key;
         }
 
@@ -342,12 +353,7 @@ namespace osu.Framework.Input.Bindings
             if (state.Keyboard != null)
             {
                 foreach (var key in state.Keyboard.Keys)
-                {
-                    var iKey = FromKey(key);
-
-                    if (!keys.Contains(iKey))
-                        keys.Add(iKey);
-                }
+                    keys.Add(FromKey(key));
             }
 
             if (state.Joystick != null)
@@ -383,6 +389,9 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// Matches a <see cref="KeyCombination"/> if there are no additional key presses.
         /// </summary>
+        /// <remarks>
+        /// Does not fully work with <see cref="KeyCombination"/>s that have keycode <see cref="InputKey"/>s, eg. <see cref="InputKey.KeycodeA"/>.
+        /// </remarks>
         Exact,
 
         /// <summary>

@@ -5,6 +5,7 @@
 
 using NUnit.Framework;
 using osu.Framework.Graphics;
+using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Testing;
@@ -53,7 +54,7 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 base.LoadComplete();
                 var inputManager = GetContainingInputManager();
-                new KeyboardKeyInput(Key.A, true).Apply(inputManager.CurrentState, inputManager);
+                new KeyboardKeyInput(KeyboardKey.FromKey(Key.A), true).Apply(inputManager.CurrentState, inputManager);
             }
         }
     }

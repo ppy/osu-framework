@@ -68,6 +68,9 @@ namespace osu.Framework.Input
 
         protected virtual string GetReadableKey(InputKey key)
         {
+            if (key >= InputKey.KeycodeA)
+                return $"{(char)(key - InputKey.KeycodeA + 'A')}"; // return just the uppercase ascii character
+
             if (key >= InputKey.FirstTabletAuxiliaryButton)
                 return $"Tablet Aux {key - InputKey.FirstTabletAuxiliaryButton + 1}";
             if (key >= InputKey.FirstTabletPenButton)

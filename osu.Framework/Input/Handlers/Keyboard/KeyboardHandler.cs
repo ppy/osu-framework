@@ -4,7 +4,6 @@
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
-using TKKey = osuTK.Input.Key;
 
 namespace osu.Framework.Input.Handlers.Keyboard
 {
@@ -48,8 +47,8 @@ namespace osu.Framework.Input.Handlers.Keyboard
             statistic_total_events.Value++;
         }
 
-        private void handleKeyDown(TKKey key) => enqueueInput(new KeyboardKeyInput(key, true));
+        private void handleKeyDown(KeyboardKey key) => enqueueInput(new KeyboardKeyInput(key, true));
 
-        private void handleKeyUp(TKKey key) => enqueueInput(new KeyboardKeyInput(key, false));
+        private void handleKeyUp(KeyboardKey key) => enqueueInput(new KeyboardKeyInput(key, false));
     }
 }

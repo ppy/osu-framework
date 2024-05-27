@@ -6,6 +6,7 @@
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
@@ -117,7 +118,7 @@ namespace osu.Framework.Tests.Visual.Input
                 var mouse = currentState.Mouse;
                 inputManagerStatus.Text = $"{inputManager}";
                 mouseStatus.Text = $"Mouse: {mouse.Position} {mouse.Scroll} " + string.Join(' ', mouse.Buttons);
-                keyboardStatus.Text = "Keyboard: " + string.Join(' ', currentState.Keyboard.Keys);
+                keyboardStatus.Text = "Keyboard: " + string.Join(' ', currentState.Keyboard.Keys) + ' ' + string.Join(' ', currentState.Keyboard.PressedCharacters.Select(c => c.StringRepresentation()));
                 joystickStatus.Text = "Joystick: " + string.Join(' ', currentState.Joystick.Buttons);
                 base.Update();
             }

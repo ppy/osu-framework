@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.StateChanges;
@@ -179,11 +180,12 @@ namespace osu.Framework.Input
             if (mouseDiff.Released.Length > 0)
                 new MouseButtonInput(mouseDiff.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false))).Apply(CurrentState, this);
 
-            var keyDiff = (state?.Keyboard.Keys ?? new ButtonStates<Key>()).EnumerateDifference(CurrentState.Keyboard.Keys);
+            var keyDiff = (state?.Keyboard?.Keys ?? new ButtonStates<Key>()).EnumerateDifference(CurrentState.Keyboard.Keys);
             foreach (var key in keyDiff.Released)
-                new KeyboardKeyInput(key, false).Apply(CurrentState, this);
+                // `default` as the character is ignored for key releases
+                new KeyboardKeyInput(new KeyboardKey(key, default), false).Apply(CurrentState, this);
             foreach (var key in keyDiff.Pressed)
-                new KeyboardKeyInput(key, true).Apply(CurrentState, this);
+                new KeyboardKeyInput(new KeyboardKey(key, state?.Keyboard?.Characters.GetValueOrDefault(key) ?? key.GetDefaultCharacter()), true).Apply(CurrentState, this);
 
             var touchDiff = (state?.Touch ?? new TouchState()).EnumerateDifference(CurrentState.Touch);
             if (touchDiff.deactivated.Length > 0)

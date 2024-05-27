@@ -458,6 +458,49 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("dispose of receptor", () => receptor.Dispose());
         }
 
+        /// <remarks>
+        /// Similar to <see cref="TestReleasingSpecificModifierDoesNotReleaseCommonBindingIfOtherKeyIsActive"/> except using keycode.
+        /// </remarks>
+        [Test]
+        public void TestTwoKeysOneKeycode()
+        {
+            List<TestAction> pressedActions = new List<TestAction>();
+            List<TestAction> releasedActions = new List<TestAction>();
+
+            AddStep("add container", () =>
+            {
+                pressedActions.Clear();
+                releasedActions.Clear();
+
+                Child = new TestKeyBindingContainer
+                {
+                    Child = new TestKeyBindingReceptor
+                    {
+                        Pressed = a => pressedActions.Add(a),
+                        Released = a => releasedActions.Add(a)
+                    }
+                };
+            });
+
+            AddStep("press key Z, 'z'", () => InputManager.PressKey(new KeyboardKey(Key.Z, 'z')));
+            AddAssert("only one action triggered", () => pressedActions, () => Has.Count.EqualTo(1));
+            AddAssert("ActionKeycodeZ triggered", () => pressedActions[0], () => Is.EqualTo(TestAction.ActionKeycodeZ));
+            AddAssert("no actions released", () => releasedActions, () => Is.Empty);
+
+            AddStep("press key X, 'z'", () => InputManager.PressKey(new KeyboardKey(Key.X, 'z')));
+            AddAssert("no additional actions triggered", () => pressedActions, () => Has.Count.EqualTo(1));
+            AddAssert("no actions released", () => releasedActions, () => Is.Empty);
+
+            AddStep("release key X, 'z'", () => InputManager.ReleaseKey(new KeyboardKey(Key.X, 'z')));
+            AddAssert("only one action triggered", () => pressedActions, () => Has.Count.EqualTo(1));
+            AddAssert("no actions released", () => releasedActions, () => Is.Empty);
+
+            AddStep("release key Z, 'z'", () => InputManager.ReleaseKey(new KeyboardKey(Key.Z, 'z')));
+            AddAssert("only one action triggered", () => pressedActions, () => Has.Count.EqualTo(1));
+            AddAssert("only one action released", () => releasedActions, () => Has.Count.EqualTo(1));
+            AddAssert("ActionKeycodeZ released", () => releasedActions[0], () => Is.EqualTo(TestAction.ActionKeycodeZ));
+        }
+
         private partial class TestKeyBindingReceptor : Drawable, IKeyBindingHandler<TestAction>
         {
             public Action<TestAction>? Pressed;
@@ -504,6 +547,7 @@ namespace osu.Framework.Tests.Visual.Input
                 new KeyBinding(InputKey.Enter, TestAction.ActionEnter),
                 new KeyBinding(InputKey.Control, TestAction.ActionControl),
                 new KeyBinding(InputKey.ExtraMouseButton4, TestAction.ActionMouse4),
+                new KeyBinding(InputKey.KeycodeZ, TestAction.ActionKeycodeZ),
             };
 
             public bool OnPressed(KeyBindingPressEvent<TestAction> e)
@@ -533,6 +577,7 @@ namespace osu.Framework.Tests.Visual.Input
             ActionEnter,
             ActionControl,
             ActionMouse4,
+            ActionKeycodeZ,
         }
     }
 }
