@@ -482,6 +482,32 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("text is expected", () => dropdown.SelectedItem.Text.Value.ToString(), () => Is.EqualTo("loaded: non-existent item"));
         }
 
+        [Test]
+        public void TestRemoveDropdownOnSelect()
+        {
+            TestDropdown testDropdown = null!;
+            Bindable<TestModel?> bindable = null!;
+
+            AddStep("setup dropdown", () =>
+            {
+                bindable = new Bindable<TestModel?>();
+                bindable.ValueChanged += _ => createDropdown();
+
+                testDropdown = createDropdown();
+                testDropdown.Current = bindable;
+            });
+
+            toggleDropdownViaClick(() => testDropdown);
+
+            AddStep("click item 2", () =>
+            {
+                InputManager.MoveMouseTo(testDropdown.Menu.Children[2]);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("bindable value is item 2", () => bindable.Value?.Identifier == "test 2");
+        }
+
         #region Searching
 
         [Test]
