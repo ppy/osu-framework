@@ -5,6 +5,7 @@
 
 using System;
 using System.Diagnostics;
+using JetBrains.Annotations;
 using osu.Framework.Caching;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
@@ -185,6 +186,7 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly LayoutValue<IScrollContainer> parentScrollContainerCache = new LayoutValue<IScrollContainer>(Invalidation.Parent);
 
+        [CanBeNull]
         private IScrollContainer parentScrollContainer => parentScrollContainerCache.IsValid
             ? parentScrollContainerCache.Value
             : parentScrollContainerCache.Value = this.FindClosestParent<IScrollContainer>();

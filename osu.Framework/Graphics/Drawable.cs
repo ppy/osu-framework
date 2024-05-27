@@ -25,6 +25,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Extensions.EnumExtensions;
@@ -1490,6 +1491,7 @@ namespace osu.Framework.Graphics
         /// As this is performing an upward tree traversal, avoid calling every frame.
         /// </summary>
         /// <returns>The first parent <see cref="InputManager"/>.</returns>
+        [CanBeNull]
         protected InputManager GetContainingInputManager() => this.FindClosestParent<InputManager>();
 
         /// <summary>
@@ -1497,6 +1499,7 @@ namespace osu.Framework.Graphics
         /// As this is performing an upward tree traversal, avoid calling every frame.
         /// </summary>
         /// <returns>The first parent <see cref="IFocusManager"/>.</returns>
+        [CanBeNull]
         protected IFocusManager GetContainingFocusManager() => this.FindClosestParent<IFocusManager>();
 
         private CompositeDrawable parent;
