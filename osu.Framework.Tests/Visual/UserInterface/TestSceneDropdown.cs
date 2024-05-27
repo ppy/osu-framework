@@ -312,7 +312,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        [Solo]
         public void TestExternalManagement()
         {
             TestDropdown dropdown = null!;
