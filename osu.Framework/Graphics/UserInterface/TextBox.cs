@@ -13,6 +13,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Caching;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Extensions.PlatformActionExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
@@ -1224,7 +1225,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 selectionEnd = getCharacterClosestTo(e.MousePosition);
                 if (hasSelection)
-                    GetContainingFocusManager().ChangeFocus(this);
+                    GetContainingFocusManager().AsNonNull().ChangeFocus(this);
             }
 
             cursorAndLayout.Invalidate();
@@ -1414,7 +1415,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// Reverts the <see cref="textInputBlocking"/> flag to <c>false</c> if no keys are pressed.
         /// </summary>
         private void revertBlockingStateIfRequired() =>
-            textInputBlocking &= GetContainingInputManager().CurrentState.Keyboard.Keys.HasAnyButtonPressed;
+            textInputBlocking &= GetContainingInputManager()?.CurrentState.Keyboard.Keys.HasAnyButtonPressed == true;
 
         private void handleImeComposition(string composition, int selectionStart, int selectionLength)
         {
