@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Input.Events;
 using osuTK.Input;
 
