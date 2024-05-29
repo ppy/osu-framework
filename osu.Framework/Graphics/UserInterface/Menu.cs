@@ -263,7 +263,7 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         Schedule(delegate
                         {
-                            if (State == MenuState.Open) GetContainingFocusManager()?.ChangeFocus(this);
+                            if (State == MenuState.Open) GetContainingFocusManager().AsNonNull().ChangeFocus(this);
                         });
                     }
 
@@ -571,7 +571,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (item.Item.Items.Count > 0)
             {
                 if (submenu.State == MenuState.Open)
-                    Schedule(delegate { GetContainingFocusManager()?.ChangeFocus(submenu); });
+                    Schedule(delegate { GetContainingFocusManager().AsNonNull().ChangeFocus(submenu); });
                 else
                     submenu.Open();
             }

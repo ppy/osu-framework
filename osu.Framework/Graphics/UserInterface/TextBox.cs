@@ -1224,7 +1224,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 selectionEnd = getCharacterClosestTo(e.MousePosition);
                 if (hasSelection)
-                    GetContainingFocusManager()?.ChangeFocus(this);
+                    GetContainingFocusManager().AsNonNull().ChangeFocus(this);
             }
 
             cursorAndLayout.Invalidate();
