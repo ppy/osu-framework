@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Sprites
 
         private ILocalisedBindableString localisedText;
 
-        public IShader TextureShader { get; private set; }
+        public IShader TextureShader { get; protected set; }
 
         public SpriteText()
         {
