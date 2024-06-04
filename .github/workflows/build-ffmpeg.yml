@@ -87,7 +87,7 @@ jobs:
           path: win-${{ matrix.arch }}
 
   build-linux:
-    name: Build Linux (${{ matrix.arch }})
+    name: Build Linux
     # Use 20.04 to target glibc 2.31 like the other native libs
     runs-on: ubuntu-20.04
     strategy:
