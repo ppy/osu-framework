@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Reflection;
 using osu.Framework.Bindables;
@@ -29,20 +27,20 @@ namespace osu.Framework.Allocation
         /// <remarks>
         /// This model is not injected directly, users of the <see cref="CachedModelDependencyContainer{TModel}"/> receive a shadow-bound copy of this value in all cases.
         /// </remarks>
-        public readonly Bindable<TModel> Model = new Bindable<TModel>();
+        public readonly Bindable<TModel?> Model = new Bindable<TModel?>();
 
         private readonly TModel shadowModel = new TModel();
 
-        private readonly IReadOnlyDependencyContainer parent;
+        private readonly IReadOnlyDependencyContainer? parent;
         private readonly IReadOnlyDependencyContainer shadowDependencies;
 
-        public CachedModelDependencyContainer(IReadOnlyDependencyContainer parent)
+        public CachedModelDependencyContainer(IReadOnlyDependencyContainer? parent)
         {
             this.parent = parent;
 
             shadowDependencies = DependencyActivator.MergeDependencies(shadowModel, null, new CacheInfo(parent: typeof(TModel)));
 
-            TModel currentModel = null;
+            TModel? currentModel = null;
             Model.BindValueChanged(e =>
             {
                 // When setting a null model, we actually want to reset the shadow model to a default state
@@ -55,9 +53,34 @@ namespace osu.Framework.Allocation
             });
         }
 
-        public object Get(Type type) => Get(type, default);
+        public T Get<T>() => Get<T>(default);
 
-        public object Get(Type type, CacheInfo info)
+        public T Get<T>(CacheInfo info)
+        {
+            TryGet(out T value, info);
+            return value;
+        }
+
+        public bool TryGet<T>(out T value) => TryGet(out value, default);
+
+        public bool TryGet<T>(out T value, CacheInfo info)
+        {
+            object? obj = Get(typeof(T), info);
+
+            if (obj == null)
+            {
+                // `(int)(object)null` throws a NRE, so `default` is used instead.
+                value = default!;
+                return false;
+            }
+
+            value = (T)obj;
+            return true;
+        }
+
+        public object? Get(Type type) => Get(type, default);
+
+        public object? Get(Type type, CacheInfo info)
         {
             if (info.Parent == null)
                 return type == typeof(TModel) ? createChildShadowModel() : parent?.Get(type, info);
@@ -87,7 +110,7 @@ namespace osu.Framework.Allocation
         /// <param name="targetShadowModel">The shadow model to update.</param>
         /// <param name="lastModel">The model to unbind from.</param>
         /// <param name="newModel">The model to bind to.</param>
-        private void updateShadowModel(TModel targetShadowModel, TModel lastModel, TModel newModel)
+        private void updateShadowModel(TModel targetShadowModel, TModel? lastModel, TModel newModel)
         {
             // Due to static-constructor checks, we are guaranteed that all fields will be IBindable
 
@@ -111,18 +134,18 @@ namespace osu.Framework.Allocation
         /// <summary>
         /// Perform an arbitrary action across a shadow model and model.
         /// </summary>
-        private void perform(TModel targetShadowModel, MemberInfo member, TModel target, Action<IBindable, IBindable> action)
+        private void perform(TModel targetShadowModel, MemberInfo member, TModel? target, Action<IBindable, IBindable> action)
         {
             if (target == null) return;
 
             switch (member)
             {
                 case PropertyInfo pi:
-                    action((IBindable)pi.GetValue(targetShadowModel), (IBindable)pi.GetValue(target));
+                    action((IBindable)pi.GetValue(targetShadowModel)!, (IBindable)pi.GetValue(target)!);
                     break;
 
                 case FieldInfo fi:
-                    action((IBindable)fi.GetValue(targetShadowModel), (IBindable)fi.GetValue(target));
+                    action((IBindable)fi.GetValue(targetShadowModel)!, (IBindable)fi.GetValue(target)!);
                     break;
             }
         }
