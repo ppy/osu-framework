@@ -5,7 +5,6 @@ using System.Linq;
 using ManagedBass;
 using ManagedBass.Fx;
 using osu.Framework.Allocation;
-using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Audio;
@@ -171,7 +170,7 @@ namespace osu.Framework.Tests.Visual.Audio
                 };
 
                 if (effect != null)
-                    mixer.AddEffect(new AudioEffect(effect));
+                    mixer.AddEffect(effect);
             }
 
             protected override void Update()

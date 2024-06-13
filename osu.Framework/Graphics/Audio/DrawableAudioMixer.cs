@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Diagnostics;
+using ManagedBass;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Mixing;
@@ -43,18 +44,18 @@ namespace osu.Framework.Graphics.Audio
             }
         }
 
-        public void AddEffect(AudioEffect effect)
+        public void AddEffect(IEffectParameter effect, int priority = 0)
         {
             if (LoadState < LoadState.Ready)
-                Schedule(() => mixer.AddEffect(effect));
+                Schedule(() => mixer.AddEffect(effect, priority));
             else
             {
                 Debug.Assert(mixer != null);
-                mixer.AddEffect(effect);
+                mixer.AddEffect(effect, priority);
             }
         }
 
-        public void RemoveEffect(AudioEffect effect)
+        public void RemoveEffect(IEffectParameter effect)
         {
             if (LoadState < LoadState.Ready)
                 Schedule(() => mixer.RemoveEffect(effect));
@@ -62,6 +63,17 @@ namespace osu.Framework.Graphics.Audio
             {
                 Debug.Assert(mixer != null);
                 mixer.RemoveEffect(effect);
+            }
+        }
+
+        public void UpdateEffect(IEffectParameter effect)
+        {
+            if (LoadState < LoadState.Ready)
+                Schedule(() => mixer.UpdateEffect(effect));
+            else
+            {
+                Debug.Assert(mixer != null);
+                mixer.UpdateEffect(effect);
             }
         }
 

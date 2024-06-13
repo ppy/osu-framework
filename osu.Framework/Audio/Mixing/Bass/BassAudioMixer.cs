@@ -29,7 +29,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// </summary>
         private readonly List<IBassAudioChannel> activeChannels = new List<IBassAudioChannel>();
 
-        private readonly Dictionary<AudioEffect, int> activeEffects = new Dictionary<AudioEffect, int>();
+        private readonly Dictionary<IEffectParameter, int> activeEffects = new Dictionary<IEffectParameter, int>();
 
         private const int frequency = 44100;
 
@@ -46,41 +46,31 @@ namespace osu.Framework.Audio.Mixing.Bass
             EnqueueAction(createMixer);
         }
 
-        public override void AddEffect(AudioEffect effect)
+        public override void AddEffect(IEffectParameter effect, int priority = 0) => EnqueueAction(() =>
         {
-            effect.EffectUpdated += onEffectUpdated;
+            if (activeEffects.ContainsKey(effect))
+                return;
 
-            EnqueueAction(() =>
-            {
-                if (activeEffects.ContainsKey(effect))
-                    return;
+            int handle = ManagedBass.Bass.ChannelSetFX(Handle, effect.FXType, priority);
+            ManagedBass.Bass.FXSetParameters(handle, effect);
 
-                int handle = ManagedBass.Bass.ChannelSetFX(Handle, effect.Parameters.FXType, effect.Priority);
-                ManagedBass.Bass.FXSetParameters(handle, effect.Parameters);
+            activeEffects[effect] = handle;
+        });
 
-                activeEffects[effect] = handle;
-            });
-        }
-
-        public override void RemoveEffect(AudioEffect effect)
+        public override void RemoveEffect(IEffectParameter effect) => EnqueueAction(() =>
         {
-            effect.EffectUpdated -= onEffectUpdated;
+            if (!activeEffects.Remove(effect, out int handle))
+                return;
 
-            EnqueueAction(() =>
-            {
-                if (!activeEffects.Remove(effect, out int handle))
-                    return;
+            ManagedBass.Bass.ChannelRemoveFX(Handle, handle);
+        });
 
-                ManagedBass.Bass.ChannelRemoveFX(Handle, handle);
-            });
-        }
-
-        private void onEffectUpdated(AudioEffect effect, IEffectParameter newParameters) => EnqueueAction(() =>
+        public override void UpdateEffect(IEffectParameter effect) => EnqueueAction(() =>
         {
             if (!activeEffects.TryGetValue(effect, out int handle))
                 return;
 
-            ManagedBass.Bass.FXSetParameters(handle, effect.Parameters);
+            ManagedBass.Bass.FXSetParameters(handle, effect);
         });
 
         protected override void AddInternal(IAudioChannel channel)

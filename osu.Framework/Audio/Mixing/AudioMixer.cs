@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using ManagedBass;
 using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.Audio.Mixing
@@ -44,9 +45,11 @@ namespace osu.Framework.Audio.Mixing
 
         public void Remove(IAudioChannel channel) => Remove(channel, true);
 
-        public abstract void AddEffect(AudioEffect effect);
+        public abstract void AddEffect(IEffectParameter effect, int priority = 0);
 
-        public abstract void RemoveEffect(AudioEffect effect);
+        public abstract void RemoveEffect(IEffectParameter effect);
+
+        public abstract void UpdateEffect(IEffectParameter effect);
 
         /// <summary>
         /// Removes an <see cref="IAudioChannel"/> from the mix.
