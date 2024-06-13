@@ -78,7 +78,7 @@ namespace osu.Framework.Tests.Visual.Audio
             }
         }
 
-        private class AudioPlayingDrawable : CompositeDrawable
+        private partial class AudioPlayingDrawable : CompositeDrawable
         {
             [BackgroundDependencyLoader]
             private void load(ISampleStore samples)
