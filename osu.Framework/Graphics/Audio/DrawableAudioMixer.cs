@@ -4,11 +4,9 @@
 #nullable disable
 
 using System.Diagnostics;
-using ManagedBass;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Mixing;
-using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Graphics.Audio
@@ -21,10 +19,7 @@ namespace osu.Framework.Graphics.Audio
         private void load(AudioManager audio)
         {
             mixer = audio.CreateAudioMixer(Name);
-            mixer.Effects.BindTo(Effects);
         }
-
-        public BindableList<IEffectParameter> Effects { get; } = new BindableList<IEffectParameter>();
 
         public void Add(IAudioChannel channel)
         {
@@ -45,6 +40,28 @@ namespace osu.Framework.Graphics.Audio
             {
                 Debug.Assert(mixer != null);
                 mixer.Remove(channel);
+            }
+        }
+
+        public void AddEffect(AudioEffect effect)
+        {
+            if (LoadState < LoadState.Ready)
+                Schedule(() => mixer.AddEffect(effect));
+            else
+            {
+                Debug.Assert(mixer != null);
+                mixer.AddEffect(effect);
+            }
+        }
+
+        public void RemoveEffect(AudioEffect effect)
+        {
+            if (LoadState < LoadState.Ready)
+                Schedule(() => mixer.RemoveEffect(effect));
+            else
+            {
+                Debug.Assert(mixer != null);
+                mixer.RemoveEffect(effect);
             }
         }
 

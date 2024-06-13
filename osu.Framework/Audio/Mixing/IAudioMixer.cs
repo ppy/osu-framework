@@ -1,9 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using ManagedBass;
-using osu.Framework.Bindables;
-
 namespace osu.Framework.Audio.Mixing
 {
     /// <summary>
@@ -12,15 +9,6 @@ namespace osu.Framework.Audio.Mixing
     /// </summary>
     public interface IAudioMixer
     {
-        /// <summary>
-        /// The effects currently applied to the mix.
-        /// <para>
-        /// Effects are stored in order of decreasing priority such that the effect at <c>index = 0</c> in the list has the highest priority
-        /// and the effect at <c>index = Count - 1</c> in the list has the lowest priority.
-        /// </para>
-        /// </summary>
-        BindableList<IEffectParameter> Effects { get; }
-
         /// <summary>
         /// Adds a channel to the mix.
         /// </summary>
@@ -32,5 +20,17 @@ namespace osu.Framework.Audio.Mixing
         /// </summary>
         /// <param name="channel">The channel to remove.</param>
         void Remove(IAudioChannel channel);
+
+        /// <summary>
+        /// Applies an effect to the mixer.
+        /// </summary>
+        /// <param name="effect">The effect.</param>
+        void AddEffect(AudioEffect effect);
+
+        /// <summary>
+        /// Removes an effect from the mixer.
+        /// </summary>
+        /// <param name="effect">The effect to remove.</param>
+        void RemoveEffect(AudioEffect effect);
     }
 }
