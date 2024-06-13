@@ -110,6 +110,13 @@ namespace osu.Framework.Platform
             return ipcProvider.SendMessageAsync(message);
         }
 
+        public override Task<IpcMessage> SendMessageWithResponseAsync(IpcMessage message)
+        {
+            ensureIPCReady();
+
+            return ipcProvider.SendMessageWithResponseAsync(message);
+        }
+
         protected override void Dispose(bool isDisposing)
         {
             ipcProvider?.Dispose();
