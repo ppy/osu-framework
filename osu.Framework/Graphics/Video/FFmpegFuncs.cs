@@ -15,6 +15,10 @@ namespace osu.Framework.Graphics.Video
     {
         #region Delegates
 
+        public delegate int AvDictSetDelegate(AVDictionary** pm, [MarshalAs(UnmanagedType.LPUTF8Str)] string key, [MarshalAs(UnmanagedType.LPUTF8Str)] string value, int flags);
+
+        public delegate void AvDictFreeDelegate(AVDictionary** m);
+
         public delegate AVFrame* AvFrameAllocDelegate();
 
         public delegate void AvFrameFreeDelegate(AVFrame** frame);
@@ -89,6 +93,8 @@ namespace osu.Framework.Graphics.Video
 
         #endregion
 
+        public AvDictSetDelegate av_dict_set;
+        public AvDictFreeDelegate av_dict_free;
         public AvFrameAllocDelegate av_frame_alloc;
         public AvFrameFreeDelegate av_frame_free;
         public AvFrameUnrefDelegate av_frame_unref;

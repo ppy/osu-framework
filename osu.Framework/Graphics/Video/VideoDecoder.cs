@@ -349,7 +349,12 @@ namespace osu.Framework.Graphics.Video
             formatContext->pb = ioContext;
             formatContext->flags |= FFmpegFuncs.AVFMT_FLAG_GENPTS; // required for most HW decoders as they only read `pts`
 
-            int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "pipe:", null, null);
+            AVDictionary* options = null;
+            // see https://github.com/ppy/osu/issues/13696 for reasoning
+            ffmpeg.av_dict_set(&options, "ignore_editlist", "1", 0);
+            int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "pipe:", null, &options);
+            ffmpeg.av_dict_free(&options);
+
             inputOpened = openInputResult >= 0;
             if (!inputOpened)
                 throw new InvalidOperationException($"Error opening file or stream: {getErrorMessage(openInputResult)}");
@@ -842,6 +847,8 @@ namespace osu.Framework.Graphics.Video
 
             return new FFmpegFuncs
             {
+                av_dict_set = FFmpeg.AutoGen.ffmpeg.av_dict_set,
+                av_dict_free = FFmpeg.AutoGen.ffmpeg.av_dict_free,
                 av_frame_alloc = FFmpeg.AutoGen.ffmpeg.av_frame_alloc,
                 av_frame_free = FFmpeg.AutoGen.ffmpeg.av_frame_free,
                 av_frame_unref = FFmpeg.AutoGen.ffmpeg.av_frame_unref,
