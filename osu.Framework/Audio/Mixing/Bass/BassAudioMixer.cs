@@ -3,15 +3,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Mix;
-using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
-using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Audio.Mixing.Bass
@@ -29,14 +25,11 @@ namespace osu.Framework.Audio.Mixing.Bass
         public int Handle { get; private set; }
 
         /// <summary>
-        /// The list of effects which are currently active in the BASS mix.
-        /// </summary>
-        internal readonly List<EffectWithHandle> ActiveEffects = new List<EffectWithHandle>();
-
-        /// <summary>
         /// The list of channels which are currently active in the BASS mix.
         /// </summary>
         private readonly List<IBassAudioChannel> activeChannels = new List<IBassAudioChannel>();
+
+        private readonly Dictionary<IEffectParameter, int> activeEffects = new Dictionary<IEffectParameter, int>();
 
         private const int frequency = 44100;
 
@@ -53,7 +46,32 @@ namespace osu.Framework.Audio.Mixing.Bass
             EnqueueAction(createMixer);
         }
 
-        public override BindableList<IEffectParameter> Effects { get; } = new BindableList<IEffectParameter>();
+        public override void AddEffect(IEffectParameter effect, int priority = 0) => EnqueueAction(() =>
+        {
+            if (activeEffects.ContainsKey(effect))
+                return;
+
+            int handle = ManagedBass.Bass.ChannelSetFX(Handle, effect.FXType, priority);
+            ManagedBass.Bass.FXSetParameters(handle, effect);
+
+            activeEffects[effect] = handle;
+        });
+
+        public override void RemoveEffect(IEffectParameter effect) => EnqueueAction(() =>
+        {
+            if (!activeEffects.Remove(effect, out int handle))
+                return;
+
+            ManagedBass.Bass.ChannelRemoveFX(Handle, handle);
+        });
+
+        public override void UpdateEffect(IEffectParameter effect) => EnqueueAction(() =>
+        {
+            if (!activeEffects.TryGetValue(effect, out int handle))
+                return;
+
+            ManagedBass.Bass.FXSetParameters(handle, effect);
+        });
 
         protected override void AddInternal(IAudioChannel channel)
         {
@@ -301,8 +319,6 @@ namespace osu.Framework.Audio.Mixing.Bass
             foreach (var channel in toAdd)
                 AddChannelToBassMix(channel);
 
-            Effects.BindCollectionChanged(onEffectsChanged, true);
-
             if (manager?.GlobalMixerHandle.Value != null)
                 BassMix.MixerAddChannel(manager.GlobalMixerHandle.Value.Value, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
 
@@ -341,93 +357,6 @@ namespace osu.Framework.Audio.Mixing.Bass
             BassMix.MixerRemoveChannel(channel.Handle);
         }
 
-        private void onEffectsChanged(object? sender, NotifyCollectionChangedEventArgs e) => EnqueueAction(() =>
-        {
-            switch (e.Action)
-            {
-                case NotifyCollectionChangedAction.Add:
-                {
-                    Debug.Assert(e.NewItems != null);
-
-                    // Work around BindableList sending initial event start with index -1.
-                    int startIndex = Math.Max(0, e.NewStartingIndex);
-
-                    ActiveEffects.InsertRange(startIndex, e.NewItems.OfType<IEffectParameter>().Select(eff => new EffectWithHandle(eff)));
-                    applyEffects(startIndex, ActiveEffects.Count - 1);
-                    break;
-                }
-
-                case NotifyCollectionChangedAction.Move:
-                {
-                    EffectWithHandle effect = ActiveEffects[e.OldStartingIndex];
-                    ActiveEffects.RemoveAt(e.OldStartingIndex);
-                    ActiveEffects.Insert(e.NewStartingIndex, effect);
-                    applyEffects(Math.Min(e.OldStartingIndex, e.NewStartingIndex), ActiveEffects.Count - 1);
-                    break;
-                }
-
-                case NotifyCollectionChangedAction.Remove:
-                {
-                    Debug.Assert(e.OldItems != null);
-
-                    for (int i = 0; i < e.OldItems.Count; i++)
-                        removeEffect(ActiveEffects[e.OldStartingIndex + i]);
-                    ActiveEffects.RemoveRange(e.OldStartingIndex, e.OldItems.Count);
-                    applyEffects(e.OldStartingIndex, ActiveEffects.Count - 1);
-                    break;
-                }
-
-                case NotifyCollectionChangedAction.Replace:
-                {
-                    Debug.Assert(e.NewItems != null);
-
-                    EffectWithHandle oldEffect = ActiveEffects[e.NewStartingIndex];
-                    EffectWithHandle newEffect = new EffectWithHandle((IEffectParameter)e.NewItems[0].AsNonNull()) { Handle = oldEffect.Handle };
-
-                    ActiveEffects[e.NewStartingIndex] = newEffect;
-
-                    // If the effect types don't match, the old effect has to be removed altogether. Otherwise, the new parameters can be applied onto the existing handle.
-                    if (oldEffect.Effect.FXType != newEffect.Effect.FXType)
-                        removeEffect(oldEffect);
-
-                    applyEffects(e.NewStartingIndex, e.NewStartingIndex);
-                    break;
-                }
-
-                case NotifyCollectionChangedAction.Reset:
-                {
-                    foreach (var effect in ActiveEffects)
-                        removeEffect(effect);
-                    ActiveEffects.Clear();
-                    break;
-                }
-            }
-
-            void removeEffect(EffectWithHandle effect)
-            {
-                Debug.Assert(effect.Handle != 0);
-
-                ManagedBass.Bass.ChannelRemoveFX(Handle, effect.Handle);
-                effect.Handle = 0;
-            }
-
-            void applyEffects(int startIndex, int endIndex)
-            {
-                for (int i = startIndex; i <= endIndex; i++)
-                {
-                    var effect = ActiveEffects[i];
-
-                    // Effects with greatest priority are stored at the front of the list.
-                    effect.Priority = -i;
-
-                    if (effect.Handle == 0)
-                        effect.Handle = ManagedBass.Bass.ChannelSetFX(Handle, effect.Effect.FXType, effect.Priority);
-
-                    ManagedBass.Bass.FXSetParameters(effect.Handle, effect.Effect);
-                }
-            }
-        });
-
         /// <summary>
         /// Flushes the mixer, causing pause and seek events to take effect immediately.
         /// </summary>
@@ -452,19 +381,6 @@ namespace osu.Framework.Audio.Mixing.Bass
             {
                 ManagedBass.Bass.StreamFree(Handle);
                 Handle = 0;
-            }
-        }
-
-        internal class EffectWithHandle
-        {
-            public int Handle { get; set; }
-            public int Priority { get; set; }
-
-            public readonly IEffectParameter Effect;
-
-            public EffectWithHandle(IEffectParameter effect)
-            {
-                Effect = effect;
             }
         }
     }

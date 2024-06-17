@@ -6,7 +6,6 @@
 using System;
 using System.Threading;
 using ManagedBass;
-using ManagedBass.Fx;
 using ManagedBass.Mix;
 using NUnit.Framework;
 using osu.Framework.Audio.Mixing.Bass;
@@ -227,95 +226,6 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
-        public void TestAddEffect()
-        {
-            bass.Mixer.Effects.Add(new BQFParameters());
-            assertEffectParameters();
-
-            bass.Mixer.Effects.AddRange(new[]
-            {
-                new BQFParameters(),
-                new BQFParameters(),
-                new BQFParameters()
-            });
-            assertEffectParameters();
-        }
-
-        [Test]
-        public void TestRemoveEffect()
-        {
-            bass.Mixer.Effects.Add(new BQFParameters());
-            assertEffectParameters();
-
-            bass.Mixer.Effects.RemoveAt(0);
-            assertEffectParameters();
-
-            bass.Mixer.Effects.AddRange(new[]
-            {
-                new BQFParameters(),
-                new BQFParameters(),
-                new BQFParameters()
-            });
-            assertEffectParameters();
-
-            bass.Mixer.Effects.RemoveAt(1);
-            assertEffectParameters();
-
-            bass.Mixer.Effects.RemoveAt(1);
-            assertEffectParameters();
-        }
-
-        [Test]
-        public void TestMoveEffect()
-        {
-            bass.Mixer.Effects.AddRange(new[]
-            {
-                new BQFParameters(),
-                new BQFParameters(),
-                new BQFParameters()
-            });
-            assertEffectParameters();
-
-            bass.Mixer.Effects.Move(0, 1);
-            assertEffectParameters();
-
-            bass.Mixer.Effects.Move(2, 0);
-            assertEffectParameters();
-        }
-
-        [Test]
-        public void TestReplaceEffect()
-        {
-            bass.Mixer.Effects.AddRange(new[]
-            {
-                new BQFParameters(),
-                new BQFParameters(),
-                new BQFParameters()
-            });
-            assertEffectParameters();
-
-            bass.Mixer.Effects[1] = new BQFParameters();
-            assertEffectParameters();
-        }
-
-        [Test]
-        public void TestInsertEffect()
-        {
-            bass.Mixer.Effects.AddRange(new[]
-            {
-                new BQFParameters(),
-                new BQFParameters()
-            });
-            assertEffectParameters();
-
-            bass.Mixer.Effects.Insert(1, new BQFParameters());
-            assertEffectParameters();
-
-            bass.Mixer.Effects.Insert(3, new BQFParameters());
-            assertEffectParameters();
-        }
-
-        [Test]
         public void TestChannelDoesNotPlayIfReachedEndAndSeekedBackwards()
         {
             bass.RunOnAudioThread(() =>
@@ -354,22 +264,6 @@ namespace osu.Framework.Tests.Audio
             bass.Update();
 
             Assert.That(secondMixer.ChannelIsActive(track), Is.Not.EqualTo(PlaybackState.Playing));
-        }
-
-        private void assertEffectParameters()
-        {
-            bass.Update();
-
-            Assert.That(bass.Mixer.ActiveEffects.Count, Is.EqualTo(bass.Mixer.Effects.Count));
-
-            Assert.Multiple(() =>
-            {
-                for (int i = 0; i < bass.Mixer.ActiveEffects.Count; i++)
-                {
-                    Assert.That(bass.Mixer.ActiveEffects[i].Effect, Is.EqualTo(bass.Mixer.Effects[i]));
-                    Assert.That(bass.Mixer.ActiveEffects[i].Priority, Is.EqualTo(-i));
-                }
-            });
         }
 
         private int getHandle() => ((IBassAudioChannel)track).Handle;
