@@ -1,14 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Linq;
 using ManagedBass;
 using ManagedBass.Fx;
-using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Statistics;
 using NAudio.Dsp;
 
@@ -94,16 +90,12 @@ namespace osu.Framework.Audio.Mixing.SDL3
             lock (syncRoot)
             {
                 if (ret == null || sampleCount != ret.Length)
-                {
                     ret = new float[sampleCount];
-                }
 
                 bool useFilters = activeEffects.Count > 0;
 
                 if (useFilters && (filterArray == null || filterArray.Length != sampleCount))
-                {
                     filterArray = new float[sampleCount];
-                }
 
                 int filterArrayFilled = 0;
 
@@ -127,13 +119,9 @@ namespace osu.Framework.Audio.Mixing.SDL3
                             var (left, right) = channel.Volume;
 
                             if (!useFilters)
-                            {
                                 mixAudio(data, ret, ref filledSamples, size, left, right);
-                            }
                             else
-                            {
                                 mixAudio(filterArray!, ret, ref filterArrayFilled, size, left, right);
-                            }
                         }
                     }
 
@@ -149,9 +137,7 @@ namespace osu.Framework.Audio.Mixing.SDL3
                         foreach (var filter in activeEffects.Values)
                         {
                             if (filter.BiQuadFilter != null)
-                            {
                                 filterArray![i] = filter.BiQuadFilter.Transform(filterArray[i]);
-                            }
                         }
                     }
 
@@ -162,16 +148,18 @@ namespace osu.Framework.Audio.Mixing.SDL3
 
         internal class EffectBox
         {
-            public readonly BiQuadFilter? BiQuadFilter;
-            public readonly IEffectParameter EffectParameter;
+            public BiQuadFilter? BiQuadFilter;
 
             public EffectBox(IEffectParameter param)
+            {
+                Update(param);
+            }
+
+            public void Update(IEffectParameter param)
             {
                 // allowing non-bqf to keep index of list
                 if (param is BQFParameters bqfp)
                     BiQuadFilter = getFilter(SDL3AudioManager.AUDIO_FREQ, bqfp);
-
-                EffectParameter = param;
             }
         }
 
@@ -236,43 +224,40 @@ namespace osu.Framework.Audio.Mixing.SDL3
             Remove(channel, false);
         }
 
+        // Would like something like BiMap in Java, but I cannot write the whole collection here.
         private readonly SortedDictionary<int, EffectBox> activeEffects = new SortedDictionary<int, EffectBox>();
+        private readonly Dictionary<IEffectParameter, int> parameterDict = new Dictionary<IEffectParameter, int>();
 
+        // This would overwrite a filter with same priority, does it need to get fixed?
         public override void AddEffect(IEffectParameter effect, int priority = 0) => EnqueueAction(() =>
         {
-            lock (syncRoot)
-            {
-                if (activeEffects.ContainsKey(priority))
-                    return;
+            if (parameterDict.ContainsKey(effect))
+                return;
 
+            lock (syncRoot)
                 activeEffects[priority] = new EffectBox(effect);
-            }
+
+            parameterDict[effect] = priority;
         });
 
         public override void RemoveEffect(IEffectParameter effect) => EnqueueAction(() =>
         {
-            lock (syncRoot)
-            {
-                bool found = false;
+            if (!parameterDict.TryGetValue(effect, out int index))
+                return;
 
-                do
-                {
-                    foreach (KeyValuePair<int, EffectBox> pair in activeEffects)
-                    {
-                        if (pair.Value.EffectParameter == effect)
-                        {
-                            activeEffects.Remove(pair.Key); // cannot move forward because we removed it!
-                            found = true;
-                            break;
-                        }
-                    }
-                }
-                while (found);
-            }
+            lock (syncRoot)
+                activeEffects.Remove(index);
+
+            parameterDict.Remove(effect);
         });
 
         public override void UpdateEffect(IEffectParameter effect) => EnqueueAction(() =>
         {
+            if (!parameterDict.TryGetValue(effect, out int index))
+                return;
+
+            lock (syncRoot)
+                activeEffects[index].Update(effect);
         });
     }
 }

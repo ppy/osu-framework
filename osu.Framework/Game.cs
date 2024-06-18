@@ -24,6 +24,7 @@ using osu.Framework.Input.StateChanges;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
+using osu.Framework.Platform.SDL3;
 using osuTK;
 
 namespace osu.Framework
