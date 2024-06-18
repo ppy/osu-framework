@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Runtime.Versioning;
@@ -12,16 +12,22 @@ namespace osu.Framework.Platform.Windows
     /// This is done to better handle quirks of some devices.
     /// </summary>
     [SupportedOSPlatform("windows")]
-    internal class WindowsMouseHandler : MouseHandler
+    internal partial class WindowsMouseHandler : MouseHandler
     {
-        private WindowsWindow window = null!;
+        private IWindowsWindow window = null!;
+
+        public override bool IsActive => Enabled.Value;
 
         public override bool Initialize(GameHost host)
         {
-            if (!(host.Window is WindowsWindow desktopWindow))
+            if (host.Window is not IWindowsWindow windowsWindow)
                 return false;
 
-            window = desktopWindow;
+            window = windowsWindow;
+
+            if (window is SDL2WindowsWindow)
+                initialiseSDL2(host);
+
             return base.Initialize(host);
         }
 

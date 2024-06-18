@@ -6,6 +6,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Input;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
@@ -37,7 +38,7 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 handleNonPositionalInput.Enabled = true;
                 InputManager.MoveMouseTo(handleNonPositionalInput);
-                InputManager.TriggerFocusContention(null);
+                ((IFocusManager)InputManager).TriggerFocusContention(null);
             });
             AddAssert($"check {nameof(handleNonPositionalInput)}", () => !handleNonPositionalInput.IsHovered && handleNonPositionalInput.HasFocus);
 

@@ -2,8 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using SDL;
+using static SDL.SDL3;
 
-namespace osu.Framework.Platform
+namespace osu.Framework.Platform.SDL3
 {
     internal class SDL3MobileWindow : SDL3Window
     {
@@ -15,7 +16,7 @@ namespace osu.Framework.Platform
         protected override unsafe void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
         {
             // This sets the status bar to hidden.
-            SDL3.SDL_SetWindowFullscreen(SDLWindowHandle, SDL_bool.SDL_TRUE);
+            SDL_SetWindowFullscreen(SDLWindowHandle, SDL_bool.SDL_TRUE);
 
             // Don't run base logic at all. Let's keep things simple.
         }

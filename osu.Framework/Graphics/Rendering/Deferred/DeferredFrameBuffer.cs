@@ -139,7 +139,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                             (uint)resourceSize.Y,
                             1,
                             1,
-                            PixelFormat.R8_G8_B8_A8_UNorm,
+                            PixelFormat.R8G8B8A8UNorm,
                             TextureUsage.Sampled | TextureUsage.RenderTarget)),
                     deferredFrameBuffer.renderer.Factory.CreateSampler(
                         new SamplerDescription(

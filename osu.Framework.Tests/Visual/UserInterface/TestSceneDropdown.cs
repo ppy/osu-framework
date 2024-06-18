@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -13,6 +14,8 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
+using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Framework.Testing;
 using osu.Framework.Testing.Input;
@@ -309,6 +312,56 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestExternalManagement()
+        {
+            TestDropdown dropdown = null!;
+            Drawable openButton = null!;
+
+            AddStep("setup dropdown", () =>
+            {
+                dropdown = createDropdown();
+                dropdown.AlwaysShowSearchBar = true;
+
+                Add(openButton = new BasicButton
+                {
+                    Size = new Vector2(150, 30),
+                    Position = new Vector2(225, 50),
+                    Text = "Open dropdown",
+                    Action = openExternally
+                });
+            });
+
+            // Open via setting state directly
+
+            AddStep("open dropdown directly", openExternally);
+            AddAssert("dropdown open", () => dropdown.Menu.State, () => Is.EqualTo(MenuState.Open));
+            AddAssert("search bar visible", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Visible));
+            AddStep("press escape", () => InputManager.Key(Key.Escape));
+
+            // Open via clicking on an external button
+
+            AddStep("open dropdown via external button", () =>
+            {
+                InputManager.MoveMouseTo(openButton);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("dropdown open", () => dropdown.Menu.State, () => Is.EqualTo(MenuState.Open));
+            AddAssert("search bar visible", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Visible));
+            AddStep("press escape", () => InputManager.Key(Key.Escape));
+
+            // Close via setting state directly
+
+            AddStep("open dropdown directly", openExternally);
+            AddAssert("dropdown open", () => dropdown.Menu.State, () => Is.EqualTo(MenuState.Open));
+            AddStep("close dropdown directly", () => dropdown.ChildrenOfType<Menu>().Single().Close());
+            AddAssert("dropdown closed", () => dropdown.Menu.State, () => Is.EqualTo(MenuState.Closed));
+            AddAssert("search bar not visible", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
+
+            void openExternally() => dropdown.ChildrenOfType<Menu>().Single().Open();
+        }
+
+        [Test]
         public void TestItemReplacementDoesNotAffectScroll()
         {
             TestDropdown testDropdown = null!;
@@ -429,6 +482,32 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("text is expected", () => dropdown.SelectedItem.Text.Value.ToString(), () => Is.EqualTo("loaded: non-existent item"));
         }
 
+        [Test]
+        public void TestRemoveDropdownOnSelect()
+        {
+            TestDropdown testDropdown = null!;
+            Bindable<TestModel?> bindable = null!;
+
+            AddStep("setup dropdown", () =>
+            {
+                bindable = new Bindable<TestModel?>();
+                bindable.ValueChanged += _ => createDropdown();
+
+                testDropdown = createDropdown();
+                testDropdown.Current = bindable;
+            });
+
+            toggleDropdownViaClick(() => testDropdown);
+
+            AddStep("click item 2", () =>
+            {
+                InputManager.MoveMouseTo(testDropdown.Menu.Children[2]);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("bindable value is item 2", () => bindable.Value?.Identifier == "test 2");
+        }
+
         #region Searching
 
         [Test]
@@ -488,6 +567,22 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestSelectSearchedItem()
+        {
+            ManualTextDropdown dropdown = null!;
+
+            AddStep("setup dropdown", () => dropdown = createDropdowns<ManualTextDropdown>(1)[0]);
+            toggleDropdownViaClick(() => dropdown);
+
+            AddStep("trigger text", () => dropdown.TextInput.Text("test 4"));
+            AddAssert("search bar visible", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Visible));
+
+            AddStep("press enter", () => InputManager.Key(Key.Enter));
+            AddAssert("search bar hidden", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
+            AddAssert("dropdown closed", () => dropdown.Menu.State == MenuState.Closed);
+        }
+
+        [Test]
         public void TestAlwaysShowSearchBar()
         {
             ManualTextDropdown dropdown = null!;
@@ -525,6 +620,90 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddAssert("search bar hidden", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
+        }
+
+        [Test]
+        public void TestKeyBindingIsolation()
+        {
+            ManualTextDropdown dropdown = null!;
+            TestKeyBindingHandler keyBindingHandler = null!;
+
+            AddStep("setup dropdown", () =>
+            {
+                dropdown = createDropdowns<ManualTextDropdown>(1)[0];
+                dropdown.AlwaysShowSearchBar = true;
+            });
+
+            AddStep("setup key binding handler", () =>
+            {
+                Add(new TestKeyBindingContainer
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Child = keyBindingHandler = new TestKeyBindingHandler
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                });
+            });
+
+            AddAssert("search bar hidden", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
+            toggleDropdownViaClick(() => dropdown);
+
+            AddStep("press space", () =>
+            {
+                InputManager.Key(Key.Space);
+                // we must send something via the text input path for TextBox to block the space key press above,
+                // we're not supposed to do this here, but we don't have a good way of simulating text input from ManualInputManager so let's just do this for now.
+                // todo: add support for simulating text typing at a ManualInputManager level for more realistic results.
+                dropdown.TextInput.Text(" ");
+            });
+            AddAssert("handler did not receive press", () => !keyBindingHandler.ReceivedPress);
+
+            toggleDropdownViaClick(() => dropdown);
+
+            AddStep("press space", () =>
+            {
+                InputManager.Key(Key.Space);
+                // we must send something via the text input path for TextBox to block the space key press above,
+                // we're not supposed to do this here, but we don't have a good way of simulating text input from ManualInputManager so let's just do this for now.
+                dropdown.TextInput.Text(" ");
+            });
+            AddAssert("handler did not receive press", () => !keyBindingHandler.ReceivedPress);
+        }
+
+        [Test]
+        public void TestMouseFromTouch()
+        {
+            ManualTextDropdown dropdown = null!;
+            TestClickHandler clickHandler = null!;
+
+            AddStep("setup dropdown", () =>
+            {
+                dropdown = createDropdowns<ManualTextDropdown>(1)[0];
+                dropdown.AlwaysShowSearchBar = true;
+            });
+
+            AddStep("setup click handler", () => Add(clickHandler = new TestClickHandler
+            {
+                RelativeSizeAxes = Axes.Both
+            }));
+
+            AddAssert("search bar hidden", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
+            AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, dropdown.Header.ScreenSpaceDrawQuad.Centre)));
+            AddStep("end touch", () => InputManager.EndTouch(new Touch(TouchSource.Touch1, dropdown.Header.ScreenSpaceDrawQuad.Centre)));
+
+            AddAssert("search bar still hidden", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
+            AddAssert("handler received click", () => clickHandler.ReceivedClick);
+
+            AddStep("type something", () => dropdown.TextInput.Text("something"));
+            AddAssert("search bar still hidden", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
+            AddAssert("search bar empty", () => dropdown.Header.SearchTerm.Value, () => Is.Null.Or.Empty);
+
+            AddStep("hide click handler", () => clickHandler.Hide());
+            AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, dropdown.Header.ScreenSpaceDrawQuad.Centre)));
+            AddStep("end touch", () => InputManager.EndTouch(new Touch(TouchSource.Touch1, dropdown.Header.ScreenSpaceDrawQuad.Centre)));
+
+            AddAssert("search bar visible", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Visible));
         }
 
         #endregion
@@ -630,6 +809,45 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Assert.That(text, Is.Not.Null);
                 return $"{text}: {base.GenerateItemText(item)}";
             }
+        }
+
+        private partial class TestKeyBindingContainer : KeyBindingContainer<TestAction>
+        {
+            public override IEnumerable<IKeyBinding> DefaultKeyBindings => new[]
+            {
+                new KeyBinding(InputKey.Space, TestAction.SpaceAction)
+            };
+        }
+
+        private partial class TestKeyBindingHandler : Drawable, IKeyBindingHandler<TestAction>
+        {
+            public bool ReceivedPress;
+
+            public bool OnPressed(KeyBindingPressEvent<TestAction> e)
+            {
+                ReceivedPress = true;
+                return true;
+            }
+
+            public void OnReleased(KeyBindingReleaseEvent<TestAction> e)
+            {
+            }
+        }
+
+        private partial class TestClickHandler : Drawable
+        {
+            public bool ReceivedClick;
+
+            protected override bool OnClick(ClickEvent e)
+            {
+                ReceivedClick = true;
+                return true;
+            }
+        }
+
+        private enum TestAction
+        {
+            SpaceAction,
         }
     }
 }

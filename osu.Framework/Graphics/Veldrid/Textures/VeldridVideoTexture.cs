@@ -48,13 +48,13 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
                     resourceList[i] = new VeldridTextureResources
                     (
-                        Renderer.Factory.CreateTexture(TextureDescription.Texture2D((uint)width, (uint)height, 1, 1, PixelFormat.R8_UNorm, Usages)),
+                        Renderer.Factory.CreateTexture(TextureDescription.Texture2D((uint)width, (uint)height, 1, 1, PixelFormat.R8UNorm, Usages)),
                         Renderer.Factory.CreateSampler(new SamplerDescription
                         {
                             AddressModeU = SamplerAddressMode.Clamp,
                             AddressModeV = SamplerAddressMode.Clamp,
                             AddressModeW = SamplerAddressMode.Clamp,
-                            Filter = SamplerFilter.MinLinear_MagLinear_MipLinear,
+                            Filter = SamplerFilter.MinLinearMagLinearMipLinear,
                             MinimumLod = 0,
                             MaximumLod = IRenderer.MAX_MIPMAP_LEVELS,
                             MaximumAnisotropy = 0,

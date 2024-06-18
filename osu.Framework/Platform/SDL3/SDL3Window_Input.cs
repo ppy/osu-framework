@@ -12,13 +12,13 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Input.States;
 using osu.Framework.Logging;
-using osu.Framework.Platform.SDL;
 using osuTK;
 using osuTK.Input;
 using SDL;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
+using static SDL.SDL3;
 
-namespace osu.Framework.Platform
+namespace osu.Framework.Platform.SDL3
 {
     internal partial class SDL3Window
     {
@@ -49,7 +49,7 @@ namespace osu.Framework.Platform
                     throw new InvalidOperationException($"Cannot set {nameof(RelativeMouseMode)} to true when the cursor is not hidden via {nameof(CursorState)}.");
 
                 relativeMouseMode = value;
-                ScheduleCommand(() => SDL3.SDL_SetRelativeMouseMode(value ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE));
+                ScheduleCommand(() => SDL_SetRelativeMouseMode(value ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE));
                 updateCursorConfinement();
             }
         }
@@ -65,9 +65,9 @@ namespace osu.Framework.Platform
         /// The above culminate in <see cref="RelativeMouseMode"/> staying off when the cursor leaves and enters the window bounds when any buttons are pressed.
         /// This is an invalid state, as the cursor is inside the window, and <see cref="RelativeMouseMode"/> is off.
         /// </remarks>
-        internal bool MouseAutoCapture
+        public bool MouseAutoCapture
         {
-            set => ScheduleCommand(() => SDL3.SDL_SetHint(SDL3.SDL_HINT_MOUSE_AUTO_CAPTURE, value ? "1"u8 : "0"u8));
+            set => ScheduleCommand(() => SDL_SetHint(SDL_HINT_MOUSE_AUTO_CAPTURE, value ? "1"u8 : "0"u8));
         }
 
         /// <summary>
@@ -99,9 +99,9 @@ namespace osu.Framework.Platform
             ScheduleCommand(() =>
             {
                 if (cursorVisible)
-                    SDL3.SDL_ShowCursor();
+                    SDL_ShowCursor();
                 else
-                    SDL3.SDL_HideCursor();
+                    SDL_HideCursor();
             });
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace osu.Framework.Platform
         {
             bool confined = CursorState.HasFlagFast(CursorState.Confined);
 
-            ScheduleCommand(() => SDL3.SDL_SetWindowMouseGrab(SDLWindowHandle, confined ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE));
+            ScheduleCommand(() => SDL_SetWindowMouseGrab(SDLWindowHandle, confined ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE));
 
             // Don't use SDL_SetWindowMouseRect when relative mode is enabled, as relative mode already confines the OS cursor to the window.
             // This is fine for our use case, as UserInputManager will clamp the mouse position.
@@ -120,12 +120,12 @@ namespace osu.Framework.Platform
                 ScheduleCommand(() =>
                 {
                     var rect = ((RectangleI)(CursorConfineRect / Scale)).ToSDLRect();
-                    SDL3.SDL_SetWindowMouseRect(SDLWindowHandle, &rect);
+                    SDL_SetWindowMouseRect(SDLWindowHandle, &rect);
                 });
             }
             else
             {
-                ScheduleCommand(() => SDL3.SDL_SetWindowMouseRect(SDLWindowHandle, null));
+                ScheduleCommand(() => SDL_SetWindowMouseRect(SDLWindowHandle, null));
             }
         }
 
@@ -156,7 +156,7 @@ namespace osu.Framework.Platform
         private unsafe void pollMouse()
         {
             float x, y;
-            SDLButtonMask globalButtons = (SDLButtonMask)SDL3.SDL_GetGlobalMouseState(&x, &y);
+            SDLButtonMask globalButtons = (SDLButtonMask)SDL_GetGlobalMouseState(&x, &y);
 
             if (previousPolledPoint.X != x || previousPolledPoint.Y != y)
             {
@@ -183,9 +183,9 @@ namespace osu.Framework.Platform
             }
         }
 
-        public virtual void StartTextInput(bool allowIme) => ScheduleCommand(SDL3.SDL_StartTextInput);
+        public virtual void StartTextInput(bool allowIme) => ScheduleCommand(SDL_StartTextInput);
 
-        public void StopTextInput() => ScheduleCommand(SDL3.SDL_StopTextInput);
+        public void StopTextInput() => ScheduleCommand(SDL_StopTextInput);
 
         /// <summary>
         /// Resets internal state of the platform-native IME.
@@ -193,14 +193,14 @@ namespace osu.Framework.Platform
         /// </summary>
         public virtual void ResetIme() => ScheduleCommand(() =>
         {
-            SDL3.SDL_StopTextInput();
-            SDL3.SDL_StartTextInput();
+            SDL_StopTextInput();
+            SDL_StartTextInput();
         });
 
         public unsafe void SetTextInputRect(RectangleF rect) => ScheduleCommand(() =>
         {
             var sdlRect = ((RectangleI)(rect / Scale)).ToSDLRect();
-            SDL3.SDL_SetTextInputRect(&sdlRect);
+            SDL_SetTextInputRect(&sdlRect);
         });
 
         #region SDL Event Handling
@@ -291,7 +291,7 @@ namespace osu.Framework.Platform
                     break;
 
                 case SDL_EventType.SDL_EVENT_GAMEPAD_REMOVED:
-                    SDL3.SDL_CloseGamepad(controllers[evtCdevice.which].GamepadHandle);
+                    SDL_CloseGamepad(controllers[evtCdevice.which].GamepadHandle);
                     controllers.Remove(evtCdevice.which);
                     break;
 
@@ -328,11 +328,11 @@ namespace osu.Framework.Platform
             if (controllers.ContainsKey(instanceID))
                 return;
 
-            SDL_Joystick* joystick = SDL3.SDL_OpenJoystick(instanceID);
+            SDL_Joystick* joystick = SDL_OpenJoystick(instanceID);
 
             SDL_Gamepad* controller = null;
-            if (SDL3.SDL_IsGamepad(instanceID) == SDL_bool.SDL_TRUE)
-                controller = SDL3.SDL_OpenGamepad(instanceID);
+            if (SDL_IsGamepad(instanceID) == SDL_bool.SDL_TRUE)
+                controller = SDL_OpenGamepad(instanceID);
 
             controllers[instanceID] = new SDL3ControllerBindings(joystick, controller);
         }
@@ -342,7 +342,7 @@ namespace osu.Framework.Platform
         /// </summary>
         private void populateJoysticks()
         {
-            using var joysticks = SDL3.SDL_GetJoysticks();
+            using var joysticks = SDL_GetJoysticks();
 
             if (joysticks == null)
                 return;
@@ -366,7 +366,7 @@ namespace osu.Framework.Platform
                     if (!controllers.ContainsKey(evtJdevice.which))
                         break;
 
-                    SDL3.SDL_CloseJoystick(controllers[evtJdevice.which].JoystickHandle);
+                    SDL_CloseJoystick(controllers[evtJdevice.which].JoystickHandle);
                     controllers.Remove(evtJdevice.which);
                     break;
             }
@@ -430,7 +430,7 @@ namespace osu.Framework.Platform
         private void handleMouseButtonEvent(SDL_MouseButtonEvent evtButton)
         {
             MouseButton button = mouseButtonFromEvent(evtButton.Button);
-            SDLButtonMask mask = SDL3.SDL_BUTTON(evtButton.Button);
+            SDLButtonMask mask = SDL_BUTTON(evtButton.Button);
             Debug.Assert(Enum.IsDefined(mask));
 
             switch (evtButton.type)
@@ -449,7 +449,7 @@ namespace osu.Framework.Platform
 
         private void handleMouseMotionEvent(SDL_MouseMotionEvent evtMotion)
         {
-            if (SDL3.SDL_GetRelativeMouseMode() == SDL_bool.SDL_FALSE)
+            if (SDL_GetRelativeMouseMode() == SDL_bool.SDL_FALSE)
                 MouseMove?.Invoke(new Vector2(evtMotion.x * Scale, evtMotion.y * Scale));
             else
                 MouseMoveRelative?.Invoke(new Vector2(evtMotion.xrel * Scale, evtMotion.yrel * Scale));
@@ -524,7 +524,7 @@ namespace osu.Framework.Platform
         /// Update the host window manager's cursor position based on a location relative to window coordinates.
         /// </summary>
         /// <param name="mousePosition">A position inside the window.</param>
-        public unsafe void UpdateMousePosition(Vector2 mousePosition) => ScheduleCommand(() => SDL3.SDL_WarpMouseInWindow(SDLWindowHandle, mousePosition.X / Scale, mousePosition.Y / Scale));
+        public unsafe void UpdateMousePosition(Vector2 mousePosition) => ScheduleCommand(() => SDL_WarpMouseInWindow(SDLWindowHandle, mousePosition.X / Scale, mousePosition.Y / Scale));
 
         private void updateConfineMode()
         {
@@ -648,13 +648,5 @@ namespace osu.Framework.Platform
         public event Action<Touch>? TouchUp;
 
         #endregion
-
-        /// <summary>
-        /// Fired when text is edited, usually via IME composition.
-        /// </summary>
-        /// <param name="text">The composition text.</param>
-        /// <param name="start">The index of the selection start.</param>
-        /// <param name="length">The length of the selection.</param>
-        public delegate void TextEditingDelegate(string text, int start, int length);
     }
 }

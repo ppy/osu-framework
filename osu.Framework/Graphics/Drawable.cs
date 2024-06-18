@@ -25,6 +25,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Extensions.EnumExtensions;
@@ -1490,7 +1491,16 @@ namespace osu.Framework.Graphics
         /// As this is performing an upward tree traversal, avoid calling every frame.
         /// </summary>
         /// <returns>The first parent <see cref="InputManager"/>.</returns>
+        [CanBeNull]
         protected InputManager GetContainingInputManager() => this.FindClosestParent<InputManager>();
+
+        /// <summary>
+        /// Retrieve the first parent in the tree which implements <see cref="IFocusManager"/>.
+        /// As this is performing an upward tree traversal, avoid calling every frame.
+        /// </summary>
+        /// <returns>The first parent <see cref="IFocusManager"/>.</returns>
+        [CanBeNull]
+        protected IFocusManager GetContainingFocusManager() => this.FindClosestParent<IFocusManager>();
 
         private CompositeDrawable parent;
 
@@ -2395,6 +2405,11 @@ namespace osu.Framework.Graphics
         /// If true, we will gain focus (receiving priority on keyboard input) (and receive an <see cref="OnFocus"/> event) on returning true in <see cref="OnClick"/>.
         /// </summary>
         public virtual bool AcceptsFocus => false;
+
+        /// <summary>
+        /// If true, returning true in <see cref="OnClick"/> causes the current focus target to be unfocused.
+        /// </summary>
+        public virtual bool ChangeFocusOnClick => true;
 
         /// <summary>
         /// Whether this Drawable is currently hovered over.
