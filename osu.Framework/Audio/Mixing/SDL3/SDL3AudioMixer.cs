@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using ManagedBass;
 using ManagedBass.Fx;
-using osu.Framework.Bindables;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Statistics;
 using NAudio.Dsp;
@@ -35,10 +34,7 @@ namespace osu.Framework.Audio.Mixing.SDL3
         public SDL3AudioMixer(AudioMixer? globalMixer, string identifier)
             : base(globalMixer, identifier)
         {
-            EnqueueAction(() => Effects.BindCollectionChanged(onEffectsChanged, true));
         }
-
-        public override BindableList<IEffectParameter> Effects { get; } = new BindableList<IEffectParameter>();
 
         protected override void AddInternal(IAudioChannel channel)
         {
@@ -102,7 +98,7 @@ namespace osu.Framework.Audio.Mixing.SDL3
                     ret = new float[sampleCount];
                 }
 
-                bool useFilters = audioFilters.Count > 0;
+                bool useFilters = activeEffects.Count > 0;
 
                 if (useFilters && (filterArray == null || filterArray.Length != sampleCount))
                 {
@@ -150,7 +146,7 @@ namespace osu.Framework.Audio.Mixing.SDL3
                 {
                     for (int i = 0; i < filterArrayFilled; i++)
                     {
-                        foreach (var filter in audioFilters)
+                        foreach (var filter in activeEffects.Values)
                         {
                             if (filter.BiQuadFilter != null)
                             {
@@ -164,65 +160,18 @@ namespace osu.Framework.Audio.Mixing.SDL3
             }
         }
 
-        private readonly List<EffectBox> audioFilters = new List<EffectBox>();
-
-        private void onEffectsChanged(object? sender, NotifyCollectionChangedEventArgs e) => EnqueueAction(() =>
-        {
-            lock (syncRoot)
-            {
-                switch (e.Action)
-                {
-                    case NotifyCollectionChangedAction.Add:
-                    {
-                        Debug.Assert(e.NewItems != null);
-                        int startIndex = Math.Max(0, e.NewStartingIndex);
-                        audioFilters.InsertRange(startIndex, e.NewItems.OfType<IEffectParameter>().Select(eff => new EffectBox(eff)));
-                        break;
-                    }
-
-                    case NotifyCollectionChangedAction.Move:
-                    {
-                        EffectBox effect = audioFilters[e.OldStartingIndex];
-                        audioFilters.RemoveAt(e.OldStartingIndex);
-                        audioFilters.Insert(e.NewStartingIndex, effect);
-                        break;
-                    }
-
-                    case NotifyCollectionChangedAction.Remove:
-                    {
-                        Debug.Assert(e.OldItems != null);
-
-                        audioFilters.RemoveRange(e.OldStartingIndex, e.OldItems.Count);
-                        break;
-                    }
-
-                    case NotifyCollectionChangedAction.Replace:
-                    {
-                        Debug.Assert(e.NewItems != null);
-
-                        EffectBox newFilter = new EffectBox((IEffectParameter)e.NewItems[0].AsNonNull());
-                        audioFilters[e.NewStartingIndex] = newFilter;
-                        break;
-                    }
-
-                    case NotifyCollectionChangedAction.Reset:
-                    {
-                        audioFilters.Clear();
-                        break;
-                    }
-                }
-            }
-        });
-
         internal class EffectBox
         {
             public readonly BiQuadFilter? BiQuadFilter;
+            public readonly IEffectParameter EffectParameter;
 
             public EffectBox(IEffectParameter param)
             {
                 // allowing non-bqf to keep index of list
                 if (param is BQFParameters bqfp)
                     BiQuadFilter = getFilter(SDL3AudioManager.AUDIO_FREQ, bqfp);
+
+                EffectParameter = param;
             }
         }
 
@@ -286,5 +235,44 @@ namespace osu.Framework.Audio.Mixing.SDL3
         {
             Remove(channel, false);
         }
+
+        private readonly SortedDictionary<int, EffectBox> activeEffects = new SortedDictionary<int, EffectBox>();
+
+        public override void AddEffect(IEffectParameter effect, int priority = 0) => EnqueueAction(() =>
+        {
+            lock (syncRoot)
+            {
+                if (activeEffects.ContainsKey(priority))
+                    return;
+
+                activeEffects[priority] = new EffectBox(effect);
+            }
+        });
+
+        public override void RemoveEffect(IEffectParameter effect) => EnqueueAction(() =>
+        {
+            lock (syncRoot)
+            {
+                bool found = false;
+
+                do
+                {
+                    foreach (KeyValuePair<int, EffectBox> pair in activeEffects)
+                    {
+                        if (pair.Value.EffectParameter == effect)
+                        {
+                            activeEffects.Remove(pair.Key); // cannot move forward because we removed it!
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                while (found);
+            }
+        });
+
+        public override void UpdateEffect(IEffectParameter effect) => EnqueueAction(() =>
+        {
+        });
     }
 }
