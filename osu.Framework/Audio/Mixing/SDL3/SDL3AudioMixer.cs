@@ -132,13 +132,10 @@ namespace osu.Framework.Audio.Mixing.SDL3
 
                 if (useFilters)
                 {
-                    for (int i = 0; i < filterArrayFilled; i++)
+                    foreach (var filter in activeEffects.Values)
                     {
-                        foreach (var filter in activeEffects.Values)
-                        {
-                            if (filter.BiQuadFilter != null)
-                                filterArray![i] = filter.BiQuadFilter.Transform(filterArray[i]);
-                        }
+                        for (int i = 0; i < filterArrayFilled; i++)
+                            filterArray![i] = filter.Transform(filterArray[i]);
                     }
 
                     mixAudio(data, filterArray!, ref filledSamples, filterArrayFilled, 1, 1);
@@ -146,68 +143,53 @@ namespace osu.Framework.Audio.Mixing.SDL3
             }
         }
 
-        internal class EffectBox
+        private static BiQuadFilter updateFilter(BiQuadFilter? filter, float freq, BQFParameters bqfp)
         {
-            public BiQuadFilter? BiQuadFilter;
-
-            public EffectBox(IEffectParameter param)
-            {
-                Update(param);
-            }
-
-            public void Update(IEffectParameter param)
-            {
-                // allowing non-bqf to keep index of list
-                if (param is BQFParameters bqfp)
-                    BiQuadFilter = getFilter(SDL3AudioManager.AUDIO_FREQ, bqfp);
-            }
-        }
-
-        private static BiQuadFilter getFilter(float freq, BQFParameters bqfp)
-        {
-            BiQuadFilter filter;
-
             switch (bqfp.lFilter)
             {
                 case BQFType.LowPass:
-                    filter = BiQuadFilter.LowPassFilter(freq, bqfp.fCenter, bqfp.fQ);
-                    break;
+                    if (filter == null)
+                        return BiQuadFilter.LowPassFilter(freq, bqfp.fCenter, bqfp.fQ);
+                    else
+                        filter.SetLowPassFilter(freq, bqfp.fCenter, bqfp.fQ);
+
+                    return filter;
 
                 case BQFType.HighPass:
-                    filter = BiQuadFilter.HighPassFilter(freq, bqfp.fCenter, bqfp.fQ);
-                    break;
+                    if (filter == null)
+                        return BiQuadFilter.HighPassFilter(freq, bqfp.fCenter, bqfp.fQ);
+                    else
+                        filter.SetHighPassFilter(freq, bqfp.fCenter, bqfp.fQ);
 
-                case BQFType.BandPass:
-                    filter = BiQuadFilter.BandPassFilterConstantPeakGain(freq, bqfp.fCenter, bqfp.fQ);
-                    break;
-
-                case BQFType.BandPassQ:
-                    filter = BiQuadFilter.BandPassFilterConstantSkirtGain(freq, bqfp.fCenter, bqfp.fQ);
-                    break;
-
-                case BQFType.Notch:
-                    filter = BiQuadFilter.NotchFilter(freq, bqfp.fCenter, bqfp.fQ);
-                    break;
+                    return filter;
 
                 case BQFType.PeakingEQ:
-                    filter = BiQuadFilter.PeakingEQ(freq, bqfp.fCenter, bqfp.fQ, bqfp.fGain);
-                    break;
+                    if (filter == null)
+                        return BiQuadFilter.PeakingEQ(freq, bqfp.fCenter, bqfp.fQ, bqfp.fGain);
+                    else
+                        filter.SetPeakingEq(freq, bqfp.fCenter, bqfp.fQ, bqfp.fGain);
+
+                    return filter;
+
+                case BQFType.BandPass:
+                    return BiQuadFilter.BandPassFilterConstantPeakGain(freq, bqfp.fCenter, bqfp.fQ);
+
+                case BQFType.BandPassQ:
+                    return BiQuadFilter.BandPassFilterConstantSkirtGain(freq, bqfp.fCenter, bqfp.fQ);
+
+                case BQFType.Notch:
+                    return BiQuadFilter.NotchFilter(freq, bqfp.fCenter, bqfp.fQ);
 
                 case BQFType.LowShelf:
-                    filter = BiQuadFilter.LowShelf(freq, bqfp.fCenter, bqfp.fS, bqfp.fGain);
-                    break;
+                    return BiQuadFilter.LowShelf(freq, bqfp.fCenter, bqfp.fS, bqfp.fGain);
 
                 case BQFType.HighShelf:
-                    filter = BiQuadFilter.HighShelf(freq, bqfp.fCenter, bqfp.fS, bqfp.fGain);
-                    break;
+                    return BiQuadFilter.HighShelf(freq, bqfp.fCenter, bqfp.fS, bqfp.fGain);
 
                 case BQFType.AllPass:
-                default: // NAudio BiQuadFilter covers all, this default is kind of meaningless
-                    filter = BiQuadFilter.AllPassFilter(freq, bqfp.fCenter, bqfp.fQ);
-                    break;
+                default:
+                    return BiQuadFilter.AllPassFilter(freq, bqfp.fCenter, bqfp.fQ);
             }
-
-            return filter;
         }
 
         protected override void Dispose(bool disposing)
@@ -225,17 +207,21 @@ namespace osu.Framework.Audio.Mixing.SDL3
         }
 
         // Would like something like BiMap in Java, but I cannot write the whole collection here.
-        private readonly SortedDictionary<int, EffectBox> activeEffects = new SortedDictionary<int, EffectBox>();
+        private readonly SortedDictionary<int, BiQuadFilter> activeEffects = new SortedDictionary<int, BiQuadFilter>();
         private readonly Dictionary<IEffectParameter, int> parameterDict = new Dictionary<IEffectParameter, int>();
 
-        // This would overwrite a filter with same priority, does it need to get fixed?
         public override void AddEffect(IEffectParameter effect, int priority = 0) => EnqueueAction(() =>
         {
-            if (parameterDict.ContainsKey(effect))
+            if (parameterDict.ContainsKey(effect) || effect is not BQFParameters bqfp)
                 return;
 
+            while (activeEffects.ContainsKey(priority))
+                priority++;
+
+            BiQuadFilter filter = updateFilter(null, SDL3AudioManager.AUDIO_FREQ, bqfp);
+
             lock (syncRoot)
-                activeEffects[priority] = new EffectBox(effect);
+                activeEffects[priority] = filter;
 
             parameterDict[effect] = priority;
         });
@@ -253,11 +239,11 @@ namespace osu.Framework.Audio.Mixing.SDL3
 
         public override void UpdateEffect(IEffectParameter effect) => EnqueueAction(() =>
         {
-            if (!parameterDict.TryGetValue(effect, out int index))
+            if (!parameterDict.TryGetValue(effect, out int index) || effect is not BQFParameters bqfp)
                 return;
 
             lock (syncRoot)
-                activeEffects[index].Update(effect);
+                activeEffects[index] = updateFilter(activeEffects[index], SDL3AudioManager.AUDIO_FREQ, bqfp);
         });
     }
 }
