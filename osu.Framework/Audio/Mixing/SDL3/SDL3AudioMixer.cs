@@ -61,13 +61,29 @@ namespace osu.Framework.Audio.Mixing.SDL3
             if (left <= 0 && right <= 0)
                 return;
 
-            int i = 0;
+            for (int e = 0; e < samples; e += 2)
+            {
+                if (e < filled)
+                {
+                    dst[e] += src[e] * left;
+                    dst[e + 1] += src[e + 1] * right;
+                }
+                else
+                {
+                    dst[e] = src[e] * left;
+                    dst[e + 1] = src[e + 1] * right;
+                }
 
-            for (; i < filled; i++)
-                dst[i] += src[i] * ((i % 2) == 0 ? left : right);
+                if (dst[e] < -1f)
+                    dst[e] = -1f;
+                else if (dst[e] > 1f)
+                    dst[e] = 1f;
 
-            for (; i < samples; i++)
-                dst[i] = src[i] * ((i % 2) == 0 ? left : right);
+                if (dst[e + 1] < -1f)
+                    dst[e + 1] = -1f;
+                else if (dst[e + 1] > 1f)
+                    dst[e + 1] = 1f;
+            }
 
             if (samples > filled)
                 filled = samples;
