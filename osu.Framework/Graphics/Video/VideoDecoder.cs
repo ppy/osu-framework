@@ -351,9 +351,9 @@ namespace osu.Framework.Graphics.Video
 
             AVDictionary* options = null;
             // see https://github.com/ppy/osu/issues/13696 for reasoning
-            ffmpeg.av_dict_set(&options, "ignore_editlist", "1", 0);
+            ffmpeg.av_dict_set?.Invoke(&options, "ignore_editlist", "1", 0);
             int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "pipe:", null, &options);
-            ffmpeg.av_dict_free(&options);
+            ffmpeg.av_dict_free?.Invoke(&options);
 
             inputOpened = openInputResult >= 0;
             if (!inputOpened)
