@@ -20,7 +20,7 @@ using static SDL.SDL3;
 
 namespace osu.Framework.Platform.SDL3
 {
-    internal partial class SDL3Window
+    internal unsafe partial class SDL3Window
     {
         private void setupInput(FrameworkConfigManager config)
         {
@@ -183,9 +183,9 @@ namespace osu.Framework.Platform.SDL3
             }
         }
 
-        public virtual void StartTextInput(bool allowIme) => ScheduleCommand(SDL_StartTextInput);
+        public virtual void StartTextInput(bool allowIme) => ScheduleCommand(() => SDL_StartTextInput(SDLWindowHandle));
 
-        public void StopTextInput() => ScheduleCommand(SDL_StopTextInput);
+        public void StopTextInput() => ScheduleCommand(() => SDL_StopTextInput(SDLWindowHandle));
 
         /// <summary>
         /// Resets internal state of the platform-native IME.
@@ -193,14 +193,14 @@ namespace osu.Framework.Platform.SDL3
         /// </summary>
         public virtual void ResetIme() => ScheduleCommand(() =>
         {
-            SDL_StopTextInput();
-            SDL_StartTextInput();
+            SDL_StopTextInput(SDLWindowHandle);
+            SDL_StartTextInput(SDLWindowHandle);
         });
 
         public unsafe void SetTextInputRect(RectangleF rect) => ScheduleCommand(() =>
         {
             var sdlRect = ((RectangleI)(rect / Scale)).ToSDLRect();
-            SDL_SetTextInputRect(&sdlRect);
+            SDL_SetTextInputRect(SDLWindowHandle, &sdlRect);
         });
 
         #region SDL Event Handling
@@ -471,11 +471,11 @@ namespace osu.Framework.Platform.SDL3
 
         private void handleKeyboardEvent(SDL_KeyboardEvent evtKey)
         {
-            Key key = evtKey.keysym.ToKey();
+            Key key = evtKey.ToKey();
 
             if (key == Key.Unknown)
             {
-                Logger.Log($"Unknown SDL key: {evtKey.keysym.scancode}, {evtKey.keysym.sym}");
+                Logger.Log($"Unknown SDL key: {evtKey.scancode}, {evtKey.key}");
                 return;
             }
 

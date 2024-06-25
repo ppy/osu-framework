@@ -209,15 +209,15 @@ namespace osu.Framework.Platform.SDL3
             SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0"u8); // disable touch events generating synthetic mouse events on desktop platforms
             SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0"u8); // disable mouse events generating synthetic touch events on mobile platforms
 
-            // we want text input to only be active when SDL3DesktopWindowTextInput is active.
-            // SDL activates it by default on some platforms: https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/video/SDL_video.c#L573-L582
-            // so we deactivate it on startup.
-            SDL_StopTextInput();
-
             SDLWindowHandle = SDL_CreateWindow(title, Size.Width, Size.Height, flags);
 
             if (SDLWindowHandle == null)
                 throw new InvalidOperationException($"Failed to create SDL window. SDL Error: {SDL_GetError()}");
+
+            // we want text input to only be active when SDL3DesktopWindowTextInput is active.
+            // SDL activates it by default on some platforms: https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/video/SDL_video.c#L573-L582
+            // so we deactivate it on startup.
+            SDL_StopTextInput(SDLWindowHandle);
 
             graphicsSurface.Initialise();
 
