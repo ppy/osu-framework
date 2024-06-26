@@ -81,15 +81,17 @@ namespace osu.Framework.Graphics.Containers
             {
                 case NotifyCollectionChangedAction.Add:
                 {
+                    Debug.Assert(e.NewItems != null);
+
                     if (e.NewStartingIndex >= 0)
                     {
                         for (int i = e.NewStartingIndex; i < items.Length; ++i)
-                            Items.SetLayoutPosition(items[i], i + e.NewItems!.Count);
+                            Items.SetLayoutPosition(items[i], i + e.NewItems.Count);
                     }
 
-                    for (int i = 0; i < e.NewItems!.Count; ++i)
+                    for (int i = 0; i < e.NewItems.Count; ++i)
                     {
-                        Items.Insert(Math.Max(e.NewStartingIndex, 0) + i, new ItemRow((TData)e.NewItems![i]!, pool)
+                        Items.Insert(Math.Max(e.NewStartingIndex, 0) + i, new ItemRow((TData)e.NewItems[i]!, pool)
                         {
                             Height = rowHeight,
                             LifetimeEnd = double.NegativeInfinity,
@@ -101,11 +103,13 @@ namespace osu.Framework.Graphics.Containers
 
                 case NotifyCollectionChangedAction.Remove:
                 {
-                    for (int i = 0; i < e.OldItems!.Count; ++i)
+                    Debug.Assert(e.OldItems != null);
+
+                    for (int i = 0; i < e.OldItems.Count; ++i)
                         Items.Remove(items[e.OldStartingIndex + i], true);
 
-                    for (int i = e.OldStartingIndex + e.OldItems!.Count; i < items.Length; ++i)
-                        Items.SetLayoutPosition(items[i], i - e.OldItems!.Count);
+                    for (int i = e.OldStartingIndex + e.OldItems.Count; i < items.Length; ++i)
+                        Items.SetLayoutPosition(items[i], i - e.OldItems.Count);
                     break;
                 }
 
