@@ -308,12 +308,14 @@ fabric.properties
 # Reference:  https://github.com/JetBrains/resharper-rider-samples/blob/master/.gitignore
 
 # User specific
-**/.idea/**/workspace.xml
-**/.idea/**/tasks.xml
-**/.idea/shelf/*
-**/.idea/dictionaries
 **/.idea/httpRequests/
 **/.idea/**/usage.statistics.xml
+**/.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+.idea/*/.idea/projectSettingsUpdater.xml
 
 # Sensitive or high-churn files
 **/.idea/**/dataSources/
