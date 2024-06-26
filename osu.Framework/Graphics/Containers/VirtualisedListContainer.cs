@@ -229,6 +229,12 @@ namespace osu.Framework.Graphics.Containers
                 Row = row;
                 this.pool = pool;
                 RelativeSizeAxes = Axes.X;
+
+                // to avoid overheads from input handling (or, to be more specific, from constructing input queues),
+                // the row manages its own lifetime.
+                // if the row is not alive, it is not in `AliveInternalChildren` of its parent,
+                // which means that it is omitted from consideration in `Build(Non)PositionalInputQueue()` et al.
+                LifetimeEnd = double.NegativeInfinity;
             }
 
             public void Load()
