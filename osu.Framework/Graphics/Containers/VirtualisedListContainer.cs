@@ -220,7 +220,7 @@ namespace osu.Framework.Graphics.Containers
                 }
             }
 
-            public bool Visible { get; set; }
+            public bool Visible { get; private set; }
 
             private readonly DrawablePool<TDrawable> pool;
 
