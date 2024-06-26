@@ -12,7 +12,6 @@ using osu.Framework.Bindables;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Pooling;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Logging;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -75,8 +74,6 @@ namespace osu.Framework.Graphics.Containers
         {
             visibilityCache.Invalidate();
             Items.Height = rowHeight * RowData.Count;
-
-            Logger.Log(string.Join(Environment.NewLine, RowData.Select(d => d.ToString())));
 
             var items = Items.FlowingChildren.ToArray();
 
