@@ -250,6 +250,19 @@ namespace osu.Framework.Graphics.Containers
                 Visible = false;
                 LifetimeEnd = double.NegativeInfinity;
             }
+
+            protected override void Dispose(bool isDisposing)
+            {
+                // CompositeDrawable only disposes the child pooled drawable (if any).
+                // This is generally not what we want for two reasons:
+                // - We want to try to return the pooled drawable to the pool so that it can be reused.
+                //   Disposing it obviously makes reuse impossible.
+                // - Secondly, pooled drawables return to pool when they lose their parent.
+                // Thus, we proactively clear the pool drawable from ourselves here.
+                Unload();
+
+                base.Dispose(isDisposing);
+            }
         }
 
         protected abstract ScrollContainer<Drawable> CreateScrollContainer();

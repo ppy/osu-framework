@@ -37,14 +37,19 @@ namespace osu.Framework.Tests.Visual.Containers
         [Test]
         public void TestVirtualisedList()
         {
+            ExampleVirtualisedList list = null!;
             AddStep("create list", () =>
             {
-                ExampleVirtualisedList list;
                 Child = list = new ExampleVirtualisedList
                 {
                     RelativeSizeAxes = Axes.Both,
                 };
                 list.RowData.AddRange(Enumerable.Range(1, 10000).Select(i => $"Item #{i}"));
+            });
+            AddStep("replace items", () =>
+            {
+                list.RowData.Clear();
+                list.RowData.AddRange(Enumerable.Range(10001, 10000).Select(i => $"Item #{i}"));
             });
         }
 
