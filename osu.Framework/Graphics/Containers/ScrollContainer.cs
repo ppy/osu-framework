@@ -345,7 +345,8 @@ namespace osu.Framework.Graphics.Containers
             float scrollOffset = -childDelta[ScrollDim];
             float clampedScrollOffset = Clamp(Target + scrollOffset) - Clamp(Target);
 
-            Debug.Assert(Precision.AlmostBigger(Math.Abs(scrollOffset), clampedScrollOffset * Math.Sign(scrollOffset)));
+            // todo: this assertion fails when the difference between the values become too small to contain in float precision (see https://github.com/ppy/osu-framework/issues/2697)
+            // Debug.Assert(Precision.AlmostBigger(Math.Abs(scrollOffset), clampedScrollOffset * Math.Sign(scrollOffset)));
 
             // If we are dragging past the extent of the scrollable area, half the offset
             // such that the user can feel it.
