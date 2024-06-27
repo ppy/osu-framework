@@ -112,6 +112,18 @@ namespace osu.Framework.Graphics.Containers
             return LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.Single()), cancellation, scheduler);
         }
 
+        private Camera camera;
+
+        public Camera Camera
+        {
+            get => camera;
+            set
+            {
+                camera = value;
+                Invalidate();
+            }
+        }
+
         /// <summary>
         /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> synchronously and immediately. <see cref="Dependencies"/>
         /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.

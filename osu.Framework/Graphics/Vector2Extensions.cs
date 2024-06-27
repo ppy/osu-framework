@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics
         /// <param name="pos">The position to transform</param>
         /// <param name="mat">The desired transformation</param>
         /// <returns>The transformed position</returns>
-        public static Vector2 Transform(Vector2 pos, Matrix3 mat)
+        public static Vector2 Transform(Vector2 pos, Matrix4 mat)
         {
             Transform(ref pos, ref mat, out Vector2 result);
             return result;
@@ -24,10 +24,34 @@ namespace osu.Framework.Graphics
         /// <param name="pos">The position to transform</param>
         /// <param name="mat">The desired transformation</param>
         /// <param name="result">The transformed vector</param>
-        public static void Transform(ref Vector2 pos, ref Matrix3 mat, out Vector2 result)
+        public static void Transform(ref Vector2 pos, ref Matrix4 mat, out Vector2 result)
         {
-            result.X = mat.Row0.X * pos.X + mat.Row1.X * pos.Y + mat.Row2.X;
-            result.Y = mat.Row0.Y * pos.X + mat.Row1.Y * pos.Y + mat.Row2.Y;
+            result.X = mat.Row0.X * pos.X + mat.Row1.X * pos.Y + mat.Row3.X;
+            result.Y = mat.Row0.Y * pos.X + mat.Row1.Y * pos.Y + mat.Row3.Y;
+        }
+
+        /// <summary>Transform a Position by the given Matrix</summary>
+        /// <param name="pos">The position to transform</param>
+        /// <param name="mat">The desired transformation</param>
+        /// <returns>The transformed position</returns>
+        public static Vector3 Transform(Vector3 pos, Matrix4 mat)
+        {
+            Transform(ref pos, ref mat, out Vector3 result);
+            return result;
+        }
+
+        /// <summary>Transform a Position by the given Matrix</summary>
+        /// <param name="pos">The position to transform</param>
+        /// <param name="mat">The desired transformation</param>
+        /// <param name="result">The transformed vector</param>
+        public static void Transform(ref Vector3 pos, ref Matrix4 mat, out Vector3 result)
+        {
+            result.X = mat.Row0.X * pos.X + mat.Row1.X * pos.Y + mat.Row2.X * pos.Z + mat.Row3.X;
+            result.Y = mat.Row0.Y * pos.X + mat.Row1.Y * pos.Y + mat.Row2.Y * pos.Z + mat.Row3.Y;
+            result.Z = mat.Row0.Z * pos.X + mat.Row1.Z * pos.Y + mat.Row2.Z * pos.Z + mat.Row3.Z;
+
+            float w = mat.Row0.W * pos.X + mat.Row1.W * pos.Y + mat.Row2.W * pos.Z + mat.Row3.W;
+            result /= w;
         }
 
         /// <summary>

@@ -124,7 +124,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("click away", () =>
             {
-                InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().First().ScreenSpaceDrawQuad.BottomRight + new Vector2(10));
+                InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().First().ScreenSpaceDrawQuad.BottomRight.Xy + new Vector2(10));
                 InputManager.Click(MouseButton.Left);
             });
             AddAssert("all hidden", () => this.ChildrenOfType<Popover>().All(popover => popover.State.Value != Visibility.Visible));
@@ -285,7 +285,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("popover still shown", () => this.ChildrenOfType<Popover>().Any(popover => popover.State.Value == Visibility.Visible));
             AddStep("click in popover", () =>
             {
-                InputManager.MoveMouseTo(this.ChildrenOfType<Popover>().First().Body.ScreenSpaceDrawQuad.TopLeft + Vector2.One);
+                InputManager.MoveMouseTo(this.ChildrenOfType<Popover>().First().Body.ScreenSpaceDrawQuad.TopLeft.Xy + Vector2.One);
                 InputManager.Click(MouseButton.Left);
             });
 
@@ -513,7 +513,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("dismiss popover", () =>
             {
-                InputManager.MoveMouseTo(eventHandlingContainer.ScreenSpaceDrawQuad.TopLeft + new Vector2(10));
+                InputManager.MoveMouseTo(eventHandlingContainer.ScreenSpaceDrawQuad.TopLeft.Xy + new Vector2(10));
                 InputManager.Click(MouseButton.Left);
             });
 
