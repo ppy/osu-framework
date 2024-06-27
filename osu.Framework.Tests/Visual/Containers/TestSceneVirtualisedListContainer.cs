@@ -54,6 +54,30 @@ namespace osu.Framework.Tests.Visual.Containers
         }
 
         [Test]
+        public void TestVirtualisedListDisposal()
+        {
+            ExampleVirtualisedList list = null!;
+            AddStep("create list nested in container", () =>
+            {
+                Child = new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Child = new Container
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Child = list = new ExampleVirtualisedList
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                        }
+                    }
+                };
+                list.RowData.AddRange(Enumerable.Range(1, 10000).Select(i => $"Item #{i}"));
+            });
+            AddStep("clear", Clear);
+            AddUntilStep("wait for async disposal", () => list.IsDisposed);
+        }
+
+        [Test]
         public void TestCollectionChangeHandling()
         {
             ExampleVirtualisedList list = null!;
