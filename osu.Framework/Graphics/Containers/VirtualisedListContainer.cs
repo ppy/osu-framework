@@ -106,7 +106,11 @@ namespace osu.Framework.Graphics.Containers
                     Debug.Assert(e.OldItems != null);
 
                     for (int i = 0; i < e.OldItems.Count; ++i)
-                        Items.Remove(items[e.OldStartingIndex + i], true);
+                    {
+                        var item = items[e.OldStartingIndex + i];
+                        item.Unload();
+                        Items.Remove(item, true);
+                    }
 
                     for (int i = e.OldStartingIndex + e.OldItems.Count; i < items.Length; ++i)
                         Items.SetLayoutPosition(items[i], i - e.OldItems.Count);
@@ -249,19 +253,6 @@ namespace osu.Framework.Graphics.Containers
                 ClearInternal(false);
                 Visible = false;
                 LifetimeEnd = double.NegativeInfinity;
-            }
-
-            protected override void Dispose(bool isDisposing)
-            {
-                // CompositeDrawable only disposes the child pooled drawable (if any).
-                // This is generally not what we want for two reasons:
-                // - We want to try to return the pooled drawable to the pool so that it can be reused.
-                //   Disposing it obviously makes reuse impossible.
-                // - Secondly, pooled drawables return to pool when they lose their parent.
-                // Thus, we proactively clear the pool drawable from ourselves here.
-                Unload();
-
-                base.Dispose(isDisposing);
             }
         }
 
