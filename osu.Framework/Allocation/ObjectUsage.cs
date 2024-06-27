@@ -10,10 +10,7 @@ namespace osu.Framework.Allocation
     {
         public T? Object;
 
-        /// <summary>
-        /// Whether this usage is actively being written to or read from.
-        /// </summary>
-        public UsageType Usage;
+        public UsageType LastUsage;
 
         public readonly int Index;
 
@@ -33,7 +30,6 @@ namespace osu.Framework.Allocation
 
     public enum UsageType
     {
-        None,
         Read,
         Write
     }
