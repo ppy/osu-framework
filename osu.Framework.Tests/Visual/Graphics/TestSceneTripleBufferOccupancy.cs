@@ -9,9 +9,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 
-// ReSharper disable ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-// ReSharper disable ConvertToConstant.Local
-
 namespace osu.Framework.Tests.Visual.Graphics
 {
     public partial class TestSceneTripleBufferOccupancy : FrameworkTestScene
@@ -24,8 +21,8 @@ namespace osu.Framework.Tests.Visual.Graphics
         private long[] reads = new long[3];
         private Stopwatch stopwatch = Stopwatch.StartNew();
 
-        private int writeLag = 5;
-        private int readLag = 5;
+        private int writeLag;
+        private int readLag;
 
         public TestSceneTripleBufferOccupancy()
         {
