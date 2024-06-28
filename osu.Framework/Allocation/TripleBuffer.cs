@@ -12,7 +12,7 @@ namespace osu.Framework.Allocation
     /// Thread safety assumes at most one writer and one reader.
     /// Comes with the added assurance that the most recent <see cref="GetForRead"/> object is not written to.
     /// </summary>
-    public class TripleBuffer<T>
+    internal class TripleBuffer<T>
         where T : class
     {
         private const int buffer_count = 3;
