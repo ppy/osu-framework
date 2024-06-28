@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>libavutil</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.arthenica.ffmpegkit.Libavutil</string>
+	<string>sh.ppy.osu.Framework.iOS.libavutil</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -15,18 +15,14 @@
 	<key>CFBundlePackageType</key>
 	<string>FMWK</string>
 	<key>CFBundleShortVersionString</key>
-	<string>56.65.100</string>
-	<key>CFBundleVersion</key>
-	<string>56.65.100</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
-	<key>MinimumOSVersion</key>
-	<string>12.1</string>
+	<string>59.8.100</string>
 	<key>CFBundleSupportedPlatforms</key>
 	<array>
 		<string>iPhoneOS</string>
 	</array>
-	<key>NSPrincipalClass</key>
-	<string></string>
+	<key>CFBundleVersion</key>
+	<string>59.8.100</string>
+	<key>MinimumOSVersion</key>
+	<string>13.4</string>
 </dict>
 </plist>
