@@ -15,7 +15,7 @@ namespace osu.Framework.Allocation
         where T : class
     {
         private const int buffer_count = 3;
-        private readonly long timeoutTicks = 100 * Stopwatch.Frequency / 1000; // 100ms
+        private const long read_timeout_milliseconds = 100;
 
         private readonly ObjectUsage<T>[] buffers = new ObjectUsage<T>[buffer_count];
         private readonly Stopwatch stopwatch = new Stopwatch();
@@ -46,7 +46,7 @@ namespace osu.Framework.Allocation
                 flip(ref readIndex);
 
                 // This should really never happen, but prevents a potential infinite loop if the usage can never be retrieved.
-                if (stopwatch.ElapsedTicks > timeoutTicks)
+                if (stopwatch.ElapsedMilliseconds > read_timeout_milliseconds)
                     return null;
             } while (buffers[readIndex].LastUsage == UsageType.Read);
 
