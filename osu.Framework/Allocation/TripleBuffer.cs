@@ -18,11 +18,11 @@ namespace osu.Framework.Allocation
         private readonly long timeoutTicks = 100 * Stopwatch.Frequency / 1000; // 100ms
 
         private readonly ObjectUsage<T>[] buffers = new ObjectUsage<T>[buffer_count];
-
-        private int frontIndex;
-        private int flipIndex = 1;
-        private int backIndex = 2;
         private readonly Stopwatch stopwatch = new Stopwatch();
+
+        private int writeIndex;
+        private int flipIndex = 1;
+        private int readIndex = 2;
 
         public TripleBuffer()
         {
@@ -32,7 +32,7 @@ namespace osu.Framework.Allocation
 
         public ObjectUsage<T> GetForWrite()
         {
-            ObjectUsage<T> usage = buffers[frontIndex];
+            ObjectUsage<T> usage = buffers[writeIndex];
             usage.LastUsage = UsageType.Write;
             return usage;
         }
@@ -43,14 +43,14 @@ namespace osu.Framework.Allocation
 
             do
             {
-                flip(ref backIndex);
+                flip(ref readIndex);
 
                 // This should really never happen, but prevents a potential infinite loop if the usage can never be retrieved.
                 if (stopwatch.ElapsedTicks > timeoutTicks)
                     return null;
-            } while (buffers[backIndex].LastUsage == UsageType.Read);
+            } while (buffers[readIndex].LastUsage == UsageType.Read);
 
-            ObjectUsage<T> usage = buffers[backIndex];
+            ObjectUsage<T> usage = buffers[readIndex];
 
             Debug.Assert(usage.LastUsage == UsageType.Write);
             usage.LastUsage = UsageType.Read;
@@ -61,7 +61,7 @@ namespace osu.Framework.Allocation
         private void finishUsage(ObjectUsage<T> usage)
         {
             if (usage.LastUsage == UsageType.Write)
-                flip(ref frontIndex);
+                flip(ref writeIndex);
         }
 
         private void flip(ref int localIndex)
