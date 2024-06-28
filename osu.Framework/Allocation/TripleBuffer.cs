@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Diagnostics;
 using System.Threading;
 
@@ -17,7 +18,8 @@ namespace osu.Framework.Allocation
         private const int buffer_count = 3;
         private const long read_timeout_milliseconds = 100;
 
-        private readonly ObjectUsage<T>[] buffers = new ObjectUsage<T>[buffer_count];
+        private readonly Buffer[] buffers = new Buffer[buffer_count];
+
         private readonly Stopwatch stopwatch = new Stopwatch();
 
         private int writeIndex;
@@ -27,17 +29,17 @@ namespace osu.Framework.Allocation
         public TripleBuffer()
         {
             for (int i = 0; i < buffer_count; i++)
-                buffers[i] = new ObjectUsage<T>(i, finishUsage);
+                buffers[i] = new Buffer(i, finishUsage);
         }
 
-        public ObjectUsage<T> GetForWrite()
+        public Buffer GetForWrite()
         {
-            ObjectUsage<T> usage = buffers[writeIndex];
+            Buffer usage = buffers[writeIndex];
             usage.LastUsage = UsageType.Write;
             return usage;
         }
 
-        public ObjectUsage<T>? GetForRead()
+        public Buffer? GetForRead()
         {
             stopwatch.Restart();
 
@@ -50,7 +52,7 @@ namespace osu.Framework.Allocation
                     return null;
             } while (buffers[readIndex].LastUsage == UsageType.Read);
 
-            ObjectUsage<T> usage = buffers[readIndex];
+            Buffer usage = buffers[readIndex];
 
             Debug.Assert(usage.LastUsage == UsageType.Write);
             usage.LastUsage = UsageType.Read;
@@ -58,7 +60,7 @@ namespace osu.Framework.Allocation
             return usage;
         }
 
-        private void finishUsage(ObjectUsage<T> usage)
+        private void finishUsage(Buffer usage)
         {
             if (usage.LastUsage == UsageType.Write)
                 flip(ref writeIndex);
@@ -67,6 +69,34 @@ namespace osu.Framework.Allocation
         private void flip(ref int localIndex)
         {
             localIndex = Interlocked.Exchange(ref flipIndex, localIndex);
+        }
+
+        public class Buffer : IDisposable
+        {
+            public T? Object;
+
+            public volatile UsageType LastUsage;
+
+            public readonly int Index;
+
+            private readonly Action<Buffer>? finish;
+
+            public Buffer(int index, Action<Buffer>? finish)
+            {
+                Index = index;
+                this.finish = finish;
+            }
+
+            public void Dispose()
+            {
+                finish?.Invoke(this);
+            }
+        }
+
+        public enum UsageType
+        {
+            Read,
+            Write
         }
     }
 }
