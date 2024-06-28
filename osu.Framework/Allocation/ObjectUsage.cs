@@ -10,7 +10,7 @@ namespace osu.Framework.Allocation
     {
         public T? Object;
 
-        public UsageType LastUsage;
+        public volatile UsageType LastUsage;
 
         public readonly int Index;
 
