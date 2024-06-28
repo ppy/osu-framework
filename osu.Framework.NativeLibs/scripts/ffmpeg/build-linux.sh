@@ -18,7 +18,21 @@ FFMPEG_FLAGS+=(
 )
 
 pushd . > /dev/null
-prep_ffmpeg linux-x64
+
+if [ $(uname -m) == "x86_64" ]; then
+    ARCH="x64"
+elif [ $(uname -m) == "i686" ]; then
+    ARCH="x86"
+elif [ $(uname -m) == "aarch64" ]; then
+    ARCH="arm64"
+elif [ $(uname -m) == "armv7l" ]; then
+    ARCH="arm"
+else
+    echo "Unsupported architecture: $(uname -m)"
+    exit 1
+fi
+
+prep_ffmpeg linux-$ARCH
 # Apply patch from upstream to fix errors with new binutils versions:
 # Ticket: https://fftrac-bg.ffmpeg.org/ticket/10405
 # This patch should be removed when FFmpeg is updated to >=6.1
@@ -28,7 +42,7 @@ popd > /dev/null
 
 # gcc creates multiple symlinks per .so file for versioning.
 # We delete the symlinks and rename the real files to include the major library version
-rm linux-x64/*.so
-for f in linux-x64/*.so.*.*.*; do
+rm linux-$ARCH/*.so
+for f in linux-$ARCH/*.so.*.*.*; do
     mv -vf "$f" "${f%.*.*}"
 done
