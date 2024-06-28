@@ -1,12 +1,13 @@
 #!/bin/bash
 set -eu
 
-FFMPEG_VERSION=4.3.3
+FFMPEG_VERSION="7.0"
 FFMPEG_FILE="ffmpeg-$FFMPEG_VERSION.tar.gz"
 FFMPEG_FLAGS=(
     # General options
     --disable-static
     --enable-shared
+    --disable-debug
     --disable-all
     --disable-autodetect
     --enable-lto
@@ -50,14 +51,14 @@ function prep_ffmpeg() {
         echo "-> $build_dir already exists, skipping unpacking."
     fi
 
-    echo "-> Configuring..."
     cd "$build_dir"
-    ./configure "${FFMPEG_FLAGS[@]}"
 }
 
 function build_ffmpeg() {
-    echo "-> Building using $CORES threads..."
+    echo "-> Configuring..."
+    ./configure "${FFMPEG_FLAGS[@]}"
 
+    echo "-> Building using $CORES threads..."
     make -j$CORES
     make install-libs
 }

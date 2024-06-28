@@ -7,22 +7,11 @@ popd > /dev/null
 source "$SCRIPT_PATH/common.sh"
 
 FFMPEG_FLAGS+=(
-    # --enable-vaapi
-    # --enable-vdpau
-    # --enable-hwaccel='h264_vaapi,h264_vdpau'
-    # --enable-hwaccel='hevc_vaapi,hevc_vdpau'
-    # --enable-hwaccel='vp8_vaapi,vp8_vdpau'
-    # --enable-hwaccel='vp9_vaapi,vp9_vdpau'
-
     --target-os=linux
 )
 
 pushd . > /dev/null
 prep_ffmpeg linux-x64
-# Apply patch from upstream to fix errors with new binutils versions:
-# Ticket: https://fftrac-bg.ffmpeg.org/ticket/10405
-# This patch should be removed when FFmpeg is updated to >=6.1
-patch -p1 < "$SCRIPT_PATH/fix-binutils-2.41.patch"
 build_ffmpeg
 popd > /dev/null
 
