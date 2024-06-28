@@ -15,11 +15,14 @@ namespace osu.Framework.Allocation
         where T : class
     {
         private const int buffer_count = 3;
+        private readonly long timeoutTicks = 100 * Stopwatch.Frequency / 1000; // 100ms
+
         private readonly ObjectUsage<T>[] buffers = new ObjectUsage<T>[buffer_count];
 
         private int frontIndex;
         private int flipIndex = 1;
         private int backIndex = 2;
+        private readonly Stopwatch stopwatch = new Stopwatch();
 
         public TripleBuffer()
         {
@@ -36,14 +39,14 @@ namespace osu.Framework.Allocation
 
         public ObjectUsage<T>? GetForRead()
         {
-            Stopwatch sw = Stopwatch.StartNew();
+            stopwatch.Restart();
 
             do
             {
                 flip(ref backIndex);
 
                 // This should really never happen, but prevents a potential infinite loop if the usage can never be retrieved.
-                if (sw.ElapsedMilliseconds > 100)
+                if (stopwatch.ElapsedTicks > timeoutTicks)
                     return null;
             } while (buffers[backIndex].LastUsage == UsageType.Read);
 
