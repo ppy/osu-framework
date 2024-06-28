@@ -14,7 +14,7 @@ using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Tests.Visual.Graphics
 {
-    public class TestSceneTripleBufferOccupancy : FrameworkTestScene
+    public partial class TestSceneTripleBufferOccupancy : FrameworkTestScene
     {
         private readonly CancellationTokenSource cts = new CancellationTokenSource();
 
