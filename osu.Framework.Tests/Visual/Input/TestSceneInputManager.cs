@@ -119,7 +119,7 @@ namespace osu.Framework.Tests.Visual.Input
             protected override void Update()
             {
                 var inputManager = GetContainingInputManager();
-                var currentState = inputManager.CurrentState;
+                var currentState = inputManager!.CurrentState;
                 inputManagerStatus.Text = $"{inputManager}";
                 mouseStatus.Text = $"Mouse: {currentState.Mouse.Position} {currentState.Mouse.Scroll} " + string.Join(' ', currentState.Mouse.Buttons);
                 keyboardStatus.Text = "Keyboard: " + string.Join(' ', currentState.Keyboard.Keys);

@@ -7,6 +7,7 @@ using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Layout;
 using osu.Framework.Testing;
@@ -496,6 +497,42 @@ namespace osu.Framework.Tests.Layout
             });
 
             AddAssert("still valid", () => isValid);
+        }
+
+        /// <summary>
+        /// Tests that changing Masking property will invalidate child masking bounds.
+        /// </summary>
+        [Test]
+        public void TestChildMaskingInvalidationOnMaskingChange()
+        {
+            Container parent = null;
+            Container child = null;
+            RectangleF childMaskingBounds = new RectangleF();
+            RectangleF actualChildMaskingBounds = new RectangleF();
+
+            AddStep("createTest", () =>
+            {
+                Child = parent = new Container
+                {
+                    Size = new Vector2(100),
+                    Child = child = new Container
+                    {
+                        RelativeSizeAxes = Axes.Both
+                    }
+                };
+            });
+
+            AddAssert("Parent's masking is off", () => parent.Masking == false);
+            AddStep("Save masking bounds", () =>
+            {
+                childMaskingBounds = parent.ChildMaskingBounds;
+                actualChildMaskingBounds = child.ChildMaskingBounds;
+            });
+            AddAssert("Parent and child have the same masking bounds", () => childMaskingBounds == actualChildMaskingBounds);
+            AddStep("Enable parent masking", () => parent.Masking = true);
+            AddAssert("Parent's ChildMaskingBounds has changed", () => childMaskingBounds != parent.ChildMaskingBounds);
+            AddAssert("Child's masking bounds has changed", () => actualChildMaskingBounds != child.ChildMaskingBounds);
+            AddAssert("Parent and child have the same masking bounds", () => parent.ChildMaskingBounds == child.ChildMaskingBounds);
         }
 
         private partial class TestBox1 : Box

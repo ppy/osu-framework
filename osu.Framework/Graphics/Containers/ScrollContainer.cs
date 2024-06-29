@@ -5,7 +5,9 @@
 
 using System;
 using System.Diagnostics;
+using JetBrains.Annotations;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
@@ -185,6 +187,7 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly LayoutValue<IScrollContainer> parentScrollContainerCache = new LayoutValue<IScrollContainer>(Invalidation.Parent);
 
+        [CanBeNull]
         private IScrollContainer parentScrollContainer => parentScrollContainerCache.IsValid
             ? parentScrollContainerCache.Value
             : parentScrollContainerCache.Value = this.FindClosestParent<IScrollContainer>();
@@ -272,7 +275,7 @@ namespace osu.Framework.Graphics.Containers
 
             IsDragging = true;
 
-            dragButtonManager = GetContainingInputManager().GetButtonEventManagerFor(e.Button);
+            dragButtonManager = GetContainingInputManager().AsNonNull().GetButtonEventManagerFor(e.Button);
 
             return true;
         }
@@ -341,8 +344,6 @@ namespace osu.Framework.Graphics.Containers
 
             float scrollOffset = -childDelta[ScrollDim];
             float clampedScrollOffset = Clamp(Target + scrollOffset) - Clamp(Target);
-
-            Debug.Assert(Precision.AlmostBigger(Math.Abs(scrollOffset), clampedScrollOffset * Math.Sign(scrollOffset)));
 
             // If we are dragging past the extent of the scrollable area, half the offset
             // such that the user can feel it.

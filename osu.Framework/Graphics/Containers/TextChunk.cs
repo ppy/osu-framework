@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using osu.Framework.Graphics.Sprites;
@@ -88,7 +89,13 @@ namespace osu.Framework.Graphics.Containers
 
             for (int i = 0; i < text.Length; i++)
             {
-                if (i == 0 || char.IsSeparator(text[i - 1]) || char.IsControl(text[i - 1]))
+                if (i == 0
+                    || char.IsSeparator(text[i - 1])
+                    || char.IsControl(text[i - 1])
+                    || char.GetUnicodeCategory(text[i - 1]) == UnicodeCategory.DashPunctuation
+                    || text[i - 1] == '/'
+                    || text[i - 1] == '\\'
+                    || (isCjkCharacter(text[i - 1]) && !char.IsPunctuation(text[i])))
                 {
                     words.Add(builder.ToString());
                     builder.Clear();
@@ -101,6 +108,8 @@ namespace osu.Framework.Graphics.Containers
                 words.Add(builder.ToString());
 
             return words.ToArray();
+
+            bool isCjkCharacter(char c) => c >= '\x2E80' && c <= '\x9FFF';
         }
 
         protected virtual TSpriteText CreateSpriteText(TextFlowContainer textFlowContainer)

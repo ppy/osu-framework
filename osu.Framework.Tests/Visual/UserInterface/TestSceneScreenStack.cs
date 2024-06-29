@@ -67,11 +67,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             TestScreen screen1 = null;
 
             pushAndEnsureCurrent(() => screen1 = new TestScreen { EagerFocus = true });
-            AddUntilStep("wait for focus grab", () => GetContainingInputManager().FocusedDrawable == screen1);
+            AddUntilStep("wait for focus grab", () => GetContainingInputManager()!.FocusedDrawable == screen1);
 
             pushAndEnsureCurrent(() => new TestScreen(), () => screen1);
 
-            AddUntilStep("focus lost", () => GetContainingInputManager().FocusedDrawable != screen1);
+            AddUntilStep("focus lost", () => GetContainingInputManager()!.FocusedDrawable != screen1);
         }
 
         [Test]
@@ -80,11 +80,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             TestScreen screen1 = null, screen2 = null;
 
             pushAndEnsureCurrent(() => screen1 = new TestScreen { EagerFocus = true });
-            AddUntilStep("wait for focus grab", () => GetContainingInputManager().FocusedDrawable == screen1);
+            AddUntilStep("wait for focus grab", () => GetContainingInputManager()!.FocusedDrawable == screen1);
 
             pushAndEnsureCurrent(() => screen2 = new TestScreen { EagerFocus = true }, () => screen1);
 
-            AddUntilStep("focus transferred", () => GetContainingInputManager().FocusedDrawable == screen2);
+            AddUntilStep("focus transferred", () => GetContainingInputManager()!.FocusedDrawable == screen2);
         }
 
         [Test]

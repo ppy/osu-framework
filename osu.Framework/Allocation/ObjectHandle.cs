@@ -29,7 +29,7 @@ namespace osu.Framework.Allocation
 
         private GCHandle handle;
 
-        private readonly bool fromPointer;
+        private readonly bool canFree;
 
         /// <summary>
         /// Wraps the provided object with a <see cref="GCHandle" />, using the given <see cref="GCHandleType" />.
@@ -39,18 +39,19 @@ namespace osu.Framework.Allocation
         public ObjectHandle(T target, GCHandleType handleType)
         {
             handle = GCHandle.Alloc(target, handleType);
-            fromPointer = false;
+            canFree = true;
         }
 
         /// <summary>
         /// Recreates an <see cref="ObjectHandle{T}" /> based on the passed <see cref="IntPtr" />.
-        /// Disposing this object will not free the handle, the original object must be disposed instead.
+        /// If <paramref name="ownsHandle"/> is <c>true</c>, disposing this object will free the handle.
         /// </summary>
-        /// <param name="handle">Handle.</param>
-        public ObjectHandle(IntPtr handle)
+        /// <param name="handle"><see cref="Handle"/> from a previously constructed <see cref="ObjectHandle{T}(T, GCHandleType)"/>.</param>
+        /// <param name="ownsHandle">Whether this instance owns the underlying <see cref="GCHandle"/>.</param>
+        public ObjectHandle(IntPtr handle, bool ownsHandle = false)
         {
             this.handle = GCHandle.FromIntPtr(handle);
-            fromPointer = true;
+            canFree = ownsHandle;
         }
 
         /// <summary>
@@ -87,7 +88,7 @@ namespace osu.Framework.Allocation
 
         public void Dispose()
         {
-            if (!fromPointer && handle.IsAllocated)
+            if (canFree && handle.IsAllocated)
                 handle.Free();
         }
 

@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using osuTK;
@@ -395,7 +396,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
             AddAssert("popover shown", () => this.ChildrenOfType<Popover>().Any());
 
-            AddStep("take away text box focus", () => InputManager.ChangeFocus(null));
+            AddStep("take away text box focus", () => ((IFocusManager)InputManager).ChangeFocus(null));
             AddAssert("popover hidden", () => !this.ChildrenOfType<Popover>().Any());
         }
 

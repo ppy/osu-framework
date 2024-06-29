@@ -2,14 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using AVFoundation;
 using Foundation;
 using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
-using ObjCRuntime;
-using SDL2;
+using SDL;
 
 namespace osu.Framework.iOS
 {
@@ -22,20 +22,20 @@ namespace osu.Framework.iOS
 
         private static readonly OutputVolumeObserver output_volume_observer = new OutputVolumeObserver();
 
-        public static void Main(Game target)
+        public static unsafe void Main(Game target)
         {
             NativeLibrary.SetDllImportResolver(typeof(Bass).Assembly, (_, assembly, path) => NativeLibrary.Load("@rpath/bass.framework/bass", assembly, path));
             NativeLibrary.SetDllImportResolver(typeof(BassFx).Assembly, (_, assembly, path) => NativeLibrary.Load("@rpath/bass_fx.framework/bass_fx", assembly, path));
             NativeLibrary.SetDllImportResolver(typeof(BassMix).Assembly, (_, assembly, path) => NativeLibrary.Load("@rpath/bassmix.framework/bassmix", assembly, path));
+            NativeLibrary.SetDllImportResolver(typeof(SDL3).Assembly, (_, assembly, path) => NativeLibrary.Load("@rpath/SDL3.framework/SDL3", assembly, path));
 
             game = target;
 
-            SDL.PrepareLibraryForIOS();
-            SDL.SDL_UIKitRunApp(0, IntPtr.Zero, main);
+            SDL3.SDL_RunApp(0, null, &main, IntPtr.Zero);
         }
 
-        [MonoPInvokeCallback(typeof(SDL.SDL_main_func))]
-        private static int main(int argc, IntPtr argv)
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+        private static unsafe int main(int argc, byte** argv)
         {
             var audioSession = AVAudioSession.SharedInstance();
             audioSession.AddObserver(output_volume_observer, output_volume, NSKeyValueObservingOptions.New, 0);
