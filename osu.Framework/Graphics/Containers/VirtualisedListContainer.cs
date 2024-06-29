@@ -211,6 +211,7 @@ namespace osu.Framework.Graphics.Containers
                 }
 
                 visibilityCache.Validate();
+                assertCorrectOrder();
             }
         }
 
