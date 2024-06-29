@@ -56,8 +56,7 @@ namespace osu.Framework.Graphics.Containers
                     s.RelativeSizeAxes = Axes.Both;
                     s.Child = Items = new ItemFlow
                     {
-                        RelativeSizeAxes = Axes.X,
-                        Direction = FillDirection.Vertical,
+                        RelativeSizeAxes = Axes.X
                     };
                 })
             };
@@ -86,15 +85,21 @@ namespace osu.Framework.Graphics.Containers
                     if (e.NewStartingIndex >= 0)
                     {
                         for (int i = e.NewStartingIndex; i < items.Length; ++i)
-                            Items.SetLayoutPosition(items[i], i + e.NewItems.Count);
+                        {
+                            var itemToMove = Items[Items.IndexOf(items[i])];
+                            itemToMove.Y = (i + e.NewItems.Count) * rowHeight;
+                            Items.ChangeChildDepth(itemToMove, -(i + e.NewItems.Count));
+                        }
                     }
 
                     for (int i = 0; i < e.NewItems.Count; ++i)
                     {
-                        Items.Insert(Math.Max(e.NewStartingIndex, 0) + i, new ItemRow((TData)e.NewItems[i]!, pool)
+                        Items.Add(new ItemRow((TData)e.NewItems[i]!, pool)
                         {
                             Height = rowHeight,
                             LifetimeEnd = double.NegativeInfinity,
+                            Depth = -(Math.Max(e.NewStartingIndex, 0) + i),
+                            Y = (Math.Max(e.NewStartingIndex, 0) + i) * rowHeight
                         });
                     }
 
@@ -107,19 +112,24 @@ namespace osu.Framework.Graphics.Containers
 
                     for (int i = 0; i < e.OldItems.Count; ++i)
                     {
-                        var item = items[e.OldStartingIndex + i];
-                        item.Unload();
-                        Items.Remove(item, true);
+                        var itemToRemove = Items[Items.IndexOf(items[e.OldStartingIndex + i])];
+                        itemToRemove.Unload();
+                        Items.Remove(itemToRemove, true);
                     }
 
                     for (int i = e.OldStartingIndex + e.OldItems.Count; i < items.Length; ++i)
-                        Items.SetLayoutPosition(items[i], i - e.OldItems.Count);
+                    {
+                        var itemToMove = Items[Items.IndexOf(items[i])];
+                        itemToMove.Y = (i - e.OldItems.Count) * rowHeight;
+                        Items.ChangeChildDepth(itemToMove, -(i - e.OldItems.Count));
+                    }
+
                     break;
                 }
 
                 case NotifyCollectionChangedAction.Replace:
                 {
-                    Items[e.OldStartingIndex].Row = (TData)e.NewItems![0]!;
+                    Items[Items.IndexOf(items[e.OldStartingIndex])].Row = (TData)e.NewItems![0]!;
                     break;
                 }
 
@@ -138,7 +148,10 @@ namespace osu.Framework.Graphics.Containers
                     }
 
                     foreach (var (item, newPosition) in allMoves)
-                        Items.SetLayoutPosition(item, newPosition);
+                    {
+                        item.Y = newPosition * rowHeight;
+                        Items.ChangeChildDepth(item, -newPosition);
+                    }
 
                     break;
                 }
@@ -161,7 +174,7 @@ namespace osu.Framework.Graphics.Containers
             for (int i = 0; i < children.Length; ++i)
             {
                 float expected = i;
-                float actual = Items.GetLayoutPosition(children[i]);
+                float? actual = -children[i].Depth;
                 Debug.Assert(expected == actual, $"Index mismatch when handling collection change callback in VirtualisedListContainer: expected {expected} actual {actual}");
             }
         }
@@ -180,13 +193,14 @@ namespace osu.Framework.Graphics.Containers
 
             if (!visibilityCache.IsValid)
             {
-                var children = Items.FlowingChildren.ToArray();
-
-                for (int i = 0; i < children.Length; ++i)
+                for (int i = 0; i < Items.Count; ++i)
                 {
-                    var row = children[i];
+                    var row = Items[i];
 
-                    float minY = row.IsLoaded ? row.DrawPosition.Y : i * rowHeight;
+                    if (!row.IsPresent)
+                        continue;
+
+                    float minY = row.IsLoaded ? row.Y : -row.Depth * rowHeight;
                     float maxY = minY + rowHeight;
 
                     if ((maxY < visibleRange.min || minY > visibleRange.max) && row.Visible)
@@ -200,9 +214,9 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected partial class ItemFlow : FillFlowContainer<ItemRow>
+        protected partial class ItemFlow : Container<ItemRow>
         {
-            public override IEnumerable<ItemRow> FlowingChildren => InternalChildren.Where(d => d.IsPresent).OrderBy(GetLayoutPosition).Cast<ItemRow>();
+            public IEnumerable<ItemRow> FlowingChildren => Children.Where(d => d.IsPresent);
         }
 
         protected partial class ItemRow : CompositeDrawable
