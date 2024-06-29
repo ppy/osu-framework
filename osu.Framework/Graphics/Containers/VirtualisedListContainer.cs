@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Containers
         private readonly float rowHeight;
         private readonly int initialPoolSize;
 
-        private (float min, float max) visibleRange;
+        private (int min, int max) visibleRange;
         private readonly Cached visibilityCache = new Cached();
 
         private DrawablePool<TDrawable> pool = null!;
@@ -183,7 +183,7 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Update();
 
-            var currentVisibleRange = (Scroll.Current, Scroll.Current + Scroll.DrawHeight);
+            var currentVisibleRange = ((int)(Scroll.Current / rowHeight) + 1, (int)((Scroll.Current + Scroll.DrawHeight) / rowHeight));
 
             if (currentVisibleRange != visibleRange)
             {
@@ -203,10 +203,10 @@ namespace osu.Framework.Graphics.Containers
                     float minY = row.IsLoaded ? row.Y : -row.Depth * rowHeight;
                     float maxY = minY + rowHeight;
 
-                    if ((maxY < visibleRange.min || minY > visibleRange.max) && row.Visible)
+                    if ((maxY < visibleRange.min * rowHeight || minY > visibleRange.max * rowHeight) && row.Visible)
                         row.Unload();
 
-                    if ((maxY >= visibleRange.min && minY <= visibleRange.max) && !row.Visible)
+                    if ((maxY >= visibleRange.min * rowHeight && minY <= visibleRange.max * rowHeight) && !row.Visible)
                         row.Load();
                 }
 
