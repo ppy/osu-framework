@@ -47,12 +47,79 @@ jobs:
 
       - name: Combine
         run: osu.Framework.NativeLibs/scripts/ffmpeg/combine_dylibs.sh
+        env:
+          platform: macOS
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: macOS-universal
           path: macOS-universal
+
+  build-iOS:
+    name: Build iOS
+    runs-on: macos-12
+    strategy:
+      matrix:
+        arch: [arm64, simulator-arm64, simulator-x86_64]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: ilammy/setup-nasm@v1
+        if: matrix.arch == 'simulator-x86_64'
+
+      - name: Setup gas-preprocessor
+        run: |
+          git clone --depth=1 https://github.com/FFmpeg/gas-preprocessor
+          echo "GAS_PREPROCESSOR=$PWD/gas-preprocessor/gas-preprocessor.pl" >> $GITHUB_ENV
+
+      - name: Build
+        run: osu.Framework.NativeLibs/scripts/ffmpeg/build-iOS.sh
+        env:
+          arch: ${{ matrix.arch }}
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: iOS-${{ matrix.arch }}
+          path: iOS-${{ matrix.arch }}
+
+  combine-iOS:
+    name: Combine iOS libs
+    runs-on: macos-12
+    needs: build-iOS
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: iOS-simulator-x86_64
+          path: iOS-simulator-x86_64
+      - uses: actions/download-artifact@v4
+        with:
+          name: iOS-simulator-arm64
+          path: iOS-simulator-arm64
+      - uses: actions/download-artifact@v4
+        with:
+          name: iOS-arm64
+          path: iOS-arm64
+
+      - name: Combine dylibs
+        run: osu.Framework.NativeLibs/scripts/ffmpeg/combine_dylibs.sh
+        env:
+          platform: iOS-simulator
+
+      - name: Create XCFrameworks
+        run: osu.Framework.NativeLibs/scripts/ffmpeg/create-xcframeworks.sh
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: iOS-xcframework
+          path: iOS-xcframework
 
   build-win:
     name: Build Windows
@@ -112,7 +179,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install nasm libva-dev libvdpau-dev
+          sudo apt-get install nasm
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -126,14 +193,42 @@ jobs:
           name: linux-x64
           path: linux-x64
 
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        arch:
+          - armeabi-v7a
+          - arm64-v8a
+          - x86
+          - x86_64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: osu.Framework.NativeLibs/scripts/ffmpeg/build-android.sh
+        env:
+          arch: ${{ matrix.arch }}
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ matrix.arch }}
+          path: android-${{ matrix.arch }}
+
   make-pr:
     name: Create pull request
     runs-on: ubuntu-22.04
     needs:
       - combine-macos
+      - combine-iOS
       - build-win
       - build-win-arm64
       - build-linux
+      - build-android
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -142,6 +237,10 @@ jobs:
         with:
           name: macOS-universal
           path: osu.Framework.NativeLibs/runtimes/osx/native
+      - uses: actions/download-artifact@v4
+        with:
+          name: iOS-xcframework
+          path: osu.Framework.iOS/runtimes/ios/native
       - uses: actions/download-artifact@v4
         with:
           name: linux-x64
@@ -158,6 +257,22 @@ jobs:
         with:
           name: win-x86
           path: osu.Framework.NativeLibs/runtimes/win-x86/native
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-armeabi-v7a
+          path: osu.Framework.Android/armeabi-v7a
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-arm64-v8a
+          path: osu.Framework.Android/arm64-v8a
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-x86
+          path: osu.Framework.Android/x86
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-x86_64
+          path: osu.Framework.Android/x86_64
 
       - uses: peter-evans/create-pull-request@v6
         with:

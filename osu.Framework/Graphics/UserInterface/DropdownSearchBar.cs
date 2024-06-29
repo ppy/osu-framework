@@ -1,13 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
-using osu.Framework.Input.Events;
 using osu.Framework.Platform;
 using osuTK;
 
@@ -56,12 +54,7 @@ namespace osu.Framework.Graphics.UserInterface
                     t.ReleaseFocusOnCommit = true;
                     t.CommitOnFocusLost = false;
                     t.OnCommit += onTextBoxCommit;
-                }),
-                new ClickHandler
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Click = onClick
-                }
+                })
             };
 
             dropdown.MenuStateChanged += onMenuStateChanged;
@@ -164,23 +157,6 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Handles clicks on the search bar.
-        /// </summary>
-        private bool onClick(ClickEvent e)
-        {
-            // Allow input to fall through to the textbox if it's visible.
-            if (State.Value == Visibility.Visible)
-                return false;
-
-            // Otherwise, the search box acts as a button to show/hide the menu.
-            dropdown.ToggleMenu();
-
-            // And importantly, when the menu is closed as a result of the above toggle,
-            // block the textbox from receiving input so that it doesn't get re-focused.
-            return dropdown.MenuState == MenuState.Closed;
-        }
-
-        /// <summary>
         /// Creates the <see cref="TextBox"/>.
         /// </summary>
         protected abstract TextBox CreateTextBox();
@@ -201,12 +177,6 @@ namespace osu.Framework.Graphics.UserInterface
                 return false;
 
             return dropdown.ChangeFocus(potentialFocusTarget);
-        }
-
-        private partial class ClickHandler : Drawable
-        {
-            public required Func<ClickEvent, bool> Click { get; init; }
-            protected override bool OnClick(ClickEvent e) => Click(e);
         }
 
         private class DropdownTextInputSource : TextInputSource
