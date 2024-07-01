@@ -40,9 +40,9 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public Bindable<float> Rotation { get; } = new Bindable<float>();
 
-        public IBindable<TabletInfo> Tablet => tablet;
+        public IBindable<TabletInfo?> Tablet => tablet;
 
-        private readonly Bindable<TabletInfo> tablet = new Bindable<TabletInfo>();
+        private readonly Bindable<TabletInfo?> tablet = new Bindable<TabletInfo?>();
 
         private Task? lastInitTask;
 
@@ -54,9 +54,9 @@ namespace osu.Framework.Input.Handlers.Tablet
 
             host.Window.Resized += () => updateOutputArea(host.Window);
 
-            AreaOffset.BindValueChanged(_ => updateInputArea(device));
-            AreaSize.BindValueChanged(_ => updateInputArea(device), true);
-            Rotation.BindValueChanged(_ => updateInputArea(device), true);
+            AreaOffset.BindValueChanged(_ => updateTabletAndInputArea(device));
+            AreaSize.BindValueChanged(_ => updateTabletAndInputArea(device));
+            Rotation.BindValueChanged(_ => updateTabletAndInputArea(device), true);
 
             Enabled.BindValueChanged(enabled =>
             {
@@ -103,9 +103,11 @@ namespace osu.Framework.Input.Handlers.Tablet
                 device.OutputMode = outputMode;
                 outputMode.Tablet = device.CreateReference();
 
-                updateInputArea(device);
+                updateTabletAndInputArea(device);
                 updateOutputArea(host.Window);
             }
+            else
+                tablet.Value = null;
         }
 
         private void handleDeviceReported(object? sender, IDeviceReport report)
@@ -140,7 +142,7 @@ namespace osu.Framework.Input.Handlers.Tablet
             }
         }
 
-        private void updateInputArea(InputDeviceTree? inputDevice)
+        private void updateTabletAndInputArea(InputDeviceTree? inputDevice)
         {
             if (inputDevice == null)
                 return;

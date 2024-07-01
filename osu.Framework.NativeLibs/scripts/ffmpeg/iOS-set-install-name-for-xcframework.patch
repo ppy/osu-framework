@@ -1,0 +1,13 @@
+diff --git a/configure b/configure
+index 4f5353f84b..dfddd13c9d 100755
+--- a/configure
++++ b/configure
+@@ -5738,7 +5738,7 @@ case $target_os in
+     darwin)
+         enabled ppc && add_asflags -force_cpusubtype_ALL
+         install_name_dir_default='$(SHLIBDIR)'
+-        SHFLAGS='-dynamiclib -Wl,-single_module -Wl,-install_name,$(INSTALL_NAME_DIR)/$(SLIBNAME_WITH_MAJOR),-current_version,$(LIBVERSION),-compatibility_version,$(LIBMAJOR)'
++        SHFLAGS='-dynamiclib -Wl,-single_module -Wl,-install_name,$(INSTALL_NAME_DIR)/$(SLIBPREF)$(FULLNAME).framework/$(SLIBPREF)$(FULLNAME),-current_version,$(LIBVERSION),-compatibility_version,$(LIBMAJOR)'
+         enabled x86_32 && append SHFLAGS -Wl,-read_only_relocs,suppress
+         strip="${strip} -x"
+         add_ldflags -Wl,-dynamic,-search_paths_first

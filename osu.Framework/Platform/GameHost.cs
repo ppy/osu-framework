@@ -336,6 +336,11 @@ namespace osu.Framework.Platform
         {
             Options = options ?? new HostOptions();
 
+            if (string.IsNullOrEmpty(Options.FriendlyGameName))
+            {
+                Options.FriendlyGameName = $@"osu!framework (running ""{gameName}"")";
+            }
+
             Name = gameName;
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
@@ -446,9 +451,9 @@ namespace osu.Framework.Platform
             Exited?.Invoke();
         }
 
-        protected TripleBuffer<DrawNode> DrawRoots = new TripleBuffer<DrawNode>();
+        private readonly TripleBuffer<DrawNode> drawRoots = new TripleBuffer<DrawNode>();
 
-        protected Container Root;
+        internal Container Root { get; private set; }
 
         private ulong frameCount;
 
@@ -472,9 +477,9 @@ namespace osu.Framework.Platform
             TypePerformanceMonitor.NewFrame();
 
             Root.UpdateSubTree();
-            Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
+            Root.UpdateSubTreeMasking();
 
-            using (var buffer = DrawRoots.GetForWrite())
+            using (var buffer = drawRoots.GetForWrite())
                 buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
         }
 
@@ -495,7 +500,7 @@ namespace osu.Framework.Platform
 
             Renderer.AllowTearing = windowMode.Value == WindowMode.Fullscreen;
 
-            ObjectUsage<DrawNode> buffer;
+            TripleBuffer<DrawNode>.Buffer buffer;
 
             using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
             {
@@ -506,7 +511,7 @@ namespace osu.Framework.Platform
                     Renderer.WaitUntilNextFrameReady();
 
                 didRenderFrame = false;
-                buffer = DrawRoots.GetForRead();
+                buffer = drawRoots.GetForRead();
             }
 
             if (buffer == null)
@@ -732,7 +737,7 @@ namespace osu.Framework.Platform
 
                 ChooseAndSetupRenderer();
 
-                // Window creation may fail in the case of a catastrophic failure (ie. graphics driver or SDL2 level).
+                // Window creation may fail in the case of a catastrophic failure (ie. graphics driver or SDL3 level).
                 // In such cases, we want to throw here to immediately mark this renderer setup as failed.
                 if (RequireWindowExists && Window == null)
                 {
@@ -778,17 +783,7 @@ namespace osu.Framework.Platform
                 {
                     if (Window != null)
                     {
-                        switch (Window)
-                        {
-                            case SDL2Window window:
-                                window.Update += windowUpdate;
-                                break;
-
-                            case OsuTKWindow tkWindow:
-                                tkWindow.UpdateFrame += (_, _) => windowUpdate();
-                                break;
-                        }
-
+                        Window.Update += windowUpdate;
                         Window.Suspended += Suspend;
                         Window.Resumed += Resume;
                         Window.LowOnMemory += Collect;
@@ -1026,7 +1021,7 @@ namespace osu.Framework.Platform
 
                 Window.SetupWindow(Config);
                 Window.Create();
-                Window.Title = $@"osu!framework (running ""{Name}"")";
+                Window.Title = Options.FriendlyGameName;
 
                 Renderer.Initialise(Window.GraphicsSurface);
 
@@ -1059,6 +1054,14 @@ namespace osu.Framework.Platform
             }, true);
 
             IsActive.BindTo(Window.IsActive);
+
+            AllowScreenSuspension.Result.BindValueChanged(e =>
+            {
+                if (e.NewValue)
+                    Window.EnableScreenSuspension();
+                else
+                    Window.DisableScreenSuspension();
+            }, true);
         }
 
         /// <summary>
@@ -1323,7 +1326,7 @@ namespace osu.Framework.Platform
             if (Window == null)
                 return;
 
-            int refreshRate = Window.CurrentDisplayMode.Value.RefreshRate;
+            int refreshRate = (int)MathF.Round(Window.CurrentDisplayMode.Value.RefreshRate);
 
             // For invalid refresh rates let's assume 60 Hz as it is most common.
             if (refreshRate <= 0)

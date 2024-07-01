@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         /// <summary>
         /// Most documentation recommends that three buffers are used to avoid contention.
         ///
-        /// We already have a triple buffer (see <see cref="GameHost.DrawRoots"/>) governing draw nodes.
+        /// We already have a triple buffer governing draw nodes.
         /// In theory we could set this to two, but there's also a global usage of a vertex batch in <see cref="VeldridRenderer"/> (see <see cref="Renderer.DefaultQuadBatch"/>).
         ///
         /// So this is for now an unfortunate memory overhead. Further work could be done to provide

@@ -7,13 +7,6 @@ popd > /dev/null
 source "$SCRIPT_PATH/common.sh"
 
 FFMPEG_FLAGS+=(
-    # --enable-vaapi
-    # --enable-vdpau
-    # --enable-hwaccel='h264_vaapi,h264_vdpau'
-    # --enable-hwaccel='hevc_vaapi,hevc_vdpau'
-    # --enable-hwaccel='vp8_vaapi,vp8_vdpau'
-    # --enable-hwaccel='vp9_vaapi,vp9_vdpau'
-
     --target-os=linux
 )
 
@@ -23,9 +16,8 @@ build_ffmpeg
 popd > /dev/null
 
 # gcc creates multiple symlinks per .so file for versioning.
-# We want to delete the symlinks to prevent weird behaviour with GitHub actions.
+# We delete the symlinks and rename the real files to include the major library version
 rm linux-x64/*.so
 for f in linux-x64/*.so.*.*.*; do
-    mv -v "$f" "${f%.*.*.*}"
+    mv -vf "$f" "${f%.*.*}"
 done
-rm linux-x64/*.so.*

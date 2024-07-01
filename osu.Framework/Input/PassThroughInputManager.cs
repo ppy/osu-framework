@@ -42,7 +42,10 @@ namespace osu.Framework.Input
                 useParentInput = value;
 
                 if (UseParentInput)
-                    syncIgnoredInput();
+                {
+                    syncReleasedInputs();
+                    syncJoystickAxes();
+                }
             }
         }
 
@@ -174,9 +177,9 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Updates state of any buttons that have been released by parent or axes that have changed value while <see cref="UseParentInput"/> was disabled.
+        /// Updates state of any buttons that have been released by parent while <see cref="UseParentInput"/> was disabled.
         /// </summary>
-        private void syncIgnoredInput()
+        private void syncReleasedInputs()
         {
             if (parentInputManager == null)
                 return;
@@ -204,19 +207,25 @@ namespace osu.Framework.Input
                 new TabletPenButtonInput(button, false).Apply(CurrentState, this);
             foreach (var button in tabletAuxiliaryDiff.Released)
                 new TabletAuxiliaryButtonInput(button, false).Apply(CurrentState, this);
+        }
 
+        /// <summary>
+        /// Updates state of joystick axes that have changed values while <see cref="UseParentInput"/> was disabled.
+        /// </summary>
+        private void syncJoystickAxes()
+        {
             if (parentInputManager == null)
                 return;
 
-            var parentState1 = parentInputManager.CurrentState;
+            var parentState = parentInputManager.CurrentState;
 
             // Basically only perform the full state diff if we have found that any axis changed.
             // This avoids unnecessary alloc overhead.
             for (int i = 0; i < JoystickState.MAX_AXES; i++)
             {
-                if (parentState1?.Joystick?.AxesValues[i] != CurrentState.Joystick.AxesValues[i])
+                if (parentState?.Joystick?.AxesValues[i] != CurrentState.Joystick.AxesValues[i])
                 {
-                    new JoystickAxisInput(parentState1?.Joystick?.GetAxes() ?? Array.Empty<JoystickAxis>()).Apply(CurrentState, this);
+                    new JoystickAxisInput(parentState?.Joystick?.GetAxes() ?? Array.Empty<JoystickAxis>()).Apply(CurrentState, this);
                     break;
                 }
             }

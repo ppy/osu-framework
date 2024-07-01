@@ -6,6 +6,7 @@
 using System;
 using System.Diagnostics;
 using System.Text;
+using NUnit.Framework;
 using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
@@ -47,7 +48,7 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         public override string ToString() => "Assert: " + base.ToString();
 
-        private class TracedException : Exception
+        private class TracedException : AssertionException
         {
             private readonly StackTrace trace;
 
