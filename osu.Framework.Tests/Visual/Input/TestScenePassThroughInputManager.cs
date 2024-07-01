@@ -249,24 +249,17 @@ namespace osu.Framework.Tests.Visual.Input
             addTestInputManagerStep();
             AddStep("setup hierarchy", () =>
             {
-                Add(new PassThroughInputManager
+                Add(new HandlingBox
                 {
-                    Name = "other input manager",
-                    Child = new HandlingBox
+                    Alpha = 0.5f,
+                    RelativeSizeAxes = Axes.Both,
+                    OnHandle = e =>
                     {
-                        Alpha = 0.5f,
-                        RelativeSizeAxes = Axes.Both,
-                        OnHandle = e =>
-                        {
-                            if (e is KeyDownEvent keyDown && !keyDown.Repeat)
-                            {
-                                testInputManager.UseParentInput = true;
-                                return true;
-                            }
+                        if (e is KeyDownEvent keyDown && !keyDown.Repeat)
+                            testInputManager.UseParentInput = true;
 
-                            return false;
-                        }
-                    },
+                        return false;
+                    }
                 });
             });
 
