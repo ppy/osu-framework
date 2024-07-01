@@ -145,10 +145,10 @@ namespace osu.Framework.Platform
         public virtual Task SendMessageAsync(IpcMessage message) => throw new NotSupportedException("This platform does not implement IPC.");
 
         /// <summary>
-        /// Requests that a file be opened externally with an associated application, if available.
+        /// Requests that a file or folder be opened externally with an associated application, if available.
         /// </summary>
         /// <remarks>
-        /// Some platforms do not support interacting with files externally (ie. mobile or sandboxed platforms), check the return value as to whether it succeeded.
+        /// Some platforms do not support interacting with files externally (ie. mobile or sandboxed platforms), check the return value to discern whether it succeeded.
         /// </remarks>
         /// <param name="filename">The absolute path to the file which should be opened.</param>
         /// <returns>Whether the file was successfully opened.</returns>
@@ -159,12 +159,14 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <remarks>
         /// This will open the parent folder and, (if available) highlight the file.
-        /// Some platforms do not support interacting with files externally (ie. mobile or sandboxed platforms), check the return value as to whether it succeeded.
+        /// Some platforms do not support interacting with files externally (ie. mobile or sandboxed platforms), check the return value to discern whether it succeeded.
+        ///
+        /// If a folder path is provided to this method, it will prefer highlighting the folder in the parent folder, rather than showing the contents.
+        /// To display the contents of a folder, use <see cref="OpenFileExternally"/> instead.
         /// </remarks>
         /// <example>
         ///     <para>"C:\Windows\explorer.exe" -> opens 'C:\Windows' and highlights 'explorer.exe' in the window.</para>
         ///     <para>"C:\Windows\System32" -> opens 'C:\Windows' and highlights 'System32' in the window.</para>
-        ///     <para>"C:\Windows\System32\" -> opens 'C:\Windows\System32' and highlights nothing.</para>
         /// </example>
         /// <param name="filename">The absolute path to the file/folder to be shown in its parent folder.</param>
         /// <returns>Whether the file was successfully presented.</returns>
