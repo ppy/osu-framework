@@ -185,7 +185,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddAssert("interpolation in linear space", () =>
             {
                 var middle = interpolatingLines.Children[interpolatingLines.Children.Count / 2];
-                return middle.Colour.AverageColour.Linear == new Color4(0.5f, 0f, 0.5f, 1f);
+                return middle.Colour.AverageColour.ToLinear().Linear == new Colour4(0.5f, 0f, 0.5f, 1f);
             });
         }
 
