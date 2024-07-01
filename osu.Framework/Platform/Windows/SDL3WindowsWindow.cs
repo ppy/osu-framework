@@ -26,8 +26,8 @@ namespace osu.Framework.Platform.Windows
         private const int large_icon_size = 256;
         private const int small_icon_size = 16;
 
-        private Icon? smallIcon;
-        private Icon? largeIcon;
+        internal Icon? smallIcon;
+        internal Icon? largeIcon;
 
         /// <summary>
         /// Whether to apply the <see cref="windows_borderless_width_hack"/>.
@@ -57,6 +57,42 @@ namespace osu.Framework.Platform.Windows
             // disable all pen and touch feedback as this causes issues when running "optimised" fullscreen under Direct3D11.
             foreach (var feedbackType in Enum.GetValues<FeedbackType>())
                 Native.Input.SetWindowFeedbackSetting(WindowHandle, feedbackType, false);
+        }
+
+        public override unsafe void Run()
+        {
+            SDL_SetWindowsMessageHook(&messageHook, ObjectHandle.Handle);
+            base.Run();
+        }
+
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+        private static unsafe SDL_bool messageHook(IntPtr userdata, MSG* msg)
+        {
+            var handle = new ObjectHandle<SDL3WindowsWindow>(userdata);
+            if (handle.GetTarget(out SDL3WindowsWindow window))
+                return window.handleEventFromHook(*msg);
+
+            return SDL_bool.SDL_TRUE;
+        }
+
+        private SDL_bool handleEventFromHook(MSG msg)
+        {
+            switch (msg.message)
+            {
+                case WindowsNotificationTrayIcon.TRAYICON:
+                    if (WindowsNotificationTrayIcon.IsClick(msg.lParam))
+                    {
+                        TrayIcon.Value?.OnClick?.Invoke();
+                    }
+                    break;
+                case Imm.WM_IME_STARTCOMPOSITION:
+                case Imm.WM_IME_COMPOSITION:
+                case Imm.WM_IME_ENDCOMPOSITION:
+                    handleImeMessage(msg.hwnd, msg.message, msg.lParam);
+                    break;
+            }
+
+            return SDL_bool.SDL_TRUE;
         }
 
         protected override void HandleEventFromFilter(SDL_Event evt)

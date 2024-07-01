@@ -1,4 +1,5 @@
 using System;
+using osu.Framework.Platform.Windows;
 
 namespace osu.Framework.Platform
 {
@@ -19,6 +20,12 @@ namespace osu.Framework.Platform
 
         public static NotificationTrayIcon Create(string text, Action? onClick, IWindow window)
         {
+            switch (RuntimeInfo.OS)
+            {
+                case RuntimeInfo.Platform.Windows:
+                    return new WindowsNotificationTrayIcon(text, onClick, window);
+            }
+
             throw new PlatformNotSupportedException();
         }
 

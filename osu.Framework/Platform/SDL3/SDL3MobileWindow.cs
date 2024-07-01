@@ -1,6 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+<<<<<<< HEAD
+=======
+using System;
+using SDL;
+>>>>>>> 883c33ec5 (Implement creation/removal of notification tray icons)
 using static SDL.SDL3;
 
 namespace osu.Framework.Platform.SDL3
@@ -18,6 +23,16 @@ namespace osu.Framework.Platform.SDL3
             SDL_SetWindowFullscreen(SDLWindowHandle, true);
 
             // Don't run base logic at all. Let's keep things simple.
+        }
+
+        public override void CreateNotificationTrayIcon(string text, Action? onClick)
+        {
+            throw new PlatformNotSupportedException();
+        }
+
+        public override void RemoveNotificationTrayIcon()
+        {
+            throw new PlatformNotSupportedException();
         }
     }
 }
