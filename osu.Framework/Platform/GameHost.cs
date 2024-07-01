@@ -453,9 +453,9 @@ namespace osu.Framework.Platform
             Exited?.Invoke();
         }
 
-        protected TripleBuffer<DrawNode> DrawRoots = new TripleBuffer<DrawNode>();
+        private readonly TripleBuffer<DrawNode> drawRoots = new TripleBuffer<DrawNode>();
 
-        protected Container Root;
+        internal Container Root { get; private set; }
 
         private ulong frameCount;
 
@@ -481,7 +481,7 @@ namespace osu.Framework.Platform
             Root.UpdateSubTree();
             Root.UpdateSubTreeMasking();
 
-            using (var buffer = DrawRoots.GetForWrite())
+            using (var buffer = drawRoots.GetForWrite())
                 buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
         }
 
@@ -502,7 +502,7 @@ namespace osu.Framework.Platform
 
             Renderer.AllowTearing = windowMode.Value == WindowMode.Fullscreen;
 
-            ObjectUsage<DrawNode> buffer;
+            TripleBuffer<DrawNode>.Buffer buffer;
 
             using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
             {
@@ -513,7 +513,7 @@ namespace osu.Framework.Platform
                     Renderer.WaitUntilNextFrameReady();
 
                 didRenderFrame = false;
-                buffer = DrawRoots.GetForRead();
+                buffer = drawRoots.GetForRead();
             }
 
             if (buffer == null)

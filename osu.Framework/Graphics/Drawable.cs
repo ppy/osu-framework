@@ -1547,7 +1547,7 @@ namespace osu.Framework.Graphics
         public bool HasProxy => proxy != null;
 
         /// <summary>
-        /// True iff this <see cref="Drawable"/> is not a proxy of any <see cref="Drawable"/>.
+        /// True iff this <see cref="Drawable"/> is a proxy of any <see cref="Drawable"/>.
         /// </summary>
         public bool IsProxy => Original != this;
 
