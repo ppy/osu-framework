@@ -173,8 +173,8 @@ namespace osu.Framework.Graphics.Containers
 
             for (int i = 0; i < children.Length; ++i)
             {
-                float expected = i;
-                float? actual = -children[i].Depth;
+                float expected = i * rowHeight;
+                float? actual = children[i].Y;
                 Debug.Assert(expected == actual, $"Index mismatch when handling collection change callback in VirtualisedListContainer: expected {expected} actual {actual}");
             }
         }
