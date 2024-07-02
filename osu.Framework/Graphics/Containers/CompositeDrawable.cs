@@ -23,7 +23,6 @@ using osu.Framework.Statistics;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Development;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
@@ -723,9 +722,9 @@ namespace osu.Framework.Graphics.Containers
             {
                 var state = checkChildLife(internalChildren[i]);
 
-                anyAliveChanged |= state.HasFlagFast(ChildLifeStateChange.MadeAlive) || state.HasFlagFast(ChildLifeStateChange.MadeDead);
+                anyAliveChanged |= state.HasFlag(ChildLifeStateChange.MadeAlive) || state.HasFlag(ChildLifeStateChange.MadeDead);
 
-                if (state.HasFlagFast(ChildLifeStateChange.Removed))
+                if (state.HasFlag(ChildLifeStateChange.Removed))
                     i--;
             }
 
@@ -1840,7 +1839,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!isComputingChildrenSizeDependencies && AutoSizeAxes.HasFlagFast(Axes.X))
+                if (!isComputingChildrenSizeDependencies && AutoSizeAxes.HasFlag(Axes.X))
                     updateChildrenSizeDependencies();
                 return base.Width;
             }
@@ -1858,7 +1857,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!isComputingChildrenSizeDependencies && AutoSizeAxes.HasFlagFast(Axes.Y))
+                if (!isComputingChildrenSizeDependencies && AutoSizeAxes.HasFlag(Axes.Y))
                     updateChildrenSizeDependencies();
                 return base.Height;
             }
@@ -1914,16 +1913,16 @@ namespace osu.Framework.Graphics.Containers
 
                     Vector2 cBound = c.RequiredParentSizeToFit;
 
-                    if (!c.BypassAutoSizeAxes.HasFlagFast(Axes.X))
+                    if (!c.BypassAutoSizeAxes.HasFlag(Axes.X))
                         maxBoundSize.X = Math.Max(maxBoundSize.X, cBound.X);
 
-                    if (!c.BypassAutoSizeAxes.HasFlagFast(Axes.Y))
+                    if (!c.BypassAutoSizeAxes.HasFlag(Axes.Y))
                         maxBoundSize.Y = Math.Max(maxBoundSize.Y, cBound.Y);
                 }
 
-                if (!AutoSizeAxes.HasFlagFast(Axes.X))
+                if (!AutoSizeAxes.HasFlag(Axes.X))
                     maxBoundSize.X = DrawSize.X;
-                if (!AutoSizeAxes.HasFlagFast(Axes.Y))
+                if (!AutoSizeAxes.HasFlag(Axes.Y))
                     maxBoundSize.Y = DrawSize.Y;
 
                 return new Vector2(maxBoundSize.X, maxBoundSize.Y);
@@ -1943,8 +1942,8 @@ namespace osu.Framework.Graphics.Containers
             Vector2 b = computeAutoSize() + Padding.Total;
 
             autoSizeResizeTo(new Vector2(
-                AutoSizeAxes.HasFlagFast(Axes.X) ? b.X : base.Width,
-                AutoSizeAxes.HasFlagFast(Axes.Y) ? b.Y : base.Height
+                AutoSizeAxes.HasFlag(Axes.X) ? b.X : base.Width,
+                AutoSizeAxes.HasFlag(Axes.Y) ? b.Y : base.Height
             ), AutoSizeDuration, AutoSizeEasing);
 
             //note that this is called before autoSize becomes valid. may be something to consider down the line.

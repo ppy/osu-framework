@@ -4,7 +4,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using osu.Framework.Extensions.EnumExtensions;
 
 namespace osu.Framework.Extensions
 {
@@ -43,7 +42,7 @@ namespace osu.Framework.Extensions
         private static bool isWaitingValid(Task task)
         {
             // In the case the task has been started with the LongRunning flag, it will not be in the TPL thread pool and we can allow waiting regardless.
-            if (task.CreationOptions.HasFlagFast(TaskCreationOptions.LongRunning))
+            if (task.CreationOptions.HasFlag(TaskCreationOptions.LongRunning))
                 return true;
 
             // Otherwise only allow waiting from a non-TPL thread pool thread.
