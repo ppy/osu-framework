@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Platform;
 using osuTK;
@@ -206,7 +205,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 foreach (var dir in path.GetDirectories().OrderBy(d => d.Name))
                 {
-                    if (ShowHiddenItems.Value || !dir.Attributes.HasFlagFast(FileAttributes.Hidden))
+                    if (ShowHiddenItems.Value || !dir.Attributes.HasFlag(FileAttributes.Hidden))
                         items.Add(CreateDirectoryItem(dir));
                 }
 

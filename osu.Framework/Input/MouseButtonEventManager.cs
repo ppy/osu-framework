@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
@@ -211,7 +210,7 @@ namespace osu.Framework.Input
 
         private void draggedDrawableInvalidated(Drawable drawable, Invalidation invalidation)
         {
-            if (invalidation.HasFlagFast(Invalidation.Parent))
+            if (invalidation.HasFlag(Invalidation.Parent))
             {
                 // end drag if no longer rooted.
                 if (!drawable.IsRootedAt(InputManager))

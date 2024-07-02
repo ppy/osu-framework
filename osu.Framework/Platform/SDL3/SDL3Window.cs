@@ -9,7 +9,6 @@ using System.Runtime.Versioning;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Logging;
 using osu.Framework.Threading;
@@ -143,7 +142,7 @@ namespace osu.Framework.Platform.SDL3
         [SupportedOSPlatform("android")]
         public virtual IntPtr SurfaceHandle => throw new PlatformNotSupportedException();
 
-        public bool CapsLockPressed => SDL_GetModState().HasFlagFast(SDL_Keymod.SDL_KMOD_CAPS);
+        public bool CapsLockPressed => SDL_GetModState().HasFlag(SDL_Keymod.SDL_KMOD_CAPS);
 
         /// <summary>
         /// Represents a handle to this <see cref="SDL3Window"/> instance, used for unmanaged callbacks.
@@ -174,7 +173,7 @@ namespace osu.Framework.Platform.SDL3
 
             CursorStateBindable.ValueChanged += evt =>
             {
-                updateCursorVisibility(!evt.NewValue.HasFlagFast(CursorState.Hidden));
+                updateCursorVisibility(!evt.NewValue.HasFlag(CursorState.Hidden));
                 updateCursorConfinement();
             };
 
@@ -374,7 +373,7 @@ namespace osu.Framework.Platform.SDL3
         {
             var flags = SDL_GetWindowFlags(SDLWindowHandle);
 
-            if (flags.HasFlagFast(SDL_WindowFlags.SDL_WINDOW_MINIMIZED))
+            if (flags.HasFlag(SDL_WindowFlags.SDL_WINDOW_MINIMIZED))
                 SDL_RestoreWindow(SDLWindowHandle);
 
             SDL_RaiseWindow(SDLWindowHandle);

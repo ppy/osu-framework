@@ -4,7 +4,6 @@
 using osuTK;
 using System;
 using System.Collections.Generic;
-using osu.Framework.Extensions.EnumExtensions;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -42,13 +41,13 @@ namespace osu.Framework.Graphics.Containers
 
             // For anchor/origin positioning to be preserved correctly,
             // relatively sized axes must be lifted to the wrapping container.
-            if (container.RelativeSizeAxes.HasFlagFast(Axes.X))
+            if (container.RelativeSizeAxes.HasFlag(Axes.X))
             {
                 container.Width = drawable.Width;
                 drawable.Width = 1;
             }
 
-            if (container.RelativeSizeAxes.HasFlagFast(Axes.Y))
+            if (container.RelativeSizeAxes.HasFlag(Axes.Y))
             {
                 container.Height = drawable.Height;
                 drawable.Height = 1;
