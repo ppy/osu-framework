@@ -29,14 +29,21 @@ namespace osu.Framework.Platform.SDL3
 
         protected override string GetReadableKey(InputKey key)
         {
+            var scancode = key.ToScancode();
+
             // In SDL3, SDL_GetKeyFromScancode may return a different keycode depending on key modifier. Use NONE to keep consistency with SDL2 for now.
-            var keycode = getKeyFromScancode(key.ToScancode(), SDL_KMOD_NONE);
+            var keycode = getKeyFromScancode(scancode, SDL_KMOD_NONE);
 
             // early return if unknown. probably because key isn't a keyboard key, or doesn't map to an `SDL_Scancode`.
             if (keycode == SDL_Keycode.SDLK_UNKNOWN)
                 return base.GetReadableKey(key);
 
             string? name;
+
+            // SDL3 requires apps to distinguish numlock state through scancode.
+            // https://github.com/libsdl-org/SDL/commit/d4497ecdbdfd4567eebddde2c3773e1a1cba4894
+            if (TryGetNameFromScancode(scancode, out name))
+                return name;
 
             // overrides for some keys that we want displayed differently from SDL_GetKeyName().
             if (TryGetNameFromKeycode(keycode, out name))
@@ -59,6 +66,80 @@ namespace osu.Framework.Platform.SDL3
             // is different from the locale of the keyboard layout being used,
             // but we have no means to detect this anyway, as SDL doesn't provide the name of the layout.
             return name.ToUpper(CultureInfo.CurrentCulture);
+        }
+
+        protected virtual bool TryGetNameFromScancode(SDL_Scancode scancode, out string name)
+        {
+            switch (scancode)
+            {
+                case SDL_Scancode.SDL_SCANCODE_KP_DIVIDE:
+                    name = "NumpadDivide";
+                    return true;
+
+                case SDL_Scancode.SDL_SCANCODE_KP_MULTIPLY:
+                    name = "NumpadMultiply";
+                    return true;
+
+                case SDL_Scancode.SDL_SCANCODE_KP_MINUS:
+                    name = "NumpadMinus";
+                    return true;
+
+                case SDL_Scancode.SDL_SCANCODE_KP_PLUS:
+                    name = "NumpadPlus";
+                    return true;
+
+                case SDL_Scancode.SDL_SCANCODE_KP_ENTER:
+                    name = "NumpadEnter";
+                    return true;
+
+                case SDL_Scancode.SDL_SCANCODE_KP_PERIOD:
+                    name = "NumpadDecimal";
+                    return true;
+
+                case SDL_Scancode.SDL_SCANCODE_KP_0:
+                    name = "Numpad0";
+                    return true;
+
+                case SDL_Scancode.SDL_SCANCODE_KP_1:
+                    name = "Numpad1";
+                    return true;
+
+                case SDL_Scancode.SDL_SCANCODE_KP_2:
+                    name = "Numpad2";
+                    return true;
+
+                case SDL_Scancode.SDL_SCANCODE_KP_3:
+                    name = "Numpad3";
+                    return true;
+
+                case SDL_Scancode.SDL_SCANCODE_KP_4:
+                    name = "Numpad4";
+                    return true;
+
+                case SDL_Scancode.SDL_SCANCODE_KP_5:
+                    name = "Numpad5";
+                    return true;
+
+                case SDL_Scancode.SDL_SCANCODE_KP_6:
+                    name = "Numpad6";
+                    return true;
+
+                case SDL_Scancode.SDL_SCANCODE_KP_7:
+                    name = "Numpad7";
+                    return true;
+
+                case SDL_Scancode.SDL_SCANCODE_KP_8:
+                    name = "Numpad8";
+                    return true;
+
+                case SDL_Scancode.SDL_SCANCODE_KP_9:
+                    name = "Numpad9";
+                    return true;
+
+                default:
+                    name = string.Empty;
+                    return false;
+            }
         }
 
         /// <summary>
@@ -121,70 +202,6 @@ namespace osu.Framework.Platform.SDL3
 
                 case SDL_Keycode.SDLK_NUMLOCKCLEAR:
                     name = "NumLock";
-                    return true;
-
-                case SDL_Keycode.SDLK_KP_DIVIDE:
-                    name = "NumpadDivide";
-                    return true;
-
-                case SDL_Keycode.SDLK_KP_MULTIPLY:
-                    name = "NumpadMultiply";
-                    return true;
-
-                case SDL_Keycode.SDLK_KP_MINUS:
-                    name = "NumpadMinus";
-                    return true;
-
-                case SDL_Keycode.SDLK_KP_PLUS:
-                    name = "NumpadPlus";
-                    return true;
-
-                case SDL_Keycode.SDLK_KP_ENTER:
-                    name = "NumpadEnter";
-                    return true;
-
-                case SDL_Keycode.SDLK_KP_PERIOD:
-                    name = "NumpadDecimal";
-                    return true;
-
-                case SDL_Keycode.SDLK_KP_0:
-                    name = "Numpad0";
-                    return true;
-
-                case SDL_Keycode.SDLK_KP_1:
-                    name = "Numpad1";
-                    return true;
-
-                case SDL_Keycode.SDLK_KP_2:
-                    name = "Numpad2";
-                    return true;
-
-                case SDL_Keycode.SDLK_KP_3:
-                    name = "Numpad3";
-                    return true;
-
-                case SDL_Keycode.SDLK_KP_4:
-                    name = "Numpad4";
-                    return true;
-
-                case SDL_Keycode.SDLK_KP_5:
-                    name = "Numpad5";
-                    return true;
-
-                case SDL_Keycode.SDLK_KP_6:
-                    name = "Numpad6";
-                    return true;
-
-                case SDL_Keycode.SDLK_KP_7:
-                    name = "Numpad7";
-                    return true;
-
-                case SDL_Keycode.SDLK_KP_8:
-                    name = "Numpad8";
-                    return true;
-
-                case SDL_Keycode.SDLK_KP_9:
-                    name = "Numpad9";
                     return true;
 
                 case SDL_Keycode.SDLK_LCTRL:
