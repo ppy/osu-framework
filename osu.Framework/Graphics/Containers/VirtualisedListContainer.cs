@@ -193,10 +193,8 @@ namespace osu.Framework.Graphics.Containers
 
             if (!visibilityCache.IsValid)
             {
-                for (int i = 0; i < Items.Count; ++i)
+                foreach (var row in Items)
                 {
-                    var row = Items[i];
-
                     if (!row.IsPresent)
                         continue;
 
