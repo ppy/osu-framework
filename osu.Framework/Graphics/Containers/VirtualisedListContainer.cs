@@ -169,12 +169,10 @@ namespace osu.Framework.Graphics.Containers
         [Conditional("DEBUG")]
         private void assertCorrectOrder()
         {
-            var children = Items.FlowingChildren.ToArray();
-
-            for (int i = 0; i < children.Length; ++i)
+            for (int i = 0; i < Items.Count; ++i)
             {
                 float expected = i * rowHeight;
-                float? actual = children[i].Y;
+                float actual = Items[i].Y;
                 Debug.Assert(expected == actual, $"Index mismatch when handling collection change callback in VirtualisedListContainer: expected {expected} actual {actual}");
             }
         }
