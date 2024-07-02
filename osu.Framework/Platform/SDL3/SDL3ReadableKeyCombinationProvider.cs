@@ -40,7 +40,7 @@ namespace osu.Framework.Platform.SDL3
 
             string? name;
 
-            // SDL3 requires apps to distinguish numlock state through scancode.
+            // SDL3 requires apps to distinguish numpad keys through scancode.
             // https://github.com/libsdl-org/SDL/commit/d4497ecdbdfd4567eebddde2c3773e1a1cba4894
             if (TryGetNameFromScancode(scancode, out name))
                 return name;
