@@ -239,7 +239,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void updatePadding()
         {
-            if (scrollbarOverlapsContent || AvailableContent <= DisplayableContent)
+            if (scrollbarOverlapsContent || !Precision.DefinitelyBigger(AvailableContent, DisplayableContent, 1f))
                 ScrollContent.Padding = new MarginPadding();
             else
             {
@@ -568,7 +568,7 @@ namespace osu.Framework.Graphics.Containers
                 float size = ScrollDirection == Direction.Horizontal ? DrawWidth : DrawHeight;
                 if (size > 0)
                     Scrollbar.ResizeTo(Math.Clamp(AvailableContent > 0 ? DisplayableContent / AvailableContent : 0, Math.Min(Scrollbar.MinimumDimSize / size, 1), 1), 200, Easing.OutQuint);
-                Scrollbar.FadeTo(ScrollbarVisible && AvailableContent - 1 > DisplayableContent ? 1 : 0, 200);
+                Scrollbar.FadeTo(ScrollbarVisible && Precision.DefinitelyBigger(AvailableContent, DisplayableContent, 1f) ? 1 : 0, 200);
                 updatePadding();
 
                 scrollbarCache.Validate();
