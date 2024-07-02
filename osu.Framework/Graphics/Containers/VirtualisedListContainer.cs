@@ -200,7 +200,7 @@ namespace osu.Framework.Graphics.Containers
                     if (!row.IsPresent)
                         continue;
 
-                    float rowTop = row.IsLoaded ? row.Y : -row.Depth * rowHeight;
+                    float rowTop = row.Y;
                     float rowBottom = rowTop + rowHeight;
 
                     if (rowTop < visibleRange.min * rowHeight || rowBottom > visibleRange.max * rowHeight)
