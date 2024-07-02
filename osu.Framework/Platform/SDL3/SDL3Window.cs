@@ -155,7 +155,7 @@ namespace osu.Framework.Platform.SDL3
 
             SDL_SetHint(SDL_HINT_APP_NAME, appName);
 
-            if (SDL_Init(SDL_InitFlags.SDL_INIT_VIDEO | SDL_InitFlags.SDL_INIT_GAMEPAD) < 0)
+            if (SDL_Init(SDL_InitFlags.SDL_INIT_VIDEO | SDL_InitFlags.SDL_INIT_GAMEPAD | SDL_InitFlags.SDL_INIT_AUDIO) < 0)
             {
                 throw new InvalidOperationException($"Failed to initialise SDL: {SDL_GetError()}");
             }
@@ -572,6 +572,28 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_EventType.SDL_EVENT_DROP_COMPLETE:
                     handleDropEvent(e.drop);
                     break;
+
+                case SDL_EventType.SDL_EVENT_AUDIO_DEVICE_ADDED:
+                case SDL_EventType.SDL_EVENT_AUDIO_DEVICE_REMOVED:
+                    handleAudioDeviceEvent(e.adevice);
+                    break;
+            }
+        }
+
+        private void handleAudioDeviceEvent(SDL_AudioDeviceEvent evtAudioDevice)
+        {
+            if (evtAudioDevice.iscapture != 0) // capture device
+                return;
+
+            switch (evtAudioDevice.type)
+            {
+                case SDL_EventType.SDL_EVENT_AUDIO_DEVICE_ADDED:
+                    AudioDeviceAdded?.Invoke(evtAudioDevice.which);
+                    break;
+
+                case SDL_EventType.SDL_EVENT_AUDIO_DEVICE_REMOVED:
+                    AudioDeviceRemoved?.Invoke(evtAudioDevice.which); // it is only uint if a device is removed
+                    break;
             }
         }
 
@@ -647,6 +669,16 @@ namespace osu.Framework.Platform.SDL3
         /// Invoked when the user drops a file into the window.
         /// </summary>
         public event Action<string>? DragDrop;
+
+        /// <summary>
+        /// Invoked when a new audio device is added, only when using SDL3 audio
+        /// </summary>
+        public event Action<SDL_AudioDeviceID>? AudioDeviceAdded;
+
+        /// <summary>
+        /// Invoked when a new audio device is removed, only when using SDL3 audio
+        /// </summary>
+        public event Action<SDL_AudioDeviceID>? AudioDeviceRemoved;
 
         #endregion
 
