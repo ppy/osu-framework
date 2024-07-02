@@ -183,7 +183,7 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Update();
 
-            var currentVisibleRange = ((int)(Scroll.Current / rowHeight) + 1, (int)((Scroll.Current + Scroll.DrawHeight) / rowHeight));
+            var currentVisibleRange = ((int)(Scroll.Current / rowHeight), (int)((Scroll.Current + Scroll.DrawHeight) / rowHeight) + 1);
 
             if (currentVisibleRange != visibleRange)
             {
@@ -200,14 +200,19 @@ namespace osu.Framework.Graphics.Containers
                     if (!row.IsPresent)
                         continue;
 
-                    float minY = row.IsLoaded ? row.Y : -row.Depth * rowHeight;
-                    float maxY = minY + rowHeight;
+                    float rowTop = row.IsLoaded ? row.Y : -row.Depth * rowHeight;
+                    float rowBottom = rowTop + rowHeight;
 
-                    if ((maxY < visibleRange.min * rowHeight || minY > visibleRange.max * rowHeight) && row.Visible)
-                        row.Unload();
-
-                    if ((maxY >= visibleRange.min * rowHeight && minY <= visibleRange.max * rowHeight) && !row.Visible)
-                        row.Load();
+                    if (rowTop < visibleRange.min * rowHeight || rowBottom > visibleRange.max * rowHeight)
+                    {
+                        if (row.Visible)
+                            row.Unload();
+                    }
+                    else
+                    {
+                        if (!row.Visible)
+                            row.Load();
+                    }
                 }
 
                 visibilityCache.Validate();
