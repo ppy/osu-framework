@@ -13,7 +13,6 @@ using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers.Markdown.Footnotes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Utils;
@@ -41,7 +40,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             get => base.AutoSizeAxes;
             set
             {
-                if (value.HasFlagFast(Axes.X))
+                if (value.HasFlag(Axes.X))
                     throw new ArgumentException($"{nameof(MarkdownContainer)} does not support an {nameof(AutoSizeAxes)} of {value}");
 
                 base.AutoSizeAxes = value;

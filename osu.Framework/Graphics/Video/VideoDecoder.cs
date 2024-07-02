@@ -18,7 +18,6 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -796,7 +795,7 @@ namespace osu.Framework.Graphics.Video
                 {
                     var hwVideoDecoder = hwDeviceType.ToHardwareVideoDecoder();
 
-                    if (!hwVideoDecoder.HasValue || !targetHwDecoders.HasFlagFast(hwVideoDecoder.Value))
+                    if (!hwVideoDecoder.HasValue || !targetHwDecoders.HasFlag(hwVideoDecoder.Value))
                         continue;
 
                     codecs.Add((codec, hwDeviceType));
