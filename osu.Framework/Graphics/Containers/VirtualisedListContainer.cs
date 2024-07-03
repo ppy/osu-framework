@@ -150,9 +150,13 @@ namespace osu.Framework.Graphics.Containers
         {
             for (int i = 0; i < Items.Count; ++i)
             {
-                float expected = i * rowHeight;
-                float actual = Items[i].Y;
-                Debug.Assert(expected == actual, $"Index mismatch when handling collection change callback in VirtualisedListContainer: expected {expected} actual {actual}");
+                TData expectedItem = RowData[i];
+                TData actualItem = Items[i].Row;
+                Debug.Assert(ReferenceEquals(expectedItem, actualItem), $"Data item mismatch at index {i} when handling changes in VirtualisedListContainer");
+
+                float expectedY = i * rowHeight;
+                float actualY = Items[i].Y;
+                Debug.Assert(expectedY == actualY, $"Y mismatch at index {i} when handling changes in VirtualisedListContainer: expected {expectedY} actual {actualY}");
             }
         }
 
