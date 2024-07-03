@@ -111,7 +111,7 @@ namespace osu.Framework.Graphics.Containers
 
                 case NotifyCollectionChangedAction.Replace:
                 {
-                    Items[Items.IndexOf(items[e.OldStartingIndex])].Row = (TData)e.NewItems![0]!;
+                    Items[e.OldStartingIndex].Row = (TData)e.NewItems![0]!;
                     break;
                 }
 
