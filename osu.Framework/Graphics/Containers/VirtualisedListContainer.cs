@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Containers
         private readonly float rowHeight;
         private readonly int initialPoolSize;
 
-        private (float min, float max) visibleRange;
+        private (int min, int max) visibleRange;
         private readonly Cached visibilityCache = new Cached();
 
         private DrawablePool<TDrawable> pool = null!;
@@ -48,16 +48,17 @@ namespace osu.Framework.Graphics.Containers
         [BackgroundDependencyLoader]
         private void load()
         {
+            pool = new DrawablePool<TDrawable>(initialPoolSize);
+
             InternalChildren = new Drawable[]
             {
-                pool = new DrawablePool<TDrawable>(initialPoolSize),
+                pool,
                 Scroll = CreateScrollContainer().With(s =>
                 {
                     s.RelativeSizeAxes = Axes.Both;
-                    s.Child = Items = new ItemFlow
+                    s.Child = Items = new ItemFlow(pool, rowHeight)
                     {
-                        RelativeSizeAxes = Axes.X,
-                        Direction = FillDirection.Vertical,
+                        RelativeSizeAxes = Axes.X
                     };
                 })
             };
@@ -86,17 +87,11 @@ namespace osu.Framework.Graphics.Containers
                     if (e.NewStartingIndex >= 0)
                     {
                         for (int i = e.NewStartingIndex; i < items.Length; ++i)
-                            Items.SetLayoutPosition(items[i], i + e.NewItems.Count);
+                            Items.Move(items[i], i + e.NewItems.Count);
                     }
 
                     for (int i = 0; i < e.NewItems.Count; ++i)
-                    {
-                        Items.Insert(Math.Max(e.NewStartingIndex, 0) + i, new ItemRow((TData)e.NewItems[i]!, pool)
-                        {
-                            Height = rowHeight,
-                            LifetimeEnd = double.NegativeInfinity,
-                        });
-                    }
+                        Items.Insert((TData)e.NewItems[i]!, Math.Max(e.NewStartingIndex, 0) + i);
 
                     break;
                 }
@@ -106,14 +101,11 @@ namespace osu.Framework.Graphics.Containers
                     Debug.Assert(e.OldItems != null);
 
                     for (int i = 0; i < e.OldItems.Count; ++i)
-                    {
-                        var item = items[e.OldStartingIndex + i];
-                        item.Unload();
-                        Items.Remove(item, true);
-                    }
+                        Items.Remove(items[e.OldStartingIndex + i]);
 
                     for (int i = e.OldStartingIndex + e.OldItems.Count; i < items.Length; ++i)
-                        Items.SetLayoutPosition(items[i], i - e.OldItems.Count);
+                        Items.Move(items[i], i - e.OldItems.Count);
+
                     break;
                 }
 
@@ -125,7 +117,7 @@ namespace osu.Framework.Graphics.Containers
 
                 case NotifyCollectionChangedAction.Move:
                 {
-                    var allMoves = new List<(ItemRow, float)>();
+                    var allMoves = new List<(ItemRow, int)>();
 
                     for (int i = Math.Min(e.OldStartingIndex, e.NewStartingIndex); i <= Math.Max(e.OldStartingIndex, e.NewStartingIndex); ++i)
                     {
@@ -138,7 +130,7 @@ namespace osu.Framework.Graphics.Containers
                     }
 
                     foreach (var (item, newPosition) in allMoves)
-                        Items.SetLayoutPosition(item, newPosition);
+                        Items.Move(item, newPosition);
 
                     break;
                 }
@@ -156,13 +148,15 @@ namespace osu.Framework.Graphics.Containers
         [Conditional("DEBUG")]
         private void assertCorrectOrder()
         {
-            var children = Items.FlowingChildren.ToArray();
-
-            for (int i = 0; i < children.Length; ++i)
+            for (int i = 0; i < Items.Count; ++i)
             {
-                float expected = i;
-                float actual = Items.GetLayoutPosition(children[i]);
-                Debug.Assert(expected == actual, $"Index mismatch when handling collection change callback in VirtualisedListContainer: expected {expected} actual {actual}");
+                TData expectedItem = RowData[i];
+                TData actualItem = Items[i].Row;
+                Debug.Assert(ReferenceEquals(expectedItem, actualItem), $"Data item mismatch at index {i} when handling changes in VirtualisedListContainer");
+
+                float expectedY = i * rowHeight;
+                float actualY = Items[i].Y;
+                Debug.Assert(expectedY == actualY, $"Y mismatch at index {i} when handling changes in VirtualisedListContainer: expected {expectedY} actual {actualY}");
             }
         }
 
@@ -170,7 +164,7 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Update();
 
-            var currentVisibleRange = (Scroll.Current, Scroll.Current + Scroll.DrawHeight);
+            var currentVisibleRange = ((int)(Scroll.Current / rowHeight), (int)((Scroll.Current + Scroll.DrawHeight) / rowHeight) + 1);
 
             if (currentVisibleRange != visibleRange)
             {
@@ -180,29 +174,68 @@ namespace osu.Framework.Graphics.Containers
 
             if (!visibilityCache.IsValid)
             {
-                var children = Items.FlowingChildren.ToArray();
-
-                for (int i = 0; i < children.Length; ++i)
+                foreach (var row in Items)
                 {
-                    var row = children[i];
+                    if (!row.IsPresent)
+                        continue;
 
-                    float minY = row.IsLoaded ? row.DrawPosition.Y : i * rowHeight;
-                    float maxY = minY + rowHeight;
+                    float rowTop = row.Y;
+                    float rowBottom = rowTop + rowHeight;
 
-                    if ((maxY < visibleRange.min || minY > visibleRange.max) && row.Visible)
-                        row.Unload();
-
-                    if ((maxY >= visibleRange.min && minY <= visibleRange.max) && !row.Visible)
-                        row.Load();
+                    if (rowTop < visibleRange.min * rowHeight || rowBottom > visibleRange.max * rowHeight)
+                    {
+                        if (row.Visible)
+                            row.Unload();
+                    }
+                    else
+                    {
+                        if (!row.Visible)
+                            row.Load();
+                    }
                 }
 
                 visibilityCache.Validate();
+                assertCorrectOrder();
             }
         }
 
-        protected partial class ItemFlow : FillFlowContainer<ItemRow>
+        protected partial class ItemFlow : Container<ItemRow>
         {
-            public override IEnumerable<ItemRow> FlowingChildren => InternalChildren.Where(d => d.IsPresent).OrderBy(GetLayoutPosition).Cast<ItemRow>();
+            private readonly DrawablePool<TDrawable> pool;
+            private readonly float rowHeight;
+
+            public ItemFlow(DrawablePool<TDrawable> pool, float rowHeight)
+            {
+                this.pool = pool;
+                this.rowHeight = rowHeight;
+            }
+
+            public IEnumerable<ItemRow> FlowingChildren => Children.Where(d => d.IsPresent);
+
+            public void Insert(TData row, int index)
+            {
+                Add(new ItemRow(row, pool)
+                {
+                    Height = rowHeight,
+                    LifetimeEnd = double.NegativeInfinity,
+                    // the depth management is mostly done so that enumeration order of `Children` matches expectations.
+                    // in edge cases it could also ensure correct Z-ordering of children, but it's a secondary consideration.
+                    Depth = -index,
+                    Y = index * rowHeight
+                });
+            }
+
+            public void Remove(ItemRow itemRow)
+            {
+                itemRow.Unload();
+                Remove(itemRow, true);
+            }
+
+            public void Move(ItemRow itemRow, int newIndex)
+            {
+                itemRow.Y = newIndex * rowHeight;
+                ChangeChildDepth(itemRow, -newIndex);
+            }
         }
 
         protected partial class ItemRow : CompositeDrawable
