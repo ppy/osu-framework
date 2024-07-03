@@ -48,13 +48,15 @@ namespace osu.Framework.Graphics.Containers
         [BackgroundDependencyLoader]
         private void load()
         {
+            pool = new DrawablePool<TDrawable>(initialPoolSize);
+
             InternalChildren = new Drawable[]
             {
-                pool = new DrawablePool<TDrawable>(initialPoolSize),
+                pool,
                 Scroll = CreateScrollContainer().With(s =>
                 {
                     s.RelativeSizeAxes = Axes.Both;
-                    s.Child = Items = new ItemFlow
+                    s.Child = Items = new ItemFlow(pool, rowHeight)
                     {
                         RelativeSizeAxes = Axes.X
                     };
@@ -85,23 +87,11 @@ namespace osu.Framework.Graphics.Containers
                     if (e.NewStartingIndex >= 0)
                     {
                         for (int i = e.NewStartingIndex; i < items.Length; ++i)
-                        {
-                            var itemToMove = Items[Items.IndexOf(items[i])];
-                            itemToMove.Y = (i + e.NewItems.Count) * rowHeight;
-                            Items.ChangeChildDepth(itemToMove, -(i + e.NewItems.Count));
-                        }
+                            Items.Move(items[i], i + e.NewItems.Count);
                     }
 
                     for (int i = 0; i < e.NewItems.Count; ++i)
-                    {
-                        Items.Add(new ItemRow((TData)e.NewItems[i]!, pool)
-                        {
-                            Height = rowHeight,
-                            LifetimeEnd = double.NegativeInfinity,
-                            Depth = -(Math.Max(e.NewStartingIndex, 0) + i),
-                            Y = (Math.Max(e.NewStartingIndex, 0) + i) * rowHeight
-                        });
-                    }
+                        Items.Insert((TData)e.NewItems[i]!, Math.Max(e.NewStartingIndex, 0) + i);
 
                     break;
                 }
@@ -111,18 +101,10 @@ namespace osu.Framework.Graphics.Containers
                     Debug.Assert(e.OldItems != null);
 
                     for (int i = 0; i < e.OldItems.Count; ++i)
-                    {
-                        var itemToRemove = Items[Items.IndexOf(items[e.OldStartingIndex + i])];
-                        itemToRemove.Unload();
-                        Items.Remove(itemToRemove, true);
-                    }
+                        Items.Remove(items[e.OldStartingIndex + i]);
 
                     for (int i = e.OldStartingIndex + e.OldItems.Count; i < items.Length; ++i)
-                    {
-                        var itemToMove = Items[Items.IndexOf(items[i])];
-                        itemToMove.Y = (i - e.OldItems.Count) * rowHeight;
-                        Items.ChangeChildDepth(itemToMove, -(i - e.OldItems.Count));
-                    }
+                        Items.Move(items[i], i - e.OldItems.Count);
 
                     break;
                 }
@@ -135,7 +117,7 @@ namespace osu.Framework.Graphics.Containers
 
                 case NotifyCollectionChangedAction.Move:
                 {
-                    var allMoves = new List<(ItemRow, float)>();
+                    var allMoves = new List<(ItemRow, int)>();
 
                     for (int i = Math.Min(e.OldStartingIndex, e.NewStartingIndex); i <= Math.Max(e.OldStartingIndex, e.NewStartingIndex); ++i)
                     {
@@ -148,10 +130,7 @@ namespace osu.Framework.Graphics.Containers
                     }
 
                     foreach (var (item, newPosition) in allMoves)
-                    {
-                        item.Y = newPosition * rowHeight;
-                        Items.ChangeChildDepth(item, -newPosition);
-                    }
+                        Items.Move(item, newPosition);
 
                     break;
                 }
@@ -218,7 +197,41 @@ namespace osu.Framework.Graphics.Containers
 
         protected partial class ItemFlow : Container<ItemRow>
         {
+            private readonly DrawablePool<TDrawable> pool;
+            private readonly float rowHeight;
+
+            public ItemFlow(DrawablePool<TDrawable> pool, float rowHeight)
+            {
+                this.pool = pool;
+                this.rowHeight = rowHeight;
+            }
+
             public IEnumerable<ItemRow> FlowingChildren => Children.Where(d => d.IsPresent);
+
+            public void Insert(TData row, int index)
+            {
+                Add(new ItemRow(row, pool)
+                {
+                    Height = rowHeight,
+                    LifetimeEnd = double.NegativeInfinity,
+                    // the depth management is mostly done so that enumeration order of `Children` matches expectations.
+                    // in edge cases it could also ensure correct Z-ordering or children, but it's a secondary consideration.
+                    Depth = -index,
+                    Y = index * rowHeight
+                });
+            }
+
+            public void Remove(ItemRow itemRow)
+            {
+                itemRow.Unload();
+                Remove(itemRow, true);
+            }
+
+            public void Move(ItemRow itemRow, int newIndex)
+            {
+                itemRow.Y = newIndex * rowHeight;
+                ChangeChildDepth(itemRow, -newIndex);
+            }
         }
 
         protected partial class ItemRow : CompositeDrawable
