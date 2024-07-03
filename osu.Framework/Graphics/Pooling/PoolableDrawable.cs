@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Layout;
 
@@ -118,7 +117,7 @@ namespace osu.Framework.Graphics.Pooling
 
         protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
         {
-            if (source != InvalidationSource.Child && invalidation.HasFlagFast(Invalidation.Parent))
+            if (source != InvalidationSource.Child && invalidation.HasFlag(Invalidation.Parent))
             {
                 if (IsInUse && Parent == null)
                     Return();

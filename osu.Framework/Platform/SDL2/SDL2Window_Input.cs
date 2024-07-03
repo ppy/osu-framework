@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Drawing;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Input.States;
@@ -44,7 +43,7 @@ namespace osu.Framework.Platform.SDL2
                 if (relativeMouseMode == value)
                     return;
 
-                if (value && !CursorState.HasFlagFast(CursorState.Hidden))
+                if (value && !CursorState.HasFlag(CursorState.Hidden))
                     throw new InvalidOperationException($"Cannot set {nameof(RelativeMouseMode)} to true when the cursor is not hidden via {nameof(CursorState)}.");
 
                 relativeMouseMode = value;
@@ -102,7 +101,7 @@ namespace osu.Framework.Platform.SDL2
         /// </summary>
         private void updateCursorConfinement()
         {
-            bool confined = CursorState.HasFlagFast(CursorState.Confined);
+            bool confined = CursorState.HasFlag(CursorState.Confined);
 
             ScheduleCommand(() => SDL_SetWindowGrab(SDLWindowHandle, confined ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE));
 
@@ -164,11 +163,11 @@ namespace osu.Framework.Platform.SDL2
             // the outer if just optimises for the common case that there are no buttons to release.
             if (buttonsToRelease != SDLButtonMask.None)
             {
-                if (buttonsToRelease.HasFlagFast(SDLButtonMask.Left)) MouseUp?.Invoke(MouseButton.Left);
-                if (buttonsToRelease.HasFlagFast(SDLButtonMask.Middle)) MouseUp?.Invoke(MouseButton.Middle);
-                if (buttonsToRelease.HasFlagFast(SDLButtonMask.Right)) MouseUp?.Invoke(MouseButton.Right);
-                if (buttonsToRelease.HasFlagFast(SDLButtonMask.X1)) MouseUp?.Invoke(MouseButton.Button1);
-                if (buttonsToRelease.HasFlagFast(SDLButtonMask.X2)) MouseUp?.Invoke(MouseButton.Button2);
+                if (buttonsToRelease.HasFlag(SDLButtonMask.Left)) MouseUp?.Invoke(MouseButton.Left);
+                if (buttonsToRelease.HasFlag(SDLButtonMask.Middle)) MouseUp?.Invoke(MouseButton.Middle);
+                if (buttonsToRelease.HasFlag(SDLButtonMask.Right)) MouseUp?.Invoke(MouseButton.Right);
+                if (buttonsToRelease.HasFlag(SDLButtonMask.X1)) MouseUp?.Invoke(MouseButton.Button1);
+                if (buttonsToRelease.HasFlag(SDLButtonMask.X2)) MouseUp?.Invoke(MouseButton.Button2);
             }
         }
 
