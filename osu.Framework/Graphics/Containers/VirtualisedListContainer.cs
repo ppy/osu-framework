@@ -219,7 +219,7 @@ namespace osu.Framework.Graphics.Containers
                     Height = rowHeight,
                     LifetimeEnd = double.NegativeInfinity,
                     // the depth management is mostly done so that enumeration order of `Children` matches expectations.
-                    // in edge cases it could also ensure correct Z-ordering or children, but it's a secondary consideration.
+                    // in edge cases it could also ensure correct Z-ordering of children, but it's a secondary consideration.
                     Depth = -index,
                     Y = index * rowHeight
                 });
