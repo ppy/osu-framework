@@ -1,9 +1,12 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osu.Framework.Testing;
@@ -13,7 +16,7 @@ using osuTK.Input;
 namespace osu.Framework.Tests.Input
 {
     [HeadlessTest]
-    public class KeyboardInputTest : ManualInputManagerTestScene
+    public partial class KeyboardInputTest : ManualInputManagerTestScene
     {
         /// <summary>
         /// Tests that if the hierarchy is changed while a key is held, the <see cref="Drawable.OnKeyUp"/> event is
@@ -80,7 +83,51 @@ namespace osu.Framework.Tests.Input
 
             AddStep("remove receptor 0 & reset repeat", () =>
             {
-                Remove(receptors[0]);
+                Remove(receptors[0], true);
+                receptors[0].RepeatReceived = false;
+                receptors[1].RepeatReceived = false;
+            });
+
+            AddUntilStep("wait for repeat on receptor 1", () => receptors[1].RepeatReceived);
+            AddAssert("receptor 0 did not receive repeat", () => !receptors[0].RepeatReceived);
+        }
+
+        /// <summary>
+        /// Tests that a drawable whose parent is removed from the hierarchy (or is otherwise removed from the input queues) won't receive OnKeyDown() events for every subsequent repeat.
+        /// </summary>
+        [Test]
+        public void TestNoLongerValidChildDrawableDoesNotReceiveRepeat()
+        {
+            var receptors = new InputReceptor[2];
+            var receptorParents = new Container[2];
+
+            AddStep("create hierarchy", () =>
+            {
+                Children = new Drawable[]
+                {
+                    receptorParents[0] = new Container
+                    {
+                        Children = new Drawable[]
+                        {
+                            receptors[0] = new InputReceptor { Size = new Vector2(100) }
+                        }
+                    },
+                    receptorParents[1] = new Container
+                    {
+                        Children = new Drawable[]
+                        {
+                            receptors[1] = new InputReceptor { Size = new Vector2(100) }
+                        }
+                    }
+                };
+            });
+
+            AddStep("press key", () => InputManager.PressKey(Key.A));
+            AddUntilStep("wait for repeat on receptor 0", () => receptors[0].RepeatReceived);
+
+            AddStep("remove receptor parent 0 & reset repeat", () =>
+            {
+                Remove(receptorParents[0], true);
                 receptors[0].RepeatReceived = false;
                 receptors[1].RepeatReceived = false;
             });
@@ -110,7 +157,7 @@ namespace osu.Framework.Tests.Input
             AddStep("press key", () => InputManager.PressKey(Key.A));
             AddStep("remove receptor 0 & reset repeat", () =>
             {
-                Remove(receptors[0]);
+                Remove(receptors[0], false);
                 receptors[0].RepeatReceived = false;
                 receptors[1].RepeatReceived = false;
             });
@@ -121,7 +168,7 @@ namespace osu.Framework.Tests.Input
             AddUntilStep("wait for repeat on receptor 0", () => receptors[0].RepeatReceived);
         }
 
-        private class InputReceptor : Box
+        private partial class InputReceptor : Box
         {
             public bool DownReceived { get; set; }
             public bool UpReceived { get; set; }

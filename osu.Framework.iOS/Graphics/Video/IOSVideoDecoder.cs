@@ -1,9 +1,10 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System.IO;
 using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Video;
 
 namespace osu.Framework.iOS.Graphics.Video
@@ -89,6 +90,9 @@ namespace osu.Framework.iOS.Graphics.Video
         private static extern int avcodec_send_packet(AVCodecContext* avctx, AVPacket* avpkt);
 
         [DllImport(dll_name)]
+        private static extern void avcodec_flush_buffers(AVCodecContext* avctx);
+
+        [DllImport(dll_name)]
         private static extern AVFormatContext* avformat_alloc_context();
 
         [DllImport(dll_name)]
@@ -118,13 +122,13 @@ namespace osu.Framework.iOS.Graphics.Video
         [DllImport(dll_name)]
         private static extern int sws_scale(SwsContext* c, byte*[] srcSlice, int[] srcStride, int srcSliceY, int srcSliceH, byte*[] dst, int[] dstStride);
 
-        public IOSVideoDecoder(string filename)
-            : base(filename)
+        public IOSVideoDecoder(IRenderer renderer, string filename)
+            : base(renderer, filename)
         {
         }
 
-        public IOSVideoDecoder(Stream videoStream)
-            : base(videoStream)
+        public IOSVideoDecoder(IRenderer renderer, Stream videoStream)
+            : base(renderer, videoStream)
         {
         }
 
@@ -155,6 +159,7 @@ namespace osu.Framework.iOS.Graphics.Video
             avcodec_open2 = avcodec_open2,
             avcodec_receive_frame = avcodec_receive_frame,
             avcodec_send_packet = avcodec_send_packet,
+            avcodec_flush_buffers = avcodec_flush_buffers,
             avformat_alloc_context = avformat_alloc_context,
             avformat_close_input = avformat_close_input,
             avformat_find_stream_info = avformat_find_stream_info,

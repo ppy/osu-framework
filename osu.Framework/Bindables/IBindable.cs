@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Utils;
@@ -10,10 +12,10 @@ namespace osu.Framework.Bindables
     /// <summary>
     /// An interface which can be bound to other <see cref="IBindable"/>s in order to watch for (and react to) <see cref="ICanBeDisabled.Disabled">Disabled</see> changes.
     /// </summary>
-    public interface IBindable : ICanBeDisabled, IHasDefaultValue, IUnbindable, IHasDescription
+    public interface IBindable : ICanBeDisabled, IHasDefaultValue, IUnbindable, IHasDescription, IFormattable
     {
         /// <summary>
-        /// Binds ourselves to another bindable such that we receive any value limitations of the bindable we bind width.
+        /// Binds ourselves to another bindable such that we receive any value limitations of the bindable we bind with.
         /// </summary>
         /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager)</param>
         void BindTo(IBindable them);
@@ -68,7 +70,7 @@ namespace osu.Framework.Bindables
     /// An interface which can be bound to other <see cref="IBindable{T}"/>s in order to watch for (and react to) <see cref="ICanBeDisabled.Disabled">Disabled</see> and <see cref="IBindable{T}.Value">Value</see> changes.
     /// </summary>
     /// <typeparam name="T">The type of value encapsulated by this <see cref="IBindable{T}"/>.</typeparam>
-    public interface IBindable<T> : ICanBeDisabled, IHasDefaultValue, IUnbindable, IHasDescription
+    public interface IBindable<T> : ICanBeDisabled, IHasDefaultValue, IUnbindable, IHasDescription, IFormattable
     {
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed.
@@ -109,5 +111,10 @@ namespace osu.Framework.Bindables
 
         /// <inheritdoc cref="IBindable.GetBoundCopy"/>
         IBindable<T> GetBoundCopy();
+
+        /// <summary>
+        /// Retrieves a weak reference to this bindable.
+        /// </summary>
+        internal WeakReference<Bindable<T>> GetWeakReference();
     }
 }

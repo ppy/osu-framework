@@ -5,7 +5,7 @@ namespace osu.Framework.Configuration
 {
     public class FrameworkDebugConfigManager : IniConfigManager<DebugSetting>
     {
-        protected override string Filename => null;
+        protected override string Filename => string.Empty;
 
         public FrameworkDebugConfigManager()
             : base(null)
@@ -16,7 +16,7 @@ namespace osu.Framework.Configuration
         {
             base.InitialiseDefaults();
 
-            SetDefault(DebugSetting.BypassFrontToBackPass, false);
+            SetDefault(DebugSetting.BypassFrontToBackPass, true);
         }
     }
 

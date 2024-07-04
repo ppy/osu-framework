@@ -1,9 +1,7 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using osuTK;
 
 namespace osu.Framework.Input.States
@@ -13,7 +11,7 @@ namespace osu.Framework.Input.States
         /// <summary>
         /// The maximum amount of touches this can handle.
         /// </summary>
-        public static readonly int MAX_TOUCH_COUNT = Enum.GetValues(typeof(TouchSource)).Length;
+        public static readonly int MAX_TOUCH_COUNT = Enum.GetValues<TouchSource>().Length;
 
         /// <summary>
         /// The list of currently active touch sources.
@@ -34,7 +32,7 @@ namespace osu.Framework.Input.States
         /// </summary>
         /// <param name="source">The touch source.</param>
         /// <returns>The touch position, or null if provided <paramref name="source"/> is not currently active.</returns>
-        public Vector2? GetTouchPosition(TouchSource source) => IsActive(source) ? TouchPositions[(int)source] : (Vector2?)null;
+        public Vector2? GetTouchPosition(TouchSource source) => IsActive(source) ? TouchPositions[(int)source] : null;
 
         /// <summary>
         /// Whether the provided touch <paramref name="source"/> is active.
@@ -46,15 +44,33 @@ namespace osu.Framework.Input.States
         /// Enumerates the difference between this state and a <param ref="previous"/> state.
         /// </summary>
         /// <param name="previous">The previous state.</param>
-        public (IEnumerable<Touch> deactivated, IEnumerable<Touch> activated) EnumerateDifference(TouchState previous)
+        public (Touch[] deactivated, Touch[] activated) EnumerateDifference(TouchState previous)
         {
-            var activityDifference = ActiveSources.EnumerateDifference(previous.ActiveSources);
+            var diff = ActiveSources.EnumerateDifference(previous.ActiveSources);
 
-            return
-            (
-                activityDifference.Released.Select(s => new Touch(s, previous.TouchPositions[(int)s])),
-                activityDifference.Pressed.Select(s => new Touch(s, TouchPositions[(int)s]))
-            );
+            int pressedCount = diff.Pressed.Length;
+            int releasedCount = diff.Released.Length;
+
+            if (pressedCount == 0 && releasedCount == 0)
+                return (Array.Empty<Touch>(), Array.Empty<Touch>());
+
+            Touch[] pressedTouches = new Touch[pressedCount];
+
+            for (int i = 0; i < pressedCount; i++)
+            {
+                var s = diff.Pressed[i];
+                pressedTouches[i] = new Touch(s, TouchPositions[(int)s]);
+            }
+
+            Touch[] releasedTouches = new Touch[releasedCount];
+
+            for (int i = 0; i < releasedCount; i++)
+            {
+                var s = diff.Released[i];
+                releasedTouches[i] = new Touch(s, previous.TouchPositions[(int)s]);
+            }
+
+            return (releasedTouches, pressedTouches);
         }
     }
 }

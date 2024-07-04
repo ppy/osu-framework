@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -12,7 +14,7 @@ using osu.Framework.Testing;
 namespace osu.Framework.Tests.Platform
 {
     [TestFixture]
-    public class ComponentAsyncDisposalTest
+    public partial class ComponentAsyncDisposalTest
     {
         private TestTestGame game;
         private HeadlessGameHost host;
@@ -31,7 +33,7 @@ namespace osu.Framework.Tests.Platform
 
             var task = Task.Factory.StartNew(() =>
             {
-                using (host = new TestRunHeadlessGameHost(@"host", false))
+                using (host = new TestRunHeadlessGameHost("host", new HostOptions(), bypassCleanup: false))
                 {
                     game = new TestTestGame();
                     gameCreated.Set();
@@ -63,7 +65,7 @@ namespace osu.Framework.Tests.Platform
             Assert.IsTrue(container.DisposedSuccessfully.Wait(timeout));
         }
 
-        private class DisposableContainer : Container
+        private partial class DisposableContainer : Container
         {
             [Resolved]
             private TestTestGame game { get; set; }
@@ -93,7 +95,7 @@ namespace osu.Framework.Tests.Platform
         }
 
         [Cached]
-        private class TestTestGame : TestGame
+        private partial class TestTestGame : TestGame
         {
             public readonly ManualResetEventSlim BecameAlive = new ManualResetEventSlim();
 

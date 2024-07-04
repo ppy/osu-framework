@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -11,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneVisibilityContainer : FrameworkTestScene
+    public partial class TestSceneVisibilityContainer : FrameworkTestScene
     {
         private TestVisibilityContainer testContainer;
 
@@ -124,7 +126,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 AddUntilStep("wait alpha one", () => testContainer.Alpha == 1);
         }
 
-        private class TestNestedVisibilityContainer : TestVisibilityContainer
+        private partial class TestNestedVisibilityContainer : TestVisibilityContainer
         {
             public bool BoxHasTransforms => box.Transforms.Any();
 
@@ -161,7 +163,7 @@ namespace osu.Framework.Tests.Visual.Containers
             }
         }
 
-        private class TestVisibilityContainer : VisibilityContainer
+        private partial class TestVisibilityContainer : VisibilityContainer
         {
             private readonly bool? startHidden;
 
@@ -186,7 +188,7 @@ namespace osu.Framework.Tests.Visual.Containers
                     },
                 };
 
-                State.ValueChanged += e => FireCount++;
+                State.ValueChanged += _ => FireCount++;
             }
 
             public int FireCount { get; private set; }

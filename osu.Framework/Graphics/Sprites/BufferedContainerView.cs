@@ -1,13 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
+#nullable disable
+
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.Sprites
@@ -15,11 +15,10 @@ namespace osu.Framework.Graphics.Sprites
     /// <summary>
     /// A view that displays the contents of a <see cref="BufferedContainer{T}"/>.
     /// </summary>
-    public class BufferedContainerView<T> : Drawable, ITexturedShaderDrawable
+    public partial class BufferedContainerView<T> : Drawable, ITexturedShaderDrawable
         where T : Drawable
     {
         public IShader TextureShader { get; private set; }
-        public IShader RoundedTextureShader { get; private set; }
 
         private BufferedContainer<T> container;
         private BufferedDrawNodeSharedData sharedData;
@@ -36,7 +35,6 @@ namespace osu.Framework.Graphics.Sprites
         private void load(ShaderManager shaders)
         {
             TextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            RoundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
         }
 
         protected override DrawNode CreateDrawNode() => new BufferSpriteDrawNode(this);
@@ -134,27 +132,27 @@ namespace osu.Framework.Graphics.Sprites
                 sourceEffectPlacement = Source.container.EffectPlacement;
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            protected override void Draw(IRenderer renderer)
             {
-                base.Draw(vertexAction);
+                base.Draw(renderer);
 
-                if (shared?.MainBuffer?.Texture?.Available != true || shared.DrawVersion == -1)
+                if (shared?.MainBuffer?.Texture.Available != true || shared.DrawVersion == -1)
                     return;
 
-                Shader.Bind();
+                BindTextureShader(renderer);
 
                 if (sourceEffectPlacement == EffectPlacement.InFront)
-                    drawMainBuffer(vertexAction);
+                    drawMainBuffer(renderer);
 
-                drawEffectBuffer(vertexAction);
+                drawEffectBuffer(renderer);
 
                 if (sourceEffectPlacement == EffectPlacement.Behind)
-                    drawMainBuffer(vertexAction);
+                    drawMainBuffer(renderer);
 
-                Shader.Unbind();
+                UnbindTextureShader(renderer);
             }
 
-            private void drawMainBuffer(Action<TexturedVertex2D> vertexAction)
+            private void drawMainBuffer(IRenderer renderer)
             {
                 // If the original was drawn, draw it.
                 // Otherwise, if an effect will also not be drawn then we still need to display something - the original.
@@ -162,20 +160,20 @@ namespace osu.Framework.Graphics.Sprites
                 if (!sourceDrawsOriginal && shouldDrawEffectBuffer)
                     return;
 
-                GLWrapper.SetBlend(DrawColourInfo.Blending);
-                DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, vertexAction);
+                renderer.SetBlend(DrawColourInfo.Blending);
+                renderer.DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
             }
 
-            private void drawEffectBuffer(Action<TexturedVertex2D> vertexAction)
+            private void drawEffectBuffer(IRenderer renderer)
             {
                 if (!shouldDrawEffectBuffer)
                     return;
 
-                GLWrapper.SetBlend(sourceEffectBlending);
+                renderer.SetBlend(sourceEffectBlending);
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(sourceEffectColour);
 
-                DrawFrameBuffer(shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, vertexAction);
+                renderer.DrawFrameBuffer(shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour);
             }
 
             /// <summary>

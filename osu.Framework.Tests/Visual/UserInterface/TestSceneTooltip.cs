@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using NUnit.Framework;
@@ -17,7 +19,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneTooltip : ManualInputManagerTestScene
+    public partial class TestSceneTooltip : ManualInputManagerTestScene
     {
         private TestTooltipContainer tooltipContainer;
 
@@ -68,29 +70,29 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("get tooltip instance", () => originalInstance = tooltipContainer.CurrentTooltip);
             AddAssert("custom tooltip used", () => originalInstance.GetType() == typeof(CustomTooltip));
-            assertTooltipText(() => ((CustomContent)customTooltipTextA.TooltipContent).Text);
+            assertTooltipText(() => ((CustomContent)customTooltipTextA.TooltipContent!).Text);
 
             hoverTooltipProvider(() => customTooltipTextB);
 
             AddAssert("custom tooltip reused", () => tooltipContainer.CurrentTooltip == originalInstance);
-            assertTooltipText(() => ((CustomContent)customTooltipTextB.TooltipContent).Text);
+            assertTooltipText(() => ((CustomContent)customTooltipTextB.TooltipContent!).Text);
         }
 
         [Test]
         public void TestDifferentCustomTooltips()
         {
             hoverTooltipProvider(() => customTooltipTextA);
-            assertTooltipText(() => ((CustomContent)customTooltipTextA.TooltipContent).Text);
+            assertTooltipText(() => ((CustomContent)customTooltipTextA.TooltipContent!).Text);
 
             AddAssert("current tooltip type normal", () => tooltipContainer.CurrentTooltip.GetType() == typeof(CustomTooltip));
 
             hoverTooltipProvider(() => customTooltipTextAlt);
-            assertTooltipText(() => ((CustomContent)customTooltipTextAlt.TooltipContent).Text);
+            assertTooltipText(() => ((CustomContent)customTooltipTextAlt.TooltipContent!).Text);
 
             AddAssert("current tooltip type alt", () => tooltipContainer.CurrentTooltip.GetType() == typeof(CustomTooltipAlt));
 
             hoverTooltipProvider(() => customTooltipTextB);
-            assertTooltipText(() => ((CustomContent)customTooltipTextB.TooltipContent).Text);
+            assertTooltipText(() => ((CustomContent)customTooltipTextB.TooltipContent!).Text);
 
             AddAssert("current tooltip type normal", () => tooltipContainer.CurrentTooltip.GetType() == typeof(CustomTooltip));
         }
@@ -258,7 +260,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             tooltipContainer.Add(makeBox(Anchor.BottomRight));
         }
 
-        private class TestTooltipContainer : TooltipContainer
+        private partial class TestTooltipContainer : TooltipContainer
         {
             public new ITooltip CurrentTooltip => base.CurrentTooltip;
 
@@ -268,7 +270,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class CustomTooltipSpriteText : Container, IHasCustomTooltip
+        private partial class CustomTooltipSpriteText : Container, IHasCustomTooltip
         {
             public object TooltipContent { get; }
 
@@ -289,7 +291,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public virtual ITooltip GetCustomTooltip() => new CustomTooltip();
         }
 
-        private class CustomTooltipSpriteTextAlt : CustomTooltipSpriteText
+        private partial class CustomTooltipSpriteTextAlt : CustomTooltipSpriteText
         {
             public CustomTooltipSpriteTextAlt(string displayedContent, string tooltipContent = null)
                 : base(displayedContent, tooltipContent)
@@ -309,7 +311,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class CustomTooltip : CompositeDrawable, ITooltip<CustomContent>
+        private partial class CustomTooltip : CompositeDrawable, ITooltip<CustomContent>
         {
             private static int i;
 
@@ -346,7 +348,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public void Move(Vector2 pos) => Position = pos;
         }
 
-        private class CustomTooltipAlt : CustomTooltip
+        private partial class CustomTooltipAlt : CustomTooltip
         {
             public CustomTooltipAlt()
             {
@@ -356,7 +358,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class TooltipSpriteText : Container, IHasTooltip
+        private partial class TooltipSpriteText : Container, IHasTooltip
         {
             public LocalisableString TooltipText { get; }
 
@@ -380,7 +382,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class InstantTooltipSpriteText : TooltipSpriteText, IHasAppearDelay
+        private partial class InstantTooltipSpriteText : TooltipSpriteText, IHasAppearDelay
         {
             public InstantTooltipSpriteText(string tooltipContent)
                 : base(tooltipContent, tooltipContent)
@@ -395,7 +397,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public double AppearDelay => 0;
         }
 
-        private class TooltipTooltipContainer : TooltipContainer, IHasTooltip
+        private partial class TooltipTooltipContainer : TooltipContainer, IHasTooltip
         {
             public LocalisableString TooltipText { get; set; }
 
@@ -405,21 +407,21 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class TooltipTextBox : BasicTextBox, IHasTooltip
+        private partial class TooltipTextBox : BasicTextBox, IHasTooltip
         {
             public LocalisableString TooltipText => Text;
         }
 
-        private class TooltipBox : Box, IHasTooltip
+        private partial class TooltipBox : Box, IHasTooltip
         {
             public LocalisableString TooltipText { get; set; }
         }
 
-        private class RectangleCursorContainer : CursorContainer
+        private partial class RectangleCursorContainer : CursorContainer
         {
             protected override Drawable CreateCursor() => new RectangleCursor();
 
-            private class RectangleCursor : Box
+            private partial class RectangleCursor : Box
             {
                 public RectangleCursor()
                 {

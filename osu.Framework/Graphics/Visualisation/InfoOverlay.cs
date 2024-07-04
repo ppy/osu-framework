@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -8,7 +10,7 @@ using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class InfoOverlay : Container<FlashyBox>
+    internal partial class InfoOverlay : Container<FlashyBox>
     {
         private Drawable target;
 

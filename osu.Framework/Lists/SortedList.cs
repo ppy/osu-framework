@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Extensions.TypeExtensions;
 using System;
 using System.Collections;
@@ -70,8 +72,7 @@ namespace osu.Framework.Lists
         /// <returns>The index of the item within this list.</returns>
         private int addInternal(T value)
         {
-            if (value == null)
-                throw new ArgumentNullException(nameof(value));
+            ArgumentNullException.ThrowIfNull(value);
 
             int index = list.BinarySearch(value, Comparer);
             if (index < 0)

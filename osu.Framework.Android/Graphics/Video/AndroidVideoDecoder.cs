@@ -3,13 +3,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
-using Android.Runtime;
 using FFmpeg.AutoGen;
-using osu.Framework.Extensions.EnumExtensions;
+using Java.Interop;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Logging;
 
@@ -22,7 +20,6 @@ namespace osu.Framework.Android.Graphics.Video
         private const string lib_avcodec = "libavcodec.so";
         private const string lib_avformat = "libavformat.so";
         private const string lib_swscale = "libswscale.so";
-        private const string lib_avfilter = "libavfilter.so";
 
         [DllImport(lib_avutil)]
         private static extern AVFrame* av_frame_alloc();
@@ -99,6 +96,9 @@ namespace osu.Framework.Android.Graphics.Video
         [DllImport(lib_avcodec)]
         private static extern int avcodec_send_packet(AVCodecContext* avctx, AVPacket* avpkt);
 
+        [DllImport(lib_avcodec)]
+        private static extern void avcodec_flush_buffers(AVCodecContext* avctx);
+
         [DllImport(lib_avformat)]
         private static extern AVFormatContext* avformat_alloc_context();
 
@@ -132,25 +132,18 @@ namespace osu.Framework.Android.Graphics.Video
         [DllImport(lib_avcodec)]
         private static extern int av_jni_set_java_vm(void* vm, void* logCtx);
 
-        public AndroidVideoDecoder(string filename)
-            : base(filename)
+        public AndroidVideoDecoder(IRenderer renderer, string filename)
+            : base(renderer, filename)
         {
         }
 
-        public AndroidVideoDecoder(Stream videoStream)
-            : base(videoStream)
+        public AndroidVideoDecoder(IRenderer renderer, Stream videoStream)
+            : base(renderer, videoStream)
         {
             // Hardware decoding with MediaCodec requires that we pass a Java VM pointer
             // to FFmpeg so that it can call the MediaCodec APIs through JNI (as they're Java only).
-            // Unfortunately, Xamarin doesn't publicly expose this pointer anywhere, so we have to get it through reflection...
-            const string java_vm_field_name = "java_vm";
 
-            var jvmPtrInfo = typeof(JNIEnv).GetField(java_vm_field_name, BindingFlags.NonPublic | BindingFlags.Static);
-            object jvmPtrObj = jvmPtrInfo?.GetValue(null);
-
-            Debug.Assert(jvmPtrObj != null);
-
-            int result = av_jni_set_java_vm((void*)(IntPtr)jvmPtrObj, null);
+            int result = av_jni_set_java_vm(JniEnvironment.Runtime.InvocationPointer.ToPointer(), null);
             if (result < 0)
                 throw new InvalidOperationException($"Couldn't pass Java VM handle to FFmpeg: ${result}");
         }
@@ -161,9 +154,9 @@ namespace osu.Framework.Android.Graphics.Video
             HardwareVideoDecoder targetHwDecoders
         )
         {
-            if (targetHwDecoders.HasFlagFast(HardwareVideoDecoder.MediaCodec))
+            if (targetHwDecoders.HasFlag(HardwareVideoDecoder.MediaCodec))
             {
-                string formatName = Marshal.PtrToStringAnsi((IntPtr)inputFormat->name);
+                string? formatName = Marshal.PtrToStringAnsi((IntPtr)inputFormat->name);
 
                 switch (formatName)
                 {
@@ -208,6 +201,7 @@ namespace osu.Framework.Android.Graphics.Video
             avcodec_open2 = avcodec_open2,
             avcodec_receive_frame = avcodec_receive_frame,
             avcodec_send_packet = avcodec_send_packet,
+            avcodec_flush_buffers = avcodec_flush_buffers,
             avformat_alloc_context = avformat_alloc_context,
             avformat_close_input = avformat_close_input,
             avformat_find_stream_info = avformat_find_stream_info,

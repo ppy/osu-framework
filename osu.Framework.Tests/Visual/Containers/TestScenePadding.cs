@@ -13,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestScenePadding : GridTestScene
+    public partial class TestScenePadding : GridTestScene
     {
         public TestScenePadding()
             : base(2, 2)
@@ -175,7 +175,7 @@ namespace osu.Framework.Tests.Visual.Containers
             });
         }
 
-        private class PaddedBox : Container
+        private partial class PaddedBox : Container
         {
             private readonly SpriteText t1;
             private readonly SpriteText t2;

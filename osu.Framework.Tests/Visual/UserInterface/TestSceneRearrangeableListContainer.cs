@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +19,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneRearrangeableListContainer : ManualInputManagerTestScene
+    public partial class TestSceneRearrangeableListContainer : ManualInputManagerTestScene
     {
         private TestRearrangeableList list;
 
@@ -79,15 +81,23 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestRemoveItem()
         {
-            addItems(5);
+            const int item_count = 5;
 
-            for (int i = 0; i < 5; i++)
+            addItems(item_count);
+
+            List<Drawable> items = null;
+
+            AddStep("get item references", () => items = new List<Drawable>(list.ItemMap.Values.ToList()));
+
+            for (int i = 0; i < item_count; i++)
             {
                 int localI = i;
 
                 AddStep($"remove item \"{i}\"", () => list.Items.Remove(localI));
                 AddAssert($"first item is not \"{i}\"", () => list.ChildrenOfType<RearrangeableListItem<int>>().FirstOrDefault()?.Model != localI);
             }
+
+            AddUntilStep("removed items were disposed", () => items.Count(i => i.IsDisposed) == item_count);
         }
 
         [Test]
@@ -280,6 +290,43 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddUntilStep("only one item", () => delayedList.ChildrenOfType<BasicRearrangeableListItem<int>>().Count() == 1);
         }
 
+        [Test]
+        public void TestDragSynchronisation()
+        {
+            TestRearrangeableList another = null!;
+
+            addItems(3);
+            AddStep("add another list", () =>
+            {
+                another = new TestRearrangeableList
+                {
+                    Origin = Anchor.BottomCentre,
+                    Anchor = Anchor.BottomCentre,
+                    Size = new Vector2(300, 200),
+                };
+                Add(another);
+            });
+            AddStep("bind lists", () =>
+            {
+                another.Items.BindTo(list.Items);
+            });
+
+            AddStep("move mouse to first dragger", () => InputManager.MoveMouseTo(getDragger(0)));
+            AddStep("begin a drag", () => InputManager.PressButton(MouseButton.Left));
+            AddStep("move the mouse", () => InputManager.MoveMouseTo(getDragger(0), new Vector2(0, 80)));
+            AddStep("end the drag", () => InputManager.ReleaseButton(MouseButton.Left));
+
+            AddUntilStep("0 is the last in original", () => list.Items.Last() == 0);
+
+            AddAssert("0 is the last in bound", () => another.Items.Last() == 0);
+
+            AddAssert("items flow updated", () =>
+            {
+                var item = (BasicRearrangeableListItem<int>)another.ListContainer.FlowingChildren.Last();
+                return item.Model == 0;
+            });
+        }
+
         private void addDragSteps(int from, int to, int[] expectedSequence)
         {
             AddStep($"move to {from}", () =>
@@ -327,7 +374,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             => list.ChildrenOfType<BasicRearrangeableListItem<int>>().First(i => i.Model == index)
                    .ChildrenOfType<BasicRearrangeableListItem<int>.Button>().First();
 
-        private class TestRearrangeableList : BasicRearrangeableListContainer<int>
+        private partial class TestRearrangeableList : BasicRearrangeableListContainer<int>
         {
             public float ScrollPosition => ScrollContainer.Current;
 
@@ -339,13 +386,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 => ScrollContainer.ScrollTo(this.ChildrenOfType<BasicRearrangeableListItem<int>>().First(i => i.Model == item), false);
         }
 
-        private class TestDelayedLoadRearrangeableList : BasicRearrangeableListContainer<int>
+        private partial class TestDelayedLoadRearrangeableList : BasicRearrangeableListContainer<int>
         {
             public readonly SemaphoreSlim AllowLoad = new SemaphoreSlim(0, 100);
 
             protected override BasicRearrangeableListItem<int> CreateBasicItem(int item) => new TestRearrangeableListItem(item, AllowLoad);
 
-            private class TestRearrangeableListItem : BasicRearrangeableListItem<int>
+            private partial class TestRearrangeableListItem : BasicRearrangeableListItem<int>
             {
                 private readonly SemaphoreSlim allowLoad;
 

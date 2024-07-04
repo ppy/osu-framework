@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,7 +21,7 @@ using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class PropertyDisplay : Container
+    internal partial class PropertyDisplay : Container
     {
         private readonly FillFlowContainer flow;
 
@@ -78,7 +80,7 @@ namespace osu.Framework.Graphics.Visualisation
             foreach (var type in source.GetType().EnumerateBaseTypes())
             {
                 type.GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
-                    .Where(m => m is FieldInfo || m is PropertyInfo pi && pi.GetMethod != null && !pi.GetIndexParameters().Any())
+                    .Where(m => m is FieldInfo || (m is PropertyInfo pi && pi.GetMethod != null && !pi.GetIndexParameters().Any()))
                     .ForEach(m => allMembers.Add(m));
             }
 
@@ -89,7 +91,7 @@ namespace osu.Framework.Graphics.Visualisation
                                .Select(m => new PropertyItem(m, source)));
         }
 
-        private class PropertyItem : Container
+        private partial class PropertyItem : Container
         {
             private readonly SpriteText valueText;
             private readonly Box changeMarker;

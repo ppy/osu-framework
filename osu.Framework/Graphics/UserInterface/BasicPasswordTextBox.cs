@@ -5,13 +5,15 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicPasswordTextBox : BasicTextBox, ISuppressKeyEventLogging
+    public partial class BasicPasswordTextBox : BasicTextBox, ISuppressKeyEventLogging
     {
         protected virtual char MaskCharacter => '*';
 
         protected override bool AllowClipboardExport => false;
 
         protected override bool AllowWordNavigation => false;
+
+        protected override bool AllowIme => false;
 
         protected override Drawable AddCharacterToFlow(char c) => base.AddCharacterToFlow(MaskCharacter);
     }

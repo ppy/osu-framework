@@ -11,7 +11,10 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// End the lease on the source <see cref="Bindable{T}"/>.
         /// </summary>
-        void Return();
+        /// <returns>
+        /// Whether the lease was returned by this call. Will be <c>false</c> if already returned.
+        /// </returns>
+        bool Return();
     }
 
     /// <summary>

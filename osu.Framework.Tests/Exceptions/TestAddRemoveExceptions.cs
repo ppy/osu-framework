@@ -10,7 +10,7 @@ using osu.Framework.Graphics.Shapes;
 namespace osu.Framework.Tests.Exceptions
 {
     [TestFixture]
-    public class TestAddRemoveExceptions
+    public partial class TestAddRemoveExceptions
     {
         [Test]
         public void TestNonStableComparer()
@@ -25,12 +25,12 @@ namespace osu.Framework.Tests.Exceptions
                     broken.Add(candidate);
                     broken.Add(candidate2);
 
-                    broken.Remove(candidate);
+                    broken.Remove(candidate, true);
                 }
             });
         }
 
-        internal class BrokenFillFlowContainer : FillFlowContainer
+        internal partial class BrokenFillFlowContainer : FillFlowContainer
         {
             protected override int Compare(Drawable x, Drawable y) => 0;
         }

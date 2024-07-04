@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -12,7 +12,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.Visualisation.Audio
 {
-    public class AudioChannelDisplay : CompositeDrawable
+    public partial class AudioChannelDisplay : CompositeDrawable
     {
         private const int sample_window = 30;
         private const int peak_hold_time = 3000;

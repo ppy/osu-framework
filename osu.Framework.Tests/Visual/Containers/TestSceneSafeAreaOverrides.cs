@@ -1,7 +1,6 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -10,13 +9,16 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneSafeAreaOverrides : FrameworkTestScene
+    public partial class TestSceneSafeAreaOverrides : FrameworkTestScene
     {
         public TestSceneSafeAreaOverrides()
         {
             FillFlowContainer<OverrideTestContainer> container;
             Child = container = new FillFlowContainer<OverrideTestContainer>
             {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                AutoSizeAxes = Axes.Both,
                 Direction = FillDirection.Horizontal,
                 Margin = new MarginPadding(20),
                 Spacing = new Vector2(20),
@@ -35,14 +37,23 @@ namespace osu.Framework.Tests.Visual.Containers
 
             foreach (var child in container.Children)
                 addBoxAssert(child);
+
+            AddStep("Ensure negative size handles correctly", () =>
+            {
+                foreach (var child in container.Children)
+                {
+                    child.SafeAreaContainer.Size = -child.SafeAreaContainer.Size;
+                    child.SafeAreaContainer.Position = -child.SafeAreaContainer.Position;
+                }
+            });
         }
 
         private void addBoxAssert(OverrideTestContainer container)
         {
-            bool leftOverridden = container.SafeAreaContainer.SafeAreaOverrideEdges.HasFlagFast(Edges.Left);
-            bool topOverridden = container.SafeAreaContainer.SafeAreaOverrideEdges.HasFlagFast(Edges.Top);
-            bool rightOverridden = container.SafeAreaContainer.SafeAreaOverrideEdges.HasFlagFast(Edges.Right);
-            bool bottomOverridden = container.SafeAreaContainer.SafeAreaOverrideEdges.HasFlagFast(Edges.Bottom);
+            bool leftOverridden = container.SafeAreaContainer.SafeAreaOverrideEdges.HasFlag(Edges.Left);
+            bool topOverridden = container.SafeAreaContainer.SafeAreaOverrideEdges.HasFlag(Edges.Top);
+            bool rightOverridden = container.SafeAreaContainer.SafeAreaOverrideEdges.HasFlag(Edges.Right);
+            bool bottomOverridden = container.SafeAreaContainer.SafeAreaOverrideEdges.HasFlag(Edges.Bottom);
 
             AddAssert($"\"{container.Name}\" overrides correctly", () =>
                 leftOverridden == container.SafeAreaContainer.Padding.Left < 0
@@ -51,7 +62,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 && bottomOverridden == container.SafeAreaContainer.Padding.Bottom < 0);
         }
 
-        private class OverrideTestContainer : SafeAreaDefiningContainer
+        private partial class OverrideTestContainer : SafeAreaDefiningContainer
         {
             internal readonly SafeAreaContainer SafeAreaContainer;
 

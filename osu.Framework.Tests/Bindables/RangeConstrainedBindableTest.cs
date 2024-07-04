@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using NUnit.Framework;
@@ -97,6 +97,30 @@ namespace osu.Framework.Tests.Bindables
             var bindable = new BindableNumberWithDefaultMinValue(2);
 
             Assert.That(bindable.Value, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void TestBindToAnotherBindableWithDisjointRange()
+        {
+            var first = new BindableDouble
+            {
+                MinValue = -10,
+                MaxValue = -5,
+                Value = -7
+            };
+
+            var second = new BindableDouble
+            {
+                MinValue = 5,
+                MaxValue = 10,
+                Value = 9
+            };
+
+            first.BindTo(second);
+
+            Assert.That(first.MinValue, Is.EqualTo(5));
+            Assert.That(first.MaxValue, Is.EqualTo(10));
+            Assert.That(first.Value, Is.EqualTo(9));
         }
 
         private class BindableNumberWithDefaultMaxValue : BindableInt

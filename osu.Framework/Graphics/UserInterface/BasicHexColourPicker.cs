@@ -1,11 +1,11 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicHexColourPicker : HexColourPicker
+    public partial class BasicHexColourPicker : HexColourPicker
     {
         public BasicHexColourPicker()
         {
@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override ColourPreview CreateColourPreview() => new BasicColourPreview();
 
-        private class BasicColourPreview : ColourPreview
+        private partial class BasicColourPreview : ColourPreview
         {
             private readonly Box previewBox;
 

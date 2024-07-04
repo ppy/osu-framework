@@ -8,7 +8,7 @@ namespace osu.Framework.Caching
 {
     public class Cached<T>
     {
-        private T value;
+        private T value = default!;
 
         public T Value
         {

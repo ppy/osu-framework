@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,7 +16,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A container that can be used to fluently arrange its children.
     /// </summary>
-    public abstract class FlowContainer<T> : Container<T>
+    public abstract partial class FlowContainer<T> : Container<T>
         where T : Drawable
     {
         internal event Action OnLayout;
@@ -73,7 +75,7 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly Dictionary<Drawable, float> layoutChildren = new Dictionary<Drawable, float>();
 
-        protected internal override void AddInternal(Drawable drawable)
+        protected override void AddInternal(Drawable drawable)
         {
             layoutChildren.Add(drawable, 0f);
             // we have to ensure that the layout gets invalidated since Adding or Removing a child will affect the layout. The base class will not invalidate
@@ -82,13 +84,14 @@ namespace osu.Framework.Graphics.Containers
             base.AddInternal(drawable);
         }
 
-        protected internal override bool RemoveInternal(Drawable drawable)
+        protected internal override bool RemoveInternal(Drawable drawable, bool disposeImmediately)
         {
             layoutChildren.Remove(drawable);
             // we have to ensure that the layout gets invalidated since Adding or Removing a child will affect the layout. The base class will not invalidate
             // if we are set to AutoSizeAxes.None, but even in that situation, the layout can and often does change when children are added/removed.
             InvalidateLayout();
-            return base.RemoveInternal(drawable);
+
+            return base.RemoveInternal(drawable, disposeImmediately);
         }
 
         protected internal override void ClearInternal(bool disposeChildren = true)
@@ -215,15 +218,15 @@ namespace osu.Framework.Graphics.Containers
             base.UpdateAfterChildren();
 
             if (!childLayout.IsValid)
-            {
-                layout.Invalidate();
-                childLayout.Validate();
-            }
+                InvalidateLayout();
 
             if (!layout.IsValid)
             {
                 performLayout();
+
                 layout.Validate();
+                // It's important to only validate childLayout after performLayout() is called to ensure it doesn't get re-invalidated.
+                childLayout.Validate();
             }
         }
 

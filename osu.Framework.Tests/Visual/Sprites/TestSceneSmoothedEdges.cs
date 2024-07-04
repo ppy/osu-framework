@@ -10,7 +10,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneSmoothedEdges : GridTestScene
+    public partial class TestSceneSmoothedEdges : GridTestScene
     {
         private readonly Box[] boxes = new Box[5];
 

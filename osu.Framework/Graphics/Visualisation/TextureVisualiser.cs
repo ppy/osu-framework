@@ -1,15 +1,20 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Linq;
+using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
-using osu.Framework.Graphics.OpenGL.Textures;
-using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Localisation;
 using osu.Framework.Utils;
 using osuTK;
@@ -17,10 +22,15 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class TextureVisualiser : ToolWindow
+    internal partial class TextureVisualiser : ToolWindow
     {
         private readonly FillFlowContainer<TexturePanel> atlasFlow;
         private readonly FillFlowContainer<TexturePanel> textureFlow;
+
+        private readonly BindableInt visualisedMipLevel = new BindableInt(-1) { MinValue = -1, MaxValue = IRenderer.MAX_MIPMAP_LEVELS };
+
+        [Resolved]
+        private IRenderer renderer { get; set; }
 
         public TextureVisualiser()
             : base("Textures", "(Ctrl+F3 to toggle)")
@@ -59,16 +69,37 @@ namespace osu.Framework.Graphics.Visualisation
                     }
                 }
             };
+
+            SpriteText mipLevelText;
+
+            ToolbarContent.AddRange(new Drawable[]
+            {
+                new SpriteText { Text = "Mip level" },
+                new BasicSliderBar<int>
+                {
+                    Height = 20,
+                    Width = 250,
+                    Current = visualisedMipLevel,
+                },
+                mipLevelText = new SpriteText(),
+            });
+
+            visualisedMipLevel.BindValueChanged(val =>
+            {
+                mipLevelText.Text = val.NewValue == -1 ? "Auto" : $"{val.NewValue}";
+                atlasFlow.Invalidate();
+                textureFlow.Invalidate();
+            }, true);
         }
 
         protected override void PopIn()
         {
             base.PopIn();
 
-            foreach (var tex in TextureGLSingle.GetAllTextures())
+            foreach (var tex in renderer.GetAllTextures())
                 addTexture(tex);
 
-            TextureGLSingle.TextureCreated += addTexture;
+            renderer.TextureCreated += addTexture;
         }
 
         protected override void PopOut()
@@ -78,33 +109,33 @@ namespace osu.Framework.Graphics.Visualisation
             atlasFlow.Clear();
             textureFlow.Clear();
 
-            TextureGLSingle.TextureCreated -= addTexture;
+            renderer.TextureCreated -= addTexture;
         }
 
-        private void addTexture(TextureGLSingle texture) => Schedule(() =>
+        private void addTexture(Texture texture) => Schedule(() =>
         {
-            var target = texture is TextureGLAtlas ? atlasFlow : textureFlow;
+            var target = texture.IsAtlasTexture ? atlasFlow : textureFlow;
 
             if (target.Any(p => p.Texture == texture))
                 return;
 
-            target.Add(new TexturePanel(texture));
+            target.Add(new TexturePanel(texture, visualisedMipLevel));
         });
 
-        private class TexturePanel : CompositeDrawable
+        private partial class TexturePanel : CompositeDrawable
         {
-            private readonly WeakReference<TextureGLSingle> textureReference;
+            private readonly WeakReference<Texture> textureReference;
 
-            public TextureGLSingle Texture => textureReference.TryGetTarget(out var tex) ? tex : null;
+            public Texture Texture => textureReference.TryGetTarget(out var tex) ? tex : null;
 
             private readonly SpriteText titleText;
             private readonly SpriteText footerText;
 
             private readonly UsageBackground usage;
 
-            public TexturePanel(TextureGLSingle texture)
+            public TexturePanel(Texture texture, BindableInt visualisedMipLevel)
             {
-                textureReference = new WeakReference<TextureGLSingle>(texture);
+                textureReference = new WeakReference<Texture>(texture);
 
                 Size = new Vector2(100, 132);
 
@@ -129,7 +160,7 @@ namespace osu.Framework.Graphics.Visualisation
                             AutoSizeAxes = Axes.Y,
                             Children = new Drawable[]
                             {
-                                usage = new UsageBackground(textureReference)
+                                usage = new UsageBackground(textureReference, visualisedMipLevel)
                                 {
                                     Size = new Vector2(100)
                                 },
@@ -159,24 +190,26 @@ namespace osu.Framework.Graphics.Visualisation
                         return;
                     }
 
-                    titleText.Text = $"{texture.TextureId}. {texture.Width}x{texture.Height} ";
+                    titleText.Text = $"{texture.Identifier}. {texture.Width}x{texture.Height} ";
                     footerText.Text = Precision.AlmostBigger(usage.AverageUsagesPerFrame, 1) ? $"{usage.AverageUsagesPerFrame:N0} binds" : string.Empty;
                 }
                 catch { }
             }
         }
 
-        private class UsageBackground : Box, IHasTooltip
+        private partial class UsageBackground : Box, IHasTooltip
         {
-            private readonly WeakReference<TextureGLSingle> textureReference;
+            private readonly WeakReference<Texture> textureReference;
+            private readonly IBindable<int> visualisedMipLevel;
 
             private ulong lastBindCount;
 
             public float AverageUsagesPerFrame { get; private set; }
 
-            public UsageBackground(WeakReference<TextureGLSingle> textureReference)
+            public UsageBackground(WeakReference<Texture> textureReference, BindableInt visualisedMipLevel)
             {
                 this.textureReference = textureReference;
+                this.visualisedMipLevel = visualisedMipLevel.GetBoundCopy();
             }
 
             protected override DrawNode CreateDrawNode() => new UsageBackgroundDrawNode(this);
@@ -187,7 +220,9 @@ namespace osu.Framework.Graphics.Visualisation
 
                 private ColourInfo drawColour;
 
-                private WeakReference<TextureGLSingle> textureReference;
+                private WeakReference<Texture> textureReference;
+
+                private int visualisedMipLevel;
 
                 public UsageBackgroundDrawNode(Box source)
                     : base(source)
@@ -199,9 +234,10 @@ namespace osu.Framework.Graphics.Visualisation
                     base.ApplyState();
 
                     textureReference = Source.textureReference;
+                    visualisedMipLevel = Source.visualisedMipLevel.Value;
                 }
 
-                public override void Draw(Action<TexturedVertex2D> vertexAction)
+                protected override void Draw(IRenderer renderer)
                 {
                     if (!textureReference.TryGetTarget(out var texture))
                         return;
@@ -209,7 +245,7 @@ namespace osu.Framework.Graphics.Visualisation
                     if (!texture.Available)
                         return;
 
-                    ulong delta = texture.BindCount - Source.lastBindCount;
+                    ulong delta = texture.NativeTexture.TotalBindCount - Source.lastBindCount;
 
                     Source.AverageUsagesPerFrame = Source.AverageUsagesPerFrame * 0.9f + delta * 0.1f;
 
@@ -219,13 +255,13 @@ namespace osu.Framework.Graphics.Visualisation
                             ? Interpolation.ValueAt(Source.AverageUsagesPerFrame, Color4.DarkGray, Color4.Red, 0, 200)
                             : Color4.Transparent);
 
-                    base.Draw(vertexAction);
+                    base.Draw(renderer);
 
                     // intentionally after draw to avoid counting our own bind.
-                    Source.lastBindCount = texture.BindCount;
+                    Source.lastBindCount = texture.NativeTexture.TotalBindCount;
                 }
 
-                protected override void Blit(Action<TexturedVertex2D> vertexAction)
+                protected override void Blit(IRenderer renderer)
                 {
                     if (!textureReference.TryGetTarget(out var texture))
                         return;
@@ -233,12 +269,12 @@ namespace osu.Framework.Graphics.Visualisation
                     const float border_width = 4;
 
                     // border
-                    DrawQuad(Texture, ScreenSpaceDrawQuad, drawColour, null, vertexAction);
+                    renderer.DrawQuad(Texture, ScreenSpaceDrawQuad, drawColour);
 
                     var shrunkenQuad = ScreenSpaceDrawQuad.AABBFloat.Shrink(border_width);
 
                     // background
-                    DrawQuad(Texture, shrunkenQuad, Color4.Black, null, vertexAction);
+                    renderer.DrawQuad(Texture, shrunkenQuad, Color4.Black);
 
                     float aspect = (float)texture.Width / texture.Height;
 
@@ -257,9 +293,21 @@ namespace osu.Framework.Graphics.Visualisation
                         shrunkenQuad.Width = newWidth;
                     }
 
+                    renderer.FlushCurrentBatch(null);
+
                     // texture
                     texture.Bind();
-                    DrawQuad(texture, shrunkenQuad, Color4.White, null, vertexAction);
+
+                    if (visualisedMipLevel != -1)
+                        texture.MipLevel = visualisedMipLevel;
+
+                    renderer.DrawQuad(texture, shrunkenQuad, Color4.White);
+
+                    if (visualisedMipLevel != -1)
+                    {
+                        renderer.FlushCurrentBatch(null);
+                        texture.MipLevel = null;
+                    }
                 }
 
                 protected internal override bool CanDrawOpaqueInterior => false;

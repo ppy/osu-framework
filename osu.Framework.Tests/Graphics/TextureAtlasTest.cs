@@ -1,9 +1,12 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using NUnit.Framework;
-using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Rendering.Dummy;
 using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Tests.Graphics
@@ -39,15 +42,15 @@ namespace osu.Framework.Tests.Graphics
 
         private void testWithSize(int width, int height)
         {
-            TextureAtlas atlas = new TextureAtlas(1024, 1024);
-            TextureGL texture = atlas.Add(width, height);
+            TextureAtlas atlas = new TextureAtlas(new DummyRenderer(), 1024, 1024);
+            Texture texture = atlas.Add(width, height);
 
             if (texture != null)
             {
                 Assert.AreEqual(texture.Width, width, message: $"Width: {texture.Width} != {width} for texture {width}x{height}");
                 Assert.AreEqual(texture.Height, height, message: $"Height: {texture.Height} != {height} for texture {width}x{height}");
 
-                RectangleF rect = texture.GetTextureRect(null);
+                RectangleF rect = texture.GetTextureRect();
                 Assert.LessOrEqual(rect.X + rect.Width, 1, message: $"Returned texture is wider than TextureAtlas for texture {width}x{height}");
                 Assert.LessOrEqual(rect.Y + rect.Height, 1, message: $"Returned texture is taller than TextureAtlas for texture {width}x{height}");
             }
@@ -65,11 +68,11 @@ namespace osu.Framework.Tests.Graphics
         {
             const int atlas_size = 1024;
 
-            var atlas = new TextureAtlas(atlas_size, atlas_size);
+            var atlas = new TextureAtlas(new DummyRenderer(), atlas_size, atlas_size);
 
-            TextureGL texture = atlas.Add(64, 64);
+            Texture texture = atlas.Add(64, 64);
 
-            RectangleF rect = texture.GetTextureRect(null);
+            RectangleF rect = texture.AsNonNull().GetTextureRect();
             Assert.GreaterOrEqual(atlas_size * rect.X, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, message: "Texture is placed on top of the white pixel");
             Assert.GreaterOrEqual(atlas_size * rect.Y, TextureAtlas.PADDING, message: "Texture has insufficient padding");
         }
@@ -79,13 +82,34 @@ namespace osu.Framework.Tests.Graphics
         {
             const int atlas_size = 1024;
 
-            var atlas = new TextureAtlas(atlas_size, atlas_size);
+            var atlas = new TextureAtlas(new DummyRenderer(), atlas_size, atlas_size);
 
-            TextureGL texture = atlas.Add(atlas_size - 2 * TextureAtlas.PADDING, 64);
+            Texture texture = atlas.Add(atlas_size - 2 * TextureAtlas.PADDING, 64);
 
-            RectangleF rect = texture.GetTextureRect(null);
+            RectangleF rect = texture.AsNonNull().GetTextureRect();
             Assert.GreaterOrEqual(atlas_size * rect.X, TextureAtlas.PADDING, message: "Texture has insufficient padding");
             Assert.GreaterOrEqual(atlas_size * rect.Y, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, message: "Texture is placed on top of the white pixel");
+        }
+
+        [Test]
+        public void TestSubTextureIsAtlasTexture()
+        {
+            const int atlas_size = 1024;
+
+            var atlas = new TextureAtlas(new DummyRenderer(), atlas_size, atlas_size);
+
+            // Direct atlas texture.
+            var tex1 = atlas.Add(1, 1).AsNonNull();
+
+            // TextureRegion.
+            var tex2 = tex1.Crop(new RectangleF(0, 0, 1, 1));
+
+            // Redirected texture.
+            var tex3 = new Texture(tex1);
+
+            Assert.True(tex1.IsAtlasTexture);
+            Assert.True(tex2.IsAtlasTexture);
+            Assert.True(tex3.IsAtlasTexture);
         }
     }
 }

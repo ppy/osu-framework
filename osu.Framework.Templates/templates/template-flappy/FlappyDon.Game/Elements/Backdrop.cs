@@ -11,7 +11,7 @@ namespace FlappyDon.Game.Elements
     /// <summary>
     /// Manages a pool of Sprite objects, arranged and animated horizontally to produce a background scrolling effect.
     /// </summary>
-    public class Backdrop : CompositeDrawable
+    public partial class Backdrop : CompositeDrawable
     {
         /// <summary>
         /// Holds a lambda that generates new instances of the same sprite on demand.
@@ -104,7 +104,7 @@ namespace FlappyDon.Game.Elements
             {
                 // Update the number of sprites in the list to match the number we need to cover the whole container
                 while (InternalChildren.Count > spriteNum)
-                    RemoveInternal(InternalChildren.Last());
+                    RemoveInternal(InternalChildren.Last(), true);
 
                 while (InternalChildren.Count < spriteNum)
                     AddInternal(createSprite());

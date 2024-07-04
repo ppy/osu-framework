@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -16,7 +18,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Audio
 {
-    public class TestSceneSamples : FrameworkTestScene
+    public partial class TestSceneSamples : FrameworkTestScene
     {
         private readonly AudioContainer samples;
         private readonly TrackingLine tracking;
@@ -90,7 +92,7 @@ namespace osu.Framework.Tests.Visual.Audio
             }
         }
 
-        private class TrackingLine : CompositeDrawable
+        private partial class TrackingLine : CompositeDrawable
         {
             public TrackingLine()
             {
@@ -112,7 +114,7 @@ namespace osu.Framework.Tests.Visual.Audio
             }
         }
 
-        public class Grid : CompositeDrawable
+        public partial class Grid : CompositeDrawable
         {
             public Grid(int beats, int notes)
             {
@@ -144,7 +146,7 @@ namespace osu.Framework.Tests.Visual.Audio
             }
         }
 
-        private class DraggableSample : CompositeDrawable
+        private partial class DraggableSample : CompositeDrawable
         {
             public DraggableSample(int beat, int pitch)
             {
@@ -183,7 +185,7 @@ namespace osu.Framework.Tests.Visual.Audio
 
             protected override void OnDrag(DragEvent e)
             {
-                Y = (int)(e.MousePosition.Y / (Parent.DrawHeight / notes));
+                Y = (int)(e.MousePosition.Y / (Parent!.DrawHeight / notes));
             }
 
             public void Reset()

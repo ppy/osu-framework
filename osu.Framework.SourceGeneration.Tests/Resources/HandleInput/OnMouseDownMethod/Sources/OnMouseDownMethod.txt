@@ -1,0 +1,4 @@
+public partial class OnMouseDownMethod : osu.Framework.Graphics.Drawable
+{
+    protected override void OnMouseDown(object e) { }
+}

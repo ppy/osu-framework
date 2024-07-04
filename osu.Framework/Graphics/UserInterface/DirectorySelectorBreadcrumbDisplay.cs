@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,7 +14,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DirectorySelectorBreadcrumbDisplay : CompositeDrawable
+    public abstract partial class DirectorySelectorBreadcrumbDisplay : CompositeDrawable
     {
         /// <summary>
         /// Creates a caption to be displayed in front of the breadcrumb items.
@@ -38,6 +40,9 @@ namespace osu.Framework.Graphics.UserInterface
         [BackgroundDependencyLoader]
         private void load()
         {
+            RelativeSizeAxes = Axes.X;
+            AutoSizeAxes = Axes.Y;
+
             InternalChild = flow = new FillFlowContainer
             {
                 Anchor = Anchor.Centre,
@@ -45,7 +50,7 @@ namespace osu.Framework.Graphics.UserInterface
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y,
                 Spacing = new Vector2(5),
-                Direction = FillDirection.Horizontal,
+                Direction = FillDirection.Full,
             };
 
             currentDirectory.BindValueChanged(updateDisplay, true);

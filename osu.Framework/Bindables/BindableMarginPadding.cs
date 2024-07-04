@@ -17,10 +17,10 @@ namespace osu.Framework.Bindables
         {
         }
 
-        public override string ToString() => Value.ToString();
-
-        public override void Parse(object input)
+        public override void Parse(object? input, IFormatProvider provider)
         {
+            ArgumentNullException.ThrowIfNull(input);
+
             switch (input)
             {
                 case string str:
@@ -39,7 +39,7 @@ namespace osu.Framework.Bindables
                     break;
 
                 default:
-                    base.Parse(input);
+                    base.Parse(input, provider);
                     break;
             }
         }

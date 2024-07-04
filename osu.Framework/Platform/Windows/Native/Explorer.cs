@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
+using LogLevel = osu.Framework.Logging.LogLevel;
 
 namespace osu.Framework.Platform.Windows.Native
 {
@@ -28,7 +29,13 @@ namespace osu.Framework.Platform.Windows.Native
                 {
                     filename = filename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
 
-                    string folderPath = Path.GetDirectoryName(filename);
+                    string? folderPath = Path.GetDirectoryName(filename);
+
+                    if (folderPath == null)
+                    {
+                        Logger.Log($"Failed to get directory for {filename}", level: LogLevel.Debug);
+                        return;
+                    }
 
                     SHParseDisplayName(folderPath, IntPtr.Zero, out nativeFolder, 0, out _);
 

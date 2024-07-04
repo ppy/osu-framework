@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osuTK.Graphics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
@@ -11,11 +13,12 @@ using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Input.Events;
 using osuTK.Input;
+using System.Numerics;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
-    public class StepSlider<T> : SliderBar<T>
-        where T : struct, IComparable<T>, IConvertible, IEquatable<T>
+    public partial class StepSlider<T> : SliderBar<T>
+        where T : struct, INumber<T>, IMinMaxValue<T>
     {
         private readonly Box selection;
         private readonly Box background;
@@ -90,7 +93,7 @@ namespace osu.Framework.Testing.Drawables.Steps
             var value = Current.Value;
 
             ValueChanged?.Invoke(value);
-            spriteText.Text = $"{text}: {Convert.ToDouble(value):G3}";
+            spriteText.Text = $"{text}: {Convert.ToDouble(value):#,0.##}";
             selection.ResizeWidthTo(normalizedValue);
         }
 

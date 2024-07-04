@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -13,6 +13,7 @@ namespace osu.Framework.Tests.Localisation
     {
         [TestCase(EnumA.Item1, "Item1")]
         [TestCase(EnumA.Item2, "B")]
+        [TestCase((EnumA)3, "3")]
         public void TestNonLocalisableDescriptionReturnsDescriptionOrToString(EnumA value, string expected)
         {
             Assert.That(value.GetLocalisableDescription().ToString(), Is.EqualTo(expected));
@@ -26,9 +27,15 @@ namespace osu.Framework.Tests.Localisation
         }
 
         [Test]
-        public void TestClassLocalisableDescription()
+        public void TestClassInstanceLocalisableDescription()
         {
             Assert.That(new ClassA().GetLocalisableDescription().ToString(), Is.EqualTo("Localised A"));
+        }
+
+        [Test]
+        public void TestClassTypeLocalisableDescription()
+        {
+            Assert.That(typeof(ClassA).GetLocalisableDescription().ToString(), Is.EqualTo("Localised A"));
         }
 
         [Test]
@@ -41,6 +48,13 @@ namespace osu.Framework.Tests.Localisation
         public void TestLocalisableDescriptionWithInstanceMemberThrows()
         {
             Assert.Throws<InvalidOperationException>(() => EnumD.Item1.GetLocalisableDescription());
+        }
+
+        [Test]
+        public void TestLocalisableStringDescription()
+        {
+            object description = TestStrings.Romanisable;
+            Assert.AreEqual(description, description.GetLocalisableDescription());
         }
 
         public enum EnumA
@@ -57,7 +71,7 @@ namespace osu.Framework.Tests.Localisation
             Item1,
 
             [LocalisableDescription(typeof(TestStrings), nameof(TestStrings.B))]
-            Item2
+            Item2,
         }
 
         public enum EnumC
@@ -82,6 +96,8 @@ namespace osu.Framework.Tests.Localisation
             public static LocalisableString A => "Localised A";
 
             public static readonly LocalisableString B = "Localised B";
+
+            public static LocalisableString Romanisable => new RomanisableString("Original", "Romanised");
 
             public LocalisableString Instance => string.Empty;
         }

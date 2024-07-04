@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -19,7 +21,7 @@ namespace osu.Framework.Graphics.Containers
     /// Adding duplicate items is not currently supported.
     /// </remarks>
     /// <typeparam name="TModel">The type of rearrangeable item.</typeparam>
-    public abstract class RearrangeableListContainer<TModel> : CompositeDrawable
+    public abstract partial class RearrangeableListContainer<TModel> : CompositeDrawable
     {
         private const float exp_base = 1.05f;
 
@@ -73,6 +75,13 @@ namespace osu.Framework.Graphics.Containers
             Items.CollectionChanged += collectionChanged;
         }
 
+        /// <summary>
+        /// Fired whenever new drawable items are added or removed from <see cref="ListContainer"/>.
+        /// </summary>
+        protected virtual void OnItemsChanged()
+        {
+        }
+
         private void collectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             switch (e.Action)
@@ -94,11 +103,17 @@ namespace osu.Framework.Graphics.Containers
                     currentlyDraggedItem = null;
                     ListContainer.Clear();
                     itemMap.Clear();
+                    OnItemsChanged();
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
                     removeItems(e.OldItems);
                     addItems(e.NewItems);
+                    break;
+
+                case NotifyCollectionChangedAction.Move:
+                    sortItems();
+                    OnItemsChanged();
                     break;
             }
         }
@@ -110,11 +125,16 @@ namespace osu.Framework.Graphics.Containers
                 if (currentlyDraggedItem != null && EqualityComparer<TModel>.Default.Equals(currentlyDraggedItem.Model, item))
                     currentlyDraggedItem = null;
 
-                ListContainer.Remove(itemMap[item]);
+                var drawableItem = itemMap[item];
+
+                ListContainer.Remove(drawableItem, false);
+                DisposeChildAsync(drawableItem);
+
                 itemMap.Remove(item);
             }
 
-            reSort();
+            sortItems();
+            OnItemsChanged();
         }
 
         private void addItems(IList items)
@@ -154,11 +174,12 @@ namespace osu.Framework.Graphics.Containers
                         ListContainer.Add(d);
                 }
 
-                reSort();
+                sortItems();
+                OnItemsChanged();
             }
         }
 
-        private void reSort()
+        private void sortItems()
         {
             for (int i = 0; i < Items.Count; i++)
             {
@@ -166,7 +187,7 @@ namespace osu.Framework.Graphics.Containers
 
                 // If the async load didn't complete, the item wouldn't exist in the container and an exception would be thrown
                 if (drawable.Parent == ListContainer)
-                    ListContainer.SetLayoutPosition(drawable, i);
+                    ListContainer!.SetLayoutPosition(drawable, i);
             }
         }
 
@@ -212,7 +233,7 @@ namespace osu.Framework.Graphics.Containers
                 scrollSpeed = (float)(MathF.Pow(exp_base, power) * Clock.ElapsedFrameTime * 0.1);
             }
 
-            if ((scrollSpeed < 0 && ScrollContainer.Current > 0) || (scrollSpeed > 0 && !ScrollContainer.IsScrolledToEnd()))
+            if ((scrollSpeed < 0 && !ScrollContainer.IsScrolledToStart()) || (scrollSpeed > 0 && !ScrollContainer.IsScrolledToEnd()))
                 ScrollContainer.ScrollBy(scrollSpeed);
         }
 
@@ -265,7 +286,7 @@ namespace osu.Framework.Graphics.Containers
             Items.Move(srcIndex, dstIndex);
 
             // Todo: this could be optimised, but it's a very simple iteration over all the items
-            reSort();
+            sortItems();
         }
 
         /// <summary>

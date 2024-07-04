@@ -1,18 +1,17 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Vertices;
-using osu.Framework.Graphics.Primitives;
+#nullable disable
+
+using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics
 {
     public abstract partial class Drawable
     {
-        private class ProxyDrawable : Drawable
+        private partial class ProxyDrawable : Drawable
         {
-            private readonly ulong[] drawNodeValidationIds = new ulong[GLWrapper.MAX_DRAW_NODES];
+            private readonly ulong[] drawNodeValidationIds = new ulong[IRenderer.MAX_DRAW_NODES];
             private readonly DrawNode[] originalDrawNodes;
 
             internal ProxyDrawable(Drawable original)
@@ -60,13 +59,7 @@ namespace osu.Framework.Graphics
             // We do not want to receive updates. That is the business of the original drawable.
             public override bool IsPresent => false;
 
-            public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
-            {
-                if (Original.IsDisposed)
-                    return false;
-
-                return Original.UpdateSubTreeMasking(this, maskingBounds);
-            }
+            public override bool UpdateSubTreeMasking() => true;
 
             private class ProxyDrawNode : DrawNode
             {
@@ -88,11 +81,17 @@ namespace osu.Framework.Graphics
                 {
                 }
 
-                internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
-                    => getCurrentFrameSource()?.DrawOpaqueInteriorSubTree(depthValue, vertexAction);
+                protected override void DrawOpaqueInterior(IRenderer renderer)
+                {
+                    if (getCurrentFrameSource() != null)
+                        DrawOtherOpaqueInterior(getCurrentFrameSource(), renderer);
+                }
 
-                public override void Draw(Action<TexturedVertex2D> vertexAction)
-                    => getCurrentFrameSource()?.Draw(vertexAction);
+                protected override void Draw(IRenderer renderer)
+                {
+                    if (getCurrentFrameSource() != null)
+                        DrawOther(getCurrentFrameSource(), renderer);
+                }
 
                 protected internal override bool CanDrawOpaqueInterior => getCurrentFrameSource()?.CanDrawOpaqueInterior ?? false;
 

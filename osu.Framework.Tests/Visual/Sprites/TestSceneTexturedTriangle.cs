@@ -9,7 +9,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneTexturedTriangle : FrameworkTestScene
+    public partial class TestSceneTexturedTriangle : FrameworkTestScene
     {
         public TestSceneTexturedTriangle()
         {
@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             });
         }
 
-        private class TexturedTriangle : Triangle
+        private partial class TexturedTriangle : Triangle
         {
             [BackgroundDependencyLoader]
             private void load(TextureStore textures)

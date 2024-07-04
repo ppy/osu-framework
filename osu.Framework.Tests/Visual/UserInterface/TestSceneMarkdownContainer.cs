@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,7 +16,7 @@ using osu.Framework.IO.Network;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneMarkdownContainer : FrameworkTestScene
+    public partial class TestSceneMarkdownContainer : FrameworkTestScene
     {
         private TestMarkdownContainer markdownContainer;
 
@@ -84,9 +86,27 @@ Line below";
         }
 
         [Test]
-        public void TestFencedCode()
+        public void TestIndentedCodeBlock()
         {
-            AddStep("Markdown Fenced Code", () =>
+            AddStep("Markdown Indented Code Block", () =>
+            {
+                markdownContainer.Text = @"
+    [Escape me]
+    [[Escape me]]
+
+    {{
+      x = ""5""   # This assignment will not output anything
+      x         # This expression will print 5
+      x + 1     # This expression will print 6
+    }}
+";
+            });
+        }
+
+        [Test]
+        public void TestFencedCodeBlock()
+        {
+            AddStep("Markdown Fenced Code Block", () =>
             {
                 markdownContainer.Text = @"```scriban-html
 
@@ -181,6 +201,11 @@ __bold with underscore__
 **bold with asterisk**
 *__italic with asterisk, bold with underscore__*
 _**italic with underscore, bold with asterisk**_";
+            });
+
+            AddStep("Wiki notice", () =>
+            {
+                markdownContainer.Text = @"*Notice: We are still figuring out game balance and mechanics. For now, **scores set on lazer should not be considered permanent**.*";
             });
         }
 
@@ -301,7 +326,31 @@ soft break with '\'";
             AddAssert("has correct autolink", () => markdownContainer.AutoLinks[0].Url == "https://discord.gg/ppy");
         }
 
-        private class TestMarkdownContainer : MarkdownContainer
+        [Test]
+        public void TestUnbalancedFencedBlock()
+        {
+            AddStep("set unbalanced fenced block", () => markdownContainer.Text = @"```");
+        }
+
+        [Test]
+        public void TestEmptyFencedBlock()
+        {
+            AddStep("set empty fenced block", () => markdownContainer.Text = @"```
+```");
+        }
+
+        [Test]
+        public void TestFootnotes()
+        {
+            AddStep("set content", () => markdownContainer.Text = @"This text has a footnote[^test].
+
+Here's some more text[^test2] with another footnote!
+
+[^test]: This is a **footnote**.
+[^test2]: This is another footnote [with a link](https://google.com/)!");
+        }
+
+        private partial class TestMarkdownContainer : MarkdownContainer
         {
             public new string DocumentUrl
             {
@@ -327,7 +376,7 @@ soft break with '\'";
 
             public override SpriteText CreateSpriteText() => base.CreateSpriteText().With(t => t.Font = t.Font.With("Roboto", weight: "Regular"));
 
-            private class TestMarkdownTextFlowContainer : MarkdownTextFlowContainer
+            private partial class TestMarkdownTextFlowContainer : MarkdownTextFlowContainer
             {
                 public Action<LinkInline> UrlAdded;
 

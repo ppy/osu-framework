@@ -1,5 +1,7 @@
 using System.Threading;
-#addin "nuget:?package=CodeFileSanity&version=0.0.36"
+using System.Text.RegularExpressions;
+#addin "nuget:?package=Cake.FileHelpers&version=3.2.1"
+#addin "nuget:?package=CodeFileSanity&version=0.0.37"
 #tool "nuget:?package=Python&version=3.7.2"
 var pythonPath = GetFiles("./tools/python.*/tools/python.exe").First();
 var waitressPath = pythonPath.GetDirectory().CombineWithFilePath("Scripts/waitress-serve.exe");
@@ -17,7 +19,6 @@ var tempDirectory = new DirectoryPath("temp");
 var artifactsDirectory = rootDirectory.Combine("artifacts");
 
 var sln = rootDirectory.CombineWithFilePath("osu-framework.sln");
-var desktopBuilds = rootDirectory.CombineWithFilePath("build/Desktop.proj");
 var desktopSlnf = rootDirectory.CombineWithFilePath("osu-framework.Desktop.slnf");
 var frameworkProject = rootDirectory.CombineWithFilePath("osu.Framework/osu.Framework.csproj");
 var iosFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.iOS/osu.Framework.iOS.csproj");
@@ -82,7 +83,7 @@ Task("RunHttpBin")
 
 Task("Compile")
     .Does(() => {
-        DotNetCoreBuild(desktopBuilds.FullPath, new DotNetCoreBuildSettings {
+        DotNetCoreBuild(desktopSlnf.FullPath, new DotNetCoreBuildSettings {
             Configuration = configuration,
             Verbosity = DotNetCoreVerbosity.Minimal,
         });
@@ -123,11 +124,6 @@ Task("CodeFileSanity")
         });
     });
 
-// Temporarily disabled until the tool is upgraded to 5.0.
-// The version specified in .config/dotnet-tools.json (3.1.37601) won't run on .NET hosts >=5.0.7.
-// Task("DotnetFormat")
-//    .Does(() => DotNetCoreTool(sln.FullPath, "format", "--dry-run --check"));
-
 Task("PackFramework")
     .Does(() => {
         DotNetCorePack(frameworkProject.FullPath, new DotNetCorePackSettings{
@@ -137,6 +133,9 @@ Task("PackFramework")
             ArgumentCustomization = args => {
                 args.Append($"/p:Version={version}");
                 args.Append($"/p:GenerateDocumentationFile=true");
+                args.Append("/p:IncludeSymbols=true");
+                args.Append("/p:SymbolPackageFormat=snupkg");
+                args.Append("/p:PublishRepositoryUrl=true");
 
                 return args;
             }
@@ -145,42 +144,30 @@ Task("PackFramework")
 
 Task("PackiOSFramework")
     .Does(() => {
-        MSBuild(iosFrameworkProject, new MSBuildSettings {
-            Restore = true,
-            BinaryLogger = new MSBuildBinaryLogSettings{
-                Enabled = true,
-                FileName = tempDirectory.CombineWithFilePath("msbuildlog.binlog").FullPath
-            },
-            Verbosity = Verbosity.Minimal,
-            ArgumentCustomization = args =>
-            {
-                args.Append($"/p:Configuration={configuration}");
+        DotNetCorePack(iosFrameworkProject.FullPath, new DotNetCorePackSettings{
+            OutputDirectory = artifactsDirectory,
+            Configuration = configuration,
+            Verbosity = DotNetCoreVerbosity.Quiet,
+            ArgumentCustomization = args => {
                 args.Append($"/p:Version={version}");
-                args.Append($"/p:PackageOutputPath={artifactsDirectory.MakeAbsolute(Context.Environment)}");
-
+                args.Append($"/p:GenerateDocumentationFile=true");
                 return args;
             }
-        }.WithTarget("Pack"));
+        });
     });
 
 Task("PackAndroidFramework")
     .Does(() => {
-        MSBuild(androidFrameworkProject, new MSBuildSettings {
-            Restore = true,
-            BinaryLogger = new MSBuildBinaryLogSettings{
-                Enabled = true,
-                FileName = tempDirectory.CombineWithFilePath("msbuildlog.binlog").FullPath
-            },
-            Verbosity = Verbosity.Minimal,
-            ArgumentCustomization = args =>
-            {
-                args.Append($"/p:Configuration={configuration}");
+        DotNetCorePack(androidFrameworkProject.FullPath, new DotNetCorePackSettings{
+            OutputDirectory = artifactsDirectory,
+            Configuration = configuration,
+            Verbosity = DotNetCoreVerbosity.Quiet,
+            ArgumentCustomization = args => {
                 args.Append($"/p:Version={version}");
-                args.Append($"/p:PackageOutputPath={artifactsDirectory.MakeAbsolute(Context.Environment)}");
-
+                args.Append($"/p:GenerateDocumentationFile=true");
                 return args;
             }
-        }.WithTarget("Pack"));
+        });
     });
 
 Task("PackNativeLibs")
@@ -198,7 +185,14 @@ Task("PackNativeLibs")
     });
 
 Task("PackTemplate")
-    .Does(() => {
+    .Does(ctx => {
+        ctx.ReplaceRegexInFiles(
+            $"{rootDirectory.FullPath}/osu.Framework.Templates/**/*.iOS.csproj",
+            "^.*osu.Framework.iOS.props.*$\n",
+            "",
+            RegexOptions.Multiline
+        );
+
         DotNetCorePack(templateProject.FullPath, new DotNetCorePackSettings{
             OutputDirectory = artifactsDirectory,
             Configuration = configuration,
@@ -217,14 +211,13 @@ Task("Publish")
     .WithCriteria(AppVeyor.IsRunningOnAppVeyor)
     .Does(() => {
         foreach (var artifact in GetFiles(artifactsDirectory.CombineWithFilePath("*").FullPath))
-            AppVeyor.UploadArtifact(artifact);
+            AppVeyor.UploadArtifact(artifact, settings => settings.SetArtifactType(AppVeyorUploadArtifactType.NuGetPackage));
     });
 
 Task("Build")
     .IsDependentOn("Clean")
     .IsDependentOn("DetermineAppveyorBuildProperties")
     .IsDependentOn("CodeFileSanity")
-    //.IsDependentOn("DotnetFormat") <- To be uncommented after fixing the task.
     .IsDependentOn("InspectCode")
     .IsDependentOn("Test")
     .IsDependentOn("DetermineAppveyorDeployProperties")
@@ -235,13 +228,23 @@ Task("Build")
     .IsDependentOn("PackTemplate")
     .IsDependentOn("Publish");
 
-Task("DeployFramework")
+Task("DeployFrameworkDesktop")
     .IsDependentOn("Clean")
     .IsDependentOn("DetermineAppveyorDeployProperties")
     .IsDependentOn("PackFramework")
+    .IsDependentOn("Publish");
+
+Task("DeployFrameworkTemplates")
+    .IsDependentOn("Clean")
+    .IsDependentOn("DetermineAppveyorDeployProperties")
+    .IsDependentOn("PackTemplate")
+    .IsDependentOn("Publish");
+
+Task("DeployFrameworkXamarin")
+    .IsDependentOn("Clean")
+    .IsDependentOn("DetermineAppveyorDeployProperties")
     .IsDependentOn("PackiOSFramework")
     .IsDependentOn("PackAndroidFramework")
-    .IsDependentOn("PackTemplate")
     .IsDependentOn("Publish");
 
 Task("DeployNativeLibs")

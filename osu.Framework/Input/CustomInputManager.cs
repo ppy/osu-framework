@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Immutable;
@@ -10,7 +10,7 @@ namespace osu.Framework.Input
     /// <summary>
     /// An <see cref="InputManager"/> implementation which allows managing of <see cref="InputHandler"/>s manually.
     /// </summary>
-    public class CustomInputManager : InputManager
+    public partial class CustomInputManager : InputManager
     {
         protected override ImmutableArray<InputHandler> InputHandlers => inputHandlers;
 

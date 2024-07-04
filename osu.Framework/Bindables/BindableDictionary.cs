@@ -1,16 +1,16 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Bindables
@@ -120,11 +120,7 @@ namespace osu.Framework.Bindables
             return true;
         }
 
-#if NETSTANDARD
-        public bool TryGetValue(TKey key, out TValue value) => collection.TryGetValue(key, out value);
-#else
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value) => collection.TryGetValue(key, out value);
-#endif
 
         /// <inheritdoc cref="IDictionary{TKey,TValue}.this" />
         /// <exception cref="InvalidOperationException">Thrown when setting an item while this <see cref="BindableDictionary{TKey, TValue}"/> is <see cref="Disabled"/>.</exception>
@@ -138,8 +134,7 @@ namespace osu.Framework.Bindables
         {
             ensureMutationAllowed();
 
-#nullable disable // Todo: Remove after upgrading Resharper version on CI.
-            bool hasPreviousValue = TryGetValue(key, out TValue lastValue);
+            bool hasPreviousValue = TryGetValue(key, out TValue? lastValue);
 
             collection[key] = value;
 
@@ -153,7 +148,6 @@ namespace osu.Framework.Bindables
                         b.setKey(key, value, this);
                 }
             }
-#nullable enable
 
             notifyDictionaryChanged(hasPreviousValue
                 ? new NotifyDictionaryChangedEventArgs<TKey, TValue>(new KeyValuePair<TKey, TValue>(key, value), new KeyValuePair<TKey, TValue>(key, lastValue!))
@@ -236,13 +230,11 @@ namespace osu.Framework.Bindables
 
         bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
         {
-#nullable disable // Todo: Remove after upgrading Resharper version on CI.
-            if (TryGetValue(item.Key, out TValue value) && EqualityComparer<TValue>.Default.Equals(value, item.Value))
+            if (TryGetValue(item.Key, out TValue? value) && EqualityComparer<TValue>.Default.Equals(value, item.Value))
             {
                 Remove(item.Key);
                 return true;
             }
-#nullable enable
 
             return false;
         }
@@ -282,8 +274,9 @@ namespace osu.Framework.Bindables
         /// A collection holding items of type <see cref="KeyValuePair{TKey,TValue}"/> can be parsed. Null results in an empty <see cref="BindableDictionary{TKey, TValue}"/>.
         /// </summary>
         /// <param name="input">The input which is to be parsed.</param>
+        /// <param name="provider">Not valid for <see cref="BindableDictionary{TKey, TValue}"/>.</param>
         /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableDictionary{TKey, TValue}"/> is <see cref="Disabled"/>.</exception>
-        public void Parse(object? input)
+        public void Parse(object? input, IFormatProvider provider)
         {
             ensureMutationAllowed();
 
@@ -461,15 +454,15 @@ namespace osu.Framework.Bindables
         /// <param name="them">The <see cref="BindableDictionary{TKey, TValue}"/> to be bound to.</param>
         public void BindTo(BindableDictionary<TKey, TValue> them)
         {
-            if (them == null)
-                throw new ArgumentNullException(nameof(them));
-            if (bindings?.Contains(weakReference) == true)
-                throw new ArgumentException("An already bound collection can not be bound again.");
+            ArgumentNullException.ThrowIfNull(them);
+
+            if (bindings?.Contains(them.weakReference) == true)
+                throw new ArgumentException("An already bound dictionary can not be bound again.");
             if (them == this)
-                throw new ArgumentException("A collection can not be bound to itself");
+                throw new ArgumentException("A dictionary can not be bound to itself");
 
             // copy state and content over
-            Parse(them);
+            Parse(them, CultureInfo.InvariantCulture);
             Disabled = them.Disabled;
 
             addWeakReference(them.weakReference);
@@ -532,5 +525,7 @@ namespace osu.Framework.Bindables
         }
 
         public bool IsDefault => Count == 0;
+
+        string IFormattable.ToString(string? format, IFormatProvider? formatProvider) => ((FormattableString)$"{GetType().ReadableName()}({nameof(Count)}={Count})").ToString(formatProvider);
     }
 }

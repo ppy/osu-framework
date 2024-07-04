@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -14,6 +12,7 @@ using System.Threading.Tasks;
 using osu.Framework.Audio.Callbacks;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.Bass;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Utils;
 
@@ -21,9 +20,7 @@ namespace osu.Framework.Audio.Track
 {
     public sealed class TrackBass : Track, IBassAudio, IBassAudioChannel
     {
-        public const int BYTES_PER_SAMPLE = 4;
-
-        private AsyncBufferStream? dataStream;
+        private Stream? dataStream;
 
         /// <summary>
         /// Should this track only be used for preview purposes? This suggests it has not yet been fully loaded.
@@ -68,15 +65,16 @@ namespace osu.Framework.Audio.Track
         /// Constructs a new <see cref="TrackBass"/> from provided audio data.
         /// </summary>
         /// <param name="data">The sample data stream.</param>
+        /// <param name="name">A name identifying the track internally.</param>
         /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
-        internal TrackBass(Stream data, bool quick = false)
+        internal TrackBass(Stream data, string name, bool quick = false)
+            : base(name)
         {
-            if (data == null)
-                throw new ArgumentNullException(nameof(data));
+            ArgumentNullException.ThrowIfNull(data);
 
             relativeFrequencyHandler = new BassRelativeFrequencyHandler
             {
-                FrequencyChangedToZero = () => stopInternal(),
+                FrequencyChangedToZero = stopInternal,
                 FrequencyChangedFromZero = () =>
                 {
                     // Do not resume the track if a play wasn't requested at all or has been paused via Stop().
@@ -106,14 +104,22 @@ namespace osu.Framework.Audio.Track
                 // will be -1 in case of an error
                 double seconds = Bass.ChannelBytes2Seconds(activeStream, byteLength);
 
+                int channels = 2;
+
+                if (Bass.ChannelGetInfo(activeStream, out ChannelInfo info))
+                    channels = info.Channels;
+
                 bool success = seconds >= 0;
 
                 if (success)
                 {
                     Length = seconds * 1000;
 
+                    // Bass uses 16-bit samples by default if neither BassFlags.Byte nor BassFlags.Float is specified
+                    const int bytes_per_sample = 2;
+
                     // Bass does not allow seeking to the end of the track, so the last available position is 1 sample before.
-                    lastSeekablePosition = Bass.ChannelBytes2Seconds(activeStream, byteLength - BYTES_PER_SAMPLE) * 1000;
+                    lastSeekablePosition = Bass.ChannelBytes2Seconds(activeStream, byteLength - bytes_per_sample * channels) * 1000;
 
                     isLoaded = true;
 
@@ -132,12 +138,32 @@ namespace osu.Framework.Audio.Track
 
         private int prepareStream(Stream data, bool quick)
         {
-            //encapsulate incoming stream with async buffer if it isn't already.
-            dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
+            switch (data)
+            {
+                case MemoryStream:
+                case UnmanagedMemoryStream:
+                case AsyncBufferStream:
+                    // Buffering memory stream is definitely unworthy.
+                    dataStream = data;
+                    break;
+
+                default:
+                    // It would be most likely a FileStream.
+                    // Consider to use RandomAccess to optimise in favor of FileStream in .NET 6
+                    dataStream = new AsyncBufferStream(data, quick ? 8 : -1);
+                    break;
+            }
 
             fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(dataStream));
 
-            BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan;
+            BassFlags flags = (Preview ? 0 : BassFlags.Decode | BassFlags.Prescan);
+
+            // While this shouldn't cause issues, we've had a small subset of users reporting issues on windows.
+            // To keep things working let's only apply to other platforms until we know more.
+            // See https://github.com/ppy/osu/issues/18652.
+            if (RuntimeInfo.OS != RuntimeInfo.Platform.Windows)
+                flags |= BassFlags.AsyncFile;
+
             int stream = Bass.CreateStream(StreamSystem.NoBuffer, flags, fileCallbacks.Callbacks, fileCallbacks.Handle);
 
             bitrate = (int)Math.Round(Bass.ChannelGetAttribute(stream, ChannelAttribute.Bitrate));
@@ -194,7 +220,6 @@ namespace osu.Framework.Audio.Track
             // there will be a brief time where this track will be stopped, before we resume it manually (see comments in UpdateDevice(int).)
             // this makes us appear to be playing, even if we may not be.
             isRunning = running || (isPlayed && !hasCompleted);
-
             updateCurrentTime();
 
             bassAmplitudeProcessor?.Update();
@@ -202,20 +227,24 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsDummyDevice => false;
 
-        public override void Stop()
-        {
-            base.Stop();
+        public override void Stop() => StopAsync().WaitSafely();
 
-            StopAsync().Wait();
+        public override Task StopAsync()
+        {
+            return EnqueueAction(() =>
+            {
+                stopInternal();
+                isRunning = isPlayed = false;
+            });
         }
 
-        public Task StopAsync() => EnqueueAction(() =>
+        private void stopInternal()
         {
-            stopInternal();
-            isPlayed = false;
-        });
+            if (!isRunningState(bassMixer.ChannelIsActive(this)))
+                return;
 
-        private bool stopInternal() => isRunningState(bassMixer.ChannelIsActive(this)) && bassMixer.ChannelPause(this, true);
+            bassMixer.ChannelPause(this, true);
+        }
 
         private int direction;
 
@@ -227,15 +256,15 @@ namespace osu.Framework.Audio.Track
 
         public override void Start()
         {
-            base.Start();
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
-            StartAsync().Wait();
+            StartAsync().WaitSafely();
         }
 
-        public Task StartAsync() => EnqueueAction(() =>
+        public override Task StartAsync() => EnqueueAction(() =>
         {
             if (startInternal())
-                isPlayed = true;
+                isRunning = isPlayed = true;
         });
 
         private bool startInternal()
@@ -265,9 +294,9 @@ namespace osu.Framework.Audio.Track
             }
         }
 
-        public override bool Seek(double seek) => SeekAsync(seek).Result;
+        public override bool Seek(double seek) => SeekAsync(seek).GetResultSafely();
 
-        public async Task<bool> SeekAsync(double seek)
+        public override async Task<bool> SeekAsync(double seek)
         {
             // At this point the track may not yet be loaded which is indicated by a 0 length.
             // In that case we still want to return true, hence the conservative length.
@@ -347,8 +376,8 @@ namespace osu.Framework.Audio.Track
                          && endCallback == null
                          && endSync == null);
 
-            stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
-            endCallback = new SyncCallback((a, b, c, d) =>
+            stopCallback = new SyncCallback((_, _, _, _) => RaiseFailed());
+            endCallback = new SyncCallback((_, _, _, _) =>
             {
                 if (Looping)
                 {
@@ -372,21 +401,16 @@ namespace osu.Framework.Audio.Track
 
         private void cleanUpSyncs()
         {
-            Debug.Assert(stopCallback != null
-                         && stopSync != null
-                         && endCallback != null
-                         && endSync != null);
-
-            bassMixer.ChannelRemoveSync(this, stopSync.Value);
-            bassMixer.ChannelRemoveSync(this, endSync.Value);
+            if (stopSync != null) bassMixer.ChannelRemoveSync(this, stopSync.Value);
+            if (endSync != null) bassMixer.ChannelRemoveSync(this, endSync.Value);
 
             stopSync = null;
             endSync = null;
 
-            stopCallback.Dispose();
+            stopCallback?.Dispose();
             stopCallback = null;
 
-            endCallback.Dispose();
+            endCallback?.Dispose();
             endCallback = null;
         }
 
@@ -437,6 +461,8 @@ namespace osu.Framework.Audio.Track
             if (IsDisposed)
                 return;
 
+            cleanUpSyncs();
+
             if (activeStream != 0)
             {
                 isRunning = false;
@@ -454,12 +480,6 @@ namespace osu.Framework.Audio.Track
 
             fileCallbacks?.Dispose();
             fileCallbacks = null;
-
-            stopCallback?.Dispose();
-            stopCallback = null;
-
-            endCallback?.Dispose();
-            endCallback = null;
 
             base.Dispose(disposing);
         }

@@ -1,6 +1,7 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup Label="Project">
-    <TargetFramework>monoandroid10.0</TargetFramework>
+    <TargetFramework>net8.0-android</TargetFramework>
+    <SupportedOSPlatformVersion>21.0</SupportedOSPlatformVersion>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyTitle>osu!framework Android</AssemblyTitle>
@@ -14,18 +15,10 @@
     <PackageTags>osu game framework</PackageTags>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Java.Interop" />
-    <Reference Include="System" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Core" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osuTK.Android" Version="1.0.187" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedNativeLibrary Include="$(MSBuildThisFileDirectory)\**\*.so" />
+    <PackageReference Include="ppy.SDL3-CS.Android" Version="2024.528.0" />
+    <PackageReference Include="Xamarin.AndroidX.Window" Version="1.2.0.1" PrivateAssets="compile" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +17,7 @@ namespace osu.Framework.Graphics.Transforms
     /// An implementer of this class must call <see cref="UpdateTransforms"/> to
     /// update and apply its <see cref="Transform"/>s.
     /// </summary>
-    public abstract class Transformable : ITransformable
+    public abstract partial class Transformable : ITransformable, IDependencyInjectionCandidate
     {
         /// <summary>
         /// The clock that is used to provide the timing for this object's <see cref="Transform"/>s.
@@ -40,7 +42,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// A lazily-initialized list of <see cref="Transform"/>s applied to this object.
         /// </summary>
-        public IEnumerable<Transform> Transforms => targetGroupingTrackers.SelectMany(t => t.Transforms);
+        public IEnumerable<Transform> Transforms => targetGroupingTrackers?.SelectMany(t => t.Transforms) ?? Array.Empty<Transform>();
 
         /// <summary>
         /// Retrieves the <see cref="Transform"/>s for a given target member.
@@ -61,13 +63,16 @@ namespace osu.Framework.Graphics.Transforms
                 //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
                 double max = TransformStartTime;
 
-                foreach (var tracker in targetGroupingTrackers)
+                if (targetGroupingTrackers != null)
                 {
-                    for (int i = 0; i < tracker.Transforms.Count; i++)
+                    foreach (var tracker in targetGroupingTrackers)
                     {
-                        var t = tracker.Transforms[i];
-                        if (t.EndTime > max)
-                            max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
+                        for (int i = 0; i < tracker.Transforms.Count; i++)
+                        {
+                            var t = tracker.Transforms[i];
+                            if (t.EndTime > max)
+                                max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
+                        }
                     }
                 }
 
@@ -86,19 +91,26 @@ namespace osu.Framework.Graphics.Transforms
         protected void UpdateTransforms()
         {
             TransformDelay = 0;
+
+            if (targetGroupingTrackers == null)
+                return;
+
             updateTransforms(Time.Current);
         }
 
         private double lastUpdateTransformsTime;
 
-        private readonly List<TargetGroupingTransformTracker> targetGroupingTrackers = new List<TargetGroupingTransformTracker>();
+        private List<TargetGroupingTransformTracker> targetGroupingTrackers;
 
         private TargetGroupingTransformTracker getTrackerFor(string targetMember)
         {
-            foreach (var t in targetGroupingTrackers)
+            if (targetGroupingTrackers != null)
             {
-                if (t.TargetMembers.Contains(targetMember))
-                    return t;
+                foreach (var t in targetGroupingTrackers)
+                {
+                    if (t.TargetMembers.Contains(targetMember))
+                        return t;
+                }
             }
 
             return null;
@@ -106,17 +118,23 @@ namespace osu.Framework.Graphics.Transforms
 
         private TargetGroupingTransformTracker getTrackerForGrouping(string targetGrouping, bool createIfNotExisting)
         {
-            foreach (var t in targetGroupingTrackers)
+            if (targetGroupingTrackers != null)
             {
-                if (t.TargetGrouping == targetGrouping)
-                    return t;
+                foreach (var t in targetGroupingTrackers)
+                {
+                    if (t.TargetGrouping == targetGrouping)
+                        return t;
+                }
             }
 
             if (!createIfNotExisting)
                 return null;
 
             var tracker = new TargetGroupingTransformTracker(this, targetGrouping);
+
+            targetGroupingTrackers ??= new List<TargetGroupingTransformTracker>();
             targetGroupingTrackers.Add(tracker);
+
             return tracker;
         }
 
@@ -128,6 +146,9 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="forceRewindReprocess">Whether prior transforms should be reprocessed even if a rewind was not detected.</param>
         private void updateTransforms(double time, bool forceRewindReprocess = false)
         {
+            if (targetGroupingTrackers == null)
+                return;
+
             bool rewinding = lastUpdateTransformsTime > time || forceRewindReprocess;
             lastUpdateTransformsTime = time;
 
@@ -175,6 +196,9 @@ namespace osu.Framework.Graphics.Transforms
         /// </param>
         public virtual void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null)
         {
+            if (targetGroupingTrackers == null)
+                return;
+
             EnsureTransformMutationAllowed();
 
             if (targetMember != null)
@@ -216,6 +240,9 @@ namespace osu.Framework.Graphics.Transforms
         /// </param>
         public virtual void FinishTransforms(bool propagateChildren = false, string targetMember = null)
         {
+            if (targetGroupingTrackers == null)
+                return;
+
             EnsureTransformMutationAllowed();
 
             if (targetMember != null)
@@ -224,7 +251,9 @@ namespace osu.Framework.Graphics.Transforms
             }
             else
             {
-                // collection may grow due to abort / completion events.
+                // Use for over foreach as collection may grow due to abort / completion events.
+                // Note that this may mean that in the addition of elements being removed,
+                // `FinishTransforms` may not be called on all items.
                 for (int i = 0; i < targetGroupingTrackers.Count; i++)
                     targetGroupingTrackers[i].FinishTransforms();
             }
@@ -249,12 +278,12 @@ namespace osu.Framework.Graphics.Transforms
             EnsureTransformMutationAllowed();
 
             if (delay == 0)
-                return null;
+                return new ValueInvokeOnDisposal(() => { });
 
             AddDelay(delay, recursive);
             double newTransformDelay = TransformDelay;
 
-            return new ValueInvokeOnDisposal<DelayedSequenceSender>(new DelayedSequenceSender(this, delay, recursive, newTransformDelay), sender =>
+            return new ValueInvokeOnDisposal<DelayedSequenceSender>(new DelayedSequenceSender(this, delay, recursive, newTransformDelay), static sender =>
             {
                 if (!Precision.AlmostEquals(sender.NewTransformDelay, sender.Transformable.TransformDelay))
                 {
@@ -263,7 +292,7 @@ namespace osu.Framework.Graphics.Transforms
                         $"(begin={sender.NewTransformDelay} end={sender.Transformable.TransformDelay})");
                 }
 
-                AddDelay(-sender.Delay, sender.Recursive);
+                sender.Transformable.AddDelay(-sender.Delay, sender.Recursive);
             });
         }
 
@@ -353,8 +382,7 @@ namespace osu.Framework.Graphics.Transforms
         {
             EnsureTransformMutationAllowed();
 
-            if (transform == null)
-                throw new ArgumentNullException(nameof(transform));
+            ArgumentNullException.ThrowIfNull(transform);
 
             if (!ReferenceEquals(transform.TargetTransformable, this))
             {

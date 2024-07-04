@@ -22,6 +22,12 @@ namespace osu.Framework.Utils
             this.subjectPolygon = subjectPolygon;
         }
 
+        public ConvexPolygonClipper(TClip clipPolygon, TSubject subjectPolygon)
+        {
+            this.clipPolygon = clipPolygon;
+            this.subjectPolygon = subjectPolygon;
+        }
+
         /// <summary>
         /// Determines the minimum buffer size required to clip the two polygons.
         /// </summary>
@@ -29,8 +35,9 @@ namespace osu.Framework.Utils
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetClipBufferSize()
         {
-            // There can only be at most two intersections for each of the subject's vertices
-            return subjectPolygon.GetVertices().Length * 2;
+            // Assume every line can intersect every other line.
+            // This clipper cannot handle concavity, however this allows for edge cases to be handled gracefully.
+            return subjectPolygon.GetVertices().Length * clipPolygon.GetVertices().Length;
         }
 
         /// <summary>
@@ -45,7 +52,7 @@ namespace osu.Framework.Utils
         /// </summary>
         /// <param name="buffer">The buffer to contain the clipped vertices. Must have a length of <see cref="GetClipBufferSize"/>.</param>
         /// <returns>A clockwise-ordered set of vertices representing the result of clipping <see cref="subjectPolygon"/> by <see cref="clipPolygon"/>.</returns>
-        public Span<Vector2> Clip(in Span<Vector2> buffer)
+        public Span<Vector2> Clip(Span<Vector2> buffer)
         {
             if (buffer.Length < GetClipBufferSize())
             {

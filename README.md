@@ -13,7 +13,7 @@ A game framework written with [osu!](https://github.com/ppy/osu) in mind.
 
 ## Developing a game using osu!framework
 
-If you are interested in **creating a project** using the framework, please start from the [getting started](https://github.com/ppy/osu-framework/wiki/Setting-up-your-first-project) wiki resources (or jump straight over to the [project templates](https://github.com/ppy/osu-framework/tree/master/osu.Framework.Templates). You can either start off from an empty project, or take a peek at a working sample game. Either way, full project structure, cross-platform support, and  a testing setup are included!
+If you are interested in **creating a project** using the framework, please start from the [getting started](https://github.com/ppy/osu-framework/wiki/Setting-up-your-first-project) wiki resources (or jump straight over to the [project templates](https://github.com/ppy/osu-framework/tree/master/osu.Framework.Templates)). You can either start off from an empty project, or take a peek at a working sample game. Either way, full project structure, cross-platform support, and  a testing setup are included!
 
 The rest of the information on this page is related to working *on* the framework, not *using* it!
 
@@ -27,10 +27,10 @@ This framework is intended to take steps beyond what you would normally expect f
 
 ## Requirements
 
-- A desktop platform with the [.NET 5.0 SDK](https://dotnet.microsoft.com/download) or higher installed.
+- A desktop platform with the [.NET 8.0 SDK](https://dotnet.microsoft.com/download).
 - When running on linux, please have a system-wide ffmpeg installation available to support video decoding.
-- When running on Windows 7 or 8.1, *[additional prerequisites](https://docs.microsoft.com/en-us/dotnet/core/install/windows?tabs=net50&pivots=os-windows#dependencies)** may be required to correctly run .NET 5 applications if your operating system is not up-to-date with the latest service packs.
-- When working with the codebase, we recommend using an IDE with intellisense and syntax highlighting, such as [Visual Studio 2019+](https://visualstudio.microsoft.com/vs/), [Jetbrains Rider](https://www.jetbrains.com/rider/) or [Visual Studio Code](https://code.visualstudio.com/).
+- When running on Windows 7 or 8.1, *[additional prerequisites](https://docs.microsoft.com/en-us/dotnet/core/install/windows?tabs=net60&pivots=os-windows#dependencies)** may be required to correctly run .NET 8 applications if your operating system is not up-to-date with the latest service packs.
+- When working with the codebase, we recommend using an IDE with intellisense and syntax highlighting, such as [Visual Studio 2019+](https://visualstudio.microsoft.com/vs/), [Jetbrains Rider](https://www.jetbrains.com/rider/), or [Visual Studio Code](https://code.visualstudio.com/) with the [EditorConfig](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig) and [C#](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp) plugin installed.
 
 ### Building
 
@@ -52,7 +52,7 @@ Before starting, please make sure you are familiar with the [development and tes
 
 Note that while we already have certain standards in place, nothing is set in stone. If you have an issue with the way code is structured; with any libraries we are using; with any processes involved with contributing, *please* bring it up. We welcome all feedback so we can make contributing to this project as pain-free as possible.
 
-For those interested, we love to reward quality contributions via [bounties](https://docs.google.com/spreadsheets/d/1jNXfj_S3Pb5PErA-czDdC9DUu4IgUbe1Lt8E7CYUJuE/view?&rm=minimal#gid=523803337), paid out via paypal or osu! supporter tags. Don't hesitate to [request a bounty](https://docs.google.com/forms/d/e/1FAIpQLSet_8iFAgPMG526pBZ2Kic6HSh7XPM3fE8xPcnWNkMzINDdYg/viewform) for your work on this project.
+We love to reward quality contributions. If you have made a large contribution, or are a regular contributor, you are welcome to [submit an expense via opencollective](https://opencollective.com/ppy/expenses/new). If you have any questions, feel free to [reach out to peppy](mailto:pe@ppy.sh) before doing so.
 
 ## Licence
 
@@ -70,6 +70,10 @@ The BASS audio library (a dependency of this framework) is a commercial product.
 
 [IWBTM](https://github.com/EVAST9919/iwbtm) - A platform game with level editor based off of "I Wanna..." games
 
+[DeltaDash](https://deltada.sh/) - A multi-direction, lane-based scroller rhythm game
+
+[fluXis](https://github.com/TeamFluXis/fluXis) - A community-driven rhythm game with a focus on creativity and expression
+
 <!--
 We love to see people using our framework! Add your project here via a PR!
 
@@ -77,4 +81,3 @@ Conditions:
  - Must be a GitHub link (i.e. your project is open source)
  - Must be actively developed (and have executable releases)
 -->
-

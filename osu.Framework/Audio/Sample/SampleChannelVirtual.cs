@@ -13,6 +13,11 @@ namespace osu.Framework.Audio.Sample
 
         public override bool Playing => playing;
 
+        public SampleChannelVirtual(string name)
+            : base(name)
+        {
+        }
+
         public override float[] GetLevel(float length) => new float[2];
 
         protected override void UpdateState()

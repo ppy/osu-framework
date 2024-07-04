@@ -1,13 +1,14 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
@@ -27,7 +28,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// Without this, <see cref="TabControl{T}"/> will automatically hide extra items.
     /// </remarks>
     /// <typeparam name="T">The type of item to be represented by tabs.</typeparam>
-    public abstract class TabControl<T> : CompositeDrawable, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
+    public abstract partial class TabControl<T> : CompositeDrawable, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
     {
         private readonly BindableWithCurrent<T> current = new BindableWithCurrent<T>();
 
@@ -170,8 +171,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                 AddInternal(Dropdown);
 
-                Trace.Assert(Dropdown.Header.Anchor.HasFlagFast(Anchor.x2), $@"The {nameof(Dropdown)} implementation should use a right-based anchor inside a TabControl.");
-                Trace.Assert(!Dropdown.Header.RelativeSizeAxes.HasFlagFast(Axes.X), $@"The {nameof(Dropdown)} implementation's header should have a specific size.");
+                Trace.Assert(Dropdown.Header.Anchor.HasFlag(Anchor.x2), $@"The {nameof(Dropdown)} implementation should use a right-based anchor inside a TabControl.");
+                Trace.Assert(!Dropdown.Header.RelativeSizeAxes.HasFlag(Axes.X), $@"The {nameof(Dropdown)} implementation's header should have a specific size.");
             }
 
             AddInternal(TabContainer = CreateTabFlow());
@@ -204,7 +205,25 @@ namespace osu.Framework.Graphics.UserInterface
             if (firstSelection && SelectFirstTabByDefault && !Current.Disabled && Items.Any())
                 Current.Value = Items.First();
 
-            Current.BindValueChanged(v => selectTab(v.NewValue != null ? tabMap[v.NewValue] : null), true);
+            Current.BindValueChanged(v =>
+            {
+                TabItem<T> tab = null;
+
+                if (v.NewValue != null)
+                    tabMap.TryGetValue(v.NewValue, out tab);
+
+                // Only reorder if not pinned and not showing
+                if (AutoSort && tab != null && !tab.IsPresent && !tab.Pinned)
+                    performTabSort(tab);
+
+                // Deactivate previously selected tab
+                if (SelectedTab != null && SelectedTab != tab) SelectedTab.Active.Value = false;
+
+                SelectedTab = tab;
+
+                if (SelectedTab != null)
+                    SelectedTab.Active.Value = true;
+            }, true);
 
             // TabContainer doesn't have valid layout yet, so TabItems all have y=0 and selectTab() didn't call performTabSort() so we call it here instead
             if (AutoSort && Current.Value != null)
@@ -255,7 +274,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public void Clear() => Items = Array.Empty<T>();
 
-        private TabItem<T> addTab(T value, bool addToDropdown = true)
+        private void addTab(T value, bool addToDropdown = true)
         {
             // Do not allow duplicate adding
             if (tabMap.ContainsKey(value))
@@ -263,16 +282,14 @@ namespace osu.Framework.Graphics.UserInterface
 
             var tab = CreateTabItem(value);
             AddTabItem(tab, addToDropdown);
-
-            return tab;
         }
 
         private void removeTab(T value, bool removeFromDropdown = true)
         {
-            if (!tabMap.ContainsKey(value))
+            if (!tabMap.TryGetValue(value, out var tab))
                 throw new InvalidOperationException($"Item {value} doesn't exist in this {nameof(TabControl<T>)}.");
 
-            RemoveTabItem(tabMap[value], removeFromDropdown);
+            RemoveTabItem(tab, removeFromDropdown);
         }
 
         /// <summary>
@@ -315,7 +332,10 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     // check all tabs as to include self (in correct iteration order)
                     bool anySwitchableTabsToRight = AllTabs.SkipWhile(t => t != tab).Skip(1).Any(t => t.IsSwitchable);
-                    SwitchTab(anySwitchableTabsToRight ? 1 : -1);
+
+                    // switching tab on removal is not directly caused by the user.
+                    // call the private method to not trigger a user change event.
+                    switchTab(anySwitchableTabsToRight ? 1 : -1);
                 }
             }
 
@@ -325,7 +345,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (removeFromDropdown)
                 Dropdown?.RemoveDropdownItem(tab.Value);
 
-            TabContainer.Remove(tab);
+            TabContainer.Remove(tab, true);
         }
 
         /// <summary>
@@ -341,28 +361,26 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Selects a <see cref="TabItem{T}"/>.
+        /// Selects the tab representing the provided item.
         /// </summary>
-        /// <param name="tab">The tab to select.</param>
-        protected virtual void SelectTab(TabItem<T> tab)
+        /// <param name="item">The item to select.</param>
+        /// <exception cref="InvalidOperationException">Thrown when the provided item doesn't exist in the tab control.</exception>
+        public void SelectItem(T item)
         {
-            selectTab(tab);
-            Current.Value = SelectedTab != null ? SelectedTab.Value : default;
+            if (!tabMap.TryGetValue(item, out var tab))
+                throw new InvalidOperationException($"Item {item} cannot be selected as it does not exist in this {nameof(TabControl<T>)}");
+
+            SelectTab(tab);
         }
 
-        private void selectTab(TabItem<T> tab)
+        /// <summary>
+        /// Selects a <see cref="TabItem{T}"/> and signals an event that the user selected the given tab via <see cref="TabItem{T}.OnActivatedByUser"/>.
+        /// </summary>
+        /// <param name="tab">The tab to select.</param>
+        protected void SelectTab(TabItem<T> tab)
         {
-            // Only reorder if not pinned and not showing
-            if (AutoSort && tab != null && !tab.IsPresent && !tab.Pinned)
-                performTabSort(tab);
-
-            // Deactivate previously selected tab
-            if (SelectedTab != null && SelectedTab != tab) SelectedTab.Active.Value = false;
-
-            SelectedTab = tab;
-
-            if (SelectedTab != null)
-                SelectedTab.Active.Value = true;
+            if (selectTab(tab) && tab != null)
+                tab.OnActivatedByUser();
         }
 
         /// <summary>
@@ -370,7 +388,13 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="direction">Pass 1 to move to the next tab, or -1 to move to the previous tab.</param>
         /// <param name="wrap">If <c>true</c>, moving past the start or the end of the tab list will wrap to the opposite end.</param>
-        public virtual void SwitchTab(int direction, bool wrap = true)
+        public void SwitchTab(int direction, bool wrap = true)
+        {
+            if (switchTab(direction, wrap))
+                SelectedTab.OnActivatedByUser();
+        }
+
+        private bool switchTab(int direction, bool wrap = true)
         {
             if (Math.Abs(direction) != 1) throw new ArgumentException("value must be -1 or 1", nameof(direction));
 
@@ -386,8 +410,16 @@ namespace osu.Framework.Graphics.UserInterface
             if (found == null && wrap)
                 found = allTabs.FirstOrDefault(t => t != SelectedTab);
 
-            if (found != null)
-                SelectTab(found);
+            return found != null && selectTab(found);
+        }
+
+        private bool selectTab(TabItem<T> tab)
+        {
+            if (tab == SelectedTab)
+                return false;
+
+            Current.Value = tab != null ? tab.Value : default;
+            return true;
         }
 
         private void activationRequested(TabItem<T> tab)
@@ -443,7 +475,7 @@ namespace osu.Framework.Graphics.UserInterface
             Masking = true
         };
 
-        public class TabFillFlowContainer : FillFlowContainer<TabItem<T>>
+        public partial class TabFillFlowContainer : FillFlowContainer<TabItem<T>>
         {
             private bool allowMultiline;
 
@@ -530,10 +562,10 @@ namespace osu.Framework.Graphics.UserInterface
                 base.Clear(disposeChildren);
             }
 
-            public override bool Remove(TabItem<T> drawable)
+            public override bool Remove(TabItem<T> drawable, bool disposeImmediately)
             {
                 tabVisibility.Remove(drawable);
-                return base.Remove(drawable);
+                return base.Remove(drawable, disposeImmediately);
             }
         }
     }

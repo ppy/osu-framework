@@ -1,18 +1,25 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
+using NUnit.Framework.Interfaces;
 using NUnit.Framework.Internal;
 using osu.Framework.Allocation;
 using osu.Framework.Development;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
@@ -20,15 +27,15 @@ using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Threading;
-using osuTK;
 using osuTK.Graphics;
 using Logger = osu.Framework.Logging.Logger;
+using Vector2 = osuTK.Vector2;
 
 namespace osu.Framework.Testing
 {
-    [ExcludeFromDynamicCompile]
     [TestFixture]
-    public abstract class TestScene : Container, IDynamicallyCompile
+    [UseTestSceneRunner]
+    public abstract partial class TestScene : Container
     {
         public readonly FillFlowContainer<Drawable> StepsContainer;
         private readonly Container content;
@@ -37,16 +44,30 @@ namespace osu.Framework.Testing
 
         protected virtual ITestSceneTestRunner CreateRunner() => new TestSceneTestRunner();
 
+        /// <summary>
+        /// Delay between invoking two <see cref="StepButton"/>s in automatic runs.
+        /// </summary>
+        protected virtual double TimePerAction => 200;
+
+        /// <summary>
+        /// Whether to automatically run the the first actual <see cref="StepButton"/> (one that is not part of <see cref="SetUpAttribute">[SetUp]</see> or <see cref="SetUpStepsAttribute">[SetUpSteps]</see>)
+        /// when the test is first loaded.
+        /// </summary>
+        /// <remarks>
+        /// Defaults to <c>true</c>. Should be set to <c>false</c> if the first step in the first <see cref="TestAttribute">test</see> has unwanted-by-default behaviour.
+        /// </remarks>
+        public virtual bool AutomaticallyRunFirstStep => true;
+
         private GameHost host;
         private Task runTask;
         private ITestSceneTestRunner runner;
+
+        private readonly Box backgroundFill;
 
         /// <summary>
         /// A nested game instance, if added via <see cref="AddGame"/>.
         /// </summary>
         private Game nestedGame;
-
-        public object DynamicCompilationOriginal { get; internal set; }
 
         [BackgroundDependencyLoader]
         private void load(GameHost host)
@@ -64,7 +85,7 @@ namespace osu.Framework.Testing
         /// <param name="game">The game to add.</param>
         protected void AddGame([NotNull] Game game)
         {
-            if (game == null) throw new ArgumentNullException(nameof(game));
+            ArgumentNullException.ThrowIfNull(game);
 
             exitNestedGame();
 
@@ -76,13 +97,15 @@ namespace osu.Framework.Testing
 
         public override void Add(Drawable drawable)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
+
             if (drawable is Game)
                 throw new InvalidOperationException($"Use {nameof(AddGame)} when testing a game instance.");
 
             base.Add(drawable);
         }
 
-        protected internal override void AddInternal(Drawable drawable)
+        protected override void AddInternal(Drawable drawable)
         {
             throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Add)} instead.");
         }
@@ -90,7 +113,7 @@ namespace osu.Framework.Testing
         protected internal override void ClearInternal(bool disposeChildren = true) =>
             throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Clear)} instead.");
 
-        protected internal override bool RemoveInternal(Drawable drawable) =>
+        protected internal override bool RemoveInternal(Drawable drawable, bool disposeImmediately) =>
             throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Remove)} instead.");
 
         /// <summary>
@@ -104,8 +127,6 @@ namespace osu.Framework.Testing
 
         protected TestScene()
         {
-            DynamicCompilationOriginal = this;
-
             Name = RemovePrefix(GetType().ReadableName());
 
             RelativeSizeAxes = Axes.Both;
@@ -153,11 +174,23 @@ namespace osu.Framework.Testing
                             Bottom = padding,
                         },
                         RelativeSizeAxes = Axes.Both,
-                        Child = content = new DrawFrameRecordingContainer
+                        Child = new Container
                         {
-                            Masking = true,
-                            RelativeSizeAxes = Axes.Both
-                        }
+                            RelativeSizeAxes = Axes.Both,
+                            Children = new Drawable[]
+                            {
+                                backgroundFill = new Box
+                                {
+                                    Colour = Color4.Black,
+                                    RelativeSizeAxes = Axes.Both,
+                                },
+                                content = new DrawFrameRecordingContainer
+                                {
+                                    Masking = true,
+                                    RelativeSizeAxes = Axes.Both
+                                }
+                            }
+                        },
                     },
                 }
             });
@@ -189,8 +222,6 @@ namespace osu.Framework.Testing
 
         private StepButton loadableStep => actionIndex >= 0 ? StepsContainer.Children.ElementAtOrDefault(actionIndex) as StepButton : null;
 
-        protected virtual double TimePerAction => 200;
-
         private void runNextStep(Action onCompletion, Action<Exception> onError, Func<StepButton, bool> stopCondition)
         {
             try
@@ -198,7 +229,7 @@ namespace osu.Framework.Testing
                 if (loadableStep != null)
                 {
                     if (actionRepetition == 0)
-                        Logger.Log($"🔸 Step #{actionIndex + 1} {loadableStep?.Text}");
+                        Logger.Log($"🔸 Step #{actionIndex + 1} {loadableStep.Text}");
 
                     scroll.ScrollIntoView(loadableStep);
                     loadableStep.PerformStep();
@@ -243,6 +274,9 @@ namespace osu.Framework.Testing
         public void AddStep(StepButton step) => schedule(() => StepsContainer.Add(step));
 
         private bool addStepsAsSetupSteps;
+
+        public void ChangeBackgroundColour(ColourInfo colour)
+            => backgroundFill.FadeColour(colour, 200, Easing.OutQuint);
 
         public StepButton AddStep(string description, Action action)
         {
@@ -302,6 +336,29 @@ namespace osu.Framework.Testing
             });
         });
 
+        protected void AddUntilStep<T>(string description, ActualValueDelegate<T> actualValue, Func<IResolveConstraint> constraint) => schedule(() =>
+        {
+            ConstraintResult lastResult = null;
+
+            StepsContainer.Add(
+                new UntilStepButton(
+                    () =>
+                    {
+                        lastResult = constraint().Resolve().ApplyTo(actualValue());
+                        return lastResult.IsSuccess;
+                    },
+                    addStepsAsSetupSteps,
+                    () =>
+                    {
+                        var writer = new TextMessageWriter(string.Empty);
+                        lastResult.WriteMessageTo(writer);
+                        return writer.ToString().TrimStart();
+                    })
+                {
+                    Text = description ?? @"Until",
+                });
+        });
+
         protected void AddWaitStep(string description, int waitCount) => schedule(() =>
         {
             StepsContainer.Add(new RepeatStepButton(() => { }, waitCount, addStepsAsSetupSteps)
@@ -310,7 +367,7 @@ namespace osu.Framework.Testing
             });
         });
 
-        protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged) where T : struct, IComparable<T>, IConvertible, IEquatable<T> => schedule(() =>
+        protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged) where T : struct, INumber<T>, IMinMaxValue<T> => schedule(() =>
         {
             StepsContainer.Add(new StepSlider<T>(description, min, max, start)
             {
@@ -326,6 +383,31 @@ namespace osu.Framework.Testing
                 ExtendedDescription = extendedDescription,
                 CallStack = new StackTrace(1),
                 Assertion = assert,
+            });
+        });
+
+        protected void AddAssert<T>(string description, ActualValueDelegate<T> actualValue, Func<IResolveConstraint> constraint, string extendedDescription = null) => schedule(() =>
+        {
+            ConstraintResult lastResult = null;
+
+            StepsContainer.Add(new AssertButton(addStepsAsSetupSteps, () =>
+            {
+                if (lastResult == null)
+                    return string.Empty;
+
+                var writer = new TextMessageWriter(string.Empty);
+                lastResult.WriteMessageTo(writer);
+                return writer.ToString().TrimStart();
+            })
+            {
+                Text = description,
+                ExtendedDescription = extendedDescription,
+                CallStack = new StackTrace(1),
+                Assertion = () =>
+                {
+                    lastResult = constraint().Resolve().ApplyTo(actualValue());
+                    return lastResult.IsSuccess;
+                }
             });
         });
 
@@ -358,12 +440,9 @@ namespace osu.Framework.Testing
 
         private void exitNestedGame()
         {
-            if (nestedGame?.Parent == null) return;
-
             // important that we do a synchronous disposal.
             // using Expire() will cause a deadlock in AsyncDisposalQueue.
-            nestedGame.Parent.RemoveInternal(nestedGame);
-            nestedGame.Dispose();
+            nestedGame?.Parent?.RemoveInternal(nestedGame, true);
         }
 
         #region NUnit execution setup
@@ -386,44 +465,8 @@ namespace osu.Framework.Testing
             }
         }
 
-        [SetUp]
-        public void SetUpTestForNUnit()
+        internal virtual void RunAfterTest()
         {
-            if (DebugUtils.IsNUnitRunning)
-            {
-                // Since the host is created in OneTimeSetUp, all game threads will have the fixture's execution context
-                // This is undesirable since each test is run using those same threads, so we must make sure the execution context
-                // for the game threads refers to the current _test_ execution context for each test
-                var executionContext = TestExecutionContext.CurrentContext;
-
-                foreach (var thread in host.Threads)
-                {
-                    thread.Scheduler.Add(() =>
-                    {
-                        TestExecutionContext.CurrentContext.CurrentResult = executionContext.CurrentResult;
-                        TestExecutionContext.CurrentContext.CurrentTest = executionContext.CurrentTest;
-                        TestExecutionContext.CurrentContext.CurrentCulture = executionContext.CurrentCulture;
-                        TestExecutionContext.CurrentContext.CurrentPrincipal = executionContext.CurrentPrincipal;
-                        TestExecutionContext.CurrentContext.CurrentRepeatCount = executionContext.CurrentRepeatCount;
-                        TestExecutionContext.CurrentContext.CurrentUICulture = executionContext.CurrentUICulture;
-                    });
-                }
-
-                if (TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
-                    schedule(() => StepsContainer.Clear());
-
-                RunSetUpSteps();
-            }
-        }
-
-        [TearDown]
-        protected virtual void RunTestsFromNUnit()
-        {
-            RunTearDownSteps();
-
-            checkForErrors();
-            runner.RunTestBlocking(this);
-            checkForErrors();
         }
 
         [OneTimeTearDown]
@@ -433,7 +476,7 @@ namespace osu.Framework.Testing
 
             try
             {
-                runTask.Wait();
+                runTask.WaitSafely();
             }
             finally
             {
@@ -453,7 +496,7 @@ namespace osu.Framework.Testing
         private void checkForErrors()
         {
             if (host.ExecutionState == ExecutionState.Stopping)
-                runTask.Wait();
+                runTask.WaitSafely();
 
             if (runTask.Exception != null)
                 throw runTask.Exception;
@@ -464,7 +507,7 @@ namespace osu.Framework.Testing
             private readonly Action onExitRequest;
 
             public TestSceneHost(string name, Action onExitRequest)
-                : base(name)
+                : base(name, new HostOptions())
             {
                 this.onExitRequest = onExitRequest;
             }
@@ -477,6 +520,62 @@ namespace osu.Framework.Testing
             }
 
             public void ExitFromRunner() => base.PerformExit(false);
+        }
+
+        private class UseTestSceneRunnerAttribute : TestActionAttribute
+        {
+            public override void BeforeTest(ITest test)
+            {
+                if (test.Fixture is not TestScene testScene)
+                    return;
+
+                // Since the host is created in OneTimeSetUp, all game threads will have the fixture's execution context
+                // This is undesirable since each test is run using those same threads, so we must make sure the execution context
+                // for the game threads refers to the current _test_ execution context for each test
+                var executionContext = TestExecutionContext.CurrentContext;
+
+                foreach (var thread in testScene.host.Threads)
+                {
+                    thread.Scheduler.Add(() =>
+                    {
+                        TestExecutionContext.CurrentContext.CurrentResult = executionContext.CurrentResult;
+                        TestExecutionContext.CurrentContext.CurrentTest = executionContext.CurrentTest;
+                        TestExecutionContext.CurrentContext.CurrentCulture = executionContext.CurrentCulture;
+                        TestExecutionContext.CurrentContext.CurrentPrincipal = executionContext.CurrentPrincipal;
+                        TestExecutionContext.CurrentContext.CurrentRepeatCount = executionContext.CurrentRepeatCount;
+                        TestExecutionContext.CurrentContext.CurrentUICulture = executionContext.CurrentUICulture;
+                    });
+                }
+
+                if (TestContext.CurrentContext.Test.MethodName != nameof(TestScene.TestConstructor))
+                    testScene.Schedule(() => testScene.StepsContainer.Clear());
+
+                testScene.RunSetUpSteps();
+            }
+
+            public override void AfterTest(ITest test)
+            {
+                if (test.Fixture is not TestScene testScene)
+                    return;
+
+                testScene.RunTearDownSteps();
+
+                testScene.checkForErrors();
+                testScene.runner.RunTestBlocking(testScene);
+                testScene.checkForErrors();
+
+                if (FrameworkEnvironment.ForceTestGC)
+                {
+                    // Force any unobserved exceptions to fire against the current test run.
+                    // Without this they could be delayed until a future test scene is running, making tracking down the cause difficult.
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                }
+
+                testScene.RunAfterTest();
+            }
+
+            public override ActionTargets Targets => ActionTargets.Test;
         }
     }
 

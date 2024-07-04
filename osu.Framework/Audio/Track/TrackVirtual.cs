@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Threading.Tasks;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Audio.Track
@@ -12,7 +13,8 @@ namespace osu.Framework.Audio.Track
 
         private double seekOffset;
 
-        public TrackVirtual(double length)
+        public TrackVirtual(double length, string name = "virtual")
+            : base(name)
         {
             Length = length;
         }
@@ -21,20 +23,39 @@ namespace osu.Framework.Audio.Track
         {
             seekOffset = Math.Clamp(seek, 0, Length);
 
+            bool success = seekOffset == seek;
+
             lock (clock)
             {
-                if (IsRunning)
+                if (success && IsRunning)
                     clock.Restart();
                 else
                     clock.Reset();
             }
 
-            return seekOffset == seek;
+            return success;
+        }
+
+        public override Task<bool> SeekAsync(double seek)
+        {
+            return Task.FromResult(Seek(seek));
+        }
+
+        public override Task StartAsync()
+        {
+            Start();
+            return Task.CompletedTask;
+        }
+
+        public override Task StopAsync()
+        {
+            Stop();
+            return Task.CompletedTask;
         }
 
         public override void Start()
         {
-            if (Length == 0)
+            if (Length == 0 || CurrentTime >= Length)
                 return;
 
             lock (clock) clock.Start();

@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -12,7 +14,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
-    public abstract class StepButton : CompositeDrawable
+    public abstract partial class StepButton : CompositeDrawable
     {
         public virtual int RequiredRepetitions => 1;
 

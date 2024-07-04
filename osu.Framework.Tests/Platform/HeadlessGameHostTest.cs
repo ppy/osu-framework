@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -8,6 +10,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Development;
+using osu.Framework.Extensions;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osu.Framework.Tests.IO;
@@ -15,7 +18,7 @@ using osu.Framework.Tests.IO;
 namespace osu.Framework.Tests.Platform
 {
     [TestFixture]
-    public class HeadlessGameHostTest
+    public partial class HeadlessGameHostTest
     {
         [Test]
         public void TestGameHostExceptionDuringSetupHost()
@@ -47,7 +50,7 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void TestGameHostDisposalWhenNeverRun()
         {
-            using (new TestRunHeadlessGameHost(nameof(TestGameHostDisposalWhenNeverRun), true))
+            using (new TestRunHeadlessGameHost(nameof(TestGameHostDisposalWhenNeverRun), new HostOptions(), true))
             {
                 // never call host.Run()
             }
@@ -57,7 +60,7 @@ namespace osu.Framework.Tests.Platform
         [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
         public void TestThreadSafetyResetOnEnteringThread()
         {
-            using (var host = new TestRunHeadlessGameHost(nameof(TestThreadSafetyResetOnEnteringThread)))
+            using (var host = new TestRunHeadlessGameHost(nameof(TestThreadSafetyResetOnEnteringThread), new HostOptions()))
             {
                 bool isDrawThread = false;
                 bool isUpdateThread = false;
@@ -77,7 +80,7 @@ namespace osu.Framework.Tests.Platform
                     isAudioThread = ThreadSafety.IsAudioThread;
                 }, TaskCreationOptions.LongRunning);
 
-                task.Wait();
+                task.WaitSafely();
 
                 Assert.That(!isDrawThread && !isUpdateThread && !isInputThread && !isAudioThread);
             }
@@ -86,8 +89,8 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void TestIpc()
         {
-            using (var server = new BackgroundGameHeadlessGameHost(@"server", true))
-            using (var client = new HeadlessGameHost(@"client", true))
+            using (var server = new BackgroundGameHeadlessGameHost(@"server", new HostOptions { IPCPort = 45356 }))
+            using (var client = new HeadlessGameHost(@"client", new HostOptions { IPCPort = 45356 }))
             {
                 Assert.IsTrue(server.IsPrimaryInstance, @"Server wasn't able to bind");
                 Assert.IsFalse(client.IsPrimaryInstance, @"Client was able to bind when it shouldn't have been able to");
@@ -95,21 +98,22 @@ namespace osu.Framework.Tests.Platform
                 var serverChannel = new IpcChannel<Foobar>(server);
                 var clientChannel = new IpcChannel<Foobar>(client);
 
-                void waitAction()
+                async Task waitAction()
                 {
-                    using (var received = new ManualResetEventSlim(false))
+                    using (var received = new SemaphoreSlim(0))
                     {
                         serverChannel.MessageReceived += message =>
                         {
                             Assert.AreEqual("example", message.Bar);
                             // ReSharper disable once AccessToDisposedClosure
-                            received.Set();
+                            received.Release();
                             return null;
                         };
 
-                        clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).Wait();
+                        await clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).ConfigureAwait(false);
 
-                        received.Wait();
+                        if (!await received.WaitAsync(10000).ConfigureAwait(false))
+                            throw new TimeoutException("Message was not received in a timely fashion");
                     }
                 }
 
@@ -125,7 +129,7 @@ namespace osu.Framework.Tests.Platform
         public class ExceptionDuringSetupGameHost : TestRunHeadlessGameHost
         {
             public ExceptionDuringSetupGameHost(string gameName)
-                : base(gameName)
+                : base(gameName, new HostOptions())
             {
             }
 
@@ -139,7 +143,7 @@ namespace osu.Framework.Tests.Platform
         public class TestRunHeadlessGameHostWithOverriddenExit : TestRunHeadlessGameHost
         {
             public TestRunHeadlessGameHostWithOverriddenExit(string gameName)
-                : base(gameName)
+                : base(gameName, new HostOptions())
             {
             }
 
@@ -149,7 +153,7 @@ namespace osu.Framework.Tests.Platform
             }
         }
 
-        internal class ExceptionDuringAsynchronousLoadTestGame : TestGame
+        internal partial class ExceptionDuringAsynchronousLoadTestGame : TestGame
         {
             [BackgroundDependencyLoader]
             private void load()

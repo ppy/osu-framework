@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
@@ -11,7 +13,7 @@ using osuTK.Input;
 namespace osu.Framework.Tests.Visual.Input
 {
     [HeadlessTest]
-    public class TestSceneInputPropagationForLoadStates : FrameworkTestScene
+    public partial class TestSceneInputPropagationForLoadStates : FrameworkTestScene
     {
         private InputReceiver receiver1;
         private InputReceiver receiver2;
@@ -34,7 +36,7 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("receiver 2 did not receive input'", () => !receiver2.DidReceiveInput);
         }
 
-        public class InputReceiver : Drawable
+        public partial class InputReceiver : Drawable
         {
             public bool DidReceiveInput;
 
@@ -45,13 +47,13 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        public class InputSender : Drawable
+        public partial class InputSender : Drawable
         {
             protected override void LoadComplete()
             {
                 base.LoadComplete();
                 var inputManager = GetContainingInputManager();
-                new KeyboardKeyInput(Key.A, true).Apply(inputManager.CurrentState, inputManager);
+                new KeyboardKeyInput(Key.A, true).Apply(inputManager!.CurrentState, inputManager);
             }
         }
     }

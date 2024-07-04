@@ -1,12 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable enable
-
 using System;
 using System.Threading.Tasks;
 using ManagedBass;
-using osu.Framework.Bindables;
 
 namespace osu.Framework.Audio.Mixing
 {
@@ -26,8 +23,6 @@ namespace osu.Framework.Audio.Mixing
             Identifier = identifier;
         }
 
-        public abstract BindableList<IEffectParameter> Effects { get; }
-
         public void Add(IAudioChannel channel)
         {
             channel.EnqueueAction(() =>
@@ -44,6 +39,12 @@ namespace osu.Framework.Audio.Mixing
                 channel.Mixer = this;
             });
         }
+
+        public abstract void AddEffect(IEffectParameter effect, int priority = 0);
+
+        public abstract void RemoveEffect(IEffectParameter effect);
+
+        public abstract void UpdateEffect(IEffectParameter effect);
 
         /// <summary>
         /// Removes an <see cref="IAudioChannel"/> from the mix.
@@ -80,6 +81,8 @@ namespace osu.Framework.Audio.Mixing
         public abstract float[] GetChannelLevel(IAudioChannel channel, float length);
 
         #region IAudioChannel
+
+        public string Name => Identifier;
 
         public virtual AudioMixer? Mixer { get; set; }
 

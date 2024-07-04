@@ -1,9 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -12,8 +15,6 @@ using System.Security.Cryptography;
 using System.Text;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Localisation;
-using osu.Framework.Platform;
-using osuTK;
 
 // this is an abusive thing to do, but it increases the visibility of Extension Methods to virtually every file.
 
@@ -52,14 +53,6 @@ namespace osu.Framework.Extensions
             list.Insert(index, item);
             return index;
         }
-
-        /// <summary>
-        /// Try to get a value from the <paramref name="dictionary"/>. Returns a default(TValue) if the key does not exist.
-        /// </summary>
-        /// <param name="dictionary">The dictionary.</param>
-        /// <param name="lookup">The lookup key.</param>
-        [Obsolete("Use System.Collections.Generic.CollectionExtensions.GetValueOrDefault instead.")] // Can be removed 20220115
-        public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup) => dictionary.GetValueOrDefault(lookup);
 
         /// <summary>
         /// Converts a rectangular array to a jagged array.
@@ -156,7 +149,7 @@ namespace osu.Framework.Extensions
 
         public static Type[] GetLoadableTypes(this Assembly assembly)
         {
-            if (assembly == null) throw new ArgumentNullException(nameof(assembly));
+            ArgumentNullException.ThrowIfNull(assembly);
 
             try
             {
@@ -164,15 +157,7 @@ namespace osu.Framework.Extensions
             }
             catch (ReflectionTypeLoadException e)
             {
-                // the following warning disables are caused by netstandard2.1 and net5.0 differences
-                // the former declares Types as Type[], while the latter declares as Type?[]:
-                // https://docs.microsoft.com/en-us/dotnet/api/system.reflection.reflectiontypeloadexception.types?view=net-5.0#property-value
-                // which trips some inspectcode errors which are only "valid" for the first of the two.
-                // TODO: remove if netstandard2.1 is removed
-                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-                // ReSharper disable once ConstantConditionalAccessQualifier
-                // ReSharper disable once ConstantNullCoalescingCondition
-                return e.Types?.Where(t => t != null).ToArray() ?? Array.Empty<Type>();
+                return e.Types.Where(t => t != null).ToArray();
             }
         }
 
@@ -187,18 +172,36 @@ namespace osu.Framework.Extensions
         ///   </item>
         /// </list>
         /// </summary>
+        /// <remarks>
+        /// If the passed value is already of type <see cref="LocalisableString"/>, it will be returned.
+        /// </remarks>
         /// <exception cref="InvalidOperationException">
         /// When the <see cref="LocalisableDescriptionAttribute.Name"/> specified in the <see cref="LocalisableDescriptionAttribute"/>
         /// does not match any of the existing members in <see cref="LocalisableDescriptionAttribute.DeclaringType"/>.
         /// </exception>
         public static LocalisableString GetLocalisableDescription<T>(this T value)
         {
+            if (value is LocalisableString localisable)
+                return localisable;
+
+            if (value is string description)
+                return description;
+
             MemberInfo type;
 
             if (value is Enum)
-                type = value.GetType().GetField(value.ToString());
+            {
+                string stringValue = value.ToString();
+                Debug.Assert(stringValue != null, "Enum.ToString() should not return null.");
+
+                type = value.GetType().GetField(stringValue);
+
+                // The enumeration may not contain the value, in which case just return the value as a string.
+                if (type == null)
+                    return stringValue;
+            }
             else
-                type = value.GetType();
+                type = value as Type ?? value.GetType();
 
             var attribute = type.GetCustomAttribute<LocalisableDescriptionAttribute>();
             if (attribute == null)
@@ -230,11 +233,17 @@ namespace osu.Framework.Extensions
         ///   </item>
         /// </list>
         /// </summary>
+        /// <remarks>
+        /// If the passed value is already of type <see cref="string"/>, it will be returned.
+        /// </remarks>
         public static string GetDescription(this object value)
-            => value.GetType()
-                    .GetField(value.ToString())?
-                    .GetCustomAttribute<DescriptionAttribute>()?.Description
-               ?? value.ToString();
+        {
+            if (value is string description)
+                return description;
+
+            Type type = value as Type ?? value.GetType();
+            return type.GetField(value.ToString() ?? string.Empty)?.GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
+        }
 
         private static string toLowercaseHex(this byte[] bytes)
         {
@@ -254,13 +263,8 @@ namespace osu.Framework.Extensions
         /// <returns>A lower-case hex string representation of the hash (64 characters).</returns>
         public static string ComputeSHA2Hash(this Stream stream)
         {
-            string hash;
-
             stream.Seek(0, SeekOrigin.Begin);
-
-            using (var alg = SHA256.Create())
-                hash = alg.ComputeHash(stream).toLowercaseHex();
-
+            string hash = SHA256.HashData(stream).toLowercaseHex();
             stream.Seek(0, SeekOrigin.Begin);
 
             return hash;
@@ -271,41 +275,18 @@ namespace osu.Framework.Extensions
         /// </summary>
         /// <param name="str">The string to create a hash from.</param>
         /// <returns>A lower-case hex string representation of the hash (64 characters).</returns>
-        public static string ComputeSHA2Hash(this string str)
-        {
-            using (var alg = SHA256.Create())
-                return alg.ComputeHash(Encoding.UTF8.GetBytes(str)).toLowercaseHex();
-        }
+        public static string ComputeSHA2Hash(this string str) => SHA256.HashData(Encoding.UTF8.GetBytes(str)).toLowercaseHex();
 
         public static string ComputeMD5Hash(this Stream stream)
         {
-            string hash;
-
             stream.Seek(0, SeekOrigin.Begin);
-            using (var md5 = MD5.Create())
-                hash = md5.ComputeHash(stream).toLowercaseHex();
+            string hash = MD5.HashData(stream).toLowercaseHex();
             stream.Seek(0, SeekOrigin.Begin);
 
             return hash;
         }
 
-        public static string ComputeMD5Hash(this string input)
-        {
-            using (var md5 = MD5.Create())
-                return md5.ComputeHash(Encoding.UTF8.GetBytes(input)).toLowercaseHex();
-        }
-
-        public static DisplayIndex GetIndex(this DisplayDevice display)
-        {
-            if (display == null) return DisplayIndex.Default;
-
-            for (int i = 0; true; i++)
-            {
-                var device = DisplayDevice.GetDisplay((DisplayIndex)i);
-                if (device == null) return DisplayIndex.Default;
-                if (device == display) return (DisplayIndex)i;
-            }
-        }
+        public static string ComputeMD5Hash(this string input) => MD5.HashData(Encoding.UTF8.GetBytes(input)).toLowercaseHex();
 
         /// <summary>
         /// Standardise the path string using '/' as directory separator.
@@ -337,23 +318,23 @@ namespace osu.Framework.Extensions
         /// </remarks>
         /// <param name="character">The character to check.</param>
         /// <returns>True if the character is an ASCII digit.</returns>
-        public static bool IsAsciiDigit(this char character) => character >= '0' && character <= '9';
+        [Obsolete("Use char.IsAsciiDigit.")] // can be removed 20240901
+        public static bool IsAsciiDigit(this char character) => char.IsAsciiDigit(character);
 
         /// <summary>
-        /// Converts an osuTK <see cref="DisplayDevice"/> to a <see cref="Display"/> structure.
+        /// Checks whether the provided URL is a safe protocol to execute a system <see cref="Process.Start()"/> call with.
         /// </summary>
-        /// <param name="device">The <see cref="DisplayDevice"/> to convert.</param>
-        /// <returns>A <see cref="Display"/> structure populated with the corresponding properties and <see cref="DisplayMode"/>s.</returns>
-        internal static Display ToDisplay(this DisplayDevice device) =>
-            new Display((int)device.GetIndex(), device.GetIndex().ToString(), device.Bounds, device.AvailableResolutions.Select(ToDisplayMode).ToArray());
-
-        /// <summary>
-        /// Converts an osuTK <see cref="DisplayResolution"/> to a <see cref="DisplayMode"/> structure.
-        /// It is not possible to retrieve the pixel format from <see cref="DisplayResolution"/>.
-        /// </summary>
-        /// <param name="resolution">The <see cref="DisplayResolution"/> to convert.</param>
-        /// <returns>A <see cref="DisplayMode"/> structure populated with the corresponding properties.</returns>
-        internal static DisplayMode ToDisplayMode(this DisplayResolution resolution) =>
-            new DisplayMode(null, new Size(resolution.Width, resolution.Height), resolution.BitsPerPixel, (int)Math.Round(resolution.RefreshRate), 0, 0);
+        /// <remarks>
+        /// For now, http://, https:// and mailto: are supported.
+        /// More protocols can be added if a use case comes up.
+        /// </remarks>
+        /// <param name="url">The URL to check.</param>
+        /// <returns>Whether the URL is safe to open.</returns>
+        public static bool CheckIsValidUrl(this string url)
+        {
+            return url.StartsWith("https://", StringComparison.Ordinal)
+                   || url.StartsWith("http://", StringComparison.Ordinal)
+                   || url.StartsWith("mailto:", StringComparison.Ordinal);
+        }
     }
 }

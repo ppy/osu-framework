@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Extensions;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.UserInterface;
@@ -11,11 +10,9 @@ using osu.Framework.Input.Events;
 using osu.Framework.Utils;
 using osuTK;
 
-#nullable enable
-
 namespace osu.Framework.Graphics.Cursor
 {
-    public class PopoverContainer : Container
+    public partial class PopoverContainer : Container
     {
         private readonly Container content;
         private readonly Container dismissOnMouseDownContainer;
@@ -90,22 +87,6 @@ namespace osu.Framework.Graphics.Cursor
             content.AutoSizeAxes = AutoSizeAxes;
         }
 
-        /// <summary>
-        /// The <see cref="Anchor"/>s to consider when auto-layouting the popover.
-        /// <see cref="Anchor.Centre"/> is not included, as it is used as a fallback if any other anchor fails.
-        /// </summary>
-        private static readonly Anchor[] candidate_anchors =
-        {
-            Anchor.TopLeft,
-            Anchor.TopCentre,
-            Anchor.TopRight,
-            Anchor.CentreLeft,
-            Anchor.CentreRight,
-            Anchor.BottomLeft,
-            Anchor.BottomCentre,
-            Anchor.BottomRight
-        };
-
         private void updatePopoverPositioning()
         {
             if (target == null || currentPopover == null)
@@ -118,7 +99,7 @@ namespace osu.Framework.Graphics.Cursor
 
             float totalSize = Math.Max(DrawSize.X * DrawSize.Y, 1);
 
-            foreach (var anchor in candidate_anchors)
+            foreach (var anchor in currentPopover.AllowableAnchors)
             {
                 // Compute how much free space is available on this side of the target.
                 var availableSize = availableSizeAroundTargetForAnchor(targetLocalQuad, anchor);
@@ -175,18 +156,18 @@ namespace osu.Framework.Graphics.Cursor
 
             // left anchor = area to the left of the quad, right anchor = area to the right of the quad.
             // for horizontal centre assume we have the whole quad width to work with.
-            if (anchor.HasFlagFast(Anchor.x0))
+            if (anchor.HasFlag(Anchor.x0))
                 availableSize.X = MathF.Max(0, targetLocalQuad.TopLeft.X);
-            else if (anchor.HasFlagFast(Anchor.x2))
+            else if (anchor.HasFlag(Anchor.x2))
                 availableSize.X = MathF.Max(0, DrawWidth - targetLocalQuad.BottomRight.X);
             else
                 availableSize.X = DrawWidth;
 
             // top anchor = area above quad, bottom anchor = area below quad.
             // for vertical centre assume we have the whole quad height to work with.
-            if (anchor.HasFlagFast(Anchor.y0))
+            if (anchor.HasFlag(Anchor.y0))
                 availableSize.Y = MathF.Max(0, targetLocalQuad.TopLeft.Y);
-            else if (anchor.HasFlagFast(Anchor.y2))
+            else if (anchor.HasFlag(Anchor.y2))
                 availableSize.Y = MathF.Max(0, DrawHeight - targetLocalQuad.BottomRight.Y);
             else
                 availableSize.Y = DrawHeight;
@@ -195,7 +176,7 @@ namespace osu.Framework.Graphics.Cursor
             return availableSize;
         }
 
-        private class DismissOnMouseDownContainer : Container
+        private partial class DismissOnMouseDownContainer : Container
         {
             protected override bool OnMouseDown(MouseDownEvent e)
             {

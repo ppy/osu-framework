@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -8,8 +10,6 @@ using NUnit.Framework;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
-using osu.Framework.Development;
-using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Audio
 {
@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Audio
         [SetUp]
         public void Setup()
         {
-            track = new TrackVirtual(60000);
+            track = new TrackVirtual(60000, "virtual");
             updateTrack();
         }
 
@@ -43,7 +43,7 @@ namespace osu.Framework.Tests.Audio
         public void TestStartZeroLength()
         {
             // override default with custom length
-            track = new TrackVirtual(0);
+            track = new TrackVirtual(0, "virtual");
 
             track.Start();
             updateTrack();
@@ -282,7 +282,7 @@ namespace osu.Framework.Tests.Audio
             track.Start();
             updateTrack();
 
-            RunOnAudioThread(() => track.Seek(20000));
+            AudioTestHelper.RunOnAudioThread(() => track.Seek(20000));
             Assert.That(track.CurrentTime, Is.EqualTo(20000).Within(100));
         }
 
@@ -292,7 +292,7 @@ namespace osu.Framework.Tests.Audio
             track.Seek(5000);
 
             bool seekSucceeded = false;
-            RunOnAudioThread(() => seekSucceeded = track.Seek(track.CurrentTime));
+            AudioTestHelper.RunOnAudioThread(() => seekSucceeded = track.Seek(track.CurrentTime));
 
             Assert.That(seekSucceeded, Is.True);
             Assert.That(track.CurrentTime, Is.EqualTo(5000));
@@ -302,7 +302,7 @@ namespace osu.Framework.Tests.Audio
         public void TestSeekBeyondStartTime()
         {
             bool seekSucceeded = false;
-            RunOnAudioThread(() => seekSucceeded = track.Seek(-1000));
+            AudioTestHelper.RunOnAudioThread(() => seekSucceeded = track.Seek(-1000));
 
             Assert.That(seekSucceeded, Is.False);
             Assert.That(track.CurrentTime, Is.EqualTo(0));
@@ -312,9 +312,43 @@ namespace osu.Framework.Tests.Audio
         public void TestSeekBeyondEndTime()
         {
             bool seekSucceeded = false;
-            RunOnAudioThread(() => seekSucceeded = track.Seek(track.Length + 1000));
+            AudioTestHelper.RunOnAudioThread(() => seekSucceeded = track.Seek(track.Length + 1000));
 
             Assert.That(seekSucceeded, Is.False);
+            Assert.That(track.CurrentTime, Is.EqualTo(track.Length));
+        }
+
+        [Test]
+        public void TestSeekBeyondStartTimeWhenRunning()
+        {
+            bool seekSucceeded = false;
+            startPlaybackAt(0);
+            AudioTestHelper.RunOnAudioThread(() => seekSucceeded = track.Seek(-1000));
+
+            Assert.That(seekSucceeded, Is.False);
+            Assert.That(track.IsRunning, Is.False);
+            Assert.That(track.CurrentTime, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TestSeekBeyondEndTimeWhenRunning()
+        {
+            bool seekSucceeded = false;
+            startPlaybackAt(0);
+            AudioTestHelper.RunOnAudioThread(() => seekSucceeded = track.Seek(track.Length + 1000));
+
+            Assert.That(seekSucceeded, Is.False);
+            Assert.That(track.IsRunning, Is.False);
+            Assert.That(track.CurrentTime, Is.EqualTo(track.Length));
+        }
+
+        [Test]
+        public void TestStartDoesNotWorkIfTrackAtEnd()
+        {
+            startPlaybackAt(track.Length);
+            track.Start();
+
+            Assert.That(track.IsRunning, Is.False);
             Assert.That(track.CurrentTime, Is.EqualTo(track.Length));
         }
 
@@ -347,40 +381,15 @@ namespace osu.Framework.Tests.Audio
             updateTrack();
         }
 
-        private void updateTrack() => RunOnAudioThread(() => track.Update());
+        private void updateTrack() => AudioTestHelper.RunOnAudioThread(() => track.Update());
 
         private void restartTrack()
         {
-            RunOnAudioThread(() =>
+            AudioTestHelper.RunOnAudioThread(() =>
             {
                 track.Restart();
                 track.Update();
             });
-        }
-
-        /// <summary>
-        /// Certain actions are invoked on the audio thread.
-        /// Here we simulate this process on a correctly named thread to avoid endless blocking.
-        /// </summary>
-        /// <param name="action">The action to perform.</param>
-        public static void RunOnAudioThread(Action action)
-        {
-            var resetEvent = new ManualResetEvent(false);
-
-            new Thread(() =>
-            {
-                ThreadSafety.IsAudioThread = true;
-
-                action();
-
-                resetEvent.Set();
-            })
-            {
-                Name = GameThread.PrefixedThreadNameFor("Audio")
-            }.Start();
-
-            if (!resetEvent.WaitOne(TimeSpan.FromSeconds(10)))
-                throw new TimeoutException();
         }
     }
 }

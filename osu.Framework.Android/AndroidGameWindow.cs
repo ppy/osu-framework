@@ -2,52 +2,30 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Platform;
-using osuTK;
-using osuTK.Graphics;
+using osu.Framework.Platform.SDL3;
 
 namespace osu.Framework.Android
 {
-    public class AndroidGameWindow : OsuTKWindow
+    internal class AndroidGameWindow : SDL3MobileWindow
     {
-        private readonly AndroidGameView view;
+        public override IntPtr SurfaceHandle => AndroidGameActivity.Surface.NativeSurface?.Handle ?? IntPtr.Zero;
 
-        public override IGraphicsContext Context => view.GraphicsContext;
-
-        public override bool Focused => true;
-
-        public override Platform.WindowState WindowState
-        {
-            get => Platform.WindowState.Normal;
-            set { }
-        }
-
-        public AndroidGameWindow(AndroidGameView view)
-            : base(view)
-        {
-            this.view = view;
-        }
-
-        public override void SetupWindow(FrameworkConfigManager config)
+        public AndroidGameWindow(GraphicsSurfaceType surfaceType, string appName)
+            : base(surfaceType, appName)
         {
         }
 
-        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]
+        public override void Create()
         {
-            Configuration.WindowMode.Fullscreen,
-        };
+            base.Create();
 
-        public override void Run()
-        {
-            view.Run();
-        }
+            SafeAreaPadding.BindTo(AndroidGameActivity.Surface.SafeAreaPadding);
 
-        protected override DisplayDevice CurrentDisplayDevice
-        {
-            get => DisplayDevice.Default;
-            set => throw new InvalidOperationException();
+            // Android SDL doesn't receive these events at start, so it never receives focus until it comes back from background
+            ((BindableBool)CursorInWindow).Value = true;
+            Focused = true;
         }
     }
 }

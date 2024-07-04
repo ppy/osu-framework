@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Reflection;
@@ -17,7 +19,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Layout
 {
-    public class TestSceneFillFlowContainer : FrameworkTestScene
+    public partial class TestSceneFillFlowContainer : FrameworkTestScene
     {
         private FillDirectionDropdown selectionDropdown;
 
@@ -375,7 +377,7 @@ namespace osu.Framework.Tests.Visual.Layout
             fillContainer.Spacing = new Vector2(5, 5);
         }
 
-        private class TestSceneDropdownHeader : DropdownHeader
+        private partial class TestSceneDropdownHeader : DropdownHeader
         {
             private readonly SpriteText label;
 
@@ -395,14 +397,25 @@ namespace osu.Framework.Tests.Visual.Layout
                     label = new SpriteText(),
                 };
             }
+
+            protected override DropdownSearchBar CreateSearchBar() => new BasicDropdownSearchBar();
+
+            private partial class BasicDropdownSearchBar : DropdownSearchBar
+            {
+                protected override void PopIn() => this.FadeIn();
+
+                protected override void PopOut() => this.FadeOut();
+
+                protected override TextBox CreateTextBox() => new BasicTextBox();
+            }
         }
 
-        private class AnchorDropdown : BasicDropdown<Anchor>
+        private partial class AnchorDropdown : BasicDropdown<Anchor>
         {
             protected override DropdownHeader CreateHeader() => new TestSceneDropdownHeader();
         }
 
-        private class FillDirectionDropdown : BasicDropdown<FlowTestType>
+        private partial class FillDirectionDropdown : BasicDropdown<FlowTestType>
         {
             protected override DropdownHeader CreateHeader() => new TestSceneDropdownHeader();
         }

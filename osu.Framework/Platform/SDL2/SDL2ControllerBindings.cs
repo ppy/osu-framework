@@ -1,9 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Linq;
-using SDL2;
+using static SDL2.SDL;
 
 namespace osu.Framework.Platform.SDL2
 {
@@ -11,22 +13,22 @@ namespace osu.Framework.Platform.SDL2
     /// Maintain a copy of the SDL-provided bindings for the given controller.
     /// Used to determine whether a given event's joystick button or axis is unmapped.
     /// </summary>
-    public class SDL2ControllerBindings
+    internal class SDL2ControllerBindings
     {
         public readonly IntPtr JoystickHandle;
         public readonly IntPtr ControllerHandle;
 
         /// <summary>
-        /// Bindings returned from <see cref="SDL.SDL_GameControllerGetBindForButton"/>, indexed by <see cref="SDL.SDL_GameControllerButton"/>.
+        /// Bindings returned from <see cref="SDL_GameControllerGetBindForButton"/>, indexed by <see cref="SDL_GameControllerButton"/>.
         /// Empty if the joystick does not have a corresponding ControllerHandle.
         /// </summary>
-        public SDL.SDL_GameControllerButtonBind[] ButtonBindings;
+        public SDL_GameControllerButtonBind[] ButtonBindings;
 
         /// <summary>
-        /// Bindings returned from <see cref="SDL.SDL_GameControllerGetBindForAxis"/>, indexed by <see cref="SDL.SDL_GameControllerAxis"/>.
+        /// Bindings returned from <see cref="SDL_GameControllerGetBindForAxis"/>, indexed by <see cref="SDL_GameControllerAxis"/>.
         /// Empty if the joystick does not have a corresponding ControllerHandle.
         /// </summary>
-        public SDL.SDL_GameControllerButtonBind[] AxisBindings;
+        public SDL_GameControllerButtonBind[] AxisBindings;
 
         public SDL2ControllerBindings(IntPtr joystickHandle, IntPtr controllerHandle)
         {
@@ -40,38 +42,38 @@ namespace osu.Framework.Platform.SDL2
         {
             if (ControllerHandle == IntPtr.Zero)
             {
-                ButtonBindings = Array.Empty<SDL.SDL_GameControllerButtonBind>();
-                AxisBindings = Array.Empty<SDL.SDL_GameControllerButtonBind>();
+                ButtonBindings = Array.Empty<SDL_GameControllerButtonBind>();
+                AxisBindings = Array.Empty<SDL_GameControllerButtonBind>();
                 return;
             }
 
-            ButtonBindings = Enumerable.Range(0, (int)SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_MAX)
-                                       .Select(i => SDL.SDL_GameControllerGetBindForButton(ControllerHandle, (SDL.SDL_GameControllerButton)i)).ToArray();
+            ButtonBindings = Enumerable.Range(0, (int)SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_MAX)
+                                       .Select(i => SDL_GameControllerGetBindForButton(ControllerHandle, (SDL_GameControllerButton)i)).ToArray();
 
-            AxisBindings = Enumerable.Range(0, (int)SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_MAX)
-                                     .Select(i => SDL.SDL_GameControllerGetBindForAxis(ControllerHandle, (SDL.SDL_GameControllerAxis)i)).ToArray();
+            AxisBindings = Enumerable.Range(0, (int)SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_MAX)
+                                     .Select(i => SDL_GameControllerGetBindForAxis(ControllerHandle, (SDL_GameControllerAxis)i)).ToArray();
         }
 
-        public SDL.SDL_GameControllerButton GetButtonForIndex(byte index)
+        public bool IsJoystickButtonBound(byte buttonIndex)
         {
             for (int i = 0; i < ButtonBindings.Length; i++)
             {
-                if (ButtonBindings[i].bindType != SDL.SDL_GameControllerBindType.SDL_CONTROLLER_BINDTYPE_NONE && ButtonBindings[i].value.button == index)
-                    return (SDL.SDL_GameControllerButton)i;
+                if (ButtonBindings[i].bindType != SDL_GameControllerBindType.SDL_CONTROLLER_BINDTYPE_NONE && ButtonBindings[i].value.button == buttonIndex)
+                    return true;
             }
 
-            return SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_INVALID;
+            return false;
         }
 
-        public SDL.SDL_GameControllerAxis GetAxisForIndex(byte index)
+        public bool IsJoystickAxisBound(byte axisIndex)
         {
             for (int i = 0; i < AxisBindings.Length; i++)
             {
-                if (AxisBindings[i].bindType != SDL.SDL_GameControllerBindType.SDL_CONTROLLER_BINDTYPE_NONE && AxisBindings[i].value.button == index)
-                    return (SDL.SDL_GameControllerAxis)i;
+                if (AxisBindings[i].bindType != SDL_GameControllerBindType.SDL_CONTROLLER_BINDTYPE_NONE && AxisBindings[i].value.axis == axisIndex)
+                    return true;
             }
 
-            return SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_INVALID;
+            return false;
         }
     }
 }

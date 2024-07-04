@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +17,7 @@ using osu.Framework.Threading;
 namespace osu.Framework.Tests.Platform
 {
     [TestFixture]
-    public class GameHostSuspendTest
+    public partial class GameHostSuspendTest
     {
         private TestTestGame game;
         private HeadlessGameHost host;
@@ -87,7 +89,7 @@ namespace osu.Framework.Tests.Platform
             private readonly ExecutionMode threadMode;
 
             public ExecutionModeGameHost(string name, ExecutionMode threadMode)
-                : base(name)
+                : base(name, new HostOptions())
             {
                 this.threadMode = threadMode;
             }
@@ -99,7 +101,7 @@ namespace osu.Framework.Tests.Platform
             }
         }
 
-        private class TestTestGame : TestGame
+        private partial class TestTestGame : TestGame
         {
             public readonly ManualResetEventSlim BecameAlive = new ManualResetEventSlim();
 

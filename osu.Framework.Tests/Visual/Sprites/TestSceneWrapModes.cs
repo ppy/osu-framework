@@ -1,13 +1,14 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.IO;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
@@ -18,7 +19,7 @@ using osuTK.Graphics;
 namespace osu.Framework.Tests.Visual.Sprites
 {
     [System.ComponentModel.Description("texture wrap modes")]
-    public class TestSceneWrapModes : FrameworkGridTestScene
+    public partial class TestSceneWrapModes : FrameworkGridTestScene
     {
         private readonly WrapMode[] wrapModes = { WrapMode.None, WrapMode.ClampToEdge, WrapMode.ClampToBorder, WrapMode.Repeat };
 
@@ -39,7 +40,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                     textures[i * 4 + j] = textureStore.Get(@"sample-texture", wrapModes[i], wrapModes[j]);
             }
 
-            videoData = game.Resources.Get("Videos/sample-video.mp4");
+            videoData = game.Resources.Get("Videos/h264.mp4");
         }
 
         [Test]

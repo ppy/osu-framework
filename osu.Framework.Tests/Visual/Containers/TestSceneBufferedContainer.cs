@@ -7,11 +7,11 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneBufferedContainer : TestSceneMasking
+    public partial class TestSceneBufferedContainer : TestSceneMasking
     {
         public TestSceneBufferedContainer()
         {
-            Remove(TestContainer);
+            Remove(TestContainer, false);
 
             BufferedContainer buffer;
             Add(buffer = new BufferedContainer

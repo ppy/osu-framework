@@ -3,8 +3,6 @@
 
 using System;
 
-#nullable enable
-
 namespace osu.Framework.Localisation
 {
     /// <summary>

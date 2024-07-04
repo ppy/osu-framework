@@ -11,9 +11,9 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Benchmarks
 {
-    public class BenchmarkManySpinningBoxes : GameBenchmark
+    public partial class BenchmarkManySpinningBoxes : GameBenchmark
     {
-        private TestGame game;
+        private TestGame game = null!;
 
         [Test]
         [Benchmark]
@@ -45,9 +45,9 @@ namespace osu.Framework.Benchmarks
 
         protected override Game CreateGame() => game = new TestGame();
 
-        private class TestGame : Game
+        private partial class TestGame : Game
         {
-            public Container MainContent;
+            public Container MainContent = null!;
 
             protected override void LoadComplete()
             {

@@ -1,11 +1,13 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.ListExtensions;
 using osu.Framework.Extensions.TypeExtensions;
@@ -20,6 +22,7 @@ using osu.Framework.Lists;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
+using osu.Framework.Threading;
 using osuTK;
 using osuTK.Input;
 using JoystickState = osu.Framework.Input.States.JoystickState;
@@ -28,7 +31,7 @@ using MouseState = osu.Framework.Input.States.MouseState;
 
 namespace osu.Framework.Input
 {
-    public abstract class InputManager : Container, IInputStateChangeHandler
+    public abstract partial class InputManager : Container, IInputStateChangeHandler, IFocusManager
     {
         /// <summary>
         /// The initial delay before key repeat begins.
@@ -134,7 +137,10 @@ namespace osu.Framework.Input
         private readonly Dictionary<Key, KeyEventManager> keyButtonEventManagers = new Dictionary<Key, KeyEventManager>();
         private readonly Dictionary<TouchSource, TouchEventManager> touchEventManagers = new Dictionary<TouchSource, TouchEventManager>();
         private readonly Dictionary<TabletPenButton, TabletPenButtonEventManager> tabletPenButtonEventManagers = new Dictionary<TabletPenButton, TabletPenButtonEventManager>();
-        private readonly Dictionary<TabletAuxiliaryButton, TabletAuxiliaryButtonEventManager> tabletAuxiliaryButtonEventManagers = new Dictionary<TabletAuxiliaryButton, TabletAuxiliaryButtonEventManager>();
+
+        private readonly Dictionary<TabletAuxiliaryButton, TabletAuxiliaryButtonEventManager> tabletAuxiliaryButtonEventManagers =
+            new Dictionary<TabletAuxiliaryButton, TabletAuxiliaryButtonEventManager>();
+
         private readonly Dictionary<JoystickButton, JoystickButtonEventManager> joystickButtonEventManagers = new Dictionary<JoystickButton, JoystickButtonEventManager>();
         private readonly Dictionary<MidiKey, MidiKeyEventManager> midiKeyEventManagers = new Dictionary<MidiKey, MidiKeyEventManager>();
 
@@ -145,17 +151,23 @@ namespace osu.Framework.Input
         /// </summary>
         protected virtual bool MapMouseToLatestTouch => true;
 
+        /// <summary>
+        /// Whether long touches should produce right mouse click, if mouse is mapped to touch.
+        /// </summary>
+        protected virtual bool AllowRightClickFromLongTouch => true;
+
         protected InputManager()
         {
             CurrentState = CreateInitialState();
             RelativeSizeAxes = Axes.Both;
 
-            foreach (var button in Enum.GetValues(typeof(MouseButton)).Cast<MouseButton>())
+            foreach (var button in Enum.GetValues<MouseButton>())
             {
                 var manager = CreateButtonEventManagerFor(button);
-                manager.RequestFocus = ChangeFocusFromClick;
+
+                manager.InputManager = this;
                 manager.GetInputQueue = () => PositionalInputQueue;
-                manager.GetCurrentTime = () => Time.Current;
+
                 mouseButtonEventManagers.Add(button, manager);
             }
         }
@@ -212,6 +224,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(key);
+            manager.InputManager = this;
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return keyButtonEventManagers[key] = manager;
         }
@@ -234,6 +247,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(source);
+            manager.InputManager = this;
             manager.GetInputQueue = () => buildPositionalInputQueue(CurrentState.Touch.TouchPositions[(int)source]);
             return touchEventManagers[source] = manager;
         }
@@ -256,6 +270,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(button);
+            manager.InputManager = this;
             manager.GetInputQueue = () => PositionalInputQueue;
             return tabletPenButtonEventManagers[button] = manager;
         }
@@ -278,6 +293,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(button);
+            manager.InputManager = this;
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return tabletAuxiliaryButtonEventManagers[button] = manager;
         }
@@ -300,6 +316,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(button);
+            manager.InputManager = this;
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return joystickButtonEventManagers[button] = manager;
         }
@@ -322,6 +339,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(key);
+            manager.InputManager = this;
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return midiKeyEventManagers[key] = manager;
         }
@@ -348,17 +366,17 @@ namespace osu.Framework.Input
             return joystickAxisEventManagers[source] = manager;
         }
 
-        /// <summary>
-        /// Reset current focused drawable to the top-most drawable which is <see cref="Drawable.RequestsFocus"/>.
-        /// </summary>
-        /// <param name="triggerSource">The source which triggered this event.</param>
+        [Obsolete("This method does not allow trapping focus. Use GetContainingFocusManager().TriggerFocusContention instead.")] // Can be removed 20241118
         public void TriggerFocusContention(Drawable triggerSource)
         {
             if (FocusedDrawable == null) return;
 
             Logger.Log($"Focus contention triggered by {triggerSource}.");
-            ChangeFocus(null);
+            changeFocus(null);
         }
+
+        [Obsolete("This method does not allow trapping focus. Use GetContainingFocusManager().ChangeFocus() instead.")] // Can be removed 20241118
+        public bool ChangeFocus(Drawable potentialFocusTarget) => changeFocus(potentialFocusTarget);
 
         /// <summary>
         /// Changes the currently-focused drawable. First checks that <paramref name="potentialFocusTarget"/> is in a valid state to receive focus,
@@ -368,7 +386,7 @@ namespace osu.Framework.Input
         /// </summary>
         /// <param name="potentialFocusTarget">The drawable to become focused.</param>
         /// <returns>True if the given drawable is now focused (or focus is dropped in the case of a null target).</returns>
-        public bool ChangeFocus(Drawable potentialFocusTarget) => ChangeFocus(potentialFocusTarget, CurrentState);
+        private bool changeFocus(Drawable potentialFocusTarget) => ChangeFocus(potentialFocusTarget, CurrentState);
 
         /// <summary>
         /// Changes the currently-focused drawable. First checks that <paramref name="potentialFocusTarget"/> is in a valid state to receive focus,
@@ -384,7 +402,7 @@ namespace osu.Framework.Input
             if (potentialFocusTarget == FocusedDrawable)
                 return true;
 
-            if (potentialFocusTarget != null && (!potentialFocusTarget.IsPresent || !potentialFocusTarget.AcceptsFocus))
+            if (potentialFocusTarget != null && (!isDrawableValidForFocus(potentialFocusTarget) || !potentialFocusTarget.AcceptsFocus))
                 return false;
 
             var previousFocus = FocusedDrawable;
@@ -394,7 +412,7 @@ namespace osu.Framework.Input
             if (previousFocus != null)
             {
                 previousFocus.HasFocus = false;
-                previousFocus.TriggerEvent(new FocusLostEvent(state));
+                previousFocus.TriggerEvent(new FocusLostEvent(state, potentialFocusTarget));
 
                 if (FocusedDrawable != null) throw new InvalidOperationException($"Focus cannot be changed inside {nameof(OnFocusLost)}");
             }
@@ -406,7 +424,7 @@ namespace osu.Framework.Input
             if (FocusedDrawable != null)
             {
                 FocusedDrawable.HasFocus = true;
-                FocusedDrawable.TriggerEvent(new FocusEvent(state));
+                FocusedDrawable.TriggerEvent(new FocusEvent(state, previousFocus));
             }
 
             return true;
@@ -426,7 +444,7 @@ namespace osu.Framework.Input
 
         private readonly List<Drawable> highFrequencyDrawables = new List<Drawable>();
 
-        private MouseMoveEvent highFrequencyMoveEvent;
+        private MouseMoveEvent lastMouseMove;
 
         protected override void Update()
         {
@@ -440,10 +458,11 @@ namespace osu.Framework.Input
 
             var pendingInputs = GetPendingInputs();
 
+            if (pendingInputs.Count > 0)
+                lastMouseMove = null;
+
             foreach (var result in pendingInputs)
-            {
                 result.Apply(CurrentState, this);
-            }
 
             if (CurrentState.Mouse.IsPositionValid)
             {
@@ -459,10 +478,9 @@ namespace osu.Framework.Input
                 {
                     // conditional avoid allocs of MouseMoveEvent when state is guaranteed to not have been mutated.
                     // can be removed if we pool/change UIEvent allocation to be more efficient.
-                    if (highFrequencyMoveEvent == null || pendingInputs.Count > 0)
-                        highFrequencyMoveEvent = new MouseMoveEvent(CurrentState);
+                    lastMouseMove ??= new MouseMoveEvent(CurrentState);
 
-                    PropagateBlockableEvent(highFrequencyDrawables.AsSlimReadOnly(), highFrequencyMoveEvent);
+                    PropagateBlockableEvent(highFrequencyDrawables.AsSlimReadOnly(), lastMouseMove);
                 }
 
                 highFrequencyDrawables.Clear();
@@ -575,8 +593,12 @@ namespace osu.Framework.Input
                 FrameStatistics.Increment(StatisticsCounterType.InputQueue);
 
             var children = AliveInternalChildren;
+
             for (int i = 0; i < children.Count; i++)
-                children[i].BuildNonPositionalInputQueue(inputQueue);
+            {
+                if (ShouldBeConsideredForInput(children[i]))
+                    children[i].BuildNonPositionalInputQueue(inputQueue);
+            }
 
             if (!unfocusIfNoLongerValid())
             {
@@ -602,8 +624,12 @@ namespace osu.Framework.Input
                 FrameStatistics.Increment(StatisticsCounterType.PositionalIQ);
 
             var children = AliveInternalChildren;
+
             for (int i = 0; i < children.Count; i++)
-                children[i].BuildPositionalInputQueue(screenSpacePos, positionalInputQueue);
+            {
+                if (ShouldBeConsideredForInput(children[i]))
+                    children[i].BuildPositionalInputQueue(screenSpacePos, positionalInputQueue);
+            }
 
             positionalInputQueue.Reverse();
             return positionalInputQueue.AsSlimReadOnly();
@@ -713,6 +739,38 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
+        /// The number of touches which are currently active, causing a single cumulative "mouse down" state.
+        /// </summary>
+        private readonly HashSet<TouchSource> mouseMappedTouchesDown = new HashSet<TouchSource>();
+
+        private const double touch_right_click_delay = 750;
+        private const double touch_right_click_distance = 100;
+
+        /// <summary>
+        /// Invoked when a touch long-press gesture has scheduled for triggering after the specified delay.
+        /// </summary>
+        public event Action<Vector2, double> TouchLongPressBegan;
+
+        /// <summary>
+        /// Invoked when an ongoing touch long-press gesture has been cancelled.
+        /// </summary>
+        public event Action TouchLongPressCancelled;
+
+        [CanBeNull]
+        private ScheduledDelegate touchLongPressDelegate;
+
+        /// <summary>
+        /// The current position of the long-press touch, if one was begun.
+        /// </summary>
+        private Vector2? touchLongPressPosition;
+
+        /// <summary>
+        /// Whether the current touch state is eligible for performing a long-press gesture.
+        /// This is set to true once a single touch is pressed, and can be invalidated before the gesture is triggered.
+        /// </summary>
+        private bool validForLongPress;
+
+        /// <summary>
         /// Handles latest activated touch state change event to produce mouse input from.
         /// </summary>
         /// <param name="e">The latest activated touch state change event.</param>
@@ -730,8 +788,86 @@ namespace osu.Framework.Input
                 }.Apply(CurrentState, this);
             }
 
-            new MouseButtonInputFromTouch(MouseButton.Left, e.State.Touch.ActiveSources.HasAnyButtonPressed, e).Apply(CurrentState, this);
+            if (e.IsActive != null)
+            {
+                if (e.IsActive == true)
+                    mouseMappedTouchesDown.Add(e.Touch.Source);
+                else
+                    mouseMappedTouchesDown.Remove(e.Touch.Source);
+
+                updateTouchMouseLeft(e);
+            }
+
+            updateTouchMouseRight(e);
             return true;
+        }
+
+        private void updateTouchMouseLeft(TouchStateChangeEvent e)
+        {
+            if (mouseMappedTouchesDown.Count > 0)
+                new MouseButtonInputFromTouch(MouseButton.Left, true, e).Apply(CurrentState, this);
+            else
+                new MouseButtonInputFromTouch(MouseButton.Left, false, e).Apply(CurrentState, this);
+        }
+
+        private void updateTouchMouseRight(TouchStateChangeEvent e)
+        {
+            if (!AllowRightClickFromLongTouch)
+                return;
+
+            // if a touch was pressed/released in this event, reset gesture validity state.
+            if (e.IsActive != null)
+                validForLongPress = e.IsActive == true && mouseMappedTouchesDown.Count == 1;
+
+            bool gestureActive = touchLongPressDelegate != null;
+
+            if (gestureActive)
+            {
+                Debug.Assert(touchLongPressPosition != null);
+
+                // if a gesture was active and the user moved away from actuation point, invalidate gesture.
+                if (Vector2Extensions.Distance(touchLongPressPosition.Value, e.Touch.Position) > touch_right_click_distance)
+                    validForLongPress = false;
+
+                if (!validForLongPress)
+                    cancelTouchLongPress();
+            }
+            else
+            {
+                if (validForLongPress)
+                    beginTouchLongPress(e);
+            }
+        }
+
+        private void beginTouchLongPress(TouchStateChangeEvent e)
+        {
+            touchLongPressPosition = e.Touch.Position;
+
+            TouchLongPressBegan?.Invoke(e.Touch.Position, touch_right_click_delay);
+            touchLongPressDelegate = Scheduler.AddDelayed(() =>
+            {
+                new MousePositionAbsoluteInputFromTouch(e) { Position = e.Touch.Position }.Apply(CurrentState, this);
+                new MouseButtonInputFromTouch(MouseButton.Right, true, e).Apply(CurrentState, this);
+                new MouseButtonInputFromTouch(MouseButton.Right, false, e).Apply(CurrentState, this);
+
+                // the touch actuated a long-press, releasing it should not perform a click.
+                GetButtonEventManagerFor(MouseButton.Left).BlockNextClick = true;
+
+                touchLongPressDelegate = null;
+                validForLongPress = false;
+            }, touch_right_click_delay);
+        }
+
+        private void cancelTouchLongPress()
+        {
+            Debug.Assert(touchLongPressDelegate != null);
+
+            touchLongPressPosition = null;
+
+            touchLongPressDelegate.Cancel();
+            touchLongPressDelegate = null;
+
+            TouchLongPressCancelled?.Invoke();
         }
 
         protected virtual void HandleTabletPenButtonStateChange(ButtonStateChangeEvent<TabletPenButton> tabletPenButtonStateChange)
@@ -837,9 +973,10 @@ namespace osu.Framework.Input
                 manager.HandleButtonStateChange(e.State, e.Kind);
         }
 
-        private bool handleMouseMove(InputState state, Vector2 lastPosition) => PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, lastPosition));
+        private bool handleMouseMove(InputState state, Vector2 lastPosition) => PropagateBlockableEvent(PositionalInputQueue, lastMouseMove = new MouseMoveEvent(state, lastPosition));
 
-        private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise) => PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));
+        private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise) =>
+            PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));
 
         /// <summary>
         /// Triggers events on drawables in <paramref name="drawables"/> until it is handled.
@@ -872,9 +1009,9 @@ namespace osu.Framework.Input
                 case KeyDownEvent k:
                     return !k.Repeat;
 
-                case DragEvent _:
-                case ScrollEvent _:
-                case MouseMoveEvent _:
+                case DragEvent:
+                case ScrollEvent:
+                case MouseMoveEvent:
                     return false;
 
                 default:
@@ -890,18 +1027,28 @@ namespace osu.Framework.Input
         {
             if (FocusedDrawable == null) return true;
 
-            bool stillValid = FocusedDrawable.IsAlive && FocusedDrawable.IsPresent && FocusedDrawable.Parent != null;
+            if (isDrawableValidForFocus(FocusedDrawable))
+                return false;
 
-            if (stillValid)
+            Logger.Log($"Focus on \"{FocusedDrawable}\" no longer valid as a result of {nameof(unfocusIfNoLongerValid)}.", LoggingTarget.Runtime, LogLevel.Debug);
+            changeFocus(null);
+            return true;
+        }
+
+        private bool isDrawableValidForFocus(Drawable drawable)
+        {
+            bool valid = drawable.IsAlive && drawable.IsPresent && drawable.Parent != null;
+
+            if (valid)
             {
                 //ensure we are visible
-                CompositeDrawable d = FocusedDrawable.Parent;
+                CompositeDrawable d = drawable.Parent;
 
                 while (d != null)
                 {
                     if (!d.IsPresent || !d.IsAlive)
                     {
-                        stillValid = false;
+                        valid = false;
                         break;
                     }
 
@@ -909,15 +1056,10 @@ namespace osu.Framework.Input
                 }
             }
 
-            if (stillValid)
-                return false;
-
-            Logger.Log($"Focus on \"{FocusedDrawable}\" no longer valid as a result of {nameof(unfocusIfNoLongerValid)}.", LoggingTarget.Runtime, LogLevel.Debug);
-            ChangeFocus(null);
-            return true;
+            return valid;
         }
 
-        protected virtual void ChangeFocusFromClick(Drawable clickedDrawable)
+        protected internal virtual void ChangeFocusFromClick(Drawable clickedDrawable)
         {
             Drawable focusTarget = null;
 
@@ -948,7 +1090,7 @@ namespace osu.Framework.Input
                 }
             }
 
-            ChangeFocus(focusTarget);
+            changeFocus(focusTarget);
         }
 
         private void focusTopMostRequestingDrawable()
@@ -958,12 +1100,12 @@ namespace osu.Framework.Input
             {
                 if (d.RequestsFocus)
                 {
-                    ChangeFocus(d);
+                    changeFocus(d);
                     return;
                 }
             }
 
-            ChangeFocus(null);
+            changeFocus(null);
         }
 
         private class MouseLeftButtonEventManager : MouseButtonEventManager

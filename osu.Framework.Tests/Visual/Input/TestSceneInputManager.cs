@@ -1,11 +1,14 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
@@ -17,7 +20,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneInputManager : FrameworkTestScene
+    public partial class TestSceneInputManager : FrameworkTestScene
     {
         public TestSceneInputManager()
         {
@@ -57,7 +60,7 @@ namespace osu.Framework.Tests.Visual.Input
             });
         }
 
-        public class SmallText : SpriteText
+        public partial class SmallText : SpriteText
         {
             public SmallText()
             {
@@ -65,12 +68,15 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        public class ContainingInputManagerStatusText : Container
+        public partial class ContainingInputManagerStatusText : Container
         {
             private readonly SpriteText inputManagerStatus,
                                         mouseStatus,
                                         keyboardStatus,
                                         joystickStatus,
+                                        touchStatus,
+                                        midiStatus,
+                                        tabletStatus,
                                         onMouseDownStatus,
                                         onMouseUpStatus,
                                         onMouseMoveStatus,
@@ -97,6 +103,9 @@ namespace osu.Framework.Tests.Visual.Input
                             mouseStatus = new SmallText(),
                             keyboardStatus = new SmallText(),
                             joystickStatus = new SmallText(),
+                            touchStatus = new SmallText(),
+                            midiStatus = new SmallText(),
+                            tabletStatus = new SmallText(),
                             onMouseDownStatus = new SmallText { Text = "OnMouseDown 0" },
                             onMouseUpStatus = new SmallText { Text = "OnMouseUp 0" },
                             onMouseMoveStatus = new SmallText { Text = "OnMouseMove 0" },
@@ -110,12 +119,14 @@ namespace osu.Framework.Tests.Visual.Input
             protected override void Update()
             {
                 var inputManager = GetContainingInputManager();
-                var currentState = inputManager.CurrentState;
-                var mouse = currentState.Mouse;
+                var currentState = inputManager!.CurrentState;
                 inputManagerStatus.Text = $"{inputManager}";
-                mouseStatus.Text = $"Mouse: {mouse.Position} {mouse.Scroll} " + string.Join(' ', mouse.Buttons);
+                mouseStatus.Text = $"Mouse: {currentState.Mouse.Position} {currentState.Mouse.Scroll} " + string.Join(' ', currentState.Mouse.Buttons);
                 keyboardStatus.Text = "Keyboard: " + string.Join(' ', currentState.Keyboard.Keys);
                 joystickStatus.Text = "Joystick: " + string.Join(' ', currentState.Joystick.Buttons);
+                touchStatus.Text = $"Touch: {string.Join(' ', currentState.Touch.ActiveSources.Select(s => $"({s},{currentState.Touch.GetTouchPosition(s)})"))}";
+                midiStatus.Text = "MIDI: " + string.Join(' ', currentState.Midi.Keys.Select(k => $"({k},{currentState.Midi.Velocities[k]})"));
+                tabletStatus.Text = "Tablet: " + string.Join(' ', currentState.Tablet.PenButtons) + " " + string.Join(' ', currentState.Tablet.AuxiliaryButtons);
                 base.Update();
             }
 
@@ -164,6 +175,14 @@ namespace osu.Framework.Tests.Visual.Input
                 return base.OnHover(e);
             }
 
+            public int KeyDownCount;
+
+            protected override bool OnKeyDown(KeyDownEvent e)
+            {
+                ++KeyDownCount;
+                return base.OnKeyDown(e);
+            }
+
             protected override bool OnClick(ClickEvent e)
             {
                 this.MoveToOffset(new Vector2(100, 0)).Then().MoveToOffset(new Vector2(-100, 0), 1000, Easing.In);
@@ -180,18 +199,23 @@ namespace osu.Framework.Tests.Visual.Input
         [BackgroundDependencyLoader]
         private void load()
         {
-            AddSliderStep("Cursor sensivity", 0.5, 5, 1, setCursorSensivityConfig);
-            setCursorSensivityConfig(1);
+            AddSliderStep("Cursor sensitivity", 0.5, 5, 1, setCursorSensitivityConfig);
+            setCursorSensitivityConfig(1);
             AddToggleStep("Toggle relative mode", setRelativeMode);
-            AddToggleStep("Toggle ConfineMouseMode", setConfineMouseModeConfig);
+            AddStep("Set confine to Never", () => setConfineMouseModeConfig(ConfineMouseMode.Never));
+            AddStep("Set confine to Fullscreen", () => setConfineMouseModeConfig(ConfineMouseMode.Fullscreen));
+            AddStep("Set confine to Always", () => setConfineMouseModeConfig(ConfineMouseMode.Always));
             AddToggleStep("Toggle cursor visibility", setCursorVisibility);
+            AddToggleStep("Toggle cursor confine rect", setCursorConfineRect);
 
             setRelativeMode(false);
-            setConfineMouseModeConfig(false);
+            setConfineMouseModeConfig(ConfineMouseMode.Never);
+            setCursorConfineRect(false);
+
             AddStep("Reset handlers", () => host.ResetInputHandlers());
         }
 
-        private void setCursorSensivityConfig(double sensitivity)
+        private void setCursorSensitivityConfig(double sensitivity)
         {
             var mouseHandler = getMouseHandler();
 
@@ -227,9 +251,25 @@ namespace osu.Framework.Tests.Visual.Input
                 host.Window.CursorState |= CursorState.Hidden;
         }
 
-        private void setConfineMouseModeConfig(bool enabled)
+        private void setConfineMouseModeConfig(ConfineMouseMode mode)
         {
-            config.SetValue(FrameworkSetting.ConfineMouseMode, enabled ? ConfineMouseMode.Always : ConfineMouseMode.Fullscreen);
+            config.SetValue(FrameworkSetting.ConfineMouseMode, mode);
+        }
+
+        private void setCursorConfineRect(bool enabled)
+        {
+            if (host.Window == null)
+                return;
+
+            host.Window.CursorConfineRect = enabled
+                ? new RectangleF
+                {
+                    X = host.Window.ClientSize.Width / 6f,
+                    Y = host.Window.ClientSize.Height / 6f,
+                    Width = host.Window.ClientSize.Width * 2 / 3f,
+                    Height = host.Window.ClientSize.Height * 2 / 3f,
+                }
+                : null;
         }
     }
 }

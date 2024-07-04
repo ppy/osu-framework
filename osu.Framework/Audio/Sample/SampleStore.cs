@@ -1,8 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -17,25 +18,27 @@ namespace osu.Framework.Audio.Sample
 {
     internal class SampleStore : AudioCollectionManager<AdjustableAudioComponent>, ISampleStore
     {
-        private readonly IResourceStore<byte[]> store;
+        private readonly ResourceStore<byte[]> store;
         private readonly AudioMixer mixer;
 
-        private readonly ConcurrentDictionary<string, SampleBassFactory> factories = new ConcurrentDictionary<string, SampleBassFactory>();
+        private readonly Dictionary<string, SampleBassFactory> factories = new Dictionary<string, SampleBassFactory>();
 
         public int PlaybackConcurrency { get; set; } = Sample.DEFAULT_CONCURRENCY;
 
         internal SampleStore([NotNull] IResourceStore<byte[]> store, [NotNull] AudioMixer mixer)
         {
-            this.store = store;
+            this.store = new ResourceStore<byte[]>(store);
             this.mixer = mixer;
 
-            (store as ResourceStore<byte[]>)?.AddExtension(@"wav");
-            (store as ResourceStore<byte[]>)?.AddExtension(@"mp3");
+            AddExtension(@"wav");
+            AddExtension(@"mp3");
         }
+
+        public void AddExtension(string extension) => store.AddExtension(extension);
 
         public Sample Get(string name)
         {
-            if (IsDisposed) throw new ObjectDisposedException($"Cannot retrieve items for an already disposed {nameof(SampleStore)}");
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
             if (string.IsNullOrEmpty(name)) return null;
 
@@ -46,7 +49,7 @@ namespace osu.Framework.Audio.Sample
                     this.LogIfNonBackgroundThread(name);
 
                     byte[] data = store.Get(name);
-                    factory = factories[name] = data == null ? null : new SampleBassFactory(data, (BassAudioMixer)mixer) { PlaybackConcurrency = { Value = PlaybackConcurrency } };
+                    factory = factories[name] = data == null ? null : new SampleBassFactory(data, name, (BassAudioMixer)mixer) { PlaybackConcurrency = { Value = PlaybackConcurrency } };
 
                     if (factory != null)
                         AddItem(factory);

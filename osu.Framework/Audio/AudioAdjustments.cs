@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Bindables;
 
@@ -12,7 +14,7 @@ namespace osu.Framework.Audio
     /// </summary>
     public class AudioAdjustments : IAdjustableAudioComponent
     {
-        private static readonly AdjustableProperty[] all_adjustments = (AdjustableProperty[])Enum.GetValues(typeof(AdjustableProperty));
+        private static readonly AdjustableProperty[] all_adjustments = Enum.GetValues<AdjustableProperty>();
 
         /// <summary>
         /// The volume of this component.

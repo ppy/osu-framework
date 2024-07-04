@@ -6,7 +6,7 @@ using osu.Framework.Input.Bindings;
 
 namespace osu.Framework.Input
 {
-    internal class FrameworkActionContainer : KeyBindingContainer<FrameworkAction>
+    internal partial class FrameworkActionContainer : KeyBindingContainer<FrameworkAction>
     {
         public override IEnumerable<IKeyBinding> DefaultKeyBindings => new[]
         {

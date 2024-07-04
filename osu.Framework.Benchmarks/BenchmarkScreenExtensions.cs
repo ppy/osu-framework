@@ -7,9 +7,9 @@ using osu.Framework.Screens;
 
 namespace osu.Framework.Benchmarks
 {
-    public class BenchmarkScreenExtensions : GameBenchmark
+    public partial class BenchmarkScreenExtensions : GameBenchmark
     {
-        private Screen testScreen;
+        private Screen testScreen = null!;
 
         [Test]
         [Benchmark]
@@ -17,7 +17,7 @@ namespace osu.Framework.Benchmarks
 
         protected override Game CreateGame() => new TestGame(testScreen = new Screen());
 
-        private class TestGame : Game
+        private partial class TestGame : Game
         {
             private readonly Screen screen;
 

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,22 +12,24 @@ using System.IO;
 using System.Linq;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using osuTK;
-using osuTK.Graphics;
-using osuTK.Graphics.ES30;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
+using osu.Framework.Extensions;
+using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Deferred;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
@@ -35,14 +39,13 @@ using osu.Framework.Threading;
 using osu.Framework.Timing;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Veldrid;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Serialization;
 using osu.Framework.IO.Stores;
-using SixLabors.ImageSharp.Memory;
-using Image = SixLabors.ImageSharp.Image;
-using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
+using osu.Framework.Localisation;
+using Rectangle = System.Drawing.Rectangle;
 using Size = System.Drawing.Size;
 
 namespace osu.Framework.Platform
@@ -50,6 +53,21 @@ namespace osu.Framework.Platform
     public abstract class GameHost : IIpcHost, IDisposable
     {
         public IWindow Window { get; private set; }
+
+        /// <summary>
+        /// Whether <see cref="Window"/> needs to be non-null for startup to succeed.
+        /// </summary>
+        protected virtual bool RequireWindowExists => true;
+
+        public IRenderer Renderer { get; private set; }
+
+        public string RendererInfo { get; private set; }
+
+        /// <summary>
+        /// Whether "unlimited" frame limiter should be allowed to exceed sane limits.
+        /// Only use this for benchmarking purposes (see <see cref="maximum_sane_fps"/> for further reasoning).
+        /// </summary>
+        public bool AllowBenchmarkUnlimitedFrames { get; set; }
 
         protected FrameworkDebugConfigManager DebugConfig { get; private set; }
 
@@ -85,7 +103,13 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Action Deactivated;
 
-        public event Func<bool> Exiting;
+        /// <summary>
+        /// Invoked when an exit was requested. Always invoked from the update thread.
+        /// </summary>
+        /// <remarks>
+        /// Usually invoked when the window close (X) button or another platform-native exit action has been pressed.
+        /// </remarks>
+        public event Action ExitRequested;
 
         public event Action Exited;
 
@@ -94,6 +118,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Func<Exception, bool> ExceptionThrown;
 
+        [CanBeNull]
         public event Func<IpcMessage, IpcMessage> MessageReceived;
 
         /// <summary>
@@ -104,36 +129,48 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Whether this host can exit (mobile platforms, for instance, do not support exiting the app).
         /// </summary>
+        /// <remarks>Also see <see cref="CanSuspendToBackground"/>.</remarks>
         public virtual bool CanExit => true;
 
         /// <summary>
-        /// Whether memory constraints should be considered before performance concerns.
+        /// Whether this host can suspend and minimize to background.
         /// </summary>
-        protected virtual bool LimitedMemoryEnvironment => false;
+        /// <remarks>
+        /// This and <see cref="SuspendToBackground"/> are an alternative way to exit on hosts that have <see cref="CanExit"/> <c>false</c>.
+        /// </remarks>
+        public virtual bool CanSuspendToBackground => false;
 
         protected IpcMessage OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
         public virtual Task SendMessageAsync(IpcMessage message) => throw new NotSupportedException("This platform does not implement IPC.");
 
         /// <summary>
-        /// Requests that a file be opened externally with an associated application, if available.
+        /// Requests that a file or folder be opened externally with an associated application, if available.
         /// </summary>
+        /// <remarks>
+        /// Some platforms do not support interacting with files externally (ie. mobile or sandboxed platforms), check the return value to discern whether it succeeded.
+        /// </remarks>
         /// <param name="filename">The absolute path to the file which should be opened.</param>
-        public abstract void OpenFileExternally(string filename);
+        /// <returns>Whether the file was successfully opened.</returns>
+        public abstract bool OpenFileExternally(string filename);
 
         /// <summary>
         /// Requests to present a file externally in the platform's native file browser.
         /// </summary>
         /// <remarks>
         /// This will open the parent folder and, (if available) highlight the file.
+        /// Some platforms do not support interacting with files externally (ie. mobile or sandboxed platforms), check the return value to discern whether it succeeded.
+        ///
+        /// If a folder path is provided to this method, it will prefer highlighting the folder in the parent folder, rather than showing the contents.
+        /// To display the contents of a folder, use <see cref="OpenFileExternally"/> instead.
         /// </remarks>
         /// <example>
         ///     <para>"C:\Windows\explorer.exe" -> opens 'C:\Windows' and highlights 'explorer.exe' in the window.</para>
         ///     <para>"C:\Windows\System32" -> opens 'C:\Windows' and highlights 'System32' in the window.</para>
-        ///     <para>"C:\Windows\System32\" -> opens 'C:\Windows\System32' and highlights nothing.</para>
         /// </example>
         /// <param name="filename">The absolute path to the file/folder to be shown in its parent folder.</param>
-        public abstract void PresentFileExternally(string filename);
+        /// <returns>Whether the file was successfully presented.</returns>
+        public abstract bool PresentFileExternally(string filename);
 
         /// <summary>
         /// Requests that a URL be opened externally in a web browser, if available.
@@ -142,12 +179,14 @@ namespace osu.Framework.Platform
         public abstract void OpenUrlExternally(string url);
 
         /// <summary>
-        /// Creates the game window for the host. Should be implemented per-platform if required.
+        /// Creates the game window for the host.
         /// </summary>
-        protected virtual IWindow CreateWindow() => null;
+        protected abstract IWindow CreateWindow(GraphicsSurfaceType preferredSurface);
 
-        [CanBeNull]
-        public virtual Clipboard GetClipboard() => null;
+        [Obsolete($"Resolve {nameof(Clipboard)} via DI.")] // can be removed 20231010
+        public Clipboard GetClipboard() => Dependencies.Get<Clipboard>();
+
+        protected abstract Clipboard CreateClipboard();
 
         protected virtual ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new ReadableKeyCombinationProvider();
 
@@ -170,7 +209,9 @@ namespace osu.Framework.Platform
         /// <summary>
         /// All valid user storage paths in order of usage priority.
         /// </summary>
-        public virtual IEnumerable<string> UserStoragePaths => Environment.GetFolderPath(Environment.SpecialFolder.Personal).Yield();
+        public virtual IEnumerable<string> UserStoragePaths
+            // This is common to _most_ operating systems, with some specific ones overriding this value where a better option exists.
+            => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create).Yield();
 
         /// <summary>
         /// The main storage as proposed by the host game.
@@ -199,7 +240,9 @@ namespace osu.Framework.Platform
 
             thread.IsActive.BindTo(IsActive);
             thread.UnhandledException = unhandledExceptionHandler;
-            thread.Monitor.EnablePerformanceProfiling = PerformanceLogging.Value;
+
+            if (thread.Monitor != null)
+                thread.Monitor.EnablePerformanceProfiling = PerformanceLogging.Value;
         }
 
         /// <summary>
@@ -219,7 +262,7 @@ namespace osu.Framework.Platform
         public InputThread InputThread { get; private set; }
         public AudioThread AudioThread { get; private set; }
 
-        private double maximumUpdateHz;
+        private double maximumUpdateHz = GameThread.DEFAULT_ACTIVE_HZ;
 
         /// <summary>
         /// The target number of update frames per second when the game window is active.
@@ -233,7 +276,7 @@ namespace osu.Framework.Platform
             set => threadRunner.MaximumUpdateHz = UpdateThread.ActiveHz = maximumUpdateHz = value;
         }
 
-        private double maximumDrawHz;
+        private double maximumDrawHz = GameThread.DEFAULT_ACTIVE_HZ;
 
         /// <summary>
         /// The target number of draw frames per second when the game window is active.
@@ -244,8 +287,15 @@ namespace osu.Framework.Platform
         public double MaximumDrawHz
         {
             get => maximumDrawHz;
-            set => DrawThread.ActiveHz = maximumDrawHz = value;
+            set
+            {
+                maximumDrawHz = value;
+                if (DrawThread != null)
+                    DrawThread.ActiveHz = maximumDrawHz;
+            }
         }
+
+        private double maximumInactiveHz = GameThread.DEFAULT_INACTIVE_HZ;
 
         /// <summary>
         /// The target number of updates per second when the game window is inactive.
@@ -256,11 +306,12 @@ namespace osu.Framework.Platform
         /// </remarks>
         public double MaximumInactiveHz
         {
-            get => DrawThread.InactiveHz;
+            get => maximumInactiveHz;
             set
             {
-                DrawThread.InactiveHz = value;
-                threadRunner.MaximumInactiveHz = UpdateThread.InactiveHz = value;
+                threadRunner.MaximumInactiveHz = UpdateThread.InactiveHz = maximumInactiveHz = value;
+                if (DrawThread != null)
+                    DrawThread.InactiveHz = maximumInactiveHz;
             }
         }
 
@@ -271,14 +322,27 @@ namespace osu.Framework.Platform
 
         public string FullPath => fullPathBacking.Value;
 
-        protected string Name { get; }
+        /// <summary>
+        /// The name of the game to be hosted.
+        /// </summary>
+        public string Name { get; }
+
+        [NotNull]
+        public HostOptions Options { get; private set; }
 
         public DependencyContainer Dependencies { get; } = new DependencyContainer();
 
         private bool suspended;
 
-        protected GameHost(string gameName = @"")
+        protected GameHost([NotNull] string gameName, [CanBeNull] HostOptions options = null)
         {
+            Options = options ?? new HostOptions();
+
+            if (string.IsNullOrEmpty(Options.FriendlyGameName))
+            {
+                Options.FriendlyGameName = $@"osu!framework (running ""{gameName}"")";
+            }
+
             Name = gameName;
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
@@ -286,6 +350,8 @@ namespace osu.Framework.Platform
                 Converters = new List<JsonConverter> { new Vector2Converter() }
             };
         }
+
+        protected virtual IRenderer CreateGLRenderer() => new GLRenderer();
 
         /// <summary>
         /// Performs a GC collection and frees all framework caches.
@@ -307,8 +373,13 @@ namespace osu.Framework.Platform
 
         private void unobservedExceptionHandler(object sender, UnobservedTaskExceptionEventArgs args)
         {
+            var actualException = args.Exception.AsSingular();
+
             // unobserved exceptions are logged but left unhandled (most of the time they are not intended to be critical).
-            logException(args.Exception, "unobserved");
+            logException(actualException, "unobserved");
+
+            if (DebugUtils.IsNUnitRunning)
+                abortExecutionFromException(sender, actualException, false);
         }
 
         private void logException(Exception exception, string type)
@@ -334,8 +405,8 @@ namespace osu.Framework.Platform
 
             // In the case of an unhandled exception, it's feasible that the disposal flow for `GameHost` doesn't run.
             // This can result in the exception not being logged (or being partially logged) due to the logger running asynchronously.
-            // We force flushing the logger here to ensure logging completes.
-            Logger.Flush();
+            // We force flushing the logger here to ensure logging completes (and also unbind in the process since we're aborting execution from here).
+            Logger.FlushForShutdown();
 
             var captured = ExceptionDispatchInfo.Capture(exception);
             var thrownEvent = new ManualResetEventSlim(false);
@@ -363,7 +434,7 @@ namespace osu.Framework.Platform
                 // 1. When the exceptioning thread is GameThread.Input.
                 // 2. When the game is running in single-threaded mode. Single threaded stacks will be displayed correctly at the point of rethrow.
                 // 3. When the CLR is terminating. We can't guarantee the input thread is still running, and may delay application termination.
-                if (isTerminating || sender is GameThread && (sender == InputThread || executionMode.Value == ExecutionMode.SingleThread))
+                if (isTerminating || (sender is GameThread && (sender == InputThread || executionMode.Value == ExecutionMode.SingleThread)))
                     return;
 
                 // The process can deadlock in an extreme case such as the input thread dying before the delegate executes, so wait up to a maximum of 10 seconds at all times.
@@ -375,39 +446,16 @@ namespace osu.Framework.Platform
 
         protected virtual void OnDeactivated() => UpdateThread.Scheduler.Add(() => Deactivated?.Invoke());
 
-        /// <returns>true to cancel</returns>
-        protected virtual bool OnExitRequested()
-        {
-            if (ExecutionState <= ExecutionState.Stopping) return false;
-
-            bool? response = null;
-
-            UpdateThread.Scheduler.Add(delegate { response = Exiting?.Invoke() == true; });
-
-            //wait for a potentially blocking response
-            while (!response.HasValue)
-            {
-                if (ThreadSafety.ExecutionMode == ExecutionMode.SingleThread)
-                    threadRunner.RunMainLoop();
-                else
-                    Thread.Sleep(1);
-            }
-
-            if (response ?? false)
-                return true;
-
-            Exit();
-            return false;
-        }
+        protected void OnExitRequested() => UpdateThread.Scheduler.Add(() => ExitRequested?.Invoke());
 
         protected virtual void OnExited()
         {
             Exited?.Invoke();
         }
 
-        protected TripleBuffer<DrawNode> DrawRoots = new TripleBuffer<DrawNode>();
+        private readonly TripleBuffer<DrawNode> drawRoots = new TripleBuffer<DrawNode>();
 
-        protected Container Root;
+        internal Container Root { get; private set; }
 
         private ulong frameCount;
 
@@ -431,79 +479,91 @@ namespace osu.Framework.Platform
             TypePerformanceMonitor.NewFrame();
 
             Root.UpdateSubTree();
-            Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
+            Root.UpdateSubTreeMasking();
 
-            using (var buffer = DrawRoots.Get(UsageType.Write))
+            using (var buffer = drawRoots.GetForWrite())
                 buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
         }
 
-        private long lastDrawFrameId;
-
-        private readonly DepthValue depthValue = new DepthValue();
+        private bool didRenderFrame;
 
         protected virtual void DrawFrame()
         {
+            Debug.Assert(Window != null);
+
             if (Root == null)
                 return;
 
-            while (ExecutionState == ExecutionState.Running)
+            if (ExecutionState != ExecutionState.Running)
+                return;
+
+            if (Window.WindowState == WindowState.Minimised)
+                return;
+
+            Renderer.AllowTearing = windowMode.Value == WindowMode.Fullscreen;
+
+            TripleBuffer<DrawNode>.Buffer buffer;
+
+            using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
             {
-                using (var buffer = DrawRoots.Get(UsageType.Read))
-                {
-                    if (buffer?.Object == null || buffer.FrameId == lastDrawFrameId)
-                    {
-                        // if a buffer is not available in single threaded mode there's no point in looping.
-                        // in the general case this should never happen, but may occur during exception handling.
-                        if (executionMode.Value == ExecutionMode.SingleThread)
-                            break;
+                // Importantly, only wait on renderer frame availability if we actually rendered a frame since the last `WaitUntilNextFrameReady()`.
+                // Without this, the wait handle, internally used in the Veldrid-side implementation of `WaitUntilNextFrameReady()`,
+                // will potentially be in a bad state and take the timeout value (1 second) to recover.
+                if (didRenderFrame)
+                    Renderer.WaitUntilNextFrameReady();
 
-                        using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
-                            Thread.Sleep(1);
-
-                        continue;
-                    }
-
-                    using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
-                        GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
-
-                    if (!bypassFrontToBackPass.Value)
-                    {
-                        depthValue.Reset();
-
-                        GL.ColorMask(false, false, false, false);
-                        GLWrapper.SetBlend(BlendingParameters.None);
-                        GLWrapper.PushDepthInfo(DepthInfo.Default);
-
-                        // Front pass
-                        buffer.Object.DrawOpaqueInteriorSubTree(depthValue, null);
-
-                        GLWrapper.PopDepthInfo();
-                        GL.ColorMask(true, true, true, true);
-
-                        // The back pass doesn't write depth, but needs to depth test properly
-                        GLWrapper.PushDepthInfo(new DepthInfo(true, false));
-                    }
-                    else
-                    {
-                        // Disable depth testing
-                        GLWrapper.PushDepthInfo(new DepthInfo());
-                    }
-
-                    // Back pass
-                    buffer.Object.Draw(null);
-
-                    GLWrapper.PopDepthInfo();
-
-                    lastDrawFrameId = buffer.FrameId;
-                    break;
-                }
+                didRenderFrame = false;
+                buffer = drawRoots.GetForRead();
             }
 
-            GLWrapper.FlushCurrentBatch();
+            if (buffer == null)
+                return;
 
-            using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
+            Debug.Assert(buffer.Object != null);
+
+            try
             {
-                Swap();
+                using (drawMonitor.BeginCollecting(PerformanceCollectionType.DrawReset))
+                    Renderer.BeginFrame(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+
+                if (!bypassFrontToBackPass.Value)
+                {
+                    Renderer.SetBlend(BlendingParameters.None);
+
+                    Renderer.SetBlendMask(BlendingMask.None);
+                    Renderer.PushDepthInfo(DepthInfo.Default);
+
+                    // Front pass
+                    DrawNode.DrawOtherOpaqueInterior(buffer.Object, Renderer);
+
+                    Renderer.PopDepthInfo();
+                    Renderer.SetBlendMask(BlendingMask.All);
+
+                    // The back pass doesn't write depth, but needs to depth test properly
+                    Renderer.PushDepthInfo(new DepthInfo(true, false));
+                }
+                else
+                {
+                    // Disable depth testing
+                    Renderer.PushDepthInfo(new DepthInfo(false, false));
+                }
+
+                // Back pass
+                DrawNode.DrawOther(buffer.Object, Renderer);
+
+                Renderer.PopDepthInfo();
+
+                Renderer.FinishFrame();
+
+                using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
+                    Swap();
+
+                Window.OnDraw();
+                didRenderFrame = true;
+            }
+            finally
+            {
+                buffer.Dispose();
             }
         }
 
@@ -512,12 +572,12 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual void Swap()
         {
-            Window.SwapBuffers();
+            Renderer.SwapBuffers();
 
-            if (Window.VerticalSync)
-                // without glFinish, vsync is basically unplayable due to the extra latency introduced.
+            if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL && Renderer.VerticalSync)
+                // without waiting (i.e. glFinish), vsync is basically unplayable due to the extra latency introduced.
                 // we will likely want to give the user control over this in the future as an advanced setting.
-                GL.Finish();
+                Renderer.WaitUntilIdle();
         }
 
         /// <summary>
@@ -530,28 +590,20 @@ namespace osu.Framework.Platform
 
             using (var completionEvent = new ManualResetEventSlim(false))
             {
-                int width = Window.ClientSize.Width;
-                int height = Window.ClientSize.Height;
-                var pixelData = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<Rgba32>(width * height);
+                Image<Rgba32> image = null;
 
                 DrawThread.Scheduler.Add(() =>
                 {
-                    if (Window is SDL2DesktopWindow win)
-                        win.MakeCurrent();
-                    else if (GraphicsContext.CurrentContext == null)
-                        throw new GraphicsContextMissingException();
-
-                    GL.ReadPixels(0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(pixelData.Memory.Span));
+                    image = Renderer.TakeScreenshot();
 
                     // ReSharper disable once AccessToDisposedClosure
                     completionEvent.Set();
                 });
 
                 // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
-                await Task.Run(completionEvent.Wait).ConfigureAwait(false);
-
-                var image = Image.LoadPixelData<Rgba32>(pixelData.Memory.Span, width, height);
-                image.Mutate(c => c.Flip(FlipMode.Vertical));
+                // ReSharper disable once AccessToDisposedClosure
+                if (!await Task.Run(() => completionEvent.Wait(5000)).ConfigureAwait(false))
+                    throw new TimeoutException("Screenshot data did not arrive in a timely fashion");
 
                 return image;
             }
@@ -575,10 +627,24 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Schedules the game to exit in the next frame.
         /// </summary>
+        /// <remarks>Consider using <see cref="SuspendToBackground"/> on mobile platforms that can't exit normally.</remarks>
         public void Exit()
         {
             if (CanExit)
                 PerformExit(false);
+        }
+
+        /// <summary>
+        /// Suspends and minimizes the game to background.
+        /// </summary>
+        /// <remarks>
+        /// This is provided as an alternative to <see cref="Exit"/> on hosts that can't exit (see <see cref="CanExit"/>).
+        /// Should only be called if <see cref="CanSuspendToBackground"/> is <c>true</c>.
+        /// </remarks>
+        /// <returns><c>true</c> if the game was successfully suspended and minimized.</returns>
+        public virtual bool SuspendToBackground()
+        {
+            return false;
         }
 
         /// <summary>
@@ -626,12 +692,10 @@ namespace osu.Framework.Platform
                 Environment.FailFast($"{nameof(GameHost)}s should not be run on a TPL thread (use TaskCreationOptions.LongRunning).");
             }
 
-            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
-
-            if (LimitedMemoryEnvironment)
+            if (RuntimeInfo.IsDesktop)
             {
-                // recommended middle-ground https://github.com/SixLabors/docs/blob/master/articles/ImageSharp/MemoryManagement.md#working-in-memory-constrained-environments
-                SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateWithModeratePooling();
+                // Mono (netcore) throws for this property
+                GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
             }
 
             if (ExecutionState != ExecutionState.Idle)
@@ -656,47 +720,49 @@ namespace osu.Framework.Platform
                     Monitor = { HandleGC = true },
                 });
 
-                RegisterThread(DrawThread = new DrawThread(DrawFrame, this));
-
                 Trace.Listeners.Clear();
                 Trace.Listeners.Add(new ThrowingTraceListener());
 
-                var assembly = DebugUtils.GetEntryAssembly();
-
                 Logger.GameIdentifier = Name;
-                Logger.VersionIdentifier = assembly.GetName().Version?.ToString() ?? Logger.VersionIdentifier;
+                Logger.VersionIdentifier = RuntimeInfo.EntryAssembly.GetName().Version?.ToString() ?? Logger.VersionIdentifier;
 
                 Dependencies.CacheAs(this);
-
                 Dependencies.CacheAs(Storage = game.CreateStorage(this, GetDefaultGameStorage()));
 
                 CacheStorage = GetDefaultGameStorage().GetStorageForDirectory("cache");
 
                 SetupForRun();
 
-                Window = CreateWindow();
-
                 populateInputHandlers();
 
                 SetupConfig(game.GetFrameworkConfigDefaults() ?? new Dictionary<FrameworkSetting, object>());
 
+                ChooseAndSetupRenderer();
+
+                // Window creation may fail in the case of a catastrophic failure (ie. graphics driver or SDL3 level).
+                // In such cases, we want to throw here to immediately mark this renderer setup as failed.
+                if (RequireWindowExists && Window == null)
+                {
+                    Logger.Log("Aborting startup as no window could be created.");
+                    return;
+                }
+
                 initialiseInputHandlers();
 
-                if (Window != null)
+                // Prepare renderer (requires config).
+                Dependencies.CacheAs(Renderer);
+
+                RendererInfo = $"{Renderer.GetType().ReadableName().Replace("Renderer", "")} / {(Window?.GraphicsSurface.Type.ToString() ?? "headless")}";
+
+                RegisterThread(DrawThread = new DrawThread(DrawFrame, this)
                 {
-                    Window.SetupWindow(Config);
-
-                    Window.Create();
-                    Window.Title = $@"osu!framework (running ""{Name}"")";
-
-                    currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
-                    currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());
-
-                    IsActive.BindTo(Window.IsActive);
-                }
+                    ActiveHz = MaximumDrawHz,
+                    InactiveHz = MaximumInactiveHz,
+                });
 
                 Dependencies.CacheAs(readableKeyCombinationProvider = CreateReadableKeyCombinationProvider());
                 Dependencies.CacheAs(CreateTextInput());
+                Dependencies.CacheAs(CreateClipboard());
 
                 ExecutionState = ExecutionState.Running;
                 threadRunner.Start();
@@ -719,16 +785,10 @@ namespace osu.Framework.Platform
                 {
                     if (Window != null)
                     {
-                        switch (Window)
-                        {
-                            case SDL2DesktopWindow window:
-                                window.Update += windowUpdate;
-                                break;
-
-                            case OsuTKWindow tkWindow:
-                                tkWindow.UpdateFrame += (o, e) => windowUpdate();
-                                break;
-                        }
+                        Window.Update += windowUpdate;
+                        Window.Suspended += Suspend;
+                        Window.Resumed += Resume;
+                        Window.LowOnMemory += Collect;
 
                         Window.ExitRequested += OnExitRequested;
                         Window.Exited += OnExited;
@@ -760,6 +820,250 @@ namespace osu.Framework.Platform
                     host_running_mutex.Release();
                 }
             }
+        }
+
+        /// <summary>
+        /// The renderer which the game host is currently running with.
+        /// </summary>
+        /// <remarks>
+        /// This is similar to <see cref="IGraphicsSurface.Type"/> except that this is expressed as a <see cref="RendererType"/> rather than a <see cref="GraphicsSurfaceType"/>.
+        /// </remarks>
+        public RendererType ResolvedRenderer { get; private set; }
+
+        /// <summary>
+        /// All valid <see cref="RendererType"/>s for the current platform, in order of how stable and performant they are deemed to be.
+        /// </summary>
+        public IEnumerable<RendererType> GetPreferredRenderersForCurrentPlatform()
+        {
+            yield return RendererType.Automatic;
+
+            // Preferred per-platform renderers
+            switch (RuntimeInfo.OS)
+            {
+                case RuntimeInfo.Platform.Windows:
+                    yield return RendererType.Direct3D11;
+                    yield return RendererType.Deferred_Direct3D11;
+                    yield return RendererType.OpenGL;
+                    yield return RendererType.Deferred_Vulkan;
+
+                    break;
+
+                case RuntimeInfo.Platform.Linux:
+                    yield return RendererType.OpenGL;
+                    yield return RendererType.Deferred_OpenGL;
+                    yield return RendererType.Deferred_Vulkan;
+
+                    break;
+
+                case RuntimeInfo.Platform.macOS:
+                    yield return RendererType.Metal;
+                    yield return RendererType.Deferred_Metal;
+                    yield return RendererType.OpenGL;
+
+                    break;
+
+                case RuntimeInfo.Platform.iOS:
+                    // GL renderer not supported, see: https://github.com/ppy/osu/issues/23003.
+                    yield return RendererType.Metal;
+                    yield return RendererType.Deferred_Metal;
+
+                    break;
+
+                case RuntimeInfo.Platform.Android:
+                    // Still uses osuTK so only the legacy GL renderer is supported.
+                    yield return RendererType.OpenGL;
+
+                    break;
+            }
+        }
+
+        protected virtual void ChooseAndSetupRenderer()
+        {
+            // Always give preference to environment variables.
+            if (FrameworkEnvironment.PreferredGraphicsSurface != null || FrameworkEnvironment.PreferredGraphicsRenderer != null)
+            {
+                Logger.Log("🖼️ Using environment variables for renderer and surface selection.", level: LogLevel.Important);
+
+                // And allow this to hard fail with no fallbacks.
+                SetupRendererAndWindow(
+                    FrameworkEnvironment.PreferredGraphicsRenderer ?? "veldrid",
+                    FrameworkEnvironment.PreferredGraphicsSurface ?? GraphicsSurfaceType.OpenGL);
+                return;
+            }
+
+            var configRenderer = Config.GetBindable<RendererType>(FrameworkSetting.Renderer);
+            Logger.Log($"🖼️ Configuration renderer choice: {configRenderer}");
+
+            // Attempt to initialise various veldrid surface types (and legacy GL).
+            var rendererTypes = GetPreferredRenderersForCurrentPlatform().Where(r => r != RendererType.Automatic).ToList();
+
+            // Move user's preference to the start of the attempts.
+            if (!configRenderer.IsDefault)
+            {
+                rendererTypes.Remove(configRenderer.Value);
+                rendererTypes.Insert(0, configRenderer.Value);
+            }
+
+            Logger.Log($"🖼️ Renderer fallback order: [ {string.Join(", ", rendererTypes.Select(e => e.GetDescription()))} ]");
+
+            foreach (RendererType type in rendererTypes)
+            {
+                try
+                {
+                    switch (type)
+                    {
+                        case RendererType.OpenGL:
+                            // Use the legacy GL renderer. This is basically guaranteed to support all platforms
+                            // and performs better than the Veldrid-GL renderer due to reduction in allocs.
+                            SetupRendererAndWindow(new GLRenderer(), GraphicsSurfaceType.OpenGL);
+                            break;
+
+                        case RendererType.Deferred_Metal:
+                        case RendererType.Deferred_Vulkan:
+                        case RendererType.Deferred_Direct3D11:
+                        case RendererType.Deferred_OpenGL:
+                            SetupRendererAndWindow(new DeferredRenderer(), rendererToGraphicsSurfaceType(type));
+                            break;
+
+                        default:
+                            SetupRendererAndWindow(new VeldridRenderer(), rendererToGraphicsSurfaceType(type));
+                            break;
+                    }
+
+                    ResolvedRenderer = type;
+                    return;
+                }
+                catch
+                {
+                    if (configRenderer.Value != RendererType.Automatic)
+                    {
+                        // If we fail, assume the user may have had a custom setting and switch it back to automatic.
+                        Logger.Log($"The selected renderer ({configRenderer.Value.GetDescription()}) failed to initialise. Renderer selection has been reverted to automatic.",
+                            level: LogLevel.Important);
+                        configRenderer.Value = RendererType.Automatic;
+                    }
+                }
+            }
+
+            Logger.Log("No usable renderer was found!", level: LogLevel.Error);
+        }
+
+        private static GraphicsSurfaceType rendererToGraphicsSurfaceType(RendererType renderer)
+        {
+            GraphicsSurfaceType surface;
+
+            switch (renderer)
+            {
+                case RendererType.Deferred_Metal:
+                case RendererType.Metal:
+                    surface = GraphicsSurfaceType.Metal;
+                    break;
+
+                case RendererType.Deferred_Vulkan:
+                case RendererType.Vulkan:
+                    surface = GraphicsSurfaceType.Vulkan;
+                    break;
+
+                case RendererType.Deferred_Direct3D11:
+                case RendererType.Direct3D11:
+                    surface = GraphicsSurfaceType.Direct3D11;
+                    break;
+
+                case RendererType.Deferred_OpenGL:
+                case RendererType.OpenGL:
+                    surface = GraphicsSurfaceType.OpenGL;
+                    break;
+
+                default:
+                    throw new ArgumentException("Provided renderer cannot be mapped to a veldrid surface");
+            }
+
+            return surface;
+        }
+
+        protected void SetupRendererAndWindow(string renderer, GraphicsSurfaceType surfaceType)
+        {
+            switch (renderer)
+            {
+                case "veldrid":
+                    SetupRendererAndWindow(new VeldridRenderer(), surfaceType);
+                    break;
+
+                case "deferred":
+                    SetupRendererAndWindow(new DeferredRenderer(), surfaceType);
+                    break;
+
+                default:
+                case "gl":
+                    SetupRendererAndWindow(CreateGLRenderer(), surfaceType);
+                    break;
+            }
+        }
+
+        protected void SetupRendererAndWindow(IRenderer renderer, GraphicsSurfaceType surfaceType)
+        {
+            Logger.Log($"🖼️ Initialising \"{renderer.GetType().ReadableName().Replace("Renderer", "")}\" renderer with \"{surfaceType}\" surface");
+
+            Renderer = renderer;
+            Renderer.CacheStorage = CacheStorage.GetStorageForDirectory("shaders");
+
+            try
+            {
+                // Prepare window
+                Window = CreateWindow(surfaceType);
+
+                if (Window == null)
+                {
+                    // Can be null, usually via Headless execution.
+                    if (!RequireWindowExists)
+                        return;
+
+                    throw new InvalidOperationException("🖼️ Renderer could not be initialised as window creation failed.");
+                }
+
+                Window.SetupWindow(Config);
+                Window.Create();
+                Window.Title = Options.FriendlyGameName;
+
+                Renderer.Initialise(Window.GraphicsSurface);
+
+                Logger.Log("🖼️ Renderer initialised!");
+            }
+            catch (Exception e)
+            {
+                Logger.Log("🖼️ Renderer initialisation failed with:");
+                Logger.Log(e.ToString());
+
+                Window?.Close();
+                Window?.Dispose();
+                Window = null;
+
+                Renderer = null;
+                throw;
+            }
+
+            currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
+            currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());
+
+            Window.CurrentDisplayBindable.BindValueChanged(display =>
+            {
+                if (Renderer is VeldridRenderer veldridRenderer)
+                {
+                    Rectangle bounds = display.NewValue.Bounds;
+
+                    veldridRenderer.Device.UpdateActiveDisplay(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+                }
+            }, true);
+
+            IsActive.BindTo(Window.IsActive);
+
+            AllowScreenSuspension.Result.BindValueChanged(e =>
+            {
+                if (e.NewValue)
+                    Window.EnableScreenSuspension();
+                else
+                    Window.DisableScreenSuspension();
+            }, true);
         }
 
         /// <summary>
@@ -973,7 +1277,11 @@ namespace osu.Framework.Platform
 
             PerformanceLogging.BindValueChanged(logging =>
             {
-                Threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = logging.NewValue);
+                Threads.ForEach(t =>
+                {
+                    if (t.Monitor != null)
+                        t.Monitor.EnablePerformanceProfiling = logging.NewValue;
+                });
                 DebugUtils.LogPerformanceIssues = logging.NewValue;
                 TypePerformanceMonitor.Active = logging.NewValue;
             }, true);
@@ -983,7 +1291,8 @@ namespace osu.Framework.Platform
             threadLocale = Config.GetBindable<string>(FrameworkSetting.Locale);
             threadLocale.BindValueChanged(locale =>
             {
-                var culture = CultureInfo.GetCultures(CultureTypes.AllCultures).FirstOrDefault(c => c.Name.Equals(locale.NewValue, StringComparison.OrdinalIgnoreCase)) ?? CultureInfo.InvariantCulture;
+                // return value of TryGet ignored as the failure case gives expected results (CultureInfo.InvariantCulture)
+                CultureInfoHelper.TryGetCultureInfo(locale.NewValue, out var culture);
 
                 CultureInfo.DefaultThreadCurrentCulture = culture;
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
@@ -992,21 +1301,41 @@ namespace osu.Framework.Platform
             }, true);
 
             inputConfig = new InputConfigManager(Storage, AvailableInputHandlers);
+
+#pragma warning disable CS0612 // Type or member is obsolete
+            if (Config.Get<RendererType>(FrameworkSetting.Renderer) == RendererType.OpenGLLegacy)
+                Config.SetValue(FrameworkSetting.Renderer, RendererType.OpenGL);
+#pragma warning restore CS0612 // Type or member is obsolete
         }
+
+        /// <summary>
+        /// Games using osu!framework can generally run at *very* high frame rates when not much is going on.
+        ///
+        /// This can be counter-productive due to the induced allocation and GPU overhead.
+        /// - Allocation overhead can lead to excess garbage collection
+        /// - GPU overhead can lead to unexpected pipeline blocking (and stutters as a result).
+        ///   Also, in general graphics card manufacturers do not test their hardware at insane frame rates and
+        ///   therefore drivers are not optimised to handle this kind of throughput.
+        /// - We only harvest input at 1000hz, so running any higher has zero benefits.
+        ///
+        /// We limit things to the same rate we poll input at, to keep both gamers and their systems happy
+        /// and (more) stutter-free.
+        /// </summary>
+        private const int maximum_sane_fps = GameThread.DEFAULT_ACTIVE_HZ;
 
         private void updateFrameSyncMode()
         {
             if (Window == null)
                 return;
 
-            float refreshRate = Window.CurrentDisplayMode.Value.RefreshRate;
+            int refreshRate = (int)MathF.Round(Window.CurrentDisplayMode.Value.RefreshRate);
 
             // For invalid refresh rates let's assume 60 Hz as it is most common.
             if (refreshRate <= 0)
                 refreshRate = 60;
 
-            float drawLimiter = refreshRate;
-            float updateLimiter = drawLimiter * 2;
+            int drawLimiter = refreshRate;
+            int updateLimiter = drawLimiter * 2;
 
             setVSyncMode();
 
@@ -1033,8 +1362,15 @@ namespace osu.Framework.Platform
                     break;
 
                 case FrameSync.Unlimited:
-                    drawLimiter = updateLimiter = int.MaxValue;
+                    drawLimiter = int.MaxValue;
+                    updateLimiter = int.MaxValue;
                     break;
+            }
+
+            if (!AllowBenchmarkUnlimitedFrames)
+            {
+                drawLimiter = Math.Min(maximum_sane_fps, drawLimiter);
+                updateLimiter = Math.Min(maximum_sane_fps, updateLimiter);
             }
 
             MaximumDrawHz = drawLimiter;
@@ -1045,7 +1381,7 @@ namespace osu.Framework.Platform
         {
             if (Window == null) return;
 
-            DrawThread.Scheduler.Add(() => Window.VerticalSync = frameSyncMode.Value == FrameSync.VSync);
+            DrawThread.Scheduler.Add(() => Renderer.VerticalSync = frameSyncMode.Value == FrameSync.VSync);
         }
 
         /// <summary>
@@ -1078,7 +1414,9 @@ namespace osu.Framework.Platform
                 case ExecutionState.Stopping:
                 case ExecutionState.Stopped:
                     // Delay disposal until the game has exited
-                    stoppedEvent.Wait();
+                    if (!stoppedEvent.Wait(60000))
+                        throw new InvalidOperationException("Game stuck in runnning state.");
+
                     break;
             }
 
@@ -1097,7 +1435,7 @@ namespace osu.Framework.Platform
             Window?.Dispose();
 
             LoadingComponentsLogger.LogAndFlush();
-            Logger.Flush();
+            Logger.FlushForShutdown();
         }
 
         public void Dispose()
@@ -1117,6 +1455,9 @@ namespace osu.Framework.Platform
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.X), PlatformAction.Cut),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.C), PlatformAction.Copy),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.V), PlatformAction.Paste),
+            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Delete), PlatformAction.Cut),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Insert), PlatformAction.Copy),
+            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Insert), PlatformAction.Paste),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.A), PlatformAction.SelectAll),
             new KeyBinding(InputKey.Left, PlatformAction.MoveBackwardChar),
             new KeyBinding(InputKey.Right, PlatformAction.MoveForwardChar),
@@ -1148,6 +1489,7 @@ namespace osu.Framework.Platform
             new KeyBinding(InputKey.Home, PlatformAction.MoveToListStart),
             new KeyBinding(InputKey.End, PlatformAction.MoveToListEnd),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Z), PlatformAction.Undo),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Y), PlatformAction.Redo),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Z), PlatformAction.Redo),
             new KeyBinding(InputKey.Delete, PlatformAction.Delete),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Plus), PlatformAction.ZoomIn),
@@ -1172,7 +1514,7 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> to decode.</param>
         /// <returns>An instance of <see cref="VideoDecoder"/> initialised with the given stream.</returns>
-        public virtual VideoDecoder CreateVideoDecoder(Stream stream) => new VideoDecoder(stream);
+        public virtual VideoDecoder CreateVideoDecoder(Stream stream) => new VideoDecoder(Renderer, stream);
 
         /// <summary>
         /// Creates the <see cref="ThreadRunner"/> to run the threads of this <see cref="GameHost"/>.

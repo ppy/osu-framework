@@ -3,6 +3,10 @@
 
 namespace osu.Framework.Graphics.Containers
 {
+    /// <summary>
+    /// Implementing this interface in a <see cref="Drawable"/> allows it to be filtered basing on provided search terms
+    /// when placed inside a <see cref="SearchContainer{T}"/>.
+    /// </summary>
     public interface IFilterable : IHasFilterTerms
     {
         /// <summary>

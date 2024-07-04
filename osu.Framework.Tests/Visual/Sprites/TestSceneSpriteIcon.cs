@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -12,65 +14,132 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
+using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
     [TestFixture]
-    public class TestSceneSpriteIcon : FrameworkTestScene
+    public partial class TestSceneSpriteIcon : FrameworkTestScene
     {
-        public TestSceneSpriteIcon()
-        {
-            Box background;
-            FillFlowContainer flow;
+        private ScheduledDelegate? scheduledDelegate;
 
-            Add(new TooltipContainer
+        [Test]
+        public void TestPreloadIcon()
+        {
+            SpriteIcon? icon = null;
+
+            AddStep("create icon", () => icon = new SpriteIcon
             {
-                RelativeSizeAxes = Axes.Both,
-                Children = new Drawable[]
+                Size = new Vector2(20),
+                Icon = FontAwesome.Solid.Anchor
+            });
+            AddStep("preload icon", () => LoadComponent(icon));
+            AddStep("change icon", () => icon!.Icon = FontAwesome.Solid.Ad);
+            AddStep("add icon", () => Add(icon));
+        }
+
+        [Test]
+        public void TestOneIconAtATime()
+        {
+            FillFlowContainer flow = null!;
+            Icon[] icons = null!;
+
+            int i = 0;
+
+            AddStep("prepare test", () =>
+            {
+                i = 0;
+                icons = getAllIcons().ToArray();
+                scheduledDelegate?.Cancel();
+
+                Child = new TooltipContainer
                 {
-                    background = new Box
+                    RelativeSizeAxes = Axes.Both,
+                    Children = new Drawable[]
                     {
-                        Colour = Color4.Teal,
-                        RelativeSizeAxes = Axes.Both,
-                    },
-                    new BasicScrollContainer
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Child = flow = new FillFlowContainer
+                        new BasicScrollContainer
                         {
-                            Anchor = Anchor.TopRight,
-                            Origin = Anchor.TopRight,
-                            RelativeSizeAxes = Axes.X,
-                            AutoSizeAxes = Axes.Y,
-                            Spacing = new Vector2(5),
-                            Direction = FillDirection.Full,
-                        },
+                            RelativeSizeAxes = Axes.Both,
+                            Child = flow = new FillFlowContainer
+                            {
+                                Anchor = Anchor.TopRight,
+                                Origin = Anchor.TopRight,
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
+                                Spacing = new Vector2(5),
+                                Direction = FillDirection.Full,
+                            },
+                        }
                     }
-                }
+                };
             });
 
-            var weights = typeof(FontAwesome).GetNestedTypes();
-
-            foreach (var w in weights)
+            AddStep("start adding icons", () =>
             {
-                flow.Add(new SpriteText
+                scheduledDelegate = Scheduler.AddDelayed(() =>
                 {
-                    Text = w.Name,
-                    Scale = new Vector2(4),
-                    RelativeSizeAxes = Axes.X,
-                    Padding = new MarginPadding(10),
-                });
+                    flow.Add(icons[i++]);
 
-                foreach (var p in w.GetProperties(BindingFlags.Public | BindingFlags.Static))
+                    if (++i > icons.Length - 1)
+                        scheduledDelegate?.Cancel();
+                }, 5, true);
+            });
+        }
+
+        [Test]
+        public void TestLoadAllIcons()
+        {
+            Box background = null!;
+            FillFlowContainer flow = null!;
+
+            AddStep("prepare", () =>
+            {
+                scheduledDelegate?.Cancel();
+
+                Child = new TooltipContainer
                 {
-                    object propValue = p.GetValue(null);
-                    Debug.Assert(propValue != null);
+                    RelativeSizeAxes = Axes.Both,
+                    Children = new Drawable[]
+                    {
+                        background = new Box
+                        {
+                            Colour = Color4.Teal,
+                            RelativeSizeAxes = Axes.Both,
+                        },
+                        new BasicScrollContainer
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Child = flow = new FillFlowContainer
+                            {
+                                Anchor = Anchor.TopRight,
+                                Origin = Anchor.TopRight,
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
+                                Spacing = new Vector2(5),
+                                Direction = FillDirection.Full,
+                            },
+                        }
+                    }
+                };
 
-                    flow.Add(new Icon($"{nameof(FontAwesome)}.{w.Name}.{p.Name}", (IconUsage)propValue));
+                var weights = typeof(FontAwesome).GetNestedTypes();
+
+                foreach (var w in weights)
+                {
+                    flow.Add(new SpriteText
+                    {
+                        Text = w.Name,
+                        Scale = new Vector2(4),
+                        RelativeSizeAxes = Axes.X,
+                        Padding = new MarginPadding(10),
+                    });
+
+                    foreach (var icon in getAllIconsForWeight(w))
+                        flow.Add(icon);
                 }
-            }
+            });
 
             AddStep("toggle shadows", () => flow.Children.OfType<Icon>().ForEach(i => i.SpriteIcon.Shadow = !i.SpriteIcon.Shadow));
             AddStep("change icons", () => flow.Children.OfType<Icon>().ForEach(i => i.SpriteIcon.Icon = new IconUsage((char)(i.SpriteIcon.Icon.Icon + 1))));
@@ -84,7 +153,29 @@ namespace osu.Framework.Tests.Visual.Sprites
                 }));
         }
 
-        private class Icon : Container, IHasTooltip
+        private IEnumerable<Icon> getAllIcons()
+        {
+            var weights = typeof(FontAwesome).GetNestedTypes();
+
+            foreach (var w in weights)
+            {
+                foreach (var i in getAllIconsForWeight(w))
+                    yield return i;
+            }
+        }
+
+        private static IEnumerable<Icon> getAllIconsForWeight(Type weight)
+        {
+            foreach (var p in weight.GetProperties(BindingFlags.Public | BindingFlags.Static))
+            {
+                object? propValue = p.GetValue(null);
+                Debug.Assert(propValue != null);
+
+                yield return new Icon($"{nameof(FontAwesome)}.{weight.Name}.{p.Name}", (IconUsage)propValue);
+            }
+        }
+
+        private partial class Icon : Container, IHasTooltip
         {
             public LocalisableString TooltipText { get; }
 

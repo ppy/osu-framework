@@ -74,7 +74,7 @@ namespace osu.Framework.Tests.Threading
 
         private class NestedDisposableObject : DisposableObject
         {
-            public DisposableObject Nested;
+            public DisposableObject? Nested;
 
             public override void Dispose()
             {

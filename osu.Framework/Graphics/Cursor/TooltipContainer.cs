@@ -1,9 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
@@ -18,7 +19,7 @@ namespace osu.Framework.Graphics.Cursor
     /// <summary>
     /// Displays Tooltips for all its children that inherit from the <see cref="IHasTooltip"/> or <see cref="IHasCustomTooltip"/> interfaces. Keep in mind that only children with <see cref="Drawable.HandlePositionalInput"/> set to true will be checked for their tooltips.
     /// </summary>
-    public class TooltipContainer : CursorEffectContainer<TooltipContainer, ITooltipContentProvider>
+    public partial class TooltipContainer : CursorEffectContainer<TooltipContainer, ITooltipContentProvider>
     {
         private readonly CursorContainer cursorContainer;
         private readonly ITooltip defaultTooltip;
@@ -152,7 +153,7 @@ namespace osu.Framework.Graphics.Cursor
                     CurrentTooltip.SetContent(getTargetContent(target));
                 else
                 {
-                    RemoveInternal((Drawable)CurrentTooltip);
+                    RemoveInternal((Drawable)CurrentTooltip, false);
                     CurrentTooltip = proposedTooltip;
                     AddInternal((Drawable)proposedTooltip);
                 }
@@ -182,7 +183,7 @@ namespace osu.Framework.Graphics.Cursor
             object targetContent = getTargetContent(target);
 
             if (targetContent is LocalisableString localisableString)
-                return !string.IsNullOrEmpty(localisableString.Data?.ToString());
+                return !LocalisableString.IsNullOrEmpty(localisableString);
 
             return targetContent != null;
         }
@@ -253,24 +254,34 @@ namespace osu.Framework.Graphics.Cursor
             if (appearDelay > 0 && (recentMousePositions.Count == 0 || lastRecordedPositionTime - recentMousePositions[0].Time < appearDelay - positionRecordInterval))
                 return null;
 
-            recentMousePositions.RemoveAll(t => Time.Current - t.Time > appearDelay);
+            for (int i = recentMousePositions.Count - 1; i >= 0; i--)
+            {
+                if (Time.Current - recentMousePositions[i].Time > appearDelay)
+                    recentMousePositions.RemoveAt(i);
+            }
 
             // For determining whether to show a tooltip we first select only those positions
             // which happened within a shorter, alpha-adjusted appear delay.
             double alphaModifiedAppearDelay = (1 - CurrentTooltip.Alpha) * appearDelay;
-            var relevantPositions = recentMousePositions.Where(t => Time.Current - t.Time <= alphaModifiedAppearDelay);
 
             // We then check whether all relevant positions fall within a radius of AppearRadius within the
             // first relevant position. If so, then the mouse has stayed within a small circular region of
             // AppearRadius for the duration of the modified appear delay, and we therefore want to display
             // the tooltip.
-            Vector2 first = relevantPositions.FirstOrDefault().Position;
+            Vector2? first = null;
             float appearRadiusSq = AppearRadius * AppearRadius;
 
-            if (relevantPositions.All(t => Vector2Extensions.DistanceSquared(t.Position, first) < appearRadiusSq))
-                return targetCandidate;
+            foreach (var mPos in recentMousePositions)
+            {
+                if (Time.Current - mPos.Time > alphaModifiedAppearDelay)
+                    continue;
 
-            return null;
+                first ??= mPos.Position;
+                if (Vector2Extensions.DistanceSquared(mPos.Position, (Vector2)first) > appearRadiusSq)
+                    return null;
+            }
+
+            return targetCandidate;
         }
 
         /// <summary>
@@ -300,14 +311,14 @@ namespace osu.Framework.Graphics.Cursor
         /// </summary>
         /// <param name="tooltipTarget">The target of the tooltip.</param>
         /// <returns>True if the currently visible tooltip should be hidden, false otherwise.</returns>
-        protected virtual bool ShallHideTooltip(ITooltipContentProvider tooltipTarget) => !hasValidTooltip(tooltipTarget) || !tooltipTarget.IsHovered && !tooltipTarget.IsDragged;
+        protected virtual bool ShallHideTooltip(ITooltipContentProvider tooltipTarget) => !hasValidTooltip(tooltipTarget) || (!tooltipTarget.IsHovered && !tooltipTarget.IsDragged);
 
         private ITooltip getTooltip(ITooltipContentProvider target) => (target as IHasCustomTooltip)?.GetCustomTooltip() ?? defaultTooltip;
 
         /// <summary>
         /// The default tooltip. Simply displays its text on a gray background and performs no easing.
         /// </summary>
-        public class Tooltip : VisibilityContainer, ITooltip<LocalisableString>
+        public partial class Tooltip : VisibilityContainer, ITooltip<LocalisableString>
         {
             private readonly SpriteText text;
 

@@ -12,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneRigidBody : FrameworkTestScene
+    public partial class TestSceneRigidBody : FrameworkTestScene
     {
         private readonly TestRigidBodySimulation sim;
 
@@ -24,9 +24,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             set
             {
                 restitutionBacking = value;
-
-                if (sim == null)
-                    return;
 
                 foreach (var d in sim.Children)
                     d.Restitution = value;
@@ -43,9 +40,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 frictionBacking = value;
 
-                if (sim == null)
-                    return;
-
                 foreach (var d in sim.Children)
                     d.FrictionCoefficient = value;
                 sim.FrictionCoefficient = value;
@@ -59,6 +53,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Reset bodies", reset);
 
             AddSliderStep("Simulation speed", 0f, 1f, 0.5f, v => sim.SimulationSpeed = v);
+            AddSliderStep("Gravity", 0f, 10000f, 981f, v => sim.Gravity = v);
             AddSliderStep("Restitution", -1f, 1f, 1f, v => restitution = v);
             AddSliderStep("Friction", -1f, 5f, 0f, v => friction = v);
 
@@ -159,7 +154,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class TestRigidBody : RigidBodyContainer<Drawable>
+        private partial class TestRigidBody : RigidBodyContainer<Drawable>
         {
             public TestRigidBody()
             {
@@ -167,7 +162,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class TestRigidBodySimulation : RigidBodySimulation
+        private partial class TestRigidBodySimulation : RigidBodySimulation
         {
             protected override void LoadComplete()
             {

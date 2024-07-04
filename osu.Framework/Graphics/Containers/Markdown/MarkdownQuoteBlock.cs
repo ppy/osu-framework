@@ -14,12 +14,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// <code>
     /// > Quote
     /// </code>
-    public class MarkdownQuoteBlock : CompositeDrawable, IMarkdownTextFlowComponent
+    public partial class MarkdownQuoteBlock : CompositeDrawable, IMarkdownTextFlowComponent
     {
         private readonly QuoteBlock quoteBlock;
 
         [Resolved]
-        private IMarkdownTextFlowComponent parentFlowComponent { get; set; }
+        private IMarkdownTextFlowComponent parentFlowComponent { get; set; } = null!;
 
         public MarkdownQuoteBlock(QuoteBlock quoteBlock)
         {

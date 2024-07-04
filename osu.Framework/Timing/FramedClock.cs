@@ -1,10 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable enable
-
-using osu.Framework.Extensions.TypeExtensions;
 using System;
+using System.Diagnostics;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Timing
 {
@@ -24,14 +23,18 @@ namespace osu.Framework.Timing
         public FramedClock(IClock? source = null, bool processSource = true)
         {
             this.processSource = processSource;
-            Source = source ?? new StopwatchClock(true);
 
-            ChangeSource(Source);
+            ChangeSource(source ?? new StopwatchClock(true));
+            Debug.Assert(Source != null);
         }
 
-        public FrameTimeInfo TimeInfo => new FrameTimeInfo { Elapsed = ElapsedFrameTime, Current = CurrentTime };
+        private readonly double[] betweenFrameTimes = new double[128];
+
+        private long totalFramesProcessed;
 
         public double FramesPerSecond { get; private set; }
+
+        public double Jitter { get; private set; }
 
         public virtual double CurrentTime { get; protected set; }
 
@@ -55,12 +58,15 @@ namespace osu.Framework.Timing
 
         public void ChangeSource(IClock source)
         {
-            CurrentTime = LastFrameTime = source.CurrentTime;
             Source = source;
+            CurrentTime = LastFrameTime = source.CurrentTime;
         }
 
         public virtual void ProcessFrame()
         {
+            betweenFrameTimes[totalFramesProcessed % betweenFrameTimes.Length] = CurrentTime - LastFrameTime;
+            totalFramesProcessed++;
+
             if (processSource && Source is IFrameBasedClock framedSource)
                 framedSource.ProcessFrame();
 
@@ -69,9 +75,29 @@ namespace osu.Framework.Timing
                 timeUntilNextCalculation += fps_calculation_interval;
 
                 if (framesSinceLastCalculation == 0)
+                {
                     FramesPerSecond = 0;
+                    Jitter = 0;
+                }
                 else
+                {
                     FramesPerSecond = (int)Math.Ceiling(framesSinceLastCalculation * 1000f / timeSinceLastCalculation);
+
+                    // simple stddev
+                    double sum = 0;
+                    double sumOfSquares = 0;
+
+                    foreach (double v in betweenFrameTimes)
+                    {
+                        sum += v;
+                        sumOfSquares += v * v;
+                    }
+
+                    double avg = sum / betweenFrameTimes.Length;
+                    double variance = (sumOfSquares / betweenFrameTimes.Length) - (avg * avg);
+                    Jitter = Math.Sqrt(variance);
+                }
+
                 timeSinceLastCalculation = framesSinceLastCalculation = 0;
             }
 

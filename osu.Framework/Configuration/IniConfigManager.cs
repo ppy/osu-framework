@@ -1,10 +1,14 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Logging;
@@ -63,7 +67,7 @@ namespace osu.Framework.Configuration
                                 if (!(b is IParseable parseable))
                                     throw new InvalidOperationException($"Bindable type {b.GetType().ReadableName()} is not {nameof(IParseable)}.");
 
-                                parseable.Parse(val);
+                                parseable.Parse(val, CultureInfo.InvariantCulture);
                             }
                             catch (Exception e)
                             {
@@ -83,11 +87,11 @@ namespace osu.Framework.Configuration
 
             try
             {
-                using (var stream = storage.GetStream(Filename, FileAccess.Write, FileMode.Create))
+                using (var stream = storage.CreateFileSafely(Filename))
                 using (var w = new StreamWriter(stream))
                 {
                     foreach (var p in ConfigStore)
-                        w.WriteLine(@"{0} = {1}", p.Key, p.Value.ToString().AsNonNull().Replace("\n", "").Replace("\r", ""));
+                        w.WriteLine(@"{0} = {1}", p.Key, p.Value.ToString(CultureInfo.InvariantCulture).AsNonNull().Replace("\n", "").Replace("\r", ""));
                 }
             }
             catch

@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The child <see cref="DrawNode"/>s to draw.
         /// </summary>
-        List<DrawNode> Children { get; set; }
+        List<DrawNode>? Children { get; set; }
 
         /// <summary>
         /// Whether <see cref="Children"/> should be updated by the parenting <see cref="CompositeDrawable"/>.

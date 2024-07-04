@@ -7,9 +7,9 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
-    public class ToggleStepButton : StepButton
+    public partial class ToggleStepButton : StepButton
     {
-        private readonly Action<bool> reloadCallback;
+        private readonly Action<bool>? reloadCallback;
         private static readonly Color4 off_colour = Color4.Red;
         private static readonly Color4 on_colour = Color4.YellowGreen;
 
@@ -17,7 +17,7 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         public override int RequiredRepetitions => 2;
 
-        public ToggleStepButton(Action<bool> reloadCallback)
+        public ToggleStepButton(Action<bool>? reloadCallback)
         {
             this.reloadCallback = reloadCallback;
             Action = clickAction;

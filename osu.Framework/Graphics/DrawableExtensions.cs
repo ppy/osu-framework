@@ -20,8 +20,46 @@ namespace osu.Framework.Graphics
         public static T With<T>(this T drawable, Action<T> adjustment)
             where T : Drawable
         {
-            adjustment?.Invoke(drawable);
+            adjustment.Invoke(drawable);
             return drawable;
+        }
+
+        /// <summary>
+        /// Find the closest parent of a specified type.
+        /// </summary>
+        /// <remarks>
+        /// This can be a potentially expensive operation and should be used with discretion.
+        /// </remarks>
+        /// <typeparam name="T">The type to match.</typeparam>
+        /// <returns>The first matching parent, or null if no parent of type <typeparamref name="T"/> is found.</returns>
+        public static T? FindClosestParent<T>(this Drawable? drawable) where T : class, IDrawable
+        {
+            while ((drawable = drawable?.Parent) != null)
+            {
+                if (drawable is T match)
+                    return match;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Check whether the drawable is rooted at a proposed parent drawable.
+        /// </summary>
+        /// <param name="drawable">The <see cref="Drawable"/> to be checked.</param>
+        /// <param name="root">The root to be checked against.</param>
+        /// <returns>Whether the drawable was rooted.</returns>
+        internal static bool IsRootedAt(this Drawable? drawable, Drawable root)
+        {
+            if (drawable == root) return true;
+
+            while ((drawable = drawable?.Parent) != null)
+            {
+                if (drawable == root)
+                    return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -38,8 +76,10 @@ namespace osu.Framework.Graphics
         {
             ThreadSafety.EnsureUpdateThread();
 
-            drawable.Parent?.RemoveInternal(drawable);
-            drawable.Dispose();
+            if (drawable.Parent != null)
+                drawable.Parent.RemoveInternal(drawable, true);
+            else
+                drawable.Dispose();
         }
     }
 }

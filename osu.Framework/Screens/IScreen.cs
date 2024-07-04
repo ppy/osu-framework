@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Graphics;
 
@@ -21,27 +23,27 @@ namespace osu.Framework.Screens
         /// <summary>
         /// Invoked when this <see cref="IScreen"/> is entering from a parent <see cref="IScreen"/>.
         /// </summary>
-        /// <param name="last">The <see cref="IScreen"/> which has suspended.</param>
-        void OnEntering(IScreen last);
+        /// <param name="e">The <see cref="ScreenTransitionEvent"/> containing information about the screen event.</param>
+        void OnEntering(ScreenTransitionEvent e);
 
         /// <summary>
         /// Invoked when this <see cref="IScreen"/> is exiting to a parent <see cref="IScreen"/>.
         /// </summary>
-        /// <param name="next">The <see cref="IScreen"/> that will be resumed next.</param>
+        /// <param name="e">The <see cref="ScreenExitEvent"/> containing information about the screen event.</param>
         /// <returns>True to cancel the exit process.</returns>
-        bool OnExiting(IScreen next);
+        bool OnExiting(ScreenExitEvent e);
 
         /// <summary>
         /// Invoked when this <see cref="IScreen"/> is entered from a child <see cref="IScreen"/>.
         /// </summary>
-        /// <param name="last">The next Screen.</param>
-        void OnResuming(IScreen last);
+        /// <param name="e">The <see cref="ScreenTransitionEvent"/> containing information about the screen event.</param>
+        void OnResuming(ScreenTransitionEvent e);
 
         /// <summary>
         /// Invoked when this <see cref="IScreen"/> is exited to a child <see cref="IScreen"/>.
         /// </summary>
-        /// <param name="next">The new Screen</param>
-        void OnSuspending(IScreen next);
+        /// <param name="e">The <see cref="ScreenTransitionEvent"/> containing information about the screen event.</param>
+        void OnSuspending(ScreenTransitionEvent e);
     }
 
     public static class ScreenExtensions

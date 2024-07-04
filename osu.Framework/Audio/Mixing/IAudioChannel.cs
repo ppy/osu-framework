@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable enable
-
 using System;
 using System.Threading.Tasks;
 
@@ -13,6 +11,11 @@ namespace osu.Framework.Audio.Mixing
     /// </summary>
     public interface IAudioChannel
     {
+        /// <summary>
+        /// A name identifying this sample internally.
+        /// </summary>
+        string Name { get; }
+
         /// <summary>
         /// The mixer in which all audio produced by this channel should be routed into.
         /// </summary>

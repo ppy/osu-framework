@@ -1,16 +1,18 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Allocation;
+using osu.Framework.Extensions.ListExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
+using osu.Framework.Lists;
 using osu.Framework.Logging;
-using osu.Framework.Platform;
 using osuTK;
 
 namespace osu.Framework.Input.Bindings
@@ -19,7 +21,7 @@ namespace osu.Framework.Input.Bindings
     /// Maps input actions to custom action data of type <typeparamref name="T"/>. Use in conjunction with <see cref="Drawable"/>s implementing <see cref="IKeyBindingHandler{T}"/>.
     /// </summary>
     /// <typeparam name="T">The type of the custom action.</typeparam>
-    public abstract class KeyBindingContainer<T> : KeyBindingContainer
+    public abstract partial class KeyBindingContainer<T> : KeyBindingContainer
         where T : struct
     {
         private readonly SimultaneousBindingMode simultaneousMode;
@@ -45,7 +47,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// All actions in a currently pressed state.
         /// </summary>
-        public IEnumerable<T> PressedActions => pressedActions;
+        public SlimReadOnlyListWrapper<T> PressedActions => pressedActions.AsSlimReadOnly();
 
         private readonly Dictionary<IKeyBinding, List<Drawable>> keyBindingQueues = new Dictionary<IKeyBinding, List<Drawable>>();
         private readonly List<Drawable> queue = new List<Drawable>();
@@ -83,6 +85,20 @@ namespace osu.Framework.Input.Bindings
         internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
             if (!base.BuildNonPositionalInputQueue(queue, allowBlocking))
+                return false;
+
+            if (Prioritised)
+            {
+                queue.Remove(this);
+                queue.Add(this);
+            }
+
+            return true;
+        }
+
+        internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
+        {
+            if (!base.BuildPositionalInputQueue(screenSpacePos, queue))
                 return false;
 
             if (Prioritised)
@@ -188,6 +204,8 @@ namespace osu.Framework.Input.Bindings
             return drawables.FirstOrDefault(d => triggerKeyBindingEvent(d, pressEvent)) != null;
         }
 
+        private readonly List<IKeyBinding> newlyPressed = new List<IKeyBinding>();
+
         private bool handleNewPressed(InputState state, InputKey newKey, Vector2? scrollDelta = null, bool isPrecise = false)
         {
             pressedInputKeys.Add(newKey);
@@ -196,19 +214,36 @@ namespace osu.Framework.Input.Bindings
             var pressedCombination = new KeyCombination(pressedInputKeys);
 
             bool handled = false;
-            var bindings = KeyBindings?.Except(pressedBindings) ?? Enumerable.Empty<IKeyBinding>();
-            var newlyPressed = bindings.Where(m =>
-                m.KeyCombination.IsPressed(pressedCombination, matchingMode));
+
+            newlyPressed.Clear();
+
+            if (KeyBindings != null)
+            {
+                foreach (IKeyBinding binding in KeyBindings)
+                {
+                    if (pressedBindings.Contains(binding))
+                        continue;
+
+                    if (binding.KeyCombination.IsPressed(pressedCombination, state, matchingMode))
+                        newlyPressed.Add(binding);
+                }
+            }
 
             if (KeyCombination.IsModifierKey(newKey))
             {
                 // if the current key pressed was a modifier, only handle modifier-only bindings.
                 // lambda expression is used so that the delegate is cached (see: https://github.com/dotnet/roslyn/issues/5835)
-                newlyPressed = newlyPressed.Where(b => b.KeyCombination.Keys.All(key => KeyCombination.IsModifierKey(key)));
+                // TODO: remove when we switch to .NET 7.
+                // ReSharper disable once ConvertClosureToMethodGroup
+                for (int i = 0; i < newlyPressed.Count; i++)
+                {
+                    if (!newlyPressed[i].KeyCombination.Keys.All(key => KeyCombination.IsModifierKey(key)))
+                        newlyPressed.RemoveAt(i--);
+                }
             }
 
             // we want to always handle bindings with more keys before bindings with less.
-            newlyPressed = newlyPressed.OrderByDescending(b => b.KeyCombination.Keys.Length).ToList();
+            newlyPressed.Sort(static (a, b) => b.KeyCombination.Keys.Length.CompareTo(a.KeyCombination.Keys.Length));
 
             pressedBindings.AddRange(newlyPressed);
 
@@ -216,7 +251,7 @@ namespace osu.Framework.Input.Bindings
             if (simultaneousMode == SimultaneousBindingMode.None && (matchingMode == KeyCombinationMatchingMode.Exact || matchingMode == KeyCombinationMatchingMode.Modifiers))
             {
                 // only want to release pressed actions if no existing bindings would still remain pressed
-                if (pressedBindings.Count > 0 && !pressedBindings.Any(m => m.KeyCombination.IsPressed(pressedCombination, matchingMode)))
+                if (pressedBindings.Count > 0 && !pressedBindings.Any(m => m.KeyCombination.IsPressed(pressedCombination, state, matchingMode)))
                     releasePressedActions(state);
             }
 
@@ -326,16 +361,16 @@ namespace osu.Framework.Input.Bindings
             // we don't want to consider exact matching here as we are dealing with bindings, not actions.
             var pressedCombination = new KeyCombination(pressedInputKeys);
 
-            var newlyReleased = pressedInputKeys.Count == 0
-                ? pressedBindings.ToList()
-                : pressedBindings.Where(b => !b.KeyCombination.IsPressed(pressedCombination, KeyCombinationMatchingMode.Any)).ToList();
-
-            foreach (var binding in newlyReleased)
+            for (int i = 0; i < pressedBindings.Count; i++)
             {
-                pressedBindings.Remove(binding);
+                var binding = pressedBindings[i];
 
-                PropagateReleased(getInputQueue(binding), state, binding.GetAction<T>());
-                keyBindingQueues[binding].Clear();
+                if (pressedInputKeys.Count == 0 || !binding.KeyCombination.IsPressed(pressedCombination, state, KeyCombinationMatchingMode.Any))
+                {
+                    pressedBindings.RemoveAt(i--);
+                    PropagateReleased(getInputQueue(binding).Where(d => d.IsRootedAt(this)), state, binding.GetAction<T>());
+                    keyBindingQueues[binding].Clear();
+                }
             }
         }
 
@@ -344,7 +379,7 @@ namespace osu.Framework.Input.Bindings
             // we either want multiple release events due to the simultaneous mode, or we only want one when we
             // - were pressed (as an action)
             // - are the last pressed binding with this action
-            if (simultaneousMode == SimultaneousBindingMode.All || pressedActions.Contains(released) && pressedBindings.All(b => !EqualityComparer<T>.Default.Equals(b.GetAction<T>(), released)))
+            if (simultaneousMode == SimultaneousBindingMode.All || (pressedActions.Contains(released) && pressedBindings.All(b => !EqualityComparer<T>.Default.Equals(b.GetAction<T>(), released))))
             {
                 var releaseEvent = new KeyBindingReleaseEvent<T>(state, released);
 
@@ -357,14 +392,14 @@ namespace osu.Framework.Input.Bindings
 
         public void TriggerReleased(T released) => PropagateReleased(KeyBindingInputQueue, GetContainingInputManager()?.CurrentState ?? new InputState(), released);
 
-        public void TriggerPressed(T pressed)
+        public Drawable TriggerPressed(T pressed)
         {
             var state = GetContainingInputManager()?.CurrentState ?? new InputState();
 
             if (simultaneousMode == SimultaneousBindingMode.None)
                 releasePressedActions(state);
 
-            PropagatePressed(KeyBindingInputQueue, state, pressed);
+            return PropagatePressed(KeyBindingInputQueue, state, pressed);
         }
 
         private List<Drawable> getInputQueue(IKeyBinding binding, bool rebuildIfEmpty = false)
@@ -405,15 +440,8 @@ namespace osu.Framework.Input.Bindings
     /// <summary>
     /// Maps input actions to custom action data.
     /// </summary>
-    public abstract class KeyBindingContainer : Container
+    public abstract partial class KeyBindingContainer : Container
     {
-        // This is only specified here (rather than in PlatformContainer, where it is consumed) to workaround
-        // a critical iOS / Xamarin bug, where consumer applications may crash during startup at an unmanaged level.
-        // It should eventually be removed when the issue is identified and fixed upstream.
-        // See https://github.com/ppy/osu-framework/pull/4263 for discussion.
-        [Resolved]
-        protected GameHost Host { get; private set; }
-
         protected IEnumerable<IKeyBinding> KeyBindings;
 
         public abstract IEnumerable<IKeyBinding> DefaultKeyBindings { get; }

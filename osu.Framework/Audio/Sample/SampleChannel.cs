@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable enable
-
 using System;
 using System.Threading.Tasks;
 using osu.Framework.Audio.Mixing;
@@ -15,10 +13,16 @@ namespace osu.Framework.Audio.Sample
     {
         internal Action<SampleChannel>? OnPlay;
 
+        public string Name { get; }
+
+        protected SampleChannel(string name)
+        {
+            Name = name;
+        }
+
         public virtual void Play()
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not play disposed sample channels.");
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
             Played = true;
             OnPlay?.Invoke(this);

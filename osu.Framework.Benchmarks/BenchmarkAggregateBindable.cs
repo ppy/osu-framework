@@ -11,15 +11,27 @@ namespace osu.Framework.Benchmarks
     {
         private readonly BindableInt source1 = new BindableInt();
         private readonly BindableInt source2 = new BindableInt();
+        private readonly AggregateBindable<int> boundAggregate = new AggregateBindable<int>(((i, j) => i + j));
+        private readonly AggregateBindable<int> aggregate = new AggregateBindable<int>(((i, j) => i + j));
+
+        [GlobalSetup]
+        public void GlobalSetup()
+        {
+            boundAggregate.AddSource(source1);
+            boundAggregate.AddSource(source2);
+        }
 
         [Benchmark]
-        public void AggregateRecalculation()
+        public void AddRemoveSource()
         {
-            var aggregate = new AggregateBindable<int>(((i, j) => i + j));
-
             aggregate.AddSource(source1);
             aggregate.AddSource(source2);
+            aggregate.RemoveAllSources();
+        }
 
+        [Benchmark]
+        public void SetValue()
+        {
             for (int i = 0; i < 100; i++)
             {
                 source1.Value = i;

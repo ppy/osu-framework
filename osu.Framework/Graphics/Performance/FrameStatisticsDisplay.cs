@@ -1,8 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osuTK.Graphics;
-using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
@@ -15,15 +16,20 @@ using osu.Framework.Threading;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using osu.Framework.Input.Events;
+using JetBrains.Annotations;
+using osu.Framework.Graphics.Pooling;
+using osu.Framework.Graphics.Rendering;
+using osu.Framework.Platform;
 using osuTK;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using WindowState = osu.Framework.Platform.WindowState;
 
 namespace osu.Framework.Graphics.Performance
 {
-    internal class FrameStatisticsDisplay : Container, IStateful<FrameStatisticsMode>
+    internal partial class FrameStatisticsDisplay : Container, IStateful<FrameStatisticsMode>
     {
         internal const int HEIGHT = 100;
 
@@ -48,13 +54,15 @@ namespace osu.Framework.Graphics.Performance
         private int timeBarX => currentX % WIDTH;
 
         private readonly Container overlayContainer;
-        private readonly Drawable labelText;
+        private readonly SpriteText labelText;
         private readonly Sprite counterBarBackground;
 
         private readonly Container mainContainer;
         private readonly Container timeBarsContainer;
 
         private readonly ArrayPool<Rgba32> uploadPool;
+
+        private readonly DrawablePool<GCBox> gcBoxPool;
 
         private readonly Drawable[] legendMapping = new Drawable[FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES];
         private readonly Dictionary<StatisticsCounterType, CounterBar> counterBars = new Dictionary<StatisticsCounterType, CounterBar>();
@@ -63,6 +71,7 @@ namespace osu.Framework.Graphics.Performance
 
         private FrameStatisticsMode state;
 
+        [CanBeNull]
         public event Action<FrameStatisticsMode> StateChanged;
 
         public FrameStatisticsMode State
@@ -83,6 +92,7 @@ namespace osu.Framework.Graphics.Performance
 
                         labelText.Origin = Anchor.CentreRight;
                         labelText.Rotation = 0;
+                        labelText.Text = Name;
                         break;
 
                     case FrameStatisticsMode.Full:
@@ -93,6 +103,7 @@ namespace osu.Framework.Graphics.Performance
 
                         labelText.Origin = Anchor.BottomCentre;
                         labelText.Rotation = -90;
+                        labelText.Text = Name.Split(' ').First();
                         break;
                 }
 
@@ -106,10 +117,12 @@ namespace osu.Framework.Graphics.Performance
         public FrameStatisticsDisplay(GameThread thread, ArrayPool<Rgba32> uploadPool)
         {
             Name = thread.Name;
+
+            Debug.Assert(thread.Monitor != null);
             monitor = thread.Monitor;
+
             this.uploadPool = uploadPool;
 
-            Origin = Anchor.TopRight;
             AutoSizeAxes = Axes.Both;
             Alpha = alpha_when_active;
 
@@ -126,7 +139,7 @@ namespace osu.Framework.Graphics.Performance
                         Origin = Anchor.TopRight,
                         AutoSizeAxes = Axes.X,
                         RelativeSizeAxes = Axes.Y,
-                        Children = new[]
+                        Children = new Drawable[]
                         {
                             labelText = new SpriteText
                             {
@@ -149,7 +162,6 @@ namespace osu.Framework.Graphics.Performance
                                     {
                                         counterBarBackground = new Sprite
                                         {
-                                            Texture = new Texture(1, HEIGHT, true),
                                             RelativeSizeAxes = Axes.Both,
                                             Size = new Vector2(1, 1),
                                         },
@@ -159,7 +171,7 @@ namespace osu.Framework.Graphics.Performance
                                             AutoSizeAxes = Axes.X,
                                             RelativeSizeAxes = Axes.Y,
                                             ChildrenEnumerable =
-                                                from StatisticsCounterType t in Enum.GetValues(typeof(StatisticsCounterType))
+                                                from StatisticsCounterType t in Enum.GetValues<StatisticsCounterType>()
                                                 where monitor.ActiveCounters[(int)t]
                                                 select counterBars[t] = new CounterBar
                                                 {
@@ -174,8 +186,9 @@ namespace osu.Framework.Graphics.Performance
                     mainContainer = new Container
                     {
                         Size = new Vector2(WIDTH, HEIGHT),
-                        Children = new[]
+                        Children = new Drawable[]
                         {
+                            gcBoxPool = new DrawablePool<GCBox>(20, 20),
                             timeBarsContainer = new Container
                             {
                                 Masking = true,
@@ -206,7 +219,7 @@ namespace osu.Framework.Graphics.Performance
                                         Spacing = new Vector2(5, 1),
                                         Padding = new MarginPadding { Right = 5 },
                                         ChildrenEnumerable =
-                                            from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType))
+                                            from PerformanceCollectionType t in Enum.GetValues<PerformanceCollectionType>()
                                             select legendMapping[(int)t] = new SpriteText
                                             {
                                                 Colour = getColour(t),
@@ -238,7 +251,7 @@ namespace osu.Framework.Graphics.Performance
         }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(IRenderer renderer)
         {
             //initialise background
             var columnUpload = new ArrayPoolTextureUpload(1, HEIGHT);
@@ -254,7 +267,12 @@ namespace osu.Framework.Graphics.Performance
 
             addArea(null, null, HEIGHT, amount_count_steps, columnUpload);
 
-            counterBarBackground?.Texture.SetData(columnUpload);
+            if (counterBarBackground != null)
+            {
+                counterBarBackground.Texture = renderer.CreateTexture(1, HEIGHT, true);
+                counterBarBackground.Texture.SetData(columnUpload);
+            }
+
             Schedule(() =>
             {
                 foreach (var t in timeBars)
@@ -264,15 +282,34 @@ namespace osu.Framework.Graphics.Performance
 
         private void addEvent(int type)
         {
-            Box b = new Box
+            if (gcBoxPool.CountAvailable == 0)
             {
-                Origin = Anchor.TopCentre,
-                Position = new Vector2(timeBarX, type * 3),
-                Colour = garbage_collect_colors[type],
-                Size = new Vector2(3, 3)
-            };
+                // If we've run out of pooled boxes, remove earlier usages.
+                //
+                // This is to avoid a runaway situation where more boxes being displayed causes more overhead,
+                // causing slower progression of the time bars causing more dense boxes causing more overhead...
+                for (int i = 0; i < timeBars.Length; i++)
+                {
+                    // Offset to check the previous time bar first.
+                    var timeBar = timeBars[(timeBarIndex + i + 1) % timeBars.Length];
 
-            timeBars[timeBarIndex].Add(b);
+                    var firstBox = timeBar.OfType<GCBox>().FirstOrDefault();
+
+                    if (firstBox != null)
+                    {
+                        timeBar.RemoveInternal(firstBox, false);
+                        break;
+                    }
+                }
+            }
+
+            var box = gcBoxPool.Get(b =>
+            {
+                b.Position = new Vector2(timeBarX, type * 3);
+                b.Colour = garbage_collect_colors[type];
+            });
+
+            timeBars[timeBarIndex].Add(box);
         }
 
         private bool running = true;
@@ -314,36 +351,19 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        protected override bool OnKeyDown(KeyDownEvent e)
+        protected override void Update()
         {
-            switch (e.Key)
+            base.Update();
+
+            if (running)
             {
-                case Key.ControlLeft:
-                    Expanded = true;
-                    break;
-
-                case Key.ShiftLeft:
-                    Running = false;
-                    break;
+                while (monitor.PendingFrames.TryDequeue(out FrameStatistics frame))
+                {
+                    applyFrame(frame);
+                    frameTimeDisplay.NewFrame(frame);
+                    monitor.FramesPool.Return(frame);
+                }
             }
-
-            return base.OnKeyDown(e);
-        }
-
-        protected override void OnKeyUp(KeyUpEvent e)
-        {
-            switch (e.Key)
-            {
-                case Key.ControlLeft:
-                    Expanded = false;
-                    break;
-
-                case Key.ShiftLeft:
-                    Running = true;
-                    break;
-            }
-
-            base.OnKeyUp(e);
         }
 
         private void applyFrameGC(FrameStatistics frame)
@@ -374,41 +394,28 @@ namespace osu.Framework.Graphics.Performance
 
             foreach (Drawable e in timeBars[(timeBarIndex + 1) % timeBars.Length])
             {
-                if (e is Box && e.DrawPosition.X <= timeBarX)
+                if (e is GCBox && e.DrawPosition.X <= timeBarX)
                     e.Expire();
             }
         }
 
-        private void applyFrameCounts(FrameStatistics frame)
-        {
-            foreach (var pair in frame.Counts)
-                counterBars[pair.Key].Value = pair.Value;
-        }
+        [Resolved]
+        private GameHost host { get; set; }
 
         private void applyFrame(FrameStatistics frame)
         {
-            if (state == FrameStatisticsMode.Full)
+            // Don't process frames when minimised, as the draw thread may not be running and texture uploads
+            // from the graph displays will get out of hand.
+            bool isMinimised = host.Window.WindowState == WindowState.Minimised;
+
+            if (state == FrameStatisticsMode.Full && !isMinimised)
             {
                 applyFrameGC(frame);
                 applyFrameTime(frame);
             }
 
-            applyFrameCounts(frame);
-        }
-
-        protected override void Update()
-        {
-            base.Update();
-
-            if (running)
-            {
-                while (monitor.PendingFrames.TryDequeue(out FrameStatistics frame))
-                {
-                    applyFrame(frame);
-                    frameTimeDisplay.NewFrame(frame);
-                    monitor.FramesPool.Return(frame);
-                }
-            }
+            foreach (var pair in frame.Counts)
+                counterBars[pair.Key].Value = pair.Value;
         }
 
         private Color4 getColour(PerformanceCollectionType type)
@@ -433,7 +440,7 @@ namespace osu.Framework.Graphics.Performance
                 case PerformanceCollectionType.WndProc:
                     return Color4.GhostWhite;
 
-                case PerformanceCollectionType.GLReset:
+                case PerformanceCollectionType.DrawReset:
                     return Color4.Cyan;
             }
         }
@@ -507,7 +514,7 @@ namespace osu.Framework.Graphics.Performance
             return currentHeight;
         }
 
-        private class TimeBar : Container
+        private partial class TimeBar : Container
         {
             public readonly Sprite Sprite;
 
@@ -515,12 +522,17 @@ namespace osu.Framework.Graphics.Performance
             {
                 Size = new Vector2(WIDTH, HEIGHT);
                 Child = Sprite = new Sprite();
+            }
 
-                Sprite.Texture = new Texture(WIDTH, HEIGHT, true) { TextureGL = { BypassTextureUploadQueueing = true } };
+            [BackgroundDependencyLoader]
+            private void load(IRenderer renderer)
+            {
+                Sprite.Texture = renderer.CreateTexture(WIDTH, HEIGHT, true);
+                Sprite.Texture.BypassTextureUploadQueueing = true;
             }
         }
 
-        private class CounterBar : Container
+        private partial class CounterBar : Container
         {
             private readonly Box box;
             private readonly SpriteText text;
@@ -553,7 +565,6 @@ namespace osu.Framework.Graphics.Performance
 
             private double height;
             private double velocity;
-            private const double acceleration = 0.000001;
             private const float bar_width = 6;
 
             private long value;
@@ -562,6 +573,8 @@ namespace osu.Framework.Graphics.Performance
             {
                 set
                 {
+                    Debug.Assert(value >= 0); // Log10 will NaN for negative values.
+
                     this.value = value;
                     height = Math.Log10(value + 1) / amount_count_steps;
                 }
@@ -596,18 +609,41 @@ namespace osu.Framework.Graphics.Performance
             {
                 base.Update();
 
+                const double acceleration = 0.000001;
+
                 double elapsedTime = Time.Elapsed;
-                double movement = velocity * Time.Elapsed + 0.5 * acceleration * elapsedTime * elapsedTime;
-                double newHeight = Math.Max(height, box.Height - movement);
+
+                double change = velocity * elapsedTime + 0.5 * acceleration * elapsedTime * elapsedTime;
+                double newHeight = Math.Max(height, box.Height - change);
+
                 box.Height = (float)newHeight;
 
                 if (newHeight <= height)
                     velocity = 0;
                 else
-                    velocity += Time.Elapsed * acceleration;
+                    velocity += elapsedTime * acceleration;
 
                 if (expanded)
                     text.Text = $@"{Label}: {NumberFormatter.PrintWithSiSuffix(value)}";
+            }
+        }
+
+        private partial class GCBox : PoolableDrawable
+        {
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                Origin = Anchor.TopCentre;
+                Size = new Vector2(3, 3);
+
+                InternalChildren = new Drawable[]
+                {
+                    new Box
+                    {
+                        Colour = Color4.White,
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                };
             }
         }
     }

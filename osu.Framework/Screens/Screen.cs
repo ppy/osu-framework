@@ -9,7 +9,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Screens
 {
-    public class Screen : CompositeDrawable, IScreen
+    public partial class Screen : CompositeDrawable, IScreen
     {
         public bool ValidForResume { get; set; } = true;
 
@@ -18,7 +18,7 @@ namespace osu.Framework.Screens
         public sealed override bool RemoveWhenNotAlive => false;
 
         [Resolved]
-        protected Game Game { get; private set; }
+        protected Game Game { get; private set; } = null!;
 
         public Screen()
         {
@@ -32,18 +32,12 @@ namespace osu.Framework.Screens
                 throw new InvalidOperationException($"Screens must always be added to a {nameof(ScreenStack)} (attempted to add {GetType()} to {Parent.GetType()})");
         }
 
-        public virtual void OnEntering(IScreen last)
-        {
-        }
+        public virtual void OnEntering(ScreenTransitionEvent e) { }
 
-        public virtual bool OnExiting(IScreen next) => false;
+        public virtual bool OnExiting(ScreenExitEvent e) => false;
 
-        public virtual void OnResuming(IScreen last)
-        {
-        }
+        public virtual void OnResuming(ScreenTransitionEvent e) { }
 
-        public virtual void OnSuspending(IScreen next)
-        {
-        }
+        public virtual void OnSuspending(ScreenTransitionEvent e) { }
     }
 }

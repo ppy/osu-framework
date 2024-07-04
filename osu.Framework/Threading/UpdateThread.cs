@@ -11,9 +11,9 @@ namespace osu.Framework.Threading
 {
     public class UpdateThread : GameThread
     {
-        private readonly DrawThread drawThread;
+        private readonly DrawThread? drawThread;
 
-        public UpdateThread(Action onNewFrame, DrawThread drawThread)
+        public UpdateThread(Action onNewFrame, DrawThread? drawThread)
             : base(onNewFrame, "Update")
         {
             this.drawThread = drawThread;

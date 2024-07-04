@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +17,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneDelayedLoadWrapper : FrameworkTestScene
+    public partial class TestSceneDelayedLoadWrapper : FrameworkTestScene
     {
         private FillFlowContainer<Container> flow;
         private TestSceneDelayedLoadUnloadWrapper.TestScrollContainer scroll;
@@ -146,7 +148,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("repeating schedulers removed", () => !scroll.Scheduler.HasPendingTasks);
         }
 
-        public class TestBox : Container
+        public partial class TestBox : Container
         {
             private readonly Action onLoadAction;
 

@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using NUnit.Framework;
@@ -8,12 +8,12 @@ using osu.Framework.Testing;
 namespace osu.Framework.Tests.Platform
 {
     [TestFixture]
-    public class UserInputManagerTest
+    public partial class UserInputManagerTest
     {
         [Test]
         public void IsAliveTest()
         {
-            using (var client = new TestHeadlessGameHost(@"client", true))
+            using (var client = new TestHeadlessGameHost(@"client", 45356))
             {
                 var testGame = new TestTestGame();
                 client.Run(testGame);
@@ -25,13 +25,13 @@ namespace osu.Framework.Tests.Platform
         {
             public Drawable CurrentRoot => Root;
 
-            public TestHeadlessGameHost(string hostname, bool bindIPC)
-                : base(hostname, bindIPC)
+            public TestHeadlessGameHost(string gameName, int? ipcPort)
+                : base(gameName, new HostOptions { IPCPort = ipcPort })
             {
             }
         }
 
-        private class TestTestGame : TestGame
+        private partial class TestTestGame : TestGame
         {
             public bool IsRootAlive;
 

@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using NUnit.Framework;
@@ -27,9 +29,9 @@ namespace osu.Framework.Tests.Containers
         {
             Assert.Throws<InvalidOperationException>(() =>
             {
-                var unused = new Container
+                _ = new Container
                 {
-                    Children = (IReadOnlyList<Drawable>)Activator.CreateInstance(containerType)
+                    Children = (IReadOnlyList<Drawable>)Activator.CreateInstance(containerType)!
                 };
             });
 
@@ -37,14 +39,14 @@ namespace osu.Framework.Tests.Containers
             {
                 var unused = new Container();
 
-                unused.AddRange((IEnumerable<Drawable>)Activator.CreateInstance(containerType));
+                unused.AddRange((IEnumerable<Drawable>)Activator.CreateInstance(containerType)!);
             });
 
             Assert.Throws<InvalidOperationException>(() =>
             {
-                var unused = new AudioContainer
+                _ = new AudioContainer
                 {
-                    Children = (IReadOnlyList<Drawable>)Activator.CreateInstance(containerType)
+                    Children = (IReadOnlyList<Drawable>)Activator.CreateInstance(containerType)!
                 };
             });
 
@@ -52,7 +54,7 @@ namespace osu.Framework.Tests.Containers
             {
                 var unused = new AudioContainer();
 
-                unused.AddRange((IEnumerable<Drawable>)Activator.CreateInstance(containerType));
+                unused.AddRange((IEnumerable<Drawable>)Activator.CreateInstance(containerType)!);
             });
         }
     }

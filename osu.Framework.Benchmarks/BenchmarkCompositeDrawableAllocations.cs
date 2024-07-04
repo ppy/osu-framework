@@ -9,9 +9,9 @@ using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Benchmarks
 {
-    public class BenchmarkCompositeDrawableAllocations : GameBenchmark
+    public partial class BenchmarkCompositeDrawableAllocations : GameBenchmark
     {
-        private TestGame game;
+        private TestGame game = null!;
 
         [Test]
         [Benchmark]
@@ -55,7 +55,7 @@ namespace osu.Framework.Benchmarks
 
         protected override Game CreateGame() => game = new TestGame();
 
-        private class TestGame : Game
+        private partial class TestGame : Game
         {
             public int Mode;
 
@@ -63,7 +63,7 @@ namespace osu.Framework.Benchmarks
             {
                 base.Update();
 
-                Drawable drawable = null;
+                Drawable? drawable = null;
 
                 switch (Mode)
                 {

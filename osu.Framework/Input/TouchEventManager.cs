@@ -1,8 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
@@ -15,7 +18,7 @@ namespace osu.Framework.Input
     /// </summary>
     public class TouchEventManager : ButtonEventManager<TouchSource>
     {
-        protected Vector2? TouchDownPosition;
+        public Vector2? TouchDownPosition { get; private set; }
 
         /// <summary>
         /// The drawable from the input queue that handled a <see cref="TouchDownEvent"/> corresponding to this touch source.
@@ -34,7 +37,7 @@ namespace osu.Framework.Input
 
         private void handleTouchMove(InputState state, Vector2 position, Vector2 lastPosition)
         {
-            PropagateButtonEvent(ButtonDownInputQueue, new TouchMoveEvent(state, new Touch(Button, position), TouchDownPosition, lastPosition));
+            PropagateButtonEvent(ButtonDownInputQueue!.Where(d => d.IsRootedAt(InputManager)), new TouchMoveEvent(state, new Touch(Button, position), TouchDownPosition, lastPosition));
         }
 
         protected override Drawable HandleButtonDown(InputState state, List<Drawable> targets)

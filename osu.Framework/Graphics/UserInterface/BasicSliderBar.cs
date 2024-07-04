@@ -1,15 +1,15 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Shapes;
+using Vector2 = osuTK.Vector2;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicSliderBar<T> : SliderBar<T>
-        where T : struct, IComparable<T>, IConvertible, IEquatable<T>
+    public partial class BasicSliderBar<T> : SliderBar<T>
+        where T : struct, INumber<T>, IMinMaxValue<T>
     {
         public Color4 BackgroundColour
         {

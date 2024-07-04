@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Input.Events;
 using osuTK;
@@ -11,7 +13,7 @@ namespace osu.Framework.Graphics.Containers
     /// An item of a <see cref="RearrangeableListContainer{TModel}"/>.
     /// </summary>
     /// <typeparam name="TModel"></typeparam>
-    public abstract class RearrangeableListItem<TModel> : CompositeDrawable
+    public abstract partial class RearrangeableListItem<TModel> : CompositeDrawable
     {
         /// <summary>
         /// Invoked on drag start, if an arrangement should be started.

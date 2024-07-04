@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
@@ -9,17 +11,19 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
 using osu.Framework.Caching;
-using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Graphics.Rendering;
+using osu.Framework.Layout;
 using osuTK.Graphics;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Lines
 {
     public partial class Path : Drawable, IBufferedDrawable
     {
-        public IShader RoundedTextureShader { get; private set; }
         public IShader TextureShader { get; private set; }
         private IShader pathShader;
+
+        [Resolved]
+        private IRenderer renderer { get; set; }
 
         public Path()
         {
@@ -29,7 +33,6 @@ namespace osu.Framework.Graphics.Lines
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             pathShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
         }
@@ -114,7 +117,7 @@ namespace osu.Framework.Graphics.Lines
         {
             get
             {
-                if (AutoSizeAxes.HasFlagFast(Axes.X))
+                if (AutoSizeAxes.HasFlag(Axes.X))
                     return base.Width = vertexBounds.Width;
 
                 return base.Width;
@@ -132,7 +135,7 @@ namespace osu.Framework.Graphics.Lines
         {
             get
             {
-                if (AutoSizeAxes.HasFlagFast(Axes.Y))
+                if (AutoSizeAxes.HasFlag(Axes.Y))
                     return base.Height = vertexBounds.Height;
 
                 return base.Height;
@@ -234,6 +237,16 @@ namespace osu.Framework.Graphics.Lines
             Invalidate(Invalidation.DrawSize);
         }
 
+        public void ReplaceVertex(int index, Vector2 pos)
+        {
+            vertices[index] = pos;
+
+            vertexBoundsCache.Invalidate();
+            segmentsCache.Invalidate();
+
+            Invalidate(Invalidation.DrawSize);
+        }
+
         private readonly List<Line> segmentsBacking = new List<Line>();
         private readonly Cached segmentsCache = new Cached();
         private List<Line> segments => segmentsCache.IsValid ? segmentsBacking : generateSegments();
@@ -257,7 +270,7 @@ namespace osu.Framework.Graphics.Lines
 
         protected Texture Texture
         {
-            get => texture ?? Texture.WhitePixel;
+            get => texture ?? renderer?.WhitePixel;
             set
             {
                 if (texture == value)
@@ -277,11 +290,59 @@ namespace osu.Framework.Graphics.Lines
         // The path should not receive the true colour to avoid colour doubling when the frame-buffer is rendered to the back-buffer.
         public override DrawColourInfo DrawColourInfo => new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
 
-        public Color4 BackgroundColour => new Color4(0, 0, 0, 0);
+        private Color4 backgroundColour = new Color4(0, 0, 0, 0);
 
-        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(new[] { RenderbufferInternalFormat.DepthComponent16 }, clipToRootNode: true);
+        /// <summary>
+        /// The background colour to be used for the frame buffer this path is rendered to.
+        /// </summary>
+        public virtual Color4 BackgroundColour
+        {
+            get => backgroundColour;
+            set
+            {
+                backgroundColour = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
 
-        protected override DrawNode CreateDrawNode() => new BufferedDrawNode(this, new PathDrawNode(this), sharedData);
+        public long PathInvalidationID { get; private set; }
+
+        protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
+        {
+            bool result = base.OnInvalidate(invalidation, source);
+
+            // Colour is being applied to the buffer instead of the actual drawable, thus removing the need to redraw the path on colour invalidation.
+            invalidation &= ~Invalidation.Colour;
+
+            if (invalidation != Invalidation.None)
+                PathInvalidationID++;
+
+            return result;
+        }
+
+        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(new[] { RenderBufferFormat.D16 }, clipToRootNode: true);
+
+        protected override DrawNode CreateDrawNode() => new PathBufferedDrawNode(this, new PathDrawNode(this), sharedData);
+
+        private class PathBufferedDrawNode : BufferedDrawNode
+        {
+            protected new Path Source => (Path)base.Source;
+
+            public PathBufferedDrawNode(Path source, PathDrawNode child, BufferedDrawNodeSharedData sharedData)
+                : base(source, child, sharedData)
+            {
+            }
+
+            private long pathInvalidationID = -1;
+
+            public override void ApplyState()
+            {
+                base.ApplyState();
+                pathInvalidationID = Source.PathInvalidationID;
+            }
+
+            protected override long GetDrawVersion() => pathInvalidationID;
+        }
 
         protected override void Dispose(bool isDisposing)
         {

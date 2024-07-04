@@ -8,7 +8,7 @@ namespace FlappyDon.Game.Tests
     {
         public static void Main()
         {
-            using (GameHost host = Host.GetSuitableHost("visual-tests"))
+            using (GameHost host = Host.GetSuitableDesktopHost("visual-tests"))
             using (var game = new FlappyDonTestBrowser())
                 host.Run(game);
         }

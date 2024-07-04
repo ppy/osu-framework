@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -13,7 +15,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Layout
 {
-    public class TestSceneTableContainer : FrameworkTestScene
+    public partial class TestSceneTableContainer : FrameworkTestScene
     {
         private TableContainer table;
 
@@ -241,7 +243,7 @@ namespace osu.Framework.Tests.Visual.Layout
             {
                 for (int row = 0; row < getGrid().Content.Count; row++)
                 {
-                    if (!Precision.AlmostEquals(expectedHeight, getGrid().Content[row][0].Parent.DrawHeight))
+                    if (!Precision.AlmostEquals(expectedHeight, getGrid().Content[row][0].Parent!.DrawHeight))
                         return false;
                 }
 
@@ -287,7 +289,7 @@ namespace osu.Framework.Tests.Visual.Layout
 
         private GridContainer getGrid() => (GridContainer)table.InternalChild;
 
-        private class Cell : SpriteText
+        private partial class Cell : SpriteText
         {
             public Cell(int index)
             {

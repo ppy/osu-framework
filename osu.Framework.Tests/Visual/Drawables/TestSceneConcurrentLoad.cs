@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +16,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneConcurrentLoad : FrameworkTestScene
+    public partial class TestSceneConcurrentLoad : FrameworkTestScene
     {
         private const int panel_count = 6;
 
@@ -65,7 +67,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddAssert("check all loaded", () => flow.Children.OfType<DelayedTestBoxAsync>().Count() == panel_count);
         }
 
-        public class DelayedTestBox : Box
+        public partial class DelayedTestBox : Box
         {
             public DelayedTestBox()
             {
@@ -80,7 +82,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        public class DelayedTestBoxAsync : Box
+        public partial class DelayedTestBoxAsync : Box
         {
             public DelayedTestBoxAsync()
             {

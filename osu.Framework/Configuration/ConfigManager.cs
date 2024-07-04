@@ -1,13 +1,17 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration.Tracking;
+using osu.Framework.Graphics;
 
 namespace osu.Framework.Configuration
 {
@@ -33,6 +37,23 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
+        /// Get the full configuration for logging purposes.
+        /// </summary>
+        /// <remarks>
+        /// Excludes any potentially sensitive information via <see cref="CheckLookupContainsPrivateInformation"/>.</remarks>
+        /// <returns></returns>
+        public virtual IDictionary<TLookup, string> GetCurrentConfigurationForLogging() => ConfigStore
+                                                                                           .Where(kvp => !CheckLookupContainsPrivateInformation(kvp.Key))
+                                                                                           .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToString());
+
+        /// <summary>
+        /// Check whether a specific lookup may contain private user information.
+        /// </summary>
+        /// <param name="lookup">The lookup type to check.</param>
+        /// <returns>Whether private information is present.</returns>
+        protected virtual bool CheckLookupContainsPrivateInformation(TLookup lookup) => false;
+
+        /// <summary>
         /// Set all required default values via Set() calls.
         /// Note that defaults set here may be overridden by <see cref="defaultOverrides"/> provided in the constructor.
         /// </summary>
@@ -55,24 +76,6 @@ namespace osu.Framework.Configuration
             else
                 bindable.Value = value;
         }
-
-        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
-        public BindableDouble Set(TLookup lookup, double value, double? min = null, double? max = null, double? precision = null) => SetDefault(lookup, value, min, max, precision);
-
-        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
-        public BindableFloat Set(TLookup lookup, float value, float? min = null, float? max = null, float? precision = null) => SetDefault(lookup, value, min, max, precision);
-
-        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
-        public BindableInt Set(TLookup lookup, int value, int? min = null, int? max = null) => SetDefault(lookup, value, min, max);
-
-        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
-        public BindableBool Set(TLookup lookup, bool value) => SetDefault(lookup, value);
-
-        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
-        public BindableSize Set(TLookup lookup, Size value, Size? min = null, Size? max = null) => SetDefault(lookup, value, min, max);
-
-        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
-        public Bindable<TValue> Set<TValue>(TLookup lookup, TValue value) => SetDefault(lookup, value);
 
         /// <summary>
         /// Sets a configuration's default value.
@@ -225,6 +228,31 @@ namespace osu.Framework.Configuration
         /// <param name="lookup">The lookup key.</param>
         /// <param name="value">The default value.</param>
         /// <returns>The original bindable (not a bound copy).</returns>
+        protected BindableColour4 SetDefault(TLookup lookup, Colour4 value)
+        {
+            value = getDefault(lookup, value);
+
+            if (!(GetOriginalBindable<Colour4>(lookup) is BindableColour4 bindable))
+            {
+                bindable = new BindableColour4(value);
+                AddBindable(lookup, bindable);
+            }
+            else
+            {
+                bindable.Value = value;
+            }
+
+            bindable.Default = value;
+
+            return bindable;
+        }
+
+        /// <summary>
+        /// Sets a configuration's default value.
+        /// </summary>
+        /// <param name="lookup">The lookup key.</param>
+        /// <param name="value">The default value.</param>
+        /// <returns>The original bindable (not a bound copy).</returns>
         protected Bindable<TValue> SetDefault<TValue>(TLookup lookup, TValue value)
         {
             value = getDefault(lookup, value);
@@ -327,7 +355,7 @@ namespace osu.Framework.Configuration
         {
             int current = Interlocked.Increment(ref lastSave);
 
-            Task.Delay(100).ContinueWith(task =>
+            Task.Delay(100).ContinueWith(_ =>
             {
                 if (current == lastSave) Save();
             });

@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
@@ -59,7 +59,7 @@ namespace osu.Framework.Input.StateChanges
                 if (activityChanged || positionChanged)
                 {
                     handler.HandleInputStateChange(new TouchStateChangeEvent(state, this, touch,
-                        !activityChanged ? (bool?)null : Activate,
+                        !activityChanged ? null : Activate,
                         !positionChanged ? null : lastPosition
                     ));
                 }

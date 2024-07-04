@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Reflection;
 using osu.Framework.Bindables;
@@ -17,7 +19,7 @@ namespace osu.Framework.Allocation
     /// </remarks>
     /// <typeparam name="TModel">The type of the model to cache. Must contain only <see cref="Bindable{T}"/> fields or auto-properties.</typeparam>
     public class CachedModelDependencyContainer<TModel> : IReadOnlyDependencyContainer
-        where TModel : class, new()
+        where TModel : class, IDependencyInjectionCandidate, new()
     {
         private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
@@ -65,7 +67,9 @@ namespace osu.Framework.Allocation
             return parent?.Get(type, info);
         }
 
-        public void Inject<T>(T instance) where T : class => DependencyActivator.Activate(instance, this);
+        public void Inject<T>(T instance)
+            where T : class, IDependencyInjectionCandidate
+            => DependencyActivator.Activate(instance, this);
 
         /// <summary>
         /// Creates a new shadow model bound to <see cref="shadowModel"/>.

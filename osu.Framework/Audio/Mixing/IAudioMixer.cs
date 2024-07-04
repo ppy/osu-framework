@@ -1,10 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable enable
-
 using ManagedBass;
-using osu.Framework.Bindables;
+using ManagedBass.Fx;
 
 namespace osu.Framework.Audio.Mixing
 {
@@ -14,15 +12,6 @@ namespace osu.Framework.Audio.Mixing
     /// </summary>
     public interface IAudioMixer
     {
-        /// <summary>
-        /// The effects currently applied to the mix.
-        /// <para>
-        /// Effects are stored in order of decreasing priority such that the effect at <c>index = 0</c> in the list has the highest priority
-        /// and the effect at <c>index = Count - 1</c> in the list has the lowest priority.
-        /// </para>
-        /// </summary>
-        BindableList<IEffectParameter> Effects { get; }
-
         /// <summary>
         /// Adds a channel to the mix.
         /// </summary>
@@ -41,5 +30,25 @@ namespace osu.Framework.Audio.Mixing
         /// <param name="channel">The <see cref="IAudioChannel"/> to retrieve the levels for.</param>
         /// <param name="length">How much data (in seconds) to look at to get the level (limited to 1 second).</param>
         float[] GetChannelLevel(IAudioChannel channel, float length);
+
+        /// <summary>
+        /// Applies an effect to the mixer.
+        /// </summary>
+        /// <param name="effect">The effect (e.g. <see cref="BQFEffect"/>.</param>
+        /// <param name="priority">The effect priority. Lower values indicate higher priority and negative values are allowed.
+        ///     When there are multiple effects with the same priority, their ordering depends on the order in which they are added to the <see cref="IAudioMixer"/>.</param>
+        void AddEffect(IEffectParameter effect, int priority = 0);
+
+        /// <summary>
+        /// Removes an effect from the mixer.
+        /// </summary>
+        /// <param name="effect">The effect.</param>
+        void RemoveEffect(IEffectParameter effect);
+
+        /// <summary>
+        /// Updates an effect's parameters.
+        /// </summary>
+        /// <param name="effect"></param>
+        void UpdateEffect(IEffectParameter effect);
     }
 }

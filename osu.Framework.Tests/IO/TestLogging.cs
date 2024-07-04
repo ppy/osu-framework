@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +13,7 @@ using osu.Framework.Testing;
 namespace osu.Framework.Tests.IO
 {
     [TestFixture]
-    public class TestLogging
+    public partial class TestLogging
     {
         [Test]
         public void TestExceptionLogging()
@@ -98,7 +100,7 @@ namespace osu.Framework.Tests.IO
         {
             using (var host = new TestRunHeadlessGameHost())
             {
-                host.ExceptionThrown += ex => ignoreCount-- > 0;
+                host.ExceptionThrown += _ => ignoreCount-- > 0;
 
                 var game = new TestGame();
 
@@ -120,38 +122,12 @@ namespace osu.Framework.Tests.IO
             });
         }
 
-        private class CrashTestGame : Game
+        private partial class CrashTestGame : Game
         {
             protected override void Update()
             {
                 base.Update();
                 throw new TestException();
-            }
-        }
-
-        [Test]
-        public void TestGameUnobservedExceptionDoesntCrashGame()
-        {
-            using (var host = new TestRunHeadlessGameHost())
-            {
-                TaskCrashTestGame game = new TaskCrashTestGame();
-                host.Run(game);
-            }
-        }
-
-        private class TaskCrashTestGame : Game
-        {
-            private int frameCount;
-
-            protected override void Update()
-            {
-                base.Update();
-
-                Task.Run(() => throw new TestException());
-
-                // only start counting frames once the task has completed, to allow some time for the unobserved exception to be handled.
-                if (frameCount++ > 10)
-                    Exit();
             }
         }
 
@@ -162,7 +138,7 @@ namespace osu.Framework.Tests.IO
 
             void logTest(LogEntry entry)
             {
-                if (entry.Exception is AggregateException ex)
+                if (entry.Exception is TestException ex)
                 {
                     Assert.IsNull(resolvedException, "exception was forwarded more than once");
                     resolvedException = ex;
@@ -177,8 +153,7 @@ namespace osu.Framework.Tests.IO
                 // needs to be in a separate method so the Task gets GC'd.
                 performTaskException();
 
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
+                collectAndFireUnobserved();
             }
 
             Assert.IsNotNull(resolvedException, "exception wasn't forwarded by logger");
@@ -236,6 +211,22 @@ namespace osu.Framework.Tests.IO
 
         private class TestInnerException : Exception
         {
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            // Safety against any unobserved exceptions being left in the pipe.
+            collectAndFireUnobserved();
+        }
+
+        /// <summary>
+        /// Forcefully collect so the unobserved exception isn't handled by a future test execution.
+        /// </summary>
+        private static void collectAndFireUnobserved()
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
     }
 }

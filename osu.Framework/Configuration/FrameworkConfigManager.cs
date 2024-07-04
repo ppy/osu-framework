@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -23,7 +25,7 @@ namespace osu.Framework.Configuration
         {
             SetDefault(FrameworkSetting.ShowLogOverlay, false);
 
-            SetDefault(FrameworkSetting.WindowedSize, new Size(1366, 768), new Size(640, 480));
+            SetDefault(FrameworkSetting.WindowedSize, new Size(1366, 768), new Size(640, 480), new Size(65536, 65536));
             SetDefault(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen);
             SetDefault(FrameworkSetting.ExecutionMode, ExecutionMode.MultiThreaded);
             SetDefault(FrameworkSetting.WindowedPositionX, 0.5, -0.5, 1.5);
@@ -35,8 +37,10 @@ namespace osu.Framework.Configuration
             SetDefault(FrameworkSetting.VolumeEffect, 1.0, 0.0, 1.0, 0.01);
             SetDefault(FrameworkSetting.HardwareVideoDecoder, HardwareVideoDecoder.Any);
             SetDefault(FrameworkSetting.SizeFullscreen, new Size(9999, 9999), new Size(320, 240));
+            SetDefault(FrameworkSetting.MinimiseOnFocusLossInFullscreen, RuntimeInfo.IsDesktop);
             SetDefault(FrameworkSetting.FrameSync, FrameSync.Limit2x);
             SetDefault(FrameworkSetting.WindowMode, WindowMode.Windowed);
+            SetDefault(FrameworkSetting.Renderer, RendererType.Automatic);
             SetDefault(FrameworkSetting.ShowUnicode, false);
             SetDefault(FrameworkSetting.Locale, string.Empty);
 
@@ -88,6 +92,12 @@ namespace osu.Framework.Configuration
 
         SizeFullscreen,
 
+        /// <summary>
+        /// Whether the window will be minimised when losing focus in <see cref="Framework.Configuration.WindowMode.Fullscreen"/> mode.
+        /// </summary>
+        MinimiseOnFocusLossInFullscreen,
+
+        Renderer,
         WindowMode,
         ConfineMouseMode,
         FrameSync,

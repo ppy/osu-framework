@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Threading.Tasks;
@@ -36,7 +36,7 @@ namespace osu.Framework.IO.Stores
         /// </summary>
         /// <param name="character">The character to retrieve the <see cref="CharacterGlyph"/> for.</param>
         /// <returns>The <see cref="CharacterGlyph"/> containing associated spacing information for <paramref name="character"/>.</returns>
-        CharacterGlyph Get(char character);
+        CharacterGlyph? Get(char character);
 
         /// <summary>
         /// Retrieves the kerning for a pair of characters.

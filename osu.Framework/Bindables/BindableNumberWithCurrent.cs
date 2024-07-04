@@ -1,7 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
+using System.Numerics;
 
 namespace osu.Framework.Bindables
 {
@@ -10,7 +13,7 @@ namespace osu.Framework.Bindables
     /// </summary>
     /// <typeparam name="T">The type of our stored <see cref="Bindable{T}.Value"/>.</typeparam>
     public class BindableNumberWithCurrent<T> : BindableNumber<T>, IBindableWithCurrent<T>
-        where T : struct, IComparable<T>, IConvertible, IEquatable<T>
+        where T : struct, INumber<T>, IMinMaxValue<T>
     {
         private BindableNumber<T> currentBound;
 
@@ -19,8 +22,7 @@ namespace osu.Framework.Bindables
             get => this;
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+                ArgumentNullException.ThrowIfNull(value);
 
                 if (currentBound != null) UnbindFrom(currentBound);
                 BindTo(currentBound = (BindableNumber<T>)value);

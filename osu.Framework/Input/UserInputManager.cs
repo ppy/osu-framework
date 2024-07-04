@@ -1,18 +1,21 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Immutable;
-using osu.Framework.Extensions.EnumExtensions;
+using System.Drawing;
+using osu.Framework.Configuration;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Platform;
 using osuTK;
 using osuTK.Input;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Input
 {
-    public class UserInputManager : PassThroughInputManager
+    public partial class UserInputManager : PassThroughInputManager
     {
         protected override ImmutableArray<InputHandler> InputHandlers => Host.AvailableInputHandlers;
 
@@ -35,21 +38,41 @@ namespace osu.Framework.Input
                     var mouse = mousePositionChange.State.Mouse;
 
                     // confine cursor
-                    if (Host.Window != null && Host.Window.CursorState.HasFlagFast(CursorState.Confined))
+                    if (Host.Window != null)
                     {
+                        RectangleF? cursorConfineRect = null;
                         var clientSize = Host.Window.ClientSize;
-                        mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(clientSize.Width - 1, clientSize.Height - 1));
+                        var windowRect = new RectangleF(0, 0, clientSize.Width, clientSize.Height);
+
+                        if (Host.Window.CursorState.HasFlag(CursorState.Confined))
+                        {
+                            cursorConfineRect = Host.Window.CursorConfineRect ?? windowRect;
+                        }
+                        else if (mouseOutsideAllDisplays(mouse.Position))
+                        {
+                            // Implicitly confine the cursor to prevent a feedback loop of MouseHandler warping the cursor to an invalid position
+                            // and the OS immediately warping it back inside a display.
+
+                            // Window.CursorConfineRect is not used here as that should only be used when confining is explicitly enabled.
+                            cursorConfineRect = windowRect;
+                        }
+
+                        if (cursorConfineRect.HasValue)
+                            mouse.Position = Vector2.Clamp(mouse.Position, cursorConfineRect.Value.Location, cursorConfineRect.Value.Location + cursorConfineRect.Value.Size - Vector2.One);
                     }
 
                     break;
 
                 case ButtonStateChangeEvent<MouseButton> buttonChange:
+                    // presses registered when the mouse pointer is outside the window are ignored.
+                    // however, releases registered when the mouse pointer is outside the window cannot be ignored;
+                    // handling them is essential to correctly handling mouse capture (only applicable when relative mode is disabled).
                     if (buttonChange.Kind == ButtonStateChangeKind.Pressed && Host.Window?.CursorInWindow.Value == false)
                         return;
 
                     break;
 
-                case MouseScrollChangeEvent _:
+                case MouseScrollChangeEvent:
                     if (Host.Window?.CursorInWindow.Value == false)
                         return;
 
@@ -57,6 +80,33 @@ namespace osu.Framework.Input
             }
 
             base.HandleInputStateChange(inputStateChange);
+        }
+
+        private bool mouseOutsideAllDisplays(Vector2 mousePosition)
+        {
+            Point windowLocation;
+
+            switch (Host.Window.WindowMode.Value)
+            {
+                case WindowMode.Windowed:
+                    windowLocation = Host.Window is ISDLWindow sdlWindow ? sdlWindow.Position : Point.Empty;
+                    break;
+
+                default:
+                    windowLocation = Host.Window.CurrentDisplayBindable.Value.Bounds.Location;
+                    break;
+            }
+
+            int x = (int)MathF.Floor(windowLocation.X + mousePosition.X);
+            int y = (int)MathF.Floor(windowLocation.Y + mousePosition.Y);
+
+            foreach (var display in Host.Window.Displays)
+            {
+                if (display.Bounds.Contains(x, y))
+                    return false;
+            }
+
+            return true;
         }
     }
 }

@@ -1,13 +1,15 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using System;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class FlashyBox : Box
+    internal partial class FlashyBox : Box
     {
         private Drawable target;
         private readonly Func<Drawable, Quad> getScreenSpaceQuad;

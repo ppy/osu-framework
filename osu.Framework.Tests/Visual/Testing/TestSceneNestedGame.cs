@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -12,7 +14,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneNestedGame : FrameworkTestScene
+    public partial class TestSceneNestedGame : FrameworkTestScene
     {
         private bool hostWasRunningAfterNestedExit;
 
@@ -79,14 +81,12 @@ namespace osu.Framework.Tests.Visual.Testing
             AddStep("mark host running", () => hostWasRunningAfterNestedExit = true);
         }
 
-        protected override void RunTestsFromNUnit()
+        internal override void RunAfterTest()
         {
-            base.RunTestsFromNUnit();
-
             Assert.IsTrue(hostWasRunningAfterNestedExit);
         }
 
-        internal class NestedTestGame : TestGame
+        internal partial class NestedTestGame : TestGame
         {
             private Box box;
 

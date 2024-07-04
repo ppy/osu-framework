@@ -20,7 +20,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneKeyBindingsGrid : ManualInputManagerTestScene
+    public partial class TestSceneKeyBindingsGrid : ManualInputManagerTestScene
     {
         private readonly KeyBindingTester none, noneExact, noneModifiers, unique, all;
 
@@ -281,9 +281,9 @@ namespace osu.Framework.Tests.Visual.Input
                 scrollMouseWheel(0, -1);
                 check(TestAction.WheelDown, allPressAndReleased);
 
-                scrollMouseWheel(-1, 0);
-                check(TestAction.WheelLeft, allPressAndReleased);
                 scrollMouseWheel(1, 0);
+                check(TestAction.WheelLeft, allPressAndReleased);
+                scrollMouseWheel(-1, 0);
                 check(TestAction.WheelRight, allPressAndReleased);
 
                 toggleKey(Key.ControlLeft);
@@ -396,7 +396,7 @@ namespace osu.Framework.Tests.Visual.Input
             AnyShift
         }
 
-        private class TestInputManager : KeyBindingContainer<TestAction>
+        private partial class TestInputManager : KeyBindingContainer<TestAction>
         {
             public TestInputManager(SimultaneousBindingMode concurrencyMode = SimultaneousBindingMode.None, KeyCombinationMatchingMode matchingMode = KeyCombinationMatchingMode.Any)
                 : base(concurrencyMode, matchingMode)
@@ -466,7 +466,7 @@ namespace osu.Framework.Tests.Visual.Input
             public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
         }
 
-        private class ScrollTestButton : TestButton, IScrollBindingHandler<TestAction>
+        private partial class ScrollTestButton : TestButton, IScrollBindingHandler<TestAction>
         {
             public int OnScrollCount { get; protected set; }
             public float LastScrollAmount { get; protected set; }
@@ -502,7 +502,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class TestButton : BasicButton, IKeyBindingHandler<TestAction>
+        private partial class TestButton : BasicButton, IKeyBindingHandler<TestAction>
         {
             public new readonly TestAction Action;
             public readonly SimultaneousBindingMode Concurrency;
@@ -589,7 +589,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class KeyBindingTester : FillFlowContainer
+        private partial class KeyBindingTester : FillFlowContainer
         {
             private readonly TestButton[] testButtons;
 

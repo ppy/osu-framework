@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Statistics;
 using System.Diagnostics;
@@ -10,7 +12,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class DelayedLoadUnloadWrapper : DelayedLoadWrapper
+    public partial class DelayedLoadUnloadWrapper : DelayedLoadWrapper
     {
         private readonly double timeBeforeUnload;
 
@@ -87,7 +89,7 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly LayoutValue<IFrameBasedClock> unloadClockBacking = new LayoutValue<IFrameBasedClock>(Invalidation.Parent);
 
-        private IFrameBasedClock unloadClock => unloadClockBacking.IsValid ? unloadClockBacking.Value : (unloadClockBacking.Value = FindClosestParent<Game>() == null ? Game.Clock : Clock);
+        private IFrameBasedClock unloadClock => unloadClockBacking.IsValid ? unloadClockBacking.Value : (unloadClockBacking.Value = this.FindClosestParent<Game>() == null ? Game.Clock : Clock);
 
         private void checkForUnload()
         {

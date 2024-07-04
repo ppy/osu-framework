@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -12,7 +12,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestScenePopover : GridTestScene
+    public partial class TestScenePopover : GridTestScene
     {
         public TestScenePopover()
             : base(3, 3)
@@ -29,7 +29,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         });
 
         [Test]
-        public void TestSizingDirectly() => createContent((anchor, popover) =>
+        public void TestSizingDirectly() => createContent((_, popover) =>
         {
             popover.Size = new Vector2(200, 100);
 

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -14,7 +16,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneTouchVisualiser : ManualInputManagerTestScene
+    public partial class TestSceneTouchVisualiser : ManualInputManagerTestScene
     {
         public TestSceneTouchVisualiser()
         {
@@ -31,7 +33,7 @@ namespace osu.Framework.Tests.Visual.Input
             };
         }
 
-        public class TouchVisualiser : CompositeDrawable
+        public partial class TouchVisualiser : CompositeDrawable
         {
             private readonly Drawable[] drawableTouches = new Drawable[10];
 
@@ -83,7 +85,7 @@ namespace osu.Framework.Tests.Visual.Input
                 return Color4.FromHsv(new Vector4((float)source / TouchState.MAX_TOUCH_COUNT, 1f, 1f, 1f));
             }
 
-            private class FadingCircle : Circle
+            private partial class FadingCircle : Circle
             {
                 public FadingCircle(Drawable source)
                 {

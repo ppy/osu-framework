@@ -1,12 +1,16 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#if NET5_0
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Output;
 using OpenTabletDriver.Plugin.Platform.Pointer;
 using OpenTabletDriver.Plugin.Tablet;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -14,11 +18,21 @@ using osuTK;
 
 namespace osu.Framework.Input.Handlers.Tablet
 {
-    public class OpenTabletDriverHandler : InputHandler, IAbsolutePointer, IVirtualTablet, IRelativePointer, ITabletHandler
+    public class OpenTabletDriverHandler : InputHandler, IAbsolutePointer, IRelativePointer, IPressureHandler, ITabletHandler
     {
-        public override bool IsActive => tabletDriver.EnableInput;
+        private static readonly GlobalStatistic<ulong> statistic_total_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<OpenTabletDriverHandler>(), "Total events");
 
-        private TabletDriver tabletDriver;
+        private TabletDriver? tabletDriver;
+
+        private InputDeviceTree? device;
+
+        private AbsoluteOutputMode outputMode = null!;
+
+        private GameHost host = null!;
+
+        public override string Description => "Tablet";
+
+        public override bool IsActive => tabletDriver != null;
 
         public Bindable<Vector2> AreaOffset { get; } = new Bindable<Vector2>();
 
@@ -26,51 +40,49 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public Bindable<float> Rotation { get; } = new Bindable<float>();
 
-        public IBindable<TabletInfo> Tablet => tablet;
+        public IBindable<TabletInfo?> Tablet => tablet;
 
-        private readonly Bindable<TabletInfo> tablet = new Bindable<TabletInfo>();
+        private readonly Bindable<TabletInfo?> tablet = new Bindable<TabletInfo?>();
+
+        private Task? lastInitTask;
 
         public override bool Initialize(GameHost host)
         {
-            tabletDriver = new TabletDriver
-            {
-                // for now let's keep things simple and always use absolute mode.
-                // this will likely be a user setting in the future.
-                OutputMode = new AbsoluteTabletMode(this)
-            };
+            this.host = host;
 
-            updateOutputArea(host.Window);
+            outputMode = new AbsoluteTabletMode(this);
 
             host.Window.Resized += () => updateOutputArea(host.Window);
 
-            AreaOffset.BindValueChanged(_ => updateInputArea());
-            AreaSize.BindValueChanged(_ => updateInputArea(), true);
-            Rotation.BindValueChanged(_ => updateInputArea(), true);
+            AreaOffset.BindValueChanged(_ => updateTabletAndInputArea(device));
+            AreaSize.BindValueChanged(_ => updateTabletAndInputArea(device));
+            Rotation.BindValueChanged(_ => updateTabletAndInputArea(device), true);
 
-            tabletDriver.TabletChanged += (sender, e) => updateInputArea();
-            tabletDriver.ReportReceived += (sender, report) =>
+            Enabled.BindValueChanged(enabled =>
             {
-                switch (report)
+                if (enabled.NewValue)
                 {
-                    case ITabletReport tabletReport:
-                        handleTabletReport(tabletReport);
-                        break;
-
-                    case IAuxReport auxiliaryReport:
-                        handleAuxiliaryReport(auxiliaryReport);
-                        break;
+                    lastInitTask = Task.Run(() =>
+                    {
+                        tabletDriver = TabletDriver.Create();
+                        tabletDriver.PostLog = Log;
+                        tabletDriver.TabletsChanged += handleTabletsChanged;
+                        tabletDriver.DeviceReported += handleDeviceReported;
+                        tabletDriver.Detect();
+                    });
                 }
-            };
-
-            Enabled.BindValueChanged(d =>
-            {
-                if (d.NewValue)
+                else
                 {
-                    if (tabletDriver.Tablet == null)
-                        tabletDriver.DetectTablet();
-                }
+                    lastInitTask?.WaitSafely();
 
-                tabletDriver.EnableInput = d.NewValue;
+                    if (tabletDriver != null)
+                    {
+                        tabletDriver.DeviceReported -= handleDeviceReported;
+                        tabletDriver.TabletsChanged -= handleTabletsChanged;
+                        tabletDriver.Dispose();
+                        tabletDriver = null;
+                    }
+                }
             }, true);
 
             return true;
@@ -78,13 +90,41 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         void IAbsolutePointer.SetPosition(System.Numerics.Vector2 pos) => enqueueInput(new MousePositionAbsoluteInput { Position = new Vector2(pos.X, pos.Y) });
 
-        void IVirtualTablet.SetPressure(float percentage) => enqueueInput(new MouseButtonInput(osuTK.Input.MouseButton.Left, percentage > 0));
+        void IRelativePointer.SetPosition(System.Numerics.Vector2 delta) => enqueueInput(new MousePositionRelativeInput { Delta = new Vector2(delta.X, delta.Y) });
 
-        void IRelativePointer.Translate(System.Numerics.Vector2 delta) => enqueueInput(new MousePositionRelativeInput { Delta = new Vector2(delta.X, delta.Y) });
+        void IPressureHandler.SetPressure(float percentage) => enqueueInput(new MouseButtonInput(osuTK.Input.MouseButton.Left, percentage > 0));
+
+        private void handleTabletsChanged(object? sender, IEnumerable<TabletReference> tablets)
+        {
+            device = tablets.Any() ? tabletDriver?.InputDevices.First() : null;
+
+            if (device != null)
+            {
+                device.OutputMode = outputMode;
+                outputMode.Tablet = device.CreateReference();
+
+                updateTabletAndInputArea(device);
+                updateOutputArea(host.Window);
+            }
+            else
+                tablet.Value = null;
+        }
+
+        private void handleDeviceReported(object? sender, IDeviceReport report)
+        {
+            if (report is ITabletReport tabletReport)
+                handleTabletReport(tabletReport);
+
+            if (report is IAuxReport auxiliaryReport)
+                handleAuxiliaryReport(auxiliaryReport);
+        }
 
         private void updateOutputArea(IWindow window)
         {
-            switch (tabletDriver.OutputMode)
+            if (device == null)
+                return;
+
+            switch (device.OutputMode)
             {
                 case AbsoluteOutputMode absoluteOutputMode:
                 {
@@ -102,16 +142,14 @@ namespace osu.Framework.Input.Handlers.Tablet
             }
         }
 
-        private void updateInputArea()
+        private void updateTabletAndInputArea(InputDeviceTree? inputDevice)
         {
-            if (tabletDriver.Tablet == null)
-            {
-                tablet.Value = null;
+            if (inputDevice == null)
                 return;
-            }
 
-            float inputWidth = tabletDriver.Tablet.Digitizer.Width;
-            float inputHeight = tabletDriver.Tablet.Digitizer.Height;
+            var digitizer = inputDevice.Properties.Specifications.Digitizer;
+            float inputWidth = digitizer.Width;
+            float inputHeight = digitizer.Height;
 
             AreaSize.Default = new Vector2(inputWidth, inputHeight);
 
@@ -126,9 +164,9 @@ namespace osu.Framework.Input.Handlers.Tablet
             if (AreaOffset.Value == Vector2.Zero)
                 AreaOffset.SetDefault();
 
-            tablet.Value = new TabletInfo(tabletDriver.Tablet.TabletProperties.Name, AreaSize.Default);
+            tablet.Value = new TabletInfo(inputDevice.Properties.Name, AreaSize.Default);
 
-            switch (tabletDriver.OutputMode)
+            switch (inputDevice.OutputMode)
             {
                 case AbsoluteOutputMode absoluteOutputMode:
                 {
@@ -169,7 +207,7 @@ namespace osu.Framework.Input.Handlers.Tablet
         {
             PendingInputs.Enqueue(input);
             FrameStatistics.Increment(StatisticsCounterType.TabletEvents);
+            statistic_total_events.Value++;
         }
     }
 }
-#endif

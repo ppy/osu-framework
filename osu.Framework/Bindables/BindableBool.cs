@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+
 namespace osu.Framework.Bindables
 {
     public class BindableBool : Bindable<bool>
@@ -10,16 +12,16 @@ namespace osu.Framework.Bindables
         {
         }
 
-        public override string ToString() => Value.ToString();
-
-        public override void Parse(object input)
+        public override void Parse(object? input, IFormatProvider provider)
         {
+            ArgumentNullException.ThrowIfNull(input);
+
             if (input is "1")
                 Value = true;
             else if (input is "0")
                 Value = false;
             else
-                base.Parse(input);
+                base.Parse(input, provider);
         }
 
         public void Toggle() => Value = !Value;

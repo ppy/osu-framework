@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using NUnit.Framework;
@@ -13,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneBufferedContainerView : FrameworkTestScene
+    public partial class TestSceneBufferedContainerView : FrameworkTestScene
     {
         [TestCase(false)]
         [TestCase(true)]
@@ -61,7 +61,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             });
         }
 
-        private class BlurView : CompositeDrawable
+        private partial class BlurView : CompositeDrawable
         {
             public BlurView(BufferedContainer buffer, float blur, bool displayEffects, bool synchronisedQuad)
             {

@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Bindables;
@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// A group of controls to be used for selecting a colour.
     /// Allows both for mouse-interactive input (via <see cref="HSVColourPicker"/>) and textual input (via <see cref="HexColourPicker"/>).
     /// </summary>
-    public abstract class ColourPicker : CompositeDrawable, IHasCurrentValue<Colour4>
+    public abstract partial class ColourPicker : CompositeDrawable, IHasCurrentValue<Colour4>
     {
         private readonly BindableWithCurrent<Colour4> current = new BindableWithCurrent<Colour4>();
 

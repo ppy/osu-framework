@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -12,7 +14,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneSpriteTextMaxWidth : FrameworkTestScene
+    public partial class TestSceneSpriteTextMaxWidth : FrameworkTestScene
     {
         private VisualDisplay display;
 
@@ -96,7 +98,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             });
         }
 
-        private class VisualDisplay : CompositeDrawable
+        private partial class VisualDisplay : CompositeDrawable
         {
             public readonly TestSpriteText Text;
 
@@ -121,7 +123,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             }
         }
 
-        private class TestSpriteText : SpriteText
+        private partial class TestSpriteText : SpriteText
         {
             public TextBuilder TextBuilder { get; private set; }
 

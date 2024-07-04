@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -18,7 +20,7 @@ namespace osu.Framework.Tests.Containers
 {
     [System.ComponentModel.Description("ensure valid container state in various scenarios")]
     [HeadlessTest]
-    public class TestSceneContainerState : FrameworkTestScene
+    public partial class TestSceneContainerState : FrameworkTestScene
     {
         /// <summary>
         /// Tests if a drawable can be added to a container, removed, and then re-added to the same container.
@@ -34,12 +36,35 @@ namespace osu.Framework.Tests.Containers
             Assert.IsTrue(container.Contains(sprite));
 
             // Remove
-            Assert.DoesNotThrow(() => container.Remove(sprite));
+            Assert.DoesNotThrow(() => container.Remove(sprite, false));
+            Assert.IsFalse(sprite.IsDisposed);
             Assert.IsFalse(container.Contains(sprite));
 
             // Re-add
             Assert.DoesNotThrow(() => container.Add(sprite));
             Assert.IsTrue(container.Contains(sprite));
+        }
+
+        /// <summary>
+        /// Tests if a drawable is added then removed with disposal, it can't be added again.
+        /// </summary>
+        [Test]
+        public void TestAttemptAddAfterDisposal()
+        {
+            var container = new Container();
+            var sprite = new Sprite();
+
+            // Add
+            Assert.DoesNotThrow(() => container.Add(sprite));
+            Assert.IsTrue(container.Contains(sprite));
+
+            // Remove with disposal
+            Assert.DoesNotThrow(() => container.Remove(sprite, true));
+            Assert.IsTrue(sprite.IsDisposed);
+            Assert.IsFalse(container.Contains(sprite));
+
+            // Attempts re-add
+            Assert.IsFalse(container.Contains(sprite));
         }
 
         /// <summary>
@@ -56,7 +81,7 @@ namespace osu.Framework.Tests.Containers
                     Child = new Container(),
                 };
 
-                var unused2 = new Container { Child = unused1.Child };
+                _ = new Container { Child = unused1.Child };
             });
         }
 
@@ -104,7 +129,7 @@ namespace osu.Framework.Tests.Containers
                 target.Schedule(() => { });
             });
 
-            AddStep("remove target", () => Remove(target));
+            AddStep("remove target", () => Remove(target, false));
             AddStep("add target to unloaded container", () => Add(new Container { Child = target }));
         }
 
@@ -130,8 +155,8 @@ namespace osu.Framework.Tests.Containers
             Assert.IsTrue(newContainer.First(c => c.Contains(drawableA)) == containerA);
             Assert.IsTrue(newContainer.First(c => c.Contains(drawableB)) == containerB);
 
-            Assert.DoesNotThrow(() => newContainer.First(c => c.Contains(drawableA)).Remove(drawableA));
-            Assert.DoesNotThrow(() => newContainer.First(c => c.Contains(drawableB)).Remove(drawableB));
+            Assert.DoesNotThrow(() => newContainer.First(c => c.Contains(drawableA)).Remove(drawableA, false));
+            Assert.DoesNotThrow(() => newContainer.First(c => c.Contains(drawableB)).Remove(drawableB, false));
         }
 
         [Test]
@@ -221,7 +246,7 @@ namespace osu.Framework.Tests.Containers
             AddStep("begin async load", () =>
             {
                 safeContainer.LoadComponentAsync(drawable = new DelayedLoadDrawable(), _ => { });
-                Remove(safeContainer);
+                Remove(safeContainer, false);
             });
 
             AddUntilStep("wait until loading", () => drawable.LoadState == LoadState.Loading);
@@ -273,7 +298,7 @@ namespace osu.Framework.Tests.Containers
             AddUntilStep("container has no children", () => container.Count == 0);
         }
 
-        private class DelayedLoadDrawable : CompositeDrawable
+        private partial class DelayedLoadDrawable : CompositeDrawable
         {
             public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim();
 
@@ -350,7 +375,7 @@ namespace osu.Framework.Tests.Containers
             AddAssert("non-alive child not contained", () => !container.AliveChildren.Contains(nonAliveChild));
         }
 
-        private class TestContainer : Container
+        private partial class TestContainer : Container
         {
             public new void ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
         }

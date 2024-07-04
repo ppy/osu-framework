@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using NUnit.Framework;
@@ -11,7 +11,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneFrontToBackBufferedContainer : FrameworkTestScene
+    public partial class TestSceneFrontToBackBufferedContainer : FrameworkTestScene
     {
         [Test]
         public void TestBufferedContainerBehindBox()
@@ -61,7 +61,7 @@ namespace osu.Framework.Tests.Visual.Containers
             });
         }
 
-        public class TestBufferedContainer : BufferedContainer
+        public partial class TestBufferedContainer : BufferedContainer
         {
             public TestBufferedContainer(bool behind)
             {

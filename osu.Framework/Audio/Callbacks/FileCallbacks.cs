@@ -1,7 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
+using System.Runtime.CompilerServices;
 using ManagedBass;
 using osu.Framework.Allocation;
 using osu.Framework.Platform;
@@ -38,14 +41,14 @@ namespace osu.Framework.Audio.Callbacks
 
         public FileCallbacks(IFileProcedures implementation)
         {
-            Callbacks = RuntimeInfo.SupportsJIT ? instanceProcedures : static_procedures;
+            Callbacks = RuntimeFeature.IsDynamicCodeSupported ? instanceProcedures : static_procedures;
             this.implementation = implementation;
             procedures = null;
         }
 
         public FileCallbacks(FileProcedures procedures)
         {
-            Callbacks = RuntimeInfo.SupportsJIT ? instanceProcedures : static_procedures;
+            Callbacks = RuntimeFeature.IsDynamicCodeSupported ? instanceProcedures : static_procedures;
             this.procedures = procedures;
             implementation = null;
         }

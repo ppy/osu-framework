@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Globalization;
@@ -11,7 +11,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneCoordinateSpaces : FrameworkTestScene
+    public partial class TestSceneCoordinateSpaces : FrameworkTestScene
     {
         public TestSceneCoordinateSpaces()
         {
@@ -104,7 +104,7 @@ namespace osu.Framework.Tests.Visual.Containers
             }
         }
 
-        private class HorizontalVisualiser : Visualiser
+        private partial class HorizontalVisualiser : Visualiser
         {
             protected override void Update()
             {
@@ -115,7 +115,7 @@ namespace osu.Framework.Tests.Visual.Containers
             }
         }
 
-        private abstract class Visualiser : Container
+        private abstract partial class Visualiser : Container
         {
             public new Vector2 RelativeChildSize
             {

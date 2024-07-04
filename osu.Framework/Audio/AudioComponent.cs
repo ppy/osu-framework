@@ -1,8 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using osu.Framework.Development;
 using osu.Framework.Platform;
@@ -71,14 +74,18 @@ namespace osu.Framework.Audio
         {
             ThreadSafety.EnsureNotUpdateThread();
 
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not update disposed audio components.");
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
             FrameStatistics.Add(StatisticsCounterType.TasksRun, PendingActions.Count);
             FrameStatistics.Increment(StatisticsCounterType.Components);
 
             while (!IsDisposed && PendingActions.TryDequeue(out Task task))
+            {
                 task.RunSynchronously();
+
+                if (task.Exception != null)
+                    ExceptionDispatchInfo.Throw(task.Exception);
+            }
 
             if (!IsDisposed)
                 UpdateState();

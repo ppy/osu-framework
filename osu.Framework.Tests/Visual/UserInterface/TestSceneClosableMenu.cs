@@ -1,6 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
+using System;
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
@@ -10,39 +14,79 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneClosableMenu : MenuTestScene
+    public partial class TestSceneClosableMenu : MenuTestScene
     {
-        protected override Menu CreateMenu() => new AnimatedMenu(Direction.Vertical)
+        [SetUpSteps]
+        public void SetUpSteps()
         {
-            Anchor = Anchor.Centre,
-            Origin = Anchor.Centre,
-            State = MenuState.Open,
-            Items = new[]
+            CreateMenu(() => new AnimatedMenu(Direction.Vertical)
             {
-                new MenuItem("Item #1")
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                State = MenuState.Open,
+                Items = new[]
                 {
-                    Items = new[]
+                    new MenuItem("Item #1")
                     {
-                        new MenuItem("Sub-item #1"),
-                        new MenuItem("Sub-item #2"),
-                    }
-                },
-                new MenuItem("Item #2")
-                {
-                    Items = new[]
+                        Items = new[]
+                        {
+                            new MenuItem("Sub-item #1"),
+                            new MenuItem("Sub-item #2", () => { }),
+                        }
+                    },
+                    new MenuItem("Item #2")
                     {
-                        new MenuItem("Sub-item #1"),
-                        new MenuItem("Sub-item #2"),
-                    }
-                },
-            }
-        };
+                        Items = new[]
+                        {
+                            new MenuItem("Sub-item #1"),
+                            new MenuItem("Sub-item #2", () => { }),
+                        }
+                    },
+                }
+            });
+        }
 
         [Test]
-        public void TestClickItemClosesMenus()
+        public void TestClickItemWithoutActionDoesNotCloseMenus()
         {
             AddStep("click item", () => ClickItem(0, 0));
             AddStep("click item", () => ClickItem(1, 0));
+            AddAssert("no menus closed", () =>
+            {
+                for (int i = 1; i >= 0; --i)
+                {
+                    if (Menus.GetSubMenu(i).State == MenuState.Closed)
+                        return false;
+                }
+
+                return true;
+            });
+        }
+
+        [Test]
+        public void TestClickItemWithActionAssignedDuringNavigationClosesMenus()
+        {
+            AddStep("click item", () => ClickItem(0, 0));
+            AddStep("hover item", () => InputManager.MoveMouseTo(Menus.GetSubStructure(1).GetMenuItems()[0]));
+            AddStep("assign action", () => Menus.GetSubStructure(1).GetMenuItems().Cast<Menu.DrawableMenuItem>().First().Item.Action.Value = () => { });
+            AddStep("click item", () => InputManager.Click(MouseButton.Left));
+            AddAssert("all menus closed", () =>
+            {
+                for (int i = 1; i >= 0; --i)
+                {
+                    if (Menus.GetSubMenu(i).State == MenuState.Open)
+                        return false;
+                }
+
+                return true;
+            });
+        }
+
+        [Test]
+        public void TestClickItemWithActionClosesMenus()
+        {
+            AddStep("click item", () => ClickItem(0, 0));
+            AddStep("click item", () => ClickItem(1, 1));
             AddAssert("all menus closed", () =>
             {
                 for (int i = 1; i >= 0; --i)
@@ -68,7 +112,42 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("press not handled", () => !menu.PressBlocked);
         }
 
-        private class AnimatedMenu : BasicMenu
+        [Test]
+        public void TestMenuBlocksInputUnderneathIt()
+        {
+            bool itemClicked = false;
+            bool actionReceived = false;
+
+            AddStep("set item action", () => Menus.GetSubMenu(0).Items[0].Items[0].Action.Value = () => itemClicked = true);
+            AddStep("add mouse handler", () => Add(new MouseHandlingLayer
+            {
+                Action = () => actionReceived = true,
+                Depth = 1,
+            }));
+
+            AddStep("click item", () => ClickItem(0, 0));
+            AddStep("click item", () => ClickItem(1, 0));
+            AddAssert("menu item activated", () => itemClicked);
+            AddAssert("mouse handler not activated", () => !actionReceived);
+        }
+
+        private partial class MouseHandlingLayer : Drawable
+        {
+            public Action Action { get; set; }
+
+            public MouseHandlingLayer()
+            {
+                RelativeSizeAxes = Axes.Both;
+            }
+
+            protected override bool OnMouseDown(MouseDownEvent e)
+            {
+                Action?.Invoke();
+                return base.OnMouseDown(e);
+            }
+        }
+
+        private partial class AnimatedMenu : BasicMenu
         {
             public bool PressBlocked { get; set; }
 

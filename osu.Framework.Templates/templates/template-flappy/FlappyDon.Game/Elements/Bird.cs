@@ -15,7 +15,7 @@ namespace FlappyDon.Game.Elements
     /// The Sprite element controlled by the player. Plays a looping 'flapping' texture sequence, which
     /// is reset each time the player interacts with it.
     /// </summary>
-    public class Bird : CompositeDrawable
+    public partial class Bird : CompositeDrawable
     {
         /// <summary>
         /// In the relative space, the absolute position of the ground that when crossed will register as a collision.
@@ -144,7 +144,7 @@ namespace FlappyDon.Game.Elements
             if (GroundY > 0.0f)
                 groundPlane = GroundY / 2.0f;
             else
-                groundPlane = Parent.DrawHeight - DrawHeight;
+                groundPlane = Parent!.DrawHeight - DrawHeight;
 
             Y = Math.Min(Y, groundPlane);
 

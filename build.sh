@@ -1,5 +1,6 @@
 echo "Installing Cake.Tool..."
 dotnet tool restore
+dotnet workload restore
 
 # Parse arguments.
 CAKE_ARGUMENTS=()

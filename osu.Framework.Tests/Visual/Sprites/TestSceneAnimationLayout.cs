@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Animations;
 using osu.Framework.Graphics.Containers;
@@ -16,7 +17,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneAnimationLayout : GridTestScene
+    public partial class TestSceneAnimationLayout : GridTestScene
     {
         public TestSceneAnimationLayout()
             : base(2, 3)
@@ -38,50 +39,46 @@ namespace osu.Framework.Tests.Visual.Sprites
             Cell(1, 2).Child = createTest("drawable - fixed size", () => new TestDrawableAnimation(Axes.Both) { Size = new Vector2(100, 50) });
         }
 
-        private Drawable createTest(string name, Func<Drawable> animationCreationFunc) => new Container
+        private Drawable createTest(string name, Func<Drawable> animationCreationFunc) => new GridContainer
         {
             RelativeSizeAxes = Axes.Both,
             Padding = new MarginPadding(10),
-            Child = new GridContainer
+            Content = new[]
             {
-                RelativeSizeAxes = Axes.Both,
-                Content = new[]
+                new Drawable[]
                 {
-                    new Drawable[]
+                    new SpriteText
                     {
-                        new SpriteText
-                        {
-                            Anchor = Anchor.TopCentre,
-                            Origin = Anchor.TopCentre,
-                            Text = name
-                        },
-                    },
-                    new Drawable[]
-                    {
-                        new Container
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Masking = true,
-                            BorderColour = Color4.OrangeRed,
-                            BorderThickness = 2,
-                            Children = new[]
-                            {
-                                new Box
-                                {
-                                    RelativeSizeAxes = Axes.Both,
-                                    Alpha = 0,
-                                    AlwaysPresent = true
-                                },
-                                animationCreationFunc()
-                            }
-                        }
+                        Anchor = Anchor.TopCentre,
+                        Origin = Anchor.TopCentre,
+                        Text = name
                     },
                 },
-                RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) }
-            }
+                new Drawable[]
+                {
+                    new Container
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Masking = true,
+                        BorderColour = Color4.OrangeRed,
+                        BorderThickness = 2,
+                        Children = new[]
+                        {
+                            new Box
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Alpha = 0,
+                                AlwaysPresent = true
+                            },
+                            animationCreationFunc()
+                        }
+                    }
+                },
+            },
+            RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) }
         };
 
-        private class TestDrawableAnimation : DrawableAnimation
+        private partial class TestDrawableAnimation : DrawableAnimation
         {
             public TestDrawableAnimation(Axes contentRelativeAxes = Axes.None)
             {
@@ -120,10 +117,10 @@ namespace osu.Framework.Tests.Visual.Sprites
             }
         }
 
-        private class TestTextureAnimation : TextureAnimation
+        private partial class TestTextureAnimation : TextureAnimation
         {
             [Resolved]
-            private FontStore fontStore { get; set; }
+            private FontStore fontStore { get; set; } = null!;
 
             public TestTextureAnimation()
             {
@@ -135,7 +132,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             private void load()
             {
                 for (int i = 0; i <= 9; i++)
-                    AddFrame(new Texture(fontStore.Get(null, i.ToString()[0])?.Texture.TextureGL) { ScaleAdjust = 1 + i / 2 }, 1000.0 / 60 * 6);
+                    AddFrame(new Texture(fontStore.Get(null, i.ToString()[0]).AsNonNull().Texture) { ScaleAdjust = 1 + i / 2f }, 1000.0 / 60 * 6);
             }
         }
     }

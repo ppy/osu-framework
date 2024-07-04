@@ -14,9 +14,9 @@ namespace osu.Framework.Benchmarks
     [MemoryDiagnoser]
     public abstract class GameBenchmark
     {
-        private ManualGameHost gameHost;
+        private ManualGameHost gameHost = null!;
 
-        protected Game Game { get; private set; }
+        protected Game Game { get; private set; } = null!;
 
         [GlobalSetup]
         [OneTimeSetUp]
@@ -29,8 +29,8 @@ namespace osu.Framework.Benchmarks
         [OneTimeTearDown]
         public virtual void TearDown()
         {
-            gameHost?.Exit();
-            gameHost?.Dispose();
+            gameHost.Exit();
+            gameHost.Dispose();
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace osu.Framework.Benchmarks
             private ManualThreadRunner threadRunner;
 
             public ManualGameHost(Game runnableGame)
-                : base("manual")
+                : base("manual", new HostOptions())
             {
                 Task.Factory.StartNew(() =>
                 {
@@ -104,12 +104,18 @@ namespace osu.Framework.Benchmarks
             public void RunSingleFrame()
             {
                 ExecutionMode = ExecutionMode.SingleThread;
+
+                // Importantly, this calls the base method, bypassing the custom wait logic below
+                // (which is blocking execution by thread runner while the benchmark runs).
                 base.RunMainLoop();
             }
 
             public override void RunMainLoop()
             {
+#pragma warning disable RS0030
                 RunOnce.Wait();
+#pragma warning restore RS0030
+
                 RunSingleFrame();
                 RunOnce.Reset();
 

@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using NUnit.Framework;
@@ -15,7 +17,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneEasingCurves : TestScene
+    public partial class TestSceneEasingCurves : TestScene
     {
         private const float default_size = 200;
 
@@ -45,11 +47,11 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             AddSliderStep("resize easings", default_size / 2, default_size * 2, default_size, size =>
             {
-                easingsContainer?.Children?.OfType<Visualiser>().ForEach(easing => easing.ResizeTo(new Vector2(size)));
+                easingsContainer?.Children.OfType<Visualiser>().ForEach(easing => easing.ResizeTo(new Vector2(size)));
             });
         }
 
-        private class Visualiser : Container
+        private partial class Visualiser : Container
         {
             private const float movement_duration = 1000f;
             private const float pause_duration = 200f;

@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable enable
-
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
@@ -13,7 +11,7 @@ namespace osu.Framework.Graphics.Audio
     /// <summary>
     /// A <see cref="SampleChannel"/> wrapper to allow insertion in the draw hierarchy to allow transforms, lifetime management etc.
     /// </summary>
-    public class DrawableSample : DrawableAudioWrapper, ISample
+    public partial class DrawableSample : DrawableAudioWrapper, ISample
     {
         private readonly WeakList<SampleChannel> playingChannels = new WeakList<SampleChannel>();
 
@@ -28,6 +26,8 @@ namespace osu.Framework.Graphics.Audio
             : base(sample, disposeSampleOnDisposal)
         {
             this.sample = sample;
+
+            Name = sample.Name;
 
             PlaybackConcurrency.BindTo(sample.PlaybackConcurrency);
         }
@@ -48,6 +48,8 @@ namespace osu.Framework.Graphics.Audio
 
             return channel;
         }
+
+        string ISample.Name => sample.Name;
 
         public double Length => sample.Length;
 

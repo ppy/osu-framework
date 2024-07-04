@@ -1,20 +1,21 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#if NET5_0
-using System.Net.Sockets;
-#endif
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Logging;
 
@@ -22,13 +23,15 @@ namespace osu.Framework.IO.Network
 {
     public class WebRequest : IDisposable
     {
+        public const int DEFAULT_TIMEOUT = 10000;
+
         internal const int MAX_RETRIES = 1;
 
-        /// <summary>
-        /// Whether non-SSL requests should be allowed. Defaults to disabled.
-        /// In the default state, http:// requests will be automatically converted to https://.
-        /// </summary>
-        public bool AllowInsecureRequests;
+        private const int buffer_size = 32768;
+        private const string form_boundary = "-----------------------------28947758029299";
+        private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
+
+        private static readonly Logger logger = Logger.GetLogger(LoggingTarget.Network);
 
         /// <summary>
         /// Invoked when a response has been received, but not data has been received.
@@ -60,7 +63,123 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public bool Aborted { get; private set; }
 
+        /// <summary>
+        /// The response stream.
+        /// </summary>
+        public Stream ResponseStream { get; private set; }
+
+        public HttpResponseHeaders ResponseHeaders => response.Headers;
+
+        /// <summary>
+        /// The URL of this request.
+        /// </summary>
+        public string Url;
+
+        public HttpMethod Method = HttpMethod.Get;
+
+        /// <summary>
+        /// The amount of time from last sent or received data to trigger a timeout and abort the request.
+        /// </summary>
+        public int Timeout = DEFAULT_TIMEOUT;
+
+        /// <summary>
+        /// Whether this request should internally retry (up to <see cref="MAX_RETRIES"/> times) on a timeout before throwing an exception.
+        /// </summary>
+        public bool AllowRetryOnTimeout = true;
+
+        /// <summary>
+        /// The content type when POST content is provided.
+        /// </summary>
+        public string ContentType;
+
+        /// <summary>
+        /// The type of content expected by this web request.
+        /// </summary>
+        protected virtual string Accept => string.Empty;
+
+        /// <summary>
+        /// The value of the User-agent HTTP header.
+        /// </summary>
+        protected virtual string UserAgent => "osu-framework";
+
+        internal int RetryCount { get; private set; }
+
+        private long contentLength => requestStream?.Length ?? 0;
+
+        /// <summary>
+        /// Query string parameters.
+        /// </summary>
+        private readonly Dictionary<string, string> queryParameters = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Form parameters.
+        /// </summary>
+        private readonly Dictionary<string, string> formParameters = new Dictionary<string, string>();
+
+        /// <summary>
+        /// FILE parameters.
+        /// </summary>
+        private readonly IDictionary<string, byte[]> files = new Dictionary<string, byte[]>();
+
+        /// <summary>
+        /// The request headers.
+        /// </summary>
+        private readonly IDictionary<string, string> headers = new Dictionary<string, string>();
+
+        private CancellationToken? userToken;
+        private CancellationTokenSource abortToken;
+        private CancellationTokenSource timeoutToken;
+
+        private LengthTrackingStream requestStream;
+        private HttpResponseMessage response;
+
+        private MemoryStream rawContent;
+        private int responseBytesRead;
+        private byte[] buffer;
+        private bool? allowInsecureRequests;
         private bool completed;
+
+        private static readonly HttpClient client = new HttpClient(
+            // SocketsHttpHandler causes crash in Android Debug, and seems to have compatibility issue on SSL
+            // Use platform HTTP handler which is invoked by HttpClientHandler for better compatibility and app size
+            RuntimeInfo.OS == RuntimeInfo.Platform.Android
+                ? new HttpClientHandler
+                {
+                    Credentials = CredentialCache.DefaultCredentials,
+                    AutomaticDecompression = DecompressionMethods.All
+                }
+                : new SocketsHttpHandler
+                {
+                    AutomaticDecompression = DecompressionMethods.All,
+                    // Can be replaced by a static HttpClient.DefaultCredentials after net60 everywhere.
+                    Credentials = CredentialCache.DefaultCredentials,
+                    ConnectCallback = onConnect,
+                }
+        )
+        {
+            // Timeout is controlled manually through cancellation tokens because
+            // HttpClient does not properly timeout while reading chunked data
+            Timeout = System.Threading.Timeout.InfiniteTimeSpan
+        };
+
+        public WebRequest(string url = null, params object[] args)
+        {
+            if (!string.IsNullOrEmpty(url))
+                Url = args.Length == 0 ? url : string.Format(url, args);
+        }
+
+        /// <summary>
+        /// Whether non-SSL requests should be allowed. Defaults to disabled.
+        /// In the default state, http:// requests will be automatically converted to https://.
+        /// </summary>
+        /// <remarks>
+        /// Setting this overrides the <c>OSU_INSECURE_REQUESTS</c> environment variable.
+        /// </remarks>
+        public bool AllowInsecureRequests
+        {
+            get => allowInsecureRequests ?? FrameworkEnvironment.AllowInsecureRequests;
+            set => allowInsecureRequests = value;
+        }
 
         /// <summary>
         /// Whether the <see cref="WebRequest"/> has been run.
@@ -84,103 +203,20 @@ namespace osu.Framework.IO.Network
         }
 
         /// <summary>
-        /// The URL of this request.
-        /// </summary>
-        public string Url;
-
-        /// <summary>
-        /// Query string parameters.
-        /// </summary>
-        private readonly Dictionary<string, string> queryParameters = new Dictionary<string, string>();
-
-        /// <summary>
-        /// Form parameters.
-        /// </summary>
-        private readonly Dictionary<string, string> formParameters = new Dictionary<string, string>();
-
-        /// <summary>
-        /// FILE parameters.
-        /// </summary>
-        private readonly IDictionary<string, byte[]> files = new Dictionary<string, byte[]>();
-
-        /// <summary>
-        /// The request headers.
-        /// </summary>
-        private readonly IDictionary<string, string> headers = new Dictionary<string, string>();
-
-        public const int DEFAULT_TIMEOUT = 10000;
-
-        public HttpMethod Method = HttpMethod.Get;
-
-        /// <summary>
-        /// The amount of time from last sent or received data to trigger a timeout and abort the request.
-        /// </summary>
-        public int Timeout = DEFAULT_TIMEOUT;
-
-        /// <summary>
-        /// The type of content expected by this web request.
-        /// </summary>
-        protected virtual string Accept => string.Empty;
-
-        /// <summary>
-        /// The value of the User-agent HTTP header.
-        /// </summary>
-        protected virtual string UserAgent => "osu-framework";
-
-        internal int RetryCount { get; private set; }
-
-        /// <summary>
-        /// Whether this request should internally retry (up to <see cref="MAX_RETRIES"/> times) on a timeout before throwing an exception.
-        /// </summary>
-        public bool AllowRetryOnTimeout { get; set; } = true;
-
-        private static readonly HttpClient client = new HttpClient(
-#if NET5_0
-            new SocketsHttpHandler
-            {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-                ConnectCallback = onConnect,
-            }
-#else
-            new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate }
-#endif
-        )
-        {
-            // Timeout is controlled manually through cancellation tokens because
-            // HttpClient does not properly timeout while reading chunked data
-            Timeout = System.Threading.Timeout.InfiniteTimeSpan
-        };
-
-        private static readonly Logger logger = Logger.GetLogger(LoggingTarget.Network);
-
-        public WebRequest(string url = null, params object[] args)
-        {
-            if (!string.IsNullOrEmpty(url))
-                Url = args.Length == 0 ? url : string.Format(url, args);
-        }
-
-        private int responseBytesRead;
-
-        private const int buffer_size = 32768;
-        private byte[] buffer;
-
-        private MemoryStream rawContent;
-
-        public string ContentType;
-
-        protected virtual Stream CreateOutputStream() => new MemoryStream();
-
-        public Stream ResponseStream;
-
-        /// <summary>
         /// Retrieve the full response body as a UTF8 encoded string.
         /// </summary>
-        /// <returns>The response body.</returns>
+        /// <returns>
+        /// The response body.
+        /// Can be <see langword="null"/> if the request hasn't yet <see cref="Completed"/>, or if it has been <see cref="Aborted"/>.
+        /// </returns>
         [CanBeNull]
         public string GetResponseString()
         {
             try
             {
+                if (ResponseStream == null)
+                    return null;
+
                 ResponseStream.Seek(0, SeekOrigin.Begin);
                 StreamReader r = new StreamReader(ResponseStream, Encoding.UTF8);
                 return r.ReadToEnd();
@@ -194,15 +230,21 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// Retrieve the full response body as an array of bytes.
         /// </summary>
-        /// <returns>The response body.</returns>
+        /// <returns>
+        /// The response body.
+        /// Can be <see langword="null"/> if the request hasn't yet <see cref="Completed"/>, or if it has been <see cref="Aborted"/>.
+        /// </returns>
+        [CanBeNull]
         public byte[] GetResponseData()
         {
             try
             {
-                byte[] data = new byte[ResponseStream.Length];
+                if (ResponseStream == null)
+                    return null;
+
                 ResponseStream.Seek(0, SeekOrigin.Begin);
-                ResponseStream.Read(data, 0, data.Length);
-                return data;
+
+                return ResponseStream.ReadAllBytesToArray();
             }
             catch
             {
@@ -210,34 +252,21 @@ namespace osu.Framework.IO.Network
             }
         }
 
-        public HttpResponseHeaders ResponseHeaders => response.Headers;
-
-        private CancellationToken? userToken;
-        private CancellationTokenSource abortToken;
-        private CancellationTokenSource timeoutToken;
-
-        private LengthTrackingStream requestStream;
-        private HttpResponseMessage response;
-
-        private long contentLength => requestStream?.Length ?? 0;
-
-        private const string form_boundary = "-----------------------------28947758029299";
-
-        private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
-
-        /// <summary>
-        /// Performs the request asynchronously.
-        /// </summary>
-        public Task PerformAsync() => PerformAsync(default);
+        protected virtual Stream CreateOutputStream() => new MemoryStream();
 
         /// <summary>
         /// Performs the request asynchronously.
         /// </summary>
         /// <param name="cancellationToken">A token to cancel the request.</param>
-        public async Task PerformAsync(CancellationToken cancellationToken)
+        public async Task PerformAsync(CancellationToken cancellationToken = default)
         {
             if (Completed)
+            {
+                if (Aborted)
+                    throw new OperationCanceledException($"The {nameof(WebRequest)} has been aborted.");
+
                 throw new InvalidOperationException($"The {nameof(WebRequest)} has already been run.");
+            }
 
             try
             {
@@ -256,7 +285,7 @@ namespace osu.Framework.IO.Network
             if (!AllowInsecureRequests && !url.StartsWith(@"https://", StringComparison.Ordinal))
             {
                 logger.Add($"Insecure request was automatically converted to https ({Url})");
-                url = @"https://" + url.Replace(@"http://", @"");
+                url = "https://" + url.Replace("http://", string.Empty);
             }
 
             // If a user token already exists, keep it. Otherwise, take on the previous user token, as this could be a retry of the request.
@@ -325,11 +354,7 @@ namespace osu.Framework.IO.Network
                                 formData.Add(byteContent, p.Key, p.Key);
                             }
 
-#if NET5_0
                             postContent = await formData.ReadAsStreamAsync(linkedToken.Token).ConfigureAwait(false);
-#else
-                            postContent = await formData.ReadAsStreamAsync().ConfigureAwait(false);
-#endif
                         }
 
                         if (postContent != null)
@@ -381,8 +406,8 @@ namespace osu.Framework.IO.Network
                 }
                 catch (Exception) when (timeoutToken.IsCancellationRequested)
                 {
-                    Complete(new WebException($"Request to {url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes, retried {RetryCount} times).",
-                        WebExceptionStatus.Timeout));
+                    await Complete(new WebException($"Request to {url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes, retried {RetryCount} times).",
+                        WebExceptionStatus.Timeout)).ConfigureAwait(false);
                 }
                 catch (Exception) when (abortToken.IsCancellationRequested || cancellationToken.IsCancellationRequested)
                 {
@@ -394,7 +419,7 @@ namespace osu.Framework.IO.Network
                         // we may be coming from one of the exception blocks handled above (as Complete will rethrow all exceptions).
                         throw;
 
-                    Complete(e);
+                    await Complete(e).ConfigureAwait(false);
                 }
             }
 
@@ -414,7 +439,9 @@ namespace osu.Framework.IO.Network
         {
             try
             {
-                PerformAsync().Wait();
+                // Start a long-running task to ensure we don't block on a TPL thread pool thread.
+                // Unfortunately we can't use a full synchronous flow due to IPv4 fallback logic *requiring* the async path for now.
+                Task.Factory.StartNew(() => PerformAsync().WaitSafely(), TaskCreationOptions.LongRunning).WaitSafely();
             }
             catch (AggregateException ae)
             {
@@ -431,15 +458,9 @@ namespace osu.Framework.IO.Network
 
         private async Task beginResponse(CancellationToken cancellationToken)
         {
-#if NET5_0
             using (var responseStream = await response.Content
                                                       .ReadAsStreamAsync(cancellationToken)
                                                       .ConfigureAwait(false))
-#else
-            using (var responseStream = await response.Content
-                                                      .ReadAsStreamAsync()
-                                                      .ConfigureAwait(false))
-#endif
             {
                 reportForwardProgress();
                 Started?.Invoke();
@@ -468,17 +489,17 @@ namespace osu.Framework.IO.Network
                     else
                     {
                         ResponseStream.Seek(0, SeekOrigin.Begin);
-                        Complete();
+                        await Complete().ConfigureAwait(false);
                         break;
                     }
                 }
             }
         }
 
-        protected virtual void Complete(Exception e = null)
+        protected virtual Task Complete(Exception e = null)
         {
             if (Aborted)
-                return;
+                return Task.CompletedTask;
 
             var we = e as WebException;
 
@@ -511,8 +532,7 @@ namespace osu.Framework.IO.Network
                     logger.Add($@"Request to {Url} failed with {e} (retrying {RetryCount}/{MAX_RETRIES}).");
 
                     //do a retry
-                    internalPerform().Wait();
-                    return;
+                    return internalPerform();
                 }
 
                 logger.Add($"Request to {Url} failed with {e}.");
@@ -575,6 +595,8 @@ namespace osu.Framework.IO.Network
                 Aborted = true;
                 throw e;
             }
+
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -632,7 +654,7 @@ namespace osu.Framework.IO.Network
         /// <param name="stream">The stream containing the raw data. This stream will _not_ be finalized by this request.</param>
         public void AddRaw(Stream stream)
         {
-            if (stream == null) throw new ArgumentNullException(nameof(stream));
+            ArgumentNullException.ThrowIfNull(stream);
 
             rawContent ??= new MemoryStream();
 
@@ -647,8 +669,8 @@ namespace osu.Framework.IO.Network
         /// <param name="data">The file data.</param>
         public void AddFile(string name, byte[] data)
         {
-            if (name == null) throw new ArgumentNullException(nameof(name));
-            if (data == null) throw new ArgumentNullException(nameof(data));
+            ArgumentNullException.ThrowIfNull(name);
+            ArgumentNullException.ThrowIfNull(data);
 
             files[name] = data;
         }
@@ -686,8 +708,8 @@ namespace osu.Framework.IO.Network
         /// <param name="type">The type of the request parameter.</param>
         public void AddParameter(string name, string value, RequestParameterType type)
         {
-            if (name == null) throw new ArgumentNullException(nameof(name));
-            if (value == null) throw new ArgumentNullException(nameof(value));
+            ArgumentNullException.ThrowIfNull(name);
+            ArgumentNullException.ThrowIfNull(value);
 
             switch (type)
             {
@@ -717,8 +739,8 @@ namespace osu.Framework.IO.Network
         /// <param name="value">The header value.</param>
         public void AddHeader(string name, string value)
         {
-            if (name == null) throw new ArgumentNullException(nameof(name));
-            if (value == null) throw new ArgumentNullException(nameof(value));
+            ArgumentNullException.ThrowIfNull(name);
+            ArgumentNullException.ThrowIfNull(value);
 
             headers[name] = value;
         }
@@ -766,7 +788,6 @@ namespace osu.Framework.IO.Network
 
         #region IPv4 fallback implementation
 
-#if NET5_0
         /// <summary>
         /// Whether IPv6 should be preferred. Value may change based on runtime failures.
         /// </summary>
@@ -841,7 +862,6 @@ namespace osu.Framework.IO.Network
                 throw;
             }
         }
-#endif
 
         #endregion
 
@@ -861,9 +881,23 @@ namespace osu.Framework.IO.Network
                 baseStream.Flush();
             }
 
-            public override int Read(byte[] buffer, int offset, int count)
+            public override int Read(byte[] buffer, int offset, int count) => Read(buffer.AsSpan(offset, count));
+
+            public override int Read(Span<byte> buffer)
             {
-                int read = baseStream.Read(buffer, offset, count);
+                int read = baseStream.Read(buffer);
+                BytesRead.Value += read;
+                return read;
+            }
+
+            public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+            {
+                return ReadAsync(buffer.AsMemory(offset, count), cancellationToken).AsTask();
+            }
+
+            public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+            {
+                int read = await baseStream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
                 BytesRead.Value += read;
                 return read;
             }

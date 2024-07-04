@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +25,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneScreenStack : FrameworkTestScene
+    public partial class TestSceneScreenStack : FrameworkTestScene
     {
         private TestScreen baseScreen;
         private ScreenStack stack;
@@ -40,7 +42,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 RelativeSizeAxes = Axes.Both
             });
 
-            stack.ScreenPushed += (last, current) =>
+            stack.ScreenPushed += (_, current) =>
             {
                 if (current is TestScreenSlow slow)
                     slowLoaders.Add(slow);
@@ -65,11 +67,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             TestScreen screen1 = null;
 
             pushAndEnsureCurrent(() => screen1 = new TestScreen { EagerFocus = true });
-            AddUntilStep("wait for focus grab", () => GetContainingInputManager().FocusedDrawable == screen1);
+            AddUntilStep("wait for focus grab", () => GetContainingInputManager()!.FocusedDrawable == screen1);
 
             pushAndEnsureCurrent(() => new TestScreen(), () => screen1);
 
-            AddUntilStep("focus lost", () => GetContainingInputManager().FocusedDrawable != screen1);
+            AddUntilStep("focus lost", () => GetContainingInputManager()!.FocusedDrawable != screen1);
         }
 
         [Test]
@@ -78,11 +80,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             TestScreen screen1 = null, screen2 = null;
 
             pushAndEnsureCurrent(() => screen1 = new TestScreen { EagerFocus = true });
-            AddUntilStep("wait for focus grab", () => GetContainingInputManager().FocusedDrawable == screen1);
+            AddUntilStep("wait for focus grab", () => GetContainingInputManager()!.FocusedDrawable == screen1);
 
             pushAndEnsureCurrent(() => screen2 = new TestScreen { EagerFocus = true }, () => screen1);
 
-            AddUntilStep("focus transferred", () => GetContainingInputManager().FocusedDrawable == screen2);
+            AddUntilStep("focus transferred", () => GetContainingInputManager()!.FocusedDrawable == screen2);
         }
 
         [Test]
@@ -504,6 +506,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("make screen 1 current", () => screen1.MakeCurrent());
             AddAssert("screen 3 still current", () => screen3.IsCurrentScreen());
             AddAssert("screen 3 exited fired", () => screen3.ExitedTo == screen2);
+            AddAssert("screen 3 destination is screen 1", () => screen3.Destination == screen1);
             AddAssert("screen 2 resumed not fired", () => screen2.ResumedFrom == null);
             AddAssert("screen 3 doesn't have lifetime end", () => screen3.LifetimeEnd == double.MaxValue);
             AddAssert("screen 2 valid for resume", () => screen2.ValidForResume);
@@ -513,7 +516,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("make screen 1 current", () => screen1.MakeCurrent());
             AddAssert("screen 1 current", () => screen1.IsCurrentScreen());
             AddAssert("screen 3 exited fired", () => screen3.ExitedTo == screen2);
+            AddAssert("screen 3 destination is screen 1", () => screen3.Destination == screen1);
             AddAssert("screen 2 exited fired", () => screen2.ExitedTo == screen1);
+            AddAssert("screen 2 destination is screen 1", () => screen2.Destination == screen1);
             AddAssert("screen 1 resumed fired", () => screen1.ResumedFrom == screen2);
             AddAssert("screen 1 doesn't have lifetime end", () => screen1.LifetimeEnd == double.MaxValue);
             AddAssert("screen 3 has lifetime end", () => screen3.LifetimeEnd != double.MaxValue);
@@ -698,8 +703,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 for (int i = 0; i < exit_count; i++)
                     stack.Exit();
 
-                Remove(stack);
-                stack.Dispose();
+                Remove(stack, true);
             });
 
             AddUntilStep("All screens unbound in correct order", () => screens.Count == 0);
@@ -792,6 +796,26 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Exit screen 1", () => screen1.Exit());
             AddAssert("Screen 1 is not current", () => !screen1.IsCurrentScreen());
             AddAssert("Stack is not empty", () => stack.CurrentScreen != null);
+        }
+
+        [Test]
+        public void TestPushOnExitingWithoutBlocking()
+        {
+            TestScreen screen1 = null;
+
+            pushAndEnsureCurrent(() =>
+            {
+                screen1 = new TestScreen(id: 1);
+                screen1.Exiting = () =>
+                {
+                    screen1.Push(new TestScreen(id: 2));
+                    return false;
+                };
+                return screen1;
+            });
+
+            AddStep("ensure push throws", () => Assert.Throws<InvalidOperationException>(
+                () => screen1.Exit()));
         }
 
         [Test]
@@ -954,7 +978,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddUntilStep("ensure current", () => screen.IsCurrentScreen());
         }
 
-        private class TestScreenSlow : TestScreen
+        private partial class TestScreenSlow : TestScreen
         {
             public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim();
 
@@ -971,7 +995,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class TestScreen : Screen
+        private partial class TestScreen : Screen
         {
             public Func<bool> Exiting;
 
@@ -982,6 +1006,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public IScreen EnteredFrom;
             public IScreen ExitedTo;
+            public IScreen Destination;
 
             public IScreen SuspendedTo;
             public IScreen ResumedFrom;
@@ -1085,22 +1110,22 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 BorderThickness = 0;
             }
 
-            public override void OnEntering(IScreen last)
+            public override void OnEntering(ScreenTransitionEvent e)
             {
                 attemptTransformMutation();
 
-                EnteredFrom = last;
+                EnteredFrom = e.Last;
                 Entered?.Invoke();
 
                 if (shouldTakeOutLease)
                 {
-                    DummyBindable.BindTo(((TestScreen)last).DummyBindable);
+                    DummyBindable.BindTo(((TestScreen)e.Last!).DummyBindable);
                     LeasedCopy = DummyBindable.BeginLease(true);
                 }
 
-                base.OnEntering(last);
+                base.OnEntering(e);
 
-                if (last != null)
+                if (e.Last != null)
                 {
                     //only show the pop button if we are entered form another screen.
                     popButton.Alpha = 1;
@@ -1111,39 +1136,41 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 this.FadeIn(1000);
             }
 
-            public override bool OnExiting(IScreen next)
+            public override bool OnExiting(ScreenExitEvent e)
             {
                 attemptTransformMutation();
 
-                ExitedTo = next;
+                ExitedTo = e.Next;
+                Destination = e.Destination;
+
                 Exited?.Invoke();
 
                 if (Exiting?.Invoke() == true)
                     return true;
 
                 this.MoveTo(new Vector2(0, -DrawSize.Y), transition_time, Easing.OutQuint);
-                return base.OnExiting(next);
+                return base.OnExiting(e);
             }
 
-            public override void OnSuspending(IScreen next)
+            public override void OnSuspending(ScreenTransitionEvent e)
             {
                 attemptTransformMutation();
 
-                SuspendedTo = next;
+                SuspendedTo = e.Next;
                 Suspended?.Invoke();
 
-                base.OnSuspending(next);
+                base.OnSuspending(e);
                 this.MoveTo(new Vector2(0, DrawSize.Y), transition_time, Easing.OutQuint);
             }
 
-            public override void OnResuming(IScreen last)
+            public override void OnResuming(ScreenTransitionEvent e)
             {
                 attemptTransformMutation();
 
-                ResumedFrom = last;
+                ResumedFrom = e.Last;
                 Resumed?.Invoke();
 
-                base.OnResuming(last);
+                base.OnResuming(e);
                 this.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
             }
 

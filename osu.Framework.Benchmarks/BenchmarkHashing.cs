@@ -12,7 +12,7 @@ namespace osu.Framework.Benchmarks
     public class BenchmarkHashing
     {
         private const string test_string = @"A string with reasonable length";
-        private MemoryStream memoryStream;
+        private MemoryStream memoryStream = null!;
 
         [Benchmark]
         public string StringMD5() => test_string.ComputeMD5Hash();

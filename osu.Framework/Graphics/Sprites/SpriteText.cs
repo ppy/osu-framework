@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using osu.Framework.Allocation;
@@ -25,12 +27,11 @@ namespace osu.Framework.Graphics.Sprites
     /// </summary>
     public partial class SpriteText : Drawable, IHasLineBaseHeight, ITexturedShaderDrawable, IHasText, IHasFilterTerms, IFillFlowContainer, IHasCurrentValue<string>
     {
-        private const float default_text_size = 20;
-
         /// <remarks>
         /// <c>U+00A0</c> is the Unicode NON-BREAKING SPACE character (distinct from the standard ASCII space).
+        /// <c>U+202F</c> is the Unicode NARROW NO-BREAK SPACE character.
         /// </remarks>
-        private static readonly char[] default_never_fixed_width_characters = { '.', ',', ':', ' ', '\u00A0' };
+        private static readonly char[] default_never_fixed_width_characters = { '.', ',', ':', ' ', '\u00A0', '\u202F' };
 
         [Resolved]
         private FontStore store { get; set; }
@@ -40,8 +41,13 @@ namespace osu.Framework.Graphics.Sprites
 
         private ILocalisedBindableString localisedText;
 
-        public IShader TextureShader { get; private set; }
-        public IShader RoundedTextureShader { get; private set; }
+        /// <summary>
+        /// The shader which should be used for rendering this sprite text.
+        /// </summary>
+        /// <remarks>
+        /// This is automatically populated, but may be overridden if required for special cases.
+        /// If overriding, set in a <see cref="BackgroundDependencyLoaderAttribute"/> method or later.</remarks>
+        public IShader TextureShader { get; protected set; }
 
         public SpriteText()
         {
@@ -54,8 +60,6 @@ namespace osu.Framework.Graphics.Sprites
             });
 
             AddLayout(charactersCache);
-            AddLayout(parentScreenSpaceCache);
-            AddLayout(localScreenSpaceCache);
             AddLayout(shadowOffsetCache);
             AddLayout(textBuilderCache);
         }
@@ -66,12 +70,11 @@ namespace osu.Framework.Graphics.Sprites
             localisedText = localisation.GetLocalisedBindableString(text);
 
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
             // Pre-cache the characters in the texture store
             foreach (char character in localisedText.Value)
             {
-                var unused = store.Get(font.FontName, character) ?? store.Get(null, character);
+                _ = store.Get(font.FontName, character) ?? store.Get(null, character);
             }
         }
 
@@ -289,6 +292,11 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
+        /// <summary>
+        /// When <see cref="Truncate"/> is enabled, this indicates whether <see cref="Text"/> has been visually truncated.
+        /// </summary>
+        protected bool IsTruncated { get; private set; }
+
         private bool requiresAutoSizedWidth => explicitWidth == null && (RelativeSizeAxes & Axes.X) == 0;
 
         private bool requiresAutoSizedHeight => explicitHeight == null && (RelativeSizeAxes & Axes.Y) == 0;
@@ -459,6 +467,8 @@ namespace osu.Framework.Graphics.Sprites
             if (charactersCache.IsValid)
                 return;
 
+            IsTruncated = false;
+
             charactersBacking.Clear();
 
             // Todo: Re-enable this assert after autosize is split into two passes.
@@ -476,6 +486,9 @@ namespace osu.Framework.Graphics.Sprites
                 textBuilder.Reset();
                 textBuilder.AddText(displayedText);
                 textBounds = textBuilder.Bounds;
+
+                if (textBuilder is TruncatingTextBuilder truncatingTextBuilder)
+                    IsTruncated = truncatingTextBuilder.IsTruncated;
             }
             finally
             {
@@ -488,51 +501,6 @@ namespace osu.Framework.Graphics.Sprites
 
                 charactersCache.Validate();
             }
-        }
-
-        private readonly LayoutValue parentScreenSpaceCache = new LayoutValue(Invalidation.DrawSize | Invalidation.Presence | Invalidation.DrawInfo, InvalidationSource.Parent);
-        private readonly LayoutValue localScreenSpaceCache = new LayoutValue(Invalidation.MiscGeometry, InvalidationSource.Self);
-
-        private readonly List<ScreenSpaceCharacterPart> screenSpaceCharactersBacking = new List<ScreenSpaceCharacterPart>();
-
-        /// <summary>
-        /// The characters in screen space. These are ready to be drawn.
-        /// </summary>
-        private List<ScreenSpaceCharacterPart> screenSpaceCharacters
-        {
-            get
-            {
-                computeScreenSpaceCharacters();
-                return screenSpaceCharactersBacking;
-            }
-        }
-
-        private void computeScreenSpaceCharacters()
-        {
-            if (!parentScreenSpaceCache.IsValid)
-            {
-                localScreenSpaceCache.Invalidate();
-                parentScreenSpaceCache.Validate();
-            }
-
-            if (localScreenSpaceCache.IsValid)
-                return;
-
-            screenSpaceCharactersBacking.Clear();
-
-            Vector2 inflationAmount = DrawInfo.MatrixInverse.ExtractScale().Xy;
-
-            foreach (var character in characters)
-            {
-                screenSpaceCharactersBacking.Add(new ScreenSpaceCharacterPart
-                {
-                    DrawQuad = ToScreenSpace(character.DrawRectangle.Inflate(inflationAmount)),
-                    InflationPercentage = Vector2.Divide(inflationAmount, character.DrawRectangle.Size),
-                    Texture = character.Texture
-                });
-            }
-
-            localScreenSpaceCache.Validate();
         }
 
         private readonly LayoutValue<Vector2> shadowOffsetCache = new LayoutValue<Vector2>(Invalidation.DrawInfo, InvalidationSource.Parent);
@@ -552,10 +520,7 @@ namespace osu.Framework.Graphics.Sprites
             if (textBuilder)
                 InvalidateTextBuilder();
 
-            parentScreenSpaceCache.Invalidate();
-            localScreenSpaceCache.Invalidate();
-
-            Invalidate(Invalidation.DrawNode);
+            Invalidate(Invalidation.RequiredParentSizeToFit);
         }
 
         #endregion
@@ -636,6 +601,6 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        public IEnumerable<string> FilterTerms => displayedText.Yield();
+        public IEnumerable<LocalisableString> FilterTerms => Text.Yield();
     }
 }

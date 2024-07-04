@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -17,7 +19,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneScrollContainer : ManualInputManagerTestScene
+    public partial class TestSceneScrollContainer : ManualInputManagerTestScene
     {
         private ScrollContainer<Drawable> scrollContainer;
 
@@ -140,9 +142,9 @@ namespace osu.Framework.Tests.Visual.Containers
                 InputManager.MoveMouseTo(scrollContainer.ToScreenSpace(scrollContainer.LayoutRectangle.Centre + new Vector2(10f)));
             });
 
-            AddStep("Move mouse up", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre - new Vector2(0, 400)));
+            AddStep("Move mouse up", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre - new Vector2(0, 1000)));
             checkPosition(withClampExtension ? 200 : 100);
-            AddStep("Move mouse down", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre + new Vector2(0, 400)));
+            AddStep("Move mouse down", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre + new Vector2(0, 1000)));
             checkPosition(withClampExtension ? -100 : 0);
             AddStep("Release mouse button", () => InputManager.ReleaseButton(MouseButton.Left));
             checkPosition(0);
@@ -279,7 +281,7 @@ namespace osu.Framework.Tests.Visual.Containers
             AddStep("press page down and remove scroll container", () => InputManager.PressKey(Key.PageDown));
             AddStep("remove scroll container", () =>
             {
-                Remove(scrollContainer);
+                Remove(scrollContainer, false);
                 ((RepeatCountingScrollContainer)scrollContainer).RepeatCount = 0;
             });
 
@@ -325,6 +327,177 @@ namespace osu.Framework.Tests.Visual.Containers
             });
         }
 
+        [Test]
+        public void TestScrollbarRespectsPadding()
+        {
+            const float container_height = 100;
+            const float box_height = 400;
+            const float padding = 10;
+
+            AddStep("Create scroll container", () =>
+            {
+                Add(new Container
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(container_height),
+                    Children = new Drawable[]
+                    {
+                        new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = Colour4.Red,
+                        },
+                        scrollContainer = new BasicScrollContainer
+                        {
+                            Padding = new MarginPadding { Vertical = padding },
+                            RelativeSizeAxes = Axes.Both,
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Child = new Box { Size = new Vector2(100, box_height) }
+                        },
+                    }
+                });
+            });
+
+            AddStep("Scroll to start", () => { scrollContainer.ScrollToStart(false); });
+
+            checkScrollbarPosition(0);
+
+            AddStep("Scroll to end", () => scrollContainer.ScrollToEnd(false));
+
+            checkScrollbarPosition(64);
+        }
+
+        /// <summary>
+        /// Ensures that initiating a drag with horizontal delta on a singular vertical <see cref="ScrollContainer{T}"/> doesn't prevent from continuing with vertical drags.
+        /// </summary>
+        /// <remarks>
+        /// If the vertical scroll container is nested inside of a horizontal one, then it should prevent it, as covered in <see cref="TestSceneScrollContainerNested.TestDragging"/>.
+        /// </remarks>
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestSingularVerticalScrollWithHorizontalDelta(bool withClampExtension)
+        {
+            AddStep("Create scroll container", () =>
+            {
+                Add(scrollContainer = new BasicScrollContainer
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(200),
+                    ClampExtension = withClampExtension ? 100 : 0,
+                    Child = new Box { Size = new Vector2(200, 300) }
+                });
+            });
+
+            AddStep("Click and drag horizontally", () =>
+            {
+                InputManager.MoveMouseTo(scrollContainer);
+                InputManager.PressButton(MouseButton.Left);
+
+                // Required for the dragging state to be set correctly.
+                InputManager.MoveMouseTo(scrollContainer.ToScreenSpace(scrollContainer.LayoutRectangle.Centre + new Vector2(20f, 0f)));
+            });
+
+            AddStep("Move mouse up", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre - new Vector2(0, 1000)));
+            checkPosition(withClampExtension ? 200 : 100);
+            AddStep("Move mouse down", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre + new Vector2(0, 1000)));
+            checkPosition(withClampExtension ? -100 : 0);
+
+            AddStep("Move mouse diagonally up", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre - new Vector2(2000, 1000)));
+            checkPosition(withClampExtension ? 200 : 100);
+            AddStep("Move mouse diagonally down", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre + new Vector2(2000, 1000)));
+            checkPosition(withClampExtension ? -100 : 0);
+
+            AddStep("Release mouse button", () => InputManager.ReleaseButton(MouseButton.Left));
+            checkPosition(0);
+
+            AddStep("Hover over scroll container", () => InputManager.MoveMouseTo(scrollContainer));
+            AddStep("Scroll diagonally down", () => InputManager.ScrollBy(new Vector2(-20, -10)));
+            checkPosition(100);
+            AddStep("Scroll diagonally up", () => InputManager.ScrollBy(new Vector2(20, 10)));
+            checkPosition(0);
+        }
+
+        [Test]
+        public void TestDragHandlingUpdatesOnParentChanges()
+        {
+            BasicScrollContainer horizontalScrollContainer = null;
+
+            AddStep("Create scroll container", () =>
+            {
+                Add(scrollContainer = new BasicScrollContainer
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(200),
+                    ClampExtension = 0,
+                    Child = new Box { Size = new Vector2(200, 300) }
+                });
+            });
+
+            AddStep("Click and drag horizontally", () =>
+            {
+                InputManager.MoveMouseTo(scrollContainer);
+                InputManager.PressButton(MouseButton.Left);
+
+                // Required for the dragging state to be set correctly.
+                InputManager.MoveMouseTo(scrollContainer.ToScreenSpace(scrollContainer.LayoutRectangle.Centre + new Vector2(20f, 0f)));
+            });
+
+            AddStep("Move mouse diagonally up", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre - new Vector2(1000, 1000)));
+            checkPosition(100);
+            AddStep("Move mouse diagonally down", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre + new Vector2(1000, 1000)));
+            checkPosition(0);
+
+            AddStep("Release mouse button", () => InputManager.ReleaseButton(MouseButton.Left));
+            checkPosition(0);
+
+            AddStep("Nest vertical scroll inside of horizontal", () =>
+            {
+                Remove(scrollContainer, false);
+
+                Add(horizontalScrollContainer = new BasicScrollContainer(Direction.Horizontal)
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(400),
+                    ClampExtension = 0,
+                    Children = new Drawable[]
+                    {
+                        new Box
+                        {
+                            Size = new Vector2(500, 400),
+                            Colour = FrameworkColour.Yellow,
+                        },
+                        scrollContainer
+                    },
+                });
+            });
+
+            AddStep("Click and drag horizontally", () =>
+            {
+                InputManager.MoveMouseTo(scrollContainer);
+                InputManager.PressButton(MouseButton.Left);
+
+                // Required for the dragging state to be set correctly.
+                InputManager.MoveMouseTo(scrollContainer.ToScreenSpace(scrollContainer.LayoutRectangle.Centre + new Vector2(20f, 0f)));
+            });
+
+            AddStep("Move mouse diagonally up", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre - new Vector2(1000, 1000)));
+            AddUntilStep("horizontal position at 100", () => Precision.AlmostEquals(100, horizontalScrollContainer.Current, 1));
+            AddUntilStep("vertical position at 0", () => Precision.AlmostEquals(0, scrollContainer.Current, 1));
+
+            AddStep("Move mouse diagonally down", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre + new Vector2(1000, 1000)));
+            AddUntilStep("horizontal position at 0", () => Precision.AlmostEquals(0, horizontalScrollContainer.Current, 1));
+            AddUntilStep("vertical position at 0", () => Precision.AlmostEquals(0, scrollContainer.Current, 1));
+
+            AddStep("Release mouse button", () => InputManager.ReleaseButton(MouseButton.Left));
+            AddUntilStep("horizontal position at 0", () => Precision.AlmostEquals(0, horizontalScrollContainer.Current, 1));
+            AddUntilStep("vertical position at 0", () => Precision.AlmostEquals(0, scrollContainer.Current, 1));
+        }
+
         private void scrollIntoView(int index, float expectedPosition, float? heightAdjust = null, float? expectedPostAdjustPosition = null)
         {
             if (heightAdjust != null)
@@ -358,12 +531,12 @@ namespace osu.Framework.Tests.Visual.Containers
             AddAssert($"immediately scrolled to {clampedTarget}", () => Precision.AlmostEquals(clampedTarget, immediateScrollPosition, 1));
         }
 
-        private void checkPosition(float expected) => AddUntilStep($"position at {expected}", () => Precision.AlmostEquals(expected, scrollContainer.Current, 1));
+        private void checkPosition(float expected, ScrollContainer<Drawable> scroll = null) => AddUntilStep($"position at {expected}", () => Precision.AlmostEquals(expected, (scroll ?? scrollContainer).Current, 1));
 
         private void checkScrollbarPosition(float expected) =>
             AddUntilStep($"scrollbar position at {expected}", () => Precision.AlmostEquals(expected, scrollContainer.InternalChildren[1].DrawPosition.Y, 1));
 
-        private class RepeatCountingScrollContainer : BasicScrollContainer
+        private partial class RepeatCountingScrollContainer : BasicScrollContainer
         {
             public int RepeatCount { get; set; }
 
@@ -376,13 +549,13 @@ namespace osu.Framework.Tests.Visual.Containers
             }
         }
 
-        private class ClampedScrollbarScrollContainer : BasicScrollContainer
+        private partial class ClampedScrollbarScrollContainer : BasicScrollContainer
         {
             public new ScrollbarContainer Scrollbar => base.Scrollbar;
 
             protected override ScrollbarContainer CreateScrollbar(Direction direction) => new ClampedScrollbar(direction);
 
-            private class ClampedScrollbar : BasicScrollbar
+            private partial class ClampedScrollbar : BasicScrollbar
             {
                 protected internal override float MinimumDimSize => 250;
 
@@ -393,7 +566,7 @@ namespace osu.Framework.Tests.Visual.Containers
             }
         }
 
-        private class InputHandlingScrollContainer : BasicScrollContainer
+        private partial class InputHandlingScrollContainer : BasicScrollContainer
         {
             public bool? ScrollHandled { get; private set; }
             public bool? DragHandled { get; private set; }

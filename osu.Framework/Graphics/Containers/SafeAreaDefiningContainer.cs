@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Primitives;
@@ -15,7 +17,7 @@ namespace osu.Framework.Graphics.Containers
     /// to the host <see cref="IWindow"/>'s <see cref="IWindow.SafeAreaPadding"/>.
     /// </summary>
     [Cached(typeof(ISafeArea))]
-    public class SafeAreaDefiningContainer : Container<Drawable>, ISafeArea
+    public partial class SafeAreaDefiningContainer : Container<Drawable>, ISafeArea
     {
         private readonly bool usesCustomBinding;
 
@@ -23,7 +25,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// Initialises a <see cref="SafeAreaDefiningContainer"/> by optionally providing a custom <see cref="BindableSafeArea"/>.
-        /// If no such binding is provided, the container will default to <see cref="OsuTKWindow.SafeAreaPadding"/>.
+        /// If no such binding is provided, the container will default to <see cref="IWindow.SafeAreaPadding"/>.
         /// </summary>
         /// <param name="safeArea">The custom <see cref="BindableSafeArea"/> to bind to, if required.</param>
         public SafeAreaDefiningContainer(BindableSafeArea safeArea = null)
@@ -35,12 +37,25 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        [BackgroundDependencyLoader]
-        private void load(GameHost host)
+        [Resolved]
+        private GameHost host { get; set; }
+
+        private readonly IBindable<MarginPadding> hostSafeArea = new BindableSafeArea();
+
+        protected override void LoadComplete()
         {
-            if (!usesCustomBinding && host.Window != null)
-                safeArea.BindTo(host.Window.SafeAreaPadding);
+            base.LoadComplete();
+
+            if (usesCustomBinding || host.Window == null)
+                return;
+
+            hostSafeArea.BindTo(host.Window.SafeAreaPadding);
+            hostSafeArea.BindValueChanged(_ => Scheduler.AddOnce(updateSafeAreaFromHost));
+
+            updateSafeAreaFromHost();
         }
+
+        private void updateSafeAreaFromHost() => safeArea.Value = hostSafeArea.Value;
 
         #region ISafeArea Implementation
 

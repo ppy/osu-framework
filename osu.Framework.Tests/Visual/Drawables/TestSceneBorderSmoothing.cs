@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
@@ -12,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneBorderSmoothing : FrameworkTestScene
+    public partial class TestSceneBorderSmoothing : FrameworkTestScene
     {
         public TestSceneBorderSmoothing()
         {
@@ -79,7 +79,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddSliderStep("adjust alpha", 0f, 1f, 1, val => Child.Alpha = val);
         }
 
-        private class IssueButton : BasicButton
+        private partial class IssueButton : BasicButton
         {
             public Color4? OverlayColour;
 

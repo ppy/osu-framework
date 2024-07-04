@@ -1,20 +1,24 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
+using System.Text;
+using NUnit.Framework;
 using osu.Framework.Graphics;
 using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
-    public class UntilStepButton : StepButton
+    public partial class UntilStepButton : StepButton
     {
         private bool success;
 
         private int invocations;
 
-        private const int max_attempt_milliseconds = 10000;
+        private static readonly int max_attempt_milliseconds = FrameworkEnvironment.NoTestTimeout ? int.MaxValue : 10000;
 
         public override int RequiredRepetitions => success ? 0 : int.MaxValue;
 
@@ -30,7 +34,7 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         private Stopwatch elapsedTime;
 
-        public UntilStepButton(Func<bool> waitUntilTrueDelegate, bool isSetupStep = false)
+        public UntilStepButton(Func<bool> waitUntilTrueDelegate, bool isSetupStep = false, Func<string> getFailureMessage = null)
             : base(isSetupStep)
         {
             updateText();
@@ -51,7 +55,16 @@ namespace osu.Framework.Testing.Drawables.Steps
                     Success();
                 }
                 else if (!Debugger.IsAttached && elapsedTime.ElapsedMilliseconds >= max_attempt_milliseconds)
-                    throw new TimeoutException($"\"{Text}\" timed out");
+                {
+                    StringBuilder builder = new StringBuilder();
+
+                    builder.Append($"\"{Text}\" timed out");
+
+                    if (getFailureMessage != null)
+                        builder.Append($": {getFailureMessage()}");
+
+                    throw new AssertionException(builder.ToString());
+                }
 
                 Action?.Invoke();
             };

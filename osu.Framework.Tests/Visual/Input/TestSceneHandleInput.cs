@@ -6,13 +6,14 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Input;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneHandleInput : ManualInputManagerTestScene
+    public partial class TestSceneHandleInput : ManualInputManagerTestScene
     {
         public TestSceneHandleInput()
         {
@@ -37,7 +38,7 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 handleNonPositionalInput.Enabled = true;
                 InputManager.MoveMouseTo(handleNonPositionalInput);
-                InputManager.TriggerFocusContention(null);
+                ((IFocusManager)InputManager).TriggerFocusContention(null);
             });
             AddAssert($"check {nameof(handleNonPositionalInput)}", () => !handleNonPositionalInput.IsHovered && handleNonPositionalInput.HasFocus);
 
@@ -52,7 +53,7 @@ namespace osu.Framework.Tests.Visual.Input
             //AddAssert($"check {nameof(handleNonPositionalInput)}", () => !handleNonPositionalInput.HasFocus);
         }
 
-        private class TestContainerNoHandling : Container
+        private partial class TestContainerNoHandling : Container
         {
             protected readonly Box Box;
             protected readonly Box DisabledOverlay;
@@ -82,7 +83,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class TestContainer : TestContainerNoHandling
+        private partial class TestContainer : TestContainerNoHandling
         {
             public override bool AcceptsFocus => Enabled;
             public override bool RequestsFocus => Enabled;
@@ -100,12 +101,12 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class TestContainerHandlePositionalInput : TestContainer
+        private partial class TestContainerHandlePositionalInput : TestContainer
         {
             public override bool HandlePositionalInput => Enabled;
         }
 
-        private class TestContainerHandleNonPositionalInput : TestContainer
+        private partial class TestContainerHandleNonPositionalInput : TestContainer
         {
             public override bool HandleNonPositionalInput => Enabled;
         }

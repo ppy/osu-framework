@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Reflection;
 using BenchmarkDotNet.Attributes;
 using NUnit.Framework;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.IO.Stores;
 using osu.Framework.Testing;
@@ -15,12 +16,12 @@ namespace osu.Framework.Benchmarks
 {
     public class BenchmarkFontLoading : BenchmarkTest
     {
-        private NamespacedResourceStore<byte[]> baseResources;
-        private TemporaryNativeStorage sharedTemp;
+        private NamespacedResourceStore<byte[]> baseResources = null!;
+        private TemporaryNativeStorage sharedTemp = null!;
 
         public override void SetUp()
         {
-            SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateDefault();
+            SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = MemoryAllocator.Default;
 
             baseResources = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources");
             sharedTemp = new TemporaryNativeStorage("fontstore-test-" + Guid.NewGuid());
@@ -29,7 +30,7 @@ namespace osu.Framework.Benchmarks
         [OneTimeTearDown]
         public void TearDown()
         {
-            sharedTemp?.Dispose();
+            sharedTemp.Dispose();
         }
 
         [Params(1, 10, 100, 1000, 10000)]
@@ -40,16 +41,22 @@ namespace osu.Framework.Benchmarks
         [Benchmark]
         public void BenchmarkRawCachingReuse()
         {
-            using (var store = new RawCachingGlyphStore(baseResources, font_name) { CacheStorage = sharedTemp })
+            using (var store = new RawCachingGlyphStore(baseResources, font_name))
+            {
+                store.CacheStorage = sharedTemp;
                 runFor(store);
+            }
         }
 
         [Benchmark(Baseline = true)]
         public void BenchmarkRawCaching()
         {
             using (var temp = new TemporaryNativeStorage("fontstore-test" + Guid.NewGuid()))
-            using (var store = new RawCachingGlyphStore(baseResources, font_name) { CacheStorage = temp })
+            using (var store = new RawCachingGlyphStore(baseResources, font_name))
+            {
+                store.CacheStorage = temp;
                 runFor(store);
+            }
         }
 
         [Benchmark]
@@ -65,7 +72,7 @@ namespace osu.Framework.Benchmarks
         [Benchmark]
         public void BenchmarkTimedExpiry()
         {
-            SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateDefault();
+            SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = MemoryAllocator.Default;
 
             using (var store = new TimedExpiryGlyphStore(baseResources, font_name))
                 runFor(store);
@@ -80,7 +87,7 @@ namespace osu.Framework.Benchmarks
 
         private void runFor(GlyphStore store)
         {
-            store.LoadFontAsync().Wait();
+            store.LoadFontAsync().WaitSafely();
 
             var props = typeof(FontAwesome.Solid).GetProperties(BindingFlags.Public | BindingFlags.Static);
 
@@ -90,7 +97,7 @@ namespace osu.Framework.Benchmarks
             {
                 foreach (var p in props)
                 {
-                    object propValue = p.GetValue(null);
+                    object? propValue = p.GetValue(null);
                     Debug.Assert(propValue != null);
 
                     var icon = (IconUsage)propValue;

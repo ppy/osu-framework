@@ -35,12 +35,12 @@ namespace osu.Framework.Threading
         /// </summary>
         public bool Cancelled => State == RunState.Cancelled;
 
-        public RunState State;
+        public RunState State { get; private set; }
 
         /// <summary>
         /// The work task.
         /// </summary>
-        internal Action Task;
+        internal Action? Task;
 
         public ScheduledDelegate(Action task, double executionTime = 0, double repeatInterval = -1)
             : this(executionTime, repeatInterval)
@@ -89,7 +89,7 @@ namespace osu.Framework.Threading
 
                 State = RunState.Running;
 
-                Task();
+                InvokeTask();
 
                 // task may have been cancelled during execution.
                 if (State == RunState.Cancelled)
@@ -98,6 +98,12 @@ namespace osu.Framework.Threading
                 Trace.Assert(State == RunState.Running);
                 State = RunState.Complete;
             }
+        }
+
+        protected virtual void InvokeTask()
+        {
+            Debug.Assert(Task != null);
+            Task();
         }
 
         /// <summary>
@@ -114,7 +120,7 @@ namespace osu.Framework.Threading
             }
         }
 
-        public int CompareTo(ScheduledDelegate other) => ExecutionTime == other.ExecutionTime ? -1 : ExecutionTime.CompareTo(other.ExecutionTime);
+        public int CompareTo(ScheduledDelegate? other) => ExecutionTime == other?.ExecutionTime ? -1 : ExecutionTime.CompareTo(other?.ExecutionTime);
 
         internal void SetNextExecution(double? currentTime)
         {
@@ -134,6 +140,8 @@ namespace osu.Framework.Threading
                 }
             }
         }
+
+        public override string ToString() => $"method \"{Task?.Method}\" targeting \"{Task?.Target}\" executing at {ExecutionTime:N0} with repeat {RepeatInterval}";
 
         /// <summary>
         /// The current state of a scheduled delegate.

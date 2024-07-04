@@ -61,6 +61,9 @@ namespace osu.Framework.Graphics.Video
                 case AVHWDeviceType.AV_HWDEVICE_TYPE_VIDEOTOOLBOX:
                     return HardwareVideoDecoder.VideoToolbox;
 
+                case AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA:
+                    return HardwareVideoDecoder.D3D11VA;
+
                 default:
                     return null;
             }

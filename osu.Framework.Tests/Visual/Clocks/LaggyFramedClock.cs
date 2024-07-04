@@ -7,22 +7,20 @@ namespace osu.Framework.Tests.Visual.Clocks
 {
     public class LaggyFramedClock : FramedClock
     {
-        public LaggyFramedClock(IClock source = null)
+        private readonly int frameSkip;
+
+        private int currentFrame;
+
+        public LaggyFramedClock(int frameSkip, IClock? source = null)
             : base(source)
         {
+            this.frameSkip = frameSkip;
         }
-
-        private int lastSecond;
 
         public override void ProcessFrame()
         {
-            int second = (int)Source.CurrentTime / 500;
-
-            if (second != lastSecond)
-            {
-                lastSecond = second;
+            if (currentFrame++ % frameSkip == 0)
                 base.ProcessFrame();
-            }
         }
     }
 }

@@ -1,10 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using NUnit.Framework;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -18,7 +19,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneContextMenu : ManualInputManagerTestScene
+    public partial class TestSceneContextMenu : ManualInputManagerTestScene
     {
         protected override Container<Drawable> Content => contextMenuContainer ?? base.Content;
 
@@ -31,6 +32,51 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         [SetUp]
         public void Setup() => Schedule(Clear);
+
+        /// <summary>
+        /// Tests an edge case where the submenu is visible and continues updating for a short period of time after right clicking another item.
+        /// In such a case, the submenu should not update its position unless it's open.
+        /// </summary>
+        [Test]
+        public void TestNestedMenuTransferredWithFadeOut()
+        {
+            TestContextMenuContainerWithFade fadingMenuContainer = null;
+            BoxWithNestedContextMenuItems box1 = null;
+            BoxWithNestedContextMenuItems box2 = null;
+
+            AddStep("setup", () =>
+            {
+                Child = fadingMenuContainer = new TestContextMenuContainerWithFade
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Child = new FillFlowContainer
+                    {
+                        AutoSizeAxes = Axes.Both,
+                        Direction = FillDirection.Horizontal,
+                        Spacing = new Vector2(10),
+                        Children = new[]
+                        {
+                            box1 = new BoxWithNestedContextMenuItems { Size = new Vector2(100) },
+                            box2 = new BoxWithNestedContextMenuItems { Size = new Vector2(100) }
+                        }
+                    }
+                };
+            });
+
+            clickBoxStep(() => box1);
+            AddStep("hover over menu item", () => InputManager.MoveMouseTo(fadingMenuContainer.ChildrenOfType<Menu.DrawableMenuItem>().First()));
+
+            clickBoxStep(() => box2);
+            AddStep("hover over menu item", () => InputManager.MoveMouseTo(fadingMenuContainer.ChildrenOfType<Menu.DrawableMenuItem>().First()));
+
+            AddAssert("submenu opened and visible", () =>
+            {
+                var targetItem = fadingMenuContainer.ChildrenOfType<Menu.DrawableMenuItem>().First();
+                var subMenu = fadingMenuContainer.ChildrenOfType<Menu>().Last();
+
+                return subMenu.State == MenuState.Open && subMenu.IsPresent && !subMenu.IsMaskedAway && subMenu.ScreenSpaceDrawQuad.TopLeft.X > targetItem.ScreenSpaceDrawQuad.TopLeft.X;
+            });
+        }
 
         [Test]
         public void TestMenuOpenedOnClick()
@@ -153,14 +199,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 box.Anchor = anchor;
 
-                if (anchor.HasFlagFast(Anchor.x0))
+                if (anchor.HasFlag(Anchor.x0))
                     box.X -= contextMenuContainer.CurrentMenu.DrawWidth + 10;
-                else if (anchor.HasFlagFast(Anchor.x2))
+                else if (anchor.HasFlag(Anchor.x2))
                     box.X += 10;
 
-                if (anchor.HasFlagFast(Anchor.y0))
+                if (anchor.HasFlag(Anchor.y0))
                     box.Y -= contextMenuContainer.CurrentMenu.DrawHeight + 10;
-                else if (anchor.HasFlagFast(Anchor.y2))
+                else if (anchor.HasFlag(Anchor.y2))
                     box.Y += 10;
             });
 
@@ -236,7 +282,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
         }
 
-        private void addBoxStep(Action<Drawable> boxFunc, int actionCount) => addBoxStep(boxFunc, Enumerable.Repeat(new Action(() => { }), actionCount).ToArray());
+        private void addBoxStep(Action<Drawable> boxFunc, int actionCount) => addBoxStep(boxFunc, Enumerable.Repeat(() => { }, actionCount).ToArray());
 
         private void addBoxStep(Action<Drawable> boxFunc, params Action[] actions)
         {
@@ -275,7 +321,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private void assertMenuItems(int expectedCount) => AddAssert($"menu contains {expectedCount} item(s)", () => contextMenuContainer.CurrentMenu.Items.Count == expectedCount);
 
-        private class BoxWithContextMenu : Box, IHasContextMenu
+        private partial class BoxWithContextMenu : Box, IHasContextMenu
         {
             private readonly Action[] actions;
 
@@ -287,11 +333,43 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public MenuItem[] ContextMenuItems => actions?.Select((a, i) => new MenuItem($"Item {i}", a)).ToArray();
         }
 
-        private class TestContextMenuContainer : BasicContextMenuContainer
+        private partial class BoxWithNestedContextMenuItems : Box, IHasContextMenu
+        {
+            public MenuItem[] ContextMenuItems => new[]
+            {
+                new MenuItem("First")
+                {
+                    Items = new[]
+                    {
+                        new MenuItem("Second")
+                    }
+                },
+            };
+        }
+
+        private partial class TestContextMenuContainer : BasicContextMenuContainer
         {
             public Menu CurrentMenu { get; private set; }
 
             protected override Menu CreateMenu() => CurrentMenu = base.CreateMenu();
+        }
+
+        private partial class TestContextMenuContainerWithFade : BasicContextMenuContainer
+        {
+            protected override Menu CreateMenu() => new TestMenu();
+
+            private partial class TestMenu : BasicMenu
+            {
+                public TestMenu()
+                    : base(Direction.Vertical)
+                {
+                    ItemsContainer.Padding = new MarginPadding { Vertical = 2 };
+                }
+
+                protected override void AnimateClose() => this.FadeOut(1000, Easing.OutQuint);
+
+                protected override Menu CreateSubMenu() => new TestMenu();
+            }
         }
     }
 }

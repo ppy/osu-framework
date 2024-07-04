@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// An element which starts hidden and can be toggled to visible.
     /// </summary>
-    public abstract class OverlayContainer : VisibilityContainer
+    public abstract partial class OverlayContainer : VisibilityContainer
     {
         /// <summary>
         /// Whether we should block any positional input from interacting with things behind us.
@@ -43,24 +43,9 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool DragBlocksClick => false;
 
-        protected override bool Handle(UIEvent e)
-        {
-            switch (e)
-            {
-                case ScrollEvent _:
-                    if (BlockScrollInput && base.ReceivePositionalInputAt(e.ScreenSpaceMousePosition))
-                        return true;
-
-                    break;
-
-                case MouseEvent _:
-                    if (BlockPositionalInput)
-                        return true;
-
-                    break;
-            }
-
-            return base.Handle(e);
-        }
+        protected override bool OnHover(HoverEvent e) => BlockPositionalInput;
+        protected override bool OnMouseDown(MouseDownEvent e) => BlockPositionalInput;
+        protected override bool OnMouseMove(MouseMoveEvent e) => BlockPositionalInput;
+        protected override bool OnScroll(ScrollEvent e) => BlockScrollInput && base.ReceivePositionalInputAt(e.ScreenSpaceMousePosition);
     }
 }

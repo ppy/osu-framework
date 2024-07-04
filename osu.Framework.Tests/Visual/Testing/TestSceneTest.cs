@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
@@ -9,7 +9,7 @@ using osu.Framework.Testing.Drawables.Steps;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneTest : FrameworkTestScene
+    public partial class TestSceneTest : FrameworkTestScene
     {
         private int setupRun;
         private int setupStepsRun;
@@ -104,9 +104,20 @@ namespace osu.Framework.Tests.Visual.Testing
         [Repeat(2)]
         public void TestTestCase(int _) => TestTest();
 
+        [TestCase(0)]
+        [TestCase(1, "one")]
+        [TestCase(3, "one", "two", "three")]
+        [TestCase(2, new[] { "test", "two" })]
+        public void TestParamsTestCase(int length, params string[] p)
+        {
+            TestTest();
+            AddAssert("params is array", () => p, Is.TypeOf<string[]>);
+            AddAssert("length is expected", () => p, () => Has.Length.EqualTo(length));
+        }
+
         protected override ITestSceneTestRunner CreateRunner() => new TestRunner();
 
-        private class TestRunner : TestSceneTestRunner
+        private partial class TestRunner : TestSceneTestRunner
         {
             public override void RunTestBlocking(TestScene test)
             {

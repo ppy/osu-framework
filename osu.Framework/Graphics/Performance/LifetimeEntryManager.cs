@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -398,8 +400,8 @@ namespace osu.Framework.Graphics.Performance
         {
             public int Compare(LifetimeEntry x, LifetimeEntry y)
             {
-                if (x == null) throw new ArgumentNullException(nameof(x));
-                if (y == null) throw new ArgumentNullException(nameof(y));
+                ArgumentNullException.ThrowIfNull(x);
+                ArgumentNullException.ThrowIfNull(y);
 
                 int c = x.LifetimeStart.CompareTo(y.LifetimeStart);
                 return c != 0 ? c : x.ChildId.CompareTo(y.ChildId);
@@ -413,8 +415,8 @@ namespace osu.Framework.Graphics.Performance
         {
             public int Compare(LifetimeEntry x, LifetimeEntry y)
             {
-                if (x == null) throw new ArgumentNullException(nameof(x));
-                if (y == null) throw new ArgumentNullException(nameof(y));
+                ArgumentNullException.ThrowIfNull(x);
+                ArgumentNullException.ThrowIfNull(y);
 
                 int c = x.LifetimeEnd.CompareTo(y.LifetimeEnd);
                 return c != 0 ? c : x.ChildId.CompareTo(y.ChildId);

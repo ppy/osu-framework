@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
@@ -12,7 +12,7 @@ namespace osu.Framework.Testing
         /// <summary>
         /// Find all children recursively of a specific type. As this is expensive and dangerous, it should only be used for testing purposes.
         /// </summary>
-        public static IEnumerable<T> ChildrenOfType<T>(this Drawable drawable)
+        public static IEnumerable<T> ChildrenOfType<T>(this Drawable? drawable)
         {
             if (drawable is T match)
                 yield return match;

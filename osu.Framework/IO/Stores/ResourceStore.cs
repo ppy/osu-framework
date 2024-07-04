@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -42,7 +44,7 @@ namespace osu.Framework.IO.Stores
         /// <param name="stores">The collection of stores.</param>
         public ResourceStore(IResourceStore<T>[] stores)
         {
-            foreach (var resourceStore in stores.Cast<ResourceStore<T>>())
+            foreach (var resourceStore in stores)
                 AddStore(resourceStore);
         }
 
@@ -59,7 +61,7 @@ namespace osu.Framework.IO.Stores
         }
 
         /// <summary>
-        /// Adds a resource store to this store.
+        /// Adds a nested resource store to this store.
         /// </summary>
         /// <param name="store">The store to add.</param>
         public virtual void AddStore(IResourceStore<T> store)
@@ -163,10 +165,8 @@ namespace osu.Framework.IO.Stores
                 return;
 
             // Check if there's already a reload action bound
-            if (actionList.ContainsKey(name))
+            if (!actionList.TryAdd(name, onReload))
                 throw new InvalidOperationException($"A reload delegate is already bound to the resource '{name}'.");
-
-            actionList[name] = onReload;
         }
 
         /// <summary>

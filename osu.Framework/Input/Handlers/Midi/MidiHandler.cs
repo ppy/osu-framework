@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Commons.Music.Midi;
+using osu.Framework.Extensions;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -18,9 +21,14 @@ namespace osu.Framework.Input.Handlers.Midi
 {
     public class MidiHandler : InputHandler
     {
+        private static readonly GlobalStatistic<ulong> statistic_total_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<MidiHandler>(), "Total events");
+
         public override string Description => "MIDI";
-        public override bool IsActive => active;
-        private bool active = true;
+        public override bool IsActive => inGoodState;
+
+        private const int milliseconds_between_device_refresh = 1000;
+
+        private bool inGoodState = true;
 
         private ScheduledDelegate scheduledRefreshDevices;
 
@@ -32,6 +40,8 @@ namespace osu.Framework.Input.Handlers.Midi
         /// </summary>
         private readonly Dictionary<string, byte> runningStatus = new Dictionary<string, byte>();
 
+        private Task lastInitTask;
+
         public override bool Initialize(GameHost host)
         {
             if (!base.Initialize(host))
@@ -41,10 +51,22 @@ namespace osu.Framework.Input.Handlers.Midi
             {
                 if (e.NewValue)
                 {
-                    host.InputThread.Scheduler.Add(scheduledRefreshDevices = new ScheduledDelegate(() => refreshDevices(), 0, 500));
+                    lastInitTask = Task.Run(() =>
+                    {
+                        inGoodState = true;
+
+                        // First call to this can be expensive (macOS / coremidi) so let's run it on a separate thread.
+                        if (!refreshDevices())
+                            return;
+
+                        host.InputThread.Scheduler.Add(
+                            scheduledRefreshDevices = new ScheduledDelegate(() => refreshDevices(), milliseconds_between_device_refresh, milliseconds_between_device_refresh));
+                    });
                 }
                 else
                 {
+                    lastInitTask?.WaitSafely();
+
                     scheduledRefreshDevices?.Cancel();
 
                     lock (openedDevices)
@@ -57,41 +79,47 @@ namespace osu.Framework.Input.Handlers.Midi
                 }
             }, true);
 
-            return refreshDevices();
+            return true;
         }
 
         private bool refreshDevices()
         {
             try
             {
-                var inputs = MidiAccessManager.Default.Inputs.ToList();
-
                 lock (openedDevices)
                 {
-                    // check removed devices
-                    foreach (string key in openedDevices.Keys.ToArray())
+                    int accountedDevices = 0;
+
+                    foreach (var device in MidiAccessManager.Default.Inputs)
                     {
-                        var device = openedDevices[key];
+                        accountedDevices++;
 
-                        if (inputs.All(i => i.Id != key))
-                        {
-                            closeDevice(device);
-                            openedDevices.Remove(key);
+                        if (openedDevices.ContainsKey(device.Id))
+                            continue;
 
-                            Logger.Log($"Disconnected MIDI device: {device.Details.Name}");
-                        }
+                        var newInput = MidiAccessManager.Default.OpenInputAsync(device.Id).GetResultSafely();
+                        newInput.MessageReceived += onMidiMessageReceived;
+                        openedDevices[device.Id] = newInput;
+
+                        Log($"Connected MIDI device: {newInput.Details.Name}");
                     }
 
-                    // check added devices
-                    foreach (IMidiPortDetails input in inputs)
+                    if (accountedDevices != openedDevices.Count)
                     {
-                        if (openedDevices.All(x => x.Key != input.Id))
-                        {
-                            var newInput = MidiAccessManager.Default.OpenInputAsync(input.Id).Result;
-                            newInput.MessageReceived += onMidiMessageReceived;
-                            openedDevices[input.Id] = newInput;
+                        // A device must have gone missing.
+                        // This loop is a bit expensive so only run when we have to.
+                        var inputs = MidiAccessManager.Default.Inputs.ToArray();
 
-                            Logger.Log($"Connected MIDI device: {newInput.Details.Name}");
+                        foreach (string key in openedDevices.Keys.ToArray())
+                        {
+                            var device = openedDevices[key];
+
+                            if (inputs.All(i => i.Id != key))
+                            {
+                                closeDevice(device);
+                                openedDevices.Remove(key);
+                                Log($"Disconnected MIDI device: {device.Details.Name}");
+                            }
                         }
                     }
                 }
@@ -100,11 +128,15 @@ namespace osu.Framework.Input.Handlers.Midi
             }
             catch (Exception e)
             {
-                Logger.Error(e, RuntimeInfo.OS == RuntimeInfo.Platform.Linux
-                    ? "Couldn't list input devices. Is libasound2-dev installed?"
-                    : "Couldn't list input devices. There may be another application already using MIDI.");
+                string message = RuntimeInfo.OS == RuntimeInfo.Platform.Linux
+                    ? "Is libasound2-dev installed?"
+                    : "There may be another application already using MIDI.";
 
-                active = false;
+                Log($"MIDI devices could not be enumerated. {message} ({e.Message})");
+
+                // stop attempting to refresh devices until next startup.
+                inGoodState = false;
+                scheduledRefreshDevices?.Cancel();
                 return false;
             }
         }
@@ -115,7 +147,7 @@ namespace osu.Framework.Input.Handlers.Midi
 
             // some devices may take some time to close, so this should be fire-and-forget.
             // the internal implementations look to have their own (eventual) timeout logic.
-            Task.Factory.StartNew(() => device.CloseAsync(), TaskCreationOptions.LongRunning);
+            Task.Factory.StartNew(device.CloseAsync, TaskCreationOptions.LongRunning);
         }
 
         private void onMidiMessageReceived(object sender, MidiReceivedEventArgs e)
@@ -134,7 +166,7 @@ namespace osu.Framework.Input.Handlers.Midi
             catch (Exception exception)
             {
                 string dataString = string.Join("-", e.Data.Select(b => b.ToString("X2")));
-                Logger.Error(exception, $"An exception occurred while reading MIDI data from sender {senderId}: {dataString}");
+                Log($"An exception occurred while reading MIDI data from sender {senderId}: {dataString}", LogLevel.Error, exception);
             }
         }
 
@@ -207,8 +239,6 @@ namespace osu.Framework.Input.Handlers.Midi
 
         private void dispatchEvent(byte eventType, byte key, byte velocity)
         {
-            Logger.Log($"Handling MIDI event {eventType:X2}:{key:X2}:{velocity:X2}");
-
             // Low nibble only contains channel data in note on/off messages
             // Ignore to receive messages from all channels
             switch (eventType & 0xF0)
@@ -225,18 +255,18 @@ namespace osu.Framework.Input.Handlers.Midi
                     break;
             }
 
-            void noteOff()
-            {
-                Logger.Log($"NoteOff: {(MidiKey)key}/{velocity / 128f:P}");
-                PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, 0, false));
-                FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
-            }
-
             void noteOn()
             {
-                Logger.Log($"NoteOn: {(MidiKey)key}/{velocity / 128f:P}");
                 PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, velocity, true));
                 FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
+                statistic_total_events.Value++;
+            }
+
+            void noteOff()
+            {
+                PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, 0, false));
+                FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
+                statistic_total_events.Value++;
             }
         }
     }

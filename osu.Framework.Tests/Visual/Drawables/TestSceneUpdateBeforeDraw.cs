@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -12,8 +14,8 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    [Description("Tests whether drawable updates occur before drawing.")]
-    public class TestSceneUpdateBeforeDraw : FrameworkTestScene
+    [System.ComponentModel.Description("Tests whether drawable updates occur before drawing.")]
+    public partial class TestSceneUpdateBeforeDraw : FrameworkTestScene
     {
         /// <summary>
         /// Tests whether a <see cref="Drawable"/> is updated before being drawn when it is added to a parent
@@ -54,7 +56,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddAssert("green not present", () => !greenBox.IsPresent);
         }
 
-        private class HookableContainer : Container
+        private partial class HookableContainer : Container
         {
             /// <summary>
             /// Invoked once.
@@ -79,7 +81,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         /// <summary>
         /// A box which sets its alpha to 0 in <see cref="Update"/> if it hasn't been drawn yet.
         /// </summary>
-        private class TestBox : Box
+        private partial class TestBox : Box
         {
             private bool hasDrawn;
 

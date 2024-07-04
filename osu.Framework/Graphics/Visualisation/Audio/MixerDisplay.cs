@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
@@ -13,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Visualisation.Audio
 {
-    public class MixerDisplay : CompositeDrawable
+    public partial class MixerDisplay : CompositeDrawable
     {
         public readonly AudioMixer Mixer;
 
@@ -115,15 +115,15 @@ namespace osu.Framework.Graphics.Visualisation.Audio
             foreach (IBassAudioChannel channel in channels)
             {
                 if (mixerChannelsContainer.All(ch =>
-                {
-                    if (ch is AudioChannelDisplay audioDisplay)
-                        return ((IBassAudioChannel)audioDisplay.Channel).Handle != channel.Handle;
+                    {
+                        if (ch is AudioChannelDisplay audioDisplay)
+                            return ((IBassAudioChannel)audioDisplay.Channel).Handle != channel.Handle;
 
-                    if (ch is MixerDisplay mixerDisplay)
-                        return ((IBassAudioChannel)mixerDisplay.Mixer).Handle != channel.Handle;
+                        if (ch is MixerDisplay mixerDisplay)
+                            return ((IBassAudioChannel)mixerDisplay.Mixer).Handle != channel.Handle;
 
-                    return true;
-                }))
+                        return true;
+                    }))
                 {
                     if (channel is BassAudioMixer mixer)
                         mixerChannelsContainer.Add(new MixerDisplay(mixer));
@@ -141,7 +141,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
                     return channels.All(channel => ((IBassAudioChannel)mixerDisplay.Mixer).Handle != channel.Handle);
 
                 return true;
-            });
+            }, true);
         }
     }
 }

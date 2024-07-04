@@ -9,9 +9,10 @@ using osuTK;
 
 namespace osu.Framework.Benchmarks
 {
-    public class BenchmarkTransformUpdate : BenchmarkTest
+    public partial class BenchmarkTransformUpdate : BenchmarkTest
     {
-        private TestBox target;
+        private TestBox target = null!;
+        private TestBox targetNoTransforms = null!;
 
         public override void SetUp()
         {
@@ -21,7 +22,8 @@ namespace osu.Framework.Benchmarks
 
             ManualClock clock;
 
-            target = new TestBox { Clock = new FramedClock(clock = new ManualClock()) };
+            targetNoTransforms = new TestBox { Clock = new FramedClock(clock = new ManualClock()) };
+            target = new TestBox { Clock = new FramedClock(clock) };
 
             // transform one target member over a long period
             target.RotateTo(360, transforms_count * 2);
@@ -35,13 +37,20 @@ namespace osu.Framework.Benchmarks
         }
 
         [Benchmark]
+        public void UpdateTransformsWithNonePresent()
+        {
+            for (int i = 0; i < 10000; i++)
+                targetNoTransforms.UpdateTransforms();
+        }
+
+        [Benchmark]
         public void UpdateTransformsWithManyPresent()
         {
             for (int i = 0; i < 10000; i++)
                 target.UpdateTransforms();
         }
 
-        private class TestBox : Box
+        private partial class TestBox : Box
         {
             public override bool RemoveCompletedTransforms => false;
 

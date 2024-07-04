@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +20,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneDrawableLoadCancellation : FrameworkTestScene
+    public partial class TestSceneDrawableLoadCancellation : FrameworkTestScene
     {
         private readonly List<SlowLoader> loaders = new List<SlowLoader>();
 
@@ -72,7 +74,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             return loader;
         }
 
-        public class SlowLoader : CompositeDrawable
+        public partial class SlowLoader : CompositeDrawable
         {
             private readonly int id;
             private PausableLoadDrawable loadable;
@@ -111,7 +113,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        public class PausableLoadDrawable : CompositeDrawable
+        public partial class PausableLoadDrawable : CompositeDrawable
         {
             private readonly int id;
 

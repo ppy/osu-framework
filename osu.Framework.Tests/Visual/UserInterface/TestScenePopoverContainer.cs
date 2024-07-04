@@ -5,12 +5,14 @@ using System;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using osuTK;
@@ -19,12 +21,12 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestScenePopoverContainer : ManualInputManagerTestScene
+    public partial class TestScenePopoverContainer : ManualInputManagerTestScene
     {
-        private Container[,] cells;
-        private Container popoverWrapper;
-        private PopoverContainer popoverContainer;
-        private GridContainer gridContainer;
+        private Container[,] cells = null!;
+        private Container popoverWrapper = null!;
+        private PopoverContainer popoverContainer = null!;
+        private GridContainer gridContainer = null!;
 
         [SetUpSteps]
         public void SetUpSteps()
@@ -294,7 +296,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestAutomaticLayouting()
         {
-            DrawableWithPopover target = null;
+            DrawableWithPopover target = null!;
 
             AddStep("add button", () => popoverContainer.Child = target = new DrawableWithPopover
             {
@@ -314,25 +316,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddSliderStep("move X", 0f, 1, 0, x =>
             {
-                if (target != null)
+                if (target.IsNotNull())
                     target.X = x;
             });
 
             AddSliderStep("move Y", 0f, 1, 0, y =>
             {
-                if (target != null)
+                if (target.IsNotNull())
                     target.Y = y;
             });
 
             AddSliderStep("container width", 0f, 1, 1, width =>
             {
-                if (popoverWrapper != null)
+                if (popoverWrapper.IsNotNull())
                     popoverWrapper.Width = width;
             });
 
             AddSliderStep("container height", 0f, 1, 1, height =>
             {
-                if (popoverWrapper != null)
+                if (popoverWrapper.IsNotNull())
                     popoverWrapper.Height = height;
             });
         }
@@ -367,7 +369,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddSliderStep("change content height", 100, 500, 200, height =>
             {
-                if (popoverContainer?.Children.Count == 1)
+                if (popoverContainer.IsNotNull() && popoverContainer.Children.Count == 1)
                     popoverContainer.Child.Height = height;
             });
         }
@@ -375,7 +377,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestExternalPopoverControl()
         {
-            TextBoxWithPopover target = null;
+            TextBoxWithPopover target = null!;
 
             AddStep("create content", () =>
             {
@@ -394,14 +396,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
             AddAssert("popover shown", () => this.ChildrenOfType<Popover>().Any());
 
-            AddStep("take away text box focus", () => InputManager.ChangeFocus(null));
+            AddStep("take away text box focus", () => ((IFocusManager)InputManager).ChangeFocus(null));
             AddAssert("popover hidden", () => !this.ChildrenOfType<Popover>().Any());
         }
 
         [Test]
         public void TestPopoverCleanupOnTargetDisposal()
         {
-            DrawableWithPopover target = null;
+            DrawableWithPopover target = null!;
 
             AddStep("add button", () => popoverContainer.Child = target = new DrawableWithPopover
             {
@@ -433,7 +435,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestPopoverCleanupOnTargetHide()
         {
-            DrawableWithPopover target = null;
+            DrawableWithPopover target = null!;
 
             AddStep("add button", () => popoverContainer.Child = target = new DrawableWithPopover
             {
@@ -465,8 +467,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestPopoverEventHandling()
         {
-            EventHandlingContainer eventHandlingContainer = null;
-            DrawableWithPopover target = null;
+            EventHandlingContainer eventHandlingContainer = null!;
+            DrawableWithPopover target = null!;
 
             AddStep("add button", () => popoverContainer.Child = eventHandlingContainer = new EventHandlingContainer
             {
@@ -520,6 +522,56 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("container received click", () => eventHandlingContainer.ClickReceived);
         }
 
+        [Test]
+        public void TestAllowableAnchors()
+        {
+            DrawableWithPopover target = null!;
+
+            AddStep("add button", () => popoverContainer.Child = target = new DrawableWithPopover
+            {
+                Width = 200,
+                Height = 30,
+                Anchor = Anchor.TopLeft,
+                Origin = Anchor.TopLeft,
+                RelativePositionAxes = Axes.Both,
+                Text = "open",
+            });
+
+            AddStep("allow popover to only show above & below", () =>
+            {
+                target.HidePopover();
+                target.CreateContent = _ => new BasicPopover
+                {
+                    AllowableAnchors = new[] { Anchor.TopCentre, Anchor.BottomCentre },
+                    Child = new SpriteText { Text = "This popover can only be shown above or below" }
+                };
+                target.ShowPopover();
+            });
+
+            AddStep("allow popover to only show to the sides", () =>
+            {
+                target.HidePopover();
+                target.CreateContent = _ => new BasicPopover
+                {
+                    AllowableAnchors = new[] { Anchor.CentreLeft, Anchor.CentreRight },
+                    Child = new SpriteText { Text = "This popover can only be shown to the sides" }
+                };
+                target.ShowPopover();
+            });
+
+            AddSliderStep("move X", 0f, 1, 0, x =>
+            {
+                if (target.IsNotNull())
+                    target.X = x;
+            });
+
+            AddSliderStep("move Y", 0f, 1, 0, y =>
+            {
+                if (target.IsNotNull())
+                    target.Y = y;
+            });
+        }
+
         private void createContent(Func<DrawableWithPopover, Popover> creationFunc)
             => AddStep("create content", () =>
             {
@@ -544,15 +596,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 }
             });
 
-        private class AnimatedPopover : BasicPopover
+        private partial class AnimatedPopover : BasicPopover
         {
             protected override void PopIn() => this.FadeIn(300, Easing.OutQuint);
             protected override void PopOut() => this.FadeOut(300, Easing.OutQuint);
         }
 
-        private class DrawableWithPopover : CircularContainer, IHasPopover
+        private partial class DrawableWithPopover : CircularContainer, IHasPopover
         {
-            public Func<DrawableWithPopover, Popover> CreateContent { get; set; }
+            public Func<DrawableWithPopover, Popover>? CreateContent { get; set; }
 
             public string Text
             {
@@ -583,7 +635,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 };
             }
 
-            public Popover GetPopover() => CreateContent.Invoke(this);
+            public Popover? GetPopover() => CreateContent?.Invoke(this);
 
             protected override bool OnClick(ClickEvent e)
             {
@@ -592,7 +644,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class TextBoxWithPopover : BasicTextBox, IHasPopover
+        private partial class TextBoxWithPopover : BasicTextBox, IHasPopover
         {
             protected override void OnFocus(FocusEvent e)
             {
@@ -615,7 +667,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             };
         }
 
-        private class EventHandlingContainer : Container
+        private partial class EventHandlingContainer : Container
         {
             private readonly Box colourBox;
 

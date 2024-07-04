@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 
@@ -70,6 +72,47 @@ namespace osu.Framework.Bindables
 
             // Reapply the default value here for respecting the defined default min/max values.
             setValue(defaultValue);
+        }
+
+        public float NormalizedValue
+        {
+            get
+            {
+                float min = convertToSingle(MinValue);
+                float max = convertToSingle(MaxValue);
+
+                if (max - min == 0)
+                    return 1;
+
+                float val = convertToSingle(Value);
+                return (val - min) / (max - min);
+            }
+        }
+
+        private static float convertToSingle(T val)
+        {
+            if (typeof(T) == typeof(sbyte))
+                return Convert.ToSingle((sbyte)(object)val);
+            if (typeof(T) == typeof(byte))
+                return Convert.ToSingle((byte)(object)val);
+            if (typeof(T) == typeof(short))
+                return Convert.ToSingle((short)(object)val);
+            if (typeof(T) == typeof(ushort))
+                return Convert.ToSingle((ushort)(object)val);
+            if (typeof(T) == typeof(int))
+                return Convert.ToSingle((int)(object)val);
+            if (typeof(T) == typeof(uint))
+                return Convert.ToSingle((uint)(object)val);
+            if (typeof(T) == typeof(long))
+                return Convert.ToSingle((long)(object)val);
+            if (typeof(T) == typeof(ulong))
+                return Convert.ToSingle((ulong)(object)val);
+            if (typeof(T) == typeof(double))
+                return Convert.ToSingle((double)(object)val);
+            if (typeof(T) == typeof(float))
+                return (float)(object)val;
+
+            throw new InvalidOperationException();
         }
 
         /// <summary>
@@ -156,6 +199,21 @@ namespace osu.Framework.Bindables
                 MaxValueChanged?.Invoke(maxValue);
         }
 
+        public override void CopyTo(Bindable<T> them)
+        {
+            // if the other bindable is range-constrained, the bounds need to be copied across first,
+            // as Value assignment (in the base call below) automatically clamps to [MinValue, MaxValue].
+            if (them is RangeConstrainedBindable<T> other)
+            {
+                // copy the bounds over without updating the current value, to avoid clamping on invalid ranges.
+                // there is no need to clamp `Value` after that directly - the `base.CopyTo()` call will change `Value` anyway.
+                other.SetMinValue(MinValue, false, this);
+                other.SetMaxValue(MaxValue, false, this);
+            }
+
+            base.CopyTo(them);
+        }
+
         public override void BindTo(Bindable<T> them)
         {
             if (them is RangeConstrainedBindable<T> other)
@@ -165,9 +223,6 @@ namespace osu.Framework.Bindables
                     throw new ArgumentOutOfRangeException(
                         nameof(them), $"The target bindable has specified an invalid range of [{other.MinValue} - {other.MaxValue}].");
                 }
-
-                MinValue = other.MinValue;
-                MaxValue = other.MaxValue;
             }
 
             base.BindTo(them);

@@ -11,12 +11,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// <summary>
     /// Visualises a message that displays when a <see cref="IMarkdownObject"/> doesn't have a visual implementation.
     /// </summary>
-    public class NotImplementedMarkdown : CompositeDrawable, IMarkdownTextComponent
+    public partial class NotImplementedMarkdown : CompositeDrawable, IMarkdownTextComponent
     {
         private readonly IMarkdownObject markdownObject;
 
         [Resolved]
-        private IMarkdownTextComponent parentTextComponent { get; set; }
+        private IMarkdownTextComponent parentTextComponent { get; set; } = null!;
 
         public NotImplementedMarkdown(IMarkdownObject markdownObject)
         {
@@ -36,7 +36,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             var text = parentTextComponent.CreateSpriteText();
             text.Colour = new Color4(255, 0, 0, 255);
             text.Font = text.Font.With(size: 21);
-            text.Text = markdownObject?.GetType() + " Not implemented.";
+            text.Text = markdownObject.GetType() + " Not implemented.";
             return text;
         }
     }

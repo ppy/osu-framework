@@ -1,21 +1,42 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Allocation;
+using osu.Framework.Bindables;
+using osu.Framework.Localisation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Tests.Visual.Localisation;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneSearchContainer : FrameworkTestScene
+    public partial class TestSceneSearchContainer : LocalisationTestScene
     {
         private SearchContainer search;
         private BasicTextBox textBox;
+
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            Manager.AddLanguage("en", new TestLocalisationStore("en", new Dictionary<string, string>
+            {
+                [goodbye] = "Goodbye",
+            }));
+            Manager.AddLanguage("es", new TestLocalisationStore("es", new Dictionary<string, string>
+            {
+                [goodbye] = "Adiós",
+            }));
+        }
+
+        private const string goodbye = "goodbye";
 
         [SetUp]
         public void SetUp() => Schedule(() =>
@@ -67,6 +88,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                                     {
                                         new SearchableText { Text = "?!()[]{}" },
                                         new SearchableText { Text = "@€$" },
+                                        new SearchableText { Text = new LocalisableString(new TranslatableString(goodbye, "Goodbye")) },
                                     },
                                 },
                             },
@@ -84,7 +106,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [TestCase("èê", 1)]
         [TestCase("321", 0)]
         [TestCase("mul pi", 1)]
-        [TestCase("header", 8)]
+        [TestCase("header", 9)]
         public void TestFiltering(string term, int count)
         {
             setTerm(term);
@@ -94,7 +116,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [TestCase("tst", 2)]
         [TestCase("ssn 1", 6)]
         [TestCase("sns 1", 0)]
-        [TestCase("hdr", 8)]
+        [TestCase("hdr", 9)]
         [TestCase("tt", 2)]
         [TestCase("ttt", 0)]
         public void TestEagerFilteringEnabled(string term, int count)
@@ -117,7 +139,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkCount(count);
         }
 
-        [TestCase]
+        [Test]
         public void TestRefilterAfterNewChild()
         {
             setTerm("multi");
@@ -126,6 +148,70 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkCount(1);
             AddStep("Add new unfiltered item", () => search.Add(new SearchableText { Text = "multi visible" }));
             checkCount(2);
+        }
+
+        [Test]
+        public void TestFilterRespectsHiddenNonLeafNode()
+        {
+            HeaderContainer header = null!;
+
+            AddStep("add new hidden filtered item", () => search.Add(header = new HeaderContainer("Subsection 3")
+            {
+                AutoSizeAxes = Axes.Both,
+                CanBeShown = { Value = false },
+                Child = new SearchableText
+                {
+                    Text = "Hidden Text"
+                }
+            }));
+            setTerm("Hidden text");
+
+            checkCount(0);
+            AddAssert("no subsection displayed", () => search.Children.OfType<HeaderContainer>().All(h => !h.IsPresent));
+
+            AddStep("show hidden text", () => header.CanBeShown.Value = true);
+
+            checkCount(1);
+            AddAssert("subsection displayed", () => search.Children.OfType<HeaderContainer>().Single(h => h.IsPresent) == header);
+        }
+
+        [Test]
+        public void TestFilterRespectsHiddenLeafNode()
+        {
+            HeaderContainer header = null!;
+            HideableSearchText hiddenText = null!;
+
+            AddStep("add new hidden filtered item", () => search.Add(header = new HeaderContainer("Subsection 3")
+            {
+                AutoSizeAxes = Axes.Both,
+                Child = hiddenText = new HideableSearchText
+                {
+                    CanBeShown = { Value = false },
+                    Text = "Hidden Text"
+                }
+            }));
+            setTerm("Hidden text");
+
+            checkCount(0);
+            AddAssert("no subsection displayed", () => search.Children.OfType<HeaderContainer>().All(h => !h.IsPresent));
+
+            AddStep("show hidden text", () => hiddenText.CanBeShown.Value = true);
+
+            checkCount(1);
+            AddAssert("subsection displayed", () => search.Children.OfType<HeaderContainer>().Single(h => h.IsPresent) == header);
+        }
+
+        [TestCase]
+        public void TestFilterLocalisedStrings()
+        {
+            SetLocale("en");
+            setTerm("Goodbye");
+            checkCount(1);
+            SetLocale("es");
+            setTerm("Adiós");
+            checkCount(1);
+            setTerm("Goodbye");
+            checkCount(1);
         }
 
         private void checkCount(int count)
@@ -144,9 +230,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Search term: " + term, () => textBox.Text = term);
         }
 
-        private class HeaderContainer : Container, IHasFilterableChildren
+        private partial class HeaderContainer : Container, IConditionalFilterable
         {
-            public IEnumerable<string> FilterTerms => header.FilterTerms;
+            public IEnumerable<LocalisableString> FilterTerms => header.FilterTerms;
 
             public bool MatchingFilter
             {
@@ -164,7 +250,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 set { }
             }
 
-            public IEnumerable<IFilterable> FilterableChildren => Children.OfType<IFilterable>();
+            public BindableBool CanBeShown { get; } = new BindableBool(true);
+            IBindable<bool> IConditionalFilterable.CanBeShown => CanBeShown;
 
             protected override Container<Drawable> Content => flowContainer;
 
@@ -186,9 +273,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class FilterableFlowContainer : FillFlowContainer, IFilterable
+        private partial class FilterableFlowContainer : FillFlowContainer, IFilterable
         {
-            public IEnumerable<string> FilterTerms => Children.OfType<IHasFilterTerms>().SelectMany(d => d.FilterTerms);
+            public IEnumerable<LocalisableString> FilterTerms => Children.OfType<IHasFilterTerms>().SelectMany(d => d.FilterTerms);
 
             public bool MatchingFilter
             {
@@ -207,7 +294,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class HeaderText : SpriteText, IFilterable
+        private partial class HeaderText : SpriteText, IFilterable
         {
             public bool MatchingFilter
             {
@@ -226,7 +313,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class SearchableText : SpriteText, IFilterable
+        private partial class SearchableText : SpriteText, IFilterable
         {
             public bool MatchingFilter
             {
@@ -243,6 +330,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 set { }
             }
+        }
+
+        private partial class HideableSearchText : SearchableText, IConditionalFilterable
+        {
+            public Bindable<bool> CanBeShown { get; } = new Bindable<bool>();
+
+            IBindable<bool> IConditionalFilterable.CanBeShown => CanBeShown;
         }
     }
 }

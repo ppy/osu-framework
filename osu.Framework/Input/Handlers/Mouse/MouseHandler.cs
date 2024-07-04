@@ -1,9 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Diagnostics;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -13,11 +14,13 @@ using osuTK.Input;
 namespace osu.Framework.Input.Handlers.Mouse
 {
     /// <summary>
-    /// Handles mouse events from an <see cref="SDL2DesktopWindow"/>.
+    /// Handles mouse events from an <see cref="ISDLWindow"/>.
     /// Will use relative mouse mode where possible.
     /// </summary>
     public class MouseHandler : InputHandler, IHasCursorSensitivity, INeedsMousePositionFeedback
     {
+        private static readonly GlobalStatistic<ulong> statistic_total_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<MouseHandler>(), "Total events");
+
         /// <summary>
         /// Whether relative mode should be preferred when the window has focus, the cursor is contained and the OS cursor is not visible.
         /// </summary>
@@ -37,7 +40,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public override bool IsActive => true;
 
-        private SDL2DesktopWindow window;
+        private ISDLWindow window;
 
         private Vector2? lastPosition;
 
@@ -54,7 +57,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         /// <summary>
         /// Whether the application should be handling the cursor.
         /// </summary>
-        private bool cursorCaptured => isActive.Value && (window.CursorInWindow.Value || window.CursorState.HasFlagFast(CursorState.Confined));
+        private bool cursorCaptured => isActive.Value && (window.CursorInWindow.Value || window.CursorState.HasFlag(CursorState.Confined));
 
         /// <summary>
         /// Whether the last position (as reported by <see cref="FeedbackMousePositionChange"/>)
@@ -72,7 +75,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             if (!base.Initialize(host))
                 return false;
 
-            if (!(host.Window is SDL2DesktopWindow desktopWindow))
+            if (!(host.Window is ISDLWindow desktopWindow))
                 return false;
 
             window = desktopWindow;
@@ -93,11 +96,11 @@ namespace osu.Framework.Input.Handlers.Mouse
             cursorState = desktopWindow.CursorStateBindable.GetBoundCopy();
             cursorState.BindValueChanged(_ => updateRelativeMode());
 
-            UseRelativeMode.BindValueChanged(_ =>
+            UseRelativeMode.BindValueChanged(e =>
             {
-                if (window != null)
-                    updateRelativeMode();
-            });
+                window.MouseAutoCapture = !e.NewValue;
+                updateRelativeMode();
+            }, true);
 
             Enabled.BindValueChanged(enabled =>
             {
@@ -133,7 +136,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             return true;
         }
 
-        public void FeedbackMousePositionChange(Vector2 position, bool isSelfFeedback)
+        public virtual void FeedbackMousePositionChange(Vector2 position, bool isSelfFeedback)
         {
             if (!Enabled.Value)
                 return;
@@ -160,7 +163,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                 // handle the case where relative / raw input is active, but the cursor may have exited the window
                 // bounds and is not intended to be confined.
-                if (!window.CursorState.HasFlagFast(CursorState.Confined) && positionOutsideWindow && !previousPositionOutsideWindow)
+                if (!window.CursorState.HasFlag(CursorState.Confined) && positionOutsideWindow && !previousPositionOutsideWindow)
                 {
                     // setting relative mode to false will allow the window manager to take control until the next
                     // updateRelativeMode() call succeeds (likely from the cursor returning inside the window).
@@ -190,7 +193,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 // relative mode only works when the window is active and the cursor is contained. aka the OS cursor isn't being displayed outside the window.
                 && cursorCaptured
                 // relative mode shouldn't ever be enabled if the framework or a consumer has chosen not to hide the cursor.
-                && window.CursorState.HasFlagFast(CursorState.Hidden);
+                && window.CursorState.HasFlag(CursorState.Hidden);
 
             if (!window.RelativeMouseMode)
                 transferLastPositionToHostCursor();
@@ -217,6 +220,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         {
             PendingInputs.Enqueue(input);
             FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
+            statistic_total_events.Value++;
         }
 
         private void transferLastPositionToHostCursor()

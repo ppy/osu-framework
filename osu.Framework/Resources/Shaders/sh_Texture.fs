@@ -1,13 +1,21 @@
+#ifndef TEXTURE_FS
+#define TEXTURE_FS
+
 #include "sh_Utils.h"
+#include "sh_Masking.h"
 #include "sh_TextureWrapping.h"
 
-varying lowp vec4 v_Colour;
-varying mediump vec2 v_TexCoord;
-varying mediump vec4 v_TexRect;
+layout(location = 2) in mediump vec2 v_TexCoord;
 
-uniform lowp sampler2D m_Sampler;
+layout(set = 0, binding = 0) uniform lowp texture2D m_Texture;
+layout(set = 0, binding = 1) uniform lowp sampler m_Sampler;
 
-void main(void)
+layout(location = 0) out vec4 o_Colour;
+
+void main(void) 
 {
-	gl_FragColor = toSRGB(v_Colour * wrappedSampler(wrap(v_TexCoord, v_TexRect), v_TexRect, m_Sampler, -0.9));
+    vec2 wrappedCoord = wrap(v_TexCoord, v_TexRect);
+    o_Colour = getRoundedColor(wrappedSampler(wrappedCoord, v_TexRect, m_Texture, m_Sampler, -0.9), wrappedCoord);
 }
+
+#endif

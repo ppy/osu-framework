@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -13,7 +15,7 @@ using osuTK;
 namespace osu.Framework.Tests.Layout
 {
     [HeadlessTest]
-    public class TestSceneGridContainerLayout : FrameworkTestScene
+    public partial class TestSceneGridContainerLayout : FrameworkTestScene
     {
         /// <summary>
         /// Tests that a grid's auto-size is updated when a child becomes alive.
@@ -112,7 +114,7 @@ namespace osu.Framework.Tests.Layout
             AddAssert("parent has size 0", () => Precision.AlmostEquals(Vector2.Zero, parent.DrawSize));
         }
 
-        private class TestBox1 : Box
+        private partial class TestBox1 : Box
         {
             public override bool RemoveWhenNotAlive => false;
         }

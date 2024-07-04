@@ -1,12 +1,14 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Layout;
 using osuTK;
 
@@ -15,8 +17,18 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A container which allows laying out <see cref="Drawable"/>s in a grid.
     /// </summary>
-    public class GridContainer : CompositeDrawable
+    public partial class GridContainer : CompositeDrawable
     {
+        /// <summary>
+        /// Shrinks the space children may occupy within this <see cref="GridContainer"/>
+        /// by the specified amount on each side.
+        /// </summary>
+        public new MarginPadding Padding
+        {
+            get => base.Padding;
+            set => base.Padding = value;
+        }
+
         public GridContainer()
         {
             AddLayout(cellLayout);
@@ -72,8 +84,7 @@ namespace osu.Framework.Graphics.Containers
         {
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+                ArgumentNullException.ThrowIfNull(value);
 
                 if (rowDimensions == value)
                     return;
@@ -93,8 +104,7 @@ namespace osu.Framework.Graphics.Containers
         {
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+                ArgumentNullException.ThrowIfNull(value);
 
                 if (columnDimensions == value)
                     return;
@@ -128,7 +138,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private readonly Cached cellContent = new Cached();
-        private readonly LayoutValue cellLayout = new LayoutValue(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit);
+        private readonly LayoutValue cellLayout = new LayoutValue(Invalidation.DrawSize);
         private readonly LayoutValue cellChildLayout = new LayoutValue(Invalidation.RequiredParentSizeToFit | Invalidation.Presence, InvalidationSource.Child);
 
         private CellContainer[,] cells = new CellContainer[0, 0];
@@ -162,6 +172,9 @@ namespace osu.Framework.Graphics.Containers
             {
                 for (int c = 0; c < cellColumns; c++)
                 {
+                    // Content should not be null since the number of rows/columns is non-zero.
+                    Debug.Assert(Content != null);
+
                     // Add cell
                     cells[r, c] = new CellContainer();
 
@@ -202,8 +215,8 @@ namespace osu.Framework.Graphics.Containers
             if (cellLayout.IsValid)
                 return;
 
-            float[] widths = distribute(columnDimensions, DrawWidth, getCellSizesAlongAxis(Axes.X, DrawWidth));
-            float[] heights = distribute(rowDimensions, DrawHeight, getCellSizesAlongAxis(Axes.Y, DrawHeight));
+            float[] widths = distribute(columnDimensions, DrawWidth - Padding.TotalHorizontal, getCellSizesAlongAxis(Axes.X, DrawWidth - Padding.TotalHorizontal));
+            float[] heights = distribute(rowDimensions, DrawHeight - Padding.TotalVertical, getCellSizesAlongAxis(Axes.Y, DrawHeight - Padding.TotalVertical));
 
             for (int col = 0; col < cellColumns; col++)
             {
@@ -270,7 +283,7 @@ namespace osu.Framework.Graphics.Containers
                             for (int r = 0; r < cellRows; r++)
                             {
                                 var cell = Content[r]?[i];
-                                if (cell == null || cell.RelativeSizeAxes.HasFlagFast(axis))
+                                if (cell == null || cell.RelativeSizeAxes.HasFlag(axis))
                                     continue;
 
                                 size = Math.Max(size, getCellWidth(cell));
@@ -282,7 +295,7 @@ namespace osu.Framework.Graphics.Containers
                             for (int c = 0; c < cellColumns; c++)
                             {
                                 var cell = Content[i]?[c];
-                                if (cell == null || cell.RelativeSizeAxes.HasFlagFast(axis))
+                                if (cell == null || cell.RelativeSizeAxes.HasFlag(axis))
                                     continue;
 
                                 size = Math.Max(size, getCellHeight(cell));
@@ -357,7 +370,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Represents one cell of the <see cref="GridContainer"/>.
         /// </summary>
-        private class CellContainer : Container
+        private partial class CellContainer : Container
         {
             protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
             {
@@ -406,11 +419,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="maxSize">The maximum size of this row or column.</param>
         public Dimension(GridSizeMode mode = GridSizeMode.Distributed, float size = 0, float minSize = 0, float maxSize = float.MaxValue)
         {
-            if (minSize < 0)
-                throw new ArgumentOutOfRangeException(nameof(minSize), "Must be greater than 0.");
-
-            if (minSize > maxSize)
-                throw new ArgumentOutOfRangeException(nameof(minSize), $"Must be less than {nameof(maxSize)}.");
+            ArgumentOutOfRangeException.ThrowIfNegative(minSize);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(minSize, maxSize);
 
             Mode = mode;
             Size = size;
@@ -428,7 +438,7 @@ namespace osu.Framework.Graphics.Containers
     {
         /// <summary>
         /// Any remaining area of the <see cref="GridContainer"/> will be divided amongst this and all
-        /// other elements which use <see cref="GridSizeMode.Distributed"/>.
+        /// other elements which use <see cref="Distributed"/>.
         /// </summary>
         Distributed,
 

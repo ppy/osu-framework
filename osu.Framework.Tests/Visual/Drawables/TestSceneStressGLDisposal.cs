@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -11,7 +13,7 @@ using osuTK;
 namespace osu.Framework.Tests.Visual.Drawables
 {
     [Ignore("This test needs a game host to be useful.")]
-    public class TestSceneStressGLDisposal : FrameworkTestScene
+    public partial class TestSceneStressGLDisposal : FrameworkTestScene
     {
         private FillFlowContainer fillFlow;
 
@@ -38,7 +40,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
                     if (fillFlow.Count > 100)
                     {
-                        fillFlow.Remove(fillFlow.First());
+                        fillFlow.Remove(fillFlow.First(), true);
                     }
                 }
             }, 100000);

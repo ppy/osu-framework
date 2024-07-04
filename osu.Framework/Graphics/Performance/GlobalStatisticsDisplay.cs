@@ -1,11 +1,14 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Visualisation;
@@ -17,7 +20,7 @@ namespace osu.Framework.Graphics.Performance
     /// <summary>
     /// Tracks global game statistics.
     /// </summary>
-    internal class GlobalStatisticsDisplay : ToolWindow
+    internal partial class GlobalStatisticsDisplay : ToolWindow
     {
         private readonly FillFlowContainer<StatisticsGroup> groups;
 
@@ -55,11 +58,11 @@ namespace osu.Framework.Graphics.Performance
                 switch (e.Action)
                 {
                     case NotifyCollectionChangedAction.Add:
-                        add(e.NewItems.Cast<IGlobalStatistic>());
+                        add(e.NewItems.AsNonNull().Cast<IGlobalStatistic>());
                         break;
 
                     case NotifyCollectionChangedAction.Remove:
-                        remove(e.OldItems.Cast<IGlobalStatistic>());
+                        remove(e.OldItems.AsNonNull().Cast<IGlobalStatistic>());
                         break;
                 }
             };
@@ -100,7 +103,7 @@ namespace osu.Framework.Graphics.Performance
             }
         });
 
-        private class StatisticsGroup : CompositeDrawable, IAlphabeticalSort
+        private partial class StatisticsGroup : CompositeDrawable, IAlphabeticalSort
         {
             public string GroupName { get; }
 
@@ -152,7 +155,7 @@ namespace osu.Framework.Graphics.Performance
                 items.FirstOrDefault(s => s.Statistic == stat)?.Expire();
             }
 
-            private class StatisticsItem : CompositeDrawable, IAlphabeticalSort
+            private partial class StatisticsItem : CompositeDrawable, IAlphabeticalSort
             {
                 public readonly IGlobalStatistic Statistic;
 
@@ -203,7 +206,7 @@ namespace osu.Framework.Graphics.Performance
             string SortString { get; }
         }
 
-        private class AlphabeticalFlow<T> : FillFlowContainer<T> where T : Drawable, IAlphabeticalSort
+        private partial class AlphabeticalFlow<T> : FillFlowContainer<T> where T : Drawable, IAlphabeticalSort
         {
             public override IEnumerable<Drawable> FlowingChildren => base.FlowingChildren.Cast<T>().OrderBy(d => d.SortString);
         }

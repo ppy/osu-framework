@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -24,7 +26,7 @@ using osuTK.Graphics;
 namespace osu.Framework.Tests.Visual.Sprites
 {
     [System.ComponentModel.Description("various visual SpriteText displays")]
-    public class TestSceneSpriteTextScenarios : GridTestScene
+    public partial class TestSceneSpriteTextScenarios : GridTestScene
     {
         public TestSceneSpriteTextScenarios()
             : base(4, 5)
@@ -232,7 +234,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             Scheduler.AddDelayed(() => boundString.Value = $"bindable: {++boundStringValue}", 200, true);
         }
 
-        private class NoFixedWidthSpaceText : SpriteText
+        private partial class NoFixedWidthSpaceText : SpriteText
         {
             public NoFixedWidthSpaceText()
             {
@@ -242,7 +244,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             protected override char[] FixedWidthExcludeCharacters { get; } = { ' ' };
         }
 
-        private class LocalisableTestContainer : Container
+        private partial class LocalisableTestContainer : Container
         {
             [Cached]
             private readonly LocalisationManager localisation;
@@ -256,6 +258,12 @@ namespace osu.Framework.Tests.Visual.Sprites
                 localisation.AddLanguage("ja", new FakeStorage("ja"));
 
                 config.SetValue(FrameworkSetting.Locale, "ja");
+            }
+
+            protected override void Dispose(bool isDisposing)
+            {
+                localisation?.Dispose();
+                base.Dispose(isDisposing);
             }
         }
 

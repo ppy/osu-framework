@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -11,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneDrawSizePreservingFillContainer : FrameworkTestScene
+    public partial class TestSceneDrawSizePreservingFillContainer : FrameworkTestScene
     {
         public TestSceneDrawSizePreservingFillContainer()
         {

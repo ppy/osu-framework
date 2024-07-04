@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Extensions.Color4Extensions;
@@ -11,7 +11,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicTextBox : TextBox
+    public partial class BasicTextBox : TextBox
     {
         protected virtual float CaretWidth => 2;
 
@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override Drawable GetDrawableCharacter(char c) => new FallingDownContainer
         {
             AutoSizeAxes = Axes.Both,
-            Child = new SpriteText { Text = c.ToString(), Font = FrameworkFont.Condensed.With(size: CalculatedTextSize) }
+            Child = new SpriteText { Text = c.ToString(), Font = FrameworkFont.Condensed.With(size: FontSize) }
         };
 
         protected override SpriteText CreatePlaceholder() => new FadingPlaceholderText
@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics.UserInterface
             X = CaretWidth,
         };
 
-        public class FallingDownContainer : Container
+        public partial class FallingDownContainer : Container
         {
             public override void Show()
             {
@@ -123,7 +123,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public class FadingPlaceholderText : SpriteText
+        public partial class FadingPlaceholderText : SpriteText
         {
             public override void Show() => this.FadeIn(200);
 
@@ -136,24 +136,21 @@ namespace osu.Framework.Graphics.UserInterface
             SelectionColour = SelectionColour,
         };
 
-        public class BasicCaret : Caret
+        public partial class BasicCaret : Caret
         {
             public BasicCaret()
             {
-                RelativeSizeAxes = Axes.Y;
-                Size = new Vector2(1, 0.9f);
-
                 Colour = Color4.Transparent;
-                Anchor = Anchor.CentreLeft;
-                Origin = Anchor.CentreLeft;
 
-                Masking = true;
-                CornerRadius = 1;
-
-                InternalChild = new Box
+                InternalChild = new Container
                 {
+                    Anchor = Anchor.CentreLeft,
+                    Origin = Anchor.CentreLeft,
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.White,
+                    Height = 0.9f,
+                    CornerRadius = 1f,
+                    Masking = true,
+                    Child = new Box { RelativeSizeAxes = Axes.Both },
                 };
             }
 

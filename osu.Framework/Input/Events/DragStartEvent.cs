@@ -12,6 +12,11 @@ namespace osu.Framework.Input.Events
     /// </summary>
     public class DragStartEvent : MouseButtonEvent
     {
+        /// <summary>
+        /// The difference from mouse down position to current position in local space.
+        /// </summary>
+        public Vector2 Delta => MousePosition - MouseDownPosition;
+
         public DragStartEvent(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)
             : base(state, button, screenSpaceMouseDownPosition)
         {

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -172,11 +174,11 @@ namespace osu.Framework.IO
             throw new NotSupportedException();
         }
 
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            Trace.Assert(count <= buffer.Length - offset);
+        public override int Read(byte[] buffer, int offset, int count) => Read(buffer.AsSpan(offset, count));
 
-            amountBytesToRead = Math.Min(count, data.Length - position);
+        public override int Read(Span<byte> buffer)
+        {
+            amountBytesToRead = Math.Min(buffer.Length, data.Length - position);
 
             int startBlock = position / block_size;
             int endBlock = (position + amountBytesToRead) / block_size;
@@ -192,7 +194,7 @@ namespace osu.Framework.IO
                 }
             }
 
-            Array.Copy(data, position, buffer, offset, amountBytesToRead);
+            data.AsSpan(position, amountBytesToRead).CopyTo(buffer);
 
             int bytesRead = amountBytesToRead;
 

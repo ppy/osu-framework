@@ -1,15 +1,24 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
+using JetBrains.Annotations;
+
+// ReSharper disable InconsistentNaming
+#pragma warning disable IDE1006 // Naming style
 
 namespace osu.Framework.Graphics.Video
 {
-    // ReSharper disable InconsistentNaming
     public unsafe class FFmpegFuncs
     {
         #region Delegates
+
+        public delegate int AvDictSetDelegate(AVDictionary** pm, [MarshalAs(UnmanagedType.LPUTF8Str)] string key, [MarshalAs(UnmanagedType.LPUTF8Str)] string value, int flags);
+
+        public delegate void AvDictFreeDelegate(AVDictionary** m);
 
         public delegate AVFrame* AvFrameAllocDelegate();
 
@@ -61,6 +70,8 @@ namespace osu.Framework.Graphics.Video
 
         public delegate int AvcodecSendPacketDelegate(AVCodecContext* avctx, AVPacket* avpkt);
 
+        public delegate void AvcodecFlushBuffersDelegate(AVCodecContext* avctx);
+
         public delegate AVFormatContext* AvformatAllocContextDelegate();
 
         public delegate void AvformatCloseInputDelegate(AVFormatContext** s);
@@ -82,6 +93,12 @@ namespace osu.Framework.Graphics.Video
         public delegate int SwsScaleDelegate(SwsContext* c, byte*[] srcSlice, int[] srcStride, int srcSliceY, int srcSliceH, byte*[] dst, int[] dstStride);
 
         #endregion
+
+        [CanBeNull]
+        public AvDictSetDelegate av_dict_set;
+
+        [CanBeNull]
+        public AvDictFreeDelegate av_dict_free;
 
         public AvFrameAllocDelegate av_frame_alloc;
         public AvFrameFreeDelegate av_frame_free;
@@ -108,6 +125,7 @@ namespace osu.Framework.Graphics.Video
         public AvcodecOpen2Delegate avcodec_open2;
         public AvcodecReceiveFrameDelegate avcodec_receive_frame;
         public AvcodecSendPacketDelegate avcodec_send_packet;
+        public AvcodecFlushBuffersDelegate avcodec_flush_buffers;
         public AvformatAllocContextDelegate avformat_alloc_context;
         public AvformatCloseInputDelegate avformat_close_input;
         public AvformatFindStreamInfoDelegate avformat_find_stream_info;
@@ -118,5 +136,18 @@ namespace osu.Framework.Graphics.Video
         public SwsFreeContextDelegate sws_freeContext;
         public SwsGetCachedContextDelegate sws_getCachedContext;
         public SwsScaleDelegate sws_scale;
+
+        // Touching AutoGen.ffmpeg or its LibraryLoader in any way on non-Desktop platforms
+        // will cause it to throw in static constructor, which can't be bypassed.
+        // Define our own constants to avoid touching the class.
+
+        public const int AVSEEK_FLAG_BACKWARD = 1;
+        public const int AVSEEK_SIZE = 0x10000;
+        public const int AVFMT_FLAG_GENPTS = 0x0001;
+        public const int AV_TIME_BASE = 1000000;
+        public static readonly int EAGAIN = RuntimeInfo.IsApple ? 35 : 11;
+        public const int AVERROR_EOF = -('E' + ('O' << 8) + ('F' << 16) + (' ' << 24));
+        public const long AV_NOPTS_VALUE = unchecked((long)0x8000000000000000);
+        public const int ENOMEM = 12;
     }
 }

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Performance;
 
 namespace osu.Framework.Graphics.Containers
@@ -18,7 +19,7 @@ namespace osu.Framework.Graphics.Containers
     /// <see cref="Drawable.ShouldBeAlive"/> is not overrided.
     /// Also, <see cref="Drawable.RemoveWhenNotAlive"/> should be false.
     /// </remarks>
-    public class LifetimeManagementContainer : CompositeDrawable
+    public partial class LifetimeManagementContainer : CompositeDrawable
     {
         private readonly LifetimeEntryManager manager = new LifetimeEntryManager();
         private readonly Dictionary<Drawable, DrawableLifetimeEntry> drawableMap = new Dictionary<Drawable, DrawableLifetimeEntry>();
@@ -35,7 +36,7 @@ namespace osu.Framework.Graphics.Containers
             manager.EntryCrossedBoundary += entryCrossedBoundary;
         }
 
-        protected internal override void AddInternal(Drawable drawable) => AddInternal(drawable, true);
+        protected override void AddInternal(Drawable drawable) => AddInternal(drawable, true);
 
         /// <summary>
         /// Adds a <see cref="Drawable"/> to this <see cref="LifetimeManagementContainer"/>.
@@ -56,19 +57,19 @@ namespace osu.Framework.Graphics.Containers
                 unmanagedDrawablesToProcess.Add(drawable);
         }
 
-        protected internal override bool RemoveInternal(Drawable drawable)
+        protected internal override bool RemoveInternal(Drawable drawable, bool disposeImmediately)
         {
             unmanagedDrawablesToProcess.Remove(drawable);
 
             if (!drawableMap.TryGetValue(drawable, out var entry))
-                return base.RemoveInternal(drawable);
+                return base.RemoveInternal(drawable, disposeImmediately);
 
             manager.RemoveEntry(entry);
             drawableMap.Remove(drawable);
 
             entry.Dispose();
 
-            return base.RemoveInternal(drawable);
+            return base.RemoveInternal(drawable, disposeImmediately);
         }
 
         protected internal override void ClearInternal(bool disposeChildren = true)
@@ -136,7 +137,7 @@ namespace osu.Framework.Graphics.Containers
 
             public void Dispose()
             {
-                if (Drawable != null)
+                if (Drawable.IsNotNull())
                     Drawable.LifetimeChanged -= drawableLifetimeChanged;
             }
         }

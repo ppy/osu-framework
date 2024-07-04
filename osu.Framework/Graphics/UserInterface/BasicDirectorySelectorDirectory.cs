@@ -1,12 +1,14 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.IO;
 using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicDirectorySelectorDirectory : DirectorySelectorDirectory
+    public partial class BasicDirectorySelectorDirectory : DirectorySelectorDirectory
     {
         protected override IconUsage? Icon => Directory.Name.Contains(Path.DirectorySeparatorChar)
             ? FontAwesome.Solid.Database

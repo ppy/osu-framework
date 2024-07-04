@@ -1,15 +1,18 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
-using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Statistics;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Allocation
 {
@@ -24,6 +27,8 @@ namespace osu.Framework.Allocation
     [AttributeUsage(AttributeTargets.Property)]
     public class ResolvedAttribute : Attribute
     {
+        private static readonly GlobalStatistic<int> count_reflection_attributes = GlobalStatistics.Get<int>("Dependencies", "Reflected [Resolved]s");
+
         private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
         /// <summary>
@@ -71,6 +76,8 @@ namespace osu.Framework.Allocation
 
         internal static InjectDependencyDelegate CreateActivator(Type type)
         {
+            count_reflection_attributes.Value++;
+
             var activators = new List<Action<object, IReadOnlyDependencyContainer>>();
 
             var properties = type.GetProperties(activator_flags).Where(f => f.GetCustomAttribute<ResolvedAttribute>() != null);
@@ -95,7 +102,7 @@ namespace osu.Framework.Allocation
                     cacheInfo = new CacheInfo(cacheInfo.Name ?? property.Name, attribute.Parent);
                 }
 
-                var fieldGetter = getDependency(property.PropertyType, type, attribute.CanBeNull || property.PropertyType.IsNullable(), cacheInfo);
+                var fieldGetter = getDependency(property.PropertyType, type, attribute.CanBeNull || property.IsNullable(), cacheInfo);
 
                 activators.Add((target, dc) => property.SetValue(target, fieldGetter(dc)));
             }
@@ -107,17 +114,8 @@ namespace osu.Framework.Allocation
             };
         }
 
-        private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls, CacheInfo info) => dc =>
-        {
-            object val = dc.Get(type, info);
-            if (val == null && !permitNulls)
-                throw new DependencyNotRegisteredException(requestingType, type);
-
-            if (val is IBindable bindableVal)
-                return bindableVal.GetBoundCopy();
-
-            return val;
-        };
+        private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls, CacheInfo info)
+            => dc => SourceGeneratorUtils.GetDependency(dc, type, requestingType, info.Name, info.Parent, permitNulls, true);
     }
 
     public class PropertyNotWritableException : Exception

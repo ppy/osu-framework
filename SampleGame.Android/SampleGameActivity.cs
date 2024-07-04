@@ -7,7 +7,7 @@ using osu.Framework.Android;
 
 namespace SampleGame.Android
 {
-    [Activity(ConfigurationChanges = DEFAULT_CONFIG_CHANGES, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
+    [Activity(ConfigurationChanges = DEFAULT_CONFIG_CHANGES, Exported = true, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
     public class SampleGameActivity : AndroidGameActivity
     {
         protected override Game CreateGame() => new SampleGameGame();

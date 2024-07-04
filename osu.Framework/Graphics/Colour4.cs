@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Globalization;
 using System.Numerics;
@@ -91,8 +93,7 @@ namespace osu.Framework.Graphics
         /// <param name="scalar">The value that the existing alpha will be multiplied by.</param>
         public Colour4 MultiplyAlpha(float scalar)
         {
-            if (scalar < 0)
-                throw new ArgumentOutOfRangeException(nameof(scalar), scalar, "Cannot multiply alpha by a negative value.");
+            ArgumentOutOfRangeException.ThrowIfNegative(scalar);
 
             return new Colour4(R, G, B, Math.Min(1f, A * scalar));
         }
@@ -172,8 +173,7 @@ namespace osu.Framework.Graphics
         /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="scalar"/> is negative.</exception>
         public static Colour4 operator *(Colour4 colour, float scalar)
         {
-            if (scalar < 0)
-                throw new ArgumentOutOfRangeException(nameof(scalar), scalar, "Cannot multiply colours by negative values.");
+            ArgumentOutOfRangeException.ThrowIfNegative(scalar);
 
             return new Colour4(Vector4.Min(colour.Vector * scalar, Vector4.One));
         }
@@ -186,8 +186,7 @@ namespace osu.Framework.Graphics
         /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="scalar"/> is zero or negative.</exception>
         public static Colour4 operator /(Colour4 colour, float scalar)
         {
-            if (scalar <= 0)
-                throw new ArgumentOutOfRangeException(nameof(scalar), scalar, "Cannot divide colours by non-positive values.");
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(scalar);
 
             return colour * (1 / scalar);
         }
@@ -228,13 +227,13 @@ namespace osu.Framework.Graphics
         /// Returns a new <see cref="Colour4"/> with an SRGB->Linear conversion applied
         /// to each of its chromatic components. Alpha is unchanged.
         /// </summary>
-        public Colour4 ToLinear() => new Colour4((float)toLinear(R), (float)toLinear(G), (float)toLinear(B), A);
+        public Colour4 ToLinear() => new Colour4(toLinear(R), toLinear(G), toLinear(B), A);
 
         /// <summary>
         /// Returns a new <see cref="Colour4"/> with a Linear->SRGB conversion applied
         /// to each of its chromatic components. Alpha is unchanged.
         /// </summary>
-        public Colour4 ToSRGB() => new Colour4((float)toSRGB(R), (float)toSRGB(G), (float)toSRGB(B), A);
+        public Colour4 ToSRGB() => new Colour4(toSRGB(R), toSRGB(G), toSRGB(B), A);
 
         /// <summary>
         /// Returns the <see cref="Colour4"/> as a 32-bit unsigned integer in the format RGBA.
@@ -550,9 +549,21 @@ namespace osu.Framework.Graphics
 
         private const double gamma = 2.4;
 
-        private static double toLinear(double color) => color <= 0.04045 ? color / 12.92 : Math.Pow((color + 0.055) / 1.055, gamma);
+        private static float toLinear(float color)
+        {
+            if (color == 1)
+                return 1;
 
-        private static double toSRGB(double color) => color < 0.0031308 ? 12.92 * color : 1.055 * Math.Pow(color, 1.0 / gamma) - 0.055;
+            return color <= 0.04045f ? color / 12.92f : MathF.Pow((color + 0.055f) / 1.055f, (float)gamma);
+        }
+
+        private static float toSRGB(float color)
+        {
+            if (color == 1)
+                return 1;
+
+            return color < 0.0031308f ? 12.92f * color : 1.055f * MathF.Pow(color, 1.0f / (float)gamma) - 0.055f;
+        }
 
         #endregion
 

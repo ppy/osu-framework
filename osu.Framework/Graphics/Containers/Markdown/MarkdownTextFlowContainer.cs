@@ -1,12 +1,17 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Markdig.Extensions.CustomContainers;
+using Markdig.Extensions.Footnotes;
 using Markdig.Syntax.Inlines;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.Containers.Markdown.Footnotes;
 using osu.Framework.Graphics.Sprites;
 using osuTK.Graphics;
 
@@ -15,7 +20,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// <summary>
     /// Markdown text flow container.
     /// </summary>
-    public class MarkdownTextFlowContainer : CustomizableTextContainer, IMarkdownTextComponent
+    public partial class MarkdownTextFlowContainer : CustomizableTextContainer, IMarkdownTextComponent
     {
         public float TotalTextWidth => Padding.TotalHorizontal + FlowingChildren.Sum(x => x.BoundingBox.Size.X);
 
@@ -54,7 +59,11 @@ namespace osu.Framework.Graphics.Containers.Markdown
                         {
                             switch (literal.Parent)
                             {
-                                case EmphasisInline _:
+                                case CustomContainerInline containerInline:
+                                    AddCustomComponent(containerInline);
+                                    break;
+
+                                case EmphasisInline:
                                     var parent = literal.Parent;
 
                                     var emphases = new List<string>();
@@ -92,8 +101,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
                         AddImage(linkInline);
                         break;
 
-                    case HtmlInline _:
-                    case HtmlEntityInline _:
+                    case HtmlInline:
+                    case HtmlEntityInline:
                         // Handled by the next literal
                         break;
 
@@ -110,6 +119,13 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
                     case AutolinkInline autoLink:
                         AddAutoLink(autoLink);
+                        break;
+
+                    case FootnoteLink footnoteLink:
+                        if (footnoteLink.IsBackLink)
+                            AddFootnoteBacklink(footnoteLink);
+                        else
+                            AddFootnoteLink(footnoteLink);
                         break;
 
                     default:
@@ -137,6 +153,15 @@ namespace osu.Framework.Graphics.Containers.Markdown
         protected virtual void AddImage(LinkInline linkInline)
             => AddDrawable(new MarkdownImage(linkInline.Url));
 
+        protected virtual void AddFootnoteLink(FootnoteLink footnoteLink)
+            => AddDrawable(new MarkdownFootnoteLink(footnoteLink));
+
+        protected virtual void AddFootnoteBacklink(FootnoteLink footnoteBacklink)
+            => AddDrawable(new MarkdownFootnoteBacklink());
+
+        protected virtual void AddCustomComponent(CustomContainerInline customContainerInline)
+            => AddNotImplementedInlineText(customContainerInline);
+
         protected virtual void AddNotImplementedInlineText(Inline inline)
             => AddText(inline.GetType() + " not implemented.", t => t.Colour = Color4.Red);
 
@@ -161,28 +186,19 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 }
             }
 
-            var textDrawable = CreateEmphasisedSpriteText(hasBold, hasItalic);
-            textDrawable.Text = text;
-
-            AddDrawable(textDrawable);
+            AddText(text, t => ApplyEmphasisedCreationParameters(t, hasBold, hasItalic));
         }
 
         protected internal override SpriteText CreateSpriteText() => parentTextComponent.CreateSpriteText();
 
         /// <summary>
-        /// Creates an emphasised <see cref="SpriteText"/>.
+        /// Applies emphasised creation parameters to <see cref="SpriteText"/>.
         /// </summary>
+        /// <param name="spriteText">The <see cref="SpriteText"/> to be emphasised.</param>
         /// <param name="bold">Whether the text should be emboldened.</param>
         /// <param name="italic">Whether the text should be italicised.</param>
-        /// <returns>The <see cref="SpriteText"/> with emphases applied.</returns>
-        protected virtual SpriteText CreateEmphasisedSpriteText(bool bold, bool italic)
-        {
-            var textDrawable = CreateSpriteText();
-
-            textDrawable.Font = textDrawable.Font.With(weight: bold ? "Bold" : null, italics: italic);
-
-            return textDrawable;
-        }
+        protected virtual void ApplyEmphasisedCreationParameters(SpriteText spriteText, bool bold, bool italic)
+            => spriteText.Font = spriteText.Font.With(weight: bold ? "Bold" : null, italics: italic);
 
         SpriteText IMarkdownTextComponent.CreateSpriteText() => CreateSpriteText();
     }

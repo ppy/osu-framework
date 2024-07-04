@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
@@ -15,7 +15,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Audio
 {
-    public class TestSceneTrackAdjustments : FrameworkTestScene
+    public partial class TestSceneTrackAdjustments : FrameworkTestScene
     {
         [BackgroundDependencyLoader]
         private void load(ITrackStore tracks)
@@ -33,7 +33,7 @@ namespace osu.Framework.Tests.Visual.Audio
             };
         }
 
-        private class TrackPlayer : CompositeDrawable
+        private partial class TrackPlayer : CompositeDrawable
         {
             public TrackPlayer(Track track)
             {
@@ -70,7 +70,7 @@ namespace osu.Framework.Tests.Visual.Audio
             }
         }
 
-        private class DraggableAudioContainer : Container
+        private partial class DraggableAudioContainer : Container
         {
             private readonly Container content;
 

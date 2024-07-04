@@ -1,6 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
+using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using NUnit.Framework;
@@ -16,11 +20,14 @@ using osu.Framework.Input;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osuTK;
+using WindowState = osu.Framework.Platform.WindowState;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
-    public class TestSceneFullscreen : FrameworkTestScene
+    public partial class TestSceneFullscreen : FrameworkTestScene
     {
+        public override bool AutomaticallyRunFirstStep => false;
+
         private readonly SpriteText currentActualSize = new SpriteText();
         private readonly SpriteText currentDisplayMode = new SpriteText();
         private readonly SpriteText currentWindowMode = new SpriteText();
@@ -36,20 +43,31 @@ namespace osu.Framework.Tests.Visual.Platform
         {
             var currentBindableSize = new SpriteText();
 
-            Child = new FillFlowContainer
+            Children = new Drawable[]
             {
-                Padding = new MarginPadding(10),
-                Spacing = new Vector2(10),
-                Children = new Drawable[]
+                new FillFlowContainer
                 {
-                    currentBindableSize,
-                    currentActualSize,
-                    currentDisplayMode,
-                    currentWindowMode,
-                    currentWindowState,
-                    supportedWindowModes,
-                    displaysDropdown = new BasicDropdown<Display> { Width = 600 }
+                    Padding = new MarginPadding(10),
+                    Spacing = new Vector2(10),
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
+                    Direction = FillDirection.Vertical,
+                    Children = new Drawable[]
+                    {
+                        currentBindableSize,
+                        currentActualSize,
+                        currentDisplayMode,
+                        currentWindowMode,
+                        currentWindowState,
+                        supportedWindowModes,
+                        displaysDropdown = new BasicDropdown<Display> { Width = 800 }
+                    }
                 },
+                new WindowDisplaysPreview
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Padding = new MarginPadding { Top = 230 }
+                }
             };
 
             sizeFullscreen.ValueChanged += newSize => currentBindableSize.Text = $"Fullscreen size: {newSize.NewValue}";
@@ -70,11 +88,20 @@ namespace osu.Framework.Tests.Visual.Platform
             if (window == null)
                 return;
 
-            displaysDropdown.Items = window.Displays;
+            window.DisplaysChanged += onDisplaysChanged;
+            updateDisplays(window.Displays);
+
             displaysDropdown.Current.BindTo(window.CurrentDisplayBindable);
 
             supportedWindowModes.Text = $"Supported Window Modes: {string.Join(", ", window.SupportedWindowModes)}";
         }
+
+        private void onDisplaysChanged(IEnumerable<Display> displays)
+        {
+            Scheduler.AddOnce(updateDisplays, displays);
+        }
+
+        private void updateDisplays(IEnumerable<Display> displays) => displaysDropdown.Items = displays;
 
         [Test]
         public void TestScreenModeSwitch()
@@ -84,9 +111,6 @@ namespace osu.Framework.Tests.Visual.Platform
                 Assert.Ignore("This test cannot run in headless mode (a window instance is required).");
                 return;
             }
-
-            // so the test case doesn't change fullscreen size just when you enter it
-            AddStep("nothing", () => { });
 
             var initialWindowMode = windowMode.Value;
 
@@ -105,7 +129,7 @@ namespace osu.Framework.Tests.Visual.Platform
             if (window.SupportedWindowModes.Contains(WindowMode.Fullscreen))
             {
                 AddStep("change to fullscreen", () => windowMode.Value = WindowMode.Fullscreen);
-                AddAssert("window position updated", () => ((SDL2DesktopWindow)window).Position == new Point(0, 0));
+                AddAssert("window position updated", () => ((ISDLWindow)window).Position, () => Is.EqualTo(window.CurrentDisplayBindable.Value.Bounds.Location));
                 testResolution(1920, 1080);
                 testResolution(1280, 960);
                 testResolution(9999, 9999);
@@ -129,6 +153,8 @@ namespace osu.Framework.Tests.Visual.Platform
             AddStep("query Window.CurrentDisplay", () => Logger.Log(window.CurrentDisplayBindable.ToString()));
 
             AddStep("query Window.CurrentDisplayMode", () => Logger.Log(window.CurrentDisplayMode.ToString()));
+
+            AddStep("set default display", () => window.CurrentDisplayBindable.SetDefault());
         }
 
         [Test]
@@ -137,6 +163,43 @@ namespace osu.Framework.Tests.Visual.Platform
             AddStep("set confined to never", () => config.SetValue(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Never));
             AddStep("set confined to fullscreen", () => config.SetValue(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen));
             AddStep("set confined to always", () => config.SetValue(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Always));
+        }
+
+        [Test]
+        public void TestMinimiseOnFocusLoss([Values] bool enabled, [Values] WindowMode mode)
+        {
+            if (window == null)
+            {
+                Assert.Ignore("This test cannot run in headless mode (a window instance is required).");
+                return;
+            }
+
+            AddStep($"set to {mode}", () => windowMode.Value = mode);
+            AddStep($"set minimise on focus: {enabled}", () => config.SetValue(FrameworkSetting.MinimiseOnFocusLossInFullscreen, enabled));
+            AddUntilStep("wait for window to lose focus", () => !window.IsActive.Value);
+
+            switch (mode)
+            {
+                case WindowMode.Windowed:
+                case WindowMode.Borderless:
+                    assertMinimised(false);
+                    break;
+
+                case WindowMode.Fullscreen:
+                    assertMinimised(enabled);
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
+            }
+
+            void assertMinimised(bool minimised)
+            {
+                if (minimised)
+                    AddAssert("window is minimised", () => window.WindowState, () => Is.EqualTo(WindowState.Minimised));
+                else
+                    AddAssert("window not minimised", () => window.WindowState, () => Is.Not.EqualTo(WindowState.Minimised));
+            }
         }
 
         protected override void Update()
@@ -151,6 +214,14 @@ namespace osu.Framework.Tests.Visual.Platform
         private void testResolution(int w, int h)
         {
             AddStep($"set to {w}x{h}", () => sizeFullscreen.Value = new Size(w, h));
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            if (window != null)
+                window.DisplaysChanged -= onDisplaysChanged;
+
+            base.Dispose(isDisposing);
         }
     }
 }

@@ -4,8 +4,6 @@
 using System;
 using System.Globalization;
 
-#nullable enable
-
 namespace osu.Framework.Localisation
 {
     /// <summary>
@@ -50,13 +48,27 @@ namespace osu.Framework.Localisation
                 case Casing.LowerCase:
                     return cultureText.ToLower(stringData);
 
+                case Casing.SentenceCase:
+                    return toSentenceCase(stringData, cultureText);
+
                 case Casing.Default:
                 default:
                     return stringData;
             }
+
+            // taken from https://github.com/Humanizr/Humanizer/blob/606e958cb83afc9be5b36716ac40d4daa9fa73a7/src/Humanizer/Transformer/ToSentenceCase.cs#L12-L22
+            string toSentenceCase(string input, TextInfo textInfo)
+            {
+                if (input.Length >= 1)
+                {
+                    return textInfo.ToUpper(input[0]) + input.Substring(1);
+                }
+
+                return textInfo.ToUpper(input);
+            }
         }
 
-        public override string ToString() => GetLocalised(new LocalisationParameters(null, false));
+        public override string ToString() => GetLocalised(LocalisationParameters.DEFAULT);
 
         public bool Equals(ILocalisableStringData? other) => other is CaseTransformableString transformable && Equals(transformable);
 
@@ -107,6 +119,11 @@ namespace osu.Framework.Localisation
         /// <summary>
         /// Transform the string data to lowercase.
         /// </summary>
-        LowerCase
+        LowerCase,
+
+        /// <summary>
+        /// Transform the string data to sentence case.
+        /// </summary>
+        SentenceCase
     }
 }

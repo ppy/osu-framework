@@ -1,7 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
+using JetBrains.Annotations;
 using osu.Framework.Bindables;
 
 namespace osu.Framework.Configuration.Tracking
@@ -12,6 +15,7 @@ namespace osu.Framework.Configuration.Tracking
     /// <typeparam name="TValue">The type of the tracked value.</typeparam>
     public abstract class TrackedSetting<TValue> : ITrackedSetting
     {
+        [CanBeNull]
         public event Action<SettingDescription> SettingChanged;
 
         private readonly object setting;

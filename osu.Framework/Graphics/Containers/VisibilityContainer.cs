@@ -8,7 +8,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A container which adds a basic visibility state.
     /// </summary>
-    public abstract class VisibilityContainer : Container
+    public abstract partial class VisibilityContainer : Container
     {
         /// <summary>
         /// The current visibility state.
@@ -74,10 +74,10 @@ namespace osu.Framework.Graphics.Containers
         protected abstract void PopOut();
 
         /// <summary>
-        /// Called whenever <see cref="VisibilityContainer.State"/> is changed.
+        /// Called whenever <see cref="State"/> is changed.
         /// Used to update this container's elements according to the new visibility state.
         /// </summary>
-        /// <param name="state">The <see cref="ValueChangedEvent{T}"/> provided by <see cref="VisibilityContainer.State"/></param>
+        /// <param name="state">The <see cref="ValueChangedEvent{T}"/> provided by <see cref="State"/></param>
         protected virtual void UpdateState(ValueChangedEvent<Visibility> state)
         {
             switch (state.NewValue)

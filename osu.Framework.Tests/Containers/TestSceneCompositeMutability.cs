@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using NUnit.Framework;
@@ -13,7 +15,7 @@ using osu.Framework.Tests.Visual;
 namespace osu.Framework.Tests.Containers
 {
     [HeadlessTest]
-    public class TestSceneCompositeMutability : FrameworkTestScene
+    public partial class TestSceneCompositeMutability : FrameworkTestScene
     {
         [TestCase(TestThread.External, false)]
         [TestCase(TestThread.Update, false)]
@@ -137,7 +139,7 @@ namespace osu.Framework.Tests.Containers
             }
         }
 
-        private class BlockableLoadContainer : Framework.Graphics.Containers.Container
+        private partial class BlockableLoadContainer : Framework.Graphics.Containers.Container
         {
             /// <summary>
             /// Allows continuation to a point in the <see cref="LoadState.Loading"/> state which invokes <see cref="OnLoading"/>.
@@ -167,12 +169,14 @@ namespace osu.Framework.Tests.Containers
             [BackgroundDependencyLoader]
             private void load()
             {
-                LoadingEvent.Wait();
+                if (!LoadingEvent.Wait(10000))
+                    throw new TimeoutException("Load took too long");
 
                 OnLoading?.Invoke();
                 OnLoading = null;
 
-                ReadyEvent.Wait();
+                if (!ReadyEvent.Wait(10000))
+                    throw new TimeoutException("Ready took too long");
             }
 
             public override bool UpdateSubTree()

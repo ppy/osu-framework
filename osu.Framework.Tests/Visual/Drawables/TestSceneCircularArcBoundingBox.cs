@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using osu.Framework.Allocation;
@@ -15,7 +17,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneCircularArcBoundingBox : FrameworkTestScene
+    public partial class TestSceneCircularArcBoundingBox : FrameworkTestScene
     {
         private SmoothPath path;
         private Box boundingBox;
@@ -66,13 +68,13 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         protected override void LoadComplete()
         {
-            controlPoints.BindCollectionChanged((_, __) =>
+            controlPoints.BindCollectionChanged((_, _) =>
             {
                 var copy = controlPoints.ToArray();
                 if (copy.Length != 3)
                     return;
 
-                path.Vertices = PathApproximator.ApproximateCircularArc(copy);
+                path.Vertices = PathApproximator.CircularArcToPiecewiseLinear(copy);
 
                 var bounds = PathApproximator.CircularArcBoundingBox(copy);
                 boundingBox.Size = bounds.Size;

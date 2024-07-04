@@ -1,9 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using osu.Framework.Configuration;
+using osu.Framework.Graphics.Rendering.Dummy;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Logging;
 using osu.Framework.Timing;
@@ -22,19 +25,35 @@ namespace osu.Framework.Platform
 
         protected override IFrameBasedClock SceneGraphClock => customClock ?? base.SceneGraphClock;
 
-        public override void OpenFileExternally(string filename) => Logger.Log($"Application has requested file \"{filename}\" to be opened.");
+        public override bool OpenFileExternally(string filename)
+        {
+            Logger.Log($"Application has requested file \"{filename}\" to be opened.");
+            return true;
+        }
 
-        public override void PresentFileExternally(string filename) => Logger.Log($"Application has requested file \"{filename}\" to be shown.");
+        public override bool PresentFileExternally(string filename)
+        {
+            Logger.Log($"Application has requested file \"{filename}\" to be shown.");
+            return true;
+        }
 
         public override void OpenUrlExternally(string url) => Logger.Log($"Application has requested URL \"{url}\" to be opened.");
 
         public override IEnumerable<string> UserStoragePaths => new[] { "./headless/" };
 
-        public HeadlessGameHost(string gameName = null, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
-            : base(gameName ?? Guid.NewGuid().ToString(), bindIPC, portableInstallation: portableInstallation)
+        public HeadlessGameHost(string gameName = null, HostOptions options = null, bool realtime = true)
+            : base(gameName ?? Guid.NewGuid().ToString(), options)
         {
             this.realtime = realtime;
         }
+
+        protected override bool RequireWindowExists => false;
+
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => null;
+
+        protected override Clipboard CreateClipboard() => new HeadlessClipboard();
+
+        protected override void ChooseAndSetupRenderer() => SetupRendererAndWindow(new DummyRenderer(), GraphicsSurfaceType.OpenGL);
 
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {
@@ -42,10 +61,10 @@ namespace osu.Framework.Platform
 
             base.SetupConfig(defaultOverrides);
 
-            if (Enum.TryParse<ExecutionMode>(Environment.GetEnvironmentVariable("OSU_EXECUTION_MODE"), out var mode))
+            if (FrameworkEnvironment.StartupExecutionMode != null)
             {
-                Config.SetValue(FrameworkSetting.ExecutionMode, mode);
-                Logger.Log($"Startup execution mode set to {mode} from envvar");
+                Config.SetValue(FrameworkSetting.ExecutionMode, FrameworkEnvironment.StartupExecutionMode.Value);
+                Logger.Log($"Startup execution mode set to {FrameworkEnvironment.StartupExecutionMode} from envvar");
             }
         }
 

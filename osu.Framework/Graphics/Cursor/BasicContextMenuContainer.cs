@@ -5,7 +5,7 @@ using osu.Framework.Graphics.UserInterface;
 
 namespace osu.Framework.Graphics.Cursor
 {
-    public class BasicContextMenuContainer : ContextMenuContainer
+    public partial class BasicContextMenuContainer : ContextMenuContainer
     {
         protected override Menu CreateMenu() => new BasicMenu(Direction.Vertical);
     }

@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -16,7 +18,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneKeyBindingInputQueueChange : ManualInputManagerTestScene
+    public partial class TestSceneKeyBindingInputQueueChange : ManualInputManagerTestScene
     {
         [Test]
         public void TestReleaseDoesNotTriggerWithoutPress()
@@ -64,7 +66,7 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("hidden not released", () => !hiddenReceptor.Released);
         }
 
-        private class TestInputReceptor : CompositeDrawable, IKeyBindingHandler<TestAction>
+        private partial class TestInputReceptor : CompositeDrawable, IKeyBindingHandler<TestAction>
         {
             public bool Pressed;
             public bool Released;
@@ -101,7 +103,7 @@ namespace osu.Framework.Tests.Visual.Input
             Action1
         }
 
-        private class TestKeyBindingContainer : KeyBindingContainer<TestAction>
+        private partial class TestKeyBindingContainer : KeyBindingContainer<TestAction>
         {
             public override IEnumerable<IKeyBinding> DefaultKeyBindings => new[]
             {

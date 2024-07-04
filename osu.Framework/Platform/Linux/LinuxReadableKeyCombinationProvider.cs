@@ -1,13 +1,13 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Input.Bindings;
-using osu.Framework.Platform.SDL2;
-using SDL2;
+using osu.Framework.Platform.SDL3;
+using SDL;
 
 namespace osu.Framework.Platform.Linux
 {
-    public class LinuxReadableKeyCombinationProvider : SDL2ReadableKeyCombinationProvider
+    public class LinuxReadableKeyCombinationProvider : SDL3ReadableKeyCombinationProvider
     {
         protected override string GetReadableKey(InputKey key)
         {
@@ -21,15 +21,15 @@ namespace osu.Framework.Platform.Linux
             }
         }
 
-        protected override bool TryGetNameFromKeycode(SDL.SDL_Keycode keycode, out string name)
+        protected override bool TryGetNameFromKeycode(SDL_Keycode keycode, out string name)
         {
             switch (keycode)
             {
-                case SDL.SDL_Keycode.SDLK_LGUI:
+                case SDL_Keycode.SDLK_LGUI:
                     name = "LSuper";
                     return true;
 
-                case SDL.SDL_Keycode.SDLK_RGUI:
+                case SDL_Keycode.SDLK_RGUI:
                     name = "RSuper";
                     return true;
 

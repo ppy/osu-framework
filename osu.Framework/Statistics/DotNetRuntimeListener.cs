@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
@@ -107,7 +109,7 @@ namespace osu.Framework.Statistics
                             if (data.Payload[0] == null)
                                 break;
 
-                            var type = getTypeFromHandle((IntPtr)data.Payload[0]);
+                            var type = Type.GetTypeFromHandle(RuntimeTypeHandle.FromIntPtr((IntPtr)data.Payload[0]));
                             if (type == null)
                                 break;
 
@@ -119,40 +121,6 @@ namespace osu.Framework.Statistics
                     break;
             }
         }
-
-        /// <summary>
-        /// Retrieves a <see cref="Type"/> from a CLR type id.
-        /// </summary>
-        /// <remarks>
-        /// Attrib: https://stackoverflow.com/questions/26972066/type-from-intptr-handle/54469241#54469241
-        /// </remarks>
-        // ReSharper disable once RedundantUnsafeContext
-        // ReSharper disable once UnusedParameter.Local
-        private static unsafe Type getTypeFromHandle(IntPtr handle)
-        {
-#if NET5_0
-            // This is super unsafe code which is dependent upon internal CLR structures.
-            TypedReferenceAccess tr = new TypedReferenceAccess { Type = handle };
-            return __reftype(*(TypedReference*)&tr);
-#else
-            return null;
-#endif
-        }
-
-#if NET5_0
-        /// <summary>
-        /// Matches the internal layout of <see cref="TypedReference"/>.
-        /// See: https://source.dot.net/#System.Private.CoreLib/src/System/TypedReference.cs
-        /// </summary>
-        private struct TypedReferenceAccess
-        {
-            [JetBrains.Annotations.UsedImplicitly]
-            public IntPtr Value;
-
-            [JetBrains.Annotations.UsedImplicitly]
-            public IntPtr Type;
-        }
-#endif
 
         private void addStatistic<T>(string name, object data)
             => GlobalStatistics.Get<T>(gc_statistics_grouping, name).Value = (T)data;

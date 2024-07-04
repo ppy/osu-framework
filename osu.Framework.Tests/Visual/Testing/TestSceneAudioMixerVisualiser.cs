@@ -1,8 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Allocation;
-using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 using osu.Framework.Graphics;
@@ -12,13 +13,13 @@ using osu.Framework.Graphics.Visualisation.Audio;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneAudioMixerVisualiser : FrameworkTestScene
+    public partial class TestSceneAudioMixerVisualiser : FrameworkTestScene
     {
         private Container<TestAudioPlayingSource> mixedSources = new Container<TestAudioPlayingSource>();
         private TestAudioPlayingSource globalSource;
 
         [BackgroundDependencyLoader]
-        private void load(AudioManager audioManager)
+        private void load()
         {
             AudioMixerVisualiser visualiser;
 
@@ -56,7 +57,7 @@ namespace osu.Framework.Tests.Visual.Testing
                 AddStep($"remove mixer {name}", () => source.Expire());
         }
 
-        private class TestAudioPlayingSource : CompositeDrawable
+        private partial class TestAudioPlayingSource : CompositeDrawable
         {
             private readonly bool withMixer;
             private DrawableTrack track;

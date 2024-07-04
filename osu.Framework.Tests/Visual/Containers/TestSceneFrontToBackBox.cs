@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -15,7 +17,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneFrontToBackBox : FrameworkTestScene
+    public partial class TestSceneFrontToBackBox : FrameworkTestScene
     {
         [Resolved]
         private FrameworkDebugConfigManager debugConfig { get; set; }
@@ -23,10 +25,7 @@ namespace osu.Framework.Tests.Visual.Containers
         private TestBox blendedBox;
 
         [SetUp]
-        public void Setup() => Schedule(() =>
-        {
-            Clear();
-        });
+        public void Setup() => Schedule(Clear);
 
         [TearDownSteps]
         public void TearDownSteps()
@@ -222,7 +221,7 @@ namespace osu.Framework.Tests.Visual.Containers
             setupAction?.Invoke(blendedBox);
         });
 
-        private class TestBox : Box
+        private partial class TestBox : Box
         {
             public bool CanDrawOpaqueInterior => currentDrawNode.CanDrawOpaqueInterior;
 

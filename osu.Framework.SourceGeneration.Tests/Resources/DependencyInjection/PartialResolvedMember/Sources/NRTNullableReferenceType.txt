@@ -1,0 +1,9 @@
+#nullable enable
+
+public partial class NRTNullableReferenceType : osu.Framework.Graphics.Drawable
+{
+    [osu.Framework.Allocation.Resolved]
+    public object? ResolvedProperty { get; private set; }
+}
+
+#nullable disable

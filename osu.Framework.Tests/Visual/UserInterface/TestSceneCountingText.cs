@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Globalization;
 using osu.Framework.Bindables;
@@ -11,7 +13,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneCountingText : FrameworkTestScene
+    public partial class TestSceneCountingText : FrameworkTestScene
     {
         private readonly Bindable<CountType> countType = new Bindable<CountType>();
 
@@ -35,7 +37,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             typeDropdown.Items = (CountType[])Enum.GetValues(typeof(CountType));
             countType.BindTo(typeDropdown.Current);
-            countType.ValueChanged += v => beginStep(lastStep)();
+            countType.ValueChanged += _ => beginStep(lastStep)();
 
             AddStep("1 -> 4 | 1 sec", beginStep(() => counter.CountTo(1).CountTo(4, 1000)));
             AddStep("1 -> 4 | 3 sec", beginStep(() => counter.CountTo(1).CountTo(4, 3000)));
@@ -86,7 +88,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
     }
 
-    public class TestTextCounter : Counter
+    public partial class TestTextCounter : Counter
     {
         private readonly Func<double, string> resultFunction;
         private readonly SpriteText text;

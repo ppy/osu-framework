@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Threading;
 using osu.Framework.Development;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Logging;
@@ -139,23 +138,27 @@ namespace osu.Framework.Platform
         {
             const int thread_join_timeout = 30000;
 
-            Threads.ForEach(t => t.Exit());
-            Threads.Where(t => t.Running).ForEach(t =>
+            // exit in reverse order so AudioThread is exited last (UpdateThread depends on AudioThread)
+            Threads.Reverse().ForEach(t =>
             {
+                // save the native thread to a local variable as Thread gets set to null when exiting.
+                // WaitForState(Exited) appears to be unsafe in multithreaded.
                 var thread = t.Thread;
 
-                if (thread == null)
+                t.Exit();
+
+                if (thread != null)
                 {
-                    // has already been cleaned up (or never started)
-                    return;
+                    if (!thread.Join(thread_join_timeout))
+                        throw new TimeoutException($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).");
+                }
+                else
+                {
+                    t.WaitForState(GameThreadState.Exited);
                 }
 
-                if (!thread.Join(thread_join_timeout))
-                    Logger.Log($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).", LoggingTarget.Runtime, LogLevel.Important);
+                Debug.Assert(t.Exited);
             });
-
-            // as the input thread isn't actually handled by a thread, the above join does not necessarily mean it has been completed to an exiting state.
-            mainThread.WaitForState(GameThreadState.Exited);
 
             ThreadSafety.ResetAllForCurrentThread();
         }
@@ -234,7 +237,8 @@ namespace osu.Framework.Platform
         public void SetCulture(CultureInfo culture)
         {
             // for single-threaded mode, switch the current (assumed to be main) thread's culture, since it's actually the one that's running the frames.
-            Thread.CurrentThread.CurrentCulture = culture;
+            CultureInfo.CurrentCulture = culture;
+            CultureInfo.CurrentUICulture = culture;
 
             // for multi-threaded mode, schedule the culture change on all threads.
             // note that if the threads haven't been created yet (e.g. if the game started single-threaded), this will only store the culture in GameThread.CurrentCulture.

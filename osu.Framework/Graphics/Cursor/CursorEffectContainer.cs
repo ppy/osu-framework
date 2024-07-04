@@ -1,15 +1,18 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
+using osu.Framework.Extensions.ListExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
+using osu.Framework.Lists;
 
 namespace osu.Framework.Graphics.Cursor
 {
-    public abstract class CursorEffectContainer<TSelf, TTarget> : Container
+    public abstract partial class CursorEffectContainer<TSelf, TTarget> : Container
         where TSelf : CursorEffectContainer<TSelf, TTarget>
         where TTarget : class, IDrawable
     {
@@ -82,14 +85,21 @@ namespace osu.Framework.Graphics.Cursor
 
                 // Assuming we did _not_ end up terminating, then all found drawables are children of ours
                 // and need to be added.
-                childDrawables.UnionWith(newChildDrawables);
+                foreach (var newChild in newChildDrawables)
+                    childDrawables.Add(newChild);
 
                 // Keep track of child drawables whose effects are managed by a nested effect container.
                 // Note, that nested effect containers themselves could implement TTarget and
                 // are still our own responsibility to handle.
-                nestedTtcChildDrawables.UnionWith(
-                    ((IEnumerable<IDrawable>)newChildDrawables).Reverse()
-                                                               .SkipWhile(d => d.Parent == this || !(d.Parent is TSelf) && !nestedTtcChildDrawables.Contains(d.Parent)));
+                for (int j = newChildDrawables.Count - 1; j >= 0; j--)
+                {
+                    var d = newChildDrawables[j];
+
+                    if (d.Parent == this || (!(d.Parent is TSelf) && !nestedTtcChildDrawables.Contains(d.Parent)))
+                        continue;
+
+                    nestedTtcChildDrawables.Add(d);
+                }
 
                 // Ignore drawables whose effects are managed by a nested effect container.
                 if (nestedTtcChildDrawables.Contains(candidate))
@@ -100,7 +110,9 @@ namespace osu.Framework.Graphics.Cursor
             }
         }
 
-        protected IEnumerable<TTarget> FindTargets()
+        private static readonly SlimReadOnlyListWrapper<TTarget> empty_list = new SlimReadOnlyListWrapper<TTarget>(new List<TTarget>(0));
+
+        protected SlimReadOnlyListWrapper<TTarget> FindTargets()
         {
             findTargetChildren();
 
@@ -110,14 +122,14 @@ namespace osu.Framework.Graphics.Cursor
             newChildDrawables.Clear();
 
             if (targetChildren.Count == 0)
-                return Enumerable.Empty<TTarget>();
+                return empty_list;
 
             List<TTarget> result = new List<TTarget>(targetChildren);
             result.Reverse();
 
             targetChildren.Clear();
 
-            return result;
+            return result.AsSlimReadOnly();
         }
     }
 }

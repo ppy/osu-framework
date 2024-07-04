@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
@@ -45,18 +47,16 @@ namespace osu.Framework.Bindables
 
         private bool hasBeenReturned;
 
-        /// <summary>
-        /// End the lease on the source <see cref="Bindable{T}"/>.
-        /// </summary>
-        public void Return()
+        public bool Return()
         {
+            if (hasBeenReturned)
+                return false;
+
             if (source == null)
                 throw new InvalidOperationException($"Must {nameof(Return)} from original leased source");
 
-            if (hasBeenReturned)
-                throw new InvalidOperationException($"This bindable has already been {nameof(Return)}ed.");
-
             UnbindAll();
+            return true;
         }
 
         public override T Value

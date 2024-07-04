@@ -10,8 +10,8 @@ namespace osu.Framework.Benchmarks
     [MemoryDiagnoser]
     public class BenchmarkLocalisableString
     {
-        private string string1;
-        private string string2;
+        private string string1 = null!;
+        private string string2 = null!;
         private LocalisableString localisableString1;
         private LocalisableString localisableString2;
         private LocalisableString romanisableString1;
@@ -32,8 +32,8 @@ namespace osu.Framework.Benchmarks
             romanisableString2 = new RomanisableString("c", "d");
             translatableString1 = new TranslatableString("e", "f");
             translatableString2 = new TranslatableString("g", "h");
-            formattableString1 = new LocalisableFormattableString(1.23, "N0");
-            formattableString2 = new LocalisableFormattableString(4.56, "N1");
+            formattableString1 = LocalisableString.Format("({0})", "j");
+            formattableString2 = LocalisableString.Format("[{0}]", "l");
         }
 
         [Benchmark]

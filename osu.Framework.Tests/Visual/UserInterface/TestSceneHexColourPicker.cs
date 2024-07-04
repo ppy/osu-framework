@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -14,7 +16,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneHexColourPicker : ManualInputManagerTestScene
+    public partial class TestSceneHexColourPicker : ManualInputManagerTestScene
     {
         private TestHexColourPicker hexColourPicker;
         private SpriteText currentText;
@@ -103,7 +105,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private void assertPreviewUpdated(Colour4 expected)
             => AddAssert("preview colour updated", () => hexColourPicker.Preview.Current.Value == expected);
 
-        private class TestHexColourPicker : BasicHexColourPicker
+        private partial class TestHexColourPicker : BasicHexColourPicker
         {
             public TextBox HexCodeTextBox => this.ChildrenOfType<TextBox>().Single();
             public ColourPreview Preview => this.ChildrenOfType<ColourPreview>().Single();

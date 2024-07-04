@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Input.StateChanges;
@@ -10,6 +10,8 @@ namespace osu.Framework.Input.Handlers.Keyboard
 {
     public class KeyboardHandler : InputHandler
     {
+        private static readonly GlobalStatistic<ulong> statistic_total_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<KeyboardHandler>(), "Total events");
+
         public override string Description => "Keyboard";
 
         public override bool IsActive => true;
@@ -19,7 +21,7 @@ namespace osu.Framework.Input.Handlers.Keyboard
             if (!base.Initialize(host))
                 return false;
 
-            if (!(host.Window is SDL2DesktopWindow window))
+            if (!(host.Window is ISDLWindow window))
                 return false;
 
             Enabled.BindValueChanged(e =>
@@ -43,6 +45,7 @@ namespace osu.Framework.Input.Handlers.Keyboard
         {
             PendingInputs.Enqueue(input);
             FrameStatistics.Increment(StatisticsCounterType.KeyEvents);
+            statistic_total_events.Value++;
         }
 
         private void handleKeyDown(TKKey key) => enqueueInput(new KeyboardKeyInput(key, true));

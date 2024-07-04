@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable enable
-
 using System;
 using System.Buffers;
 using SixLabors.ImageSharp;
@@ -22,10 +20,10 @@ namespace osu.Framework.Extensions.ImageExtensions
 
         internal ReadOnlyPixelSpan(Image<TPixel> image)
         {
-            if (image.TryGetSinglePixelSpan(out var span))
+            if (image.DangerousTryGetSinglePixelMemory(out var memory))
             {
                 owner = null;
-                Span = span;
+                Span = memory.Span;
             }
             else
             {

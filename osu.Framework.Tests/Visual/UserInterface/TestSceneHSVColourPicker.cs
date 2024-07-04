@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -13,7 +15,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneHSVColourPicker : ManualInputManagerTestScene
+    public partial class TestSceneHSVColourPicker : ManualInputManagerTestScene
     {
         private TestHSVColourPicker colourPicker;
 
@@ -164,7 +166,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert($"value is {value}", () => Precision.AlmostEquals(colourPicker.SaturationValueControl.Value.Value, value, tolerance));
         }
 
-        private class TestHSVColourPicker : BasicHSVColourPicker
+        private partial class TestHSVColourPicker : BasicHSVColourPicker
         {
             public HueSelector HueControl => this.ChildrenOfType<HueSelector>().Single();
             public SaturationValueSelector SaturationValueControl => this.ChildrenOfType<SaturationValueSelector>().Single();

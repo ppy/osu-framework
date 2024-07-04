@@ -1,9 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
@@ -14,18 +16,17 @@ namespace osu.Framework.Testing
     /// <summary>
     /// A test scene that provides a set of helper functions and structures for testing a <see cref="Menu"/>.
     /// </summary>
-    public abstract class MenuTestScene : ManualInputManagerTestScene
+    public abstract partial class MenuTestScene : ManualInputManagerTestScene
     {
         protected MenuStructure Menus;
 
-        [SetUp]
-        public new void SetUp() => Schedule(() =>
+        protected void CreateMenu(Func<Menu> creationFunc) => AddStep("create menu", () =>
         {
             Menu menu;
             Child = new Container
             {
                 RelativeSizeAxes = Axes.Both,
-                Child = menu = CreateMenu(),
+                Child = menu = creationFunc.Invoke(),
             };
 
             Menus = new MenuStructure(menu);
@@ -41,8 +42,6 @@ namespace osu.Framework.Testing
             InputManager.MoveMouseTo(Menus.GetSubStructure(menuIndex).GetMenuItems()[itemIndex]);
             InputManager.Click(MouseButton.Left);
         }
-
-        protected abstract Menu CreateMenu();
 
         /// <summary>
         /// Helper class used to retrieve various internal properties/items from a <see cref="Menu"/>.

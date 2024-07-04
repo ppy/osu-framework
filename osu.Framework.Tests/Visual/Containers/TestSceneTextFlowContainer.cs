@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Extensions.Color4Extensions;
@@ -15,7 +17,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneTextFlowContainer : FrameworkTestScene
+    public partial class TestSceneTextFlowContainer : FrameworkTestScene
     {
         private const string default_text = "Default text\n\nnewline";
 
@@ -117,6 +119,14 @@ namespace osu.Framework.Tests.Visual.Containers
 
             AddStep("clear text", () => textContainer.Clear());
             assertSpriteTextCount(0);
+        }
+
+        [Test]
+        public void TestWordSplittingEdgeCases()
+        {
+            AddStep("set latin text", () => textContainer.Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer mattis eu turpis vitae posuere. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Etiam mauris nibh, faucibus maximus ornare eu, ultrices ut ipsum. Proin rhoncus, nunc et faucibus pretium, nisl nunc dapibus massa, et scelerisque nibh ligula id odio. Praesent dapibus ex sed nunc egestas, in placerat risus mattis. Nulla sed ligula velit. Vestibulum auctor porta eros et condimentum. Etiam laoreet nunc nec lacinia pulvinar. Mauris hendrerit, mi at aliquet condimentum, ex ex cursus dolor, non porta erat eros id justo. Cras malesuada tincidunt nunc, at tincidunt risus eleifend id. Maecenas hendrerit venenatis mi et lobortis. Etiam sem tortor, elementum eget lacus non, porta tristique quam. Morbi sed lacinia odio. Phasellus ut pretium nunc. Fusce vitae mollis magna, vel scelerisque dui. ");
+            AddStep("set url", () => textContainer.Text = "https://osu.ppy.sh/home/news/2024-03-27-osutaiko-world-cup-2024-round-of-32-recap");
+            AddStep("set cjk text", () => textContainer.Text = "日本の桜は世界中から観光客を引きつけています。寿司は美味しい伝統的な日本食です。東京タワーは景色が美しいです。速い新幹線は、便利な交通手段です。富士山は、その美しさと完全な形状で知られています。日本文化は、優雅さと繊細さを象徴しています。抹茶は特別な日本の茶です。着物は、伝統的な日本の衣装で、特別な場面でよく着用されます。");
         }
 
         private void assertSpriteTextCount(int count)

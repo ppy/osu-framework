@@ -11,7 +11,7 @@ namespace osu.Framework.Timing
         /// <summary>
         /// The source clock.
         /// </summary>
-        IClock Source { get; }
+        IClock? Source { get; }
 
         /// <summary>
         /// Change the source clock.

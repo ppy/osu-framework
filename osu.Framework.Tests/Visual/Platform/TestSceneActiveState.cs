@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -12,7 +14,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
-    public class TestSceneActiveState : FrameworkTestScene
+    public partial class TestSceneActiveState : FrameworkTestScene
     {
         private IBindable<bool> isActive;
         private IBindable<bool> cursorInWindow;
@@ -51,7 +53,7 @@ namespace osu.Framework.Tests.Visual.Platform
             cursorInWindow?.BindValueChanged(active => cursorInWindowBox.Colour = active.NewValue ? Color4.Green : Color4.Red, true);
         }
 
-        public class DisplayBox : CompositeDrawable
+        public partial class DisplayBox : CompositeDrawable
         {
             public DisplayBox(string label)
             {

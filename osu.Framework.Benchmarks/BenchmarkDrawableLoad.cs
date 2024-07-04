@@ -12,9 +12,9 @@ using osuTK.Graphics;
 namespace osu.Framework.Benchmarks
 {
     [MemoryDiagnoser]
-    public class BenchmarkDrawableLoad : GameBenchmark
+    public partial class BenchmarkDrawableLoad : GameBenchmark
     {
-        private TestGame game;
+        private TestGame game = null!;
 
         private const int nesting_level = 100;
 
@@ -102,7 +102,7 @@ namespace osu.Framework.Benchmarks
 
         protected override Game CreateGame() => game = new TestGame();
 
-        private class TestGame : Game
+        private partial class TestGame : Game
         {
         }
     }

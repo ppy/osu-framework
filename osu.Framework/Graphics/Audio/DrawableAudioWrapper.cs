@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
@@ -16,7 +18,7 @@ namespace osu.Framework.Graphics.Audio
     /// A wrapper which allows audio components (or adjustments) to exist in the draw hierarchy.
     /// </summary>
     [Cached(typeof(IAggregateAudioAdjustment))]
-    public abstract class DrawableAudioWrapper : CompositeDrawable, IAdjustableAudioComponent
+    public abstract partial class DrawableAudioWrapper : CompositeDrawable, IAdjustableAudioComponent
     {
         /// <summary>
         /// The volume of this component.
@@ -136,11 +138,17 @@ namespace osu.Framework.Graphics.Audio
         {
         }
 
+        internal override void UnbindAllBindables()
+        {
+            base.UnbindAllBindables();
+
+            if (!disposeUnderlyingComponentOnDispose)
+                component?.UnbindAdjustments(adjustments);
+        }
+
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
-            component?.UnbindAdjustments(adjustments);
-
             if (disposeUnderlyingComponentOnDispose)
                 (component as IDisposable)?.Dispose();
 

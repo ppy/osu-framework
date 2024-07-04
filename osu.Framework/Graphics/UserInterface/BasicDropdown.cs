@@ -7,14 +7,16 @@ using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicDropdown<T> : Dropdown<T>
+    public partial class BasicDropdown<T> : Dropdown<T>
     {
         protected override DropdownMenu CreateMenu() => new BasicDropdownMenu();
 
         protected override DropdownHeader CreateHeader() => new BasicDropdownHeader();
 
-        public class BasicDropdownHeader : DropdownHeader
+        public partial class BasicDropdownHeader : DropdownHeader
         {
+            private static FontUsage font => FrameworkFont.Condensed;
+
             private readonly SpriteText label;
 
             protected internal override LocalisableString Label
@@ -25,8 +27,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             public BasicDropdownHeader()
             {
-                var font = FrameworkFont.Condensed;
-
                 Foreground.Padding = new MarginPadding(5);
                 BackgroundColour = FrameworkColour.Green;
                 BackgroundColourHover = FrameworkColour.YellowGreen;
@@ -41,9 +41,24 @@ namespace osu.Framework.Graphics.UserInterface
                     },
                 };
             }
+
+            protected override DropdownSearchBar CreateSearchBar() => new BasicDropdownSearchBar();
+
+            public partial class BasicDropdownSearchBar : DropdownSearchBar
+            {
+                protected override void PopIn() => this.FadeIn();
+
+                protected override void PopOut() => this.FadeOut();
+
+                protected override TextBox CreateTextBox() => new BasicTextBox
+                {
+                    PlaceholderText = "type to search",
+                    FontSize = font.Size,
+                };
+            }
         }
 
-        public class BasicDropdownMenu : DropdownMenu
+        public partial class BasicDropdownMenu : DropdownMenu
         {
             protected override Menu CreateSubMenu() => new BasicMenu(Direction.Vertical);
 
@@ -51,7 +66,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override ScrollContainer<Drawable> CreateScrollContainer(Direction direction) => new BasicScrollContainer(direction);
 
-            private class DrawableBasicDropdownMenuItem : DrawableDropdownMenuItem
+            private partial class DrawableBasicDropdownMenuItem : DrawableDropdownMenuItem
             {
                 public DrawableBasicDropdownMenuItem(MenuItem item)
                     : base(item)

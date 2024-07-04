@@ -6,12 +6,24 @@ namespace osu.Framework.Graphics.Shaders
     /// <summary>
     /// Represents an updateable shader uniform.
     /// </summary>
-    internal interface IUniform
+    public interface IUniform
     {
-        void Update();
+        /// <summary>
+        /// The shader which this uniform was declared in.
+        /// </summary>
+        IShader Owner { get; }
 
-        Shader Owner { get; }
+        /// <summary>
+        /// The location of this uniform in relation to all other uniforms in the shader.
+        /// </summary>
+        /// <remarks>
+        /// Depending on the renderer used, this could either be zero-based index number or location in bytes.
+        /// </remarks>
         int Location { get; }
-        string Name { get; }
+
+        /// <summary>
+        /// Updates the renderer with the current value of this uniform.
+        /// </summary>
+        void Update();
     }
 }

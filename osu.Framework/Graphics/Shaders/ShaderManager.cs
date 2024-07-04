@@ -1,84 +1,96 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using osu.Framework.Graphics.OpenGL;
+using System.IO;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.IO.Stores;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    public class ShaderManager : IDisposable
+    public class ShaderManager : IShaderStore, IDisposable
     {
         private const string shader_prefix = @"sh_";
 
-        private readonly ConcurrentDictionary<string, ShaderPart> partCache = new ConcurrentDictionary<string, ShaderPart>();
-        private readonly ConcurrentDictionary<(string, string), Shader> shaderCache = new ConcurrentDictionary<(string, string), Shader>();
+        private readonly ConcurrentDictionary<string, IShaderPart> partCache = new ConcurrentDictionary<string, IShaderPart>();
+        private readonly ConcurrentDictionary<(string, string), IShader> shaderCache = new ConcurrentDictionary<(string, string), IShader>();
 
+        private readonly IRenderer renderer;
         private readonly IResourceStore<byte[]> store;
 
         /// <summary>
         /// Constructs a new <see cref="ShaderManager"/>.
         /// </summary>
-        public ShaderManager(IResourceStore<byte[]> store)
+        public ShaderManager(IRenderer renderer, IResourceStore<byte[]> store)
         {
+            this.renderer = renderer;
             this.store = store;
         }
-
-        /// <summary>
-        /// Retrieves raw shader data from the store.
-        /// Use <see cref="Load"/> to retrieve a usable <see cref="IShader"/> instead.
-        /// </summary>
-        /// <param name="name">The shader name.</param>
-        public virtual byte[]? LoadRaw(string name) => store.Get(name);
 
         /// <summary>
         /// Retrieves a usable <see cref="IShader"/> given the vertex and fragment shaders.
         /// </summary>
         /// <param name="vertex">The vertex shader name.</param>
         /// <param name="fragment">The fragment shader name.</param>
-        /// <param name="continuousCompilation"></param>
-        public IShader Load(string vertex, string fragment, bool continuousCompilation = false)
+        public IShader Load(string vertex, string fragment)
         {
-            var tuple = (vertex, fragment);
+            IShader? cached = GetCachedShader(vertex, fragment);
+            if (cached != null)
+                return cached;
 
-            if (shaderCache.TryGetValue(tuple, out Shader? shader))
-                return shader;
-
-            List<ShaderPart> parts = new List<ShaderPart>
-            {
-                createShaderPart(vertex, ShaderType.VertexShader),
-                createShaderPart(fragment, ShaderType.FragmentShader)
-            };
-
-            return shaderCache[tuple] = CreateShader($"{vertex}/{fragment}", parts);
+            return shaderCache[(vertex, fragment)] = renderer.CreateShader(
+                $"{vertex}/{fragment}",
+                new[]
+                {
+                    resolveShaderPart(vertex, ShaderPartType.Vertex),
+                    resolveShaderPart(fragment, ShaderPartType.Fragment)
+                });
         }
 
-        internal virtual Shader CreateShader(string name, List<ShaderPart> parts) => new Shader(name, parts);
+        /// <summary>
+        /// Attempts to retrieve an already-cached shader.
+        /// </summary>
+        /// <param name="vertex">The vertex shader name.</param>
+        /// <param name="fragment">The fragment shader name.</param>
+        /// <returns>A cached <see cref="IShader"/> instance, if existing.</returns>
+        public virtual IShader? GetCachedShader(string vertex, string fragment)
+            => shaderCache.TryGetValue((vertex, fragment), out IShader? shader) ? shader : null;
 
-        private ShaderPart createShaderPart(string name, ShaderType type, bool bypassCache = false)
+        /// <summary>
+        /// Attempts to retrieve an already-cached shader part.
+        /// </summary>
+        /// <param name="name">The name of the shader part.</param>
+        /// <returns>A cached <see cref="IShaderPart"/> instance, if existing.</returns>
+        public virtual IShaderPart? GetCachedShaderPart(string name)
+            => partCache.TryGetValue(name, out IShaderPart? part) ? part : null;
+
+        /// <summary>
+        /// Attempts to retrieve the raw data for a shader file.
+        /// </summary>
+        /// <param name="fileName">The file name.</param>
+        /// <returns></returns>
+        public virtual byte[]? GetRawData(string fileName) => store.Get(fileName);
+
+        private IShaderPart resolveShaderPart(string name, ShaderPartType type)
         {
             name = ensureValidName(name, type);
 
-            if (!bypassCache && partCache.TryGetValue(name, out ShaderPart? part))
-                return part;
+            IShaderPart? cached = GetCachedShaderPart(name);
+            if (cached != null)
+                return cached;
 
-            byte[]? rawData = LoadRaw(name);
+            byte[]? rawData = GetRawData(name);
 
-            part = new ShaderPart(name, rawData, type, this);
+            if (rawData == null)
+                throw new FileNotFoundException($"{type} shader part could not be found.", name);
 
-            //cache even on failure so we don't try and fail every time.
-            partCache[name] = part;
-            return part;
+            return partCache[name] = renderer.CreateShaderPart(this, name, rawData, type);
         }
 
-        private string ensureValidName(string name, ShaderType type)
+        private string ensureValidName(string name, ShaderPartType partType)
         {
-            string ending = getFileEnding(type);
+            string ending = getFileEnding(partType);
 
             if (!name.StartsWith(shader_prefix, StringComparison.Ordinal))
                 name = shader_prefix + name;
@@ -88,14 +100,14 @@ namespace osu.Framework.Graphics.Shaders
             return name + ending;
         }
 
-        private string getFileEnding(ShaderType type)
+        private string getFileEnding(ShaderPartType partType)
         {
-            switch (type)
+            switch (partType)
             {
-                case ShaderType.FragmentShader:
+                case ShaderPartType.Fragment:
                     return @".fs";
 
-                case ShaderType.VertexShader:
+                case ShaderPartType.Vertex:
                     return @".vs";
             }
 
@@ -120,14 +132,14 @@ namespace osu.Framework.Graphics.Shaders
 
                 store.Dispose();
 
-                GLWrapper.ScheduleDisposal(() =>
+                renderer.ScheduleDisposal(s =>
                 {
-                    foreach (var shader in shaderCache.Values)
+                    foreach (var shader in s.shaderCache.Values)
                         shader.Dispose();
 
-                    foreach (var part in partCache.Values)
+                    foreach (var part in s.partCache.Values)
                         part.Dispose();
-                });
+                }, this);
             }
         }
 
@@ -139,18 +151,13 @@ namespace osu.Framework.Graphics.Shaders
         public const string TEXTURE_2 = "Texture2D";
         public const string TEXTURE_3 = "Texture3D";
         public const string POSITION = "Position";
-        public const string COLOUR = "Colour";
     }
 
     public static class FragmentShaderDescriptor
     {
         public const string TEXTURE = "Texture";
-        public const string TEXTURE_ROUNDED = "TextureRounded";
-        public const string COLOUR = "Colour";
-        public const string COLOUR_ROUNDED = "ColourRounded";
         public const string GLOW = "Glow";
         public const string BLUR = "Blur";
         public const string VIDEO = "Video";
-        public const string VIDEO_ROUNDED = "VideoRounded";
     }
 }

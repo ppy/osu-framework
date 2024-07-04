@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -15,7 +15,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneComplexBlending : FrameworkTestScene
+    public partial class TestSceneComplexBlending : FrameworkTestScene
     {
         private readonly Dropdown<string> colourModeDropdown;
         private readonly Dropdown<BlendingEquation> colourEquation;
@@ -225,13 +225,13 @@ namespace osu.Framework.Tests.Visual.Drawables
             blendingAlphaSrcDropdown.Current.Value = BlendingType.One;
             blendingAlphaDestDropdown.Current.Value = BlendingType.One;
 
-            colourModeDropdown.Current.ValueChanged += v => updateBlending();
-            colourEquation.Current.ValueChanged += v => updateBlending();
-            alphaEquation.Current.ValueChanged += v => updateBlending();
-            blendingSrcDropdown.Current.ValueChanged += v => updateBlending();
-            blendingDestDropdown.Current.ValueChanged += v => updateBlending();
-            blendingAlphaSrcDropdown.Current.ValueChanged += v => updateBlending();
-            blendingAlphaDestDropdown.Current.ValueChanged += v => updateBlending();
+            colourModeDropdown.Current.ValueChanged += _ => updateBlending();
+            colourEquation.Current.ValueChanged += _ => updateBlending();
+            alphaEquation.Current.ValueChanged += _ => updateBlending();
+            blendingSrcDropdown.Current.ValueChanged += _ => updateBlending();
+            blendingDestDropdown.Current.ValueChanged += _ => updateBlending();
+            blendingAlphaSrcDropdown.Current.ValueChanged += _ => updateBlending();
+            blendingAlphaDestDropdown.Current.ValueChanged += _ => updateBlending();
         }
 
         private void switchToCustomBlending()
@@ -244,10 +244,10 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private void switchOffCustomBlending()
         {
-            settingsBox.Remove(blendingSrcContainer);
-            settingsBox.Remove(blendingDestContainer);
-            settingsBox.Remove(blendingAlphaSrcContainer);
-            settingsBox.Remove(blendingAlphaDestContainer);
+            settingsBox.Remove(blendingSrcContainer, false);
+            settingsBox.Remove(blendingDestContainer, false);
+            settingsBox.Remove(blendingAlphaSrcContainer, false);
+            settingsBox.Remove(blendingAlphaDestContainer, false);
         }
 
         private void updateBlending()
@@ -291,7 +291,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        private class GradientPart : Box
+        private partial class GradientPart : Box
         {
             public GradientPart(int index, Color4 start, Color4 end)
             {

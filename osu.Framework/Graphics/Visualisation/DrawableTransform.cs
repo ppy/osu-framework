@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
@@ -10,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class DrawableTransform : CompositeDrawable
+    internal partial class DrawableTransform : CompositeDrawable
     {
         private readonly Transform transform;
         private readonly Box applied;

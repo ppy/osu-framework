@@ -1,10 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Layout;
 using osu.Framework.Testing;
@@ -15,7 +18,7 @@ using osuTK;
 namespace osu.Framework.Tests.Layout
 {
     [HeadlessTest]
-    public class TestSceneContainerLayout : FrameworkTestScene
+    public partial class TestSceneContainerLayout : FrameworkTestScene
     {
         /// <summary>
         /// Tests that auto-size is updated when a child becomes alive.
@@ -297,7 +300,7 @@ namespace osu.Framework.Tests.Layout
                 // Trigger a validation of draw size.
                 Assert.That(child.DrawSize, Is.EqualTo(new Vector2(200)));
 
-                child.Invalidated += _ => invalidated = true;
+                child.Invalidated += (_, _) => invalidated = true;
             });
 
             AddStep("resize parent", () => parent.Size = new Vector2(400));
@@ -326,7 +329,7 @@ namespace osu.Framework.Tests.Layout
             AddStep("make child dead", () =>
             {
                 child.LifetimeStart = double.MaxValue;
-                child.Invalidated += _ => invalidated = true;
+                child.Invalidated += (_, _) => invalidated = true;
             });
 
             // See above: won't cause an invalidation
@@ -362,7 +365,7 @@ namespace osu.Framework.Tests.Layout
                     }
                 };
 
-                child.Invalidated += _ => invalidated = true;
+                child.Invalidated += (_, _) => invalidated = true;
             });
 
             AddStep("invalidate parent", () =>
@@ -393,7 +396,7 @@ namespace osu.Framework.Tests.Layout
                     Child = child = new Box { RelativeSizeAxes = Axes.Both }
                 };
 
-                child.Invalidated += _ => invalidated = true;
+                child.Invalidated += (_, _) => invalidated = true;
             });
 
             AddStep("invalidate parent", () =>
@@ -405,12 +408,139 @@ namespace osu.Framework.Tests.Layout
             AddAssert("child not invalidated", () => !invalidated);
         }
 
-        private class TestBox1 : Box
+        /// <summary>
+        /// Tests the state of childrenSizeDependencies by the time a <see cref="CompositeDrawable"/> is loaded, for various values of <see cref="Axes"/>.
+        /// </summary>
+        [TestCase(Axes.None)]
+        [TestCase(Axes.X)]
+        [TestCase(Axes.Y)]
+        [TestCase(Axes.Both)]
+        public void TestChildrenSizeDependenciesValidationOnLoad(Axes autoSizeAxes)
+        {
+            bool isValid = false;
+
+            AddStep("create test", () =>
+            {
+                Container child;
+                Child = child = new Container { AutoSizeAxes = autoSizeAxes };
+                isValid = child.ChildrenSizeDependenciesIsValid;
+            });
+
+            if (autoSizeAxes != Axes.None)
+                AddAssert("invalidated", () => !isValid);
+            else
+                AddAssert("valid", () => isValid);
+        }
+
+        /// <summary>
+        /// Tests that setting <see cref="CompositeDrawable.AutoSizeAxes"/> causes an invalidation of childrenSizeDependencies when not <see cref="Axes.None"/>,
+        /// and causes a validation of childrenSizeDependencies when <see cref="Axes.None"/>.
+        /// </summary>
+        [Test]
+        public void TestSettingAutoSizeAxesInvalidatesAndValidates()
+        {
+            Container child = null;
+            bool isValid = false;
+
+            AddStep("create test", () =>
+            {
+                Child = child = new Container();
+                isValid = child.ChildrenSizeDependenciesIsValid;
+            });
+
+            AddAssert("initially valid", () => isValid);
+
+            AddStep("set autosize", () =>
+            {
+                child.AutoSizeAxes = Axes.Both;
+                isValid = child.ChildrenSizeDependenciesIsValid;
+            });
+
+            AddAssert("invalidated", () => !isValid);
+
+            AddStep("remove autosize", () =>
+            {
+                child.Invalidate(); // It will have automatically validated after the previous step.
+                child.AutoSizeAxes = Axes.None;
+                isValid = child.ChildrenSizeDependenciesIsValid;
+            });
+
+            AddAssert("valid", () => isValid);
+        }
+
+        /// <summary>
+        /// Tests that a non-autosizing parent does not have its childrenSizeDependencies invalidated when a child invalidates.
+        /// </summary>
+        [Test]
+        public void TestNonAutoSizingParentDoesNotInvalidateSizeDependenciesFromChild()
+        {
+            Container parent = null;
+            Drawable child = null;
+            bool isValid = false;
+
+            AddStep("create test", () =>
+            {
+                Child = parent = new Container
+                {
+                    Child = child = new Box()
+                };
+
+                isValid = parent.ChildrenSizeDependenciesIsValid;
+            });
+
+            AddAssert("initially valid", () => isValid);
+
+            AddStep("invalidate child", () =>
+            {
+                child.Height = 100;
+                isValid = parent.ChildrenSizeDependenciesIsValid;
+            });
+
+            AddAssert("still valid", () => isValid);
+        }
+
+        /// <summary>
+        /// Tests that changing Masking property will invalidate child masking bounds.
+        /// </summary>
+        [Test]
+        public void TestChildMaskingInvalidationOnMaskingChange()
+        {
+            Container parent = null;
+            Container child = null;
+            RectangleF childMaskingBounds = new RectangleF();
+            RectangleF actualChildMaskingBounds = new RectangleF();
+
+            AddStep("createTest", () =>
+            {
+                Child = parent = new Container
+                {
+                    Size = new Vector2(100),
+                    Child = child = new Container
+                    {
+                        RelativeSizeAxes = Axes.Both
+                    }
+                };
+            });
+
+            AddAssert("Parent's masking is off", () => parent.Masking == false);
+            AddStep("Save masking bounds", () =>
+            {
+                childMaskingBounds = parent.ChildMaskingBounds;
+                actualChildMaskingBounds = child.ChildMaskingBounds;
+            });
+            AddAssert("Parent and child have the same masking bounds", () => childMaskingBounds == actualChildMaskingBounds);
+            AddStep("Enable parent masking", () => parent.Masking = true);
+            AddAssert("Parent's ChildMaskingBounds has changed", () => childMaskingBounds != parent.ChildMaskingBounds);
+            AddAssert("Child's masking bounds has changed", () => actualChildMaskingBounds != child.ChildMaskingBounds);
+            AddAssert("Parent and child have the same masking bounds", () => parent.ChildMaskingBounds == child.ChildMaskingBounds);
+        }
+
+        private partial class TestBox1 : Box
         {
             public override bool RemoveWhenNotAlive => false;
         }
 
-        private class TestContainer1 : Container
+        private partial class TestContainer1 : Container
         {
             public new Action<Invalidation> Invalidated;
 

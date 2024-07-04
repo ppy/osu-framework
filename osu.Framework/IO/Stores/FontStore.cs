@@ -1,17 +1,17 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Graphics.Textures;
+#nullable disable
+
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using osu.Framework.Extensions.ObjectExtensions;
+using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
-using System.Collections.Concurrent;
-using JetBrains.Annotations;
 using osu.Framework.Platform;
 using osu.Framework.Text;
-using osu.Framework.Extensions.IEnumerableExtensions;
-using osu.Framework.Graphics.OpenGL.Textures;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.IO.Stores
 {
@@ -19,7 +19,7 @@ namespace osu.Framework.IO.Stores
     {
         private readonly List<IGlyphStore> glyphStores = new List<IGlyphStore>();
 
-        private readonly List<FontStore> nestedFontStores = new List<FontStore>();
+        private readonly List<ITexturedGlyphLookupStore> nestedFontStores = new List<ITexturedGlyphLookupStore>();
 
         private Storage cacheStorage;
 
@@ -32,10 +32,11 @@ namespace osu.Framework.IO.Stores
         /// <summary>
         /// Construct a font store to be added to a parent font store via <see cref="AddStore"/>.
         /// </summary>
+        /// <param name="renderer">The renderer to create textures with.</param>
         /// <param name="store">The texture source.</param>
         /// <param name="scaleAdjust">The raw pixel height of the font. Can be used to apply a global scale or metric to font usages.</param>
-        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100)
-            : this(store, scaleAdjust, false)
+        public FontStore(IRenderer renderer, IResourceStore<TextureUpload> store = null, float scaleAdjust = 100)
+            : this(renderer, store, scaleAdjust, false)
         {
         }
 
@@ -43,25 +44,37 @@ namespace osu.Framework.IO.Stores
         /// Construct a font store with a custom filtering mode to be added to a parent font store via <see cref="AddStore"/>.
         /// All fonts that use the specified filter mode should be nested inside this store to make optimal use of texture atlases.
         /// </summary>
+        /// <param name="renderer">The renderer to create textures with.</param>
         /// <param name="store">The texture source.</param>
         /// <param name="scaleAdjust">The raw pixel height of the font. Can be used to apply a global scale or metric to font usages.</param>
         /// <param name="minFilterMode">The texture minification filtering mode to use.</param>
-        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, All minFilterMode = All.Linear)
-            : this(store, scaleAdjust, true, filteringMode: minFilterMode)
+        public FontStore(IRenderer renderer, IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, TextureFilteringMode minFilterMode = TextureFilteringMode.Linear)
+            : this(renderer, store, scaleAdjust, true, filteringMode: minFilterMode)
         {
         }
 
-        internal FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, bool useAtlas = false, Storage cacheStorage = null, All filteringMode = All.Linear)
-            : base(store, scaleAdjust: scaleAdjust, useAtlas: useAtlas, filteringMode: filteringMode)
+        internal FontStore(IRenderer renderer, IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, bool useAtlas = false, Storage cacheStorage = null,
+                           TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
+            : base(renderer, store, scaleAdjust: scaleAdjust, useAtlas: useAtlas, filteringMode: filteringMode)
         {
             this.cacheStorage = cacheStorage;
         }
 
-        protected override IEnumerable<string> GetFilenames(string name) =>
-            // extensions should not be used as they interfere with character lookup.
-            name.Yield();
+        public override void AddTextureSource(IResourceStore<TextureUpload> store)
+        {
+            if (store is IGlyphStore gs)
+            {
+                if (gs is RawCachingGlyphStore raw && raw.CacheStorage == null)
+                    raw.CacheStorage = cacheStorage;
 
-        public override void AddStore(IResourceStore<TextureUpload> store)
+                glyphStores.Add(gs);
+                queueLoad(gs);
+            }
+
+            base.AddTextureSource(store);
+        }
+
+        public override void AddStore(ITextureStore store)
         {
             switch (store)
             {
@@ -69,17 +82,11 @@ namespace osu.Framework.IO.Stores
                     // if null, share the main store's atlas.
                     fs.Atlas ??= Atlas;
                     fs.cacheStorage ??= cacheStorage;
-
                     nestedFontStores.Add(fs);
-                    return;
+                    break;
 
-                case IGlyphStore gs:
-
-                    if (gs is RawCachingGlyphStore raw && raw.CacheStorage == null)
-                        raw.CacheStorage = cacheStorage;
-
-                    glyphStores.Add(gs);
-                    queueLoad(gs);
+                case ITexturedGlyphLookupStore gs:
+                    nestedFontStores.Add(gs);
                     break;
             }
 
@@ -114,39 +121,22 @@ namespace osu.Framework.IO.Stores
             });
         }
 
-        public override void RemoveStore(IResourceStore<TextureUpload> store)
+        public override void RemoveTextureStore(IResourceStore<TextureUpload> store)
         {
-            switch (store)
-            {
-                case FontStore fs:
-                    nestedFontStores.Remove(fs);
-                    return;
+            if (store is GlyphStore gs)
+                glyphStores.Remove(gs);
 
-                case GlyphStore gs:
-                    glyphStores.Remove(gs);
-                    break;
-            }
+            base.RemoveTextureStore(store);
+        }
+
+        public override void RemoveStore(ITextureStore store)
+        {
+            if (store is FontStore fs)
+                nestedFontStores.Remove(fs);
 
             base.RemoveStore(store);
         }
 
-        public new Texture Get(string name)
-        {
-            var found = base.Get(name, WrapMode.None, WrapMode.None);
-
-            if (found == null)
-            {
-                foreach (var store in nestedFontStores)
-                {
-                    if ((found = store.Get(name)) != null)
-                        break;
-                }
-            }
-
-            return found;
-        }
-
-        [CanBeNull]
         public ITexturedCharacterGlyph Get(string fontName, char character)
         {
             var key = (fontName, character);
@@ -159,7 +149,7 @@ namespace osu.Framework.IO.Stores
             foreach (var store in glyphStores)
             {
                 if ((string.IsNullOrEmpty(fontName) || fontName == store.FontName) && store.HasGlyph(character))
-                    return namespacedGlyphCache[key] = new TexturedCharacterGlyph(store.Get(character), Get(textureName), 1 / ScaleAdjust);
+                    return namespacedGlyphCache[key] = new TexturedCharacterGlyph(store.Get(character).AsNonNull(), Get(textureName), 1 / ScaleAdjust);
             }
 
             foreach (var store in nestedFontStores)
@@ -173,13 +163,5 @@ namespace osu.Framework.IO.Stores
         }
 
         public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => Task.Run(() => Get(fontName, character));
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-
-            nestedFontStores.ForEach(f => f.Dispose());
-            glyphStores.ForEach(g => g.Dispose());
-        }
     }
 }

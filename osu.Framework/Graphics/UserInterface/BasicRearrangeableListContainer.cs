@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
@@ -12,7 +14,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicRearrangeableListContainer<TModel> : RearrangeableListContainer<TModel>
+    public partial class BasicRearrangeableListContainer<TModel> : RearrangeableListContainer<TModel>
     {
         protected override FillFlowContainer<RearrangeableListItem<TModel>> CreateListFillFlowContainer() => base.CreateListFillFlowContainer().With(d =>
         {
@@ -36,7 +38,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual BasicRearrangeableListItem<TModel> CreateBasicItem(TModel item) => new BasicRearrangeableListItem<TModel>(item);
     }
 
-    public class BasicRearrangeableListItem<TModel> : RearrangeableListItem<TModel>
+    public partial class BasicRearrangeableListItem<TModel> : RearrangeableListItem<TModel>
     {
         internal Action<RearrangeableListItem<TModel>> RequestRemoval;
 
@@ -110,7 +112,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool IsDraggableAt(Vector2 screenSpacePos) => dragHandle.IsHovered;
 
-        protected internal class Button : Container
+        protected internal partial class Button : Container
         {
             public Action Action;
 

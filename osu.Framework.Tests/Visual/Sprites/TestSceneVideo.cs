@@ -1,6 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
@@ -13,7 +16,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneVideo : FrameworkTestScene
+    public partial class TestSceneVideo : FrameworkTestScene
     {
         private ResourceStore<byte[]> videoStore;
 
@@ -28,6 +31,25 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         [Resolved]
         private FrameworkConfigManager config { get; set; }
+
+        private static readonly string[] file_formats =
+        {
+            "h264.mp4",
+            "h264.mov",
+            "h264.avi",
+            "h264.flv",
+            "h264.mkv",
+        };
+
+        private static readonly string[] video_formats =
+        {
+            "h264.mp4",
+            "hevc.mp4",
+            "vp8.webm",
+            "vp9.webm",
+        };
+
+        private static string[][] videoFormatTestCaseSource => video_formats.Select(format => new[] { format }).ToArray();
 
         [BackgroundDependencyLoader]
         private void load(Game game)
@@ -49,16 +71,16 @@ namespace osu.Framework.Tests.Visual.Sprites
             };
         }
 
-        private void loadNewVideo(string format = "mp4")
+        private void loadNewVideo(string videoFile = "h264.mp4")
         {
             AddStep("Reset clock", () =>
             {
                 clock.CurrentTime = 0;
                 didDecode = false;
             });
-            AddStep($"load .{format} video", () =>
+            AddStep($"load {videoFile}", () =>
             {
-                videoContainer.Child = video = new TestVideo(videoStore.GetStream($"sample-video.{format}"))
+                videoContainer.Child = video = new TestVideo(videoStore.GetStream(videoFile))
                 {
                     Loop = false,
                     Origin = Anchor.Centre,
@@ -72,13 +94,28 @@ namespace osu.Framework.Tests.Visual.Sprites
         }
 
         [Test]
-        public void TestHardwareDecode()
+        public void TestFileFormats()
         {
-            loadNewVideo();
+            foreach (string fileFormat in file_formats)
+                loadNewVideo(fileFormat);
+        }
 
+        [Test]
+        public void TestVideoFormats()
+        {
             AddStep("disable hardware decoding", () => config.SetValue(FrameworkSetting.HardwareVideoDecoder, HardwareVideoDecoder.None));
-            AddWaitStep("Wait some", 20);
+
+            foreach (string videoFormat in video_formats)
+                loadNewVideo(videoFormat);
+        }
+
+        [Test]
+        public void TestVideoFormatsWithHwAccel()
+        {
             AddStep("enable hardware decoding", () => config.SetValue(FrameworkSetting.HardwareVideoDecoder, HardwareVideoDecoder.Any));
+
+            foreach (string videoFormat in video_formats)
+                loadNewVideo(videoFormat);
         }
 
         [Test]
@@ -103,7 +140,6 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddStep("make video hidden", () => video.Hide());
 
             AddWaitStep("wait a bit", 10);
-
             AddUntilStep("decoding stopped", () => video.State == VideoDecoder.DecoderState.Ready);
 
             AddStep("reset decode state", () => didDecode = false);
@@ -125,6 +161,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             AddStep("Jump back to before start time", () => clock.CurrentTime = -30000);
 
+            AddWaitStep("wait a bit", 10);
             AddUntilStep("decoding stopped", () => video.State == VideoDecoder.DecoderState.Ready);
 
             AddStep("reset decode state", () => didDecode = false);
@@ -136,23 +173,19 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("decoding ran", () => didDecode);
         }
 
-        [TestCase("mp4")]
-        [TestCase("avi")]
-        [TestCase("webm")]
-        public void TestJumpForward(string videoFormat)
+        [TestCaseSource(nameof(videoFormatTestCaseSource))]
+        public void TestJumpForward(string videoFile)
         {
-            loadNewVideo(videoFormat);
+            loadNewVideo(videoFile);
 
             AddStep("Jump ahead by 10 seconds", () => clock.CurrentTime += 10000);
             AddUntilStep("Video seeked", () => video.CurrentFrameTime >= 10000);
         }
 
-        [TestCase("mp4")]
-        [TestCase("avi")]
-        [TestCase("webm")]
-        public void TestJumpBack(string videoFormat)
+        [TestCaseSource(nameof(videoFormatTestCaseSource))]
+        public void TestJumpBack(string videoFile)
         {
-            loadNewVideo(videoFormat);
+            loadNewVideo(videoFile);
 
             AddStep("Jump ahead by 30 seconds", () => clock.CurrentTime += 30000);
             AddUntilStep("Video seeked", () => video.CurrentFrameTime >= 30000);
@@ -160,12 +193,10 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("Video seeked", () => video.CurrentFrameTime < 30000);
         }
 
-        [TestCase("mp4")]
-        [TestCase("avi")]
-        [TestCase("webm")]
-        public void TestJumpBackAfterEndOfPlayback(string videoFormat)
+        [TestCaseSource(nameof(videoFormatTestCaseSource))]
+        public void TestJumpBackAfterEndOfPlayback(string videoFile)
         {
-            loadNewVideo(videoFormat);
+            loadNewVideo(videoFile);
 
             AddStep("Jump close to end", () => clock.CurrentTime = video.Duration - 1000);
             AddUntilStep("Video seeked", () => video.CurrentFrameTime >= video.Duration - 1500);
@@ -205,8 +236,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             loadNewVideo();
 
             AddStep("Set colour", () => video.Colour = Color4Extensions.FromHex("#ea7948").Opacity(0.75f));
-            AddStep("Use normal shader", () => video.UseRoundedShader = false);
-            AddStep("Use rounded shader", () => video.UseRoundedShader = true);
+            AddToggleStep("Toggle rounding", v => video.Rounded = v);
         }
 
         private int currentSecond;

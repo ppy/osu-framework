@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using Markdig.Extensions.Tables;
 using Markdig.Syntax;
 using osu.Framework.Allocation;
@@ -15,7 +17,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// <code>
     /// |  cell 1   |  cell 2   |
     /// </code>
-    public class MarkdownTableCell : CompositeDrawable, IMarkdownTextFlowComponent
+    public partial class MarkdownTableCell : CompositeDrawable, IMarkdownTextFlowComponent
     {
         public float ContentWidth => textFlow.TotalTextWidth;
         public float ContentHeight => textFlow.DrawHeight;

@@ -1,13 +1,15 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneSpriteText : FrameworkTestScene
+    public partial class TestSceneSpriteText : FrameworkTestScene
     {
         public TestSceneSpriteText()
         {
@@ -42,6 +44,48 @@ namespace osu.Framework.Tests.Visual.Sprites
             flow.Add(new SpriteText
             {
                 Text = @"0123456789!@#$%^&*()_-+-[]{}.,<>;'\"
+            });
+
+            flow.Add(new Container
+            {
+                Margin = new MarginPadding { Vertical = 5 },
+                AutoSizeAxes = Axes.Both,
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                    new SpriteText
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Colour = Color4.Black,
+                        UseFullGlyphHeight = true,
+                        Text = "UseFullGlyphHeight = true",
+                    },
+                }
+            });
+
+            flow.Add(new Container
+            {
+                Margin = new MarginPadding { Vertical = 5 },
+                AutoSizeAxes = Axes.Both,
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                    new SpriteText
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Colour = Color4.Black,
+                        UseFullGlyphHeight = false,
+                        Text = "UseFullGlyphHeight = false",
+                    },
+                }
             });
 
             for (int i = 1; i <= 200; i++)

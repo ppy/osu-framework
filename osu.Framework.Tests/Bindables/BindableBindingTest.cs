@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -11,7 +13,7 @@ using osu.Framework.Timing;
 namespace osu.Framework.Tests.Bindables
 {
     [TestFixture]
-    public class BindableBindingTest
+    public partial class BindableBindingTest
     {
         [Test]
         public void TestBindToAlreadyBound()
@@ -19,7 +21,7 @@ namespace osu.Framework.Tests.Bindables
             Bindable<string> bindable1 = new Bindable<string>("default");
             Bindable<string> bindable2 = bindable1.GetBoundCopy();
 
-            Assert.Throws<InvalidOperationException>(() => bindable1.BindTo(bindable2));
+            Assert.Throws<ArgumentException>(() => bindable1.BindTo(bindable2));
         }
 
         [Test]
@@ -109,7 +111,7 @@ namespace osu.Framework.Tests.Bindables
 
             int changed1 = 0, changed2 = 0;
 
-            bindable1.DefaultChanged += v => changed1++;
+            bindable1.DefaultChanged += _ => changed1++;
             bindable2.DefaultChanged += _ =>
             {
                 bindable2.Default = "won't change";
@@ -167,7 +169,7 @@ namespace osu.Framework.Tests.Bindables
 
             int changed1 = 0, changed2 = 0;
 
-            bindable1.ValueChanged += v => changed1++;
+            bindable1.ValueChanged += _ => changed1++;
             bindable2.ValueChanged += _ =>
             {
                 bindable2.Value = "won't change";
@@ -218,7 +220,7 @@ namespace osu.Framework.Tests.Bindables
 
             int changed1 = 0, changed2 = 0;
 
-            bindable1.DisabledChanged += v => changed1++;
+            bindable1.DisabledChanged += _ => changed1++;
             bindable2.DisabledChanged += _ =>
             {
                 bindable2.Disabled = false;
@@ -267,7 +269,7 @@ namespace osu.Framework.Tests.Bindables
 
             int changed1 = 0, changed2 = 0;
 
-            bindable1.MinValueChanged += v => changed1++;
+            bindable1.MinValueChanged += _ => changed1++;
             bindable2.MinValueChanged += _ =>
             {
                 bindable2.MinValue = 1337;
@@ -316,7 +318,7 @@ namespace osu.Framework.Tests.Bindables
 
             int changed1 = 0, changed2 = 0;
 
-            bindable1.MaxValueChanged += v => changed1++;
+            bindable1.MaxValueChanged += _ => changed1++;
             bindable2.MaxValueChanged += _ =>
             {
                 bindable2.MaxValue = 1337;
@@ -524,7 +526,7 @@ namespace osu.Framework.Tests.Bindables
             Assert.That(bindable2.IsBound, Is.False);
         }
 
-        private class TestDrawable : Drawable
+        private partial class TestDrawable : Drawable
         {
             public bool ValueChanged;
 
@@ -541,7 +543,7 @@ namespace osu.Framework.Tests.Bindables
             public virtual void SetValue(int value) => bindable.Value = value;
         }
 
-        private class TestSubDrawable : TestDrawable
+        private partial class TestSubDrawable : TestDrawable
         {
             public bool ValueChanged2;
 
@@ -559,7 +561,7 @@ namespace osu.Framework.Tests.Bindables
             }
         }
 
-        private class TestDrawable2 : Drawable
+        private partial class TestDrawable2 : Drawable
         {
             public Func<Bindable<int>> GetBindable;
             private Bindable<int> bindable => GetBindable();
@@ -573,7 +575,7 @@ namespace osu.Framework.Tests.Bindables
             public void SetValue(int value) => bindable.Value = value;
         }
 
-        private class TestDrawable3 : Drawable
+        private partial class TestDrawable3 : Drawable
         {
             public Bindable<int> Bindable { get; } = new Bindable<int>();
 

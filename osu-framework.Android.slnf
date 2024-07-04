@@ -7,7 +7,10 @@
       "osu.Framework.Android\\osu.Framework.Android.csproj",
       "osu.Framework.NativeLibs\\osu.Framework.NativeLibs.csproj",
       "osu.Framework.Tests.Android\\osu.Framework.Tests.Android.csproj",
-      "osu.Framework\\osu.Framework.csproj"
+      "osu.Framework\\osu.Framework.csproj",
+
+      "osu.Framework.Templates\\templates\\template-empty\\TemplateGame.Game\\TemplateGame.Game.csproj",
+      "osu.Framework.Templates\\templates\\template-flappy\\FlappyDon.Game\\FlappyDon.Game.csproj"
     ]
   }
 }

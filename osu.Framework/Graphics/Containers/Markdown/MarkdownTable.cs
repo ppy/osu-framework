@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +20,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// | --------- | --------- |
     /// |  cell 1   |  cell 2   |
     /// </code>
-    public class MarkdownTable : CompositeDrawable
+    public partial class MarkdownTable : CompositeDrawable
     {
         private GridContainer tableContainer;
 
