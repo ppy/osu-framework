@@ -143,7 +143,7 @@ namespace osu.Framework.Audio.Sample
             if (!hasChannel)
                 return;
 
-            Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, AggregateVolume.Value);
+            Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, AggregateVolume.Value * bassMixer.Volume.Value);
             Bass.ChannelSetAttribute(channel, ChannelAttribute.Pan, AggregateBalance.Value);
             relativeFrequencyHandler.SetFrequency(AggregateFrequency.Value);
         }

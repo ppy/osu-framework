@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using ManagedBass;
+
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.Audio.Mixing
@@ -12,6 +14,8 @@ namespace osu.Framework.Audio.Mixing
     public abstract class AudioMixer : AudioComponent, IAudioMixer
     {
         public readonly string Identifier;
+
+        public readonly Bindable<double> Volume = new BindableDouble(1);
 
         private readonly AudioMixer? fallbackMixer;
 
