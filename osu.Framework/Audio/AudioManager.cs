@@ -176,10 +176,10 @@ namespace osu.Framework.Audio
                 usingGlobalMixer.Value = handle.NewValue.HasValue;
             };
 
-            TrackMixer = createAudioMixer(null, nameof(TrackMixer));
-            SampleMixer = createAudioMixer(null, nameof(SampleMixer));
-
+            AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
             TrackMixer.Volume.BindTo(VolumeTrack);
+
+            AddItem(SampleMixer = createAudioMixer(null, nameof(SampleMixer)));
             SampleMixer.Volume.BindTo(VolumeSample);
 
             globalTrackStore = new Lazy<TrackStore>(() =>

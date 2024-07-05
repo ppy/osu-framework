@@ -55,19 +55,8 @@ namespace osu.Framework.Audio.Sample
         AudioMixer? IAudioChannel.Mixer
         {
             get => Mixer;
-            set
-            {
-                if (Mixer != null)
-                    Mixer.Volume.ValueChanged -= mixerVolumeChanged;
-
-                Mixer = value;
-
-                if (Mixer != null)
-                    Mixer.Volume.ValueChanged += mixerVolumeChanged;
-            }
+            set => Mixer = value;
         }
-
-        private void mixerVolumeChanged(Bindables.ValueChangedEvent<double> obj) => OnStateChanged();
 
         Task IAudioChannel.EnqueueAction(Action action) => EnqueueAction(action);
 

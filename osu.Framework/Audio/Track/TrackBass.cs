@@ -355,7 +355,8 @@ namespace osu.Framework.Audio.Track
                 return;
 
             setDirection(AggregateFrequency.Value < 0);
-            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Volume, AggregateVolume.Value * bassMixer.Volume.Value);
+
+            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Volume, AggregateVolume.Value);
             Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Pan, AggregateBalance.Value);
             relativeFrequencyHandler.SetFrequency(AggregateFrequency.Value);
 
@@ -422,10 +423,7 @@ namespace osu.Framework.Audio.Track
             {
                 // While BASS cleans up syncs automatically on mixer change, ManagedBass internally tracks the sync procedures via ChannelReferences, so clean up eagerly for safety.
                 if (Mixer != null)
-                {
-                    Mixer.Volume.ValueChanged -= mixerVolumeChanged;
                     cleanUpSyncs();
-                }
 
                 base.Mixer = value;
 
@@ -434,15 +432,12 @@ namespace osu.Framework.Audio.Track
                 {
                     // Tracks are always active until they're disposed, so they need to be added to the mix prematurely for operations like Seek() to work immediately.
                     bassMixer.AddChannelToBassMix(this);
-                    Mixer.Volume.ValueChanged += mixerVolumeChanged;
 
                     // Syncs are not automatically moved on mixer change, so restore them on the new mixer manually.
                     initializeSyncs();
                 }
             }
         }
-
-        private void mixerVolumeChanged(Bindables.ValueChangedEvent<double> obj) => OnStateChanged();
 
         private BassAudioMixer bassMixer => (BassAudioMixer)Mixer.AsNonNull();
 

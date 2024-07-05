@@ -2,8 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using ManagedBass;
-
-using osu.Framework.Bindables;
 using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.Audio.Mixing
@@ -11,11 +9,9 @@ namespace osu.Framework.Audio.Mixing
     /// <summary>
     /// Mixes together multiple <see cref="IAudioChannel"/>s into one output.
     /// </summary>
-    public abstract class AudioMixer : AudioComponent, IAudioMixer
+    public abstract class AudioMixer : AdjustableAudioComponent, IAudioMixer
     {
         public readonly string Identifier;
-
-        public readonly Bindable<double> Volume = new BindableDouble(1);
 
         private readonly AudioMixer? fallbackMixer;
 
@@ -33,6 +29,9 @@ namespace osu.Framework.Audio.Mixing
 
         public void Add(IAudioChannel channel)
         {
+            if (channel is IAdjustableAudioComponent adj)
+                adj.BindAdjustments(this);
+
             channel.EnqueueAction(() =>
             {
                 if (channel.Mixer == this)
@@ -73,6 +72,9 @@ namespace osu.Framework.Audio.Mixing
 
                 RemoveInternal(channel);
                 channel.Mixer = null;
+
+                if (channel is IAdjustableAudioComponent adj)
+                    adj.UnbindAdjustments(this);
 
                 // Add the channel back to the default mixer so audio can always be played.
                 if (returnToDefault)
