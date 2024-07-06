@@ -56,7 +56,7 @@ function prep_ffmpeg() {
 
 function build_ffmpeg() {
     echo "-> Configuring..."
-    if [ "$arch" = "x86" ]; then
+    if [ "$arch" = "x86" ] && [ "$(uname -s)" = "Linux" ]; then
         FFMPEG_FLAGS+=(
             --disable-asm
         )
