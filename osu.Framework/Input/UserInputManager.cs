@@ -5,7 +5,6 @@ using System;
 using System.Collections.Immutable;
 using System.Drawing;
 using osu.Framework.Configuration;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.StateChanges.Events;
@@ -45,7 +44,7 @@ namespace osu.Framework.Input
                         var clientSize = Host.Window.ClientSize;
                         var windowRect = new RectangleF(0, 0, clientSize.Width, clientSize.Height);
 
-                        if (Host.Window.CursorState.HasFlagFast(CursorState.Confined))
+                        if (Host.Window.CursorState.HasFlag(CursorState.Confined))
                         {
                             cursorConfineRect = Host.Window.CursorConfineRect ?? windowRect;
                         }
@@ -90,7 +89,7 @@ namespace osu.Framework.Input
             switch (Host.Window.WindowMode.Value)
             {
                 case WindowMode.Windowed:
-                    windowLocation = Host.Window is SDL3Window sdlWindow ? sdlWindow.Position : Point.Empty;
+                    windowLocation = Host.Window is ISDLWindow sdlWindow ? sdlWindow.Position : Point.Empty;
                     break;
 
                 default:

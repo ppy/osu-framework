@@ -11,6 +11,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
@@ -312,6 +313,56 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestExternalManagement()
+        {
+            TestDropdown dropdown = null!;
+            Drawable openButton = null!;
+
+            AddStep("setup dropdown", () =>
+            {
+                dropdown = createDropdown();
+                dropdown.AlwaysShowSearchBar = true;
+
+                Add(openButton = new BasicButton
+                {
+                    Size = new Vector2(150, 30),
+                    Position = new Vector2(225, 50),
+                    Text = "Open dropdown",
+                    Action = openExternally
+                });
+            });
+
+            // Open via setting state directly
+
+            AddStep("open dropdown directly", openExternally);
+            AddAssert("dropdown open", () => dropdown.Menu.State, () => Is.EqualTo(MenuState.Open));
+            AddAssert("search bar visible", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Visible));
+            AddStep("press escape", () => InputManager.Key(Key.Escape));
+
+            // Open via clicking on an external button
+
+            AddStep("open dropdown via external button", () =>
+            {
+                InputManager.MoveMouseTo(openButton);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("dropdown open", () => dropdown.Menu.State, () => Is.EqualTo(MenuState.Open));
+            AddAssert("search bar visible", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Visible));
+            AddStep("press escape", () => InputManager.Key(Key.Escape));
+
+            // Close via setting state directly
+
+            AddStep("open dropdown directly", openExternally);
+            AddAssert("dropdown open", () => dropdown.Menu.State, () => Is.EqualTo(MenuState.Open));
+            AddStep("close dropdown directly", () => dropdown.ChildrenOfType<Menu>().Single().Close());
+            AddAssert("dropdown closed", () => dropdown.Menu.State, () => Is.EqualTo(MenuState.Closed));
+            AddAssert("search bar not visible", () => dropdown.ChildrenOfType<DropdownSearchBar>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
+
+            void openExternally() => dropdown.ChildrenOfType<Menu>().Single().Open();
+        }
+
+        [Test]
         public void TestItemReplacementDoesNotAffectScroll()
         {
             TestDropdown testDropdown = null!;
@@ -430,6 +481,32 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddAssert("text is expected", () => dropdown.SelectedItem.Text.Value.ToString(), () => Is.EqualTo("loaded: non-existent item"));
+        }
+
+        [Test]
+        public void TestRemoveDropdownOnSelect()
+        {
+            TestDropdown testDropdown = null!;
+            Bindable<TestModel?> bindable = null!;
+
+            AddStep("setup dropdown", () =>
+            {
+                bindable = new Bindable<TestModel?>();
+                bindable.ValueChanged += _ => createDropdown();
+
+                testDropdown = createDropdown();
+                testDropdown.Current = bindable;
+            });
+
+            toggleDropdownViaClick(() => testDropdown);
+
+            AddStep("click item 2", () =>
+            {
+                InputManager.MoveMouseTo(testDropdown.Menu.Children[2]);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("bindable value is item 2", () => bindable.Value?.Identifier == "test 2");
         }
 
         #region Searching
@@ -632,6 +709,31 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         #endregion
 
+        [Test]
+        public void TestPaddedSearchBar()
+        {
+            SearchBarPaddedDropdown dropdown = null!;
+
+            AddStep("setup dropdown", () =>
+            {
+                Child = dropdown = new SearchBarPaddedDropdown
+                {
+                    Position = new Vector2(50f, 50f),
+                    Width = 150f,
+                    Items = new TestModel("test").Yield(),
+                };
+            });
+
+            AddStep("click on padded area", () =>
+            {
+                RectangleF area = dropdown.Header.ScreenSpaceDrawQuad.AABBFloat;
+                InputManager.MoveMouseTo(new Vector2(area.Right - 5, area.Centre.Y));
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("dropdown is open", () => dropdown.Menu.State, () => Is.EqualTo(MenuState.Open));
+        }
+
         private TestDropdown createDropdown() => createDropdowns(1).Single();
 
         private TestDropdown[] createDropdowns(int count) => createDropdowns<TestDropdown>(count);
@@ -732,6 +834,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 Assert.That(text, Is.Not.Null);
                 return $"{text}: {base.GenerateItemText(item)}";
+            }
+        }
+
+        private partial class SearchBarPaddedDropdown : TestDropdown
+        {
+            protected override DropdownHeader CreateHeader() => new PaddedHeader();
+
+            private partial class PaddedHeader : BasicDropdownHeader
+            {
+                protected override DropdownSearchBar CreateSearchBar() => base.CreateSearchBar().With(d =>
+                {
+                    d.Padding = new MarginPadding { Right = 25 };
+                });
             }
         }
 

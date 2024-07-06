@@ -28,7 +28,7 @@ namespace osu.Framework.Platform.Windows
         {
             base.Initialise(graphicsSurface);
 
-            WindowsWindow windowsWindow = (WindowsWindow)host.Window;
+            ISDLWindow windowsWindow = (ISDLWindow)host.Window;
 
             bool isIntel = GL.GetString(StringName.Vendor).Trim() == "Intel";
 

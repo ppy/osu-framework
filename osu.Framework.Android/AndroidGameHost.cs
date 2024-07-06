@@ -21,7 +21,7 @@ using Uri = Android.Net.Uri;
 
 namespace osu.Framework.Android
 {
-    public class AndroidGameHost : SDL3GameHost
+    public class AndroidGameHost : SDLGameHost
     {
         private readonly AndroidGameActivity activity;
 

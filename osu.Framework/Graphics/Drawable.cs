@@ -25,9 +25,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
@@ -682,10 +682,10 @@ namespace osu.Framework.Graphics
                 {
                     offset = Parent.RelativeChildOffset;
 
-                    if (!RelativePositionAxes.HasFlagFast(Axes.X))
+                    if (!RelativePositionAxes.HasFlag(Axes.X))
                         offset.X = 0;
 
-                    if (!RelativePositionAxes.HasFlagFast(Axes.Y))
+                    if (!RelativePositionAxes.HasFlag(Axes.Y))
                         offset.Y = 0;
                 }
 
@@ -811,8 +811,8 @@ namespace osu.Framework.Graphics
 
                 relativeSizeAxes = value;
 
-                if (relativeSizeAxes.HasFlagFast(Axes.X) && Width == 0) Width = 1;
-                if (relativeSizeAxes.HasFlagFast(Axes.Y) && Height == 0) Height = 1;
+                if (relativeSizeAxes.HasFlag(Axes.X) && Width == 0) Width = 1;
+                if (relativeSizeAxes.HasFlag(Axes.Y) && Height == 0) Height = 1;
 
                 updateBypassAutoSizeAxes();
 
@@ -906,9 +906,9 @@ namespace osu.Framework.Graphics
             {
                 Vector2 conversion = relativeToAbsoluteFactor;
 
-                if (relativeAxes.HasFlagFast(Axes.X))
+                if (relativeAxes.HasFlag(Axes.X))
                     v.X *= conversion.X;
-                if (relativeAxes.HasFlagFast(Axes.Y))
+                if (relativeAxes.HasFlag(Axes.Y))
                     v.Y *= conversion.Y;
 
                 // FillMode only makes sense if both axes are relatively sized as the general rule
@@ -1136,14 +1136,14 @@ namespace osu.Framework.Graphics
                     throw new InvalidOperationException(@"Can not obtain relative origin position for custom origins.");
 
                 Vector2 result = Vector2.Zero;
-                if (origin.HasFlagFast(Anchor.x1))
+                if (origin.HasFlag(Anchor.x1))
                     result.X = 0.5f;
-                else if (origin.HasFlagFast(Anchor.x2))
+                else if (origin.HasFlag(Anchor.x2))
                     result.X = 1;
 
-                if (origin.HasFlagFast(Anchor.y1))
+                if (origin.HasFlag(Anchor.y1))
                     result.Y = 0.5f;
-                else if (origin.HasFlagFast(Anchor.y2))
+                else if (origin.HasFlag(Anchor.y2))
                     result.Y = 1;
 
                 return result;
@@ -1224,14 +1224,14 @@ namespace osu.Framework.Graphics
                     return customRelativeAnchorPosition;
 
                 Vector2 result = Vector2.Zero;
-                if (anchor.HasFlagFast(Anchor.x1))
+                if (anchor.HasFlag(Anchor.x1))
                     result.X = 0.5f;
-                else if (anchor.HasFlagFast(Anchor.x2))
+                else if (anchor.HasFlag(Anchor.x2))
                     result.X = 1;
 
-                if (anchor.HasFlagFast(Anchor.y1))
+                if (anchor.HasFlag(Anchor.y1))
                     result.Y = 0.5f;
-                else if (anchor.HasFlagFast(Anchor.y2))
+                else if (anchor.HasFlag(Anchor.y2))
                     result.Y = 1;
 
                 return result;
@@ -1269,14 +1269,14 @@ namespace osu.Framework.Graphics
         {
             Vector2 result = Vector2.Zero;
 
-            if (anchor.HasFlagFast(Anchor.x1))
+            if (anchor.HasFlag(Anchor.x1))
                 result.X = size.X / 2f;
-            else if (anchor.HasFlagFast(Anchor.x2))
+            else if (anchor.HasFlag(Anchor.x2))
                 result.X = size.X;
 
-            if (anchor.HasFlagFast(Anchor.y1))
+            if (anchor.HasFlag(Anchor.y1))
                 result.Y = size.Y / 2f;
-            else if (anchor.HasFlagFast(Anchor.y2))
+            else if (anchor.HasFlag(Anchor.y2))
                 result.Y = size.Y;
 
             return result;
@@ -1490,6 +1490,7 @@ namespace osu.Framework.Graphics
         /// As this is performing an upward tree traversal, avoid calling every frame.
         /// </summary>
         /// <returns>The first parent <see cref="InputManager"/>.</returns>
+        [CanBeNull]
         protected InputManager GetContainingInputManager() => this.FindClosestParent<InputManager>();
 
         /// <summary>
@@ -1497,6 +1498,7 @@ namespace osu.Framework.Graphics
         /// As this is performing an upward tree traversal, avoid calling every frame.
         /// </summary>
         /// <returns>The first parent <see cref="IFocusManager"/>.</returns>
+        [CanBeNull]
         protected IFocusManager GetContainingFocusManager() => this.FindClosestParent<IFocusManager>();
 
         private CompositeDrawable parent;
@@ -1544,7 +1546,7 @@ namespace osu.Framework.Graphics
         public bool HasProxy => proxy != null;
 
         /// <summary>
-        /// True iff this <see cref="Drawable"/> is not a proxy of any <see cref="Drawable"/>.
+        /// True iff this <see cref="Drawable"/> is a proxy of any <see cref="Drawable"/>.
         /// </summary>
         public bool IsProxy => Original != this;
 
@@ -2402,6 +2404,11 @@ namespace osu.Framework.Graphics
         /// If true, we will gain focus (receiving priority on keyboard input) (and receive an <see cref="OnFocus"/> event) on returning true in <see cref="OnClick"/>.
         /// </summary>
         public virtual bool AcceptsFocus => false;
+
+        /// <summary>
+        /// If true, returning true in <see cref="OnClick"/> causes the current focus target to be unfocused.
+        /// </summary>
+        public virtual bool ChangeFocusOnClick => true;
 
         /// <summary>
         /// Whether this Drawable is currently hovered over.

@@ -11,7 +11,6 @@ using Java.Lang;
 using ManagedBass;
 using Org.Libsdl.App;
 using osu.Framework.Extensions.ObjectExtensions;
-using osu.Framework.Platform;
 using Debug = System.Diagnostics.Debug;
 
 namespace osu.Framework.Android
@@ -34,8 +33,6 @@ namespace osu.Framework.Android
 
         internal static AndroidGameSurface Surface => (AndroidGameSurface)MSurface!;
 
-        private GameHost? host;
-
         protected abstract Game CreateGame();
 
         protected override string[] GetLibraries() => new string[] { "SDL3" };
@@ -44,7 +41,7 @@ namespace osu.Framework.Android
 
         protected override IRunnable CreateSDLMainRunnable() => new Runnable(() =>
         {
-            host = new AndroidGameHost(this);
+            var host = new AndroidGameHost(this);
             host.Run(CreateGame());
 
             if (!IsFinishing)
@@ -67,12 +64,6 @@ namespace osu.Framework.Android
             {
                 Window.AsNonNull().Attributes.AsNonNull().LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.ShortEdges;
             }
-        }
-
-        public override void OnTrimMemory(TrimMemory level)
-        {
-            base.OnTrimMemory(level);
-            host?.Collect();
         }
 
         protected override void OnStop()

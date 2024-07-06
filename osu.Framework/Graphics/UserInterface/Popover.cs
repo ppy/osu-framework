@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using osu.Framework.Extensions;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
@@ -185,7 +184,7 @@ namespace osu.Framework.Graphics.UserInterface
             get => Body.Width;
             set
             {
-                if (Body.AutoSizeAxes.HasFlagFast(Axes.X))
+                if (Body.AutoSizeAxes.HasFlag(Axes.X))
                     Body.AutoSizeAxes &= ~Axes.X;
 
                 Body.Width = value;
@@ -197,7 +196,7 @@ namespace osu.Framework.Graphics.UserInterface
             get => Body.Height;
             set
             {
-                if (Body.AutoSizeAxes.HasFlagFast(Axes.Y))
+                if (Body.AutoSizeAxes.HasFlag(Axes.Y))
                     Body.AutoSizeAxes &= ~Axes.Y;
 
                 Body.Height = value;

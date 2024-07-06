@@ -22,11 +22,11 @@ namespace osu.Framework.Graphics.Containers
             {
                 case Visibility.Hidden:
                     if (HasFocus)
-                        GetContainingFocusManager().ChangeFocus(null);
+                        GetContainingFocusManager()?.ChangeFocus(null);
                     break;
 
                 case Visibility.Visible:
-                    Schedule(() => GetContainingFocusManager().TriggerFocusContention(this));
+                    Schedule(() => GetContainingFocusManager()?.TriggerFocusContention(this));
                     break;
             }
         }
