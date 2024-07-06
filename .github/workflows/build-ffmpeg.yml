@@ -283,11 +283,11 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: linux-arm64
-          path: osu.Framework.NativeLibs/runtimes/linux-x64/native
+          path: osu.Framework.NativeLibs/runtimes/linux-arm64/native
       - uses: actions/download-artifact@v4
         with:
           name: linux-arm
-          path: osu.Framework.NativeLibs/runtimes/linux-x64/native
+          path: osu.Framework.NativeLibs/runtimes/linux-arm/native
       - uses: actions/download-artifact@v4
         with:
           name: linux-x64
@@ -295,7 +295,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: linux-x86
-          path: osu.Framework.NativeLibs/runtimes/linux-x64/native
+          path: osu.Framework.NativeLibs/runtimes/linux-x86/native
       - uses: actions/download-artifact@v4
         with:
           name: win-arm64
