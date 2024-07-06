@@ -4,7 +4,7 @@ on: workflow_dispatch
 jobs:
   build-macos:
     name: Build macOS
-    runs-on: macos-latest
+    runs-on: macos-12
     strategy:
       fail-fast: false
       matrix:
@@ -122,25 +122,22 @@ jobs:
           path: iOS-xcframework
 
   build-win:
-    name: Build Windows (${{ matrix.arch }})
+    name: Build Windows
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         arch:
-          - x64
           - x86
-          - arm64
-    container:
-      image: mstorsjo/llvm-mingw:latest
+          - x64
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Install dependencies
         run: |
-          apt-get update -y -qq
-          apt-get install -y nasm mingw-w64
+          sudo apt-get update
+          sudo apt-get install nasm mingw-w64
 
       - name: Build
         run: osu.Framework.NativeLibs/scripts/ffmpeg/build-win.sh
@@ -153,14 +150,56 @@ jobs:
           name: win-${{ matrix.arch }}
           path: win-${{ matrix.arch }}
 
+  # The win-arm64 build runs in a special MinGW container to cross-compile successfully.
+  build-win-arm64:
+    name: Build Windows (arm64)
+    runs-on: ubuntu-22.04
+    container:
+      image: mstorsjo/llvm-mingw:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: osu.Framework.NativeLibs/scripts/ffmpeg/build-win.sh
+        env:
+          arch: arm64
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: win-arm64
+          path: win-arm64
+
   build-linux:
+    name: Build Linux (x64)
+    # Use 20.04 to target glibc 2.31 like the other native libs
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install nasm
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: osu.Framework.NativeLibs/scripts/ffmpeg/build-linux.sh
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-x64
+          path: linux-x64
+
+  build-linux-cross:
     name: Build Linux
     # Use 20.04 to target glibc 2.31 like the other native libs
     runs-on: ubuntu-20.04
     strategy:
       matrix:
         include:
-          - { arch: x64, container: "ubuntu:20.04" }
           - { arch: x86, container: "i386/ubuntu:20.04" }
           - { arch: arm64, container: "arm64v8/ubuntu:20.04" }
           - { arch: arm, container: "arm32v7/ubuntu:20.04" }
@@ -179,7 +218,11 @@ jobs:
           options: -v ${{ github.workspace }}:/workspace -w /workspace -e DEBIAN_FRONTEND=noninteractive
           run: |
             apt-get update -y -qq
-            apt-get install -y build-essential curl nasm libva-dev libvdpau-dev
+            apt-get install -y build-essential curl
+            if [ "$(dpkg --print-architecture)" = "i386" ]; then
+              apt-get install -y nasm
+            fi
+            
             osu.Framework.NativeLibs/scripts/ffmpeg/build-linux.sh
 
       - name: Upload
@@ -188,6 +231,32 @@ jobs:
           name: linux-${{ matrix.arch }}
           path: linux-${{ matrix.arch }}
 
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        arch:
+          - armeabi-v7a
+          - arm64-v8a
+          - x86
+          - x86_64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: osu.Framework.NativeLibs/scripts/ffmpeg/build-android.sh
+        env:
+          arch: ${{ matrix.arch }}
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ matrix.arch }}
+          path: android-${{ matrix.arch }}
+
   make-pr:
     name: Create pull request
     runs-on: ubuntu-22.04
@@ -195,26 +264,66 @@ jobs:
       - combine-macos
       - combine-iOS
       - build-win
+      - build-win-arm64
       - build-linux
-    strategy:
-      matrix:
-        include:
-          - { name: macOS-universal, path: osu.Framework.NativeLibs/runtimes/osx/native }
-          - { name: linux-arm64, path: osu.Framework.NativeLibs/runtimes/linux-arm64/native}
-          - { name: linux-arm, path: osu.Framework.NativeLibs/runtimes/linux-arm/native}
-          - { name: linux-x64, path: osu.Framework.NativeLibs/runtimes/linux-x64/native}
-          - { name: linux-x86, path: osu.Framework.NativeLibs/runtimes/linux-x86/native}
-          - { name: win-arm64, path: osu.Framework.NativeLibs/runtimes/win-arm64/native}
-          - { name: win-x64, path: osu.Framework.NativeLibs/runtimes/win-x64/native}
-          - { name: win-x86, path: osu.Framework.NativeLibs/runtimes/win-x86/native}
+      - build-linux-cross
+      - build-android
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - uses: actions/download-artifact@v4
         with:
-          name: ${{ matrix.name }}
-          path: ${{ matrix.path }}
+          name: macOS-universal
+          path: osu.Framework.NativeLibs/runtimes/osx/native
+      - uses: actions/download-artifact@v4
+        with:
+          name: iOS-xcframework
+          path: osu.Framework.iOS/runtimes/ios/native
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-arm64
+          path: osu.Framework.NativeLibs/runtimes/linux-x64/native
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-arm
+          path: osu.Framework.NativeLibs/runtimes/linux-x64/native
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-x64
+          path: osu.Framework.NativeLibs/runtimes/linux-x64/native
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-x86
+          path: osu.Framework.NativeLibs/runtimes/linux-x64/native
+      - uses: actions/download-artifact@v4
+        with:
+          name: win-arm64
+          path: osu.Framework.NativeLibs/runtimes/win-arm64/native
+      - uses: actions/download-artifact@v4
+        with:
+          name: win-x64
+          path: osu.Framework.NativeLibs/runtimes/win-x64/native
+      - uses: actions/download-artifact@v4
+        with:
+          name: win-x86
+          path: osu.Framework.NativeLibs/runtimes/win-x86/native
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-armeabi-v7a
+          path: osu.Framework.Android/armeabi-v7a
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-arm64-v8a
+          path: osu.Framework.Android/arm64-v8a
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-x86
+          path: osu.Framework.Android/x86
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-x86_64
+          path: osu.Framework.Android/x86_64
 
       - uses: peter-evans/create-pull-request@v6
         with:
