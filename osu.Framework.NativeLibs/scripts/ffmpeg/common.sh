@@ -56,6 +56,12 @@ function prep_ffmpeg() {
 
 function build_ffmpeg() {
     echo "-> Configuring..."
+    if [ "$arch" = "x86" ]; then
+        FFMPEG_FLAGS+=(
+            --disable-asm
+        )
+    fi
+
     ./configure "${FFMPEG_FLAGS[@]}"
 
     echo "-> Building using $CORES threads..."
