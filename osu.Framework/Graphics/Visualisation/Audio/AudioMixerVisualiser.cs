@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
             MainHorizontalContent.Add(new BasicScrollContainer(Direction.Horizontal)
             {
                 RelativeSizeAxes = Axes.Y,
-                Width = WIDTH,
+                Width = WIDTH * 1.5f,
                 Children = new[]
                 {
                     mixerFlow = new FillFlowContainer<MixerDisplay>
