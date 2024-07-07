@@ -271,11 +271,9 @@ namespace osu.Framework.Audio
             return mixer;
         }
 
-        protected override void ItemAdded(AudioComponent item)
+        internal void AddActiveMixer(AudioMixer mixer)
         {
-            base.ItemAdded(item);
-            if (item is AudioMixer mixer)
-                activeMixers.Add(mixer);
+            activeMixers.Add(mixer);
         }
 
         protected override void ItemRemoved(AudioComponent item)
