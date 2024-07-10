@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Rendering.Dummy;
@@ -109,8 +110,9 @@ namespace osu.Framework.Platform
         {
             private readonly double increment;
             private readonly GameThread[] gameThreads;
-            private double time;
+            private readonly Stopwatch stopwatch = new Stopwatch();
 
+            private double time;
             private ulong? lastFrameIndex;
 
             /// <summary>
@@ -129,11 +131,14 @@ namespace osu.Framework.Platform
             {
                 get
                 {
+                    double realElapsedTime = stopwatch.Elapsed.TotalMilliseconds;
+                    stopwatch.Restart();
+
                     ulong frameIndex = gameThreads.Min(t => t.FrameIndex);
 
                     // Don't increment the current time until all threads have advanced at least one frame.
                     if (frameIndex == lastFrameIndex)
-                        return time;
+                        return time += realElapsedTime;
 
                     time += increment;
                     lastFrameIndex = frameIndex;
