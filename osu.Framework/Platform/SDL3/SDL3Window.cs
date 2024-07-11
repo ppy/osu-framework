@@ -431,8 +431,8 @@ namespace osu.Framework.Platform.SDL3
 
                 fixed (Rgba32* ptr = pixelSpan)
                 {
-                    var pixelFormat = SDL_GetPixelFormatEnumForMasks(32, 0xff, 0xff00, 0xff0000, 0xff000000);
-                    surface = SDL_CreateSurfaceFrom(new IntPtr(ptr), imageSize.Width, imageSize.Height, imageSize.Width * 4, pixelFormat);
+                    var pixelFormat = SDL_GetPixelFormatForMasks(32, 0xff, 0xff00, 0xff0000, 0xff000000);
+                    surface = SDL_CreateSurfaceFrom(imageSize.Width, imageSize.Height, pixelFormat, new IntPtr(ptr), imageSize.Width * 4);
                 }
 
                 SDL_SetWindowIcon(SDLWindowHandle, surface);

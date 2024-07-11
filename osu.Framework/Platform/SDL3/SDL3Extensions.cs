@@ -1013,7 +1013,7 @@ namespace osu.Framework.Platform.SDL3
         {
             int bpp;
             uint unused;
-            SDL_GetMasksForPixelFormatEnum(mode.format, &bpp, &unused, &unused, &unused, &unused);
+            SDL_GetMasksForPixelFormat(mode.format, &bpp, &unused, &unused, &unused, &unused);
             return new DisplayMode(SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, displayIndex);
         }
 
