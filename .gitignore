@@ -316,6 +316,7 @@ fabric.properties
 .idea/**/dictionaries
 .idea/**/shelf
 .idea/*/.idea/projectSettingsUpdater.xml
+.idea/*/.idea/encodings.xml
 
 # Sensitive or high-churn files
 **/.idea/**/dataSources/
