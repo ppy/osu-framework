@@ -93,11 +93,11 @@ namespace osu.Framework.Platform.SDL3
                 switch (RuntimeInfo.OS)
                 {
                     case RuntimeInfo.Platform.Windows:
-                        return SDL_GetProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, IntPtr.Zero);
+                        return SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, IntPtr.Zero);
 
                     case RuntimeInfo.Platform.Linux:
                         if (IsWayland)
-                            return SDL_GetProperty(props, SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, IntPtr.Zero);
+                            return SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, IntPtr.Zero);
 
                         if (SDL_GetCurrentVideoDriver() == "x11")
                             return new IntPtr(SDL_GetNumberProperty(props, SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0));
@@ -105,13 +105,13 @@ namespace osu.Framework.Platform.SDL3
                         return IntPtr.Zero;
 
                     case RuntimeInfo.Platform.macOS:
-                        return SDL_GetProperty(props, SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, IntPtr.Zero);
+                        return SDL_GetPointerProperty(props, SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, IntPtr.Zero);
 
                     case RuntimeInfo.Platform.iOS:
-                        return SDL_GetProperty(props, SDL_PROP_WINDOW_UIKIT_WINDOW_POINTER, IntPtr.Zero);
+                        return SDL_GetPointerProperty(props, SDL_PROP_WINDOW_UIKIT_WINDOW_POINTER, IntPtr.Zero);
 
                     case RuntimeInfo.Platform.Android:
-                        return SDL_GetProperty(props, SDL_PROP_WINDOW_ANDROID_WINDOW_POINTER, IntPtr.Zero);
+                        return SDL_GetPointerProperty(props, SDL_PROP_WINDOW_ANDROID_WINDOW_POINTER, IntPtr.Zero);
 
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -130,10 +130,10 @@ namespace osu.Framework.Platform.SDL3
                 var props = SDL_GetWindowProperties(SDLWindowHandle);
 
                 if (IsWayland)
-                    return SDL_GetProperty(props, SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, IntPtr.Zero);
+                    return SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, IntPtr.Zero);
 
                 if (SDL_GetCurrentVideoDriver() == "x11")
-                    return SDL_GetProperty(props, SDL_PROP_WINDOW_X11_DISPLAY_POINTER, IntPtr.Zero);
+                    return SDL_GetPointerProperty(props, SDL_PROP_WINDOW_X11_DISPLAY_POINTER, IntPtr.Zero);
 
                 return IntPtr.Zero;
             }
