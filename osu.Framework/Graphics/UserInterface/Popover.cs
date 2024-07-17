@@ -111,7 +111,10 @@ namespace osu.Framework.Graphics.UserInterface
                 AutoSizeAxes = Axes.Both,
                 Children = new[]
                 {
-                    Arrow = CreateArrow(),
+                    Arrow = CreateArrow().With(arr =>
+                    {
+                        arr.BypassAutoSizeAxes = Axes.Both;
+                    }),
                     Body = new Container
                     {
                         AutoSizeAxes = Axes.Both,
