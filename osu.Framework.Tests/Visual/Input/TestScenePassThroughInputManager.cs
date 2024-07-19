@@ -122,6 +122,19 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Test]
+        public void TestPressKeyThenReleaseWhileDisabled()
+        {
+            addTestInputManagerStep();
+            AddStep("press key", () => InputManager.PressKey(Key.A));
+            AddStep("UseParentInput = false", () => testInputManager.UseParentInput = false);
+            AddStep("release key", () => InputManager.ReleaseKey(Key.A));
+            AddStep("press key again", () => InputManager.PressKey(Key.A));
+            AddStep("UseParentInput = true", () => testInputManager.UseParentInput = true);
+            AddStep("release key", () => InputManager.ReleaseKey(Key.A));
+            AddAssert("key released", () => !testInputManager.CurrentState.Keyboard.Keys.HasAnyButtonPressed);
+        }
+
+        [Test]
         public void TestTouchInput()
         {
             addTestInputManagerStep();
