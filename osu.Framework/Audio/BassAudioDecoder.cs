@@ -30,9 +30,9 @@ namespace osu.Framework.Audio
         {
             get
             {
-                if ((int)Format == SDL3.SDL_AUDIO_S8)
+                if (Format == SDL_AudioFormat.SDL_AUDIO_S8)
                     return Resolution.Byte;
-                else if (Format == SDL3.SDL_AUDIO_S16)
+                else if (Format == SDL3.SDL_AUDIO_S16) // uses constant due to endian
                     return Resolution.Short;
                 else
                     return Resolution.Float;

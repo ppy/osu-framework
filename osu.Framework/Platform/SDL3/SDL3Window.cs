@@ -582,7 +582,7 @@ namespace osu.Framework.Platform.SDL3
 
         private void handleAudioDeviceEvent(SDL_AudioDeviceEvent evtAudioDevice)
         {
-            if (evtAudioDevice.iscapture != 0) // capture device
+            if (evtAudioDevice.recording != 0) // recording device
                 return;
 
             switch (evtAudioDevice.type)

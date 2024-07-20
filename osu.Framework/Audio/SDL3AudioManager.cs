@@ -204,7 +204,7 @@ namespace osu.Framework.Audio
         private void syncAudioDevices()
         {
             int count = 0;
-            SDL_AudioDeviceID* idArrayPtr = SDL3.SDL_GetAudioOutputDevices(&count);
+            SDL_AudioDeviceID* idArrayPtr = SDL3.SDL_GetAudioPlaybackDevices(&count);
 
             var idArray = ImmutableArray.CreateBuilder<SDL_AudioDeviceID>(count);
             var nameArray = ImmutableArray.CreateBuilder<string>(count);
@@ -250,10 +250,10 @@ namespace osu.Framework.Audio
 
             if (deviceStream == null)
             {
-                if (targetId == SDL3.SDL_AUDIO_DEVICE_DEFAULT_OUTPUT)
+                if (targetId == SDL3.SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK)
                     return false;
 
-                return setAudioDevice(SDL3.SDL_AUDIO_DEVICE_DEFAULT_OUTPUT);
+                return setAudioDevice(SDL3.SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK);
             }
 
             SDL3.SDL_ResumeAudioDevice(deviceId);
@@ -277,7 +277,7 @@ namespace osu.Framework.Audio
             if (deviceIndex >= 0)
                 return setAudioDevice(deviceIdArray[deviceIndex]);
 
-            return setAudioDevice(SDL3.SDL_AUDIO_DEVICE_DEFAULT_OUTPUT);
+            return setAudioDevice(SDL3.SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK);
         }
 
         protected override bool SetAudioDevice(int deviceIndex)
