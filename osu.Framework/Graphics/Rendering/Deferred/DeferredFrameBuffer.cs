@@ -91,7 +91,10 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
             private readonly DeferredFrameBuffer deferredFrameBuffer;
             private readonly VeldridTextureResources?[] resourcesArray = new VeldridTextureResources?[1];
+
+            private global::Veldrid.Texture? depthTexture;
             private Framebuffer? framebuffer;
+
             private Vector2I resourceSize = Vector2I.One;
 
             public DeferredFrameBufferTexture(DeferredFrameBuffer deferredFrameBuffer)
@@ -106,6 +109,9 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
                 resources?.Dispose();
                 resources = null;
+
+                depthTexture?.Dispose();
+                depthTexture = null;
 
                 framebuffer?.Dispose();
                 framebuffer = null;
@@ -153,8 +159,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                             uint.MaxValue,
                             0,
                             SamplerBorderColor.TransparentBlack)));
-
-                global::Veldrid.Texture? depthTexture = null;
 
                 if (deferredFrameBuffer.formats?[0] is PixelFormat depth)
                 {
