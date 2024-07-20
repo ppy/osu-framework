@@ -11,7 +11,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// The hint text shown when hovering over the icon with the cursor
         /// </summary>
-        public string Text { get; init; }
+        public string Text { get; init; } = string.Empty;
 
         /// <summary>
         /// The action to perform when the icon gets clicked

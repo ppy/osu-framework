@@ -130,31 +130,31 @@ namespace osu.Framework.Platform.Windows
         [DllImport("shell32.dll")]
         internal static extern bool Shell_NotifyIconW(NotifyIconAction dwMessage, [In] ref NOTIFYICONDATAW pnid);
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    public struct NOTIFYICONDATAW
-    {
-        public int cbSize;
-        public IntPtr hWnd;
-        public int uID;
-        public NotifyIconFlags uFlags;
-        public int uCallbackMessage;
-        public IntPtr hIcon;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
-        public string szTip;
-        public int dwState;
-        public int dwStateMask;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
-        public string szInfo;
-        public int uTimeoutOrVersion;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 64)]
-        public string szInfoTitle;
-        public int dwInfoFlags;
-        public Guid guidItem;
-        public IntPtr hBalloonIcon;
-    }
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        internal struct NOTIFYICONDATAW
+        {
+            internal int cbSize;
+            internal IntPtr hWnd;
+            internal int uID;
+            internal NotifyIconFlags uFlags;
+            internal int uCallbackMessage;
+            internal IntPtr hIcon;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+            internal string szTip;
+            internal int dwState;
+            internal int dwStateMask;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
+            internal string szInfo;
+            internal int uTimeoutOrVersion;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 64)]
+            internal string szInfoTitle;
+            internal int dwInfoFlags;
+            internal Guid guidItem;
+            internal IntPtr hBalloonIcon;
+        }
 
         [Flags]
-        public enum NotifyIconFlags : uint
+        internal enum NotifyIconFlags : uint
         {
             NIF_MESSAGE = 0x00000001,
             NIF_ICON = 0x00000002,
