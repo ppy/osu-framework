@@ -73,16 +73,6 @@ namespace osu.Framework.Audio.Mixing.SDL3
                     dst[e] = src[e] * left;
                     dst[e + 1] = src[e + 1] * right;
                 }
-
-                if (dst[e] < -1f)
-                    dst[e] = -1f;
-                else if (dst[e] > 1f)
-                    dst[e] = 1f;
-
-                if (dst[e + 1] < -1f)
-                    dst[e + 1] = -1f;
-                else if (dst[e + 1] > 1f)
-                    dst[e + 1] = 1f;
             }
 
             if (samples > filled)
@@ -156,6 +146,14 @@ namespace osu.Framework.Audio.Mixing.SDL3
 
                     mixAudio(data, filterArray!, ref filledSamples, filterArrayFilled, 1, 1);
                 }
+            }
+
+            for (int i = 0; i < filledSamples; i++)
+            {
+                if (data[i] > 1.0f)
+                    data[i] = 1.0f;
+                else if (data[i] < -1.0f)
+                    data[i] = -1.0f;
             }
         }
 
