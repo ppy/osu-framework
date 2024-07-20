@@ -11,6 +11,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
@@ -708,6 +709,31 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         #endregion
 
+        [Test]
+        public void TestPaddedSearchBar()
+        {
+            SearchBarPaddedDropdown dropdown = null!;
+
+            AddStep("setup dropdown", () =>
+            {
+                Child = dropdown = new SearchBarPaddedDropdown
+                {
+                    Position = new Vector2(50f, 50f),
+                    Width = 150f,
+                    Items = new TestModel("test").Yield(),
+                };
+            });
+
+            AddStep("click on padded area", () =>
+            {
+                RectangleF area = dropdown.Header.ScreenSpaceDrawQuad.AABBFloat;
+                InputManager.MoveMouseTo(new Vector2(area.Right - 5, area.Centre.Y));
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("dropdown is open", () => dropdown.Menu.State, () => Is.EqualTo(MenuState.Open));
+        }
+
         private TestDropdown createDropdown() => createDropdowns(1).Single();
 
         private TestDropdown[] createDropdowns(int count) => createDropdowns<TestDropdown>(count);
@@ -808,6 +834,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 Assert.That(text, Is.Not.Null);
                 return $"{text}: {base.GenerateItemText(item)}";
+            }
+        }
+
+        private partial class SearchBarPaddedDropdown : TestDropdown
+        {
+            protected override DropdownHeader CreateHeader() => new PaddedHeader();
+
+            private partial class PaddedHeader : BasicDropdownHeader
+            {
+                protected override DropdownSearchBar CreateSearchBar() => base.CreateSearchBar().With(d =>
+                {
+                    d.Padding = new MarginPadding { Right = 25 };
+                });
             }
         }
 

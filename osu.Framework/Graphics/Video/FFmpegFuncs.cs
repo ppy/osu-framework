@@ -5,6 +5,7 @@
 
 using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
+using JetBrains.Annotations;
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE1006 // Naming style
@@ -111,8 +112,12 @@ namespace osu.Framework.Graphics.Video
 
         #endregion
 
+        [CanBeNull]
         public AvDictSetDelegate av_dict_set;
+
+        [CanBeNull]
         public AvDictFreeDelegate av_dict_free;
+
         public AvFrameAllocDelegate av_frame_alloc;
         public AvFrameFreeDelegate av_frame_free;
         public AvFrameUnrefDelegate av_frame_unref;

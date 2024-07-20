@@ -881,6 +881,57 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("second-from-last word selected", () => textBox.SelectedText == "bank");
         }
 
+        [Test]
+        public void TestTypingCancelsOngoingDragSelection()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(300, 40),
+                    Text = "123",
+                    ReadOnly = false
+                });
+            });
+
+            AddStep("focus textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            // drag text, insert, keep mouse held, drag more and ensure it's ignored
+            AddStep("hold from middle of textbox", () => InputManager.PressButton(MouseButton.Left));
+            AddStep("move mouse to left of textbox", () => InputManager.MoveMouseTo(textBox.ScreenSpaceDrawQuad.TopLeft - new Vector2(20f, 0f)));
+            AddAssert("text selected by drag", () => textBox.SelectedText == "123");
+            AddStep("insert character", () => textBox.InsertString("1"));
+            AddAssert("text overwritten", () => textBox.Text == "1");
+            AddStep("move mouse a little", () => InputManager.MoveMouseTo(InputManager.CurrentState.Mouse.Position - new Vector2(10f, 0f)));
+            AddAssert("text not selected by drag", () => string.IsNullOrEmpty(textBox.SelectedText));
+            AddStep("release mouse", () => InputManager.ReleaseButton(MouseButton.Left));
+
+            // drag text, release mouse, insert, drag again and ensure dragging still works
+            AddStep("hold from middle of textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.PressButton(MouseButton.Left);
+            });
+            AddStep("drag again", () => InputManager.MoveMouseTo(textBox.ScreenSpaceDrawQuad.TopLeft - new Vector2(20f, 0f)));
+            AddAssert("text selected by drag", () => textBox.SelectedText == "1");
+            AddStep("release mouse", () => InputManager.ReleaseButton(MouseButton.Left));
+            AddStep("insert character", () => textBox.InsertString("1"));
+            AddAssert("text overwritten", () => textBox.Text == "1");
+            AddStep("hold from middle of textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.PressButton(MouseButton.Left);
+            });
+            AddStep("drag again", () => InputManager.MoveMouseTo(textBox.ScreenSpaceDrawQuad.TopLeft - new Vector2(20f, 0f)));
+            AddAssert("text selected by drag", () => textBox.SelectedText == "1");
+        }
+
         private void prependString(InsertableTextBox textBox, string text)
         {
             InputManager.Keys(PlatformAction.MoveBackwardLine);

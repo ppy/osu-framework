@@ -8,7 +8,6 @@ using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Logging;
 using osu.Framework.Threading;
@@ -163,7 +162,7 @@ namespace osu.Framework.Platform.SDL2
             return wmInfo;
         }
 
-        public bool CapsLockPressed => SDL_GetModState().HasFlagFast(SDL_Keymod.KMOD_CAPS);
+        public bool CapsLockPressed => SDL_GetModState().HasFlag(SDL_Keymod.KMOD_CAPS);
 
         // references must be kept to avoid GC, see https://stackoverflow.com/a/6193914
 
@@ -204,7 +203,7 @@ namespace osu.Framework.Platform.SDL2
 
             CursorStateBindable.ValueChanged += evt =>
             {
-                updateCursorVisibility(!evt.NewValue.HasFlagFast(CursorState.Hidden));
+                updateCursorVisibility(!evt.NewValue.HasFlag(CursorState.Hidden));
                 updateCursorConfinement();
             };
 
@@ -407,7 +406,7 @@ namespace osu.Framework.Platform.SDL2
         {
             var flags = (SDL_WindowFlags)SDL_GetWindowFlags(SDLWindowHandle);
 
-            if (flags.HasFlagFast(SDL_WindowFlags.SDL_WINDOW_MINIMIZED))
+            if (flags.HasFlag(SDL_WindowFlags.SDL_WINDOW_MINIMIZED))
                 SDL_RestoreWindow(SDLWindowHandle);
 
             SDL_RaiseWindow(SDLWindowHandle);

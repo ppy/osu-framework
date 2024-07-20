@@ -572,6 +572,30 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
         }
 
+        [Test]
+        public void TestComponentOffScreen()
+        {
+            DrawableWithPopover target = null!;
+
+            AddStep("add button", () => popoverContainer.Child = target = new DrawableWithPopover
+            {
+                Width = 200,
+                Height = 30,
+                Anchor = Anchor.TopLeft,
+                Origin = Anchor.TopLeft,
+                RelativePositionAxes = Axes.Both,
+                Text = "open",
+                CreateContent = _ => new BasicPopover
+                {
+                    AllowableAnchors = new[] { Anchor.CentreLeft, Anchor.CentreRight },
+                    Child = new SpriteText { Text = "no twitching!" }
+                }
+            });
+
+            AddStep("show popover", () => target.ShowPopover());
+            AddStep("move off screen", () => target.Y = 20);
+        }
+
         private void createContent(Func<DrawableWithPopover, Popover> creationFunc)
             => AddStep("create content", () =>
             {

@@ -722,6 +722,8 @@ namespace osu.Framework.Graphics.UserInterface
             textChanging = false;
         }
 
+        private bool ignoreOngoingDragSelection;
+
         /// <summary>
         /// Removes the selected text if a selection persists.
         /// </summary>
@@ -868,7 +870,9 @@ namespace osu.Framework.Graphics.UserInterface
                 drawableCreationParameters?.Invoke(drawable);
 
                 text = text.Insert(selectionLeft, c.ToString());
+
                 selectionStart = selectionEnd = selectionLeft + 1;
+                ignoreOngoingDragSelection = true;
 
                 cursorAndLayout.Invalidate();
             }
@@ -1188,12 +1192,26 @@ namespace osu.Framework.Graphics.UserInterface
             base.OnKeyUp(e);
         }
 
+        protected override bool OnDragStart(DragStartEvent e)
+        {
+            ignoreOngoingDragSelection = false;
+
+            if (HasFocus)
+                return true;
+
+            Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
+            return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
+        }
+
         protected override void OnDrag(DragEvent e)
         {
             if (ReadOnly)
                 return;
 
             FinalizeImeComposition(true);
+
+            if (ignoreOngoingDragSelection)
+                return;
 
             var lastSelectionBounds = getTextSelectionBounds();
 
@@ -1231,15 +1249,6 @@ namespace osu.Framework.Graphics.UserInterface
             cursorAndLayout.Invalidate();
 
             onTextSelectionChanged(doubleClickWord != null ? TextSelectionType.Word : TextSelectionType.Character, lastSelectionBounds);
-        }
-
-        protected override bool OnDragStart(DragStartEvent e)
-        {
-            if (HasFocus) return true;
-
-            Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
-
-            return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
         }
 
         protected override bool OnDoubleClick(DoubleClickEvent e)

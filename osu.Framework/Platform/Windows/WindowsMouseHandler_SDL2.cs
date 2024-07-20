@@ -3,7 +3,6 @@
 
 using System;
 using System.Drawing;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform.Windows.Native;
 using osu.Framework.Statistics;
@@ -92,9 +91,9 @@ namespace osu.Framework.Platform.Windows
             var position = new Vector2(mouse.LastX, mouse.LastY);
             float sensitivity = (float)Sensitivity.Value;
 
-            if (mouse.Flags.HasFlagFast(RawMouseFlags.MoveAbsolute))
+            if (mouse.Flags.HasFlag(RawMouseFlags.MoveAbsolute))
             {
-                var screenRect = mouse.Flags.HasFlagFast(RawMouseFlags.VirtualDesktop) ? Native.Input.VirtualScreenRect : new Rectangle(window.Position, window.ClientSize);
+                var screenRect = mouse.Flags.HasFlag(RawMouseFlags.VirtualDesktop) ? Native.Input.VirtualScreenRect : new Rectangle(window.Position, window.ClientSize);
 
                 Vector2 screenSize = new Vector2(screenRect.Width, screenRect.Height);
 
