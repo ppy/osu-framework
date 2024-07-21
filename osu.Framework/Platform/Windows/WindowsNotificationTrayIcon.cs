@@ -37,11 +37,7 @@ namespace osu.Framework.Platform.Windows
             if (window is SDL3WindowsWindow w3)
             {
                 hwnd = w3.WindowHandle;
-                if (w3.largeIcon is not null)
-                {
-                    iconHandle = w3.largeIcon.Handle;
-                }
-                else if (w3.smallIcon is not null)
+                if (w3.smallIcon is not null)
                 {
                     iconHandle = w3.smallIcon.Handle;
                 }
@@ -49,11 +45,7 @@ namespace osu.Framework.Platform.Windows
             else if (window is SDL2WindowsWindow w2)
             {
                 hwnd = w2.WindowHandle;
-                if (w2.largeIcon is not null)
-                {
-                    iconHandle = w2.largeIcon.Handle;
-                }
-                else if (w2.smallIcon is not null)
+                if (w2.smallIcon is not null)
                 {
                     iconHandle = w2.smallIcon.Handle;
                 }
