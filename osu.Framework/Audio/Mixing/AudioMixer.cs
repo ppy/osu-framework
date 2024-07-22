@@ -29,9 +29,6 @@ namespace osu.Framework.Audio.Mixing
 
         public void Add(IAudioChannel channel)
         {
-            if (channel is IAdjustableAudioComponent adj)
-                adj.BindAdjustments(this);
-
             channel.EnqueueAction(() =>
             {
                 if (channel.Mixer == this)
@@ -39,6 +36,9 @@ namespace osu.Framework.Audio.Mixing
 
                 // Ensure the channel is removed from its current mixer.
                 channel.Mixer?.Remove(channel, false);
+
+                if (channel is IAdjustableAudioComponent adj)
+                    adj.BindAdjustments(this);
 
                 AddInternal(channel);
 
