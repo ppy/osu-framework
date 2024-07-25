@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Platform;
+using osu.Framework.Threading;
 using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -149,11 +150,7 @@ namespace osu.Framework.Graphics.UserInterface
                 dropdown.CloseMenu();
             }
             else
-            {
-                // This exists because the menu is _sometimes_ opened via external means rather than a direct click.
-                // _Sometimes_, this occurs via a click on an external button (such as a test scene step button), and so it needs to be scheduled for the next frame.
-                Schedule(() => dropdown.ChangeFocus(textBox));
-            }
+                dropdown.ChangeFocus(textBox);
         }
 
         /// <summary>
