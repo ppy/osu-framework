@@ -93,7 +93,7 @@ namespace osu.Framework.Platform.SDL3
             }
 
             UIntPtr nativeSize;
-            IntPtr pointer = SDL_GetClipboardData(mimeType, &nativeSize); // gets automatically freed in SDL, read SDL_clipboard.h
+            IntPtr pointer = SDL_GetClipboardData(mimeType, &nativeSize);
 
             if (pointer == IntPtr.Zero)
             {
@@ -113,6 +113,10 @@ namespace osu.Framework.Platform.SDL3
                 Logger.Error(e, $"Failed to decode clipboard data for {mimeType}.");
                 data = default;
                 return false;
+            }
+            finally
+            {
+                SDL_free(pointer);
             }
         }
 
