@@ -173,6 +173,18 @@ namespace osu.Framework.Input
             return false;
         }
 
+        protected override void Update()
+        {
+            base.Update();
+
+            // There are scenarios wherein we cannot receive the release events of pressed inputs. For simplicity, sync every frame.
+            if (UseParentInput)
+            {
+                syncReleasedInputs();
+                syncJoystickAxes();
+            }
+        }
+
         /// <summary>
         /// Updates state of any buttons that have been released by parent while <see cref="UseParentInput"/> was disabled.
         /// </summary>
