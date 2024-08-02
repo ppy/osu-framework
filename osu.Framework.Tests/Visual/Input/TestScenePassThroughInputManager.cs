@@ -51,6 +51,26 @@ namespace osu.Framework.Tests.Visual.Input
         });
 
         [Test]
+        public void TestInitialState()
+        {
+            AddStep("Press buttons", () =>
+            {
+                InputManager.PressButton(MouseButton.Left);
+                InputManager.PressKey(Key.A);
+                InputManager.PressJoystickButton(JoystickButton.Button1);
+            });
+            addTestInputManagerStep();
+            AddAssert("pressed", () => mouse.IsPressed(MouseButton.Left) && keyboard.IsPressed(Key.A) && joystick.IsPressed(JoystickButton.Button1));
+            AddStep("Release on parent", () =>
+            {
+                InputManager.ReleaseButton(MouseButton.Left);
+                InputManager.ReleaseKey(Key.A);
+                InputManager.ReleaseJoystickButton(JoystickButton.Button1);
+            });
+            AddAssert("released", () => !mouse.IsPressed(MouseButton.Left) && !keyboard.IsPressed(Key.A) && !joystick.IsPressed(JoystickButton.Button1));
+        }
+
+        [Test]
         public void UseParentInputChange()
         {
             addTestInputManagerStep();
