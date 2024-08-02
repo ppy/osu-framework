@@ -54,7 +54,12 @@ namespace osu.Framework.Input
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
             parentInputManager = GetContainingInputManager();
+
+            // allow a frame for children to be prepared before passing input from parent.
+            // this is especially necessary if our child is a KeyBindingContainer since the key bindings are not prepared until LoadComplete is called on it.
+            Schedule(() => Schedule(syncInitialState));
         }
 
         public override bool HandleHoverEvents => parentInputManager != null && UseParentInput ? parentInputManager.HandleHoverEvents : base.HandleHoverEvents;
@@ -183,6 +188,39 @@ namespace osu.Framework.Input
                 syncReleasedInputs();
                 syncJoystickAxes();
             }
+        }
+
+        /// <summary>
+        /// Syncs initial state of this input manager to the current state of the parent input manager.
+        /// </summary>
+        private void syncInitialState()
+        {
+            if (parentInputManager == null)
+                return;
+
+            var parentState = parentInputManager.CurrentState;
+            var mouseDiff = (parentState?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
+            var keyDiff = (parentState?.Keyboard.Keys ?? new ButtonStates<Key>()).EnumerateDifference(CurrentState.Keyboard.Keys);
+            var touchDiff = (parentState?.Touch ?? new TouchState()).EnumerateDifference(CurrentState.Touch);
+            var joyButtonDiff = (parentState?.Joystick?.Buttons ?? new ButtonStates<JoystickButton>()).EnumerateDifference(CurrentState.Joystick.Buttons);
+            var midiDiff = (parentState?.Midi?.Keys ?? new ButtonStates<MidiKey>()).EnumerateDifference(CurrentState.Midi.Keys);
+            var tabletPenDiff = (parentState?.Tablet?.PenButtons ?? new ButtonStates<TabletPenButton>()).EnumerateDifference(CurrentState.Tablet.PenButtons);
+            var tabletAuxiliaryDiff = (parentState?.Tablet?.AuxiliaryButtons ?? new ButtonStates<TabletAuxiliaryButton>()).EnumerateDifference(CurrentState.Tablet.AuxiliaryButtons);
+
+            if (mouseDiff.Pressed.Length > 0)
+                new MouseButtonInput(mouseDiff.Pressed.Select(button => new ButtonInputEntry<MouseButton>(button, true))).Apply(CurrentState, this);
+            foreach (var key in keyDiff.Pressed)
+                new KeyboardKeyInput(key, true).Apply(CurrentState, this);
+            if (touchDiff.activated.Length > 0)
+                new TouchInput(touchDiff.activated, true).Apply(CurrentState, this);
+            foreach (var button in joyButtonDiff.Pressed)
+                new JoystickButtonInput(button, true).Apply(CurrentState, this);
+            foreach (var key in midiDiff.Pressed)
+                new MidiKeyInput(key, parentState?.Midi?.Velocities.GetValueOrDefault(key) ?? 0, true).Apply(CurrentState, this);
+            foreach (var button in tabletPenDiff.Pressed)
+                new TabletPenButtonInput(button, true).Apply(CurrentState, this);
+            foreach (var button in tabletAuxiliaryDiff.Pressed)
+                new TabletAuxiliaryButtonInput(button, true).Apply(CurrentState, this);
         }
 
         /// <summary>
