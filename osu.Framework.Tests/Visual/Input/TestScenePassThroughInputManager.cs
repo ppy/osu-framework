@@ -132,6 +132,25 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("UseParentInput = true", () => testInputManager.UseParentInput = true);
             AddStep("release key", () => InputManager.ReleaseKey(Key.A));
             AddAssert("key released", () => !testInputManager.CurrentState.Keyboard.Keys.HasAnyButtonPressed);
+
+            AddStep("press key", () => InputManager.PressKey(Key.A));
+            AddStep("UseParentInput = false", () => testInputManager.UseParentInput = false);
+
+            AddStep("add blocking layer", () => Add(new HandlingBox
+            {
+                RelativeSizeAxes = Axes.Both,
+                OnHandle = _ => true,
+            }));
+
+            // with a blocking layer existing, the next key press will not be seen by PassThroughInputManager...
+            AddStep("release key", () => InputManager.ReleaseKey(Key.A));
+            AddStep("press key again", () => InputManager.PressKey(Key.A));
+
+            AddStep("UseParentInput = true", () => testInputManager.UseParentInput = true);
+
+            // ...but ensure it'll still release the key regardless of not seeing the corresponding press event (it does that by syncing releases every frame).
+            AddStep("release key", () => InputManager.ReleaseKey(Key.A));
+            AddAssert("key released", () => !testInputManager.CurrentState.Keyboard.Keys.HasAnyButtonPressed);
         }
 
         [Test]
