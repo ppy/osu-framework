@@ -57,7 +57,7 @@ namespace osu.Framework.Bindables
         public T this[int index]
         {
             get => collection[index];
-            set => setIndex(index, value, new HashSet<BindableList<T>>());
+            set => setIndex(index, value, getRecursionList());
         }
 
         private void setIndex(int index, T item, HashSet<BindableList<T>> appliedInstances)
@@ -85,7 +85,7 @@ namespace osu.Framework.Bindables
         /// <param name="item">The item to be added.</param>
         /// <exception cref="InvalidOperationException">Thrown when this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
         public void Add(T item)
-            => add(item, new HashSet<BindableList<T>>());
+            => add(item, getRecursionList());
 
         private void add(T item, HashSet<BindableList<T>> appliedInstances)
         {
@@ -118,7 +118,7 @@ namespace osu.Framework.Bindables
         /// <param name="item">The item to insert.</param>
         /// <exception cref="InvalidOperationException">Thrown when this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
         public void Insert(int index, T item)
-            => insert(index, item, new HashSet<BindableList<T>>());
+            => insert(index, item, getRecursionList());
 
         private void insert(int index, T item, HashSet<BindableList<T>> appliedInstances)
         {
@@ -142,7 +142,7 @@ namespace osu.Framework.Bindables
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
         public void Clear()
-            => clear(new HashSet<BindableList<T>>());
+            => clear(getRecursionList());
 
         private void clear(HashSet<BindableList<T>> appliedInstances)
         {
@@ -182,7 +182,7 @@ namespace osu.Framework.Bindables
         /// <returns><code>true</code> if the removal was successful.</returns>
         /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
         public bool Remove(T item)
-            => remove(item, new HashSet<BindableList<T>>());
+            => remove(item, getRecursionList());
 
         private bool remove(T item, HashSet<BindableList<T>> appliedInstances)
         {
@@ -224,7 +224,7 @@ namespace osu.Framework.Bindables
         /// <param name="count">The count of items to be removed.</param>
         public void RemoveRange(int index, int count)
         {
-            removeRange(index, count, new HashSet<BindableList<T>>());
+            removeRange(index, count, getRecursionList());
         }
 
         private void removeRange(int index, int count, HashSet<BindableList<T>> appliedInstances)
@@ -259,7 +259,7 @@ namespace osu.Framework.Bindables
         /// <param name="index">The index of the item to remove.</param>
         /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
         public void RemoveAt(int index)
-            => removeAt(index, new HashSet<BindableList<T>>());
+            => removeAt(index, getRecursionList());
 
         private void removeAt(int index, HashSet<BindableList<T>> appliedInstances)
         {
@@ -285,7 +285,7 @@ namespace osu.Framework.Bindables
         /// </summary>
         /// <param name="match">The predicate.</param>
         public int RemoveAll(Predicate<T> match)
-            => removeAll(match, new HashSet<BindableList<T>>());
+            => removeAll(match, getRecursionList());
 
         private int removeAll(Predicate<T> match, HashSet<BindableList<T>> appliedInstances)
         {
@@ -319,7 +319,7 @@ namespace osu.Framework.Bindables
         /// <param name="count">The count of items to be removed.</param>
         /// <param name="newItems">The items to replace the removed items with.</param>
         public void ReplaceRange(int index, int count, IEnumerable<T> newItems)
-            => replaceRange(index, count, newItems as IList ?? newItems.ToArray(), new HashSet<BindableList<T>>());
+            => replaceRange(index, count, newItems as IList ?? newItems.ToArray(), getRecursionList());
 
         private void replaceRange(int index, int count, IList newItems, HashSet<BindableList<T>> appliedInstances)
         {
@@ -542,7 +542,7 @@ namespace osu.Framework.Bindables
         /// <param name="items">The collection whose items should be added to this collection.</param>
         /// <exception cref="InvalidOperationException">Thrown if this collection is <see cref="Disabled"/></exception>
         public void AddRange(IEnumerable<T> items)
-            => addRange(items as IList ?? items.ToArray(), new HashSet<BindableList<T>>());
+            => addRange(items as IList ?? items.ToArray(), getRecursionList());
 
         private void addRange(IList items, HashSet<BindableList<T>> appliedInstances)
         {
@@ -567,7 +567,7 @@ namespace osu.Framework.Bindables
         /// <param name="oldIndex">The index of the item to move.</param>
         /// <param name="newIndex">The index specifying the new location of the item.</param>
         public void Move(int oldIndex, int newIndex)
-            => move(oldIndex, newIndex, new HashSet<BindableList<T>>());
+            => move(oldIndex, newIndex, getRecursionList());
 
         private void move(int oldIndex, int newIndex, HashSet<BindableList<T>> appliedInstances)
         {
@@ -691,5 +691,15 @@ namespace osu.Framework.Bindables
         public bool IsDefault => Count == 0;
 
         string IFormattable.ToString(string format, IFormatProvider formatProvider) => ((FormattableString)$"{GetType().ReadableName()}({nameof(Count)}={Count})").ToString(formatProvider);
+
+        [ThreadStatic]
+        private static HashSet<BindableList<T>> recursionList;
+
+        private static HashSet<BindableList<T>> getRecursionList()
+        {
+            recursionList ??= new HashSet<BindableList<T>>();
+            recursionList.Clear();
+            return recursionList;
+        }
     }
 }
