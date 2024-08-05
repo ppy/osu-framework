@@ -159,6 +159,7 @@ namespace osu.Framework.Input
             Drawable? clicked = PropagateButtonEvent(drawables, new ClickEvent(state, Button, MouseDownPosition));
             ClickedDrawable.SetTarget(clicked!);
 
+            // Focus shall only change if it wasn't explicitly changed during the click (for example, using a button to open a menu).
             if (InputManager.FocusedDrawableThisClick == null)
             {
                 if (ChangeFocusOnClick && clicked?.ChangeFocusOnClick != false)
