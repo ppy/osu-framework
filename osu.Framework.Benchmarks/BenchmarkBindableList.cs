@@ -20,6 +20,13 @@ namespace osu.Framework.Benchmarks
         }
 
         [Benchmark]
+        public void Add()
+        {
+            for (int i = 0; i < 10; i++)
+                list.Add(i);
+        }
+
+        [Benchmark]
         public int Enumerate()
         {
             int result = 0;
