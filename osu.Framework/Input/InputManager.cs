@@ -52,7 +52,7 @@ namespace osu.Framework.Input
         public Drawable FocusedDrawable { get; internal set; }
 
         /// <summary>
-        /// Any drawable that was focused directly via <see cref="ChangeFocus"/> during the handling of a click,
+        /// Any drawable that was focused directly via <see cref="ChangeFocus(Drawable, InputState)"/> during the handling of a click,
         /// and <i>not</i> as a result of the automatic post-process change of focus from the click.
         /// </summary>
         internal Drawable FocusedDrawableThisClick;
