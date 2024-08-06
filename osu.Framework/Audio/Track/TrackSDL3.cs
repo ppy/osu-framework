@@ -36,7 +36,7 @@ namespace osu.Framework.Audio.Track
         public TrackSDL3(string name, Stream data, SDL_AudioSpec spec, int samples)
             : base(name)
         {
-            EnqueueAction(() => SDL3AudioManager.DecoderManager.StartDecodingAsync(spec.freq, spec.channels, spec.format, data, ReceiveAudioData, true));
+            EnqueueAction(() => SDL3AudioManager.DecoderManager.StartDecodingAsync(data, spec, true, ReceiveAudioData));
 
             // SoundTouch limitation
             const float tempo_minimum_supported = 0.05f;
@@ -51,9 +51,9 @@ namespace osu.Framework.Audio.Track
 
         private readonly object syncRoot = new object();
 
-        private SDL3AudioDecoderManager.AudioDecoder? decodeData;
+        private SDL3AudioDecoder? decodeData;
 
-        internal void ReceiveAudioData(byte[] audio, int length, SDL3AudioDecoderManager.AudioDecoder data, bool done)
+        internal void ReceiveAudioData(byte[] audio, int length, SDL3AudioDecoder data, bool done)
         {
             if (IsDisposed)
                 return;

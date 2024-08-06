@@ -10,6 +10,7 @@ using osu.Framework.Utils;
 using osu.Framework.Extensions;
 using NAudio.Dsp;
 using System.Collections.Generic;
+using SDL;
 
 namespace osu.Framework.Audio.Track
 {
@@ -87,8 +88,15 @@ namespace osu.Framework.Audio.Track
                 // Code below assumes stereo
                 channels = 2;
 
+                SDL_AudioSpec spec = new SDL_AudioSpec()
+                {
+                    freq = sample_rate,
+                    channels = channels,
+                    format = SDL3.SDL_AUDIO_F32
+                };
+
                 // AudioDecoder will resample data into specified sample rate and channels (44100hz 2ch float)
-                SDL3AudioDecoderManager.AudioDecoder decoder = SDL3AudioDecoderManager.CreateDecoder(sample_rate, channels, true, SDL.SDL3.SDL_AUDIO_F32, data, false);
+                SDL3AudioDecoder decoder = SDL3AudioDecoderManager.CreateDecoder(data, spec, true, false);
 
                 Complex[] complexBuffer = ArrayPool<Complex>.Shared.Rent(fft_samples);
 

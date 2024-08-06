@@ -22,7 +22,7 @@ namespace osu.Framework.Audio.Sample
 
         private readonly AutoResetEvent completion = new AutoResetEvent(false);
 
-        private SDL3AudioDecoderManager.AudioDecoder? decoder;
+        private SDL3AudioDecoder? decoder;
 
         public SampleSDL3Factory(Stream stream, string name, SDL3AudioMixer mixer, int playbackConcurrency, SDL_AudioSpec spec)
             : base(name, playbackConcurrency)
@@ -30,10 +30,10 @@ namespace osu.Framework.Audio.Sample
             this.mixer = mixer;
             this.spec = spec;
 
-            decoder = SDL3AudioManager.DecoderManager.StartDecodingAsync(spec.freq, spec.channels, spec.format, stream, ReceiveAudioData, false);
+            decoder = SDL3AudioManager.DecoderManager.StartDecodingAsync(stream, spec, false, ReceiveAudioData);
         }
 
-        internal void ReceiveAudioData(byte[] audio, int byteLen, SDL3AudioDecoderManager.AudioDecoder data, bool done)
+        internal void ReceiveAudioData(byte[] audio, int byteLen, SDL3AudioDecoder data, bool done)
         {
             if (IsDisposed)
                 return;
