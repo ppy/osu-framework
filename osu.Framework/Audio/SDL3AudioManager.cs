@@ -34,7 +34,7 @@ namespace osu.Framework.Audio
         private SDL_AudioSpec spec;
         private int bufferSize = (int)(AUDIO_FREQ * 0.01); // 10ms, will be calculated later when opening audio device, it works as a base value until then.
 
-        private static readonly AudioDecoderManager decoder = new AudioDecoderManager();
+        internal static SDL3AudioDecoderManager DecoderManager { get; } = new SDL3AudioDecoderManager();
 
         private readonly List<SDL3AudioMixer> sdlMixerList = new List<SDL3AudioMixer>();
 
@@ -292,8 +292,7 @@ namespace osu.Framework.Audio
 
         internal override Track.Track GetNewTrack(Stream data, string name)
         {
-            TrackSDL3 track = new TrackSDL3(name, spec.freq, spec.channels, bufferSize);
-            EnqueueAction(() => decoder.StartDecodingAsync(spec.freq, spec.channels, spec.format, data, track.ReceiveAudioData));
+            TrackSDL3 track = new TrackSDL3(name, data, spec, bufferSize);
             return track;
         }
 
@@ -304,7 +303,7 @@ namespace osu.Framework.Audio
         {
             base.Dispose(disposing);
 
-            decoder?.Dispose();
+            DecoderManager?.Dispose();
 
             if (deviceStream != null)
             {

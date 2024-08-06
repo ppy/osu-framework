@@ -88,7 +88,7 @@ namespace osu.Framework.Audio.Track
                 channels = 2;
 
                 // AudioDecoder will resample data into specified sample rate and channels (44100hz 2ch float)
-                AudioDecoderManager.AudioDecoder decoder = AudioDecoderManager.CreateDecoder(sample_rate, channels, true, SDL.SDL3.SDL_AUDIO_F32, data, false);
+                SDL3AudioDecoderManager.AudioDecoder decoder = SDL3AudioDecoderManager.CreateDecoder(sample_rate, channels, true, SDL.SDL3.SDL_AUDIO_F32, data, false);
 
                 Complex[] complexBuffer = ArrayPool<Complex>.Shared.Rent(fft_samples);
 

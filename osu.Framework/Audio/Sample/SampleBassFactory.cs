@@ -31,6 +31,8 @@ namespace osu.Framework.Audio.Sample
         {
             this.data = data;
             this.mixer = mixer;
+
+            EnqueueAction(loadSample);
         }
 
         protected override void UpdatePlaybackConcurrency(ValueChangedEvent<int> concurrency)
@@ -51,10 +53,10 @@ namespace osu.Framework.Audio.Sample
         {
             // The sample may not have already loaded if a device wasn't present in a previous load attempt.
             if (!IsLoaded)
-                LoadSample();
+                loadSample();
         }
 
-        protected override void LoadSample()
+        private void loadSample()
         {
             Debug.Assert(CanPerformInline);
             Debug.Assert(!IsLoaded);

@@ -2,11 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using NAudio.Dsp;
 using osu.Framework.Audio.Mixing.SDL3;
 using osu.Framework.Extensions;
+using SDL;
 
 namespace osu.Framework.Audio.Track
 {
@@ -31,9 +33,11 @@ namespace osu.Framework.Audio.Track
         private volatile int bitrate;
         public override int? Bitrate => bitrate;
 
-        public TrackSDL3(string name, int rate, int channels, int samples)
+        public TrackSDL3(string name, Stream data, SDL_AudioSpec spec, int samples)
             : base(name)
         {
+            EnqueueAction(() => SDL3AudioManager.DecoderManager.StartDecodingAsync(spec.freq, spec.channels, spec.format, data, ReceiveAudioData, true));
+
             // SoundTouch limitation
             const float tempo_minimum_supported = 0.05f;
             AggregateTempo.ValueChanged += t =>
@@ -42,14 +46,14 @@ namespace osu.Framework.Audio.Track
                     throw new ArgumentException($"{nameof(TrackSDL3)} does not support {nameof(Tempo)} specifications below {tempo_minimum_supported}. Use {nameof(Frequency)} instead.");
             };
 
-            player = new TempoSDL3AudioPlayer(rate, channels, samples);
+            player = new TempoSDL3AudioPlayer(spec.freq, spec.channels, samples);
         }
 
         private readonly object syncRoot = new object();
 
-        private AudioDecoderManager.AudioDecoder? decodeData;
+        private SDL3AudioDecoderManager.AudioDecoder? decodeData;
 
-        internal void ReceiveAudioData(byte[] audio, int length, AudioDecoderManager.AudioDecoder data, bool done)
+        internal void ReceiveAudioData(byte[] audio, int length, SDL3AudioDecoderManager.AudioDecoder data, bool done)
         {
             if (IsDisposed)
                 return;
