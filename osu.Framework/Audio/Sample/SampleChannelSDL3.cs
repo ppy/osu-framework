@@ -24,6 +24,9 @@ namespace osu.Framework.Audio.Sample
 
         public override void Play()
         {
+            if (started)
+                return;
+
             started = false;
             playing = true;
             base.Play();
@@ -57,7 +60,6 @@ namespace osu.Framework.Audio.Sample
             if (player.Done)
             {
                 playing = false;
-                started = false;
             }
 
             return ret;
