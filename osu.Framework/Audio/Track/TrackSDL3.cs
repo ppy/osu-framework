@@ -166,7 +166,7 @@ namespace osu.Framework.Audio.Track
             }
 
             // Not sure if I need to split this up to another class since this featrue is only exclusive to Track
-            if (amplitudeRequested && isRunning && currentTime != lastTime)
+            if (amplitudeRequested && isRunning && Math.Abs(currentTime - lastTime) > 1000.0 / 60.0)
             {
                 lastTime = currentTime;
 
