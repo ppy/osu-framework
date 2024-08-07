@@ -142,7 +142,7 @@ namespace osu.Framework.Audio.Track
                                         point.AmplitudeLeft = Math.Max(point.AmplitudeLeft, Math.Abs(left));
                                         point.AmplitudeRight = Math.Max(point.AmplitudeRight, Math.Abs(right));
 
-                                        complexBuffer[complexBufferIndex].X = (left + right) * 0.5f;
+                                        complexBuffer[complexBufferIndex].X = left + right;
                                         complexBuffer[complexBufferIndex].Y = 0;
 
                                         if (++complexBufferIndex >= fft_samples)

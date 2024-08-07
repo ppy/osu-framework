@@ -116,7 +116,7 @@ namespace osu.Framework.Audio.Track
                 if (fftIndex < fftSamples.Length)
                 {
                     fftSamples[fftIndex].Y = 0;
-                    fftSamples[fftIndex++].X = (samples[i] + samples[i + secondCh]) * 0.5f;
+                    fftSamples[fftIndex++].X = samples[i] + samples[i + secondCh];
                 }
             }
 
