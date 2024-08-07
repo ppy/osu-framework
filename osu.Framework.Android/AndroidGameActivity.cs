@@ -7,7 +7,6 @@ using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using Android.Views;
-using Java.Lang;
 using ManagedBass;
 using Org.Libsdl.App;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -39,14 +38,11 @@ namespace osu.Framework.Android
 
         protected override SDLSurface CreateSDLSurface(Context? context) => new AndroidGameSurface(this, context);
 
-        protected override IRunnable CreateSDLMainRunnable() => new Runnable(() =>
+        protected override void Main()
         {
             var host = new AndroidGameHost(this);
             host.Run(CreateGame());
-
-            if (!IsFinishing)
-                Finish();
-        });
+        }
 
         protected override void OnCreate(Bundle? savedInstanceState)
         {
