@@ -88,7 +88,7 @@ namespace osu.Framework.Audio.Track
                 // Code below assumes stereo
                 channels = 2;
 
-                SDL_AudioSpec spec = new SDL_AudioSpec()
+                SDL_AudioSpec spec = new SDL_AudioSpec
                 {
                     freq = sample_rate,
                     channels = channels,
