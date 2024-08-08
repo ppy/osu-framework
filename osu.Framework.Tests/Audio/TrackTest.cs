@@ -17,65 +17,43 @@ namespace osu.Framework.Tests.Audio
     [TestFixture]
     public class TrackTest
     {
-        private BassTestComponents bass;
-        private TrackBass trackBass;
-
-        private SDL3AudioTestComponents sdl3;
-        private TrackSDL3 trackSDL3;
-
         private AudioTestComponents audio;
         private Track track;
-
-        [SetUp]
-        public void Setup()
-        {
-            bass = new BassTestComponents();
-            trackBass = (TrackBass)bass.GetTrack();
-
-            sdl3 = new SDL3AudioTestComponents();
-            trackSDL3 = (TrackSDL3)sdl3.GetTrack();
-
-            // TrackSDL3 doesn't have data readily available right away after constructed.
-            while (!trackSDL3.IsCompletelyLoaded)
-            {
-                sdl3.Update();
-                Thread.Sleep(10);
-            }
-
-            bass.Update();
-            sdl3.Update();
-        }
 
         [TearDown]
         public void Teardown()
         {
-            bass?.Dispose();
-            sdl3?.Dispose();
+            audio?.Dispose();
         }
 
-        private void setupBackend(AudioTestComponents.Type id)
+        private void setupBackend(AudioTestComponents.Type id, bool loadTrack = false)
         {
             if (id == AudioTestComponents.Type.BASS)
             {
-                audio = bass;
-                track = trackBass;
+                audio = new BassTestComponents();
+                track = audio.GetTrack();
             }
             else if (id == AudioTestComponents.Type.SDL3)
             {
-                audio = sdl3;
-                track = trackSDL3;
+                audio = new SDL3AudioTestComponents();
+                track = audio.GetTrack();
+
+                if (loadTrack)
+                    ((SDL3AudioTestComponents)audio).WaitUntilTrackIsLoaded((TrackSDL3)track);
             }
             else
             {
                 throw new InvalidOperationException("not a supported id");
             }
+
+            audio.Update();
         }
 
         [TestCase(AudioTestComponents.Type.BASS)]
         [TestCase(AudioTestComponents.Type.SDL3)]
         public void TestStart(AudioTestComponents.Type id)
         {
-            setupBackend(id);
+            setupBackend(id, true);
 
             track.StartAsync();
             audio.Update();
@@ -139,7 +117,7 @@ namespace osu.Framework.Tests.Audio
         [TestCase(AudioTestComponents.Type.SDL3)]
         public void TestStopAtEnd(AudioTestComponents.Type id)
         {
-            setupBackend(id);
+            setupBackend(id, true);
 
             startPlaybackAt(track.Length - 1);
 
@@ -206,7 +184,7 @@ namespace osu.Framework.Tests.Audio
         [TestCase(AudioTestComponents.Type.SDL3)]
         public void TestSeekBackToSamePosition(AudioTestComponents.Type id)
         {
-            setupBackend(id);
+            setupBackend(id, true);
 
             track.SeekAsync(1000);
             track.SeekAsync(0);
@@ -224,7 +202,7 @@ namespace osu.Framework.Tests.Audio
         [TestCase(AudioTestComponents.Type.SDL3)]
         public void TestPlaybackToEnd(AudioTestComponents.Type id)
         {
-            setupBackend(id);
+            setupBackend(id, true);
 
             startPlaybackAt(track.Length - 1);
 
@@ -244,7 +222,7 @@ namespace osu.Framework.Tests.Audio
         [TestCase(AudioTestComponents.Type.SDL3)]
         public void TestStartFromEndDoesNotRestart(AudioTestComponents.Type id)
         {
-            setupBackend(id);
+            setupBackend(id, true);
 
             startPlaybackAt(track.Length - 1);
 
@@ -313,7 +291,7 @@ namespace osu.Framework.Tests.Audio
         [TestCase(AudioTestComponents.Type.SDL3, 1000)]
         public void TestLoopingRestart(AudioTestComponents.Type id, double restartPoint)
         {
-            setupBackend(id);
+            setupBackend(id, true);
 
             track.Looping = true;
             track.RestartPoint = restartPoint;
@@ -392,7 +370,7 @@ namespace osu.Framework.Tests.Audio
         [TestCase(AudioTestComponents.Type.SDL3)]
         public void TestHasCompletedResetsOnSeekBack(AudioTestComponents.Type id)
         {
-            setupBackend(id);
+            setupBackend(id, true);
 
             // start playback and wait for completion.
             startPlaybackAt(track.Length - 1);
@@ -417,7 +395,7 @@ namespace osu.Framework.Tests.Audio
         [TestCase(AudioTestComponents.Type.SDL3)]
         public void TestZeroFrequencyHandling(AudioTestComponents.Type id)
         {
-            setupBackend(id);
+            setupBackend(id, true);
 
             // start track.
             track.StartAsync();
@@ -487,7 +465,7 @@ namespace osu.Framework.Tests.Audio
         [TestCase(AudioTestComponents.Type.SDL3)]
         public void TestBitrate(AudioTestComponents.Type id)
         {
-            setupBackend(id);
+            setupBackend(id, true);
 
             Assert.Greater(track.Bitrate, 0);
         }

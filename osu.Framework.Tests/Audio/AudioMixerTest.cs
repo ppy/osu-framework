@@ -10,7 +10,6 @@ using ManagedBass.Mix;
 using NUnit.Framework;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.Bass;
-using osu.Framework.Audio.Mixing.SDL3;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 using osu.Framework.Extensions;
@@ -20,79 +19,48 @@ namespace osu.Framework.Tests.Audio
     [TestFixture]
     public class AudioMixerTest
     {
-        private BassTestComponents bass;
-        private BassAudioMixer mixerBass => (BassAudioMixer)bass.Mixer;
-        private TrackBass trackBass;
-        private SampleBass sampleBass;
-
-        private SDL3AudioTestComponents sdl3;
-        private SDL3AudioMixer mixerSDL3 => (SDL3AudioMixer)sdl3.Mixer;
-        private TrackSDL3 trackSDL3;
-        private SampleSDL3 sampleSDL3;
-
         private AudioTestComponents.Type type;
         private AudioTestComponents audio;
         private AudioMixer mixer;
         private Track track;
         private Sample sample;
 
-        [SetUp]
-        public void Setup()
-        {
-            bass = new BassTestComponents();
-            trackBass = (TrackBass)bass.GetTrack();
-            sampleBass = (SampleBass)bass.GetSample();
-
-            sdl3 = new SDL3AudioTestComponents();
-            trackSDL3 = (TrackSDL3)sdl3.GetTrack();
-            sampleSDL3 = (SampleSDL3)sdl3.GetSample();
-
-            // TrackSDL3 doesn't have data readily available right away after constructed.
-            while (!trackSDL3.IsCompletelyLoaded)
-            {
-                sdl3.Update();
-                Thread.Sleep(10);
-            }
-
-            bass.Update();
-            sdl3.Update();
-        }
-
         [TearDown]
         public void Teardown()
         {
-            bass?.Dispose();
-            sdl3?.Dispose();
+            audio?.Dispose();
         }
 
-        private void setupBackend(AudioTestComponents.Type id)
+        private void setupBackend(AudioTestComponents.Type id, bool loadTrack = false)
         {
             type = id;
 
             if (id == AudioTestComponents.Type.BASS)
             {
-                audio = bass;
-                mixer = mixerBass;
-                track = trackBass;
-                sample = sampleBass;
+                audio = new BassTestComponents();
+                track = audio.GetTrack();
+                sample = audio.GetSample();
             }
             else if (id == AudioTestComponents.Type.SDL3)
             {
-                audio = sdl3;
-                mixer = mixerSDL3;
-                track = trackSDL3;
-                sample = sampleSDL3;
+                audio = new SDL3AudioTestComponents();
+                track = audio.GetTrack();
+                sample = audio.GetSample();
+
+                if (loadTrack)
+                    ((SDL3AudioTestComponents)audio).WaitUntilTrackIsLoaded((TrackSDL3)track);
             }
             else
             {
                 throw new InvalidOperationException("not a supported id");
             }
+
+            audio.Update();
+            mixer = audio.Mixer;
         }
 
         private void assertThatMixerContainsChannel(AudioMixer mixer, IAudioChannel channel)
         {
-            TestContext.WriteLine($"{channel.Mixer.GetHashCode()} ({channel.Mixer.Identifier}) and {mixer.GetHashCode()} ({mixer.Identifier})");
-
             if (type == AudioTestComponents.Type.BASS)
                 Assert.That(BassMix.ChannelGetMixer(((IBassAudioChannel)channel).Handle), Is.EqualTo(((BassAudioMixer)mixer).Handle));
             else
@@ -102,7 +70,9 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestMixerInitialised()
         {
-            Assert.That(mixerBass.Handle, Is.Not.Zero);
+            setupBackend(AudioTestComponents.Type.BASS);
+
+            Assert.That(((BassAudioMixer)mixer).Handle, Is.Not.Zero);
         }
 
         [TestCase(AudioTestComponents.Type.BASS)]
@@ -186,7 +156,7 @@ namespace osu.Framework.Tests.Audio
             audio.Update();
 
             if (id == AudioTestComponents.Type.BASS)
-                Assert.That(BassMix.ChannelGetMixer(((IBassAudioChannel)trackBass).Handle), Is.Zero);
+                Assert.That(BassMix.ChannelGetMixer(((IBassAudioChannel)track).Handle), Is.Zero);
             else
                 Assert.That(((IAudioChannel)track).Mixer, Is.Null);
         }
@@ -212,7 +182,7 @@ namespace osu.Framework.Tests.Audio
         [TestCase(AudioTestComponents.Type.SDL3)]
         public void TestPlayPauseStop(AudioTestComponents.Type id)
         {
-            setupBackend(id);
+            setupBackend(id, true);
 
             Assert.That(!track.IsRunning);
 
@@ -265,17 +235,24 @@ namespace osu.Framework.Tests.Audio
             Assert.That(track.IsRunning);
         }
 
-        [TestCase(AudioTestComponents.Type.BASS)]
         [TestCase(AudioTestComponents.Type.SDL3)]
+        [TestCase(AudioTestComponents.Type.BASS)]
         public void TestTrackReferenceLostWhenTrackIsDisposed(AudioTestComponents.Type id)
         {
-            setupBackend(id);
+            setupBackend(id, true);
 
             var trackReference = testDisposeTrackWithoutReference();
 
             // The first update disposes the track, the second one removes the track from the TrackStore.
             audio.Update();
             audio.Update();
+
+            // Workaround for SDL3, it needs decoder running on another thread to go away.
+            if (id == AudioTestComponents.Type.SDL3)
+            {
+                audio.Dispose();
+                audio = null;
+            }
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
@@ -289,11 +266,6 @@ namespace osu.Framework.Tests.Audio
 
             track.Dispose();
             track = null;
-
-            if (type == AudioTestComponents.Type.BASS)
-                trackBass = null;
-            else if (type == AudioTestComponents.Type.SDL3)
-                trackSDL3 = null;
 
             return weakRef;
         }
@@ -330,7 +302,7 @@ namespace osu.Framework.Tests.Audio
         private void assertIfTrackIsPlaying()
         {
             if (type == AudioTestComponents.Type.BASS)
-                Assert.That(mixerBass.ChannelIsActive(trackBass), Is.Not.EqualTo(PlaybackState.Playing));
+                Assert.That(((BassAudioMixer)mixer).ChannelIsActive((TrackBass)track), Is.Not.EqualTo(PlaybackState.Playing));
             else
                 Assert.That(track.IsRunning, Is.Not.True);
         }
@@ -339,7 +311,7 @@ namespace osu.Framework.Tests.Audio
         [TestCase(AudioTestComponents.Type.SDL3)]
         public void TestChannelDoesNotPlayIfReachedEndAndSeekedBackwards(AudioTestComponents.Type id)
         {
-            setupBackend(id);
+            setupBackend(id, true);
 
             audio.RunOnAudioThread(() =>
             {
@@ -362,7 +334,7 @@ namespace osu.Framework.Tests.Audio
         [TestCase(AudioTestComponents.Type.SDL3)]
         public void TestChannelDoesNotPlayIfReachedEndAndMovedMixers(AudioTestComponents.Type id)
         {
-            setupBackend(id);
+            setupBackend(id, true);
 
             audio.RunOnAudioThread(() =>
             {

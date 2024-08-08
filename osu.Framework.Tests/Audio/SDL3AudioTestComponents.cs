@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.SDL3;
@@ -51,6 +52,16 @@ namespace osu.Framework.Tests.Audio
             return mixer;
         }
 
+        public void WaitUntilTrackIsLoaded(TrackSDL3 track)
+        {
+            // TrackSDL3 doesn't have data readily available right away after constructed.
+            while (!track.IsCompletelyLoaded)
+            {
+                Update();
+                Thread.Sleep(10);
+            }
+        }
+
         public override void DisposeInternal()
         {
             base.DisposeInternal();
@@ -59,9 +70,9 @@ namespace osu.Framework.Tests.Audio
             SDL_Quit();
         }
 
-        internal override Track CreateTrack(Stream data, string name) => new TrackSDL3(name, data, baseManager.AudioSpec, 441);
+        internal override Track CreateTrack(Stream data, string name) => baseManager.GetNewTrack(data, name);
 
         internal override SampleFactory CreateSampleFactory(Stream stream, string name, AudioMixer mixer, int playbackConcurrency)
-            => new SampleSDL3Factory(stream, name, (SDL3AudioMixer)mixer, playbackConcurrency, baseManager.AudioSpec);
+            => baseManager.GetSampleFactory(stream, name, mixer, playbackConcurrency);
     }
 }

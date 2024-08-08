@@ -13,59 +13,42 @@ namespace osu.Framework.Tests.Audio
     [TestFixture]
     public class SampleTest
     {
-        private BassTestComponents bass;
-        private Sample sampleBass;
-
-        private SDL3AudioTestComponents sdl3;
-        private Sample sampleSDL3;
+        private AudioTestComponents audio;
+        private Sample sample;
 
         private SampleChannel channel;
-
-        [SetUp]
-        public void Setup()
-        {
-            bass = new BassTestComponents();
-            sampleBass = bass.GetSample();
-
-            sdl3 = new SDL3AudioTestComponents();
-            sampleSDL3 = sdl3.GetSample();
-
-            bass.Update();
-            sdl3.Update();
-        }
 
         [TearDown]
         public void Teardown()
         {
-            bass?.Dispose();
-            sdl3?.Dispose();
+            audio?.Dispose();
         }
 
-        private Sample getSample(AudioTestComponents.Type id)
+        private void setupBackend(AudioTestComponents.Type id)
         {
             if (id == AudioTestComponents.Type.BASS)
-                return sampleBass;
+            {
+                audio = new BassTestComponents();
+                sample = audio.GetSample();
+            }
             else if (id == AudioTestComponents.Type.SDL3)
-                return sampleSDL3;
+            {
+                audio = new SDL3AudioTestComponents();
+                sample = audio.GetSample();
+            }
             else
+            {
                 throw new InvalidOperationException("not a supported id");
-        }
+            }
 
-        private AudioTestComponents getTestComponents(AudioTestComponents.Type id)
-        {
-            if (id == AudioTestComponents.Type.BASS)
-                return bass;
-            else if (id == AudioTestComponents.Type.SDL3)
-                return sdl3;
-            else
-                throw new InvalidOperationException("not a supported id");
+            audio.Update();
         }
 
         [TestCase(AudioTestComponents.Type.BASS)]
         [TestCase(AudioTestComponents.Type.SDL3)]
         public void TestGetChannelOnDisposed(AudioTestComponents.Type id)
         {
-            var sample = getSample(id);
+            setupBackend(id);
 
             sample.Dispose();
 
@@ -79,8 +62,7 @@ namespace osu.Framework.Tests.Audio
         [TestCase(AudioTestComponents.Type.SDL3)]
         public void TestStart(AudioTestComponents.Type id)
         {
-            var sample = getSample(id);
-            var audio = getTestComponents(id);
+            setupBackend(id);
 
             channel = sample.Play();
 
@@ -97,8 +79,7 @@ namespace osu.Framework.Tests.Audio
         [TestCase(AudioTestComponents.Type.SDL3)]
         public void TestStop(AudioTestComponents.Type id)
         {
-            var sample = getSample(id);
-            var audio = getTestComponents(id);
+            setupBackend(id);
 
             channel = sample.Play();
             audio.Update();
@@ -113,8 +94,7 @@ namespace osu.Framework.Tests.Audio
         [TestCase(AudioTestComponents.Type.SDL3)]
         public void TestStopBeforeLoadFinished(AudioTestComponents.Type id)
         {
-            var sample = getSample(id);
-            var audio = getTestComponents(id);
+            setupBackend(id);
 
             channel = sample.Play();
             channel.Stop();
@@ -128,8 +108,7 @@ namespace osu.Framework.Tests.Audio
         [TestCase(AudioTestComponents.Type.SDL3)]
         public void TestStopsWhenFactoryDisposed(AudioTestComponents.Type id)
         {
-            var sample = getSample(id);
-            var audio = getTestComponents(id);
+            setupBackend(id);
 
             channel = sample.Play();
             audio.Update();
@@ -148,8 +127,7 @@ namespace osu.Framework.Tests.Audio
         [TestCase(AudioTestComponents.Type.SDL3)]
         public void TestPlayingUpdatedAfterInlinePlay(AudioTestComponents.Type id)
         {
-            var sample = getSample(id);
-            var audio = getTestComponents(id);
+            setupBackend(id);
 
             audio.RunOnAudioThread(() => channel = sample.Play());
             Assert.That(channel.Playing, Is.True);
@@ -163,8 +141,7 @@ namespace osu.Framework.Tests.Audio
         [TestCase(AudioTestComponents.Type.SDL3)]
         public void TestPlayingUpdatedAfterInlineStop(AudioTestComponents.Type id)
         {
-            var sample = getSample(id);
-            var audio = getTestComponents(id);
+            setupBackend(id);
 
             var channel = sample.Play();
             audio.Update();

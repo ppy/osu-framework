@@ -29,9 +29,6 @@ namespace osu.Framework.Audio
         public static readonly int AUDIO_CHANNELS = 2;
         public static readonly SDL_AudioFormat AUDIO_FORMAT = SDL_AUDIO_F32;
 
-        // it is currently in global static... need to do something
-        internal static SDL3AudioDecoderManager DecoderManager { get; } = new SDL3AudioDecoderManager();
-
         private readonly List<SDL3AudioMixer> sdlMixerList = new List<SDL3AudioMixer>();
 
         private ImmutableArray<SDL_AudioDeviceID> deviceIdArray = ImmutableArray<SDL_AudioDeviceID>.Empty;
@@ -179,10 +176,10 @@ namespace osu.Framework.Audio
 
         protected override bool IsCurrentDeviceValid() => baseManager.DeviceId > 0 && SDL_AudioDevicePaused(baseManager.DeviceId) == SDL_FALSE;
 
-        internal override Track.Track GetNewTrack(Stream data, string name) => new TrackSDL3(name, data, baseManager.AudioSpec, baseManager.BufferSize);
+        internal override Track.Track GetNewTrack(Stream data, string name) => baseManager.GetNewTrack(data, name);
 
         internal override SampleFactory GetSampleFactory(Stream data, string name, AudioMixer mixer, int playbackConcurrency)
-            => new SampleSDL3Factory(data, name, (SDL3AudioMixer)mixer, playbackConcurrency, baseManager.AudioSpec);
+            => baseManager.GetSampleFactory(data, name, mixer, playbackConcurrency);
 
         protected override void Dispose(bool disposing)
         {
@@ -210,6 +207,8 @@ namespace osu.Framework.Audio
         private readonly Func<IEnumerable<SDL3AudioMixer>> mixerIterator;
 
         private ObjectHandle<SDL3BaseAudioManager> objectHandle;
+
+        private readonly SDL3AudioDecoderManager decoderManager = new SDL3AudioDecoderManager();
 
         internal SDL3BaseAudioManager(Func<IEnumerable<SDL3AudioMixer>> mixerIterator)
         {
@@ -317,6 +316,20 @@ namespace osu.Framework.Audio
             }
         }
 
+        internal Track.Track GetNewTrack(Stream data, string name)
+        {
+            TrackSDL3 track = new TrackSDL3(name, AudioSpec, BufferSize);
+            decoderManager.StartDecodingAsync(data, AudioSpec, true, track);
+            return track;
+        }
+
+        internal SampleFactory GetSampleFactory(Stream data, string name, AudioMixer mixer, int playbackConcurrency)
+        {
+            SampleSDL3Factory sampleFactory = new SampleSDL3Factory(name, (SDL3AudioMixer)mixer, playbackConcurrency, AudioSpec);
+            decoderManager.StartDecodingAsync(data, AudioSpec, false, sampleFactory);
+            return sampleFactory;
+        }
+
         public void Dispose()
         {
             if (DeviceStream != null)
@@ -329,6 +342,7 @@ namespace osu.Framework.Audio
             }
 
             objectHandle.Dispose();
+            decoderManager.Dispose();
         }
     }
 }
