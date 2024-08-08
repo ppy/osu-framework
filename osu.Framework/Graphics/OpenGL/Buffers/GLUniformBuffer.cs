@@ -2,7 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using osu.Framework.Development;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Statistics;
 using osuTK.Graphics.ES30;
@@ -20,6 +22,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public GLUniformBuffer(GLRenderer renderer)
         {
+            Trace.Assert(ThreadSafety.IsDrawThread);
+
             this.renderer = renderer;
 
             size = Marshal.SizeOf(default(TData));
