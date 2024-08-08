@@ -7,10 +7,10 @@ using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Tests.Graphics
 {
-    public class TextureTest
+    public class RendererTest
     {
         [Test]
-        public void TestWhitePixel_EarlyReturn_UpdatesTextureWrapping()
+        public void TestWhitePixelReuseUpdatesTextureWrapping()
         {
             DummyRenderer renderer = new DummyRenderer();
 
