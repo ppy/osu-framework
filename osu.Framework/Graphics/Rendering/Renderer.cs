@@ -1263,8 +1263,6 @@ namespace osu.Framework.Graphics.Rendering
 
         private void validateUniformLayout<TData>()
         {
-            Trace.Assert(ThreadSafety.IsDrawThread);
-
             if (validUboTypes.Contains(typeof(TData)))
                 return;
 
