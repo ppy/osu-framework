@@ -55,7 +55,7 @@ namespace osu.Framework.Audio.Sample
         public SampleSDL3AudioPlayer CreatePlayer()
         {
             if (!isLoaded)
-                completion.WaitOne(10);
+                completion.WaitOne(); // may cause deadlock in bad situation, but needed to get tests passed
 
             return new SampleSDL3AudioPlayer(decodedAudio, spec.freq, spec.channels);
         }

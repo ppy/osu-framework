@@ -21,6 +21,13 @@ namespace osu.Framework.Audio.Track
         private volatile bool isLoaded;
         public override bool IsLoaded => isLoaded;
 
+        private volatile bool isCompletelyLoaded;
+
+        /// <summary>
+        /// Audio can be played without interrupt once it's set to true. <see cref="IsLoaded"/> means that it at least has 'some' data to play.
+        /// </summary>
+        public bool IsCompletelyLoaded => isCompletelyLoaded;
+
         private double currentTime;
         public override double CurrentTime => currentTime;
 
@@ -142,7 +149,11 @@ namespace osu.Framework.Audio.Track
                 }
 
                 if (player.IsLoaded)
+                {
+                    Length = player.AudioLength;
+                    isCompletelyLoaded = true;
                     decodeData = null;
+                }
             }
 
             if (player.Done && isRunning)
@@ -239,8 +250,8 @@ namespace osu.Framework.Audio.Track
 
             lock (syncRoot)
             {
-                time = player.GetCurrentTime();
                 ret = player.GetRemainingSamples(data);
+                time = player.GetCurrentTime();
             }
 
             Interlocked.Exchange(ref currentTime, time);
@@ -292,6 +303,7 @@ namespace osu.Framework.Audio.Track
             (Mixer as SDL3AudioMixer)?.StreamFree(this);
 
             decodeData?.Stop();
+            decodeData = null;
 
             lock (syncRoot)
                 player.Dispose();

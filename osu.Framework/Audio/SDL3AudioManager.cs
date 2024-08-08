@@ -19,34 +19,30 @@ using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using osu.Framework.Threading;
 using SDL;
+using static SDL.SDL3;
 
 namespace osu.Framework.Audio
 {
-    public unsafe class SDL3AudioManager : AudioManager
+    public class SDL3AudioManager : AudioManager
     {
         public static readonly int AUDIO_FREQ = 44100;
         public static readonly int AUDIO_CHANNELS = 2;
-        public static readonly SDL_AudioFormat AUDIO_FORMAT = SDL3.SDL_AUDIO_F32;
+        public static readonly SDL_AudioFormat AUDIO_FORMAT = SDL_AUDIO_F32;
 
-        private volatile SDL_AudioDeviceID deviceId;
-        private volatile SDL_AudioStream* deviceStream;
-
-        private SDL_AudioSpec spec;
-        private int bufferSize = (int)(AUDIO_FREQ * 0.01); // 10ms, will be calculated later when opening audio device, it works as a base value until then.
-
+        // it is currently in global static... need to do something
         internal static SDL3AudioDecoderManager DecoderManager { get; } = new SDL3AudioDecoderManager();
 
         private readonly List<SDL3AudioMixer> sdlMixerList = new List<SDL3AudioMixer>();
 
         private ImmutableArray<SDL_AudioDeviceID> deviceIdArray = ImmutableArray<SDL_AudioDeviceID>.Empty;
 
-        protected ObjectHandle<SDL3AudioManager> ObjectHandle { get; private set; }
-
         private Scheduler eventScheduler => EventScheduler ?? CurrentAudioThread.Scheduler;
 
         protected override void InvokeOnNewDevice(string deviceName) => eventScheduler.Add(() => base.InvokeOnNewDevice(deviceName));
 
         protected override void InvokeOnLostDevice(string deviceName) => eventScheduler.Add(() => base.InvokeOnLostDevice(deviceName));
+
+        private readonly SDL3BaseAudioManager baseManager;
 
         /// <summary>
         /// Creates a new <see cref="SDL3AudioManager"/>.
@@ -57,31 +53,14 @@ namespace osu.Framework.Audio
         public SDL3AudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
             : base(audioThread, trackStore, sampleStore)
         {
-            ObjectHandle = new ObjectHandle<SDL3AudioManager>(this, GCHandleType.Normal);
+            baseManager = new SDL3BaseAudioManager(() => sdlMixerList);
 
-            // Must not edit this, as components (especially mixer) expects this to match.
-            spec = new SDL_AudioSpec
-            {
-                freq = AUDIO_FREQ,
-                channels = AUDIO_CHANNELS,
-                format = AUDIO_FORMAT
-            };
-
-            AudioScheduler.Add(() =>
-            {
-                syncAudioDevices();
-
-                // comment below lines if you want to use FFmpeg to decode audio, AudioDecoder will use FFmpeg if no BASS device is available
-                ManagedBass.Bass.Configure((ManagedBass.Configuration)68, 1);
-                audioThread.InitDevice(ManagedBass.Bass.NoSoundDevice);
-            });
+            AudioScheduler.Add(syncAudioDevices);
         }
-
-        private string currentDeviceName = "Not loaded";
 
         public override string ToString()
         {
-            return $@"{GetType().ReadableName()} ({currentDeviceName})";
+            return $@"{GetType().ReadableName()} ({baseManager.DeviceName})";
         }
 
         protected override AudioMixer AudioCreateAudioMixer(AudioMixer fallbackMixer, string identifier)
@@ -96,20 +75,7 @@ namespace osu.Framework.Audio
             base.ItemAdded(item);
 
             if (item is SDL3AudioMixer mixer)
-            {
-                try
-                {
-                    if (deviceId != 0)
-                        SDL3.SDL_LockAudioStream(deviceStream);
-
-                    sdlMixerList.Add(mixer);
-                }
-                finally
-                {
-                    if (deviceId != 0)
-                        SDL3.SDL_UnlockAudioStream(deviceStream);
-                }
-            }
+                baseManager.RunWhileLockingAudioStream(() => sdlMixerList.Add(mixer));
         }
 
         protected override void ItemRemoved(AudioComponent item)
@@ -117,27 +83,209 @@ namespace osu.Framework.Audio
             base.ItemRemoved(item);
 
             if (item is SDL3AudioMixer mixer)
-            {
-                try
-                {
-                    if (deviceId != 0)
-                        SDL3.SDL_LockAudioStream(deviceStream);
+                baseManager.RunWhileLockingAudioStream(() => sdlMixerList.Remove(mixer));
+        }
 
-                    sdlMixerList.Remove(mixer);
-                }
-                finally
+        internal void OnNewDeviceEvent(SDL_AudioDeviceID addedDeviceIndex)
+        {
+            AudioScheduler.Add(() =>
+            {
+                // the index is only vaild until next SDL_GetNumAudioDevices call, so get the name first.
+                string name = SDL_GetAudioDeviceName(addedDeviceIndex);
+
+                syncAudioDevices();
+                InvokeOnNewDevice(name);
+            });
+        }
+
+        internal void OnLostDeviceEvent(SDL_AudioDeviceID removedDeviceId)
+        {
+            AudioScheduler.Add(() =>
+            {
+                // SDL doesn't retain information about removed device.
+                syncAudioDevices();
+
+                if (!IsCurrentDeviceValid()) // current device lost
                 {
-                    if (deviceId != 0)
-                        SDL3.SDL_UnlockAudioStream(deviceStream);
+                    InvokeOnLostDevice(baseManager.DeviceName);
+                    SetAudioDevice();
                 }
+                else
+                {
+                    // we can probably guess the name by comparing the old list and the new one, but it won't be reliable
+                    InvokeOnLostDevice(string.Empty);
+                }
+            });
+        }
+
+        private unsafe void syncAudioDevices()
+        {
+            int count = 0;
+            SDL_AudioDeviceID* idArrayPtr = SDL_GetAudioPlaybackDevices(&count);
+
+            var idArray = ImmutableArray.CreateBuilder<SDL_AudioDeviceID>(count);
+            var nameArray = ImmutableArray.CreateBuilder<string>(count);
+
+            for (int i = 0; i < count; i++)
+            {
+                SDL_AudioDeviceID id = *(idArrayPtr + i);
+                string name = SDL_GetAudioDeviceName(id);
+
+                if (string.IsNullOrEmpty(name))
+                    continue;
+
+                idArray.Add(id);
+                nameArray.Add(name);
             }
+
+            deviceIdArray = idArray.ToImmutable();
+            DeviceNames = nameArray.ToImmutableList();
+        }
+
+        private bool setAudioDevice(SDL_AudioDeviceID targetId)
+        {
+            if (baseManager.SetAudioDevice(targetId))
+            {
+                Logger.Log($@"🔈 SDL Audio initialised
+                            Driver:      {SDL_GetCurrentAudioDriver()}
+                            Device Name: {baseManager.DeviceName}
+                            Format:      {baseManager.AudioSpec.freq}hz {baseManager.AudioSpec.channels}ch
+                            Sample size: {baseManager.BufferSize}");
+
+                return true;
+            }
+
+            return false;
+        }
+
+        protected override bool SetAudioDevice(string deviceName = null)
+        {
+            deviceName ??= AudioDevice.Value;
+
+            int deviceIndex = DeviceNames.FindIndex(d => d == deviceName);
+            if (deviceIndex >= 0)
+                return setAudioDevice(deviceIdArray[deviceIndex]);
+
+            return setAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK);
+        }
+
+        protected override bool SetAudioDevice(int deviceIndex)
+        {
+            if (deviceIndex < deviceIdArray.Length && deviceIndex >= 0)
+                return setAudioDevice(deviceIdArray[deviceIndex]);
+
+            return SetAudioDevice();
+        }
+
+        protected override bool IsCurrentDeviceValid() => baseManager.DeviceId > 0 && SDL_AudioDevicePaused(baseManager.DeviceId) == SDL_FALSE;
+
+        internal override Track.Track GetNewTrack(Stream data, string name) => new TrackSDL3(name, data, baseManager.AudioSpec, baseManager.BufferSize);
+
+        internal override SampleFactory GetSampleFactory(Stream data, string name, AudioMixer mixer, int playbackConcurrency)
+            => new SampleSDL3Factory(data, name, (SDL3AudioMixer)mixer, playbackConcurrency, baseManager.AudioSpec);
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            baseManager.Dispose();
+        }
+    }
+
+
+    /// <summary>
+    /// To share basic playback logic with audio tests.
+    /// </summary>
+    internal unsafe class SDL3BaseAudioManager : IDisposable
+    {
+        internal SDL_AudioSpec AudioSpec { get; private set; }
+
+        internal SDL_AudioDeviceID DeviceId { get; private set; }
+        internal SDL_AudioStream* DeviceStream { get; private set; }
+
+        internal int BufferSize { get; private set; } = (int)(SDL3AudioManager.AUDIO_FREQ * 0.01);
+
+        internal string DeviceName { get; private set; } = "Not loaded";
+
+        private readonly Func<IEnumerable<SDL3AudioMixer>> mixerIterator;
+
+        private ObjectHandle<SDL3BaseAudioManager> objectHandle;
+
+        internal SDL3BaseAudioManager(Func<IEnumerable<SDL3AudioMixer>> mixerIterator)
+        {
+            this.mixerIterator = mixerIterator;
+            objectHandle = new ObjectHandle<SDL3BaseAudioManager>(this, GCHandleType.Normal);
+            AudioSpec = new SDL_AudioSpec
+            {
+                freq = SDL3AudioManager.AUDIO_FREQ,
+                channels = SDL3AudioManager.AUDIO_CHANNELS,
+                format = SDL3AudioManager.AUDIO_FORMAT
+            };
+        }
+
+        internal void RunWhileLockingAudioStream(Action action)
+        {
+            SDL_AudioStream* stream = DeviceStream;
+
+            if (stream != null)
+                SDL_LockAudioStream(stream);
+
+            try
+            {
+                action();
+            }
+            finally
+            {
+                if (stream != null)
+                    SDL_UnlockAudioStream(stream);
+            }
+        }
+
+        internal bool SetAudioDevice(SDL_AudioDeviceID targetId)
+        {
+            if (DeviceStream != null)
+            {
+                SDL_DestroyAudioStream(DeviceStream);
+                DeviceStream = null;
+            }
+
+            SDL_AudioSpec spec = AudioSpec;
+
+            SDL_AudioStream* deviceStream = SDL_OpenAudioDeviceStream(targetId, &spec, &audioCallback, objectHandle.Handle);
+            if (deviceStream != null)
+            {
+                SDL_DestroyAudioStream(DeviceStream);
+                DeviceStream = deviceStream;
+                AudioSpec = spec;
+
+                DeviceId = SDL_GetAudioStreamDevice(deviceStream);
+
+                int sampleFrameSize = 0;
+                SDL_AudioSpec temp; // this has 'real' device info which is useless since SDL converts audio according to the spec we provided
+                if (SDL_GetAudioDeviceFormat(DeviceId, &temp, &sampleFrameSize) == 0)
+                    BufferSize = sampleFrameSize * (int)Math.Ceiling((double)spec.freq / temp.freq);
+            }
+
+            if (deviceStream == null)
+            {
+                if (targetId == SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK)
+                    return false;
+
+                return SetAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK);
+            }
+
+            SDL_ResumeAudioDevice(DeviceId);
+
+            DeviceName = SDL_GetAudioDeviceName(targetId);
+
+            return true;
         }
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
         private static void audioCallback(IntPtr userdata, SDL_AudioStream* stream, int additionalAmount, int totalAmount)
         {
-            var handle = new ObjectHandle<SDL3AudioManager>(userdata);
-            if (handle.GetTarget(out SDL3AudioManager audioManager))
+            var handle = new ObjectHandle<SDL3BaseAudioManager>(userdata);
+            if (handle.GetTarget(out SDL3BaseAudioManager audioManager))
                 audioManager.internalAudioCallback(stream, additionalAmount);
         }
 
@@ -154,14 +302,14 @@ namespace osu.Framework.Audio
             {
                 int filled = 0;
 
-                foreach (var mixer in sdlMixerList)
+                foreach (var mixer in mixerIterator())
                 {
                     if (mixer.IsAlive)
                         mixer.MixChannelsInto(audioBuffer, additionalAmount, ref filled);
                 }
 
                 fixed (float* ptr = audioBuffer)
-                    SDL3.SDL_PutAudioStreamData(stream, (IntPtr)ptr, filled * 4);
+                    SDL_PutAudioStreamData(stream, (IntPtr)ptr, filled * 4);
             }
             catch (Exception e)
             {
@@ -169,152 +317,18 @@ namespace osu.Framework.Audio
             }
         }
 
-        internal void OnNewDeviceEvent(SDL_AudioDeviceID addedDeviceIndex)
+        public void Dispose()
         {
-            AudioScheduler.Add(() =>
+            if (DeviceStream != null)
             {
-                // the index is only vaild until next SDL_GetNumAudioDevices call, so get the name first.
-                string name = SDL3.SDL_GetAudioDeviceName(addedDeviceIndex);
-
-                syncAudioDevices();
-                InvokeOnNewDevice(name);
-            });
-        }
-
-        internal void OnLostDeviceEvent(SDL_AudioDeviceID removedDeviceId)
-        {
-            AudioScheduler.Add(() =>
-            {
-                // SDL doesn't retain information about removed device.
-                syncAudioDevices();
-
-                if (!IsCurrentDeviceValid()) // current device lost
-                {
-                    InvokeOnLostDevice(currentDeviceName);
-                    SetAudioDevice();
-                }
-                else
-                {
-                    // we can probably guess the name by comparing the old list and the new one, but it won't be reliable
-                    InvokeOnLostDevice(string.Empty);
-                }
-            });
-        }
-
-        private void syncAudioDevices()
-        {
-            int count = 0;
-            SDL_AudioDeviceID* idArrayPtr = SDL3.SDL_GetAudioPlaybackDevices(&count);
-
-            var idArray = ImmutableArray.CreateBuilder<SDL_AudioDeviceID>(count);
-            var nameArray = ImmutableArray.CreateBuilder<string>(count);
-
-            for (int i = 0; i < count; i++)
-            {
-                SDL_AudioDeviceID id = *(idArrayPtr + i);
-                string name = SDL3.SDL_GetAudioDeviceName(id);
-
-                if (string.IsNullOrEmpty(name))
-                    continue;
-
-                idArray.Add(id);
-                nameArray.Add(name);
-            }
-
-            deviceIdArray = idArray.ToImmutable();
-            DeviceNames = nameArray.ToImmutableList();
-        }
-
-        private bool setAudioDevice(SDL_AudioDeviceID targetId)
-        {
-            if (deviceStream != null)
-            {
-                SDL3.SDL_DestroyAudioStream(deviceStream);
-                deviceStream = null;
-            }
-
-            fixed (SDL_AudioSpec* ptr = &spec)
-            {
-                deviceStream = SDL3.SDL_OpenAudioDeviceStream(targetId, ptr, &audioCallback, ObjectHandle.Handle);
-
-                if (deviceStream != null)
-                {
-                    deviceId = SDL3.SDL_GetAudioStreamDevice(deviceStream);
-
-                    int sampleFrameSize = 0;
-                    SDL_AudioSpec temp; // this has 'real' device info which is useless since SDL converts audio according to the spec we provided
-                    if (SDL3.SDL_GetAudioDeviceFormat(deviceId, &temp, &sampleFrameSize) == 0)
-                        bufferSize = sampleFrameSize * (int)Math.Ceiling((double)spec.freq / temp.freq);
-                }
-            }
-
-            if (deviceStream == null)
-            {
-                if (targetId == SDL3.SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK)
-                    return false;
-
-                return setAudioDevice(SDL3.SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK);
-            }
-
-            SDL3.SDL_ResumeAudioDevice(deviceId);
-
-            currentDeviceName = SDL3.SDL_GetAudioDeviceName(targetId);
-
-            Logger.Log($@"🔈 SDL Audio initialised
-                            Driver:      {SDL3.SDL_GetCurrentAudioDriver()}
-                            Device Name: {currentDeviceName}
-                            Format:      {spec.freq}hz {spec.channels}ch
-                            Sample size: {bufferSize}");
-
-            return true;
-        }
-
-        protected override bool SetAudioDevice(string deviceName = null)
-        {
-            deviceName ??= AudioDevice.Value;
-
-            int deviceIndex = DeviceNames.FindIndex(d => d == deviceName);
-            if (deviceIndex >= 0)
-                return setAudioDevice(deviceIdArray[deviceIndex]);
-
-            return setAudioDevice(SDL3.SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK);
-        }
-
-        protected override bool SetAudioDevice(int deviceIndex)
-        {
-            if (deviceIndex < deviceIdArray.Length && deviceIndex >= 0)
-                return setAudioDevice(deviceIdArray[deviceIndex]);
-
-            return SetAudioDevice();
-        }
-
-        protected override bool IsCurrentDeviceValid() => deviceId > 0 && SDL3.SDL_AudioDevicePaused(deviceId) == SDL3.SDL_FALSE;
-
-        internal override Track.Track GetNewTrack(Stream data, string name)
-        {
-            TrackSDL3 track = new TrackSDL3(name, data, spec, bufferSize);
-            return track;
-        }
-
-        internal override SampleFactory GetSampleFactory(Stream data, string name, AudioMixer mixer, int playbackConcurrency)
-            => new SampleSDL3Factory(data, name, (SDL3AudioMixer)mixer, playbackConcurrency, spec);
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-
-            DecoderManager?.Dispose();
-
-            if (deviceStream != null)
-            {
-                SDL3.SDL_DestroyAudioStream(deviceStream);
-                deviceStream = null;
-                deviceId = 0;
+                SDL_DestroyAudioStream(DeviceStream);
+                DeviceStream = null;
+                DeviceId = 0;
                 // Destroying audio stream will close audio device because we use SDL3 OpenAudioDeviceStream
                 // won't use multiple AudioStream for now since it's barely useful
             }
 
-            ObjectHandle.Dispose();
+            objectHandle.Dispose();
         }
     }
 }

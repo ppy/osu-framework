@@ -43,6 +43,8 @@ namespace osu.Framework.Audio.Track
 
         private long audioDataLength;
 
+        public double AudioLength => GetMsFromIndex(audioDataLength);
+
         /// <summary>
         /// Play backwards if set to true.
         /// </summary>
@@ -227,6 +229,9 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public double GetCurrentTime()
         {
+            if (SaveSeek > 0)
+                return GetMsFromIndex(SaveSeek);
+
             if (AudioData == null)
                 return 0;
 

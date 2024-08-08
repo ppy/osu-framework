@@ -2,13 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.IO;
 using ManagedBass;
-using osu.Framework.Audio;
+using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 using osu.Framework.Extensions;
-using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Audio
@@ -16,40 +16,14 @@ namespace osu.Framework.Tests.Audio
     /// <summary>
     /// Provides a BASS audio pipeline to be used for testing audio components.
     /// </summary>
-    public class BassTestComponents : IDisposable
+    public class BassTestComponents : AudioTestComponents, IDisposable
     {
-        internal readonly BassAudioMixer Mixer;
-        public readonly DllResourceStore Resources;
-        internal readonly TrackStore TrackStore;
-        internal readonly SampleStore SampleStore;
-
-        private readonly AudioCollectionManager<AudioComponent> allComponents = new AudioCollectionManager<AudioComponent>();
-        private readonly AudioCollectionManager<AudioComponent> mixerComponents = new AudioCollectionManager<AudioComponent>();
-
         public BassTestComponents(bool init = true)
+            : base(init)
         {
-            if (init)
-                Init();
-
-            allComponents.AddItem(mixerComponents);
-
-            Mixer = CreateMixer();
-            Resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
-            TrackStore = new TrackStore(Resources, Mixer, (data, name) => new TrackBass(data, name));
-            SampleStore = new SampleStore(Resources, Mixer, (stream, name, mixer, playbackConcurrency) =>
-            {
-                byte[] data;
-
-                using (stream)
-                    data = stream.ReadAllBytesToArray();
-
-                return new SampleBassFactory(data, name, (BassAudioMixer)mixer, playbackConcurrency);
-            });
-
-            Add(TrackStore, SampleStore);
         }
 
-        public void Init()
+        public override void Init()
         {
             AudioThread.PreloadBass();
 
@@ -58,38 +32,29 @@ namespace osu.Framework.Tests.Audio
             Bass.Init(0);
         }
 
-        public void Add(params AudioComponent[] component)
-        {
-            foreach (var c in component)
-                allComponents.AddItem(c);
-        }
-
-        internal BassAudioMixer CreateMixer()
+        public override AudioMixer CreateMixer()
         {
             var mixer = new BassAudioMixer(null, Mixer, "Test mixer");
-            mixerComponents.AddItem(mixer);
+            MixerComponents.AddItem(mixer);
             return mixer;
         }
 
-        public void Update()
+        public override void DisposeInternal()
         {
-            RunOnAudioThread(() => allComponents.Update());
+            base.DisposeInternal();
+            Bass.Free();
         }
 
-        /// <summary>
-        /// Runs an <paramref name="action"/> on a newly created audio thread, and blocks until it has been run to completion.
-        /// </summary>
-        /// <param name="action">The action to run on the audio thread.</param>
-        public void RunOnAudioThread(Action action) => AudioTestHelper.RunOnAudioThread(action);
+        internal override Track CreateTrack(Stream data, string name) => new TrackBass(data, name);
 
-        internal TrackBass GetTrack() => (TrackBass)TrackStore.Get("Resources.Tracks.sample-track.mp3");
-        internal SampleBass GetSample() => (SampleBass)SampleStore.Get("Resources.Tracks.sample-track.mp3");
-
-        public void Dispose() => RunOnAudioThread(() =>
+        internal override SampleFactory CreateSampleFactory(Stream stream, string name, AudioMixer mixer, int playbackConcurrency)
         {
-            allComponents.Dispose();
-            allComponents.Update(); // Actually runs the disposal.
-            Bass.Free();
-        });
+            byte[] data;
+
+            using (stream)
+                data = stream.ReadAllBytesToArray();
+
+            return new SampleBassFactory(data, name, (BassAudioMixer)mixer, playbackConcurrency);
+        }
     }
 }

@@ -27,7 +27,6 @@ namespace osu.Framework.Audio.Sample
             if (started)
                 return;
 
-            started = false;
             playing = true;
             base.Play();
         }
