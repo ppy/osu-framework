@@ -48,10 +48,10 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
                                                               Color4? initialisationColour = null)
-            => new DummyNativeTexture(this);
+            => new DummyNativeTexture(this, width, height);
 
         protected override INativeTexture CreateNativeVideoTexture(int width, int height)
-            => new DummyNativeTexture(this);
+            => new DummyNativeTexture(this, width, height);
 
         protected override void Initialise(IGraphicsSurface graphicsSurface)
         {
