@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.IO;
 using ManagedBass;
 using osu.Framework.Audio.Mixing;
@@ -16,7 +15,7 @@ namespace osu.Framework.Tests.Audio
     /// <summary>
     /// Provides a BASS audio pipeline to be used for testing audio components.
     /// </summary>
-    public class BassTestComponents : AudioTestComponents, IDisposable
+    public class BassTestComponents : AudioTestComponents
     {
         public BassTestComponents(bool init = true)
             : base(init)

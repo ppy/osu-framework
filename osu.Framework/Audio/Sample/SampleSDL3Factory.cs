@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.IO;
 using System.Threading;
 using osu.Framework.Audio.Mixing.SDL3;
 using osu.Framework.Bindables;

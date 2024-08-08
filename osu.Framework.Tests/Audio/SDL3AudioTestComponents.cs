@@ -18,7 +18,7 @@ namespace osu.Framework.Tests.Audio
     /// <summary>
     /// Provides a SDL3 audio pipeline to be used for testing audio components.
     /// </summary>
-    public class SDL3AudioTestComponents : AudioTestComponents, IDisposable
+    public class SDL3AudioTestComponents : AudioTestComponents
     {
         private SDL3BaseAudioManager baseManager = null!;
 

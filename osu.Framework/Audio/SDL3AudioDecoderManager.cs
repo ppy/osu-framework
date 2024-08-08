@@ -58,7 +58,7 @@ namespace osu.Framework.Audio
             return decoder;
         }
 
-        private bool bassInit;
+        private readonly bool bassInit;
 
         /// <summary>
         /// Starts a decoder thread.
@@ -267,7 +267,7 @@ namespace osu.Framework.Audio
         private double length;
 
         /// <summary>
-        /// Audio length in miliseconds. Decoder may fill this in after the first call of <see cref="LoadFromStream(out byte[])"/>.
+        /// Audio length in milliseconds. Decoder may fill this in after the first call of <see cref="LoadFromStream(out byte[])"/>.
         /// </summary>
         public double Length
         {

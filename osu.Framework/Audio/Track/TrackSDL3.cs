@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using NAudio.Dsp;
@@ -174,7 +173,7 @@ namespace osu.Framework.Audio.Track
                     player.FillRequiredSamples();
             }
 
-            // Not sure if I need to split this up to another class since this featrue is only exclusive to Track
+            // Not sure if I need to split this up to another class since this feature is only exclusive to Track
             if (amplitudeRequested && isRunning && Math.Abs(currentTime - lastTime) > 1000.0 / 60.0)
             {
                 lastTime = currentTime;

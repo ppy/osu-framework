@@ -87,7 +87,7 @@ namespace osu.Framework.Audio
         {
             AudioScheduler.Add(() =>
             {
-                // the index is only vaild until next SDL_GetNumAudioDevices call, so get the name first.
+                // the index is only valid until next SDL_GetNumAudioDevices call, so get the name first.
                 string name = SDL_GetAudioDeviceName(addedDeviceIndex);
 
                 syncAudioDevices();
@@ -189,7 +189,6 @@ namespace osu.Framework.Audio
         }
     }
 
-
     /// <summary>
     /// To share basic playback logic with audio tests.
     /// </summary>
@@ -251,6 +250,7 @@ namespace osu.Framework.Audio
             SDL_AudioSpec spec = AudioSpec;
 
             SDL_AudioStream* deviceStream = SDL_OpenAudioDeviceStream(targetId, &spec, &audioCallback, objectHandle.Handle);
+
             if (deviceStream != null)
             {
                 SDL_DestroyAudioStream(DeviceStream);

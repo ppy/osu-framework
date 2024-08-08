@@ -143,7 +143,7 @@ namespace osu.Framework.Tests.Audio
         {
             setupBackend(id);
 
-            var channel = sample.Play();
+            channel = sample.Play();
             audio.Update();
 
             audio.RunOnAudioThread(() => channel.Stop());
