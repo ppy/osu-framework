@@ -39,7 +39,7 @@ namespace osu.Framework.Audio
 
         protected override void InvokeOnLostDevice(string deviceName) => eventScheduler.Add(() => base.InvokeOnLostDevice(deviceName));
 
-        private readonly SDL3BaseAudioManager baseManager;
+        private SDL3BaseAudioManager baseManager;
 
         /// <summary>
         /// Creates a new <see cref="SDL3AudioManager"/>.
@@ -50,9 +50,12 @@ namespace osu.Framework.Audio
         public SDL3AudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
             : base(audioThread, trackStore, sampleStore)
         {
-            baseManager = new SDL3BaseAudioManager(() => sdlMixerList);
-
             AudioScheduler.Add(syncAudioDevices);
+        }
+
+        protected override void Prepare()
+        {
+            baseManager = new SDL3BaseAudioManager(() => sdlMixerList);
         }
 
         public override string ToString()

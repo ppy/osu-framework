@@ -125,6 +125,8 @@ namespace osu.Framework.Audio
         /// <param name="sampleStore">The sample store containing all audio samples to be used in the future.</param>
         protected AudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
         {
+            Prepare();
+
             CurrentAudioThread = audioThread;
 
             CurrentAudioThread.RegisterManager(this);
@@ -149,6 +151,10 @@ namespace osu.Framework.Audio
                 store.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
                 return store;
             });
+        }
+
+        protected virtual void Prepare()
+        {
         }
 
         internal abstract Track.Track GetNewTrack(Stream data, string name);
