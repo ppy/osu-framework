@@ -43,6 +43,9 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         protected override IShaderStorageBufferObject<TData> CreateShaderStorageBufferObject<TData>(int uboSize, int ssboSize)
             => new DummyShaderStorageBufferObject<TData>(ssboSize);
 
+        public Texture CreateTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, WrapMode wrapModeS = WrapMode.None)
+            => base.CreateTexture(width, height, manualMipmaps, filteringMode, wrapModeS, wrapModeS, null);
+
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
                                                               Color4? initialisationColour = null)
             => new DummyNativeTexture(this);

@@ -5,9 +5,7 @@ using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using osu.Framework.Graphics.Rendering.Dummy;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Textures;
 using osu.Framework.Text;
-using osuTK.Graphics;
 
 namespace osu.Framework.Benchmarks
 {
@@ -51,7 +49,7 @@ namespace osu.Framework.Benchmarks
         {
             public ITexturedCharacterGlyph Get(string? fontName, char character) => new TexturedCharacterGlyph(
                 new CharacterGlyph(character, character, character, character, character, null),
-                new DummyRenderer().CreateTexture(1, 1, true, TextureFilteringMode.Linear, WrapMode.None, WrapMode.None, Color4.White));
+                new DummyRenderer().CreateTexture(1, 1));
 
             public Task<ITexturedCharacterGlyph?> GetAsync(string fontName, char character) => Task.Run<ITexturedCharacterGlyph?>(() => Get(fontName, character));
         }

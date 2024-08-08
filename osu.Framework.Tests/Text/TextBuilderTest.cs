@@ -14,7 +14,6 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Text;
 using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Text
 {
@@ -676,7 +675,7 @@ namespace osu.Framework.Tests.Text
 
         private readonly struct TestGlyph : ITexturedCharacterGlyph
         {
-            public Texture Texture => new DummyRenderer().CreateTexture(1, 1, true, TextureFilteringMode.Linear, WrapMode.None, WrapMode.None, Color4.White);
+            public Texture Texture => new DummyRenderer().CreateTexture(1, 1);
             public float XOffset { get; }
             public float YOffset { get; }
             public float XAdvance { get; }

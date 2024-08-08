@@ -4,8 +4,6 @@
 using NUnit.Framework;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Dummy;
-using osu.Framework.Graphics.Textures;
-using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Graphics
 {
@@ -15,7 +13,7 @@ namespace osu.Framework.Tests.Graphics
         [Test]
         public void TestRegionHasCorrectSize()
         {
-            var tex = new DummyRenderer().CreateTexture(100, 100, true, TextureFilteringMode.Linear, WrapMode.None, WrapMode.None, Color4.White);
+            var tex = new DummyRenderer().CreateTexture(100, 100);
 
             Assert.That(tex.Width, Is.EqualTo(100));
             Assert.That(tex.Height, Is.EqualTo(100));
@@ -35,7 +33,7 @@ namespace osu.Framework.Tests.Graphics
         [Test]
         public void TestRegionHasCorrectSizeWithOffset()
         {
-            var tex = new DummyRenderer().CreateTexture(100, 100, true, TextureFilteringMode.Linear, WrapMode.None, WrapMode.None, Color4.White);
+            var tex = new DummyRenderer().CreateTexture(100, 100);
 
             Assert.That(tex.Width, Is.EqualTo(100));
             Assert.That(tex.Height, Is.EqualTo(100));
@@ -55,7 +53,7 @@ namespace osu.Framework.Tests.Graphics
         [Test]
         public void TestScaleAdjustOnlyAffectsDisplaySize()
         {
-            var tex = new DummyRenderer().CreateTexture(100, 100, true, TextureFilteringMode.Linear, WrapMode.None, WrapMode.None, Color4.White);
+            var tex = new DummyRenderer().CreateTexture(100, 100);
             tex.ScaleAdjust = 2;
 
             Assert.That(tex.Width, Is.EqualTo(100));
