@@ -12,7 +12,7 @@ using SDL;
 
 namespace osu.Framework.Audio.Track
 {
-    public sealed class TrackSDL3 : Track, ISDL3AudioChannel
+    public sealed class TrackSDL3 : Track, ISDL3AudioChannel, ISDL3AudioDataReceiver
     {
         private readonly TempoSDL3AudioPlayer player;
 
@@ -40,11 +40,9 @@ namespace osu.Framework.Audio.Track
         private volatile int bitrate;
         public override int? Bitrate => bitrate;
 
-        public TrackSDL3(string name, Stream data, SDL_AudioSpec spec, int samples)
+        public TrackSDL3(string name, SDL_AudioSpec spec, int samples)
             : base(name)
         {
-            EnqueueAction(() => SDL3AudioManager.DecoderManager.StartDecodingAsync(data, spec, true, ReceiveAudioData));
-
             // SoundTouch limitation
             const float tempo_minimum_supported = 0.05f;
             AggregateTempo.ValueChanged += t =>
@@ -60,7 +58,7 @@ namespace osu.Framework.Audio.Track
 
         private SDL3AudioDecoder? decodeData;
 
-        internal void ReceiveAudioData(byte[] audio, int length, SDL3AudioDecoder data, bool done)
+        void ISDL3AudioDataReceiver.GetData(byte[] audio, int length, SDL3AudioDecoder data, bool done)
         {
             if (IsDisposed)
                 return;

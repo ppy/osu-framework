@@ -10,7 +10,7 @@ using SDL;
 
 namespace osu.Framework.Audio.Sample
 {
-    internal class SampleSDL3Factory : SampleFactory
+    internal class SampleSDL3Factory : SampleFactory, ISDL3AudioDataReceiver
     {
         private volatile bool isLoaded;
         public override bool IsLoaded => isLoaded;
@@ -22,23 +22,17 @@ namespace osu.Framework.Audio.Sample
 
         private readonly AutoResetEvent completion = new AutoResetEvent(false);
 
-        private SDL3AudioDecoder? decoder;
-
-        public SampleSDL3Factory(Stream stream, string name, SDL3AudioMixer mixer, int playbackConcurrency, SDL_AudioSpec spec)
+        public SampleSDL3Factory(string name, SDL3AudioMixer mixer, int playbackConcurrency, SDL_AudioSpec spec)
             : base(name, playbackConcurrency)
         {
             this.mixer = mixer;
             this.spec = spec;
-
-            decoder = SDL3AudioManager.DecoderManager.StartDecodingAsync(stream, spec, false, ReceiveAudioData);
         }
 
-        internal void ReceiveAudioData(byte[] audio, int byteLen, SDL3AudioDecoder data, bool done)
+        void ISDL3AudioDataReceiver.GetData(byte[] audio, int byteLen, SDL3AudioDecoder data, bool done)
         {
             if (IsDisposed)
                 return;
-
-            decoder = null;
 
             if (byteLen > 0)
             {
@@ -75,8 +69,6 @@ namespace osu.Framework.Audio.Sample
         {
             if (IsDisposed)
                 return;
-
-            decoder?.Stop();
 
             decodedAudio = Array.Empty<float>();
 

@@ -11,20 +11,13 @@ using ManagedBass.Mix;
 using ManagedBass;
 using osu.Framework.Audio.Callbacks;
 using osu.Framework.Graphics.Video;
-using static osu.Framework.Audio.SDL3AudioDecoderManager;
 
 namespace osu.Framework.Audio
 {
-    /// <summary>
-    /// Decodes audio from <see cref="Stream"/>, and convert it to appropriate format.
-    /// It needs a lot of polishing...
-    /// </summary>
-    public class SDL3AudioDecoderManager : IDisposable
+    public interface ISDL3AudioDataReceiver
     {
-        private readonly LinkedList<SDL3AudioDecoder> jobs = new LinkedList<SDL3AudioDecoder>();
-
         /// <summary>
-        /// Delegate to get decoded audio data from the decoder.
+        /// Interface to get decoded audio data from the decoder.
         /// </summary>
         /// <param name="data">Decoded audio. The format depends on <see cref="SDL3AudioDecoder.AudioSpec"/> you specified,
         /// so you may need <see cref="Buffer.BlockCopy(Array, int, Array, int, int)"/> to actual data format.
@@ -32,7 +25,16 @@ namespace osu.Framework.Audio
         /// <param name="length">Length in byte of decoded audio. Use this instead of data.Length</param>
         /// <param name="decoderData">Associated <see cref="SDL3AudioDecoder"/>.</param>
         /// <param name="done">Whether if this is the last data or not.</param>
-        public delegate void PassDataDelegate(byte[] data, int length, SDL3AudioDecoder decoderData, bool done);
+        void GetData(byte[] data, int length, SDL3AudioDecoder decoderData, bool done);
+    }
+
+    /// <summary>
+    /// Decodes audio from <see cref="Stream"/>, and convert it to appropriate format.
+    /// It needs a lot of polishing...
+    /// </summary>
+    public class SDL3AudioDecoderManager : IDisposable
+    {
+        private readonly LinkedList<SDL3AudioDecoder> jobs = new LinkedList<SDL3AudioDecoder>();
 
         private readonly Thread decoderThread;
         private readonly AutoResetEvent decoderWaitHandle;
@@ -47,7 +49,7 @@ namespace osu.Framework.Audio
         /// <param name="autoDisposeStream">Refer to <see cref="SDL3AudioDecoder.AutoDisposeStream"/></param>
         /// <param name="pass">Refer to <see cref="SDL3AudioDecoder.Pass"/></param>
         /// <returns>A new instance.</returns>
-        internal static SDL3AudioDecoder CreateDecoder(Stream stream, SDL_AudioSpec audioSpec, bool isTrack, bool autoDisposeStream = true, PassDataDelegate? pass = null)
+        internal static SDL3AudioDecoder CreateDecoder(Stream stream, SDL_AudioSpec audioSpec, bool isTrack, bool autoDisposeStream = true, ISDL3AudioDataReceiver? pass = null)
         {
             SDL3AudioDecoder decoder = Bass.CurrentDevice >= 0
                 ? new SDL3AudioDecoder.BassAudioDecoder(stream, audioSpec, isTrack, autoDisposeStream, pass)
@@ -87,7 +89,7 @@ namespace osu.Framework.Audio
         /// <param name="isTrack">Refer to <see cref="SDL3AudioDecoder.IsTrack"/></param>
         /// <param name="pass">Refer to <see cref="SDL3AudioDecoder.Pass"/></param>
         /// <returns>A new instance.</returns>
-        public SDL3AudioDecoder StartDecodingAsync(Stream stream, SDL_AudioSpec audioSpec, bool isTrack, PassDataDelegate pass)
+        public SDL3AudioDecoder StartDecodingAsync(Stream stream, SDL_AudioSpec audioSpec, bool isTrack, ISDL3AudioDataReceiver pass)
         {
             if (disposedValue)
                 throw new InvalidOperationException($"Cannot start decoding on disposed {nameof(SDL3AudioDecoderManager)}");
@@ -123,17 +125,20 @@ namespace osu.Framework.Audio
 
                             if (decoder.StopJob)
                             {
-                                decoder.Free();
+                                decoder.Dispose();
                                 jobs.Remove(node);
                             }
                             else
                             {
                                 int read = decodeAudio(decoder, out byte[] decoded);
-                                decoder.Pass?.Invoke(decoded, read, decoder, !decoder.Loading);
+                                decoder.Pass?.GetData(decoded, read, decoder, !decoder.Loading);
                             }
 
                             if (!decoder.Loading)
+                            {
+                                decoder.RemoveReferenceToReceiver(); // cannot do in Decoder.Dispose since Pass needs to be used later.
                                 jobs.Remove(node);
+                            }
 
                             node = next;
                         }
@@ -162,7 +167,7 @@ namespace osu.Framework.Audio
                 {
                     foreach (var job in jobs)
                     {
-                        job.Free();
+                        job.Dispose();
                     }
 
                     jobs.Clear();
@@ -244,9 +249,9 @@ namespace osu.Framework.Audio
         internal readonly bool AutoDisposeStream;
 
         /// <summary>
-        /// Decoder will call this once or more to pass the decoded audio data.
+        /// Decoder will call <see cref="ISDL3AudioDataReceiver.GetData(byte[], int, SDL3AudioDecoder, bool)"/> or more to pass the decoded audio data.
         /// </summary>
-        internal PassDataDelegate? Pass { get; private set; }
+        internal ISDL3AudioDataReceiver? Pass { get; private set; }
 
         private int bitrate;
 
@@ -292,7 +297,7 @@ namespace osu.Framework.Audio
         /// </summary>
         public bool Loading { get => loading; protected set => loading = value; }
 
-        protected SDL3AudioDecoder(Stream stream, SDL_AudioSpec audioSpec, bool isTrack, bool autoDisposeStream, PassDataDelegate? pass)
+        protected SDL3AudioDecoder(Stream stream, SDL_AudioSpec audioSpec, bool isTrack, bool autoDisposeStream, ISDL3AudioDataReceiver? pass)
         {
             Stream = stream;
             AudioSpec = audioSpec;
@@ -310,14 +315,13 @@ namespace osu.Framework.Audio
         }
 
         // Not using IDisposable since things must be handled in a decoder thread
-        internal virtual void Free()
+        internal virtual void Dispose()
         {
-            // Pass = null;
-            // Remove reference to the receiver
-
             if (AutoDisposeStream)
                 Stream.Dispose();
         }
+
+        internal void RemoveReferenceToReceiver() => Pass = null;
 
         protected abstract int LoadFromStreamInternal(out byte[] decoded);
 
@@ -344,7 +348,7 @@ namespace osu.Framework.Audio
             finally
             {
                 if (!Loading)
-                    Free();
+                    Dispose();
             }
 
             return read;
@@ -380,12 +384,12 @@ namespace osu.Framework.Audio
 
             private ushort bits => (ushort)SDL3.SDL_AUDIO_BITSIZE(AudioSpec.format);
 
-            public BassAudioDecoder(Stream stream, SDL_AudioSpec audioSpec, bool isTrack, bool autoDisposeStream, PassDataDelegate? pass)
+            public BassAudioDecoder(Stream stream, SDL_AudioSpec audioSpec, bool isTrack, bool autoDisposeStream, ISDL3AudioDataReceiver? pass)
                 : base(stream, audioSpec, isTrack, autoDisposeStream, pass)
             {
             }
 
-            internal override void Free()
+            internal override void Dispose()
             {
                 if (syncHandle != 0)
                 {
@@ -413,7 +417,7 @@ namespace osu.Framework.Audio
                     decodeStream = 0;
                 }
 
-                base.Free();
+                base.Dispose();
             }
 
             protected override int LoadFromStreamInternal(out byte[] decoded)
@@ -499,17 +503,17 @@ namespace osu.Framework.Audio
             private VideoDecoder? ffmpeg;
             private byte[]? decodeData;
 
-            public FFmpegAudioDecoder(Stream stream, SDL_AudioSpec audioSpec, bool isTrack, bool autoDisposeStream, PassDataDelegate? pass)
+            public FFmpegAudioDecoder(Stream stream, SDL_AudioSpec audioSpec, bool isTrack, bool autoDisposeStream, ISDL3AudioDataReceiver? pass)
                 : base(stream, audioSpec, isTrack, autoDisposeStream, pass)
             {
             }
 
-            internal override void Free()
+            internal override void Dispose()
             {
                 decodeData = null;
 
                 ffmpeg?.Dispose();
-                base.Free();
+                base.Dispose();
             }
 
             protected override int LoadFromStreamInternal(out byte[] decoded)
