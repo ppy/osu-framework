@@ -56,6 +56,8 @@ namespace osu.Framework.Audio
             return decoder;
         }
 
+        private bool bassInit;
+
         /// <summary>
         /// Starts a decoder thread.
         /// </summary>
@@ -68,6 +70,11 @@ namespace osu.Framework.Audio
             {
                 IsBackground = true
             };
+
+            Bass.Configure((ManagedBass.Configuration)68, 1);
+
+            if (Bass.CurrentDevice < 0)
+                bassInit = Bass.Init(Bass.NoSoundDevice);
 
             decoderThread.Start();
         }
@@ -161,6 +168,12 @@ namespace osu.Framework.Audio
                     jobs.Clear();
                 }
 
+                if (bassInit)
+                {
+                    Bass.CurrentDevice = Bass.NoSoundDevice;
+                    Bass.Free();
+                }
+
                 disposedValue = true;
             }
         }
@@ -233,7 +246,7 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Decoder will call this once or more to pass the decoded audio data.
         /// </summary>
-        internal readonly PassDataDelegate? Pass;
+        internal PassDataDelegate? Pass { get; private set; }
 
         private int bitrate;
 
@@ -299,6 +312,9 @@ namespace osu.Framework.Audio
         // Not using IDisposable since things must be handled in a decoder thread
         internal virtual void Free()
         {
+            // Pass = null;
+            // Remove reference to the receiver
+
             if (AutoDisposeStream)
                 Stream.Dispose();
         }
@@ -403,7 +419,7 @@ namespace osu.Framework.Audio
             protected override int LoadFromStreamInternal(out byte[] decoded)
             {
                 if (Bass.CurrentDevice < 0)
-                    throw new InvalidOperationException("Initialize a BASS device to decode audio");
+                    throw new InvalidOperationException($"Initialize a BASS device to decode audio: {Bass.LastError}");
 
                 if (!Loading)
                 {
