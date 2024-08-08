@@ -17,7 +17,7 @@ using osu.Framework.Extensions;
 namespace osu.Framework.Tests.Audio
 {
     [TestFixture]
-    public class AudioMixerTest
+    public class BassAudioMixerTest
     {
         private AudioTestComponents.Type type;
         private AudioTestComponents audio;

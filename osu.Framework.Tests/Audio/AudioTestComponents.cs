@@ -37,7 +37,7 @@ namespace osu.Framework.Tests.Audio
             AllComponents.AddItem(MixerComponents);
 
             Mixer = CreateMixer();
-            Resources = new DllResourceStore(typeof(TrackTest).Assembly);
+            Resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
             TrackStore = new TrackStore(Resources, Mixer, CreateTrack);
             SampleStore = new SampleStore(Resources, Mixer, CreateSampleFactory);
 

@@ -11,7 +11,7 @@ using osu.Framework.Audio.Sample;
 namespace osu.Framework.Tests.Audio
 {
     [TestFixture]
-    public class SampleTest
+    public class SampleBassTest
     {
         private AudioTestComponents audio;
         private Sample sample;

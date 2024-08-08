@@ -15,7 +15,7 @@ using osu.Framework.Bindables;
 namespace osu.Framework.Tests.Audio
 {
     [TestFixture]
-    public class TrackTest
+    public class TrackBassTest
     {
         private AudioTestComponents audio;
         private Track track;
