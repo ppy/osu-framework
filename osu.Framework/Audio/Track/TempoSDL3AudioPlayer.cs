@@ -53,7 +53,8 @@ namespace osu.Framework.Audio.Track
 
             while (!base.Done && soundTouch.AvailableSamples < samples)
             {
-                int getSamples = (int)Math.Ceiling((samples - soundTouch.AvailableSamples) * Tempo) * SrcChannels;
+                // process 10ms more to reduce overhead
+                int getSamples = (int)Math.Ceiling((samples + (int)(SrcRate * 0.01) - soundTouch.AvailableSamples) * Tempo) * SrcChannels;
                 float[] src = new float[getSamples];
                 getSamples = base.GetRemainingSamples(src);
                 if (getSamples <= 0)
