@@ -10,6 +10,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Testing;
@@ -284,6 +285,48 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkFocused(() => focusableBox);
             checkNotFocused(() => noFocusChangeBox);
             AddAssert("no focus change box received click", () => noFocusChangeBox.ClickCount, () => Is.GreaterThan(0));
+        }
+
+        [Test]
+        public void TestChangeFocusDuringInputHandling_ShouldRetainFocus()
+        {
+            BasicButton button = null!;
+            FocusBox box = null!;
+
+            AddStep("setup", () =>
+            {
+                FocusBox b = new FocusBox
+                {
+                    Position = new Vector2(0, 75)
+                };
+
+                Children =
+                [
+                    button = new BasicButton
+                    {
+                        Size = new Vector2(150, 50),
+                        Text = "Focus the box",
+                        Action = () => b.GetContainingFocusManager()!.ChangeFocus(b)
+                    },
+                    box = b
+                ];
+            });
+
+            AddStep("click button", () =>
+            {
+                InputManager.MoveMouseTo(button);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("box is focused", () => box.HasFocus, () => Is.True);
+
+            AddStep("click button again", () =>
+            {
+                InputManager.MoveMouseTo(button);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("box is still focused", () => box.HasFocus, () => Is.True);
         }
 
         private void checkFocused(Func<Drawable> d) => AddAssert("check focus", () => d().HasFocus);
