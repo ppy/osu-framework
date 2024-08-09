@@ -469,6 +469,27 @@ namespace osu.Framework.Platform.SDL2
             });
         }
 
+        public IBindable<NotificationTrayIcon?> TrayIcon => trayIcon;
+
+        private Bindable<NotificationTrayIcon?> trayIcon = new Bindable<NotificationTrayIcon?>(null);
+
+        public virtual void CreateNotificationTrayIcon(string text, Action? onClick)
+        {
+            if (trayIcon.Value is not null)
+            {
+                throw new InvalidOperationException("a notification tray icon already exists!");
+            }
+
+            NotificationTrayIcon icon = NotificationTrayIcon.Create(text, onClick, this);
+            trayIcon.Value = icon;
+        }
+
+        public virtual void RemoveNotificationTrayIcon()
+        {
+            trayIcon.Value?.Dispose();
+            trayIcon.Value = null;
+        }
+
         #region SDL Event Handling
 
         /// <summary>
