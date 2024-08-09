@@ -3,8 +3,8 @@
 
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
-using osuTK.Graphics;
 
 namespace osu.Framework.Benchmarks
 {
@@ -18,9 +18,9 @@ namespace osu.Framework.Benchmarks
         {
             get
             {
-                yield return ColourInfo.SingleColour(Color4.Transparent);
-                yield return ColourInfo.SingleColour(Color4.Cyan);
-                yield return ColourInfo.SingleColour(Color4.DarkGray);
+                yield return ColourInfo.SingleColour(SRGBColour.Transparent);
+                yield return ColourInfo.SingleColour(SRGBColour.Cyan);
+                yield return ColourInfo.SingleColour(SRGBColour.DarkGray);
             }
         }
 
@@ -28,13 +28,13 @@ namespace osu.Framework.Benchmarks
         public SRGBColour ConvertToSRGBColour() => Colour;
 
         [Benchmark]
-        public Color4 ConvertToColor4() => ((SRGBColour)Colour).Linear;
+        public Colour4 ConvertToColour4() => ((SRGBColour)Colour).ToLinear().Linear;
 
         [Benchmark]
-        public Color4 ExtractAndConvertToColor4()
+        public Colour4 ExtractAndConvertToColour4()
         {
             Colour.TryExtractSingleColour(out SRGBColour colour);
-            return colour.Linear;
+            return colour.ToLinear().Linear;
         }
     }
 }
