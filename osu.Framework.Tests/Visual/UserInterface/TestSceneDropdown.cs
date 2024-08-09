@@ -735,7 +735,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        public void TestDoubleClickOnHeader()
+        public void TestDoubleClickOnHeader([Values] bool alwaysShowSearchBar)
         {
             TestDropdown testDropdown = null!;
             bool wasOpened = false;
@@ -747,6 +747,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 wasClosed = false;
 
                 testDropdown = createDropdown();
+                testDropdown.AlwaysShowSearchBar = alwaysShowSearchBar;
+
                 testDropdown.Menu.StateChanged += s =>
                 {
                     wasOpened |= s == MenuState.Open;

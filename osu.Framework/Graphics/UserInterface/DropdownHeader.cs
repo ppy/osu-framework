@@ -139,8 +139,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private bool onClick(ClickEvent e)
         {
-            // Allow input to fall through to the search bar (and its contained textbox) if it's visible.
-            if (SearchBar.State.Value == Visibility.Visible)
+            // Allow input to fall through to the search bar (and its contained textbox) if there's any search text.
+            if (SearchBar.State.Value == Visibility.Visible && !string.IsNullOrEmpty(SearchTerm.Value))
                 return false;
 
             // Otherwise, the header acts as a button to show/hide the menu.
