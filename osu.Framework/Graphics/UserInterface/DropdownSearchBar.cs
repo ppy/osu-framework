@@ -7,7 +7,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Platform;
-using osu.Framework.Threading;
 using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
