@@ -14,11 +14,13 @@ namespace osu.Framework.Graphics.Audio
 {
     public partial class DrawableAudioMixer : AudioContainer, IAudioMixer
     {
+        private AudioMixer globalMixer;
         private AudioMixer mixer;
 
         [BackgroundDependencyLoader]
         private void load(AudioManager audio)
         {
+            globalMixer = audio.GlobalMixer;
             mixer = audio.CreateAudioMixer(Name);
         }
 
@@ -36,12 +38,20 @@ namespace osu.Framework.Graphics.Audio
         public void Remove(IAudioChannel channel)
         {
             if (LoadState < LoadState.Ready)
-                Schedule(() => mixer.Remove(channel));
+                Schedule(() => globalMixer.Add(channel));
             else
             {
                 Debug.Assert(mixer != null);
-                mixer.Remove(channel);
+                globalMixer.Add(channel);
             }
+        }
+
+        public float[] GetChannelLevel(IAudioChannel channel, float length)
+        {
+            if (LoadState < LoadState.Ready)
+                return new float[2];
+
+            return mixer.GetChannelLevel(channel, length);
         }
 
         public void AddEffect(IEffectParameter effect, int priority = 0)

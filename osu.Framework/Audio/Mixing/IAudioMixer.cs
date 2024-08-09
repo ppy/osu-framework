@@ -25,6 +25,13 @@ namespace osu.Framework.Audio.Mixing
         void Remove(IAudioChannel channel);
 
         /// <summary>
+        /// Retrieves the level (peak amplitude) of a channel.
+        /// </summary>
+        /// <param name="channel">The <see cref="IAudioChannel"/> to retrieve the levels for.</param>
+        /// <param name="length">How much data (in seconds) to look at to get the level (limited to 1 second).</param>
+        float[] GetChannelLevel(IAudioChannel channel, float length);
+
+        /// <summary>
         /// Applies an effect to the mixer.
         /// </summary>
         /// <param name="effect">The effect (e.g. <see cref="BQFEffect"/>.</param>

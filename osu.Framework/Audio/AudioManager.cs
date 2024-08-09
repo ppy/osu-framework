@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using JetBrains.Annotations;
 using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
@@ -55,6 +56,16 @@ namespace osu.Framework.Audio
         /// The thread audio operations (mainly Bass calls) are ran on.
         /// </summary>
         private readonly AudioThread thread;
+
+        /// <summary>
+        /// The final mixer in the chain that performs downsampling (to 16-bit) before output.
+        /// </summary>
+        public readonly AudioMixer OutputMixer;
+
+        /// <summary>
+        /// The global mixer which all audio is routed through.
+        /// </summary>
+        public readonly AudioMixer GlobalMixer;
 
         /// <summary>
         /// The global mixer which all tracks are routed into by default.
@@ -108,30 +119,6 @@ namespace osu.Framework.Audio
             MaxValue = 1
         };
 
-        /// <summary>
-        /// Whether a global mixer is being used for audio routing.
-        /// For now, this is only the case on Windows when using shared mode WASAPI initialisation.
-        /// </summary>
-        public IBindable<bool> UsingGlobalMixer => usingGlobalMixer;
-
-        private readonly Bindable<bool> usingGlobalMixer = new BindableBool();
-
-        /// <summary>
-        /// If a global mixer is being used, this will be the BASS handle for it.
-        /// If non-null, all game mixers should be added to this mixer.
-        /// </summary>
-        /// <remarks>
-        /// When this is non-null, all mixers created via <see cref="CreateAudioMixer"/>
-        /// will themselves be added to the global mixer, which will handle playback itself.
-        ///
-        /// In this mode of operation, nested mixers will be created with the <see cref="BassFlags.Decode"/>
-        /// flag, meaning they no longer handle playback directly.
-        ///
-        /// An eventual goal would be to use a global mixer across all platforms as it can result
-        /// in more control and better playback performance.
-        /// </remarks>
-        internal readonly IBindable<int?> GlobalMixerHandle = new Bindable<int?>();
-
         public override bool IsLoaded => base.IsLoaded &&
                                          // bass default device is a null device (-1), not the actual system default.
                                          Bass.CurrentDevice != Bass.DefaultDevice;
@@ -151,9 +138,6 @@ namespace osu.Framework.Audio
         /// </summary>
         public Scheduler EventScheduler;
 
-        internal IBindableList<AudioMixer> ActiveMixers => activeMixers;
-        private readonly BindableList<AudioMixer> activeMixers = new BindableList<AudioMixer>();
-
         private readonly Lazy<TrackStore> globalTrackStore;
         private readonly Lazy<SampleStore> globalSampleStore;
 
@@ -170,14 +154,22 @@ namespace osu.Framework.Audio
             thread.RegisterManager(this);
 
             AudioDevice.ValueChanged += _ => onDeviceChanged();
-            GlobalMixerHandle.ValueChanged += handle =>
+
+            // The audio mixer hierarchy is:
+            // OutputMixer (downsamples to 16-bit)
+            // └ GlobalMixer (32-bit float)
+            //   └ TrackMixer (32-bit float)
+            //   └ SampleMixer (32-bit float)
+
+            AddItem(OutputMixer = new BassAudioMixer(nameof(OutputMixer), null, true));
+
+            GlobalMixer = new BassAudioMixer(nameof(GlobalMixer), OutputMixer)
             {
-                onDeviceChanged();
-                usingGlobalMixer.Value = handle.NewValue.HasValue;
+                Mixer = OutputMixer
             };
 
-            AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
-            AddItem(SampleMixer = createAudioMixer(null, nameof(SampleMixer)));
+            TrackMixer = CreateAudioMixer(nameof(TrackMixer));
+            SampleMixer = CreateAudioMixer(nameof(SampleMixer));
 
             globalTrackStore = new Lazy<TrackStore>(() =>
             {
@@ -256,32 +248,25 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Creates a new <see cref="AudioMixer"/>.
         /// </summary>
-        /// <remarks>
-        /// Channels removed from this <see cref="AudioMixer"/> fall back to the global <see cref="SampleMixer"/>.
-        /// </remarks>
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
-        public AudioMixer CreateAudioMixer(string identifier = default) =>
-            createAudioMixer(SampleMixer, !string.IsNullOrEmpty(identifier) ? identifier : $"user #{Interlocked.Increment(ref userMixerID)}");
+        public AudioMixer CreateAudioMixer(string identifier = default) => CreateAudioMixer(GlobalMixer, identifier);
 
-        private AudioMixer createAudioMixer(AudioMixer fallbackMixer, string identifier)
+        /// <summary>
+        /// Creates a new <see cref="AudioMixer"/>.
+        /// </summary>
+        /// <param name="mixer">An <see cref="AudioMixer"/> to route the output of the created <see cref="AudioMixer"/> to. If null, audio goes directly out instead.</param>
+        /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
+        public AudioMixer CreateAudioMixer([CanBeNull] AudioMixer mixer, string identifier = default)
+            => createAudioMixer(mixer, !string.IsNullOrEmpty(identifier) ? identifier : $"user #{Interlocked.Increment(ref userMixerID)}");
+
+        private AudioMixer createAudioMixer([CanBeNull] AudioMixer targetMixer, string identifier)
         {
-            var mixer = new BassAudioMixer(this, fallbackMixer, identifier);
-            AddItem(mixer);
+            var mixer = new BassAudioMixer(identifier, GlobalMixer)
+            {
+                Mixer = targetMixer
+            };
+
             return mixer;
-        }
-
-        protected override void ItemAdded(AudioComponent item)
-        {
-            base.ItemAdded(item);
-            if (item is AudioMixer mixer)
-                activeMixers.Add(mixer);
-        }
-
-        protected override void ItemRemoved(AudioComponent item)
-        {
-            base.ItemRemoved(item);
-            if (item is AudioMixer mixer)
-                activeMixers.Remove(mixer);
         }
 
         /// <summary>

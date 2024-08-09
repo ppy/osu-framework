@@ -18,6 +18,8 @@ namespace osu.Framework.Audio.Sample
         {
         }
 
+        public override float[] GetLevel(float length) => new float[2];
+
         protected override void UpdateState()
         {
             base.UpdateState();
