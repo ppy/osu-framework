@@ -145,9 +145,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             // Otherwise, the header acts as a button to show/hide the menu.
             dropdown.ToggleMenu();
-
-            // And importantly, when the menu is closed as a result of the above toggle, block the search bar from receiving input.
-            return dropdown.MenuState == MenuState.Closed;
+            return true;
         }
 
         public override bool HandleNonPositionalInput => IsHovered;
