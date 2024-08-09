@@ -2,7 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using osu.Framework.Development;
 using osu.Framework.Graphics.Rendering;
 using Veldrid;
 
@@ -20,6 +22,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         public VeldridShaderStorageBufferObject(VeldridRenderer renderer, int uboSize, int ssboSize)
         {
+            Trace.Assert(ThreadSafety.IsDrawThread);
+
             this.renderer = renderer;
 
             elementSize = (uint)Marshal.SizeOf(default(TData));

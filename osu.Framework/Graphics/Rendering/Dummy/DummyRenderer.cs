@@ -1,245 +1,142 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
-using osu.Framework.Threading;
-using osuTK;
 using osuTK.Graphics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Rendering.Dummy
 {
     /// <summary>
     /// An <see cref="IRenderer"/> that does nothing. May be used for tests that don't have a visual output.
     /// </summary>
-    public sealed class DummyRenderer : IRenderer
+    public sealed class DummyRenderer : Renderer
     {
-        public int MaxTextureSize => int.MaxValue;
-        public int MaxTexturesUploadedPerFrame { get; set; } = int.MaxValue;
-        public int MaxPixelsUploadedPerFrame { get; set; } = int.MaxValue;
+        protected internal override bool VerticalSync { get; set; } = true;
+        protected internal override bool AllowTearing { get; set; }
+        public override bool IsDepthRangeZeroToOne => true;
+        public override bool IsUvOriginTopLeft => true;
+        public override bool IsClipSpaceYInverted => true;
 
-        public bool IsDepthRangeZeroToOne => true;
-        public bool IsUvOriginTopLeft => true;
-        public bool IsClipSpaceYInverted => true;
-        public ref readonly MaskingInfo CurrentMaskingInfo => ref maskingInfo;
-        private readonly MaskingInfo maskingInfo;
+        protected internal override Image<Rgba32> TakeScreenshot()
+            => new Image<Rgba32>(1, 1);
 
-        public RectangleI Viewport => RectangleI.Empty;
-        public RectangleF Ortho => RectangleF.Empty;
-        public RectangleI Scissor => RectangleI.Empty;
-        public Vector2I ScissorOffset => Vector2I.Zero;
-        public Matrix4 ProjectionMatrix => Matrix4.Identity;
-        public DepthInfo CurrentDepthInfo => DepthInfo.Default;
-        public StencilInfo CurrentStencilInfo => StencilInfo.Default;
-        public WrapMode CurrentWrapModeS => WrapMode.None;
-        public WrapMode CurrentWrapModeT => WrapMode.None;
-        public bool IsMaskingActive => false;
-        public bool UsingBackbuffer => false;
-        public Texture WhitePixel { get; }
-        DepthValue IRenderer.BackbufferDepth { get; } = new DepthValue();
-
-        public bool IsInitialised { get; private set; }
-
-        public DummyRenderer()
-        {
-            maskingInfo = default;
-            WhitePixel = new TextureWhitePixel(new Texture(new DummyNativeTexture(this), WrapMode.None, WrapMode.None));
-        }
-
-        public ulong FrameIndex { get; private set; }
-
-        bool IRenderer.VerticalSync { get; set; } = true;
-
-        bool IRenderer.AllowTearing { get; set; }
-
-        Storage? IRenderer.CacheStorage { set { } }
-
-        void IRenderer.Initialise(IGraphicsSurface graphicsSurface)
-        {
-            IsInitialised = true;
-        }
-
-        void IRenderer.BeginFrame(Vector2 windowSize)
-        {
-            FrameIndex++;
-        }
-
-        void IRenderer.FinishFrame()
-        {
-        }
-
-        void IRenderer.FlushCurrentBatch(FlushBatchSource? source)
-        {
-        }
-
-        void IRenderer.SwapBuffers()
-        {
-        }
-
-        void IRenderer.WaitUntilIdle()
-        {
-        }
-
-        void IRenderer.WaitUntilNextFrameReady()
-        {
-        }
-
-        void IRenderer.MakeCurrent()
-        {
-        }
-
-        void IRenderer.ClearCurrent()
-        {
-        }
-
-        public bool BindTexture(Texture texture, int unit = 0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)
-            => true;
-
-        public void UseProgram(IShader? shader)
-        {
-        }
-
-        public void Clear(ClearInfo clearInfo)
-        {
-        }
-
-        public void PushScissorState(bool enabled)
-        {
-        }
-
-        public void PopScissorState()
-        {
-        }
-
-        public void SetBlend(BlendingParameters blendingParameters)
-        {
-        }
-
-        public void SetBlendMask(BlendingMask blendingMask)
-        {
-        }
-
-        public void PushViewport(RectangleI viewport)
-        {
-        }
-
-        public void PopViewport()
-        {
-        }
-
-        public void PushScissor(RectangleI scissor)
-        {
-        }
-
-        public void PopScissor()
-        {
-        }
-
-        public void PushScissorOffset(Vector2I offset)
-        {
-        }
-
-        public void PopScissorOffset()
-        {
-        }
-
-        public void PushProjectionMatrix(Matrix4 matrix)
-        {
-        }
-
-        public void PopProjectionMatrix()
-        {
-        }
-
-        public void PushMaskingInfo(in MaskingInfo maskingInfo, bool overwritePreviousScissor = false)
-        {
-        }
-
-        public void PopMaskingInfo()
-        {
-        }
-
-        public void PushDepthInfo(DepthInfo depthInfo)
-        {
-        }
-
-        public void PopDepthInfo()
-        {
-        }
-
-        public void PushStencilInfo(StencilInfo stencilInfo)
-        {
-        }
-
-        public void PopStencilInfo()
-        {
-        }
-
-        public void ScheduleExpensiveOperation(ScheduledDelegate operation) => operation.RunTask();
-
-        public void ScheduleDisposal<T>(Action<T> disposalAction, T target) => disposalAction(target);
-
-        Image<Rgba32> IRenderer.TakeScreenshot() => new Image<Rgba32>(1366, 768);
-
-        IShaderPart IRenderer.CreateShaderPart(IShaderStore manager, string name, byte[]? rawData, ShaderPartType partType)
+        protected override IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType)
             => new DummyShaderPart();
 
-        IShader IRenderer.CreateShader(string name, IShaderPart[] parts)
+        protected override IShader CreateShader(string name, IShaderPart[] parts, ShaderCompilationStore compilationStore)
             => new DummyShader(this);
 
-        public IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
-            => new DummyFrameBuffer(this);
-
-        public Texture CreateTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, WrapMode wrapModeS = WrapMode.None,
-                                     WrapMode wrapModeT = WrapMode.None, Color4? initialisationColour = null)
-            => new Texture(new DummyNativeTexture(this) { Width = width, Height = height }, wrapModeS, wrapModeT);
-
-        public Texture CreateVideoTexture(int width, int height)
-            => CreateTexture(width, height);
-
-        public IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology) where TVertex : unmanaged, IEquatable<TVertex>, IVertex
+        protected override IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology)
             => new DummyVertexBatch<TVertex>();
 
-        public IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) where TVertex : unmanaged, IEquatable<TVertex>, IVertex
+        protected override IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers)
             => new DummyVertexBatch<TVertex>();
 
-        public IUniformBuffer<TData> CreateUniformBuffer<TData>() where TData : unmanaged, IEquatable<TData>
+        protected override IUniformBuffer<TData> CreateUniformBuffer<TData>()
             => new DummyUniformBuffer<TData>();
 
-        public IShaderStorageBufferObject<TData> CreateShaderStorageBufferObject<TData>(int uboSize, int ssboSize) where TData : unmanaged, IEquatable<TData>
+        protected override IShaderStorageBufferObject<TData> CreateShaderStorageBufferObject<TData>(int uboSize, int ssboSize)
             => new DummyShaderStorageBufferObject<TData>(ssboSize);
 
-        void IRenderer.SetUniform<T>(IUniformWithValue<T> uniform)
+        public Texture CreateTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, WrapMode wrapModeS = WrapMode.None)
+            => base.CreateTexture(width, height, manualMipmaps, filteringMode, wrapModeS, wrapModeS, null);
+
+        protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
+                                                              Color4? initialisationColour = null)
+            => new DummyNativeTexture(this, width, height);
+
+        protected override INativeTexture CreateNativeVideoTexture(int width, int height)
+            => new DummyNativeTexture(this, width, height);
+
+        protected override void Initialise(IGraphicsSurface graphicsSurface)
         {
         }
 
-        IVertexBatch<TexturedVertex2D> IRenderer.DefaultQuadBatch => new DummyVertexBatch<TexturedVertex2D>();
-
-        void IRenderer.PushQuadBatch(IVertexBatch<TexturedVertex2D> quadBatch)
+        protected internal override void SwapBuffers()
         {
         }
 
-        void IRenderer.PopQuadBatch()
+        protected internal override void WaitUntilIdle()
         {
         }
 
-        event Action<Texture>? IRenderer.TextureCreated
+        protected internal override void WaitUntilNextFrameReady()
         {
-            add
-            {
-            }
-            remove
-            {
-            }
         }
 
-        Texture[] IRenderer.GetAllTextures() => Array.Empty<Texture>();
+        protected internal override void MakeCurrent()
+        {
+        }
+
+        protected internal override void ClearCurrent()
+        {
+        }
+
+        protected override void ClearImplementation(ClearInfo clearInfo)
+        {
+        }
+
+        protected override void SetBlendImplementation(BlendingParameters blendingParameters)
+        {
+        }
+
+        protected override void SetBlendMaskImplementation(BlendingMask blendingMask)
+        {
+        }
+
+        protected override void SetViewportImplementation(RectangleI viewport)
+        {
+        }
+
+        protected override void SetScissorImplementation(RectangleI scissor)
+        {
+        }
+
+        protected override void SetScissorStateImplementation(bool enabled)
+        {
+        }
+
+        protected override void SetDepthInfoImplementation(DepthInfo depthInfo)
+        {
+        }
+
+        protected override void SetStencilInfoImplementation(StencilInfo stencilInfo)
+        {
+        }
+
+        protected override bool SetTextureImplementation(INativeTexture? texture, int unit)
+            => true;
+
+        protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer)
+        {
+        }
+
+        protected override void DeleteFrameBufferImplementation(IFrameBuffer frameBuffer)
+        {
+        }
+
+        public override void DrawVerticesImplementation(PrimitiveTopology topology, int vertexStart, int verticesCount)
+        {
+        }
+
+        protected override void SetShaderImplementation(IShader shader)
+        {
+        }
+
+        protected override void SetUniformImplementation<T>(IUniformWithValue<T> uniform)
+        {
+        }
+
+        protected override void SetUniformBufferImplementation(string blockName, IUniformBuffer buffer)
+        {
+        }
+
+        public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
+            => new DummyFrameBuffer(this);
     }
 }

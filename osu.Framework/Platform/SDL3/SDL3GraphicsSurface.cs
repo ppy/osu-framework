@@ -224,7 +224,7 @@ namespace osu.Framework.Platform.SDL3
         #region Android-specific implementation
 
         [SupportedOSPlatform("android")]
-        IntPtr IAndroidGraphicsSurface.JniEnvHandle => SDL_AndroidGetJNIEnv();
+        IntPtr IAndroidGraphicsSurface.JniEnvHandle => SDL_GetAndroidJNIEnv();
 
         [SupportedOSPlatform("android")]
         IntPtr IAndroidGraphicsSurface.SurfaceHandle => window.SurfaceHandle;

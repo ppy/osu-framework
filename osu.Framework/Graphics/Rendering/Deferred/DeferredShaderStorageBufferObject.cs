@@ -2,7 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using osu.Framework.Development;
 using osu.Framework.Graphics.Rendering.Deferred.Allocation;
 using osu.Framework.Graphics.Rendering.Deferred.Events;
 using osu.Framework.Graphics.Veldrid.Buffers;
@@ -22,6 +24,8 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
         public DeferredShaderStorageBufferObject(DeferredRenderer renderer, int ssboSize)
         {
+            Trace.Assert(ThreadSafety.IsDrawThread);
+
             this.renderer = renderer;
 
             elementSize = Unsafe.SizeOf<TData>();
