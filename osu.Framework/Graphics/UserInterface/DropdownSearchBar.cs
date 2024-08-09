@@ -150,6 +150,8 @@ namespace osu.Framework.Graphics.UserInterface
             }
             else
                 dropdown.ChangeFocus(textBox);
+
+            updateTextBoxVisibility();
         }
 
         /// <summary>
