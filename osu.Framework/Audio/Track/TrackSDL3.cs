@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using NAudio.Dsp;
 using osu.Framework.Audio.Mixing.SDL3;
 using osu.Framework.Extensions;
+using osu.Framework.Logging;
 using SDL;
 
 namespace osu.Framework.Audio.Track
@@ -55,9 +56,7 @@ namespace osu.Framework.Audio.Track
 
         private readonly object syncRoot = new object();
 
-        private SDL3AudioDecoder? decodeData;
-
-        void ISDL3AudioDataReceiver.GetData(byte[] audio, int length, SDL3AudioDecoder data, bool done)
+        void ISDL3AudioDataReceiver.GetData(byte[] audio, int length, bool done)
         {
             if (IsDisposed)
                 return;
@@ -67,17 +66,38 @@ namespace osu.Framework.Audio.Track
                 if (!player.IsLoaded)
                 {
                     if (!player.IsLoading)
-                        player.PrepareStream(data.ByteLength);
+                    {
+                        Logger.Log("GetMetaData should be called first, falling back to default buffer size", level: LogLevel.Important);
+                        player.PrepareStream();
+                    }
 
                     player.PutSamplesInStream(audio, length);
 
                     if (done)
+                    {
                         player.DonePutting();
+                        Length = player.AudioLength;
+                        isCompletelyLoaded = true;
+                    }
                 }
             }
+        }
 
+        void ISDL3AudioDataReceiver.GetMetaData(int bitrate, double length, long byteLength)
+        {
             if (!isLoaded)
-                Interlocked.Exchange(ref decodeData, data);
+            {
+                Length = length;
+                this.bitrate = bitrate;
+
+                lock (syncRoot)
+                {
+                    if (!player.IsLoading)
+                        player.PrepareStream(byteLength);
+                }
+
+                isLoaded = true;
+            }
         }
 
         private volatile bool amplitudeRequested;
@@ -135,23 +155,6 @@ namespace osu.Framework.Audio.Track
         protected override void UpdateState()
         {
             base.UpdateState();
-
-            if (decodeData != null)
-            {
-                if (!isLoaded)
-                {
-                    Length = decodeData.Length;
-                    bitrate = decodeData.Bitrate;
-                    isLoaded = true;
-                }
-
-                if (player.IsLoaded)
-                {
-                    Length = player.AudioLength;
-                    isCompletelyLoaded = true;
-                    decodeData = null;
-                }
-            }
 
             if (player.Done && isRunning)
             {
@@ -298,9 +301,6 @@ namespace osu.Framework.Audio.Track
 
             isRunning = false;
             (Mixer as SDL3AudioMixer)?.StreamFree(this);
-
-            decodeData?.Stop();
-            decodeData = null;
 
             lock (syncRoot)
                 player.Dispose();

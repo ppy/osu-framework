@@ -28,7 +28,7 @@ namespace osu.Framework.Audio.Sample
             this.spec = spec;
         }
 
-        void ISDL3AudioDataReceiver.GetData(byte[] audio, int byteLen, SDL3AudioDecoder data, bool done)
+        void ISDL3AudioDataReceiver.GetData(byte[] audio, int byteLen, bool done)
         {
             if (IsDisposed)
                 return;
@@ -74,5 +74,9 @@ namespace osu.Framework.Audio.Sample
             completion.Dispose();
             base.Dispose(disposing);
         }
+
+        void ISDL3AudioDataReceiver.GetMetaData(int bitrate, double length, long byteLength)
+        {
+        } // not needed
     }
 }

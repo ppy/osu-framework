@@ -239,20 +239,13 @@ namespace osu.Framework.Tests.Audio
         [TestCase(AudioTestComponents.Type.BASS)]
         public void TestTrackReferenceLostWhenTrackIsDisposed(AudioTestComponents.Type id)
         {
-            setupBackend(id, true);
+            setupBackend(id);
 
             var trackReference = testDisposeTrackWithoutReference();
 
             // The first update disposes the track, the second one removes the track from the TrackStore.
             audio.Update();
             audio.Update();
-
-            // Workaround for SDL3, it needs decoder running on another thread to go away.
-            if (id == AudioTestComponents.Type.SDL3)
-            {
-                audio.Dispose();
-                audio = null;
-            }
 
             GC.Collect();
             GC.WaitForPendingFinalizers();

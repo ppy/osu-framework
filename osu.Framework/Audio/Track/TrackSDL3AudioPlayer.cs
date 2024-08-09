@@ -75,7 +75,7 @@ namespace osu.Framework.Audio.Track
             AudioData = temp;
         }
 
-        internal void PrepareStream(long byteLength)
+        internal void PrepareStream(long byteLength = 3 * 60 * 44100 * 2 * 4)
         {
             if (disposedValue)
                 return;

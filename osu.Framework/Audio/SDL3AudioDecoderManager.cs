@@ -23,9 +23,10 @@ namespace osu.Framework.Audio
         /// so you may need <see cref="Buffer.BlockCopy(Array, int, Array, int, int)"/> to actual data format.
         /// This may be used by decoder later to reduce allocation, so you need to copy the data before exiting from this delegate, otherwise you may end up with wrong data.</param>
         /// <param name="length">Length in byte of decoded audio. Use this instead of data.Length</param>
-        /// <param name="decoderData">Associated <see cref="SDL3AudioDecoder"/>.</param>
         /// <param name="done">Whether if this is the last data or not.</param>
-        void GetData(byte[] data, int length, SDL3AudioDecoder decoderData, bool done);
+        void GetData(byte[] data, int length, bool done);
+
+        void GetMetaData(int bitrate, double length, long byteLength);
     }
 
     /// <summary>
@@ -123,20 +124,32 @@ namespace osu.Framework.Audio
                             var next = node.Next;
                             SDL3AudioDecoder decoder = node.Value;
 
+                            if (!decoder.StopJob)
+                            {
+                                try
+                                {
+                                    int read = decodeAudio(decoder, out byte[] decoded);
+
+                                    if (!decoder.MetadataSended)
+                                    {
+                                        decoder.MetadataSended = true;
+                                        decoder.Pass?.GetMetaData(decoder.Bitrate, decoder.Length, decoder.ByteLength);
+                                    }
+
+                                    decoder.Pass?.GetData(decoded, read, !decoder.Loading);
+                                }
+                                catch (ObjectDisposedException)
+                                {
+                                    decoder.StopJob = true;
+                                }
+
+                                if (!decoder.Loading)
+                                    jobs.Remove(node);
+                            }
+
                             if (decoder.StopJob)
                             {
                                 decoder.Dispose();
-                                jobs.Remove(node);
-                            }
-                            else
-                            {
-                                int read = decodeAudio(decoder, out byte[] decoded);
-                                decoder.Pass?.GetData(decoded, read, decoder, !decoder.Loading);
-                            }
-
-                            if (!decoder.Loading)
-                            {
-                                decoder.RemoveReferenceToReceiver(); // cannot do in Decoder.Dispose since Pass needs to be used later.
                                 jobs.Remove(node);
                             }
 
@@ -249,9 +262,9 @@ namespace osu.Framework.Audio
         internal readonly bool AutoDisposeStream;
 
         /// <summary>
-        /// Decoder will call <see cref="ISDL3AudioDataReceiver.GetData(byte[], int, SDL3AudioDecoder, bool)"/> or more to pass the decoded audio data.
+        /// Decoder will call <see cref="ISDL3AudioDataReceiver.GetData(byte[], int, bool)"/> once or more to pass the decoded audio data.
         /// </summary>
-        internal ISDL3AudioDataReceiver? Pass { get; private set; }
+        internal readonly ISDL3AudioDataReceiver? Pass;
 
         private int bitrate;
 
@@ -288,6 +301,8 @@ namespace osu.Framework.Audio
             set => Interlocked.Exchange(ref byteLength, value);
         }
 
+        internal bool MetadataSended;
+
         internal volatile bool StopJob;
 
         private volatile bool loading;
@@ -320,8 +335,6 @@ namespace osu.Framework.Audio
             if (AutoDisposeStream)
                 Stream.Dispose();
         }
-
-        internal void RemoveReferenceToReceiver() => Pass = null;
 
         protected abstract int LoadFromStreamInternal(out byte[] decoded);
 
@@ -362,9 +375,6 @@ namespace osu.Framework.Audio
             private int decodeStream;
             private FileCallbacks? fileCallbacks;
 
-            private int syncHandle;
-            private SyncCallback? syncCallback;
-
             private int resampler;
 
             private byte[]? decodeData;
@@ -391,17 +401,8 @@ namespace osu.Framework.Audio
 
             internal override void Dispose()
             {
-                if (syncHandle != 0)
-                {
-                    Bass.ChannelRemoveSync(resampler == 0 ? decodeStream : resampler, syncHandle);
-                    syncHandle = 0;
-                }
-
                 fileCallbacks?.Dispose();
-                syncCallback?.Dispose();
-
                 fileCallbacks = null;
-                syncCallback = null;
 
                 decodeData = null;
 
@@ -428,10 +429,6 @@ namespace osu.Framework.Audio
                 if (!Loading)
                 {
                     fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(Stream));
-                    syncCallback = new SyncCallback((_, _, _, _) =>
-                    {
-                        Loading = false;
-                    });
 
                     BassFlags bassFlags = BassFlags.Decode | resolution.ToBassFlag();
                     if (IsTrack) bassFlags |= BassFlags.Prescan;
@@ -468,8 +465,6 @@ namespace osu.Framework.Audio
                             throw new FormatException($"Couldn't get channel info: {Bass.LastError}");
                     }
 
-                    syncHandle = Bass.ChannelSetSync(resampler == 0 ? decodeStream : resampler, SyncFlags.End | SyncFlags.Onetime, 0, syncCallback.Callback, syncCallback.Handle);
-
                     Loading = true;
                 }
 
@@ -491,6 +486,11 @@ namespace osu.Framework.Audio
 
                     if (Bass.LastError != Errors.Ended)
                         throw new FormatException($"Couldn't decode: {Bass.LastError}");
+                }
+                else if (got < bufferLen)
+                {
+                    // originally used synchandle to detect end, but it somehow created strong handle
+                    Loading = false;
                 }
 
                 decoded = decodeData;

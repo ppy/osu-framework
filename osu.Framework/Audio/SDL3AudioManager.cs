@@ -215,6 +215,7 @@ namespace osu.Framework.Audio
         internal SDL3BaseAudioManager(Func<IEnumerable<SDL3AudioMixer>> mixerIterator)
         {
             this.mixerIterator = mixerIterator;
+
             objectHandle = new ObjectHandle<SDL3BaseAudioManager>(this, GCHandleType.Normal);
             AudioSpec = new SDL_AudioSpec
             {
@@ -319,17 +320,49 @@ namespace osu.Framework.Audio
             }
         }
 
+        /// <summary>
+        /// With how decoders work, we need this to get test passed
+        /// I don't want this either... otherwise we have to dispose decoder in tests
+        /// </summary>
+        private class ReceiverGCWrapper : ISDL3AudioDataReceiver
+        {
+            private readonly WeakReference<ISDL3AudioDataReceiver> channelWeakReference;
+
+            internal ReceiverGCWrapper(WeakReference<ISDL3AudioDataReceiver> channel)
+            {
+                channelWeakReference = channel;
+            }
+
+            void ISDL3AudioDataReceiver.GetData(byte[] data, int length, bool done)
+            {
+                if (channelWeakReference.TryGetTarget(out ISDL3AudioDataReceiver r))
+                    r.GetData(data, length, done);
+                else
+                    throw new ObjectDisposedException("channel is already disposed");
+            }
+
+            void ISDL3AudioDataReceiver.GetMetaData(int bitrate, double length, long byteLength)
+            {
+                if (channelWeakReference.TryGetTarget(out ISDL3AudioDataReceiver r))
+                    r.GetMetaData(bitrate, length, byteLength);
+                else
+                    throw new ObjectDisposedException("channel is already disposed");
+            }
+        }
+
         internal Track.Track GetNewTrack(Stream data, string name)
         {
             TrackSDL3 track = new TrackSDL3(name, AudioSpec, BufferSize);
-            decoderManager.StartDecodingAsync(data, AudioSpec, true, track);
+            ReceiverGCWrapper receiverGC = new ReceiverGCWrapper(new WeakReference<ISDL3AudioDataReceiver>(track));
+            decoderManager.StartDecodingAsync(data, AudioSpec, true, receiverGC);
             return track;
         }
 
         internal SampleFactory GetSampleFactory(Stream data, string name, AudioMixer mixer, int playbackConcurrency)
         {
             SampleSDL3Factory sampleFactory = new SampleSDL3Factory(name, (SDL3AudioMixer)mixer, playbackConcurrency, AudioSpec);
-            decoderManager.StartDecodingAsync(data, AudioSpec, false, sampleFactory);
+            ReceiverGCWrapper receiverGC = new ReceiverGCWrapper(new WeakReference<ISDL3AudioDataReceiver>(sampleFactory));
+            decoderManager.StartDecodingAsync(data, AudioSpec, false, receiverGC);
             return sampleFactory;
         }
 
