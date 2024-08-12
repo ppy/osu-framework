@@ -22,7 +22,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Performance
 {
-    internal partial class PerformanceOverlay : FillFlowContainer, IStateful<FrameStatisticsMode>
+    public partial class PerformanceOverlay : FillFlowContainer, IStateful<FrameStatisticsMode>
     {
         [Resolved]
         private GameHost host { get; set; } = null!;
