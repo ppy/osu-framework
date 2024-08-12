@@ -55,10 +55,15 @@ namespace osu.Framework.Tests.Audio
                 allComponents.AddItem(c);
         }
 
-        internal BassAudioMixer CreateMixer()
+        internal BassAudioMixer CreateMixer(string identifier = "Test mixer", BassAudioMixer? parentMixer = null)
         {
-            var mixer = new BassAudioMixer(null, Mixer, "Test mixer");
+            var mixer = new BassAudioMixer(identifier, Mixer)
+            {
+                Mixer = parentMixer
+            };
+
             mixerComponents.AddItem(mixer);
+
             return mixer;
         }
 

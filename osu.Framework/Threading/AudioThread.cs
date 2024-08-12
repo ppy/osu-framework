@@ -7,10 +7,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using ManagedBass;
-using ManagedBass.Mix;
 using ManagedBass.Wasapi;
 using osu.Framework.Audio;
-using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Platform.Linux.Native;
 
@@ -76,16 +74,12 @@ namespace osu.Framework.Threading
 
                 managers.Add(manager);
             }
-
-            manager.GlobalMixerHandle.BindTo(globalMixerHandle);
         }
 
         internal void UnregisterManager(AudioManager manager)
         {
             lock (managers)
                 managers.Remove(manager);
-
-            manager.GlobalMixerHandle.UnbindFrom(globalMixerHandle);
         }
 
         protected override void OnExit()
@@ -120,14 +114,8 @@ namespace osu.Framework.Threading
 
         // TODO: All this bass init stuff should probably not be in this class.
 
-        private WasapiProcedure? wasapiProcedure;
-        private WasapiNotifyProcedure? wasapiNotifyProcedure;
-
-        /// <summary>
-        /// If a global mixer is being used, this will be the BASS handle for it.
-        /// If non-null, all game mixers should be added to this mixer.
-        /// </summary>
-        private readonly Bindable<int?> globalMixerHandle = new Bindable<int?>();
+        // private WasapiProcedure? wasapiProcedure;
+        // private WasapiNotifyProcedure? wasapiNotifyProcedure;
 
         internal bool InitDevice(int deviceId)
         {
@@ -222,43 +210,43 @@ namespace osu.Framework.Threading
         {
             // This is intentionally initialised inline and stored to a field.
             // If we don't do this, it gets GC'd away.
-            wasapiProcedure = (buffer, length, _) =>
-            {
-                if (globalMixerHandle.Value == null)
-                    return 0;
-
-                return Bass.ChannelGetData(globalMixerHandle.Value!.Value, buffer, length);
-            };
-            wasapiNotifyProcedure = (notify, device, _) => Scheduler.Add(() =>
-            {
-                if (notify == WasapiNotificationType.DefaultOutput)
-                {
-                    freeWasapi();
-                    initWasapi(device);
-                }
-            });
-
-            bool initialised = BassWasapi.Init(wasapiDevice, Procedure: wasapiProcedure, Buffer: 0.02f, Period: 0.01f);
-
-            if (!initialised)
-                return;
-
-            BassWasapi.GetInfo(out var wasapiInfo);
-            globalMixerHandle.Value = BassMix.CreateMixerStream(wasapiInfo.Frequency, wasapiInfo.Channels, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
-            BassWasapi.Start();
-
-            BassWasapi.SetNotify(wasapiNotifyProcedure);
+            // wasapiProcedure = (buffer, length, _) =>
+            // {
+            //     if (globalMixerHandle.Value == null)
+            //         return 0;
+            //
+            //     return Bass.ChannelGetData(globalMixerHandle.Value!.Value, buffer, length);
+            // };
+            // wasapiNotifyProcedure = (notify, device, _) => Scheduler.Add(() =>
+            // {
+            //     if (notify == WasapiNotificationType.DefaultOutput)
+            //     {
+            //         freeWasapi();
+            //         initWasapi(device);
+            //     }
+            // });
+            //
+            // bool initialised = BassWasapi.Init(wasapiDevice, Procedure: wasapiProcedure, Buffer: 0.02f, Period: 0.01f);
+            //
+            // if (!initialised)
+            //     return;
+            //
+            // BassWasapi.GetInfo(out var wasapiInfo);
+            // globalMixerHandle.Value = BassMix.CreateMixerStream(wasapiInfo.Frequency, wasapiInfo.Channels, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
+            // BassWasapi.Start();
+            //
+            // BassWasapi.SetNotify(wasapiNotifyProcedure);
         }
 
         private void freeWasapi()
         {
-            if (globalMixerHandle.Value == null) return;
-
-            // The mixer probably doesn't need to be recycled. Just keeping things sane for now.
-            Bass.StreamFree(globalMixerHandle.Value.Value);
-            BassWasapi.Stop();
-            BassWasapi.Free();
-            globalMixerHandle.Value = null;
+            // if (globalMixerHandle.Value == null) return;
+            //
+            // // The mixer probably doesn't need to be recycled. Just keeping things sane for now.
+            // Bass.StreamFree(globalMixerHandle.Value.Value);
+            // BassWasapi.Stop();
+            // BassWasapi.Free();
+            // globalMixerHandle.Value = null;
         }
 
         #endregion

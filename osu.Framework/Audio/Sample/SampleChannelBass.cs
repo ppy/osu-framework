@@ -227,6 +227,8 @@ namespace osu.Framework.Audio.Sample
 
         bool IBassAudioChannel.MixerChannelPaused { get; set; } = true;
 
+        public override float[] GetLevel(float length) => Mixer != null ? bassMixer.GetChannelLevel(this, length) : new float[2];
+
         BassAudioMixer IBassAudioChannel.Mixer => bassMixer;
 
         #endregion
@@ -238,7 +240,11 @@ namespace osu.Framework.Audio.Sample
 
             if (hasChannel)
             {
-                bassMixer.StreamFree(this);
+                if (Mixer != null)
+                    bassMixer.StreamFree(this);
+                else
+                    Bass.StreamFree(channel);
+
                 channel = 0;
             }
 

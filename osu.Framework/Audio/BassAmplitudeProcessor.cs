@@ -27,8 +27,6 @@ namespace osu.Framework.Audio
 
         private float[]? frequencyData;
 
-        private readonly float[] channelLevels = new float[2];
-
         public void Update()
         {
             if (channel.Handle == 0)
@@ -36,8 +34,7 @@ namespace osu.Framework.Audio
 
             bool active = channel.Mixer.ChannelIsActive(channel) == PlaybackState.Playing;
 
-            channel.Mixer.ChannelGetLevel(channel, channelLevels, 1 / 60f, LevelRetrievalFlags.Stereo);
-
+            float[] channelLevels = channel.GetLevel(1 / 60f);
             float leftChannel = active ? channelLevels[0] : -1;
             float rightChannel = active ? channelLevels[1] : -1;
 
