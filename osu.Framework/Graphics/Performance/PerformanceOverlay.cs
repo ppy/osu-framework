@@ -34,6 +34,7 @@ namespace osu.Framework.Graphics.Performance
 
         private TextFlowContainer? infoText;
 
+        private Bindable<float> configScale = null!;
         private Bindable<FrameSync> configFrameSync = null!;
         private Bindable<ExecutionMode> configExecutionMode = null!;
         private Bindable<WindowMode> configWindowMode = null!;
@@ -66,6 +67,9 @@ namespace osu.Framework.Graphics.Performance
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
+            configScale = config.GetBindable<float>(FrameworkSetting.PerformanceOverlayScale);
+            configScale.BindValueChanged(s => Scale = new Vector2(s.NewValue), true);
 
             configFrameSync = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             configFrameSync.BindValueChanged(_ => updateInfoText());
