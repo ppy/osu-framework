@@ -538,7 +538,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds.</param>
         /// <returns>Whether this <see cref="Drawable"/> is currently masked away.</returns>
-        protected virtual bool ComputeIsMaskedAway(RectangleF maskingBounds) => !Precision.AlmostIntersects(maskingBounds, ScreenSpaceDrawQuad.AABBFloat);
+        protected virtual bool ComputeIsMaskedAway(RectangleF maskingBounds) => !alwaysPresent && !Precision.AlmostIntersects(maskingBounds, ScreenSpaceDrawQuad.AABBFloat);
 
         /// <summary>
         /// Performs a once-per-frame update specific to this Drawable. A more elegant alternative to
@@ -1472,7 +1472,7 @@ namespace osu.Framework.Graphics
                 if (LifetimeStart == double.MinValue && LifetimeEnd == double.MaxValue)
                     return true;
 
-                return Time.Current >= LifetimeStart && Time.Current < LifetimeEnd;
+                return (Time.Current >= LifetimeStart && Time.Current < LifetimeEnd) || alwaysPresent;
             }
         }
 
