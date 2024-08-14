@@ -67,6 +67,16 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        public new bool AlwaysPresent
+        {
+            get => container.AlwaysPresent;
+            set
+            {
+                base.AlwaysPresent = value;
+                container.AlwaysPresent = value;
+            }
+        }
+
         public new EdgeEffectParameters EdgeEffect
         {
             get => base.EdgeEffect;
