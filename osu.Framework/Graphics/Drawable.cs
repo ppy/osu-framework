@@ -1472,7 +1472,7 @@ namespace osu.Framework.Graphics
                 if (LifetimeStart == double.MinValue && LifetimeEnd == double.MaxValue)
                     return true;
 
-                return (Time.Current >= LifetimeStart && Time.Current < LifetimeEnd) || alwaysPresent;
+                return Time.Current >= LifetimeStart && Time.Current < LifetimeEnd;
             }
         }
 
