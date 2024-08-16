@@ -27,6 +27,9 @@ namespace osu.Framework.Audio.Sample
             if (started)
                 return;
 
+            // ensure state is correct before starting.
+            InvalidateState();
+
             playing = true;
             base.Play();
         }

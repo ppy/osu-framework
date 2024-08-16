@@ -227,6 +227,9 @@ namespace osu.Framework.Audio.Track
 
         public override Task StartAsync() => EnqueueAction(() =>
         {
+            // ensure state is correct before starting.
+            InvalidateState();
+
             lock (syncRoot)
                 player.Reset(false);
 
