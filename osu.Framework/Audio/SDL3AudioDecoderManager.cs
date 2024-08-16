@@ -146,8 +146,7 @@ namespace osu.Framework.Audio
                                 if (!decoder.Loading)
                                     jobs.Remove(node);
                             }
-
-                            if (decoder.StopJob)
+                            else
                             {
                                 decoder.Dispose();
                                 jobs.Remove(node);
