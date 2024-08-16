@@ -734,6 +734,40 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("dropdown is open", () => dropdown.Menu.State, () => Is.EqualTo(MenuState.Open));
         }
 
+        [Test]
+        public void TestDoubleClickOnHeader([Values] bool alwaysShowSearchBar)
+        {
+            TestDropdown testDropdown = null!;
+            bool wasOpened = false;
+            bool wasClosed = false;
+
+            AddStep("setup dropdown", () =>
+            {
+                wasOpened = false;
+                wasClosed = false;
+
+                testDropdown = createDropdown();
+                testDropdown.AlwaysShowSearchBar = alwaysShowSearchBar;
+
+                testDropdown.Menu.StateChanged += s =>
+                {
+                    wasOpened |= s == MenuState.Open;
+                    wasClosed |= s == MenuState.Closed;
+                };
+            });
+
+            AddStep("double click header", () =>
+            {
+                InputManager.MoveMouseTo(testDropdown.Header);
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("dropdown was opened at some point", () => wasOpened, () => Is.True);
+            AddAssert("dropdown was closed at some point", () => wasClosed, () => Is.True);
+            AddAssert("dropdown is closed", () => testDropdown.Menu.State, () => Is.EqualTo(MenuState.Closed));
+        }
+
         private TestDropdown createDropdown() => createDropdowns(1).Single();
 
         private TestDropdown[] createDropdowns(int count) => createDropdowns<TestDropdown>(count);
