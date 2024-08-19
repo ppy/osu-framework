@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
@@ -171,8 +172,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                 AddInternal(Dropdown);
 
-                Trace.Assert(Dropdown.Header.Anchor.HasFlag(Anchor.x2), $@"The {nameof(Dropdown)} implementation should use a right-based anchor inside a TabControl.");
-                Trace.Assert(!Dropdown.Header.RelativeSizeAxes.HasFlag(Axes.X), $@"The {nameof(Dropdown)} implementation's header should have a specific size.");
+                Trace.Assert(Dropdown.Header.Anchor.HasFlagFast(Anchor.x2), $@"The {nameof(Dropdown)} implementation should use a right-based anchor inside a TabControl.");
+                Trace.Assert(!Dropdown.Header.RelativeSizeAxes.HasFlagFast(Axes.X), $@"The {nameof(Dropdown)} implementation's header should have a specific size.");
             }
 
             AddInternal(TabContainer = CreateTabFlow());

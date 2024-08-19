@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -48,7 +49,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 foreach (var file in files.OrderBy(d => d.Name))
                 {
-                    if (ShowHiddenItems.Value || !file.Attributes.HasFlag(FileAttributes.Hidden))
+                    if (ShowHiddenItems.Value || !file.Attributes.HasFlagFast(FileAttributes.Hidden))
                         items.Add(CreateFileItem(file));
                 }
 
@@ -73,7 +74,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 try
                 {
-                    if (File?.Attributes.HasFlag(FileAttributes.Hidden) == true)
+                    if (File?.Attributes.HasFlagFast(FileAttributes.Hidden) == true)
                         ApplyHiddenState();
                 }
                 catch (UnauthorizedAccessException)

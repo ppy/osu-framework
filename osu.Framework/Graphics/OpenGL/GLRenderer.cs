@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Batches;
@@ -324,10 +325,10 @@ namespace osu.Framework.Graphics.OpenGL
 
         protected override void SetBlendMaskImplementation(BlendingMask blendingMask)
         {
-            GL.ColorMask(blendingMask.HasFlag(BlendingMask.Red),
-                blendingMask.HasFlag(BlendingMask.Green),
-                blendingMask.HasFlag(BlendingMask.Blue),
-                blendingMask.HasFlag(BlendingMask.Alpha));
+            GL.ColorMask(blendingMask.HasFlagFast(BlendingMask.Red),
+                blendingMask.HasFlagFast(BlendingMask.Green),
+                blendingMask.HasFlagFast(BlendingMask.Blue),
+                blendingMask.HasFlagFast(BlendingMask.Alpha));
         }
 
         protected override void SetViewportImplementation(RectangleI viewport) => GL.Viewport(viewport.Left, viewport.Top, viewport.Width, viewport.Height);

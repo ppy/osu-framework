@@ -3,6 +3,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
@@ -18,7 +19,7 @@ namespace osu.Framework.Platform.SDL3
         {
             // Apple devices don't have the notion of NumLock (they have a Clear key instead).
             // treat them as if they always have NumLock on (the numpad always performs its primary actions).
-            bool numLockOn = sdlKeyboardEvent.mod.HasFlag(SDL_Keymod.SDL_KMOD_NUM) || RuntimeInfo.IsApple;
+            bool numLockOn = sdlKeyboardEvent.mod.HasFlagFast(SDL_Keymod.SDL_KMOD_NUM) || RuntimeInfo.IsApple;
 
             switch (sdlKeyboardEvent.scancode)
             {
@@ -861,16 +862,16 @@ namespace osu.Framework.Platform.SDL3
 
         public static WindowState ToWindowState(this SDL_WindowFlags windowFlags)
         {
-            if (windowFlags.HasFlag(SDL_WindowFlags.SDL_WINDOW_BORDERLESS))
+            if (windowFlags.HasFlagFast(SDL_WindowFlags.SDL_WINDOW_BORDERLESS))
                 return WindowState.FullscreenBorderless;
 
-            if (windowFlags.HasFlag(SDL_WindowFlags.SDL_WINDOW_MINIMIZED))
+            if (windowFlags.HasFlagFast(SDL_WindowFlags.SDL_WINDOW_MINIMIZED))
                 return WindowState.Minimised;
 
-            if (windowFlags.HasFlag(SDL_WindowFlags.SDL_WINDOW_FULLSCREEN))
+            if (windowFlags.HasFlagFast(SDL_WindowFlags.SDL_WINDOW_FULLSCREEN))
                 return WindowState.Fullscreen;
 
-            if (windowFlags.HasFlag(SDL_WindowFlags.SDL_WINDOW_MAXIMIZED))
+            if (windowFlags.HasFlagFast(SDL_WindowFlags.SDL_WINDOW_MAXIMIZED))
                 return WindowState.Maximised;
 
             return WindowState.Normal;
