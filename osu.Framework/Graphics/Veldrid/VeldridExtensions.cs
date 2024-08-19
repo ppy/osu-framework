@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
@@ -105,10 +106,10 @@ namespace osu.Framework.Graphics.Veldrid
         {
             ColorWriteMask writeMask = ColorWriteMask.None;
 
-            if (mask.HasFlag(BlendingMask.Red)) writeMask |= ColorWriteMask.Red;
-            if (mask.HasFlag(BlendingMask.Green)) writeMask |= ColorWriteMask.Green;
-            if (mask.HasFlag(BlendingMask.Blue)) writeMask |= ColorWriteMask.Blue;
-            if (mask.HasFlag(BlendingMask.Alpha)) writeMask |= ColorWriteMask.Alpha;
+            if (mask.HasFlagFast(BlendingMask.Red)) writeMask |= ColorWriteMask.Red;
+            if (mask.HasFlagFast(BlendingMask.Green)) writeMask |= ColorWriteMask.Green;
+            if (mask.HasFlagFast(BlendingMask.Blue)) writeMask |= ColorWriteMask.Blue;
+            if (mask.HasFlagFast(BlendingMask.Alpha)) writeMask |= ColorWriteMask.Alpha;
 
             return writeMask;
         }
