@@ -932,6 +932,76 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("text selected by drag", () => textBox.SelectedText == "1");
         }
 
+        [Test]
+        public void TestTabbing()
+        {
+            AddStep("add textboxes", () =>
+            {
+                textBoxes.AddRange([
+                    new InsertableTextBox
+                    {
+                        Size = new Vector2(300, 40),
+                        Text = "first!",
+                        ReadOnly = false,
+                        TabbableContentContainer = textBoxes,
+                    },
+                    new InsertableTextBox
+                    {
+                        Size = new Vector2(300, 40),
+                        Text = "second!",
+                        ReadOnly = false,
+                        TabbableContentContainer = textBoxes,
+                    },
+                    new InsertableTextBox
+                    {
+                        Size = new Vector2(300, 40),
+                        Text = "third! (readonly)",
+                        ReadOnly = true,
+                        TabbableContentContainer = textBoxes,
+                    },
+                    new InsertableTextBox
+                    {
+                        Size = new Vector2(300, 40),
+                        Text = "fourth!",
+                        ReadOnly = false,
+                        TabbableContentContainer = textBoxes,
+                    }
+                ]);
+            });
+
+            AddStep("focus first textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBoxes[0]);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("press tab", () => InputManager.Key(Key.Tab));
+            AddAssert("second textbox focused", () => textBoxes[1].HasFocus);
+
+            AddStep("press tab", () => InputManager.Key(Key.Tab));
+            AddAssert("readonly textbox skipped", () => textBoxes[3].HasFocus);
+
+            AddStep("press tab", () => InputManager.Key(Key.Tab));
+            AddAssert("first textbox focused", () => textBoxes[0].HasFocus);
+
+            AddStep("press shift-tab", () =>
+            {
+                InputManager.PressKey(Key.ShiftLeft);
+                InputManager.Key(Key.Tab);
+                InputManager.ReleaseKey(Key.ShiftLeft);
+            });
+            AddAssert("fourth textbox focused", () => textBoxes[3].HasFocus);
+
+            AddStep("hide second textbox", () => textBoxes[1].Alpha = 0);
+            AddStep("press shift-tab", () =>
+            {
+                InputManager.PressKey(Key.ShiftLeft);
+                InputManager.Key(Key.Tab);
+                InputManager.ReleaseKey(Key.ShiftLeft);
+            });
+            AddAssert("first textbox focused", () => textBoxes[0].HasFocus);
+        }
+
         private void prependString(InsertableTextBox textBox, string text)
         {
             InputManager.Keys(PlatformAction.MoveBackwardLine);
