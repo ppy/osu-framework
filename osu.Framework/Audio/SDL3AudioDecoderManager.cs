@@ -512,6 +512,8 @@ namespace osu.Framework.Audio
                 decodeData = null;
 
                 ffmpeg?.Dispose();
+                ffmpeg = null;
+
                 base.Dispose();
             }
 
