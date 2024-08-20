@@ -5,6 +5,7 @@
 
 using osuTK.Graphics;
 using System;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -63,9 +64,10 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected internal abstract LocalisableString Label { get; set; }
 
-        public BindableBool Enabled { get; } = new BindableBool(true);
+        public readonly IBindable<bool> Enabled = new Bindable<bool>(true);
 
-        public Action ToggleMenu;
+        [Resolved]
+        private IDropdown dropdown { get; set; } = null!;
 
         protected DropdownHeader()
         {
@@ -96,6 +98,11 @@ namespace osu.Framework.Graphics.UserInterface
                     AutoSizeAxes = Axes.Y
                 },
                 SearchBar = CreateSearchBar(),
+                new ClickHandler
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Click = onClick
+                }
             };
         }
 
@@ -105,16 +112,8 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.LoadComplete();
 
+            Enabled.BindTo(dropdown.Enabled);
             Enabled.BindValueChanged(_ => updateState(), true);
-        }
-
-        protected override bool OnClick(ClickEvent e)
-        {
-            if (!Enabled.Value)
-                return false;
-
-            ToggleMenu?.Invoke();
-            return false;
         }
 
         protected override bool OnHover(HoverEvent e)
@@ -129,18 +128,24 @@ namespace osu.Framework.Graphics.UserInterface
             base.OnHoverLost(e);
         }
 
-        public void UpdateSearchBarFocus(MenuState state)
-        {
-            if (state == MenuState.Open)
-                SearchBar.ObtainFocus();
-            else
-                SearchBar.ReleaseFocus();
-        }
-
         private void updateState()
         {
             Colour = Enabled.Value ? Color4.White : DisabledColour;
             Background.Colour = IsHovered && Enabled.Value ? BackgroundColourHover : BackgroundColour;
+        }
+
+        /// <summary>
+        /// Handles clicks on the header to open/close the menu.
+        /// </summary>
+        private bool onClick(ClickEvent e)
+        {
+            // Allow input to fall through to the search bar (and its contained textbox) if there's any search text.
+            if (SearchBar.State.Value == Visibility.Visible && !string.IsNullOrEmpty(SearchTerm.Value))
+                return false;
+
+            // Otherwise, the header acts as a button to show/hide the menu.
+            dropdown.ToggleMenu();
+            return true;
         }
 
         public override bool HandleNonPositionalInput => IsHovered;
@@ -197,6 +202,12 @@ namespace osu.Framework.Graphics.UserInterface
             Last,
             FirstVisible,
             LastVisible
+        }
+
+        private partial class ClickHandler : Drawable
+        {
+            public required Func<ClickEvent, bool> Click { get; init; }
+            protected override bool OnClick(ClickEvent e) => Click(e);
         }
     }
 }

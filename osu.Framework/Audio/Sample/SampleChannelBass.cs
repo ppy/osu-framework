@@ -19,7 +19,18 @@ namespace osu.Framework.Audio.Sample
         /// <remarks>
         /// This is set to <c>true</c> immediately upon <see cref="Play"/>, but the channel may not be audibly playing yet.
         /// </remarks>
-        public override bool Playing => playing || enqueuedPlaybackStart;
+        public override bool Playing
+        {
+            get
+            {
+                // When short samples loop (especially within mixers), there's a small window where the ChannelIsActive state could be Stopped.
+                // In order to not provide a "stale" value here, we'll not trust the internal playing state from BASS.
+                if (Looping && userRequestedPlay)
+                    return true;
+
+                return playing || enqueuedPlaybackStart;
+            }
+        }
 
         private volatile bool playing;
 

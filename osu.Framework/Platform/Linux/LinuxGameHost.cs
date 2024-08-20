@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using SDL2;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
@@ -27,13 +26,10 @@ namespace osu.Framework.Platform.Linux
             BypassCompositor = Options.BypassCompositor;
         }
 
-        protected override void SetupForRun()
-        {
-            SDL.SDL_SetHint(SDL.SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, BypassCompositor ? "1" : "0");
-            base.SetupForRun();
-        }
-
-        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new SDL2DesktopWindow(preferredSurface);
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface)
+            => FrameworkEnvironment.UseSDL3
+                ? new SDL3LinuxWindow(preferredSurface, Options.FriendlyGameName, BypassCompositor)
+                : new SDL2LinuxWindow(preferredSurface, Options.FriendlyGameName, BypassCompositor);
 
         protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new LinuxReadableKeyCombinationProvider();
 
@@ -43,7 +39,7 @@ namespace osu.Framework.Platform.Linux
 
             foreach (var h in handlers.OfType<MouseHandler>())
             {
-                // There are several bugs we need to fix with Linux / SDL2 cursor handling before switching this on.
+                // There are several bugs we need to fix with Linux / SDL3 cursor handling before switching this on.
                 h.UseRelativeMode.Value = false;
                 h.UseRelativeMode.Default = false;
             }

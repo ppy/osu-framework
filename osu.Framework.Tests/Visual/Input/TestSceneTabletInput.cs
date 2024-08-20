@@ -20,23 +20,37 @@ namespace osu.Framework.Tests.Visual.Input
 {
     public partial class TestSceneTabletInput : FrameworkTestScene
     {
-        private readonly FillFlowContainer contentFlow;
+        private readonly SpriteText tabletInfo;
+        private readonly TabletAreaVisualiser areaVisualizer;
+        private readonly FillFlowContainer penButtonFlow;
+        private readonly FillFlowContainer auxButtonFlow;
+        private IBindable<TabletInfo?> tablet = new Bindable<TabletInfo?>();
+        private IBindable<bool> tabletEnabled = new Bindable<bool>();
 
         [Resolved]
         private FrameworkConfigManager frameworkConfigManager { get; set; } = null!;
 
         public TestSceneTabletInput()
         {
-            var penButtonFlow = new FillFlowContainer
+            Child = new FillFlowContainer
             {
-                RelativeSizeAxes = Axes.X,
-                AutoSizeAxes = Axes.Y,
-            };
-
-            var auxButtonFlow = new FillFlowContainer
-            {
-                RelativeSizeAxes = Axes.X,
-                AutoSizeAxes = Axes.Y
+                RelativeSizeAxes = Axes.Both,
+                Direction = FillDirection.Vertical,
+                Children = new Drawable[]
+                {
+                    tabletInfo = new SpriteText(),
+                    areaVisualizer = new TabletAreaVisualiser(),
+                    penButtonFlow = new FillFlowContainer
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                    },
+                    auxButtonFlow = new FillFlowContainer
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y
+                    },
+                }
             };
 
             for (int i = 0; i < 8; i++)
@@ -44,13 +58,6 @@ namespace osu.Framework.Tests.Visual.Input
 
             for (int i = 0; i < 16; i++)
                 auxButtonFlow.Add(new AuxiliaryButtonHandler(i));
-
-            Child = contentFlow = new FillFlowContainer
-            {
-                RelativeSizeAxes = Axes.Both,
-                Direction = FillDirection.Vertical,
-                Children = new[] { penButtonFlow, auxButtonFlow }
-            };
         }
 
         [Resolved]
@@ -64,9 +71,17 @@ namespace osu.Framework.Tests.Visual.Input
 
             if (tabletHandler != null)
             {
+                areaVisualizer.AreaSize.BindTo(tabletHandler.AreaSize);
+                areaVisualizer.AreaOffset.BindTo(tabletHandler.AreaOffset);
+
+                tablet = tabletHandler.Tablet.GetBoundCopy();
+                tablet.BindValueChanged(_ => updateState(), true);
+
+                tabletEnabled = tabletHandler.Enabled.GetBoundCopy();
+                tabletEnabled.BindValueChanged(_ => updateState(), true);
+
                 AddToggleStep("toggle tablet handling", t => tabletHandler.Enabled.Value = t);
 
-                contentFlow.Insert(-1, new TabletAreaVisualiser(tabletHandler));
                 AddSliderStep("change width", 0, 1, 1f,
                     width => tabletHandler.AreaSize.Value = new Vector2(
                         tabletHandler.AreaSize.Default.X * width,
@@ -92,20 +107,25 @@ namespace osu.Framework.Tests.Visual.Input
                 enabled ? ConfineMouseMode.Always : ConfineMouseMode.Never));
         }
 
+        private void updateState()
+        {
+            if (tabletEnabled.Value)
+                tabletInfo.Text = tablet.Value != null ? $"Name: {tablet.Value.Name} Size: {tablet.Value.Size}" : "No tablet detected!";
+            else
+                tabletInfo.Text = "Tablet input is disabled.";
+
+            areaVisualizer.Alpha = penButtonFlow.Alpha = auxButtonFlow.Alpha = tablet.Value != null && tabletEnabled.Value ? 1 : 0;
+        }
+
         private partial class TabletAreaVisualiser : CompositeDrawable
         {
-            private readonly OpenTabletDriverHandler handler;
+            public readonly Bindable<Vector2> AreaSize = new Bindable<Vector2>();
+            public readonly Bindable<Vector2> AreaOffset = new Bindable<Vector2>();
 
             private Box fullArea = null!;
             private Container activeArea = null!;
 
-            private Bindable<Vector2> areaSize = null!;
-            private Bindable<Vector2> areaOffset = null!;
-
-            public TabletAreaVisualiser(OpenTabletDriverHandler handler)
-            {
-                this.handler = handler;
-            }
+            private SpriteText areaText = null!;
 
             [BackgroundDependencyLoader]
             private void load()
@@ -119,8 +139,8 @@ namespace osu.Framework.Tests.Visual.Input
                     {
                         fullArea = new Box
                         {
-                            Width = handler.AreaSize.Default.X,
-                            Height = handler.AreaSize.Default.Y,
+                            Width = AreaSize.Default.X,
+                            Height = AreaSize.Default.Y,
                             Colour = FrameworkColour.GreenDark
                         },
                         activeArea = new Container
@@ -133,14 +153,13 @@ namespace osu.Framework.Tests.Visual.Input
                                     RelativeSizeAxes = Axes.Both,
                                     Colour = FrameworkColour.YellowGreen
                                 },
-                                new SpriteText
+                                areaText = new SpriteText
                                 {
                                     Anchor = Anchor.Centre,
                                     Origin = Anchor.Centre,
-                                    Text = "Active area"
                                 }
                             }
-                        }
+                        },
                     }
                 };
             }
@@ -149,13 +168,15 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 base.LoadComplete();
 
-                areaSize = handler.AreaSize.GetBoundCopy();
-                areaSize.BindValueChanged(size => activeArea.Size = size.NewValue, true);
-                areaSize.DefaultChanged += fullSize => fullArea.Size = fullSize.NewValue;
-                fullArea.Size = areaSize.Default;
+                AreaSize.BindValueChanged(size =>
+                {
+                    activeArea.Size = size.NewValue;
+                    areaText.Text = $"Active area: {size.NewValue}";
+                }, true);
+                AreaSize.DefaultChanged += fullSize => fullArea.Size = fullSize.NewValue;
+                fullArea.Size = AreaSize.Default;
 
-                areaOffset = handler.AreaOffset.GetBoundCopy();
-                areaOffset.BindValueChanged(offset => activeArea.Position = offset.NewValue, true);
+                AreaOffset.BindValueChanged(offset => activeArea.Position = offset.NewValue, true);
             }
         }
 

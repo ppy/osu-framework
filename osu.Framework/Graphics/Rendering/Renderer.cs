@@ -787,6 +787,8 @@ namespace osu.Framework.Graphics.Rendering
 
             if (texture is TextureWhitePixel && lastBoundTextureIsAtlas[unit])
             {
+                setWrapMode(wrapModeS ?? texture.WrapModeS, wrapModeT ?? texture.WrapModeT);
+
                 // We can use the special white space from any atlas texture.
                 return true;
             }
@@ -817,17 +819,7 @@ namespace osu.Framework.Graphics.Rendering
             if (!SetTextureImplementation(texture, unit))
                 return false;
 
-            if (wrapModeS != CurrentWrapModeS)
-            {
-                CurrentWrapModeS = wrapModeS;
-                globalUniformsChanged = true;
-            }
-
-            if (wrapModeT != CurrentWrapModeT)
-            {
-                CurrentWrapModeT = wrapModeT;
-                globalUniformsChanged = true;
-            }
+            setWrapMode(wrapModeS, wrapModeT);
 
             lastBoundTexture[unit] = texture;
             lastBoundTextureIsAtlas[unit] = false;
@@ -837,6 +829,25 @@ namespace osu.Framework.Graphics.Rendering
             texture.TotalBindCount++;
 
             return true;
+        }
+
+        private void setWrapMode(WrapMode wrapModeS, WrapMode wrapModeT)
+        {
+            if (wrapModeS != CurrentWrapModeS)
+            {
+                FlushCurrentBatch(FlushBatchSource.BindTexture);
+
+                CurrentWrapModeS = wrapModeS;
+                globalUniformsChanged = true;
+            }
+
+            if (wrapModeT != CurrentWrapModeT)
+            {
+                FlushCurrentBatch(FlushBatchSource.BindTexture);
+
+                CurrentWrapModeT = wrapModeT;
+                globalUniformsChanged = true;
+            }
         }
 
         /// <summary>
@@ -1246,8 +1257,6 @@ namespace osu.Framework.Graphics.Rendering
 
         private void validateUniformLayout<TData>()
         {
-            Trace.Assert(ThreadSafety.IsDrawThread);
-
             if (validUboTypes.Contains(typeof(TData)))
                 return;
 

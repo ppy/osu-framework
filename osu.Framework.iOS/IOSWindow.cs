@@ -4,16 +4,20 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using ObjCRuntime;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Platform;
-using SDL2;
+using osu.Framework.Platform.SDL3;
+using SDL;
+using static SDL.SDL3;
 using UIKit;
 
 namespace osu.Framework.iOS
 {
-    internal class IOSWindow : SDL2Window
+    internal class IOSWindow : SDL3MobileWindow
     {
         private UIWindow? window;
 
@@ -29,17 +33,9 @@ namespace osu.Framework.iOS
             }
         }
 
-        public IOSWindow(GraphicsSurfaceType surfaceType)
-            : base(surfaceType)
+        public IOSWindow(GraphicsSurfaceType surfaceType, string appName)
+            : base(surfaceType, appName)
         {
-        }
-
-        protected override void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
-        {
-            // This sets the status bar to hidden.
-            SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
-
-            // Don't run base logic at all. Let's keep things simple.
         }
 
         public override void Create()
@@ -50,7 +46,7 @@ namespace osu.Framework.iOS
             updateSafeArea();
         }
 
-        protected override void RunMainLoop()
+        protected override unsafe void RunMainLoop()
         {
             // Delegate running the main loop to CADisplayLink.
             //
@@ -60,11 +56,12 @@ namespace osu.Framework.iOS
             // iOS may be a good forward direction if this ever comes up, as a user may see a potentially higher
             // frame rate with multi-threaded mode turned on, but it is going to give them worse input latency
             // and higher power usage.
-            SDL.SDL_iPhoneSetEventPump(SDL.SDL_bool.SDL_FALSE);
-            SDL.SDL_iPhoneSetAnimationCallback(SDLWindowHandle, 1, runFrame, ObjectHandle.Handle);
+
+            SDL_SetiOSEventPump(SDL_bool.SDL_FALSE);
+            SDL_SetiOSAnimationCallback(SDLWindowHandle, 1, &runFrame, ObjectHandle.Handle);
         }
 
-        [ObjCRuntime.MonoPInvokeCallback(typeof(SDL.SDL_iPhoneAnimationCallback))]
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
         private static void runFrame(IntPtr userdata)
         {
             var handle = new ObjectHandle<IOSWindow>(userdata);

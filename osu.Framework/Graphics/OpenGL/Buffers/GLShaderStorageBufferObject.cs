@@ -2,7 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using osu.Framework.Development;
 using osu.Framework.Graphics.Rendering;
 using osuTK.Graphics.ES30;
 
@@ -20,6 +22,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public GLShaderStorageBufferObject(GLRenderer renderer, int uboSize, int ssboSize)
         {
+            Trace.Assert(ThreadSafety.IsDrawThread);
+
             Id = GL.GenBuffer();
             Size = renderer.UseStructuredBuffers ? ssboSize : uboSize;
             data = new TData[Size];

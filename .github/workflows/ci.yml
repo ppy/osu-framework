@@ -76,6 +76,8 @@ jobs:
 
       - name: Setup Go
         uses: actions/setup-go@v5
+        with:
+          go-version: 1.21.9
 
       - name: Install httpbin
         run: go install github.com/mccutchen/go-httpbin/v2/cmd/go-httpbin@latest
@@ -88,7 +90,7 @@ jobs:
         run: dotnet build -c ${{matrix.os.configuration}} -warnaserror osu-framework.Desktop.slnf
 
       - name: Test
-        run: dotnet test $pwd/**/*.Tests/bin/${{matrix.os.configuration}}/*/*.Tests.dll --no-build --settings $pwd/build/vstestconfig.runsettings --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.os.configuration}}.trx"
+        run: dotnet test $pwd/**/*.Tests/bin/${{matrix.os.configuration}}/*/*.Tests.dll --no-build --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.os.configuration}}.trx" -- NUnit.ConsoleOut=0
         shell: pwsh
 
       # Attempt to upload results even if test fails.

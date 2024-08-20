@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Input.Events;
 using osuTK.Input;
 
@@ -44,7 +45,7 @@ namespace osu.Framework.Graphics.Containers
                 return false;
 
             var nextTab = nextTabStop(TabbableContentContainer, e.ShiftPressed);
-            if (nextTab != null) GetContainingInputManager().ChangeFocus(nextTab);
+            if (nextTab != null) GetContainingFocusManager().AsNonNull().ChangeFocus(nextTab);
             return true;
         }
 
