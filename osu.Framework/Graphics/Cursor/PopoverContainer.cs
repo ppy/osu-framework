@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.UserInterface;
@@ -156,18 +157,18 @@ namespace osu.Framework.Graphics.Cursor
 
             // left anchor = area to the left of the quad, right anchor = area to the right of the quad.
             // for horizontal centre assume we have the whole quad width to work with.
-            if (anchor.HasFlag(Anchor.x0))
+            if (anchor.HasFlagFast(Anchor.x0))
                 availableSize.X = MathF.Max(0, targetLocalQuad.TopLeft.X);
-            else if (anchor.HasFlag(Anchor.x2))
+            else if (anchor.HasFlagFast(Anchor.x2))
                 availableSize.X = MathF.Max(0, DrawWidth - targetLocalQuad.BottomRight.X);
             else
                 availableSize.X = DrawWidth;
 
             // top anchor = area above quad, bottom anchor = area below quad.
             // for vertical centre assume we have the whole quad height to work with.
-            if (anchor.HasFlag(Anchor.y0))
+            if (anchor.HasFlagFast(Anchor.y0))
                 availableSize.Y = MathF.Max(0, targetLocalQuad.TopLeft.Y);
-            else if (anchor.HasFlag(Anchor.y2))
+            else if (anchor.HasFlagFast(Anchor.y2))
                 availableSize.Y = MathF.Max(0, DrawHeight - targetLocalQuad.BottomRight.Y);
             else
                 availableSize.Y = DrawHeight;

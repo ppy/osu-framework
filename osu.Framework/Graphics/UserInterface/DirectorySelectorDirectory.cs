@@ -8,6 +8,7 @@ using System.IO;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Input.Events;
+using osu.Framework.Extensions.EnumExtensions;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -26,7 +27,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             try
             {
-                bool isHidden = directory?.Attributes.HasFlag(FileAttributes.Hidden) == true;
+                bool isHidden = directory?.Attributes.HasFlagFast(FileAttributes.Hidden) == true;
 
                 // On Windows, system drives are returned with `System | Hidden | Directory` file attributes,
                 // but the expectation is that they shouldn't be shown in a hidden state.

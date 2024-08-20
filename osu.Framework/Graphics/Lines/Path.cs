@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Layout;
 using osuTK.Graphics;
@@ -117,7 +118,7 @@ namespace osu.Framework.Graphics.Lines
         {
             get
             {
-                if (AutoSizeAxes.HasFlag(Axes.X))
+                if (AutoSizeAxes.HasFlagFast(Axes.X))
                     return base.Width = vertexBounds.Width;
 
                 return base.Width;
@@ -135,7 +136,7 @@ namespace osu.Framework.Graphics.Lines
         {
             get
             {
-                if (AutoSizeAxes.HasFlag(Axes.Y))
+                if (AutoSizeAxes.HasFlagFast(Axes.Y))
                     return base.Height = vertexBounds.Height;
 
                 return base.Height;

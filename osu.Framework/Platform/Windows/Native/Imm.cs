@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
+using osu.Framework.Extensions.EnumExtensions;
 
 namespace osu.Framework.Platform.Windows.Native
 {
@@ -139,7 +140,7 @@ namespace osu.Framework.Platform.Windows.Native
             {
                 size = -1;
 
-                if (!lParam.HasFlag(compositionString))
+                if (!lParam.HasFlagFast(compositionString))
                     return false;
 
                 size = ImmGetCompositionString(handle, compositionString, null, 0);

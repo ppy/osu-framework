@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
@@ -21,9 +22,9 @@ namespace osu.Framework.Extensions
             if (anchor == Anchor.Custom)
                 throw new ArgumentException($"{nameof(Anchor.Custom)} is not supported.", nameof(anchor));
 
-            if (anchor.HasFlag(Anchor.x0) || anchor.HasFlag(Anchor.x2))
+            if (anchor.HasFlagFast(Anchor.x0) || anchor.HasFlagFast(Anchor.x2))
                 anchor ^= Anchor.x0 | Anchor.x2;
-            if (anchor.HasFlag(Anchor.y0) || anchor.HasFlag(Anchor.y2))
+            if (anchor.HasFlagFast(Anchor.y0) || anchor.HasFlagFast(Anchor.y2))
                 anchor ^= Anchor.y0 | Anchor.y2;
 
             return anchor;
@@ -39,18 +40,18 @@ namespace osu.Framework.Extensions
 
             Vector2 position = new Vector2();
 
-            if (anchor.HasFlag(Anchor.x0))
+            if (anchor.HasFlagFast(Anchor.x0))
                 position.X = quad.TopLeft.X;
-            else if (anchor.HasFlag(Anchor.x1))
+            else if (anchor.HasFlagFast(Anchor.x1))
                 position.X = quad.Centre.X;
-            else if (anchor.HasFlag(Anchor.x2))
+            else if (anchor.HasFlagFast(Anchor.x2))
                 position.X = quad.BottomRight.X;
 
-            if (anchor.HasFlag(Anchor.y0))
+            if (anchor.HasFlagFast(Anchor.y0))
                 position.Y = quad.TopLeft.Y;
-            else if (anchor.HasFlag(Anchor.y1))
+            else if (anchor.HasFlagFast(Anchor.y1))
                 position.Y = quad.Centre.Y;
-            else if (anchor.HasFlag(Anchor.y2))
+            else if (anchor.HasFlagFast(Anchor.y2))
                 position.Y = quad.BottomRight.Y;
 
             return position;
