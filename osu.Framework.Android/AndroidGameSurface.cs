@@ -58,10 +58,10 @@ namespace osu.Framework.Android
             isSurfaceReady = true;
         }
 
-        public override WindowInsets? OnApplyWindowInsets(WindowInsets? insets)
+        public override WindowInsets? OnApplyWindowInsets(View? view, WindowInsets? insets)
         {
             updateSafeArea(insets);
-            return base.OnApplyWindowInsets(insets);
+            return base.OnApplyWindowInsets(view, insets);
         }
 
         /// <summary>

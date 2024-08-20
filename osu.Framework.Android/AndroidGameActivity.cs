@@ -1,12 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
-using Android.Views;
 using ManagedBass;
 using Org.Libsdl.App;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -55,11 +53,6 @@ namespace osu.Framework.Android
             System.Environment.CurrentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile);
 
             base.OnCreate(savedInstanceState);
-
-            if (OperatingSystem.IsAndroidVersionAtLeast(28))
-            {
-                Window.AsNonNull().Attributes.AsNonNull().LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.ShortEdges;
-            }
         }
 
         protected override void OnStop()
