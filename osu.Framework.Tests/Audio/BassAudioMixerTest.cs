@@ -292,7 +292,7 @@ namespace osu.Framework.Tests.Audio
             }
         }
 
-        private void assertIfTrackIsPlaying()
+        private void assertThatTrackIsPlaying()
         {
             if (type == AudioTestComponents.Type.BASS)
                 Assert.That(((BassAudioMixer)mixer).ChannelIsActive((TrackBass)track), Is.Not.EqualTo(PlaybackState.Playing));
@@ -315,12 +315,12 @@ namespace osu.Framework.Tests.Audio
             Thread.Sleep(50);
             audio.Update();
 
-            assertIfTrackIsPlaying();
+            assertThatTrackIsPlaying();
 
             audio.RunOnAudioThread(() => track.SeekAsync(0).WaitSafely());
             audio.Update();
 
-            assertIfTrackIsPlaying();
+            assertThatTrackIsPlaying();
         }
 
         [TestCase(AudioTestComponents.Type.BASS)]
@@ -338,13 +338,13 @@ namespace osu.Framework.Tests.Audio
             Thread.Sleep(50);
             audio.Update();
 
-            assertIfTrackIsPlaying();
+            assertThatTrackIsPlaying();
 
             var secondMixer = audio.CreateMixer();
             secondMixer.Add(track);
             audio.Update();
 
-            assertIfTrackIsPlaying();
+            assertThatTrackIsPlaying();
         }
     }
 }
