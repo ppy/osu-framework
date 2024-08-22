@@ -10,7 +10,6 @@ using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.SDL3;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
-using SDL;
 using static SDL.SDL3;
 
 namespace osu.Framework.Tests.Audio
@@ -30,16 +29,13 @@ namespace osu.Framework.Tests.Audio
         protected override void Prepare()
         {
             base.Prepare();
+
+            SDL_SetHint(SDL_HINT_AUDIO_DRIVER, "dummy"u8);
             baseManager = new SDL3BaseAudioManager(MixerComponents.Items.OfType<SDL3AudioMixer>);
         }
 
         public override void Init()
         {
-            SDL_SetHint(SDL_HINT_AUDIO_DRIVER, "dummy"u8);
-
-            if (SDL_Init(SDL_InitFlags.SDL_INIT_AUDIO) < 0)
-                throw new InvalidOperationException($"Failed to initialise SDL: {SDL_GetError()}");
-
             if (!baseManager.SetAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK))
                 throw new InvalidOperationException($"Failed to open SDL3 audio device: {SDL_GetError()}");
         }
@@ -66,8 +62,6 @@ namespace osu.Framework.Tests.Audio
         {
             base.DisposeInternal();
             baseManager.Dispose();
-
-            SDL_Quit();
         }
 
         internal override Track CreateTrack(Stream data, string name) => baseManager.GetNewTrack(data, name);

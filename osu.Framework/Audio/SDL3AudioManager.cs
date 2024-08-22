@@ -214,6 +214,11 @@ namespace osu.Framework.Audio
 
         internal SDL3BaseAudioManager(Func<IEnumerable<SDL3AudioMixer>> mixerIterator)
         {
+            if (SDL_InitSubSystem(SDL_InitFlags.SDL_INIT_AUDIO) < 0)
+            {
+                throw new InvalidOperationException($"Failed to initialise SDL Audio: {SDL_GetError()}");
+            }
+
             this.mixerIterator = mixerIterator;
 
             objectHandle = new ObjectHandle<SDL3BaseAudioManager>(this, GCHandleType.Normal);
@@ -379,6 +384,8 @@ namespace osu.Framework.Audio
 
             objectHandle.Dispose();
             decoderManager.Dispose();
+
+            SDL_QuitSubSystem(SDL_InitFlags.SDL_INIT_AUDIO);
         }
     }
 }
