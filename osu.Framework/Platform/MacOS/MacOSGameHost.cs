@@ -7,10 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using osu.Framework.Extensions;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Platform.MacOS.Native;
 
 namespace osu.Framework.Platform.MacOS
 {
@@ -63,6 +65,11 @@ namespace osu.Framework.Platform.MacOS
             }
 
             return handlers;
+        }
+
+        public override bool PresentFileExternally(string filename)
+        {
+            return Finder.OpenFolderAndSelectItem(filename.TrimDirectorySeparator());
         }
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => KeyBindings;
