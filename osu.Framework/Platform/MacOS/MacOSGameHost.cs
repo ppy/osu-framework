@@ -7,11 +7,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using osu.Framework.Extensions;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Logging;
 using osu.Framework.Platform.MacOS.Native;
 
 namespace osu.Framework.Platform.MacOS
@@ -53,6 +53,29 @@ namespace osu.Framework.Platform.MacOS
                 Renderer.WaitUntilIdle();
         }
 
+        public override bool PresentFileExternally(string filename)
+        {
+            string folderPath = Path.GetDirectoryName(filename);
+
+            if (folderPath == null)
+            {
+                Logger.Log($"Failed to get directory for {filename}", level: LogLevel.Debug);
+                return false;
+            }
+
+            if (!File.Exists(filename) && !Directory.Exists(filename))
+            {
+                Logger.Log($"Cannot find file for '{filename}'", level: LogLevel.Debug);
+
+                // Open the folder without the file selected if we can't find the file
+                OpenFileExternally(folderPath);
+                return true;
+            }
+
+            Finder.OpenFolderAndSelectItem(filename);
+            return true;
+        }
+
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
         {
             var handlers = base.CreateAvailableInputHandlers();
@@ -65,11 +88,6 @@ namespace osu.Framework.Platform.MacOS
             }
 
             return handlers;
-        }
-
-        public override bool PresentFileExternally(string filename)
-        {
-            return Finder.OpenFolderAndSelectItem(filename.TrimDirectorySeparator());
         }
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => KeyBindings;
