@@ -11,6 +11,8 @@ using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Logging;
+using osu.Framework.Platform.MacOS.Native;
 
 namespace osu.Framework.Platform.MacOS
 {
@@ -49,6 +51,29 @@ namespace osu.Framework.Platform.MacOS
             // It has been reported that this helps performance on macOS (https://github.com/ppy/osu/issues/7447)
             if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL && !Renderer.VerticalSync)
                 Renderer.WaitUntilIdle();
+        }
+
+        public override bool PresentFileExternally(string filename)
+        {
+            string folderPath = Path.GetDirectoryName(filename);
+
+            if (folderPath == null)
+            {
+                Logger.Log($"Failed to get directory for {filename}", level: LogLevel.Debug);
+                return false;
+            }
+
+            if (!File.Exists(filename) && !Directory.Exists(filename))
+            {
+                Logger.Log($"Cannot find file for '{filename}'", level: LogLevel.Debug);
+
+                // Open the folder without the file selected if we can't find the file
+                OpenFileExternally(folderPath);
+                return true;
+            }
+
+            Finder.OpenFolderAndSelectItem(filename);
+            return true;
         }
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
