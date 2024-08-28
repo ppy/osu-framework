@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 
         public DummyFrameBuffer(IRenderer renderer)
         {
-            Texture = new Texture(new DummyNativeTexture(renderer), WrapMode.None, WrapMode.None);
+            Texture = new Texture(new DummyNativeTexture(renderer, 1, 1), WrapMode.None, WrapMode.None);
         }
 
         public void Bind()

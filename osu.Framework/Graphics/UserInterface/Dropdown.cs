@@ -839,9 +839,9 @@ namespace osu.Framework.Graphics.UserInterface
             SelectedItem = (DropdownMenuItem<T>)preselectedItem.Item;
         }
 
-        void IDropdown.TriggerFocusContention(Drawable triggerSource) => GetContainingFocusManager().TriggerFocusContention(triggerSource);
+        void IDropdown.TriggerFocusContention(Drawable triggerSource) => GetContainingFocusManager()?.TriggerFocusContention(triggerSource);
 
-        bool IDropdown.ChangeFocus(Drawable potentialFocusTarget) => GetContainingFocusManager().ChangeFocus(potentialFocusTarget);
+        bool IDropdown.ChangeFocus(Drawable potentialFocusTarget) => GetContainingFocusManager()?.ChangeFocus(potentialFocusTarget) ?? false;
 
         #endregion
     }

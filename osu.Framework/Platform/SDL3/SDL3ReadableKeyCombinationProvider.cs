@@ -11,10 +11,10 @@ namespace osu.Framework.Platform.SDL3
 {
     public class SDL3ReadableKeyCombinationProvider : ReadableKeyCombinationProvider
     {
-        private static SDL_Keycode getKeyFromScancode(SDL_Scancode scancode)
+        private static SDL_Keycode getKeyFromScancode(SDL_Scancode scancode, SDL_Keymod modstate)
         {
             if (FrameworkEnvironment.UseSDL3)
-                return SDL_GetKeyFromScancode(scancode);
+                return SDL_GetKeyFromScancode(scancode, modstate, SDL_FALSE); // third parameter is not useful unless SDL_HINT_KEYCODE_OPTIONS is set
 
             return (SDL_Keycode)global::SDL2.SDL.SDL_GetKeyFromScancode((global::SDL2.SDL.SDL_Scancode)scancode);
         }
@@ -29,7 +29,8 @@ namespace osu.Framework.Platform.SDL3
 
         protected override string GetReadableKey(InputKey key)
         {
-            var keycode = getKeyFromScancode(key.ToScancode());
+            // In SDL3, SDL_GetKeyFromScancode may return a different keycode depending on key modifier. Use NONE to keep consistency with SDL2 for now.
+            var keycode = getKeyFromScancode(key.ToScancode(), SDL_KMOD_NONE);
 
             // early return if unknown. probably because key isn't a keyboard key, or doesn't map to an `SDL_Scancode`.
             if (keycode == SDL_Keycode.SDLK_UNKNOWN)
@@ -218,23 +219,23 @@ namespace osu.Framework.Platform.SDL3
                     name = "Vol. Down";
                     return true;
 
-                case SDL_Keycode.SDLK_AUDIONEXT:
+                case SDL_Keycode.SDLK_MEDIA_NEXT_TRACK:
                     name = "Media Next";
                     return true;
 
-                case SDL_Keycode.SDLK_AUDIOPREV:
+                case SDL_Keycode.SDLK_MEDIA_PREVIOUS_TRACK:
                     name = "Media Previous";
                     return true;
 
-                case SDL_Keycode.SDLK_AUDIOSTOP:
+                case SDL_Keycode.SDLK_MEDIA_STOP:
                     name = "Media Stop";
                     return true;
 
-                case SDL_Keycode.SDLK_AUDIOPLAY:
+                case SDL_Keycode.SDLK_MEDIA_PLAY:
                     name = "Media Play";
                     return true;
 
-                case SDL_Keycode.SDLK_AUDIOMUTE:
+                case SDL_Keycode.SDLK_MUTE:
                     name = "Mute";
                     return true;
 

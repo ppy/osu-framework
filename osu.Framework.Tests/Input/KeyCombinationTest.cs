@@ -1,8 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using NUnit.Framework;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.States;
+using osuTK.Input;
 
 namespace osu.Framework.Tests.Input
 {
@@ -64,6 +67,17 @@ namespace osu.Framework.Tests.Input
 
             Assert.That(keyCombination.Keys[0], Is.EqualTo(InputKey.Control));
             Assert.That(keyCombination.Keys[1], Is.EqualTo(InputKey.A));
+        }
+
+        [Test]
+        public void TestEmptyCombinationIsNeverPressed()
+        {
+            var keyCombination = new KeyCombination(Array.Empty<InputKey>());
+
+            var state = new InputState();
+            state.Keyboard.Keys.SetPressed(Key.X, true);
+
+            Assert.That(keyCombination.IsPressed(new KeyCombination(InputKey.X), state, KeyCombinationMatchingMode.Any), Is.False);
         }
     }
 }

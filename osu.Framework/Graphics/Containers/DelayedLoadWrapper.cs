@@ -5,6 +5,7 @@
 
 using System;
 using System.Threading;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.PolygonExtensions;
 using osu.Framework.Layout;
@@ -188,8 +189,10 @@ namespace osu.Framework.Graphics.Containers
 
         protected bool IsIntersecting { get; private set; }
 
+        [CanBeNull]
         internal IOnScreenOptimisingContainer OptimisingContainer { get; private set; }
 
+        [CanBeNull]
         internal IOnScreenOptimisingContainer FindParentOptimisingContainer() => this.FindClosestParent<IOnScreenOptimisingContainer>();
 
         protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)

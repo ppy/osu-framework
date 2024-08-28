@@ -19,7 +19,7 @@ namespace osu.Framework.Platform.SDL3
     {
         private readonly SDL3Window window;
 
-        private IntPtr context;
+        private SDL_GLContextState* context;
 
         public IntPtr WindowHandle => window.WindowHandle;
 
@@ -87,7 +87,7 @@ namespace osu.Framework.Platform.SDL3
 
             context = SDL_GL_CreateContext(window.SDLWindowHandle);
 
-            if (context == IntPtr.Zero)
+            if (context == null)
                 throw new InvalidOperationException($"Failed to create an SDL3 GL context ({SDL_GetError()})");
 
             SDL_GL_MakeCurrent(window.SDLWindowHandle, context);
@@ -194,14 +194,14 @@ namespace osu.Framework.Platform.SDL3
             }
         }
 
-        IntPtr IOpenGLGraphicsSurface.WindowContext => context;
-        IntPtr IOpenGLGraphicsSurface.CurrentContext => SDL_GL_GetCurrentContext();
+        IntPtr IOpenGLGraphicsSurface.WindowContext => (IntPtr)context;
+        IntPtr IOpenGLGraphicsSurface.CurrentContext => (IntPtr)SDL_GL_GetCurrentContext();
 
         void IOpenGLGraphicsSurface.SwapBuffers() => SDL_GL_SwapWindow(window.SDLWindowHandle);
         void IOpenGLGraphicsSurface.CreateContext() => SDL_GL_CreateContext(window.SDLWindowHandle);
-        void IOpenGLGraphicsSurface.DeleteContext(IntPtr context) => SDL_GL_DeleteContext(context);
-        void IOpenGLGraphicsSurface.MakeCurrent(IntPtr context) => SDL_GL_MakeCurrent(window.SDLWindowHandle, context);
-        void IOpenGLGraphicsSurface.ClearCurrent() => SDL_GL_MakeCurrent(window.SDLWindowHandle, IntPtr.Zero);
+        void IOpenGLGraphicsSurface.DeleteContext(IntPtr context) => SDL_GL_DestroyContext((SDL_GLContextState*)context);
+        void IOpenGLGraphicsSurface.MakeCurrent(IntPtr context) => SDL_GL_MakeCurrent(window.SDLWindowHandle, (SDL_GLContextState*)context);
+        void IOpenGLGraphicsSurface.ClearCurrent() => SDL_GL_MakeCurrent(window.SDLWindowHandle, null);
         IntPtr IOpenGLGraphicsSurface.GetProcAddress(string symbol) => getProcAddress(symbol);
 
         #endregion
@@ -224,7 +224,7 @@ namespace osu.Framework.Platform.SDL3
         #region Android-specific implementation
 
         [SupportedOSPlatform("android")]
-        IntPtr IAndroidGraphicsSurface.JniEnvHandle => SDL_AndroidGetJNIEnv();
+        IntPtr IAndroidGraphicsSurface.JniEnvHandle => SDL_GetAndroidJNIEnv();
 
         [SupportedOSPlatform("android")]
         IntPtr IAndroidGraphicsSurface.SurfaceHandle => window.SurfaceHandle;

@@ -51,6 +51,12 @@ namespace osu.Framework.Input
         /// </summary>
         public Drawable FocusedDrawable { get; internal set; }
 
+        /// <summary>
+        /// Any drawable that was focused directly via <see cref="ChangeFocus(Drawable, InputState)"/> during the handling of a click,
+        /// and <i>not</i> as a result of the automatic post-process change of focus from the click.
+        /// </summary>
+        internal Drawable FocusedDrawableThisClick;
+
         protected abstract ImmutableArray<InputHandler> InputHandlers { get; }
 
         private double keyboardRepeatTime;
@@ -400,7 +406,10 @@ namespace osu.Framework.Input
         protected bool ChangeFocus(Drawable potentialFocusTarget, InputState state)
         {
             if (potentialFocusTarget == FocusedDrawable)
+            {
+                FocusedDrawableThisClick = FocusedDrawable;
                 return true;
+            }
 
             if (potentialFocusTarget != null && (!isDrawableValidForFocus(potentialFocusTarget) || !potentialFocusTarget.AcceptsFocus))
                 return false;
@@ -426,6 +435,8 @@ namespace osu.Framework.Input
                 FocusedDrawable.HasFocus = true;
                 FocusedDrawable.TriggerEvent(new FocusEvent(state, previousFocus));
             }
+
+            FocusedDrawableThisClick = FocusedDrawable;
 
             return true;
         }

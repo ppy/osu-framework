@@ -3,13 +3,11 @@
 
 using System.Linq;
 using NUnit.Framework;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Platform;
 using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
@@ -18,8 +16,10 @@ namespace osu.Framework.Tests.Visual.Graphics
 {
     public partial class TestSceneVertexBatching : FrameworkTestScene
     {
-        [Resolved]
-        private GameHost host { get; set; } = null!;
+        /// <summary>
+        /// Max number of quads per batch in the default quad batch (Renderer.defaultQuadBatch).
+        /// </summary>
+        private const int max_boxes_per_batch = 100;
 
         [Test]
         public void TestBatchUntilOverflow()
@@ -28,8 +28,6 @@ namespace osu.Framework.Tests.Visual.Graphics
             {
                 Clear();
 
-                int boxesPerBatch = host.Renderer.DefaultQuadBatch.Size;
-
                 Add(new FillFlowContainer
                 {
                     Anchor = Anchor.Centre,
@@ -37,7 +35,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                     RelativeSizeAxes = Axes.Both,
                     Margin = new MarginPadding(25f),
                     Spacing = new Vector2(10f),
-                    ChildrenEnumerable = Enumerable.Range(0, boxesPerBatch * 2).Select(i => new Box
+                    ChildrenEnumerable = Enumerable.Range(0, max_boxes_per_batch * 2).Select(i => new Box
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
@@ -55,8 +53,6 @@ namespace osu.Framework.Tests.Visual.Graphics
             {
                 Clear();
 
-                int boxesPerBatch = host.Renderer.DefaultQuadBatch.Size;
-
                 Add(new FillFlowContainer
                 {
                     Anchor = Anchor.Centre,
@@ -64,7 +60,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                     RelativeSizeAxes = Axes.Both,
                     Margin = new MarginPadding(25f),
                     Spacing = new Vector2(10f),
-                    ChildrenEnumerable = Enumerable.Range(0, boxesPerBatch * 2).Select(i => new BoxWithFlush
+                    ChildrenEnumerable = Enumerable.Range(0, max_boxes_per_batch * 2).Select(i => new BoxWithFlush
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,

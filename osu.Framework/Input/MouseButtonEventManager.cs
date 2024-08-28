@@ -155,12 +155,19 @@ namespace osu.Framework.Input
             var drawables = targets.Intersect(InputQueue)
                                    .Where(t => t.IsAlive && t.IsPresent && t.ReceivePositionalInputAt(state.Mouse.Position));
 
-            Drawable? clicked = PropagateButtonEvent(drawables, new ClickEvent(state, Button, MouseDownPosition));
+            InputManager.FocusedDrawableThisClick = null;
 
+            Drawable? clicked = PropagateButtonEvent(drawables, new ClickEvent(state, Button, MouseDownPosition));
             ClickedDrawable.SetTarget(clicked!);
 
-            if (ChangeFocusOnClick && clicked?.ChangeFocusOnClick != false)
-                InputManager.ChangeFocusFromClick(clicked);
+            // Focus shall only change if it wasn't explicitly changed during the click (for example, using a button to open a menu).
+            if (InputManager.FocusedDrawableThisClick == null)
+            {
+                if (ChangeFocusOnClick && clicked?.ChangeFocusOnClick != false)
+                    InputManager.ChangeFocusFromClick(clicked);
+            }
+
+            InputManager.FocusedDrawableThisClick = null;
 
             if (clicked != null)
                 Logger.Log($"MouseClick handled by {clicked}.", LoggingTarget.Runtime, LogLevel.Debug);

@@ -102,6 +102,9 @@ namespace osu.Framework.Input.Bindings
             if (Keys == pressedKeys.Keys) // Fast test for reference equality of underlying array
                 return true;
 
+            if (Keys.SequenceEqual(none))
+                return false;
+
             return ContainsAll(Keys, pressedKeys.Keys, matchingMode);
         }
 

@@ -98,6 +98,11 @@ namespace osu.Framework.Graphics.UserInterface
                     AutoSizeAxes = Axes.Y
                 },
                 SearchBar = CreateSearchBar(),
+                new ClickHandler
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Click = onClick
+                }
             };
         }
 
@@ -127,6 +132,20 @@ namespace osu.Framework.Graphics.UserInterface
         {
             Colour = Enabled.Value ? Color4.White : DisabledColour;
             Background.Colour = IsHovered && Enabled.Value ? BackgroundColourHover : BackgroundColour;
+        }
+
+        /// <summary>
+        /// Handles clicks on the header to open/close the menu.
+        /// </summary>
+        private bool onClick(ClickEvent e)
+        {
+            // Allow input to fall through to the search bar (and its contained textbox) if there's any search text.
+            if (SearchBar.State.Value == Visibility.Visible && !string.IsNullOrEmpty(SearchTerm.Value))
+                return false;
+
+            // Otherwise, the header acts as a button to show/hide the menu.
+            dropdown.ToggleMenu();
+            return true;
         }
 
         public override bool HandleNonPositionalInput => IsHovered;
@@ -183,6 +202,12 @@ namespace osu.Framework.Graphics.UserInterface
             Last,
             FirstVisible,
             LastVisible
+        }
+
+        private partial class ClickHandler : Drawable
+        {
+            public required Func<ClickEvent, bool> Click { get; init; }
+            protected override bool OnClick(ClickEvent e) => Click(e);
         }
     }
 }

@@ -25,6 +25,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Extensions.EnumExtensions;
@@ -1490,14 +1491,16 @@ namespace osu.Framework.Graphics
         /// As this is performing an upward tree traversal, avoid calling every frame.
         /// </summary>
         /// <returns>The first parent <see cref="InputManager"/>.</returns>
-        protected InputManager GetContainingInputManager() => this.FindClosestParent<InputManager>();
+        [CanBeNull]
+        protected internal InputManager GetContainingInputManager() => this.FindClosestParent<InputManager>();
 
         /// <summary>
         /// Retrieve the first parent in the tree which implements <see cref="IFocusManager"/>.
         /// As this is performing an upward tree traversal, avoid calling every frame.
         /// </summary>
         /// <returns>The first parent <see cref="IFocusManager"/>.</returns>
-        protected IFocusManager GetContainingFocusManager() => this.FindClosestParent<IFocusManager>();
+        [CanBeNull]
+        protected internal IFocusManager GetContainingFocusManager() => this.FindClosestParent<IFocusManager>();
 
         private CompositeDrawable parent;
 
@@ -1544,7 +1547,7 @@ namespace osu.Framework.Graphics
         public bool HasProxy => proxy != null;
 
         /// <summary>
-        /// True iff this <see cref="Drawable"/> is not a proxy of any <see cref="Drawable"/>.
+        /// True iff this <see cref="Drawable"/> is a proxy of any <see cref="Drawable"/>.
         /// </summary>
         public bool IsProxy => Original != this;
 

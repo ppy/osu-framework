@@ -13,6 +13,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Caching;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Extensions.PlatformActionExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
@@ -721,6 +722,8 @@ namespace osu.Framework.Graphics.UserInterface
             textChanging = false;
         }
 
+        private bool ignoreOngoingDragSelection;
+
         /// <summary>
         /// Removes the selected text if a selection persists.
         /// </summary>
@@ -867,7 +870,9 @@ namespace osu.Framework.Graphics.UserInterface
                 drawableCreationParameters?.Invoke(drawable);
 
                 text = text.Insert(selectionLeft, c.ToString());
+
                 selectionStart = selectionEnd = selectionLeft + 1;
+                ignoreOngoingDragSelection = true;
 
                 cursorAndLayout.Invalidate();
             }
@@ -1187,12 +1192,26 @@ namespace osu.Framework.Graphics.UserInterface
             base.OnKeyUp(e);
         }
 
+        protected override bool OnDragStart(DragStartEvent e)
+        {
+            ignoreOngoingDragSelection = false;
+
+            if (HasFocus)
+                return true;
+
+            Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
+            return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
+        }
+
         protected override void OnDrag(DragEvent e)
         {
             if (ReadOnly)
                 return;
 
             FinalizeImeComposition(true);
+
+            if (ignoreOngoingDragSelection)
+                return;
 
             var lastSelectionBounds = getTextSelectionBounds();
 
@@ -1224,21 +1243,12 @@ namespace osu.Framework.Graphics.UserInterface
 
                 selectionEnd = getCharacterClosestTo(e.MousePosition);
                 if (hasSelection)
-                    GetContainingFocusManager().ChangeFocus(this);
+                    GetContainingFocusManager().AsNonNull().ChangeFocus(this);
             }
 
             cursorAndLayout.Invalidate();
 
             onTextSelectionChanged(doubleClickWord != null ? TextSelectionType.Word : TextSelectionType.Character, lastSelectionBounds);
-        }
-
-        protected override bool OnDragStart(DragStartEvent e)
-        {
-            if (HasFocus) return true;
-
-            Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
-
-            return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
         }
 
         protected override bool OnDoubleClick(DoubleClickEvent e)
@@ -1414,7 +1424,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// Reverts the <see cref="textInputBlocking"/> flag to <c>false</c> if no keys are pressed.
         /// </summary>
         private void revertBlockingStateIfRequired() =>
-            textInputBlocking &= GetContainingInputManager().CurrentState.Keyboard.Keys.HasAnyButtonPressed;
+            textInputBlocking &= GetContainingInputManager()?.CurrentState.Keyboard.Keys.HasAnyButtonPressed == true;
 
         private void handleImeComposition(string composition, int selectionStart, int selectionLength)
         {

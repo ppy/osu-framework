@@ -15,13 +15,13 @@ namespace osu.Framework.Platform.SDL3
 {
     public static class SDL3Extensions
     {
-        public static Key ToKey(this SDL_Keysym sdlKeysym)
+        public static Key ToKey(this SDL_KeyboardEvent sdlKeyboardEvent)
         {
             // Apple devices don't have the notion of NumLock (they have a Clear key instead).
             // treat them as if they always have NumLock on (the numpad always performs its primary actions).
-            bool numLockOn = sdlKeysym.mod.HasFlagFast(SDL_Keymod.SDL_KMOD_NUM) || RuntimeInfo.IsApple;
+            bool numLockOn = sdlKeyboardEvent.mod.HasFlagFast(SDL_Keymod.SDL_KMOD_NUM) || RuntimeInfo.IsApple;
 
-            switch (sdlKeysym.scancode)
+            switch (sdlKeyboardEvent.scancode)
             {
                 default:
                 case SDL_Scancode.SDL_SCANCODE_UNKNOWN:
@@ -430,20 +430,17 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_Scancode.SDL_SCANCODE_RGUI:
                     return Key.WinRight;
 
-                case SDL_Scancode.SDL_SCANCODE_AUDIONEXT:
+                case SDL_Scancode.SDL_SCANCODE_MEDIA_NEXT_TRACK:
                     return Key.TrackNext;
 
-                case SDL_Scancode.SDL_SCANCODE_AUDIOPREV:
+                case SDL_Scancode.SDL_SCANCODE_MEDIA_PREVIOUS_TRACK:
                     return Key.TrackPrevious;
 
-                case SDL_Scancode.SDL_SCANCODE_AUDIOSTOP:
+                case SDL_Scancode.SDL_SCANCODE_MEDIA_STOP:
                     return Key.Stop;
 
-                case SDL_Scancode.SDL_SCANCODE_AUDIOPLAY:
+                case SDL_Scancode.SDL_SCANCODE_MEDIA_PLAY_PAUSE:
                     return Key.PlayPause;
-
-                case SDL_Scancode.SDL_SCANCODE_AUDIOMUTE:
-                    return Key.Mute;
 
                 case SDL_Scancode.SDL_SCANCODE_SLEEP:
                     return Key.Sleep;
@@ -817,13 +814,13 @@ namespace osu.Framework.Platform.SDL3
                     return SDL_Scancode.SDL_SCANCODE_NONUSBACKSLASH;
 
                 case InputKey.Mute:
-                    return SDL_Scancode.SDL_SCANCODE_AUDIOMUTE;
+                    return SDL_Scancode.SDL_SCANCODE_MUTE;
 
                 case InputKey.PlayPause:
-                    return SDL_Scancode.SDL_SCANCODE_AUDIOPLAY;
+                    return SDL_Scancode.SDL_SCANCODE_MEDIA_PLAY_PAUSE;
 
                 case InputKey.Stop:
-                    return SDL_Scancode.SDL_SCANCODE_AUDIOSTOP;
+                    return SDL_Scancode.SDL_SCANCODE_MEDIA_STOP;
 
                 case InputKey.VolumeUp:
                     return SDL_Scancode.SDL_SCANCODE_VOLUMEUP;
@@ -832,10 +829,10 @@ namespace osu.Framework.Platform.SDL3
                     return SDL_Scancode.SDL_SCANCODE_VOLUMEDOWN;
 
                 case InputKey.TrackPrevious:
-                    return SDL_Scancode.SDL_SCANCODE_AUDIOPREV;
+                    return SDL_Scancode.SDL_SCANCODE_MEDIA_PREVIOUS_TRACK;
 
                 case InputKey.TrackNext:
-                    return SDL_Scancode.SDL_SCANCODE_AUDIONEXT;
+                    return SDL_Scancode.SDL_SCANCODE_MEDIA_NEXT_TRACK;
 
                 case InputKey.LShift:
                     return SDL_Scancode.SDL_SCANCODE_LSHIFT;
@@ -1017,7 +1014,7 @@ namespace osu.Framework.Platform.SDL3
         {
             int bpp;
             uint unused;
-            SDL_GetMasksForPixelFormatEnum(mode.format, &bpp, &unused, &unused, &unused, &unused);
+            SDL_GetMasksForPixelFormat(mode.format, &bpp, &unused, &unused, &unused, &unused);
             return new DisplayMode(SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, displayIndex);
         }
 
