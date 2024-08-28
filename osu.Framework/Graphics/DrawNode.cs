@@ -68,6 +68,11 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Whether the renderer should set blending parameters of this <see cref="DrawNode"/>.
+        /// </summary>
+        internal virtual bool SetBlending => true;
+
+        /// <summary>
         /// Draws this <see cref="DrawNode"/> to the screen.
         /// </summary>
         /// <remarks>
@@ -76,7 +81,9 @@ namespace osu.Framework.Graphics
         /// <param name="renderer">The renderer to draw with.</param>
         protected virtual void Draw(IRenderer renderer)
         {
-            renderer.SetBlend(DrawColourInfo.Blending);
+            if (SetBlending)
+                renderer.SetBlend(DrawColourInfo.Blending);
+
             renderer.BackbufferDepth.Set(drawDepth);
         }
 
