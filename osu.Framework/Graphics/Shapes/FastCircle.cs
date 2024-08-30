@@ -11,6 +11,11 @@ using osuTK;
 
 namespace osu.Framework.Graphics.Shapes
 {
+    /// <summary>
+    /// A circle that is rendered directly to the screen using a specialised shader.
+    /// This behaves slightly differently from <see cref="Circle"/> but offers
+    /// higher performance in scenarios where many circles are drawn at once.
+    /// </summary>
     public partial class FastCircle : Drawable
     {
         private float edgeSmoothness = 1f;
