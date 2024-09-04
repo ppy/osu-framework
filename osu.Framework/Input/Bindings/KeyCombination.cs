@@ -207,7 +207,14 @@ namespace osu.Framework.Input.Bindings
                 return pressedPhysicalKeys.Contains(candidateKey);
 
             Debug.Assert(candidateKey.IsVirtual());
-            return pressedPhysicalKeys.Any(k => getVirtualKey(k) == candidateKey);
+
+            foreach (var pk in pressedPhysicalKeys)
+            {
+                if (getVirtualKey(pk) == candidateKey)
+                    return true;
+            }
+
+            return false;
         }
 
         public bool Equals(KeyCombination other) => Keys.SequenceEqual(other.Keys);
