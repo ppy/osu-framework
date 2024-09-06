@@ -176,6 +176,9 @@ namespace osu.Framework.Graphics.Containers
                     quadBatch = renderer.CreateQuadBatch<TexturedVertex2D>(100, 1000);
             }
 
+            // Children will set their own blending parameters.
+            internal override bool SetBlending => false;
+
             protected override void Draw(IRenderer renderer)
             {
                 updateQuadBatch(renderer);

@@ -19,7 +19,7 @@
     <PackageTags>osu game framework</PackageTags>
   </PropertyGroup>
   <ItemGroup Label="Package References">
-    <PackageReference Include="managed-midi" Version="1.10.0" />
+    <PackageReference Include="managed-midi" Version="1.10.1" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.3.0.1" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.11" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />

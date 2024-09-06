@@ -44,13 +44,14 @@ namespace osu.Framework.Graphics.Containers
             if (TabbableContentContainer == null || e.Key != Key.Tab)
                 return false;
 
-            var nextTab = nextTabStop(TabbableContentContainer, e.ShiftPressed);
-            if (nextTab != null) GetContainingFocusManager().AsNonNull().ChangeFocus(nextTab);
+            moveToNextTabStop(TabbableContentContainer, e.ShiftPressed);
             return true;
         }
 
-        private Drawable nextTabStop(CompositeDrawable target, bool reverse)
+        private void moveToNextTabStop(CompositeDrawable target, bool reverse)
         {
+            var focusManager = GetContainingFocusManager().AsNonNull();
+
             Stack<Drawable> stack = new Stack<Drawable>();
             stack.Push(target); // Extra push for circular tabbing
             stack.Push(target);
@@ -63,8 +64,8 @@ namespace osu.Framework.Graphics.Containers
 
                 if (!started)
                     started = ReferenceEquals(drawable, this);
-                else if (drawable is ITabbableContainer tabbable && tabbable.CanBeTabbedTo)
-                    return drawable;
+                else if (drawable is ITabbableContainer tabbable && tabbable.CanBeTabbedTo && focusManager.ChangeFocus(drawable))
+                    return;
 
                 if (drawable is CompositeDrawable composite)
                 {
@@ -91,8 +92,6 @@ namespace osu.Framework.Graphics.Containers
                     }
                 }
             }
-
-            return null;
         }
     }
 }
