@@ -135,7 +135,7 @@ namespace osu.Framework.Tests.Audio
         [TestCase(AudioTestComponents.Type.SDL3)]
         public void TestSeek(AudioTestComponents.Type id)
         {
-            setupBackend(id);
+            setupBackend(id, true);
 
             track.SeekAsync(1000);
             audio.Update();
