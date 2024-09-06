@@ -16,8 +16,8 @@ namespace osu.Framework.Audio
         /// </summary>
         public ChannelAmplitudes CurrentAmplitudes { get; private set; } = ChannelAmplitudes.Empty;
 
-        private Complex[] fftSamples = new Complex[ChannelAmplitudes.AMPLITUDES_SIZE * 2];
-        private float[] fftResult = new float[ChannelAmplitudes.AMPLITUDES_SIZE];
+        private readonly Complex[] fftSamples = new Complex[ChannelAmplitudes.AMPLITUDES_SIZE * 2];
+        private readonly float[] fftResult = new float[ChannelAmplitudes.AMPLITUDES_SIZE];
 
         public void Update(float[] samples, int channels)
         {
