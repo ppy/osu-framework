@@ -11,7 +11,7 @@ namespace osu.Framework.Audio.Mixing.SDL3
         /// <summary>
         /// Returns remaining audio samples.
         /// </summary>
-        /// <param name="data">Audio data needs to be put here. Length of this determines how much data needs to be filled.</param>
+        /// <param name="data">Channel puts audio in this array. Length of this determines how much data needs to be filled.</param>
         /// <returns>Sample count</returns>
         int GetRemainingSamples(float[] data);
 

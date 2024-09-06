@@ -4,7 +4,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using NAudio.Dsp;
 using osu.Framework.Audio.Mixing.SDL3;
 using osu.Framework.Extensions;
 using osu.Framework.Logging;
@@ -100,57 +99,12 @@ namespace osu.Framework.Audio.Track
             }
         }
 
-        private volatile bool amplitudeRequested;
         private double lastTime;
-
-        private ChannelAmplitudes currentAmplitudes = ChannelAmplitudes.Empty;
         private float[]? samples;
-        private Complex[]? fftSamples;
-        private float[]? fftResult;
 
-        public override ChannelAmplitudes CurrentAmplitudes
-        {
-            get
-            {
-                if (!amplitudeRequested)
-                    amplitudeRequested = true;
+        private SDL3AmplitudeProcessor? amplitudeProcessor;
 
-                return isRunning ? currentAmplitudes : ChannelAmplitudes.Empty;
-            }
-        }
-
-        private void updateCurrentAmplitude()
-        {
-            samples ??= new float[(int)(player.SrcRate * (1f / 60)) * player.SrcChannels];
-            fftSamples ??= new Complex[ChannelAmplitudes.AMPLITUDES_SIZE * 2];
-            fftResult ??= new float[ChannelAmplitudes.AMPLITUDES_SIZE];
-
-            player.Peek(samples, lastTime);
-
-            float leftAmplitude = 0;
-            float rightAmplitude = 0;
-            int secondCh = player.SrcChannels < 2 ? 0 : 1;
-            int fftIndex = 0;
-
-            for (int i = 0; i < samples.Length; i += player.SrcChannels)
-            {
-                leftAmplitude = Math.Max(leftAmplitude, Math.Abs(samples[i]));
-                rightAmplitude = Math.Max(rightAmplitude, Math.Abs(samples[i + secondCh]));
-
-                if (fftIndex < fftSamples.Length)
-                {
-                    fftSamples[fftIndex].Y = 0;
-                    fftSamples[fftIndex++].X = samples[i] + samples[i + secondCh];
-                }
-            }
-
-            FastFourierTransform.FFT(true, (int)Math.Log2(fftSamples.Length), fftSamples);
-
-            for (int i = 0; i < fftResult.Length; i++)
-                fftResult[i] = fftSamples[i].ComputeMagnitude();
-
-            currentAmplitudes = new ChannelAmplitudes(Math.Min(1f, leftAmplitude), Math.Min(1f, rightAmplitude), fftResult);
-        }
+        public override ChannelAmplitudes CurrentAmplitudes => (amplitudeProcessor ??= new SDL3AmplitudeProcessor()).CurrentAmplitudes;
 
         protected override void UpdateState()
         {
@@ -176,12 +130,13 @@ namespace osu.Framework.Audio.Track
                     player.FillRequiredSamples();
             }
 
-            // Not sure if I need to split this up to another class since this feature is only exclusive to Track
-            if (amplitudeRequested && isRunning && Math.Abs(currentTime - lastTime) > 1000.0 / 60.0)
+            if (amplitudeProcessor != null && isRunning && Math.Abs(currentTime - lastTime) > 1000.0 / 60.0)
             {
                 lastTime = currentTime;
+                samples ??= new float[(int)(player.SrcRate * (1f / 60)) * player.SrcChannels];
+                player.Peek(samples, lastTime);
 
-                updateCurrentAmplitude();
+                amplitudeProcessor.Update(samples, player.SrcChannels);
             }
         }
 
