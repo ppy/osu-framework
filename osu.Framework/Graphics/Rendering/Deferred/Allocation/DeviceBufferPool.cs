@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
 
         public IPooledDeviceBuffer Get()
         {
-            if (TryGet(_ => true, out IPooledDeviceBuffer? existing))
+            if (TryGet(out IPooledDeviceBuffer? existing))
                 return existing;
 
             existing = new PooledDeviceBuffer(Pipeline, bufferSize, usage);
