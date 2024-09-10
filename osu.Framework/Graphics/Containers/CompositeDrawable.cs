@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
     /// A drawable consisting of a composite of child drawables which are
-    /// manages by the composite object itself. Transformations applied to
+    /// managed by the composite object itself. Transformations applied to
     /// a <see cref="CompositeDrawable"/> are also applied to its children.
     /// Additionally, <see cref="CompositeDrawable"/>s support various effects, such as masking, edge effect,
     /// padding, and automatic sizing depending on their children.
