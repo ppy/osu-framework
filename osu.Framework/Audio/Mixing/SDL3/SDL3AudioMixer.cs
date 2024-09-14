@@ -7,6 +7,7 @@ using ManagedBass;
 using ManagedBass.Fx;
 using osu.Framework.Statistics;
 using NAudio.Dsp;
+using System;
 
 namespace osu.Framework.Audio.Mixing.SDL3
 {
@@ -56,27 +57,13 @@ namespace osu.Framework.Audio.Mixing.SDL3
             base.UpdateState();
         }
 
-        private void mixAudio(float[] dst, float[] src, ref int filled, int samples, float left, float right)
+        private void mixAudio(float[] dst, float[] src, int samples, float left, float right)
         {
             if (left <= 0 && right <= 0)
                 return;
 
-            for (int e = 0; e < samples; e += 2)
-            {
-                if (e < filled)
-                {
-                    dst[e] += src[e] * left;
-                    dst[e + 1] += src[e + 1] * right;
-                }
-                else
-                {
-                    dst[e] = src[e] * left;
-                    dst[e + 1] = src[e + 1] * right;
-                }
-            }
-
-            if (samples > filled)
-                filled = samples;
+            for (int i = 0; i < samples; i++)
+                dst[i] = Math.Clamp(dst[i] + src[i] * (i % 2 == 0 ? left : right), -1.0f, 1.0f);
         }
 
         private float[]? ret;
@@ -90,8 +77,7 @@ namespace osu.Framework.Audio.Mixing.SDL3
         /// </summary>
         /// <param name="data">A float array that audio will be mixed into.</param>
         /// <param name="sampleCount">Size of data</param>
-        /// <param name="filledSamples">Count of usable audio samples in data</param>
-        public void MixChannelsInto(float[] data, int sampleCount, ref int filledSamples)
+        public void MixChannelsInto(float[] data, int sampleCount)
         {
             lock (syncRoot)
             {
@@ -100,10 +86,13 @@ namespace osu.Framework.Audio.Mixing.SDL3
 
                 bool useFilters = activeEffects.Count > 0;
 
-                if (useFilters && (filterArray == null || filterArray.Length != sampleCount))
-                    filterArray = new float[sampleCount];
+                if (useFilters)
+                {
+                    if (filterArray == null || filterArray.Length != sampleCount)
+                        filterArray = new float[sampleCount];
 
-                int filterArrayFilled = 0;
+                    Array.Fill(filterArray, 0);
+                }
 
                 var node = activeChannels.First;
 
@@ -123,11 +112,7 @@ namespace osu.Framework.Audio.Mixing.SDL3
                         if (size > 0)
                         {
                             var (left, right) = channel.Volume;
-
-                            if (!useFilters)
-                                mixAudio(data, ret, ref filledSamples, size, left, right);
-                            else
-                                mixAudio(filterArray!, ret, ref filterArrayFilled, size, left, right);
+                            mixAudio(useFilters ? filterArray! : data, ret, size, left, right);
                         }
                     }
 
@@ -140,20 +125,12 @@ namespace osu.Framework.Audio.Mixing.SDL3
                 {
                     foreach (var filter in activeEffects.Values)
                     {
-                        for (int i = 0; i < filterArrayFilled; i++)
+                        for (int i = 0; i < sampleCount; i++)
                             filterArray![i] = filter.Transform(filterArray[i]);
                     }
 
-                    mixAudio(data, filterArray!, ref filledSamples, filterArrayFilled, 1, 1);
+                    mixAudio(data, filterArray!, sampleCount, 1, 1);
                 }
-            }
-
-            for (int i = 0; i < filledSamples; i++)
-            {
-                if (data[i] > 1.0f)
-                    data[i] = 1.0f;
-                else if (data[i] < -1.0f)
-                    data[i] = -1.0f;
             }
         }
 

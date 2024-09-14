@@ -11,7 +11,7 @@ using SDL;
 
 namespace osu.Framework.Audio.Track
 {
-    public sealed class TrackSDL3 : Track, ISDL3AudioChannel, ISDL3AudioDataReceiver
+    public sealed class TrackSDL3 : Track, ISDL3AudioChannel, SDL3AudioDecoderManager.ISDL3AudioDataReceiver
     {
         private readonly TempoSDL3AudioPlayer player;
 
@@ -55,7 +55,7 @@ namespace osu.Framework.Audio.Track
 
         private readonly object syncRoot = new object();
 
-        void ISDL3AudioDataReceiver.GetData(byte[] audio, int length, bool done)
+        void SDL3AudioDecoderManager.ISDL3AudioDataReceiver.GetData(byte[] audio, int length, bool done)
         {
             if (IsDisposed)
                 return;
@@ -82,7 +82,7 @@ namespace osu.Framework.Audio.Track
             }
         }
 
-        void ISDL3AudioDataReceiver.GetMetaData(int bitrate, double length, long byteLength)
+        void SDL3AudioDecoderManager.ISDL3AudioDataReceiver.GetMetaData(int bitrate, double length, long byteLength)
         {
             if (!isLoaded)
             {

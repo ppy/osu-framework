@@ -343,6 +343,6 @@ namespace osu.Framework.Extensions
         /// </summary>
         /// <param name="complex">NAudio Complex number</param>
         /// <returns>Magnitude (Absolute number) of a given complex.</returns>
-        public static float ComputeMagnitude(this Complex complex) => (float)Math.Sqrt(complex.X * complex.X + complex.Y * complex.Y);
+        public static float ComputeMagnitude(this Complex complex) => (float)Math.Sqrt((complex.X * complex.X) + (complex.Y * complex.Y));
     }
 }

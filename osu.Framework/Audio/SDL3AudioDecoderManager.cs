@@ -14,27 +14,27 @@ using osu.Framework.Graphics.Video;
 
 namespace osu.Framework.Audio
 {
-    public interface ISDL3AudioDataReceiver
-    {
-        /// <summary>
-        /// Interface to get decoded audio data from the decoder.
-        /// </summary>
-        /// <param name="data">Decoded audio. The format depends on <see cref="SDL3AudioDecoder.AudioSpec"/> you specified,
-        /// so you may need <see cref="Buffer.BlockCopy(Array, int, Array, int, int)"/> to actual data format.
-        /// This may be used by decoder later to reduce allocation, so you need to copy the data before exiting from this delegate, otherwise you may end up with wrong data.</param>
-        /// <param name="length">Length in byte of decoded audio. Use this instead of data.Length</param>
-        /// <param name="done">Whether if this is the last data or not.</param>
-        void GetData(byte[] data, int length, bool done);
-
-        void GetMetaData(int bitrate, double length, long byteLength);
-    }
-
     /// <summary>
     /// Decodes audio from <see cref="Stream"/>, and convert it to appropriate format.
     /// It needs a lot of polishing...
     /// </summary>
     public class SDL3AudioDecoderManager : IDisposable
     {
+        public interface ISDL3AudioDataReceiver
+        {
+            /// <summary>
+            /// Interface to get decoded audio data from the decoder.
+            /// </summary>
+            /// <param name="data">Decoded audio. The format depends on <see cref="SDL3AudioDecoder.AudioSpec"/> you specified,
+            /// so you may need <see cref="Buffer.BlockCopy(Array, int, Array, int, int)"/> to actual data format.
+            /// This may be used by decoder later to reduce allocation, so you need to copy the data before exiting from this delegate, otherwise you may end up with wrong data.</param>
+            /// <param name="length">Length in byte of decoded audio. Use this instead of data.Length</param>
+            /// <param name="done">Whether if this is the last data or not.</param>
+            void GetData(byte[] data, int length, bool done);
+
+            void GetMetaData(int bitrate, double length, long byteLength);
+        }
+
         private readonly LinkedList<SDL3AudioDecoder> jobs = new LinkedList<SDL3AudioDecoder>();
 
         private readonly Thread decoderThread;
@@ -231,316 +231,316 @@ namespace osu.Framework.Audio
                 return (int)memoryStream.Length;
             }
         }
-    }
-
-    /// <summary>
-    /// Contains decoder information, and perform the actual decoding.
-    /// </summary>
-    public abstract class SDL3AudioDecoder
-    {
-        /// <summary>
-        /// Decoder will decode audio data from this.
-        /// It accepts most formats. (e.g. MP3, OGG, WAV and so on...)
-        /// </summary>
-        internal readonly Stream Stream;
 
         /// <summary>
-        /// Decoder will convert audio data according to this spec if needed.
+        /// Contains decoder information, and perform the actual decoding.
         /// </summary>
-        internal readonly SDL_AudioSpec AudioSpec;
-
-        /// <summary>
-        /// Decoder will call <see cref="Pass"/> multiple times with partial data if true.
-        /// It's a receiver's job to combine the data in this case. Otherwise, It will call only once with the entirely decoded data if false.
-        /// </summary>
-        internal readonly bool IsTrack;
-
-        /// <summary>
-        /// It will automatically dispose <see cref="Stream"/> once decoding is done/failed.
-        /// </summary>
-        internal readonly bool AutoDisposeStream;
-
-        /// <summary>
-        /// Decoder will call <see cref="ISDL3AudioDataReceiver.GetData(byte[], int, bool)"/> once or more to pass the decoded audio data.
-        /// </summary>
-        internal readonly ISDL3AudioDataReceiver? Pass;
-
-        private int bitrate;
-
-        /// <summary>
-        /// Audio bitrate. Decoder may fill this in after the first call of <see cref="LoadFromStream(out byte[])"/>.
-        /// </summary>
-        public int Bitrate
+        public abstract class SDL3AudioDecoder
         {
-            get => bitrate;
-            set => Interlocked.Exchange(ref bitrate, value);
-        }
+            /// <summary>
+            /// Decoder will decode audio data from this.
+            /// It accepts most formats. (e.g. MP3, OGG, WAV and so on...)
+            /// </summary>
+            internal readonly Stream Stream;
 
-        private double length;
+            /// <summary>
+            /// Decoder will convert audio data according to this spec if needed.
+            /// </summary>
+            internal readonly SDL_AudioSpec AudioSpec;
 
-        /// <summary>
-        /// Audio length in milliseconds. Decoder may fill this in after the first call of <see cref="LoadFromStream(out byte[])"/>.
-        /// </summary>
-        public double Length
-        {
-            get => length;
-            set => Interlocked.Exchange(ref length, value);
-        }
+            /// <summary>
+            /// Decoder will call <see cref="Pass"/> multiple times with partial data if true.
+            /// It's a receiver's job to combine the data in this case. Otherwise, It will call only once with the entirely decoded data if false.
+            /// </summary>
+            internal readonly bool IsTrack;
 
-        private long byteLength;
+            /// <summary>
+            /// It will automatically dispose <see cref="Stream"/> once decoding is done/failed.
+            /// </summary>
+            internal readonly bool AutoDisposeStream;
 
-        /// <summary>
-        /// Audio length in byte. Note that this may not be accurate. You cannot depend on this value entirely.
-        /// You can find out the actual byte length by summing up byte counts you received once decoding is done.
-        /// Decoder may fill this in after the first call of <see cref="LoadFromStream(out byte[])"/>.
-        /// </summary>
-        public long ByteLength
-        {
-            get => byteLength;
-            set => Interlocked.Exchange(ref byteLength, value);
-        }
+            /// <summary>
+            /// Decoder will call <see cref="ISDL3AudioDataReceiver.GetData(byte[], int, bool)"/> once or more to pass the decoded audio data.
+            /// </summary>
+            internal readonly ISDL3AudioDataReceiver? Pass;
 
-        internal bool MetadataSended;
+            private int bitrate;
 
-        internal volatile bool StopJob;
-
-        private volatile bool loading;
-
-        /// <summary>
-        /// Whether it is decoding or not.
-        /// </summary>
-        public bool Loading { get => loading; protected set => loading = value; }
-
-        protected SDL3AudioDecoder(Stream stream, SDL_AudioSpec audioSpec, bool isTrack, bool autoDisposeStream, ISDL3AudioDataReceiver? pass)
-        {
-            Stream = stream;
-            AudioSpec = audioSpec;
-            IsTrack = isTrack;
-            AutoDisposeStream = autoDisposeStream;
-            Pass = pass;
-        }
-
-        /// <summary>
-        /// Add a flag to stop decoding in the next loop of decoder thread.
-        /// </summary>
-        public void Stop()
-        {
-            StopJob = true;
-        }
-
-        // Not using IDisposable since things must be handled in a decoder thread
-        internal virtual void Dispose()
-        {
-            if (AutoDisposeStream)
-                Stream.Dispose();
-        }
-
-        protected abstract int LoadFromStreamInternal(out byte[] decoded);
-
-        /// <summary>
-        /// Decodes and resamples audio from job.Stream, and pass it to decoded.
-        /// You may need to run this multiple times.
-        /// Don't call this yourself if this decoder is in the decoder thread job list.
-        /// </summary>
-        /// <param name="decoded">Decoded audio</param>
-        public int LoadFromStream(out byte[] decoded)
-        {
-            int read = 0;
-
-            try
+            /// <summary>
+            /// Audio bitrate. Decoder may fill this in after the first call of <see cref="LoadFromStream(out byte[])"/>.
+            /// </summary>
+            public int Bitrate
             {
-                read = LoadFromStreamInternal(out decoded);
-            }
-            catch (Exception e)
-            {
-                Logger.Log(e.Message, level: LogLevel.Important);
-                Loading = false;
-                decoded = Array.Empty<byte>();
-            }
-            finally
-            {
-                if (!Loading)
-                    Dispose();
+                get => bitrate;
+                set => Interlocked.Exchange(ref bitrate, value);
             }
 
-            return read;
-        }
+            private double length;
 
-        /// <summary>
-        /// This is only for using BASS as a decoder for SDL3 backend!
-        /// </summary>
-        internal class BassAudioDecoder : SDL3AudioDecoder
-        {
-            private int decodeStream;
-            private FileCallbacks? fileCallbacks;
-
-            private int resampler;
-
-            private byte[]? decodeData;
-
-            private Resolution resolution
+            /// <summary>
+            /// Audio length in milliseconds. Decoder may fill this in after the first call of <see cref="LoadFromStream(out byte[])"/>.
+            /// </summary>
+            public double Length
             {
-                get
+                get => length;
+                set => Interlocked.Exchange(ref length, value);
+            }
+
+            private long byteLength;
+
+            /// <summary>
+            /// Audio length in byte. Note that this may not be accurate. You cannot depend on this value entirely.
+            /// You can find out the actual byte length by summing up byte counts you received once decoding is done.
+            /// Decoder may fill this in after the first call of <see cref="LoadFromStream(out byte[])"/>.
+            /// </summary>
+            public long ByteLength
+            {
+                get => byteLength;
+                set => Interlocked.Exchange(ref byteLength, value);
+            }
+
+            internal bool MetadataSended;
+
+            internal volatile bool StopJob;
+
+            private volatile bool loading;
+
+            /// <summary>
+            /// Whether it is decoding or not.
+            /// </summary>
+            public bool Loading { get => loading; protected set => loading = value; }
+
+            protected SDL3AudioDecoder(Stream stream, SDL_AudioSpec audioSpec, bool isTrack, bool autoDisposeStream, ISDL3AudioDataReceiver? pass)
+            {
+                Stream = stream;
+                AudioSpec = audioSpec;
+                IsTrack = isTrack;
+                AutoDisposeStream = autoDisposeStream;
+                Pass = pass;
+            }
+
+            /// <summary>
+            /// Add a flag to stop decoding in the next loop of decoder thread.
+            /// </summary>
+            public void Stop()
+            {
+                StopJob = true;
+            }
+
+            // Not using IDisposable since things must be handled in a decoder thread
+            internal virtual void Dispose()
+            {
+                if (AutoDisposeStream)
+                    Stream.Dispose();
+            }
+
+            protected abstract int LoadFromStreamInternal(out byte[] decoded);
+
+            /// <summary>
+            /// Decodes and resamples audio from job.Stream, and pass it to decoded.
+            /// You may need to run this multiple times.
+            /// Don't call this yourself if this decoder is in the decoder thread job list.
+            /// </summary>
+            /// <param name="decoded">Decoded audio</param>
+            public int LoadFromStream(out byte[] decoded)
+            {
+                int read = 0;
+
+                try
                 {
-                    if (AudioSpec.format == SDL_AudioFormat.SDL_AUDIO_S8)
-                        return Resolution.Byte;
-                    else if (AudioSpec.format == SDL3.SDL_AUDIO_S16) // uses constant due to endian
-                        return Resolution.Short;
-                    else
-                        return Resolution.Float;
+                    read = LoadFromStreamInternal(out decoded);
                 }
-            }
-
-            private ushort bits => (ushort)SDL3.SDL_AUDIO_BITSIZE(AudioSpec.format);
-
-            public BassAudioDecoder(Stream stream, SDL_AudioSpec audioSpec, bool isTrack, bool autoDisposeStream, ISDL3AudioDataReceiver? pass)
-                : base(stream, audioSpec, isTrack, autoDisposeStream, pass)
-            {
-            }
-
-            internal override void Dispose()
-            {
-                fileCallbacks?.Dispose();
-                fileCallbacks = null;
-
-                decodeData = null;
-
-                if (resampler != 0)
+                catch (Exception e)
                 {
-                    Bass.StreamFree(resampler);
-                    resampler = 0;
+                    Logger.Log(e.Message, level: LogLevel.Important);
+                    Loading = false;
+                    decoded = Array.Empty<byte>();
+                }
+                finally
+                {
+                    if (!Loading)
+                        Dispose();
                 }
 
-                if (decodeStream != 0)
-                {
-                    Bass.StreamFree(decodeStream);
-                    decodeStream = 0;
-                }
-
-                base.Dispose();
+                return read;
             }
 
-            protected override int LoadFromStreamInternal(out byte[] decoded)
+            /// <summary>
+            /// This is only for using BASS as a decoder for SDL3 backend!
+            /// </summary>
+            internal class BassAudioDecoder : SDL3AudioDecoder
             {
-                if (Bass.CurrentDevice < 0)
-                    throw new InvalidOperationException($"Initialize a BASS device to decode audio: {Bass.LastError}");
+                private int decodeStream;
+                private FileCallbacks? fileCallbacks;
 
-                if (!Loading)
+                private int resampler;
+
+                private byte[]? decodeData;
+
+                private Resolution resolution
                 {
-                    fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(Stream));
-
-                    BassFlags bassFlags = BassFlags.Decode | resolution.ToBassFlag();
-                    if (IsTrack) bassFlags |= BassFlags.Prescan;
-
-                    decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, bassFlags, fileCallbacks.Callbacks);
-
-                    if (decodeStream == 0)
-                        throw new FormatException($"Couldn't create stream: {Bass.LastError}");
-
-                    if (Bass.ChannelGetInfo(decodeStream, out var info))
+                    get
                     {
-                        ByteLength = Bass.ChannelGetLength(decodeStream);
-                        Length = Bass.ChannelBytes2Seconds(decodeStream, ByteLength) * 1000.0d;
-                        Bitrate = (int)Math.Round(Bass.ChannelGetAttribute(decodeStream, ChannelAttribute.Bitrate));
+                        if (AudioSpec.format == SDL_AudioFormat.SDL_AUDIO_S8)
+                            return Resolution.Byte;
+                        else if (AudioSpec.format == SDL3.SDL_AUDIO_S16) // uses constant due to endian
+                            return Resolution.Short;
+                        else
+                            return Resolution.Float;
+                    }
+                }
 
-                        if (info.Channels != AudioSpec.channels || info.Frequency != AudioSpec.freq)
+                private ushort bits => (ushort)SDL3.SDL_AUDIO_BITSIZE(AudioSpec.format);
+
+                public BassAudioDecoder(Stream stream, SDL_AudioSpec audioSpec, bool isTrack, bool autoDisposeStream, ISDL3AudioDataReceiver? pass)
+                    : base(stream, audioSpec, isTrack, autoDisposeStream, pass)
+                {
+                }
+
+                internal override void Dispose()
+                {
+                    fileCallbacks?.Dispose();
+                    fileCallbacks = null;
+
+                    decodeData = null;
+
+                    if (resampler != 0)
+                    {
+                        Bass.StreamFree(resampler);
+                        resampler = 0;
+                    }
+
+                    if (decodeStream != 0)
+                    {
+                        Bass.StreamFree(decodeStream);
+                        decodeStream = 0;
+                    }
+
+                    base.Dispose();
+                }
+
+                protected override int LoadFromStreamInternal(out byte[] decoded)
+                {
+                    if (Bass.CurrentDevice < 0)
+                        throw new InvalidOperationException($"Initialize a BASS device to decode audio: {Bass.LastError}");
+
+                    if (!Loading)
+                    {
+                        fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(Stream));
+
+                        BassFlags bassFlags = BassFlags.Decode | resolution.ToBassFlag();
+                        if (IsTrack) bassFlags |= BassFlags.Prescan;
+
+                        decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, bassFlags, fileCallbacks.Callbacks);
+
+                        if (decodeStream == 0)
+                            throw new FormatException($"Couldn't create stream: {Bass.LastError}");
+
+                        if (Bass.ChannelGetInfo(decodeStream, out var info))
                         {
-                            resampler = BassMix.CreateMixerStream(AudioSpec.freq, AudioSpec.channels, BassFlags.MixerEnd | BassFlags.Decode | resolution.ToBassFlag());
+                            ByteLength = Bass.ChannelGetLength(decodeStream);
+                            Length = Bass.ChannelBytes2Seconds(decodeStream, ByteLength) * 1000.0d;
+                            Bitrate = (int)Math.Round(Bass.ChannelGetAttribute(decodeStream, ChannelAttribute.Bitrate));
 
-                            if (resampler == 0)
-                                throw new FormatException($"Failed to create BASS Mixer: {Bass.LastError}");
+                            if (info.Channels != AudioSpec.channels || info.Frequency != AudioSpec.freq)
+                            {
+                                resampler = BassMix.CreateMixerStream(AudioSpec.freq, AudioSpec.channels, BassFlags.MixerEnd | BassFlags.Decode | resolution.ToBassFlag());
 
-                            if (!BassMix.MixerAddChannel(resampler, decodeStream, BassFlags.MixerChanNoRampin | BassFlags.MixerChanLimit))
-                                throw new FormatException($"Failed to add a channel to BASS Mixer: {Bass.LastError}");
+                                if (resampler == 0)
+                                    throw new FormatException($"Failed to create BASS Mixer: {Bass.LastError}");
 
-                            ByteLength /= info.Channels * (bits / 8);
-                            ByteLength = (long)Math.Ceiling((decimal)ByteLength / info.Frequency * AudioSpec.freq);
-                            ByteLength *= AudioSpec.channels * (bits / 8);
+                                if (!BassMix.MixerAddChannel(resampler, decodeStream, BassFlags.MixerChanNoRampin | BassFlags.MixerChanLimit))
+                                    throw new FormatException($"Failed to add a channel to BASS Mixer: {Bass.LastError}");
+
+                                ByteLength /= info.Channels * (bits / 8);
+                                ByteLength = (long)Math.Ceiling((decimal)ByteLength / info.Frequency * AudioSpec.freq);
+                                ByteLength *= AudioSpec.channels * (bits / 8);
+                            }
                         }
+                        else
+                        {
+                            if (IsTrack)
+                                throw new FormatException($"Couldn't get channel info: {Bass.LastError}");
+                        }
+
+                        Loading = true;
                     }
-                    else
+
+                    int handle = resampler == 0 ? decodeStream : resampler;
+
+                    int bufferLen = (int)Bass.ChannelSeconds2Bytes(handle, 1);
+
+                    if (bufferLen <= 0)
+                        bufferLen = 44100 * 2 * 4 * 1;
+
+                    if (decodeData == null || decodeData.Length < bufferLen)
+                        decodeData = new byte[bufferLen];
+
+                    int got = Bass.ChannelGetData(handle, decodeData, bufferLen);
+
+                    if (got == -1)
                     {
-                        if (IsTrack)
-                            throw new FormatException($"Couldn't get channel info: {Bass.LastError}");
+                        Loading = false;
+
+                        if (Bass.LastError != Errors.Ended)
+                            throw new FormatException($"Couldn't decode: {Bass.LastError}");
+                    }
+                    else if (got < bufferLen)
+                    {
+                        // originally used synchandle to detect end, but it somehow created strong handle
+                        Loading = false;
                     }
 
-                    Loading = true;
+                    decoded = decodeData;
+                    return Math.Max(0, got);
                 }
-
-                int handle = resampler == 0 ? decodeStream : resampler;
-
-                int bufferLen = (int)Bass.ChannelSeconds2Bytes(handle, 1);
-
-                if (bufferLen <= 0)
-                    bufferLen = 44100 * 2 * 4 * 1;
-
-                if (decodeData == null || decodeData.Length < bufferLen)
-                    decodeData = new byte[bufferLen];
-
-                int got = Bass.ChannelGetData(handle, decodeData, bufferLen);
-
-                if (got == -1)
-                {
-                    Loading = false;
-
-                    if (Bass.LastError != Errors.Ended)
-                        throw new FormatException($"Couldn't decode: {Bass.LastError}");
-                }
-                else if (got < bufferLen)
-                {
-                    // originally used synchandle to detect end, but it somehow created strong handle
-                    Loading = false;
-                }
-
-                decoded = decodeData;
-                return Math.Max(0, got);
-            }
-        }
-
-        internal class FFmpegAudioDecoder : SDL3AudioDecoder
-        {
-            private VideoDecoder? ffmpeg;
-            private byte[]? decodeData;
-
-            public FFmpegAudioDecoder(Stream stream, SDL_AudioSpec audioSpec, bool isTrack, bool autoDisposeStream, ISDL3AudioDataReceiver? pass)
-                : base(stream, audioSpec, isTrack, autoDisposeStream, pass)
-            {
             }
 
-            internal override void Dispose()
+            internal class FFmpegAudioDecoder : SDL3AudioDecoder
             {
-                decodeData = null;
+                private VideoDecoder? ffmpeg;
+                private byte[]? decodeData;
 
-                ffmpeg?.Dispose();
-                ffmpeg = null;
-
-                base.Dispose();
-            }
-
-            protected override int LoadFromStreamInternal(out byte[] decoded)
-            {
-                if (ffmpeg == null)
+                public FFmpegAudioDecoder(Stream stream, SDL_AudioSpec audioSpec, bool isTrack, bool autoDisposeStream, ISDL3AudioDataReceiver? pass)
+                    : base(stream, audioSpec, isTrack, autoDisposeStream, pass)
                 {
-                    ffmpeg = new VideoDecoder(Stream, AudioSpec.freq, AudioSpec.channels,
-                        SDL3.SDL_AUDIO_ISFLOAT(AudioSpec.format), SDL3.SDL_AUDIO_BITSIZE(AudioSpec.format), SDL3.SDL_AUDIO_ISSIGNED(AudioSpec.format));
-
-                    ffmpeg.PrepareDecoding();
-                    ffmpeg.RecreateCodecContext();
-
-                    Bitrate = (int)ffmpeg.Bitrate;
-                    Length = ffmpeg.Duration;
-                    ByteLength = (long)Math.Ceiling(ffmpeg.Duration / 1000.0d * AudioSpec.freq) * AudioSpec.channels * (SDL3.SDL_AUDIO_BITSIZE(AudioSpec.format) / 8); // FIXME
-
-                    Loading = true;
                 }
 
-                int got = ffmpeg.DecodeNextAudioFrame(32, ref decodeData, !IsTrack);
+                internal override void Dispose()
+                {
+                    decodeData = null;
 
-                if (ffmpeg.State != VideoDecoder.DecoderState.Running)
-                    Loading = false;
+                    ffmpeg?.Dispose();
+                    ffmpeg = null;
 
-                decoded = decodeData;
-                return got;
+                    base.Dispose();
+                }
+
+                protected override int LoadFromStreamInternal(out byte[] decoded)
+                {
+                    if (ffmpeg == null)
+                    {
+                        ffmpeg = new VideoDecoder(Stream, AudioSpec.freq, AudioSpec.channels,
+                            SDL3.SDL_AUDIO_ISFLOAT(AudioSpec.format), SDL3.SDL_AUDIO_BITSIZE(AudioSpec.format), SDL3.SDL_AUDIO_ISSIGNED(AudioSpec.format));
+
+                        ffmpeg.PrepareDecoding();
+                        ffmpeg.RecreateCodecContext();
+
+                        Bitrate = (int)ffmpeg.Bitrate;
+                        Length = ffmpeg.Duration;
+                        ByteLength = (long)Math.Ceiling(ffmpeg.Duration / 1000.0d * AudioSpec.freq) * AudioSpec.channels * (SDL3.SDL_AUDIO_BITSIZE(AudioSpec.format) / 8); // FIXME
+
+                        Loading = true;
+                    }
+
+                    int got = ffmpeg.DecodeNextAudioFrame(32, ref decodeData, !IsTrack);
+
+                    if (ffmpeg.State != VideoDecoder.DecoderState.Running)
+                        Loading = false;
+
+                    decoded = decodeData;
+                    return got;
+                }
             }
         }
     }

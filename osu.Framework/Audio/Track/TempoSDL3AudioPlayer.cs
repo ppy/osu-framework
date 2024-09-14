@@ -155,10 +155,10 @@ namespace osu.Framework.Audio.Track
             if (soundTouch == null)
                 return 0;
 
-            return (int)(soundTouch.UnprocessedSampleCount + soundTouch.AvailableSamples * Tempo);
+            return (int)(soundTouch.UnprocessedSampleCount + (soundTouch.AvailableSamples * Tempo));
         }
 
-        protected override double GetProcessingLatency() => base.GetProcessingLatency() + (double)GetTempoLatencyInSamples() / SrcRate * 1000.0d;
+        protected override double GetProcessingLatency() => base.GetProcessingLatency() + (GetTempoLatencyInSamples() * 1000.0 / SrcRate);
 
         public override void Clear()
         {

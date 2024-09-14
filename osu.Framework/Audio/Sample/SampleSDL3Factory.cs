@@ -9,7 +9,7 @@ using SDL;
 
 namespace osu.Framework.Audio.Sample
 {
-    internal class SampleSDL3Factory : SampleFactory, ISDL3AudioDataReceiver
+    internal class SampleSDL3Factory : SampleFactory, SDL3AudioDecoderManager.ISDL3AudioDataReceiver
     {
         private volatile bool isLoaded;
         public override bool IsLoaded => isLoaded;
@@ -28,7 +28,7 @@ namespace osu.Framework.Audio.Sample
             this.spec = spec;
         }
 
-        void ISDL3AudioDataReceiver.GetData(byte[] audio, int byteLen, bool done)
+        void SDL3AudioDecoderManager.ISDL3AudioDataReceiver.GetData(byte[] audio, int byteLen, bool done)
         {
             if (IsDisposed)
                 return;
@@ -75,7 +75,7 @@ namespace osu.Framework.Audio.Sample
             base.Dispose(disposing);
         }
 
-        void ISDL3AudioDataReceiver.GetMetaData(int bitrate, double length, long byteLength)
+        void SDL3AudioDecoderManager.ISDL3AudioDataReceiver.GetMetaData(int bitrate, double length, long byteLength)
         {
         } // not needed
     }

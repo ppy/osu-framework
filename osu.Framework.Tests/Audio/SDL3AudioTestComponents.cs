@@ -19,7 +19,7 @@ namespace osu.Framework.Tests.Audio
     /// </summary>
     public class SDL3AudioTestComponents : AudioTestComponents
     {
-        private SDL3BaseAudioManager baseManager = null!;
+        private SDL3AudioManager.SDL3BaseAudioManager baseManager = null!;
 
         public SDL3AudioTestComponents(bool init = true)
             : base(init)
@@ -31,7 +31,7 @@ namespace osu.Framework.Tests.Audio
             base.Prepare();
 
             SDL_SetHint(SDL_HINT_AUDIO_DRIVER, "dummy"u8);
-            baseManager = new SDL3BaseAudioManager(MixerComponents.Items.OfType<SDL3AudioMixer>);
+            baseManager = new SDL3AudioManager.SDL3BaseAudioManager(MixerComponents.Items.OfType<SDL3AudioMixer>);
         }
 
         public override void Init()

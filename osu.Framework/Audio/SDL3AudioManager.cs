@@ -190,202 +190,202 @@ namespace osu.Framework.Audio
 
             baseManager.Dispose();
         }
-    }
-
-    /// <summary>
-    /// To share basic playback logic with audio tests.
-    /// </summary>
-    internal unsafe class SDL3BaseAudioManager : IDisposable
-    {
-        internal SDL_AudioSpec AudioSpec { get; private set; }
-
-        internal SDL_AudioDeviceID DeviceId { get; private set; }
-        internal SDL_AudioStream* DeviceStream { get; private set; }
-
-        internal int BufferSize { get; private set; } = (int)(SDL3AudioManager.AUDIO_FREQ * 0.01);
-
-        internal string DeviceName { get; private set; } = "Not loaded";
-
-        private readonly Func<IEnumerable<SDL3AudioMixer>> mixerIterator;
-
-        private ObjectHandle<SDL3BaseAudioManager> objectHandle;
-
-        private readonly SDL3AudioDecoderManager decoderManager = new SDL3AudioDecoderManager();
-
-        internal SDL3BaseAudioManager(Func<IEnumerable<SDL3AudioMixer>> mixerIterator)
-        {
-            if (SDL_InitSubSystem(SDL_InitFlags.SDL_INIT_AUDIO) < 0)
-            {
-                throw new InvalidOperationException($"Failed to initialise SDL Audio: {SDL_GetError()}");
-            }
-
-            this.mixerIterator = mixerIterator;
-
-            objectHandle = new ObjectHandle<SDL3BaseAudioManager>(this, GCHandleType.Normal);
-            AudioSpec = new SDL_AudioSpec
-            {
-                freq = SDL3AudioManager.AUDIO_FREQ,
-                channels = SDL3AudioManager.AUDIO_CHANNELS,
-                format = SDL3AudioManager.AUDIO_FORMAT
-            };
-        }
-
-        internal void RunWhileLockingAudioStream(Action action)
-        {
-            SDL_AudioStream* stream = DeviceStream;
-
-            if (stream != null)
-                SDL_LockAudioStream(stream);
-
-            try
-            {
-                action();
-            }
-            finally
-            {
-                if (stream != null)
-                    SDL_UnlockAudioStream(stream);
-            }
-        }
-
-        internal bool SetAudioDevice(SDL_AudioDeviceID targetId)
-        {
-            if (DeviceStream != null)
-            {
-                SDL_DestroyAudioStream(DeviceStream);
-                DeviceStream = null;
-            }
-
-            SDL_AudioSpec spec = AudioSpec;
-
-            SDL_AudioStream* deviceStream = SDL_OpenAudioDeviceStream(targetId, &spec, &audioCallback, objectHandle.Handle);
-
-            if (deviceStream != null)
-            {
-                SDL_DestroyAudioStream(DeviceStream);
-                DeviceStream = deviceStream;
-                AudioSpec = spec;
-
-                DeviceId = SDL_GetAudioStreamDevice(deviceStream);
-
-                int sampleFrameSize = 0;
-                SDL_AudioSpec temp; // this has 'real' device info which is useless since SDL converts audio according to the spec we provided
-                if (SDL_GetAudioDeviceFormat(DeviceId, &temp, &sampleFrameSize) == 0)
-                    BufferSize = sampleFrameSize * (int)Math.Ceiling((double)spec.freq / temp.freq);
-            }
-
-            if (deviceStream == null)
-            {
-                if (targetId == SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK)
-                    return false;
-
-                return SetAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK);
-            }
-
-            SDL_ResumeAudioDevice(DeviceId);
-
-            DeviceName = SDL_GetAudioDeviceName(targetId);
-
-            return true;
-        }
-
-        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-        private static void audioCallback(IntPtr userdata, SDL_AudioStream* stream, int additionalAmount, int totalAmount)
-        {
-            var handle = new ObjectHandle<SDL3BaseAudioManager>(userdata);
-            if (handle.GetTarget(out SDL3BaseAudioManager audioManager))
-                audioManager.internalAudioCallback(stream, additionalAmount);
-        }
-
-        private float[] audioBuffer;
-
-        private void internalAudioCallback(SDL_AudioStream* stream, int additionalAmount)
-        {
-            additionalAmount /= 4;
-
-            if (audioBuffer == null || audioBuffer.Length < additionalAmount)
-                audioBuffer = new float[additionalAmount];
-
-            try
-            {
-                int filled = 0;
-
-                foreach (var mixer in mixerIterator())
-                {
-                    if (mixer.IsAlive)
-                        mixer.MixChannelsInto(audioBuffer, additionalAmount, ref filled);
-                }
-
-                fixed (float* ptr = audioBuffer)
-                    SDL_PutAudioStreamData(stream, (IntPtr)ptr, filled * 4);
-            }
-            catch (Exception e)
-            {
-                Logger.Error(e, "Error while pushing audio to SDL");
-            }
-        }
 
         /// <summary>
-        /// With how decoders work, we need this to get test passed
-        /// I don't want this either... otherwise we have to dispose decoder in tests
+        /// To share basic playback logic with audio tests.
         /// </summary>
-        private class ReceiverGCWrapper : ISDL3AudioDataReceiver
+        internal unsafe class SDL3BaseAudioManager : IDisposable
         {
-            private readonly WeakReference<ISDL3AudioDataReceiver> channelWeakReference;
+            internal SDL_AudioSpec AudioSpec { get; private set; }
 
-            internal ReceiverGCWrapper(WeakReference<ISDL3AudioDataReceiver> channel)
+            internal SDL_AudioDeviceID DeviceId { get; private set; }
+            internal SDL_AudioStream* DeviceStream { get; private set; }
+
+            internal int BufferSize { get; private set; } = (int)(AUDIO_FREQ * 0.01);
+
+            internal string DeviceName { get; private set; } = "Not loaded";
+
+            private readonly Func<IEnumerable<SDL3AudioMixer>> mixerIterator;
+
+            private ObjectHandle<SDL3BaseAudioManager> objectHandle;
+
+            private readonly SDL3AudioDecoderManager decoderManager = new SDL3AudioDecoderManager();
+
+            internal SDL3BaseAudioManager(Func<IEnumerable<SDL3AudioMixer>> mixerIterator)
             {
-                channelWeakReference = channel;
+                if (SDL_InitSubSystem(SDL_InitFlags.SDL_INIT_AUDIO) < 0)
+                {
+                    throw new InvalidOperationException($"Failed to initialise SDL Audio: {SDL_GetError()}");
+                }
+
+                this.mixerIterator = mixerIterator;
+
+                objectHandle = new ObjectHandle<SDL3BaseAudioManager>(this, GCHandleType.Normal);
+                AudioSpec = new SDL_AudioSpec
+                {
+                    freq = AUDIO_FREQ,
+                    channels = AUDIO_CHANNELS,
+                    format = AUDIO_FORMAT
+                };
             }
 
-            void ISDL3AudioDataReceiver.GetData(byte[] data, int length, bool done)
+            internal void RunWhileLockingAudioStream(Action action)
             {
-                if (channelWeakReference.TryGetTarget(out ISDL3AudioDataReceiver r))
-                    r.GetData(data, length, done);
-                else
-                    throw new ObjectDisposedException("channel is already disposed");
+                SDL_AudioStream* stream = DeviceStream;
+
+                if (stream != null)
+                    SDL_LockAudioStream(stream);
+
+                try
+                {
+                    action();
+                }
+                finally
+                {
+                    if (stream != null)
+                        SDL_UnlockAudioStream(stream);
+                }
             }
 
-            void ISDL3AudioDataReceiver.GetMetaData(int bitrate, double length, long byteLength)
+            internal bool SetAudioDevice(SDL_AudioDeviceID targetId)
             {
-                if (channelWeakReference.TryGetTarget(out ISDL3AudioDataReceiver r))
-                    r.GetMetaData(bitrate, length, byteLength);
-                else
-                    throw new ObjectDisposedException("channel is already disposed");
+                if (DeviceStream != null)
+                {
+                    SDL_DestroyAudioStream(DeviceStream);
+                    DeviceStream = null;
+                }
+
+                SDL_AudioSpec spec = AudioSpec;
+
+                SDL_AudioStream* deviceStream = SDL_OpenAudioDeviceStream(targetId, &spec, &audioCallback, objectHandle.Handle);
+
+                if (deviceStream != null)
+                {
+                    SDL_DestroyAudioStream(DeviceStream);
+                    DeviceStream = deviceStream;
+                    AudioSpec = spec;
+
+                    DeviceId = SDL_GetAudioStreamDevice(deviceStream);
+
+                    int sampleFrameSize = 0;
+                    SDL_AudioSpec temp; // this has 'real' device info which is useless since SDL converts audio according to the spec we provided
+                    if (SDL_GetAudioDeviceFormat(DeviceId, &temp, &sampleFrameSize) == 0)
+                        BufferSize = sampleFrameSize * (int)Math.Ceiling((double)spec.freq / temp.freq);
+                }
+
+                if (deviceStream == null)
+                {
+                    if (targetId == SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK)
+                        return false;
+
+                    return SetAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK);
+                }
+
+                SDL_ResumeAudioDevice(DeviceId);
+
+                DeviceName = SDL_GetAudioDeviceName(targetId);
+
+                return true;
             }
-        }
 
-        internal Track.Track GetNewTrack(Stream data, string name)
-        {
-            TrackSDL3 track = new TrackSDL3(name, AudioSpec, BufferSize);
-            ReceiverGCWrapper receiverGC = new ReceiverGCWrapper(new WeakReference<ISDL3AudioDataReceiver>(track));
-            decoderManager.StartDecodingAsync(data, AudioSpec, true, receiverGC);
-            return track;
-        }
-
-        internal SampleFactory GetSampleFactory(Stream data, string name, AudioMixer mixer, int playbackConcurrency)
-        {
-            SampleSDL3Factory sampleFactory = new SampleSDL3Factory(name, (SDL3AudioMixer)mixer, playbackConcurrency, AudioSpec);
-            ReceiverGCWrapper receiverGC = new ReceiverGCWrapper(new WeakReference<ISDL3AudioDataReceiver>(sampleFactory));
-            decoderManager.StartDecodingAsync(data, AudioSpec, false, receiverGC);
-            return sampleFactory;
-        }
-
-        public void Dispose()
-        {
-            if (DeviceStream != null)
+            [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+            private static void audioCallback(IntPtr userdata, SDL_AudioStream* stream, int additionalAmount, int totalAmount)
             {
-                SDL_DestroyAudioStream(DeviceStream);
-                DeviceStream = null;
-                DeviceId = 0;
-                // Destroying audio stream will close audio device because we use SDL3 OpenAudioDeviceStream
-                // won't use multiple AudioStream for now since it's barely useful
+                var handle = new ObjectHandle<SDL3BaseAudioManager>(userdata);
+                if (handle.GetTarget(out SDL3BaseAudioManager audioManager))
+                    audioManager.internalAudioCallback(stream, additionalAmount);
             }
 
-            objectHandle.Dispose();
-            decoderManager.Dispose();
+            private float[] audioBuffer;
 
-            SDL_QuitSubSystem(SDL_InitFlags.SDL_INIT_AUDIO);
+            private void internalAudioCallback(SDL_AudioStream* stream, int additionalAmount)
+            {
+                additionalAmount /= 4;
+
+                if (audioBuffer == null || audioBuffer.Length < additionalAmount)
+                    audioBuffer = new float[additionalAmount];
+
+                Array.Fill(audioBuffer, 0);
+
+                try
+                {
+                    foreach (var mixer in mixerIterator())
+                    {
+                        if (mixer.IsAlive)
+                            mixer.MixChannelsInto(audioBuffer, additionalAmount);
+                    }
+
+                    fixed (float* ptr = audioBuffer)
+                        SDL_PutAudioStreamData(stream, (IntPtr)ptr, additionalAmount * 4);
+                }
+                catch (Exception e)
+                {
+                    Logger.Error(e, "Error while pushing audio to SDL");
+                }
+            }
+
+            /// <summary>
+            /// With how decoders work, we need this to get test passed
+            /// I don't want this either... otherwise we have to dispose decoder in tests
+            /// </summary>
+            private class ReceiverGCWrapper : SDL3AudioDecoderManager.ISDL3AudioDataReceiver
+            {
+                private readonly WeakReference<SDL3AudioDecoderManager.ISDL3AudioDataReceiver> channelWeakReference;
+
+                internal ReceiverGCWrapper(WeakReference<SDL3AudioDecoderManager.ISDL3AudioDataReceiver> channel)
+                {
+                    channelWeakReference = channel;
+                }
+
+                void SDL3AudioDecoderManager.ISDL3AudioDataReceiver.GetData(byte[] data, int length, bool done)
+                {
+                    if (channelWeakReference.TryGetTarget(out SDL3AudioDecoderManager.ISDL3AudioDataReceiver r))
+                        r.GetData(data, length, done);
+                    else
+                        throw new ObjectDisposedException("channel is already disposed");
+                }
+
+                void SDL3AudioDecoderManager.ISDL3AudioDataReceiver.GetMetaData(int bitrate, double length, long byteLength)
+                {
+                    if (channelWeakReference.TryGetTarget(out SDL3AudioDecoderManager.ISDL3AudioDataReceiver r))
+                        r.GetMetaData(bitrate, length, byteLength);
+                    else
+                        throw new ObjectDisposedException("channel is already disposed");
+                }
+            }
+
+            internal Track.Track GetNewTrack(Stream data, string name)
+            {
+                TrackSDL3 track = new TrackSDL3(name, AudioSpec, BufferSize);
+                ReceiverGCWrapper receiverGC = new ReceiverGCWrapper(new WeakReference<SDL3AudioDecoderManager.ISDL3AudioDataReceiver>(track));
+                decoderManager.StartDecodingAsync(data, AudioSpec, true, receiverGC);
+                return track;
+            }
+
+            internal SampleFactory GetSampleFactory(Stream data, string name, AudioMixer mixer, int playbackConcurrency)
+            {
+                SampleSDL3Factory sampleFactory = new SampleSDL3Factory(name, (SDL3AudioMixer)mixer, playbackConcurrency, AudioSpec);
+                ReceiverGCWrapper receiverGC = new ReceiverGCWrapper(new WeakReference<SDL3AudioDecoderManager.ISDL3AudioDataReceiver>(sampleFactory));
+                decoderManager.StartDecodingAsync(data, AudioSpec, false, receiverGC);
+                return sampleFactory;
+            }
+
+            public void Dispose()
+            {
+                if (DeviceStream != null)
+                {
+                    SDL_DestroyAudioStream(DeviceStream);
+                    DeviceStream = null;
+                    DeviceId = 0;
+                    // Destroying audio stream will close audio device because we use SDL3 OpenAudioDeviceStream
+                    // won't use multiple AudioStream for now since it's barely useful
+                }
+
+                objectHandle.Dispose();
+                decoderManager.Dispose();
+
+                SDL_QuitSubSystem(SDL_InitFlags.SDL_INIT_AUDIO);
+            }
         }
     }
 }
