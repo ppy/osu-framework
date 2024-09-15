@@ -356,7 +356,7 @@ namespace osu.Framework.Platform.SDL3
 
             SDL_Rect rect;
 
-            if (SDL_GetDisplayBounds(displayID, &rect) < 0)
+            if (SDL_GetDisplayBounds(displayID, &rect) == SDL_bool.SDL_FALSE)
             {
                 Logger.Log($"Failed to get display bounds for display at index ({displayIndex}). SDL Error: {SDL_GetError()}");
                 display = null;
@@ -874,14 +874,14 @@ namespace osu.Framework.Platform.SDL3
 
             SDL_DisplayMode mode;
 
-            if (SDL_GetClosestFullscreenDisplayMode(displayID, size.Width, size.Height, requestedMode.RefreshRate, SDL_bool.SDL_TRUE, &mode) == 0)
+            if (SDL_GetClosestFullscreenDisplayMode(displayID, size.Width, size.Height, requestedMode.RefreshRate, SDL_bool.SDL_TRUE, &mode) == SDL_bool.SDL_TRUE)
                 return mode;
 
             Logger.Log(
                 $"Unable to get preferred display mode (try #1/2). Target display: {display.Index}, mode: {size.Width}x{size.Height}@{requestedMode.RefreshRate}. SDL error: {SDL3Extensions.GetAndClearError()}");
 
             // fallback to current display's native bounds
-            if (SDL_GetClosestFullscreenDisplayMode(displayID, display.Bounds.Width, display.Bounds.Height, 0f, SDL_bool.SDL_TRUE, &mode) != 0)
+            if (SDL_GetClosestFullscreenDisplayMode(displayID, display.Bounds.Width, display.Bounds.Height, 0f, SDL_bool.SDL_TRUE, &mode) == SDL_bool.SDL_TRUE)
                 return mode;
 
             Logger.Log(

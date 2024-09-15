@@ -49,7 +49,7 @@ namespace osu.Framework.Platform.SDL3
                     throw new InvalidOperationException($"Cannot set {nameof(RelativeMouseMode)} to true when the cursor is not hidden via {nameof(CursorState)}.");
 
                 relativeMouseMode = value;
-                ScheduleCommand(() => SDL_SetRelativeMouseMode(value ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE));
+                ScheduleCommand(() => SDL_SetWindowRelativeMouseMode(SDLWindowHandle, value ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE));
                 updateCursorConfinement();
             }
         }

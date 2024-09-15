@@ -128,15 +128,14 @@ namespace osu.Framework.Platform.SDL3
             // TODO: support multiple mime types in a single callback
             fixed (byte* ptr = Encoding.UTF8.GetBytes(mimeType + '\0'))
             {
-                int ret = SDL_SetClipboardData(&dataCallback, &cleanupCallback, objectHandle.Handle, &ptr, 1);
-
-                if (ret < 0)
+                if (SDL_SetClipboardData(&dataCallback, &cleanupCallback, objectHandle.Handle, &ptr, 1) == SDL_bool.SDL_FALSE)
                 {
                     objectHandle.Dispose();
                     Logger.Log($"Failed to set clipboard data callback. SDL error: {SDL_GetError()}");
+                    return false;
                 }
 
-                return ret == 0;
+                return true;
             }
         }
 
