@@ -573,6 +573,20 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_EventType.SDL_EVENT_DROP_COMPLETE:
                     handleDropEvent(e.drop);
                     break;
+
+                case SDL_EventType.SDL_EVENT_PEN_DOWN:
+                case SDL_EventType.SDL_EVENT_PEN_UP:
+                    handlePenTouchEvent(e.ptouch);
+                    break;
+
+                case SDL_EventType.SDL_EVENT_PEN_BUTTON_DOWN:
+                case SDL_EventType.SDL_EVENT_PEN_BUTTON_UP:
+                    handlePenButtonEvent(e.pbutton);
+                    break;
+
+                case SDL_EventType.SDL_EVENT_PEN_MOTION:
+                    handlePenMotionEvent(e.pmotion);
+                    break;
             }
         }
 
