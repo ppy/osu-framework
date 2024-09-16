@@ -63,7 +63,14 @@ namespace osu.Framework.Audio.Mixing.SDL3
                 return;
 
             for (int i = 0; i < samples; i++)
-                dst[i] = Math.Clamp(dst[i] + src[i] * (i % 2 == 0 ? left : right), -1.0f, 1.0f);
+            {
+                dst[i] += src[i] * (i % 2 == 0 ? left : right);
+
+                if (dst[i] > 1.0f)
+                    dst[i] = 1.0f;
+                else if (dst[i] < -1.0f)
+                    dst[i] = -1.0f;
+            }
         }
 
         private float[]? ret;

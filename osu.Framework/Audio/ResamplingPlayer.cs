@@ -56,7 +56,7 @@ namespace osu.Framework.Audio
             if (resampler == null)
             {
                 resampler = new WdlResampler();
-                resampler.SetMode(true, 2, false);
+                resampler.SetMode(true, 1, false);
                 resampler.SetFilterParms();
                 resampler.SetFeedMode(false);
             }
