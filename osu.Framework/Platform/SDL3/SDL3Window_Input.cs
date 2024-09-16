@@ -49,7 +49,7 @@ namespace osu.Framework.Platform.SDL3
                     throw new InvalidOperationException($"Cannot set {nameof(RelativeMouseMode)} to true when the cursor is not hidden via {nameof(CursorState)}.");
 
                 relativeMouseMode = value;
-                ScheduleCommand(() => SDL_SetRelativeMouseMode(value ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE));
+                ScheduleCommand(() => SDL_SetWindowRelativeMouseMode(SDLWindowHandle, value ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE));
                 updateCursorConfinement();
             }
         }
@@ -151,7 +151,9 @@ namespace osu.Framework.Platform.SDL3
 
         private PointF previousPolledPoint = PointF.Empty;
 
-        private SDL_MouseButtonFlags pressedButtons;
+        private SDL_MouseButtonFlags mousePressedButtons;
+
+        private SDL_MouseButtonFlags penPressedButtons;
 
         private void pollMouse()
         {
@@ -170,7 +172,7 @@ namespace osu.Framework.Platform.SDL3
             }
 
             // a button should be released if it was pressed and its current global state differs (its bit in globalButtons is set to 0)
-            SDL_MouseButtonFlags buttonsToRelease = pressedButtons & (globalButtons ^ pressedButtons);
+            SDL_MouseButtonFlags buttonsToRelease = mousePressedButtons & (globalButtons ^ mousePressedButtons) & ~penPressedButtons;
 
             // the outer if just optimises for the common case that there are no buttons to release.
             if (buttonsToRelease != 0)
@@ -180,6 +182,8 @@ namespace osu.Framework.Platform.SDL3
                 if (buttonsToRelease.HasFlagFast(SDL_MouseButtonFlags.SDL_BUTTON_RMASK)) MouseUp?.Invoke(MouseButton.Right);
                 if (buttonsToRelease.HasFlagFast(SDL_MouseButtonFlags.SDL_BUTTON_X1MASK)) MouseUp?.Invoke(MouseButton.Button1);
                 if (buttonsToRelease.HasFlagFast(SDL_MouseButtonFlags.SDL_BUTTON_X2MASK)) MouseUp?.Invoke(MouseButton.Button2);
+
+                mousePressedButtons &= ~buttonsToRelease;
             }
         }
 
@@ -437,12 +441,24 @@ namespace osu.Framework.Platform.SDL3
             switch (evtButton.type)
             {
                 case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN:
-                    pressedButtons |= mask;
+                    if (penPressedButtons.HasFlagFast(mask))
+                    {
+                        Logger.Log("Mouse tried pressing a button already pressed by tablet!", level: LogLevel.Debug);
+                        return;
+                    }
+
+                    mousePressedButtons |= mask;
                     MouseDown?.Invoke(button);
                     break;
 
                 case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP:
-                    pressedButtons &= ~mask;
+                    if (!mousePressedButtons.HasFlagFast(mask))
+                    {
+                        Logger.Log("Mouse tried releasing a button already released by tablet!", level: LogLevel.Debug);
+                        return;
+                    }
+
+                    mousePressedButtons &= ~mask;
                     MouseUp?.Invoke(button);
                     break;
             }
@@ -450,7 +466,7 @@ namespace osu.Framework.Platform.SDL3
 
         private void handleMouseMotionEvent(SDL_MouseMotionEvent evtMotion)
         {
-            if (SDL_GetRelativeMouseMode() == SDL_bool.SDL_FALSE)
+            if (SDL_GetWindowRelativeMouseMode(SDLWindowHandle) == SDL_bool.SDL_FALSE)
                 MouseMove?.Invoke(new Vector2(evtMotion.x * Scale, evtMotion.y * Scale));
             else
                 MouseMoveRelative?.Invoke(new Vector2(evtMotion.xrel * Scale, evtMotion.yrel * Scale));
@@ -494,6 +510,55 @@ namespace osu.Framework.Platform.SDL3
 
         private void handleKeymapChangedEvent() => KeymapChanged?.Invoke();
 
+        private void handlePenMotionEvent(SDL_PenMotionEvent evtPenMotion)
+        {
+            MouseMove?.Invoke(new Vector2(evtPenMotion.x * Scale, evtPenMotion.y * Scale));
+        }
+
+        private void handlePenTouchEvent(SDL_PenTouchEvent evtPenTouch)
+        {
+            if (evtPenTouch.eraser == SDL_bool.SDL_TRUE)
+                return;
+
+            handlePenPressEvent(0, evtPenTouch.down == SDL_bool.SDL_TRUE);
+        }
+
+        private void handlePenButtonEvent(SDL_PenButtonEvent evtPenButton)
+        {
+            handlePenPressEvent(evtPenButton.button, evtPenButton.down == SDL_bool.SDL_TRUE);
+        }
+
+        private void handlePenPressEvent(byte penButton, bool pressed)
+        {
+            mouseButtonFromPen(pressed, penButton, out MouseButton button, out SDL_MouseButtonFlags mask);
+
+            if (mask == 0)
+                return;
+
+            if (pressed)
+            {
+                if (mousePressedButtons.HasFlagFast(mask))
+                {
+                    Logger.Log("Tablet tried pressing a button already pressed by mouse!", level: LogLevel.Debug);
+                    return;
+                }
+
+                penPressedButtons |= mask;
+                MouseDown?.Invoke(button);
+            }
+            else
+            {
+                if (!penPressedButtons.HasFlagFast(mask))
+                {
+                    Logger.Log("Tablet tried releasing a button already released by mouse!", level: LogLevel.Debug);
+                    return;
+                }
+
+                penPressedButtons &= ~mask;
+                MouseUp?.Invoke(button);
+            }
+        }
+
         private MouseButton mouseButtonFromEvent(SDLButton button)
         {
             switch (button)
@@ -516,6 +581,43 @@ namespace osu.Framework.Platform.SDL3
                 default:
                     Logger.Log($"unknown mouse button: {button}, defaulting to left button");
                     return MouseButton.Left;
+            }
+        }
+
+        private void mouseButtonFromPen(bool pressed, byte penButton, out MouseButton button, out SDL_MouseButtonFlags buttonFlag)
+        {
+            switch (penButton)
+            {
+                case 0:
+                    button = MouseButton.Left;
+                    buttonFlag = SDL_MouseButtonFlags.SDL_BUTTON_LMASK;
+                    break;
+
+                case 1:
+                    button = MouseButton.Right;
+                    buttonFlag = SDL_MouseButtonFlags.SDL_BUTTON_RMASK;
+                    break;
+
+                case 2:
+                    button = MouseButton.Middle;
+                    buttonFlag = SDL_MouseButtonFlags.SDL_BUTTON_MMASK;
+                    break;
+
+                case 3:
+                    button = MouseButton.Button1;
+                    buttonFlag = SDL_MouseButtonFlags.SDL_BUTTON_X1MASK;
+                    break;
+
+                case 4:
+                    button = MouseButton.Button2;
+                    buttonFlag = SDL_MouseButtonFlags.SDL_BUTTON_X2MASK;
+                    break;
+
+                default:
+                    Logger.Log($"unknown pen button index: {penButton}, ignoring...");
+                    button = MouseButton.Button3;
+                    buttonFlag = 0;
+                    break;
             }
         }
 

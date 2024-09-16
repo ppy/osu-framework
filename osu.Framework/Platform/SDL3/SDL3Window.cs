@@ -156,7 +156,7 @@ namespace osu.Framework.Platform.SDL3
 
             SDL_SetHint(SDL_HINT_APP_NAME, appName);
 
-            if (SDL_Init(SDL_InitFlags.SDL_INIT_VIDEO | SDL_InitFlags.SDL_INIT_GAMEPAD) < 0)
+            if (SDL_Init(SDL_InitFlags.SDL_INIT_VIDEO | SDL_InitFlags.SDL_INIT_GAMEPAD) == SDL_bool.SDL_FALSE)
             {
                 throw new InvalidOperationException($"Failed to initialise SDL: {SDL_GetError()}");
             }
@@ -320,23 +320,23 @@ namespace osu.Framework.Platform.SDL3
         }
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-        private static int eventFilter(IntPtr userdata, SDL_Event* eventPtr)
+        private static SDL_bool eventFilter(IntPtr userdata, SDL_Event* eventPtr)
         {
             var handle = new ObjectHandle<SDL3Window>(userdata);
             if (handle.GetTarget(out SDL3Window window))
                 window.HandleEventFromFilter(*eventPtr);
 
-            return 1;
+            return SDL_bool.SDL_TRUE;
         }
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-        private static int eventWatch(IntPtr userdata, SDL_Event* eventPtr)
+        private static SDL_bool eventWatch(IntPtr userdata, SDL_Event* eventPtr)
         {
             var handle = new ObjectHandle<SDL3Window>(userdata);
             if (handle.GetTarget(out SDL3Window window))
                 window.HandleEventFromWatch(*eventPtr);
 
-            return 1;
+            return SDL_bool.SDL_TRUE;
         }
 
         private bool firstDraw = true;
@@ -572,6 +572,20 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_EventType.SDL_EVENT_DROP_BEGIN:
                 case SDL_EventType.SDL_EVENT_DROP_COMPLETE:
                     handleDropEvent(e.drop);
+                    break;
+
+                case SDL_EventType.SDL_EVENT_PEN_DOWN:
+                case SDL_EventType.SDL_EVENT_PEN_UP:
+                    handlePenTouchEvent(e.ptouch);
+                    break;
+
+                case SDL_EventType.SDL_EVENT_PEN_BUTTON_DOWN:
+                case SDL_EventType.SDL_EVENT_PEN_BUTTON_UP:
+                    handlePenButtonEvent(e.pbutton);
+                    break;
+
+                case SDL_EventType.SDL_EVENT_PEN_MOTION:
+                    handlePenMotionEvent(e.pmotion);
                     break;
             }
         }

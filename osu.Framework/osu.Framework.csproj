@@ -40,7 +40,7 @@
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.211" />
     <PackageReference Include="StbiSharp" Version="1.1.0" />
     <PackageReference Include="ppy.SDL2-CS" Version="1.0.741-alpha" />
-    <PackageReference Include="ppy.SDL3-CS" Version="2024.807.1" />
+    <PackageReference Include="ppy.SDL3-CS" Version="2024.916.0" />
     <PackageReference Include="ppy.osu.Framework.SourceGeneration" Version="2023.720.0" />
 
     <!-- DO NOT use ProjectReference for native packaging project.
