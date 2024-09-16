@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -162,11 +163,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkValue(1);
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void TestAdjustmentPrecision(bool disabled)
+        [TestCase(false, 0)]
+        [TestCase(false, 1)]
+        [TestCase(false, 3)]
+        [TestCase(true, 0)]
+        public void TestAdjustmentPrecision(bool disabled, float step)
         {
             AddStep($"set disabled to {disabled}", () => sliderBar.Current.Disabled = disabled);
+
+            AddStep($"Set step to {step}", () => sliderBar.Step = step);
 
             AddStep("Click at 25% mark", () =>
             {
@@ -174,7 +179,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
             // We're translating to/from screen-space coordinates for click coordinates so we want to be more lenient with the value comparisons in these tests
-            checkValue(disabled ? 0 : -5);
+            checkValue(disabled ? 0 : step == 0 ? -5 : MathF.Round(-5 / step) * step);
             AddStep("Press left arrow key", () =>
             {
                 bool before = sliderBar.IsHovered;
@@ -183,7 +188,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.ReleaseKey(Key.Left);
                 sliderBar.IsHovered = before;
             });
-            checkValue(disabled ? 0 : -6);
+            checkValue(disabled ? 0 : step == 0 ? -6 : MathF.Round(-5 / step) * step - 1);
             AddStep("Click at 75% mark, holding shift", () =>
             {
                 InputManager.PressKey(Key.LShift);
@@ -272,7 +277,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkValue(0);
         }
 
-        private void checkValue(int expected) =>
+        private void checkValue(float expected) =>
             AddAssert($"Value == {expected}", () => sliderBarValue.Value, () => Is.EqualTo(expected).Within(Precision.FLOAT_EPSILON));
 
         private void sliderBarValueChanged(ValueChangedEvent<double> args)
