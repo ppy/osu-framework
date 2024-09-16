@@ -25,6 +25,11 @@ namespace osu.Framework.Graphics.UserInterface
         public float UsableWidth => DrawWidth - 2 * RangePadding;
 
         /// <summary>
+        /// A custom precision value for mouse input which actuates a change on this control.
+        /// </summary>
+        public float Step;
+
+        /// <summary>
         /// A custom step value for each key press which actuates a change on this control.
         /// </summary>
         public float KeyboardStep;
@@ -247,7 +252,7 @@ namespace osu.Framework.Graphics.UserInterface
                 newValue = (localX - RangePadding) / UsableWidth;
             }
 
-            currentNumberInstantaneous.SetProportional(newValue, e.ShiftPressed ? KeyboardStep : 0);
+            currentNumberInstantaneous.SetProportional(newValue, e.ShiftPressed ? KeyboardStep : Step);
             onUserChange(currentNumberInstantaneous.Value);
         }
 
