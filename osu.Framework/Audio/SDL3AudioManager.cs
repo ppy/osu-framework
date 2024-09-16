@@ -213,7 +213,7 @@ namespace osu.Framework.Audio
 
             internal SDL3BaseAudioManager(Func<IEnumerable<SDL3AudioMixer>> mixerIterator)
             {
-                if (SDL_InitSubSystem(SDL_InitFlags.SDL_INIT_AUDIO) < 0)
+                if (SDL_InitSubSystem(SDL_InitFlags.SDL_INIT_AUDIO) == SDL_bool.SDL_FALSE)
                 {
                     throw new InvalidOperationException($"Failed to initialise SDL Audio: {SDL_GetError()}");
                 }
