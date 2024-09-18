@@ -32,7 +32,7 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         /// <param name="seconds">A position in milliseconds to convert</param>
         /// <returns></returns>
-        public long GetIndexFromMs(double seconds) => (long)(seconds / 1000.0d * SrcRate) * SrcChannels;
+        public long GetIndexFromMs(double seconds) => (long)Math.Ceiling(seconds / 1000.0d * SrcRate) * SrcChannels;
 
         /// <summary>
         /// Stores raw audio data.
