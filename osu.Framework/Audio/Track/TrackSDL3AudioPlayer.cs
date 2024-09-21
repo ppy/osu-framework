@@ -99,17 +99,11 @@ namespace osu.Framework.Audio.Track
             if (audioDataLength + floatLen > AudioData.LongLength)
                 prepareArray(audioDataLength + floatLen);
 
-            unsafe // To directly put bytes as float in array
+            for (int i = 0; i < floatLen; i++)
             {
-                fixed (float* dest = AudioData)
-                fixed (void* ptr = next)
-                {
-                    float* src = (float*)ptr;
-                    Buffer.MemoryCopy(src, dest + audioDataLength, (AudioData.LongLength - audioDataLength) * sizeof(float), length);
-                }
+                float src = BitConverter.ToSingle(next, i * sizeof(float));
+                AudioData[audioDataLength++] = src;
             }
-
-            audioDataLength += floatLen;
         }
 
         internal void DonePutting()

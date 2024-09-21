@@ -120,66 +120,57 @@ namespace osu.Framework.Audio.Track
 
                     do
                     {
-                        int read = decoder.LoadFromStream(out byte[] currentBytes);
+                        int read = decoder.LoadFromStream(out byte[] currentBytes) / bytes_per_sample;
                         int sampleIndex = 0;
 
-                        unsafe
+                        while (sampleIndex < read)
                         {
-                            fixed (void* ptr = currentBytes)
+                            // Each point is composed of multiple samples
+                            for (; pointSamples < samplesPerPoint && sampleIndex < read; pointSamples += channels, sampleIndex += channels)
                             {
-                                float* currentFloats = (float*)ptr;
-                                int currentFloatsLength = read / bytes_per_sample;
+                                // Find the maximum amplitude for each channel in the point
+                                float left = BitConverter.ToSingle(currentBytes, sampleIndex * bytes_per_sample);
+                                float right = BitConverter.ToSingle(currentBytes, (sampleIndex + 1) * bytes_per_sample);
 
-                                while (sampleIndex < currentFloatsLength)
+                                point.AmplitudeLeft = Math.Max(point.AmplitudeLeft, Math.Abs(left));
+                                point.AmplitudeRight = Math.Max(point.AmplitudeRight, Math.Abs(right));
+
+                                complexBuffer[complexBufferIndex].X = left + right;
+                                complexBuffer[complexBufferIndex].Y = 0;
+
+                                if (++complexBufferIndex >= fft_samples)
                                 {
-                                    // Each point is composed of multiple samples
-                                    for (; pointSamples < samplesPerPoint && sampleIndex < currentFloatsLength; pointSamples += channels, sampleIndex += channels)
+                                    complexBufferIndex = 0;
+
+                                    FastFourierTransform.FFT(true, m, complexBuffer);
+
+                                    point.LowIntensity = computeIntensity(sample_rate, complexBuffer, low_min, mid_min);
+                                    point.MidIntensity = computeIntensity(sample_rate, complexBuffer, mid_min, high_min);
+                                    point.HighIntensity = computeIntensity(sample_rate, complexBuffer, high_min, high_max);
+
+                                    for (; fftPointIndex < pointList.Count; fftPointIndex++)
                                     {
-                                        // Find the maximum amplitude for each channel in the point
-                                        float left = *(currentFloats + sampleIndex);
-                                        float right = *(currentFloats + sampleIndex + 1);
-
-                                        point.AmplitudeLeft = Math.Max(point.AmplitudeLeft, Math.Abs(left));
-                                        point.AmplitudeRight = Math.Max(point.AmplitudeRight, Math.Abs(right));
-
-                                        complexBuffer[complexBufferIndex].X = left + right;
-                                        complexBuffer[complexBufferIndex].Y = 0;
-
-                                        if (++complexBufferIndex >= fft_samples)
-                                        {
-                                            complexBufferIndex = 0;
-
-                                            FastFourierTransform.FFT(true, m, complexBuffer);
-
-                                            point.LowIntensity = computeIntensity(sample_rate, complexBuffer, low_min, mid_min);
-                                            point.MidIntensity = computeIntensity(sample_rate, complexBuffer, mid_min, high_min);
-                                            point.HighIntensity = computeIntensity(sample_rate, complexBuffer, high_min, high_max);
-
-                                            for (; fftPointIndex < pointList.Count; fftPointIndex++)
-                                            {
-                                                var prevPoint = pointList[fftPointIndex];
-                                                prevPoint.LowIntensity = point.LowIntensity;
-                                                prevPoint.MidIntensity = point.MidIntensity;
-                                                prevPoint.HighIntensity = point.HighIntensity;
-                                                pointList[fftPointIndex] = prevPoint;
-                                            }
-
-                                            fftPointIndex++; // current Point is going to be added
-                                        }
+                                        var prevPoint = pointList[fftPointIndex];
+                                        prevPoint.LowIntensity = point.LowIntensity;
+                                        prevPoint.MidIntensity = point.MidIntensity;
+                                        prevPoint.HighIntensity = point.HighIntensity;
+                                        pointList[fftPointIndex] = prevPoint;
                                     }
 
-                                    if (pointSamples >= samplesPerPoint)
-                                    {
-                                        // There may be unclipped samples, so clip them ourselves
-                                        point.AmplitudeLeft = Math.Min(1, point.AmplitudeLeft);
-                                        point.AmplitudeRight = Math.Min(1, point.AmplitudeRight);
-
-                                        pointList.Add(point);
-
-                                        point = new Point();
-                                        pointSamples = 0;
-                                    }
+                                    fftPointIndex++; // current Point is going to be added
                                 }
+                            }
+
+                            if (pointSamples >= samplesPerPoint)
+                            {
+                                // There may be unclipped samples, so clip them ourselves
+                                point.AmplitudeLeft = Math.Min(1, point.AmplitudeLeft);
+                                point.AmplitudeRight = Math.Min(1, point.AmplitudeRight);
+
+                                pointList.Add(point);
+
+                                point = new Point();
+                                pointSamples = 0;
                             }
                         }
                     } while (decoder.Loading);
