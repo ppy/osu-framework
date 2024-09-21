@@ -21,7 +21,7 @@ namespace osu.Framework.Audio.Track
         public virtual bool Done => done;
 
         /// <summary>
-        /// Returns a byte position converted into milliseconds with configuration set for this player.
+        /// Returns a data position converted into milliseconds with configuration set for this player.
         /// </summary>
         /// <param name="pos">Position to convert</param>
         /// <returns></returns>
