@@ -524,9 +524,9 @@ namespace osu.Framework.Audio
                             SDL3.SDL_AUDIO_ISFLOAT(AudioSpec.format), SDL3.SDL_AUDIO_BITSIZE(AudioSpec.format), SDL3.SDL_AUDIO_ISSIGNED(AudioSpec.format));
 
                         ffmpeg.PrepareDecoding();
-                        ffmpeg.RecreateCodecContext();
+                        ffmpeg.OpenAudioStream();
 
-                        Bitrate = (int)ffmpeg.Bitrate;
+                        Bitrate = (int)ffmpeg.AudioBitrate;
                         Length = ffmpeg.Duration;
                         ByteLength = (long)Math.Ceiling(ffmpeg.Duration / 1000.0d * AudioSpec.freq) * AudioSpec.channels * (SDL3.SDL_AUDIO_BITSIZE(AudioSpec.format) / 8); // FIXME
 

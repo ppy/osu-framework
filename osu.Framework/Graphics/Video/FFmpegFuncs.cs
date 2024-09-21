@@ -110,6 +110,8 @@ namespace osu.Framework.Graphics.Video
 
         public delegate long AvGetDefaultChannelLayoutDelegate(int nbChannels);
 
+        public delegate AVCodec* AvCodecFindDecoderDelegate(AVCodecID id);
+
         #endregion
 
         [CanBeNull]
@@ -163,6 +165,7 @@ namespace osu.Framework.Graphics.Video
         public SwrGetDelayDelegate swr_get_delay;
         public AvSamplesGetBufferSizeDelegate av_samples_get_buffer_size;
         public AvGetDefaultChannelLayoutDelegate av_get_default_channel_layout;
+        public AvCodecFindDecoderDelegate avcodec_find_decoder;
 
         // Touching AutoGen.ffmpeg or its LibraryLoader in any way on non-Desktop platforms
         // will cause it to throw in static constructor, which can't be bypassed.
