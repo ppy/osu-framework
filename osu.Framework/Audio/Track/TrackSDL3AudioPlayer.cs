@@ -77,7 +77,7 @@ namespace osu.Framework.Audio.Track
 
         internal void PrepareStream(long byteLength = 3 * 60 * 44100 * 2 * 4)
         {
-            if (disposedValue)
+            if (isDisposed)
                 return;
 
             if (AudioData == null)
@@ -88,7 +88,7 @@ namespace osu.Framework.Audio.Track
 
         internal void PutSamplesInStream(byte[] next, int length)
         {
-            if (disposedValue)
+            if (isDisposed)
                 return;
 
             if (AudioData == null)
@@ -108,7 +108,7 @@ namespace osu.Framework.Audio.Track
 
         internal void DonePutting()
         {
-            if (disposedValue)
+            if (isDisposed)
                 return;
 
             // Saved seek was over data length
@@ -258,14 +258,14 @@ namespace osu.Framework.Audio.Track
             }
         }
 
-        private bool disposedValue;
+        private volatile bool isDisposed;
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!isDisposed)
             {
                 AudioData = null;
-                disposedValue = true;
+                isDisposed = true;
             }
         }
 
