@@ -502,6 +502,26 @@ namespace osu.Framework.Tests.Clocks
             Assert.That(source.IsRunning, Is.False);
         }
 
+        [Test]
+        public void TestPlayDifferentSourceAfterSeekFailure()
+        {
+            decouplingClock.AllowDecoupling = true;
+
+            var firstSource = (TestClockWithRange)source;
+            firstSource.MaxTime = 100;
+
+            decouplingClock.Seek(1000);
+
+            Assert.That(firstSource.IsRunning, Is.False);
+
+            var secondSource = new TestClockWithRange();
+
+            decouplingClock.ChangeSource(secondSource);
+            decouplingClock.Start();
+
+            Assert.That(secondSource.IsRunning, Is.True);
+        }
+
         #endregion
 
         private class TestClockWithRange : TestClock
