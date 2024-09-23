@@ -183,9 +183,9 @@ namespace osu.Framework.Graphics.Video
             });
         }
 
+        private bool isAudioEnabled;
         private readonly bool audioOnly;
 
-        private bool audio;
         private int audioRate;
         private int audioChannels;
         private int audioBits;
@@ -209,9 +209,8 @@ namespace osu.Framework.Graphics.Video
             audioChannels = channels;
             audioBits = bits;
 
-            audio = true;
+            isAudioEnabled = true;
             audioChannelLayout = ffmpeg.av_get_default_channel_layout(channels);
-            audioFmt = AVSampleFormat.AV_SAMPLE_FMT_FLT;
 
             memoryStream = new MemoryStream();
 
@@ -244,7 +243,7 @@ namespace osu.Framework.Graphics.Video
                     ffmpeg.av_seek_frame(formatContext, videoStream->index, (long)(targetTimestamp / videoTimeBaseInSeconds / 1000.0), FFmpegFuncs.AVSEEK_FLAG_BACKWARD);
                 }
 
-                if (audio)
+                if (audioStream != null)
                 {
                     ffmpeg.avcodec_flush_buffers(audioCodecContext);
                     ffmpeg.av_seek_frame(formatContext, audioStream->index, (long)(targetTimestamp / videoTimeBaseInSeconds / 1000.0), FFmpegFuncs.AVSEEK_FLAG_BACKWARD);
@@ -451,7 +450,7 @@ namespace osu.Framework.Graphics.Video
                     Duration = formatContext->duration / (double)FFmpegFuncs.AV_TIME_BASE * 1000.0;
             }
 
-            if (audio)
+            if (isAudioEnabled)
             {
                 streamIndex = ffmpeg.av_find_best_stream(formatContext, AVMediaType.AVMEDIA_TYPE_AUDIO, -1, streamIndex, null, 0);
                 if (streamIndex < 0 && audioOnly)
@@ -541,12 +540,6 @@ namespace osu.Framework.Graphics.Video
                 if (openCodecResult < 0)
                 {
                     Logger.Log($"Error trying to open {decoder.Name} codec: {getErrorMessage(openCodecResult)}");
-                    continue;
-                }
-
-                if (audio && !prepareResampler())
-                {
-                    Logger.Log("Error trying to prepare audio resampler");
                     continue;
                 }
 
@@ -653,7 +646,7 @@ namespace osu.Framework.Graphics.Video
 
         internal int DecodeNextAudioFrame(int iteration, ref byte[] decodedAudio, bool decodeUntilEnd = false)
         {
-            if (!audio)
+            if (audioStream == null)
             {
                 decodedAudio = Array.Empty<byte>();
                 return 0;
@@ -705,7 +698,7 @@ namespace osu.Framework.Graphics.Video
 
                 AVCodecContext* codecContext =
                     !audioOnly && packet->stream_index == videoStream->index ? videoCodecContext
-                    : audio && packet->stream_index == audioStream->index ? audioCodecContext : null;
+                    : audioStream != null && packet->stream_index == audioStream->index ? audioCodecContext : null;
 
                 if (codecContext != null)
                 {
@@ -727,7 +720,7 @@ namespace osu.Framework.Graphics.Video
                 if (!audioOnly)
                     sendPacket(videoCodecContext, receiveFrame, null);
 
-                if (audio)
+                if (audioStream != null)
                 {
                     sendPacket(audioCodecContext, receiveFrame, null);
                     resampleAndAppendToAudioStream(null); // flush audio resampler
@@ -801,7 +794,7 @@ namespace osu.Framework.Graphics.Video
 
                 double frameTime = 0.0;
 
-                if (audio && codecContext->codec_type == AVMediaType.AVMEDIA_TYPE_AUDIO)
+                if (audioStream != null && codecContext->codec_type == AVMediaType.AVMEDIA_TYPE_AUDIO)
                 {
                     frameTime = (frameTimestamp - audioStream->start_time) * audioTimeBaseInSeconds * 1000;
 
@@ -869,7 +862,7 @@ namespace osu.Framework.Graphics.Video
 
         private void resampleAndAppendToAudioStream(AVFrame* frame)
         {
-            if (memoryStream == null)
+            if (memoryStream == null || audioStream == null)
                 return;
 
             int sampleCount;
