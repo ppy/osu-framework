@@ -644,7 +644,7 @@ namespace osu.Framework.Graphics.Video
 
         private MemoryStream memoryStream;
 
-        internal int DecodeNextAudioFrame(int iteration, ref byte[] decodedAudio, bool decodeUntilEnd = false)
+        internal int DecodeNextAudioFrame(int iteration, out byte[] decodedAudio, bool decodeUntilEnd = false)
         {
             if (audioStream == null)
             {
@@ -670,16 +670,13 @@ namespace osu.Framework.Graphics.Video
             {
                 Logger.Error(e, "VideoDecoder faulted while decoding audio");
                 State = DecoderState.Faulted;
+                decodedAudio = Array.Empty<byte>();
                 return 0;
             }
 
-            if (decodedAudio == null || decodedAudio.Length < memoryStream.Position)
-                decodedAudio = new byte[memoryStream.Position];
+            decodedAudio = memoryStream.GetBuffer();
 
-            int pos = (int)memoryStream.Position;
-
-            memoryStream.Position = 0;
-            return memoryStream.Read(decodedAudio, 0, pos);
+            return (int)memoryStream.Position;
         }
 
         private void decodeNextFrame(AVPacket* packet, AVFrame* receiveFrame)
@@ -910,7 +907,7 @@ namespace osu.Framework.Graphics.Video
                     // assuming that the destination and source are not planar as we never define planar in ctor
                     nbSamples = sampleCount;
 
-                    for (int i = 0; i < audioDest.Length; i++)
+                    for (int i = 0; i < audioSize; i++)
                     {
                         audioDest[i] = *(source[0] + i);
                     }

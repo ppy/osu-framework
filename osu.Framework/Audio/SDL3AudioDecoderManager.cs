@@ -499,7 +499,6 @@ namespace osu.Framework.Audio
             internal class FFmpegAudioDecoder : SDL3AudioDecoder
             {
                 private VideoDecoder? ffmpeg;
-                private byte[]? decodeData;
 
                 public FFmpegAudioDecoder(Stream stream, SDL_AudioSpec audioSpec, bool isTrack, bool autoDisposeStream, ISDL3AudioDataReceiver? pass)
                     : base(stream, audioSpec, isTrack, autoDisposeStream, pass)
@@ -508,8 +507,6 @@ namespace osu.Framework.Audio
 
                 internal override void Dispose()
                 {
-                    decodeData = null;
-
                     ffmpeg?.Dispose();
                     ffmpeg = null;
 
@@ -533,12 +530,11 @@ namespace osu.Framework.Audio
                         Loading = true;
                     }
 
-                    int got = ffmpeg.DecodeNextAudioFrame(32, ref decodeData, !IsTrack);
+                    int got = ffmpeg.DecodeNextAudioFrame(32, out decoded, !IsTrack);
 
                     if (ffmpeg.State != VideoDecoder.DecoderState.Running)
                         Loading = false;
 
-                    decoded = decodeData;
                     return got;
                 }
             }
