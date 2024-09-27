@@ -145,5 +145,8 @@ jobs:
         # see https://github.com/xamarin/xamarin-macios/issues/16400.
         run: dotnet workload install ios
 
+      - name: Select Xcode 16
+        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
+
       - name: Compile
         run: dotnet build -c Debug osu-framework.iOS.slnf
