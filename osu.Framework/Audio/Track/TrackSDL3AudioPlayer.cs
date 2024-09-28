@@ -95,15 +95,18 @@ namespace osu.Framework.Audio.Track
                 throw new InvalidOperationException($"Use {nameof(PrepareStream)} before calling this");
 
             int floatLen = length / sizeof(float);
+            long currentLen = audioDataLength;
 
-            if (audioDataLength + floatLen > AudioData.LongLength)
-                prepareArray(audioDataLength + floatLen);
+            if (currentLen + floatLen > AudioData.LongLength)
+                prepareArray(currentLen + floatLen);
 
             for (int i = 0; i < floatLen; i++)
             {
                 float src = BitConverter.ToSingle(next, i * sizeof(float));
-                AudioData[audioDataLength++] = src;
+                AudioData[currentLen++] = src;
             }
+
+            Interlocked.Exchange(ref audioDataLength, currentLen);
         }
 
         internal void DonePutting()

@@ -200,6 +200,7 @@ namespace osu.Framework.Graphics.Video
             : this(audioStream)
         {
             audioOnly = true;
+            hwDecodingAllowed = false;
             EnableAudioDecoding(rate, channels, isFloat, bits, signed);
         }
 
@@ -246,7 +247,7 @@ namespace osu.Framework.Graphics.Video
                 if (audioStream != null)
                 {
                     ffmpeg.avcodec_flush_buffers(audioCodecContext);
-                    ffmpeg.av_seek_frame(formatContext, audioStream->index, (long)(targetTimestamp / videoTimeBaseInSeconds / 1000.0), FFmpegFuncs.AVSEEK_FLAG_BACKWARD);
+                    ffmpeg.av_seek_frame(formatContext, audioStream->index, (long)(targetTimestamp / audioTimeBaseInSeconds / 1000.0), FFmpegFuncs.AVSEEK_FLAG_BACKWARD);
                 }
 
                 skipOutputUntilTime = targetTimestamp;
@@ -433,6 +434,9 @@ namespace osu.Framework.Graphics.Video
             if (findStreamInfoResult < 0)
                 throw new InvalidOperationException($"Error finding stream info: {getErrorMessage(findStreamInfoResult)}");
 
+            packet = ffmpeg.av_packet_alloc();
+            receiveFrame = ffmpeg.av_frame_alloc();
+
             int streamIndex = -1;
 
             if (!audioOnly)
@@ -467,9 +471,6 @@ namespace osu.Framework.Graphics.Video
                         Duration = formatContext->duration / (double)FFmpegFuncs.AV_TIME_BASE * 1000.0;
                 }
             }
-
-            packet = ffmpeg.av_packet_alloc();
-            receiveFrame = ffmpeg.av_frame_alloc();
         }
 
         internal void OpenAudioStream()
@@ -644,7 +645,7 @@ namespace osu.Framework.Graphics.Video
 
         private MemoryStream memoryStream;
 
-        internal int DecodeNextAudioFrame(int iteration, out byte[] decodedAudio, bool decodeUntilEnd = false)
+        internal int DecodeNextAudioFrame(out byte[] decodedAudio, bool decodeUntilEnd = false)
         {
             if (audioStream == null)
             {
@@ -656,15 +657,14 @@ namespace osu.Framework.Graphics.Video
 
             try
             {
-                int i = 0;
-
-                while (decodeUntilEnd || i++ < iteration)
+                do
                 {
                     decodeNextFrame(packet, receiveFrame);
 
                     if (State != DecoderState.Running)
                         break;
                 }
+                while (decodeUntilEnd);
             }
             catch (Exception e)
             {

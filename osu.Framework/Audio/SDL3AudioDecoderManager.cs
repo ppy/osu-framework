@@ -444,7 +444,7 @@ namespace osu.Framework.Audio
 
                             if (info.Channels != AudioSpec.channels || info.Frequency != AudioSpec.freq)
                             {
-                                resampler = BassMix.CreateMixerStream(AudioSpec.freq, AudioSpec.channels, BassFlags.MixerEnd | BassFlags.Decode | resolution.ToBassFlag());
+                                resampler = BassMix.CreateMixerStream(AudioSpec.freq, AudioSpec.channels, BassFlags.Decode | resolution.ToBassFlag());
 
                                 if (resampler == 0)
                                     throw new FormatException($"Failed to create BASS Mixer: {Bass.LastError}");
@@ -530,7 +530,7 @@ namespace osu.Framework.Audio
                         Loading = true;
                     }
 
-                    int got = ffmpeg.DecodeNextAudioFrame(32, out decoded, !IsTrack);
+                    int got = ffmpeg.DecodeNextAudioFrame(out decoded, !IsTrack);
 
                     if (ffmpeg.State != VideoDecoder.DecoderState.Running)
                         Loading = false;
