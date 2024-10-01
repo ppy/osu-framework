@@ -61,8 +61,8 @@ namespace osu.Framework.Graphics.Sprites
         private Axes textureTextureInsetRelativeAxes;
 
         /// <summary>
-        /// Controls which <see cref="Axes"/> of <see cref="TextureInset"/> are relative insets w.r.t.
-        /// <see chref="Sprite.Texture"/>'s <see cref="Texture.DisplaySize"/> (from 0 to 1) rather than absolute.
+        /// Controls which <see cref="Axes"/> of <see cref="TextureInset"/> are relative w.r.t.
+        /// <see cref="NineSliceSprite.Texture"/>'s <see cref="Texture.DisplaySize"/> (from 0 to 1) rather than absolute.
         /// </summary>
         /// <remarks>
         /// When setting this property, the <see cref="TextureInset"/> is converted such that
