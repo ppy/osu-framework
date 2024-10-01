@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Layout;
+using osu.Framework.Utils;
 using osuTK;
 
 namespace osu.Framework.Graphics.Sprites
@@ -40,6 +42,7 @@ namespace osu.Framework.Graphics.Sprites
 
         /// <summary>
         /// The inset of the texture that will remain unscaled when resizing this <see cref="NineSliceSprite"/>.
+        /// May be absolute or relative units (controlled by <see cref="TextureInsetRelativeAxes"/>).
         /// </summary>
         public MarginPadding TextureInset
         {
@@ -51,20 +54,98 @@ namespace osu.Framework.Graphics.Sprites
 
                 textureInset = value;
 
-                invalidateTextureRects();
+                invalidateGeometry();
             }
         }
 
-        private void invalidateTextureRects()
+        private Axes textureTextureInsetRelativeAxes;
+
+        /// <summary>
+        /// Controls which <see cref="Axes"/> of <see cref="TextureInset"/> are relative insets w.r.t.
+        /// <see chref="Sprite.Texture"/>'s <see cref="Texture.DisplaySize"/> (from 0 to 1) rather than absolute.
+        /// </summary>
+        /// <remarks>
+        /// When setting this property, the <see cref="TextureInset"/> is converted such that
+        /// the resulting <see cref="TextureInset"/> is within the bounds of <see cref="Texture"/>.
+        /// </remarks>
+        public Axes TextureInsetRelativeAxes
+        {
+            get => textureTextureInsetRelativeAxes;
+            set
+            {
+                if (textureTextureInsetRelativeAxes == value)
+                    return;
+
+                Vector2 textureSize = Texture.DisplaySize;
+
+                Vector2 conversion = Vector2.One;
+
+                if ((value & Axes.X) > 0 && (textureTextureInsetRelativeAxes & Axes.X) == 0)
+                    conversion.X = Precision.AlmostEquals(textureSize.X, 0) ? 0 : 1 / textureSize.X;
+                else if ((value & Axes.X) == 0 && (textureTextureInsetRelativeAxes & Axes.X) > 0)
+                    conversion.X = textureSize.X;
+
+                if ((value & Axes.Y) > 0 && (textureTextureInsetRelativeAxes & Axes.Y) == 0)
+                    conversion.Y = Precision.AlmostEquals(textureSize.Y, 0) ? 0 : 1 / textureSize.Y;
+                else if ((value & Axes.Y) == 0 && (textureTextureInsetRelativeAxes & Axes.Y) > 0)
+                    conversion.Y = textureSize.Y;
+
+                textureInset *= conversion;
+
+                textureTextureInsetRelativeAxes = value;
+
+                invalidateGeometry();
+            }
+        }
+
+        private void invalidateGeometry()
         {
             textureRectsBacking.Invalidate();
             drawQuadsBacking.Invalidate();
             Invalidate(Invalidation.DrawNode);
         }
 
-        private MarginPadding relativeTextureInset => Texture != null ? textureInset / Texture.Size : default;
+        private MarginPadding relativeTextureInset
+        {
+            get
+            {
+                if (Texture == null)
+                    return default;
 
-        private MarginPadding relativeGeometryInset => textureInset / DrawSize;
+                Vector2 conversion = Vector2.One;
+
+                if ((TextureInsetRelativeAxes & Axes.X) == 0)
+                    conversion.X = Precision.AlmostEquals(Texture.DisplayWidth, 0) ? 0 : 1 / Texture.DisplayWidth;
+
+                if ((TextureInsetRelativeAxes & Axes.Y) == 0)
+                    conversion.Y = Precision.AlmostEquals(Texture.DisplayHeight, 0) ? 0 : 1 / Texture.DisplayHeight;
+
+                return textureInset * conversion;
+            }
+        }
+
+        private MarginPadding relativeGeometryInset
+        {
+            get
+            {
+                if (Texture == null)
+                    return default;
+
+                var result = textureInset;
+
+                var conversion = new Vector2(
+                    Precision.AlmostEquals(DrawWidth, 0) ? 0 : 1 / DrawWidth,
+                    Precision.AlmostEquals(DrawHeight, 0) ? 0 : 1 / DrawHeight
+                );
+
+                if ((TextureInsetRelativeAxes & Axes.X) != 0)
+                    conversion.X *= Texture.DisplayWidth;
+                if ((TextureInsetRelativeAxes & Axes.Y) != 0)
+                    conversion.Y *= Texture.DisplayHeight;
+
+                return result * conversion;
+            }
+        }
 
         protected override DrawNode CreateDrawNode() => new NineSliceSpriteDrawNode(this);
 

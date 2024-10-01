@@ -21,6 +21,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         private readonly Bindable<float> bottomInset = new BindableFloat(100) { MinValue = 0 };
         private readonly Bindable<float> leftInset = new BindableFloat(100) { MinValue = 0 };
         private readonly Bindable<float> rightInset = new BindableFloat(100) { MinValue = 0 };
+        private readonly Bindable<Axes> relativeInsetAxes = new Bindable<Axes>();
 
         private NineSliceSprite sprite = null!;
 
@@ -32,27 +33,58 @@ namespace osu.Framework.Tests.Visual.Sprites
                 new FillFlowContainer
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Width = 0.5f,
+                    Width = 0.3f,
                     Direction = FillDirection.Vertical,
                     Spacing = new Vector2(10),
                     Padding = new MarginPadding(10),
                     Children = new Drawable[]
                     {
-                        new InsetTextBox("Left", leftInset),
-                        new InsetTextBox("Right", rightInset),
-                        new InsetTextBox("Top", topInset),
-                        new InsetTextBox("Bottom", bottomInset)
+                        new LabelledContainer("Left")
+                        {
+                            Child = new InsetTextBox(leftInset) { TabbableContentContainer = this }
+                        },
+                        new LabelledContainer("Right")
+                        {
+                            Child = new InsetTextBox(rightInset) { TabbableContentContainer = this }
+                        },
+                        new LabelledContainer("Top")
+                        {
+                            Child = new InsetTextBox(topInset) { TabbableContentContainer = this }
+                        },
+                        new LabelledContainer("Bottom")
+                        {
+                            Child = new InsetTextBox(bottomInset) { TabbableContentContainer = this }
+                        },
+                        new LabelledContainer("RelativeInsetAxes")
+                        {
+                            Child = new Container
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                Height = 30,
+                                Child = new BasicDropdown<Axes>
+                                {
+                                    RelativeSizeAxes = Axes.X,
+                                    Items = new Axes[]
+                                    {
+                                        Axes.None,
+                                        Axes.X,
+                                        Axes.Y,
+                                        Axes.Both,
+                                    },
+                                    Current = relativeInsetAxes,
+                                }
+                            }
+                        }
                     }
                 },
                 new Container
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Width = 0.5f,
+                    Width = 0.7f,
                     Anchor = Anchor.TopRight,
                     Origin = Anchor.TopRight,
                     Child = sprite = new NineSliceSprite
                     {
-                        // Scale = new Vector2(0.5f),
                         Texture = textures.Get("sample-texture.png"),
                         TextureInset = new MarginPadding(100),
                     }
@@ -68,52 +100,39 @@ namespace osu.Framework.Tests.Visual.Sprites
             topInset.BindValueChanged(e => sprite.TextureInset = sprite.TextureInset with { Top = e.NewValue });
             rightInset.BindValueChanged(e => sprite.TextureInset = sprite.TextureInset with { Right = e.NewValue });
             bottomInset.BindValueChanged(e => sprite.TextureInset = sprite.TextureInset with { Bottom = e.NewValue });
+
+            relativeInsetAxes.BindValueChanged(e =>
+            {
+                sprite.TextureInsetRelativeAxes = e.NewValue;
+
+                leftInset.Value = sprite.TextureInset.Left;
+                topInset.Value = sprite.TextureInset.Top;
+                rightInset.Value = sprite.TextureInset.Right;
+                bottomInset.Value = sprite.TextureInset.Bottom;
+            });
         }
 
-        private partial class InsetTextBox : CompositeDrawable
+        private partial class InsetTextBox : BasicTextBox
         {
-            private readonly TextBox textBox;
-
             private readonly Bindable<float> insetValue;
 
-            public InsetTextBox(string label, Bindable<float> insetValue)
+            public InsetTextBox(Bindable<float> insetValue)
             {
-                RelativeSizeAxes = Axes.X;
-                AutoSizeAxes = Axes.Y;
-
                 this.insetValue = insetValue.GetBoundCopy();
 
-                AddRangeInternal(new Drawable[]
-                {
-                    new SpriteText
-                    {
-                        Text = label,
-                        Anchor = Anchor.CentreLeft,
-                        Origin = Anchor.CentreLeft,
-                    },
-                    new Container
-                    {
-                        RelativeSizeAxes = Axes.X,
-                        AutoSizeAxes = Axes.Y,
-                        Padding = new MarginPadding { Left = 80 },
-                        Child = textBox = new BasicTextBox
-                        {
-                            RelativeSizeAxes = Axes.X,
-                            Height = 40,
-                            Text = insetValue.Value.ToString(CultureInfo.InvariantCulture),
-                            CommitOnFocusLost = true,
-                        }
-                    }
-                });
+                RelativeSizeAxes = Axes.X;
+                Height = 30;
+                Text = insetValue.Value.ToString(CultureInfo.InvariantCulture);
+                CommitOnFocusLost = true;
             }
 
             protected override void LoadComplete()
             {
                 base.LoadComplete();
 
-                textBox.OnCommit += textBoxOnCommit;
+                OnCommit += textBoxOnCommit;
 
-                textBox.TabbableContentContainer = Parent;
+                insetValue.BindValueChanged(e => Text = e.NewValue.ToString(CultureInfo.InvariantCulture));
             }
 
             private void textBoxOnCommit(TextBox textBox, bool newText)
@@ -123,6 +142,36 @@ namespace osu.Framework.Tests.Visual.Sprites
                 else
                     textBox.Text = insetValue.Value.ToString(CultureInfo.InvariantCulture);
             }
+        }
+
+        private partial class LabelledContainer : Container
+        {
+            public LabelledContainer(string label)
+            {
+                RelativeSizeAxes = Axes.X;
+                AutoSizeAxes = Axes.Y;
+
+                InternalChildren = new Drawable[]
+                {
+                    new SpriteText
+                    {
+                        Text = label,
+                        Font = FrameworkFont.Regular.With(size: 20),
+                        Anchor = Anchor.CentreLeft,
+                        Origin = Anchor.CentreLeft,
+                    },
+                    content = new Container
+                    {
+                        Padding = new MarginPadding { Left = 140 },
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y
+                    }
+                };
+            }
+
+            private readonly Container content;
+
+            protected override Container<Drawable> Content => content;
         }
     }
 }
