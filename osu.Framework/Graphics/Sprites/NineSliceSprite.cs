@@ -76,21 +76,24 @@ namespace osu.Framework.Graphics.Sprites
                 if (textureInsetRelativeAxes == value)
                     return;
 
-                Vector2 textureSize = Texture.DisplaySize;
+                if (Texture != null)
+                {
+                    Vector2 textureSize = Texture.DisplaySize;
 
-                Vector2 conversion = Vector2.One;
+                    Vector2 conversion = Vector2.One;
 
-                if ((value & Axes.X) > 0 && (textureInsetRelativeAxes & Axes.X) == 0)
-                    conversion.X = Precision.AlmostEquals(textureSize.X, 0) ? 0 : 1 / textureSize.X;
-                else if ((value & Axes.X) == 0 && (textureInsetRelativeAxes & Axes.X) > 0)
-                    conversion.X = textureSize.X;
+                    if ((value & Axes.X) > 0 && (textureInsetRelativeAxes & Axes.X) == 0)
+                        conversion.X = Precision.AlmostEquals(textureSize.X, 0) ? 0 : 1 / textureSize.X;
+                    else if ((value & Axes.X) == 0 && (textureInsetRelativeAxes & Axes.X) > 0)
+                        conversion.X = textureSize.X;
 
-                if ((value & Axes.Y) > 0 && (textureInsetRelativeAxes & Axes.Y) == 0)
-                    conversion.Y = Precision.AlmostEquals(textureSize.Y, 0) ? 0 : 1 / textureSize.Y;
-                else if ((value & Axes.Y) == 0 && (textureInsetRelativeAxes & Axes.Y) > 0)
-                    conversion.Y = textureSize.Y;
+                    if ((value & Axes.Y) > 0 && (textureInsetRelativeAxes & Axes.Y) == 0)
+                        conversion.Y = Precision.AlmostEquals(textureSize.Y, 0) ? 0 : 1 / textureSize.Y;
+                    else if ((value & Axes.Y) == 0 && (textureInsetRelativeAxes & Axes.Y) > 0)
+                        conversion.Y = textureSize.Y;
 
-                textureInset *= conversion;
+                    textureInset *= conversion;
+                }
 
                 textureInsetRelativeAxes = value;
 
