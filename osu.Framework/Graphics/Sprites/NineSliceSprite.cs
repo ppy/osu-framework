@@ -285,18 +285,7 @@ namespace osu.Framework.Graphics.Sprites
                     return;
 
                 for (int i = 0; i < DrawQuads.Count; i++)
-                {
-                    renderer.DrawQuad(
-                        Texture,
-                        DrawQuads[i],
-                        DrawColourInfo.Colour,
-                        null,
-                        null,
-                        Vector2.Zero,
-                        null,
-                        TextureRects[i]
-                    );
-                }
+                    renderer.DrawQuad(Texture, DrawQuads[i], DrawColourInfo.Colour, null, null, Vector2.Zero, null, TextureRects[i]);
             }
 
             protected IReadOnlyList<RectangleF> TextureRects { get; private set; } = null!;
