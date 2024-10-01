@@ -151,7 +151,7 @@ namespace osu.Framework.Graphics.Sprites
 
         private readonly LayoutValue<RectangleF[]> textureRectsBacking = new LayoutValue<RectangleF[]>(Invalidation.DrawInfo);
 
-        private readonly LayoutValue<Quad[]> drawQuadsBacking = new LayoutValue<Quad[]>(Invalidation.DrawSize);
+        private readonly LayoutValue<Quad[]> drawQuadsBacking = new LayoutValue<Quad[]>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence);
 
         internal IReadOnlyList<RectangleF> TextureRects => textureRectsBacking.IsValid ? textureRectsBacking.Value : textureRectsBacking.Value = computeTextureRects();
 
