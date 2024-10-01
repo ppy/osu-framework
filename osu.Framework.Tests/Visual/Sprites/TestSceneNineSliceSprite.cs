@@ -85,7 +85,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                     Origin = Anchor.TopRight,
                     Child = sprite = new NineSliceSprite
                     {
-                        Texture = textures.Get("sample-texture.png"),
+                        Texture = textures.Get("sample-nine-slice-texture.png"),
                         TextureInset = new MarginPadding(100),
                     }
                 }
