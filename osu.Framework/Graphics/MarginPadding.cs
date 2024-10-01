@@ -104,15 +104,6 @@ namespace osu.Framework.Graphics
                 Bottom = mp.Bottom * v.Y,
             };
 
-        public static MarginPadding operator /(MarginPadding mp, Vector2 v) =>
-            new MarginPadding
-            {
-                Left = mp.Left / v.X,
-                Top = mp.Top / v.Y,
-                Right = mp.Right / v.X,
-                Bottom = mp.Bottom / v.Y,
-            };
-
         public MarginPadding ValueAt<TEasing>(double time, MarginPadding startValue, MarginPadding endValue, double startTime, double endTime, in TEasing easing)
             where TEasing : IEasingFunction
             => new MarginPadding
