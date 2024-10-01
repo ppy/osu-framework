@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Events;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.Sprites
@@ -141,6 +142,13 @@ namespace osu.Framework.Tests.Visual.Sprites
                     insetValue.Value = value;
                 else
                     textBox.Text = insetValue.Value.ToString(CultureInfo.InvariantCulture);
+            }
+
+            protected override void OnFocus(FocusEvent e)
+            {
+                base.OnFocus(e);
+
+                SelectAll();
             }
         }
 
