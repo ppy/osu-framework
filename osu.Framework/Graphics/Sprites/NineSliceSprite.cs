@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private Axes textureTextureInsetRelativeAxes;
+        private Axes textureInsetRelativeAxes;
 
         /// <summary>
         /// Controls which <see cref="Axes"/> of <see cref="TextureInset"/> are relative w.r.t.
@@ -70,29 +70,29 @@ namespace osu.Framework.Graphics.Sprites
         /// </remarks>
         public Axes TextureInsetRelativeAxes
         {
-            get => textureTextureInsetRelativeAxes;
+            get => textureInsetRelativeAxes;
             set
             {
-                if (textureTextureInsetRelativeAxes == value)
+                if (textureInsetRelativeAxes == value)
                     return;
 
                 Vector2 textureSize = Texture.DisplaySize;
 
                 Vector2 conversion = Vector2.One;
 
-                if ((value & Axes.X) > 0 && (textureTextureInsetRelativeAxes & Axes.X) == 0)
+                if ((value & Axes.X) > 0 && (textureInsetRelativeAxes & Axes.X) == 0)
                     conversion.X = Precision.AlmostEquals(textureSize.X, 0) ? 0 : 1 / textureSize.X;
-                else if ((value & Axes.X) == 0 && (textureTextureInsetRelativeAxes & Axes.X) > 0)
+                else if ((value & Axes.X) == 0 && (textureInsetRelativeAxes & Axes.X) > 0)
                     conversion.X = textureSize.X;
 
-                if ((value & Axes.Y) > 0 && (textureTextureInsetRelativeAxes & Axes.Y) == 0)
+                if ((value & Axes.Y) > 0 && (textureInsetRelativeAxes & Axes.Y) == 0)
                     conversion.Y = Precision.AlmostEquals(textureSize.Y, 0) ? 0 : 1 / textureSize.Y;
-                else if ((value & Axes.Y) == 0 && (textureTextureInsetRelativeAxes & Axes.Y) > 0)
+                else if ((value & Axes.Y) == 0 && (textureInsetRelativeAxes & Axes.Y) > 0)
                     conversion.Y = textureSize.Y;
 
                 textureInset *= conversion;
 
-                textureTextureInsetRelativeAxes = value;
+                textureInsetRelativeAxes = value;
 
                 invalidateGeometry();
             }
