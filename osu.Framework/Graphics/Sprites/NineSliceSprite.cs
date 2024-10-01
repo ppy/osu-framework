@@ -65,8 +65,8 @@ namespace osu.Framework.Graphics.Sprites
         /// <see cref="Sprite.Texture"/>'s <see cref="Texture.DisplaySize"/> (from 0 to 1) rather than absolute.
         /// </summary>
         /// <remarks>
-        /// When setting this property, the <see cref="TextureInset"/> is converted such that
-        /// the resulting <see cref="TextureInset"/> is within the bounds of <see cref="Sprite.Texture"/>.
+        /// When setting this property, the <see cref="TextureInset"/> is converted such that the absolute TextureInset
+        /// remains invariant.
         /// </remarks>
         public Axes TextureInsetRelativeAxes
         {
