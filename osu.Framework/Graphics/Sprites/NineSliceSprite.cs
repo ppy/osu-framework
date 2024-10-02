@@ -58,11 +58,24 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
+        public override Texture Texture
+        {
+            get => base.Texture;
+            set
+            {
+                if (value == Texture)
+                    return;
+
+                base.Texture = value;
+                invalidateGeometry();
+            }
+        }
+
         private Axes textureInsetRelativeAxes;
 
         /// <summary>
         /// Controls which <see cref="Axes"/> of <see cref="TextureInset"/> are relative w.r.t.
-        /// <see cref="Sprite.Texture"/>'s <see cref="Texture.DisplaySize"/> (from 0 to 1) rather than absolute.
+        /// <see cref="NineSliceSprite.Texture"/>'s <see cref="Texture.DisplaySize"/> (from 0 to 1) rather than absolute.
         /// </summary>
         /// <remarks>
         /// When setting this property, the <see cref="TextureInset"/> is converted such that the absolute TextureInset
