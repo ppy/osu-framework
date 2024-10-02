@@ -3,9 +3,16 @@
 
 using System;
 using System.Buffers;
+using System.Threading;
 
 namespace osu.Framework.Graphics.Transforms
 {
+    internal static class TransformSequenceStatics
+    {
+        private static ulong id = 1;
+        public static ulong NextId() => Interlocked.Increment(ref id);
+    }
+
     internal static class TransformSequenceStatics<T>
         where T : class, ITransformable
     {
@@ -20,7 +27,7 @@ namespace osu.Framework.Graphics.Transforms
         where T : class, ITransformable
     {
         public required T Target { get; init; }
-        public required Guid SequenceId { get; init; }
+        public required ulong SequenceId { get; init; }
         public required double StartTime { get; init; }
 
         public int SequenceLength { get; init; }
@@ -41,7 +48,7 @@ namespace osu.Framework.Graphics.Transforms
             return new TransformSequence<T>
             {
                 Target = target,
-                SequenceId = Guid.NewGuid(),
+                SequenceId = TransformSequenceStatics.NextId(),
                 StartTime = target.TransformStartTime,
                 CurrentTime = target.TransformStartTime,
                 EndTime = target.TransformStartTime

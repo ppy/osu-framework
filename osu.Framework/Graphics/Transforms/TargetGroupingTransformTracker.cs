@@ -31,8 +31,8 @@ namespace osu.Framework.Graphics.Transforms
 
         private readonly Transformable transformable;
 
-        private readonly HashSet<Guid> abortedSequences = new HashSet<Guid>();
-        private readonly HashSet<Guid> completedSequences = new HashSet<Guid>();
+        private readonly HashSet<ulong> abortedSequences = new HashSet<ulong>();
+        private readonly HashSet<ulong> completedSequences = new HashSet<ulong>();
 
         /// <summary>
         /// Used to assign a monotonically increasing ID to <see cref="Transform"/>s as they are added. This member is
@@ -143,8 +143,7 @@ namespace osu.Framework.Graphics.Transforms
                             flushAppliedCache = true;
                             i--;
 
-                            if (u.SequenceID is Guid sequenceID)
-                                abortedSequences.Add(sequenceID);
+                            abortedSequences.Add(u.SequenceID);
                         }
                         else
                             u.AppliedToEnd = true;
@@ -199,8 +198,8 @@ namespace osu.Framework.Graphics.Transforms
                             transforms.Add(t);
                             flushAppliedCache = true;
                         }
-                        else if (t.SequenceID is Guid sequenceID)
-                            completedSequences.Add(sequenceID);
+                        else
+                            completedSequences.Add(t.SequenceID);
                     }
                 }
 
@@ -247,9 +246,7 @@ namespace osu.Framework.Graphics.Transforms
                 if (t.TargetMember == transform.TargetMember)
                 {
                     transforms.RemoveAt(i--);
-
-                    if (t.SequenceID is Guid sequenceID)
-                        abortedSequences.Add(sequenceID);
+                    abortedSequences.Add(t.SequenceID);
                 }
             }
 
@@ -287,9 +284,7 @@ namespace osu.Framework.Graphics.Transforms
                     if (t.StartTime >= time)
                     {
                         transforms.RemoveAt(i--);
-
-                        if (t.SequenceID is Guid sequenceID)
-                            abortedSequences.Add(sequenceID);
+                        abortedSequences.Add(t.SequenceID);
                     }
                 }
             }
@@ -302,9 +297,7 @@ namespace osu.Framework.Graphics.Transforms
                     if (t.TargetMember == targetMember && t.StartTime >= time)
                     {
                         transforms.RemoveAt(i--);
-
-                        if (t.SequenceID is Guid sequenceID)
-                            abortedSequences.Add(sequenceID);
+                        abortedSequences.Add(t.SequenceID);
                     }
                 }
             }
@@ -348,8 +341,11 @@ namespace osu.Framework.Graphics.Transforms
 
         private void invokePendingRemovalActions()
         {
-            foreach (var sequenceId in completedSequences)
+            foreach (ulong sequenceId in completedSequences)
             {
+                if (sequenceId == 0)
+                    continue;
+
                 if (transformable.GetTransformEventHandler(sequenceId) is TransformSequenceEventHandler handler)
                 {
                     transformable.RemoveTransformNoAbort(handler);
@@ -357,8 +353,11 @@ namespace osu.Framework.Graphics.Transforms
                 }
             }
 
-            foreach (var sequenceId in abortedSequences)
+            foreach (ulong sequenceId in abortedSequences)
             {
+                if (sequenceId == 0)
+                    continue;
+
                 for (int i = 0; i < transforms.Count; i++)
                 {
                     if (transforms[i].SequenceID == sequenceId)

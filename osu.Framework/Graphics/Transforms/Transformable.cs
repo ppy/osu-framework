@@ -175,9 +175,9 @@ namespace osu.Framework.Graphics.Transforms
 
         public IEnumerable<Transform> GetTransforms() => Transforms;
 
-        public TransformSequenceEventHandler GetTransformEventHandler(Guid? sequenceId)
+        public TransformSequenceEventHandler GetTransformEventHandler(ulong sequenceId)
         {
-            if (sequenceId == null)
+            if (sequenceId == 0)
                 return null;
 
             TargetGroupingTransformTracker tracker = getTrackerForGrouping(TransformSequenceEventHandler.GROUP, false);

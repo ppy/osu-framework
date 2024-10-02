@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.Transforms
         public double StartTime { get; internal set; }
         public double EndTime { get; internal set; }
 
-        internal Guid? SequenceID;
+        internal ulong SequenceID;
         internal Transform SequenceLast;
 
         public bool IsLooping => LoopCount == -1 || LoopCount > 0;

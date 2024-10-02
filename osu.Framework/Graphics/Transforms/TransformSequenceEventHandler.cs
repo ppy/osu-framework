@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Transforms
         public override string TargetMember => SequenceID.ToString()!;
         public override string TargetGrouping => GROUP;
 
-        public TransformSequenceEventHandler(ITransformable target, Guid sequenceId)
+        public TransformSequenceEventHandler(ITransformable target, ulong sequenceId)
         {
             TargetTransformable = target;
             SequenceID = sequenceId;

@@ -42,6 +42,6 @@ namespace osu.Framework.Graphics.Transforms
 
         IEnumerable<Transform> GetTransforms();
 
-        TransformSequenceEventHandler? GetTransformEventHandler(Guid? sequenceId);
+        TransformSequenceEventHandler? GetTransformEventHandler(ulong sequenceId);
     }
 }
