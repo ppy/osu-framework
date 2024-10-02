@@ -165,7 +165,7 @@ namespace osu.Framework.Graphics.Sprites
 
         protected override DrawNode CreateDrawNode() => new NineSliceSpriteDrawNode(this);
 
-        private readonly LayoutValue<RectangleF[]> textureRectsBacking = new LayoutValue<RectangleF[]>(Invalidation.DrawInfo);
+        private readonly LayoutValue<RectangleF[]> textureRectsBacking = new LayoutValue<RectangleF[]>(Invalidation.DrawSize);
 
         private readonly LayoutValue<Quad[]> drawQuadsBacking = new LayoutValue<Quad[]>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence);
 
