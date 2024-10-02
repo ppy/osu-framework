@@ -65,7 +65,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                                 Child = new BasicDropdown<Axes>
                                 {
                                     RelativeSizeAxes = Axes.X,
-                                    Items = new Axes[]
+                                    Items = new[]
                                     {
                                         Axes.None,
                                         Axes.X,
