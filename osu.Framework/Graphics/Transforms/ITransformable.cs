@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using osu.Framework.Allocation;
 using osu.Framework.Timing;
 
@@ -33,8 +34,14 @@ namespace osu.Framework.Graphics.Transforms
 
         double TransformStartTime { get; }
 
-        void AddTransform(Transform transform, ulong? customTransformID = null);
+        void AddTransform(Transform transform);
 
         void RemoveTransform(Transform toRemove);
+
+        internal void RemoveTransformNoAbort(Transform toRemove);
+
+        IEnumerable<Transform> GetTransforms();
+
+        TransformSequenceEventHandler? GetTransformEventHandler(Guid? sequenceId);
     }
 }

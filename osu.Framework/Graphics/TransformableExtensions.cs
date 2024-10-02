@@ -49,7 +49,8 @@ namespace osu.Framework.Graphics
         /// <param name="easing">The transform easing to be used for tweening.</param>
         /// <param name="grouping">An optional grouping specification to be used when the same property may be touched by multiple transform types.</param>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<TThis> TransformTo<TThis, TValue, TEasing>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, in TEasing easing, string grouping = null)
+        public static TransformSequence<TThis> TransformTo<TThis, TValue, TEasing>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, in TEasing easing,
+                                                                                   string grouping = null)
             where TThis : class, ITransformable
             where TEasing : IEasingFunction
             => t.TransformTo(t.MakeTransform(propertyOrFieldName, newValue, duration, easing, grouping));
@@ -61,13 +62,9 @@ namespace osu.Framework.Graphics
         /// <param name="t">The <see cref="ITransformable"/> to apply the <see cref="Transform{TValue, T}"/> to.</param>
         /// <param name="transform">The transform to use.</param>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<TThis> TransformTo<TThis>(this TThis t, Transform transform) where TThis : class, ITransformable
-        {
-            var result = new TransformSequence<TThis>(t);
-            result.Add(transform);
-            t.AddTransform(transform);
-            return result;
-        }
+        public static TransformSequence<TThis> TransformTo<TThis>(this TThis t, Transform transform)
+            where TThis : class, ITransformable
+            => TransformSequence<TThis>.Create(t).Add(transform);
 
         /// <summary>
         /// Creates a <see cref="Transform{TValue, T}"/> for smoothly changing <paramref name="propertyOrFieldName"/>
@@ -103,7 +100,8 @@ namespace osu.Framework.Graphics
         /// <param name="easing">The transform easing to be used for tweening.</param>
         /// <param name="grouping">An optional grouping specification to be used when the same property may be touched by multiple transform types.</param>
         /// <returns>The resulting <see cref="Transform{TValue, T}"/>.</returns>
-        public static Transform<TValue, TEasing, TThis> MakeTransform<TThis, TEasing, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, in TEasing easing, string grouping = null)
+        public static Transform<TValue, TEasing, TThis> MakeTransform<TThis, TEasing, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, in TEasing easing,
+                                                                                              string grouping = null)
             where TThis : class, ITransformable
             where TEasing : IEasingFunction
             => t.PopulateTransform(new TransformCustom<TValue, TEasing, TThis>(propertyOrFieldName, grouping), newValue, duration, easing);
@@ -178,91 +176,22 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Applies <paramref name="childGenerators"/> via TransformSequence.Append(IEnumerable{Generator})/>.
-        /// </summary>
-        /// <typeparam name="T">The type of the <see cref="ITransformable"/> the <see cref="Transform{TValue, T}"/> can be applied to.</typeparam>
-        /// <param name="transformable">The <see cref="ITransformable"/> the <see cref="Transform{TValue, T}"/> will be applied to.</param>
-        /// <param name="childGenerators">The optional Generators for <see cref="TransformSequence{T}"/>s to be appended.</param>
-        /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
-        public static TransformSequence<T> Animate<T>(this T transformable, params TransformSequence<T>.Generator[] childGenerators) where T : class, ITransformable =>
-            transformable.Delay(0, childGenerators);
-
-        /// <summary>
         /// Advances the start time of future appended <see cref="TransformSequence{T}"/>s by <paramref name="delay"/> milliseconds.
-        /// Then, <paramref name="childGenerators"/> are appended via TransformSequence.Append(IEnumerable{Generator})/>.
         /// </summary>
         /// <typeparam name="T">The type of the <see cref="ITransformable"/> the <see cref="Transform{TValue, T}"/> can be applied to.</typeparam>
         /// <param name="transformable">The <see cref="ITransformable"/> the <see cref="Transform{TValue, T}"/> will be applied to.</param>
         /// <param name="delay">The delay to advance the start time by.</param>
-        /// <param name="childGenerators">The optional Generators for <see cref="TransformSequence{T}"/>s to be appended.</param>
         /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
-        public static TransformSequence<T> Delay<T>(this T transformable, double delay, params TransformSequence<T>.Generator[] childGenerators) where T : class, ITransformable =>
-            new TransformSequence<T>(transformable).Delay(delay, childGenerators);
+        public static TransformSequence<T> Delay<T>(this T transformable, double delay) where T : class, ITransformable
+            => TransformSequence<T>.Create(transformable).Delay(delay);
 
         /// <summary>
         /// Returns a <see cref="TransformSequence{T}"/> which waits for all existing transforms to finish.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> which has a delay waiting for all transforms to be completed.</returns>
         public static TransformSequence<T> DelayUntilTransformsFinished<T>(this T transformable)
-            where T : Transformable =>
-            transformable.Delay(Math.Max(0, transformable.LatestTransformEndTime - transformable.Time.Current));
-
-        /// <summary>
-        /// Append a looping <see cref="TransformSequence{T}"/> to this <see cref="TransformSequence{T}"/>.
-        /// All <see cref="Transform"/>s generated by <paramref name="childGenerators"/> are appended to
-        /// this <see cref="TransformSequence{T}"/> and then repeated <paramref name="numIters"/> times
-        /// with <paramref name="pause"/> milliseconds between iterations.
-        /// </summary>
-        /// <typeparam name="T">The type of the <see cref="ITransformable"/> the <see cref="Transform{TValue, T}"/> can be applied to.</typeparam>
-        /// <param name="transformable">The <see cref="ITransformable"/> the <see cref="Transform{TValue, T}"/> will be applied to.</param>
-        /// <param name="pause">The pause between iterations in milliseconds.</param>
-        /// <param name="numIters">The number of iterations.</param>
-        /// <param name="childGenerators">The functions to generate the <see cref="TransformSequence{T}"/>s to be looped.</param>
-        /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
-        public static TransformSequence<T> Loop<T>(this T transformable, double pause, int numIters, params TransformSequence<T>.Generator[] childGenerators)
-            where T : class, ITransformable =>
-            transformable.Delay(0).Loop(pause, numIters, childGenerators);
-
-        /// <summary>
-        /// Append a looping <see cref="TransformSequence{T}"/> to this <see cref="TransformSequence{T}"/>.
-        /// All <see cref="Transform"/>s generated by <paramref name="childGenerators"/> are appended to
-        /// this <see cref="TransformSequence{T}"/> and then repeated indefinitely with <paramref name="pause"/>
-        /// milliseconds between iterations.
-        /// </summary>
-        /// <typeparam name="T">The type of the <see cref="ITransformable"/> the <see cref="Transform{TValue, T}"/> can be applied to.</typeparam>
-        /// <param name="transformable">The <see cref="ITransformable"/> the <see cref="Transform{TValue, T}"/> will be applied to.</param>
-        /// <param name="pause">The pause between iterations in milliseconds.</param>
-        /// <param name="childGenerators">The functions to generate the <see cref="TransformSequence{T}"/>s to be looped.</param>
-        /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
-        public static TransformSequence<T> Loop<T>(this T transformable, double pause, params TransformSequence<T>.Generator[] childGenerators)
-            where T : class, ITransformable =>
-            transformable.Delay(0).Loop(pause, childGenerators);
-
-        /// <summary>
-        /// Append a looping <see cref="TransformSequence{T}"/> to this <see cref="TransformSequence{T}"/>.
-        /// All <see cref="Transform"/>s generated by <paramref name="childGenerators"/> are appended to
-        /// this <see cref="TransformSequence{T}"/> and then repeated indefinitely.
-        /// milliseconds between iterations.
-        /// </summary>
-        /// <typeparam name="T">The type of the <see cref="ITransformable"/> the <see cref="Transform{TValue, T}"/> can be applied to.</typeparam>
-        /// <param name="transformable">The <see cref="ITransformable"/> the <see cref="Transform{TValue, T}"/> will be applied to.</param>
-        /// <param name="childGenerators">The functions to generate the <see cref="TransformSequence{T}"/>s to be looped.</param>
-        /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
-        public static TransformSequence<T> Loop<T>(this T transformable, params TransformSequence<T>.Generator[] childGenerators)
-            where T : class, ITransformable =>
-            transformable.Delay(0).Loop(childGenerators);
-
-        /// <summary>
-        /// Append a looping <see cref="TransformSequence{T}"/> to this <see cref="TransformSequence{T}"/> to repeat indefinitely with <paramref name="pause"/>
-        /// milliseconds between iterations.
-        /// </summary>
-        /// <typeparam name="T">The type of the <see cref="ITransformable"/> the <see cref="Transform{TValue, T}"/> can be applied to.</typeparam>
-        /// <param name="transformable">The <see cref="ITransformable"/> the <see cref="Transform{TValue, T}"/> will be applied to.</param>
-        /// <param name="pause">The pause between iterations in milliseconds.</param>
-        /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
-        public static TransformSequence<T> Loop<T>(this T transformable, double pause = 0)
-            where T : class, ITransformable =>
-            transformable.Delay(0).Loop(pause);
+            where T : Transformable
+            => transformable.Delay(Math.Max(0, transformable.LatestTransformEndTime - transformable.Time.Current));
 
         /// <summary>
         /// Rotate over one full rotation with provided parameters.
@@ -270,7 +199,9 @@ namespace osu.Framework.Graphics
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
         public static TransformSequence<T> Spin<T>(this T drawable, double revolutionDuration, RotationDirection direction, float startRotation = 0)
             where T : Drawable
-            => drawable.Delay(0).Spin(revolutionDuration, direction, startRotation);
+            => drawable.RotateTo(startRotation)
+                       .RotateTo(startRotation + (direction == RotationDirection.Clockwise ? 360 : -360), revolutionDuration)
+                       .Loop(0, -1);
 
         /// <summary>
         /// Rotate <paramref name="numRevolutions"/> times with provided parameters.
@@ -278,7 +209,9 @@ namespace osu.Framework.Graphics
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
         public static TransformSequence<T> Spin<T>(this T drawable, double revolutionDuration, RotationDirection direction, float startRotation, int numRevolutions)
             where T : Drawable
-            => drawable.Delay(0).Spin(revolutionDuration, direction, startRotation, numRevolutions);
+            => drawable.RotateTo(startRotation)
+                       .RotateTo(startRotation + (direction == RotationDirection.Clockwise ? 360 : -360), revolutionDuration)
+                       .Loop(0, numRevolutions);
 
         #region Easing
 
@@ -771,6 +704,47 @@ namespace osu.Framework.Graphics
             where T : class, ITransformable
             where TEasing : IEasingFunction
             => drawable.TransformTo(drawable.PopulateTransform(new TransformBindable<TValue, TEasing, T>(bindable), newValue, duration, easing));
+
+        #endregion
+
+        #region Compatibility
+
+        [Obsolete("For compatibility use only, replacement: X.Y().Z()")]
+        public static TransformSequence<T> Animate<T>(this T transformable, params TransformSequence<T>.Generator[] childGenerators)
+            where T : Drawable
+        {
+            // Create the inner sequence.
+            TransformSequence<T> inner = TransformSequence<T>.Create(transformable);
+            foreach (var gen in childGenerators)
+                inner = inner.Merge().With(gen(transformable));
+
+            // Return an empty outer sequence - inner sequence is hidden.
+            return TransformSequence<T>.Create(transformable);
+        }
+
+        [Obsolete("For compatibility use only, replacement: X.Y().Z().Loop(pause, numIters)")]
+        public static TransformSequence<T> Loop<T>(this T transformable, double pause, int numIters, params TransformSequence<T>.Generator[] childGenerators)
+            where T : Drawable
+        {
+            // Create the inner sequence.
+            TransformSequence<T> sequence = TransformSequence<T>.Create(transformable);
+            foreach (var gen in childGenerators)
+                sequence = sequence.Merge().With(gen(transformable));
+            sequence.Loop(pause, numIters);
+
+            // Return an empty outer sequence - inner sequence is hidden.
+            return TransformSequence<T>.Create(transformable);
+        }
+
+        [Obsolete("For compatibility use only, replacement: X.Y().Z().Loop(pause)")]
+        public static TransformSequence<T> Loop<T>(this T transformable, double pause, params TransformSequence<T>.Generator[] childGenerators)
+            where T : Drawable
+            => transformable.Loop(pause, -1, childGenerators);
+
+        [Obsolete("For compatibility use only, replacement: X.Y().Z().Loop()")]
+        public static TransformSequence<T> Loop<T>(this T transformable, params TransformSequence<T>.Generator[] childGenerators)
+            where T : Drawable
+            => transformable.Loop(0, -1, childGenerators);
 
         #endregion
 

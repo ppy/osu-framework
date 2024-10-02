@@ -44,6 +44,6 @@ namespace osu.Framework.Graphics.UserInterface
     public static class CounterTransformSequenceExtensions
     {
         public static TransformSequence<Counter> CountTo(this TransformSequence<Counter> t, double endCount, double duration = 0, Easing easing = Easing.None)
-            => t.Append(o => o.CountTo(endCount, duration, easing));
+            => t.Merge().With(t.Target.CountTo(endCount, duration, easing));
     }
 }

@@ -31,7 +31,8 @@ namespace osu.Framework.Graphics.Transforms
 
         private readonly Transformable transformable;
 
-        private readonly Queue<(ITransformSequence sequence, Action<ITransformSequence> action)> removalActions = new Queue<(ITransformSequence, Action<ITransformSequence>)>();
+        private readonly HashSet<Guid> abortedSequences = new HashSet<Guid>();
+        private readonly HashSet<Guid> completedSequences = new HashSet<Guid>();
 
         /// <summary>
         /// Used to assign a monotonically increasing ID to <see cref="Transform"/>s as they are added. This member is
@@ -142,8 +143,8 @@ namespace osu.Framework.Graphics.Transforms
                             flushAppliedCache = true;
                             i--;
 
-                            if (u.AbortTargetSequence != null)
-                                removalActions.Enqueue((u.AbortTargetSequence, s => s.TransformAborted()));
+                            if (u.SequenceID is Guid sequenceID)
+                                abortedSequences.Add(sequenceID);
                         }
                         else
                             u.AppliedToEnd = true;
@@ -198,8 +199,8 @@ namespace osu.Framework.Graphics.Transforms
                             transforms.Add(t);
                             flushAppliedCache = true;
                         }
-                        else if (t.CompletionTargetSequence != null)
-                            removalActions.Enqueue((t.CompletionTargetSequence, s => s.TransformCompleted()));
+                        else if (t.SequenceID is Guid sequenceID)
+                            completedSequences.Add(sequenceID);
                     }
                 }
 
@@ -221,10 +222,9 @@ namespace osu.Framework.Graphics.Transforms
         /// If <see cref="Transformable.Clock"/> is null, e.g. because this object has just been constructed, then the given transform will be finished instantaneously.
         /// </summary>
         /// <param name="transform">The <see cref="Transform"/> to be added.</param>
-        /// <param name="customTransformID">When not null, the <see cref="Transform.TransformID"/> to assign for ordering.</param>
-        public void AddTransform(Transform transform, ulong? customTransformID = null)
+        public void AddTransform(Transform transform)
         {
-            Debug.Assert(!(transform.TransformID == 0 && transforms.Contains(transform)), $"Zero-id {nameof(Transform)}s should never be contained already.");
+            Debug.Assert(!(transform.TransformID is null && transforms.Contains(transform)), $"Zero-id {nameof(Transform)}s should never be contained already.");
 
             if (transform.TargetGrouping != TargetGrouping)
                 throw new ArgumentException($"Target grouping \"{transform.TargetGrouping}\" does not match this tracker's grouping \"{TargetGrouping}\".", nameof(transform));
@@ -232,10 +232,10 @@ namespace osu.Framework.Graphics.Transforms
             targetMembers.Add(transform.TargetMember);
 
             // This contains check may be optimized away in the future, should it become a bottleneck
-            if (transform.TransformID != 0 && transforms.Contains(transform))
+            if (transform.TransformID is not null && transforms.Contains(transform))
                 throw new InvalidOperationException($"{nameof(Transformable)} may not contain the same {nameof(Transform)} more than once.");
 
-            transform.TransformID = customTransformID ?? ++currentTransformID;
+            transform.TransformID ??= ++currentTransformID;
             int insertionIndex = transforms.Add(transform);
             resetLastAppliedCache();
 
@@ -247,8 +247,9 @@ namespace osu.Framework.Graphics.Transforms
                 if (t.TargetMember == transform.TargetMember)
                 {
                     transforms.RemoveAt(i--);
-                    if (t.AbortTargetSequence != null)
-                        removalActions.Enqueue((t.AbortTargetSequence, s => s.TransformAborted()));
+
+                    if (t.SequenceID is Guid sequenceID)
+                        abortedSequences.Add(sequenceID);
                 }
             }
 
@@ -286,8 +287,9 @@ namespace osu.Framework.Graphics.Transforms
                     if (t.StartTime >= time)
                     {
                         transforms.RemoveAt(i--);
-                        if (t.AbortTargetSequence != null)
-                            removalActions.Enqueue((t.AbortTargetSequence, s => s.TransformAborted()));
+
+                        if (t.SequenceID is Guid sequenceID)
+                            abortedSequences.Add(sequenceID);
                     }
                 }
             }
@@ -300,8 +302,9 @@ namespace osu.Framework.Graphics.Transforms
                     if (t.TargetMember == targetMember && t.StartTime >= time)
                     {
                         transforms.RemoveAt(i--);
-                        if (t.AbortTargetSequence != null)
-                            removalActions.Enqueue((t.AbortTargetSequence, s => s.TransformAborted()));
+
+                        if (t.SequenceID is Guid sequenceID)
+                            abortedSequences.Add(sequenceID);
                     }
                 }
             }
@@ -339,14 +342,38 @@ namespace osu.Framework.Graphics.Transforms
                 }
 
                 t.Apply(t.EndTime);
-                t.TriggerComplete();
+                transformable.GetTransformEventHandler(t.SequenceID)?.TriggerComplete();
             }
         }
 
         private void invokePendingRemovalActions()
         {
-            while (removalActions.TryDequeue(out var item))
-                item.action(item.sequence);
+            foreach (var sequenceId in completedSequences)
+            {
+                if (transformable.GetTransformEventHandler(sequenceId) is TransformSequenceEventHandler handler)
+                {
+                    transformable.RemoveTransformNoAbort(handler);
+                    handler.TriggerComplete();
+                }
+            }
+
+            foreach (var sequenceId in abortedSequences)
+            {
+                for (int i = 0; i < transforms.Count; i++)
+                {
+                    if (transforms[i].SequenceID == sequenceId)
+                        transforms.RemoveAt(i--);
+                }
+
+                if (transformable.GetTransformEventHandler(sequenceId) is TransformSequenceEventHandler handler)
+                {
+                    transformable.RemoveTransformNoAbort(handler);
+                    handler.TriggerAbort();
+                }
+            }
+
+            completedSequences.Clear();
+            abortedSequences.Clear();
         }
 
         /// <summary>
