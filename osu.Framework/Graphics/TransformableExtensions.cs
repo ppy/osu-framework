@@ -722,6 +722,14 @@ namespace osu.Framework.Graphics
             return branch.Merge();
         }
 
+        public static TransformSequence<T> Loop<T>(this T transformable, params TransformSequence<T>.Generator[] childGenerators)
+            where T : Drawable
+            => transformable.Loop(0, -1, childGenerators);
+
+        public static TransformSequence<T> Loop<T>(this T transformable, double pause, params TransformSequence<T>.Generator[] childGenerators)
+            where T : Drawable
+            => transformable.Loop(pause, -1, childGenerators);
+
         public static TransformSequence<T> Loop<T>(this T transformable, double pause, int numIters, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
         {
@@ -733,14 +741,6 @@ namespace osu.Framework.Graphics
 
             return branch.Merge();
         }
-
-        public static TransformSequence<T> Loop<T>(this T transformable, double pause, params TransformSequence<T>.Generator[] childGenerators)
-            where T : Drawable
-            => transformable.Loop(pause, -1, childGenerators);
-
-        public static TransformSequence<T> Loop<T>(this T transformable, params TransformSequence<T>.Generator[] childGenerators)
-            where T : Drawable
-            => transformable.Loop(0, -1, childGenerators);
 
         #endregion
 

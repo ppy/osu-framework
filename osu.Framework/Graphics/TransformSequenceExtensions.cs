@@ -514,6 +514,14 @@ namespace osu.Framework.Graphics
 
         #region Compatibility
 
+        public static TransformSequence<T> Loop<T>(this TransformSequence<T> t, params TransformSequence<T>.Generator[] childGenerators)
+            where T : Drawable
+            => t.Loop(0, -1, childGenerators);
+
+        public static TransformSequence<T> Loop<T>(this TransformSequence<T> t, double pause, params TransformSequence<T>.Generator[] childGenerators)
+            where T : Drawable
+            => t.Loop(pause, -1, childGenerators);
+
         public static TransformSequence<T> Loop<T>(this TransformSequence<T> t, double pause, int numIters, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
         {
@@ -526,13 +534,13 @@ namespace osu.Framework.Graphics
             return branch.Merge();
         }
 
-        public static TransformSequence<T> Loop<T>(this TransformSequence<T> t, double pause, params TransformSequence<T>.Generator[] childGenerators)
+        public static TransformSequence<T> Delay<T>(this TransformSequence<T> t, double delay, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
-            => t.Loop(pause, -1, childGenerators);
+            => t.Then(delay, childGenerators);
 
-        public static TransformSequence<T> Loop<T>(this TransformSequence<T> t, params TransformSequence<T>.Generator[] childGenerators)
+        public static TransformSequence<T> Then<T>(this TransformSequence<T> t, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
-            => t.Loop(0, -1, childGenerators);
+            => t.Then(0, childGenerators);
 
         public static TransformSequence<T> Then<T>(this TransformSequence<T> t, double delay, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
@@ -545,14 +553,6 @@ namespace osu.Framework.Graphics
 
             return branch.Merge();
         }
-
-        public static TransformSequence<T> Then<T>(this TransformSequence<T> t, params TransformSequence<T>.Generator[] childGenerators)
-            where T : Drawable
-            => t.Then(0, childGenerators);
-
-        public static TransformSequence<T> Delay<T>(this TransformSequence<T> t, double delay, params TransformSequence<T>.Generator[] childGenerators)
-            where T : Drawable
-            => t.Then(delay, childGenerators);
 
         #endregion
     }
