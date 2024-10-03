@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.Video
         private SwsContext* swsContext;
 
         private AVStream* audioStream;
-        private AVCodecContext* audioCodecContext => audioStream->codec;
+        private AVCodecContext* audioCodecContext;
         private SwrContext* swrContext;
 
         private avio_alloc_context_read_packet readPacketCallback;
@@ -473,48 +473,43 @@ namespace osu.Framework.Graphics.Video
             }
         }
 
-        internal void OpenAudioStream()
+        internal void RecreateCodecContext()
         {
-            if (audioStream == null)
-                return;
+            RecreateCodecContext(ref videoStream, ref videoCodecContext, hwDecodingAllowed);
+            RecreateCodecContext(ref audioStream, ref audioCodecContext, false);
 
-            int result = ffmpeg.avcodec_open2(audioStream->codec, ffmpeg.avcodec_find_decoder(audioStream->codec->codec_id), null);
-
-            if (result < 0)
-                throw new InvalidDataException($"Error trying to open audio codec: {getErrorMessage(result)}");
-
-            if (!prepareResampler())
+            if (audioCodecContext != null && !prepareResampler())
                 throw new InvalidDataException("Error trying to prepare audio resampler");
         }
 
-        internal void RecreateCodecContext()
+        internal void RecreateCodecContext(ref AVStream* stream, ref AVCodecContext* codecContext, bool allowHwDecoding)
         {
-            if (videoStream == null)
+            if (stream == null)
                 return;
 
-            var codecParams = *videoStream->codecpar;
-            var targetHwDecoders = hwDecodingAllowed ? TargetHardwareVideoDecoders.Value : HardwareVideoDecoder.None;
+            var codecParams = *stream->codecpar;
+            var targetHwDecoders = allowHwDecoding ? TargetHardwareVideoDecoders.Value : HardwareVideoDecoder.None;
             bool openSuccessful = false;
 
             foreach (var (decoder, hwDeviceType) in GetAvailableDecoders(formatContext->iformat, codecParams.codec_id, targetHwDecoders))
             {
                 // free context in case it was allocated in a previous iteration or recreate call.
-                if (videoCodecContext != null)
+                if (codecContext != null)
                 {
-                    fixed (AVCodecContext** ptr = &videoCodecContext)
+                    fixed (AVCodecContext** ptr = &codecContext)
                         ffmpeg.avcodec_free_context(ptr);
                 }
 
-                videoCodecContext = ffmpeg.avcodec_alloc_context3(decoder.Pointer);
-                videoCodecContext->pkt_timebase = videoStream->time_base;
+                codecContext = ffmpeg.avcodec_alloc_context3(decoder.Pointer);
+                codecContext->pkt_timebase = stream->time_base;
 
-                if (videoCodecContext == null)
+                if (codecContext == null)
                 {
                     Logger.Log($"Couldn't allocate codec context. Codec: {decoder.Name}");
                     continue;
                 }
 
-                int paramCopyResult = ffmpeg.avcodec_parameters_to_context(videoCodecContext, &codecParams);
+                int paramCopyResult = ffmpeg.avcodec_parameters_to_context(codecContext, &codecParams);
 
                 if (paramCopyResult < 0)
                 {
@@ -525,7 +520,7 @@ namespace osu.Framework.Graphics.Video
                 // initialize hardware decode context.
                 if (hwDeviceType != AVHWDeviceType.AV_HWDEVICE_TYPE_NONE)
                 {
-                    int hwDeviceCreateResult = ffmpeg.av_hwdevice_ctx_create(&videoCodecContext->hw_device_ctx, hwDeviceType, null, null, 0);
+                    int hwDeviceCreateResult = ffmpeg.av_hwdevice_ctx_create(&codecContext->hw_device_ctx, hwDeviceType, null, null, 0);
 
                     if (hwDeviceCreateResult < 0)
                     {
@@ -536,7 +531,7 @@ namespace osu.Framework.Graphics.Video
                     Logger.Log($"Successfully opened hardware video decoder context {hwDeviceType} for codec {decoder.Name}");
                 }
 
-                int openCodecResult = ffmpeg.avcodec_open2(videoCodecContext, decoder.Pointer, null);
+                int openCodecResult = ffmpeg.avcodec_open2(codecContext, decoder.Pointer, null);
 
                 if (openCodecResult < 0)
                 {
@@ -552,8 +547,6 @@ namespace osu.Framework.Graphics.Video
 
             if (!openSuccessful)
                 throw new InvalidOperationException($"No usable decoder found for codec ID {codecParams.codec_id}");
-
-            OpenAudioStream();
         }
 
         private bool prepareResampler()
@@ -867,12 +860,12 @@ namespace osu.Framework.Graphics.Video
 
             if (swrContext != null)
             {
-                sampleCount = (int)ffmpeg.swr_get_delay(swrContext, audioCodecContext->sample_rate);
+                sampleCount = (int)ffmpeg.swr_get_delay(swrContext, audioRate);
                 source = null;
 
                 if (frame != null)
                 {
-                    sampleCount = (int)Math.Ceiling((double)(sampleCount + frame->nb_samples) * audioRate / audioCodecContext->sample_rate);
+                    sampleCount = ffmpeg.swr_get_out_samples(swrContext, frame->nb_samples);
                     source = frame->data.ToArray();
                 }
 
@@ -1156,7 +1149,7 @@ namespace osu.Framework.Graphics.Video
                 swr_get_delay = FFmpeg.AutoGen.ffmpeg.swr_get_delay,
                 av_samples_get_buffer_size = FFmpeg.AutoGen.ffmpeg.av_samples_get_buffer_size,
                 av_get_default_channel_layout = FFmpeg.AutoGen.ffmpeg.av_get_default_channel_layout,
-                avcodec_find_decoder = FFmpeg.AutoGen.ffmpeg.avcodec_find_decoder
+                swr_get_out_samples = FFmpeg.AutoGen.ffmpeg.swr_get_out_samples,
             };
         }
 
@@ -1215,6 +1208,12 @@ namespace osu.Framework.Graphics.Video
                 if (videoCodecContext != null)
                 {
                     fixed (AVCodecContext** ptr = &videoCodecContext)
+                        ffmpeg.avcodec_free_context(ptr);
+                }
+
+                if (audioCodecContext != null)
+                {
+                    fixed (AVCodecContext** ptr = &audioCodecContext)
                         ffmpeg.avcodec_free_context(ptr);
                 }
 
