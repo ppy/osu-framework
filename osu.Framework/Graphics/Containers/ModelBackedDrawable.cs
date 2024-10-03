@@ -159,7 +159,7 @@ namespace osu.Framework.Graphics.Containers
                 // otherwise, we can hide the old wrapper instantaneously and leave a blank display
                 var hideTransforms = wrapper == null
                     ? ApplyHideTransforms(lastWrapper)
-                    : ((Drawable)lastWrapper)?.Delay(TransformDuration).CreateContinuation().Append(ApplyHideTransforms(lastWrapper));
+                    : ((Drawable)lastWrapper)?.Delay(TransformDuration).Continue(ApplyHideTransforms);
 
                 // Expire the last wrapper after the front-most transform has completed (the last wrapper is assumed to be invisible by that point)
                 (showTransforms ?? hideTransforms)?.OnComplete(_ => lastWrapper?.Expire());

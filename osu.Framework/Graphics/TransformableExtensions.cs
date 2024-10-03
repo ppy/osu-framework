@@ -715,24 +715,27 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> Animate<T>(this T transformable, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
         {
-            TransformSequence<T> inner = TransformSequence<T>.Create(transformable);
+            TransformSequence<T> outer = TransformSequence<T>.Create(transformable);
+            TransformSequenceBranch<T> branch = outer.CreateBranch();
+
             foreach (var gen in childGenerators)
-                inner = inner.CreateContinuation().Append(gen(transformable));
-            return TransformSequence<T>.Create(transformable).CreateContinuation().Append(inner);
+                branch.Commit(branch.Head.Continue(gen));
+
+            return outer.MergedWith(branch);
         }
 
         [Obsolete("For compatibility use only, replacement: X.Y().Z().Loop(pause, numIters)")]
         public static TransformSequence<T> Loop<T>(this T transformable, double pause, int numIters, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
         {
-            // Create the inner sequence.
-            TransformSequence<T> sequence = TransformSequence<T>.Create(transformable);
-            foreach (var gen in childGenerators)
-                sequence = sequence.CreateContinuation().Append(gen(transformable));
-            sequence.Loop(pause, numIters);
+            TransformSequence<T> outer = TransformSequence<T>.Create(transformable);
+            TransformSequenceBranch<T> branch = outer.CreateBranch();
 
-            // Return an empty outer sequence - inner sequence is hidden.
-            return TransformSequence<T>.Create(transformable);
+            foreach (var gen in childGenerators)
+                branch.Commit(branch.Head.Continue(gen));
+            branch.Commit(branch.Head.Loop(pause, numIters));
+
+            return outer.MergedWith(branch);
         }
 
         [Obsolete("For compatibility use only, replacement: X.Y().Z().Loop(pause)")]
