@@ -29,11 +29,6 @@ namespace osu.Framework.Graphics.Sprites
     /// </summary>
     public partial class NineSliceSprite : Sprite
     {
-        public NineSliceSprite()
-        {
-            Invalidate(Invalidation.DrawNode);
-        }
-
         private MarginPadding textureInset;
 
         /// <summary>
