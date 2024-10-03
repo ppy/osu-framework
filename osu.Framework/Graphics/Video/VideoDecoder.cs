@@ -655,9 +655,8 @@ namespace osu.Framework.Graphics.Video
                     decodeNextFrame(packet, receiveFrame);
 
                     if (State != DecoderState.Running)
-                        break;
-                }
-                while (decodeUntilEnd);
+                        decodeUntilEnd = false;
+                } while (decodeUntilEnd);
             }
             catch (Exception e)
             {
