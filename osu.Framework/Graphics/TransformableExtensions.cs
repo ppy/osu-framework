@@ -711,7 +711,6 @@ namespace osu.Framework.Graphics
 
         #region Compatibility
 
-        [Obsolete("For compatibility use only, replacement: X.Y().Z()")]
         public static TransformSequence<T> Animate<T>(this T transformable, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
         {
@@ -723,7 +722,6 @@ namespace osu.Framework.Graphics
             return branch.Merge();
         }
 
-        [Obsolete("For compatibility use only, replacement: X.Y().Z().Loop(pause, numIters)")]
         public static TransformSequence<T> Loop<T>(this T transformable, double pause, int numIters, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
         {
@@ -736,12 +734,10 @@ namespace osu.Framework.Graphics
             return branch.Merge();
         }
 
-        [Obsolete("For compatibility use only, replacement: X.Y().Z().Loop(pause)")]
         public static TransformSequence<T> Loop<T>(this T transformable, double pause, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
             => transformable.Loop(pause, -1, childGenerators);
 
-        [Obsolete("For compatibility use only, replacement: X.Y().Z().Loop()")]
         public static TransformSequence<T> Loop<T>(this T transformable, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
             => transformable.Loop(0, -1, childGenerators);

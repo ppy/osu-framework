@@ -514,7 +514,6 @@ namespace osu.Framework.Graphics
 
         #region Compatibility
 
-        [Obsolete("For compatibility use only, replacement: X().And().Y().Z().Loop(pause, numIters)")]
         public static TransformSequence<T> Loop<T>(this TransformSequence<T> t, double pause, int numIters, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
         {
@@ -527,17 +526,14 @@ namespace osu.Framework.Graphics
             return branch.Merge();
         }
 
-        [Obsolete("For compatibility use only, replacement: X().And().Y().Z().Loop(pause)")]
         public static TransformSequence<T> Loop<T>(this TransformSequence<T> t, double pause, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
             => t.Loop(pause, -1, childGenerators);
 
-        [Obsolete("For compatibility use only, replacement: X().And().Y().Z().Loop()")]
         public static TransformSequence<T> Loop<T>(this TransformSequence<T> t, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
             => t.Loop(0, -1, childGenerators);
 
-        [Obsolete("For compatibility use only, replacement: X().And().Then().Delay(delay).Y().Z()")]
         public static TransformSequence<T> Then<T>(this TransformSequence<T> t, double delay, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
         {
@@ -550,12 +546,10 @@ namespace osu.Framework.Graphics
             return branch.Merge();
         }
 
-        [Obsolete("For compatibility use only, replacement: X().And().Then().Y().Z()")]
         public static TransformSequence<T> Then<T>(this TransformSequence<T> t, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
             => t.Then(0, childGenerators);
 
-        [Obsolete("For compatibility use only, replacement: X().And().Delay(delay).Y().Z()")]
         public static TransformSequence<T> Delay<T>(this TransformSequence<T> t, double delay, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
             => t.Then(delay, childGenerators);
