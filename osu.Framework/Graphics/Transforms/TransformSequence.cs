@@ -235,25 +235,22 @@ namespace osu.Framework.Graphics.Transforms
             length = 0
         });
 
-        public TransformSequence<T> Finally(Action<T> function)
+        public void Finally(Action<T> function)
         {
             OnComplete(function);
             OnAbort(function);
-            return this;
         }
 
-        public TransformSequence<T> OnComplete(Action<T> function)
+        public void OnComplete(Action<T> function)
         {
             T t = target;
             getOrCreateEventHandler().OnComplete += () => function(t);
-            return this;
         }
 
-        public TransformSequence<T> OnAbort(Action<T> function)
+        public void OnAbort(Action<T> function)
         {
             T t = target;
             getOrCreateEventHandler().OnAbort += () => function(t);
-            return this;
         }
 
         private TransformSequenceEventHandler getOrCreateEventHandler()
