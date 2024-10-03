@@ -518,13 +518,13 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> Loop<T>(this TransformSequence<T> t, double pause, int numIters, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
         {
-            TransformSequenceBranch<T> branch = t.CreateBranch();
+            var branch = t.CreateBranch();
 
             foreach (var gen in childGenerators)
                 branch.Commit(branch.Head.Continue(gen));
             branch.Commit(branch.Head.Loop(pause, numIters));
 
-            return t.MergedWith(branch);
+            return branch.Merge();
         }
 
         [Obsolete("For compatibility use only, replacement: X().And().Y().Z().Loop(pause)")]
@@ -541,12 +541,13 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> Then<T>(this TransformSequence<T> t, double delay, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
         {
-            TransformSequenceBranch<T> branch = t.CreateBranch();
+            var branch = t.CreateBranch();
 
+            branch.Commit(branch.Head.Delay(delay));
             foreach (var gen in childGenerators)
                 branch.Commit(branch.Head.Continue(gen));
 
-            return t.MergedWith(branch);
+            return branch.Merge();
         }
 
         [Obsolete("For compatibility use only, replacement: X().And().Then().Y().Z()")]

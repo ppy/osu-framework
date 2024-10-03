@@ -715,27 +715,25 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> Animate<T>(this T transformable, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
         {
-            TransformSequence<T> outer = TransformSequence<T>.Create(transformable);
-            TransformSequenceBranch<T> branch = outer.CreateBranch();
+            var branch = TransformSequence<T>.Create(transformable).CreateBranch();
 
             foreach (var gen in childGenerators)
                 branch.Commit(branch.Head.Continue(gen));
 
-            return outer.MergedWith(branch);
+            return branch.Merge();
         }
 
         [Obsolete("For compatibility use only, replacement: X.Y().Z().Loop(pause, numIters)")]
         public static TransformSequence<T> Loop<T>(this T transformable, double pause, int numIters, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
         {
-            TransformSequence<T> outer = TransformSequence<T>.Create(transformable);
-            TransformSequenceBranch<T> branch = outer.CreateBranch();
+            var branch = TransformSequence<T>.Create(transformable).CreateBranch();
 
             foreach (var gen in childGenerators)
                 branch.Commit(branch.Head.Continue(gen));
             branch.Commit(branch.Head.Loop(pause, numIters));
 
-            return outer.MergedWith(branch);
+            return branch.Merge();
         }
 
         [Obsolete("For compatibility use only, replacement: X.Y().Z().Loop(pause)")]

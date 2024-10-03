@@ -10,13 +10,6 @@ using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    internal static class TransformSequenceHelpers
-    {
-        private static ulong id = 1;
-
-        public static ulong GetNextId() => Interlocked.Increment(ref id);
-    }
-
     public readonly struct TransformSequence<T>
         where T : class, ITransformable
     {
@@ -89,9 +82,12 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="transform">The transform.</param>
         public static TransformSequence<T> Create(Transform transform)
         {
-            TransformSequenceException.ThrowIfInvalidTransform<T>(transform);
+            if (transform.Target is null)
+                throwTargetIsNull();
 
-            T target = (T)transform.Target;
+            if (transform.Target is not T target)
+                throwTargetTypeMismatch(typeof(T), transform.Target.GetType());
+
             TransformSequence<T> sequence = Create(target);
 
             transform.SequenceID = sequence.id;
@@ -107,6 +103,14 @@ namespace osu.Framework.Graphics.Transforms
                 length = sequence.length + 1,
                 transform = transform
             };
+
+            [DoesNotReturn]
+            static void throwTargetIsNull()
+                => throw new ArgumentException("Transform target cannot be null.");
+
+            [DoesNotReturn]
+            static void throwTargetTypeMismatch(Type expected, Type actual)
+                => throw new ArgumentException($"Transform target was expected to be of type '{expected.ReadableName()}' but was '{actual.ReadableName()}'.");
         }
 
         /// <summary>
@@ -155,28 +159,6 @@ namespace osu.Framework.Graphics.Transforms
         public TransformSequence<T> Delay(double delay) => this with
         {
             currentTime = currentTime + delay
-        };
-
-        /// <summary>
-        /// Creates an empty branch from the current time.
-        /// </summary>
-        public TransformSequenceBranch<T> CreateBranch() => new TransformSequenceBranch<T>(this with
-        {
-            startTime = currentTime,
-            currentTime = currentTime,
-            endTime = currentTime,
-            length = 0
-        });
-
-        /// <summary>
-        /// Continues with the result of merging a branch into the current sequence.
-        /// </summary>
-        /// <param name="branch">The branch to merge.</param>
-        public TransformSequence<T> MergedWith(TransformSequenceBranch<T> branch) => this with
-        {
-            endTime = Math.Max(endTime, branch.Head.endTime),
-            length = length + branch.Head.length,
-            transform = branch.Head.transform
         };
 
         /// <summary>
@@ -249,6 +231,17 @@ namespace osu.Framework.Graphics.Transforms
             return this;
         }
 
+        /// <summary>
+        /// Creates an empty branch from the current time.
+        /// </summary>
+        public Branch CreateBranch() => new Branch(this with
+        {
+            startTime = currentTime,
+            currentTime = currentTime,
+            endTime = currentTime,
+            length = 0
+        });
+
         public TransformSequence<T> Finally(Action<T> function)
         {
             OnComplete(function);
@@ -277,6 +270,41 @@ namespace osu.Framework.Graphics.Transforms
             return handler;
         }
 
+        public ref struct Branch
+        {
+            /// <summary>
+            /// The current head.
+            /// </summary>
+            public TransformSequence<T> Head { get; private set; }
+
+            /// <summary>
+            /// The sequence which this branch is based off.
+            /// </summary>
+            private readonly TransformSequence<T> root;
+
+            internal Branch(TransformSequence<T> root)
+            {
+                this.root = root;
+                Head = root;
+            }
+
+            /// <summary>
+            /// Appends a commit.
+            /// </summary>
+            /// <param name="head">The new head.</param>
+            public void Commit(TransformSequence<T> head) => Head = head;
+
+            /// <summary>
+            /// Continues with the result of merging this branch into the original sequence.
+            /// </summary>
+            public TransformSequence<T> Merge() => root with
+            {
+                endTime = Math.Max(root.endTime, Head.endTime),
+                length = root.length + Head.length,
+                transform = Head.transform
+            };
+        }
+
         /// <summary>
         /// A delegate that generates a new <see cref="TransformSequence{T}"/> on a given <paramref name="origin"/>.
         /// </summary>
@@ -285,37 +313,10 @@ namespace osu.Framework.Graphics.Transforms
         public delegate TransformSequence<T> Generator(T origin);
     }
 
-    public ref struct TransformSequenceBranch<T>(TransformSequence<T> head)
-        where T : class, ITransformable
+    internal static class TransformSequenceHelpers
     {
-        public TransformSequence<T> Head { get; private set; } = head;
+        private static ulong id = 1;
 
-        public void Commit(TransformSequence<T> head) => Head = head;
-    }
-
-    public class TransformSequenceException : Exception
-    {
-        public TransformSequenceException(string message)
-            : base(message)
-        {
-        }
-
-        public static void ThrowIfInvalidTransform<T>(Transform transform)
-            where T : class, ITransformable
-        {
-            if (transform.Target is null)
-                throwTargetIsNull();
-
-            if (transform.Target is not T)
-                throwTargetTypeMismatch(typeof(T), transform.Target.GetType());
-        }
-
-        [DoesNotReturn]
-        private static void throwTargetIsNull()
-            => throw new TransformSequenceException("Transform target cannot be null.");
-
-        [DoesNotReturn]
-        private static void throwTargetTypeMismatch(Type expected, Type actual)
-            => throw new TransformSequenceException($"Transform target was expected to be of type '{expected.ReadableName()}' but was '{actual.ReadableName()}'.");
+        public static ulong GetNextId() => Interlocked.Increment(ref id);
     }
 }
