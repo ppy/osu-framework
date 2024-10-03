@@ -162,7 +162,7 @@ namespace osu.Framework.Graphics.Containers
                 if (wrapper == null)
                     hideTransforms = ApplyHideTransforms(lastWrapper);
                 else if (lastWrapper is Drawable last)
-                    hideTransforms = last.Delay(TransformDuration).Continue(ApplyHideTransforms);
+                    hideTransforms = last.Delay(TransformDuration).Next(ApplyHideTransforms);
 
                 // Expire the last wrapper after the front-most transform has completed (the last wrapper is assumed to be invisible by that point)
                 if (!showTransforms.IsEmpty)

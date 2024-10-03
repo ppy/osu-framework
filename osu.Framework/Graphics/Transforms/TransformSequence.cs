@@ -115,21 +115,21 @@ namespace osu.Framework.Graphics.Transforms
         /// Continues with an action on the target.
         /// </summary>
         [MustUseReturnValue]
-        public TransformSequence<T> Continue(Generator generator)
-            => generator(Continue());
+        public TransformSequence<T> Next(Generator generator)
+            => generator(Next());
 
         /// <summary>
         /// Continues with an action on the target.
         /// </summary>
         [MustUseReturnValue]
-        public T Continue()
-            => Continue(out _);
+        public T Next()
+            => Next(out _);
 
         /// <summary>
         /// Continues with an action on the target.
         /// </summary>
         [MustUseReturnValue]
-        public T Continue(out T continuationTarget)
+        public T Next(out T continuationTarget)
         {
             TransformSequenceHelpers.SaveContext(new Context(this));
             continuationTarget = target;

@@ -17,49 +17,49 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> Expire<T>(this TransformSequence<T> t, bool calculateLifetimeStart = false)
             where T : Drawable
         {
-            t.Continue().Expire(calculateLifetimeStart);
+            t.Next().Expire(calculateLifetimeStart);
             return t;
         }
 
         public static TransformSequence<T> Schedule<T, TData>(this TransformSequence<T> t, Action<TData> scheduledAction, TData data)
             where T : Drawable
         {
-            t.Continue().Schedule(scheduledAction, data);
+            t.Next().Schedule(scheduledAction, data);
             return t;
         }
 
         public static TransformSequence<T> Schedule<T>(this TransformSequence<T> t, Action scheduledAction)
             where T : Drawable
         {
-            t.Continue().Schedule(scheduledAction);
+            t.Next().Schedule(scheduledAction);
             return t;
         }
 
         public static TransformSequence<T> Schedule<T, TData>(this TransformSequence<T> t, Action<TData> scheduledAction, TData data, out ScheduledDelegate scheduledDelegate)
             where T : Drawable
         {
-            scheduledDelegate = t.Continue().Schedule(scheduledAction, data);
+            scheduledDelegate = t.Next().Schedule(scheduledAction, data);
             return t;
         }
 
         public static TransformSequence<T> Schedule<T>(this TransformSequence<T> t, Action scheduledAction, out ScheduledDelegate scheduledDelegate)
             where T : Drawable
         {
-            scheduledDelegate = t.Continue().Schedule(scheduledAction);
+            scheduledDelegate = t.Next().Schedule(scheduledAction);
             return t;
         }
 
         public static TransformSequence<T> TransformTo<T, TValue>(this TransformSequence<T> t, string propertyOrFieldName, TValue newValue, double duration = 0, Easing easing = Easing.None)
             where T : Drawable
-            => t.Continue().TransformTo(propertyOrFieldName, newValue, duration, easing);
+            => t.Next().TransformTo(propertyOrFieldName, newValue, duration, easing);
 
         public static TransformSequence<T> Spin<T>(this TransformSequence<T> t, double revolutionDuration, RotationDirection direction, float startRotation = 0)
             where T : Drawable
-            => t.Continue().Spin(revolutionDuration, direction, startRotation);
+            => t.Next().Spin(revolutionDuration, direction, startRotation);
 
         public static TransformSequence<T> Spin<T>(this TransformSequence<T> t, double revolutionDuration, RotationDirection direction, float startRotation, int numRevolutions)
             where T : Drawable
-            => t.Continue().Spin(revolutionDuration, direction, startRotation, numRevolutions);
+            => t.Next().Spin(revolutionDuration, direction, startRotation, numRevolutions);
 
         #region Easing
 
@@ -283,7 +283,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> FadeIn<T, TEasing>(this TransformSequence<T> t, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => t.Continue().FadeIn(duration, easing);
+            => t.Next().FadeIn(duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Alpha"/> from 0 to 1 over time.
@@ -292,7 +292,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> FadeInFromZero<T, TEasing>(this TransformSequence<T> t, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => t.Continue().FadeInFromZero(duration, easing);
+            => t.Next().FadeInFromZero(duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Alpha"/> to 0 over time.
@@ -301,7 +301,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> FadeOut<T, TEasing>(this TransformSequence<T> t, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => t.Continue().FadeOut(duration, easing);
+            => t.Next().FadeOut(duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Alpha"/> from 1 to 0 over time.
@@ -310,7 +310,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> FadeOutFromOne<T, TEasing>(this TransformSequence<T> t, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => t.Continue().FadeOutFromOne(duration, easing);
+            => t.Next().FadeOutFromOne(duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Alpha"/> over time.
@@ -319,7 +319,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> FadeTo<T, TEasing>(this TransformSequence<T> t, float newAlpha, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => t.Continue().FadeTo(newAlpha, duration, easing);
+            => t.Next().FadeTo(newAlpha, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Colour"/> over time.
@@ -328,7 +328,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> FadeColour<T, TEasing>(this TransformSequence<T> t, ColourInfo newColour, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => t.Continue().FadeColour(newColour, duration, easing);
+            => t.Next().FadeColour(newColour, duration, easing);
 
         /// <summary>
         /// Instantaneously flashes <see cref="Drawable.Colour"/>, then smoothly changes it back over time.
@@ -337,7 +337,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> FlashColour<T, TEasing>(this TransformSequence<T> t, ColourInfo flashColour, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => t.Continue().FlashColour(flashColour, duration, easing);
+            => t.Next().FlashColour(flashColour, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Rotation"/> over time.
@@ -346,7 +346,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> RotateTo<T, TEasing>(this TransformSequence<T> t, float newRotation, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => t.Continue().RotateTo(newRotation, duration, easing);
+            => t.Next().RotateTo(newRotation, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Scale"/> over time.
@@ -355,7 +355,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> ScaleTo<T, TEasing>(this TransformSequence<T> t, float newScale, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => t.Continue().ScaleTo(newScale, duration, easing);
+            => t.Next().ScaleTo(newScale, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Scale"/> over time.
@@ -364,7 +364,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> ScaleTo<T, TEasing>(this TransformSequence<T> t, Vector2 newScale, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => t.Continue().ScaleTo(newScale, duration, easing);
+            => t.Next().ScaleTo(newScale, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Size"/> over time.
@@ -373,7 +373,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> ResizeTo<T, TEasing>(this TransformSequence<T> t, float newSize, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => t.Continue().ResizeTo(newSize, duration, easing);
+            => t.Next().ResizeTo(newSize, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Size"/> over time.
@@ -382,7 +382,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> ResizeTo<T, TEasing>(this TransformSequence<T> t, Vector2 newSize, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => t.Continue().ResizeTo(newSize, duration, easing);
+            => t.Next().ResizeTo(newSize, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Width"/> over time.
@@ -391,7 +391,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> ResizeWidthTo<T, TEasing>(this TransformSequence<T> t, float newWidth, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => t.Continue().ResizeWidthTo(newWidth, duration, easing);
+            => t.Next().ResizeWidthTo(newWidth, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Height"/> over time.
@@ -400,7 +400,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> ResizeHeightTo<T, TEasing>(this TransformSequence<T> t, float newHeight, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => t.Continue().ResizeHeightTo(newHeight, duration, easing);
+            => t.Next().ResizeHeightTo(newHeight, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Position"/> over time.
@@ -409,7 +409,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> MoveTo<T, TEasing>(this TransformSequence<T> t, Vector2 newPosition, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => t.Continue().MoveTo(newPosition, duration, easing);
+            => t.Next().MoveTo(newPosition, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.X"/> or <see cref="Drawable.Y"/> over time.
@@ -418,7 +418,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> MoveTo<T, TEasing>(this TransformSequence<T> t, Direction direction, float destination, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => t.Continue().MoveTo(direction, destination, duration, easing);
+            => t.Next().MoveTo(direction, destination, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.X"/> over time.
@@ -427,7 +427,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> MoveToX<T, TEasing>(this TransformSequence<T> t, float destination, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => t.Continue().MoveToX(destination, duration, easing);
+            => t.Next().MoveToX(destination, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Y"/> over time.
@@ -436,7 +436,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> MoveToY<T, TEasing>(this TransformSequence<T> t, float destination, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => t.Continue().MoveToY(destination, duration, easing);
+            => t.Next().MoveToY(destination, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Position"/> by an offset to its final value over time.
@@ -445,7 +445,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> MoveToOffset<T, TEasing>(this TransformSequence<T> t, Vector2 offset, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => t.Continue().MoveToOffset(offset, duration, easing);
+            => t.Next().MoveToOffset(offset, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts the alpha channel of the colour of <see cref="IContainer.EdgeEffect"/> over time.
@@ -454,7 +454,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> FadeEdgeEffectTo<T, TEasing>(this TransformSequence<T> t, float newAlpha, double duration, TEasing easing)
             where T : class, IContainer
             where TEasing : IEasingFunction
-            => t.Continue().FadeEdgeEffectTo(newAlpha, duration, easing);
+            => t.Next().FadeEdgeEffectTo(newAlpha, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts the colour of <see cref="IContainer.EdgeEffect"/> over time.
@@ -463,7 +463,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> FadeEdgeEffectTo<T, TEasing>(this TransformSequence<T> t, Color4 newColour, double duration, TEasing easing)
             where T : class, IContainer
             where TEasing : IEasingFunction
-            => t.Continue().FadeEdgeEffectTo(newColour, duration, easing);
+            => t.Next().FadeEdgeEffectTo(newColour, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="IContainer.RelativeChildSize"/> over time.
@@ -472,7 +472,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> TransformRelativeChildSizeTo<T, TEasing>(this TransformSequence<T> t, Vector2 newSize, double duration, TEasing easing)
             where T : class, IContainer
             where TEasing : IEasingFunction
-            => t.Continue().TransformRelativeChildSizeTo(newSize, duration, easing);
+            => t.Next().TransformRelativeChildSizeTo(newSize, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="IContainer.RelativeChildOffset"/> over time.
@@ -481,7 +481,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> TransformRelativeChildOffsetTo<T, TEasing>(this TransformSequence<T> t, Vector2 newOffset, double duration, TEasing easing)
             where T : class, IContainer
             where TEasing : IEasingFunction
-            => t.Continue().TransformRelativeChildOffsetTo(newOffset, duration, easing);
+            => t.Next().TransformRelativeChildOffsetTo(newOffset, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="IBufferedContainer.BlurSigma"/> over time.
@@ -490,7 +490,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> BlurTo<T, TEasing>(this TransformSequence<T> t, Vector2 newBlurSigma, double duration, TEasing easing)
             where T : class, IBufferedContainer
             where TEasing : IEasingFunction
-            => t.Continue().BlurTo(newBlurSigma, duration, easing);
+            => t.Next().BlurTo(newBlurSigma, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="IFillFlowContainer.Spacing"/> over time.
@@ -499,7 +499,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> TransformSpacingTo<T, TEasing>(this TransformSequence<T> t, Vector2 newSpacing, double duration, TEasing easing)
             where T : class, IFillFlowContainer
             where TEasing : IEasingFunction
-            => t.Continue().TransformSpacingTo(newSpacing, duration, easing);
+            => t.Next().TransformSpacingTo(newSpacing, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts the value of a <see cref="Bindable{TValue}"/> over time.
@@ -508,7 +508,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> TransformBindableTo<T, TValue, TEasing>(this TransformSequence<T> t, Bindable<TValue> bindable, TValue newValue, double duration, TEasing easing)
             where T : class, ITransformable
             where TEasing : IEasingFunction
-            => t.Continue().TransformBindableTo(bindable, newValue, duration, easing);
+            => t.Next().TransformBindableTo(bindable, newValue, duration, easing);
 
         #endregion
 
@@ -528,7 +528,7 @@ namespace osu.Framework.Graphics
             var branch = t.CreateBranch();
 
             foreach (var gen in childGenerators)
-                branch.Commit(branch.Head.Continue(gen));
+                branch.Commit(branch.Head.Next(gen));
             branch.Commit(branch.Head.Loop(pause, numIters));
 
             return branch.Merge();
@@ -549,7 +549,7 @@ namespace osu.Framework.Graphics
 
             branch.Commit(branch.Head.Delay(delay));
             foreach (var gen in childGenerators)
-                branch.Commit(branch.Head.Continue(gen));
+                branch.Commit(branch.Head.Next(gen));
 
             return branch.Merge();
         }

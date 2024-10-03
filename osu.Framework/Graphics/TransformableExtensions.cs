@@ -717,7 +717,7 @@ namespace osu.Framework.Graphics
             var branch = TransformSequence<T>.Create(transformable).CreateBranch();
 
             foreach (var gen in childGenerators)
-                branch.Commit(branch.Head.Continue(gen));
+                branch.Commit(branch.Head.Next(gen));
 
             return branch.Merge();
         }
@@ -736,7 +736,7 @@ namespace osu.Framework.Graphics
             var branch = TransformSequence<T>.Create(transformable).CreateBranch();
 
             foreach (var gen in childGenerators)
-                branch.Commit(branch.Head.Continue(gen));
+                branch.Commit(branch.Head.Next(gen));
             branch.Commit(branch.Head.Loop(pause, numIters));
 
             return branch.Merge();
