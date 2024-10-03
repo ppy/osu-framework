@@ -3,52 +3,75 @@
 
 using System;
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    internal static class TransformSequenceStatics
+    internal static class TransformSequenceHelpers
     {
         private static ulong id = 1;
-        public static ulong NextId() => Interlocked.Increment(ref id);
-    }
 
-    internal static class TransformSequenceStatics<T>
-        where T : class, ITransformable
-    {
-        /// <summary>
-        /// The sequence providing the current context (<see cref="TransformSequence{T}.Merge()"/>).
-        /// </summary>
-        [ThreadStatic]
-        internal static TransformSequence<T>? CurrentContext;
+        public static ulong GetNextId() => Interlocked.Increment(ref id);
     }
 
     public readonly struct TransformSequence<T>
         where T : class, ITransformable
     {
-        public required T Target { get; init; }
-        public required ulong SequenceId { get; init; }
-        public required double StartTime { get; init; }
+        /// <summary>
+        /// A unique identifier for the sequence.
+        /// </summary>
+        public required ulong Id { get; init; }
 
-        public int SequenceLength { get; init; }
+        /// <summary>
+        /// The target to be transformed.
+        /// </summary>
+        public required T Target { get; init; }
+
+        /// <summary>
+        /// The time at which the sequence begins.
+        /// </summary>
+        public double StartTime { get; init; }
+
+        /// <summary>
+        /// The time at which any transforms added to the sequence will start from.
+        /// </summary>
         public double CurrentTime { get; init; }
+
+        /// <summary>
+        /// The time at which the sequence ends.
+        /// </summary>
         public double EndTime { get; init; }
+
+        /// <summary>
+        /// The number of transforms in the sequence and any of its continuations.
+        /// </summary>
+        public int Length { get; init; }
+
+        /// <summary>
+        /// The first transform added to the sequence.
+        /// </summary>
         public Transform? FirstTransform { get; init; }
+
+        /// <summary>
+        /// The last transform added to the sequence.
+        /// </summary>
         public Transform? LastTransform { get; init; }
 
         /// <summary>
-        /// Creates a new transform sequence.
+        /// Creates a blank transform sequence.
         /// </summary>
         /// <param name="target">The transform target.</param>
         public static TransformSequence<T> Create(T target)
         {
-            if (TransformSequenceStatics<T>.CurrentContext is TransformSequence<T> context)
-                return context;
+            if (ContinuationContext<T>.Current is TransformSequence<T> continuation)
+                return continuation;
 
             return new TransformSequence<T>
             {
+                Id = TransformSequenceHelpers.GetNextId(),
                 Target = target,
-                SequenceId = TransformSequenceStatics.NextId(),
                 StartTime = target.TransformStartTime,
                 CurrentTime = target.TransformStartTime,
                 EndTime = target.TransformStartTime
@@ -56,18 +79,34 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         /// <summary>
-        /// Creates a detached orphan of the current sequence, beginning from the current sequence's start time and without awareness of any previously added transforms.
+        /// Creates a transform sequence from an existing transform.
         /// </summary>
-        public TransformSequence<T> Orphan() => this with
+        /// <param name="transform">The transform.</param>
+        public static TransformSequence<T> Create(Transform transform)
         {
-            SequenceLength = 0,
-            EndTime = StartTime,
-            FirstTransform = null,
-            LastTransform = null
-        };
+            TransformSequenceException.ThrowIfInvalidTransform<T>(transform);
+
+            T target = (T)transform.Target;
+            TransformSequence<T> sequence = Create(target);
+
+            transform.SequenceID = sequence.Id;
+            transform.PreviousInSequence = sequence.LastTransform;
+            transform.EndTime = sequence.CurrentTime + transform.EndTime - transform.StartTime;
+            transform.StartTime = sequence.CurrentTime;
+
+            target.AddTransform(transform);
+
+            return sequence with
+            {
+                EndTime = Math.Max(sequence.EndTime, transform.EndTime),
+                Length = sequence.Length + 1,
+                FirstTransform = sequence.FirstTransform ?? transform,
+                LastTransform = transform
+            };
+        }
 
         /// <summary>
-        /// Creates a new sequence beginning from the current sequence's end time.
+        /// Continues from the end time.
         /// </summary>
         public TransformSequence<T> Then() => this with
         {
@@ -75,7 +114,7 @@ namespace osu.Framework.Graphics.Transforms
         };
 
         /// <summary>
-        /// Creates a new sequence beginning after a delay from the current sequence.
+        /// Continues after a delay.
         /// </summary>
         /// <param name="delay">The amount of time to delay.</param>
         public TransformSequence<T> Delay(double delay) => this with
@@ -84,85 +123,43 @@ namespace osu.Framework.Graphics.Transforms
         };
 
         /// <summary>
-        /// Creates a merge context that allows two sequences to be concatenated.
+        /// Continues from the current time as an empty sequence.
         /// </summary>
-        public MergeContext<T> Merge()
-            => new MergeContext<T>(this);
+        public TransformSequence<T> Branch() => this with
+        {
+            StartTime = CurrentTime,
+            CurrentTime = CurrentTime,
+            EndTime = CurrentTime,
+            Length = 0,
+            FirstTransform = null,
+            LastTransform = null
+        };
 
         /// <summary>
-        /// Adds a transform to the current sequence and target.
-        /// </summary>
-        /// <param name="transform">The transform to add.</param>
-        public TransformSequence<T> Add(Transform transform)
-        {
-            if (!ReferenceEquals(transform.TargetTransformable, Target))
-            {
-                throw new InvalidOperationException(
-                    $"{nameof(transform)} must operate upon {nameof(Target)}={Target}, but operates upon {transform.TargetTransformable}.");
-            }
-
-            transform.SequenceID = SequenceId;
-            transform.SequenceLast = LastTransform;
-            transform.EndTime = transform.EndTime - transform.StartTime + CurrentTime;
-            transform.StartTime = CurrentTime;
-
-            Target.AddTransform(transform);
-
-            return this with
-            {
-                SequenceLength = SequenceLength + 1,
-                EndTime = Math.Max(EndTime, transform.EndTime),
-                FirstTransform = FirstTransform ?? transform,
-                LastTransform = transform
-            };
-        }
-
-        public TransformSequence<T> Finally(Action<T> function)
-        {
-            OnComplete(function);
-            OnAbort(function);
-            return this;
-        }
-
-        public TransformSequence<T> OnComplete(Action<T> function)
-        {
-            T t = Target;
-            getOrCreateEventHandler().OnComplete += () => function(t);
-            return this;
-        }
-
-        public TransformSequence<T> OnAbort(Action<T> function)
-        {
-            T t = Target;
-            getOrCreateEventHandler().OnAbort += () => function(t);
-            return this;
-        }
-
-        /// <summary>
-        /// Repeats all transforms within the current sequence indefinitely.
+        /// Repeats all added transforms indefinitely.
         /// </summary>
         /// <param name="pause">The pause between iterations in milliseconds.</param>
         public TransformSequence<T> Loop(double pause = 0) => Loop(pause, -1);
 
         /// <summary>
-        /// Repeats all transforms within the current sequence.
+        /// Repeats all added transforms.
         /// </summary>
         /// <param name="pause">The pause between iterations in milliseconds.</param>
         /// <param name="numIters">The number of iterations.</param>
         public TransformSequence<T> Loop(double pause, int numIters)
         {
-            if (SequenceLength == 0)
+            if (Length == 0)
                 return this;
 
             double iterDuration = EndTime - StartTime + pause;
 
-            Transform[] transformsArr = ArrayPool<Transform>.Shared.Rent(SequenceLength);
-            Span<Transform> transforms = transformsArr[..SequenceLength];
+            Transform[] transformsArr = ArrayPool<Transform>.Shared.Rent(Length);
+            Span<Transform> transforms = transformsArr[..Length];
 
             // Traverse backwards from the last transform in the sequence to build a topological list of contained transforms.
             transforms[0] = LastTransform!;
-            for (int i = 1; i < SequenceLength; i++)
-                transforms[i] = transforms[i - 1].SequenceLast;
+            for (int i = 1; i < Length; i++)
+                transforms[i] = transforms[i - 1].PreviousInSequence;
 
             foreach (var t in transforms)
             {
@@ -205,10 +202,37 @@ namespace osu.Framework.Graphics.Transforms
             return this;
         }
 
+        /// <summary>
+        /// Creates a continuation context for the current sequence.
+        /// </summary>
+        public ContinuationContext<T> CreateContinuation()
+            => new ContinuationContext<T>(this);
+
+        public TransformSequence<T> Finally(Action<T> function)
+        {
+            OnComplete(function);
+            OnAbort(function);
+            return this;
+        }
+
+        public TransformSequence<T> OnComplete(Action<T> function)
+        {
+            T t = Target;
+            getOrCreateEventHandler().OnComplete += () => function(t);
+            return this;
+        }
+
+        public TransformSequence<T> OnAbort(Action<T> function)
+        {
+            T t = Target;
+            getOrCreateEventHandler().OnAbort += () => function(t);
+            return this;
+        }
+
         private TransformSequenceEventHandler getOrCreateEventHandler()
         {
-            if (Target.GetTransformEventHandler(SequenceId) is not TransformSequenceEventHandler handler)
-                Target.AddTransform(handler = new TransformSequenceEventHandler(Target, SequenceId));
+            if (Target.GetTransformEventHandler(Id) is not TransformSequenceEventHandler handler)
+                Target.AddTransform(handler = new TransformSequenceEventHandler(Target, Id));
             return handler;
         }
 
@@ -220,38 +244,89 @@ namespace osu.Framework.Graphics.Transforms
         public delegate TransformSequence<T> Generator(T origin);
     }
 
-    public readonly struct MergeContext<T>
+    public readonly struct ContinuationContext<T>
         where T : class, ITransformable
     {
-        private readonly TransformSequence<T> sequence;
+        /// <summary>
+        /// The current continuation sequence, if any.
+        /// </summary>
+        internal static TransformSequence<T>? Current => tls_current.Value;
+
+        /// <summary>
+        /// Thread local storage for the current continuation sequence.
+        /// </summary>
+        private static readonly ThreadLocal<TransformSequence<T>?> tls_current = new ThreadLocal<TransformSequence<T>?>();
+
+        /// <summary>
+        /// The previous continuation context sequence.
+        /// </summary>
         private readonly TransformSequence<T>? savedContext;
 
-        public MergeContext(TransformSequence<T> sequence)
+        /// <summary>
+        /// The sequence that this context originated from.
+        /// </summary>
+        private readonly TransformSequence<T> origin;
+
+        /// <summary>
+        /// Creates a continuation context.
+        /// </summary>
+        /// <param name="origin">The originating sequence.</param>
+        public ContinuationContext(TransformSequence<T> origin)
         {
-            this.sequence = sequence;
-            savedContext = TransformSequenceStatics<T>.CurrentContext;
-            TransformSequenceStatics<T>.CurrentContext = sequence.Orphan();
+            this.origin = origin;
+
+            // Set a continuation context rooted at the leading sequence.
+            savedContext = tls_current.Value;
+            tls_current.Value = origin.Branch();
         }
 
         /// <summary>
-        /// Creates a new sequence that represents the concatenation of a given sequence onto the current context.
+        /// Appends a sequence to the continuation.
         /// </summary>
-        /// <param name="target">The sequence to concatenate.</param>
-        /// <returns>A new sequence, based off <paramref name="target"/>, representing the concatenation of the two sequences.</returns>
-        public TransformSequence<T> With(TransformSequence<T> target)
+        /// <param name="continuation">The sequence to append.</param>
+        /// <returns>A new sequence based off the original with transforms appended from the continuation target.</returns>
+        public TransformSequence<T> Append(TransformSequence<T> continuation)
         {
-            TransformSequenceStatics<T>.CurrentContext = savedContext;
+            // The current context is only required during construction of the continuation, restore the old one.
+            tls_current.Value = savedContext;
 
-            if (target.FirstTransform != null)
-                target.FirstTransform.SequenceLast = sequence.LastTransform;
+            // Link the continuation to the leader.
+            if (continuation.FirstTransform != null)
+                continuation.FirstTransform.PreviousInSequence = origin.LastTransform;
 
-            return target with
+            // Link the leader to the continuation.
+            return origin with
             {
-                SequenceLength = target.SequenceLength + sequence.SequenceLength,
-                EndTime = Math.Max(target.EndTime, sequence.EndTime),
-                FirstTransform = sequence.FirstTransform,
-                LastTransform = target.LastTransform ?? sequence.LastTransform
+                EndTime = Math.Max(origin.EndTime, continuation.EndTime),
+                Length = origin.Length + continuation.Length,
+                LastTransform = continuation.LastTransform ?? origin.LastTransform
             };
         }
+    }
+
+    public class TransformSequenceException : Exception
+    {
+        public TransformSequenceException(string message)
+            : base(message)
+        {
+        }
+
+        public static void ThrowIfInvalidTransform<T>(Transform transform)
+            where T : class, ITransformable
+        {
+            if (transform.Target is null)
+                throwTargetIsNull();
+
+            if (transform.Target is not T)
+                throwTargetTypeMismatch(typeof(T), transform.Target.GetType());
+        }
+
+        [DoesNotReturn]
+        private static void throwTargetIsNull()
+            => throw new TransformSequenceException("Transform target cannot be null.");
+
+        [DoesNotReturn]
+        private static void throwTargetTypeMismatch(Type expected, Type actual)
+            => throw new TransformSequenceException($"Transform target was expected to be of type '{expected.ReadableName()}' but was '{actual.ReadableName()}'.");
     }
 }

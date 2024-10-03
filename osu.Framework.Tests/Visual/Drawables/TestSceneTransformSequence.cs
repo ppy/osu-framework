@@ -179,14 +179,6 @@ namespace osu.Framework.Tests.Visual.Drawables
                     .Then().RotateTo(360, 1000).ScaleTo(0.5f, 1000)
                     .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500);
 
-            boxes[5].RotateTo(0).ScaleTo(1).RotateTo(360, 1000)
-                    .Then(1000,
-                        b => b.RotateTo(0, 1000),
-                        b => b.ScaleTo(2, 500)
-                    )
-                    .Then().RotateTo(360, 1000).ScaleTo(0.5f, 1000)
-                    .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500);
-
             boxes[6].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
                     .Then(1000,
                         b => b.RotateTo(0),

@@ -64,7 +64,10 @@ namespace osu.Framework.Graphics
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
         public static TransformSequence<TThis> TransformTo<TThis>(this TThis t, Transform transform)
             where TThis : class, ITransformable
-            => TransformSequence<TThis>.Create(t).Add(transform);
+        {
+            transform.Target = t;
+            return TransformSequence<TThis>.Create(transform);
+        }
 
         /// <summary>
         /// Creates a <see cref="Transform{TValue, T}"/> for smoothly changing <paramref name="propertyOrFieldName"/>
@@ -149,10 +152,9 @@ namespace osu.Framework.Graphics
             if (transform.Target != null)
                 throw new InvalidOperationException($"May not {nameof(PopulateTransform)} the same {nameof(Transform<TValue, TThis>)} more than once.");
 
-            transform.Target = t;
-
             double startTime = t.TransformStartTime;
 
+            transform.Target = t;
             transform.StartTime = startTime;
             transform.EndTime = startTime + duration;
             transform.EndValue = newValue;
@@ -713,13 +715,10 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> Animate<T>(this T transformable, params TransformSequence<T>.Generator[] childGenerators)
             where T : Drawable
         {
-            // Create the inner sequence.
             TransformSequence<T> inner = TransformSequence<T>.Create(transformable);
             foreach (var gen in childGenerators)
-                inner = inner.Merge().With(gen(transformable));
-
-            // Return an empty outer sequence - inner sequence is hidden.
-            return TransformSequence<T>.Create(transformable);
+                inner = inner.CreateContinuation().Append(gen(transformable));
+            return TransformSequence<T>.Create(transformable).CreateContinuation().Append(inner);
         }
 
         [Obsolete("For compatibility use only, replacement: X.Y().Z().Loop(pause, numIters)")]
@@ -729,7 +728,7 @@ namespace osu.Framework.Graphics
             // Create the inner sequence.
             TransformSequence<T> sequence = TransformSequence<T>.Create(transformable);
             foreach (var gen in childGenerators)
-                sequence = sequence.Merge().With(gen(transformable));
+                sequence = sequence.CreateContinuation().Append(gen(transformable));
             sequence.Loop(pause, numIters);
 
             // Return an empty outer sequence - inner sequence is hidden.

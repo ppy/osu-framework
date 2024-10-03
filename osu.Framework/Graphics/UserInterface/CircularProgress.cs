@@ -165,6 +165,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         public static TransformSequence<CircularProgress> ProgressTo<TEasing>(this TransformSequence<CircularProgress> t, double newValue, double duration, TEasing easing)
             where TEasing : IEasingFunction
-            => t.Merge().With(t.Target.ProgressTo(newValue, duration, easing));
+            => t.CreateContinuation().Append(t.Target.ProgressTo(newValue, duration, easing));
     }
 }

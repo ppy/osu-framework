@@ -407,7 +407,7 @@ namespace osu.Framework.Graphics.Transforms
 
             ArgumentNullException.ThrowIfNull(transform);
 
-            if (!ReferenceEquals(transform.TargetTransformable, this))
+            if (!ReferenceEquals(transform.Target, this))
             {
                 throw new InvalidOperationException(
                     $"{nameof(transform)} must have been populated via {nameof(TransformableExtensions)}.{nameof(TransformableExtensions.PopulateTransform)} " +

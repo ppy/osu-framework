@@ -12,14 +12,12 @@ namespace osu.Framework.Graphics.Transforms
         public event Action? OnAbort;
         public event Action? OnComplete;
 
-        public override ITransformable TargetTransformable { get; }
-
         public override string TargetMember => SequenceID.ToString()!;
         public override string TargetGrouping => GROUP;
 
         public TransformSequenceEventHandler(ITransformable target, ulong sequenceId)
         {
-            TargetTransformable = target;
+            Target = target;
             SequenceID = sequenceId;
         }
 

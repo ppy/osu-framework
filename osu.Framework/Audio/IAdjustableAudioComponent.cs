@@ -178,7 +178,7 @@ namespace osu.Framework.Audio
         public static TransformSequence<T> VolumeTo<T, TEasing>(this TransformSequence<T> sequence, double newVolume, double duration, TEasing easing)
             where T : class, IAdjustableAudioComponent, IDrawable
             where TEasing : IEasingFunction
-            => sequence.Merge().With(sequence.Target.TransformBindableTo(sequence.Target.Volume, newVolume, duration, easing));
+            => sequence.CreateContinuation().Append(sequence.Target.TransformBindableTo(sequence.Target.Volume, newVolume, duration, easing));
 
         /// <summary>
         /// Smoothly adjusts <see cref="IAdjustableAudioComponent.Balance"/> over time.
@@ -187,7 +187,7 @@ namespace osu.Framework.Audio
         public static TransformSequence<T> BalanceTo<T, TEasing>(this TransformSequence<T> sequence, double newBalance, double duration, TEasing easing)
             where T : class, IAdjustableAudioComponent, IDrawable
             where TEasing : IEasingFunction
-            => sequence.Merge().With(sequence.Target.TransformBindableTo(sequence.Target.Balance, newBalance, duration, easing));
+            => sequence.CreateContinuation().Append(sequence.Target.TransformBindableTo(sequence.Target.Balance, newBalance, duration, easing));
 
         /// <summary>
         /// Smoothly adjusts <see cref="IAdjustableAudioComponent.Frequency"/> over time.
@@ -196,7 +196,7 @@ namespace osu.Framework.Audio
         public static TransformSequence<T> FrequencyTo<T, TEasing>(this TransformSequence<T> sequence, double newFrequency, double duration, TEasing easing)
             where T : class, IAdjustableAudioComponent, IDrawable
             where TEasing : IEasingFunction
-            => sequence.Merge().With(sequence.Target.TransformBindableTo(sequence.Target.Frequency, newFrequency, duration, easing));
+            => sequence.CreateContinuation().Append(sequence.Target.TransformBindableTo(sequence.Target.Frequency, newFrequency, duration, easing));
 
         /// <summary>
         /// Smoothly adjusts <see cref="IAdjustableAudioComponent.Tempo"/> over time.
@@ -205,7 +205,7 @@ namespace osu.Framework.Audio
         public static TransformSequence<T> TempoTo<T, TEasing>(this TransformSequence<T> sequence, double newTempo, double duration, TEasing easing)
             where T : class, IAdjustableAudioComponent, IDrawable
             where TEasing : IEasingFunction
-            => sequence.Merge().With(sequence.Target.TransformBindableTo(sequence.Target.Tempo, newTempo, duration, easing));
+            => sequence.CreateContinuation().Append(sequence.Target.TransformBindableTo(sequence.Target.Tempo, newTempo, duration, easing));
 
         #endregion
     }

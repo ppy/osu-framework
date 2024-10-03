@@ -28,13 +28,13 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         public bool Rewindable = true;
 
-        public abstract ITransformable TargetTransformable { get; }
+        public ITransformable Target { get; internal set; }
 
         public double StartTime { get; internal set; }
         public double EndTime { get; internal set; }
 
         internal ulong SequenceID;
-        internal Transform SequenceLast;
+        internal Transform PreviousInSequence;
 
         public bool IsLooping => LoopCount == -1 || LoopCount > 0;
         public double LoopDelay { get; internal set; }
@@ -96,9 +96,11 @@ namespace osu.Framework.Graphics.Transforms
         where TEasing : IEasingFunction
         where T : class, ITransformable
     {
-        public override ITransformable TargetTransformable => Target;
-
-        public T Target { get; internal set; }
+        public new T Target
+        {
+            get => (T)base.Target;
+            internal set => base.Target = value;
+        }
 
         public TEasing Easing { get; internal set; }
 
