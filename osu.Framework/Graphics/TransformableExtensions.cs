@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics
         /// <param name="easing">The transform easing to be used for tweening.</param>
         /// <param name="grouping">An optional grouping specification to be used when the same property may be touched by multiple transform types.</param>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<TThis> TransformTo<TThis, TValue, TEasing>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, in TEasing easing,
+        public static TransformSequence<TThis> TransformTo<TThis, TValue, TEasing>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, TEasing easing,
                                                                                    string grouping = null)
             where TThis : class, ITransformable
             where TEasing : IEasingFunction
@@ -103,7 +103,7 @@ namespace osu.Framework.Graphics
         /// <param name="easing">The transform easing to be used for tweening.</param>
         /// <param name="grouping">An optional grouping specification to be used when the same property may be touched by multiple transform types.</param>
         /// <returns>The resulting <see cref="Transform{TValue, T}"/>.</returns>
-        public static Transform<TValue, TEasing, TThis> MakeTransform<TThis, TEasing, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, in TEasing easing,
+        public static Transform<TValue, TEasing, TThis> MakeTransform<TThis, TEasing, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, TEasing easing,
                                                                                               string grouping = null)
             where TThis : class, ITransformable
             where TEasing : IEasingFunction
@@ -140,7 +140,7 @@ namespace osu.Framework.Graphics
         /// <param name="easing">The transform easing to be used for tweening.</param>
         /// <returns>The populated <paramref name="transform"/>.</returns>
         public static Transform<TValue, TEasing, TThis> PopulateTransform<TValue, TEasing, TThis>(this TThis t, Transform<TValue, TEasing, TThis> transform, TValue newValue, double duration,
-                                                                                                  in TEasing easing)
+                                                                                                  TEasing easing)
             where TThis : class, ITransformable
             where TEasing : IEasingFunction
         {
@@ -441,7 +441,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="Drawable.Alpha"/> to 1 over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> FadeIn<T, TEasing>(this T drawable, double duration, in TEasing easing)
+        public static TransformSequence<T> FadeIn<T, TEasing>(this T drawable, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
             => drawable.FadeTo(1, duration, easing);
@@ -450,7 +450,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="Drawable.Alpha"/> from 0 to 1 over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> FadeInFromZero<T, TEasing>(this T drawable, double duration, in TEasing easing)
+        public static TransformSequence<T> FadeInFromZero<T, TEasing>(this T drawable, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
             => drawable.FadeTo(0).FadeIn(duration, easing);
@@ -459,7 +459,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="Drawable.Alpha"/> to 0 over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> FadeOut<T, TEasing>(this T drawable, double duration, in TEasing easing)
+        public static TransformSequence<T> FadeOut<T, TEasing>(this T drawable, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
             => drawable.FadeTo(0, duration, easing);
@@ -468,7 +468,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="Drawable.Alpha"/> from 1 to 0 over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> FadeOutFromOne<T, TEasing>(this T drawable, double duration, in TEasing easing)
+        public static TransformSequence<T> FadeOutFromOne<T, TEasing>(this T drawable, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
             => drawable.FadeTo(1).FadeOut(duration, easing);
@@ -477,7 +477,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="Drawable.Alpha"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> FadeTo<T, TEasing>(this T drawable, float newAlpha, double duration, in TEasing easing)
+        public static TransformSequence<T> FadeTo<T, TEasing>(this T drawable, float newAlpha, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
             => drawable.TransformTo(nameof(drawable.Alpha), newAlpha, duration, easing);
@@ -486,7 +486,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="Drawable.Colour"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> FadeColour<T, TEasing>(this T drawable, ColourInfo newColour, double duration, in TEasing easing)
+        public static TransformSequence<T> FadeColour<T, TEasing>(this T drawable, ColourInfo newColour, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
             => drawable.TransformTo(nameof(drawable.Colour), newColour, duration, easing);
@@ -495,7 +495,7 @@ namespace osu.Framework.Graphics
         /// Instantaneously flashes <see cref="Drawable.Colour"/>, then smoothly changes it back over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> FlashColour<T, TEasing>(this T drawable, ColourInfo flashColour, double duration, in TEasing easing)
+        public static TransformSequence<T> FlashColour<T, TEasing>(this T drawable, ColourInfo flashColour, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
         {
@@ -507,7 +507,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="Drawable.Rotation"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> RotateTo<T, TEasing>(this T drawable, float newRotation, double duration, in TEasing easing)
+        public static TransformSequence<T> RotateTo<T, TEasing>(this T drawable, float newRotation, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
             => drawable.TransformTo(nameof(drawable.Rotation), newRotation, duration, easing);
@@ -516,7 +516,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="Drawable.Scale"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> ScaleTo<T, TEasing>(this T drawable, float newScale, double duration, in TEasing easing)
+        public static TransformSequence<T> ScaleTo<T, TEasing>(this T drawable, float newScale, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
             => drawable.ScaleTo(new Vector2(newScale), duration, easing);
@@ -525,7 +525,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="Drawable.Scale"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> ScaleTo<T, TEasing>(this T drawable, Vector2 newScale, double duration, in TEasing easing)
+        public static TransformSequence<T> ScaleTo<T, TEasing>(this T drawable, Vector2 newScale, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
             => drawable.TransformTo(nameof(drawable.Scale), newScale, duration, easing);
@@ -534,7 +534,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="Drawable.Size"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> ResizeTo<T, TEasing>(this T drawable, float newSize, double duration, in TEasing easing)
+        public static TransformSequence<T> ResizeTo<T, TEasing>(this T drawable, float newSize, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
             => drawable.ResizeTo(new Vector2(newSize), duration, easing);
@@ -543,7 +543,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="Drawable.Size"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> ResizeTo<T, TEasing>(this T drawable, Vector2 newSize, double duration, in TEasing easing)
+        public static TransformSequence<T> ResizeTo<T, TEasing>(this T drawable, Vector2 newSize, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
             => drawable.TransformTo(nameof(drawable.Size), newSize, duration, easing);
@@ -552,7 +552,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="Drawable.Width"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> ResizeWidthTo<T, TEasing>(this T drawable, float newWidth, double duration, in TEasing easing)
+        public static TransformSequence<T> ResizeWidthTo<T, TEasing>(this T drawable, float newWidth, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
             => drawable.TransformTo(nameof(drawable.Width), newWidth, duration, easing, nameof(drawable.Size));
@@ -561,7 +561,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="Drawable.Height"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> ResizeHeightTo<T, TEasing>(this T drawable, float newHeight, double duration, in TEasing easing)
+        public static TransformSequence<T> ResizeHeightTo<T, TEasing>(this T drawable, float newHeight, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
             => drawable.TransformTo(nameof(drawable.Height), newHeight, duration, easing, nameof(drawable.Size));
@@ -570,7 +570,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="Drawable.Position"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> MoveTo<T, TEasing>(this T drawable, Vector2 newPosition, double duration, in TEasing easing)
+        public static TransformSequence<T> MoveTo<T, TEasing>(this T drawable, Vector2 newPosition, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
             => drawable.TransformTo(nameof(drawable.Position), newPosition, duration, easing);
@@ -579,7 +579,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="Drawable.X"/> or <see cref="Drawable.Y"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> MoveTo<T, TEasing>(this T drawable, Direction direction, float destination, double duration, in TEasing easing)
+        public static TransformSequence<T> MoveTo<T, TEasing>(this T drawable, Direction direction, float destination, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
         {
@@ -599,7 +599,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="Drawable.X"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> MoveToX<T, TEasing>(this T drawable, float destination, double duration, in TEasing easing)
+        public static TransformSequence<T> MoveToX<T, TEasing>(this T drawable, float destination, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
             => drawable.TransformTo(nameof(drawable.X), destination, duration, easing, nameof(drawable.Position));
@@ -608,7 +608,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="Drawable.Y"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> MoveToY<T, TEasing>(this T drawable, float destination, double duration, in TEasing easing)
+        public static TransformSequence<T> MoveToY<T, TEasing>(this T drawable, float destination, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
             => drawable.TransformTo(nameof(drawable.Y), destination, duration, easing, nameof(drawable.Position));
@@ -617,7 +617,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="Drawable.Position"/> by an offset to its final value over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> MoveToOffset<T, TEasing>(this T drawable, Vector2 offset, double duration, in TEasing easing)
+        public static TransformSequence<T> MoveToOffset<T, TEasing>(this T drawable, Vector2 offset, double duration, TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
             => drawable.TransformTo(drawable.PopulateTransform(new PositionOffsetTransform<TEasing>(offset), default, duration, easing));
@@ -626,7 +626,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="IContainer.RelativeChildSize"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> TransformRelativeChildSizeTo<T, TEasing>(this T container, Vector2 newSize, double duration, in TEasing easing)
+        public static TransformSequence<T> TransformRelativeChildSizeTo<T, TEasing>(this T container, Vector2 newSize, double duration, TEasing easing)
             where T : class, IContainer
             where TEasing : IEasingFunction
         {
@@ -640,7 +640,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="IContainer.RelativeChildOffset"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> TransformRelativeChildOffsetTo<T, TEasing>(this T container, Vector2 newOffset, double duration, in TEasing easing)
+        public static TransformSequence<T> TransformRelativeChildOffsetTo<T, TEasing>(this T container, Vector2 newOffset, double duration, TEasing easing)
             where T : class, IContainer
             where TEasing : IEasingFunction
             => container.TransformTo(nameof(container.RelativeChildOffset), newOffset, duration, easing);
@@ -649,7 +649,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="IBufferedContainer.BlurSigma"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> BlurTo<T, TEasing>(this T bufferedContainer, Vector2 newBlurSigma, double duration, in TEasing easing)
+        public static TransformSequence<T> BlurTo<T, TEasing>(this T bufferedContainer, Vector2 newBlurSigma, double duration, TEasing easing)
             where T : class, IBufferedContainer
             where TEasing : IEasingFunction
             => bufferedContainer.TransformTo(nameof(bufferedContainer.BlurSigma), newBlurSigma, duration, easing);
@@ -658,7 +658,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="IFillFlowContainer.Spacing"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> TransformSpacingTo<T, TEasing>(this T flowContainer, Vector2 newSpacing, double duration, in TEasing easing)
+        public static TransformSequence<T> TransformSpacingTo<T, TEasing>(this T flowContainer, Vector2 newSpacing, double duration, TEasing easing)
             where T : class, IFillFlowContainer
             where TEasing : IEasingFunction
             => flowContainer.TransformTo(nameof(flowContainer.Spacing), newSpacing, duration, easing);
@@ -667,7 +667,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts the alpha channel of the colour of <see cref="IContainer.EdgeEffect"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> FadeEdgeEffectTo<T, TEasing>(this T container, float newAlpha, double duration, in TEasing easing)
+        public static TransformSequence<T> FadeEdgeEffectTo<T, TEasing>(this T container, float newAlpha, double duration, TEasing easing)
             where T : class, IContainer
             where TEasing : IEasingFunction
         {
@@ -680,7 +680,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts the colour of <see cref="IContainer.EdgeEffect"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> FadeEdgeEffectTo<T, TEasing>(this T container, Color4 newColour, double duration, in TEasing easing)
+        public static TransformSequence<T> FadeEdgeEffectTo<T, TEasing>(this T container, Color4 newColour, double duration, TEasing easing)
             where T : class, IContainer
             where TEasing : IEasingFunction
         {
@@ -693,7 +693,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts all parameters of <see cref="IContainer.EdgeEffect"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> TweenEdgeEffectTo<T, TEasing>(this T container, EdgeEffectParameters newParameters, double duration, in TEasing easing)
+        public static TransformSequence<T> TweenEdgeEffectTo<T, TEasing>(this T container, EdgeEffectParameters newParameters, double duration, TEasing easing)
             where T : class, IContainer
             where TEasing : IEasingFunction
             => container.TransformTo(nameof(container.EdgeEffect), newParameters, duration, easing);
@@ -702,7 +702,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts the value of a <see cref="Bindable{TValue}"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> TransformBindableTo<T, TValue, TEasing>(this T drawable, [NotNull] Bindable<TValue> bindable, TValue newValue, double duration, in TEasing easing)
+        public static TransformSequence<T> TransformBindableTo<T, TValue, TEasing>(this T drawable, [NotNull] Bindable<TValue> bindable, TValue newValue, double duration, TEasing easing)
             where T : class, ITransformable
             where TEasing : IEasingFunction
             => drawable.TransformTo(drawable.PopulateTransform(new TransformBindable<TValue, TEasing, T>(bindable), newValue, duration, easing));

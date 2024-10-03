@@ -10,14 +10,9 @@ using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public readonly struct TransformSequence<T>
+    public readonly ref struct TransformSequence<T>
         where T : class, ITransformable
     {
-        /// <summary>
-        /// Thread local storage for the current continuation sequence.
-        /// </summary>
-        private static readonly ThreadLocal<TransformSequence<T>?> tls_current_context = new ThreadLocal<TransformSequence<T>?>();
-
         /// <summary>
         /// A unique identifier for the sequence.
         /// </summary>
@@ -53,6 +48,8 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         private Transform? transform { get; init; }
 
+        public bool IsEmpty => length == 0;
+
         /// <summary>
         /// Creates a blank transform sequence.
         /// </summary>
@@ -60,11 +57,8 @@ namespace osu.Framework.Graphics.Transforms
         public static TransformSequence<T> Create(T target)
         {
             // Consume the global context, if any.
-            if (tls_current_context.Value is TransformSequence<T> context)
-            {
-                tls_current_context.Value = null;
-                return context;
-            }
+            if (TransformSequenceHelpers.ConsumeContext<T>() is Context context)
+                return context.Restore();
 
             return new TransformSequence<T>
             {
@@ -117,31 +111,25 @@ namespace osu.Framework.Graphics.Transforms
         /// Continues with an action on the target.
         /// </summary>
         [MustUseReturnValue]
-        public T Continue()
-        {
-            tls_current_context.Value = this;
-            return target;
-        }
-
-        /// <summary>
-        /// Continues with an action on the target.
-        /// </summary>
-        [MustUseReturnValue]
-        public T Continue(out T target)
-        {
-            tls_current_context.Value = this;
-            target = this.target;
-            return target;
-        }
-
-        /// <summary>
-        /// Continues with an action on the target.
-        /// </summary>
-        [MustUseReturnValue]
         public TransformSequence<T> Continue(Generator generator)
+            => generator(Continue());
+
+        /// <summary>
+        /// Continues with an action on the target.
+        /// </summary>
+        [MustUseReturnValue]
+        public T Continue()
+            => Continue(out _);
+
+        /// <summary>
+        /// Continues with an action on the target.
+        /// </summary>
+        [MustUseReturnValue]
+        public T Continue(out T continuationTarget)
         {
-            tls_current_context.Value = this;
-            return generator(target);
+            TransformSequenceHelpers.SaveContext(new Context(this));
+            continuationTarget = target;
+            return continuationTarget;
         }
 
         /// <summary>
@@ -165,7 +153,8 @@ namespace osu.Framework.Graphics.Transforms
         /// Repeats all added transforms indefinitely.
         /// </summary>
         /// <param name="pause">The pause between iterations in milliseconds.</param>
-        public TransformSequence<T> Loop(double pause = 0) => Loop(pause, -1);
+        public TransformSequence<T> Loop(double pause = 0)
+            => Loop(pause, -1);
 
         /// <summary>
         /// Repeats all added transforms.
@@ -292,7 +281,8 @@ namespace osu.Framework.Graphics.Transforms
             /// Appends a commit.
             /// </summary>
             /// <param name="head">The new head.</param>
-            public void Commit(TransformSequence<T> head) => Head = head;
+            public void Commit(TransformSequence<T> head)
+                => Head = head;
 
             /// <summary>
             /// Continues with the result of merging this branch into the original sequence.
@@ -302,6 +292,28 @@ namespace osu.Framework.Graphics.Transforms
                 endTime = Math.Max(root.endTime, Head.endTime),
                 length = root.length + Head.length,
                 transform = Head.transform
+            };
+        }
+
+        public readonly struct Context(TransformSequence<T> sequence)
+        {
+            private readonly ulong id = sequence.id;
+            private readonly T target = sequence.target;
+            private readonly double startTime = sequence.startTime;
+            private readonly double currentTime = sequence.currentTime;
+            private readonly double endTime = sequence.endTime;
+            private readonly int length = sequence.length;
+            private readonly Transform? transform = sequence.transform;
+
+            public TransformSequence<T> Restore() => new TransformSequence<T>
+            {
+                id = id,
+                target = target,
+                startTime = startTime,
+                currentTime = currentTime,
+                endTime = endTime,
+                length = length,
+                transform = transform
             };
         }
 
@@ -317,6 +329,26 @@ namespace osu.Framework.Graphics.Transforms
     {
         private static ulong id = 1;
 
-        public static ulong GetNextId() => Interlocked.Increment(ref id);
+        public static ulong GetNextId()
+            => Interlocked.Increment(ref id);
+
+        public static void SaveContext<T>(TransformSequence<T>.Context context)
+            where T : class, ITransformable
+            => Context<T>.Current = context;
+
+        public static TransformSequence<T>.Context? ConsumeContext<T>()
+            where T : class, ITransformable
+        {
+            TransformSequence<T>.Context? context = Context<T>.Current;
+            Context<T>.Current = null;
+            return context;
+        }
+
+        private static class Context<T>
+            where T : class, ITransformable
+        {
+            [ThreadStatic]
+            public static TransformSequence<T>.Context? Current;
+        }
     }
 }
