@@ -48,6 +48,10 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         private Transform? transform { get; init; }
 
+        /// <summary>
+        /// Whether any transforms have been added to the sequence.
+        /// </summary>
+        [MemberNotNullWhen(false, nameof(transform))]
         public bool IsEmpty => length == 0;
 
         /// <summary>
@@ -163,13 +167,13 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="numIters">The number of iterations.</param>
         public TransformSequence<T> Loop(double pause, int numIters)
         {
-            if (length == 0)
+            if (IsEmpty)
                 return this;
 
             Transform[] transformPool = ArrayPool<Transform>.Shared.Rent(length);
             Span<Transform> transforms = transformPool[..length];
 
-            Transform it = transform!;
+            Transform it = transform;
 
             for (int i = length - 1; i >= 0; i--)
             {
