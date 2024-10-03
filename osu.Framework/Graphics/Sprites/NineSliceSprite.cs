@@ -1,12 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
-using System.Diagnostics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Layout;
 using osu.Framework.Utils;
 using osuTK;
 
@@ -34,8 +31,7 @@ namespace osu.Framework.Graphics.Sprites
     {
         public NineSliceSprite()
         {
-            AddLayout(drawQuadsBacking);
-            AddLayout(textureRectsBacking);
+            Invalidate(Invalidation.DrawNode);
         }
 
         private MarginPadding textureInset;
@@ -54,20 +50,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 textureInset = value;
 
-                invalidateGeometry();
-            }
-        }
-
-        public override Texture Texture
-        {
-            get => base.Texture;
-            set
-            {
-                if (value == Texture)
-                    return;
-
-                base.Texture = value;
-                invalidateGeometry();
+                Invalidate(Invalidation.DrawNode);
             }
         }
 
@@ -75,7 +58,7 @@ namespace osu.Framework.Graphics.Sprites
 
         /// <summary>
         /// Controls which <see cref="Axes"/> of <see cref="TextureInset"/> are relative w.r.t.
-        /// <see cref="NineSliceSprite.Texture"/>'s <see cref="Texture.DisplaySize"/> (from 0 to 1) rather than absolute.
+        /// <see cref="Sprite.Texture"/>'s <see cref="Texture.DisplaySize"/> (from 0 to 1) rather than absolute.
         /// </summary>
         /// <remarks>
         /// When setting this property, the <see cref="TextureInset"/> is converted such that the absolute TextureInset
@@ -110,18 +93,11 @@ namespace osu.Framework.Graphics.Sprites
 
                 textureInsetRelativeAxes = value;
 
-                invalidateGeometry();
+                Invalidate(Invalidation.DrawNode);
             }
         }
 
-        private void invalidateGeometry()
-        {
-            textureRectsBacking.Invalidate();
-            drawQuadsBacking.Invalidate();
-            Invalidate(Invalidation.DrawNode);
-        }
-
-        private MarginPadding relativeTextureInset
+        internal MarginPadding RelativeTextureInset
         {
             get
             {
@@ -140,7 +116,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private MarginPadding relativeGeometryInset
+        internal MarginPadding RelativeGeometryInset
         {
             get
             {
@@ -165,127 +141,6 @@ namespace osu.Framework.Graphics.Sprites
 
         protected override DrawNode CreateDrawNode() => new NineSliceSpriteDrawNode(this);
 
-        private readonly LayoutValue<RectangleF[]> textureRectsBacking = new LayoutValue<RectangleF[]>(Invalidation.DrawSize);
-
-        private readonly LayoutValue<Quad[]> drawQuadsBacking = new LayoutValue<Quad[]>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence);
-
-        internal IReadOnlyList<RectangleF> TextureRects => textureRectsBacking.IsValid ? textureRectsBacking.Value : textureRectsBacking.Value = computeTextureRects();
-
-        internal IReadOnlyList<Quad> DrawQuads => drawQuadsBacking.IsValid ? drawQuadsBacking.Value : drawQuadsBacking.Value = computeDrawQuads();
-
-        private Quad[] computeDrawQuads()
-        {
-            MarginPadding inset = relativeGeometryInset;
-
-            return new Quad[]
-            {
-                computePart(Anchor.TopLeft),
-                computePart(Anchor.TopCentre),
-                computePart(Anchor.TopRight),
-                computePart(Anchor.CentreLeft),
-                computePart(Anchor.Centre),
-                computePart(Anchor.CentreRight),
-                computePart(Anchor.BottomLeft),
-                computePart(Anchor.BottomCentre),
-                computePart(Anchor.BottomRight),
-            };
-
-            Quad computePart(Anchor anchor)
-            {
-                Quad drawQuad = ScreenSpaceDrawQuad;
-
-                if ((anchor & Anchor.x0) > 0)
-                    drawQuad = horizontalSlice(drawQuad, 0, inset.Left);
-                else if ((anchor & Anchor.x1) > 0)
-                    drawQuad = horizontalSlice(drawQuad, inset.Left, 1 - inset.Right);
-                else if ((anchor & Anchor.x2) > 0)
-                    drawQuad = horizontalSlice(drawQuad, 1 - inset.Right, 1);
-
-                if ((anchor & Anchor.y0) > 0)
-                    drawQuad = verticalSlice(drawQuad, 0, inset.Top);
-                else if ((anchor & Anchor.y1) > 0)
-                    drawQuad = verticalSlice(drawQuad, inset.Top, 1 - inset.Bottom);
-                else if ((anchor & Anchor.y2) > 0)
-                    drawQuad = verticalSlice(drawQuad, 1 - inset.Bottom, 1);
-
-                return drawQuad;
-            }
-
-            static Quad horizontalSlice(Quad quad, float start, float end) =>
-                new Quad(
-                    Vector2.Lerp(quad.TopLeft, quad.TopRight, start),
-                    Vector2.Lerp(quad.TopLeft, quad.TopRight, end),
-                    Vector2.Lerp(quad.BottomLeft, quad.BottomRight, start),
-                    Vector2.Lerp(quad.BottomLeft, quad.BottomRight, end)
-                );
-
-            static Quad verticalSlice(Quad quad, float start, float end) =>
-                new Quad(
-                    Vector2.Lerp(quad.TopLeft, quad.BottomLeft, start),
-                    Vector2.Lerp(quad.TopRight, quad.BottomRight, start),
-                    Vector2.Lerp(quad.TopLeft, quad.BottomLeft, end),
-                    Vector2.Lerp(quad.TopRight, quad.BottomRight, end)
-                );
-        }
-
-        private RectangleF[] computeTextureRects()
-        {
-            MarginPadding inset = relativeTextureInset;
-
-            return new RectangleF[]
-            {
-                computePart(Anchor.TopLeft),
-                computePart(Anchor.TopCentre),
-                computePart(Anchor.TopRight),
-                computePart(Anchor.CentreLeft),
-                computePart(Anchor.Centre),
-                computePart(Anchor.CentreRight),
-                computePart(Anchor.BottomLeft),
-                computePart(Anchor.BottomCentre),
-                computePart(Anchor.BottomRight),
-            };
-
-            RectangleF computePart(Anchor anchor)
-            {
-                var textureCoords = DrawRectangle.RelativeIn(DrawTextureRectangle);
-
-                if (Texture != null)
-                    textureCoords *= new Vector2(Texture.DisplayWidth, Texture.DisplayHeight);
-
-                if ((anchor & Anchor.x0) > 0)
-                {
-                    textureCoords.Width *= inset.Left;
-                }
-                else if ((anchor & Anchor.x1) > 0)
-                {
-                    textureCoords.X += textureCoords.Width * inset.Left;
-                    textureCoords.Width *= 1 - inset.TotalHorizontal;
-                }
-                else if ((anchor & Anchor.x2) > 0)
-                {
-                    textureCoords.X += textureCoords.Width * (1 - inset.Right);
-                    textureCoords.Width *= inset.Right;
-                }
-
-                if ((anchor & Anchor.y0) > 0)
-                {
-                    textureCoords.Height *= inset.Top;
-                }
-                else if ((anchor & Anchor.y1) > 0)
-                {
-                    textureCoords.Y += textureCoords.Height * inset.Top;
-                    textureCoords.Height *= 1 - inset.TotalVertical;
-                }
-                else if ((anchor & Anchor.y2) > 0)
-                {
-                    textureCoords.Y += textureCoords.Height * (1 - inset.Bottom);
-                    textureCoords.Height *= inset.Bottom;
-                }
-
-                return textureCoords;
-            }
-        }
-
         private class NineSliceSpriteDrawNode : SpriteDrawNode
         {
             public NineSliceSpriteDrawNode(NineSliceSprite source)
@@ -300,22 +155,119 @@ namespace osu.Framework.Graphics.Sprites
                 if (DrawRectangle.Width == 0 || DrawRectangle.Height == 0)
                     return;
 
-                for (int i = 0; i < DrawQuads.Count; i++)
+                for (int i = 0; i < DrawQuads.Length; i++)
                     renderer.DrawQuad(Texture, DrawQuads[i], DrawColourInfo.Colour, null, null, Vector2.Zero, null, TextureRects[i]);
             }
 
-            protected IReadOnlyList<RectangleF> TextureRects { get; private set; } = null!;
-
-            protected IReadOnlyList<Quad> DrawQuads { get; private set; } = null!;
+            protected readonly RectangleF[] TextureRects = new RectangleF[9];
+            protected readonly Quad[] DrawQuads = new Quad[9];
 
             public override void ApplyState()
             {
                 base.ApplyState();
 
-                TextureRects = Source.TextureRects;
-                DrawQuads = Source.DrawQuads;
+                computeTextureRects(Source.RelativeTextureInset);
+                computeDrawQuads(Source.RelativeGeometryInset);
+            }
 
-                Debug.Assert(TextureRects.Count == DrawQuads.Count);
+            private void computeDrawQuads(MarginPadding inset)
+            {
+                DrawQuads[0] = computePart(Anchor.TopLeft);
+                DrawQuads[1] = computePart(Anchor.TopCentre);
+                DrawQuads[2] = computePart(Anchor.TopRight);
+                DrawQuads[3] = computePart(Anchor.CentreLeft);
+                DrawQuads[4] = computePart(Anchor.Centre);
+                DrawQuads[5] = computePart(Anchor.CentreRight);
+                DrawQuads[6] = computePart(Anchor.BottomLeft);
+                DrawQuads[7] = computePart(Anchor.BottomCentre);
+                DrawQuads[8] = computePart(Anchor.BottomRight);
+
+                Quad computePart(Anchor anchor)
+                {
+                    Quad drawQuad = ScreenSpaceDrawQuad;
+
+                    if ((anchor & Anchor.x0) > 0)
+                        drawQuad = horizontalSlice(drawQuad, 0, inset.Left);
+                    else if ((anchor & Anchor.x1) > 0)
+                        drawQuad = horizontalSlice(drawQuad, inset.Left, 1 - inset.Right);
+                    else if ((anchor & Anchor.x2) > 0)
+                        drawQuad = horizontalSlice(drawQuad, 1 - inset.Right, 1);
+
+                    if ((anchor & Anchor.y0) > 0)
+                        drawQuad = verticalSlice(drawQuad, 0, inset.Top);
+                    else if ((anchor & Anchor.y1) > 0)
+                        drawQuad = verticalSlice(drawQuad, inset.Top, 1 - inset.Bottom);
+                    else if ((anchor & Anchor.y2) > 0)
+                        drawQuad = verticalSlice(drawQuad, 1 - inset.Bottom, 1);
+
+                    return drawQuad;
+                }
+
+                static Quad horizontalSlice(Quad quad, float start, float end) =>
+                    new Quad(
+                        Vector2.Lerp(quad.TopLeft, quad.TopRight, start),
+                        Vector2.Lerp(quad.TopLeft, quad.TopRight, end),
+                        Vector2.Lerp(quad.BottomLeft, quad.BottomRight, start),
+                        Vector2.Lerp(quad.BottomLeft, quad.BottomRight, end)
+                    );
+
+                static Quad verticalSlice(Quad quad, float start, float end) =>
+                    new Quad(
+                        Vector2.Lerp(quad.TopLeft, quad.BottomLeft, start),
+                        Vector2.Lerp(quad.TopRight, quad.BottomRight, start),
+                        Vector2.Lerp(quad.TopLeft, quad.BottomLeft, end),
+                        Vector2.Lerp(quad.TopRight, quad.BottomRight, end)
+                    );
+            }
+
+            private void computeTextureRects(MarginPadding inset)
+            {
+                TextureRects[0] = computePart(Anchor.TopLeft);
+                TextureRects[1] = computePart(Anchor.TopCentre);
+                TextureRects[2] = computePart(Anchor.TopRight);
+                TextureRects[3] = computePart(Anchor.CentreLeft);
+                TextureRects[4] = computePart(Anchor.Centre);
+                TextureRects[5] = computePart(Anchor.CentreRight);
+                TextureRects[6] = computePart(Anchor.BottomLeft);
+                TextureRects[7] = computePart(Anchor.BottomCentre);
+                TextureRects[8] = computePart(Anchor.BottomRight);
+
+                RectangleF computePart(Anchor anchor)
+                {
+                    var textureCoords = TextureCoords;
+
+                    if ((anchor & Anchor.x0) > 0)
+                    {
+                        textureCoords.Width *= inset.Left;
+                    }
+                    else if ((anchor & Anchor.x1) > 0)
+                    {
+                        textureCoords.X += textureCoords.Width * inset.Left;
+                        textureCoords.Width *= 1 - inset.TotalHorizontal;
+                    }
+                    else if ((anchor & Anchor.x2) > 0)
+                    {
+                        textureCoords.X += textureCoords.Width * (1 - inset.Right);
+                        textureCoords.Width *= inset.Right;
+                    }
+
+                    if ((anchor & Anchor.y0) > 0)
+                    {
+                        textureCoords.Height *= inset.Top;
+                    }
+                    else if ((anchor & Anchor.y1) > 0)
+                    {
+                        textureCoords.Y += textureCoords.Height * inset.Top;
+                        textureCoords.Height *= 1 - inset.TotalVertical;
+                    }
+                    else if ((anchor & Anchor.y2) > 0)
+                    {
+                        textureCoords.Y += textureCoords.Height * (1 - inset.Bottom);
+                        textureCoords.Height *= inset.Bottom;
+                    }
+
+                    return textureCoords;
+                }
             }
         }
     }
