@@ -166,12 +166,7 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Restore .NET Workloads
-        # `dotnet workload restore` is bugged in .NET 7.0.101+ when restoring iOS projects,
-        # see https://github.com/xamarin/xamarin-macios/issues/16400.
-        run: dotnet workload install ios
-
-      - name: Select Xcode 16
-        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
+        run: dotnet workload install ios --from-rollback-file workloads.json
 
       - name: Pack (iOS Framework)
         run: dotnet pack -c Release osu.Framework.iOS /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
