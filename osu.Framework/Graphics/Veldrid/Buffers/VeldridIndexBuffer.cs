@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
     /// </summary>
     internal class VeldridIndexBuffer : IDisposable
     {
-        public const IndexFormat FORMAT = IndexFormat.UInt16;
+        public readonly IndexFormat Format;
 
         public DeviceBuffer Buffer { get; }
         public VeldridIndexLayout Layout { get; }
@@ -21,10 +21,11 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         /// <summary>
         /// The number of vertices this buffer can map.
         /// </summary>
-        public int VertexCapacity { get; }
+        public int Size { get; }
 
         public VeldridIndexBuffer(BasicPipeline pipeline, VeldridIndexLayout layout, int verticesCount)
         {
+            Format = IndexFormat.UInt16;
             Layout = layout;
 
             ushort[] indices = new ushort[TranslateToIndex(verticesCount)];
@@ -50,10 +51,19 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
                     break;
             }
+            Size = verticesCount;
+
 
             Buffer = pipeline.Factory.CreateBuffer(new BufferDescription((uint)indices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
-            VertexCapacity = verticesCount;
+            pipeline.Commands.UpdateBuffer(Buffer, 0, indices);
+        }
 
+        public VeldridIndexBuffer(BasicPipeline pipeline, uint[] indices)
+        {
+            Format = IndexFormat.UInt32;
+            Size = indices.Length;
+
+            Buffer = pipeline.Factory.CreateBuffer(new BufferDescription((uint)indices.Length * sizeof(uint), BufferUsage.IndexBuffer));
             pipeline.Commands.UpdateBuffer(Buffer, 0, indices);
         }
 

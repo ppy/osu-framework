@@ -485,5 +485,10 @@ namespace osu.Framework.Graphics.OpenGL
             => new GLLinearBatch<TVertex>(this, size, maxBuffers, topology);
 
         protected override IVertexBatch<TVertex> CreateQuadBatch<TVertex>(int size, int maxBuffers) => new GLQuadBatch<TVertex>(this, size, maxBuffers);
+
+        public override Mesh ImportMesh(Assimp.Mesh mesh)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

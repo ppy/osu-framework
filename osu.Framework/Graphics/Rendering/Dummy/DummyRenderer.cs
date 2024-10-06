@@ -241,5 +241,18 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         }
 
         Texture[] IRenderer.GetAllTextures() => Array.Empty<Texture>();
+
+        public void SetActiveBatch(IVertexBatch batch)
+        {
+        }
+
+        public void DrawVertices(PrimitiveTopology topology, int vertexStart, int verticesCount)
+        {
+        }
+
+        public Mesh ImportMesh(Assimp.Mesh mesh)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

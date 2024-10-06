@@ -23,6 +23,9 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Veldrid;
 using PrimitiveTopology = osu.Framework.Graphics.Rendering.PrimitiveTopology;
+using osu.Framework.Logging;
+using osu.Framework.Graphics.OpenGL.Buffers;
+using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Veldrid
 {
@@ -180,19 +183,29 @@ namespace osu.Framework.Graphics.Veldrid
             where T : unmanaged, IEquatable<T>, IVertex
             => graphicsPipeline.SetVertexBuffer(buffer.Buffer, VeldridVertexUtils<T>.Layout);
 
+        public VeldridIndexBuffer CreateIndexBuffer(uint[] indices)
+        {
+            VeldridIndexBuffer buffer = new VeldridIndexBuffer(bufferUpdatePipeline, indices);
+            return (buffer);
+
+        }
+
+        public void BindIndexBuffer(VeldridIndexBuffer buffer)
+        {
+            graphicsPipeline.SetIndexBuffer(buffer);
+        }
         public void BindIndexBuffer(VeldridIndexLayout layout, int verticesCount)
         {
             ref var indexBuffer = ref layout == VeldridIndexLayout.Quad
                 ? ref quadIndexBuffer
                 : ref linearIndexBuffer;
 
-            if (indexBuffer == null || indexBuffer.VertexCapacity < verticesCount)
+            if (indexBuffer == null || indexBuffer.Size < verticesCount)
             {
                 indexBuffer?.Dispose();
                 indexBuffer = new VeldridIndexBuffer(bufferUpdatePipeline, layout, verticesCount);
             }
-
-            graphicsPipeline.SetIndexBuffer(indexBuffer);
+            BindIndexBuffer(indexBuffer);
         }
 
         private void ensureTextureUploadPipelineBegan()
@@ -340,6 +353,18 @@ namespace osu.Framework.Graphics.Veldrid
                             return new ManagedStagingBuffer<T>(this, count);
                     }
             }
+        }
+
+        public override Mesh ImportMesh(Assimp.Mesh mesh)
+        {
+            return (new VeldridMesh(this, mesh));
+        }
+        public void DrawMesh(VeldridMesh mesh)
+        {
+            graphicsPipeline.SetIndexBuffer(mesh.IndexBuffer);
+            graphicsPipeline.SetVertexBuffer(mesh.VertexBuffer, VeldridVertexUtils<TexturedMeshVertex>.Layout);
+
+            DrawVertices(PrimitiveTopology.Triangles, 0, mesh.Size);
         }
     }
 }

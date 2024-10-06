@@ -3,9 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Veldrid.Buffers;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 

@@ -12,6 +12,7 @@ using osu.Framework.Threading;
 using osuTK.Graphics;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp;
+using osu.Framework.Graphics.Veldrid;
 
 namespace osu.Framework.Graphics.Rendering
 {
@@ -435,6 +436,9 @@ namespace osu.Framework.Graphics.Rendering
         /// <returns>An <see cref="IShaderStorageBufferObject{TData}"/>.</returns>
         IShaderStorageBufferObject<TData> CreateShaderStorageBufferObject<TData>(int uboSize, int ssboSize) where TData : unmanaged, IEquatable<TData>;
 
+        Mesh ImportMesh(Assimp.Mesh mesh);
+
+        public void DrawMesh(Mesh mesh);
         /// <summary>
         /// Sets the value of a uniform.
         /// </summary>

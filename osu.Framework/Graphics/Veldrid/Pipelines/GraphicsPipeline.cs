@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Veldrid.Buffers;
 using osu.Framework.Graphics.Veldrid.Shaders;
 using osu.Framework.Graphics.Veldrid.Textures;
+using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using Veldrid;
 
@@ -194,7 +195,7 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
                 return;
 
             currentIndexBuffer = indexBuffer;
-            Commands.SetIndexBuffer(indexBuffer.Buffer, VeldridIndexBuffer.FORMAT);
+            Commands.SetIndexBuffer(indexBuffer.Buffer, indexBuffer.Format);
         }
 
         /// <summary>
@@ -247,7 +248,7 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
                 throw new InvalidOperationException("No shader bound.");
 
             if (currentIndexBuffer == null)
-                throw new InvalidOperationException("No index buffer bound.");
+                throw new InvalidOperationException("bad index buffer");
 
             pipelineDesc.PrimitiveTopology = topology;
             Array.Resize(ref pipelineDesc.ResourceLayouts, currentShader.LayoutCount);
@@ -295,7 +296,6 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
                 uint bufferOffset = uniformBufferOffsets.GetValueOrDefault(buffer);
                 Commands.SetGraphicsResourceSet((uint)layout.Set, buffer.GetResourceSet(layout.Layout), 1, ref bufferOffset);
             }
-
             int indexStart = currentIndexBuffer.TranslateToIndex(vertexStart);
             int indicesCount = currentIndexBuffer.TranslateToIndex(verticesCount);
             Commands.DrawIndexed((uint)indicesCount, 1, (uint)indexStart, vertexIndexOffset, 0);

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Veldrid;
 using osu.Framework.Graphics.Veldrid.Buffers;
+using osu.Framework.Graphics.Veldrid.Pipelines;
 using osu.Framework.Graphics.Veldrid.Vertices;
 using osu.Framework.Statistics;
 using osu.Framework.Utils;
@@ -134,7 +135,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
                 // 2. The amount of vertices that can be drawn given the index buffer (generally a ushort, so capped to 65535 vertices).
                 // 3. The amount of primitives that can be drawn. Each draw call must form complete primitives.
                 int maxPrimitives = (buffer_size - currentDrawIndex) / primitiveByteSize;
-                int verticesToDraw = Math.Min(maxPrimitives * primitiveSize, Math.Min(vertexCount, indexBuffer.VertexCapacity));
+                int verticesToDraw = Math.Min(maxPrimitives * primitiveSize, Math.Min(vertexCount, indexBuffer.Size));
                 int vertexOffset = currentDrawIndex / vertexStride;
 
                 // Bind the vertex buffer.

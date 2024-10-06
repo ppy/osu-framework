@@ -15,6 +15,7 @@ using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Veldrid;
 using osu.Framework.IO.Stores;
 using osu.Framework.Lists;
 using osu.Framework.Platform;
@@ -747,7 +748,7 @@ namespace osu.Framework.Graphics.Rendering
         /// </para>
         /// </summary>
         /// <param name="batch">The batch.</param>
-        internal void SetActiveBatch(IVertexBatch batch)
+        public void SetActiveBatch(IVertexBatch batch)
         {
             if (currentActiveBatch == batch)
                 return;
@@ -1348,6 +1349,8 @@ namespace osu.Framework.Graphics.Rendering
         }
 
         Texture[] IRenderer.GetAllTextures() => allTextures.ToArray();
+
+        public abstract Mesh ImportMesh(Assimp.Mesh mesh);
 
         #endregion
 

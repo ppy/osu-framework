@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <returns>The number of indices drawn, if any.</returns>
         int Draw();
 
-        internal void ResetCounters();
+        public void ResetCounters();
     }
 
     public interface IVertexBatch<in TVertex> : IVertexBatch

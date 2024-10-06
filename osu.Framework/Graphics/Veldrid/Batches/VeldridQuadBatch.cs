@@ -2,9 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using HidSharp.Reports;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Veldrid.Buffers;
+using Veldrid;
 
 namespace osu.Framework.Graphics.Veldrid.Batches
 {
@@ -12,7 +14,7 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         where T : unmanaged, IEquatable<T>, IVertex
     {
         public VeldridQuadBatch(VeldridRenderer renderer, int quads)
-            : base(renderer, quads * IRenderer.VERTICES_PER_QUAD, PrimitiveTopology.Triangles, VeldridIndexLayout.Quad)
+            : base(renderer, quads * IRenderer.VERTICES_PER_QUAD, Rendering.PrimitiveTopology.Triangles, VeldridIndexLayout.Quad)
         {
             if (quads > IRenderer.MAX_QUADS)
                 throw new OverflowException($"Attempted to initialise a {nameof(VeldridQuadBatch<T>)} with more than {nameof(IRenderer)}.{nameof(IRenderer.MAX_QUADS)} quads ({IRenderer.MAX_QUADS}).");
