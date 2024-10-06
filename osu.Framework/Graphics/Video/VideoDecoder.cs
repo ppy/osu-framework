@@ -882,7 +882,7 @@ namespace osu.Framework.Graphics.Video
                 return;
             }
 
-            int audioSize = ffmpeg.av_samples_get_buffer_size(null, audioChannels, sampleCount, audioFmt, 0);
+            int audioSize = sampleCount * audioChannels * (audioBits / 8);
             byte[] audioDest = ArrayPool<byte>.Shared.Rent(audioSize);
             int nbSamples = 0;
 
@@ -1146,7 +1146,6 @@ namespace osu.Framework.Graphics.Video
                 swr_close = FFmpeg.AutoGen.ffmpeg.swr_close,
                 swr_convert = FFmpeg.AutoGen.ffmpeg.swr_convert,
                 swr_get_delay = FFmpeg.AutoGen.ffmpeg.swr_get_delay,
-                av_samples_get_buffer_size = FFmpeg.AutoGen.ffmpeg.av_samples_get_buffer_size,
                 av_get_default_channel_layout = FFmpeg.AutoGen.ffmpeg.av_get_default_channel_layout,
                 swr_get_out_samples = FFmpeg.AutoGen.ffmpeg.swr_get_out_samples,
             };

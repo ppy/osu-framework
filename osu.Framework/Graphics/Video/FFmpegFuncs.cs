@@ -106,8 +106,6 @@ namespace osu.Framework.Graphics.Video
 
         public delegate long SwrGetDelayDelegate(SwrContext* s, long value);
 
-        public delegate int AvSamplesGetBufferSizeDelegate(int* linesize, int nbChannels, int nbSamples, AVSampleFormat sampleFmt, int align);
-
         public delegate long AvGetDefaultChannelLayoutDelegate(int nbChannels);
 
         public delegate int SwrGetOutSamplesDelegate(SwrContext* s, int inSamples);
@@ -163,7 +161,6 @@ namespace osu.Framework.Graphics.Video
         public SwrCloseDelegate swr_close;
         public SwrConvertDelegate swr_convert;
         public SwrGetDelayDelegate swr_get_delay;
-        public AvSamplesGetBufferSizeDelegate av_samples_get_buffer_size;
         public AvGetDefaultChannelLayoutDelegate av_get_default_channel_layout;
         public SwrGetOutSamplesDelegate swr_get_out_samples;
 
