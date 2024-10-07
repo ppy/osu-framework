@@ -145,7 +145,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (handleClick)
             {
                 handleMouseInput(e);
-                commit();
+                Commit();
             }
 
             return true;
@@ -170,7 +170,7 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected override void OnDragEnd(DragEndEvent e) => commit();
+        protected override void OnDragEnd(DragEndEvent e) => Commit();
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
@@ -203,12 +203,12 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void OnKeyUp(KeyUpEvent e)
         {
             if (e.Key == Key.Left || e.Key == Key.Right)
-                commit();
+                Commit();
         }
 
         private bool uncommittedChanges;
 
-        private bool commit()
+        protected virtual bool Commit()
         {
             if (!uncommittedChanges)
                 return false;
