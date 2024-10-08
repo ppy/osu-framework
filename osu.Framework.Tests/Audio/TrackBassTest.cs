@@ -17,46 +17,66 @@ namespace osu.Framework.Tests.Audio
     [TestFixture]
     public class TrackBassTest
     {
-        private BassTestComponents bass;
-        private TrackBass track;
-
-        [SetUp]
-        public void Setup()
-        {
-            bass = new BassTestComponents();
-            track = bass.GetTrack();
-
-            bass.Update();
-        }
+        private AudioTestComponents audio;
+        private Track track;
 
         [TearDown]
         public void Teardown()
         {
-            bass?.Dispose();
+            audio?.Dispose();
         }
 
-        [Test]
-        public void TestStart()
+        private void setupBackend(AudioTestComponents.Type id, bool loadTrack = false)
         {
+            if (id == AudioTestComponents.Type.BASS)
+            {
+                audio = new BassTestComponents();
+                track = audio.GetTrack();
+            }
+            else if (id == AudioTestComponents.Type.SDL3)
+            {
+                audio = new SDL3AudioTestComponents();
+                track = audio.GetTrack();
+
+                if (loadTrack)
+                    ((SDL3AudioTestComponents)audio).WaitUntilTrackIsLoaded((TrackSDL3)track);
+            }
+            else
+            {
+                throw new InvalidOperationException("not a supported id");
+            }
+
+            audio.Update();
+        }
+
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestStart(AudioTestComponents.Type id)
+        {
+            setupBackend(id, true);
+
             track.StartAsync();
-            bass.Update();
+            audio.Update();
 
             Thread.Sleep(50);
 
-            bass.Update();
+            audio.Update();
 
             Assert.IsTrue(track.IsRunning);
             Assert.Greater(track.CurrentTime, 0);
         }
 
-        [Test]
-        public void TestStop()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestStop(AudioTestComponents.Type id)
         {
+            setupBackend(id);
+
             track.StartAsync();
-            bass.Update();
+            audio.Update();
 
             track.StopAsync();
-            bass.Update();
+            audio.Update();
 
             Assert.IsFalse(track.IsRunning);
 
@@ -66,20 +86,23 @@ namespace osu.Framework.Tests.Audio
             Assert.AreEqual(expectedTime, track.CurrentTime);
         }
 
-        [Test]
-        public void TestStopWhenDisposed()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestStopWhenDisposed(AudioTestComponents.Type id)
         {
+            setupBackend(id);
+
             track.StartAsync();
-            bass.Update();
+            audio.Update();
 
             Thread.Sleep(50);
-            bass.Update();
+            audio.Update();
 
             Assert.IsTrue(track.IsAlive);
             Assert.IsTrue(track.IsRunning);
 
             track.Dispose();
-            bass.Update();
+            audio.Update();
 
             Assert.IsFalse(track.IsAlive);
             Assert.IsFalse(track.IsRunning);
@@ -90,42 +113,51 @@ namespace osu.Framework.Tests.Audio
             Assert.AreEqual(expectedTime, track.CurrentTime);
         }
 
-        [Test]
-        public void TestStopAtEnd()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestStopAtEnd(AudioTestComponents.Type id)
         {
+            setupBackend(id, true);
+
             startPlaybackAt(track.Length - 1);
 
             Thread.Sleep(50);
 
-            bass.Update();
+            audio.Update();
             track.StopAsync();
-            bass.Update();
+            audio.Update();
 
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(track.Length, track.CurrentTime);
         }
 
-        [Test]
-        public void TestSeek()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestSeek(AudioTestComponents.Type id)
         {
+            setupBackend(id, true);
+
             track.SeekAsync(1000);
-            bass.Update();
+            audio.Update();
 
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(1000, track.CurrentTime);
         }
 
-        [Test]
-        public void TestSeekWhileRunning()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestSeekWhileRunning(AudioTestComponents.Type id)
         {
+            setupBackend(id);
+
             track.StartAsync();
-            bass.Update();
+            audio.Update();
 
             track.SeekAsync(1000);
-            bass.Update();
+            audio.Update();
 
             Thread.Sleep(50);
-            bass.Update();
+            audio.Update();
 
             Assert.IsTrue(track.IsRunning);
             Assert.GreaterOrEqual(track.CurrentTime, 1000);
@@ -134,41 +166,49 @@ namespace osu.Framework.Tests.Audio
         /// <summary>
         /// Bass does not allow seeking to the end of the track. It should fail and the current time should not change.
         /// </summary>
-        [Test]
-        public void TestSeekToEndFails()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        public void TestSeekToEndFails(AudioTestComponents.Type id)
         {
+            setupBackend(id);
+
             bool? success = null;
 
-            bass.RunOnAudioThread(() => { success = track.Seek(track.Length); });
-            bass.Update();
+            audio.RunOnAudioThread(() => { success = track.Seek(track.Length); });
+            audio.Update();
 
             Assert.AreEqual(0, track.CurrentTime);
             Assert.IsFalse(success);
         }
 
-        [Test]
-        public void TestSeekBackToSamePosition()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestSeekBackToSamePosition(AudioTestComponents.Type id)
         {
+            setupBackend(id, true);
+
             track.SeekAsync(1000);
             track.SeekAsync(0);
-            bass.Update();
+            audio.Update();
 
             Thread.Sleep(50);
 
-            bass.Update();
+            audio.Update();
 
             Assert.GreaterOrEqual(track.CurrentTime, 0);
             Assert.Less(track.CurrentTime, 1000);
         }
 
-        [Test]
-        public void TestPlaybackToEnd()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestPlaybackToEnd(AudioTestComponents.Type id)
         {
+            setupBackend(id, true);
+
             startPlaybackAt(track.Length - 1);
 
             Thread.Sleep(50);
 
-            bass.Update();
+            audio.Update();
 
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(track.Length, track.CurrentTime);
@@ -178,51 +218,63 @@ namespace osu.Framework.Tests.Audio
         /// Bass restarts the track from the beginning if Start is called when the track has been completed.
         /// This is blocked locally in <see cref="TrackBass"/>, so this test expects the track to not restart.
         /// </summary>
-        [Test]
-        public void TestStartFromEndDoesNotRestart()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestStartFromEndDoesNotRestart(AudioTestComponents.Type id)
         {
+            setupBackend(id, true);
+
             startPlaybackAt(track.Length - 1);
 
             Thread.Sleep(50);
 
-            bass.Update();
+            audio.Update();
             track.StartAsync();
-            bass.Update();
+            audio.Update();
 
             Assert.AreEqual(track.Length, track.CurrentTime);
         }
 
-        [Test]
-        public void TestRestart()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestRestart(AudioTestComponents.Type id)
         {
+            setupBackend(id);
+
             startPlaybackAt(1000);
 
             Thread.Sleep(50);
 
-            bass.Update();
+            audio.Update();
             restartTrack();
 
             Assert.IsTrue(track.IsRunning);
             Assert.Less(track.CurrentTime, 1000);
         }
 
-        [Test]
-        public void TestRestartAtEnd()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestRestartAtEnd(AudioTestComponents.Type id)
         {
+            setupBackend(id);
+
             startPlaybackAt(track.Length - 1);
 
             Thread.Sleep(50);
 
-            bass.Update();
+            audio.Update();
             restartTrack();
 
             Assert.IsTrue(track.IsRunning);
             Assert.LessOrEqual(track.CurrentTime, 1000);
         }
 
-        [Test]
-        public void TestRestartFromRestartPoint()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestRestartFromRestartPoint(AudioTestComponents.Type id)
         {
+            setupBackend(id);
+
             track.RestartPoint = 1000;
 
             startPlaybackAt(3000);
@@ -233,10 +285,14 @@ namespace osu.Framework.Tests.Audio
             Assert.Less(track.CurrentTime, 3000);
         }
 
-        [TestCase(0)]
-        [TestCase(1000)]
-        public void TestLoopingRestart(double restartPoint)
+        [TestCase(AudioTestComponents.Type.BASS, 0)]
+        [TestCase(AudioTestComponents.Type.SDL3, 0)]
+        [TestCase(AudioTestComponents.Type.BASS, 1000)]
+        [TestCase(AudioTestComponents.Type.SDL3, 1000)]
+        public void TestLoopingRestart(AudioTestComponents.Type id, double restartPoint)
         {
+            setupBackend(id, true);
+
             track.Looping = true;
             track.RestartPoint = restartPoint;
 
@@ -246,12 +302,12 @@ namespace osu.Framework.Tests.Audio
 
             // In a perfect world the track will be running after the update above, but during testing it's possible that the track is in
             // a stalled state due to updates running on Bass' own thread, so we'll loop until the track starts running again
-            // Todo: This should be fixed in the future if/when we invoke Bass.Update() ourselves
+            // Todo: This should be fixed in the future if/when we invoke audio.Update() ourselves
             int loopCount = 0;
 
             while (++loopCount < 50 && !track.IsRunning)
             {
-                bass.Update();
+                audio.Update();
                 Thread.Sleep(10);
             }
 
@@ -262,9 +318,12 @@ namespace osu.Framework.Tests.Audio
             Assert.LessOrEqual(track.CurrentTime, restartPoint + 1000);
         }
 
-        [Test]
-        public void TestSetTempoNegative()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestSetTempoNegative(AudioTestComponents.Type id)
         {
+            setupBackend(id);
+
             Assert.Throws<ArgumentException>(() => track.Tempo.Value = -1);
             Assert.Throws<ArgumentException>(() => track.Tempo.Value = 0.04f);
 
@@ -276,16 +335,22 @@ namespace osu.Framework.Tests.Audio
             Assert.AreEqual(0.05f, track.Tempo.Value);
         }
 
-        [Test]
-        public void TestRateWithAggregateAdjustments()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestRateWithAggregateAdjustments(AudioTestComponents.Type id)
         {
+            setupBackend(id);
+
             track.AddAdjustment(AdjustableProperty.Frequency, new BindableDouble(1.5f));
             Assert.AreEqual(1.5, track.Rate);
         }
 
-        [Test]
-        public void TestLoopingTrackDoesntSetCompleted()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestLoopingTrackDoesntSetCompleted(AudioTestComponents.Type id)
         {
+            setupBackend(id);
+
             bool completedEvent = false;
 
             track.Completed += () => completedEvent = true;
@@ -296,14 +361,17 @@ namespace osu.Framework.Tests.Audio
             Assert.IsFalse(track.HasCompleted);
             Assert.IsFalse(completedEvent);
 
-            bass.Update();
+            audio.Update();
 
             Assert.IsTrue(track.IsRunning);
         }
 
-        [Test]
-        public void TestHasCompletedResetsOnSeekBack()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestHasCompletedResetsOnSeekBack(AudioTestComponents.Type id)
         {
+            setupBackend(id, true);
+
             // start playback and wait for completion.
             startPlaybackAt(track.Length - 1);
             takeEffectsAndUpdateAfter(50);
@@ -312,20 +380,23 @@ namespace osu.Framework.Tests.Audio
 
             // ensure seeking to end doesn't reset completed state.
             track.SeekAsync(track.Length);
-            bass.Update();
+            audio.Update();
 
             Assert.IsTrue(track.HasCompleted);
 
             // seeking back reset completed state.
             track.SeekAsync(track.Length - 1);
-            bass.Update();
+            audio.Update();
 
             Assert.IsFalse(track.HasCompleted);
         }
 
-        [Test]
-        public void TestZeroFrequencyHandling()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestZeroFrequencyHandling(AudioTestComponents.Type id)
         {
+            setupBackend(id, true);
+
             // start track.
             track.StartAsync();
             takeEffectsAndUpdateAfter(50);
@@ -336,13 +407,13 @@ namespace osu.Framework.Tests.Audio
 
             // now set to zero frequency and update track to take effects.
             track.Frequency.Value = 0;
-            bass.Update();
+            audio.Update();
 
             double currentTime = track.CurrentTime;
 
             // assert time is frozen after 50ms sleep and didn't change with full precision, but "IsRunning" is still true.
             Thread.Sleep(50);
-            bass.Update();
+            audio.Update();
 
             Assert.IsTrue(track.IsRunning);
             Assert.AreEqual(currentTime, track.CurrentTime);
@@ -360,9 +431,12 @@ namespace osu.Framework.Tests.Audio
         /// <summary>
         /// Ensure setting a paused (or not yet played) track's frequency from zero to one doesn't resume / play it.
         /// </summary>
-        [Test]
-        public void TestZeroFrequencyDoesntResumeTrack()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestZeroFrequencyDoesntResumeTrack(AudioTestComponents.Type id)
         {
+            setupBackend(id);
+
             // start at zero frequency and wait a bit.
             track.Frequency.Value = 0;
             track.StartAsync();
@@ -374,7 +448,7 @@ namespace osu.Framework.Tests.Audio
 
             // stop track and update.
             track.StopAsync();
-            bass.Update();
+            audio.Update();
 
             Assert.IsFalse(track.IsRunning);
 
@@ -387,71 +461,83 @@ namespace osu.Framework.Tests.Audio
             Assert.AreEqual(0, track.CurrentTime);
         }
 
-        [Test]
-        public void TestBitrate()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestBitrate(AudioTestComponents.Type id)
         {
+            setupBackend(id, true);
+
             Assert.Greater(track.Bitrate, 0);
         }
 
         /// <summary>
         /// Tests the case where a start call can be run inline due to already being on the audio thread.
-        /// Because it's immediately executed, a `Bass.Update()` call is not required before the channel's state is updated.
+        /// Because it's immediately executed, a `audio.Update()` call is not required before the channel's state is updated.
         /// </summary>
-        [Test]
-        public void TestIsRunningUpdatedAfterInlineStart()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestIsRunningUpdatedAfterInlineStart(AudioTestComponents.Type id)
         {
-            bass.RunOnAudioThread(() => track.Start());
+            setupBackend(id);
+
+            audio.RunOnAudioThread(() => track.Start());
             Assert.That(track.IsRunning, Is.True);
         }
 
         /// <summary>
         /// Tests the case where a stop call can be run inline due to already being on the audio thread.
-        /// Because it's immediately executed, a `Bass.Update()` call is not required before the channel's state is updated.
+        /// Because it's immediately executed, a `audio.Update()` call is not required before the channel's state is updated.
         /// </summary>
-        [Test]
-        public void TestIsRunningUpdatedAfterInlineStop()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestIsRunningUpdatedAfterInlineStop(AudioTestComponents.Type id)
         {
-            track.StartAsync();
-            bass.Update();
+            setupBackend(id);
 
-            bass.RunOnAudioThread(() => track.Stop());
+            track.StartAsync();
+            audio.Update();
+
+            audio.RunOnAudioThread(() => track.Stop());
             Assert.That(track.IsRunning, Is.False);
         }
 
         /// <summary>
         /// Tests the case where a seek call can be run inline due to already being on the audio thread.
-        /// Because it's immediately executed, a `Bass.Update()` call is not required before the channel's state is updated.
+        /// Because it's immediately executed, a `audio.Update()` call is not required before the channel's state is updated.
         /// </summary>
-        [Test]
-        public void TestCurrentTimeUpdatedAfterInlineSeek()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestCurrentTimeUpdatedAfterInlineSeek(AudioTestComponents.Type id)
         {
-            track.StartAsync();
-            bass.Update();
+            setupBackend(id);
 
-            bass.RunOnAudioThread(() => track.Seek(20000));
+            track.StartAsync();
+            audio.Update();
+
+            audio.RunOnAudioThread(() => track.Seek(20000));
             Assert.That(track.CurrentTime, Is.EqualTo(20000).Within(100));
         }
 
         private void takeEffectsAndUpdateAfter(int after)
         {
-            bass.Update();
+            audio.Update();
             Thread.Sleep(after);
-            bass.Update();
+            audio.Update();
         }
 
         private void startPlaybackAt(double time)
         {
             track.SeekAsync(time);
             track.StartAsync();
-            bass.Update();
+            audio.Update();
         }
 
         private void restartTrack()
         {
-            bass.RunOnAudioThread(() =>
+            audio.RunOnAudioThread(() =>
             {
                 track.Restart();
-                bass.Update();
+                audio.Update();
             });
         }
     }
