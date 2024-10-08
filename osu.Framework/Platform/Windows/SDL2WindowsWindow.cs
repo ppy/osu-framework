@@ -25,8 +25,8 @@ namespace osu.Framework.Platform.Windows
         private const int large_icon_size = 256;
         private const int small_icon_size = 16;
 
-        private Icon? smallIcon;
-        private Icon? largeIcon;
+        internal Icon? smallIcon;
+        internal Icon? largeIcon;
 
         private const int wm_killfocus = 8;
 
@@ -99,6 +99,12 @@ namespace osu.Framework.Platform.Windows
 
                 switch (m.msg)
                 {
+                    case WindowsNotificationTrayIcon.TRAYICON:
+                        if (WindowsNotificationTrayIcon.IsClick(m.lParam))
+                        {
+                            TrayIcon.Value?.OnClick?.Invoke();
+                        }
+                        break;
                     case wm_killfocus:
                         warpCursorFromFocusLoss();
                         break;

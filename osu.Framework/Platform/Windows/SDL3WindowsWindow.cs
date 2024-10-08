@@ -29,8 +29,8 @@ namespace osu.Framework.Platform.Windows
         private const int large_icon_size = 256;
         private const int small_icon_size = 16;
 
-        private Icon? smallIcon;
-        private Icon? largeIcon;
+        internal Icon? smallIcon;
+        internal Icon? largeIcon;
 
         /// <summary>
         /// Whether to apply the <see cref="windows_borderless_width_hack"/>.
@@ -82,6 +82,12 @@ namespace osu.Framework.Platform.Windows
         {
             switch (msg.message)
             {
+                case WindowsNotificationTrayIcon.TRAYICON:
+                    if (WindowsNotificationTrayIcon.IsClick(msg.lParam))
+                    {
+                        TrayIcon.Value?.OnClick?.Invoke();
+                    }
+                    break;
                 case Imm.WM_IME_STARTCOMPOSITION:
                 case Imm.WM_IME_COMPOSITION:
                 case Imm.WM_IME_ENDCOMPOSITION:
