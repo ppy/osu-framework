@@ -85,7 +85,7 @@ namespace osu.Framework.Bindables
             return null;
         }
 
-        private void recalculateAggregate(ValueChangedEvent<T> obj = null)
+        private void recalculateAggregate(ValueChangedEvent<T> obj = default)
         {
             T calculated = initialValue;
 
