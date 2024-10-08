@@ -40,6 +40,8 @@ namespace osu.Framework.iOS
 
         public override void Create()
         {
+            SDL_SetHint(SDL_HINT_IOS_HIDE_HOME_INDICATOR, "2"u8);
+
             base.Create();
 
             window = Runtime.GetNSObject<UIWindow>(WindowHandle);
