@@ -99,6 +99,7 @@ namespace osu.Framework.Tests.Localisation
         public void TestLocalisableStringDoesNotEqualNull()
         {
             testEquals(false, new LocalisableString(), new RomanisableString(makeStringA, makeStringB));
+            testEquals(false, new RomanisableString(makeStringA, makeStringB), new LocalisableString());
         }
 
         [Test]
