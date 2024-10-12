@@ -265,5 +265,11 @@ namespace osu.Framework.Platform
         /// The window title.
         /// </summary>
         string Title { get; set; }
+
+        IBindable<NotificationTrayIcon?> TrayIcon { get; }
+
+        public void CreateNotificationTrayIcon(string text, Action? onClick);
+
+        public void RemoveNotificationTrayIcon();
     }
 }
