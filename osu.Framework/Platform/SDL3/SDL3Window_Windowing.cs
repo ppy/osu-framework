@@ -185,7 +185,7 @@ namespace osu.Framework.Platform.SDL3
                     return;
 
                 resizable = value;
-                ScheduleCommand(() => SDL_SetWindowResizable(SDLWindowHandle, value ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE));
+                ScheduleCommand(() => SDL_SetWindowResizable(SDLWindowHandle, value));
             }
         }
 
@@ -356,7 +356,7 @@ namespace osu.Framework.Platform.SDL3
 
             SDL_Rect rect;
 
-            if (SDL_GetDisplayBounds(displayID, &rect) == SDL_bool.SDL_FALSE)
+            if (!SDL_GetDisplayBounds(displayID, &rect))
             {
                 Logger.Log($"Failed to get display bounds for display at index ({displayIndex}). SDL Error: {SDL_GetError()}");
                 display = null;
@@ -644,7 +644,7 @@ namespace osu.Framework.Platform.SDL3
 
                     SDL_RestoreWindow(SDLWindowHandle);
                     SDL_SetWindowSize(SDLWindowHandle, Size.Width, Size.Height);
-                    SDL_SetWindowResizable(SDLWindowHandle, Resizable ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE);
+                    SDL_SetWindowResizable(SDLWindowHandle, Resizable);
 
                     readWindowPositionFromConfig(state, display);
                     break;
@@ -657,7 +657,7 @@ namespace osu.Framework.Platform.SDL3
                     ensureWindowOnDisplay(display);
 
                     SDL_SetWindowFullscreenMode(SDLWindowHandle, &closestMode);
-                    SDL_SetWindowFullscreen(SDLWindowHandle, SDL_bool.SDL_TRUE);
+                    SDL_SetWindowFullscreen(SDLWindowHandle, true);
                     break;
 
                 case WindowState.FullscreenBorderless:
@@ -874,14 +874,14 @@ namespace osu.Framework.Platform.SDL3
 
             SDL_DisplayMode mode;
 
-            if (SDL_GetClosestFullscreenDisplayMode(displayID, size.Width, size.Height, requestedMode.RefreshRate, SDL_bool.SDL_TRUE, &mode) == SDL_bool.SDL_TRUE)
+            if (SDL_GetClosestFullscreenDisplayMode(displayID, size.Width, size.Height, requestedMode.RefreshRate, true, &mode))
                 return mode;
 
             Logger.Log(
                 $"Unable to get preferred display mode (try #1/2). Target display: {display.Index}, mode: {size.Width}x{size.Height}@{requestedMode.RefreshRate}. SDL error: {SDL3Extensions.GetAndClearError()}");
 
             // fallback to current display's native bounds
-            if (SDL_GetClosestFullscreenDisplayMode(displayID, display.Bounds.Width, display.Bounds.Height, 0f, SDL_bool.SDL_TRUE, &mode) == SDL_bool.SDL_TRUE)
+            if (SDL_GetClosestFullscreenDisplayMode(displayID, display.Bounds.Width, display.Bounds.Height, 0f, true, &mode))
                 return mode;
 
             Logger.Log(
