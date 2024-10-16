@@ -15,7 +15,7 @@ using osuTK.Input;
 namespace osu.Framework.Input.Handlers.Mouse
 {
     /// <summary>
-    /// Handles mouse events from an <see cref="SDL3Window"/>.
+    /// Handles mouse events from an <see cref="ISDLWindow"/>.
     /// Will use relative mouse mode where possible.
     /// </summary>
     public class MouseHandler : InputHandler, IHasCursorSensitivity, INeedsMousePositionFeedback
@@ -41,7 +41,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public override bool IsActive => true;
 
-        private SDL3Window window;
+        private ISDLWindow window;
 
         private Vector2? lastPosition;
 
@@ -76,7 +76,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             if (!base.Initialize(host))
                 return false;
 
-            if (!(host.Window is SDL3Window desktopWindow))
+            if (!(host.Window is ISDLWindow desktopWindow))
                 return false;
 
             window = desktopWindow;

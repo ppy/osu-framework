@@ -10,7 +10,9 @@ using ObjCRuntime;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Platform;
+using osu.Framework.Platform.SDL3;
 using SDL;
+using static SDL.SDL3;
 using UIKit;
 
 namespace osu.Framework.iOS
@@ -38,6 +40,8 @@ namespace osu.Framework.iOS
 
         public override void Create()
         {
+            SDL_SetHint(SDL_HINT_IOS_HIDE_HOME_INDICATOR, "2"u8);
+
             base.Create();
 
             window = Runtime.GetNSObject<UIWindow>(WindowHandle);
@@ -54,8 +58,9 @@ namespace osu.Framework.iOS
             // iOS may be a good forward direction if this ever comes up, as a user may see a potentially higher
             // frame rate with multi-threaded mode turned on, but it is going to give them worse input latency
             // and higher power usage.
-            SDL3.SDL_iOSSetEventPump(SDL_bool.SDL_FALSE);
-            SDL3.SDL_iOSSetAnimationCallback(SDLWindowHandle, 1, &runFrame, ObjectHandle.Handle);
+
+            SDL_SetiOSEventPump(SDL_bool.SDL_FALSE);
+            SDL_SetiOSAnimationCallback(SDLWindowHandle, 1, &runFrame, ObjectHandle.Handle);
         }
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]

@@ -119,7 +119,7 @@ namespace osu.Framework.Graphics.UserInterface
             public override void Hide()
             {
                 this.FadeOut(200);
-                this.MoveToY(DrawSize.Y, 200, Easing.InExpo);
+                this.MoveToY(DrawSize.Y, 200, Easing.InQuad);
             }
         }
 

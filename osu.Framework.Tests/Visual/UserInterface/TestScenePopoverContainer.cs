@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using osuTK;
@@ -395,7 +396,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
             AddAssert("popover shown", () => this.ChildrenOfType<Popover>().Any());
 
-            AddStep("take away text box focus", () => InputManager.ChangeFocus(null));
+            AddStep("take away text box focus", () => ((IFocusManager)InputManager).ChangeFocus(null));
             AddAssert("popover hidden", () => !this.ChildrenOfType<Popover>().Any());
         }
 
@@ -569,6 +570,30 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 if (target.IsNotNull())
                     target.Y = y;
             });
+        }
+
+        [Test]
+        public void TestComponentOffScreen()
+        {
+            DrawableWithPopover target = null!;
+
+            AddStep("add button", () => popoverContainer.Child = target = new DrawableWithPopover
+            {
+                Width = 200,
+                Height = 30,
+                Anchor = Anchor.TopLeft,
+                Origin = Anchor.TopLeft,
+                RelativePositionAxes = Axes.Both,
+                Text = "open",
+                CreateContent = _ => new BasicPopover
+                {
+                    AllowableAnchors = new[] { Anchor.CentreLeft, Anchor.CentreRight },
+                    Child = new SpriteText { Text = "no twitching!" }
+                }
+            });
+
+            AddStep("show popover", () => target.ShowPopover());
+            AddStep("move off screen", () => target.Y = 20);
         }
 
         private void createContent(Func<DrawableWithPopover, Popover> creationFunc)

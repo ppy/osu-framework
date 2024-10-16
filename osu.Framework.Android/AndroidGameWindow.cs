@@ -4,6 +4,7 @@
 using System;
 using osu.Framework.Bindables;
 using osu.Framework.Platform;
+using osu.Framework.Platform.SDL3;
 
 namespace osu.Framework.Android
 {

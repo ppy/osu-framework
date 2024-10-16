@@ -143,7 +143,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="frameBuffer">The <see cref="IFrameBuffer"/> to bind.</param>
         /// <returns>A token that must be disposed upon finishing use of <paramref name="frameBuffer"/>.</returns>
-        protected IDisposable BindFrameBuffer(IFrameBuffer frameBuffer)
+        protected ValueInvokeOnDisposal<IFrameBuffer> BindFrameBuffer(IFrameBuffer frameBuffer)
         {
             // This setter will also take care of allocating a texture of appropriate size within the frame buffer.
             frameBuffer.Size = frameBufferSize;
@@ -153,7 +153,7 @@ namespace osu.Framework.Graphics
             return new ValueInvokeOnDisposal<IFrameBuffer>(frameBuffer, static b => b.Unbind());
         }
 
-        private IDisposable establishFrameBufferViewport(IRenderer renderer)
+        private ValueInvokeOnDisposal<(BufferedDrawNode node, IRenderer renderer)> establishFrameBufferViewport(IRenderer renderer)
         {
             // Disable masking for generating the frame buffer since masking will be re-applied
             // when actually drawing later on anyways. This allows more information to be captured

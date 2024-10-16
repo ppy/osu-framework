@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Development;
 using osu.Framework.Platform;
 
 namespace osu.Framework
@@ -19,6 +20,13 @@ namespace osu.Framework
         public static int? VertexBufferCount { get; }
         public static bool NoStructuredBuffers { get; }
         public static string? DeferredRendererEventsOutputPath { get; }
+        public static bool UseSDL3 { get; }
+
+        /// <summary>
+        /// Whether non-SSL requests should be allowed. Debug only. Defaults to disabled.
+        /// When disabled, http:// requests will be automatically converted to https://.
+        /// </summary>
+        public static bool AllowInsecureRequests { get; internal set; }
 
         static FrameworkEnvironment()
         {
@@ -41,6 +49,11 @@ namespace osu.Framework
             NoStructuredBuffers = parseBool(Environment.GetEnvironmentVariable("OSU_GRAPHICS_NO_SSBO")) ?? false;
 
             DeferredRendererEventsOutputPath = Environment.GetEnvironmentVariable("DEFERRED_RENDERER_EVENTS_OUTPUT");
+
+            if (DebugUtils.IsDebugBuild)
+                AllowInsecureRequests = parseBool(Environment.GetEnvironmentVariable("OSU_INSECURE_REQUESTS")) ?? false;
+
+            UseSDL3 = RuntimeInfo.IsMobile || (parseBool(Environment.GetEnvironmentVariable("OSU_SDL3")) ?? false);
         }
 
         private static bool? parseBool(string? value)

@@ -7,8 +7,10 @@ using osu.Framework.Extensions;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
+using osu.Framework.Utils;
 using osuTK;
 using osuTK.Input;
 
@@ -101,6 +103,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override Container<Drawable> Content { get; } = new Container { AutoSizeAxes = Axes.Both };
 
+        protected override bool ComputeIsMaskedAway(RectangleF maskingBounds) => !Precision.AlmostIntersects(maskingBounds, Content.ScreenSpaceDrawQuad.AABBFloat);
+
         protected Popover()
         {
             base.AddInternal(BoundingBoxContainer = new Container
@@ -108,7 +112,10 @@ namespace osu.Framework.Graphics.UserInterface
                 AutoSizeAxes = Axes.Both,
                 Children = new[]
                 {
-                    Arrow = CreateArrow(),
+                    Arrow = CreateArrow().With(arr =>
+                    {
+                        arr.BypassAutoSizeAxes = Axes.Both;
+                    }),
                     Body = new Container
                     {
                         AutoSizeAxes = Axes.Both,

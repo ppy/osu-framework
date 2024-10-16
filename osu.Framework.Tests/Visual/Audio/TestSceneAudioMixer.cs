@@ -4,10 +4,8 @@
 using System.Linq;
 using ManagedBass;
 using ManagedBass.Fx;
-using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Sample;
-using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Audio;
 using osu.Framework.Graphics.Containers;
@@ -21,64 +19,88 @@ namespace osu.Framework.Tests.Visual.Audio
 {
     public partial class TestSceneAudioMixer : FrameworkTestScene
     {
-        [SetUp]
-        public void Setup() => Schedule(() =>
-        {
-            ContainerWithEffect noEffectContainer;
-            FillFlowContainer<ContainerWithEffect> effectContainers;
+        private readonly DragHandle dragHandle;
+        private readonly AudioPlayingDrawable audioDrawable;
+        private readonly ContainerWithEffect noEffectContainer;
+        private readonly FillFlowContainer<ContainerWithEffect> effectContainers;
 
-            Child = noEffectContainer = new ContainerWithEffect("no effect", Color4.Black)
+        public TestSceneAudioMixer()
+        {
+            AddRange(new Drawable[]
             {
-                RelativeSizeAxes = Axes.Both,
-                Size = new Vector2(1),
-                Child = new Container
+                noEffectContainer = new ContainerWithEffect("no effect", Color4.Black, null)
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Padding = new MarginPadding(20),
-                    Child = effectContainers = new FillFlowContainer<ContainerWithEffect>
+                    Size = new Vector2(1),
+                    Children = new Drawable[]
                     {
-                        RelativeSizeAxes = Axes.Both,
+                        effectContainers = new FillFlowContainer<ContainerWithEffect>
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Padding = new MarginPadding(20)
+                        },
+                        audioDrawable = new AudioPlayingDrawable { Origin = Anchor.Centre }
                     }
+                },
+                dragHandle = new DragHandle
+                {
+                    Origin = Anchor.Centre,
+                    Position = new Vector2(50)
                 }
-            };
+            });
 
             for (int i = 0; i < 50; i++)
             {
                 float centre = 150 + 50 * i;
 
-                effectContainers.Add(new ContainerWithEffect($"<{centre}Hz", Color4.Blue)
+                effectContainers.Add(new ContainerWithEffect($"<{centre}Hz", Color4.Blue, new BQFParameters
+                {
+                    lFilter = BQFType.LowPass,
+                    fCenter = centre
+                })
                 {
                     Size = new Vector2(100),
-                    Effects =
-                    {
-                        new BQFParameters
-                        {
-                            lFilter = BQFType.LowPass,
-                            fCenter = centre
-                        }
-                    }
                 });
             }
+        }
 
-            AudioBox audioBox;
-            noEffectContainer.Add(audioBox = new AudioBox(noEffectContainer, effectContainers));
-
-            Add(audioBox.CreateProxy());
-        });
-
-        private partial class AudioBox : CompositeDrawable
+        protected override void Update()
         {
-            private readonly Container<Drawable> defaultParent;
-            private readonly Container<ContainerWithEffect> effectContainers;
+            base.Update();
 
-            public AudioBox(Container<Drawable> defaultParent, Container<ContainerWithEffect> effectContainers)
+            Vector2 pos = dragHandle.ScreenSpaceDrawQuad.Centre;
+            Container container = effectContainers.SingleOrDefault(c => c.ScreenSpaceDrawQuad.Contains(pos)) ?? noEffectContainer;
+
+            if (audioDrawable.Parent != container)
             {
-                this.defaultParent = defaultParent;
-                this.effectContainers = effectContainers;
+                audioDrawable.Parent!.RemoveInternal(audioDrawable, false);
+                container.Add(audioDrawable);
+            }
+        }
 
-                currentContainer = defaultParent;
+        private partial class AudioPlayingDrawable : CompositeDrawable
+        {
+            [BackgroundDependencyLoader]
+            private void load(ISampleStore samples)
+            {
+                DrawableSample sample;
 
-                Origin = Anchor.Centre;
+                AddInternal(new AudioContainer
+                {
+                    Volume = { Value = 0.5f },
+                    Child = sample = new DrawableSample(samples.Get("long.mp3"))
+                });
+
+                var channel = sample.GetChannel();
+                channel.Looping = true;
+                channel.Play();
+            }
+        }
+
+        private partial class DragHandle : CompositeDrawable
+        {
+            public DragHandle()
+            {
                 Size = new Vector2(50);
 
                 InternalChild = new CircularContainer
@@ -104,64 +126,24 @@ namespace osu.Framework.Tests.Visual.Audio
                 };
             }
 
-            [BackgroundDependencyLoader]
-            private void load(ISampleStore samples)
-            {
-                samples.Volume.Value = 0.5f;
+            protected override bool OnDragStart(DragStartEvent e) => true;
 
-                DrawableSample sample;
-                AddInternal(sample = new DrawableSample(samples.Get("long.mp3")));
-
-                var channel = sample.GetChannel();
-                channel.Looping = true;
-                channel.Play();
-            }
-
-            protected override bool OnDragStart(DragStartEvent e)
-            {
-                return true;
-            }
-
-            protected override void OnDrag(DragEvent e)
-            {
-                Position += e.Delta;
-            }
-
-            private Container<Drawable> currentContainer;
-
-            protected override void Update()
-            {
-                base.Update();
-
-                Vector2 centre = ScreenSpaceDrawQuad.Centre;
-
-                Container<Drawable> targetContainer = effectContainers.FirstOrDefault(c => c.Contains(centre)) ?? defaultParent;
-                if (targetContainer == currentContainer)
-                    return;
-
-                currentContainer.Remove(this, false);
-                targetContainer.Add(this);
-
-                Position = Parent!.ToLocalSpace(centre);
-
-                currentContainer = targetContainer;
-            }
+            protected override void OnDrag(DragEvent e) => Position = e.MousePosition;
         }
 
         private partial class ContainerWithEffect : Container
         {
             protected override Container<Drawable> Content => content;
 
-            private readonly DrawableAudioMixer mixer;
             private readonly Container content;
-
             private readonly Drawable background;
 
-            public ContainerWithEffect(string name, Color4 colour)
+            public ContainerWithEffect(string name, Color4 colour, IEffectParameter? effect)
             {
                 Anchor = Anchor.Centre;
                 Origin = Anchor.Centre;
 
+                DrawableAudioMixer mixer;
                 InternalChild = mixer = new DrawableAudioMixer
                 {
                     RelativeSizeAxes = Axes.Both,
@@ -186,14 +168,14 @@ namespace osu.Framework.Tests.Visual.Audio
                         }
                     }
                 };
-            }
 
-            public BindableList<IEffectParameter> Effects => mixer.Effects;
+                if (effect != null)
+                    mixer.AddEffect(effect);
+            }
 
             protected override void Update()
             {
                 base.Update();
-
                 background.Alpha = content.Count > 0 ? 1 : 0.2f;
             }
         }
