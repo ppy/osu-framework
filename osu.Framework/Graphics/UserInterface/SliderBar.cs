@@ -172,12 +172,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void OnDragEnd(DragEndEvent e) => Commit();
 
+        public override bool AcceptsFocus => true;
+
         protected override bool OnKeyDown(KeyDownEvent e)
         {
             if (currentNumberInstantaneous.Disabled)
-                return false;
-
-            if (!IsHovered)
                 return false;
 
             float step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;
