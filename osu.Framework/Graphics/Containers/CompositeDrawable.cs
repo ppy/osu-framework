@@ -153,7 +153,7 @@ namespace osu.Framework.Graphics.Containers
             var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(disposalCancellationSource.Token, cancellation);
 
             var deps = new DependencyContainer(Dependencies);
-            deps.CacheValueAs(linkedSource.Token);
+            deps.CacheAs(linkedSource.Token);
 
             loadingComponents ??= new WeakList<Drawable>();
 
