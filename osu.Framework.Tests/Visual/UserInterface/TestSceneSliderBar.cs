@@ -160,6 +160,20 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.ReleaseKey(Key.Right);
             });
             checkValue(1);
+
+            AddStep("Focus slider", () => GetContainingFocusManager().ChangeFocus(sliderBar));
+
+            AddStep("move mouse outside", () =>
+            {
+                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(2f, 0.5f)));
+            });
+
+            AddStep("Press right arrow key", () =>
+            {
+                InputManager.PressKey(Key.Right);
+                InputManager.ReleaseKey(Key.Right);
+            });
+            checkValue(2);
         }
 
         [TestCase(false)]
