@@ -59,6 +59,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Size = new Vector2(200, 50),
                         BackgroundColour = Color4.White,
                         SelectionColour = Color4.Pink,
+                        FocusColour = Color4.Purple,
                         KeyboardStep = 1,
                         Current = sliderBarValue
                     },
@@ -72,6 +73,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         RangePadding = 20,
                         BackgroundColour = Color4.White,
                         SelectionColour = Color4.Pink,
+                        FocusColour = Color4.Purple,
                         KeyboardStep = 1,
                         Current = sliderBarValue
                     },
@@ -85,6 +87,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Size = new Vector2(200, 10),
                         BackgroundColour = Color4.White,
                         SelectionColour = Color4.Pink,
+                        FocusColour = Color4.Purple,
                         KeyboardStep = 1,
                         Current = sliderBarValue
                     },
@@ -97,6 +100,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Size = new Vector2(200, 10),
                         BackgroundColour = Color4.White,
                         SelectionColour = Color4.Pink,
+                        FocusColour = Color4.Purple,
                         KeyboardStep = 1,
                         Current = sliderBarValue
                     },
@@ -141,6 +145,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestKeyboardInput()
         {
+            AddStep("Unfocus slider", () => sliderBar.GetContainingFocusManager()!.ChangeFocus(null));
+
             AddStep("Press right arrow key", () =>
             {
                 InputManager.PressKey(Key.Right);
@@ -160,6 +166,20 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.ReleaseKey(Key.Right);
             });
             checkValue(1);
+
+            AddStep("Focus slider", () => sliderBar.GetContainingFocusManager()!.ChangeFocus(sliderBar));
+
+            AddStep("move mouse outside", () =>
+            {
+                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(2f, 0.5f)));
+            });
+
+            AddStep("Press right arrow key", () =>
+            {
+                InputManager.PressKey(Key.Right);
+                InputManager.ReleaseKey(Key.Right);
+            });
+            checkValue(2);
         }
 
         [TestCase(false)]
