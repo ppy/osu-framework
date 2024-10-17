@@ -40,6 +40,8 @@ namespace osu.Framework.iOS
 
         public override void Create()
         {
+            SDL_SetHint(SDL_HINT_IOS_HIDE_HOME_INDICATOR, "2"u8);
+
             base.Create();
 
             window = Runtime.GetNSObject<UIWindow>(WindowHandle);
@@ -57,7 +59,7 @@ namespace osu.Framework.iOS
             // frame rate with multi-threaded mode turned on, but it is going to give them worse input latency
             // and higher power usage.
 
-            SDL_SetiOSEventPump(SDL_bool.SDL_FALSE);
+            SDL_SetiOSEventPump(false);
             SDL_SetiOSAnimationCallback(SDLWindowHandle, 1, &runFrame, ObjectHandle.Handle);
         }
 

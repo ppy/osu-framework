@@ -177,7 +177,7 @@ namespace osu.Framework.Audio
             return SetAudioDevice();
         }
 
-        protected override bool IsCurrentDeviceValid() => baseManager.DeviceId > 0 && SDL_AudioDevicePaused(baseManager.DeviceId) == SDL_FALSE;
+        protected override bool IsCurrentDeviceValid() => baseManager.DeviceId > 0 && !SDL_AudioDevicePaused(baseManager.DeviceId);
 
         internal override Track.Track GetNewTrack(Stream data, string name) => baseManager.GetNewTrack(data, name);
 
@@ -213,7 +213,7 @@ namespace osu.Framework.Audio
 
             internal SDL3BaseAudioManager(Func<IEnumerable<SDL3AudioMixer>> mixerIterator)
             {
-                if (SDL_InitSubSystem(SDL_InitFlags.SDL_INIT_AUDIO) == SDL_bool.SDL_FALSE)
+                if (!SDL_InitSubSystem(SDL_InitFlags.SDL_INIT_AUDIO))
                 {
                     throw new InvalidOperationException($"Failed to initialise SDL Audio: {SDL_GetError()}");
                 }
@@ -269,7 +269,7 @@ namespace osu.Framework.Audio
 
                     int sampleFrameSize = 0;
                     SDL_AudioSpec temp; // this has 'real' device info which is useless since SDL converts audio according to the spec we provided
-                    if (SDL_GetAudioDeviceFormat(DeviceId, &temp, &sampleFrameSize) == 0)
+                    if (SDL_GetAudioDeviceFormat(DeviceId, &temp, &sampleFrameSize))
                         BufferSize = sampleFrameSize * (int)Math.Ceiling((double)spec.freq / temp.freq);
                 }
 
