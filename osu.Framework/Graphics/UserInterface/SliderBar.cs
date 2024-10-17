@@ -179,6 +179,9 @@ namespace osu.Framework.Graphics.UserInterface
             if (currentNumberInstantaneous.Disabled)
                 return false;
 
+            if (!IsHovered && !HasFocus)
+                return false;
+
             float step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;
             if (currentNumberInstantaneous.IsInteger) step = MathF.Ceiling(step);
 
