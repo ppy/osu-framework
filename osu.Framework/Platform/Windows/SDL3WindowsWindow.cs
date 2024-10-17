@@ -69,16 +69,16 @@ namespace osu.Framework.Platform.Windows
         }
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-        private static unsafe SDL_bool messageHook(IntPtr userdata, MSG* msg)
+        private static unsafe SDLBool messageHook(IntPtr userdata, MSG* msg)
         {
             var handle = new ObjectHandle<SDL3WindowsWindow>(userdata);
             if (handle.GetTarget(out SDL3WindowsWindow window))
                 return window.handleEventFromHook(*msg);
 
-            return SDL_bool.SDL_TRUE;
+            return true;
         }
 
-        private SDL_bool handleEventFromHook(MSG msg)
+        private SDLBool handleEventFromHook(MSG msg)
         {
             switch (msg.message)
             {
@@ -89,7 +89,7 @@ namespace osu.Framework.Platform.Windows
                     break;
             }
 
-            return SDL_bool.SDL_TRUE;
+            return true;
         }
 
         protected override void HandleEventFromFilter(SDL_Event evt)
@@ -259,7 +259,7 @@ namespace osu.Framework.Platform.Windows
 
         protected override unsafe Size SetBorderless(Display display)
         {
-            SDL_SetWindowBordered(SDLWindowHandle, SDL_bool.SDL_FALSE);
+            SDL_SetWindowBordered(SDLWindowHandle, false);
 
             var newSize = display.Bounds.Size;
 

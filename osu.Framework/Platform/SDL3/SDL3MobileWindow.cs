@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using SDL;
 using static SDL.SDL3;
 
 namespace osu.Framework.Platform.SDL3
@@ -16,7 +15,7 @@ namespace osu.Framework.Platform.SDL3
         protected override unsafe void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
         {
             // This sets the status bar to hidden.
-            SDL_SetWindowFullscreen(SDLWindowHandle, SDL_bool.SDL_TRUE);
+            SDL_SetWindowFullscreen(SDLWindowHandle, true);
 
             // Don't run base logic at all. Let's keep things simple.
         }
