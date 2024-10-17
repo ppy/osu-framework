@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using osu.Framework.Platform.Windows.Native;
+using SDL;
 
 namespace osu.Framework.Timing
 {
@@ -92,7 +93,12 @@ namespace osu.Framework.Timing
             TimeSpan timeSpan = TimeSpan.FromMilliseconds(milliseconds);
 
             if (!waitWaitableTimer(timeSpan))
-                Thread.Sleep(timeSpan);
+            {
+                if (FrameworkEnvironment.UseSDL3)
+                    SDL3.SDL_DelayNS((ulong)(milliseconds * SDL3.SDL_NS_PER_MS));
+                else
+                    Thread.Sleep(timeSpan);
+            }
 
             return (CurrentTime = SourceTime) - before;
         }
