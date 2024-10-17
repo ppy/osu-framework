@@ -141,6 +141,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestKeyboardInput()
         {
+            AddStep("Unfocus slider", () => sliderBar.GetContainingFocusManager()!.ChangeFocus(null));
+
             AddStep("Press right arrow key", () =>
             {
                 InputManager.PressKey(Key.Right);
@@ -161,7 +163,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
             checkValue(1);
 
-            AddStep("Focus slider", () => GetContainingFocusManager().ChangeFocus(sliderBar));
+            AddStep("Focus slider", () => sliderBar.GetContainingFocusManager()!.ChangeFocus(sliderBar));
 
             AddStep("move mouse outside", () =>
             {
