@@ -84,11 +84,6 @@ namespace osu.Framework.Audio.Sample
 
         bool ISDL3AudioChannel.Playing => playing;
 
-        ~SampleChannelSDL3()
-        {
-            Dispose(false);
-        }
-
         protected override void Dispose(bool disposing)
         {
             if (IsDisposed)
