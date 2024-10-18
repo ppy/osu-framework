@@ -110,7 +110,7 @@ namespace osu.Framework.Graphics.Containers
 
                     textureMaskShader.BindUniformBlock("m_MaskParameters", maskParametersBuffer);
                     textureMaskShader.Bind();
-                    renderer.DrawFrameBuffer(SharedData.CurrentEffectBuffer, DrawRectangle, effectColour.MultiplyAlpha(DrawColourInfo.Colour));
+                    renderer.DrawFrameBuffer(SharedData.CurrentEffectBuffer, DrawRectangle, finalEffectColour.MultiplyAlpha(DrawColourInfo.Colour));
                     textureMaskShader.Unbind();
                 }
 
