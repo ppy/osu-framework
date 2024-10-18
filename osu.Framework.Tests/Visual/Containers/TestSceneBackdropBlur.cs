@@ -72,12 +72,12 @@ namespace osu.Framework.Tests.Visual.Containers
 
             AddSliderStep("fbo scale (x)", 0.01f, 4f, 1f, scale =>
             {
-                buffer.EffectBufferScale = buffer.FrameBufferScale with { X = scale };
+                buffer.EffectBufferScale = buffer.EffectBufferScale with { X = scale };
             });
 
             AddSliderStep("fbo scale (y)", 0.01f, 4f, 1f, scale =>
             {
-                buffer.EffectBufferScale = buffer.FrameBufferScale with { Y = scale };
+                buffer.EffectBufferScale = buffer.EffectBufferScale with { Y = scale };
             });
         }
 
