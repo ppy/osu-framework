@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Layout;
 using osuTK;
 using osuTK.Graphics;
 
@@ -26,7 +27,7 @@ namespace osu.Framework.Graphics.Containers
     public partial class BackdropBlurContainer<T> : Container<T>, IBufferedContainer, IBufferedDrawable where T : Drawable
     {
         [Resolved]
-        private IBufferedContainer parentBufferedContainer { get; set; } = null!;
+        private IBackbufferProvider backbufferProvider { get; set; } = null!;
 
         /// <summary>
         /// Controls the amount of blurring in two orthogonal directions (X and Y if
@@ -60,9 +61,13 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly BackdropBlurContainerDrawNodeSharedData sharedData;
 
+        private readonly LayoutValue parentBacking = new LayoutValue(Invalidation.Parent);
+
         public BackdropBlurContainer(RenderBufferFormat[]? formats = null, bool pixelSnapping = false)
         {
             sharedData = new BackdropBlurContainerDrawNodeSharedData(formats, pixelSnapping);
+
+            AddLayout(parentBacking);
         }
 
         [BackgroundDependencyLoader]
@@ -83,7 +88,29 @@ namespace osu.Framework.Graphics.Containers
 
             Invalidate(Invalidation.DrawNode);
 
-            lastParentDrawRect = parentBufferedContainer.ScreenSpaceDrawQuad.AABBFloat;
+            lastParentDrawRect = backbufferProvider.ScreenSpaceDrawQuad.AABBFloat;
+        }
+
+        private bool hadParent;
+
+        protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
+        {
+            if ((invalidation & Invalidation.Parent) > 0 && backbufferProvider is RefCountedBackbufferProvider refCount)
+            {
+                bool hasParent = Parent != null;
+
+                if (hasParent != hadParent)
+                {
+                    if (hasParent)
+                        refCount.Increment();
+                    else
+                        refCount.Decrement();
+
+                    hadParent = hasParent;
+                }
+            }
+
+            return base.OnInvalidate(invalidation, source);
         }
 
         public Color4 BackgroundColour => Color4.Transparent;
@@ -105,5 +132,16 @@ namespace osu.Framework.Graphics.Containers
         public Vector2 FrameBufferScale { get; set; } = Vector2.One;
 
         public Vector2 EffectBufferScale { get; set; } = Vector2.One;
+
+        protected override void Dispose(bool isDisposing)
+        {
+            if (hadParent && backbufferProvider is RefCountedBackbufferProvider refCount)
+            {
+                refCount.Decrement();
+                hadParent = false;
+            }
+
+            base.Dispose(isDisposing);
+        }
     }
 }
