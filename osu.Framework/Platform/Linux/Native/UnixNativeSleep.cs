@@ -26,6 +26,8 @@ namespace osu.Framework.Platform.Linux.Native
         [DllImport("libc.so.6", EntryPoint = "nanosleep", CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
         private static extern int nanosleep_libc6(in TimeSpec duration, out TimeSpec rem);
 
+        private const int interrupt_error = 4;
+
         static UnixNativeSleep()
         {
             TimeSpec test = new TimeSpec
@@ -58,8 +60,6 @@ namespace osu.Framework.Platform.Linux.Native
             // if nanosleep is null at this point, Thread.Sleep should be used.
         }
 
-        private const int interrupt_error = 4;
-
         public bool Sleep(TimeSpan duration)
         {
             if (nanosleep == null)
@@ -75,14 +75,16 @@ namespace osu.Framework.Platform.Linux.Native
                 NanoSeconds = ns % ns_per_second,
             };
 
-            while (nanosleep(in timeSpec, out var remaining) == -1 && Marshal.GetLastPInvokeError() == interrupt_error)
+            int ret;
+
+            while ((ret = nanosleep(in timeSpec, out var remaining)) == -1 && Marshal.GetLastPInvokeError() == interrupt_error)
             {
                 // The pause can be interrupted by a signal that was delivered to the thread.
                 // Sleep again with remaining time if it happened.
                 timeSpec = remaining;
             }
 
-            return true;
+            return ret == 0; // Any errors other than interrupt_error should return false.
         }
 
         public void Dispose()
