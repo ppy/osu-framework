@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.Containers
                 effectBufferScale = Source.EffectBufferScale;
                 effectBufferSize = new Vector2(MathF.Ceiling(DrawRectangle.Width * effectBufferScale.X), MathF.Ceiling(DrawRectangle.Height * effectBufferScale.Y));
 
-                blurSigma = Source.BlurSigma * effectBufferScale;
+                blurSigma = Source.BlurSigma;
                 blurRadius = new Vector2I(Blur.KernelSize(blurSigma.X), Blur.KernelSize(blurSigma.Y));
                 blurRotation = Source.BlurRotation;
 
