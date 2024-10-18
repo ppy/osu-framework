@@ -13,7 +13,7 @@ using osuTK.Graphics;
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// A container that blurs the content of its nearest parent <see cref="IBufferedContainer"/> behind its children.
+    /// A container that blurs the content of its nearest parent <see cref="IBackbufferProvider"/> behind its children.
     /// If all children are of a specific non-<see cref="Drawable"/> type, use the
     /// generic version <see cref="BackdropBlurContainer{T}"/>.
     /// </summary>
