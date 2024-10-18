@@ -103,5 +103,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         public Vector2 FrameBufferScale { get; set; } = Vector2.One;
+
+        public Vector2 EffectBufferScale { get; set; } = Vector2.One;
     }
 }

@@ -146,12 +146,14 @@ namespace osu.Framework.Graphics
         protected ValueInvokeOnDisposal<IFrameBuffer> BindFrameBuffer(IFrameBuffer frameBuffer)
         {
             // This setter will also take care of allocating a texture of appropriate size within the frame buffer.
-            frameBuffer.Size = frameBufferSize;
+            frameBuffer.Size = GetFrameBufferSize(frameBuffer);
 
             frameBuffer.Bind();
 
             return new ValueInvokeOnDisposal<IFrameBuffer>(frameBuffer, static b => b.Unbind());
         }
+
+        protected virtual Vector2 GetFrameBufferSize(IFrameBuffer frameBuffer) => frameBufferSize;
 
         private ValueInvokeOnDisposal<(BufferedDrawNode node, IRenderer renderer)> establishFrameBufferViewport(IRenderer renderer)
         {

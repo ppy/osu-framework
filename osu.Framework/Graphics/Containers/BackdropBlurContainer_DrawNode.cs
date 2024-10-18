@@ -40,6 +40,9 @@ namespace osu.Framework.Graphics.Containers
 
             private RectangleF parentDrawRect;
 
+            private Vector2 effectBufferScale;
+            private Vector2 effectBufferSize;
+
             public BackdropBlurDrawNode(BackdropBlurContainer<T> source, BackdropBlurContainerDrawNodeSharedData sharedData)
                 : base(source, new CompositeDrawableDrawNode(source), sharedData)
             {
@@ -53,7 +56,10 @@ namespace osu.Framework.Graphics.Containers
 
                 effectColour = Source.EffectColour;
 
-                blurSigma = Source.BlurSigma;
+                effectBufferScale = Source.EffectBufferScale;
+                effectBufferSize = new Vector2(MathF.Ceiling(DrawRectangle.Width * effectBufferScale.X), MathF.Ceiling(DrawRectangle.Height * effectBufferScale.Y));
+
+                blurSigma = Source.BlurSigma * effectBufferScale;
                 blurRadius = new Vector2I(Blur.KernelSize(blurSigma.X), Blur.KernelSize(blurSigma.Y));
                 blurRotation = Source.BlurRotation;
 
@@ -145,6 +151,14 @@ namespace osu.Framework.Graphics.Containers
                 }
             }
 
+            protected override Vector2 GetFrameBufferSize(IFrameBuffer frameBuffer)
+            {
+                if (frameBuffer != SharedData.MainBuffer)
+                    return effectBufferSize;
+
+                return base.GetFrameBufferSize(frameBuffer);
+            }
+
             public List<DrawNode> Children
             {
                 get => Child.Children;
@@ -186,7 +200,7 @@ namespace osu.Framework.Graphics.Containers
 
             public IFrameBuffer GetCurrentSourceBuffer(out bool isBackBuffer)
             {
-                var buffer = base.CurrentEffectBuffer;
+                var buffer = CurrentEffectBuffer;
 
                 if (buffer == MainBuffer && Renderer.FrameBuffer != null)
                 {
