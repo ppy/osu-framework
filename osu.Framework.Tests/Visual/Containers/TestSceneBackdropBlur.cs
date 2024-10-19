@@ -85,7 +85,7 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             protected override Color4 ColourAt(float position)
             {
-                return base.ColourAt(position) with { A = 0.5f + position * 0.5f };
+                return base.ColourAt(position) with { A = 0.5f + (position * 0.5f) };
             }
         }
     }
