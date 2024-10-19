@@ -166,6 +166,7 @@ namespace osu.Framework.Graphics.UserInterface
                 return false;
             }
 
+            GetContainingFocusManager()?.ChangeFocus(this);
             handleMouseInput(e);
             return true;
         }

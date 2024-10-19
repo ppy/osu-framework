@@ -113,6 +113,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             sliderBar.Current.Disabled = false;
             sliderBar.Current.Value = 0;
+            sliderBar.GetContainingFocusManager()!.ChangeFocus(null);
+            sliderBarWithNub.GetContainingFocusManager()!.ChangeFocus(null);
         });
 
         [Test]
@@ -126,6 +128,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.75f, 1f))); });
             AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
             checkValue(0);
+            AddAssert("Slider has no focus", () => !sliderBar.HasFocus);
         }
 
         [Test]
@@ -140,13 +143,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Drag Up", () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.25f, 0.5f))); });
             AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
             checkValue(0);
+            AddAssert("Slider has focus", () => sliderBar.HasFocus);
         }
 
         [Test]
         public void TestKeyboardInput()
         {
-            AddStep("Unfocus slider", () => sliderBar.GetContainingFocusManager()!.ChangeFocus(null));
-
             AddStep("Press right arrow key", () =>
             {
                 InputManager.PressKey(Key.Right);
@@ -266,6 +268,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.4f, 1f))); });
             AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
             checkValue(-2);
+            AddAssert("Slider has focus", () => sliderBarWithNub.HasFocus);
         }
 
         [Test]
@@ -279,6 +282,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.75f, 1f))); });
             AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
             checkValue(3);
+            AddAssert("Slider has focus", () => sliderBarWithNub.HasFocus);
         }
 
         [Test]
