@@ -56,7 +56,7 @@ namespace osu.Framework.Graphics.Containers
                 bufferedContainer?.Clear(false);
                 bufferedContainer = null;
 
-                ClearInternal(false);
+                ClearInternal();
                 AddInternal(content);
             }
         }
