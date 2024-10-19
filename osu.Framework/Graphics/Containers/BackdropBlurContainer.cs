@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.Containers
         public ColourInfo EffectColour = Color4.White;
 
         /// <summary>
-        /// The alpha at which the content is no longer considered opaque & the background will not be blurred behind it.
+        /// The alpha at which the content is no longer considered opaque and the background will not be blurred behind it.
         /// </summary>
         public float MaskCutoff;
 
