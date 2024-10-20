@@ -169,7 +169,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
             checkValue(1);
 
-            AddStep("Focus slider", () => sliderBar.GetContainingFocusManager()!.ChangeFocus(sliderBar));
+            AddStep("Click slider", () => InputManager.Click(MouseButton.Left));
+            checkValue(-5);
+
+            AddAssert("Slider has focus", () => sliderBar.HasFocus);
 
             AddStep("move mouse outside", () =>
             {
@@ -181,7 +184,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.PressKey(Key.Right);
                 InputManager.ReleaseKey(Key.Right);
             });
-            checkValue(2);
+            checkValue(-4);
         }
 
         [TestCase(false)]
