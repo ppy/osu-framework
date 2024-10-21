@@ -18,16 +18,10 @@ namespace osu.Framework.Graphics.UserInterface
             set => Box.Colour = value;
         }
 
-        private Color4 selectionColour = FrameworkColour.Yellow;
-
         public Color4 SelectionColour
         {
-            get => selectionColour;
-            set
-            {
-                selectionColour = value;
-                updateColour();
-            }
+            get => SelectionBox.Colour;
+            set => SelectionBox.Colour = value;
         }
 
         private Color4 focusColour = FrameworkColour.YellowGreen;
@@ -38,7 +32,7 @@ namespace osu.Framework.Graphics.UserInterface
             set
             {
                 focusColour = value;
-                updateColour();
+                updateFocus();
             }
         }
 
@@ -56,28 +50,37 @@ namespace osu.Framework.Graphics.UserInterface
                 },
                 SelectionBox = new Box
                 {
+                    Colour = FrameworkColour.Yellow,
                     RelativeSizeAxes = Axes.Both,
                 }
             };
 
-            updateColour();
-        }
-
-        private void updateColour()
-        {
-            SelectionBox.Colour = HasFocus ? FocusColour : SelectionColour;
+            Masking = true;
         }
 
         protected override void OnFocus(FocusEvent e)
         {
-            updateColour();
+            updateFocus();
             base.OnFocus(e);
         }
 
         protected override void OnFocusLost(FocusLostEvent e)
         {
-            updateColour();
+            updateFocus();
             base.OnFocusLost(e);
+        }
+
+        private void updateFocus()
+        {
+            if (HasFocus)
+            {
+                BorderThickness = 3;
+                BorderColour = FocusColour;
+            }
+            else
+            {
+                BorderThickness = 0;
+            }
         }
 
         protected override void UpdateValue(float value)

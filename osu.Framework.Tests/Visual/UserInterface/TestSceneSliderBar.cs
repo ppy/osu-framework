@@ -59,7 +59,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Size = new Vector2(200, 50),
                         BackgroundColour = Color4.White,
                         SelectionColour = Color4.Pink,
-                        FocusColour = Color4.Purple,
+                        FocusColour = Color4.OrangeRed,
                         KeyboardStep = 1,
                         Current = sliderBarValue
                     },
@@ -73,7 +73,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         RangePadding = 20,
                         BackgroundColour = Color4.White,
                         SelectionColour = Color4.Pink,
-                        FocusColour = Color4.Purple,
+                        FocusColour = Color4.OrangeRed,
                         KeyboardStep = 1,
                         Current = sliderBarValue
                     },
@@ -87,7 +87,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Size = new Vector2(200, 10),
                         BackgroundColour = Color4.White,
                         SelectionColour = Color4.Pink,
-                        FocusColour = Color4.Purple,
+                        FocusColour = Color4.OrangeRed,
                         KeyboardStep = 1,
                         Current = sliderBarValue
                     },
@@ -100,7 +100,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Size = new Vector2(200, 10),
                         BackgroundColour = Color4.White,
                         SelectionColour = Color4.Pink,
-                        FocusColour = Color4.Purple,
+                        FocusColour = Color4.OrangeRed,
                         KeyboardStep = 1,
                         Current = sliderBarValue
                     },
