@@ -15,20 +15,16 @@ namespace osu.Framework.Platform.Linux.Native
             public nint NanoSeconds;
         }
 
-        private delegate int NanoSleepDelegate(in TimeSpec duration, out TimeSpec rem);
-
-        private static readonly NanoSleepDelegate? nanosleep;
-
-        // Android and some platforms don't have version in lib name.
-        [DllImport("c", EntryPoint = "nanosleep", CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
-        private static extern int nanosleep_c(in TimeSpec duration, out TimeSpec rem);
-
-        [DllImport("libc.so.6", EntryPoint = "nanosleep", CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
-        private static extern int nanosleep_libc6(in TimeSpec duration, out TimeSpec rem);
+        [DllImport("libc", CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        private static extern int nanosleep(in TimeSpec duration, out TimeSpec rem);
 
         private const int interrupt_error = 4;
 
-        private static bool testNanoSleep(NanoSleepDelegate func)
+        public static bool Available { get; private set; }
+
+        // Just a safe check before actually using it.
+        // .NET tries possible library names if 'libc' is given, but it may fail to find it.
+        private static bool testNanoSleep()
         {
             TimeSpec test = new TimeSpec
             {
@@ -38,7 +34,7 @@ namespace osu.Framework.Platform.Linux.Native
 
             try
             {
-                func(in test, out _);
+                nanosleep(in test, out _);
                 return true;
             }
             catch
@@ -49,19 +45,11 @@ namespace osu.Framework.Platform.Linux.Native
 
         static UnixNativeSleep()
         {
-            if (testNanoSleep(nanosleep_c))
-                nanosleep = nanosleep_c;
-            else if (testNanoSleep(nanosleep_libc6))
-                nanosleep = nanosleep_libc6;
-
-            // if nanosleep is null at this point, Thread.Sleep should be used.
+            Available = testNanoSleep();
         }
 
         public bool Sleep(TimeSpan duration)
         {
-            if (nanosleep == null)
-                return false;
-
             const int ns_per_second = 1000 * 1000 * 1000;
 
             long ns = (long)duration.TotalNanoseconds;

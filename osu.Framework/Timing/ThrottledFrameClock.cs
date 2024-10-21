@@ -33,13 +33,13 @@ namespace osu.Framework.Timing
         /// </summary>
         public double TimeSlept { get; private set; }
 
-        private readonly INativeSleep nativeSleep;
+        private readonly INativeSleep? nativeSleep;
 
         internal ThrottledFrameClock()
         {
             if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows)
                 nativeSleep = new WindowsNativeSleep();
-            else
+            else if (RuntimeInfo.IsUnix && UnixNativeSleep.Available)
                 nativeSleep = new UnixNativeSleep();
         }
 
@@ -95,7 +95,7 @@ namespace osu.Framework.Timing
 
             TimeSpan timeSpan = TimeSpan.FromMilliseconds(milliseconds);
 
-            if (!nativeSleep.Sleep(timeSpan))
+            if (nativeSleep?.Sleep(timeSpan) != true)
                 Thread.Sleep(timeSpan);
 
             return (CurrentTime = SourceTime) - before;
@@ -103,7 +103,7 @@ namespace osu.Framework.Timing
 
         public void Dispose()
         {
-            nativeSleep.Dispose();
+            nativeSleep?.Dispose();
         }
     }
 }
