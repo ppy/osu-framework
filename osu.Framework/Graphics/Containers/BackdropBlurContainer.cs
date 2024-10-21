@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using osu.Framework.Allocation;
@@ -46,7 +48,7 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly BufferedDrawNodeSharedData sharedData;
 
-        public BackdropBlurContainer(RenderBufferFormat[]? formats = null)
+        public BackdropBlurContainer(RenderBufferFormat[] formats = null)
         {
             sharedData = new BufferedDrawNodeSharedData(1, formats, clipToRootNode: true);
         }
@@ -138,11 +140,6 @@ namespace osu.Framework.Graphics.Containers
             public BackdropBlurContainerDrawNode(IBufferedDrawable source, CompositeDrawableDrawNode child, BufferedDrawNodeSharedData sharedData)
                 : base(source, child, sharedData)
             {
-            }
-
-            public override void ApplyState()
-            {
-                base.ApplyState();
             }
 
             protected new CompositeDrawableDrawNode Child => (CompositeDrawableDrawNode)base.Child;
