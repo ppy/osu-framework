@@ -67,19 +67,26 @@ void main(void)
 {
 	vec2 wrappedCoord = wrap(v_TexCoord, v_TexRect);
 
-	vec4 foreground = wrappedSampler(wrappedCoord, v_TexRect, m_Mask, m_MaskSampler, -0.9) * v_Colour;
+	vec4 foreground = wrappedSampler(wrappedCoord, v_TexRect, m_Mask, m_MaskSampler, -0.9);
 
 	if (foreground.a > g_MaskCutoff) {
+		foreground *= v_Colour;
+
 		vec4 background = blur(g_Radius, g_BlurDirection, v_TexCoord, g_TexSize, g_Sigma) * g_BackdropOpacity;
 
-		if (background.a > 0)
+		if (background.a > 0) {
+
 			background.rgb = mix(background.rgb / background.a, background.rgb / background.a * foreground.rgb / foreground.a, g_BackdropTintStrength * foreground.a) * background.a;
 
-		float alpha = background.a + (1.0 - background.a) * foreground.a;
+			float alpha = background.a + (1.0 - background.a) * foreground.a;
 
-		o_Colour = vec4(mix(background.rgb, foreground.rgb, foreground.a) / alpha, alpha);
+			o_Colour = vec4(mix(background.rgb, foreground.rgb, foreground.a) / alpha, alpha);
+		} else {
+			o_Colour = foreground * v_Colour;
+		}
+
 	} else {
-		o_Colour = foreground;
+		o_Colour = foreground * v_Colour;
 	}
 }
 
