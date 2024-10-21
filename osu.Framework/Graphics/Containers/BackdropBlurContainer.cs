@@ -1,8 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Collections.Generic;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
@@ -24,63 +25,53 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A container that blurs the content of its nearest parent <see cref="IBufferedContainer"/> behind its children.
     /// </summary>
-    public partial class BackdropBlurContainer<T> : Container<T>, IBufferedContainer, IBufferedDrawable where T : Drawable
+    public partial class BackdropBlurContainer<T> : Container<T>, IBufferedContainer, IBackdropBlurDrawable where T : Drawable
     {
+        public Vector2 BlurSigma { get; set; } = Vector2.Zero;
+
+        public float BlurRotation { get; set; }
+
+        public virtual float BackdropOpacity => 1 - MathF.Pow(1 - base.DrawColourInfo.Colour.MaxAlpha, 2);
+
+        public float MaskCutoff { get; set; }
+
+        public float BackdropTintStrength { get; set; }
+
+        public Vector2 EffectBufferScale { get; set; } = Vector2.One;
+
         [Resolved]
         private IBackbufferProvider backbufferProvider { get; set; } = null!;
 
-        /// <summary>
-        /// Controls the amount of blurring in two orthogonal directions (X and Y if
-        /// <see cref="BlurRotation"/> is zero).
-        /// Blur is parametrized by a gaussian image filter. This property controls
-        /// the standard deviation (sigma) of the gaussian kernel.
-        /// </summary>
-        public Vector2 BlurSigma { get; set; } = Vector2.Zero;
-
-        /// <summary>
-        /// Rotates the blur kernel clockwise. In degrees. Has no effect if
-        /// <see cref="BlurSigma"/> has the same magnitude in both directions.
-        /// </summary>
-        public float BlurRotation;
-
-        /// <summary>
-        /// The multiplicative colour of drawn buffered object after applying all effects (e.g. blur). Default is <see cref="Color4.White"/>.
-        /// </summary>
-        public ColourInfo EffectColour = Color4.White;
-
-        /// <summary>
-        /// The alpha at which the content is no longer considered opaque and the background will not be blurred behind it.
-        /// </summary>
-        public float MaskCutoff;
-
         public IShader TextureShader { get; private set; } = null!;
+
+        private readonly BufferedDrawNodeSharedData sharedData;
+
+        public BackdropBlurContainer(RenderBufferFormat[]? formats = null)
+        {
+            sharedData = new BufferedDrawNodeSharedData(1, formats, clipToRootNode: true);
+        }
+
+        IShader IBackdropBlurDrawable.BlurShader => blurShader;
+
+        IShader IBackdropBlurDrawable.BackdropBlurShader => backdropBlurShader;
 
         private IShader blurShader = null!;
 
-        private IShader textureMaskShader = null!;
-
-        private readonly BackdropBlurContainerDrawNodeSharedData sharedData;
-
-        private readonly LayoutValue parentBacking = new LayoutValue(Invalidation.Parent);
-
-        public BackdropBlurContainer(RenderBufferFormat[]? formats = null, bool pixelSnapping = false)
-        {
-            sharedData = new BackdropBlurContainerDrawNodeSharedData(formats, pixelSnapping);
-
-            AddLayout(parentBacking);
-        }
+        private IShader backdropBlurShader = null!;
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             blurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
-            textureMaskShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_MASK);
+            backdropBlurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BACKDROP_BLUR);
         }
 
-        protected override DrawNode CreateDrawNode() => new BackdropBlurDrawNode(this, sharedData);
+        protected override DrawNode CreateDrawNode() => new BackdropBlurContainerDrawNode(this, new CompositeDrawableDrawNode(this), sharedData);
 
-        private RectangleF lastParentDrawRect;
+        private RectangleF lastBackBufferDrawRect;
+
+        RectangleF IBackdropBlurDrawable.LastBackBufferDrawRect => lastBackBufferDrawRect;
 
         protected override void Update()
         {
@@ -88,7 +79,7 @@ namespace osu.Framework.Graphics.Containers
 
             Invalidate(Invalidation.DrawNode);
 
-            lastParentDrawRect = backbufferProvider.ScreenSpaceDrawQuad.AABBFloat;
+            lastBackBufferDrawRect = backbufferProvider.ScreenSpaceDrawQuad.AABBFloat;
         }
 
         private bool hadParent;
@@ -131,8 +122,6 @@ namespace osu.Framework.Graphics.Containers
 
         public Vector2 FrameBufferScale { get; set; } = Vector2.One;
 
-        public Vector2 EffectBufferScale { get; set; } = Vector2.One;
-
         protected override void Dispose(bool isDisposing)
         {
             if (hadParent && backbufferProvider is RefCountedBackbufferProvider refCount)
@@ -142,6 +131,29 @@ namespace osu.Framework.Graphics.Containers
             }
 
             base.Dispose(isDisposing);
+        }
+
+        private class BackdropBlurContainerDrawNode : BackdropBlurDrawNode, ICompositeDrawNode
+        {
+            public BackdropBlurContainerDrawNode(IBufferedDrawable source, CompositeDrawableDrawNode child, BufferedDrawNodeSharedData sharedData)
+                : base(source, child, sharedData)
+            {
+            }
+
+            public override void ApplyState()
+            {
+                base.ApplyState();
+            }
+
+            protected new CompositeDrawableDrawNode Child => (CompositeDrawableDrawNode)base.Child;
+
+            public List<DrawNode> Children
+            {
+                get => Child.Children;
+                set => Child.Children = value;
+            }
+
+            public bool AddChildDrawNodes => RequiresRedraw;
         }
     }
 }

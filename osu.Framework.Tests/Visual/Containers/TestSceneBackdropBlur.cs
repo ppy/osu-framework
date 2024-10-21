@@ -4,6 +4,7 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Lines;
+using osu.Framework.Graphics.Shapes;
 using osuTK;
 using osuTK.Graphics;
 
@@ -18,37 +19,46 @@ namespace osu.Framework.Tests.Visual.Containers
             BackdropBlurContainer buffer;
             Path path;
 
-            Add(new BufferedContainer
-            {
-                BackgroundColour = FrameworkColour.YellowGreenDark,
-                RelativeSizeAxes = Axes.Both,
-                Children = new Drawable[]
+            AddRange(
+                new Drawable[]
                 {
-                    TestContainer,
-                    buffer = new BackdropBlurContainer
+                    new Box
                     {
-                        AutoSizeAxes = Axes.Both,
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        Colour = Color4.Red,
-                        Padding = new MarginPadding(100),
-                        Children = new[]
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = FrameworkColour.YellowGreenDark,
+                    },
+                    new BufferedContainer
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Children = new Drawable[]
                         {
-                            path = new GradientPath
+                            TestContainer,
+                            buffer = new BackdropBlurContainer
                             {
-                                PathRadius = 50,
-                                Vertices = new[]
+                                AutoSizeAxes = Axes.Both,
+                                Anchor = Anchor.Centre,
+                                Origin = Anchor.Centre,
+                                Colour = Color4.Red,
+                                Padding = new MarginPadding(100),
+                                Children = new Drawable[]
                                 {
-                                    new Vector2(0, 0),
-                                    new Vector2(150, 50),
-                                    new Vector2(250, -25),
-                                    new Vector2(400, 25)
+                                    path = new GradientPath
+                                    {
+                                        PathRadius = 50,
+                                        Vertices = new[]
+                                        {
+                                            new Vector2(0, 0),
+                                            new Vector2(150, 50),
+                                            new Vector2(250, -25),
+                                            new Vector2(400, 25)
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            });
+            );
 
             AddSliderStep("blur", 0f, 20f, 5f, blur =>
             {

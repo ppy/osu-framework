@@ -159,6 +159,6 @@ namespace osu.Framework.Graphics.Shaders
         public const string GLOW = "Glow";
         public const string BLUR = "Blur";
         public const string VIDEO = "Video";
-        public const string TEXTURE_MASK = "TextureMask";
+        public const string BACKDROP_BLUR = "BackdropBlur";
     }
 }
