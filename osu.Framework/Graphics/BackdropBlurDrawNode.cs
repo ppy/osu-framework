@@ -185,7 +185,7 @@ namespace osu.Framework.Graphics
             public UniformFloat BlurResolution;
             public UniformFloat BackdropOpacity;
             public UniformFloat BackdropTintStrength;
-            public UniformPadding8 pad1;
+            private readonly UniformPadding8 pad1;
         }
     }
 }
