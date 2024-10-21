@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Lines
 
         public float BlurRotation { get; set; }
 
-        public virtual float BackdropOpacity => 1 - MathF.Pow(1 - base.DrawColourInfo.Colour.MaxAlpha, 2);
+        public virtual float BackdropOpacity => MathF.Min(1, (FrameBufferDrawColour?.Colour.MaxAlpha ?? 1) * 2.5f);
 
         public float MaskCutoff { get; set; }
 
