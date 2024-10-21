@@ -11,8 +11,8 @@ namespace osu.Framework.Platform.Linux.Native
         [StructLayout(LayoutKind.Sequential)]
         public struct TimeSpec
         {
-            public long Seconds;
-            public long NanoSeconds;
+            public nint Seconds;
+            public nint NanoSeconds;
         }
 
         private delegate int NanoSleepDelegate(in TimeSpec duration, out TimeSpec rem);
@@ -28,7 +28,7 @@ namespace osu.Framework.Platform.Linux.Native
 
         private const int interrupt_error = 4;
 
-        static UnixNativeSleep()
+        private static bool testNanoSleep(NanoSleepDelegate func)
         {
             TimeSpec test = new TimeSpec
             {
@@ -38,24 +38,21 @@ namespace osu.Framework.Platform.Linux.Native
 
             try
             {
-                nanosleep_c(in test, out _);
-                nanosleep = nanosleep_c;
+                func(in test, out _);
+                return true;
             }
             catch
             {
+                return false;
             }
+        }
 
-            if (nanosleep == null)
-            {
-                try
-                {
-                    nanosleep_libc6(in test, out _);
-                    nanosleep = nanosleep_libc6;
-                }
-                catch
-                {
-                }
-            }
+        static UnixNativeSleep()
+        {
+            if (testNanoSleep(nanosleep_c))
+                nanosleep = nanosleep_c;
+            else if (testNanoSleep(nanosleep_libc6))
+                nanosleep = nanosleep_libc6;
 
             // if nanosleep is null at this point, Thread.Sleep should be used.
         }
@@ -71,8 +68,8 @@ namespace osu.Framework.Platform.Linux.Native
 
             TimeSpec timeSpec = new TimeSpec
             {
-                Seconds = ns / ns_per_second,
-                NanoSeconds = ns % ns_per_second,
+                Seconds = (nint)(ns / ns_per_second),
+                NanoSeconds = (nint)(ns % ns_per_second),
             };
 
             int ret;
