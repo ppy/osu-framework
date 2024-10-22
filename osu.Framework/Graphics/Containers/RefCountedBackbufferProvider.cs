@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Diagnostics;
-using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Logging;
 
@@ -14,7 +13,7 @@ namespace osu.Framework.Graphics.Containers
     [Cached]
     public partial class RefCountedBackbufferProvider : Container, IBackbufferProvider
     {
-        private volatile int refCount;
+        private int refCount;
 
         private readonly Container content = new Container { RelativeSizeAxes = Axes.Both };
 
@@ -28,9 +27,9 @@ namespace osu.Framework.Graphics.Containers
             AddInternal(content);
         }
 
-        internal void Increment() => Interlocked.Increment(ref refCount);
+        internal void Increment() => refCount++;
 
-        internal void Decrement() => Interlocked.Decrement(ref refCount);
+        internal void Decrement() => refCount--;
 
         protected override void UpdateAfterChildren()
         {
