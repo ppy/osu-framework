@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics
 
         public IShader BlurShader { get; }
 
-        public IShader BackdropBlurShader { get; }
+        public IShader BlendShader { get; }
 
         public RectangleF LastBackBufferDrawRect { get; }
     }

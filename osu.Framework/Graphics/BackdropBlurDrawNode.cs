@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics
         private float maskCutoff;
 
         private IShader blurShader;
-        private IShader textureMaskShader;
+        private IShader blendShader;
 
         private RectangleF backBufferDrawRect;
 
@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics
             backdropTintStrength = Source.BackdropTintStrength;
 
             blurShader = Source.BlurShader;
-            textureMaskShader = Source.BackdropBlurShader;
+            blendShader = Source.BlendShader;
         }
 
         protected override void PopulateContents(IRenderer renderer)
@@ -132,34 +132,29 @@ namespace osu.Framework.Graphics
 
         protected override bool RequiresEffectBufferRedraw => true;
 
+        private IUniformBuffer<BlendParameters> blendParametersBuffer;
+
         protected override void DrawContents(IRenderer renderer)
         {
             renderer.SetBlend(DrawColourInfo.Blending);
 
             if ((blurRadius.X > 0 || blurRadius.Y > 0) && backdropOpacity > 0)
             {
-                blurParametersBuffer ??= renderer.CreateUniformBuffer<BlurParameters>();
+                blendParametersBuffer ??= renderer.CreateUniformBuffer<BlendParameters>();
 
-                float radians = float.DegreesToRadians(blurRotation + 90);
-
-                blurParametersBuffer.Data = blurParametersBuffer.Data with
+                blendParametersBuffer.Data = blendParametersBuffer.Data with
                 {
-                    Radius = blurRadius.Y,
-                    Sigma = blurSigma.Y,
-                    TexSize = SharedData.CurrentEffectBuffer.Size,
-                    Direction = new Vector2(MathF.Cos(radians), MathF.Sin(radians)),
                     MaskCutoff = maskCutoff,
-                    BlurResolution = effectBufferScale.Y,
                     BackdropOpacity = backdropOpacity,
                     BackdropTintStrength = backdropTintStrength,
                 };
 
                 renderer.BindTexture(SharedData.MainBuffer.Texture, 1);
 
-                blurShader.BindUniformBlock("m_BlurParameters", blurParametersBuffer);
-                textureMaskShader.Bind();
+                blendShader.BindUniformBlock("m_BlendParameters", blendParametersBuffer);
+                blendShader.Bind();
                 renderer.DrawFrameBuffer(SharedData.CurrentEffectBuffer, DrawRectangle, DrawColourInfo.Colour);
-                textureMaskShader.Unbind();
+                blendShader.Unbind();
             }
             else
             {
@@ -188,11 +183,16 @@ namespace osu.Framework.Graphics
             public UniformInt Radius;
             public UniformFloat Sigma;
             public UniformVector2 Direction;
+            private readonly UniformPadding8 pad1;
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        private record struct BlendParameters
+        {
             public UniformFloat MaskCutoff;
-            public UniformFloat BlurResolution;
             public UniformFloat BackdropOpacity;
             public UniformFloat BackdropTintStrength;
-            private readonly UniformPadding8 pad1;
+            private readonly UniformPadding4 pad1;
         }
     }
 

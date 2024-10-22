@@ -53,17 +53,17 @@ namespace osu.Framework.Graphics.Lines
 
         IShader IBackdropBlurDrawable.BlurShader => blurShader;
 
-        IShader IBackdropBlurDrawable.BackdropBlurShader => backdropBlurShader;
+        IShader IBackdropBlurDrawable.BlendShader => blendShader;
 
         private IShader blurShader = null!;
 
-        private IShader backdropBlurShader = null!;
+        private IShader blendShader = null!;
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
             blurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
-            backdropBlurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BACKDROP_BLUR_BLEND);
+            blendShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BACKDROP_BLUR_BLEND);
         }
 
         private RectangleF lastBackBufferDrawRect;

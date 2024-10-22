@@ -68,7 +68,7 @@ namespace osu.Framework.Graphics.Containers
 
         IShader IBackdropBlurDrawable.BlurShader => blurShader;
 
-        IShader IBackdropBlurDrawable.BackdropBlurShader => backdropBlurShader;
+        IShader IBackdropBlurDrawable.BlendShader => backdropBlurShader;
 
         private IShader blurShader = null!;
 
