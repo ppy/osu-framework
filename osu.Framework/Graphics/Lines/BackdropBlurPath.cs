@@ -34,9 +34,9 @@ namespace osu.Framework.Graphics.Lines
         [Resolved]
         private IBackbufferProvider backbufferProvider { get; set; }
 
-        protected override BufferedDrawNodeSharedData CreateSharedData() => new BufferedDrawNodeSharedData(1, new[] { RenderBufferFormat.D16 }, clipToRootNode: true);
+        protected override BufferedDrawNodeSharedData CreateSharedData() => new BackdropBlurDrawNodeSharedData(new[] { RenderBufferFormat.D16 });
 
-        protected override DrawNode CreateDrawNode() => new BackdropBlurDrawNode(this, new PathDrawNode(this), SharedData);
+        protected override DrawNode CreateDrawNode() => new BackdropBlurDrawNode(this, new PathDrawNode(this), (BackdropBlurDrawNodeSharedData)SharedData);
 
         IShader IBackdropBlurDrawable.BlurShader => blurShader;
 

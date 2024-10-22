@@ -18,12 +18,14 @@ namespace osu.Framework.Graphics
 {
     public class BackdropBlurDrawNode : BufferedDrawNode
     {
-        public BackdropBlurDrawNode(IBufferedDrawable source, DrawNode child, BufferedDrawNodeSharedData sharedData)
+        public BackdropBlurDrawNode(IBufferedDrawable source, DrawNode child, BackdropBlurDrawNodeSharedData sharedData)
             : base(source, child, sharedData)
         {
         }
 
         protected new IBackdropBlurDrawable Source => (IBackdropBlurDrawable)base.Source;
+
+        protected new BackdropBlurDrawNodeSharedData SharedData => (BackdropBlurDrawNodeSharedData)base.SharedData;
 
         private Vector2 blurSigma;
         private Vector2I blurRadius;
@@ -51,7 +53,7 @@ namespace osu.Framework.Graphics
             effectBufferScale = Source.EffectBufferScale;
             effectBufferSize = new Vector2(MathF.Ceiling(DrawRectangle.Width * effectBufferScale.X), MathF.Ceiling(DrawRectangle.Height * effectBufferScale.Y));
 
-            blurSigma = Source.BlurSigma;
+            blurSigma = Source.BlurSigma * effectBufferScale;
             blurRadius = new Vector2I(Blur.KernelSize(blurSigma.X), Blur.KernelSize(blurSigma.Y));
             blurRotation = Source.BlurRotation;
 
@@ -74,7 +76,8 @@ namespace osu.Framework.Graphics
 
                 renderer.PushDepthInfo(new DepthInfo(false));
 
-                drawBlurredBackBuffer(renderer, blurRadius.X, blurSigma.X, blurRotation);
+                if (blurRadius.X > 0) drawBlurredFrameBuffer(renderer, blurRadius.X, blurSigma.X, blurRotation);
+                if (blurRadius.Y > 0) drawBlurredFrameBuffer(renderer, blurRadius.Y, blurSigma.Y, blurRotation + 90);
 
                 renderer.PopDepthInfo();
 
@@ -84,14 +87,14 @@ namespace osu.Framework.Graphics
 
         private IUniformBuffer<BlurParameters> blurParametersBuffer;
 
-        private void drawBlurredBackBuffer(IRenderer renderer, int kernelRadius, float sigma, float blurRotation)
+        private void drawBlurredFrameBuffer(IRenderer renderer, int kernelRadius, float sigma, float blurRotation)
         {
             blurParametersBuffer ??= renderer.CreateUniformBuffer<BlurParameters>();
 
             if (renderer.FrameBuffer == null)
                 throw new InvalidOperationException("No frame buffer available to blur with.");
 
-            IFrameBuffer current = renderer.FrameBuffer;
+            IFrameBuffer current = SharedData.GetCurrentSourceBuffer(out bool isBackBuffer);
             IFrameBuffer target = SharedData.GetNextEffectBuffer();
 
             renderer.SetBlend(BlendingParameters.None);
@@ -99,6 +102,10 @@ namespace osu.Framework.Graphics
             renderer.PushScissorState(false);
 
             renderer.PushDepthInfo(new DepthInfo(false));
+
+            var rect = isBackBuffer
+                ? backBufferDrawRect.RelativeIn(DrawRectangle) * target.Size
+                : new RectangleF(0, 0, current.Texture.Width, current.Texture.Height);
 
             using (BindFrameBuffer(target))
             {
@@ -114,7 +121,7 @@ namespace osu.Framework.Graphics
 
                 blurShader.BindUniformBlock("m_BlurParameters", blurParametersBuffer);
                 blurShader.Bind();
-                renderer.DrawFrameBuffer(current, backBufferDrawRect.RelativeIn(DrawRectangle) * target.Size, ColourInfo.SingleColour(Color4.White));
+                renderer.DrawFrameBuffer(current, rect, ColourInfo.SingleColour(Color4.White));
                 blurShader.Unbind();
             }
 
@@ -186,6 +193,28 @@ namespace osu.Framework.Graphics
             public UniformFloat BackdropOpacity;
             public UniformFloat BackdropTintStrength;
             private readonly UniformPadding8 pad1;
+        }
+    }
+
+    public class BackdropBlurDrawNodeSharedData : BufferedDrawNodeSharedData
+    {
+        public BackdropBlurDrawNodeSharedData(RenderBufferFormat[] mainBufferFormats)
+            : base(2, mainBufferFormats, clipToRootNode: true)
+        {
+        }
+
+        public IFrameBuffer GetCurrentSourceBuffer(out bool isBackBuffer)
+        {
+            var buffer = CurrentEffectBuffer;
+
+            if (buffer == MainBuffer && Renderer.FrameBuffer != null)
+            {
+                isBackBuffer = true;
+                return Renderer.FrameBuffer;
+            }
+
+            isBackBuffer = false;
+            return buffer;
         }
     }
 }

@@ -46,11 +46,11 @@ namespace osu.Framework.Graphics.Containers
 
         public IShader TextureShader { get; private set; } = null!;
 
-        private readonly BufferedDrawNodeSharedData sharedData;
+        private readonly BackdropBlurDrawNodeSharedData sharedData;
 
         public BackdropBlurContainer(RenderBufferFormat[] formats = null)
         {
-            sharedData = new BufferedDrawNodeSharedData(1, formats, clipToRootNode: true);
+            sharedData = new BackdropBlurDrawNodeSharedData(formats);
         }
 
         IShader IBackdropBlurDrawable.BlurShader => blurShader;
@@ -137,7 +137,7 @@ namespace osu.Framework.Graphics.Containers
 
         private class BackdropBlurContainerDrawNode : BackdropBlurDrawNode, ICompositeDrawNode
         {
-            public BackdropBlurContainerDrawNode(IBufferedDrawable source, CompositeDrawableDrawNode child, BufferedDrawNodeSharedData sharedData)
+            public BackdropBlurContainerDrawNode(IBufferedDrawable source, CompositeDrawableDrawNode child, BackdropBlurDrawNodeSharedData sharedData)
                 : base(source, child, sharedData)
             {
             }

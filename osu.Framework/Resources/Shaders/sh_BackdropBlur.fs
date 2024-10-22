@@ -72,7 +72,7 @@ void main(void)
 	if (foreground.a > g_MaskCutoff) {
 		foreground *= v_Colour;
 
-		vec4 background = blur(g_Radius, g_BlurDirection, v_TexCoord, g_TexSize, g_Sigma) * g_BackdropOpacity;
+		vec4 background = wrappedSampler(wrappedCoord, v_TexRect, m_Texture, m_Sampler, -0.9) * g_BackdropOpacity;
 
 		if (background.a > 0) {
 
