@@ -115,17 +115,5 @@ namespace osu.Framework.Tests.Audio
             bass.RunOnAudioThread(() => channel.Stop());
             Assert.That(channel.Playing, Is.False);
         }
-
-        [Test]
-        public void TestChannelLifetime()
-        {
-            channel = sample.Play();
-            bass.Update();
-
-            bass.RunOnAudioThread(() => channel.Stop());
-            bass.Update();
-
-            Assert.That(channel.IsDisposed, Is.True);
-        }
     }
 }

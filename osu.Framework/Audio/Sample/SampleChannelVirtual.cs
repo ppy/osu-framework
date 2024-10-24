@@ -13,6 +13,8 @@ namespace osu.Framework.Audio.Sample
 
         public override bool Playing => playing;
 
+        public override bool IsAlive => base.IsAlive && Playing;
+
         public SampleChannelVirtual(string name)
             : base(name)
         {
