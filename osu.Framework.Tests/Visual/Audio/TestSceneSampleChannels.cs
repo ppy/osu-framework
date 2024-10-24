@@ -35,13 +35,12 @@ namespace osu.Framework.Tests.Visual.Audio
         }
 
         [Test]
-        public void TestDoesNotRestart()
+        public void TestChannelLifetime()
         {
             SampleChannel channel = null;
 
             AddStep("play channel 1 sample", () => channel = sample.Play());
             AddUntilStep("wait for channel 1 to end", () => !channel.Playing);
-            AddStep("play channel 1 again", () => channel.Play());
 
             int audioFrames = 0;
             AddStep("begin tracking audio frames", () =>
@@ -58,7 +57,7 @@ namespace osu.Framework.Tests.Visual.Audio
             });
 
             AddUntilStep("wait for two audio frames", () => audioFrames >= 2);
-            AddAssert("channel 1 not playing", () => !channel.Playing);
+            AddAssert("channel 1 disposed", () => channel.IsDisposed);
         }
 
         [Test]

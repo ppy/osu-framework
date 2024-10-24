@@ -41,6 +41,12 @@ namespace osu.Framework.Audio.Sample
         private volatile bool userRequestedPlay;
 
         /// <summary>
+        /// <c>true</c> if the user last called <see cref="Stop"/>.
+        /// <c>false</c> if the user last called <see cref="Play"/> or this channel finished playback.
+        /// </summary>
+        private volatile bool userRequestedStop;
+
+        /// <summary>
         /// Whether the playback start has been enqueued.
         /// </summary>
         private volatile bool enqueuedPlaybackStart;
@@ -54,6 +60,8 @@ namespace osu.Framework.Audio.Sample
                 setLoopFlag(Looping);
             }
         }
+
+        public override bool IsAlive => base.IsAlive && (Playing || userRequestedStop);
 
         private bool hasChannel => channel != 0;
 
@@ -99,8 +107,13 @@ namespace osu.Framework.Audio.Sample
                         playing = true;
                         break;
 
+                    case PlaybackState.Paused when userRequestedStop:
+                        playing = false;
+                        break;
+
                     default:
                         playing = false;
+                        userRequestedStop = false;
                         break;
                 }
             }
@@ -118,6 +131,8 @@ namespace osu.Framework.Audio.Sample
         public override void Play()
         {
             userRequestedPlay = true;
+
+            userRequestedStop = false;
 
             // Pin Playing and IsAlive to true so that the channel isn't killed by the next update. This is only reset after playback is started.
             enqueuedPlaybackStart = true;
@@ -137,6 +152,8 @@ namespace osu.Framework.Audio.Sample
         public override void Stop()
         {
             userRequestedPlay = false;
+
+            userRequestedStop = true;
 
             base.Stop();
 
