@@ -116,6 +116,11 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("ActionA released", () => releasedActions[0], () => Is.EqualTo(TestAction.ActionA));
         }
 
+        /// <summary>
+        /// Unlike <see cref="TestPressKeyBeforeKeyBindingContainerAdded"/>, when an intermediate input manager is involved,
+        /// we expect the key binding container to be fed with any previously pressed key
+        /// (consider an osu!catch player pressing the left/right/dash keys before entering gameplay).
+        /// </summary>
         [Test]
         public void TestPressKeyBeforeKeyBindingContainerAdded_WithPassThroughInputManager()
         {
@@ -142,15 +147,22 @@ namespace osu.Framework.Tests.Visual.Input
                 };
             });
 
+            AddAssert("only one action pressed", () => pressedActions, () => Has.Count.EqualTo(1));
+            AddAssert("ActionEnter pressed", () => pressedActions[0], () => Is.EqualTo(TestAction.ActionEnter));
+            AddAssert("no actions released", () => releasedActions, () => Is.Empty);
+
             AddStep("press key A", () => InputManager.PressKey(Key.A));
-            AddAssert("only one action triggered", () => pressedActions, () => Has.Count.EqualTo(1));
-            AddAssert("ActionA triggered", () => pressedActions[0], () => Is.EqualTo(TestAction.ActionA));
+            AddAssert("two actions pressed", () => pressedActions, () => Has.Count.EqualTo(2));
+            AddAssert("ActionA pressed", () => pressedActions[1], () => Is.EqualTo(TestAction.ActionA));
             AddAssert("no actions released", () => releasedActions, () => Is.Empty);
 
             AddStep("release key A", () => InputManager.ReleaseKey(Key.A));
-            AddAssert("only one action triggered", () => pressedActions, () => Has.Count.EqualTo(1));
-            AddAssert("only one action released", () => releasedActions, () => Has.Count.EqualTo(1));
+            AddAssert("one action released", () => releasedActions, () => Has.Count.EqualTo(1));
             AddAssert("ActionA released", () => releasedActions[0], () => Is.EqualTo(TestAction.ActionA));
+
+            AddStep("release enter", () => InputManager.ReleaseKey(Key.Enter));
+            AddAssert("two actions released", () => releasedActions, () => Has.Count.EqualTo(2));
+            AddAssert("ActionEnter released", () => releasedActions[1], () => Is.EqualTo(TestAction.ActionEnter));
         }
 
         [Test]
