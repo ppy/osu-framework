@@ -16,11 +16,6 @@ namespace osu.Framework.Audio.Sample
         string Name { get; }
 
         /// <summary>
-        /// The length in milliseconds of this <see cref="ISample"/>.
-        /// </summary>
-        double Length { get; }
-
-        /// <summary>
         /// The number of times this sample (as identified by name) can be played back concurrently.
         /// </summary>
         /// <remarks>
