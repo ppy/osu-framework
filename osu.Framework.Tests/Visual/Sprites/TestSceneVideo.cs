@@ -270,7 +270,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                             Direction = FillDirection.Vertical,
                             Children = new[]
                             {
-                                new SpriteText { Text = "SD / Rec. 601" },
+                                new SpriteText { Text = "SDTV / Rec. 601" },
                                 new TestVideo(videoStore.GetStream("h264.mp4")),
                                 Empty().With(d => d.Height = 10),
                                 new Sprite { Texture = textures.Get("h264-screenshot.png", WrapMode.ClampToEdge, WrapMode.ClampToEdge), Scale = new Vector2(2f) },
@@ -283,7 +283,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                             Direction = FillDirection.Vertical,
                             Children = new[]
                             {
-                                new SpriteText { Text = "HD / Rec. 709" },
+                                new SpriteText { Text = "HDTV / Rec. 709" },
                                 new TestVideo(videoStore.GetStream("h264-hd.mp4")) { Scale = new Vector2(270f / 576f) },
                                 Empty().With(d => d.Height = 10),
                                 new Sprite { Texture = textures.Get("h264-hd-screenshot.png", WrapMode.ClampToEdge, WrapMode.ClampToEdge), Scale = new Vector2(270f / 576f * 2f) },
