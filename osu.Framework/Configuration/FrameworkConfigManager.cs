@@ -100,7 +100,15 @@ namespace osu.Framework.Configuration
         Renderer,
         WindowMode,
         ConfineMouseMode,
+
+        /// <summary>
+        /// Controls the frame limiter used for the game threads.
+        /// </summary>
+        /// <remarks>
+        /// Take into account the state of <see cref="GameHost.AllowConfiguringFrameSync"/> when exposing this setting for user configuration.
+        /// </remarks>
         FrameSync,
+
         ExecutionMode,
 
         ShowUnicode,

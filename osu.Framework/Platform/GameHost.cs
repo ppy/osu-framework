@@ -69,6 +69,15 @@ namespace osu.Framework.Platform
         /// </summary>
         public bool AllowBenchmarkUnlimitedFrames { get; set; }
 
+        /// <summary>
+        /// Whether <see cref="FrameworkSetting.FrameSync"/> can be freely configured by the user.
+        /// This is disabled for specific combination of renderers and execution modes where
+        /// it doesn't make sense to have a configurable frame limiter.
+        /// </summary>
+        public IBindable<bool> AllowConfiguringFrameSync => allowConfiguringFrameSync;
+
+        private readonly BindableBool allowConfiguringFrameSync = new BindableBool(true);
+
         protected FrameworkDebugConfigManager DebugConfig { get; private set; }
 
         protected FrameworkConfigManager Config { get; private set; }
@@ -772,6 +781,7 @@ namespace osu.Framework.Platform
                 bootstrapSceneGraph(game);
 
                 frameSyncMode.TriggerChange();
+                executionMode.TriggerChange();
 
                 IsActive.BindValueChanged(active =>
                 {
@@ -1241,7 +1251,7 @@ namespace osu.Framework.Platform
             }, true);
 
             executionMode = Config.GetBindable<ExecutionMode>(FrameworkSetting.ExecutionMode);
-            executionMode.BindValueChanged(e => threadRunner.ExecutionMode = e.NewValue, true);
+            executionMode.BindValueChanged(_ => updateExecutionMode(), true);
 
             frameSyncMode = Config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += _ => updateFrameSyncMode();
@@ -1306,6 +1316,21 @@ namespace osu.Framework.Platform
             if (Config.Get<RendererType>(FrameworkSetting.Renderer) == RendererType.OpenGLLegacy)
                 Config.SetValue(FrameworkSetting.Renderer, RendererType.OpenGL);
 #pragma warning restore CS0612 // Type or member is obsolete
+        }
+
+        private void updateExecutionMode()
+        {
+            threadRunner.ExecutionMode = executionMode.Value;
+
+            // resolved renderer is not populated on first call of this method.
+            if (ResolvedRenderer == default)
+                return;
+
+            // in metal renderers, the draw thread is limited down to 1x the monitor's refresh rate for low latency performance.
+            // combining that with single thread mode, it doesn't make sense to have a frame limiter option since the single thread running
+            // will always be limited down to 1x the monitor's refresh rate.
+            allowConfiguringFrameSync.Value = rendererToGraphicsSurfaceType(ResolvedRenderer) != GraphicsSurfaceType.Metal ||
+                                              executionMode.Value == ExecutionMode.MultiThreaded;
         }
 
         /// <summary>

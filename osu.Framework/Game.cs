@@ -374,6 +374,9 @@ namespace osu.Framework
                     return true;
 
                 case FrameworkAction.CycleFrameSync:
+                    if (!Host.AllowConfiguringFrameSync.Value)
+                        return true;
+
                     var nextFrameSync = frameSyncMode.Value + 1;
 
                     if (nextFrameSync > FrameSync.Unlimited)
