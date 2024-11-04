@@ -12,7 +12,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using osu.Framework.Allocation;
 using osu.Framework.Logging;
-using SDL;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using static SDL.SDL3;
@@ -41,7 +40,7 @@ namespace osu.Framework.Platform.SDL3
         // SDL cannot differentiate between string.Empty and no text (eg. empty clipboard or an image)
         // doesn't matter as text editors don't really allow copying empty strings.
         // assume that empty text means no text.
-        public override string? GetText() => SDL_HasClipboardText() == SDL_bool.SDL_TRUE ? SDL_GetClipboardText() : null;
+        public override string? GetText() => SDL_HasClipboardText() ? SDL_GetClipboardText() : null;
 
         public override void SetText(string text) => SDL_SetClipboardText(text);
 
@@ -86,7 +85,7 @@ namespace osu.Framework.Platform.SDL3
 
         private static unsafe bool tryGetData<T>(string mimeType, SpanDecoder<T> decoder, out T? data)
         {
-            if (SDL_HasClipboardData(mimeType) == SDL_bool.SDL_FALSE)
+            if (!SDL_HasClipboardData(mimeType))
             {
                 data = default;
                 return false;
@@ -128,7 +127,7 @@ namespace osu.Framework.Platform.SDL3
             // TODO: support multiple mime types in a single callback
             fixed (byte* ptr = Encoding.UTF8.GetBytes(mimeType + '\0'))
             {
-                if (SDL_SetClipboardData(&dataCallback, &cleanupCallback, objectHandle.Handle, &ptr, 1) == SDL_bool.SDL_FALSE)
+                if (!SDL_SetClipboardData(&dataCallback, &cleanupCallback, objectHandle.Handle, &ptr, 1))
                 {
                     objectHandle.Dispose();
                     Logger.Log($"Failed to set clipboard data callback. SDL error: {SDL_GetError()}");

@@ -156,7 +156,7 @@ namespace osu.Framework.Platform.SDL3
 
             SDL_SetHint(SDL_HINT_APP_NAME, appName);
 
-            if (SDL_Init(SDL_InitFlags.SDL_INIT_VIDEO | SDL_InitFlags.SDL_INIT_GAMEPAD) == SDL_bool.SDL_FALSE)
+            if (!SDL_Init(SDL_InitFlags.SDL_INIT_VIDEO | SDL_InitFlags.SDL_INIT_GAMEPAD))
             {
                 throw new InvalidOperationException($"Failed to initialise SDL: {SDL_GetError()}");
             }
@@ -182,10 +182,11 @@ namespace osu.Framework.Platform.SDL3
         }
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-        private static void logOutput(IntPtr _, SDL_LogCategory category, SDL_LogPriority priority, byte* messagePtr)
+        private static void logOutput(IntPtr _, int category, SDL_LogPriority priority, byte* messagePtr)
         {
+            SDL_LogCategory categoryEnum = (SDL_LogCategory)category;
             string? message = PtrToStringUTF8(messagePtr);
-            Logger.Log($@"SDL {category.ReadableName()} log [{priority.ReadableName()}]: {message}");
+            Logger.Log($@"SDL {categoryEnum.ReadableName()} log [{priority.ReadableName()}]: {message}");
         }
 
         public void SetupWindow(FrameworkConfigManager config)
@@ -320,23 +321,23 @@ namespace osu.Framework.Platform.SDL3
         }
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-        private static SDL_bool eventFilter(IntPtr userdata, SDL_Event* eventPtr)
+        private static SDLBool eventFilter(IntPtr userdata, SDL_Event* eventPtr)
         {
             var handle = new ObjectHandle<SDL3Window>(userdata);
             if (handle.GetTarget(out SDL3Window window))
                 window.HandleEventFromFilter(*eventPtr);
 
-            return SDL_bool.SDL_TRUE;
+            return true;
         }
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-        private static SDL_bool eventWatch(IntPtr userdata, SDL_Event* eventPtr)
+        private static SDLBool eventWatch(IntPtr userdata, SDL_Event* eventPtr)
         {
             var handle = new ObjectHandle<SDL3Window>(userdata);
             if (handle.GetTarget(out SDL3Window window))
                 window.HandleEventFromWatch(*eventPtr);
 
-            return SDL_bool.SDL_TRUE;
+            return true;
         }
 
         private bool firstDraw = true;

@@ -4,6 +4,7 @@
 using System.Numerics;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Input.Events;
 using Vector2 = osuTK.Vector2;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -23,6 +24,18 @@ namespace osu.Framework.Graphics.UserInterface
             set => SelectionBox.Colour = value;
         }
 
+        private Color4 focusColour = FrameworkColour.YellowGreen;
+
+        public Color4 FocusColour
+        {
+            get => focusColour;
+            set
+            {
+                focusColour = value;
+                updateFocus();
+            }
+        }
+
         protected readonly Box SelectionBox;
         protected readonly Box Box;
 
@@ -37,10 +50,37 @@ namespace osu.Framework.Graphics.UserInterface
                 },
                 SelectionBox = new Box
                 {
-                    RelativeSizeAxes = Axes.Both,
                     Colour = FrameworkColour.Yellow,
+                    RelativeSizeAxes = Axes.Both,
                 }
             };
+
+            Masking = true;
+        }
+
+        protected override void OnFocus(FocusEvent e)
+        {
+            updateFocus();
+            base.OnFocus(e);
+        }
+
+        protected override void OnFocusLost(FocusLostEvent e)
+        {
+            updateFocus();
+            base.OnFocusLost(e);
+        }
+
+        private void updateFocus()
+        {
+            if (HasFocus)
+            {
+                BorderThickness = 3;
+                BorderColour = FocusColour;
+            }
+            else
+            {
+                BorderThickness = 0;
+            }
         }
 
         protected override void UpdateValue(float value)
