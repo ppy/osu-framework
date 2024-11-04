@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using osu.Framework.Allocation;
+using osu.Framework.Input;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform.SDL3;
 using osu.Framework.Platform.Windows.Native;
@@ -127,10 +128,10 @@ namespace osu.Framework.Platform.Windows
 
         #region IME handling
 
-        public override void StartTextInput(bool allowIme)
+        public override void StartTextInput(TextInputProperties properties)
         {
-            base.StartTextInput(allowIme);
-            ScheduleCommand(() => Imm.SetImeAllowed(WindowHandle, allowIme));
+            base.StartTextInput(properties);
+            ScheduleCommand(() => Imm.SetImeAllowed(WindowHandle, properties.AllowIme));
         }
 
         public override void ResetIme() => ScheduleCommand(() => Imm.CancelComposition(WindowHandle));

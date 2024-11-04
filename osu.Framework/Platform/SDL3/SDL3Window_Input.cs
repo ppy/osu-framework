@@ -187,7 +187,13 @@ namespace osu.Framework.Platform.SDL3
             }
         }
 
-        public virtual void StartTextInput(bool allowIme) => ScheduleCommand(() => SDL_StartTextInput(SDLWindowHandle));
+        public virtual void StartTextInput(TextInputProperties properties) => ScheduleCommand(() =>
+        {
+            var props = SDL_CreateProperties();
+            SDL_SetNumberProperty(props, SDL_PROP_TEXTINPUT_TYPE_NUMBER, (long)properties.Type.ToSDLTextInputType());
+            SDL_StartTextInputWithProperties(SDLWindowHandle, props);
+            SDL_DestroyProperties(props);
+        });
 
         public void StopTextInput() => ScheduleCommand(() => SDL_StopTextInput(SDLWindowHandle));
 

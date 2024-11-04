@@ -1003,7 +1003,10 @@ namespace osu.Framework.Input
 
                 if (shouldLog(e))
                 {
-                    string detail = d is ISuppressKeyEventLogging ? e.GetType().ReadableName() : e.ToString();
+                    string detail = d is ICanSuppressKeyEventLogging kd && kd.SuppressKeyEventLogging
+                        ? e.GetType().ReadableName()
+                        : e.ToString();
+
                     Logger.Log($"{detail} handled by {d}.", LoggingTarget.Runtime, LogLevel.Debug);
                 }
 

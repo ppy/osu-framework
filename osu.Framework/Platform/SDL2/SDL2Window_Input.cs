@@ -172,7 +172,7 @@ namespace osu.Framework.Platform.SDL2
             }
         }
 
-        public virtual void StartTextInput(bool allowIme) => ScheduleCommand(SDL_StartTextInput);
+        public virtual void StartTextInput(TextInputProperties properties) => ScheduleCommand(SDL_StartTextInput);
 
         public void StopTextInput() => ScheduleCommand(SDL_StopTextInput);
 
