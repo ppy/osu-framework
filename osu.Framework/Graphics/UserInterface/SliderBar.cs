@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
@@ -24,39 +25,75 @@ namespace osu.Framework.Graphics.UserInterface
 
         public float UsableWidth => DrawWidth - 2 * RangePadding;
 
-        private float mouseStep;
+        private T mouseStep;
 
         /// <summary>
         /// A custom step value for mouse input which actuates a change on this control.
         /// </summary>
-        public float MouseStep
+        public T MouseStep
         {
             get => mouseStep;
             set
             {
-                T multiple = T.CreateTruncating(value) / current.Precision;
+                T multiple = value / currentNumberInstantaneous.Precision;
                 if (!T.IsNaN(multiple) && !T.IsInfinity(multiple) && !T.IsZero(multiple % T.One))
-                    throw new ArgumentException(@"Mouse step must be a multiple of the current precision.");
+                    throw new ArgumentException("Mouse step must be a multiple of the bindable precision.");
 
                 mouseStep = value;
             }
         }
 
-        private float keyboardStep;
+        private T keyboardStep;
 
         /// <summary>
         /// A custom step value for each key press which actuates a change on this control.
         /// </summary>
-        public float KeyboardStep
+        public T KeyboardStep
         {
             get => keyboardStep;
             set
             {
-                T multiple = T.CreateTruncating(value) / current.Precision;
+                T multiple = value / currentNumberInstantaneous.Precision;
                 if (!T.IsNaN(multiple) && !T.IsInfinity(multiple) && !T.IsZero(multiple % T.One))
-                    throw new ArgumentException(@"Keyboard step must be a multiple of the current precision.");
+                    throw new ArgumentException("Keyboard step must be a multiple of the bindable precision.");
 
                 keyboardStep = value;
+            }
+        }
+
+        private T minValue = T.MinValue;
+
+        public T MinValue
+        {
+            get => T.Max(minValue, currentNumberInstantaneous.MinValue);
+            set
+            {
+                if (value < currentNumberInstantaneous.MinValue)
+                    throw new ArgumentException("Minimum value override must be greater than or equal to the bindable minimum value.");
+
+                if (EqualityComparer<T>.Default.Equals(value, minValue))
+                    return;
+
+                minValue = value;
+                Scheduler.AddOnce(updateValue);
+            }
+        }
+
+        private T maxValue = T.MaxValue;
+
+        public T MaxValue
+        {
+            get => T.Min(maxValue, currentNumberInstantaneous.MaxValue);
+            set
+            {
+                if (value > currentNumberInstantaneous.MaxValue)
+                    throw new ArgumentException("Maximum value override must be less than or equal to the bindable maximum value.");
+
+                if (EqualityComparer<T>.Default.Equals(value, maxValue))
+                    return;
+
+                maxValue = value;
+                Scheduler.AddOnce(updateValue);
             }
         }
 
@@ -112,17 +149,28 @@ namespace osu.Framework.Graphics.UserInterface
             };
         }
 
+        protected bool HasDefinedRange => !EqualityComparer<T>.Default.Equals(MinValue, T.MinValue) ||
+                                          !EqualityComparer<T>.Default.Equals(MaxValue, T.MaxValue);
+
         protected float NormalizedValue
         {
             get
             {
-                if (!currentNumberInstantaneous.HasDefinedRange)
+                if (!HasDefinedRange)
                 {
-                    throw new InvalidOperationException($"A {nameof(SliderBar<T>)}'s {nameof(Current)} must have user-defined {nameof(BindableNumber<T>.MinValue)}"
+                    throw new InvalidOperationException($"A {nameof(SliderBar<T>)} must have user-defined {nameof(MinValue)} and {nameof(MaxValue)}"
+                                                        + $" or {nameof(Current)} must have user-defined {nameof(BindableNumber<T>.MinValue)}"
                                                         + $" and {nameof(BindableNumber<T>.MaxValue)} to produce a valid {nameof(NormalizedValue)}.");
                 }
 
-                return currentNumberInstantaneous.NormalizedValue;
+                float min = float.CreateTruncating(MinValue);
+                float max = float.CreateTruncating(MaxValue);
+
+                if (max - min == 0)
+                    return 1;
+
+                float val = float.CreateTruncating(currentNumberInstantaneous.Value);
+                return (val - min) / (max - min);
             }
         }
 
@@ -152,11 +200,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (ShouldHandleAsRelativeDrag(e))
             {
-                float min = float.CreateTruncating(currentNumberInstantaneous.MinValue);
-                float max = float.CreateTruncating(currentNumberInstantaneous.MaxValue);
-                float val = float.CreateTruncating(currentNumberInstantaneous.Value);
-
-                relativeValueAtMouseDown = (val - min) / (max - min);
+                relativeValueAtMouseDown = NormalizedValue;
 
                 // Click shouldn't be handled if relative dragging is happening (i.e. while holding a nub).
                 // This is generally an expectation by most OSes and UIs.
@@ -214,7 +258,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!IsHovered && !HasFocus)
                 return false;
 
-            float step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;
+            float step = !T.IsZero(KeyboardStep) ? float.CreateTruncating(KeyboardStep) : (float.CreateTruncating(MaxValue) - float.CreateTruncating(MinValue)) / 20;
             if (currentNumberInstantaneous.IsInteger) step = MathF.Ceiling(step);
 
             switch (e.Key)
@@ -281,8 +325,24 @@ namespace osu.Framework.Graphics.UserInterface
                 newValue = (localX - RangePadding) / UsableWidth;
             }
 
-            currentNumberInstantaneous.SetProportional(newValue, e.ShiftPressed ? KeyboardStep : MouseStep);
+            float snap = e.ShiftPressed ? float.CreateTruncating(KeyboardStep) : float.CreateTruncating(MouseStep);
+            setProportional(newValue, snap);
             onUserChange(currentNumberInstantaneous.Value);
+        }
+
+        /// <summary>
+        /// Sets the value of <see cref="currentNumberInstantaneous"/> to <see cref="MinValue"/> + (<see cref="MaxValue"/> - <see cref="MinValue"/>) * amt
+        /// <param name="amt">The proportional amount to set, ranging from 0 to 1.</param>
+        /// <param name="snap">If greater than 0, snap the final value to the closest multiple of this number.</param>
+        /// </summary>
+        private void setProportional(float amt, float snap = 0)
+        {
+            double min = double.CreateTruncating(MinValue);
+            double max = double.CreateTruncating(MaxValue);
+            double value = min + (max - min) * amt;
+            if (snap > 0)
+                value = Math.Round(value / snap) * snap;
+            currentNumberInstantaneous.Set(value);
         }
 
         private void onUserChange(T value)
