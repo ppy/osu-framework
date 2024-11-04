@@ -166,7 +166,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected TextBox()
         {
-            InputProperties = new TextInputProperties(TextInputType.Text, true);
+#pragma warning disable CS0618 // Type or member is obsolete
+            InputProperties = new TextInputProperties(TextInputType.Text, AllowIme);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             Masking = true;
 
