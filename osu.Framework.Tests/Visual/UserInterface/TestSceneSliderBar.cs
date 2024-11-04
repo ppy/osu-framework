@@ -114,6 +114,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             sliderBar.Current.Disabled = false;
             sliderBar.Current.Value = 0;
+            sliderBar.MouseStep = 0;
+            sliderBar.MinValue = sliderBarValue.MinValue;
+            sliderBar.MaxValue = sliderBarValue.MaxValue;
             sliderBar.GetContainingFocusManager()!.ChangeFocus(null);
             sliderBarWithNub.GetContainingFocusManager()!.ChangeFocus(null);
         });
