@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Foundation;
+using GameController;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -38,7 +39,7 @@ namespace osu.Framework.iOS
             base.SetupConfig(defaultOverrides);
         }
 
-        public override bool OnScreenKeyboardOverlapsGameWindow => true;
+        public override bool OnScreenKeyboardOverlapsGameWindow => !OperatingSystem.IsIOSVersionAtLeast(14) || GCKeyboard.CoalescedKeyboard == null;
 
         public override bool CanExit => false;
 
