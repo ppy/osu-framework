@@ -122,8 +122,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     TabbableContentContainer = otherTextBoxes
                 });
 
-                otherTextBoxes.Add(new BasicPasswordTextBox
+                otherTextBoxes.Add(new BasicTextBox
                 {
+                    InputProperties = new TextInputProperties(TextInputType.Password, false),
                     PlaceholderText = @"Password textbox",
                     Text = "Secret ;)",
                     Size = new Vector2(500, 30),
