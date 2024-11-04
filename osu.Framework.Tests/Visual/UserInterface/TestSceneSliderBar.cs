@@ -196,7 +196,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep($"set disabled to {disabled}", () => sliderBar.Current.Disabled = disabled);
 
-            AddStep($"Set step to {step}", () => sliderBar.Step = step);
+            AddStep($"Set step to {step}", () => sliderBar.MouseStep = step);
 
             AddStep("Click at 25% mark", () =>
             {

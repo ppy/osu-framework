@@ -24,15 +24,41 @@ namespace osu.Framework.Graphics.UserInterface
 
         public float UsableWidth => DrawWidth - 2 * RangePadding;
 
+        private float mouseStep;
+
         /// <summary>
-        /// A custom precision value for mouse input which actuates a change on this control.
+        /// A custom step value for mouse input which actuates a change on this control.
         /// </summary>
-        public float Step;
+        public float MouseStep
+        {
+            get => mouseStep;
+            set
+            {
+                T multiple = T.CreateTruncating(value) / current.Precision;
+                if (!T.IsNaN(multiple) && !T.IsInfinity(multiple) && !T.IsZero(multiple % T.One))
+                    throw new ArgumentException(@"Mouse step must be a multiple of the current precision.");
+
+                mouseStep = value;
+            }
+        }
+
+        private float keyboardStep;
 
         /// <summary>
         /// A custom step value for each key press which actuates a change on this control.
         /// </summary>
-        public float KeyboardStep;
+        public float KeyboardStep
+        {
+            get => keyboardStep;
+            set
+            {
+                T multiple = T.CreateTruncating(value) / current.Precision;
+                if (!T.IsNaN(multiple) && !T.IsInfinity(multiple) && !T.IsZero(multiple % T.One))
+                    throw new ArgumentException(@"Keyboard step must be a multiple of the current precision.");
+
+                keyboardStep = value;
+            }
+        }
 
         private readonly BindableNumber<T> currentNumberInstantaneous;
 
@@ -255,7 +281,7 @@ namespace osu.Framework.Graphics.UserInterface
                 newValue = (localX - RangePadding) / UsableWidth;
             }
 
-            currentNumberInstantaneous.SetProportional(newValue, e.ShiftPressed ? KeyboardStep : Step);
+            currentNumberInstantaneous.SetProportional(newValue, e.ShiftPressed ? KeyboardStep : MouseStep);
             onUserChange(currentNumberInstantaneous.Value);
         }
 
