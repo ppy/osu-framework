@@ -258,18 +258,20 @@ namespace osu.Framework.Graphics.UserInterface
             if (!IsHovered && !HasFocus)
                 return false;
 
-            float step = !T.IsZero(KeyboardStep) ? float.CreateTruncating(KeyboardStep) : (float.CreateTruncating(MaxValue) - float.CreateTruncating(MinValue)) / 20;
-            if (currentNumberInstantaneous.IsInteger) step = MathF.Ceiling(step);
+            T step = !T.IsZero(KeyboardStep) ? KeyboardStep : (MaxValue - MinValue) / T.CreateTruncating(20);
+            if (currentNumberInstantaneous.IsInteger) step = T.Max(step, T.One);
+
+            T clampedCurrent = clamp(currentNumberInstantaneous.Value);
 
             switch (e.Key)
             {
                 case Key.Right:
-                    currentNumberInstantaneous.Add(step);
+                    currentNumberInstantaneous.Set(clamp(clampedCurrent + step));
                     onUserChange(currentNumberInstantaneous.Value);
                     return true;
 
                 case Key.Left:
-                    currentNumberInstantaneous.Add(-step);
+                    currentNumberInstantaneous.Set(clamp(clampedCurrent - step));
                     onUserChange(currentNumberInstantaneous.Value);
                     return true;
 
@@ -277,6 +279,8 @@ namespace osu.Framework.Graphics.UserInterface
                     return false;
             }
         }
+
+        private T clamp(T value) => T.Clamp(value, MinValue, MaxValue);
 
         protected override void OnKeyUp(KeyUpEvent e)
         {
@@ -342,6 +346,7 @@ namespace osu.Framework.Graphics.UserInterface
             double value = min + (max - min) * amt;
             if (snap > 0)
                 value = Math.Round(value / snap) * snap;
+            value = Math.Clamp(value, min, max);
             currentNumberInstantaneous.Set(value);
         }
 
