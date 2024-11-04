@@ -224,6 +224,56 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkValue(disabled ? 0 : 5);
         }
 
+        [Test]
+        public void TestCustomRange()
+        {
+            AddStep("Set range to -5 to 5", () =>
+            {
+                sliderBar.MinValue = -5;
+                sliderBar.MaxValue = 5;
+            });
+
+            AddStep("Click at 25% mark", () =>
+            {
+                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.25f, 0.5f)));
+                InputManager.Click(MouseButton.Left);
+            });
+            checkValue(-2.5f);
+
+            AddStep("Press right arrow key", () =>
+            {
+                bool before = sliderBar.IsHovered;
+                sliderBar.IsHovered = true;
+                InputManager.PressKey(Key.Right);
+                InputManager.ReleaseKey(Key.Right);
+                sliderBar.IsHovered = before;
+            });
+            checkValue(-1.5f);
+
+            AddStep("Set value to 10", () => sliderBarValue.Value = 10);
+            AddStep("Press left arrow key", () =>
+            {
+                bool before = sliderBar.IsHovered;
+                sliderBar.IsHovered = true;
+                InputManager.PressKey(Key.Left);
+                InputManager.ReleaseKey(Key.Left);
+                sliderBar.IsHovered = before;
+            });
+            checkValue(4f);
+
+            AddStep("Press right arrow key twice", () =>
+            {
+                bool before = sliderBar.IsHovered;
+                sliderBar.IsHovered = true;
+                InputManager.PressKey(Key.Right);
+                InputManager.ReleaseKey(Key.Right);
+                InputManager.PressKey(Key.Right);
+                InputManager.ReleaseKey(Key.Right);
+                sliderBar.IsHovered = before;
+            });
+            checkValue(5f);
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public void TestTransferValueOnCommit(bool disabled)
