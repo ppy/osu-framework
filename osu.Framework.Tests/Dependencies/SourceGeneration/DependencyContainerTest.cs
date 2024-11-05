@@ -6,7 +6,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
-using JetBrains.Annotations;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Testing.Dependencies;
@@ -136,22 +135,22 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             Assert.Throws<TypeAlreadyCachedException>(() => dependencies.Cache(testObject2));
         }
 
-        /// <summary>
-        /// Special case because "where T : class" also allows interfaces.
-        /// </summary>
         [Test]
-        public void TestAttemptCacheStruct()
+        public void TestCacheStruct()
         {
-            Assert.Throws<ArgumentException>(() => new DependencyContainer().Cache(new BaseStructObject()));
+            var dependencies = new DependencyContainer();
+            dependencies.Cache(new BaseStructObject());
+
+            Assert.IsNotNull(dependencies.Get<BaseStructObject?>());
         }
 
-        /// <summary>
-        /// Special case because "where T : class" also allows interfaces.
-        /// </summary>
         [Test]
-        public void TestAttemptCacheAsStruct()
+        public void TestCacheAsStruct()
         {
-            Assert.Throws<ArgumentException>(() => new DependencyContainer().CacheAs<IBaseInterface>(new BaseStructObject()));
+            var dependencies = new DependencyContainer();
+            dependencies.CacheAs<IBaseInterface>(new BaseStructObject());
+
+            Assert.IsNotNull(dependencies.Get<IBaseInterface>());
         }
 
         /// <summary>
@@ -165,9 +164,9 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
 
             var dependencies = new DependencyContainer();
 
-            Assert.DoesNotThrow(() => dependencies.CacheValue(token));
+            Assert.DoesNotThrow(() => dependencies.Cache(token));
 
-            var retrieved = dependencies.GetValue<CancellationToken>();
+            var retrieved = dependencies.Get<CancellationToken>();
 
             source.Cancel();
 
@@ -224,33 +223,20 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             Assert.AreEqual(testObject.CachedObject.Value, receiver.TestObject.Value);
         }
 
-        [TestCase(null)]
-        [TestCase(10)]
-        public void TestResolveNullableInternal(int? testValue)
-        {
-            var receiver = new Receiver11();
-
-            var testObject = new PartialCachedNullableProvider();
-            testObject.SetValue(testValue);
-
-            var dependencies = DependencyActivator.MergeDependencies(testObject, new DependencyContainer());
-
-            dependencies.Inject(receiver);
-
-            Assert.AreEqual(testValue, receiver.TestObject);
-        }
-
         [Test]
-        public void TestCacheNullInternal()
+        public void TestAttemptCacheNullInternal()
         {
-            Assert.DoesNotThrow(() => new DependencyContainer().CacheValue(null));
-            Assert.DoesNotThrow(() => new DependencyContainer().CacheValueAs<object>(null));
+            Assert.Throws<ArgumentNullException>(() => new DependencyContainer().Cache(null!));
+            Assert.Throws<ArgumentNullException>(() => new DependencyContainer().CacheAs<object>(null!));
         }
 
         [Test]
         public void TestResolveStructWithoutNullPermits()
         {
-            Assert.Throws<DependencyNotRegisteredException>(() => new DependencyContainer().Inject(new Receiver12()));
+            var receiver = new Receiver12();
+
+            Assert.DoesNotThrow(() => new DependencyContainer().Inject(receiver));
+            Assert.AreEqual(0, receiver.TestObject);
         }
 
         [Test]
@@ -268,61 +254,41 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             int? testObject = 5;
 
             var dependencies = new DependencyContainer();
-            dependencies.CacheValueAs(testObject);
+            dependencies.CacheAs(testObject);
 
-            Assert.AreEqual(testObject, dependencies.GetValue<int>());
-            Assert.AreEqual(testObject, dependencies.GetValue<int?>());
+            Assert.AreEqual(testObject, dependencies.Get<int>());
+            Assert.AreEqual(testObject, dependencies.Get<int?>());
         }
 
-        [Test]
-        public void TestCacheWithDependencyInfo()
+        [TestCase(null, null)]
+        [TestCase("name", null)]
+        [TestCase(null, typeof(object))]
+        [TestCase("name", typeof(object))]
+        public void TestCacheWithDependencyInfo(string name, Type parent)
         {
-            var cases = new[]
-            {
-                default,
-                new CacheInfo("name"),
-                new CacheInfo(parent: typeof(object)),
-                new CacheInfo("name", typeof(object))
-            };
+            CacheInfo info = new CacheInfo(name, parent);
 
             var dependencies = new DependencyContainer();
+            dependencies.CacheAs(1, info);
 
-            for (int i = 0; i < cases.Length; i++)
-                dependencies.CacheValueAs(i, cases[i]);
-
-            Assert.Multiple(() =>
-            {
-                for (int i = 0; i < cases.Length; i++)
-                    Assert.AreEqual(i, dependencies.GetValue<int>(cases[i]));
-            });
+            Assert.AreEqual(1, dependencies.Get<int>(info));
         }
 
-        [Test]
-        public void TestDependenciesOverrideParent()
+        [TestCase(null, null)]
+        [TestCase("name", null)]
+        [TestCase(null, typeof(object))]
+        [TestCase("name", typeof(object))]
+        public void TestDependenciesOverrideParent(string name, Type parent)
         {
-            var cases = new[]
-            {
-                default,
-                new CacheInfo("name"),
-                new CacheInfo(parent: typeof(object)),
-                new CacheInfo("name", typeof(object))
-            };
+            CacheInfo info = new CacheInfo(name, parent);
 
             var dependencies = new DependencyContainer();
-
-            for (int i = 0; i < cases.Length; i++)
-                dependencies.CacheValueAs(i, cases[i]);
+            dependencies.CacheAs(1, info);
 
             dependencies = new DependencyContainer(dependencies);
+            dependencies.CacheAs(2, info);
 
-            for (int i = 0; i < cases.Length; i++)
-                dependencies.CacheValueAs(cases.Length + i, cases[i]);
-
-            Assert.Multiple(() =>
-            {
-                for (int i = 0; i < cases.Length; i++)
-                    Assert.AreEqual(cases.Length + i, dependencies.GetValue<int>(cases[i]));
-            });
+            Assert.Multiple(() => { Assert.AreEqual(2, dependencies.Get<int>(info)); });
         }
 
         [Test]
@@ -339,8 +305,31 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             Assert.DoesNotThrow(() => dependencies.Inject(receiver));
         }
 
+        [Test]
+        public void TestResolveDefaultStruct()
+        {
+            Assert.That(new DependencyContainer().Get<CancellationToken>(), Is.EqualTo(default(CancellationToken)));
+        }
+
+        [Test]
+        public void TestResolveNullStruct()
+        {
+            Assert.That(new DependencyContainer().Get<CancellationToken?>(), Is.Null);
+        }
+
+        [Test]
+        public void TestModifyBoxedStruct()
+        {
+            var dependencies = new DependencyContainer();
+            dependencies.CacheAs<IBaseInterface>(new BaseStructObject { TestValue = 1 });
+            dependencies.Get<IBaseInterface>().TestValue = 2;
+
+            Assert.That(dependencies.Get<IBaseInterface>().TestValue, Is.EqualTo(2));
+        }
+
         private interface IBaseInterface
         {
+            int TestValue { get; set; }
         }
 
         private class BaseObject
@@ -350,6 +339,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
 
         private struct BaseStructObject : IBaseInterface
         {
+            public int TestValue { get; set; }
         }
 
         private class DerivedObject : BaseObject
@@ -433,21 +423,12 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             private void load(PartialCachedStructProvider.Struct testObject) => TestObject = testObject;
         }
 
-        private partial class Receiver11 : IDependencyInjectionCandidate
-        {
-            public int? TestObject { get; private set; }
-
-            [BackgroundDependencyLoader]
-            private void load(int? testObject) => TestObject = testObject;
-        }
-
         private partial class Receiver12 : IDependencyInjectionCandidate
         {
-            [UsedImplicitly] // param used implicitly
+            public int TestObject { get; private set; } = 1;
+
             [BackgroundDependencyLoader]
-            private void load(int testObject)
-            {
-            }
+            private void load(int testObject) => TestObject = testObject;
         }
 
         private partial class Receiver13 : IDependencyInjectionCandidate

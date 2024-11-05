@@ -51,11 +51,13 @@ namespace osu.Framework.Tests.Dependencies.Reflection
         }
 
         [Test]
-        public void TestAttemptToCacheStruct()
+        public void TestCacheStruct()
         {
             var provider = new Provider4();
 
-            Assert.Throws<ArgumentException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
+
+            Assert.IsNotNull(dependencies.Get<int?>());
         }
 
         [Test]
@@ -136,7 +138,9 @@ namespace osu.Framework.Tests.Dependencies.Reflection
         {
             var provider = new Provider12();
 
-            Assert.Throws<ArgumentException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
+
+            Assert.IsNotNull(dependencies.Get<IProvidedInterface1>());
         }
 
         /// <summary>
@@ -149,29 +153,22 @@ namespace osu.Framework.Tests.Dependencies.Reflection
 
             var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
 
-            Assert.AreEqual(provider.CachedObject.Value, dependencies.GetValue<CachedStructProvider.Struct>().Value);
+            Assert.AreEqual(provider.CachedObject.Value, dependencies.Get<CachedStructProvider.Struct>().Value);
         }
 
         [Test]
-        public void TestGetValueNullInternal()
+        public void TestGetNullInternal()
         {
-            Assert.AreEqual(default(int), new DependencyContainer().GetValue<int>());
+            Assert.AreEqual(default(int), new DependencyContainer().Get<int>());
         }
 
-        /// <summary>
-        /// Test caching a nullable, where the providing type is within the osu.Framework assembly.
-        /// </summary>
-        [TestCase(null)]
-        [TestCase(10)]
-        public void TestCacheNullableInternal(int? testValue)
+        [Test]
+        public void TestAttemptCacheNullableInternal()
         {
             var provider = new CachedNullableProvider();
+            provider.SetValue(null);
 
-            provider.SetValue(testValue);
-
-            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
-
-            Assert.AreEqual(testValue, dependencies.GetValue<int?>());
+            Assert.Throws<NullDependencyException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
         }
 
         [Test]
@@ -460,9 +457,7 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             public object Provided1
             {
                 get => null;
-                set
-                {
-                }
+                set { }
             }
         }
 
@@ -471,9 +466,7 @@ namespace osu.Framework.Tests.Dependencies.Reflection
             [Cached]
             public object Provided1
             {
-                set
-                {
-                }
+                set { }
             }
         }
 

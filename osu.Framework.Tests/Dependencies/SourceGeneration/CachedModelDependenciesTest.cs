@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -83,7 +81,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
 
             Assert.AreEqual(2, resolver.Model.Bindable.Value);
 
-            dependencies.Model.Value.Bindable.Value = 3;
+            dependencies.Model.Value!.Bindable.Value = 3;
 
             Assert.AreEqual(3, resolver.Model.Bindable.Value);
         }
@@ -109,7 +107,7 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
             Assert.AreEqual(2, resolver.Model.Bindable.Value);
             Assert.AreEqual("2", resolver.Model.BindableString.Value);
 
-            dependencies.Model.Value.Bindable.Value = 3;
+            dependencies.Model.Value!.Bindable.Value = 3;
             dependencies.Model.Value.BindableString.Value = "3";
 
             Assert.AreEqual(3, resolver.Model.Bindable.Value);
@@ -283,15 +281,15 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
 
         private partial class NonReadOnlyFieldModel : IDependencyInjectionCandidate
         {
-#pragma warning disable 649
-            public Bindable<int> Bindable;
-#pragma warning restore 649
+#pragma warning disable CS0414 // Field is assigned but its value is never used
+            public Bindable<int> Bindable = null!;
+#pragma warning restore CS0414 // Field is assigned but its value is never used
         }
 
         private partial class PropertyModel : IDependencyInjectionCandidate
         {
             // ReSharper disable once UnusedMember.Local
-            public Bindable<int> Bindable { get; private set; }
+            public Bindable<int> Bindable { get; private set; } = null!;
         }
 
         private partial class FieldModel : IDependencyInjectionCandidate
@@ -309,22 +307,22 @@ namespace osu.Framework.Tests.Dependencies.SourceGeneration
         private partial class FieldModelResolver : IDependencyInjectionCandidate
         {
             [Resolved]
-            public FieldModel Model { get; private set; }
+            public FieldModel Model { get; private set; } = null!;
         }
 
         private partial class DerivedFieldModelResolver : IDependencyInjectionCandidate
         {
             [Resolved]
-            public DerivedFieldModel Model { get; private set; }
+            public DerivedFieldModel Model { get; private set; } = null!;
         }
 
         private partial class DerivedFieldModelPropertyResolver : IDependencyInjectionCandidate
         {
             [Resolved(typeof(DerivedFieldModel))]
-            public Bindable<int> Bindable { get; private set; }
+            public Bindable<int> Bindable { get; private set; } = null!;
 
             [Resolved(typeof(DerivedFieldModel))]
-            public Bindable<string> BindableString { get; private set; }
+            public Bindable<string> BindableString { get; private set; } = null!;
         }
     }
 }
