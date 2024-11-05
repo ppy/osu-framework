@@ -818,7 +818,10 @@ namespace osu.Framework.Graphics.Rendering
         public bool BindTexture(INativeTexture texture, int unit = 0, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
             if (lastActiveTextureUnit == unit && lastBoundTexture[unit] == texture)
+            {
+                setWrapMode(wrapModeS, wrapModeT);
                 return true;
+            }
 
             FlushCurrentBatch(FlushBatchSource.BindTexture);
 
