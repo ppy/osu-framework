@@ -78,6 +78,8 @@ namespace osu.Framework
 
         private AudioMixerVisualiser audioMixerVisualiser;
 
+        private IBindable<LocalisationParameters> localisationParameters;
+
         protected override Container<Drawable> Content => content;
 
         /// <summary>
@@ -207,6 +209,9 @@ namespace osu.Framework
 
             Localisation = CreateLocalisationManager(config);
             dependencies.CacheAs(Localisation);
+
+            localisationParameters = Localisation.CurrentParameters.GetBoundCopy();
+            localisationParameters.BindValueChanged(p => Host.SetThreadCulture(p.NewValue.Culture, p.NewValue.UICulture), true);
 
             frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
 
