@@ -119,7 +119,7 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// FILE parameters.
         /// </summary>
-        private readonly IDictionary<string, byte[]> files = new Dictionary<string, byte[]>();
+        private readonly List<FormFile> files = new List<FormFile>();
 
         /// <summary>
         /// The request headers.
@@ -349,9 +349,9 @@ namespace osu.Framework.IO.Network
 
                             foreach (var p in files)
                             {
-                                var byteContent = new ByteArrayContent(p.Value);
+                                var byteContent = new ByteArrayContent(p.Content);
                                 byteContent.Headers.Add("Content-Type", "application/octet-stream");
-                                formData.Add(byteContent, p.Key, p.Key);
+                                formData.Add(byteContent, p.ParamName, p.Filename);
                             }
 
                             postContent = await formData.ReadAsStreamAsync(linkedToken.Token).ConfigureAwait(false);
@@ -662,17 +662,21 @@ namespace osu.Framework.IO.Network
         }
 
         /// <summary>
-        /// Add a new FILE parameter to this request. Replaces any existing file with the same name.
+        /// Add a new FILE parameter to this request.
         /// This may not be used in conjunction with <see cref="AddRaw(Stream)"/>. GET requests may not contain files.
         /// </summary>
-        /// <param name="name">The name of the file. This becomes the name of the file in a multi-part form POST content.</param>
+        /// <param name="paramName">The name of the form parameter of the request that the file relates to.</param>
         /// <param name="data">The file data.</param>
-        public void AddFile(string name, byte[] data)
+        /// <param name="filename">
+        /// The filename of the file to be sent to be reported to the server in the <c>Content-Disposition</c> header.
+        /// <c>blob</c> is used by default if omitted, to <see href="https://developer.mozilla.org/en-US/docs/Web/API/FormData/append#filename">mirror browser behaviour</see>.
+        /// </param>
+        public void AddFile(string paramName, byte[] data, string filename = "blob")
         {
-            ArgumentNullException.ThrowIfNull(name);
+            ArgumentNullException.ThrowIfNull(paramName);
             ArgumentNullException.ThrowIfNull(data);
 
-            files[name] = data;
+            files.Add(new FormFile(paramName, data, filename));
         }
 
         /// <summary>
@@ -931,5 +935,7 @@ namespace osu.Framework.IO.Network
                 baseStream.Dispose();
             }
         }
+
+        private record struct FormFile(string ParamName, byte[] Content, string Filename);
     }
 }
