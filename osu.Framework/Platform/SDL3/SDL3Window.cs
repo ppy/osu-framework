@@ -209,6 +209,7 @@ namespace osu.Framework.Platform.SDL3
             SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_CENTER, "0"u8);
             SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0"u8); // disable touch events generating synthetic mouse events on desktop platforms
             SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0"u8); // disable mouse events generating synthetic touch events on mobile platforms
+            SDL_SetHint(SDL_HINT_IME_IMPLEMENTED_UI, "composition"u8);
 
             SDLWindowHandle = SDL_CreateWindow(title, Size.Width, Size.Height, flags);
 
