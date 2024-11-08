@@ -6,7 +6,7 @@ namespace osu.Framework.Input
     /// <summary>
     /// Represents a number of properties to consider during a text input session.
     /// </summary>
-    /// <param name="Type">The type of text being inputted.</param>
+    /// <param name="Type">The type of text being input.</param>
     /// <param name="AllowIme">
     /// <para>
     /// Whether IME should be allowed during this text input session.
