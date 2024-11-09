@@ -124,7 +124,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                 otherTextBoxes.Add(new BasicTextBox
                 {
-                    InputProperties = new TextInputProperties(TextInputType.Password, false),
+                    InputProperties = new TextInputProperties(TextInputType.Password),
                     PlaceholderText = @"Password textbox",
                     Text = "Secret ;)",
                     Size = new Vector2(500, 30),
@@ -176,7 +176,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 textBoxes.Add(numbers = new BasicTextBox
                 {
-                    InputProperties = new TextInputProperties(TextInputType.Number, false),
+                    InputProperties = new TextInputProperties(TextInputType.Number),
                     PlaceholderText = @"Only numbers",
                     Size = new Vector2(500, 30),
                     TabbableContentContainer = textBoxes
