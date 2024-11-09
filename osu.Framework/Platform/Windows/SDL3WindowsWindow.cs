@@ -131,7 +131,7 @@ namespace osu.Framework.Platform.Windows
         public override void StartTextInput(TextInputProperties properties)
         {
             base.StartTextInput(properties);
-            ScheduleCommand(() => Imm.SetImeAllowed(WindowHandle, properties.AllowIme));
+            ScheduleCommand(() => Imm.SetImeAllowed(WindowHandle, properties.Type.SupportsIme() && properties.AllowIme));
         }
 
         public override void ResetIme() => ScheduleCommand(() => Imm.CancelComposition(WindowHandle));

@@ -9,13 +9,12 @@ namespace osu.Framework.Input
     /// <param name="Type">The type of text being input.</param>
     /// <param name="AllowIme">
     /// <para>
-    /// Whether IME should be allowed during this text input session.
-    /// Useful for situations where IME input is not wanted, such as for passwords, numbers, or romanised text.
+    /// Whether IME should be allowed during this text input session, if supported by the given text input type.
     /// </para>
     /// <para>
     /// Note that this is just a hint to the native implementation, some might respect this,
     /// while others will ignore and always have the IME (dis)allowed.
     /// </para>
     /// </param>
-    public record struct TextInputProperties(TextInputType Type, bool AllowIme);
+    public record struct TextInputProperties(TextInputType Type, bool AllowIme = true);
 }
