@@ -1085,7 +1085,7 @@ namespace osu.Framework.Graphics.Rendering
 
         public void BindUniformBuffer(string blockName, IUniformBuffer buffer)
         {
-            if (boundUniformBuffers.TryGetValue(blockName, out IUniformBuffer? current) && current == buffer)
+            if (boundUniformBuffers.TryGetValue(blockName, out IUniformBuffer? current) && current.Equals(buffer))
                 return;
 
             FlushCurrentBatch(FlushBatchSource.BindBuffer);
