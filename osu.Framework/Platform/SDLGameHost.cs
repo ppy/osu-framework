@@ -20,6 +20,8 @@ namespace osu.Framework.Platform
     {
         public override bool CapsLockEnabled => (Window as ISDLWindow)?.CapsLockPressed == true;
 
+        public override bool OnScreenKeyboardOverlapsGameWindow => (Window as ISDLWindow)?.KeyboardAttached == false;
+
         protected SDLGameHost(string gameName, HostOptions? options = null)
             : base(gameName, options)
         {

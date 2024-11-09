@@ -165,6 +165,8 @@ namespace osu.Framework.Platform.SDL2
 
         public bool CapsLockPressed => SDL_GetModState().HasFlagFast(SDL_Keymod.KMOD_CAPS);
 
+        public bool KeyboardAttached => true; // SDL2 has no way of knowing whether a keyboard is attached, assume true.
+
         // references must be kept to avoid GC, see https://stackoverflow.com/a/6193914
 
         [UsedImplicitly]

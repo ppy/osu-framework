@@ -145,6 +145,8 @@ namespace osu.Framework.Platform.SDL3
 
         public bool CapsLockPressed => SDL_GetModState().HasFlagFast(SDL_Keymod.SDL_KMOD_CAPS);
 
+        public bool KeyboardAttached => SDL_HasKeyboard();
+
         /// <summary>
         /// Represents a handle to this <see cref="SDL3Window"/> instance, used for unmanaged callbacks.
         /// </summary>
