@@ -331,7 +331,7 @@ namespace osu.Framework.Testing
             {
                 Text = description ?? @"Until",
                 IsSetupStep = addStepsAsSetupSteps,
-                CallStack = new StackTrace(1),
+                CallStack = new StackTrace(1, true),
                 Assertion = waitUntilTrueDelegate,
             });
         }
@@ -344,7 +344,7 @@ namespace osu.Framework.Testing
             {
                 Text = description ?? @"Until",
                 IsSetupStep = addStepsAsSetupSteps,
-                CallStack = new StackTrace(1),
+                CallStack = new StackTrace(1, true),
                 Assertion = () =>
                 {
                     lastResult = constraint().Resolve().ApplyTo(actualValue());
@@ -390,12 +390,13 @@ namespace osu.Framework.Testing
                 Text = description,
                 IsSetupStep = addStepsAsSetupSteps,
                 ExtendedDescription = extendedDescription,
-                CallStack = new StackTrace(1),
+                CallStack = new StackTrace(1, true),
                 Assertion = assert,
             });
         }
 
-        protected void AddAssert<T>([NotNull] string description, [NotNull] ActualValueDelegate<T> actualValue, [NotNull] Func<IResolveConstraint> constraint, [CanBeNull] string extendedDescription = null)
+        protected void AddAssert<T>([NotNull] string description, [NotNull] ActualValueDelegate<T> actualValue, [NotNull] Func<IResolveConstraint> constraint,
+                                    [CanBeNull] string extendedDescription = null)
         {
             ConstraintResult lastResult = null;
 
@@ -404,7 +405,7 @@ namespace osu.Framework.Testing
                 Text = description,
                 IsSetupStep = addStepsAsSetupSteps,
                 ExtendedDescription = extendedDescription,
-                CallStack = new StackTrace(1),
+                CallStack = new StackTrace(1, true),
                 Assertion = () =>
                 {
                     lastResult = constraint().Resolve().ApplyTo(actualValue());

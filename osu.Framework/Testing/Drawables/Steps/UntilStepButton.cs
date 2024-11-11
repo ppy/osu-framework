@@ -3,7 +3,9 @@
 
 using System;
 using System.Diagnostics;
+using System.Runtime.ExceptionServices;
 using System.Text;
+using NUnit.Framework;
 using osu.Framework.Graphics;
 using osuTK.Graphics;
 
@@ -60,7 +62,7 @@ namespace osu.Framework.Testing.Drawables.Steps
                 if (GetFailureMessage != null)
                     builder.Append($": {GetFailureMessage()}");
 
-                throw new TracedException(builder.ToString(), CallStack);
+                throw ExceptionDispatchInfo.SetRemoteStackTrace(new AssertionException(builder.ToString()), CallStack.ToString());
             }
 
             Action?.Invoke();
