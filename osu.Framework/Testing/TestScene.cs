@@ -331,6 +331,7 @@ namespace osu.Framework.Testing
             {
                 Text = description ?? @"Until",
                 IsSetupStep = addStepsAsSetupSteps,
+                CallStack = new StackTrace(1),
                 Assertion = waitUntilTrueDelegate,
             });
         }
@@ -343,6 +344,7 @@ namespace osu.Framework.Testing
             {
                 Text = description ?? @"Until",
                 IsSetupStep = addStepsAsSetupSteps,
+                CallStack = new StackTrace(1),
                 Assertion = () =>
                 {
                     lastResult = constraint().Resolve().ApplyTo(actualValue());

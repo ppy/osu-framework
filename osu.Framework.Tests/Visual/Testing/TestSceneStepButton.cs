@@ -55,7 +55,8 @@ namespace osu.Framework.Tests.Visual.Testing
                     {
                         Text = nameof(UntilStepButton),
                         IsSetupStep = false,
-                        Assertion = () => true
+                        Assertion = () => true,
+                        CallStack = new StackTrace()
                     },
                     new StepSlider<int>(nameof(StepSlider<int>), 0, 10, 5),
                 }

@@ -4,7 +4,6 @@
 using System;
 using System.Diagnostics;
 using System.Text;
-using NUnit.Framework;
 using osu.Framework.Graphics;
 using osuTK.Graphics;
 
@@ -14,6 +13,7 @@ namespace osu.Framework.Testing.Drawables.Steps
     {
         private static readonly int max_attempt_milliseconds = FrameworkEnvironment.NoTestTimeout ? int.MaxValue : 10000;
 
+        public required StackTrace CallStack { get; init; }
         public required Func<bool> Assertion { get; init; }
         public Func<string>? GetFailureMessage { get; init; }
         public new Action? Action { get; set; }
@@ -60,7 +60,7 @@ namespace osu.Framework.Testing.Drawables.Steps
                 if (GetFailureMessage != null)
                     builder.Append($": {GetFailureMessage()}");
 
-                throw new AssertionException(builder.ToString());
+                throw new TracedException(builder.ToString(), CallStack);
             }
 
             Action?.Invoke();
