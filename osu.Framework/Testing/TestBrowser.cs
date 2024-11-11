@@ -521,9 +521,10 @@ namespace osu.Framework.Testing
 
                 if (setUpMethods.Any())
                 {
-                    CurrentTest.AddStep(new SingleStepButton(true)
+                    CurrentTest.AddStep(new SingleStepButton
                     {
                         Text = "[SetUp]",
+                        IsSetupStep = true,
                         LightColour = Color4.Teal,
                         Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
                     });

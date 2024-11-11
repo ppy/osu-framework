@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.Text;
@@ -13,15 +11,14 @@ namespace osu.Framework.Testing.Drawables.Steps
 {
     public partial class AssertButton : StepButton
     {
-        public Func<bool> Assertion;
-        public string ExtendedDescription;
-        public StackTrace CallStack;
-        private readonly Func<string> getFailureMessage;
+        public required StackTrace CallStack { get; init; }
+        public required Func<bool> Assertion { get; init; }
+        public Func<string>? GetFailureMessage { get; init; }
 
-        public AssertButton(bool isSetupStep = false, Func<string> getFailureMessage = null)
-            : base(isSetupStep)
+        public string? ExtendedDescription { get; init; }
+
+        public AssertButton()
         {
-            this.getFailureMessage = getFailureMessage;
             Action += checkAssert;
             LightColour = Color4.OrangeRed;
         }
@@ -39,8 +36,8 @@ namespace osu.Framework.Testing.Drawables.Steps
                 if (!string.IsNullOrEmpty(ExtendedDescription))
                     builder.Append($" {ExtendedDescription}");
 
-                if (getFailureMessage != null)
-                    builder.Append($": {getFailureMessage()}");
+                if (GetFailureMessage != null)
+                    builder.Append($": {GetFailureMessage()}");
 
                 throw new TracedException(builder.ToString(), CallStack);
             }
