@@ -2,16 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Development;
-using osu.Framework.Logging;
 using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
     public partial class LabelStep : StepButton
     {
-        public required TestScene Test { get; init; }
-        public new Action? Action { get; set; }
+        public new required Action<LabelStep> Action { get; init; }
 
         protected override Color4 IdleColour => new Color4(77, 77, 77, 255);
 
@@ -24,14 +21,6 @@ namespace osu.Framework.Testing.Drawables.Steps
             base.Action = clickAction;
         }
 
-        private void clickAction()
-        {
-            Logger.Log($@"💨 {Test} {Text}");
-
-            if (!DebugUtils.IsNUnitRunning)
-                Test.RunAllSteps(startFromStep: this, stopCondition: s => s is LabelStep);
-
-            Action?.Invoke();
-        }
+        private void clickAction() => Action(this);
     }
 }

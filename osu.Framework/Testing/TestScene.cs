@@ -300,7 +300,14 @@ namespace osu.Framework.Testing
             {
                 Text = description,
                 IsSetupStep = false,
-                Test = this,
+                Action = step =>
+                {
+                    Logger.Log($@"💨 {this} {description}");
+
+                    // kinda hacky way to avoid this doesn't get triggered by automated runs.
+                    if (step.IsHovered)
+                        RunAllSteps(startFromStep: step, stopCondition: s => s is LabelStep);
+                },
             });
         }
 

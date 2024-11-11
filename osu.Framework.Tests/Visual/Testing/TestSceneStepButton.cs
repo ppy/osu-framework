@@ -25,7 +25,7 @@ namespace osu.Framework.Tests.Visual.Testing
                     {
                         Text = nameof(LabelStep),
                         IsSetupStep = false,
-                        Test = this
+                        Action = _ => { },
                     },
                     new AssertButton
                     {
