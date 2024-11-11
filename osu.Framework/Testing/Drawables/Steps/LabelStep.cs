@@ -8,7 +8,7 @@ namespace osu.Framework.Testing.Drawables.Steps
 {
     public partial class LabelStep : StepButton
     {
-        public new required Action<LabelStep> Action { get; init; }
+        public new required Action<LabelStep> Action;
 
         protected override Color4 IdleColour => new Color4(77, 77, 77, 255);
 

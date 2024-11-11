@@ -12,7 +12,7 @@ namespace osu.Framework.Testing.Drawables.Steps
         private static readonly Color4 off_colour = Color4.Red;
         private static readonly Color4 on_colour = Color4.YellowGreen;
 
-        public new required Action<bool> Action { get; init; }
+        public new required Action<bool> Action;
 
         public override int RequiredRepetitions => 2;
 

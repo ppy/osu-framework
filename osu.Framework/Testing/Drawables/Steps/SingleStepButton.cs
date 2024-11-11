@@ -7,7 +7,7 @@ namespace osu.Framework.Testing.Drawables.Steps
 {
     public partial class SingleStepButton : StepButton
     {
-        public new required Action Action { get; init; }
+        public new required Action Action;
 
         public SingleStepButton()
         {

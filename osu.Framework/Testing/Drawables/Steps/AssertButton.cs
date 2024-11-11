@@ -12,15 +12,15 @@ namespace osu.Framework.Testing.Drawables.Steps
 {
     public partial class AssertButton : StepButton
     {
-        public required StackTrace CallStack { get; init; }
-        public required Func<bool> Assertion { get; init; }
-        public Func<string>? GetFailureMessage { get; init; }
+        public required StackTrace CallStack;
+        public required Func<bool> Assertion;
 
+        public Func<string>? GetFailureMessage { get; init; }
         public string? ExtendedDescription { get; init; }
 
         public AssertButton()
         {
-            Action += checkAssert;
+            Action = checkAssert;
             LightColour = Color4.OrangeRed;
         }
 

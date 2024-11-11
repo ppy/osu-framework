@@ -15,10 +15,11 @@ namespace osu.Framework.Testing.Drawables.Steps
     {
         private static readonly int max_attempt_milliseconds = FrameworkEnvironment.NoTestTimeout ? int.MaxValue : 10000;
 
-        public required StackTrace CallStack { get; init; }
-        public required Func<bool> Assertion { get; init; }
+        public required StackTrace CallStack;
+        public required Func<bool> Assertion;
+
         public Func<string>? GetFailureMessage { get; init; }
-        public new Action? Action { get; set; }
+        public new Action? Action { get; init; }
 
         public override int RequiredRepetitions => success ? 0 : int.MaxValue;
 

@@ -14,8 +14,9 @@ namespace osu.Framework.Testing.Drawables.Steps
 {
     public abstract partial class StepButton : CompositeDrawable
     {
-        public required bool IsSetupStep { get; init; }
-        public Action? Action { get; set; }
+        public required bool IsSetupStep;
+
+        public Action? Action { get; init; }
 
         public virtual int RequiredRepetitions => 1;
 
