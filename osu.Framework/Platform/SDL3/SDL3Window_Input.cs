@@ -472,18 +472,18 @@ namespace osu.Framework.Platform.SDL3
                 MouseMoveRelative?.Invoke(new Vector2(evtMotion.xrel * Scale, evtMotion.yrel * Scale));
         }
 
-        protected virtual void HandleTextInputEvent(SDL_TextInputEvent evtText)
+        private void handleTextInputEvent(SDL_TextInputEvent evtText)
         {
             string? text = evtText.GetText();
             Debug.Assert(text != null);
-            TriggerTextInput(text);
+            TextInput?.Invoke(text);
         }
 
-        protected virtual void HandleTextEditingEvent(SDL_TextEditingEvent evtEdit)
+        private void handleTextEditingEvent(SDL_TextEditingEvent evtEdit)
         {
             string? text = evtEdit.GetText();
             Debug.Assert(text != null);
-            TriggerTextEditing(text, evtEdit.start, evtEdit.length);
+            TextEditing?.Invoke(text, evtEdit.start, evtEdit.length);
         }
 
         private void handleKeyboardEvent(SDL_KeyboardEvent evtKey)
@@ -713,14 +713,10 @@ namespace osu.Framework.Platform.SDL3
         /// </summary>
         public event Action<string>? TextInput;
 
-        protected void TriggerTextInput(string text) => TextInput?.Invoke(text);
-
         /// <summary>
         /// Invoked when an IME text editing event occurs.
         /// </summary>
         public event TextEditingDelegate? TextEditing;
-
-        protected void TriggerTextEditing(string text, int start, int length) => TextEditing?.Invoke(text, start, length);
 
         /// <inheritdoc cref="IWindow.KeymapChanged"/>
         public event Action? KeymapChanged;
