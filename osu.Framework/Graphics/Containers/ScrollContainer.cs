@@ -136,7 +136,10 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The maximum distance that the scrollbar can move in the scroll direction.
         /// </summary>
-        public float ScrollbarMovementExtent => Math.Max(DisplayableContent - Scrollbar.DrawSize[ScrollDim], 0);
+        /// <remarks>
+        /// May not be accurate to actual display of scrollbar if <see cref="ToScrollbarPosition"/> or <see cref="FromScrollbarPosition"/> are overridden.
+        /// </remarks>
+        protected float ScrollbarMovementExtent => Math.Max(DisplayableContent - Scrollbar.DrawSize[ScrollDim], 0);
 
         /// <summary>
         /// Clamp a value to the available scroll range.
