@@ -33,6 +33,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 "cached with drawnode invalidation",
                 "cached with force redraw",
                 "cached with padding",
+                "cached with new child",
             };
 
             var boxes = new List<ContainingBox>();
@@ -59,7 +60,8 @@ namespace osu.Framework.Tests.Visual.Containers
                             invalidate: i == 11,
                             forceRedraw: i == 12,
                             padding: i == 13,
-                            cached: i % 2 == 1 || i == 10 || i == 12)
+                            newChild: i == 14,
+                            cached: i % 2 == 1 || i >= 10)
                         {
                             RedrawOnScale = i != 10
                         },
@@ -105,6 +107,9 @@ namespace osu.Framework.Tests.Visual.Containers
 
             // ensure changing padding invalidates cache.
             AddAssert("box 13 count equals box 0 count", () => boxes[13].Count == boxes[0].Count);
+
+            // ensure adding a new child invalidates cache.
+            AddAssert("box 14 count equals box 0 count", () => boxes[14].Count == boxes[0].Count);
         }
 
         private partial class ContainingBox : Container<CountingBox>
@@ -139,7 +144,10 @@ namespace osu.Framework.Tests.Visual.Containers
             private readonly bool invalidate;
             private readonly bool forceRedraw;
             private readonly bool padding;
+            private readonly bool newChild;
             private readonly SpriteText count;
+
+            private Drawable child = null;
 
             public CountingBox(
                 bool rotating = false,
@@ -147,6 +155,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 bool invalidate = false,
                 bool forceRedraw = false,
                 bool padding = false,
+                bool newChild = false,
                 bool cached = false
             )
                 : base(cachedFrameBuffer: cached)
@@ -156,6 +165,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 this.invalidate = invalidate;
                 this.forceRedraw = forceRedraw;
                 this.padding = padding;
+                this.newChild = newChild;
                 RelativeSizeAxes = Axes.Both;
                 Origin = Anchor.Centre;
                 Anchor = Anchor.Centre;
@@ -184,6 +194,23 @@ namespace osu.Framework.Tests.Visual.Containers
             protected override void Update()
             {
                 base.Update();
+
+                if (newChild)
+                {
+                    if (child != null)
+                        RemoveInternal(child, true);
+
+                    child = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Origin = Anchor.Centre,
+                        Anchor = Anchor.Centre,
+                        Colour = Color4.Red,
+                        Alpha = 0.5f,
+                    };
+
+                    AddInternal(child);
+                }
 
                 if (invalidate)
                 {
