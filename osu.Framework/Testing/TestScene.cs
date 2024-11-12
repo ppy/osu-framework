@@ -204,7 +204,7 @@ namespace osu.Framework.Testing
         private ScheduledDelegate stepRunner;
         private readonly ScrollContainer<Drawable> scroll;
 
-        public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null, Func<StepButton, bool> stopCondition = null, StepButton startFromStep = null)
+        public void RunAllSteps(Action onCompletion = null, Action<StepButton, Exception> onError = null, Func<StepButton, bool> stopCondition = null, StepButton startFromStep = null)
         {
             // schedule once as we want to ensure we have run our LoadComplete before attempting to execute steps.
             // a user may be adding a step in LoadComplete.
@@ -222,7 +222,7 @@ namespace osu.Framework.Testing
 
         private StepButton loadableStep => actionIndex >= 0 ? StepsContainer.Children.ElementAtOrDefault(actionIndex) as StepButton : null;
 
-        private void runNextStep(Action onCompletion, Action<Exception> onError, Func<StepButton, bool> stopCondition)
+        private void runNextStep(Action onCompletion, Action<StepButton, Exception> onError, Func<StepButton, bool> stopCondition)
         {
             try
             {
@@ -242,7 +242,7 @@ namespace osu.Framework.Testing
                     : "💥 Failed");
 
                 LoadingComponentsLogger.LogAndFlush();
-                onError?.Invoke(e);
+                onError?.Invoke(loadableStep, e);
                 return;
             }
 
@@ -306,7 +306,7 @@ namespace osu.Framework.Testing
 
                     // kinda hacky way to avoid this doesn't get triggered by automated runs.
                     if (step.IsHovered)
-                        RunAllSteps(startFromStep: step, stopCondition: s => s is LabelStep);
+                        RunAllSteps(startFromStep: step, stopCondition: s => s is LabelStep, onError: (s, e) => Logger.Error(e, $"Step {s} triggered error"));
                 },
             });
         }

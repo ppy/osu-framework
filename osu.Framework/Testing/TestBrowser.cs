@@ -590,7 +590,7 @@ namespace osu.Framework.Testing
         private void runTests(Action onCompletion)
         {
             int actualStepCount = 0;
-            CurrentTest.RunAllSteps(onCompletion, e => Logger.Log($@"Error on step: {e}"), s =>
+            CurrentTest.RunAllSteps(onCompletion, (s, e) => Logger.Error(e, $"Step {s} triggered an error"), s =>
             {
                 if (!interactive || RunAllSteps.Value)
                     return false;
