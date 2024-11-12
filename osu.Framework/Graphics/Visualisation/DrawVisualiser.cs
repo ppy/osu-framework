@@ -222,6 +222,14 @@ namespace osu.Framework.Graphics.Visualisation
             // Finds the targeted drawable and composite drawable. The search stops if a drawable is targeted.
             void findTarget(Drawable drawable)
             {
+                // Ignore proxied drawables (they may be at a different visual layer).
+                if (drawable.HasProxy)
+                    return;
+
+                // When a proxy is encountered, restore the original drawable for target testing.
+                while (drawable.IsProxy)
+                    drawable = drawable.Original;
+
                 if (drawable == this || drawable is Component)
                     return;
 
