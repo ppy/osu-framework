@@ -32,6 +32,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 "cached with no redraw on parent scale&fade",
                 "cached with drawnode invalidation",
                 "cached with force redraw",
+                "cached with padding",
             };
 
             var boxes = new List<ContainingBox>();
@@ -57,6 +58,7 @@ namespace osu.Framework.Tests.Visual.Containers
                             moving: i == 4 || i == 5,
                             invalidate: i == 11,
                             forceRedraw: i == 12,
+                            padding: i == 13,
                             cached: i % 2 == 1 || i == 10 || i == 12)
                         {
                             RedrawOnScale = i != 10
@@ -100,6 +102,9 @@ namespace osu.Framework.Tests.Visual.Containers
 
             // ensure force redraw always invalidates cache.
             AddAssert("box 12 count equals box 0 count", () => boxes[12].Count == boxes[0].Count);
+
+            // ensure changing padding invalidates cache.
+            AddAssert("box 13 count equals box 0 count", () => boxes[13].Count == boxes[0].Count);
         }
 
         private partial class ContainingBox : Container<CountingBox>
@@ -133,15 +138,24 @@ namespace osu.Framework.Tests.Visual.Containers
             private readonly bool moving;
             private readonly bool invalidate;
             private readonly bool forceRedraw;
+            private readonly bool padding;
             private readonly SpriteText count;
 
-            public CountingBox(bool rotating = false, bool moving = false, bool invalidate = false, bool forceRedraw = false, bool cached = false)
+            public CountingBox(
+                bool rotating = false,
+                bool moving = false,
+                bool invalidate = false,
+                bool forceRedraw = false,
+                bool padding = false,
+                bool cached = false
+            )
                 : base(cachedFrameBuffer: cached)
             {
                 this.rotating = rotating;
                 this.moving = moving;
                 this.invalidate = invalidate;
                 this.forceRedraw = forceRedraw;
+                this.padding = padding;
                 RelativeSizeAxes = Axes.Both;
                 Origin = Anchor.Centre;
                 Anchor = Anchor.Centre;
@@ -193,6 +207,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 base.LoadComplete();
                 if (rotating) this.RotateTo(360, 1000).Loop();
                 if (moving) this.MoveTo(new Vector2(100, 0), 2000, Easing.InOutSine).Then().MoveTo(new Vector2(0, 0), 2000, Easing.InOutSine).Loop();
+                if (padding) this.TransformTo(nameof(Padding), new MarginPadding(10), 200).Then().TransformTo(nameof(Padding), new MarginPadding(0), 200).Loop();
             }
         }
     }
