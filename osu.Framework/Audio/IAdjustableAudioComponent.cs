@@ -61,6 +61,11 @@ namespace osu.Framework.Audio
         /// </summary>
         /// <param name="type">The target type to remove all adjustments of.</param>
         void RemoveAllAdjustments(AdjustableProperty type);
+
+        /// <summary>
+        /// Removes all adjustments from all types.
+        /// </summary>
+        void RemoveAdjustmentsFromAllProperties();
     }
 
     public static class AdjustableAudioComponentExtensions

@@ -164,6 +164,8 @@ namespace osu.Framework.Graphics.Audio
 
         public void RemoveAllAdjustments(AdjustableProperty type) => adjustments.RemoveAllAdjustments(type);
 
+        public void RemoveAdjustmentsFromAllProperties() => adjustments.RemoveAdjustmentsFromAllProperties();
+
         public IBindable<double> AggregateVolume => adjustments.AggregateVolume;
 
         public IBindable<double> AggregateBalance => adjustments.AggregateBalance;

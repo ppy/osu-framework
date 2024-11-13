@@ -68,6 +68,8 @@ namespace osu.Framework.Audio
 
         public void RemoveAllAdjustments(AdjustableProperty type) => Adjustments.RemoveAllAdjustments(type);
 
+        public void RemoveAdjustmentsFromAllProperties() => Adjustments.RemoveAdjustmentsFromAllProperties();
+
         private bool invalidationPending;
 
         internal void InvalidateState(ValueChangedEvent<double>? valueChangedEvent = null)

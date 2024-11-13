@@ -96,6 +96,12 @@ namespace osu.Framework.Audio
             aggregate.AddSource(getProperty(type));
         }
 
+        public void RemoveAdjustmentsFromAllProperties()
+        {
+            foreach (AdjustableProperty property in all_adjustments)
+                RemoveAllAdjustments(property);
+        }
+
         private ref AggregateBindable<double> getAggregate(AdjustableProperty type)
         {
             switch (type)
