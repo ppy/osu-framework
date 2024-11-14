@@ -333,6 +333,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddUntilStep("wait for items to load", () => list.ItemMap.Values.All(i => i.IsLoaded));
         }
 
+        [Test]
+        public void TestPartialReplace()
+        {
+            addItems(5);
+
+            AddStep("replace list", () => list.Items.ReplaceRange(2, 2, [100, 101]));
+            AddUntilStep("wait for items to load", () => list.ItemMap.Values.All(i => i.IsLoaded));
+        }
+
         private void addDragSteps(int from, int to, int[] expectedSequence)
         {
             AddStep($"move to {from}", () =>
