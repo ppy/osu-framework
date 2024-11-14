@@ -122,7 +122,8 @@ namespace osu.Framework.Platform
         public event Func<IpcMessage, IpcMessage> MessageReceived;
 
         /// <summary>
-        /// Whether the on screen keyboard covers a portion of the game window when presented to the user.
+        /// Whether the on-screen keyboard covers a portion of the game window when presented to the user.
+        /// This is usually true on mobile platforms, but may change to false if a hardware keyboard is connected.
         /// </summary>
         public virtual bool OnScreenKeyboardOverlapsGameWindow => false;
 

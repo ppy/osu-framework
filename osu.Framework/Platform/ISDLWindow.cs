@@ -39,6 +39,7 @@ namespace osu.Framework.Platform
         bool MouseAutoCapture { set; }
         bool RelativeMouseMode { get; set; }
         bool CapsLockPressed { get; }
+        bool KeyboardAttached { get; }
 
         void UpdateMousePosition(Vector2 position);
 

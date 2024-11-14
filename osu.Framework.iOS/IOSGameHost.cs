@@ -38,8 +38,6 @@ namespace osu.Framework.iOS
             base.SetupConfig(defaultOverrides);
         }
 
-        public override bool OnScreenKeyboardOverlapsGameWindow => true;
-
         public override bool CanExit => false;
 
         public override Storage GetStorage(string path) => new IOSStorage(path, this);

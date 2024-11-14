@@ -26,5 +26,28 @@ namespace osu.Framework.Tests.Graphics
             Assert.That(renderer.CurrentWrapModeS, Is.EqualTo(WrapMode.None));
             Assert.That(renderer.CurrentWrapModeS, Is.EqualTo(WrapMode.None));
         }
+
+        [Test]
+        public void TestTextureAtlasReuseUpdatesTextureWrapping()
+        {
+            DummyRenderer renderer = new DummyRenderer();
+
+            TextureAtlas atlas = new TextureAtlas(renderer, 1024, 1024);
+
+            Texture textureWrapNone = atlas.Add(100, 100, WrapMode.None, WrapMode.None)!;
+            Texture textureWrapClamp = atlas.Add(100, 100, WrapMode.ClampToEdge, WrapMode.ClampToEdge)!;
+
+            renderer.BindTexture(textureWrapNone, 0, null, null);
+            Assert.That(renderer.CurrentWrapModeS, Is.EqualTo(WrapMode.None));
+            Assert.That(renderer.CurrentWrapModeT, Is.EqualTo(WrapMode.None));
+
+            renderer.BindTexture(textureWrapClamp, 0, null, null);
+            Assert.That(renderer.CurrentWrapModeS, Is.EqualTo(WrapMode.ClampToEdge));
+            Assert.That(renderer.CurrentWrapModeT, Is.EqualTo(WrapMode.ClampToEdge));
+
+            renderer.BindTexture(textureWrapNone, 0, null, null);
+            Assert.That(renderer.CurrentWrapModeS, Is.EqualTo(WrapMode.None));
+            Assert.That(renderer.CurrentWrapModeT, Is.EqualTo(WrapMode.None));
+        }
     }
 }
