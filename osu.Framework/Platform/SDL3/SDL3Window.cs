@@ -503,11 +503,11 @@ namespace osu.Framework.Platform.SDL3
                     break;
 
                 case SDL_EventType.SDL_EVENT_TEXT_EDITING:
-                    HandleTextEditingEvent(e.edit);
+                    handleTextEditingEvent(e.edit);
                     break;
 
                 case SDL_EventType.SDL_EVENT_TEXT_INPUT:
-                    HandleTextInputEvent(e.text);
+                    handleTextInputEvent(e.text);
                     break;
 
                 case SDL_EventType.SDL_EVENT_KEYMAP_CHANGED:
