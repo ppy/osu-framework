@@ -77,7 +77,8 @@ namespace osu.Framework.Threading
                 managers.Add(manager);
             }
 
-            manager.GlobalMixerHandle.BindTo(globalMixerHandle);
+            if (manager is BassAudioManager bassManager)
+                bassManager.GlobalMixerHandle.BindTo(globalMixerHandle);
         }
 
         internal void UnregisterManager(AudioManager manager)
@@ -85,7 +86,8 @@ namespace osu.Framework.Threading
             lock (managers)
                 managers.Remove(manager);
 
-            manager.GlobalMixerHandle.UnbindFrom(globalMixerHandle);
+            if (manager is BassAudioManager bassManager)
+                bassManager.GlobalMixerHandle.UnbindFrom(globalMixerHandle);
         }
 
         protected override void OnExit()
