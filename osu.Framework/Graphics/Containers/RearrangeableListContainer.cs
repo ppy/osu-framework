@@ -183,11 +183,15 @@ namespace osu.Framework.Graphics.Containers
         {
             for (int i = 0; i < Items.Count; i++)
             {
-                var drawable = itemMap[Items[i]];
+                // A drawable for the item may not exist yet, for example in a replace-range operation where the removal happens first.
+                if (!itemMap.TryGetValue(Items[i], out var drawable))
+                    continue;
 
-                // If the async load didn't complete, the item wouldn't exist in the container and an exception would be thrown
-                if (drawable.Parent == ListContainer)
-                    ListContainer!.SetLayoutPosition(drawable, i);
+                // The item may not be loaded yet, because add operations are asynchronous.
+                if (drawable.Parent != ListContainer)
+                    continue;
+
+                ListContainer!.SetLayoutPosition(drawable, i);
             }
         }
 
