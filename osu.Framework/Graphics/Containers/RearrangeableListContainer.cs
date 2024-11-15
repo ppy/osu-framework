@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -21,6 +19,7 @@ namespace osu.Framework.Graphics.Containers
     /// </remarks>
     /// <typeparam name="TModel">The type of rearrangeable item.</typeparam>
     public abstract partial class RearrangeableListContainer<TModel> : CompositeDrawable
+        where TModel : notnull
     {
         private const float exp_base = 1.05f;
 
@@ -50,7 +49,7 @@ namespace osu.Framework.Graphics.Containers
         protected IReadOnlyDictionary<TModel, RearrangeableListItem<TModel>> ItemMap => itemMap;
 
         private readonly Dictionary<TModel, RearrangeableListItem<TModel>> itemMap = new Dictionary<TModel, RearrangeableListItem<TModel>>();
-        private RearrangeableListItem<TModel> currentlyDraggedItem;
+        private RearrangeableListItem<TModel>? currentlyDraggedItem;
         private Vector2 screenSpaceDragPosition;
 
         /// <summary>
@@ -81,7 +80,7 @@ namespace osu.Framework.Graphics.Containers
         {
         }
 
-        private void collectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        private void collectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             switch (e.Action)
             {
@@ -193,7 +192,7 @@ namespace osu.Framework.Graphics.Containers
                 if (drawable.Parent != ListContainer)
                     continue;
 
-                ListContainer!.SetLayoutPosition(drawable, i);
+                ListContainer.SetLayoutPosition(drawable, i);
             }
         }
 
@@ -218,9 +217,7 @@ namespace osu.Framework.Graphics.Containers
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
-
-            if (currentlyDraggedItem != null)
-                updateArrangement();
+            updateArrangement();
         }
 
         private void updateScrollPosition()
@@ -245,6 +242,9 @@ namespace osu.Framework.Graphics.Containers
 
         private void updateArrangement()
         {
+            if (currentlyDraggedItem == null)
+                return;
+
             var localPos = ListContainer.ToLocalSpace(screenSpaceDragPosition);
             int srcIndex = Items.IndexOf(currentlyDraggedItem.Model);
 
