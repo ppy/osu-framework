@@ -342,6 +342,82 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddUntilStep("wait for items to load", () => list.ItemMap.Values.All(i => i.IsLoaded));
         }
 
+        [Test]
+        public void TestReplaceWithNoItems()
+        {
+            addItems(5);
+
+            AddStep("replace list", () => list.Items.ReplaceRange(0, list.Items.Count, []));
+            AddUntilStep("wait for clear", () => !list.ItemMap.Values.Any());
+        }
+
+        [Test]
+        public void TestReplaceEmptyListWithNoItems()
+        {
+            AddStep("replace list", () => list.Items.ReplaceRange(0, 0, []));
+        }
+
+        [Test]
+        public void TestReplaceEmptyListWithItems()
+        {
+            AddStep("replace list", () => list.Items.ReplaceRange(0, 0, [100, 101]));
+            AddUntilStep("wait for items to load", () => list.ItemMap.Values.All(i => i.IsLoaded));
+        }
+
+        [Test]
+        public void TestReplaceOnlyAppliesDifferences()
+        {
+            // ReSharper disable once LocalVariableHidesMember (intentional, using the ƒield is wrong for this test)
+            TestLoadCountingList list = null!;
+
+            AddStep("create list", () => Child = list = new TestLoadCountingList
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                Size = new Vector2(500, 300)
+            });
+
+            AddStep("replace {[]} with [1]", () => list.Items.ReplaceRange(0, list.Items.Count, [1]));
+            assertLoadCount(1, 1);
+
+            AddStep("replace {[1]} with [1]", () => list.Items.ReplaceRange(0, 1, [1]));
+            assertLoadCount(1, 1);
+
+            AddStep("add {1, []} with [2, 3, 4]", () => list.Items.ReplaceRange(list.Items.Count, 0, [2, 3, 4]));
+            assertLoadCount(2, 1);
+            assertLoadCount(3, 1);
+            assertLoadCount(4, 1);
+
+            AddStep("replace {1, [2, 3], 4} with [3, 5]", () => list.Items.ReplaceRange(1, 2, [3, 5]));
+            assertLoadCount(3, 1);
+            assertLoadCount(5, 1);
+
+            AddStep("replace {1, [3, 5], 4} with [2, 3]", () => list.Items.ReplaceRange(1, 2, [2, 3]));
+            assertLoadCount(2, 2);
+            assertLoadCount(3, 1);
+
+            AddStep("replace {[1, 2, 3, 4]} with [1]", () => list.Items.ReplaceRange(0, list.Items.Count, [1]));
+            assertLoadCount(1, 1);
+
+            AddStep("replace {[1]} with []", () => list.Items.ReplaceRange(0, list.Items.Count, []));
+            assertLoadCount(1, 1);
+
+            AddStep("replace {[]} with [0, 1, 2, 3, 4, 5, 6]", () => list.Items.ReplaceRange(0, list.Items.Count, [0, 1, 2, 3, 4, 5, 6]));
+            assertLoadCount(0, 1);
+            assertLoadCount(1, 2);
+            assertLoadCount(2, 3);
+            assertLoadCount(3, 2);
+            assertLoadCount(4, 2);
+            assertLoadCount(5, 2);
+            assertLoadCount(6, 1);
+
+            void assertLoadCount(int item, int expectedTimesLoaded)
+            {
+                AddUntilStep("wait for items to load", () => list.ItemMap.Values.All(i => i.IsLoaded));
+                AddAssert($"item {item} loaded {expectedTimesLoaded} times", () => list.LoadCount[item], () => Is.EqualTo(expectedTimesLoaded));
+            }
+        }
+
         private void addDragSteps(int from, int to, int[] expectedSequence)
         {
             AddStep($"move to {from}", () =>
@@ -423,6 +499,33 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     if (!allowLoad.Wait(TimeSpan.FromSeconds(10)))
                         throw new TimeoutException();
                 }
+            }
+        }
+
+        private partial class TestLoadCountingList : BasicRearrangeableListContainer<int>
+        {
+            /// <summary>
+            /// Dictionary of item -> # of times a drawable was loaded for it.
+            /// </summary>
+            public readonly Dictionary<int, int> LoadCount = new Dictionary<int, int>();
+
+            public new IReadOnlyDictionary<int, RearrangeableListItem<int>> ItemMap => base.ItemMap;
+
+            protected override BasicRearrangeableListItem<int> CreateBasicItem(int item)
+                => new TestRearrangeableListItem(item, () => LoadCount[item] = LoadCount.GetValueOrDefault(item) + 1);
+
+            private partial class TestRearrangeableListItem : BasicRearrangeableListItem<int>
+            {
+                private readonly Action onLoad;
+
+                public TestRearrangeableListItem(int item, Action onLoad)
+                    : base(item, false)
+                {
+                    this.onLoad = onLoad;
+                }
+
+                [BackgroundDependencyLoader]
+                private void load() => onLoad();
             }
         }
     }
