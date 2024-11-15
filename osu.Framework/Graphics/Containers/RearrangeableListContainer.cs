@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
@@ -87,11 +86,11 @@ namespace osu.Framework.Graphics.Containers
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    addItems(e.NewItems);
+                    addItems(e.NewItems?.Cast<TModel>() ?? []);
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
-                    removeItems(e.OldItems);
+                    removeItems(e.OldItems?.Cast<TModel>() ?? []);
 
                     // Explicitly reset scroll position here so that ScrollContainer doesn't retain our
                     // scroll position if we quickly add new items after calling a Clear().
@@ -107,8 +106,11 @@ namespace osu.Framework.Graphics.Containers
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
-                    removeItems(e.OldItems);
-                    addItems(e.NewItems);
+                    IEnumerable<TModel> tOldItems = e.OldItems?.Cast<TModel>() ?? [];
+                    IEnumerable<TModel> tNewItems = e.NewItems?.Cast<TModel>() ?? [];
+
+                    removeItems(tOldItems.Except(tNewItems));
+                    addItems(tNewItems.Except(tOldItems));
                     break;
 
                 case NotifyCollectionChangedAction.Move:
@@ -118,9 +120,9 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private void removeItems(IList items)
+        private void removeItems(IEnumerable<TModel> items)
         {
-            foreach (var item in items.Cast<TModel>())
+            foreach (var item in items)
             {
                 if (currentlyDraggedItem != null && EqualityComparer<TModel>.Default.Equals(currentlyDraggedItem.Model, item))
                     currentlyDraggedItem = null;
@@ -137,11 +139,11 @@ namespace osu.Framework.Graphics.Containers
             OnItemsChanged();
         }
 
-        private void addItems(IList items)
+        private void addItems(IEnumerable<TModel> items)
         {
             var drawablesToAdd = new List<Drawable>();
 
-            foreach (var item in items.Cast<TModel>())
+            foreach (var item in items)
             {
                 if (itemMap.ContainsKey(item))
                 {
