@@ -59,7 +59,7 @@ namespace osu.Framework.Input
 
             // allow a frame for children to be prepared before passing input from parent.
             // this is especially necessary if our child is a KeyBindingContainer since the key bindings are not prepared until LoadComplete is called on it.
-            Schedule(() => Schedule(syncInitialState));
+            ScheduleAfterChildren(syncInitialState);
         }
 
         public override bool HandleHoverEvents => parentInputManager != null && UseParentInput ? parentInputManager.HandleHoverEvents : base.HandleHoverEvents;
