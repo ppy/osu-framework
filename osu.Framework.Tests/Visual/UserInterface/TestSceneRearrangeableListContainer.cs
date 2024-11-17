@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,9 +19,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public partial class TestSceneRearrangeableListContainer : ManualInputManagerTestScene
     {
-        private TestRearrangeableList list;
-
-        private Container listContainer;
+        private TestRearrangeableList list = null!;
+        private Container listContainer = null!;
 
         [SetUp]
         public void Setup() => Schedule(() =>
@@ -85,7 +82,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             addItems(item_count);
 
-            List<Drawable> items = null;
+            List<Drawable> items = null!;
 
             AddStep("get item references", () => items = new List<Drawable>(list.ItemMap.Values.ToList()));
 
@@ -278,7 +275,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestRemoveDuringLoadAndReAdd()
         {
-            TestDelayedLoadRearrangeableList delayedList = null;
+            TestDelayedLoadRearrangeableList delayedList = null!;
 
             AddStep("create list", () => Child = delayedList = new TestDelayedLoadRearrangeableList());
 
@@ -325,6 +322,24 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 var item = (BasicRearrangeableListItem<int>)another.ListContainer.FlowingChildren.Last();
                 return item.Model == 0;
             });
+        }
+
+        [Test]
+        public void TestReplaceEntireList()
+        {
+            addItems(1);
+
+            AddStep("replace list", () => list.Items.ReplaceRange(0, list.Items.Count, [100]));
+            AddUntilStep("wait for items to load", () => list.ItemMap.Values.All(i => i.IsLoaded));
+        }
+
+        [Test]
+        public void TestPartialReplace()
+        {
+            addItems(5);
+
+            AddStep("replace list", () => list.Items.ReplaceRange(2, 2, [100, 101]));
+            AddUntilStep("wait for items to load", () => list.ItemMap.Values.All(i => i.IsLoaded));
         }
 
         private void addDragSteps(int from, int to, int[] expectedSequence)

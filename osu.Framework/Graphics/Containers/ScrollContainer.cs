@@ -136,7 +136,10 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The maximum distance that the scrollbar can move in the scroll direction.
         /// </summary>
-        public float ScrollbarMovementExtent => Math.Max(DisplayableContent - Scrollbar.DrawSize[ScrollDim], 0);
+        /// <remarks>
+        /// May not be accurate to actual display of scrollbar if <see cref="ToScrollbarPosition"/> or <see cref="FromScrollbarPosition"/> are overridden.
+        /// </remarks>
+        protected float ScrollbarMovementExtent => Math.Max(DisplayableContent - Scrollbar.DrawSize[ScrollDim], 0);
 
         /// <summary>
         /// Clamp a value to the available scroll range.
@@ -409,7 +412,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        private void onScrollbarMovement(float value) => OnUserScroll(Clamp(fromScrollbarPosition(value)), false);
+        private void onScrollbarMovement(float value) => OnUserScroll(Clamp(FromScrollbarPosition(value)), false);
 
         /// <summary>
         /// Immediately offsets the current and target scroll position.
@@ -576,12 +579,12 @@ namespace osu.Framework.Graphics.Containers
 
             if (ScrollDirection == Direction.Horizontal)
             {
-                Scrollbar.X = toScrollbarPosition(Current);
+                Scrollbar.X = ToScrollbarPosition(Current);
                 ScrollContent.X = -Current + ScrollableExtent * ScrollContent.RelativeAnchorPosition.X;
             }
             else
             {
-                Scrollbar.Y = toScrollbarPosition(Current);
+                Scrollbar.Y = ToScrollbarPosition(Current);
                 ScrollContent.Y = -Current + ScrollableExtent * ScrollContent.RelativeAnchorPosition.Y;
             }
         }
@@ -591,7 +594,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="scrollPosition">The absolute scroll position (e.g. <see cref="Current"/>).</param>
         /// <returns>The scrollbar position.</returns>
-        private float toScrollbarPosition(float scrollPosition)
+        protected virtual float ToScrollbarPosition(float scrollPosition)
         {
             if (Precision.AlmostEquals(0, ScrollableExtent))
                 return 0;
@@ -604,7 +607,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="scrollbarPosition">The scrollbar position.</param>
         /// <returns>The absolute scroll position.</returns>
-        private float fromScrollbarPosition(float scrollbarPosition)
+        protected virtual float FromScrollbarPosition(float scrollbarPosition)
         {
             if (Precision.AlmostEquals(0, ScrollbarMovementExtent))
                 return 0;
