@@ -806,6 +806,8 @@ namespace osu.Framework.Platform.SDL3
         {
             ensureWindowOnDisplay(display);
 
+            // this is a generally sane method of handling borderless, and works well on macOS and linux.
+            SDL_SetWindowFullscreenMode(SDLWindowHandle, null);
             SDL_SetWindowFullscreen(SDLWindowHandle, true);
 
             return display.Bounds.Size;
