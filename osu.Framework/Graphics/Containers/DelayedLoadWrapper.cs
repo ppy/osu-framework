@@ -5,9 +5,9 @@
 
 using System;
 using System.Threading;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.PolygonExtensions;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Layout;
 using osu.Framework.Threading;
 
@@ -189,8 +189,10 @@ namespace osu.Framework.Graphics.Containers
 
         protected bool IsIntersecting { get; private set; }
 
+        [CanBeNull]
         internal IOnScreenOptimisingContainer OptimisingContainer { get; private set; }
 
+        [CanBeNull]
         internal IOnScreenOptimisingContainer FindParentOptimisingContainer() => this.FindClosestParent<IOnScreenOptimisingContainer>();
 
         protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
@@ -211,9 +213,9 @@ namespace osu.Framework.Graphics.Containers
             return result;
         }
 
-        public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
+        public override bool UpdateSubTreeMasking()
         {
-            bool result = base.UpdateSubTreeMasking(source, maskingBounds);
+            bool result = base.UpdateSubTreeMasking();
 
             // We can accurately compute intersections - the scheduled reset is no longer required.
             isIntersectingResetDelegate?.Cancel();
@@ -230,7 +232,7 @@ namespace osu.Framework.Graphics.Containers
                 // The first condition is an intersection against the hierarchy, including any parents that may be masking this wrapper.
                 // It is the same calculation as Drawable.IsMaskedAway, however IsMaskedAway is optimised out for some CompositeDrawables (which this wrapper is).
                 // The second condition is an exact intersection against the optimising container, which further optimises rotated AABBs where the wrapper content is not visible.
-                IsIntersecting = maskingBounds.IntersectsWith(ScreenSpaceDrawQuad.AABBFloat)
+                IsIntersecting = ComputeMaskingBounds().IntersectsWith(ScreenSpaceDrawQuad.AABBFloat)
                                  && OptimisingContainer?.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad) != false;
 
                 isIntersectingCache.Validate();

@@ -14,8 +14,8 @@ namespace osu.Framework.Graphics.Rendering.Dummy
 
         public string Identifier => string.Empty;
         public int MaxSize => 4096; // Sane default for testing purposes.
-        public int Width { get; set; } = 1;
-        public int Height { get; set; } = 1;
+        public int Width { get; set; }
+        public int Height { get; set; }
         public int? MipLevel { get; set; }
         public bool Available => true;
         public bool BypassTextureUploadQueueing { get; set; }
@@ -23,9 +23,11 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         public bool IsQueuedForUpload { get; set; }
         ulong INativeTexture.TotalBindCount { get; set; }
 
-        public DummyNativeTexture(IRenderer renderer)
+        public DummyNativeTexture(IRenderer renderer, int width, int height)
         {
             Renderer = renderer;
+            Width = width;
+            Height = height;
         }
 
         public void FlushUploads()

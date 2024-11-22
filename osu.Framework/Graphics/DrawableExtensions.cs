@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Development;
 
@@ -22,7 +20,7 @@ namespace osu.Framework.Graphics
         public static T With<T>(this T drawable, Action<T> adjustment)
             where T : Drawable
         {
-            adjustment?.Invoke(drawable);
+            adjustment.Invoke(drawable);
             return drawable;
         }
 
@@ -34,15 +32,15 @@ namespace osu.Framework.Graphics
         /// </remarks>
         /// <typeparam name="T">The type to match.</typeparam>
         /// <returns>The first matching parent, or null if no parent of type <typeparamref name="T"/> is found.</returns>
-        public static T FindClosestParent<T>(this Drawable drawable) where T : class, IDrawable
+        public static T? FindClosestParent<T>(this Drawable? drawable) where T : class, IDrawable
         {
-            while ((drawable = drawable.Parent) != null)
+            while ((drawable = drawable?.Parent) != null)
             {
                 if (drawable is T match)
                     return match;
             }
 
-            return default;
+            return null;
         }
 
         /// <summary>
@@ -51,11 +49,11 @@ namespace osu.Framework.Graphics
         /// <param name="drawable">The <see cref="Drawable"/> to be checked.</param>
         /// <param name="root">The root to be checked against.</param>
         /// <returns>Whether the drawable was rooted.</returns>
-        internal static bool IsRootedAt(this Drawable drawable, Drawable root)
+        internal static bool IsRootedAt(this Drawable? drawable, Drawable root)
         {
             if (drawable == root) return true;
 
-            while ((drawable = drawable.Parent) != null)
+            while ((drawable = drawable?.Parent) != null)
             {
                 if (drawable == root)
                     return true;

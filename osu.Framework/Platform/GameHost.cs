@@ -122,7 +122,8 @@ namespace osu.Framework.Platform
         public event Func<IpcMessage, IpcMessage> MessageReceived;
 
         /// <summary>
-        /// Whether the on screen keyboard covers a portion of the game window when presented to the user.
+        /// Whether the on-screen keyboard covers a portion of the game window when presented to the user.
+        /// This is usually true on mobile platforms, but may change to false if a hardware keyboard is connected.
         /// </summary>
         public virtual bool OnScreenKeyboardOverlapsGameWindow => false;
 
@@ -145,10 +146,10 @@ namespace osu.Framework.Platform
         public virtual Task SendMessageAsync(IpcMessage message) => throw new NotSupportedException("This platform does not implement IPC.");
 
         /// <summary>
-        /// Requests that a file be opened externally with an associated application, if available.
+        /// Requests that a file or folder be opened externally with an associated application, if available.
         /// </summary>
         /// <remarks>
-        /// Some platforms do not support interacting with files externally (ie. mobile or sandboxed platforms), check the return value as to whether it succeeded.
+        /// Some platforms do not support interacting with files externally (ie. mobile or sandboxed platforms), check the return value to discern whether it succeeded.
         /// </remarks>
         /// <param name="filename">The absolute path to the file which should be opened.</param>
         /// <returns>Whether the file was successfully opened.</returns>
@@ -159,12 +160,14 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <remarks>
         /// This will open the parent folder and, (if available) highlight the file.
-        /// Some platforms do not support interacting with files externally (ie. mobile or sandboxed platforms), check the return value as to whether it succeeded.
+        /// Some platforms do not support interacting with files externally (ie. mobile or sandboxed platforms), check the return value to discern whether it succeeded.
+        ///
+        /// If a folder path is provided to this method, it will prefer highlighting the folder in the parent folder, rather than showing the contents.
+        /// To display the contents of a folder, use <see cref="OpenFileExternally"/> instead.
         /// </remarks>
         /// <example>
         ///     <para>"C:\Windows\explorer.exe" -> opens 'C:\Windows' and highlights 'explorer.exe' in the window.</para>
         ///     <para>"C:\Windows\System32" -> opens 'C:\Windows' and highlights 'System32' in the window.</para>
-        ///     <para>"C:\Windows\System32\" -> opens 'C:\Windows\System32' and highlights nothing.</para>
         /// </example>
         /// <param name="filename">The absolute path to the file/folder to be shown in its parent folder.</param>
         /// <returns>Whether the file was successfully presented.</returns>
@@ -336,6 +339,11 @@ namespace osu.Framework.Platform
         {
             Options = options ?? new HostOptions();
 
+            if (string.IsNullOrEmpty(Options.FriendlyGameName))
+            {
+                Options.FriendlyGameName = $@"osu!framework (running ""{gameName}"")";
+            }
+
             Name = gameName;
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
@@ -446,9 +454,9 @@ namespace osu.Framework.Platform
             Exited?.Invoke();
         }
 
-        protected TripleBuffer<DrawNode> DrawRoots = new TripleBuffer<DrawNode>();
+        private readonly TripleBuffer<DrawNode> drawRoots = new TripleBuffer<DrawNode>();
 
-        protected Container Root;
+        internal Container Root { get; private set; }
 
         private ulong frameCount;
 
@@ -472,9 +480,9 @@ namespace osu.Framework.Platform
             TypePerformanceMonitor.NewFrame();
 
             Root.UpdateSubTree();
-            Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
+            Root.UpdateSubTreeMasking();
 
-            using (var buffer = DrawRoots.GetForWrite())
+            using (var buffer = drawRoots.GetForWrite())
                 buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
         }
 
@@ -495,7 +503,7 @@ namespace osu.Framework.Platform
 
             Renderer.AllowTearing = windowMode.Value == WindowMode.Fullscreen;
 
-            ObjectUsage<DrawNode> buffer;
+            TripleBuffer<DrawNode>.Buffer buffer;
 
             using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
             {
@@ -506,7 +514,7 @@ namespace osu.Framework.Platform
                     Renderer.WaitUntilNextFrameReady();
 
                 didRenderFrame = false;
-                buffer = DrawRoots.GetForRead();
+                buffer = drawRoots.GetForRead();
             }
 
             if (buffer == null)
@@ -778,17 +786,7 @@ namespace osu.Framework.Platform
                 {
                     if (Window != null)
                     {
-                        switch (Window)
-                        {
-                            case SDL3Window window:
-                                window.Update += windowUpdate;
-                                break;
-
-                            case OsuTKWindow tkWindow:
-                                tkWindow.UpdateFrame += (_, _) => windowUpdate();
-                                break;
-                        }
-
+                        Window.Update += windowUpdate;
                         Window.Suspended += Suspend;
                         Window.Resumed += Resume;
                         Window.LowOnMemory += Collect;
@@ -1026,7 +1024,7 @@ namespace osu.Framework.Platform
 
                 Window.SetupWindow(Config);
                 Window.Create();
-                Window.Title = $@"osu!framework (running ""{Name}"")";
+                Window.Title = Options.FriendlyGameName;
 
                 Renderer.Initialise(Window.GraphicsSurface);
 
@@ -1059,6 +1057,14 @@ namespace osu.Framework.Platform
             }, true);
 
             IsActive.BindTo(Window.IsActive);
+
+            AllowScreenSuspension.Result.BindValueChanged(e =>
+            {
+                if (e.NewValue)
+                    Window.EnableScreenSuspension();
+                else
+                    Window.DisableScreenSuspension();
+            }, true);
         }
 
         /// <summary>

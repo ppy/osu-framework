@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -78,7 +79,7 @@ namespace osu.Framework.Tests.Visual.Platform
                     ),
                     new ButtonWithDescription
                     (
-                        () => logStorage.PresentFileExternally(@"runtime.log"),
+                        () => logStorage.PresentFileExternally(logStorage.GetFiles(string.Empty, "*runtime*").First()),
                         @"show runtime.log",
                         @"Opens: 'logs'   Selected: 'runtime.log'"
                     ),

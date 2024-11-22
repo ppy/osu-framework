@@ -93,7 +93,7 @@ namespace osu.Framework.Localisation
         /// To facilitate tracking changes to the localised value across <see cref="CurrentParameters"/> changes, use <see cref="GetLocalisedBindableString"/>
         /// and subscribe to its <see cref="Bindable{T}.ValueChanged"/> instead.
         /// </remarks>
-        internal string GetLocalisedString(LocalisableString text)
+        public string GetLocalisedString(LocalisableString text)
         {
             switch (text.Data)
             {

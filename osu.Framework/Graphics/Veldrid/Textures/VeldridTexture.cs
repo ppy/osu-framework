@@ -85,7 +85,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
         /// <param name="filteringMode">The filtering mode.</param>
         /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads). If null, no initialisation is provided out-of-the-box.</param>
-        public VeldridTexture(IVeldridRenderer renderer, int width, int height, bool manualMipmaps = false, SamplerFilter filteringMode = SamplerFilter.MinLinear_MagLinear_MipLinear,
+        public VeldridTexture(IVeldridRenderer renderer, int width, int height, bool manualMipmaps = false, SamplerFilter filteringMode = SamplerFilter.MinLinearMagLinearMipLinear,
                               Color4? initialisationColour = null)
         {
             this.manualMipmaps = manualMipmaps;
@@ -458,7 +458,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             {
                 texture?.Dispose();
 
-                var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)CalculateMipmapLevels(Width, Height), 1, PixelFormat.R8_G8_B8_A8_UNorm, Usages);
+                var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)CalculateMipmapLevels(Width, Height), 1, PixelFormat.R8G8B8A8UNorm, Usages);
                 texture = Renderer.Factory.CreateTexture(ref textureDescription);
 
                 // todo: we may want to look into not having to allocate chunks of zero byte region for initialising textures

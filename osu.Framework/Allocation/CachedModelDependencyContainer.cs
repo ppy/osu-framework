@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Reflection;
 using osu.Framework.Bindables;
@@ -19,7 +17,7 @@ namespace osu.Framework.Allocation
     /// </remarks>
     /// <typeparam name="TModel">The type of the model to cache. Must contain only <see cref="Bindable{T}"/> fields or auto-properties.</typeparam>
     public class CachedModelDependencyContainer<TModel> : IReadOnlyDependencyContainer
-        where TModel : class, IDependencyInjectionCandidate, new()
+        where TModel : class?, IDependencyInjectionCandidate?, new()
     {
         private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
@@ -32,17 +30,16 @@ namespace osu.Framework.Allocation
         public readonly Bindable<TModel> Model = new Bindable<TModel>();
 
         private readonly TModel shadowModel = new TModel();
-
-        private readonly IReadOnlyDependencyContainer parent;
+        private readonly IReadOnlyDependencyContainer? parent;
         private readonly IReadOnlyDependencyContainer shadowDependencies;
 
-        public CachedModelDependencyContainer(IReadOnlyDependencyContainer parent)
+        public CachedModelDependencyContainer(IReadOnlyDependencyContainer? parent)
         {
             this.parent = parent;
 
             shadowDependencies = DependencyActivator.MergeDependencies(shadowModel, null, new CacheInfo(parent: typeof(TModel)));
 
-            TModel currentModel = null;
+            TModel? currentModel = null;
             Model.BindValueChanged(e =>
             {
                 // When setting a null model, we actually want to reset the shadow model to a default state
@@ -55,9 +52,9 @@ namespace osu.Framework.Allocation
             });
         }
 
-        public object Get(Type type) => Get(type, default);
+        public object? Get(Type type) => Get(type, default);
 
-        public object Get(Type type, CacheInfo info)
+        public object? Get(Type type, CacheInfo info)
         {
             if (info.Parent == null)
                 return type == typeof(TModel) ? createChildShadowModel() : parent?.Get(type, info);
@@ -87,65 +84,43 @@ namespace osu.Framework.Allocation
         /// <param name="targetShadowModel">The shadow model to update.</param>
         /// <param name="lastModel">The model to unbind from.</param>
         /// <param name="newModel">The model to bind to.</param>
-        private void updateShadowModel(TModel targetShadowModel, TModel lastModel, TModel newModel)
+        private void updateShadowModel(TModel targetShadowModel, TModel? lastModel, TModel newModel)
         {
-            // Due to static-constructor checks, we are guaranteed that all fields will be IBindable
-
-            foreach (var type in typeof(TModel).EnumerateBaseTypes())
+            if (lastModel != null)
             {
-                foreach (var field in type.GetFields(activator_flags))
+                foreach (var type in typeof(TModel).EnumerateBaseTypes())
                 {
-                    perform(targetShadowModel, field, lastModel, (shadowProp, modelProp) => shadowProp.UnbindFrom(modelProp));
+                    foreach (var field in type.GetFields(activator_flags))
+                        perform(field, targetShadowModel, lastModel, (shadowProp, modelProp) => shadowProp.UnbindFrom(modelProp));
                 }
             }
 
             foreach (var type in typeof(TModel).EnumerateBaseTypes())
             {
                 foreach (var field in type.GetFields(activator_flags))
-                {
-                    perform(targetShadowModel, field, newModel, (shadowProp, modelProp) => shadowProp.BindTo(modelProp));
-                }
+                    perform(field, targetShadowModel, newModel, (shadowProp, modelProp) => shadowProp.BindTo(modelProp));
             }
         }
 
         /// <summary>
         /// Perform an arbitrary action across a shadow model and model.
         /// </summary>
-        private void perform(TModel targetShadowModel, MemberInfo member, TModel target, Action<IBindable, IBindable> action)
+        private static void perform(FieldInfo field, TModel shadowModel, TModel targetModel, Action<IBindable, IBindable> action)
         {
-            if (target == null) return;
+            IBindable? shadowBindable = null;
+            IBindable? targetBindable = null;
 
-            switch (member)
+            try
             {
-                case PropertyInfo pi:
-                    action((IBindable)pi.GetValue(targetShadowModel), (IBindable)pi.GetValue(target));
-                    break;
-
-                case FieldInfo fi:
-                    action((IBindable)fi.GetValue(targetShadowModel), (IBindable)fi.GetValue(target));
-                    break;
+                shadowBindable = field.GetValue(shadowModel) as IBindable;
+                targetBindable = field.GetValue(targetModel) as IBindable;
             }
-        }
-
-        static CachedModelDependencyContainer()
-        {
-            foreach (var type in typeof(TModel).EnumerateBaseTypes())
+            catch
             {
-                foreach (var field in type.GetFields(activator_flags))
-                {
-                    if (!typeof(IBindable).IsAssignableFrom(field.FieldType))
-                    {
-                        throw new InvalidOperationException($"\"{field.DeclaringType}.{field.Name}\" does not subclass {nameof(IBindable)}. "
-                                                            + $"All fields of {typeof(TModel)} must subclass {nameof(IBindable)} to be used in a {nameof(CachedModelDependencyContainer<TModel>)}.");
-                    }
-
-                    if (!field.IsInitOnly)
-                    {
-                        throw new InvalidOperationException($"\"{field.DeclaringType}.{field.Name}\" is not readonly. "
-                                                            + $"All fields of {typeof(TModel)} must be readonly to be used in a {nameof(CachedModelDependencyContainer<TModel>)}.");
-                    }
-                }
             }
+
+            if (shadowBindable != null && targetBindable != null)
+                action(shadowBindable, targetBindable);
         }
     }
 }

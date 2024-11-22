@@ -76,6 +76,8 @@ jobs:
 
       - name: Setup Go
         uses: actions/setup-go@v5
+        with:
+          go-version: 1.21.9
 
       - name: Install httpbin
         run: go install github.com/mccutchen/go-httpbin/v2/cmd/go-httpbin@latest
@@ -88,13 +90,13 @@ jobs:
         run: dotnet build -c ${{matrix.os.configuration}} -warnaserror osu-framework.Desktop.slnf
 
       - name: Test
-        run: dotnet test $pwd/**/*.Tests/bin/${{matrix.os.configuration}}/*/*.Tests.dll --no-build --settings $pwd/build/vstestconfig.runsettings --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.os.configuration}}.trx"
+        run: dotnet test $pwd/**/*.Tests/bin/${{matrix.os.configuration}}/*/*.Tests.dll --no-build --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.os.configuration}}.trx" -- NUnit.ConsoleOut=0
         shell: pwsh
 
       # Attempt to upload results even if test fails.
       # https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#always
       - name: Upload Test Results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
           name: osu-framework-test-results-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.os.configuration}}
@@ -139,9 +141,8 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Restore .NET workloads
-        # `dotnet workload restore` is bugged in .NET 7.0.101+ when restoring iOS projects,
-        # see https://github.com/xamarin/xamarin-macios/issues/16400.
-        run: dotnet workload install ios
+        run: dotnet workload install ios --from-rollback-file workloads.json
 
       - name: Compile
         run: dotnet build -c Debug osu-framework.iOS.slnf
+

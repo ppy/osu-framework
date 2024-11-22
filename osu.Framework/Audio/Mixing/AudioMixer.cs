@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using ManagedBass;
-using osu.Framework.Bindables;
 using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.Audio.Mixing
@@ -28,8 +27,6 @@ namespace osu.Framework.Audio.Mixing
             Identifier = identifier;
         }
 
-        public abstract BindableList<IEffectParameter> Effects { get; }
-
         public void Add(IAudioChannel channel)
         {
             channel.EnqueueAction(() =>
@@ -47,6 +44,12 @@ namespace osu.Framework.Audio.Mixing
         }
 
         public void Remove(IAudioChannel channel) => Remove(channel, true);
+
+        public abstract void AddEffect(IEffectParameter effect, int priority = 0);
+
+        public abstract void RemoveEffect(IEffectParameter effect);
+
+        public abstract void UpdateEffect(IEffectParameter effect);
 
         /// <summary>
         /// Removes an <see cref="IAudioChannel"/> from the mix.

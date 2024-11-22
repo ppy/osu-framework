@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Cursor
         {
             base.LoadComplete();
 
-            inputManager = GetContainingInputManager();
+            inputManager = GetContainingInputManager().AsNonNull();
             inputManager.TouchLongPressBegan += onLongPressBegan;
             inputManager.TouchLongPressCancelled += longPressFeedback.CancelAnimation;
         }

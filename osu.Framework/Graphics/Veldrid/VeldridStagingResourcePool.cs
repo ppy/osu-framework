@@ -32,7 +32,10 @@ namespace osu.Framework.Graphics.Veldrid
             pipeline.ExecutionFinished += executionFinished;
         }
 
-        protected bool TryGet(Predicate<T> match, [NotNullWhen(true)] out T? resource)
+        protected bool TryGet([NotNullWhen(true)] out T? resource)
+            => TryGet<object>(static (_, _) => true, null, out resource);
+
+        protected bool TryGet<TState>(Func<T, TState?, bool> match, TState? state, [NotNullWhen(true)] out T? resource)
         {
             // Reverse iteration is important to prefer reusing recently returned textures.
             // This avoids the case of a large pool being constantly cycled and therefore never
@@ -41,7 +44,7 @@ namespace osu.Framework.Graphics.Veldrid
             {
                 var existing = available[i];
 
-                if (match(existing.Resource))
+                if (match(existing.Resource, state))
                 {
                     existing.FrameUsageIndex = currentExecutionIndex;
 

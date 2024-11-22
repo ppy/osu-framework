@@ -47,11 +47,6 @@ namespace osu.Framework.Logging
         public static LogLevel Level = DebugUtils.IsDebugBuild ? LogLevel.Debug : LogLevel.Verbose;
 
         /// <summary>
-        /// An identifier used in log file headers to figure where the log file came from.
-        /// </summary>
-        public static string UserIdentifier = Environment.UserName;
-
-        /// <summary>
         /// An identifier for the game written to log file headers to indicate where the log file came from.
         /// </summary>
         public static string GameIdentifier = @"game";
@@ -395,7 +390,7 @@ namespace osu.Framework.Logging
                     if (!headerAdded)
                     {
                         writer.WriteLine("----------------------------------------------------------");
-                        writer.WriteLine($"{Name} Log for {UserIdentifier} (LogLevel: {Level})");
+                        writer.WriteLine($"{Name} Log (LogLevel: {Level})");
                         writer.WriteLine($"Running {GameIdentifier} {VersionIdentifier} on .NET {Environment.Version}");
                         writer.WriteLine($"Environment: {RuntimeInfo.OS} ({Environment.OSVersion}), {Environment.ProcessorCount} cores ");
                         writer.WriteLine("----------------------------------------------------------");

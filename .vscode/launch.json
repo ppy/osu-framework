@@ -58,7 +58,7 @@
                 "${workspaceRoot}/SampleGame.Desktop/bin/Debug/net8.0/SampleGame.Desktop.dll",
             ],
             "cwd": "${workspaceRoot}",
-            "preLaunchTask": "Build (Debug)",
+            "preLaunchTask": "Build SampleGame (Debug)",
             "linux": {
                 "env": {
                     "LD_LIBRARY_PATH": "${workspaceRoot}/SampleGame.Desktop/bin/Debug/net8.0:${env:LD_LIBRARY_PATH}"
@@ -75,7 +75,7 @@
                 "${workspaceRoot}/SampleGame.Desktop/bin/Release/net8.0/SampleGame.Desktop.dll",
             ],
             "cwd": "${workspaceRoot}",
-            "preLaunchTask": "Build (Release)",
+            "preLaunchTask": "Build SampleGame (Release)",
             "linux": {
                 "env": {
                     "LD_LIBRARY_PATH": "${workspaceRoot}/SampleGame.Desktop/bin/Release/net8.0:${env:LD_LIBRARY_PATH}"

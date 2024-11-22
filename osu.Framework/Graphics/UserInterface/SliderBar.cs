@@ -145,7 +145,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (handleClick)
             {
                 handleMouseInput(e);
-                commit();
+                Commit();
             }
 
             return true;
@@ -166,18 +166,21 @@ namespace osu.Framework.Graphics.UserInterface
                 return false;
             }
 
+            GetContainingFocusManager()?.ChangeFocus(this);
             handleMouseInput(e);
             return true;
         }
 
-        protected override void OnDragEnd(DragEndEvent e) => commit();
+        protected override void OnDragEnd(DragEndEvent e) => Commit();
+
+        public override bool AcceptsFocus => true;
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
             if (currentNumberInstantaneous.Disabled)
                 return false;
 
-            if (!IsHovered)
+            if (!IsHovered && !HasFocus)
                 return false;
 
             float step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;
@@ -203,12 +206,12 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void OnKeyUp(KeyUpEvent e)
         {
             if (e.Key == Key.Left || e.Key == Key.Right)
-                commit();
+                Commit();
         }
 
         private bool uncommittedChanges;
 
-        private bool commit()
+        protected virtual bool Commit()
         {
             if (!uncommittedChanges)
                 return false;
