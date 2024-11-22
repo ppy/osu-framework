@@ -10,6 +10,7 @@ using System.Drawing;
 using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Logging;
 using osuTK;
 using SDL;
@@ -785,9 +786,9 @@ namespace osu.Framework.Platform.SDL3
         /// </remarks>
         private bool updatingWindowStateAndSize;
 
-        private void storeWindowSizeToConfig()
+        private unsafe void storeWindowSizeToConfig()
         {
-            if (WindowState != WindowState.Normal)
+            if (WindowState != WindowState.Normal || SDL_GetWindowFlags(SDLWindowHandle).HasFlagFast(SDL_WindowFlags.SDL_WINDOW_FULLSCREEN))
                 return;
 
             storingSizeToConfig = true;
