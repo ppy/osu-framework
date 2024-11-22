@@ -87,6 +87,9 @@ namespace osu.Framework.Input
         {
             Point windowLocation;
 
+            float scale = Host.Window is ISDLWindow window ? window.Scale : 1;
+            mousePosition /= scale;
+
             switch (Host.Window.WindowMode.Value)
             {
                 case WindowMode.Windowed:
