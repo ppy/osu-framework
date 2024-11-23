@@ -87,9 +87,6 @@ namespace osu.Framework.Input
         {
             Point windowLocation;
 
-            float scale = Host.Window is ISDLWindow window ? window.Scale : 1;
-            mousePosition /= scale;
-
             switch (Host.Window.WindowMode.Value)
             {
                 case WindowMode.Windowed:
@@ -100,6 +97,9 @@ namespace osu.Framework.Input
                     windowLocation = Host.Window.CurrentDisplayBindable.Value.Bounds.Location;
                     break;
             }
+
+            float scale = Host.Window is ISDLWindow window ? window.Scale : 1;
+            mousePosition /= scale;
 
             int x = (int)MathF.Floor(windowLocation.X + mousePosition.X);
             int y = (int)MathF.Floor(windowLocation.Y + mousePosition.Y);
