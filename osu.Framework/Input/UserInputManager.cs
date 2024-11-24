@@ -98,6 +98,9 @@ namespace osu.Framework.Input
                     break;
             }
 
+            float scale = Host.Window is ISDLWindow window ? window.Scale : 1;
+            mousePosition /= scale;
+
             int x = (int)MathF.Floor(windowLocation.X + mousePosition.X);
             int y = (int)MathF.Floor(windowLocation.Y + mousePosition.Y);
 
