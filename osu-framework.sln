@@ -74,7 +74,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CodeAnalysis", "CodeAnalysis", "{50334A1F-990D-45FA-A1FE-C92F1994D97B}"
 	ProjectSection(SolutionItems) = preProject
 		CodeAnalysis\BannedSymbols.txt = CodeAnalysis\BannedSymbols.txt
-		CodeAnalysis\osu-framework.ruleset = CodeAnalysis\osu-framework.ruleset
 	EndProjectSection
 EndProject
 Global
