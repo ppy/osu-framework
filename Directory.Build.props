@@ -36,6 +36,7 @@
     <AnalysisModeMaintainability>Recommended</AnalysisModeMaintainability>
     <AnalysisModeNaming>Default</AnalysisModeNaming>
     <AnalysisModePerformance>Minimum</AnalysisModePerformance>
+    <AnalysisModeReliability>Recommended</AnalysisModeReliability>
   </PropertyGroup>
   <PropertyGroup Label="NuGet">
     <Authors>ppy Pty Ltd</Authors>
