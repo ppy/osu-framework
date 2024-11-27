@@ -95,7 +95,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestIncorrectEndLease()
         {
             // end a lease when no lease exists.
-            Assert.Throws<InvalidOperationException>(() => original.EndLease(null));
+            Assert.Throws<InvalidOperationException>(() => original.EndLease(null!));
 
             // end a lease with an incorrect bindable
             original.BeginLease(true);
