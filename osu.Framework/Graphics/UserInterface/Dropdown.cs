@@ -701,7 +701,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 var visibleMenuItemsList = VisibleMenuItems.ToList();
 
-                if (visibleMenuItemsList.Any())
+                if (visibleMenuItemsList.Count > 0)
                 {
                     var currentPreselected = PreselectedItem;
                     int targetPreselectionIndex = visibleMenuItemsList.IndexOf(currentPreselected);

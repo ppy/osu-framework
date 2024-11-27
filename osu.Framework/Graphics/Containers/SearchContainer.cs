@@ -121,7 +121,7 @@ namespace osu.Framework.Graphics.Containers
         private void performFilter()
         {
             string[] terms = (searchTerm ?? string.Empty).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            matchSubTree(this, terms, terms.Any(), allowNonContiguousMatching);
+            matchSubTree(this, terms, terms.Length > 0, allowNonContiguousMatching);
         }
 
         private bool matchSubTree(Drawable drawable, IReadOnlyList<string> searchTerms, bool searchActive, bool nonContiguousMatching)

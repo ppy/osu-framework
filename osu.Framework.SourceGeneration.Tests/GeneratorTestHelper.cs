@@ -23,7 +23,7 @@ namespace osu.Framework.SourceGeneration.Tests
                                                 .Where(d => d.Severity == DiagnosticSeverity.Error)
                                                 .ToArray();
 
-            if (compilationDiagnostics.Any() || generatorDiagnostics.Any())
+            if (compilationDiagnostics.Length > 0 || generatorDiagnostics.Length > 0)
             {
                 var sb = new StringBuilder();
 

@@ -403,7 +403,7 @@ namespace osu.Framework.Testing
             var methods = newTest.GetType().GetMethods();
 
             var soloTests = methods.Where(m => m.GetCustomAttribute(typeof(SoloAttribute), false) != null).ToArray();
-            if (soloTests.Any())
+            if (soloTests.Length > 0)
                 methods = soloTests;
 
             foreach (var m in methods)
@@ -519,7 +519,7 @@ namespace osu.Framework.Testing
             {
                 var setUpMethods = ReflectionUtils.GetMethodsWithAttribute(newTest.GetType(), typeof(SetUpAttribute), true);
 
-                if (setUpMethods.Any())
+                if (setUpMethods.Length > 0)
                 {
                     CurrentTest.AddStep(new SingleStepButton
                     {
