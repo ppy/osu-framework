@@ -182,10 +182,10 @@ namespace osu.Framework.Input.Handlers.Midi
             // need running status to be interpreted correctly
             if (statusType <= 0x7F)
             {
-                if (!runningStatus.ContainsKey(senderId))
+                if (!runningStatus.TryGetValue(senderId, out byte value))
                     throw new InvalidDataException($"Received running status of sender {senderId}, but no event type was stored");
 
-                eventType = runningStatus[senderId];
+                eventType = value;
                 key = statusType;
                 velocity = data[i++];
                 return;

@@ -50,6 +50,30 @@ dotnet_diagnostic.IDE1006.severity = warning
 # Too many noisy warnings for parsing/formatting numbers
 dotnet_diagnostic.CA1305.severity = none
 
+# CA1806: Do not ignore method results
+# Not sure why it's performance, but causing too much noise
+dotnet_diagnostic.CA1806.severity = none
+
+# CA1822: Mark members as static
+# Potential false positive around reflection/too much noise
+dotnet_diagnostic.CA1822.severity = none
+
+# CA1826: Do not use Enumerable methods on indexable collections
+# Noise for FirstOrDefault and LastOrDefault
+dotnet_diagnostic.CA1826.severity = none
+
+# CA1859: Use concrete types when possible for improved performance
+# Involves design considerations
+dotnet_diagnostic.CA1859.severity = none
+
+# CA1861: Avoid constant arrays as arguments
+# Outdated with collection expressions
+dotnet_diagnostic.CA1861.severity = none
+
+# CA1868: Unnecessary call to 'Contains(item)'
+# Causing noises only
+dotnet_diagnostic.CA1868.severity = none
+
 # CA2007: Consider calling ConfigureAwait on the awaited task
 dotnet_diagnostic.CA2007.severity = warning
 
