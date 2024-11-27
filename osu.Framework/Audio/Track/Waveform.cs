@@ -270,7 +270,7 @@ namespace osu.Framework.Audio.Track
         /// <returns>An async task for the generation of the <see cref="Waveform"/>.</returns>
         public async Task<Waveform> GenerateResampledAsync(int pointCount, CancellationToken cancellationToken = default)
         {
-            if (pointCount < 0) throw new ArgumentOutOfRangeException(nameof(pointCount));
+            ArgumentOutOfRangeException.ThrowIfNegative(pointCount);
 
             if (pointCount == 0)
                 return new Waveform(null);

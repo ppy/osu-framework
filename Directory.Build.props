@@ -32,6 +32,8 @@
     <AnalysisModeDesign>Default</AnalysisModeDesign>
     <AnalysisModeDocumentation>Recommended</AnalysisModeDocumentation>
     <AnalysisModeGlobalization>Recommended</AnalysisModeGlobalization>
+    <AnalysisModeInteroperability>Recommended</AnalysisModeInteroperability>
+    <AnalysisModeMaintainability>Recommended</AnalysisModeMaintainability>
   </PropertyGroup>
   <PropertyGroup Label="NuGet">
     <Authors>ppy Pty Ltd</Authors>
