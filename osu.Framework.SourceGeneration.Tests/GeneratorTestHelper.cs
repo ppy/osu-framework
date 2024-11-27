@@ -76,7 +76,7 @@ namespace osu.Framework.SourceGeneration.Tests
         {
             Compilation = CSharpCompilation.Create("test",
                 references: new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release));
         }
 
         public GeneratorDriverRunResult RunGenerators(ref GeneratorDriver driver)

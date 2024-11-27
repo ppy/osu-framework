@@ -20,6 +20,11 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
 
             protected override IEnumerable<Type> GetSourceGenerators() => [typeof(TSourceGenerator)];
 
+            protected override CompilationOptions CreateCompilationOptions()
+            {
+                return base.CreateCompilationOptions().WithOptimizationLevel(OptimizationLevel.Release);
+            }
+
             protected override ParseOptions CreateParseOptions()
             {
                 return ((CSharpParseOptions)base.CreateParseOptions()).WithLanguageVersion(LanguageVersion);
