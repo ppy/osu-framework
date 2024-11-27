@@ -1,3 +1,6 @@
+#ifndef MIPMAP_FS
+#define MIPMAP_FS
+
 layout(location = 0) in highp vec2 v_TexCoord;
 
 layout(set = 0, binding = 0) uniform lowp texture2D m_Texture;
@@ -9,3 +12,5 @@ void main()
 {
     o_Colour = texture(sampler2D(m_Texture, m_Sampler), v_TexCoord, 0.0);
 }
+
+#endif

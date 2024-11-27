@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -104,7 +102,7 @@ namespace osu.Framework.Tests.Visual.Input
         public partial class Key : CompositeDrawable
         {
             [Resolved]
-            private ReadableKeyCombinationProvider readableKeyCombinationProvider { get; set; }
+            private ReadableKeyCombinationProvider readableKeyCombinationProvider { get; set; } = null!;
 
             private readonly Box box;
             private readonly SpriteText text;
@@ -141,7 +139,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             protected override bool OnKeyDown(KeyDownEvent e)
             {
-                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.Key)), KeyCombinationMatchingMode.Any))
+                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.Key)), e.CurrentState, KeyCombinationMatchingMode.Any))
                     box.Colour = Color4.Navy;
 
                 return base.OnKeyDown(e);
@@ -149,7 +147,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             protected override void OnKeyUp(KeyUpEvent e)
             {
-                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.Key)), KeyCombinationMatchingMode.Any))
+                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.Key)), e.CurrentState, KeyCombinationMatchingMode.Any))
                     box.Colour = Color4.DarkGray;
 
                 base.OnKeyUp(e);
@@ -177,7 +175,7 @@ namespace osu.Framework.Tests.Visual.Input
         public partial class PressedKeyCombinationDisplay : CompositeDrawable
         {
             [Resolved]
-            private ReadableKeyCombinationProvider readableKeyCombinationProvider { get; set; }
+            private ReadableKeyCombinationProvider readableKeyCombinationProvider { get; set; } = null!;
 
             private readonly SpriteText text;
 

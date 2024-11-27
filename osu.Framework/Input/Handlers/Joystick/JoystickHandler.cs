@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using System;
 using osu.Framework.Bindables;
@@ -13,6 +11,8 @@ namespace osu.Framework.Input.Handlers.Joystick
 {
     public class JoystickHandler : InputHandler
     {
+        private static readonly GlobalStatistic<ulong> statistic_total_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<JoystickHandler>(), "Total events");
+
         public BindableFloat DeadzoneThreshold { get; } = new BindableFloat(0.1f)
         {
             MinValue = 0,
@@ -29,7 +29,7 @@ namespace osu.Framework.Input.Handlers.Joystick
             if (!base.Initialize(host))
                 return false;
 
-            if (!(host.Window is SDL2Window window))
+            if (!(host.Window is ISDLWindow window))
                 return false;
 
             Enabled.BindValueChanged(e =>
@@ -55,6 +55,7 @@ namespace osu.Framework.Input.Handlers.Joystick
         {
             PendingInputs.Enqueue(evt);
             FrameStatistics.Increment(StatisticsCounterType.JoystickEvents);
+            statistic_total_events.Value++;
         }
 
         private void enqueueJoystickButtonDown(JoystickButton button) => enqueueJoystickEvent(new JoystickButtonInput(button, true));

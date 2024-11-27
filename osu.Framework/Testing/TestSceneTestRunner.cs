@@ -76,7 +76,7 @@ namespace osu.Framework.Testing
                     test.RunAllSteps(() =>
                     {
                         Scheduler.AddDelayed(complete, time_between_tests);
-                    }, e =>
+                    }, (_, e) =>
                     {
                         exception = ExceptionDispatchInfo.Capture(e);
                         complete();

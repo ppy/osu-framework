@@ -17,12 +17,14 @@ namespace osu.Framework.Tests.Visual.Platform
     [Ignore("This test cannot run in headless mode (a window instance is required).")]
     public partial class TestSceneBorderless : FrameworkTestScene
     {
+        public override bool AutomaticallyRunFirstStep => false;
+
         private readonly SpriteText currentActualSize = new SpriteText();
         private readonly SpriteText currentClientSize = new SpriteText();
         private readonly SpriteText currentWindowMode = new SpriteText();
         private readonly SpriteText currentDisplay = new SpriteText();
 
-        private SDL2Window? window;
+        private ISDLWindow? window;
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
 
         public TestSceneBorderless()
@@ -55,7 +57,7 @@ namespace osu.Framework.Tests.Visual.Platform
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager config, GameHost host)
         {
-            window = host.Window as SDL2Window;
+            window = host.Window as ISDLWindow;
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
 
             windowMode.BindValueChanged(mode => currentWindowMode.Text = $"Window Mode: {mode.NewValue}", true);
@@ -68,9 +70,6 @@ namespace osu.Framework.Tests.Visual.Platform
             const string desc2 = "Check whether the window size is one pixel wider than the screen in each direction";
 
             Point originalWindowPosition = Point.Empty;
-
-            // so the test doesn't switch to windowed on startup.
-            AddStep("nothing", () => { });
 
             foreach (var display in window.Displays)
             {

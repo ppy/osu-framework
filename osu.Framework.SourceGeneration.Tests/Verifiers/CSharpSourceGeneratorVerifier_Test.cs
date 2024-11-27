@@ -7,11 +7,12 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using osu.Framework.SourceGeneration.Generators;
 
 namespace osu.Framework.SourceGeneration.Tests.Verifiers
 {
     public partial class CSharpSourceGeneratorVerifier<TSourceGenerator>
-        where TSourceGenerator : IIncrementalGenerator, new()
+        where TSourceGenerator : AbstractIncrementalGenerator, new()
     {
         public class Test : CSharpSourceGeneratorTest<EmptySourceGeneratorProvider, XUnitVerifier>
         {
@@ -19,7 +20,7 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
 
             protected override IEnumerable<ISourceGenerator> GetSourceGenerators() => new[]
             {
-                new TSourceGenerator().AsSourceGenerator()
+                new TSourceGenerator { ForceRun = true }.AsSourceGenerator()
             };
 
             protected override ParseOptions CreateParseOptions()

@@ -15,8 +15,6 @@ using System.Security.Cryptography;
 using System.Text;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Localisation;
-using osu.Framework.Platform;
-using osuTK;
 
 // this is an abusive thing to do, but it increases the visibility of Extension Methods to virtually every file.
 
@@ -265,13 +263,8 @@ namespace osu.Framework.Extensions
         /// <returns>A lower-case hex string representation of the hash (64 characters).</returns>
         public static string ComputeSHA2Hash(this Stream stream)
         {
-            string hash;
-
             stream.Seek(0, SeekOrigin.Begin);
-
-            using (var alg = SHA256.Create())
-                hash = alg.ComputeHash(stream).toLowercaseHex();
-
+            string hash = SHA256.HashData(stream).toLowercaseHex();
             stream.Seek(0, SeekOrigin.Begin);
 
             return hash;
@@ -286,29 +279,14 @@ namespace osu.Framework.Extensions
 
         public static string ComputeMD5Hash(this Stream stream)
         {
-            string hash;
-
             stream.Seek(0, SeekOrigin.Begin);
-            using (var md5 = MD5.Create())
-                hash = md5.ComputeHash(stream).toLowercaseHex();
+            string hash = MD5.HashData(stream).toLowercaseHex();
             stream.Seek(0, SeekOrigin.Begin);
 
             return hash;
         }
 
         public static string ComputeMD5Hash(this string input) => MD5.HashData(Encoding.UTF8.GetBytes(input)).toLowercaseHex();
-
-        public static DisplayIndex GetIndex(this DisplayDevice display)
-        {
-            if (display == null) return DisplayIndex.Default;
-
-            for (int i = 0; true; i++)
-            {
-                var device = DisplayDevice.GetDisplay((DisplayIndex)i);
-                if (device == null) return DisplayIndex.Default;
-                if (device == display) return (DisplayIndex)i;
-            }
-        }
 
         /// <summary>
         /// Standardise the path string using '/' as directory separator.
@@ -340,24 +318,8 @@ namespace osu.Framework.Extensions
         /// </remarks>
         /// <param name="character">The character to check.</param>
         /// <returns>True if the character is an ASCII digit.</returns>
-        public static bool IsAsciiDigit(this char character) => character >= '0' && character <= '9';
-
-        /// <summary>
-        /// Converts an osuTK <see cref="DisplayDevice"/> to a <see cref="Display"/> structure.
-        /// </summary>
-        /// <param name="device">The <see cref="DisplayDevice"/> to convert.</param>
-        /// <returns>A <see cref="Display"/> structure populated with the corresponding properties and <see cref="DisplayMode"/>s.</returns>
-        internal static Display ToDisplay(this DisplayDevice device) =>
-            new Display((int)device.GetIndex(), device.GetIndex().ToString(), device.Bounds, device.AvailableResolutions.Select(ToDisplayMode).ToArray());
-
-        /// <summary>
-        /// Converts an osuTK <see cref="DisplayResolution"/> to a <see cref="DisplayMode"/> structure.
-        /// It is not possible to retrieve the pixel format from <see cref="DisplayResolution"/>.
-        /// </summary>
-        /// <param name="resolution">The <see cref="DisplayResolution"/> to convert.</param>
-        /// <returns>A <see cref="DisplayMode"/> structure populated with the corresponding properties.</returns>
-        internal static DisplayMode ToDisplayMode(this DisplayResolution resolution) =>
-            new DisplayMode(null, new Size(resolution.Width, resolution.Height), resolution.BitsPerPixel, (int)Math.Round(resolution.RefreshRate), 0);
+        [Obsolete("Use char.IsAsciiDigit.")] // can be removed 20240901
+        public static bool IsAsciiDigit(this char character) => char.IsAsciiDigit(character);
 
         /// <summary>
         /// Checks whether the provided URL is a safe protocol to execute a system <see cref="Process.Start()"/> call with.

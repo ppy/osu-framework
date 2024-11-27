@@ -1,12 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Drawing;
-using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.Handlers;
@@ -68,6 +65,9 @@ namespace osu.Framework.Input
                     break;
 
                 case ButtonStateChangeEvent<MouseButton> buttonChange:
+                    // presses registered when the mouse pointer is outside the window are ignored.
+                    // however, releases registered when the mouse pointer is outside the window cannot be ignored;
+                    // handling them is essential to correctly handling mouse capture (only applicable when relative mode is disabled).
                     if (buttonChange.Kind == ButtonStateChangeKind.Pressed && Host.Window?.CursorInWindow.Value == false)
                         return;
 
@@ -90,7 +90,7 @@ namespace osu.Framework.Input
             switch (Host.Window.WindowMode.Value)
             {
                 case WindowMode.Windowed:
-                    windowLocation = Host.Window is SDL2Window sdlWindow ? sdlWindow.Position : Point.Empty;
+                    windowLocation = Host.Window is ISDLWindow sdlWindow ? sdlWindow.Position : Point.Empty;
                     break;
 
                 default:
@@ -98,10 +98,19 @@ namespace osu.Framework.Input
                     break;
             }
 
+            float scale = Host.Window is ISDLWindow window ? window.Scale : 1;
+            mousePosition /= scale;
+
             int x = (int)MathF.Floor(windowLocation.X + mousePosition.X);
             int y = (int)MathF.Floor(windowLocation.Y + mousePosition.Y);
 
-            return !Host.Window.Displays.Any(d => d.Bounds.Contains(x, y));
+            foreach (var display in Host.Window.Displays)
+            {
+                if (display.Bounds.Contains(x, y))
+                    return false;
+            }
+
+            return true;
         }
     }
 }

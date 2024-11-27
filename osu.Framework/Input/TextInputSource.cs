@@ -30,16 +30,23 @@ namespace osu.Framework.Input
         /// User text input can be acquired through <see cref="OnTextInput"/>, <see cref="OnImeComposition"/> and <see cref="OnImeResult"/>.
         /// </summary>
         /// <param name="allowIme">Whether input using IME should be allowed.</param>
+        /// <param name="imeRectangle">
+        /// Rough location of where the text will be input, so the native implementation
+        /// can adjust virtual keyboards and IME popups.
+        /// </param>
         /// <remarks>
         /// Each <see cref="Activate"/> must be followed by a <see cref="Deactivate"/>.
         /// </remarks>
-        public void Activate(bool allowIme)
+        public void Activate(bool allowIme, RectangleF imeRectangle)
         {
             if (Interlocked.Increment(ref activationCounter) == 1)
+            {
+                SetImeRectangle(imeRectangle);
                 ActivateTextInput(allowIme);
+            }
             else
                 // the latest consumer that activated should always take precedence in (dis)allowing IME.
-                EnsureActivated(allowIme);
+                EnsureActivated(allowIme, imeRectangle);
         }
 
         /// <summary>
@@ -47,10 +54,20 @@ namespace osu.Framework.Input
         /// and that the user can start entering text.
         /// </summary>
         /// <param name="allowIme">Whether input using IME should be allowed.</param>
-        public void EnsureActivated(bool allowIme)
+        /// <param name="imeRectangle">
+        /// Rough location of where the text will be input, so the native implementation
+        /// can adjust virtual keyboards and IME popups. Can be <c>null</c> to avoid changing
+        /// the IME rectangle.
+        /// </param>
+        public void EnsureActivated(bool allowIme, RectangleF? imeRectangle = null)
         {
             if (activationCounter >= 1)
+            {
+                if (imeRectangle.HasValue)
+                    SetImeRectangle(imeRectangle.Value);
+
                 EnsureTextInputActivated(allowIme);
+            }
         }
 
         /// <summary>

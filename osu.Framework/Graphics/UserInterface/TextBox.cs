@@ -8,10 +8,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Caching;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Extensions.PlatformActionExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
@@ -118,7 +120,8 @@ namespace osu.Framework.Graphics.UserInterface
         [Resolved]
         private TextInputSource textInput { get; set; }
 
-        private Clipboard clipboard;
+        [Resolved]
+        private Clipboard clipboard { get; set; }
 
         /// <summary>
         /// Whether the <see cref="GameHost"/> is active (has keyboard focus).
@@ -168,15 +171,22 @@ namespace osu.Framework.Graphics.UserInterface
                     Position = new Vector2(LeftRightPadding, 0),
                     Children = new Drawable[]
                     {
-                        Placeholder = CreatePlaceholder(),
-                        caret = CreateCaret(),
+                        Placeholder = CreatePlaceholder().With(p =>
+                        {
+                            p.Anchor = Anchor.CentreLeft;
+                            p.Origin = Anchor.CentreLeft;
+                        }),
+                        caret = CreateCaret().With(c =>
+                        {
+                            c.Anchor = Anchor.CentreLeft;
+                            c.Origin = Anchor.CentreLeft;
+                        }),
                         TextFlow = new FillFlowContainer
                         {
                             Anchor = Anchor.CentreLeft,
                             Origin = Anchor.CentreLeft,
                             Direction = FillDirection.Horizontal,
-                            AutoSizeAxes = Axes.X,
-                            RelativeSizeAxes = Axes.Y,
+                            AutoSizeAxes = Axes.Both,
                         },
                     },
                 },
@@ -199,7 +209,6 @@ namespace osu.Framework.Graphics.UserInterface
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
-            clipboard = host.GetClipboard();
             isActive = host.IsActive.GetBoundCopy();
         }
 
@@ -240,12 +249,15 @@ namespace osu.Framework.Graphics.UserInterface
                 // Clipboard
                 case PlatformAction.Cut:
                 case PlatformAction.Copy:
-                    if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
+                    if (!AllowClipboardExport) return false;
 
-                    clipboard?.SetText(SelectedText);
+                    if (!string.IsNullOrEmpty(SelectedText))
+                    {
+                        clipboard.SetText(SelectedText);
 
-                    if (e.Action == PlatformAction.Cut)
-                        DeleteBy(0);
+                        if (e.Action == PlatformAction.Cut)
+                            DeleteBy(0);
+                    }
 
                     return true;
 
@@ -258,31 +270,61 @@ namespace osu.Framework.Graphics.UserInterface
                         // This is currently only happening on iOS since it relies on a hidden UITextField for software keyboard.
                         return true;
 
-                    InsertString(clipboard?.GetText());
+                    InsertString(clipboard.GetText());
                     return true;
 
                 case PlatformAction.SelectAll:
-                    selectionStart = 0;
-                    selectionEnd = text.Length;
-                    cursorAndLayout.Invalidate();
+                    SelectAll();
                     onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
                     return true;
 
                 // Cursor Manipulation
                 case PlatformAction.MoveBackwardChar:
-                    MoveCursorBy(-1);
+                    if (hasSelection)
+                    {
+                        MoveCursorBy(selectionLeft - selectionEnd);
+                    }
+                    else
+                    {
+                        MoveCursorBy(-1);
+                    }
+
                     return true;
 
                 case PlatformAction.MoveForwardChar:
-                    MoveCursorBy(1);
+                    if (hasSelection)
+                    {
+                        MoveCursorBy(selectionRight - selectionEnd);
+                    }
+                    else
+                    {
+                        MoveCursorBy(1);
+                    }
+
                     return true;
 
                 case PlatformAction.MoveBackwardWord:
-                    MoveCursorBy(GetBackwardWordAmount());
+                    if (hasSelection)
+                    {
+                        MoveCursorBy(selectionLeft - selectionEnd);
+                    }
+                    else
+                    {
+                        MoveCursorBy(GetBackwardWordAmount());
+                    }
+
                     return true;
 
                 case PlatformAction.MoveForwardWord:
-                    MoveCursorBy(GetForwardWordAmount());
+                    if (hasSelection)
+                    {
+                        MoveCursorBy(selectionRight - selectionEnd);
+                    }
+                    else
+                    {
+                        MoveCursorBy(GetForwardWordAmount());
+                    }
+
                     return true;
 
                 case PlatformAction.MoveBackwardLine:
@@ -360,6 +402,21 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
+        /// Selects all text in this <see cref="TextBox"/>. Focus must be acquired before calling this method.
+        /// </summary>
+        /// <returns>Whether text has been selected successfully. Returns <c>false</c> if the text box does not have focus.</returns>
+        public bool SelectAll()
+        {
+            if (!HasFocus)
+                return false;
+
+            selectionStart = 0;
+            selectionEnd = text.Length;
+            cursorAndLayout.Invalidate();
+            return true;
+        }
+
+        /// <summary>
         /// Find the word boundary in the backward direction, then return the negative amount of characters.
         /// </summary>
         protected int GetBackwardWordAmount()
@@ -424,7 +481,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (selectionLength == 0)
                 selectionEnd = Math.Clamp(selectionStart + amount, 0, text.Length);
 
-            if (selectionLength > 0)
+            if (hasSelection)
             {
                 string removedText = removeSelection();
                 OnUserTextRemoved(removedText);
@@ -480,7 +537,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             OnCommit = null;
 
-            unbindInput(false);
+            unbindInput(null);
 
             base.Dispose(isDisposing);
         }
@@ -491,7 +548,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateCursorAndLayout()
         {
-            Placeholder.Font = Placeholder.Font.With(size: CalculatedTextSize);
+            caret.Height = FontSize;
+            Placeholder.Font = Placeholder.Font.With(size: FontSize);
 
             float cursorPos = 0;
             if (text.Length > 0)
@@ -500,7 +558,7 @@ namespace osu.Framework.Graphics.UserInterface
             float cursorPosEnd = getPositionAt(selectionEnd);
 
             float? selectionWidth = null;
-            if (selectionLength > 0)
+            if (hasSelection)
                 selectionWidth = getPositionAt(selectionRight) - cursorPos;
 
             float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / (DrawWidth - 2 * LeftRightPadding);
@@ -573,7 +631,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private int getCharacterClosestTo(Vector2 pos)
         {
-            pos = Parent.ToSpaceOfOtherDrawable(pos, TextFlow);
+            pos = Parent!.ToSpaceOfOtherDrawable(pos, TextFlow);
 
             int i = 0;
 
@@ -592,6 +650,7 @@ namespace osu.Framework.Graphics.UserInterface
         private int selectionEnd;
 
         private int selectionLength => Math.Abs(selectionEnd - selectionStart);
+        private bool hasSelection => selectionLength > 0;
 
         private int selectionLeft => Math.Min(selectionStart, selectionEnd);
         private int selectionRight => Math.Max(selectionStart, selectionEnd);
@@ -609,7 +668,7 @@ namespace osu.Framework.Graphics.UserInterface
                 selectionEnd = Math.Clamp(selectionEnd + offset, 0, text.Length);
             else
             {
-                if (selectionLength > 0 && Math.Abs(offset) <= 1)
+                if (hasSelection && Math.Abs(offset) <= 1)
                 {
                     //we don't want to move the location when "removing" an existing selection, just set the new location.
                     if (offset > 0)
@@ -662,6 +721,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             textChanging = false;
         }
+
+        private bool ignoreOngoingDragSelection;
 
         /// <summary>
         /// Removes the selected text if a selection persists.
@@ -724,7 +785,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="c">The character that this <see cref="Drawable"/> should represent.</param>
         /// <returns>A <see cref="Drawable"/> that represents the character <paramref name="c"/> </returns>
-        protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), Font = new FontUsage(size: CalculatedTextSize) };
+        protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), Font = new FontUsage(size: FontSize) };
 
         protected virtual Drawable AddCharacterToFlow(char c)
         {
@@ -754,7 +815,16 @@ namespace osu.Framework.Graphics.UserInterface
 
         private float getDepthForCharacterIndex(int index) => -index;
 
-        protected float CalculatedTextSize => TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
+        private readonly float? customFontSize;
+
+        /// <summary>
+        /// A fixed size for the text displayed in this <see cref="TextBox"/>. If left unset, text size will be computed based on the dimensions of the <see cref="TextBox"/>.
+        /// </summary>
+        public float FontSize
+        {
+            get => customFontSize ?? TextContainer.DrawSize.Y;
+            init => customFontSize = value;
+        }
 
         protected void InsertString(string value)
         {
@@ -785,7 +855,7 @@ namespace osu.Framework.Graphics.UserInterface
                     continue;
                 }
 
-                if (selectionLength > 0)
+                if (hasSelection)
                     removeSelection();
 
                 if (text.Length + 1 > LengthLimit)
@@ -800,7 +870,9 @@ namespace osu.Framework.Graphics.UserInterface
                 drawableCreationParameters?.Invoke(drawable);
 
                 text = text.Insert(selectionLeft, c.ToString());
+
                 selectionStart = selectionEnd = selectionLeft + 1;
+                ignoreOngoingDragSelection = true;
 
                 cursorAndLayout.Invalidate();
             }
@@ -865,7 +937,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (lastSelectionBounds.start == selectionStart && lastSelectionBounds.end == selectionEnd)
                 return;
 
-            if (selectionLength > 0)
+            if (hasSelection)
                 OnTextSelectionChanged(selectionType);
             else
                 onTextDeselected(lastSelectionBounds);
@@ -999,7 +1071,7 @@ namespace osu.Framework.Graphics.UserInterface
             cursorAndLayout.Invalidate();
         }
 
-        public string SelectedText => selectionLength > 0 ? Text.Substring(selectionLeft, selectionLength) : string.Empty;
+        public string SelectedText => hasSelection ? Text.Substring(selectionLeft, selectionLength) : string.Empty;
 
         /// <summary>
         /// Whether <see cref="KeyDownEvent"/>s should be blocked because of recent text input from a <see cref="TextInputSource"/>.
@@ -1088,9 +1160,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void killFocus()
         {
-            var manager = GetContainingInputManager();
-            if (manager?.FocusedDrawable == this)
-                manager.ChangeFocus(null);
+            if (GetContainingInputManager()?.FocusedDrawable == this)
+                GetContainingFocusManager()?.ChangeFocus(null);
         }
 
         /// <summary>
@@ -1121,12 +1192,26 @@ namespace osu.Framework.Graphics.UserInterface
             base.OnKeyUp(e);
         }
 
+        protected override bool OnDragStart(DragStartEvent e)
+        {
+            ignoreOngoingDragSelection = false;
+
+            if (HasFocus)
+                return true;
+
+            Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
+            return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
+        }
+
         protected override void OnDrag(DragEvent e)
         {
             if (ReadOnly)
                 return;
 
             FinalizeImeComposition(true);
+
+            if (ignoreOngoingDragSelection)
+                return;
 
             var lastSelectionBounds = getTextSelectionBounds();
 
@@ -1157,22 +1242,13 @@ namespace osu.Framework.Graphics.UserInterface
                 if (text.Length == 0) return;
 
                 selectionEnd = getCharacterClosestTo(e.MousePosition);
-                if (selectionLength > 0)
-                    GetContainingInputManager().ChangeFocus(this);
+                if (hasSelection)
+                    GetContainingFocusManager().AsNonNull().ChangeFocus(this);
             }
 
             cursorAndLayout.Invalidate();
 
             onTextSelectionChanged(doubleClickWord != null ? TextSelectionType.Word : TextSelectionType.Character, lastSelectionBounds);
-        }
-
-        protected override bool OnDragStart(DragStartEvent e)
-        {
-            if (HasFocus) return true;
-
-            Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
-
-            return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
         }
 
         protected override bool OnDoubleClick(DoubleClickEvent e)
@@ -1250,7 +1326,7 @@ namespace osu.Framework.Graphics.UserInterface
             // let's say that a focus loss is not a user event as focus is commonly indirectly lost.
             FinalizeImeComposition(false);
 
-            unbindInput(e.NextFocused is TextBox);
+            unbindInput(e.NextFocused as TextBox);
 
             updateCaretVisibility();
 
@@ -1270,7 +1346,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void OnFocus(FocusEvent e)
         {
-            bindInput(e.PreviouslyFocused is TextBox);
+            bindInput(e.PreviouslyFocused as TextBox);
 
             updateCaretVisibility();
         }
@@ -1284,8 +1360,10 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private bool textInputBound;
 
-        private void bindInput(bool previousFocusWasTextBox)
+        private void bindInput([CanBeNull] TextBox previous)
         {
+            Debug.Assert(textInput != null);
+
             if (textInputBound)
             {
                 textInput.EnsureActivated(AllowIme);
@@ -1295,10 +1373,10 @@ namespace osu.Framework.Graphics.UserInterface
             // TextBox has special handling of text input activation when focus is changed directly from one TextBox to another.
             // We don't deactivate and activate, but instead keep text input active during the focus handoff, so that virtual keyboards on phones don't flicker.
 
-            if (previousFocusWasTextBox)
-                textInput.EnsureActivated(AllowIme);
+            if (previous?.textInput == textInput)
+                textInput.EnsureActivated(AllowIme, ScreenSpaceDrawQuad.AABBFloat);
             else
-                textInput.Activate(AllowIme);
+                textInput.Activate(AllowIme, ScreenSpaceDrawQuad.AABBFloat);
 
             textInput.OnTextInput += handleTextInput;
             textInput.OnImeComposition += handleImeComposition;
@@ -1307,20 +1385,23 @@ namespace osu.Framework.Graphics.UserInterface
             textInputBound = true;
         }
 
-        private void unbindInput(bool nextFocusIsTextBox)
+        private void unbindInput([CanBeNull] TextBox next)
         {
             if (!textInputBound)
                 return;
 
             textInputBound = false;
 
-            // see the comment above, in `bindInput(bool)`.
-            if (!nextFocusIsTextBox)
-                textInput.Deactivate();
+            if (textInput != null)
+            {
+                // see the comment above, in `bindInput(bool)`.
+                if (next?.textInput != textInput)
+                    textInput.Deactivate();
 
-            textInput.OnTextInput -= handleTextInput;
-            textInput.OnImeComposition -= handleImeComposition;
-            textInput.OnImeResult -= handleImeResult;
+                textInput.OnTextInput -= handleTextInput;
+                textInput.OnImeComposition -= handleImeComposition;
+                textInput.OnImeResult -= handleImeResult;
+            }
 
             // in case keys are held and we lose focus, we should no longer block key events
             textInputBlocking = false;
@@ -1343,7 +1424,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// Reverts the <see cref="textInputBlocking"/> flag to <c>false</c> if no keys are pressed.
         /// </summary>
         private void revertBlockingStateIfRequired() =>
-            textInputBlocking &= GetContainingInputManager().CurrentState.Keyboard.Keys.HasAnyButtonPressed;
+            textInputBlocking &= GetContainingInputManager()?.CurrentState.Keyboard.Keys.HasAnyButtonPressed == true;
 
         private void handleImeComposition(string composition, int selectionStart, int selectionLength)
         {
@@ -1521,7 +1602,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return;
                 }
 
-                if (selectionLength > 0)
+                if (hasSelection)
                     removeSelection();
             }
 

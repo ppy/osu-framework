@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 
 namespace osu.Framework.Bindables
 {
@@ -10,7 +11,7 @@ namespace osu.Framework.Bindables
     /// </summary>
     /// <typeparam name="T">The type of our stored <see cref="Bindable{T}.Value"/>.</typeparam>
     public class BindableNumberWithCurrent<T> : BindableNumber<T>, IBindableWithCurrent<T>
-        where T : struct, IComparable<T>, IConvertible, IEquatable<T>
+        where T : struct, INumber<T>, IMinMaxValue<T>
     {
         private BindableNumber<T>? currentBound;
 

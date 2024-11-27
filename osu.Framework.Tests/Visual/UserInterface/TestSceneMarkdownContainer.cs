@@ -86,9 +86,27 @@ Line below";
         }
 
         [Test]
-        public void TestFencedCode()
+        public void TestIndentedCodeBlock()
         {
-            AddStep("Markdown Fenced Code", () =>
+            AddStep("Markdown Indented Code Block", () =>
+            {
+                markdownContainer.Text = @"
+    [Escape me]
+    [[Escape me]]
+
+    {{
+      x = ""5""   # This assignment will not output anything
+      x         # This expression will print 5
+      x + 1     # This expression will print 6
+    }}
+";
+            });
+        }
+
+        [Test]
+        public void TestFencedCodeBlock()
+        {
+            AddStep("Markdown Fenced Code Block", () =>
             {
                 markdownContainer.Text = @"```scriban-html
 

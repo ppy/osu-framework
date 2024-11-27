@@ -1,64 +1,68 @@
-# There is no manual way to call this out to run this on tags via UI.
-# See: https://github.community/t/workflow-dispatch-from-a-tag-in-actions-tab/130561
-on: workflow_dispatch
-name: Deploy - Framework
+name: Pack and nuget
+
+on:
+  push:
+    tags:
+      - '*'
 
 jobs:
-  check-if-tag:
-    name: Set Package Version
+  notify_pending_production_deploy:
     runs-on: ubuntu-latest
-    outputs:
-      version: ${{steps.deployment.outputs.version}}
     steps:
-      - name: Checkout
+      -
+        name: Submit pending deployment notification
         run: |
-          REPOSITORY="https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}.git"
-          BRANCH="${GITHUB_REF/#refs\/heads\//}"
+          export TITLE="Pending osu-framework Production Deployment: $GITHUB_REF_NAME"
+          export URL="https://github.com/ppy/osu-framework/actions/runs/$GITHUB_RUN_ID"
+          export DESCRIPTION="Awaiting approval for building NuGet packages for tag $GITHUB_REF_NAME:
+          [View Workflow Run]($URL)"
+          export ACTOR_ICON="https://avatars.githubusercontent.com/u/$GITHUB_ACTOR_ID"
 
-          git version
-          git clone --no-checkout ${REPOSITORY} .
-          git config --local gc.auto 0
+          BODY="$(jq --null-input '{
+            "embeds": [
+              {
+                "title": env.TITLE,
+                "color": 15098112,
+                "description": env.DESCRIPTION,
+                "url": env.URL,
+                "author": {
+                  "name": env.GITHUB_ACTOR,
+                  "icon_url": env.ACTOR_ICON
+                }
+              }
+            ]
+          }')"
 
-          git -c protocol.version=2 fetch --no-tags --prune --progress --depth=2 origin +${GITHUB_SHA}:refs/remotes/origin/${BRANCH}
-          git checkout --progress --force -B $BRANCH refs/remotes/origin/$BRANCH
-
-
-      - name: Set Variables
-        id: deployment
-        shell: bash
-        run: |
-          if [ $(git describe --exact-match --tags HEAD &> /dev/null; echo $?) == 0 ]; then
-            echo "::set-output name=VERSION::$(git describe --exact-match --tags HEAD)"
-          else
-            echo "fatal: no tag detected for HEAD. Workflow will now stop."
-            exit 128;
-          fi
+          curl \
+            -H "Content-Type: application/json" \
+            -d "$BODY" \
+            "${{ secrets.DISCORD_INFRA_WEBHOOK_URL }}"
 
   pack-framework:
     name: Pack (Framework)
     runs-on: windows-latest
-    needs: [check-if-tag]
+    environment: production
     defaults:
       run:
         shell: powershell
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set Artifacts Directory
+      - name: Set artifacts directory
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
 
-      - name: Install .NET 6.0.x
-        uses: actions/setup-dotnet@v3
+      - name: Install .NET 8.0.x
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "6.0.x"
+          dotnet-version: "8.0.x"
 
       - name: Pack (Framework)
-        run: dotnet pack -c Release osu.Framework /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true /p:IncludeSymbols=true /p:SymbolPackageFormat=snupkg -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+        run: dotnet pack -c Release osu.Framework /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true /p:IncludeSymbols=true /p:SymbolPackageFormat=snupkg -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
           name: osu-framework
           path: |
@@ -71,28 +75,28 @@ jobs:
   pack-template:
     name: Pack (Templates)
     runs-on: ubuntu-latest
-    needs: [check-if-tag]
+    environment: production
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set Artifacts Directory
+      - name: Set artifacts Directory
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}/artifacts"
 
-      - name: Install .NET 6.0.x
-        uses: actions/setup-dotnet@v3
+      - name: Install .NET 8.0.x
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "6.0.x"
+          dotnet-version: "8.0.x"
 
-      - name: Replace Project References
-        run: osu.Framework.Templates/replace-references.sh ${{needs.check-if-tag.outputs.version}}
+      - name: Replace project references
+        run: osu.Framework.Templates/replace-references.sh ${{ github.ref_name }}
 
       - name: Pack (Template)
-        run: dotnet pack -c Release osu.Framework.Templates /p:Configuration=Release /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true /p:NoDefaultExcludes=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+        run: dotnet pack -c Release osu.Framework.Templates /p:Configuration=Release /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true /p:NoDefaultExcludes=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
           name: osu-framework-templates
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg
@@ -103,31 +107,37 @@ jobs:
   pack-android:
     name: Pack (Android)
     runs-on: windows-latest
-    needs: [check-if-tag]
+    environment: production
     defaults:
       run:
         shell: powershell
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set Artifacts Directory
+      - name: Set artifacts directory
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
 
-      - name: Install .NET 6.0.x
-        uses: actions/setup-dotnet@v3
+      - name: Install .NET 8.0.x
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "6.0.x"
+          dotnet-version: "8.0.x"
+
+      - name: Setup JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: microsoft
+          java-version: 11
 
       - name: Restore .NET workloads
         run: dotnet workload install android
 
       - name: Pack (Android Framework)
-        run: dotnet pack -c Release osu.Framework.Android /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true  -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+        run: dotnet pack -c Release osu.Framework.Android /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true  -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
           name: osu-framework-android
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
@@ -138,33 +148,31 @@ jobs:
   pack-ios:
     name: Pack (iOS)
     runs-on: macos-latest
-    needs: [check-if-tag]
+    environment: production
     defaults:
       run:
         shell: bash
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set Artifacts Directory
+      - name: Set artifacts directory
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}/artifacts"
 
-      - name: Install .NET 6.0.x
-        uses: actions/setup-dotnet@v3
+      - name: Install .NET 8.0.x
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "6.0.x"
+          dotnet-version: "8.0.x"
 
       - name: Restore .NET Workloads
-        # `dotnet workload restore` is bugged in .NET 7.0.101+ when restoring iOS projects,
-        # see https://github.com/xamarin/xamarin-macios/issues/16400.
-        run: dotnet workload install ios
+        run: dotnet workload install ios --from-rollback-file workloads.json
 
       - name: Pack (iOS Framework)
-        run: dotnet pack -c Release osu.Framework.iOS /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+        run: dotnet pack -c Release osu.Framework.iOS /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
           name: osu-framework-ios
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg

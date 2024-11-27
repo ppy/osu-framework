@@ -21,8 +21,10 @@ namespace osu.Framework.Bindables
 
         public override string ToString(string? format, IFormatProvider? formatProvider) => ((FormattableString)$"{Value.Width}x{Value.Height}").ToString(formatProvider);
 
-        public override void Parse(object input)
+        public override void Parse(object? input, IFormatProvider provider)
         {
+            ArgumentNullException.ThrowIfNull(input);
+
             switch (input)
             {
                 case string str:
@@ -31,11 +33,11 @@ namespace osu.Framework.Bindables
                     if (split.Length != 2)
                         throw new ArgumentException($"Input string was in wrong format! (expected: '<width>x<height>', actual: '{str}')");
 
-                    Value = new Size(int.Parse(split[0]), int.Parse(split[1]));
+                    Value = new Size(int.Parse(split[0], provider), int.Parse(split[1], provider));
                     break;
 
                 default:
-                    base.Parse(input);
+                    base.Parse(input, provider);
                     break;
             }
         }

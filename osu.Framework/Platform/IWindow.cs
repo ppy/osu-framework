@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Drawing;
+using System.IO;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
@@ -35,6 +37,11 @@ namespace osu.Framework.Platform
         /// Creates the concrete window implementation.
         /// </summary>
         void Create();
+
+        /// <summary>
+        /// Invoked once every window event loop.
+        /// </summary>
+        event Action? Update;
 
         /// <summary>
         /// Invoked when the window close (X) button or another platform-native exit action has been pressed.
@@ -70,6 +77,11 @@ namespace osu.Framework.Platform
         /// Invoked when the system keyboard layout has changed.
         /// </summary>
         event Action? KeymapChanged;
+
+        /// <summary>
+        /// Invoked when the user drops a file into the window.
+        /// </summary>
+        public event Action<string>? DragDrop;
 
         /// <summary>
         /// Whether the OS cursor is currently contained within the game window.
@@ -125,9 +137,9 @@ namespace osu.Framework.Platform
         Bindable<WindowMode> WindowMode { get; }
 
         /// <summary>
-        /// Exposes the physical displays as an <see cref="IEnumerable{Display}"/>.
+        /// Contains information about the current physical displays.
         /// </summary>
-        IEnumerable<Display> Displays { get; }
+        ImmutableArray<Display> Displays { get; }
 
         /// <summary>
         /// Invoked when <see cref="Displays"/> has changed.
@@ -160,6 +172,46 @@ namespace osu.Framework.Platform
         void Raise();
 
         /// <summary>
+        /// Attempts to hide the window, making it invisible and hidden from the taskbar.
+        /// </summary>
+        void Hide();
+
+        /// <summary>
+        /// Attempts to show the window, making it visible.
+        /// </summary>
+        void Show();
+
+        /// <summary>
+        /// Attempts to flash the window in order to request the user's attention.
+        /// </summary>
+        /// <remarks>
+        /// On platforms which don't support any kind of flashing (ie. mobile), this will be a no-op.
+        /// </remarks>
+        /// <param name="flashUntilFocused">
+        /// When <c>true</c>, the window will flash until it is focused again.
+        /// When <c>false</c> it will only flash momentarily.
+        /// </param>
+        void Flash(bool flashUntilFocused = false);
+
+        /// <summary>
+        /// Attempts to cancel any window flash requested with <see cref="Flash"/>.
+        /// </summary>
+        /// <remarks>
+        /// On platforms which don't support any kind of flashing (ie. mobile), this will be a no-op.
+        /// </remarks>
+        void CancelFlash();
+
+        /// <summary>
+        /// Enable any system level timers that might dim or turn off the screen.
+        /// </summary>
+        void EnableScreenSuspension();
+
+        /// <summary>
+        /// Disable any system level timers that might dim or turn off the screen.
+        /// </summary>
+        void DisableScreenSuspension();
+
+        /// <summary>
         /// Start the window's run loop.
         /// Is a blocking call on desktop platforms, and a non-blocking call on mobile platforms.
         /// </summary>
@@ -174,6 +226,11 @@ namespace osu.Framework.Platform
         /// Whether the window currently has focus.
         /// </summary>
         bool Focused { get; }
+
+        /// <summary>
+        /// Sets the window icon to the provided <paramref name="imageStream"/>.
+        /// </summary>
+        public void SetIconFromStream(Stream imageStream);
 
         /// <summary>
         /// Convert a screen based coordinate to local window space.

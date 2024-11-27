@@ -11,6 +11,8 @@ using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Logging;
+using osu.Framework.Platform.MacOS.Native;
 
 namespace osu.Framework.Platform.MacOS
 {
@@ -21,27 +23,24 @@ namespace osu.Framework.Platform.MacOS
         {
         }
 
-        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new MacOSWindow(preferredSurface);
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface)
+            => FrameworkEnvironment.UseSDL3
+                ? new SDL3MacOSWindow(preferredSurface, Options.FriendlyGameName)
+                : new SDL2MacOSWindow(preferredSurface, Options.FriendlyGameName);
 
         public override IEnumerable<string> UserStoragePaths
         {
             get
             {
-                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Library", "Application Support");
-
-                string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
-
-                if (!string.IsNullOrEmpty(xdg))
-                    yield return xdg;
-
-                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), ".local", "share");
-
                 foreach (string path in base.UserStoragePaths)
                     yield return path;
+
+                // Some older builds of osu! incorrectly used ~/.local/share on macOS.
+                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share");
             }
         }
 
-        public override Clipboard GetClipboard() => new MacOSClipboard();
+        protected override Clipboard CreateClipboard() => new MacOSClipboard();
 
         protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new MacOSReadableKeyCombinationProvider();
 
@@ -54,13 +53,36 @@ namespace osu.Framework.Platform.MacOS
                 Renderer.WaitUntilIdle();
         }
 
+        public override bool PresentFileExternally(string filename)
+        {
+            string folderPath = Path.GetDirectoryName(filename);
+
+            if (folderPath == null)
+            {
+                Logger.Log($"Failed to get directory for {filename}", level: LogLevel.Debug);
+                return false;
+            }
+
+            if (!File.Exists(filename) && !Directory.Exists(filename))
+            {
+                Logger.Log($"Cannot find file for '{filename}'", level: LogLevel.Debug);
+
+                // Open the folder without the file selected if we can't find the file
+                OpenFileExternally(folderPath);
+                return true;
+            }
+
+            Finder.OpenFolderAndSelectItem(filename);
+            return true;
+        }
+
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
         {
             var handlers = base.CreateAvailableInputHandlers();
 
             foreach (var h in handlers.OfType<MouseHandler>())
             {
-                // There are several bugs we need to fix with macOS / SDL2 cursor handling before switching this on.
+                // There are several bugs we need to fix with macOS / SDL3 cursor handling before switching this on.
                 h.UseRelativeMode.Value = false;
                 h.UseRelativeMode.Default = false;
             }

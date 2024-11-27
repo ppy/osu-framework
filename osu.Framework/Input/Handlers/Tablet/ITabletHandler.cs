@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using osu.Framework.Bindables;
 using osuTK;
@@ -27,7 +25,7 @@ namespace osu.Framework.Input.Handlers.Tablet
         /// <summary>
         /// Information on the currently connected tablet device. May be null if no tablet is detected.
         /// </summary>
-        IBindable<TabletInfo> Tablet { get; }
+        IBindable<TabletInfo?> Tablet { get; }
 
         /// <summary>
         /// The rotation of the tablet area in degrees.

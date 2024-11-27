@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -81,6 +79,27 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("nan width", () => Assert.Throws<ArgumentException>(() => boxes[0].ResizeWidthTo(float.NaN)));
             AddStep("nan width sequence", () => Assert.Throws<ArgumentException>(() => boxes[0].FadeIn(200).ResizeWidthTo(float.NaN)));
             AddStep("zero child size", () => Assert.Throws<ArgumentException>(() => boxes[0].TransformRelativeChildSizeTo(Vector2.Zero)));
+        }
+
+        [Test]
+        public void TestNestedAbsoluteSequence()
+        {
+            AddStep("Animate", () =>
+            {
+                setup();
+                animate();
+            });
+
+            AddStep("start absolute sequence", () =>
+            {
+                using (BeginAbsoluteSequence(0))
+                {
+                    using (boxes[0].BeginAbsoluteSequence(Time.Current))
+                    {
+                        boxes[0].FadeInFromZero(1000);
+                    }
+                }
+            });
         }
 
         private void setup()

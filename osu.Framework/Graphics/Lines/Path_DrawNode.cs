@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.Lines
                 pathShader = Source.pathShader;
             }
 
-            public override void Draw(IRenderer renderer)
+            protected override void Draw(IRenderer renderer)
             {
                 base.Draw(renderer);
 

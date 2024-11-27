@@ -9,6 +9,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Testing.Dependencies;
 
 #pragma warning disable IDE0052 // Unread private member
+#pragma warning disable CS0169 // Private unused fields
 
 namespace osu.Framework.Tests.Dependencies.SourceGeneration
 {

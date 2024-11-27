@@ -105,27 +105,24 @@ namespace osu.Framework.Graphics.OpenGL.Batches
 
         public int Draw()
         {
-            if (currentVertexIndex == 0)
+            int countToDraw = currentVertexIndex;
+            currentVertexIndex = 0;
+
+            if (countToDraw == 0)
                 return 0;
 
             GLVertexBuffer<T> vertexBuffer = currentVertexBuffer;
             if (changeBeginIndex >= 0)
                 vertexBuffer.UpdateRange(changeBeginIndex, changeEndIndex);
 
-            vertexBuffer.DrawRange(0, currentVertexIndex);
-
-            int count = currentVertexIndex;
+            vertexBuffer.DrawRange(0, countToDraw);
 
             // When using multiple buffers we advance to the next one with every draw to prevent contention on the same buffer with future vertex updates.
             //TODO: let us know if we exceed and roll over to zero here.
             currentBufferIndex = (currentBufferIndex + 1) % maxBuffers;
-            currentVertexIndex = 0;
             changeBeginIndex = -1;
 
-            FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
-            FrameStatistics.Add(StatisticsCounterType.VerticesDraw, count);
-
-            return count;
+            return countToDraw;
         }
     }
 }

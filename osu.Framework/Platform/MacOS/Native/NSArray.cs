@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 
 namespace osu.Framework.Platform.MacOS.Native
@@ -28,7 +26,7 @@ namespace osu.Framework.Platform.MacOS.Native
 
         internal static NSArray ArrayWithObjects(IntPtr[] objs)
         {
-            var mutableArray = Cocoa.SendIntPtr(mutable_class_pointer, sel_array);
+            IntPtr mutableArray = Cocoa.SendIntPtr(mutable_class_pointer, sel_array);
             foreach (IntPtr obj in objs)
                 Cocoa.SendVoid(mutableArray, sel_add_object, obj);
             return new NSArray(mutableArray);

@@ -143,6 +143,11 @@ namespace osu.Framework.Threading
         internal virtual IEnumerable<StatisticsCounterType> StatisticsCounters => Array.Empty<StatisticsCounterType>();
 
         /// <summary>
+        /// The amount of times this thread has run.
+        /// </summary>
+        internal ulong FrameIndex { get; private set; }
+
+        /// <summary>
         /// The main work which is fired on each frame.
         /// </summary>
         protected event Action? OnNewFrame;
@@ -439,6 +444,8 @@ namespace osu.Framework.Threading
 
             try
             {
+                FrameIndex++;
+
                 Monitor?.NewFrame();
 
                 using (Monitor?.BeginCollecting(PerformanceCollectionType.Scheduler))

@@ -1,20 +1,18 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
-using System.Globalization;
+using System.Numerics;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
-using osuTK.Input;
-using osuTK;
 using osu.Framework.Input.Events;
+using osuTK.Input;
+using Vector2 = osuTK.Vector2;
 
 namespace osu.Framework.Graphics.UserInterface
 {
     public abstract partial class SliderBar<T> : Container, IHasCurrentValue<T>
-        where T : struct, IComparable<T>, IConvertible, IEquatable<T>
+        where T : struct, INumber<T>, IMinMaxValue<T>
     {
         /// <summary>
         /// Range padding reduces the range of movement a slider bar is allowed to have
@@ -93,14 +91,7 @@ namespace osu.Framework.Graphics.UserInterface
                                                         + $" and {nameof(BindableNumber<T>.MaxValue)} to produce a valid {nameof(NormalizedValue)}.");
                 }
 
-                float min = Convert.ToSingle(currentNumberInstantaneous.MinValue);
-                float max = Convert.ToSingle(currentNumberInstantaneous.MaxValue);
-
-                if (max - min == 0)
-                    return 1;
-
-                float val = Convert.ToSingle(currentNumberInstantaneous.Value);
-                return (val - min) / (max - min);
+                return currentNumberInstantaneous.NormalizedValue;
             }
         }
 
@@ -130,9 +121,9 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (ShouldHandleAsRelativeDrag(e))
             {
-                float min = currentNumberInstantaneous.MinValue.ToSingle(NumberFormatInfo.InvariantInfo);
-                float max = currentNumberInstantaneous.MaxValue.ToSingle(NumberFormatInfo.InvariantInfo);
-                float val = currentNumberInstantaneous.Value.ToSingle(NumberFormatInfo.InvariantInfo);
+                float min = float.CreateTruncating(currentNumberInstantaneous.MinValue);
+                float max = float.CreateTruncating(currentNumberInstantaneous.MaxValue);
+                float val = float.CreateTruncating(currentNumberInstantaneous.Value);
 
                 relativeValueAtMouseDown = (val - min) / (max - min);
 
@@ -154,7 +145,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (handleClick)
             {
                 handleMouseInput(e);
-                commit();
+                Commit();
             }
 
             return true;
@@ -175,18 +166,21 @@ namespace osu.Framework.Graphics.UserInterface
                 return false;
             }
 
+            GetContainingFocusManager()?.ChangeFocus(this);
             handleMouseInput(e);
             return true;
         }
 
-        protected override void OnDragEnd(DragEndEvent e) => commit();
+        protected override void OnDragEnd(DragEndEvent e) => Commit();
+
+        public override bool AcceptsFocus => true;
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
             if (currentNumberInstantaneous.Disabled)
                 return false;
 
-            if (!IsHovered)
+            if (!IsHovered && !HasFocus)
                 return false;
 
             float step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;
@@ -212,12 +206,12 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void OnKeyUp(KeyUpEvent e)
         {
             if (e.Key == Key.Left || e.Key == Key.Right)
-                commit();
+                Commit();
         }
 
         private bool uncommittedChanges;
 
-        private bool commit()
+        protected virtual bool Commit()
         {
             if (!uncommittedChanges)
                 return false;

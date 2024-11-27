@@ -1,54 +1,71 @@
 #!/bin/bash
+set -eu
 
-FFMPEG_VERSION=4.3.3
-
+FFMPEG_VERSION="7.0"
+FFMPEG_FILE="ffmpeg-$FFMPEG_VERSION.tar.gz"
 FFMPEG_FLAGS=(
-    --disable-programs
-    --disable-doc
+    # General options
     --disable-static
-    --disable-debug
-    --disable-ffplay
-    --disable-ffprobe
-    --disable-avdevice
-    --disable-swresample
-    --disable-librtmp
-    --disable-alsa
-    --disable-iconv
-    --disable-libxcb
-    --disable-libxcb-shm
-    --disable-libxcb-xfixes
-    --disable-libxcb-shape
-    --disable-sdl2
-    --disable-zlib
-    --disable-bzlib
-    --disable-lzma
-    --disable-xlib
-    --disable-schannel
     --enable-shared
+    --disable-debug
+    --disable-all
+    --disable-autodetect
+    --enable-lto
+
+    # Libraries
+    --enable-avcodec
+    --enable-avformat
+    --enable-swscale
+
+    # Legacy video formats
+    --enable-demuxer='avi,flv,asf'
+    --enable-parser='mpeg4video'
+    --enable-decoder='flv,msmpeg4v1,msmpeg4v2,msmpeg4v3,mpeg4,vp6,vp6f,wmv2'
+
+    # Modern video formats
+    --enable-demuxer='mov,matroska' # mov = mp4, matroska = mkv & webm
+    --enable-parser='h264,hevc,vp8,vp9'
+    --enable-decoder='h264,hevc,vp8,vp9'
+    --enable-protocol=pipe
 )
 
-function build_ffmpeg() {
-    if [ ! -d "ffmpeg-$FFMPEG_VERSION" ]; then
-        echo "-> Downloading source..."
-        curl https://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.gz | tar zxf -
+function prep_ffmpeg() {
+    FFMPEG_FLAGS+=(
+        --prefix="$PWD/$1"
+        --shlibdir="$PWD/$1"
+    )
+
+    local build_dir="$1-build"
+    if [ ! -e "$FFMPEG_FILE" ]; then
+        echo "-> Downloading $FFMPEG_FILE..."
+        curl -o "$FFMPEG_FILE" "https://ffmpeg.org/releases/$FFMPEG_FILE"
     else
-        echo "-> ffmpeg-$FFMPEG_VERSION already exists, not re-downloading."
+        echo "-> $FFMPEG_FILE already exists, not re-downloading."
     fi
 
-    echo "-> Configuring..."
+    if [ ! -d "$build_dir" ]; then
+        echo "-> Unpacking source to $build_dir..."
+        mkdir "$build_dir"
+        tar xzf "$FFMPEG_FILE" --strip 1 -C "$build_dir"
+    else
+        echo "-> $build_dir already exists, skipping unpacking."
+    fi
 
-    cd ffmpeg-$FFMPEG_VERSION
+    cd "$build_dir"
+}
+
+function build_ffmpeg() {
+    echo "-> Configuring..."
     ./configure "${FFMPEG_FLAGS[@]}"
 
-    CORES=0
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        CORES=$(sysctl -n hw.ncpu)
-    else
-        CORES=$(nproc)
-    fi
-
     echo "-> Building using $CORES threads..."
-
     make -j$CORES
-    make install
+    make install-libs
 }
+
+CORES=0
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    CORES=$(sysctl -n hw.ncpu)
+else
+    CORES=$(nproc)
+fi

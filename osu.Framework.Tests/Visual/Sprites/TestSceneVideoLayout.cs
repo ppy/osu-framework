@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -24,7 +22,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         [BackgroundDependencyLoader]
         private void load(Game game)
         {
-            const string video_path = "Videos/sample-video.mp4";
+            const string video_path = "Videos/h264.mp4";
 
             Cell(0, 0).Child = createTest("video - auto size", () => new TestVideo(game.Resources.GetStream(video_path)));
             Cell(0, 1).Child = createTest("video - relative size + fit", () => new TestVideo(game.Resources.GetStream(video_path))
@@ -43,47 +41,43 @@ namespace osu.Framework.Tests.Visual.Sprites
             });
         }
 
-        private Drawable createTest(string name, Func<Drawable> animationCreationFunc) => new Container
+        private Drawable createTest(string name, Func<Drawable> animationCreationFunc) => new GridContainer
         {
             RelativeSizeAxes = Axes.Both,
             Padding = new MarginPadding(10),
-            Child = new GridContainer
+            Content = new[]
             {
-                RelativeSizeAxes = Axes.Both,
-                Content = new[]
+                new Drawable[]
                 {
-                    new Drawable[]
+                    new SpriteText
                     {
-                        new SpriteText
-                        {
-                            Anchor = Anchor.TopCentre,
-                            Origin = Anchor.TopCentre,
-                            Text = name
-                        },
-                    },
-                    new Drawable[]
-                    {
-                        new Container
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Masking = true,
-                            BorderColour = Color4.OrangeRed,
-                            BorderThickness = 2,
-                            Children = new[]
-                            {
-                                new Box
-                                {
-                                    RelativeSizeAxes = Axes.Both,
-                                    Alpha = 0,
-                                    AlwaysPresent = true
-                                },
-                                animationCreationFunc()
-                            }
-                        }
+                        Anchor = Anchor.TopCentre,
+                        Origin = Anchor.TopCentre,
+                        Text = name
                     },
                 },
-                RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) }
-            }
+                new Drawable[]
+                {
+                    new Container
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Masking = true,
+                        BorderColour = Color4.OrangeRed,
+                        BorderThickness = 2,
+                        Children = new[]
+                        {
+                            new Box
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Alpha = 0,
+                                AlwaysPresent = true
+                            },
+                            animationCreationFunc()
+                        }
+                    }
+                },
+            },
+            RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) }
         };
     }
 }

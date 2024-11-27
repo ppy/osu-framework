@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Colour;
@@ -10,7 +8,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Threading;
 using System;
-using JetBrains.Annotations;
 using osu.Framework.Bindables;
 
 namespace osu.Framework.Graphics
@@ -251,7 +248,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts the value of a <see cref="Bindable{TValue}"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> TransformBindableTo<T, TValue>(this TransformSequence<T> t, [NotNull] Bindable<TValue> bindable, TValue newValue, double duration = 0,
+        public static TransformSequence<T> TransformBindableTo<T, TValue>(this TransformSequence<T> t, Bindable<TValue> bindable, TValue newValue, double duration = 0,
                                                                           Easing easing = Easing.None)
             where T : class, ITransformable
             => t.TransformBindableTo(bindable, newValue, duration, new DefaultEasingFunction(easing));
@@ -489,7 +486,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts the value of a <see cref="Bindable{TValue}"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> TransformBindableTo<T, TValue, TEasing>(this TransformSequence<T> t, [NotNull] Bindable<TValue> bindable, TValue newValue, double duration, TEasing easing)
+        public static TransformSequence<T> TransformBindableTo<T, TValue, TEasing>(this TransformSequence<T> t, Bindable<TValue> bindable, TValue newValue, double duration, TEasing easing)
             where T : class, ITransformable
             where TEasing : IEasingFunction
             => t.Append(o => o.TransformBindableTo(bindable, newValue, duration, easing));

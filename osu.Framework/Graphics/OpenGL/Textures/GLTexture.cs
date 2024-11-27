@@ -12,6 +12,7 @@ using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
@@ -69,7 +70,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private readonly List<RectangleI> uploadedRegions = new List<RectangleI>();
 
         private readonly All filteringMode;
-        private readonly Color4 initialisationColour;
+        private readonly Color4? initialisationColour;
 
         /// <summary>
         /// Creates a new <see cref="GLTexture"/>.
@@ -79,8 +80,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="height">The height of the texture.</param>
         /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
         /// <param name="filteringMode">The filtering mode.</param>
-        /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads).</param>
-        public GLTexture(GLRenderer renderer, int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, Color4 initialisationColour = default)
+        /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads). If null, no initialisation is provided out-of-the-box.</param>
+        public GLTexture(GLRenderer renderer, int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, Color4? initialisationColour = null)
         {
             Renderer = renderer;
             Width = width;
@@ -171,8 +172,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             get
             {
-                if (!Available)
-                    throw new ObjectDisposedException(ToString(), "Can not obtain ID of a disposed texture.");
+                ObjectDisposedException.ThrowIf(!Available, this);
 
                 return textureId;
             }
@@ -188,6 +188,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             lock (uploadQueue)
             {
+                if (uploadQueue.Count >= 100 && uploadQueue.Count % 100 == 0)
+                    Logger.Log($"Texture {Identifier}'s upload queue is large ({uploadQueue.Count})");
+
                 bool requireUpload = uploadQueue.Count == 0;
                 uploadQueue.Enqueue(upload);
 
@@ -470,21 +473,22 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private void initializeLevel(int level, int width, int height)
         {
-            using (var image = createBackingImage(width, height))
+            if (initialisationColour == null)
+                return;
+
+            var rgbaColour = new Rgba32(new Vector4(initialisationColour.Value.R, initialisationColour.Value.G, initialisationColour.Value.B, initialisationColour.Value.A));
+
+            // it is faster to initialise without a background specification if transparent black is all that's required.
+            using var image = initialisationColour == default
+                ? new Image<Rgba32>(width, height)
+                : new Image<Rgba32>(width, height, rgbaColour);
+
             using (var pixels = image.CreateReadOnlyPixelSpan())
             {
                 updateMemoryUsage(level, (long)width * height * 4);
                 GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Rgba8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte,
                     ref MemoryMarshal.GetReference(pixels.Span));
             }
-        }
-
-        private Image<Rgba32> createBackingImage(int width, int height)
-        {
-            // it is faster to initialise without a background specification if transparent black is all that's required.
-            return initialisationColour == default
-                ? new Image<Rgba32>(width, height)
-                : new Image<Rgba32>(width, height, new Rgba32(new Vector4(initialisationColour.R, initialisationColour.G, initialisationColour.B, initialisationColour.A)));
         }
     }
 }

@@ -4,7 +4,6 @@
 #nullable disable
 
 using osuTK.Graphics;
-using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
@@ -19,11 +18,14 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using JetBrains.Annotations;
+using osu.Framework.Graphics.Pooling;
 using osu.Framework.Graphics.Rendering;
-using osu.Framework.Input.Events;
+using osu.Framework.Platform;
 using osuTK;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using WindowState = osu.Framework.Platform.WindowState;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -60,6 +62,8 @@ namespace osu.Framework.Graphics.Performance
 
         private readonly ArrayPool<Rgba32> uploadPool;
 
+        private readonly DrawablePool<GCBox> gcBoxPool;
+
         private readonly Drawable[] legendMapping = new Drawable[FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES];
         private readonly Dictionary<StatisticsCounterType, CounterBar> counterBars = new Dictionary<StatisticsCounterType, CounterBar>();
 
@@ -67,6 +71,7 @@ namespace osu.Framework.Graphics.Performance
 
         private FrameStatisticsMode state;
 
+        [CanBeNull]
         public event Action<FrameStatisticsMode> StateChanged;
 
         public FrameStatisticsMode State
@@ -118,7 +123,6 @@ namespace osu.Framework.Graphics.Performance
 
             this.uploadPool = uploadPool;
 
-            Origin = Anchor.TopRight;
             AutoSizeAxes = Axes.Both;
             Alpha = alpha_when_active;
 
@@ -182,8 +186,9 @@ namespace osu.Framework.Graphics.Performance
                     mainContainer = new Container
                     {
                         Size = new Vector2(WIDTH, HEIGHT),
-                        Children = new[]
+                        Children = new Drawable[]
                         {
+                            gcBoxPool = new DrawablePool<GCBox>(20, 20),
                             timeBarsContainer = new Container
                             {
                                 Masking = true,
@@ -277,15 +282,34 @@ namespace osu.Framework.Graphics.Performance
 
         private void addEvent(int type)
         {
-            Box b = new Box
+            if (gcBoxPool.CountAvailable == 0)
             {
-                Origin = Anchor.TopCentre,
-                Position = new Vector2(timeBarX, type * 3),
-                Colour = garbage_collect_colors[type],
-                Size = new Vector2(3, 3)
-            };
+                // If we've run out of pooled boxes, remove earlier usages.
+                //
+                // This is to avoid a runaway situation where more boxes being displayed causes more overhead,
+                // causing slower progression of the time bars causing more dense boxes causing more overhead...
+                for (int i = 0; i < timeBars.Length; i++)
+                {
+                    // Offset to check the previous time bar first.
+                    var timeBar = timeBars[(timeBarIndex + i + 1) % timeBars.Length];
 
-            timeBars[timeBarIndex].Add(b);
+                    var firstBox = timeBar.OfType<GCBox>().FirstOrDefault();
+
+                    if (firstBox != null)
+                    {
+                        timeBar.RemoveInternal(firstBox, false);
+                        break;
+                    }
+                }
+            }
+
+            var box = gcBoxPool.Get(b =>
+            {
+                b.Position = new Vector2(timeBarX, type * 3);
+                b.Colour = garbage_collect_colors[type];
+            });
+
+            timeBars[timeBarIndex].Add(box);
         }
 
         private bool running = true;
@@ -325,38 +349,6 @@ namespace osu.Framework.Graphics.Performance
                 foreach (CounterBar bar in counterBars.Values)
                     bar.Expanded = expanded;
             }
-        }
-
-        protected override bool OnKeyDown(KeyDownEvent e)
-        {
-            switch (e.Key)
-            {
-                case Key.ControlLeft:
-                    Expanded = true;
-                    break;
-
-                case Key.ShiftLeft:
-                    Running = false;
-                    break;
-            }
-
-            return base.OnKeyDown(e);
-        }
-
-        protected override void OnKeyUp(KeyUpEvent e)
-        {
-            switch (e.Key)
-            {
-                case Key.ControlLeft:
-                    Expanded = false;
-                    break;
-
-                case Key.ShiftLeft:
-                    Running = true;
-                    break;
-            }
-
-            base.OnKeyUp(e);
         }
 
         protected override void Update()
@@ -402,14 +394,21 @@ namespace osu.Framework.Graphics.Performance
 
             foreach (Drawable e in timeBars[(timeBarIndex + 1) % timeBars.Length])
             {
-                if (e is Box && e.DrawPosition.X <= timeBarX)
+                if (e is GCBox && e.DrawPosition.X <= timeBarX)
                     e.Expire();
             }
         }
 
+        [Resolved]
+        private GameHost host { get; set; }
+
         private void applyFrame(FrameStatistics frame)
         {
-            if (state == FrameStatisticsMode.Full)
+            // Don't process frames when minimised, as the draw thread may not be running and texture uploads
+            // from the graph displays will get out of hand.
+            bool isMinimised = host.Window.WindowState == WindowState.Minimised;
+
+            if (state == FrameStatisticsMode.Full && !isMinimised)
             {
                 applyFrameGC(frame);
                 applyFrameTime(frame);
@@ -626,6 +625,25 @@ namespace osu.Framework.Graphics.Performance
 
                 if (expanded)
                     text.Text = $@"{Label}: {NumberFormatter.PrintWithSiSuffix(value)}";
+            }
+        }
+
+        private partial class GCBox : PoolableDrawable
+        {
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                Origin = Anchor.TopCentre;
+                Size = new Vector2(3, 3);
+
+                InternalChildren = new Drawable[]
+                {
+                    new Box
+                    {
+                        Colour = Color4.White,
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                };
             }
         }
     }

@@ -241,8 +241,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
                     container.Add(CreateQuoteBlock(quoteBlock));
                     break;
 
-                case FencedCodeBlock fencedCodeBlock:
-                    container.Add(CreateFencedCodeBlock(fencedCodeBlock));
+                case CodeBlock codeBlock:
+                    container.Add(CreateCodeBlock(codeBlock));
                     break;
 
                 case Table table:
@@ -311,11 +311,11 @@ namespace osu.Framework.Graphics.Containers.Markdown
         protected virtual MarkdownQuoteBlock CreateQuoteBlock(QuoteBlock quoteBlock) => new MarkdownQuoteBlock(quoteBlock);
 
         /// <summary>
-        /// Creates the visualiser for a <see cref="FencedCodeBlock"/>.
+        /// Creates the visualiser for a <see cref="CodeBlock"/>.
         /// </summary>
-        /// <param name="fencedCodeBlock">The <see cref="FencedCodeBlock"/> to visualise.</param>
+        /// <param name="codeBlock">The <see cref="CodeBlock"/> to visualise.</param>
         /// <returns>The visualiser.</returns>
-        protected virtual MarkdownFencedCodeBlock CreateFencedCodeBlock(FencedCodeBlock fencedCodeBlock) => new MarkdownFencedCodeBlock(fencedCodeBlock);
+        protected virtual MarkdownCodeBlock CreateCodeBlock(CodeBlock codeBlock) => new MarkdownCodeBlock(codeBlock);
 
         /// <summary>
         /// Creates the visualiser for a <see cref="Table"/>.

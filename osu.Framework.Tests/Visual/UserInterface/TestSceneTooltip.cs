@@ -70,29 +70,29 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("get tooltip instance", () => originalInstance = tooltipContainer.CurrentTooltip);
             AddAssert("custom tooltip used", () => originalInstance.GetType() == typeof(CustomTooltip));
-            assertTooltipText(() => ((CustomContent)customTooltipTextA.TooltipContent).Text);
+            assertTooltipText(() => ((CustomContent)customTooltipTextA.TooltipContent!).Text);
 
             hoverTooltipProvider(() => customTooltipTextB);
 
             AddAssert("custom tooltip reused", () => tooltipContainer.CurrentTooltip == originalInstance);
-            assertTooltipText(() => ((CustomContent)customTooltipTextB.TooltipContent).Text);
+            assertTooltipText(() => ((CustomContent)customTooltipTextB.TooltipContent!).Text);
         }
 
         [Test]
         public void TestDifferentCustomTooltips()
         {
             hoverTooltipProvider(() => customTooltipTextA);
-            assertTooltipText(() => ((CustomContent)customTooltipTextA.TooltipContent).Text);
+            assertTooltipText(() => ((CustomContent)customTooltipTextA.TooltipContent!).Text);
 
             AddAssert("current tooltip type normal", () => tooltipContainer.CurrentTooltip.GetType() == typeof(CustomTooltip));
 
             hoverTooltipProvider(() => customTooltipTextAlt);
-            assertTooltipText(() => ((CustomContent)customTooltipTextAlt.TooltipContent).Text);
+            assertTooltipText(() => ((CustomContent)customTooltipTextAlt.TooltipContent!).Text);
 
             AddAssert("current tooltip type alt", () => tooltipContainer.CurrentTooltip.GetType() == typeof(CustomTooltipAlt));
 
             hoverTooltipProvider(() => customTooltipTextB);
-            assertTooltipText(() => ((CustomContent)customTooltipTextB.TooltipContent).Text);
+            assertTooltipText(() => ((CustomContent)customTooltipTextB.TooltipContent!).Text);
 
             AddAssert("current tooltip type normal", () => tooltipContainer.CurrentTooltip.GetType() == typeof(CustomTooltip));
         }

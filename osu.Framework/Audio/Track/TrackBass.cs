@@ -20,8 +20,6 @@ namespace osu.Framework.Audio.Track
 {
     public sealed class TrackBass : Track, IBassAudio, IBassAudioChannel
     {
-        public const int BYTES_PER_SAMPLE = 4;
-
         private Stream? dataStream;
 
         /// <summary>
@@ -106,14 +104,22 @@ namespace osu.Framework.Audio.Track
                 // will be -1 in case of an error
                 double seconds = Bass.ChannelBytes2Seconds(activeStream, byteLength);
 
+                int channels = 2;
+
+                if (Bass.ChannelGetInfo(activeStream, out ChannelInfo info))
+                    channels = info.Channels;
+
                 bool success = seconds >= 0;
 
                 if (success)
                 {
                     Length = seconds * 1000;
 
+                    // Bass uses 16-bit samples by default if neither BassFlags.Byte nor BassFlags.Float is specified
+                    const int bytes_per_sample = 2;
+
                     // Bass does not allow seeking to the end of the track, so the last available position is 1 sample before.
-                    lastSeekablePosition = Bass.ChannelBytes2Seconds(activeStream, byteLength - BYTES_PER_SAMPLE) * 1000;
+                    lastSeekablePosition = Bass.ChannelBytes2Seconds(activeStream, byteLength - bytes_per_sample * channels) * 1000;
 
                     isLoaded = true;
 
@@ -175,9 +181,9 @@ namespace osu.Framework.Audio.Track
                 Bass.ChannelSetDevice(tempoAdjustStream, bass_nodevice);
                 stream = BassFx.ReverseCreate(tempoAdjustStream, 5f, BassFlags.Default | BassFlags.FxFreeSource | BassFlags.Decode);
 
-                Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoUseQuickAlgorithm, 1);
-                Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoOverlapMilliseconds, 4);
-                Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoSequenceMilliseconds, 30);
+                Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.TempoUseQuickAlgorithm, 1);
+                Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.TempoOverlapMilliseconds, 4);
+                Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.TempoSequenceMilliseconds, 30);
             }
 
             return stream;
@@ -250,8 +256,7 @@ namespace osu.Framework.Audio.Track
 
         public override void Start()
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not start disposed tracks.");
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
             StartAsync().WaitSafely();
         }

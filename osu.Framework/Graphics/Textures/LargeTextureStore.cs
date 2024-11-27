@@ -15,13 +15,17 @@ namespace osu.Framework.Graphics.Textures
     /// <summary>
     /// A texture store that bypasses atlasing and removes textures from memory after dereferenced by all consumers.
     /// </summary>
+    /// <remarks>
+    /// It's recommended to use manual mipmaps since large textures are generally rendered at full resolution
+    /// and computing mipmaps automatically will be unnecessary overhead.
+    /// </remarks>
     public class LargeTextureStore : TextureStore
     {
         private readonly object referenceCountLock = new object();
         private readonly Dictionary<string, TextureWithRefCount.ReferenceCount> referenceCounts = new Dictionary<string, TextureWithRefCount.ReferenceCount>();
 
-        public LargeTextureStore(IRenderer renderer, IResourceStore<TextureUpload> store = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
-            : base(renderer, store, false, filteringMode, true)
+        public LargeTextureStore(IRenderer renderer, IResourceStore<TextureUpload> store = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, bool manualMipmaps = true)
+            : base(renderer, store, false, filteringMode, manualMipmaps)
         {
         }
 

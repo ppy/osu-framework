@@ -24,19 +24,38 @@ namespace osu.Framework.SourceGeneration.Analysers
         }
 
         /// <summary>
-        /// Analyses class definitions for implementations of IDrawable, ISourceGeneratedDependencyActivator, and Transformable.
+        /// Analyses class definitions for implementations of IDependencyInjectionCandidateInterface.
         /// </summary>
         private void analyseClass(SyntaxNodeAnalysisContext context)
         {
             var classSyntax = (ClassDeclarationSyntax)context.Node;
 
-            if (classSyntax.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
+            if (classSyntax.Ancestors().OfType<ClassDeclarationSyntax>().Any())
                 return;
 
-            INamedTypeSymbol? type = context.SemanticModel.GetDeclaredSymbol(classSyntax);
+            analyseRecursively(context, classSyntax);
 
-            if (type?.AllInterfaces.Any(SyntaxHelpers.IsIDependencyInjectionCandidateInterface) == true)
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticRules.MAKE_DI_CLASS_PARTIAL, context.Node.GetLocation(), context.Node));
+            static bool analyseRecursively(SyntaxNodeAnalysisContext context, ClassDeclarationSyntax node)
+            {
+                bool requiresPartial = false;
+
+                // Child nodes always have to be analysed to provide diagnostics.
+                foreach (var nested in node.DescendantNodes().OfType<ClassDeclarationSyntax>())
+                    requiresPartial |= analyseRecursively(context, nested);
+
+                // - If at least one child requires partial, then this node also needs to be partial regardless of its own type (optimisation).
+                // - If no child requires partial, we need to check if this node is a DI candidate (e.g. If the node has no nested types).
+                if (!requiresPartial)
+                    requiresPartial = context.SemanticModel.GetDeclaredSymbol(node)?.AllInterfaces.Any(SyntaxHelpers.IsIDependencyInjectionCandidateInterface) == true;
+
+                // Whether the node is already partial.
+                bool isPartial = node.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword));
+
+                if (requiresPartial && !isPartial)
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticRules.MAKE_DI_CLASS_PARTIAL, node.GetLocation(), node));
+
+                return requiresPartial;
+            }
         }
     }
 }

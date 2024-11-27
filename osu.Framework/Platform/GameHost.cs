@@ -29,6 +29,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Deferred;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
@@ -44,6 +45,7 @@ using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Serialization;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
+using Rectangle = System.Drawing.Rectangle;
 using Size = System.Drawing.Size;
 
 namespace osu.Framework.Platform
@@ -51,6 +53,11 @@ namespace osu.Framework.Platform
     public abstract class GameHost : IIpcHost, IDisposable
     {
         public IWindow Window { get; private set; }
+
+        /// <summary>
+        /// Whether <see cref="Window"/> needs to be non-null for startup to succeed.
+        /// </summary>
+        protected virtual bool RequireWindowExists => true;
 
         public IRenderer Renderer { get; private set; }
 
@@ -111,10 +118,12 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Func<Exception, bool> ExceptionThrown;
 
+        [CanBeNull]
         public event Func<IpcMessage, IpcMessage> MessageReceived;
 
         /// <summary>
-        /// Whether the on screen keyboard covers a portion of the game window when presented to the user.
+        /// Whether the on-screen keyboard covers a portion of the game window when presented to the user.
+        /// This is usually true on mobile platforms, but may change to false if a hardware keyboard is connected.
         /// </summary>
         public virtual bool OnScreenKeyboardOverlapsGameWindow => false;
 
@@ -137,10 +146,10 @@ namespace osu.Framework.Platform
         public virtual Task SendMessageAsync(IpcMessage message) => throw new NotSupportedException("This platform does not implement IPC.");
 
         /// <summary>
-        /// Requests that a file be opened externally with an associated application, if available.
+        /// Requests that a file or folder be opened externally with an associated application, if available.
         /// </summary>
         /// <remarks>
-        /// Some platforms do not support interacting with files externally (ie. mobile or sandboxed platforms), check the return value as to whether it succeeded.
+        /// Some platforms do not support interacting with files externally (ie. mobile or sandboxed platforms), check the return value to discern whether it succeeded.
         /// </remarks>
         /// <param name="filename">The absolute path to the file which should be opened.</param>
         /// <returns>Whether the file was successfully opened.</returns>
@@ -151,12 +160,14 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <remarks>
         /// This will open the parent folder and, (if available) highlight the file.
-        /// Some platforms do not support interacting with files externally (ie. mobile or sandboxed platforms), check the return value as to whether it succeeded.
+        /// Some platforms do not support interacting with files externally (ie. mobile or sandboxed platforms), check the return value to discern whether it succeeded.
+        ///
+        /// If a folder path is provided to this method, it will prefer highlighting the folder in the parent folder, rather than showing the contents.
+        /// To display the contents of a folder, use <see cref="OpenFileExternally"/> instead.
         /// </remarks>
         /// <example>
         ///     <para>"C:\Windows\explorer.exe" -> opens 'C:\Windows' and highlights 'explorer.exe' in the window.</para>
         ///     <para>"C:\Windows\System32" -> opens 'C:\Windows' and highlights 'System32' in the window.</para>
-        ///     <para>"C:\Windows\System32\" -> opens 'C:\Windows\System32' and highlights nothing.</para>
         /// </example>
         /// <param name="filename">The absolute path to the file/folder to be shown in its parent folder.</param>
         /// <returns>Whether the file was successfully presented.</returns>
@@ -173,8 +184,10 @@ namespace osu.Framework.Platform
         /// </summary>
         protected abstract IWindow CreateWindow(GraphicsSurfaceType preferredSurface);
 
-        [CanBeNull]
-        public virtual Clipboard GetClipboard() => null;
+        [Obsolete($"Resolve {nameof(Clipboard)} via DI.")] // can be removed 20231010
+        public Clipboard GetClipboard() => Dependencies.Get<Clipboard>();
+
+        protected abstract Clipboard CreateClipboard();
 
         protected virtual ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new ReadableKeyCombinationProvider();
 
@@ -197,7 +210,9 @@ namespace osu.Framework.Platform
         /// <summary>
         /// All valid user storage paths in order of usage priority.
         /// </summary>
-        public virtual IEnumerable<string> UserStoragePaths => Environment.GetFolderPath(Environment.SpecialFolder.Personal).Yield();
+        public virtual IEnumerable<string> UserStoragePaths
+            // This is common to _most_ operating systems, with some specific ones overriding this value where a better option exists.
+            => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create).Yield();
 
         /// <summary>
         /// The main storage as proposed by the host game.
@@ -324,6 +339,11 @@ namespace osu.Framework.Platform
         {
             Options = options ?? new HostOptions();
 
+            if (string.IsNullOrEmpty(Options.FriendlyGameName))
+            {
+                Options.FriendlyGameName = $@"osu!framework (running ""{gameName}"")";
+            }
+
             Name = gameName;
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
@@ -386,8 +406,8 @@ namespace osu.Framework.Platform
 
             // In the case of an unhandled exception, it's feasible that the disposal flow for `GameHost` doesn't run.
             // This can result in the exception not being logged (or being partially logged) due to the logger running asynchronously.
-            // We force flushing the logger here to ensure logging completes.
-            Logger.Flush();
+            // We force flushing the logger here to ensure logging completes (and also unbind in the process since we're aborting execution from here).
+            Logger.FlushForShutdown();
 
             var captured = ExceptionDispatchInfo.Capture(exception);
             var thrownEvent = new ManualResetEventSlim(false);
@@ -434,9 +454,9 @@ namespace osu.Framework.Platform
             Exited?.Invoke();
         }
 
-        protected TripleBuffer<DrawNode> DrawRoots = new TripleBuffer<DrawNode>();
+        private readonly TripleBuffer<DrawNode> drawRoots = new TripleBuffer<DrawNode>();
 
-        protected Container Root;
+        internal Container Root { get; private set; }
 
         private ulong frameCount;
 
@@ -460,32 +480,47 @@ namespace osu.Framework.Platform
             TypePerformanceMonitor.NewFrame();
 
             Root.UpdateSubTree();
-            Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
+            Root.UpdateSubTreeMasking();
 
-            using (var buffer = DrawRoots.GetForWrite())
+            using (var buffer = drawRoots.GetForWrite())
                 buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
         }
 
-        private readonly DepthValue depthValue = new DepthValue();
+        private bool didRenderFrame;
 
         protected virtual void DrawFrame()
         {
+            Debug.Assert(Window != null);
+
             if (Root == null)
                 return;
 
             if (ExecutionState != ExecutionState.Running)
                 return;
 
-            Renderer.AllowTearing = windowMode.Value == WindowMode.Fullscreen;
-            Renderer.WaitUntilNextFrameReady();
+            if (Window.WindowState == WindowState.Minimised)
+                return;
 
-            ObjectUsage<DrawNode> buffer;
+            Renderer.AllowTearing = windowMode.Value == WindowMode.Fullscreen;
+
+            TripleBuffer<DrawNode>.Buffer buffer;
 
             using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
-                buffer = DrawRoots.GetForRead();
+            {
+                // Importantly, only wait on renderer frame availability if we actually rendered a frame since the last `WaitUntilNextFrameReady()`.
+                // Without this, the wait handle, internally used in the Veldrid-side implementation of `WaitUntilNextFrameReady()`,
+                // will potentially be in a bad state and take the timeout value (1 second) to recover.
+                if (didRenderFrame)
+                    Renderer.WaitUntilNextFrameReady();
+
+                didRenderFrame = false;
+                buffer = drawRoots.GetForRead();
+            }
 
             if (buffer == null)
                 return;
+
+            Debug.Assert(buffer.Object != null);
 
             try
             {
@@ -494,15 +529,13 @@ namespace osu.Framework.Platform
 
                 if (!bypassFrontToBackPass.Value)
                 {
-                    depthValue.Reset();
-
                     Renderer.SetBlend(BlendingParameters.None);
 
                     Renderer.SetBlendMask(BlendingMask.None);
                     Renderer.PushDepthInfo(DepthInfo.Default);
 
                     // Front pass
-                    buffer.Object.DrawOpaqueInteriorSubTree(Renderer, depthValue);
+                    DrawNode.DrawOtherOpaqueInterior(buffer.Object, Renderer);
 
                     Renderer.PopDepthInfo();
                     Renderer.SetBlendMask(BlendingMask.All);
@@ -517,7 +550,7 @@ namespace osu.Framework.Platform
                 }
 
                 // Back pass
-                buffer.Object.Draw(Renderer);
+                DrawNode.DrawOther(buffer.Object, Renderer);
 
                 Renderer.PopDepthInfo();
 
@@ -527,6 +560,7 @@ namespace osu.Framework.Platform
                     Swap();
 
                 Window.OnDraw();
+                didRenderFrame = true;
             }
             finally
             {
@@ -690,10 +724,8 @@ namespace osu.Framework.Platform
                 Trace.Listeners.Clear();
                 Trace.Listeners.Add(new ThrowingTraceListener());
 
-                var assembly = DebugUtils.GetEntryAssembly();
-
                 Logger.GameIdentifier = Name;
-                Logger.VersionIdentifier = assembly.GetName().Version?.ToString() ?? Logger.VersionIdentifier;
+                Logger.VersionIdentifier = RuntimeInfo.EntryAssembly.GetName().Version?.ToString() ?? Logger.VersionIdentifier;
 
                 Dependencies.CacheAs(this);
                 Dependencies.CacheAs(Storage = game.CreateStorage(this, GetDefaultGameStorage()));
@@ -707,6 +739,14 @@ namespace osu.Framework.Platform
                 SetupConfig(game.GetFrameworkConfigDefaults() ?? new Dictionary<FrameworkSetting, object>());
 
                 ChooseAndSetupRenderer();
+
+                // Window creation may fail in the case of a catastrophic failure (ie. graphics driver or SDL3 level).
+                // In such cases, we want to throw here to immediately mark this renderer setup as failed.
+                if (RequireWindowExists && Window == null)
+                {
+                    Logger.Log("Aborting startup as no window could be created.");
+                    return;
+                }
 
                 initialiseInputHandlers();
 
@@ -723,6 +763,7 @@ namespace osu.Framework.Platform
 
                 Dependencies.CacheAs(readableKeyCombinationProvider = CreateReadableKeyCombinationProvider());
                 Dependencies.CacheAs(CreateTextInput());
+                Dependencies.CacheAs(CreateClipboard());
 
                 ExecutionState = ExecutionState.Running;
                 threadRunner.Start();
@@ -745,17 +786,7 @@ namespace osu.Framework.Platform
                 {
                     if (Window != null)
                     {
-                        switch (Window)
-                        {
-                            case SDL2Window window:
-                                window.Update += windowUpdate;
-                                break;
-
-                            case OsuTKWindow tkWindow:
-                                tkWindow.UpdateFrame += (_, _) => windowUpdate();
-                                break;
-                        }
-
+                        Window.Update += windowUpdate;
                         Window.Suspended += Suspend;
                         Window.Resumed += Resume;
                         Window.LowOnMemory += Collect;
@@ -812,28 +843,39 @@ namespace osu.Framework.Platform
             {
                 case RuntimeInfo.Platform.Windows:
                     yield return RendererType.Direct3D11;
+                    yield return RendererType.Deferred_Direct3D11;
+                    yield return RendererType.OpenGL;
+                    yield return RendererType.Deferred_Vulkan;
+
+                    break;
+
+                case RuntimeInfo.Platform.Linux:
+                    yield return RendererType.OpenGL;
+                    yield return RendererType.Deferred_OpenGL;
+                    yield return RendererType.Deferred_Vulkan;
 
                     break;
 
                 case RuntimeInfo.Platform.macOS:
-                case RuntimeInfo.Platform.iOS:
                     yield return RendererType.Metal;
+                    yield return RendererType.Deferred_Metal;
+                    yield return RendererType.OpenGL;
+
+                    break;
+
+                case RuntimeInfo.Platform.iOS:
+                    // GL renderer not supported, see: https://github.com/ppy/osu/issues/23003.
+                    yield return RendererType.Metal;
+                    yield return RendererType.Deferred_Metal;
+
+                    break;
+
+                case RuntimeInfo.Platform.Android:
+                    // Still uses osuTK so only the legacy GL renderer is supported.
+                    yield return RendererType.OpenGL;
 
                     break;
             }
-
-            // See https://github.com/ppy/osu/issues/23003
-            if (RuntimeInfo.OS != RuntimeInfo.Platform.iOS)
-            {
-                // Non-veldrid "known-to-work".
-                yield return RendererType.OpenGLLegacy;
-            }
-
-            // Other available renderers should also be returned (to make this method usable as "all available renderers for current platform"),
-            // but will never be preferred as OpenGLLegacy will always work.
-            yield return RendererType.OpenGL;
-
-            if (!RuntimeInfo.IsApple) yield return RendererType.Vulkan;
         }
 
         protected virtual void ChooseAndSetupRenderer()
@@ -869,11 +911,25 @@ namespace osu.Framework.Platform
             {
                 try
                 {
-                    if (type == RendererType.OpenGLLegacy)
-                        // the legacy renderer. this is basically guaranteed to support all platforms.
-                        SetupRendererAndWindow("gl", GraphicsSurfaceType.OpenGL);
-                    else
-                        SetupRendererAndWindow("veldrid", rendererToGraphicsSurfaceType(type));
+                    switch (type)
+                    {
+                        case RendererType.OpenGL:
+                            // Use the legacy GL renderer. This is basically guaranteed to support all platforms
+                            // and performs better than the Veldrid-GL renderer due to reduction in allocs.
+                            SetupRendererAndWindow(new GLRenderer(), GraphicsSurfaceType.OpenGL);
+                            break;
+
+                        case RendererType.Deferred_Metal:
+                        case RendererType.Deferred_Vulkan:
+                        case RendererType.Deferred_Direct3D11:
+                        case RendererType.Deferred_OpenGL:
+                            SetupRendererAndWindow(new DeferredRenderer(), rendererToGraphicsSurfaceType(type));
+                            break;
+
+                        default:
+                            SetupRendererAndWindow(new VeldridRenderer(), rendererToGraphicsSurfaceType(type));
+                            break;
+                    }
 
                     ResolvedRenderer = type;
                     return;
@@ -899,18 +955,22 @@ namespace osu.Framework.Platform
 
             switch (renderer)
             {
+                case RendererType.Deferred_Metal:
                 case RendererType.Metal:
                     surface = GraphicsSurfaceType.Metal;
                     break;
 
+                case RendererType.Deferred_Vulkan:
                 case RendererType.Vulkan:
                     surface = GraphicsSurfaceType.Vulkan;
                     break;
 
+                case RendererType.Deferred_Direct3D11:
                 case RendererType.Direct3D11:
                     surface = GraphicsSurfaceType.Direct3D11;
                     break;
 
+                case RendererType.Deferred_OpenGL:
                 case RendererType.OpenGL:
                     surface = GraphicsSurfaceType.OpenGL;
                     break;
@@ -930,6 +990,10 @@ namespace osu.Framework.Platform
                     SetupRendererAndWindow(new VeldridRenderer(), surfaceType);
                     break;
 
+                case "deferred":
+                    SetupRendererAndWindow(new DeferredRenderer(), surfaceType);
+                    break;
+
                 default:
                 case "gl":
                     SetupRendererAndWindow(CreateGLRenderer(), surfaceType);
@@ -942,21 +1006,25 @@ namespace osu.Framework.Platform
             Logger.Log($"🖼️ Initialising \"{renderer.GetType().ReadableName().Replace("Renderer", "")}\" renderer with \"{surfaceType}\" surface");
 
             Renderer = renderer;
-
-            // Prepare window
-            Window = CreateWindow(surfaceType);
-
-            if (Window == null)
-            {
-                Logger.Log("🖼️ Renderer could not be initialised, no window exists.");
-                return;
-            }
+            Renderer.CacheStorage = CacheStorage.GetStorageForDirectory("shaders");
 
             try
             {
+                // Prepare window
+                Window = CreateWindow(surfaceType);
+
+                if (Window == null)
+                {
+                    // Can be null, usually via Headless execution.
+                    if (!RequireWindowExists)
+                        return;
+
+                    throw new InvalidOperationException("🖼️ Renderer could not be initialised as window creation failed.");
+                }
+
                 Window.SetupWindow(Config);
                 Window.Create();
-                Window.Title = $@"osu!framework (running ""{Name}"")";
+                Window.Title = Options.FriendlyGameName;
 
                 Renderer.Initialise(Window.GraphicsSurface);
 
@@ -978,7 +1046,25 @@ namespace osu.Framework.Platform
             currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
             currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());
 
+            Window.CurrentDisplayBindable.BindValueChanged(display =>
+            {
+                if (Renderer is VeldridRenderer veldridRenderer)
+                {
+                    Rectangle bounds = display.NewValue.Bounds;
+
+                    veldridRenderer.Device.UpdateActiveDisplay(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+                }
+            }, true);
+
             IsActive.BindTo(Window.IsActive);
+
+            AllowScreenSuspension.Result.BindValueChanged(e =>
+            {
+                if (e.NewValue)
+                    Window.EnableScreenSuspension();
+                else
+                    Window.DisableScreenSuspension();
+            }, true);
         }
 
         /// <summary>
@@ -1216,6 +1302,11 @@ namespace osu.Framework.Platform
             }, true);
 
             inputConfig = new InputConfigManager(Storage, AvailableInputHandlers);
+
+#pragma warning disable CS0612 // Type or member is obsolete
+            if (Config.Get<RendererType>(FrameworkSetting.Renderer) == RendererType.OpenGLLegacy)
+                Config.SetValue(FrameworkSetting.Renderer, RendererType.OpenGL);
+#pragma warning restore CS0612 // Type or member is obsolete
         }
 
         /// <summary>
@@ -1238,7 +1329,7 @@ namespace osu.Framework.Platform
             if (Window == null)
                 return;
 
-            int refreshRate = Window.CurrentDisplayMode.Value.RefreshRate;
+            int refreshRate = (int)MathF.Round(Window.CurrentDisplayMode.Value.RefreshRate);
 
             // For invalid refresh rates let's assume 60 Hz as it is most common.
             if (refreshRate <= 0)
@@ -1345,7 +1436,7 @@ namespace osu.Framework.Platform
             Window?.Dispose();
 
             LoadingComponentsLogger.LogAndFlush();
-            Logger.Flush();
+            Logger.FlushForShutdown();
         }
 
         public void Dispose()
@@ -1365,6 +1456,9 @@ namespace osu.Framework.Platform
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.X), PlatformAction.Cut),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.C), PlatformAction.Copy),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.V), PlatformAction.Paste),
+            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Delete), PlatformAction.Cut),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Insert), PlatformAction.Copy),
+            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Insert), PlatformAction.Paste),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.A), PlatformAction.SelectAll),
             new KeyBinding(InputKey.Left, PlatformAction.MoveBackwardChar),
             new KeyBinding(InputKey.Right, PlatformAction.MoveForwardChar),

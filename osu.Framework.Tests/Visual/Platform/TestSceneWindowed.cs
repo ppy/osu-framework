@@ -9,7 +9,11 @@ using System.Runtime.Versioning;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Platform;
+using osuTK;
+using WindowState = osu.Framework.Platform.WindowState;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
@@ -19,18 +23,44 @@ namespace osu.Framework.Tests.Visual.Platform
     [SupportedOSPlatform("macos")]
     public partial class TestSceneWindowed : FrameworkTestScene
     {
+        public override bool AutomaticallyRunFirstStep => false;
+
         [Resolved]
         private GameHost host { get; set; }
 
         [Resolved]
         private FrameworkConfigManager config { get; set; }
 
-        private SDL2Window sdlWindow;
+        private ISDLWindow sdlWindow;
 
         [BackgroundDependencyLoader]
         private void load()
         {
-            sdlWindow = (SDL2Window)host.Window;
+            sdlWindow = (ISDLWindow)host.Window;
+            Children = new Drawable[]
+            {
+                new FillFlowContainer
+                {
+                    Padding = new MarginPadding(10),
+                    Spacing = new Vector2(10),
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
+                    Direction = FillDirection.Vertical,
+                    Children = new Drawable[]
+                    {
+                        new FrameworkConfigVisualiser<Size>(FrameworkSetting.WindowedSize),
+                        new FrameworkConfigVisualiser<double>(FrameworkSetting.WindowedPositionX),
+                        new FrameworkConfigVisualiser<double>(FrameworkSetting.WindowedPositionY),
+                        new FrameworkConfigVisualiser<DisplayIndex>(FrameworkSetting.LastDisplayDevice),
+                        new FrameworkConfigVisualiser<WindowMode>(FrameworkSetting.WindowMode),
+                    },
+                },
+                new WindowDisplaysPreview
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Padding = new MarginPadding { Top = 160 }
+                }
+            };
         }
 
         [SetUp]

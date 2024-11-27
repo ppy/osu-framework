@@ -59,9 +59,8 @@ namespace osu.Framework.Graphics
             clipDrawRectangle();
 
             frameBufferSize = new Vector2(MathF.Ceiling(screenSpaceDrawRectangle.Width * frameBufferScale.X), MathF.Ceiling(screenSpaceDrawRectangle.Height * frameBufferScale.Y));
-            DrawRectangle = SharedData.PixelSnapping
-                ? new RectangleF(screenSpaceDrawRectangle.X, screenSpaceDrawRectangle.Y, frameBufferSize.X, frameBufferSize.Y)
-                : screenSpaceDrawRectangle;
+
+            DrawRectangle = screenSpaceDrawRectangle;
 
             Child.ApplyState();
         }
@@ -81,7 +80,7 @@ namespace osu.Framework.Graphics
         /// <returns>A version representing this <see cref="DrawNode"/>'s state.</returns>
         protected virtual long GetDrawVersion() => InvalidationID;
 
-        public sealed override void Draw(IRenderer renderer)
+        protected sealed override void Draw(IRenderer renderer)
         {
             if (!SharedData.IsInitialised)
                 SharedData.Initialise(renderer);
@@ -102,7 +101,7 @@ namespace osu.Framework.Graphics
                         renderer.PushOrtho(screenSpaceDrawRectangle);
                         renderer.Clear(new ClearInfo(backgroundColour));
 
-                        Child.Draw(renderer);
+                        DrawOther(Child, renderer);
 
                         renderer.PopOrtho();
                     }
@@ -144,17 +143,17 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="frameBuffer">The <see cref="IFrameBuffer"/> to bind.</param>
         /// <returns>A token that must be disposed upon finishing use of <paramref name="frameBuffer"/>.</returns>
-        protected IDisposable BindFrameBuffer(IFrameBuffer frameBuffer)
+        protected ValueInvokeOnDisposal<IFrameBuffer> BindFrameBuffer(IFrameBuffer frameBuffer)
         {
             // This setter will also take care of allocating a texture of appropriate size within the frame buffer.
             frameBuffer.Size = frameBufferSize;
 
             frameBuffer.Bind();
 
-            return new ValueInvokeOnDisposal<IFrameBuffer>(frameBuffer, b => b.Unbind());
+            return new ValueInvokeOnDisposal<IFrameBuffer>(frameBuffer, static b => b.Unbind());
         }
 
-        private IDisposable establishFrameBufferViewport(IRenderer renderer)
+        private ValueInvokeOnDisposal<(BufferedDrawNode node, IRenderer renderer)> establishFrameBufferViewport(IRenderer renderer)
         {
             // Disable masking for generating the frame buffer since masking will be re-applied
             // when actually drawing later on anyways. This allows more information to be captured
@@ -176,7 +175,7 @@ namespace osu.Framework.Graphics
             renderer.PushScissor(new RectangleI(0, 0, (int)frameBufferSize.X, (int)frameBufferSize.Y));
             renderer.PushScissorOffset(screenSpaceMaskingRect.Location);
 
-            return new ValueInvokeOnDisposal<(BufferedDrawNode node, IRenderer renderer)>((this, renderer), tup => tup.node.returnViewport(tup.renderer));
+            return new ValueInvokeOnDisposal<(BufferedDrawNode node, IRenderer renderer)>((this, renderer), static tup => tup.node.returnViewport(tup.renderer));
         }
 
         private void returnViewport(IRenderer renderer)

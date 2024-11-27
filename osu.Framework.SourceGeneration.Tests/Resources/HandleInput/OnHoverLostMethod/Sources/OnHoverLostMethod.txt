@@ -1,0 +1,4 @@
+public partial class OnHoverLostMethod : osu.Framework.Graphics.Drawable
+{
+    protected override void OnHoverLost(object e) { }
+}

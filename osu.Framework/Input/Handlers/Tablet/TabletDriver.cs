@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Components;
+using OpenTabletDriver.Plugin.Logging;
 using OpenTabletDriver.Plugin.Tablet;
 using LogLevel = osu.Framework.Logging.LogLevel;
 
@@ -33,11 +34,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 
             knownVendors = vendors.Distinct().ToArray();
 
-            Log.Output += (_, logMessage) =>
-            {
-                LogLevel level = (int)logMessage.Level > (int)LogLevel.Error ? LogLevel.Error : (LogLevel)logMessage.Level;
-                PostLog?.Invoke($"{logMessage.Group}: {logMessage.Message}", level, null);
-            };
+            Log.Output += postLog;
 
             deviceHub.DevicesChanged += (_, args) =>
             {
@@ -47,6 +44,12 @@ namespace osu.Framework.Input.Handlers.Tablet
             };
 
             detectAsync();
+        }
+
+        private void postLog(object? _, LogMessage logMessage)
+        {
+            LogLevel level = (int)logMessage.Level > (int)LogLevel.Error ? LogLevel.Error : LogLevel.Verbose;
+            PostLog?.Invoke($"{logMessage.Group}: {logMessage.Message}", level, null);
         }
 
         private void detectAsync()
@@ -93,6 +96,13 @@ namespace osu.Framework.Input.Handlers.Tablet
             var provider = serviceCollection.BuildServiceProvider();
 
             return provider.GetRequiredService<TabletDriver>();
+        }
+
+        public new void Dispose()
+        {
+            base.Dispose();
+
+            Log.Output -= postLog;
         }
     }
 }

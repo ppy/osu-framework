@@ -8,7 +8,6 @@ using System.Linq;
 using System.Text;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Veldrid.Buffers;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
@@ -22,8 +21,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
     {
         private readonly string name;
         private readonly VeldridShaderPart[] parts;
-        private readonly IUniformBuffer<GlobalUniformData> globalUniformBuffer;
-        private readonly VeldridRenderer renderer;
+        private readonly ShaderCompilationStore compilationStore;
+        private readonly IVeldridRenderer renderer;
 
         public Shader[]? Shaders;
 
@@ -42,11 +41,11 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         private readonly Dictionary<string, VeldridUniformLayout> uniformLayouts = new Dictionary<string, VeldridUniformLayout>();
         private readonly List<VeldridUniformLayout> textureLayouts = new List<VeldridUniformLayout>();
 
-        public VeldridShader(VeldridRenderer renderer, string name, VeldridShaderPart[] parts, IUniformBuffer<GlobalUniformData> globalUniformBuffer)
+        public VeldridShader(IVeldridRenderer renderer, string name, VeldridShaderPart[] parts, ShaderCompilationStore compilationStore)
         {
             this.name = name;
             this.parts = parts;
-            this.globalUniformBuffer = globalUniformBuffer;
+            this.compilationStore = compilationStore;
             this.renderer = renderer;
 
             // This part of the compilation is quite CPU expensive.
@@ -59,8 +58,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
         internal void EnsureShaderInitialised()
         {
-            if (isDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not compile a disposed shader.");
+            ObjectDisposedException.ThrowIf(isDisposed, this);
 
             if (shaderInitialiseDelegate.State == RunState.Waiting)
                 shaderInitialiseDelegate.RunTask();
@@ -91,15 +89,11 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
         public void BindUniformBlock(string blockName, IUniformBuffer buffer)
         {
-            if (buffer is not IVeldridUniformBuffer veldridBuffer)
-                throw new ArgumentException($"Buffer must be an {nameof(IVeldridUniformBuffer)}.");
-
-            if (isDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not retrieve uniforms from a disposed shader.");
+            ObjectDisposedException.ThrowIf(isDisposed, this);
 
             EnsureShaderInitialised();
 
-            renderer.BindUniformBuffer(blockName, veldridBuffer);
+            renderer.BindUniformBuffer(blockName, buffer);
         }
 
         public VeldridUniformLayout? GetTextureLayout(int textureUnit) => textureUnit >= textureLayouts.Count ? null : textureLayouts[textureUnit];
@@ -108,15 +102,19 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
         private void compile()
         {
-            Logger.Log($"🖍️ Compiling shader {name}...");
-
             Debug.Assert(parts.Length == 2);
 
             VeldridShaderPart vertex = parts.Single(p => p.Type == ShaderPartType.Vertex);
             VeldridShaderPart fragment = parts.Single(p => p.Type == ShaderPartType.Fragment);
 
+            // some attributes from the vertex output may not be used by the fragment shader, but that could break some renderers (e.g. D3D11).
+            // therefore include any unused vertex output to a fragment shader as fragment input & output.
+            fragment = fragment.WithPassthroughInput(vertex.Outputs);
+
             try
             {
+                bool cached = true;
+
                 vertexShaderDescription = new ShaderDescription(
                     ShaderStages.Vertex,
                     Array.Empty<byte>(),
@@ -128,19 +126,21 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                     renderer.Factory.BackendType == GraphicsBackend.Metal ? "main0" : "main");
 
                 // GLSL cross compile is always performed for reflection, even though the cross-compiled shaders aren't used under other backends.
-                VertexFragmentCompilationResult crossCompileResult = SpirvCompilation.CompileVertexFragment(
-                    Encoding.UTF8.GetBytes(vertex.GetRawText()),
-                    Encoding.UTF8.GetBytes(fragment.GetRawText()),
+                VertexFragmentShaderCompilation compilation = compilationStore.CompileVertexFragment(
+                    vertex.GetRawText(),
+                    fragment.GetRawText(),
                     RuntimeInfo.IsMobile ? CrossCompileTarget.ESSL : CrossCompileTarget.GLSL);
+
+                cached &= compilation.WasCached;
 
                 if (renderer.SurfaceType == GraphicsSurfaceType.Vulkan)
                 {
-                    vertexShaderDescription.ShaderBytes = SpirvCompilation.CompileGlslToSpirv(vertex.GetRawText(), null, ShaderStages.Vertex, GlslCompileOptions.Default).SpirvBytes;
-                    fragmentShaderDescription.ShaderBytes = SpirvCompilation.CompileGlslToSpirv(fragment.GetRawText(), null, ShaderStages.Fragment, GlslCompileOptions.Default).SpirvBytes;
+                    vertexShaderDescription.ShaderBytes = compilation.VertexBytes;
+                    fragmentShaderDescription.ShaderBytes = compilation.FragmentBytes;
                 }
                 else
                 {
-                    VertexFragmentCompilationResult platformCrossCompileResult = crossCompileResult;
+                    VertexFragmentShaderCompilation platformCompilation = compilation;
 
                     // If we don't have an OpenGL surface, we need to cross-compile once more for the correct platform.
                     if (renderer.SurfaceType != GraphicsSurfaceType.OpenGL)
@@ -152,58 +152,54 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                             _ => throw new InvalidOperationException($"Unsupported surface type: {renderer.SurfaceType}.")
                         };
 
-                        platformCrossCompileResult = SpirvCompilation.CompileVertexFragment(
-                            Encoding.UTF8.GetBytes(vertex.GetRawText()),
-                            Encoding.UTF8.GetBytes(fragment.GetRawText()),
+                        platformCompilation = compilationStore.CompileVertexFragment(
+                            vertex.GetRawText(),
+                            fragment.GetRawText(),
                             target);
+
+                        cached &= platformCompilation.WasCached;
                     }
 
-                    vertexShaderDescription.ShaderBytes = Encoding.UTF8.GetBytes(platformCrossCompileResult.VertexShader);
-                    fragmentShaderDescription.ShaderBytes = Encoding.UTF8.GetBytes(platformCrossCompileResult.FragmentShader);
+                    vertexShaderDescription.ShaderBytes = Encoding.UTF8.GetBytes(platformCompilation.VertexText);
+                    fragmentShaderDescription.ShaderBytes = Encoding.UTF8.GetBytes(platformCompilation.FragmentText);
                 }
 
-                for (int set = 0; set < crossCompileResult.Reflection.ResourceLayouts.Length; set++)
+                for (int set = 0; set < compilation.Reflection.ResourceLayouts.Length; set++)
                 {
-                    ResourceLayoutDescription layout = crossCompileResult.Reflection.ResourceLayouts[set];
+                    ResourceLayoutDescription layout = compilation.Reflection.ResourceLayouts[set];
 
                     if (layout.Elements.Length == 0)
                         continue;
 
                     if (layout.Elements.Any(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite))
                     {
-                        // Todo: We should enforce that a texture set contains both a texture and a sampler.
-                        var textureElement = layout.Elements.First(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite);
-                        var samplerElement = layout.Elements.First(e => e.Kind == ResourceKind.Sampler);
+                        ResourceLayoutElementDescription textureElement = layout.Elements.First(e => e.Kind == ResourceKind.TextureReadOnly || e.Kind == ResourceKind.TextureReadWrite);
 
-                        textureLayouts.Add(new VeldridUniformLayout(
-                            set,
-                            renderer.Factory.CreateResourceLayout(
-                                new ResourceLayoutDescription(
-                                    new ResourceLayoutElementDescription(
-                                        textureElement.Name,
-                                        ResourceKind.TextureReadOnly,
-                                        ShaderStages.Fragment),
-                                    new ResourceLayoutElementDescription(
-                                        samplerElement.Name,
-                                        ResourceKind.Sampler,
-                                        ShaderStages.Fragment)))));
+                        if (layout.Elements.All(e => e.Kind != ResourceKind.Sampler))
+                            throw new InvalidOperationException($"Texture {textureElement.Name} has no associated sampler.");
+
+                        textureLayouts.Add(new VeldridUniformLayout(set, renderer.Factory.CreateResourceLayout(layout)));
                     }
-                    else if (layout.Elements[0].Kind == ResourceKind.UniformBuffer)
+                    else
                     {
-                        uniformLayouts[layout.Elements[0].Name] = new VeldridUniformLayout(
-                            set,
-                            renderer.Factory.CreateResourceLayout(
-                                new ResourceLayoutDescription(
-                                    new ResourceLayoutElementDescription(
-                                        layout.Elements[0].Name,
-                                        ResourceKind.UniformBuffer,
-                                        ShaderStages.Fragment | ShaderStages.Vertex))));
+                        layout.Elements[0].Options |= ResourceLayoutElementOptions.DynamicBinding;
+
+                        switch (layout.Elements[0].Kind)
+                        {
+                            case ResourceKind.UniformBuffer:
+                            case ResourceKind.StructuredBufferReadOnly:
+                            case ResourceKind.StructuredBufferReadWrite:
+                                uniformLayouts[layout.Elements[0].Name] = new VeldridUniformLayout(set, renderer.Factory.CreateResourceLayout(layout));
+                                break;
+                        }
                     }
                 }
 
-                Logger.Log($"🖍️ Shader {name} compiled!");
+                Logger.Log(cached
+                    ? $"🖍️ Shader {name} loaded from cache!"
+                    : $"🖍️ Shader {name} compiled!");
             }
-            catch (SpirvCompilationException e)
+            catch (Exception e)
             {
                 Logger.Error(e, $"🖍️ Failed to initialise shader {name}");
                 throw;
@@ -217,8 +213,6 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
                 renderer.Factory.CreateShader(vertexShaderDescription),
                 renderer.Factory.CreateShader(fragmentShaderDescription)
             };
-
-            BindUniformBlock("g_GlobalUniforms", globalUniformBuffer);
         }
 
         private bool isDisposed;

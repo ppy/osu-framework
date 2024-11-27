@@ -5,6 +5,8 @@
 
 using osuTK.Graphics;
 using System;
+using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
@@ -15,12 +17,22 @@ using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract partial class DropdownHeader : ClickableContainer, IKeyBindingHandler<PlatformAction>
+    public abstract partial class DropdownHeader : Container, IKeyBindingHandler<PlatformAction>
     {
         public event Action<DropdownSelectionAction> ChangeSelection;
 
         protected Container Background;
         protected Container Foreground;
+
+        public bool AlwaysShowSearchBar
+        {
+            get => SearchBar.AlwaysDisplayOnFocus;
+            set => SearchBar.AlwaysDisplayOnFocus = value;
+        }
+
+        protected internal DropdownSearchBar SearchBar { get; }
+
+        public Bindable<string> SearchTerm => SearchBar.SearchTerm;
 
         private Color4 backgroundColour = Color4.DarkGray;
 
@@ -52,12 +64,18 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected internal abstract LocalisableString Label { get; set; }
 
+        public readonly IBindable<bool> Enabled = new Bindable<bool>(true);
+
+        [Resolved]
+        private IDropdown dropdown { get; set; } = null!;
+
         protected DropdownHeader()
         {
             Masking = true;
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
             Width = 1;
+
             InternalChildren = new Drawable[]
             {
                 Background = new Container
@@ -79,12 +97,22 @@ namespace osu.Framework.Graphics.UserInterface
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y
                 },
+                SearchBar = CreateSearchBar(),
+                new ClickHandler
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Click = onClick
+                }
             };
         }
+
+        protected abstract DropdownSearchBar CreateSearchBar();
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
+            Enabled.BindTo(dropdown.Enabled);
             Enabled.BindValueChanged(_ => updateState(), true);
         }
 
@@ -104,6 +132,20 @@ namespace osu.Framework.Graphics.UserInterface
         {
             Colour = Enabled.Value ? Color4.White : DisabledColour;
             Background.Colour = IsHovered && Enabled.Value ? BackgroundColourHover : BackgroundColour;
+        }
+
+        /// <summary>
+        /// Handles clicks on the header to open/close the menu.
+        /// </summary>
+        private bool onClick(ClickEvent e)
+        {
+            // Allow input to fall through to the search bar (and its contained textbox) if there's any search text.
+            if (SearchBar.State.Value == Visibility.Visible && !string.IsNullOrEmpty(SearchTerm.Value))
+                return false;
+
+            // Otherwise, the header acts as a button to show/hide the menu.
+            dropdown.ToggleMenu();
+            return true;
         }
 
         public override bool HandleNonPositionalInput => IsHovered;
@@ -160,6 +202,12 @@ namespace osu.Framework.Graphics.UserInterface
             Last,
             FirstVisible,
             LastVisible
+        }
+
+        private partial class ClickHandler : Drawable
+        {
+            public required Func<ClickEvent, bool> Click { get; init; }
+            protected override bool OnClick(ClickEvent e) => Click(e);
         }
     }
 }

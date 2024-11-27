@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using ManagedBass;
-using osu.Framework.Bindables;
 using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.Audio.Mixing
@@ -14,21 +13,19 @@ namespace osu.Framework.Audio.Mixing
     {
         public readonly string Identifier;
 
-        private readonly AudioMixer? globalMixer;
+        private readonly AudioMixer? fallbackMixer;
 
         /// <summary>
         /// Creates a new <see cref="AudioMixer"/>.
         /// </summary>
-        /// <param name="globalMixer">The global <see cref="AudioMixer"/>, which <see cref="IAudioChannel"/>s are moved to if removed from this one.
-        /// A <c>null</c> value indicates this is the global <see cref="AudioMixer"/>.</param>
+        /// <param name="fallbackMixer">A fallback <see cref="AudioMixer"/>, which <see cref="IAudioChannel"/>s are moved to if removed from this one.
+        /// A <c>null</c> value indicates this is the fallback <see cref="AudioMixer"/>.</param>
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
-        protected AudioMixer(AudioMixer? globalMixer, string identifier)
+        protected AudioMixer(AudioMixer? fallbackMixer, string identifier)
         {
-            this.globalMixer = globalMixer;
+            this.fallbackMixer = fallbackMixer;
             Identifier = identifier;
         }
-
-        public abstract BindableList<IEffectParameter> Effects { get; }
 
         public void Add(IAudioChannel channel)
         {
@@ -48,6 +45,12 @@ namespace osu.Framework.Audio.Mixing
 
         public void Remove(IAudioChannel channel) => Remove(channel, true);
 
+        public abstract void AddEffect(IEffectParameter effect, int priority = 0);
+
+        public abstract void RemoveEffect(IEffectParameter effect);
+
+        public abstract void UpdateEffect(IEffectParameter effect);
+
         /// <summary>
         /// Removes an <see cref="IAudioChannel"/> from the mix.
         /// </summary>
@@ -56,7 +59,7 @@ namespace osu.Framework.Audio.Mixing
         protected void Remove(IAudioChannel channel, bool returnToDefault)
         {
             // If this is the default mixer, prevent removal.
-            if (returnToDefault && globalMixer == null)
+            if (returnToDefault && fallbackMixer == null)
                 return;
 
             channel.EnqueueAction(() =>
@@ -69,7 +72,7 @@ namespace osu.Framework.Audio.Mixing
 
                 // Add the channel back to the default mixer so audio can always be played.
                 if (returnToDefault)
-                    globalMixer.AsNonNull().Add(channel);
+                    fallbackMixer.AsNonNull().Add(channel);
             });
         }
 

@@ -1,9 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -17,10 +16,10 @@ namespace osu.Framework.Tests.Visual.Platform
     public partial class TestScenePresentFileExternally : FrameworkTestScene
     {
         [Resolved]
-        private GameHost host { get; set; }
+        private GameHost host { get; set; } = null!;
 
         [Resolved]
-        private Storage storage { get; set; }
+        private Storage storage { get; set; } = null!;
 
         protected override void LoadComplete()
         {
@@ -80,7 +79,7 @@ namespace osu.Framework.Tests.Visual.Platform
                     ),
                     new ButtonWithDescription
                     (
-                        () => logStorage.PresentFileExternally(@"runtime.log"),
+                        () => logStorage.PresentFileExternally(logStorage.GetFiles(string.Empty, "*runtime*").First()),
                         @"show runtime.log",
                         @"Opens: 'logs'   Selected: 'runtime.log'"
                     ),

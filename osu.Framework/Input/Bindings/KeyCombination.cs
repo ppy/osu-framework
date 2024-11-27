@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using osu.Framework.Extensions;
 using osu.Framework.Input.States;
 using osuTK;
 using osuTK.Input;
@@ -29,10 +30,33 @@ namespace osu.Framework.Input.Bindings
         /// Construct a new instance.
         /// </summary>
         /// <param name="keys">The keys.</param>
-        /// <remarks>This constructor is not optimized. Hot paths are assumed to use <see cref="FromInputState(InputState, Vector2?)"/>.</remarks>
-        public KeyCombination(IEnumerable<InputKey>? keys)
+        public KeyCombination(ICollection<InputKey>? keys)
         {
-            Keys = keys?.Any() == true ? keys.Distinct().OrderBy(k => (int)k).ToImmutableArray() : none;
+            if (keys == null || !keys.Any())
+            {
+                Keys = none;
+                return;
+            }
+
+            var keyBuilder = ImmutableArray.CreateBuilder<InputKey>(keys.Count);
+
+            bool hadDuplicates = false;
+
+            foreach (var key in keys)
+            {
+                if (keyBuilder.Contains(key))
+                {
+                    // This changes the expected count meaning we can't use the optimised MoveToImmutable() method.
+                    hadDuplicates = true;
+                    continue;
+                }
+
+                keyBuilder.Add(key);
+            }
+
+            keyBuilder.Sort();
+
+            Keys = hadDuplicates ? keyBuilder.ToImmutableArray() : keyBuilder.MoveToImmutable();
         }
 
         /// <summary>
@@ -41,7 +65,7 @@ namespace osu.Framework.Input.Bindings
         /// <param name="keys">The keys.</param>
         /// <remarks>This constructor is not optimized. Hot paths are assumed to use <see cref="FromInputState(InputState, Vector2?)"/>.</remarks>
         public KeyCombination(params InputKey[] keys)
-            : this(keys.AsEnumerable())
+            : this((ICollection<InputKey>)keys)
         {
         }
 
@@ -51,7 +75,7 @@ namespace osu.Framework.Input.Bindings
         /// <param name="keys">A comma-separated (KeyCode in integer) string representation of the keys.</param>
         /// <remarks>This constructor is not optimized. Hot paths are assumed to use <see cref="FromInputState(InputState, Vector2?)"/>.</remarks>
         public KeyCombination(string keys)
-            : this(keys.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => (InputKey)int.Parse(s)))
+            : this(keys.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => (InputKey)int.Parse(s)).ToArray())
         {
         }
 
@@ -68,54 +92,84 @@ namespace osu.Framework.Input.Bindings
         /// Check whether the provided pressed keys are valid for this <see cref="KeyCombination"/>.
         /// </summary>
         /// <param name="pressedKeys">The potential pressed keys for this <see cref="KeyCombination"/>.</param>
+        /// <param name="inputState">The current input state.</param>
         /// <param name="matchingMode">The method for handling exact key matches.</param>
         /// <returns>Whether the pressedKeys keys are valid.</returns>
-        public bool IsPressed(KeyCombination pressedKeys, KeyCombinationMatchingMode matchingMode)
+        public bool IsPressed(KeyCombination pressedKeys, InputState inputState, KeyCombinationMatchingMode matchingMode)
         {
             Debug.Assert(!pressedKeys.Keys.Contains(InputKey.None)); // Having None in pressed keys will break IsPressed
 
             if (Keys == pressedKeys.Keys) // Fast test for reference equality of underlying array
                 return true;
 
+            if (Keys.SequenceEqual(none))
+                return false;
+
             return ContainsAll(Keys, pressedKeys.Keys, matchingMode);
+        }
+
+        private static InputKey? getVirtualKey(InputKey key)
+        {
+            switch (key)
+            {
+                case InputKey.LShift:
+                case InputKey.RShift:
+                    return InputKey.Shift;
+
+                case InputKey.LControl:
+                case InputKey.RControl:
+                    return InputKey.Control;
+
+                case InputKey.LAlt:
+                case InputKey.RAlt:
+                    return InputKey.Alt;
+
+                case InputKey.LSuper:
+                case InputKey.RSuper:
+                    return InputKey.Super;
+            }
+
+            return null;
         }
 
         /// <summary>
         /// Check whether the provided set of pressed keys matches the candidate binding.
         /// </summary>
-        /// <param name="candidateKey">The candidate key binding to match against.</param>
-        /// <param name="pressedKey">The keys which have been pressed by a user.</param>
+        /// <param name="candidateKeyBinding">The candidate key binding to match against.</param>
+        /// <param name="pressedPhysicalKeys">The keys which have been pressed by a user.</param>
         /// <param name="matchingMode">The matching mode to be used when checking.</param>
         /// <returns>Whether this is a match.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool ContainsAll(ImmutableArray<InputKey> candidateKey, ImmutableArray<InputKey> pressedKey, KeyCombinationMatchingMode matchingMode)
+        internal static bool ContainsAll(ImmutableArray<InputKey> candidateKeyBinding, ImmutableArray<InputKey> pressedPhysicalKeys, KeyCombinationMatchingMode matchingMode)
         {
+            Debug.Assert(pressedPhysicalKeys.All(k => k.IsPhysical()));
+
             // first, check that all the candidate keys are contained in the provided pressed keys.
             // regardless of the matching mode, every key needs to at least be present (matching modes only change
             // the behaviour of excess keys).
-            foreach (var key in candidateKey)
+            foreach (var key in candidateKeyBinding)
             {
-                if (!ContainsKey(pressedKey, key))
+                if (!IsPressed(pressedPhysicalKeys, key))
                     return false;
             }
 
             switch (matchingMode)
             {
                 case KeyCombinationMatchingMode.Exact:
-                    foreach (var key in pressedKey)
+                    foreach (var key in pressedPhysicalKeys)
                     {
                         // in exact matching mode, every pressed key needs to be in the candidate.
-                        if (!ContainsKeyPermissive(candidateKey, key))
+                        if (!KeyBindingContains(candidateKeyBinding, key))
                             return false;
                     }
 
                     break;
 
                 case KeyCombinationMatchingMode.Modifiers:
-                    foreach (var key in pressedKey)
+                    foreach (var key in pressedPhysicalKeys)
                     {
                         // in modifiers match mode, the same check applies as exact but only for modifier keys.
-                        if (IsModifierKey(key) && !ContainsKeyPermissive(candidateKey, key))
+                        if (IsModifierKey(key) && !KeyBindingContains(candidateKeyBinding, key))
                             return false;
                     }
 
@@ -131,84 +185,36 @@ namespace osu.Framework.Input.Bindings
 
         /// <summary>
         /// Check whether the provided key is part of the candidate binding.
-        /// This will match bidirectionally for modifier keys (LShift and Shift being present in both of the two parameters in either order will return true).
         /// </summary>
-        /// <param name="candidate">The candidate key binding to match against.</param>
-        /// <param name="key">The key which has been pressed by a user.</param>
+        /// <param name="candidateKeyBinding">The candidate key binding to match against.</param>
+        /// <param name="physicalKey">The physical key that has been pressed.</param>
         /// <returns>Whether this is a match.</returns>
-        internal static bool ContainsKeyPermissive(ImmutableArray<InputKey> candidate, InputKey key)
+        internal static bool KeyBindingContains(ImmutableArray<InputKey> candidateKeyBinding, InputKey physicalKey)
         {
-            switch (key)
-            {
-                case InputKey.LControl:
-                case InputKey.RControl:
-                    if (candidate.Contains(InputKey.Control))
-                        return true;
-
-                    break;
-
-                case InputKey.LShift:
-                case InputKey.RShift:
-                    if (candidate.Contains(InputKey.Shift))
-                        return true;
-
-                    break;
-
-                case InputKey.RAlt:
-                case InputKey.LAlt:
-                    if (candidate.Contains(InputKey.Alt))
-                        return true;
-
-                    break;
-
-                case InputKey.LSuper:
-                case InputKey.RSuper:
-                    if (candidate.Contains(InputKey.Super))
-                        return true;
-
-                    break;
-            }
-
-            return ContainsKey(candidate, key);
+            return candidateKeyBinding.Contains(physicalKey) ||
+                   (getVirtualKey(physicalKey) is InputKey vKey && candidateKeyBinding.Contains(vKey));
         }
 
         /// <summary>
-        /// Check whether a single key from a candidate binding is relevant to the currently pressed keys.
-        /// If the <paramref name="key"/> contains a left/right specific modifier, the <paramref name="candidate"/> must also for this to match.
+        /// Check whether a single physical or virtual key from a candidate binding is relevant to the currently pressed keys.
         /// </summary>
-        /// <param name="candidate">The candidate key binding to match against.</param>
-        /// <param name="key">The key which has been pressed by a user.</param>
+        /// <param name="pressedPhysicalKeys">The currently pressed keys to match against.</param>
+        /// <param name="candidateKey">The candidate key to check.</param>
         /// <returns>Whether this is a match.</returns>
-        internal static bool ContainsKey(ImmutableArray<InputKey> candidate, InputKey key)
+        internal static bool IsPressed(ImmutableArray<InputKey> pressedPhysicalKeys, InputKey candidateKey)
         {
-            switch (key)
+            if (candidateKey.IsPhysical())
+                return pressedPhysicalKeys.Contains(candidateKey);
+
+            Debug.Assert(candidateKey.IsVirtual());
+
+            foreach (var pk in pressedPhysicalKeys)
             {
-                case InputKey.Control:
-                    if (candidate.Contains(InputKey.LControl) || candidate.Contains(InputKey.RControl))
-                        return true;
-
-                    break;
-
-                case InputKey.Shift:
-                    if (candidate.Contains(InputKey.LShift) || candidate.Contains(InputKey.RShift))
-                        return true;
-
-                    break;
-
-                case InputKey.Alt:
-                    if (candidate.Contains(InputKey.LAlt) || candidate.Contains(InputKey.RAlt))
-                        return true;
-
-                    break;
-
-                case InputKey.Super:
-                    if (candidate.Contains(InputKey.LSuper) || candidate.Contains(InputKey.RSuper))
-                        return true;
-
-                    break;
+                if (getVirtualKey(pk) == candidateKey)
+                    return true;
             }
 
-            return candidate.Contains(key);
+            return false;
         }
 
         public bool Equals(KeyCombination other) => Keys.SequenceEqual(other.Keys);
@@ -256,279 +262,6 @@ namespace osu.Framework.Input.Bindings
             }
 
             return false;
-        }
-
-        private static string getReadableKey(InputKey key)
-        {
-            if (key >= InputKey.FirstTabletAuxiliaryButton)
-                return $"Tablet Aux {key - InputKey.FirstTabletAuxiliaryButton + 1}";
-            if (key >= InputKey.FirstTabletPenButton)
-                return $"Tablet Pen {key - InputKey.FirstTabletPenButton + 1}";
-
-            if (key >= InputKey.MidiA0)
-                return key.ToString().Substring("Midi".Length).Replace("Sharp", "#");
-
-            if (key >= InputKey.FirstJoystickHatRightButton)
-                return $"Joystick Hat {key - InputKey.FirstJoystickHatRightButton + 1} Right";
-            if (key >= InputKey.FirstJoystickHatLeftButton)
-                return $"Joystick Hat {key - InputKey.FirstJoystickHatLeftButton + 1} Left";
-            if (key >= InputKey.FirstJoystickHatDownButton)
-                return $"Joystick Hat {key - InputKey.FirstJoystickHatDownButton + 1} Down";
-            if (key >= InputKey.FirstJoystickHatUpButton)
-                return $"Joystick Hat {key - InputKey.FirstJoystickHatUpButton + 1} Up";
-            if (key >= InputKey.FirstJoystickAxisPositiveButton)
-                return $"Joystick Axis {key - InputKey.FirstJoystickAxisPositiveButton + 1} +";
-            if (key >= InputKey.FirstJoystickAxisNegativeButton)
-                return $"Joystick Axis {key - InputKey.FirstJoystickAxisNegativeButton + 1} -";
-            if (key >= InputKey.FirstJoystickButton)
-                return $"Joystick {key - InputKey.FirstJoystickButton + 1}";
-
-            switch (key)
-            {
-                case InputKey.None:
-                    return string.Empty;
-
-                case InputKey.Shift:
-                    return "Shift";
-
-                case InputKey.Control:
-                    return "Ctrl";
-
-                case InputKey.Alt:
-                    return "Alt";
-
-                case InputKey.Super:
-                    return "Win";
-
-                case InputKey.LShift:
-                    return "LShift";
-
-                case InputKey.LControl:
-                    return "LCtrl";
-
-                case InputKey.LAlt:
-                    return "LAlt";
-
-                case InputKey.LSuper:
-                    return "LWin";
-
-                case InputKey.RShift:
-                    return "RShift";
-
-                case InputKey.RControl:
-                    return "RCtrl";
-
-                case InputKey.RAlt:
-                    return "RAlt";
-
-                case InputKey.RSuper:
-                    return "RWin";
-
-                case InputKey.Escape:
-                    return "Esc";
-
-                case InputKey.BackSpace:
-                    return "Backsp";
-
-                case InputKey.Insert:
-                    return "Ins";
-
-                case InputKey.Delete:
-                    return "Del";
-
-                case InputKey.PageUp:
-                    return "PgUp";
-
-                case InputKey.PageDown:
-                    return "PgDn";
-
-                case InputKey.CapsLock:
-                    return "Caps";
-
-                case InputKey.Keypad0:
-                    return "Numpad0";
-
-                case InputKey.Keypad1:
-                    return "Numpad1";
-
-                case InputKey.Keypad2:
-                    return "Numpad2";
-
-                case InputKey.Keypad3:
-                    return "Numpad3";
-
-                case InputKey.Keypad4:
-                    return "Numpad4";
-
-                case InputKey.Keypad5:
-                    return "Numpad5";
-
-                case InputKey.Keypad6:
-                    return "Numpad6";
-
-                case InputKey.Keypad7:
-                    return "Numpad7";
-
-                case InputKey.Keypad8:
-                    return "Numpad8";
-
-                case InputKey.Keypad9:
-                    return "Numpad9";
-
-                case InputKey.KeypadDivide:
-                    return "NumpadDivide";
-
-                case InputKey.KeypadMultiply:
-                    return "NumpadMultiply";
-
-                case InputKey.KeypadMinus:
-                    return "NumpadMinus";
-
-                case InputKey.KeypadPlus:
-                    return "NumpadPlus";
-
-                case InputKey.KeypadDecimal:
-                    return "NumpadDecimal";
-
-                case InputKey.KeypadEnter:
-                    return "NumpadEnter";
-
-                case InputKey.Number0:
-                    return "0";
-
-                case InputKey.Number1:
-                    return "1";
-
-                case InputKey.Number2:
-                    return "2";
-
-                case InputKey.Number3:
-                    return "3";
-
-                case InputKey.Number4:
-                    return "4";
-
-                case InputKey.Number5:
-                    return "5";
-
-                case InputKey.Number6:
-                    return "6";
-
-                case InputKey.Number7:
-                    return "7";
-
-                case InputKey.Number8:
-                    return "8";
-
-                case InputKey.Number9:
-                    return "9";
-
-                case InputKey.Tilde:
-                    return "~";
-
-                case InputKey.Minus:
-                    return "Minus";
-
-                case InputKey.Plus:
-                    return "Plus";
-
-                case InputKey.BracketLeft:
-                    return "[";
-
-                case InputKey.BracketRight:
-                    return "]";
-
-                case InputKey.Semicolon:
-                    return ";";
-
-                case InputKey.Quote:
-                    return "\"";
-
-                case InputKey.Comma:
-                    return ",";
-
-                case InputKey.Period:
-                    return ".";
-
-                case InputKey.Slash:
-                    return "/";
-
-                case InputKey.BackSlash:
-                case InputKey.NonUSBackSlash:
-                    return "\\";
-
-                case InputKey.Mute:
-                    return "Mute";
-
-                case InputKey.VolumeDown:
-                    return "Vol. Down";
-
-                case InputKey.VolumeUp:
-                    return "Vol. Up";
-
-                case InputKey.Stop:
-                    return "Media Stop";
-
-                case InputKey.PlayPause:
-                    return "Media Play";
-
-                case InputKey.TrackNext:
-                    return "Media Next";
-
-                case InputKey.TrackPrevious:
-                    return "Media Previous";
-
-                case InputKey.MouseLeft:
-                    return "M1";
-
-                case InputKey.MouseMiddle:
-                    return "M3";
-
-                case InputKey.MouseRight:
-                    return "M2";
-
-                case InputKey.ExtraMouseButton1:
-                    return "M4";
-
-                case InputKey.ExtraMouseButton2:
-                    return "M5";
-
-                case InputKey.ExtraMouseButton3:
-                    return "M6";
-
-                case InputKey.ExtraMouseButton4:
-                    return "M7";
-
-                case InputKey.ExtraMouseButton5:
-                    return "M8";
-
-                case InputKey.ExtraMouseButton6:
-                    return "M9";
-
-                case InputKey.ExtraMouseButton7:
-                    return "M10";
-
-                case InputKey.ExtraMouseButton8:
-                    return "M11";
-
-                case InputKey.ExtraMouseButton9:
-                    return "M12";
-
-                case InputKey.MouseWheelDown:
-                    return "Wheel Down";
-
-                case InputKey.MouseWheelUp:
-                    return "Wheel Up";
-
-                case InputKey.MouseWheelLeft:
-                    return "Wheel Left";
-
-                case InputKey.MouseWheelRight:
-                    return "Wheel Right";
-
-                default:
-                    return key.ToString();
-            }
         }
 
         public static InputKey FromKey(Key key)
@@ -644,7 +377,9 @@ namespace osu.Framework.Input.Bindings
 
             Debug.Assert(!keys.Contains(InputKey.None)); // Having None in pressed keys will break IsPressed
             keys.Sort();
-            return new KeyCombination(keys.ToImmutable());
+
+            // Can't use `MoveToImmutable` here as we don't provide accurate capacity.
+            return new KeyCombination(keys.ToImmutableList());
         }
     }
 

@@ -1,7 +1,5 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#nullable disable
 
 using System;
 using System.Runtime.InteropServices;
@@ -24,7 +22,7 @@ namespace osu.Framework.Platform.MacOS.Native
 
         internal byte[] ToBytes()
         {
-            var pointer = Cocoa.SendIntPtr(Handle, sel_bytes);
+            IntPtr pointer = Cocoa.SendIntPtr(Handle, sel_bytes);
             int size = Cocoa.SendInt(Handle, sel_length);
 
             byte[] bytes = new byte[size];
@@ -36,7 +34,7 @@ namespace osu.Framework.Platform.MacOS.Native
         {
             fixed (byte* ptr = bytes)
             {
-                var handle = Cocoa.SendIntPtr(class_pointer, sel_data_with_bytes, (IntPtr)ptr, (ulong)bytes.LongLength);
+                IntPtr handle = Cocoa.SendIntPtr(class_pointer, sel_data_with_bytes, (IntPtr)ptr, (ulong)bytes.LongLength);
                 return new NSData(handle);
             }
         }

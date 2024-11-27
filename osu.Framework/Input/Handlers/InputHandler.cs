@@ -7,14 +7,27 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Input.Handlers
 {
     public abstract class InputHandler : IDisposable, IHasDescription
     {
+        /// <summary>
+        /// Base category to use for input-related <see cref="GlobalStatistics"/>.
+        /// </summary>
+        public const string STATISTIC_GROUP = "Input";
+
+        /// <summary>
+        /// Gets the appropriate statistic group for use in <see cref="GlobalStatistics.Get{T}"/>.
+        /// </summary>
+        /// <typeparam name="T">Calling class</typeparam>
+        protected static string StatisticGroupFor<T>() where T : InputHandler => $"{STATISTIC_GROUP} - {typeof(T).ReadableName()}";
+
         private static readonly Logger logger = Logger.GetLogger(LoggingTarget.Input);
 
         private bool isInitialized;

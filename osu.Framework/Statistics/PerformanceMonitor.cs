@@ -103,12 +103,17 @@ namespace osu.Framework.Statistics
         /// </summary>
         public InvokeOnDisposal BeginCollecting(PerformanceCollectionType type)
         {
+            // Consume time, regardless of whether we are using it at this point.
+            // If not, an `EndCollecting` call may end up reporting more time than actually passed between
+            // the Begin-End pair.
+            double time = consumeStopwatchElapsedTime();
+
             if (currentCollectionTypeStack.Count > 0)
             {
                 PerformanceCollectionType t = currentCollectionTypeStack.Peek();
 
                 currentFrame.CollectedTimes.TryAdd(t, 0);
-                currentFrame.CollectedTimes[t] += consumeStopwatchElapsedTime();
+                currentFrame.CollectedTimes[t] += time;
             }
 
             currentCollectionTypeStack.Push(type);
