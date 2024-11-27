@@ -90,25 +90,25 @@ namespace osu.Framework.Bindables
         private static float convertToSingle(T val)
         {
             if (typeof(T) == typeof(sbyte))
-                return Convert.ToSingle((sbyte)(object)val);
+                return Convert.ToSingle((sbyte)(object)val!);
             if (typeof(T) == typeof(byte))
-                return Convert.ToSingle((byte)(object)val);
+                return Convert.ToSingle((byte)(object)val!);
             if (typeof(T) == typeof(short))
-                return Convert.ToSingle((short)(object)val);
+                return Convert.ToSingle((short)(object)val!);
             if (typeof(T) == typeof(ushort))
-                return Convert.ToSingle((ushort)(object)val);
+                return Convert.ToSingle((ushort)(object)val!);
             if (typeof(T) == typeof(int))
-                return Convert.ToSingle((int)(object)val);
+                return Convert.ToSingle((int)(object)val!);
             if (typeof(T) == typeof(uint))
-                return Convert.ToSingle((uint)(object)val);
+                return Convert.ToSingle((uint)(object)val!);
             if (typeof(T) == typeof(long))
-                return Convert.ToSingle((long)(object)val);
+                return Convert.ToSingle((long)(object)val!);
             if (typeof(T) == typeof(ulong))
-                return Convert.ToSingle((ulong)(object)val);
+                return Convert.ToSingle((ulong)(object)val!);
             if (typeof(T) == typeof(double))
-                return Convert.ToSingle((double)(object)val);
+                return Convert.ToSingle((double)(object)val!);
             if (typeof(T) == typeof(float))
-                return (float)(object)val;
+                return (float)(object)val!;
 
             throw new InvalidOperationException();
         }

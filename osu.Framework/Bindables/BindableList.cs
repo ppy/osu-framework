@@ -418,7 +418,7 @@ namespace osu.Framework.Bindables
         /// <param name="input">The input which is to be parsed.</param>
         /// <param name="provider">Not valid for <see cref="BindableList{T}"/>.</param>
         /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
-        public void Parse(object input, IFormatProvider provider)
+        public void Parse(object? input, IFormatProvider provider)
         {
             ensureMutationAllowed();
 

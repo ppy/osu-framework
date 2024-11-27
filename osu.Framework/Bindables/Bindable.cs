@@ -247,7 +247,7 @@ namespace osu.Framework.Bindables
         /// </summary>
         /// <param name="input">The input which is to be parsed.</param>
         /// <param name="provider">An object that provides culture-specific formatting information about <paramref name="input"/>.</param>
-        public virtual void Parse(object input, IFormatProvider provider)
+        public virtual void Parse(object? input, IFormatProvider provider)
         {
             switch (input)
             {
@@ -261,7 +261,7 @@ namespace osu.Framework.Bindables
                     // Nullable value types and reference types (annotated or not) are allowed to be initialised with `null`.
                     if (typeof(T).IsNullable() || typeof(T).IsClass)
                     {
-                        Value = default;
+                        Value = default!;
                         break;
                     }
 
@@ -281,7 +281,7 @@ namespace osu.Framework.Bindables
                         // Nullable value types and reference types are initialised to `null` on empty strings.
                         if (typeof(T).IsNullable() || typeof(T).IsClass)
                         {
-                            Value = default;
+                            Value = default!;
                             break;
                         }
 
