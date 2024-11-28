@@ -137,10 +137,10 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>The position of the drawable in the layout.</returns>
         public float GetLayoutPosition(Drawable drawable)
         {
-            if (!layoutChildren.ContainsKey(drawable))
+            if (!layoutChildren.TryGetValue(drawable, out float value))
                 throw new InvalidOperationException($"Cannot get layout position of drawable which is not contained within this {nameof(FlowContainer<T>)}.");
 
-            return layoutChildren[drawable];
+            return value;
         }
 
         protected override bool UpdateChildrenLife()
