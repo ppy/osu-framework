@@ -39,6 +39,22 @@ namespace osu.Framework.Platform
         void Create();
 
         /// <summary>
+        /// Start the window's run loop.
+        /// Is a blocking call on desktop platforms, and a non-blocking call on mobile platforms.
+        /// </summary>
+        void Run();
+
+        /// <summary>
+        /// Invoked once a draw session has finished.
+        /// </summary>
+        void OnDraw();
+
+        /// <summary>
+        /// Forcefully closes the window.
+        /// </summary>
+        void Close();
+
+        /// <summary>
         /// Invoked once every window event loop.
         /// </summary>
         event Action? Update;
@@ -162,11 +178,6 @@ namespace osu.Framework.Platform
         IBindable<DisplayMode> CurrentDisplayMode { get; }
 
         /// <summary>
-        /// Forcefully closes the window.
-        /// </summary>
-        void Close();
-
-        /// <summary>
         /// Attempts to raise the window, bringing it above other windows and requesting input focus.
         /// </summary>
         void Raise();
@@ -210,17 +221,6 @@ namespace osu.Framework.Platform
         /// Disable any system level timers that might dim or turn off the screen.
         /// </summary>
         void DisableScreenSuspension();
-
-        /// <summary>
-        /// Start the window's run loop.
-        /// Is a blocking call on desktop platforms, and a non-blocking call on mobile platforms.
-        /// </summary>
-        void Run();
-
-        /// <summary>
-        /// Invoked once a draw session has finished.
-        /// </summary>
-        void OnDraw();
 
         /// <summary>
         /// Whether the window currently has focus.
