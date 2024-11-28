@@ -32,7 +32,7 @@ namespace osu.Framework.Input.Bindings
         /// <param name="keys">The keys.</param>
         public KeyCombination(ICollection<InputKey>? keys)
         {
-            if (keys == null || !keys.Any())
+            if (keys == null || keys.Count == 0)
             {
                 Keys = none;
                 return;

@@ -891,7 +891,9 @@ namespace osu.Framework.Tests.IO
             [JsonProperty("json")]
             public TestObject Json { get; set; }
 
+#pragma warning disable CA1507 // Happens to name the same because of casing preference
             [JsonProperty("form")]
+#pragma warning restore CA1507
             private Dictionary<string, object> form { get; set; }
         }
 
@@ -906,7 +908,9 @@ namespace osu.Framework.Tests.IO
             [JsonProperty("args")]
             private Dictionary<string, object> arguments { get; set; }
 
+#pragma warning disable CA1507 // Happens to name the same because of casing preference
             [JsonProperty("form")]
+#pragma warning restore CA1507
             private Dictionary<string, object> form { get; set; }
         }
 

@@ -28,7 +28,17 @@
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)CodeAnalysis\BannedSymbols.txt" />
   </ItemGroup>
   <PropertyGroup Label="Code Analysis">
-    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)CodeAnalysis\osu-framework.ruleset</CodeAnalysisRuleSet>
+    <AnalysisMode>Default</AnalysisMode>
+    <AnalysisModeDesign>Default</AnalysisModeDesign>
+    <AnalysisModeDocumentation>Recommended</AnalysisModeDocumentation>
+    <AnalysisModeGlobalization>Recommended</AnalysisModeGlobalization>
+    <AnalysisModeInteroperability>Recommended</AnalysisModeInteroperability>
+    <AnalysisModeMaintainability>Recommended</AnalysisModeMaintainability>
+    <AnalysisModeNaming>Default</AnalysisModeNaming>
+    <AnalysisModePerformance>Minimum</AnalysisModePerformance>
+    <AnalysisModeReliability>Recommended</AnalysisModeReliability>
+    <AnalysisModeSecurity>Default</AnalysisModeSecurity>
+    <AnalysisModeUsage>Default</AnalysisModeUsage>
   </PropertyGroup>
   <PropertyGroup Label="NuGet">
     <Authors>ppy Pty Ltd</Authors>

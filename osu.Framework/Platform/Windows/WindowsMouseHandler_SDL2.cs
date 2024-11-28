@@ -65,7 +65,9 @@ namespace osu.Framework.Platform.Windows
 
             int payloadSize = sizeof(RawInputData);
 
+#pragma warning disable CA2020 // Prevent behavioral change for IntPtr conversion
             Native.Input.GetRawInputData((IntPtr)lParam, RawInputCommand.Input, out var data, ref payloadSize, sizeof(RawInputHeader));
+#pragma warning restore CA2020
 
             if (data.Header.Type != RawInputType.Mouse)
                 return IntPtr.Zero;

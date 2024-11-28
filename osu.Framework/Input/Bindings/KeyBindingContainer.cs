@@ -409,7 +409,7 @@ namespace osu.Framework.Input.Bindings
 
             var currentQueue = keyBindingQueues[binding];
 
-            if (rebuildIfEmpty && !currentQueue.Any())
+            if (rebuildIfEmpty && currentQueue.Count == 0)
                 currentQueue.AddRange(KeyBindingInputQueue);
 
             return currentQueue;
