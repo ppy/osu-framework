@@ -81,7 +81,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the user drops a file into the window.
         /// </summary>
-        public event Action<string>? DragDrop;
+        event Action<string>? DragDrop;
 
         /// <summary>
         /// Whether the OS cursor is currently contained within the game window.
@@ -230,7 +230,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Sets the window icon to the provided <paramref name="imageStream"/>.
         /// </summary>
-        public void SetIconFromStream(Stream imageStream);
+        void SetIconFromStream(Stream imageStream);
 
         /// <summary>
         /// Convert a screen based coordinate to local window space.
