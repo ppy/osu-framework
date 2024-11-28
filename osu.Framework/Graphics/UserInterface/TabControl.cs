@@ -545,11 +545,10 @@ namespace osu.Framework.Graphics.UserInterface
 
             private void updateChildIfNeeded(TabItem<T> child, bool isVisible)
             {
-                if (!tabVisibility.TryGetValue(child, out bool value) || value != isVisible)
+                if (!tabVisibility.TryGetValue(child, out bool currentVisibility) || currentVisibility != isVisible)
                 {
                     TabVisibilityChanged?.Invoke(child, isVisible);
-                    value = isVisible;
-                    tabVisibility[child] = value;
+                    tabVisibility[child] = isVisible;
 
                     if (isVisible)
                         child.Show();
