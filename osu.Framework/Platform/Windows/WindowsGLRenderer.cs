@@ -28,8 +28,6 @@ namespace osu.Framework.Platform.Windows
         {
             base.Initialise(graphicsSurface);
 
-            ISDLWindow windowsWindow = (ISDLWindow)host.Window;
-
             bool isIntel = GL.GetString(StringName.Vendor).Trim() == "Intel";
 
             if (isIntel)
@@ -40,9 +38,9 @@ namespace osu.Framework.Platform.Windows
             else
             {
                 // For all other vendors, support depends on the system setup - e.g. NVIDIA Optimus doesn't support exclusive fullscreen with OpenGL.
-                windowsWindow.IsActive.BindValueChanged(_ => detectFullscreenCapability(windowsWindow));
-                windowsWindow.WindowStateChanged += _ => detectFullscreenCapability(windowsWindow);
-                detectFullscreenCapability(windowsWindow);
+                host.Window.IsActive.BindValueChanged(_ => detectFullscreenCapability(host.Window));
+                host.Window.WindowStateChanged += _ => detectFullscreenCapability(host.Window);
+                detectFullscreenCapability(host.Window);
             }
         }
 

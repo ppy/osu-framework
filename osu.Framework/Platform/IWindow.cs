@@ -125,6 +125,11 @@ namespace osu.Framework.Platform
         WindowState WindowState { get; set; }
 
         /// <summary>
+        /// Invoked when <see cref="WindowState"/> changes.
+        /// </summary>
+        event Action<WindowState>? WindowStateChanged;
+
+        /// <summary>
         /// Returns the default <see cref="WindowMode"/> for the implementation.
         /// </summary>
         WindowMode DefaultWindowMode { get; }
@@ -248,9 +253,24 @@ namespace osu.Framework.Platform
         Point PointToScreen(Point point);
 
         /// <summary>
-        /// The client size of the window (excluding any window decoration/border).
+        /// The client size of the window in pixels (excluding any window decoration/border).
         /// </summary>
         Size ClientSize { get; }
+
+        /// <summary>
+        /// The position of the window.
+        /// </summary>
+        Point Position { get; }
+
+        /// <summary>
+        /// The size of the window in scaled pixels (excluding any window decoration/border).
+        /// </summary>
+        Size Size { get; }
+
+        /// <summary>
+        /// The ratio of <see cref="ClientSize"/> and <see cref="Size"/>.
+        /// </summary>
+        float Scale { get; }
 
         /// <summary>
         /// The minimum size of the window.
@@ -263,6 +283,11 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when setting a negative or zero size, or a size less than <see cref="MinSize"/>.</exception>
         Size MaxSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether the window is user-resizable.
+        /// </summary>
+        bool Resizable { get; set; }
 
         /// <summary>
         /// The window title.
