@@ -237,12 +237,14 @@ namespace osu.Framework.Platform
         /// Convert a screen based coordinate to local window space.
         /// </summary>
         /// <param name="point"></param>
+        [Obsolete("This member should not be used. It was never properly implemented for cross-platform use.")] // can be removed 20250528
         Point PointToClient(Point point);
 
         /// <summary>
         /// Convert a window based coordinate to global screen space.
         /// </summary>
         /// <param name="point"></param>
+        [Obsolete("This member should not be used. It was never properly implemented for cross-platform use.")] // can be removed 20250528
         Point PointToScreen(Point point);
 
         /// <summary>
