@@ -225,6 +225,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Whether the window currently has focus.
         /// </summary>
+        [Obsolete("Use IWindow.IsActive.Value instead.")] // can be removed 20250528
         bool Focused { get; }
 
         /// <summary>
