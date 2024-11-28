@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Drawing;
+using ManagedBass;
+using osu.Framework.Configuration;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
@@ -84,7 +86,19 @@ namespace osu.Framework.Input
 
         private bool mouseOutsideAllDisplays(Vector2 mousePosition)
         {
-            Point windowLocation = Host.Window.Position;
+            Point windowLocation;
+
+            switch (Host.Window.WindowMode.Value)
+            {
+                case WindowMode.Windowed:
+                    windowLocation = Host.Window.Position;
+                    break;
+
+                default:
+                    windowLocation = Host.Window.CurrentDisplayBindable.Value.Bounds.Location;
+                    break;
+            }
+
             float scale = Host.Window.Scale;
             mousePosition /= scale;
 
