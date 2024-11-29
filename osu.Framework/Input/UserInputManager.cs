@@ -85,19 +85,7 @@ namespace osu.Framework.Input
 
         private bool mouseOutsideAllDisplays(Vector2 mousePosition)
         {
-            Point windowLocation;
-
-            switch (Host.Window.WindowMode.Value)
-            {
-                case WindowMode.Windowed:
-                    windowLocation = Host.Window.Position;
-                    break;
-
-                default:
-                    windowLocation = Host.Window.CurrentDisplayBindable.Value.Bounds.Location;
-                    break;
-            }
-
+            Point windowLocation = Host.Window.Position;
             float scale = Host.Window.Scale;
             mousePosition /= scale;
 
