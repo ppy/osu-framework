@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Drawing;
-using osu.Framework.Configuration;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
