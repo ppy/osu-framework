@@ -113,13 +113,20 @@ namespace osu.Framework.Tests.Visual.Audio
         }
 
         [Test]
-        public void TestTogglePlaying()
+        public void TestTogglePlayingManualFree()
         {
             SampleChannel channel = null;
-            AddStep("play sample", () => channel = sample.Play());
+            AddStep("play sample", () =>
+            {
+                channel = sample.GetChannel();
+                channel.ManualFree = true;
+                channel.Play();
+            });
+
             AddStep("stop channel", () => channel.Stop());
             AddStep("start channel", () => channel.Play());
             AddAssert("still playing", () => channel.Playing);
+            AddStep("dispose channel", () => channel.Dispose());
         }
 
         [Test]
