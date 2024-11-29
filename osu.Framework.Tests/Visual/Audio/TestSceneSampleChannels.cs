@@ -41,7 +41,16 @@ namespace osu.Framework.Tests.Visual.Audio
 
             AddStep("play channel 1 sample", () => channel = sample.Play());
             AddUntilStep("wait for channel 1 to end", () => !channel.Playing);
-            AddStep("play channel 1 again", () => channel.Play());
+            AddStep("play channel 1 again", () =>
+            {
+                try
+                {
+                    channel.Play();
+                }
+                catch (ObjectDisposedException)
+                {
+                }
+            });
 
             int audioFrames = 0;
             AddStep("begin tracking audio frames", () =>
@@ -59,6 +68,32 @@ namespace osu.Framework.Tests.Visual.Audio
 
             AddUntilStep("wait for two audio frames", () => audioFrames >= 2);
             AddAssert("channel 1 not playing", () => !channel.Playing);
+        }
+
+        [Test]
+        public void TestChannelLifetime()
+        {
+            SampleChannel channel = null;
+
+            AddStep("play channel 1 sample", () => channel = sample.Play());
+            AddUntilStep("wait for channel 1 to end", () => !channel.Playing);
+
+            int audioFrames = 0;
+            AddStep("begin tracking audio frames", () =>
+            {
+                audioFrames = 0;
+
+                ScheduledDelegate del = null;
+                del = host.AudioThread.Scheduler.AddDelayed(() =>
+                {
+                    // ReSharper disable once AccessToModifiedClosure
+                    if (++audioFrames >= 2)
+                        del?.Cancel();
+                }, 0, true);
+            });
+
+            AddUntilStep("wait for two audio frames", () => audioFrames >= 2);
+            AddAssert("channel 1 disposed", () => channel.IsDisposed);
         }
 
         [Test]
