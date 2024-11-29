@@ -37,5 +37,11 @@ namespace osu.Framework.Audio.Sample
         /// Whether playback should repeat.
         /// </summary>
         bool Looping { get; set; }
+
+        /// <summary>
+        /// By default, <see cref="ISampleChannel"/> is not resumable after <see cref="Stop"/> or the end of playback.
+        /// Setting this as true will disable automatic cleanup, and the channel will live until it gets disposed manually.
+        /// </summary>
+        bool ManualFree { get; set; }
     }
 }
