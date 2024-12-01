@@ -11,7 +11,7 @@ using osu.Framework.Graphics.Shaders.Types;
 
 namespace osu.Framework.Graphics.Video
 {
-    internal class VideoSpriteDrawNode : SpriteDrawNode
+    public class VideoSpriteDrawNode : SpriteDrawNode
     {
         private readonly Video video;
 
