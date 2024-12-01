@@ -32,14 +32,14 @@ namespace osu.Framework.Graphics.Cursor
         }
 
         private readonly HashSet<IDrawable> childDrawables = new HashSet<IDrawable>();
-        private readonly HashSet<IDrawable> nestedTtcChildDrawables = new HashSet<IDrawable>();
+        private readonly HashSet<IDrawable> nestedContainerChildDrawables = new HashSet<IDrawable>();
         private readonly List<IDrawable> newChildDrawables = new List<IDrawable>();
         private readonly List<TTarget> targetChildren = new List<TTarget>();
 
         private void findTargetChildren()
         {
             Debug.Assert(childDrawables.Count == 0, $"{nameof(childDrawables)} should be empty but has {childDrawables.Count} elements.");
-            Debug.Assert(nestedTtcChildDrawables.Count == 0, $"{nameof(nestedTtcChildDrawables)} should be empty but has {nestedTtcChildDrawables.Count} elements.");
+            Debug.Assert(nestedContainerChildDrawables.Count == 0, $"{nameof(nestedContainerChildDrawables)} should be empty but has {nestedContainerChildDrawables.Count} elements.");
             Debug.Assert(newChildDrawables.Count == 0, $"{nameof(newChildDrawables)} should be empty but has {newChildDrawables.Count} elements.");
             Debug.Assert(targetChildren.Count == 0, $"{nameof(targetChildren)} should be empty but has {targetChildren.Count} elements.");
 
@@ -100,14 +100,14 @@ namespace osu.Framework.Graphics.Cursor
                 {
                     var d = newChildDrawables[j];
 
-                    if (d.Parent == this || (!(d.Parent is TSelf) && !nestedTtcChildDrawables.Contains(d.Parent)))
+                    if (d.Parent == this || (!(d.Parent is TSelf) && !nestedContainerChildDrawables.Contains(d.Parent)))
                         continue;
 
-                    nestedTtcChildDrawables.Add(d);
+                    nestedContainerChildDrawables.Add(d);
                 }
 
                 // Ignore drawables whose effects are managed by a nested effect container.
-                if (nestedTtcChildDrawables.Contains(candidate))
+                if (nestedContainerChildDrawables.Contains(candidate))
                     continue;
 
                 // We found a valid candidate; keep track of it
@@ -128,7 +128,7 @@ namespace osu.Framework.Graphics.Cursor
 
             // Clean up
             childDrawables.Clear();
-            nestedTtcChildDrawables.Clear();
+            nestedContainerChildDrawables.Clear();
             newChildDrawables.Clear();
 
             if (targetChildren.Count == 0)
