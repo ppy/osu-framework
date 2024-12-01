@@ -12,6 +12,11 @@ using osu.Framework.Lists;
 
 namespace osu.Framework.Graphics.Cursor
 {
+    /// <summary>
+    /// An abstract container type that handles positional input for many drawables of type <typeparamref name="TTarget"/>.
+    /// </summary>
+    /// <typeparam name="TSelf">The derived container type.</typeparam>
+    /// <typeparam name="TTarget">The target drawable type.</typeparam>
     public abstract partial class CursorEffectContainer<TSelf, TTarget> : Container
         where TSelf : CursorEffectContainer<TSelf, TTarget>
         where TTarget : class, IDrawable
@@ -112,6 +117,11 @@ namespace osu.Framework.Graphics.Cursor
 
         private static readonly SlimReadOnlyListWrapper<TTarget> empty_list = new SlimReadOnlyListWrapper<TTarget>(new List<TTarget>(0));
 
+        /// <summary>
+        /// Returns currently hovered child drawables of type <typeparamref name="TTarget"/>.
+        /// </summary>
+        /// <returns>The list of candidate drawables in top-down order (see <see cref="InputManager.PositionalInputQueue"/>).</returns>
+        /// <remarks>Only drawables where <see cref="Drawable.HandlePositionalInput"/> is true are considered. When multiple <typeparamref name="TSelf"/> are nested, only the closest parent container receives the candidate.</remarks>
         protected SlimReadOnlyListWrapper<TTarget> FindTargets()
         {
             findTargetChildren();
