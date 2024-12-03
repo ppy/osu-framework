@@ -78,11 +78,11 @@ namespace osu.Framework.Platform
             {
                 while (!token.IsCancellationRequested)
                 {
-                    await pipe.WaitForConnectionAsync(token);
-
                     try
                     {
-                        var message = await receive(pipe, token);
+                        await pipe.WaitForConnectionAsync(token).ConfigureAwait(false);
+
+                        var message = await receive(pipe, token).ConfigureAwait(false);
 
                         if (message == null)
                             continue;
@@ -90,7 +90,9 @@ namespace osu.Framework.Platform
                         var response = MessageReceived?.Invoke(message);
 
                         if (response != null)
-                            await send(pipe, response).WaitAsync(token);
+                            await send(pipe, response).ConfigureAwait(false);
+
+                        pipe.Disconnect();
                     }
                     catch (Exception e)
                     {
@@ -202,6 +204,7 @@ namespace osu.Framework.Platform
                 try
                 {
                     listenTask.Wait(thread_join_timeout);
+                    pipe?.Dispose();
                 }
                 catch
                 {
