@@ -27,11 +27,11 @@ namespace osu.Framework.Graphics.Shaders
             // vertexHash#fragmentHash#target
             string filename = $"{vertexText.ComputeMD5Hash()}#{fragmentText.ComputeMD5Hash()}#{(int)target}#{cache_version}";
 
-            // if (tryGetCached(filename, out VertexFragmentShaderCompilation? existing))
-            // {
-            //     existing.WasCached = true;
-            //     return existing;
-            // }
+            if (tryGetCached(filename, out VertexFragmentShaderCompilation? existing))
+            {
+                existing.WasCached = true;
+                return existing;
+            }
 
             // Debug preserves names for reflection.
             byte[] vertexBytes = SpirvCompilation.CompileGlslToSpirv(vertexText, null, ShaderStages.Vertex, new GlslCompileOptions(true)).SpirvBytes;
@@ -57,11 +57,11 @@ namespace osu.Framework.Graphics.Shaders
             // programHash#target
             string filename = $"{programText.ComputeMD5Hash()}#{(int)target}#{cache_version}";
 
-            // if (tryGetCached(filename, out ComputeProgramCompilation? existing))
-            // {
-            //     existing.WasCached = true;
-            //     return existing;
-            // }
+            if (tryGetCached(filename, out ComputeProgramCompilation? existing))
+            {
+                existing.WasCached = true;
+                return existing;
+            }
 
             // Debug preserves names for reflection.
             byte[] programBytes = SpirvCompilation.CompileGlslToSpirv(programText, null, ShaderStages.Compute, new GlslCompileOptions(true)).SpirvBytes;
