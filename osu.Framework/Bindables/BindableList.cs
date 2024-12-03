@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.TypeExtensions;
@@ -37,12 +38,17 @@ namespace osu.Framework.Bindables
 
         private LockedWeakList<BindableList<T>> bindings;
 
+        private readonly int instanceId;
+
         /// <summary>
         /// Creates a new <see cref="BindableList{T}"/>, optionally adding the items of the given collection.
         /// </summary>
         /// <param name="items">The items that are going to be contained in the newly created <see cref="BindableList{T}"/>.</param>
         public BindableList(IEnumerable<T> items = null)
         {
+            // This will return the unique runtime identity for the object.
+            instanceId = RuntimeHelpers.GetHashCode(this);
+
             if (items != null)
                 collection.AddRange(items);
         }
@@ -57,12 +63,17 @@ namespace osu.Framework.Bindables
         public T this[int index]
         {
             get => collection[index];
-            set => setIndex(index, value, new HashSet<BindableList<T>>());
+            set
+            {
+                BindableInstanceTracker instances = new BindableInstanceTracker(stackalloc int[16]);
+                setIndex(index, value, ref instances);
+            }
         }
 
-        private void setIndex(int index, T item, HashSet<BindableList<T>> appliedInstances)
+        private void setIndex(int index, T item, ref BindableInstanceTracker instances)
         {
-            if (checkAlreadyApplied(appliedInstances)) return;
+            if (!instances.Add(instanceId))
+                return;
 
             ensureMutationAllowed();
 
@@ -73,10 +84,10 @@ namespace osu.Framework.Bindables
             if (bindings != null)
             {
                 foreach (var b in bindings)
-                    b.setIndex(index, item, appliedInstances);
+                    b.setIndex(index, item, ref instances);
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, item, lastItem, index));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, item, lastItem, index));
         }
 
         /// <summary>
@@ -85,11 +96,15 @@ namespace osu.Framework.Bindables
         /// <param name="item">The item to be added.</param>
         /// <exception cref="InvalidOperationException">Thrown when this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
         public void Add(T item)
-            => add(item, new HashSet<BindableList<T>>());
-
-        private void add(T item, HashSet<BindableList<T>> appliedInstances)
         {
-            if (checkAlreadyApplied(appliedInstances)) return;
+            BindableInstanceTracker instances = new BindableInstanceTracker(stackalloc int[16]);
+            add(item, ref instances);
+        }
+
+        private void add(T item, ref BindableInstanceTracker instances)
+        {
+            if (!instances.Add(instanceId))
+                return;
 
             ensureMutationAllowed();
 
@@ -98,10 +113,10 @@ namespace osu.Framework.Bindables
             if (bindings != null)
             {
                 foreach (var b in bindings)
-                    b.add(item, appliedInstances);
+                    b.add(item, ref instances);
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, collection.Count - 1));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, collection.Count - 1));
         }
 
         /// <summary>
@@ -118,11 +133,15 @@ namespace osu.Framework.Bindables
         /// <param name="item">The item to insert.</param>
         /// <exception cref="InvalidOperationException">Thrown when this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
         public void Insert(int index, T item)
-            => insert(index, item, new HashSet<BindableList<T>>());
-
-        private void insert(int index, T item, HashSet<BindableList<T>> appliedInstances)
         {
-            if (checkAlreadyApplied(appliedInstances)) return;
+            BindableInstanceTracker instances = new BindableInstanceTracker(stackalloc int[16]);
+            insert(index, item, ref instances);
+        }
+
+        private void insert(int index, T item, ref BindableInstanceTracker instances)
+        {
+            if (!instances.Add(instanceId))
+                return;
 
             ensureMutationAllowed();
 
@@ -131,10 +150,10 @@ namespace osu.Framework.Bindables
             if (bindings != null)
             {
                 foreach (var b in bindings)
-                    b.insert(index, item, appliedInstances);
+                    b.insert(index, item, ref instances);
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
         }
 
         /// <summary>
@@ -142,11 +161,15 @@ namespace osu.Framework.Bindables
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
         public void Clear()
-            => clear(new HashSet<BindableList<T>>());
-
-        private void clear(HashSet<BindableList<T>> appliedInstances)
         {
-            if (checkAlreadyApplied(appliedInstances)) return;
+            BindableInstanceTracker instances = new BindableInstanceTracker(stackalloc int[16]);
+            clear(ref instances);
+        }
+
+        private void clear(ref BindableInstanceTracker instances)
+        {
+            if (!instances.Add(instanceId))
+                return;
 
             ensureMutationAllowed();
 
@@ -154,17 +177,17 @@ namespace osu.Framework.Bindables
                 return;
 
             // Preserve items for subscribers
-            var clearedItems = collection.ToList();
+            List<T> clearedItems = CollectionChanged == null ? null : collection.ToList();
 
             collection.Clear();
 
             if (bindings != null)
             {
                 foreach (var b in bindings)
-                    b.clear(appliedInstances);
+                    b.clear(ref instances);
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, clearedItems, 0));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, clearedItems, 0));
         }
 
         /// <summary>
@@ -182,11 +205,14 @@ namespace osu.Framework.Bindables
         /// <returns><code>true</code> if the removal was successful.</returns>
         /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
         public bool Remove(T item)
-            => remove(item, new HashSet<BindableList<T>>());
-
-        private bool remove(T item, HashSet<BindableList<T>> appliedInstances)
         {
-            if (checkAlreadyApplied(appliedInstances))
+            BindableInstanceTracker instances = new BindableInstanceTracker(stackalloc int[16]);
+            return remove(item, ref instances);
+        }
+
+        private bool remove(T item, ref BindableInstanceTracker instances)
+        {
+            if (!instances.Add(instanceId))
                 return false;
 
             ensureMutationAllowed();
@@ -208,12 +234,11 @@ namespace osu.Framework.Bindables
                 {
                     // prevent re-removing from the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
-                    b.remove(listItem, appliedInstances);
+                    b.remove(listItem, ref instances);
                 }
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, listItem, index));
-
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, listItem, index));
             return true;
         }
 
@@ -224,21 +249,24 @@ namespace osu.Framework.Bindables
         /// <param name="count">The count of items to be removed.</param>
         public void RemoveRange(int index, int count)
         {
-            removeRange(index, count, new HashSet<BindableList<T>>());
+            BindableInstanceTracker instances = new BindableInstanceTracker(stackalloc int[16]);
+            removeRange(index, count, ref instances);
         }
 
-        private void removeRange(int index, int count, HashSet<BindableList<T>> appliedInstances)
+        private void removeRange(int index, int count, ref BindableInstanceTracker instances)
         {
-            if (checkAlreadyApplied(appliedInstances)) return;
+            if (!instances.Add(instanceId))
+                return;
 
             ensureMutationAllowed();
 
-            var removedItems = collection.GetRange(index, count);
+            if (count == 0)
+                return;
+
+            // Preserve items for subscribers
+            List<T> removedItems = CollectionChanged == null ? null : collection.GetRange(index, count);
 
             collection.RemoveRange(index, count);
-
-            if (removedItems.Count == 0)
-                return;
 
             if (bindings != null)
             {
@@ -246,11 +274,11 @@ namespace osu.Framework.Bindables
                 {
                     // Prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
-                    b.removeRange(index, count, appliedInstances);
+                    b.removeRange(index, count, ref instances);
                 }
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedItems, index));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedItems, index));
         }
 
         /// <summary>
@@ -259,11 +287,15 @@ namespace osu.Framework.Bindables
         /// <param name="index">The index of the item to remove.</param>
         /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
         public void RemoveAt(int index)
-            => removeAt(index, new HashSet<BindableList<T>>());
-
-        private void removeAt(int index, HashSet<BindableList<T>> appliedInstances)
         {
-            if (checkAlreadyApplied(appliedInstances)) return;
+            BindableInstanceTracker instances = new BindableInstanceTracker(stackalloc int[16]);
+            removeAt(index, ref instances);
+        }
+
+        private void removeAt(int index, ref BindableInstanceTracker instances)
+        {
+            if (!instances.Add(instanceId))
+                return;
 
             ensureMutationAllowed();
 
@@ -274,10 +306,10 @@ namespace osu.Framework.Bindables
             if (bindings != null)
             {
                 foreach (var b in bindings)
-                    b.removeAt(index, appliedInstances);
+                    b.removeAt(index, ref instances);
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, index));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, index));
         }
 
         /// <summary>
@@ -285,31 +317,34 @@ namespace osu.Framework.Bindables
         /// </summary>
         /// <param name="match">The predicate.</param>
         public int RemoveAll(Predicate<T> match)
-            => removeAll(match, new HashSet<BindableList<T>>());
-
-        private int removeAll(Predicate<T> match, HashSet<BindableList<T>> appliedInstances)
         {
-            if (checkAlreadyApplied(appliedInstances))
+            BindableInstanceTracker instances = new BindableInstanceTracker(stackalloc int[16]);
+            return removeAll(match, ref instances);
+        }
+
+        private int removeAll(Predicate<T> match, ref BindableInstanceTracker instances)
+        {
+            if (!instances.Add(instanceId))
                 return 0;
 
             ensureMutationAllowed();
 
-            var removed = collection.FindAll(match);
-
-            if (removed.Count == 0) return removed.Count;
+            // Preserve items for subscribers
+            List<T> removedItems = CollectionChanged == null ? null : collection.FindAll(match);
 
             // RemoveAll is internally optimised
-            collection.RemoveAll(match);
+            int countRemoved = collection.RemoveAll(match);
+            if (countRemoved == 0)
+                return 0;
 
             if (bindings != null)
             {
                 foreach (var b in bindings)
-                    b.removeAll(match, appliedInstances);
+                    b.removeAll(match, ref instances);
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removed));
-
-            return removed.Count;
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedItems));
+            return countRemoved;
         }
 
         /// <summary>
@@ -319,21 +354,26 @@ namespace osu.Framework.Bindables
         /// <param name="count">The count of items to be removed.</param>
         /// <param name="newItems">The items to replace the removed items with.</param>
         public void ReplaceRange(int index, int count, IEnumerable<T> newItems)
-            => replaceRange(index, count, newItems as IList ?? newItems.ToArray(), new HashSet<BindableList<T>>());
-
-        private void replaceRange(int index, int count, IList newItems, HashSet<BindableList<T>> appliedInstances)
         {
-            if (checkAlreadyApplied(appliedInstances)) return;
+            BindableInstanceTracker instances = new BindableInstanceTracker(stackalloc int[16]);
+            replaceRange(index, count, newItems as ICollection<T> ?? newItems.ToArray(), ref instances);
+        }
+
+        private void replaceRange(int index, int count, ICollection<T> newItems, ref BindableInstanceTracker instances)
+        {
+            if (!instances.Add(instanceId))
+                return;
 
             ensureMutationAllowed();
 
-            var removedItems = collection.GetRange(index, count);
+            if (count == 0 && newItems.Count == 0)
+                return;
+
+            // Preserve items for subscribers
+            List<T> removedItems = CollectionChanged == null ? null : collection.GetRange(index, count);
 
             collection.RemoveRange(index, count);
-            collection.InsertRange(index, newItems.Cast<T>());
-
-            if (removedItems.Count == 0 && newItems.Count == 0)
-                return;
+            collection.InsertRange(index, newItems);
 
             if (bindings != null)
             {
@@ -341,24 +381,11 @@ namespace osu.Framework.Bindables
                 {
                     // Prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
-                    b.replaceRange(index, count, newItems, appliedInstances);
+                    b.replaceRange(index, count, newItems, ref instances);
                 }
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, newItems, removedItems, index));
-        }
-
-        /// <summary>
-        /// As we are applying non-atomic operations on a potentially complex bindable tree, care needs to be taken to not apply
-        /// the same operation twice to the same bindable instance.
-        ///
-        /// This call tracks all instances which an operation has already been applied to.
-        /// </summary>
-        /// <param name="appliedInstances">A hash set to be passed down the recursive call tree tracking all applied instances.</param>
-        /// <returns>Whether the current instance has already been applied.</returns>
-        private bool checkAlreadyApplied(HashSet<BindableList<T>> appliedInstances)
-        {
-            return !appliedInstances.Add(this);
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, (IList)newItems, removedItems!, index));
         }
 
         /// <summary>
@@ -542,23 +569,27 @@ namespace osu.Framework.Bindables
         /// <param name="items">The collection whose items should be added to this collection.</param>
         /// <exception cref="InvalidOperationException">Thrown if this collection is <see cref="Disabled"/></exception>
         public void AddRange(IEnumerable<T> items)
-            => addRange(items as IList ?? items.ToArray(), new HashSet<BindableList<T>>());
-
-        private void addRange(IList items, HashSet<BindableList<T>> appliedInstances)
         {
-            if (checkAlreadyApplied(appliedInstances)) return;
+            BindableInstanceTracker instances = new BindableInstanceTracker(stackalloc int[16]);
+            addRange(items as ICollection<T> ?? items.ToArray(), ref instances);
+        }
+
+        private void addRange(ICollection<T> items, ref BindableInstanceTracker instances)
+        {
+            if (!instances.Add(instanceId))
+                return;
 
             ensureMutationAllowed();
 
-            collection.AddRange(items.Cast<T>());
+            collection.AddRange(items);
 
             if (bindings != null)
             {
                 foreach (var b in bindings)
-                    b.addRange(items, appliedInstances);
+                    b.addRange(items, ref instances);
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items, collection.Count - items.Count));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, (IList)items, collection.Count - items.Count));
         }
 
         /// <summary>
@@ -567,11 +598,15 @@ namespace osu.Framework.Bindables
         /// <param name="oldIndex">The index of the item to move.</param>
         /// <param name="newIndex">The index specifying the new location of the item.</param>
         public void Move(int oldIndex, int newIndex)
-            => move(oldIndex, newIndex, new HashSet<BindableList<T>>());
-
-        private void move(int oldIndex, int newIndex, HashSet<BindableList<T>> appliedInstances)
         {
-            if (checkAlreadyApplied(appliedInstances)) return;
+            BindableInstanceTracker instances = new BindableInstanceTracker(stackalloc int[16]);
+            move(oldIndex, newIndex, ref instances);
+        }
+
+        private void move(int oldIndex, int newIndex, ref BindableInstanceTracker instances)
+        {
+            if (!instances.Add(instanceId))
+                return;
 
             ensureMutationAllowed();
 
@@ -583,10 +618,10 @@ namespace osu.Framework.Bindables
             if (bindings != null)
             {
                 foreach (var b in bindings)
-                    b.move(oldIndex, newIndex, appliedInstances);
+                    b.move(oldIndex, newIndex, ref instances);
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, item, newIndex, oldIndex));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, item, newIndex, oldIndex));
         }
 
         void IBindable.BindTo(IBindable them)
@@ -679,8 +714,6 @@ namespace osu.Framework.Bindables
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         #endregion IEnumerable
-
-        private void notifyCollectionChanged(NotifyCollectionChangedEventArgs args) => CollectionChanged?.Invoke(this, args);
 
         private void ensureMutationAllowed()
         {
