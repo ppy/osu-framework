@@ -7,17 +7,29 @@ using System.Threading.Tasks;
 namespace osu.Framework.Platform
 {
     /// <summary>
-    /// Setup an IPC channel which supports sending a specific pair of well-defined types.
+    /// Define an IPC channel which supports sending a specific well-defined type.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <typeparam name="TResponse"></typeparam>
+    /// <typeparam name="T">The type to send.</typeparam>
+    public class IpcChannel<T> : IpcChannel<T, object> where T : class
+    {
+        public IpcChannel(IIpcHost host)
+            : base(host)
+        {
+        }
+    }
+
+    /// <summary>
+    /// Define an IPC channel which supports sending and receiving a specific well-defined type.
+    /// </summary>
+    /// <typeparam name="T">The type to send.</typeparam>
+    /// <typeparam name="TResponse">The type to receive.</typeparam>
     public class IpcChannel<T, TResponse> : IDisposable
         where T : class
         where TResponse : class
     {
         private readonly IIpcHost host;
 
-        public event Func<T, TResponse>? MessageReceived;
+        public event Func<T, TResponse?>? MessageReceived;
 
         public IpcChannel(IIpcHost host)
         {
@@ -37,7 +49,7 @@ namespace osu.Framework.Platform
             {
                 Type = typeof(T).AssemblyQualifiedName,
                 Value = message,
-            });
+            }).ConfigureAwait(false);
 
             if (response == null)
                 return null;

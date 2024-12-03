@@ -46,8 +46,8 @@ namespace osu.Framework.Tests.Platform
                 Assert.IsTrue(server.IsPrimaryInstance, @"Server wasn't able to bind");
                 Assert.IsFalse(client.IsPrimaryInstance, @"Client was able to bind when it shouldn't have been able to");
 
-                var serverChannel = new IpcChannel<Foobar, object>(server);
-                var clientChannel = new IpcChannel<Foobar, object>(client);
+                var serverChannel = new IpcChannel<Foobar>(server);
+                var clientChannel = new IpcChannel<Foobar>(client);
 
                 async Task waitAction()
                 {
