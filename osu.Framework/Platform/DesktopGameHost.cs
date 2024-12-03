@@ -15,7 +15,7 @@ namespace osu.Framework.Platform
 {
     public abstract class DesktopGameHost : SDLGameHost
     {
-        private TcpIpcProvider ipcProvider;
+        private NamedPipeIpcProvider ipcProvider;
         private readonly int? ipcPort;
 
         protected DesktopGameHost(string gameName, HostOptions options = null)
@@ -61,7 +61,7 @@ namespace osu.Framework.Platform
             if (ipcProvider != null)
                 return;
 
-            ipcProvider = new TcpIpcProvider(ipcPort.Value);
+            ipcProvider = new NamedPipeIpcProvider(ipcPort.Value);
             ipcProvider.MessageReceived += OnMessageReceived;
 
             IsPrimaryInstance = ipcProvider.Bind();
