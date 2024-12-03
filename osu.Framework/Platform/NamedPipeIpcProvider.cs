@@ -28,7 +28,7 @@ namespace osu.Framework.Platform
 
         private readonly CancellationTokenSource cancellationSource = new CancellationTokenSource();
 
-        private readonly int port;
+        private readonly string pipeName;
 
         private Task? listenTask;
 
@@ -37,10 +37,10 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Create a new provider.
         /// </summary>
-        /// <param name="port">The port to operate on.</param>
-        public NamedPipeIpcProvider(int port)
+        /// <param name="pipeName">The port to operate on.</param>
+        public NamedPipeIpcProvider(string pipeName)
         {
-            this.port = port;
+            this.pipeName = pipeName;
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace osu.Framework.Platform
 
             try
             {
-                pipe = new NamedPipeServerStream($"osu-framework-{port}", PipeDirection.InOut);
+                pipe = new NamedPipeServerStream($"osu-framework-{pipeName}", PipeDirection.InOut);
 
                 listenTask = listen(pipe);
 
@@ -119,7 +119,7 @@ namespace osu.Framework.Platform
         /// <param name="message">The message to send.</param>
         public async Task SendMessageAsync(IpcMessage message)
         {
-            using (var client = new NamedPipeClientStream($"osu-framework-{port}"))
+            using (var client = new NamedPipeClientStream($"osu-framework-{pipeName}"))
             {
                 await client.ConnectAsync().ConfigureAwait(false);
                 await send(client, message).ConfigureAwait(false);
@@ -133,7 +133,7 @@ namespace osu.Framework.Platform
         /// <returns>The response from the server.</returns>
         public async Task<IpcMessage?> SendMessageWithResponseAsync(IpcMessage message)
         {
-            using (var client = new NamedPipeClientStream($"osu-framework-{port}"))
+            using (var client = new NamedPipeClientStream($"osu-framework-{pipeName}"))
             {
                 await client.ConnectAsync().ConfigureAwait(false);
                 await send(client, message).ConfigureAwait(false);

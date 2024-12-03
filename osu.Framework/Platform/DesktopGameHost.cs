@@ -16,12 +16,12 @@ namespace osu.Framework.Platform
     public abstract class DesktopGameHost : SDLGameHost
     {
         private NamedPipeIpcProvider ipcProvider;
-        private readonly int? ipcPort;
+        private readonly string ipcPipeName;
 
         protected DesktopGameHost(string gameName, HostOptions options = null)
             : base(gameName, options)
         {
-            ipcPort = Options.IPCPort;
+            ipcPipeName = Options.IPCPipeName;
             IsPortableInstallation = Options.PortableInstallation;
         }
 
@@ -55,13 +55,13 @@ namespace osu.Framework.Platform
 
         private void ensureIPCReady()
         {
-            if (ipcPort == null)
+            if (ipcPipeName == null)
                 return;
 
             if (ipcProvider != null)
                 return;
 
-            ipcProvider = new NamedPipeIpcProvider(ipcPort.Value);
+            ipcProvider = new NamedPipeIpcProvider(ipcPipeName);
             ipcProvider.MessageReceived += OnMessageReceived;
 
             IsPrimaryInstance = ipcProvider.Bind();
