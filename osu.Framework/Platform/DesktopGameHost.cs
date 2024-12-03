@@ -97,7 +97,7 @@ namespace osu.Framework.Platform
             return true;
         }
 
-        private void openUsingShellExecute(string path) => Process.Start(new ProcessStartInfo
+        private static void openUsingShellExecute(string path) => Process.Start(new ProcessStartInfo
         {
             FileName = path,
             UseShellExecute = true //see https://github.com/dotnet/corefx/issues/10361
@@ -108,6 +108,13 @@ namespace osu.Framework.Platform
             ensureIPCReady();
 
             return ipcProvider.SendMessageAsync(message);
+        }
+
+        public override Task<IpcMessage> SendMessageWithResponseAsync(IpcMessage message)
+        {
+            ensureIPCReady();
+
+            return ipcProvider.SendMessageWithResponseAsync(message);
         }
 
         protected override void Dispose(bool isDisposing)

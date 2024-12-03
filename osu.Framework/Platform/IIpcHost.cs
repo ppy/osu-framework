@@ -15,9 +15,16 @@ namespace osu.Framework.Platform
         event Func<IpcMessage, IpcMessage> MessageReceived;
 
         /// <summary>
-        /// Send a message to the IPC server.
+        /// Asynchronously send a message to the IPC server.
         /// </summary>
         /// <param name="ipcMessage">The message to send.</param>
         Task SendMessageAsync(IpcMessage ipcMessage);
+
+        /// <summary>
+        /// Asynchronously send a message to the IPC server and receive a response.
+        /// </summary>
+        /// <param name="message">The message to send.</param>
+        /// <returns>The response from the server.</returns>
+        Task<IpcMessage?> SendMessageWithResponseAsync(IpcMessage message);
     }
 }

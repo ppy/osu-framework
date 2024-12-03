@@ -5,6 +5,7 @@
 
 using System;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace osu.Framework.Platform
 {
@@ -20,6 +21,13 @@ namespace osu.Framework.Platform
         }
 
         public Task SendMessageAsync(T message) => host.SendMessageAsync(new IpcMessage
+        {
+            Type = typeof(T).AssemblyQualifiedName,
+            Value = message,
+        });
+
+        [ItemCanBeNull]
+        public Task<IpcMessage> SendMessageWithResponseAsync(T message) => host.SendMessageWithResponseAsync(new IpcMessage
         {
             Type = typeof(T).AssemblyQualifiedName,
             Value = message,
