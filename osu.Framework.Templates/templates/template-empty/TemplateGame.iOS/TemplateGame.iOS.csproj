@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0-ios</TargetFramework>
+    <TargetFramework>net8.0-ios</TargetFramework>
     <SupportedOSPlatformVersion>13.4</SupportedOSPlatformVersion>
     <CodesignKey>iPhone Developer</CodesignKey>
     <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
@@ -9,12 +9,6 @@
          It only warns about not copying the library to the app bundle to save space,
          so there's nothing to be worried about. -->
     <NoWarn>MT7091</NoWarn>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Platform)' == 'iPhone'">
-    <RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Platform)' == 'iPhoneSimulator'">
-    <RuntimeIdentifiers>iossimulator-x64</RuntimeIdentifiers>
   </PropertyGroup>
   <Import Project="..\..\..\..\osu.Framework.iOS.props" />
   <ItemGroup>

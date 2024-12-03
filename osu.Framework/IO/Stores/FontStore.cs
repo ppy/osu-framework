@@ -19,7 +19,7 @@ namespace osu.Framework.IO.Stores
     {
         private readonly List<IGlyphStore> glyphStores = new List<IGlyphStore>();
 
-        private readonly List<FontStore> nestedFontStores = new List<FontStore>();
+        private readonly List<ITexturedGlyphLookupStore> nestedFontStores = new List<ITexturedGlyphLookupStore>();
 
         private Storage cacheStorage;
 
@@ -76,12 +76,18 @@ namespace osu.Framework.IO.Stores
 
         public override void AddStore(ITextureStore store)
         {
-            if (store is FontStore fs)
+            switch (store)
             {
-                // if null, share the main store's atlas.
-                fs.Atlas ??= Atlas;
-                fs.cacheStorage ??= cacheStorage;
-                nestedFontStores.Add(fs);
+                case FontStore fs:
+                    // if null, share the main store's atlas.
+                    fs.Atlas ??= Atlas;
+                    fs.cacheStorage ??= cacheStorage;
+                    nestedFontStores.Add(fs);
+                    break;
+
+                case ITexturedGlyphLookupStore gs:
+                    nestedFontStores.Add(gs);
+                    break;
             }
 
             base.AddStore(store);

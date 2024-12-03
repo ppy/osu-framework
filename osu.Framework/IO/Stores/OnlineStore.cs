@@ -17,6 +17,9 @@ namespace osu.Framework.IO.Stores
     {
         public async Task<byte[]> GetAsync(string url, CancellationToken cancellationToken = default)
         {
+            if (!validateScheme(url))
+                return null;
+
             this.LogIfNonBackgroundThread(url);
 
             try
@@ -35,7 +38,7 @@ namespace osu.Framework.IO.Stores
 
         public virtual byte[] Get(string url)
         {
-            if (!url.StartsWith(@"https://", StringComparison.Ordinal))
+            if (!validateScheme(url))
                 return null;
 
             this.LogIfNonBackgroundThread(url);
@@ -64,6 +67,14 @@ namespace osu.Framework.IO.Stores
         }
 
         public IEnumerable<string> GetAvailableResources() => Enumerable.Empty<string>();
+
+        private bool validateScheme(string url)
+        {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out Uri uri))
+                return false;
+
+            return uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps;
+        }
 
         #region IDisposable Support
 

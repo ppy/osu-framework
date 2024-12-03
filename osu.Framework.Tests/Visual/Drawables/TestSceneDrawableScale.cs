@@ -76,11 +76,11 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
 
             AddAssert("passed through input X position is correct",
-                () => box.ToParentSpace(box.ToLocalSpace(box.Parent.ToScreenSpace(Vector2.Zero))).X,
+                () => box.ToParentSpace(box.ToLocalSpace(box.Parent!.ToScreenSpace(Vector2.Zero))).X,
                 () => Is.Zero.Within(1));
 
             AddAssert("passed through input Y position is correct",
-                () => box.ToParentSpace(box.ToLocalSpace(box.Parent.ToScreenSpace(Vector2.Zero))).Y,
+                () => box.ToParentSpace(box.ToLocalSpace(box.Parent!.ToScreenSpace(Vector2.Zero))).Y,
                 () => Is.Zero.Within(1));
         }
     }

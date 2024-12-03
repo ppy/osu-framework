@@ -11,11 +11,11 @@ namespace osu.Framework.Platform.MacOS
     {
         private readonly NSPasteboard generalPasteboard = NSPasteboard.GeneralPasteboard();
 
-        public override string GetText() => Cocoa.FromNSString(getFromPasteboard(Class.Get("NSString")));
+        public override string? GetText() => Cocoa.FromNSString(getFromPasteboard(Class.Get("NSString")));
 
-        public override Image<TPixel> GetImage<TPixel>() => Cocoa.FromNSImage<TPixel>(getFromPasteboard(Class.Get("NSImage")));
+        public override Image<TPixel>? GetImage<TPixel>() => Cocoa.FromNSImage<TPixel>(getFromPasteboard(Class.Get("NSImage")));
 
-        public override void SetText(string selectedText) => setToPasteboard(Cocoa.ToNSString(selectedText));
+        public override void SetText(string text) => setToPasteboard(Cocoa.ToNSString(text));
 
         public override bool SetImage(Image image) => setToPasteboard(Cocoa.ToNSImage(image));
 
@@ -27,7 +27,7 @@ namespace osu.Framework.Platform.MacOS
                 return IntPtr.Zero;
 
             var result = generalPasteboard.ReadObjectsForClasses(classArray, null);
-            var objects = result?.ToArray();
+            IntPtr[]? objects = result?.ToArray();
 
             return objects?.Length > 0 ? objects[0] : IntPtr.Zero;
         }

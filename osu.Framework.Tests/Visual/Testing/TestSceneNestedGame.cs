@@ -81,10 +81,8 @@ namespace osu.Framework.Tests.Visual.Testing
             AddStep("mark host running", () => hostWasRunningAfterNestedExit = true);
         }
 
-        protected override void RunTestsFromNUnit()
+        internal override void RunAfterTest()
         {
-            base.RunTestsFromNUnit();
-
             Assert.IsTrue(hostWasRunningAfterNestedExit);
         }
 

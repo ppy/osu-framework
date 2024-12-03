@@ -86,6 +86,7 @@ namespace osu.Framework.Graphics
 
             public static bool RequestsPositionalInput(Drawable drawable)
             {
+                // ReSharper disable once SuspiciousTypeConversion.Global (this is used by source generators, but only in release builds).
                 if (drawable is ISourceGeneratedHandleInputCache sgInput && sgInput.KnownType == drawable.GetType())
                     return sgInput.RequestsPositionalInput;
 
@@ -94,6 +95,7 @@ namespace osu.Framework.Graphics
 
             public static bool RequestsNonPositionalInput(Drawable drawable)
             {
+                // ReSharper disable once SuspiciousTypeConversion.Global (this is used by source generators, but only in release builds).
                 if (drawable is ISourceGeneratedHandleInputCache sgInput && sgInput.KnownType == drawable.GetType())
                     return sgInput.RequestsNonPositionalInput;
 

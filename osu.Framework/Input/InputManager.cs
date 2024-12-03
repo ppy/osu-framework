@@ -31,7 +31,7 @@ using MouseState = osu.Framework.Input.States.MouseState;
 
 namespace osu.Framework.Input
 {
-    public abstract partial class InputManager : Container, IInputStateChangeHandler
+    public abstract partial class InputManager : Container, IInputStateChangeHandler, IFocusManager
     {
         /// <summary>
         /// The initial delay before key repeat begins.
@@ -50,6 +50,12 @@ namespace osu.Framework.Input
         /// The currently focused <see cref="Drawable"/>. Null if there is no current focus.
         /// </summary>
         public Drawable FocusedDrawable { get; internal set; }
+
+        /// <summary>
+        /// Any drawable that was focused directly via <see cref="ChangeFocus(Drawable, InputState)"/> during the handling of a click,
+        /// and <i>not</i> as a result of the automatic post-process change of focus from the click.
+        /// </summary>
+        internal Drawable FocusedDrawableThisClick;
 
         protected abstract ImmutableArray<InputHandler> InputHandlers { get; }
 
@@ -137,7 +143,10 @@ namespace osu.Framework.Input
         private readonly Dictionary<Key, KeyEventManager> keyButtonEventManagers = new Dictionary<Key, KeyEventManager>();
         private readonly Dictionary<TouchSource, TouchEventManager> touchEventManagers = new Dictionary<TouchSource, TouchEventManager>();
         private readonly Dictionary<TabletPenButton, TabletPenButtonEventManager> tabletPenButtonEventManagers = new Dictionary<TabletPenButton, TabletPenButtonEventManager>();
-        private readonly Dictionary<TabletAuxiliaryButton, TabletAuxiliaryButtonEventManager> tabletAuxiliaryButtonEventManagers = new Dictionary<TabletAuxiliaryButton, TabletAuxiliaryButtonEventManager>();
+
+        private readonly Dictionary<TabletAuxiliaryButton, TabletAuxiliaryButtonEventManager> tabletAuxiliaryButtonEventManagers =
+            new Dictionary<TabletAuxiliaryButton, TabletAuxiliaryButtonEventManager>();
+
         private readonly Dictionary<JoystickButton, JoystickButtonEventManager> joystickButtonEventManagers = new Dictionary<JoystickButton, JoystickButtonEventManager>();
         private readonly Dictionary<MidiKey, MidiKeyEventManager> midiKeyEventManagers = new Dictionary<MidiKey, MidiKeyEventManager>();
 
@@ -161,9 +170,10 @@ namespace osu.Framework.Input
             foreach (var button in Enum.GetValues<MouseButton>())
             {
                 var manager = CreateButtonEventManagerFor(button);
-                manager.RequestFocus = ChangeFocusFromClick;
+
+                manager.InputManager = this;
                 manager.GetInputQueue = () => PositionalInputQueue;
-                manager.GetCurrentTime = () => Time.Current;
+
                 mouseButtonEventManagers.Add(button, manager);
             }
         }
@@ -220,6 +230,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(key);
+            manager.InputManager = this;
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return keyButtonEventManagers[key] = manager;
         }
@@ -242,6 +253,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(source);
+            manager.InputManager = this;
             manager.GetInputQueue = () => buildPositionalInputQueue(CurrentState.Touch.TouchPositions[(int)source]);
             return touchEventManagers[source] = manager;
         }
@@ -264,6 +276,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(button);
+            manager.InputManager = this;
             manager.GetInputQueue = () => PositionalInputQueue;
             return tabletPenButtonEventManagers[button] = manager;
         }
@@ -286,6 +299,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(button);
+            manager.InputManager = this;
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return tabletAuxiliaryButtonEventManagers[button] = manager;
         }
@@ -308,6 +322,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(button);
+            manager.InputManager = this;
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return joystickButtonEventManagers[button] = manager;
         }
@@ -330,6 +345,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(key);
+            manager.InputManager = this;
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return midiKeyEventManagers[key] = manager;
         }
@@ -356,17 +372,17 @@ namespace osu.Framework.Input
             return joystickAxisEventManagers[source] = manager;
         }
 
-        /// <summary>
-        /// Reset current focused drawable to the top-most drawable which is <see cref="Drawable.RequestsFocus"/>.
-        /// </summary>
-        /// <param name="triggerSource">The source which triggered this event.</param>
+        [Obsolete("This method does not allow trapping focus. Use GetContainingFocusManager().TriggerFocusContention instead.")] // Can be removed 20241118
         public void TriggerFocusContention(Drawable triggerSource)
         {
             if (FocusedDrawable == null) return;
 
             Logger.Log($"Focus contention triggered by {triggerSource}.");
-            ChangeFocus(null);
+            changeFocus(null);
         }
+
+        [Obsolete("This method does not allow trapping focus. Use GetContainingFocusManager().ChangeFocus() instead.")] // Can be removed 20241118
+        public bool ChangeFocus(Drawable potentialFocusTarget) => changeFocus(potentialFocusTarget);
 
         /// <summary>
         /// Changes the currently-focused drawable. First checks that <paramref name="potentialFocusTarget"/> is in a valid state to receive focus,
@@ -376,7 +392,7 @@ namespace osu.Framework.Input
         /// </summary>
         /// <param name="potentialFocusTarget">The drawable to become focused.</param>
         /// <returns>True if the given drawable is now focused (or focus is dropped in the case of a null target).</returns>
-        public bool ChangeFocus(Drawable potentialFocusTarget) => ChangeFocus(potentialFocusTarget, CurrentState);
+        private bool changeFocus(Drawable potentialFocusTarget) => ChangeFocus(potentialFocusTarget, CurrentState);
 
         /// <summary>
         /// Changes the currently-focused drawable. First checks that <paramref name="potentialFocusTarget"/> is in a valid state to receive focus,
@@ -390,7 +406,10 @@ namespace osu.Framework.Input
         protected bool ChangeFocus(Drawable potentialFocusTarget, InputState state)
         {
             if (potentialFocusTarget == FocusedDrawable)
+            {
+                FocusedDrawableThisClick = FocusedDrawable;
                 return true;
+            }
 
             if (potentialFocusTarget != null && (!isDrawableValidForFocus(potentialFocusTarget) || !potentialFocusTarget.AcceptsFocus))
                 return false;
@@ -417,6 +436,8 @@ namespace osu.Framework.Input
                 FocusedDrawable.TriggerEvent(new FocusEvent(state, previousFocus));
             }
 
+            FocusedDrawableThisClick = FocusedDrawable;
+
             return true;
         }
 
@@ -434,7 +455,7 @@ namespace osu.Framework.Input
 
         private readonly List<Drawable> highFrequencyDrawables = new List<Drawable>();
 
-        private MouseMoveEvent highFrequencyMoveEvent;
+        private MouseMoveEvent lastMouseMove;
 
         protected override void Update()
         {
@@ -448,10 +469,11 @@ namespace osu.Framework.Input
 
             var pendingInputs = GetPendingInputs();
 
+            if (pendingInputs.Count > 0)
+                lastMouseMove = null;
+
             foreach (var result in pendingInputs)
-            {
                 result.Apply(CurrentState, this);
-            }
 
             if (CurrentState.Mouse.IsPositionValid)
             {
@@ -467,10 +489,9 @@ namespace osu.Framework.Input
                 {
                     // conditional avoid allocs of MouseMoveEvent when state is guaranteed to not have been mutated.
                     // can be removed if we pool/change UIEvent allocation to be more efficient.
-                    if (highFrequencyMoveEvent == null || pendingInputs.Count > 0)
-                        highFrequencyMoveEvent = new MouseMoveEvent(CurrentState);
+                    lastMouseMove ??= new MouseMoveEvent(CurrentState);
 
-                    PropagateBlockableEvent(highFrequencyDrawables.AsSlimReadOnly(), highFrequencyMoveEvent);
+                    PropagateBlockableEvent(highFrequencyDrawables.AsSlimReadOnly(), lastMouseMove);
                 }
 
                 highFrequencyDrawables.Clear();
@@ -583,8 +604,12 @@ namespace osu.Framework.Input
                 FrameStatistics.Increment(StatisticsCounterType.InputQueue);
 
             var children = AliveInternalChildren;
+
             for (int i = 0; i < children.Count; i++)
-                children[i].BuildNonPositionalInputQueue(inputQueue);
+            {
+                if (ShouldBeConsideredForInput(children[i]))
+                    children[i].BuildNonPositionalInputQueue(inputQueue);
+            }
 
             if (!unfocusIfNoLongerValid())
             {
@@ -610,8 +635,12 @@ namespace osu.Framework.Input
                 FrameStatistics.Increment(StatisticsCounterType.PositionalIQ);
 
             var children = AliveInternalChildren;
+
             for (int i = 0; i < children.Count; i++)
-                children[i].BuildPositionalInputQueue(screenSpacePos, positionalInputQueue);
+            {
+                if (ShouldBeConsideredForInput(children[i]))
+                    children[i].BuildPositionalInputQueue(screenSpacePos, positionalInputQueue);
+            }
 
             positionalInputQueue.Reverse();
             return positionalInputQueue.AsSlimReadOnly();
@@ -955,7 +984,7 @@ namespace osu.Framework.Input
                 manager.HandleButtonStateChange(e.State, e.Kind);
         }
 
-        private bool handleMouseMove(InputState state, Vector2 lastPosition) => PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, lastPosition));
+        private bool handleMouseMove(InputState state, Vector2 lastPosition) => PropagateBlockableEvent(PositionalInputQueue, lastMouseMove = new MouseMoveEvent(state, lastPosition));
 
         private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise) =>
             PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));
@@ -1013,7 +1042,7 @@ namespace osu.Framework.Input
                 return false;
 
             Logger.Log($"Focus on \"{FocusedDrawable}\" no longer valid as a result of {nameof(unfocusIfNoLongerValid)}.", LoggingTarget.Runtime, LogLevel.Debug);
-            ChangeFocus(null);
+            changeFocus(null);
             return true;
         }
 
@@ -1041,7 +1070,7 @@ namespace osu.Framework.Input
             return valid;
         }
 
-        protected virtual void ChangeFocusFromClick(Drawable clickedDrawable)
+        protected internal virtual void ChangeFocusFromClick(Drawable clickedDrawable)
         {
             Drawable focusTarget = null;
 
@@ -1072,7 +1101,7 @@ namespace osu.Framework.Input
                 }
             }
 
-            ChangeFocus(focusTarget);
+            changeFocus(focusTarget);
         }
 
         private void focusTopMostRequestingDrawable()
@@ -1082,12 +1111,12 @@ namespace osu.Framework.Input
             {
                 if (d.RequestsFocus)
                 {
-                    ChangeFocus(d);
+                    changeFocus(d);
                     return;
                 }
             }
 
-            ChangeFocus(null);
+            changeFocus(null);
         }
 
         private class MouseLeftButtonEventManager : MouseButtonEventManager

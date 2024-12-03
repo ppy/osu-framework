@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using osu.Framework.Development;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Statistics;
 using Veldrid;
@@ -37,6 +39,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         public VeldridUniformBuffer(VeldridRenderer renderer)
         {
+            Trace.Assert(ThreadSafety.IsDrawThread);
+
             this.renderer = renderer;
             storages.Add(new VeldridUniformBufferStorage<TData>(this.renderer));
         }

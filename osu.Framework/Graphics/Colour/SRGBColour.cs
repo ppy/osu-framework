@@ -39,6 +39,36 @@ namespace osu.Framework.Graphics.Colour
 
         public static SRGBColour operator *(SRGBColour first, SRGBColour second)
         {
+            if (isWhite(first))
+            {
+                if (first.Alpha == 1)
+                    return second;
+
+                return new SRGBColour
+                {
+                    SRGB = new Color4(
+                        second.SRGB.R,
+                        second.SRGB.G,
+                        second.SRGB.B,
+                        first.Alpha * second.Alpha)
+                };
+            }
+
+            if (isWhite(second))
+            {
+                if (second.Alpha == 1)
+                    return first;
+
+                return new SRGBColour
+                {
+                    SRGB = new Color4(
+                        first.SRGB.R,
+                        first.SRGB.G,
+                        first.SRGB.B,
+                        first.Alpha * second.Alpha)
+                };
+            }
+
             var firstLinear = first.Linear;
             var secondLinear = second.Linear;
 
@@ -54,6 +84,9 @@ namespace osu.Framework.Graphics.Colour
 
         public static SRGBColour operator *(SRGBColour first, float second)
         {
+            if (second == 1)
+                return first;
+
             var firstLinear = first.Linear;
 
             return new SRGBColour
@@ -91,6 +124,8 @@ namespace osu.Framework.Graphics.Colour
         /// </summary>
         /// <param name="alpha">The alpha factor to multiply with.</param>
         public void MultiplyAlpha(float alpha) => SRGB.A *= alpha;
+
+        private static bool isWhite(SRGBColour colour) => colour.SRGB.R == 1 && colour.SRGB.G == 1 && colour.SRGB.B == 1;
 
         public readonly bool Equals(SRGBColour other) => SRGB.Equals(other.SRGB);
         public override string ToString() => $"srgb: {SRGB}, linear: {Linear}";

@@ -5,6 +5,8 @@
 partial class HandleMethod : global::osu.Framework.Input.ISourceGeneratedHandleInputCache
 {
     global::System.Type global::osu.Framework.Input.ISourceGeneratedHandleInputCache.KnownType => typeof(global::HandleMethod);
+
     bool global::osu.Framework.Input.ISourceGeneratedHandleInputCache.RequestsPositionalInput => true;
+
     bool global::osu.Framework.Input.ISourceGeneratedHandleInputCache.RequestsNonPositionalInput => true;
 }

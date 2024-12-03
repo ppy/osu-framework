@@ -38,9 +38,10 @@ namespace osu.Framework.Tests.Visual.Testing
             if (DebugUtils.IsNUnitRunning && TestContext.CurrentContext.Test.MethodName == nameof(TestConstructor))
                 return;
 
-            AddStep(new SingleStepButton(true)
+            AddStep(new SingleStepButton
             {
-                Name = "set up dummy",
+                Text = "set up dummy",
+                IsSetupStep = true,
                 Action = () => setupStepsDummyRun++
             });
 
@@ -103,6 +104,17 @@ namespace osu.Framework.Tests.Visual.Testing
         [TestCase(2)]
         [Repeat(2)]
         public void TestTestCase(int _) => TestTest();
+
+        [TestCase(0)]
+        [TestCase(1, "one")]
+        [TestCase(3, "one", "two", "three")]
+        [TestCase(2, new[] { "test", "two" })]
+        public void TestParamsTestCase(int length, params string[] p)
+        {
+            TestTest();
+            AddAssert("params is array", () => p, Is.TypeOf<string[]>);
+            AddAssert("length is expected", () => p, () => Has.Length.EqualTo(length));
+        }
 
         protected override ITestSceneTestRunner CreateRunner() => new TestRunner();
 

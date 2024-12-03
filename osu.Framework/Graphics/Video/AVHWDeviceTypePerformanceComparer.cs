@@ -15,7 +15,8 @@ namespace osu.Framework.Graphics.Video
             // Windows
             { AVHWDeviceType.AV_HWDEVICE_TYPE_CUDA, 10 },
             { AVHWDeviceType.AV_HWDEVICE_TYPE_QSV, 9 },
-            { AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, 8 },
+            { AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA, 8 },
+            { AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, 7 },
             // Linux
             { AVHWDeviceType.AV_HWDEVICE_TYPE_VDPAU, 10 },
             { AVHWDeviceType.AV_HWDEVICE_TYPE_VAAPI, 9 },

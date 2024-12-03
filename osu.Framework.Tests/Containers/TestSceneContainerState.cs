@@ -16,6 +16,8 @@ using osu.Framework.Testing;
 using osu.Framework.Tests.Visual;
 using osuTK;
 
+#pragma warning disable CA1826 // Performance for test is not important
+
 namespace osu.Framework.Tests.Containers
 {
     [System.ComponentModel.Description("ensure valid container state in various scenarios")]
@@ -81,7 +83,7 @@ namespace osu.Framework.Tests.Containers
                     Child = new Container(),
                 };
 
-                var unused2 = new Container { Child = unused1.Child };
+                _ = new Container { Child = unused1.Child };
             });
         }
 

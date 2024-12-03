@@ -324,7 +324,7 @@ namespace osu.Framework.Testing
             {
                 case TestBrowserAction.Search:
                     if (leftContainer.Width == 0) toggleTestList();
-                    GetContainingInputManager().ChangeFocus(searchTextBox);
+                    GetContainingFocusManager().AsNonNull().ChangeFocus(searchTextBox);
                     return true;
 
                 case TestBrowserAction.Reload:
@@ -400,7 +400,13 @@ namespace osu.Framework.Testing
 
             bool hadTestAttributeTest = false;
 
-            foreach (var m in newTest.GetType().GetMethods())
+            var methods = newTest.GetType().GetMethods();
+
+            var soloTests = methods.Where(m => m.GetCustomAttribute(typeof(SoloAttribute), false) != null).ToArray();
+            if (soloTests.Length > 0)
+                methods = soloTests;
+
+            foreach (var m in methods)
             {
                 string name = m.Name;
 
@@ -468,7 +474,7 @@ namespace osu.Framework.Testing
                         hadTestAttributeTest = true;
                         CurrentTest.AddLabel($"{name}({string.Join(", ", tc.Arguments)}){repeatSuffix}");
 
-                        handleTestMethod(m, tc.Arguments);
+                        handleTestMethod(m, tc.BuildFrom(methodWrapper, null).Single().Arguments);
                     }
 
                     foreach (var tcs in m.GetCustomAttributes(typeof(TestCaseSourceAttribute), false).OfType<TestCaseSourceAttribute>())
@@ -511,14 +517,14 @@ namespace osu.Framework.Testing
 
             void addSetUpSteps()
             {
-                var setUpMethods = ReflectionUtils.GetMethodsWithAttribute(newTest.GetType(), typeof(SetUpAttribute), true)
-                                                  .Where(m => m.Name != nameof(TestScene.SetUpTestForNUnit));
+                var setUpMethods = ReflectionUtils.GetMethodsWithAttribute(newTest.GetType(), typeof(SetUpAttribute), true);
 
-                if (setUpMethods.Any())
+                if (setUpMethods.Length > 0)
                 {
-                    CurrentTest.AddStep(new SingleStepButton(true)
+                    CurrentTest.AddStep(new SingleStepButton
                     {
                         Text = "[SetUp]",
+                        IsSetupStep = true,
                         LightColour = Color4.Teal,
                         Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
                     });
@@ -584,7 +590,7 @@ namespace osu.Framework.Testing
         private void runTests(Action onCompletion)
         {
             int actualStepCount = 0;
-            CurrentTest.RunAllSteps(onCompletion, e => Logger.Log($@"Error on step: {e}"), s =>
+            CurrentTest.RunAllSteps(onCompletion, (s, e) => Logger.Error(e, $"Step {s} triggered an error"), s =>
             {
                 if (!interactive || RunAllSteps.Value)
                     return false;
@@ -594,7 +600,13 @@ namespace osu.Framework.Testing
                     return true;
 
                 if (!s.IsSetupStep && !(s is LabelStep))
+                {
                     actualStepCount++;
+
+                    // immediately stop if the test scene has requested it.
+                    if (!CurrentTest.AutomaticallyRunFirstStep)
+                        return true;
+                }
 
                 return false;
             });
@@ -649,7 +661,7 @@ namespace osu.Framework.Testing
 
             public TestBrowserTextBox()
             {
-                TextFlow.Height = 0.75f;
+                FontSize = 14f;
             }
         }
     }

@@ -19,7 +19,6 @@ using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
-using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -114,13 +113,18 @@ namespace osu.Framework.Graphics.Video
         {
             if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
             {
+                void loadVersionedLibraryGlobally(string name)
+                {
+                    int version = FFmpeg.AutoGen.ffmpeg.LibraryVersionMap[name];
+                    Library.Load($"lib{name}.so.{version}", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+                }
+
                 // FFmpeg.AutoGen doesn't load libraries as RTLD_GLOBAL, so we must load them ourselves to fix inter-library dependencies
                 // otherwise they would fallback to the system-installed libraries that can differ in version installed.
-                Library.Load("libavutil.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
-                Library.Load("libavcodec.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
-                Library.Load("libavformat.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
-                Library.Load("libavfilter.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
-                Library.Load("libswscale.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+                loadVersionedLibraryGlobally("avutil");
+                loadVersionedLibraryGlobally("avcodec");
+                loadVersionedLibraryGlobally("avformat");
+                loadVersionedLibraryGlobally("swscale");
             }
         }
 
@@ -345,7 +349,12 @@ namespace osu.Framework.Graphics.Video
             formatContext->pb = ioContext;
             formatContext->flags |= FFmpegFuncs.AVFMT_FLAG_GENPTS; // required for most HW decoders as they only read `pts`
 
-            int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "dummy", null, null);
+            AVDictionary* options = null;
+            // see https://github.com/ppy/osu/issues/13696 for reasoning
+            ffmpeg.av_dict_set?.Invoke(&options, "ignore_editlist", "1", 0);
+            int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "pipe:", null, &options);
+            ffmpeg.av_dict_free?.Invoke(&options);
+
             inputOpened = openInputResult >= 0;
             if (!inputOpened)
                 throw new InvalidOperationException($"Error opening file or stream: {getErrorMessage(openInputResult)}");
@@ -431,7 +440,7 @@ namespace osu.Framework.Graphics.Video
             }
 
             if (!openSuccessful)
-                throw new InvalidOperationException("No usable decoder found");
+                throw new InvalidOperationException($"No usable decoder found for codec ID {codecParams.codec_id}");
         }
 
         private void decodingLoop(CancellationToken cancellationToken)
@@ -809,9 +818,9 @@ namespace osu.Framework.Graphics.Video
             {
                 int version = FFmpeg.AutoGen.ffmpeg.LibraryVersionMap[name];
 
+                // "lib" prefix and extensions are resolved by .net core
                 string libraryName;
 
-                // "lib" prefix and extensions are resolved by .net core
                 switch (RuntimeInfo.OS)
                 {
                     case RuntimeInfo.Platform.macOS:
@@ -822,19 +831,24 @@ namespace osu.Framework.Graphics.Video
                         libraryName = $"{name}-{version}";
                         break;
 
+                    // To handle versioning in Linux, we have to specify the entire file name
+                    // because Linux uses a version suffix after the file extension (e.g. libavutil.so.56)
+                    // More info: https://learn.microsoft.com/en-us/dotnet/standard/native-interop/native-library-loading?view=net-6.0
                     case RuntimeInfo.Platform.Linux:
-                        libraryName = name;
+                        libraryName = $"lib{name}.so.{version}";
                         break;
 
                     default:
                         throw new ArgumentOutOfRangeException(nameof(RuntimeInfo.OS), RuntimeInfo.OS, null);
                 }
 
-                return NativeLibrary.Load(libraryName, System.Reflection.Assembly.GetEntryAssembly().AsNonNull(), DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
+                return NativeLibrary.Load(libraryName, RuntimeInfo.EntryAssembly, DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
             };
 
             return new FFmpegFuncs
             {
+                av_dict_set = FFmpeg.AutoGen.ffmpeg.av_dict_set,
+                av_dict_free = FFmpeg.AutoGen.ffmpeg.av_dict_free,
                 av_frame_alloc = FFmpeg.AutoGen.ffmpeg.av_frame_alloc,
                 av_frame_free = FFmpeg.AutoGen.ffmpeg.av_frame_free,
                 av_frame_unref = FFmpeg.AutoGen.ffmpeg.av_frame_unref,
@@ -902,6 +916,16 @@ namespace osu.Framework.Graphics.Video
                 {
                     fixed (AVFormatContext** ptr = &formatContext)
                         ffmpeg.avformat_close_input(ptr);
+                }
+
+                if (ioContext != null)
+                {
+                    // This is not handled by avformat_close_input for custom IO:
+                    // https://ffmpeg.org/doxygen/4.3/structAVFormatContext.html#a1e7324262b6b78522e52064daaa7bc87
+                    ffmpeg.av_freep(&ioContext->buffer);
+
+                    fixed (AVIOContext** ptr = &ioContext)
+                        ffmpeg.avio_context_free(ptr);
                 }
 
                 if (codecContext != null)

@@ -2,17 +2,15 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using osu.Framework.Development;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Statistics;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
-    internal interface IGLUniformBuffer
-    {
-        int Id { get; }
-    }
-
     internal class GLUniformBuffer<TData> : IUniformBuffer<TData>, IGLUniformBuffer
         where TData : unmanaged, IEquatable<TData>
     {
@@ -24,6 +22,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public GLUniformBuffer(GLRenderer renderer)
         {
+            Trace.Assert(ThreadSafety.IsDrawThread);
+
             this.renderer = renderer;
 
             size = Marshal.SizeOf(default(TData));
@@ -53,6 +53,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             GL.BindBuffer(BufferTarget.UniformBuffer, uboId);
             GL.BufferData(BufferTarget.UniformBuffer, size, ref data, BufferUsageHint.DynamicDraw);
             GL.BindBuffer(BufferTarget.UniformBuffer, 0);
+
+            FrameStatistics.Increment(StatisticsCounterType.UniformUpl);
         }
 
         #region Disposal
@@ -80,5 +82,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         #endregion
 
         public int Id => uboId;
+
+        public void Flush()
+        {
+        }
     }
 }

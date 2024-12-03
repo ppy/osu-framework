@@ -5,5 +5,6 @@
 partial class OnDragStartMethod : global::osu.Framework.Input.ISourceGeneratedHandleInputCache
 {
     global::System.Type global::osu.Framework.Input.ISourceGeneratedHandleInputCache.KnownType => typeof(global::OnDragStartMethod);
+
     bool global::osu.Framework.Input.ISourceGeneratedHandleInputCache.RequestsPositionalInput => true;
 }

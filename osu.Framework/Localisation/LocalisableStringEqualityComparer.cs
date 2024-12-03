@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 
@@ -17,14 +15,14 @@ namespace osu.Framework.Localisation
 
         public bool Equals(LocalisableString x, LocalisableString y)
         {
-            object xData = x.Data;
-            object yData = y.Data;
-
-            if (ReferenceEquals(null, xData) != ReferenceEquals(null, yData))
-                return false;
+            object? xData = x.Data;
+            object? yData = y.Data;
 
             if (ReferenceEquals(null, xData))
-                return true;
+                return ReferenceEquals(null, yData);
+
+            if (ReferenceEquals(null, yData))
+                return false;
 
             if (xData.GetType() != yData.GetType())
                 return EqualityComparer<object>.Default.Equals(xData, yData);

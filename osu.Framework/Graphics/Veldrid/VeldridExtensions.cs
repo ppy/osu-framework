@@ -2,8 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -14,15 +14,13 @@ using osuTK.Graphics;
 using SharpGen.Runtime;
 using Veldrid;
 using Veldrid.MetalBindings;
-using Veldrid.OpenGLBinding;
+using Veldrid.OpenGLBindings;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 using Vulkan;
-using GetPName = Veldrid.OpenGLBinding.GetPName;
 using GraphicsBackend = Veldrid.GraphicsBackend;
 using PrimitiveTopology = Veldrid.PrimitiveTopology;
 using StencilOperation = Veldrid.StencilOperation;
-using StringName = Veldrid.OpenGLBinding.StringName;
 using VertexAttribPointerType = osuTK.Graphics.ES30.VertexAttribPointerType;
 
 namespace osu.Framework.Graphics.Veldrid
@@ -125,19 +123,19 @@ namespace osu.Framework.Graphics.Veldrid
                 switch (renderBufferFormats[i])
                 {
                     case RenderBufferFormat.D16:
-                        pixelFormats[i] = PixelFormat.R16_UNorm;
+                        pixelFormats[i] = PixelFormat.R16UNorm;
                         break;
 
                     case RenderBufferFormat.D32:
-                        pixelFormats[i] = PixelFormat.R32_Float;
+                        pixelFormats[i] = PixelFormat.R32Float;
                         break;
 
                     case RenderBufferFormat.D24S8:
-                        pixelFormats[i] = PixelFormat.D24_UNorm_S8_UInt;
+                        pixelFormats[i] = PixelFormat.D24UNormS8UInt;
                         break;
 
                     case RenderBufferFormat.D32S8:
-                        pixelFormats[i] = PixelFormat.D32_Float_S8_UInt;
+                        pixelFormats[i] = PixelFormat.D32FloatS8UInt;
                         break;
 
                     default:
@@ -153,10 +151,10 @@ namespace osu.Framework.Graphics.Veldrid
             switch (mode)
             {
                 case TextureFilteringMode.Linear:
-                    return SamplerFilter.MinLinear_MagLinear_MipLinear;
+                    return SamplerFilter.MinLinearMagLinearMipLinear;
 
                 case TextureFilteringMode.Nearest:
-                    return SamplerFilter.MinPoint_MagPoint_MipPoint;
+                    return SamplerFilter.MinPointMagPointMipPoint;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(mode));
@@ -405,7 +403,7 @@ namespace osu.Framework.Graphics.Veldrid
             Debug.Assert(device.BackendType == GraphicsBackend.Vulkan);
 
             var info = device.GetVulkanInfo();
-            var physicalDevice = info.PhysicalDevice;
+            IntPtr physicalDevice = info.PhysicalDevice;
 
             uint instanceExtensionsCount = 0;
             var result = VulkanNative.vkEnumerateInstanceExtensionProperties((byte*)null, ref instanceExtensionsCount, IntPtr.Zero);
@@ -427,7 +425,13 @@ namespace osu.Framework.Graphics.Veldrid
             maxTextureSize = (int)properties.limits.maxImageDimension2D;
 
             string vulkanName = RuntimeInfo.IsApple ? "MoltenVK" : "Vulkan";
-            string extensions = string.Join(" ", instanceExtensions.Concat(deviceExtensions).Select(e => Marshal.PtrToStringUTF8((IntPtr)e.extensionName)));
+
+            List<string?> extensionNames = new List<string?>();
+
+            foreach (var ext in instanceExtensions)
+                extensionNames.Add(Marshal.PtrToStringUTF8((IntPtr)ext.extensionName));
+            foreach (var ext in deviceExtensions)
+                extensionNames.Add(Marshal.PtrToStringUTF8((IntPtr)ext.extensionName));
 
             string apiVersion = $"{properties.apiVersion >> 22}.{(properties.apiVersion >> 12) & 0x3FFU}.{properties.apiVersion & 0xFFFU}";
             string driverVersion;
@@ -444,7 +448,7 @@ namespace osu.Framework.Graphics.Veldrid
                                     {vulkanName} API Version:    {apiVersion}
                                     {vulkanName} Driver Version: {driverVersion}
                                     {vulkanName} Device:         {Marshal.PtrToStringUTF8((IntPtr)properties.deviceName)}
-                                    {vulkanName} Extensions:     {extensions}");
+                                    {vulkanName} Extensions:     {string.Join(',', extensionNames)}");
         }
 
         public static void LogMetal(this GraphicsDevice device, out int maxTextureSize)

@@ -82,7 +82,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                         Size = new Vector2(circle_radius),
                         RelativePositionAxes = Axes.Both,
                         Position = new Vector2(xPos, yPos),
-                        Current = { Value = 1 }
+                        Progress = 1
                     });
 
                     circlesContainerBuffered.Add(new CircularProgress
@@ -91,7 +91,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                         Size = new Vector2(circle_radius),
                         RelativePositionAxes = Axes.Both,
                         Position = new Vector2(xPos, yPos),
-                        Current = { Value = 1 }
+                        Progress = 1
                     });
                 }
             }
@@ -131,7 +131,7 @@ namespace osu.Framework.Tests.Visual.Graphics
             {
             }
 
-            public override void Draw(IRenderer renderer)
+            protected override void Draw(IRenderer renderer)
             {
                 base.Draw(renderer);
 
@@ -164,7 +164,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                     DestinationAlpha = BlendingType.One,
                 });
 
-                drawNode.Draw(renderer);
+                DrawOther(drawNode, renderer);
 
                 renderer.PopStencilInfo();
                 renderer.SetBlend(DrawColourInfo.Blending);
@@ -182,7 +182,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                     passed: StencilOperation.Keep
                 ));
 
-                drawNode.Draw(renderer);
+                DrawOther(drawNode, renderer);
 
                 renderer.PopStencilInfo();
             }

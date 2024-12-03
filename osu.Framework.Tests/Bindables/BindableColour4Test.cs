@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Globalization;
 using NUnit.Framework;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -41,7 +42,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestParsingString(string value, Colour4 expected)
         {
             var bindable = new BindableColour4();
-            bindable.Parse(value);
+            bindable.Parse(value, CultureInfo.InvariantCulture);
 
             Assert.AreEqual(expected, bindable.Value);
         }

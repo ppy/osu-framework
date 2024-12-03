@@ -23,10 +23,18 @@ namespace osu.Framework.Logging
     {
         private static readonly object static_sync_lock = new object();
 
-        // separate locking object for flushing so that we don't lock too long on the staticSyncLock object, since we have to
-        // hold this lock for the entire duration of the flush (waiting for I/O etc) before we can resume scheduling logs
-        // but other operations like GetLogger(), ApplyFilters() etc. can still be executed while a flush is happening.
+        /// <summary>
+        /// Separate locking object for flushing so that we don't lock too long on the staticSyncLock object, since we have to
+        /// hold this lock for the entire duration of the flush (waiting for I/O etc) before we can resume scheduling logs
+        /// but other operations like GetLogger(), ApplyFilters() etc. can still be executed while a flush is happening.
+        /// </summary>
         private static readonly object flush_sync_lock = new object();
+
+        /// <summary>
+        /// Logs are stored with a consistent unix timestamp prefix per session (across all loggers) for logical grouping of
+        /// log files on disk.
+        /// </summary>
+        private static readonly long session_startup_timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         /// <summary>
         /// Whether logging is enabled. Setting this to false will disable all logging.
@@ -37,11 +45,6 @@ namespace osu.Framework.Logging
         /// The minimum log-level a logged message needs to have to be logged. Default is <see cref="LogLevel.Verbose"/>. Please note that setting this to <see cref="LogLevel.Debug"/>  will log input events, including keypresses when entering a password.
         /// </summary>
         public static LogLevel Level = DebugUtils.IsDebugBuild ? LogLevel.Debug : LogLevel.Verbose;
-
-        /// <summary>
-        /// An identifier used in log file headers to figure where the log file came from.
-        /// </summary>
-        public static string UserIdentifier = Environment.UserName;
 
         /// <summary>
         /// An identifier for the game written to log file headers to indicate where the log file came from.
@@ -60,13 +63,12 @@ namespace osu.Framework.Logging
         /// </summary>
         public static Storage Storage
         {
-            private get => storage;
+            get => storage;
             set
             {
                 storage = value ?? throw new ArgumentNullException(nameof(value));
 
-                // clear static loggers so they are correctly purged at the new storage location.
-                static_loggers.Clear();
+                cycleLogs();
             }
         }
 
@@ -83,7 +85,7 @@ namespace osu.Framework.Logging
         /// <summary>
         /// Gets the name of the file that this logger is logging to.
         /// </summary>
-        public string Filename => $@"{Name}.log";
+        public string Filename { get; }
 
         public int TotalLogOperations => logCount.Value;
 
@@ -109,6 +111,7 @@ namespace osu.Framework.Logging
 
             Name = name;
             logCount = GlobalStatistics.Get<int>(nameof(Logger), Name);
+            Filename = $"{session_startup_timestamp}.{Name}.log";
         }
 
         /// <summary>
@@ -257,10 +260,7 @@ namespace osu.Framework.Logging
                 string nameLower = name.ToLowerInvariant();
 
                 if (!static_loggers.TryGetValue(nameLower, out Logger l))
-                {
                     static_loggers[nameLower] = l = Enum.TryParse(name, true, out LoggingTarget target) ? new Logger(target) : new Logger(name, true);
-                    l.clear();
-                }
 
                 return l;
             }
@@ -296,8 +296,6 @@ namespace osu.Framework.Logging
         {
             if (!Enabled || level < Level)
                 return;
-
-            ensureHeader();
 
             logCount.Value++;
 
@@ -389,6 +387,17 @@ namespace osu.Framework.Logging
                 using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append))
                 using (var writer = new StreamWriter(stream))
                 {
+                    if (!headerAdded)
+                    {
+                        writer.WriteLine("----------------------------------------------------------");
+                        writer.WriteLine($"{Name} Log (LogLevel: {Level})");
+                        writer.WriteLine($"Running {GameIdentifier} {VersionIdentifier} on .NET {Environment.Version}");
+                        writer.WriteLine($"Environment: {RuntimeInfo.OS} ({Environment.OSVersion}), {Environment.ProcessorCount} cores ");
+                        writer.WriteLine("----------------------------------------------------------");
+
+                        headerAdded = true;
+                    }
+
                     foreach (string line in lines)
                         writer.WriteLine(line);
                 }
@@ -409,41 +418,28 @@ namespace osu.Framework.Logging
         /// </summary>
         public static event Action<LogEntry> NewEntry;
 
-        /// <summary>
-        /// Deletes log file from disk.
-        /// </summary>
-        private void clear()
-        {
-            lock (flush_sync_lock)
-            {
-                scheduler.Add(() =>
-                {
-                    try
-                    {
-                        Storage.Delete(Filename);
-                    }
-                    catch
-                    {
-                        // may fail if the file/directory was already cleaned up, ie. during test runs.
-                    }
-                });
-                writer_idle.Reset();
-            }
-        }
-
         private bool headerAdded;
 
-        private void ensureHeader()
+        private static void cycleLogs()
         {
-            if (headerAdded) return;
+            try
+            {
+                if (!storage.ExistsDirectory(string.Empty))
+                    return;
 
-            headerAdded = true;
+                DateTime logCycleCutoff = DateTime.UtcNow.AddDays(-7);
+                var logFiles = new DirectoryInfo(storage.GetFullPath(string.Empty)).GetFiles("*.log");
 
-            add("----------------------------------------------------------", outputToListeners: false);
-            add($"{Name} Log for {UserIdentifier} (LogLevel: {Level})", outputToListeners: false);
-            add($"Running {GameIdentifier} {VersionIdentifier} on .NET {Environment.Version}", outputToListeners: false);
-            add($"Environment: {RuntimeInfo.OS} ({Environment.OSVersion}), {Environment.ProcessorCount} cores ", outputToListeners: false);
-            add("----------------------------------------------------------", outputToListeners: false);
+                foreach (var fileInfo in logFiles)
+                {
+                    if (fileInfo.CreationTimeUtc < logCycleCutoff)
+                        fileInfo.Delete();
+                }
+            }
+            catch (Exception e)
+            {
+                Log($"Cycling logs failed ({e})");
+            }
         }
 
         private static readonly List<string> filters = new List<string>();
@@ -471,15 +467,22 @@ namespace osu.Framework.Logging
 
         /// <summary>
         /// Pause execution until all logger writes have completed and file handles have been closed.
-        /// This will also unbind all handlers bound to <see cref="NewEntry"/>.
         /// </summary>
         public static void Flush()
         {
             lock (flush_sync_lock)
             {
                 writer_idle.WaitOne(2000);
-                NewEntry = null;
             }
+        }
+
+        /// <summary>
+        /// Perform a <see cref="Flush"/> and unbind all events in preparation for game host shutdown.
+        /// </summary>
+        internal static void FlushForShutdown()
+        {
+            Flush();
+            NewEntry = null;
         }
     }
 

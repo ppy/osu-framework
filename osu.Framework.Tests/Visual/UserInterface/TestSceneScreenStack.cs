@@ -67,11 +67,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             TestScreen screen1 = null;
 
             pushAndEnsureCurrent(() => screen1 = new TestScreen { EagerFocus = true });
-            AddUntilStep("wait for focus grab", () => GetContainingInputManager().FocusedDrawable == screen1);
+            AddUntilStep("wait for focus grab", () => GetContainingInputManager()!.FocusedDrawable == screen1);
 
             pushAndEnsureCurrent(() => new TestScreen(), () => screen1);
 
-            AddUntilStep("focus lost", () => GetContainingInputManager().FocusedDrawable != screen1);
+            AddUntilStep("focus lost", () => GetContainingInputManager()!.FocusedDrawable != screen1);
         }
 
         [Test]
@@ -80,11 +80,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             TestScreen screen1 = null, screen2 = null;
 
             pushAndEnsureCurrent(() => screen1 = new TestScreen { EagerFocus = true });
-            AddUntilStep("wait for focus grab", () => GetContainingInputManager().FocusedDrawable == screen1);
+            AddUntilStep("wait for focus grab", () => GetContainingInputManager()!.FocusedDrawable == screen1);
 
             pushAndEnsureCurrent(() => screen2 = new TestScreen { EagerFocus = true }, () => screen1);
 
-            AddUntilStep("focus transferred", () => GetContainingInputManager().FocusedDrawable == screen2);
+            AddUntilStep("focus transferred", () => GetContainingInputManager()!.FocusedDrawable == screen2);
         }
 
         [Test]
@@ -796,6 +796,26 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Exit screen 1", () => screen1.Exit());
             AddAssert("Screen 1 is not current", () => !screen1.IsCurrentScreen());
             AddAssert("Stack is not empty", () => stack.CurrentScreen != null);
+        }
+
+        [Test]
+        public void TestPushOnExitingWithoutBlocking()
+        {
+            TestScreen screen1 = null;
+
+            pushAndEnsureCurrent(() =>
+            {
+                screen1 = new TestScreen(id: 1);
+                screen1.Exiting = () =>
+                {
+                    screen1.Push(new TestScreen(id: 2));
+                    return false;
+                };
+                return screen1;
+            });
+
+            AddStep("ensure push throws", () => Assert.Throws<InvalidOperationException>(
+                () => screen1.Exit()));
         }
 
         [Test]

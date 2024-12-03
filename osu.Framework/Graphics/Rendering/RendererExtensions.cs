@@ -30,8 +30,7 @@ namespace osu.Framework.Graphics.Rendering
         public static void DrawTriangle(this IRenderer renderer, Texture texture, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null,
                                         Action<TexturedVertex2D>? vertexAction = null, Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
         {
-            if (!texture.Available)
-                throw new ObjectDisposedException(texture.ToString(), "Can not draw a triangle with a disposed texture.");
+            ObjectDisposedException.ThrowIf(!texture.Available, texture);
 
             if (!renderer.BindTexture(texture))
                 return;
@@ -65,7 +64,7 @@ namespace osu.Framework.Graphics.Rendering
             SRGBColour topColour = (drawColour.TopLeft + drawColour.TopRight) / 2;
             SRGBColour bottomColour = (drawColour.BottomLeft + drawColour.BottomRight) / 2;
 
-            vertexAction(new TexturedVertex2D
+            vertexAction(new TexturedVertex2D(renderer)
             {
                 Position = vertexTriangle.P0,
                 TexturePosition = new Vector2((inflatedCoordRect.Left + inflatedCoordRect.Right) / 2, inflatedCoordRect.Top),
@@ -73,7 +72,7 @@ namespace osu.Framework.Graphics.Rendering
                 BlendRange = inflationAmount,
                 Colour = topColour.SRGB,
             });
-            vertexAction(new TexturedVertex2D
+            vertexAction(new TexturedVertex2D(renderer)
             {
                 Position = vertexTriangle.P1,
                 TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Bottom),
@@ -81,7 +80,7 @@ namespace osu.Framework.Graphics.Rendering
                 BlendRange = inflationAmount,
                 Colour = drawColour.BottomLeft.SRGB,
             });
-            vertexAction(new TexturedVertex2D
+            vertexAction(new TexturedVertex2D(renderer)
             {
                 Position = (vertexTriangle.P1 + vertexTriangle.P2) / 2,
                 TexturePosition = new Vector2((inflatedCoordRect.Left + inflatedCoordRect.Right) / 2, inflatedCoordRect.Bottom),
@@ -89,7 +88,7 @@ namespace osu.Framework.Graphics.Rendering
                 BlendRange = inflationAmount,
                 Colour = bottomColour.SRGB,
             });
-            vertexAction(new TexturedVertex2D
+            vertexAction(new TexturedVertex2D(renderer)
             {
                 Position = vertexTriangle.P2,
                 TexturePosition = new Vector2(inflatedCoordRect.Right, inflatedCoordRect.Bottom),
@@ -121,8 +120,7 @@ namespace osu.Framework.Graphics.Rendering
         public static void DrawQuad(this IRenderer renderer, Texture texture, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D>? vertexAction = null,
                                     Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
         {
-            if (!texture.Available)
-                throw new ObjectDisposedException(texture.ToString(), "Can not draw a quad with a disposed texture.");
+            ObjectDisposedException.ThrowIf(!texture.Available, texture);
 
             if (!renderer.BindTexture(texture))
                 return;
@@ -150,7 +148,7 @@ namespace osu.Framework.Graphics.Rendering
 
             vertexAction ??= renderer.DefaultQuadBatch.AddAction;
 
-            vertexAction(new TexturedVertex2D
+            vertexAction(new TexturedVertex2D(renderer)
             {
                 Position = vertexQuad.BottomLeft,
                 TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Bottom),
@@ -158,7 +156,7 @@ namespace osu.Framework.Graphics.Rendering
                 BlendRange = blendRange,
                 Colour = drawColour.BottomLeft.SRGB,
             });
-            vertexAction(new TexturedVertex2D
+            vertexAction(new TexturedVertex2D(renderer)
             {
                 Position = vertexQuad.BottomRight,
                 TexturePosition = new Vector2(inflatedCoordRect.Right, inflatedCoordRect.Bottom),
@@ -166,7 +164,7 @@ namespace osu.Framework.Graphics.Rendering
                 BlendRange = blendRange,
                 Colour = drawColour.BottomRight.SRGB,
             });
-            vertexAction(new TexturedVertex2D
+            vertexAction(new TexturedVertex2D(renderer)
             {
                 Position = vertexQuad.TopRight,
                 TexturePosition = new Vector2(inflatedCoordRect.Right, inflatedCoordRect.Top),
@@ -174,7 +172,7 @@ namespace osu.Framework.Graphics.Rendering
                 BlendRange = blendRange,
                 Colour = drawColour.TopRight.SRGB,
             });
-            vertexAction(new TexturedVertex2D
+            vertexAction(new TexturedVertex2D(renderer)
             {
                 Position = vertexQuad.TopLeft,
                 TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Top),

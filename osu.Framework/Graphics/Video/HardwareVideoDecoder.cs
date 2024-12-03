@@ -63,6 +63,12 @@ namespace osu.Framework.Graphics.Video
         [Description("Apple VideoToolbox")]
         VideoToolbox = 1 << 7,
 
+        /// <remarks>
+        /// Windows only.
+        /// </remarks>
+        [Description("Direct3D 11 Video Acceleration")]
+        D3D11VA = 1 << 8,
+
         [Description("Any")]
         Any = int.MaxValue,
     }

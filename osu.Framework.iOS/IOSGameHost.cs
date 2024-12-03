@@ -14,29 +14,21 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.IO.Stores;
 using osu.Framework.iOS.Graphics.Textures;
 using osu.Framework.iOS.Graphics.Video;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Platform.MacOS;
 using UIKit;
 
 namespace osu.Framework.iOS
 {
-    public class IOSGameHost : SDL2GameHost
+    public class IOSGameHost : SDLGameHost
     {
         public IOSGameHost()
             : base(string.Empty)
         {
         }
 
-        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new IOSWindow(preferredSurface);
-
-        protected override void SetupForRun()
-        {
-            base.SetupForRun();
-
-            AllowScreenSuspension.Result.BindValueChanged(allow =>
-                    InputThread.Scheduler.Add(() => UIApplication.SharedApplication.IdleTimerDisabled = !allow.NewValue),
-                true);
-        }
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new IOSWindow(preferredSurface, Options.FriendlyGameName);
 
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {
@@ -45,8 +37,6 @@ namespace osu.Framework.iOS
 
             base.SetupConfig(defaultOverrides);
         }
-
-        public override bool OnScreenKeyboardOverlapsGameWindow => true;
 
         public override bool CanExit => false;
 
@@ -58,15 +48,26 @@ namespace osu.Framework.iOS
 
         public override void OpenUrlExternally(string url)
         {
-            if (!url.CheckIsValidUrl())
+            if (!url.CheckIsValidUrl()
+                // App store links
+                && !url.StartsWith("itms-apps://", StringComparison.Ordinal)
+                // Testflight links
+                && !url.StartsWith("itms-beta://", StringComparison.Ordinal))
                 throw new ArgumentException("The provided URL must be one of either http://, https:// or mailto: protocols.", nameof(url));
 
-            UIApplication.SharedApplication.InvokeOnMainThread(() =>
+            try
             {
-                NSUrl nsurl = NSUrl.FromString(url).AsNonNull();
-                if (UIApplication.SharedApplication.CanOpenUrl(nsurl))
-                    UIApplication.SharedApplication.OpenUrl(nsurl, new NSDictionary(), null);
-            });
+                UIApplication.SharedApplication.InvokeOnMainThread(() =>
+                {
+                    NSUrl nsurl = NSUrl.FromString(url).AsNonNull();
+                    if (UIApplication.SharedApplication.CanOpenUrl(nsurl))
+                        UIApplication.SharedApplication.OpenUrl(nsurl, new NSDictionary(), null);
+                });
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Unable to open external link.");
+            }
         }
 
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)

@@ -36,8 +36,7 @@ namespace osu.Framework.Threading
         /// <param name="name">The thread name to give threads in this pool.</param>
         public ThreadedTaskScheduler(int numberOfThreads, string name)
         {
-            if (numberOfThreads < 1)
-                throw new ArgumentOutOfRangeException(nameof(numberOfThreads));
+            ArgumentOutOfRangeException.ThrowIfLessThan(numberOfThreads, 1);
 
             this.name = name;
             tasks = new BlockingCollection<Task>();
@@ -87,7 +86,7 @@ namespace osu.Framework.Threading
             {
                 tasks.Add(task);
             }
-            catch (ObjectDisposedException)
+            catch (Exception ex) when (ex is InvalidOperationException or ObjectDisposedException)
             {
                 // tasks may have been disposed. there's no easy way to check on this other than catch for it.
                 Logger.Log($"Task was queued for execution on a {nameof(ThreadedTaskScheduler)} ({name}) after it was disposed. The task will be executed inline.");

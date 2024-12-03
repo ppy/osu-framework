@@ -109,7 +109,7 @@ namespace osu.Framework.Statistics
                             if (data.Payload[0] == null)
                                 break;
 
-                            var type = getTypeFromHandle((IntPtr)data.Payload[0]);
+                            var type = Type.GetTypeFromHandle(RuntimeTypeHandle.FromIntPtr((IntPtr)data.Payload[0]));
                             if (type == null)
                                 break;
 
@@ -120,34 +120,6 @@ namespace osu.Framework.Statistics
 
                     break;
             }
-        }
-
-        /// <summary>
-        /// Retrieves a <see cref="Type"/> from a CLR type id.
-        /// </summary>
-        /// <remarks>
-        /// Attrib: https://stackoverflow.com/questions/26972066/type-from-intptr-handle/54469241#54469241
-        /// </remarks>
-        // ReSharper disable once RedundantUnsafeContext
-        // ReSharper disable once UnusedParameter.Local
-        private static unsafe Type getTypeFromHandle(IntPtr handle)
-        {
-            // This is super unsafe code which is dependent upon internal CLR structures.
-            TypedReferenceAccess tr = new TypedReferenceAccess { Type = handle };
-            return __reftype(*(TypedReference*)&tr);
-        }
-
-        /// <summary>
-        /// Matches the internal layout of <see cref="TypedReference"/>.
-        /// See: https://source.dot.net/#System.Private.CoreLib/src/System/TypedReference.cs
-        /// </summary>
-        private struct TypedReferenceAccess
-        {
-            [JetBrains.Annotations.UsedImplicitly]
-            public IntPtr Value;
-
-            [JetBrains.Annotations.UsedImplicitly]
-            public IntPtr Type;
         }
 
         private void addStatistic<T>(string name, object data)

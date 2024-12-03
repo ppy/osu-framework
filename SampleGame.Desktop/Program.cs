@@ -14,7 +14,6 @@ namespace SampleGame.Desktop
         [STAThread]
         public static void Main(string[] args)
         {
-            Marshal.OffsetOf<DepthWrappingVertex<TexturedVertex2D>>(nameof(DepthWrappingVertex<TexturedVertex2D>.Vertex));
             Marshal.OffsetOf<TexturedVertex2D>(nameof(TexturedVertex2D.Position));
 
             using (GameHost host = Host.GetSuitableDesktopHost(@"sample-game"))

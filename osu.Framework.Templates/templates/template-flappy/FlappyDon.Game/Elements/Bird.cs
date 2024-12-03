@@ -144,7 +144,7 @@ namespace FlappyDon.Game.Elements
             if (GroundY > 0.0f)
                 groundPlane = GroundY / 2.0f;
             else
-                groundPlane = Parent.DrawHeight - DrawHeight;
+                groundPlane = Parent!.DrawHeight - DrawHeight;
 
             Y = Math.Min(Y, groundPlane);
 

@@ -17,9 +17,9 @@ namespace osu.Framework.Bindables
         {
         }
 
-        public override void Parse(object? input)
+        public override void Parse(object? input, IFormatProvider provider)
         {
-            if (input == null) throw new ArgumentNullException(nameof(input));
+            ArgumentNullException.ThrowIfNull(input);
 
             switch (input)
             {
@@ -39,7 +39,7 @@ namespace osu.Framework.Bindables
                     break;
 
                 default:
-                    base.Parse(input);
+                    base.Parse(input, provider);
                     break;
             }
         }

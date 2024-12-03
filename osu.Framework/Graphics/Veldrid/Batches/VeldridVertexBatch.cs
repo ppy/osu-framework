@@ -17,45 +17,50 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         /// <summary>
         /// Most documentation recommends that three buffers are used to avoid contention.
         ///
-        /// We already have a triple buffer (see <see cref="GameHost.DrawRoots"/>) at a higher level which guarantees one extra previous buffer,
-        /// so setting this to two here is ample to guarantee we don't hit any weird edge cases (gives a theoretical buffer count of 4, in the worst scenario).
+        /// We already have a triple buffer governing draw nodes.
+        /// In theory we could set this to two, but there's also a global usage of a vertex batch in <see cref="VeldridRenderer"/> (see <see cref="Renderer.DefaultQuadBatch"/>).
         ///
-        /// Note that due to the higher level triple buffer, the actual number of buffers we are storing is three times as high as this constant.
-        /// Maintaining this many buffers is a cause of concern from an memory alloc / GPU upload perspective.
+        /// So this is for now an unfortunate memory overhead. Further work could be done to provide
+        /// these in a way they were not created per draw-node, reducing buffer overhead from 9 to 3.
         /// </summary>
-        private const int vertex_buffer_count = 2;
+        private const int vertex_buffer_count = 3;
 
         /// <summary>
         /// Multiple VBOs in a swap chain to try our best to avoid GPU contention.
         /// </summary>
-        private readonly List<VeldridVertexBuffer<T>>[] vertexBuffers = new List<VeldridVertexBuffer<T>>[FrameworkEnvironment.VertexBufferCount ?? vertex_buffer_count];
+        private readonly List<IVeldridVertexBuffer<T>>[] vertexBuffers = new List<IVeldridVertexBuffer<T>>[FrameworkEnvironment.VertexBufferCount ?? vertex_buffer_count];
 
-        private List<VeldridVertexBuffer<T>> currentVertexBuffers => vertexBuffers[renderer.ResetId % (ulong)vertexBuffers.Length];
-
-        private VeldridVertexBuffer<T> currentVertexBuffer => currentVertexBuffers[currentBufferIndex];
+        private List<IVeldridVertexBuffer<T>> currentVertexBuffers => vertexBuffers[renderer.FrameIndex % (ulong)vertexBuffers.Length];
 
         /// <summary>
         /// The number of vertices in each VertexBuffer.
         /// </summary>
         public int Size { get; }
 
-        private int changeBeginIndex = -1;
-        private int changeEndIndex = -1;
+        // this represents the range of vertices that require synchronisation with the GPU before issuing a draw call.
+        // this is left unused on VBO implementations that don't require synchronisation.
+        private int synchronisationBeginIndex = -1;
+        private int synchronisationEndIndex = -1;
 
         private int currentBufferIndex;
         private int currentVertexIndex;
+        private int currentDrawIndex;
 
         private readonly VeldridRenderer renderer;
+        private readonly PrimitiveTopology primitiveType;
+        private readonly VeldridIndexLayout indexLayout;
 
-        protected VeldridVertexBatch(VeldridRenderer renderer, int bufferSize)
+        protected VeldridVertexBatch(VeldridRenderer renderer, int size, PrimitiveTopology primitiveType, VeldridIndexLayout indexLayout)
         {
-            Size = bufferSize;
+            Size = size;
             this.renderer = renderer;
+            this.primitiveType = primitiveType;
+            this.indexLayout = indexLayout;
 
             AddAction = Add;
 
             for (int i = 0; i < vertexBuffers.Length; i++)
-                vertexBuffers[i] = new List<VeldridVertexBuffer<T>>();
+                vertexBuffers[i] = new List<IVeldridVertexBuffer<T>>();
         }
 
         #region Disposal
@@ -72,7 +77,7 @@ namespace osu.Framework.Graphics.Veldrid.Batches
             {
                 for (int i = 0; i < vertexBuffers.Length; i++)
                 {
-                    foreach (VeldridVertexBuffer<T> vbo in vertexBuffers[i])
+                    foreach (IVeldridVertexBuffer<T> vbo in vertexBuffers[i])
                         vbo.Dispose();
                 }
             }
@@ -82,12 +87,18 @@ namespace osu.Framework.Graphics.Veldrid.Batches
 
         void IVertexBatch.ResetCounters()
         {
-            changeBeginIndex = -1;
+            synchronisationBeginIndex = -1;
             currentBufferIndex = 0;
             currentVertexIndex = 0;
+            currentDrawIndex = 0;
         }
 
-        protected abstract VeldridVertexBuffer<T> CreateVertexBuffer(VeldridRenderer renderer);
+        protected IVeldridVertexBuffer<T> CreateVertexBuffer(VeldridRenderer renderer)
+        {
+            return renderer.SurfaceType == GraphicsSurfaceType.Metal
+                ? new VeldridMetalVertexBuffer<T>(renderer, Size)
+                : new VeldridVertexBuffer<T>(renderer, Size);
+        }
 
         /// <summary>
         /// Adds a vertex to this <see cref="VeldridVertexBatch{T}"/>.
@@ -97,22 +108,28 @@ namespace osu.Framework.Graphics.Veldrid.Batches
         {
             renderer.SetActiveBatch(this);
 
-            if (currentBufferIndex < currentVertexBuffers.Count && currentVertexIndex >= currentVertexBuffer.Size)
+            var buffers = currentVertexBuffers;
+
+            if (buffers.Count > 0 && currentVertexIndex >= buffers[currentBufferIndex].Size)
             {
                 Draw();
                 FrameStatistics.Increment(StatisticsCounterType.VBufOverflow);
+
+                currentBufferIndex++;
+                currentVertexIndex = 0;
+                currentDrawIndex = 0;
             }
 
             // currentIndex will change after Draw() above, so this cannot be in an else-condition
-            while (currentBufferIndex >= currentVertexBuffers.Count)
-                currentVertexBuffers.Add(CreateVertexBuffer(renderer));
+            if (currentBufferIndex >= buffers.Count)
+                buffers.Add(CreateVertexBuffer(renderer));
 
-            if (currentVertexBuffer.SetVertex(currentVertexIndex, v))
+            if (buffers[currentBufferIndex].SetVertex(currentVertexIndex, v))
             {
-                if (changeBeginIndex == -1)
-                    changeBeginIndex = currentVertexIndex;
+                if (synchronisationBeginIndex == -1)
+                    synchronisationBeginIndex = currentVertexIndex;
 
-                changeEndIndex = currentVertexIndex + 1;
+                synchronisationEndIndex = currentVertexIndex + 1;
             }
 
             ++currentVertexIndex;
@@ -126,26 +143,26 @@ namespace osu.Framework.Graphics.Veldrid.Batches
 
         public int Draw()
         {
-            if (currentVertexIndex == 0)
+            int countToDraw = currentVertexIndex - currentDrawIndex;
+            int drawStartIndex = currentDrawIndex;
+            currentDrawIndex = currentVertexIndex;
+
+            if (countToDraw == 0)
                 return 0;
 
-            VeldridVertexBuffer<T> vertexBuffer = currentVertexBuffer;
-            if (changeBeginIndex >= 0)
-                vertexBuffer.UpdateRange(changeBeginIndex, changeEndIndex);
+            IVeldridVertexBuffer<T> buffer = currentVertexBuffers[currentBufferIndex];
 
-            vertexBuffer.DrawRange(0, currentVertexIndex);
+            if (synchronisationBeginIndex >= 0)
+                buffer.UpdateRange(synchronisationBeginIndex, synchronisationEndIndex);
 
-            int count = currentVertexIndex;
+            renderer.BindVertexBuffer(buffer);
+            renderer.BindIndexBuffer(indexLayout, Size);
+            renderer.DrawVertices(primitiveType, drawStartIndex, countToDraw);
 
             // When using multiple buffers we advance to the next one with every draw to prevent contention on the same buffer with future vertex updates.
-            currentBufferIndex++;
-            currentVertexIndex = 0;
-            changeBeginIndex = -1;
+            synchronisationBeginIndex = -1;
 
-            FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
-            FrameStatistics.Add(StatisticsCounterType.VerticesDraw, count);
-
-            return count;
+            return countToDraw;
         }
     }
 }

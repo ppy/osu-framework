@@ -45,7 +45,7 @@ namespace osu.Framework.Platform
         {
             // Retry move operations as it can fail on windows intermittently with IOExceptions:
             // The process cannot access the file because it is being used by another process.
-            General.AttemptWithRetryOnException<IOException>(() => File.Move(GetFullPath(from), GetFullPath(to)));
+            General.AttemptWithRetryOnException<IOException>(() => File.Move(GetFullPath(from), GetFullPath(to), true));
         }
 
         public override IEnumerable<string> GetDirectories(string path) => getRelativePaths(Directory.GetDirectories(GetFullPath(path)));
@@ -86,8 +86,7 @@ namespace osu.Framework.Platform
         {
             path = GetFullPath(path, access != FileAccess.Read);
 
-            if (string.IsNullOrEmpty(path))
-                throw new ArgumentNullException(nameof(path));
+            ArgumentException.ThrowIfNullOrEmpty(path);
 
             switch (access)
             {

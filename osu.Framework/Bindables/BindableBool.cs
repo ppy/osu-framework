@@ -12,16 +12,16 @@ namespace osu.Framework.Bindables
         {
         }
 
-        public override void Parse(object? input)
+        public override void Parse(object? input, IFormatProvider provider)
         {
-            if (input == null) throw new ArgumentNullException(nameof(input));
+            ArgumentNullException.ThrowIfNull(input);
 
             if (input is "1")
                 Value = true;
             else if (input is "0")
                 Value = false;
             else
-                base.Parse(input);
+                base.Parse(input, provider);
         }
 
         public void Toggle() => Value = !Value;

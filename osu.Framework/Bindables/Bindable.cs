@@ -25,16 +25,19 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
         /// </summary>
+        [CanBeNull]
         public event Action<ValueChangedEvent<T>> ValueChanged;
 
         /// <summary>
         /// An event which is raised when <see cref="Disabled"/> has changed (or manually via <see cref="TriggerDisabledChange"/>).
         /// </summary>
+        [CanBeNull]
         public event Action<bool> DisabledChanged;
 
         /// <summary>
         /// An event which is raised when <see cref="Default"/> has changed (or manually via <see cref="TriggerDefaultChange"/>).
         /// </summary>
+        [CanBeNull]
         public event Action<ValueChangedEvent<T>> DefaultChanged;
 
         private T value;
@@ -245,7 +248,8 @@ namespace osu.Framework.Bindables
         /// An object deriving T can be parsed, or a string can be parsed if T is an enum type.
         /// </summary>
         /// <param name="input">The input which is to be parsed.</param>
-        public virtual void Parse(object input)
+        /// <param name="provider">An object that provides culture-specific formatting information about <paramref name="input"/>.</param>
+        public virtual void Parse(object input, IFormatProvider provider)
         {
             switch (input)
             {
@@ -292,7 +296,7 @@ namespace osu.Framework.Bindables
                     if (underlyingType.IsEnum)
                         Value = (T)Enum.Parse(underlyingType, input.ToString().AsNonNull());
                     else
-                        Value = (T)Convert.ChangeType(input, underlyingType, CultureInfo.InvariantCulture);
+                        Value = (T)Convert.ChangeType(input, underlyingType, provider);
 
                     break;
             }
@@ -435,6 +439,8 @@ namespace osu.Framework.Bindables
         protected virtual Bindable<T> CreateInstance() => new Bindable<T>();
 
         IBindable IBindable.GetBoundCopy() => GetBoundCopy();
+
+        WeakReference<Bindable<T>> IBindable<T>.GetWeakReference() => weakReference;
 
         IBindable<T> IBindable<T>.GetBoundCopy() => GetBoundCopy();
 

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -90,12 +88,12 @@ namespace osu.Framework.Platform.MacOS.Native
             AppKitLibrary = dlopen(LIB_APPKIT, RTLD_NOW);
         }
 
-        private static readonly IntPtr sel_c_string_using_encoding = Selector.Get("cStringUsingEncoding:");
+        private static readonly IntPtr sel_utf8_string = Selector.Get("UTF8String");
         private static readonly IntPtr sel_tiff_representation = Selector.Get("TIFFRepresentation");
 
-        public static string FromNSString(IntPtr handle) => Marshal.PtrToStringUni(SendIntPtr(handle, sel_c_string_using_encoding, (uint)NSStringEncoding.Unicode));
+        public static string? FromNSString(IntPtr handle) => Marshal.PtrToStringUTF8(SendIntPtr(handle, sel_utf8_string));
 
-        public static Image<TPixel> FromNSImage<TPixel>(IntPtr handle)
+        public static Image<TPixel>? FromNSImage<TPixel>(IntPtr handle)
             where TPixel : unmanaged, IPixel<TPixel>
         {
             if (handle == IntPtr.Zero)
@@ -105,19 +103,19 @@ namespace osu.Framework.Platform.MacOS.Native
             return Image.Load<TPixel>(tiffRepresentation.ToBytes());
         }
 
-        public static unsafe IntPtr ToNSString(string str)
+        public static unsafe IntPtr ToNSString(string? str)
         {
             if (str == null)
                 return IntPtr.Zero;
 
             fixed (char* ptrFirstChar = str)
             {
-                var handle = SendIntPtr(Class.Get("NSString"), Selector.Get("alloc"));
+                IntPtr handle = SendIntPtr(Class.Get("NSString"), Selector.Get("alloc"));
                 return SendIntPtr(handle, Selector.Get("initWithCharacters:length:"), (IntPtr)ptrFirstChar, str.Length);
             }
         }
 
-        public static IntPtr ToNSImage(Image image)
+        public static IntPtr ToNSImage(Image? image)
         {
             if (image == null)
                 return IntPtr.Zero;
@@ -127,7 +125,7 @@ namespace osu.Framework.Platform.MacOS.Native
                 image.Save(stream, TiffFormat.Instance);
                 byte[] array = stream.ToArray();
 
-                var handle = SendIntPtr(Class.Get("NSImage"), Selector.Get("alloc"));
+                IntPtr handle = SendIntPtr(Class.Get("NSImage"), Selector.Get("alloc"));
                 return SendIntPtr(handle, Selector.Get("initWithData:"), NSData.FromBytes(array));
             }
         }

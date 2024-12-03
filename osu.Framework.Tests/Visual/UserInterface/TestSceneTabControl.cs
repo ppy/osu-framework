@@ -17,6 +17,8 @@ using osu.Framework.Input;
 using osu.Framework.Localisation;
 using osuTK;
 
+#pragma warning disable CA1826 // Performance for test is not important
+
 namespace osu.Framework.Tests.Visual.UserInterface
 {
     public partial class TestSceneTabControl : FrameworkTestScene
@@ -504,6 +506,17 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 {
                     new Box { Width = 20, Height = 20 }
                 };
+            }
+
+            protected override DropdownSearchBar CreateSearchBar() => new BasicDropdownSearchBar();
+
+            private partial class BasicDropdownSearchBar : DropdownSearchBar
+            {
+                protected override void PopIn() => this.FadeIn();
+
+                protected override void PopOut() => this.FadeOut();
+
+                protected override TextBox CreateTextBox() => new BasicTextBox();
             }
         }
 

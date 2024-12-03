@@ -44,6 +44,11 @@ namespace osu.Framework.Graphics.Textures
         public float DisplayHeight => Height / ScaleAdjust;
 
         /// <summary>
+        /// The size of this texture when drawn to the screen.
+        /// </summary>
+        public Vector2 DisplaySize => Vector2.Divide(Size, ScaleAdjust);
+
+        /// <summary>
         /// The texture opacity.
         /// </summary>
         public Opacity Opacity { get; protected set; } = Opacity.Mixed;
@@ -192,8 +197,7 @@ namespace osu.Framework.Graphics.Textures
 
         internal virtual void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? opacity)
         {
-            if (!Available)
-                throw new ObjectDisposedException(ToString(), "Can not set data of a disposed texture.");
+            ObjectDisposedException.ThrowIf(!Available, this);
 
             if (upload.Bounds.Width > NativeTexture.MaxSize || upload.Bounds.Height > NativeTexture.MaxSize)
                 throw new TextureTooLargeForGLException();

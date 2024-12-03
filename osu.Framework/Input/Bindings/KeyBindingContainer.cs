@@ -6,10 +6,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Extensions.ListExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
+using osu.Framework.Lists;
 using osu.Framework.Logging;
 using osuTK;
 
@@ -45,7 +47,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// All actions in a currently pressed state.
         /// </summary>
-        public IEnumerable<T> PressedActions => pressedActions;
+        public SlimReadOnlyListWrapper<T> PressedActions => pressedActions.AsSlimReadOnly();
 
         private readonly Dictionary<IKeyBinding, List<Drawable>> keyBindingQueues = new Dictionary<IKeyBinding, List<Drawable>>();
         private readonly List<Drawable> queue = new List<Drawable>();
@@ -83,6 +85,20 @@ namespace osu.Framework.Input.Bindings
         internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
             if (!base.BuildNonPositionalInputQueue(queue, allowBlocking))
+                return false;
+
+            if (Prioritised)
+            {
+                queue.Remove(this);
+                queue.Add(this);
+            }
+
+            return true;
+        }
+
+        internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
+        {
+            if (!base.BuildPositionalInputQueue(screenSpacePos, queue))
                 return false;
 
             if (Prioritised)
@@ -188,6 +204,8 @@ namespace osu.Framework.Input.Bindings
             return drawables.FirstOrDefault(d => triggerKeyBindingEvent(d, pressEvent)) != null;
         }
 
+        private readonly List<IKeyBinding> newlyPressed = new List<IKeyBinding>();
+
         private bool handleNewPressed(InputState state, InputKey newKey, Vector2? scrollDelta = null, bool isPrecise = false)
         {
             pressedInputKeys.Add(newKey);
@@ -196,9 +214,20 @@ namespace osu.Framework.Input.Bindings
             var pressedCombination = new KeyCombination(pressedInputKeys);
 
             bool handled = false;
-            var bindings = KeyBindings?.Except(pressedBindings) ?? Enumerable.Empty<IKeyBinding>();
-            var newlyPressed = bindings.Where(m =>
-                m.KeyCombination.IsPressed(pressedCombination, matchingMode));
+
+            newlyPressed.Clear();
+
+            if (KeyBindings != null)
+            {
+                foreach (IKeyBinding binding in KeyBindings)
+                {
+                    if (pressedBindings.Contains(binding))
+                        continue;
+
+                    if (binding.KeyCombination.IsPressed(pressedCombination, state, matchingMode))
+                        newlyPressed.Add(binding);
+                }
+            }
 
             if (KeyCombination.IsModifierKey(newKey))
             {
@@ -206,11 +235,15 @@ namespace osu.Framework.Input.Bindings
                 // lambda expression is used so that the delegate is cached (see: https://github.com/dotnet/roslyn/issues/5835)
                 // TODO: remove when we switch to .NET 7.
                 // ReSharper disable once ConvertClosureToMethodGroup
-                newlyPressed = newlyPressed.Where(b => b.KeyCombination.Keys.All(key => KeyCombination.IsModifierKey(key)));
+                for (int i = 0; i < newlyPressed.Count; i++)
+                {
+                    if (!newlyPressed[i].KeyCombination.Keys.All(key => KeyCombination.IsModifierKey(key)))
+                        newlyPressed.RemoveAt(i--);
+                }
             }
 
             // we want to always handle bindings with more keys before bindings with less.
-            newlyPressed = newlyPressed.OrderByDescending(b => b.KeyCombination.Keys.Length).ToList();
+            newlyPressed.Sort(static (a, b) => b.KeyCombination.Keys.Length.CompareTo(a.KeyCombination.Keys.Length));
 
             pressedBindings.AddRange(newlyPressed);
 
@@ -218,7 +251,7 @@ namespace osu.Framework.Input.Bindings
             if (simultaneousMode == SimultaneousBindingMode.None && (matchingMode == KeyCombinationMatchingMode.Exact || matchingMode == KeyCombinationMatchingMode.Modifiers))
             {
                 // only want to release pressed actions if no existing bindings would still remain pressed
-                if (pressedBindings.Count > 0 && !pressedBindings.Any(m => m.KeyCombination.IsPressed(pressedCombination, matchingMode)))
+                if (pressedBindings.Count > 0 && !pressedBindings.Any(m => m.KeyCombination.IsPressed(pressedCombination, state, matchingMode)))
                     releasePressedActions(state);
             }
 
@@ -328,16 +361,16 @@ namespace osu.Framework.Input.Bindings
             // we don't want to consider exact matching here as we are dealing with bindings, not actions.
             var pressedCombination = new KeyCombination(pressedInputKeys);
 
-            var newlyReleased = pressedInputKeys.Count == 0
-                ? pressedBindings.ToList()
-                : pressedBindings.Where(b => !b.KeyCombination.IsPressed(pressedCombination, KeyCombinationMatchingMode.Any)).ToList();
-
-            foreach (var binding in newlyReleased)
+            for (int i = 0; i < pressedBindings.Count; i++)
             {
-                pressedBindings.Remove(binding);
+                var binding = pressedBindings[i];
 
-                PropagateReleased(getInputQueue(binding), state, binding.GetAction<T>());
-                keyBindingQueues[binding].Clear();
+                if (pressedInputKeys.Count == 0 || !binding.KeyCombination.IsPressed(pressedCombination, state, KeyCombinationMatchingMode.Any))
+                {
+                    pressedBindings.RemoveAt(i--);
+                    PropagateReleased(getInputQueue(binding).Where(d => d.IsRootedAt(this)), state, binding.GetAction<T>());
+                    keyBindingQueues[binding].Clear();
+                }
             }
         }
 
@@ -376,7 +409,7 @@ namespace osu.Framework.Input.Bindings
 
             var currentQueue = keyBindingQueues[binding];
 
-            if (rebuildIfEmpty && !currentQueue.Any())
+            if (rebuildIfEmpty && currentQueue.Count == 0)
                 currentQueue.AddRange(KeyBindingInputQueue);
 
             return currentQueue;

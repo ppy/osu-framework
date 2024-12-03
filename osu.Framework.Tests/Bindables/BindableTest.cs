@@ -66,10 +66,10 @@ namespace osu.Framework.Tests.Bindables
             var bindable3 = new BindableBool();
             var bindable4 = new Bindable<string>();
 
-            bindable1.Parse(new BindableInt(3));
-            bindable2.Parse(new BindableDouble(2.5));
-            bindable3.Parse(new BindableBool(true));
-            bindable4.Parse(new Bindable<string>("string value"));
+            bindable1.Parse(new BindableInt(3), CultureInfo.InvariantCulture);
+            bindable2.Parse(new BindableDouble(2.5), CultureInfo.InvariantCulture);
+            bindable3.Parse(new BindableBool(true), CultureInfo.InvariantCulture);
+            bindable4.Parse(new Bindable<string>("string value"), CultureInfo.InvariantCulture);
 
             Assert.That(bindable1.Value, Is.EqualTo(3));
             Assert.That(bindable2.Value, Is.EqualTo(2.5));
@@ -77,7 +77,7 @@ namespace osu.Framework.Tests.Bindables
             Assert.That(bindable4.Value, Is.EqualTo("string value"));
 
             // parsing bindable of different type should throw exception.
-            Assert.Throws<ArgumentException>(() => bindable1.Parse(new BindableDouble(3.0)));
+            Assert.Throws<ArgumentException>(() => bindable1.Parse(new BindableDouble(3.0), CultureInfo.InvariantCulture));
         }
 
         [Test]
@@ -87,11 +87,11 @@ namespace osu.Framework.Tests.Bindables
             var bindable1 = new BindableInt(10) { MaxValue = 15 };
             var bindable2 = new Bindable<int>(20);
 
-            bindable1.Parse(bindable2);
+            bindable1.Parse(bindable2, CultureInfo.InvariantCulture);
             // ensure MaxValue is still respected.
             Assert.That(bindable1.Value, Is.EqualTo(15));
 
-            bindable2.Parse(bindable1);
+            bindable2.Parse(bindable1, CultureInfo.InvariantCulture);
             Assert.That(bindable2.Value, Is.EqualTo(15));
         }
 
@@ -101,98 +101,98 @@ namespace osu.Framework.Tests.Bindables
             object bindable = Activator.CreateInstance(typeof(Bindable<>).MakeGenericType(type), type == typeof(string) ? "" : Activator.CreateInstance(type));
             Debug.Assert(bindable != null);
 
-            ((IParseable)bindable).Parse(input);
+            ((IParseable)bindable).Parse(input, CultureInfo.InvariantCulture);
             object value = bindable.GetType().GetProperty(nameof(Bindable<object>.Value), BindingFlags.Public | BindingFlags.Instance)?.GetValue(bindable);
 
             Assert.That(value, Is.EqualTo(output));
         }
 
-        // Bindable<int>.Parse(null)
+        // Bindable<int>.Parse(null, CultureInfo.InvariantCulture)
         [Test]
         public void TestParseNullIntoValueType()
         {
             Bindable<int> bindable = new Bindable<int>();
-            Assert.That(() => bindable.Parse(null), Throws.ArgumentNullException);
+            Assert.That(() => bindable.Parse(null, CultureInfo.InvariantCulture), Throws.ArgumentNullException);
         }
 
-        // Bindable<int>.Parse(string.Empty)
+        // Bindable<int>.Parse(string.Empty, CultureInfo.InvariantCulture)
         [Test]
         public void TestParseEmptyStringIntoValueType()
         {
             Bindable<int> bindable = new Bindable<int>();
-            Assert.Throws<FormatException>(() => bindable.Parse(string.Empty));
+            Assert.Throws<FormatException>(() => bindable.Parse(string.Empty, CultureInfo.InvariantCulture));
         }
 
-        // Bindable<int?>.Parse(null)
+        // Bindable<int?>.Parse(null, CultureInfo.InvariantCulture)
         [Test]
         public void TestParseNullIntoNullableValueType()
         {
             Bindable<int?> bindable = new Bindable<int?>();
-            bindable.Parse(null);
+            bindable.Parse(null, CultureInfo.InvariantCulture);
             Assert.That(bindable.Value, Is.Null);
         }
 
-        // Bindable<int?>.Parse(string.Empty)
+        // Bindable<int?>.Parse(string.Empty, CultureInfo.InvariantCulture)
         [Test]
         public void TestParseEmptyStringIntoNullableValueType()
         {
             Bindable<int?> bindable = new Bindable<int?>();
-            bindable.Parse(string.Empty);
+            bindable.Parse(string.Empty, CultureInfo.InvariantCulture);
             Assert.That(bindable.Value, Is.Null);
         }
 
-        // Bindable<Class>.Parse(null)
+        // Bindable<Class>.Parse(null, CultureInfo.InvariantCulture)
         [Test]
         public void TestParseNullIntoReferenceType()
         {
             Bindable<TestClass> bindable = new Bindable<TestClass>();
-            bindable.Parse(null);
+            bindable.Parse(null, CultureInfo.InvariantCulture);
             Assert.That(bindable.Value, Is.Null);
         }
 
-        // Bindable<Class>.Parse(string.Empty)
+        // Bindable<Class>.Parse(string.Empty, CultureInfo.InvariantCulture)
         [Test]
         public void TestParseEmptyStringIntoReferenceType()
         {
             Bindable<TestClass> bindable = new Bindable<TestClass>();
-            bindable.Parse(string.Empty);
+            bindable.Parse(string.Empty, CultureInfo.InvariantCulture);
             Assert.That(bindable.Value, Is.Null);
         }
 
 #nullable enable
-        // Bindable<Class>.Parse(null) -- NRT
+        // Bindable<Class>.Parse(null, CultureInfo.InvariantCulture) -- NRT
         [Test]
         public void TestParseNullIntoReferenceTypeWithNRT()
         {
             Bindable<TestClass> bindable = new Bindable<TestClass>();
-            bindable.Parse(null);
+            bindable.Parse(null, CultureInfo.InvariantCulture);
             Assert.That(bindable.Value, Is.Null);
         }
 
-        // Bindable<Class>.Parse(string.Empty) -- NRT
+        // Bindable<Class>.Parse(string.Empty, CultureInfo.InvariantCulture) -- NRT
         [Test]
         public void TestParseEmptyStringIntoReferenceTypeWithNRT()
         {
             Bindable<TestClass> bindable = new Bindable<TestClass>();
-            bindable.Parse(string.Empty);
+            bindable.Parse(string.Empty, CultureInfo.InvariantCulture);
             Assert.That(bindable.Value, Is.Null);
         }
 
-        // Bindable<Class?>.Parse(null) -- NRT
+        // Bindable<Class?>.Parse(null, CultureInfo.InvariantCulture) -- NRT
         [Test]
         public void TestParseNullIntoNullableReferenceTypeWithNRT()
         {
             Bindable<TestClass?> bindable = new Bindable<TestClass?>();
-            bindable.Parse(null);
+            bindable.Parse(null, CultureInfo.InvariantCulture);
             Assert.That(bindable.Value, Is.Null);
         }
 
-        // Bindable<Class?>.Parse(string.Empty) -- NRT
+        // Bindable<Class?>.Parse(string.Empty, CultureInfo.InvariantCulture) -- NRT
         [Test]
         public void TestParseEmptyStringIntoNullableReferenceTypeWithNRT()
         {
             Bindable<TestClass?> bindable = new Bindable<TestClass?>();
-            bindable.Parse(string.Empty);
+            bindable.Parse(string.Empty, CultureInfo.InvariantCulture);
             Assert.That(bindable.Value, Is.Null);
         }
 #nullable disable
@@ -201,7 +201,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestParseNullIntoStringType()
         {
             Bindable<string> bindable = new Bindable<string>();
-            bindable.Parse(null);
+            bindable.Parse(null, CultureInfo.InvariantCulture);
             Assert.That(bindable.Value, Is.Null);
         }
 
@@ -209,7 +209,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestParseEmptyStringIntoStringType()
         {
             Bindable<string> bindable = new Bindable<string>();
-            bindable.Parse(string.Empty);
+            bindable.Parse(string.Empty, CultureInfo.InvariantCulture);
             Assert.That(bindable.Value, Is.Empty);
         }
 
@@ -218,7 +218,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestParseNullIntoStringTypeWithNRT()
         {
             Bindable<string> bindable = new Bindable<string>();
-            bindable.Parse(null);
+            bindable.Parse(null, CultureInfo.InvariantCulture);
             Assert.That(bindable.Value, Is.Null);
         }
 
@@ -226,7 +226,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestParseEmptyStringIntoStringTypeWithNRT()
         {
             Bindable<string> bindable = new Bindable<string>();
-            bindable.Parse(string.Empty);
+            bindable.Parse(string.Empty, CultureInfo.InvariantCulture);
             Assert.That(bindable.Value, Is.Empty);
         }
 
@@ -234,7 +234,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestParseNullIntoNullableStringTypeWithNRT()
         {
             Bindable<string?> bindable = new Bindable<string?>();
-            bindable.Parse(null);
+            bindable.Parse(null, CultureInfo.InvariantCulture);
             Assert.That(bindable.Value, Is.Null);
         }
 
@@ -242,7 +242,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestParseEmptyStringIntoNullableStringTypeWithNRT()
         {
             Bindable<string?> bindable = new Bindable<string?>();
-            bindable.Parse(string.Empty);
+            bindable.Parse(string.Empty, CultureInfo.InvariantCulture);
             Assert.That(bindable.Value, Is.Empty);
         }
 #nullable disable

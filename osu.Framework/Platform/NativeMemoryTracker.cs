@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Statistics;
 
@@ -22,7 +23,7 @@ namespace osu.Framework.Platform
         public static NativeMemoryLease AddMemory(object source, long amount)
         {
             getStatistic(source).Value += amount;
-            return new NativeMemoryLease((source, amount), sender => removeMemory(sender.source, sender.amount));
+            return new NativeMemoryLease((source, amount), static sender => removeMemory(sender.source, sender.amount));
         }
 
         /// <summary>
@@ -42,7 +43,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public class NativeMemoryLease : InvokeOnDisposal<(object source, long amount)>
         {
-            internal NativeMemoryLease((object source, long amount) sender, Action<(object source, long amount)> action)
+            internal NativeMemoryLease((object source, long amount) sender, [RequireStaticDelegate(IsError = true)] Action<(object source, long amount)> action)
                 : base(sender, action)
             {
             }

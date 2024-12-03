@@ -22,8 +22,7 @@ namespace osu.Framework.Audio.Sample
 
         public virtual void Play()
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not play disposed sample channels.");
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
 
             Played = true;
             OnPlay?.Invoke(this);

@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 
 namespace osu.Framework.Graphics
@@ -60,13 +59,7 @@ namespace osu.Framework.Graphics
             // We do not want to receive updates. That is the business of the original drawable.
             public override bool IsPresent => false;
 
-            public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
-            {
-                if (Original.IsDisposed)
-                    return false;
-
-                return Original.UpdateSubTreeMasking(this, maskingBounds);
-            }
+            public override bool UpdateSubTreeMasking() => true;
 
             private class ProxyDrawNode : DrawNode
             {
@@ -88,11 +81,17 @@ namespace osu.Framework.Graphics
                 {
                 }
 
-                internal override void DrawOpaqueInteriorSubTree(IRenderer renderer, DepthValue depthValue)
-                    => getCurrentFrameSource()?.DrawOpaqueInteriorSubTree(renderer, depthValue);
+                protected override void DrawOpaqueInterior(IRenderer renderer)
+                {
+                    if (getCurrentFrameSource() != null)
+                        DrawOtherOpaqueInterior(getCurrentFrameSource(), renderer);
+                }
 
-                public override void Draw(IRenderer renderer)
-                    => getCurrentFrameSource()?.Draw(renderer);
+                protected override void Draw(IRenderer renderer)
+                {
+                    if (getCurrentFrameSource() != null)
+                        DrawOther(getCurrentFrameSource(), renderer);
+                }
 
                 protected internal override bool CanDrawOpaqueInterior => getCurrentFrameSource()?.CanDrawOpaqueInterior ?? false;
 

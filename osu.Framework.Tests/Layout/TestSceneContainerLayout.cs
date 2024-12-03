@@ -7,6 +7,7 @@ using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Layout;
 using osu.Framework.Testing;
@@ -299,7 +300,7 @@ namespace osu.Framework.Tests.Layout
                 // Trigger a validation of draw size.
                 Assert.That(child.DrawSize, Is.EqualTo(new Vector2(200)));
 
-                child.Invalidated += _ => invalidated = true;
+                child.Invalidated += (_, _) => invalidated = true;
             });
 
             AddStep("resize parent", () => parent.Size = new Vector2(400));
@@ -328,7 +329,7 @@ namespace osu.Framework.Tests.Layout
             AddStep("make child dead", () =>
             {
                 child.LifetimeStart = double.MaxValue;
-                child.Invalidated += _ => invalidated = true;
+                child.Invalidated += (_, _) => invalidated = true;
             });
 
             // See above: won't cause an invalidation
@@ -364,7 +365,7 @@ namespace osu.Framework.Tests.Layout
                     }
                 };
 
-                child.Invalidated += _ => invalidated = true;
+                child.Invalidated += (_, _) => invalidated = true;
             });
 
             AddStep("invalidate parent", () =>
@@ -395,7 +396,7 @@ namespace osu.Framework.Tests.Layout
                     Child = child = new Box { RelativeSizeAxes = Axes.Both }
                 };
 
-                child.Invalidated += _ => invalidated = true;
+                child.Invalidated += (_, _) => invalidated = true;
             });
 
             AddStep("invalidate parent", () =>
@@ -496,6 +497,42 @@ namespace osu.Framework.Tests.Layout
             });
 
             AddAssert("still valid", () => isValid);
+        }
+
+        /// <summary>
+        /// Tests that changing Masking property will invalidate child masking bounds.
+        /// </summary>
+        [Test]
+        public void TestChildMaskingInvalidationOnMaskingChange()
+        {
+            Container parent = null;
+            Container child = null;
+            RectangleF childMaskingBounds = new RectangleF();
+            RectangleF actualChildMaskingBounds = new RectangleF();
+
+            AddStep("createTest", () =>
+            {
+                Child = parent = new Container
+                {
+                    Size = new Vector2(100),
+                    Child = child = new Container
+                    {
+                        RelativeSizeAxes = Axes.Both
+                    }
+                };
+            });
+
+            AddAssert("Parent's masking is off", () => parent.Masking == false);
+            AddStep("Save masking bounds", () =>
+            {
+                childMaskingBounds = parent.ChildMaskingBounds;
+                actualChildMaskingBounds = child.ChildMaskingBounds;
+            });
+            AddAssert("Parent and child have the same masking bounds", () => childMaskingBounds == actualChildMaskingBounds);
+            AddStep("Enable parent masking", () => parent.Masking = true);
+            AddAssert("Parent's ChildMaskingBounds has changed", () => childMaskingBounds != parent.ChildMaskingBounds);
+            AddAssert("Child's masking bounds has changed", () => actualChildMaskingBounds != child.ChildMaskingBounds);
+            AddAssert("Parent and child have the same masking bounds", () => parent.ChildMaskingBounds == child.ChildMaskingBounds);
         }
 
         private partial class TestBox1 : Box

@@ -12,6 +12,7 @@ using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
@@ -171,8 +172,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             get
             {
-                if (!Available)
-                    throw new ObjectDisposedException(ToString(), "Can not obtain ID of a disposed texture.");
+                ObjectDisposedException.ThrowIf(!Available, this);
 
                 return textureId;
             }
@@ -188,6 +188,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             lock (uploadQueue)
             {
+                if (uploadQueue.Count >= 100 && uploadQueue.Count % 100 == 0)
+                    Logger.Log($"Texture {Identifier}'s upload queue is large ({uploadQueue.Count})");
+
                 bool requireUpload = uploadQueue.Count == 0;
                 uploadQueue.Enqueue(upload);
 
@@ -475,6 +478,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             var rgbaColour = new Rgba32(new Vector4(initialisationColour.Value.R, initialisationColour.Value.G, initialisationColour.Value.B, initialisationColour.Value.A));
 
+            // it is faster to initialise without a background specification if transparent black is all that's required.
             using var image = initialisationColour == default
                 ? new Image<Rgba32>(width, height)
                 : new Image<Rgba32>(width, height, rgbaColour);

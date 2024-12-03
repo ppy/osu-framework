@@ -23,13 +23,15 @@ namespace osu.Framework.IO.Network
 {
     public class WebRequest : IDisposable
     {
+        public const int DEFAULT_TIMEOUT = 10000;
+
         internal const int MAX_RETRIES = 1;
 
-        /// <summary>
-        /// Whether non-SSL requests should be allowed. Defaults to disabled.
-        /// In the default state, http:// requests will be automatically converted to https://.
-        /// </summary>
-        public bool AllowInsecureRequests;
+        private const int buffer_size = 32768;
+        private const string form_boundary = "-----------------------------28947758029299";
+        private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
+
+        private static readonly Logger logger = Logger.GetLogger(LoggingTarget.Network);
 
         /// <summary>
         /// Invoked when a response has been received, but not data has been received.
@@ -61,33 +63,48 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public bool Aborted { get; private set; }
 
-        private bool completed;
-
         /// <summary>
-        /// Whether the <see cref="WebRequest"/> has been run.
+        /// The response stream.
         /// </summary>
-        public bool Completed
-        {
-            get => completed;
-            private set
-            {
-                completed = value;
-                if (!completed) return;
+        public Stream ResponseStream { get; private set; }
 
-                // WebRequests can only be used once - no need to keep events bound
-                // This helps with disposal in PerformAsync usages
-                Started = null;
-                Finished = null;
-                Failed = null;
-                DownloadProgress = null;
-                UploadProgress = null;
-            }
-        }
+        public HttpResponseHeaders ResponseHeaders => response.Headers;
 
         /// <summary>
         /// The URL of this request.
         /// </summary>
         public string Url;
+
+        public HttpMethod Method = HttpMethod.Get;
+
+        /// <summary>
+        /// The amount of time from last sent or received data to trigger a timeout and abort the request.
+        /// </summary>
+        public int Timeout = DEFAULT_TIMEOUT;
+
+        /// <summary>
+        /// Whether this request should internally retry (up to <see cref="MAX_RETRIES"/> times) on a timeout before throwing an exception.
+        /// </summary>
+        public bool AllowRetryOnTimeout = true;
+
+        /// <summary>
+        /// The content type when POST content is provided.
+        /// </summary>
+        public string ContentType;
+
+        /// <summary>
+        /// The type of content expected by this web request.
+        /// </summary>
+        protected virtual string Accept => string.Empty;
+
+        /// <summary>
+        /// The value of the User-agent HTTP header.
+        /// </summary>
+        protected virtual string UserAgent => "osu-framework";
+
+        internal int RetryCount { get; private set; }
+
+        private long contentLength => requestStream?.Length ?? 0;
 
         /// <summary>
         /// Query string parameters.
@@ -102,38 +119,12 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// FILE parameters.
         /// </summary>
-        private readonly IDictionary<string, byte[]> files = new Dictionary<string, byte[]>();
+        private readonly List<FormFile> files = new List<FormFile>();
 
         /// <summary>
         /// The request headers.
         /// </summary>
         private readonly IDictionary<string, string> headers = new Dictionary<string, string>();
-
-        public const int DEFAULT_TIMEOUT = 10000;
-
-        public HttpMethod Method = HttpMethod.Get;
-
-        /// <summary>
-        /// The amount of time from last sent or received data to trigger a timeout and abort the request.
-        /// </summary>
-        public int Timeout = DEFAULT_TIMEOUT;
-
-        /// <summary>
-        /// The type of content expected by this web request.
-        /// </summary>
-        protected virtual string Accept => string.Empty;
-
-        /// <summary>
-        /// The value of the User-agent HTTP header.
-        /// </summary>
-        protected virtual string UserAgent => "osu-framework";
-
-        internal int RetryCount { get; private set; }
-
-        /// <summary>
-        /// Whether this request should internally retry (up to <see cref="MAX_RETRIES"/> times) on a timeout before throwing an exception.
-        /// </summary>
-        public bool AllowRetryOnTimeout { get; set; } = true;
 
         private CancellationToken? userToken;
         private CancellationTokenSource abortToken;
@@ -142,11 +133,11 @@ namespace osu.Framework.IO.Network
         private LengthTrackingStream requestStream;
         private HttpResponseMessage response;
 
-        private long contentLength => requestStream?.Length ?? 0;
-
-        private const string form_boundary = "-----------------------------28947758029299";
-
-        private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
+        private MemoryStream rawContent;
+        private int responseBytesRead;
+        private byte[] buffer;
+        private bool? allowInsecureRequests;
+        private bool completed;
 
         private static readonly HttpClient client = new HttpClient(
             // SocketsHttpHandler causes crash in Android Debug, and seems to have compatibility issue on SSL
@@ -171,36 +162,61 @@ namespace osu.Framework.IO.Network
             Timeout = System.Threading.Timeout.InfiniteTimeSpan
         };
 
-        private static readonly Logger logger = Logger.GetLogger(LoggingTarget.Network);
-
         public WebRequest(string url = null, params object[] args)
         {
             if (!string.IsNullOrEmpty(url))
                 Url = args.Length == 0 ? url : string.Format(url, args);
         }
 
-        private int responseBytesRead;
+        /// <summary>
+        /// Whether non-SSL requests should be allowed. Defaults to disabled.
+        /// In the default state, http:// requests will be automatically converted to https://.
+        /// </summary>
+        /// <remarks>
+        /// Setting this overrides the <c>OSU_INSECURE_REQUESTS</c> environment variable.
+        /// </remarks>
+        public bool AllowInsecureRequests
+        {
+            get => allowInsecureRequests ?? FrameworkEnvironment.AllowInsecureRequests;
+            set => allowInsecureRequests = value;
+        }
 
-        private const int buffer_size = 32768;
-        private byte[] buffer;
+        /// <summary>
+        /// Whether the <see cref="WebRequest"/> has been run.
+        /// </summary>
+        public bool Completed
+        {
+            get => completed;
+            private set
+            {
+                completed = value;
+                if (!completed) return;
 
-        private MemoryStream rawContent;
-
-        public string ContentType;
-
-        protected virtual Stream CreateOutputStream() => new MemoryStream();
-
-        public Stream ResponseStream;
+                // WebRequests can only be used once - no need to keep events bound
+                // This helps with disposal in PerformAsync usages
+                Started = null;
+                Finished = null;
+                Failed = null;
+                DownloadProgress = null;
+                UploadProgress = null;
+            }
+        }
 
         /// <summary>
         /// Retrieve the full response body as a UTF8 encoded string.
         /// </summary>
-        /// <returns>The response body.</returns>
+        /// <returns>
+        /// The response body.
+        /// Can be <see langword="null"/> if the request hasn't yet <see cref="Completed"/>, or if it has been <see cref="Aborted"/>.
+        /// </returns>
         [CanBeNull]
         public string GetResponseString()
         {
             try
             {
+                if (ResponseStream == null)
+                    return null;
+
                 ResponseStream.Seek(0, SeekOrigin.Begin);
                 StreamReader r = new StreamReader(ResponseStream, Encoding.UTF8);
                 return r.ReadToEnd();
@@ -214,11 +230,18 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// Retrieve the full response body as an array of bytes.
         /// </summary>
-        /// <returns>The response body.</returns>
+        /// <returns>
+        /// The response body.
+        /// Can be <see langword="null"/> if the request hasn't yet <see cref="Completed"/>, or if it has been <see cref="Aborted"/>.
+        /// </returns>
+        [CanBeNull]
         public byte[] GetResponseData()
         {
             try
             {
+                if (ResponseStream == null)
+                    return null;
+
                 ResponseStream.Seek(0, SeekOrigin.Begin);
 
                 return ResponseStream.ReadAllBytesToArray();
@@ -229,7 +252,7 @@ namespace osu.Framework.IO.Network
             }
         }
 
-        public HttpResponseHeaders ResponseHeaders => response.Headers;
+        protected virtual Stream CreateOutputStream() => new MemoryStream();
 
         /// <summary>
         /// Performs the request asynchronously.
@@ -262,7 +285,7 @@ namespace osu.Framework.IO.Network
             if (!AllowInsecureRequests && !url.StartsWith(@"https://", StringComparison.Ordinal))
             {
                 logger.Add($"Insecure request was automatically converted to https ({Url})");
-                url = @"https://" + url.Replace(@"http://", @"");
+                url = "https://" + url.Replace("http://", string.Empty);
             }
 
             // If a user token already exists, keep it. Otherwise, take on the previous user token, as this could be a retry of the request.
@@ -326,9 +349,9 @@ namespace osu.Framework.IO.Network
 
                             foreach (var p in files)
                             {
-                                var byteContent = new ByteArrayContent(p.Value);
+                                var byteContent = new ByteArrayContent(p.Content);
                                 byteContent.Headers.Add("Content-Type", "application/octet-stream");
-                                formData.Add(byteContent, p.Key, p.Key);
+                                formData.Add(byteContent, p.ParamName, p.Filename);
                             }
 
                             postContent = await formData.ReadAsStreamAsync(linkedToken.Token).ConfigureAwait(false);
@@ -639,17 +662,21 @@ namespace osu.Framework.IO.Network
         }
 
         /// <summary>
-        /// Add a new FILE parameter to this request. Replaces any existing file with the same name.
+        /// Add a new FILE parameter to this request.
         /// This may not be used in conjunction with <see cref="AddRaw(Stream)"/>. GET requests may not contain files.
         /// </summary>
-        /// <param name="name">The name of the file. This becomes the name of the file in a multi-part form POST content.</param>
+        /// <param name="paramName">The name of the form parameter of the request that the file relates to.</param>
         /// <param name="data">The file data.</param>
-        public void AddFile(string name, byte[] data)
+        /// <param name="filename">
+        /// The filename of the file to be sent to be reported to the server in the <c>Content-Disposition</c> header.
+        /// <c>blob</c> is used by default if omitted, to <see href="https://developer.mozilla.org/en-US/docs/Web/API/FormData/append#filename">mirror browser behaviour</see>.
+        /// </param>
+        public void AddFile(string paramName, byte[] data, string filename = "blob")
         {
-            ArgumentNullException.ThrowIfNull(name);
+            ArgumentNullException.ThrowIfNull(paramName);
             ArgumentNullException.ThrowIfNull(data);
 
-            files[name] = data;
+            files.Add(new FormFile(paramName, data, filename));
         }
 
         /// <summary>
@@ -908,5 +935,7 @@ namespace osu.Framework.IO.Network
                 baseStream.Dispose();
             }
         }
+
+        private record struct FormFile(string ParamName, byte[] Content, string Filename);
     }
 }

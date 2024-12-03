@@ -15,28 +15,16 @@
     <!-- On release configurations, we use AOT compiler for optimal performance. -->
     <UseInterpreter>false</UseInterpreter>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Platform)' == 'iPhone'">
-    <RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Platform)' == 'iPhoneSimulator'">
-    <RuntimeIdentifiers>iossimulator-x64</RuntimeIdentifiers>
-  </PropertyGroup>
-  <ItemGroup>
-    <!-- Dependency for osuTK.iOS, removing will fail loading the AOT module -->
-    <PackageReference Include="System.Drawing.Common" Version="5.0.2"/>
-  </ItemGroup>
   <ItemGroup>
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\bass.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\bass_fx.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\bassmix.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libavcodec.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libavdevice.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
-    <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libavfilter.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libavformat.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libavutil.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libswresample.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\libswscale.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
-    <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\veldrid-spirv.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
     <NativeReference Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\runtimes\ios\native\metal-mono-workaround.xcframework" Kind="Framework" SmartLink="false" ForceLoad="true" />
   </ItemGroup>
   <!-- Veldrid references libraries which cannot be AOT'd on iOS, replace them with stub assemblies.
@@ -45,7 +33,8 @@
     <ItemGroup>
       <StubFiles Include="$(MSBuildThisFileDirectory)osu.Framework.iOS\stubs\*" />
     </ItemGroup>
-    <Copy SourceFiles="@(StubFiles)" DestinationFolder="obj\$(Platform)\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\linked\" />
+    <Copy Condition="'$(Platform)' == 'AnyCPU'" SourceFiles="@(StubFiles)" DestinationFolder="obj\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\linked\" />
+    <Copy Condition="'$(Platform)' != 'AnyCPU'" SourceFiles="@(StubFiles)" DestinationFolder="obj\$(Platform)\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\linked\" />
   </Target>
   <!-- OpenTabletDriver contains P/Invokes to the "Quartz" framework for native macOS code.
        This leads iOS linker into attempting to include that framework, despite not existing on such platform.

@@ -44,7 +44,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             WindowMode startingMode = getWindowModeForState(startingState);
 
-            // this shouldn't be necessary, but SDL2DesktopWindow doesn't set the config WindowMode when changing the WindowState only.
+            // this shouldn't be necessary, but SDL3DesktopWindow doesn't set the config WindowMode when changing the WindowState only.
             AddStep($"switch to {startingMode}", () => window.WindowMode.Value = startingMode);
 
             AddStep($"switch to {startingState}", () => window.WindowState = startingState);
