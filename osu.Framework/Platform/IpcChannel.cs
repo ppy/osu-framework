@@ -1,18 +1,23 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 
 namespace osu.Framework.Platform
 {
-    public class IpcChannel<T> : IDisposable
+    /// <summary>
+    /// Setup an IPC channel which supports sending a specific pair of well-defined types.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TResponse"></typeparam>
+    public class IpcChannel<T, TResponse> : IDisposable
+        where T : class
+        where TResponse : class
     {
         private readonly IIpcHost host;
-        public event Func<T, IpcMessage> MessageReceived;
+
+        public event Func<T, TResponse>? MessageReceived;
 
         public IpcChannel(IIpcHost host)
         {
@@ -26,19 +31,38 @@ namespace osu.Framework.Platform
             Value = message,
         });
 
-        [ItemCanBeNull]
-        public Task<IpcMessage> SendMessageWithResponseAsync(T message) => host.SendMessageWithResponseAsync(new IpcMessage
+        public async Task<TResponse?> SendMessageWithResponseAsync(T message)
         {
-            Type = typeof(T).AssemblyQualifiedName,
-            Value = message,
-        });
+            var response = await host.SendMessageWithResponseAsync(new IpcMessage
+            {
+                Type = typeof(T).AssemblyQualifiedName,
+                Value = message,
+            });
 
-        private IpcMessage handleMessage(IpcMessage message)
+            if (response == null)
+                return null;
+
+            if (response.Type != typeof(TResponse).AssemblyQualifiedName)
+                return null;
+
+            return (TResponse)response.Value;
+        }
+
+        private IpcMessage? handleMessage(IpcMessage message)
         {
             if (message.Type != typeof(T).AssemblyQualifiedName)
                 return null;
 
-            return MessageReceived?.Invoke((T)message.Value);
+            var response = MessageReceived?.Invoke((T)message.Value);
+
+            if (response == null)
+                return null;
+
+            return new IpcMessage
+            {
+                Type = typeof(TResponse).AssemblyQualifiedName,
+                Value = response
+            };
         }
 
         public void Dispose()

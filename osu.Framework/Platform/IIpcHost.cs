@@ -12,7 +12,7 @@ namespace osu.Framework.Platform
         /// Invoked when a message is received by this IPC server.
         /// Returns either a response in the form of an <see cref="IpcMessage"/>, or <c>null</c> for no response.
         /// </summary>
-        event Func<IpcMessage, IpcMessage> MessageReceived;
+        event Func<IpcMessage, IpcMessage?>? MessageReceived;
 
         /// <summary>
         /// Asynchronously send a message to the IPC server.
