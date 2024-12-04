@@ -113,10 +113,10 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void TestIpcLegacyPortSupport()
         {
-#pragma warning disable CS0612 // Type or member is obsolete
+#pragma warning disable CS0618 // Type or member is obsolete
             using (var server = new BackgroundGameHeadlessGameHost(@"server", new HostOptions { IPCPort = 45356 }))
             using (var client = new HeadlessGameHost(@"client", new HostOptions { IPCPort = 45356 }))
-#pragma warning restore CS0612 // Type or member is obsolete
+#pragma warning restore CS0618 // Type or member is obsolete
             {
                 Assert.IsTrue(server.IsPrimaryInstance, @"Server wasn't able to bind");
                 Assert.IsFalse(client.IsPrimaryInstance, @"Client was able to bind when it shouldn't have been able to");
