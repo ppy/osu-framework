@@ -3,6 +3,8 @@
 
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
+using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Tests
@@ -12,6 +14,9 @@ namespace osu.Framework.Tests
         [STAThread]
         public static void Main(string[] args)
         {
+            Marshal.OffsetOf<DepthWrappingVertex<TexturedVertex2D>>(nameof(DepthWrappingVertex<TexturedVertex2D>.Vertex));
+            Marshal.OffsetOf<TexturedVertex2D>(nameof(TexturedVertex2D.Position));
+
             bool benchmark = args.Contains(@"--benchmark");
             bool portable = args.Contains(@"--portable");
 
