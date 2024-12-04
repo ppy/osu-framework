@@ -3,10 +3,13 @@
 
 using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Configuration
 {
+    // todo: revisit when we have a way to exclude enum members from naming rules
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public enum RendererType
     {
         [Description("Automatic")]

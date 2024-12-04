@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -321,6 +322,7 @@ namespace osu.Framework.Platform.Windows
         [DllImport("SHCore.dll", SetLastError = true)]
         internal static extern bool SetProcessDpiAwareness(ProcessDpiAwareness awareness);
 
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
         internal enum ProcessDpiAwareness
         {
             Process_DPI_Unaware = 0,
@@ -332,7 +334,7 @@ namespace osu.Framework.Platform.Windows
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT value);
 
-        // ReSharper disable once InconsistentNaming
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
         internal enum DPI_AWARENESS_CONTEXT
         {
             DPI_AWARENESS_CONTEXT_UNAWARE = -1,

@@ -187,19 +187,19 @@ namespace osu.Framework.Tests.Visual.Input
                 checkReleased(TestAction.S, 1, 0, 1, 1, 1);
 
                 toggleKey(Key.D);
-                checkPressed(TestAction.D_or_F, 1, 1, 1, 1, 1);
+                checkPressed(TestAction.DOrF, 1, 1, 1, 1, 1);
                 toggleKey(Key.F);
-                check(TestAction.D_or_F, new CheckConditions(none, 1, 1), new CheckConditions(noneExact, 0, 1), new CheckConditions(noneModifiers, 1, 1), new CheckConditions(unique, 0, 0), new CheckConditions(all, 1, 0));
+                check(TestAction.DOrF, new CheckConditions(none, 1, 1), new CheckConditions(noneExact, 0, 1), new CheckConditions(noneModifiers, 1, 1), new CheckConditions(unique, 0, 0), new CheckConditions(all, 1, 0));
                 toggleKey(Key.F);
-                checkReleased(TestAction.D_or_F, 0, 0, 0, 0, 1);
+                checkReleased(TestAction.DOrF, 0, 0, 0, 0, 1);
                 toggleKey(Key.D);
-                checkReleased(TestAction.D_or_F, 1, 0, 1, 1, 1);
+                checkReleased(TestAction.DOrF, 1, 0, 1, 1, 1);
 
                 toggleKey(Key.ShiftLeft);
                 toggleKey(Key.AltLeft);
-                checkPressed(TestAction.Alt_and_LShift, 1, 1, 1, 1, 1);
+                checkPressed(TestAction.AltAndLShift, 1, 1, 1, 1, 1);
                 toggleKey(Key.A);
-                checkPressed(TestAction.LShift_A, 1, 0, 0, 1, 1);
+                checkPressed(TestAction.LShiftA, 1, 0, 0, 1, 1);
                 toggleKey(Key.AltLeft);
                 toggleKey(Key.ShiftLeft);
             });
@@ -216,18 +216,18 @@ namespace osu.Framework.Tests.Visual.Input
                 checkPressed(TestAction.RShift, 0, 0, 0, 0, 0);
 
                 toggleKey(Key.A);
-                checkPressed(TestAction.AnyShift_A, 0, 0, 0, 1, 1);
-                checkPressed(TestAction.LShift_A, 1, 1, 1, 1, 1);
+                checkPressed(TestAction.AnyShiftA, 0, 0, 0, 1, 1);
+                checkPressed(TestAction.LShiftA, 1, 1, 1, 1, 1);
                 checkReleased(TestAction.AnyShift, 1, 1, 1, 0, 0);
 
                 toggleKey(Key.ShiftRight);
-                checkReleased(TestAction.LShift_A, 1, 0, 0, 0, 0);
+                checkReleased(TestAction.LShiftA, 1, 0, 0, 0, 0);
                 checkPressed(TestAction.RShift, 1, 0, 0, 1, 1);
                 checkPressed(TestAction.AnyShift, 0, 0, 0, 0, 0);
 
                 toggleKey(Key.ShiftLeft);
                 checkReleased(TestAction.LShift, 0, 0, 0, 1, 1);
-                checkReleased(TestAction.LShift_A, 0, 1, 1, 1, 1);
+                checkReleased(TestAction.LShiftA, 0, 1, 1, 1, 1);
                 checkReleased(TestAction.AnyShift, 0, 0, 0, 0, 0);
 
                 toggleKey(Key.ShiftRight);
@@ -244,21 +244,21 @@ namespace osu.Framework.Tests.Visual.Input
                 checkPressed(TestAction.Alt, 1, 1, 1, 1, 1);
                 toggleKey(Key.A);
                 checkReleased(TestAction.Alt, 1, 1, 1, 0, 0);
-                checkPressed(TestAction.Alt_A, 1, 1, 1, 1, 1);
+                checkPressed(TestAction.AltA, 1, 1, 1, 1, 1);
                 toggleKey(Key.AltRight);
                 checkPressed(TestAction.Alt, 0, 0, 0, 0, 0);
-                checkReleased(TestAction.Alt_A, 0, 0, 0, 0, 0);
+                checkReleased(TestAction.AltA, 0, 0, 0, 0, 0);
                 toggleKey(Key.AltLeft);
                 checkReleased(TestAction.Alt, 0, 0, 0, 0, 0);
-                checkReleased(TestAction.Alt_A, 0, 0, 0, 0, 0);
+                checkReleased(TestAction.AltA, 0, 0, 0, 0, 0);
                 toggleKey(Key.AltRight);
                 checkReleased(TestAction.Alt, 0, 0, 0, 1, 1);
-                checkReleased(TestAction.Alt_A, 1, 1, 1, 1, 1);
+                checkReleased(TestAction.AltA, 1, 1, 1, 1, 1);
                 toggleKey(Key.A);
 
                 toggleKey(Key.ControlLeft);
                 toggleKey(Key.AltLeft);
-                checkPressed(TestAction.Ctrl_and_Alt, 1, 1, 1, 1, 1);
+                checkPressed(TestAction.CtrlAndAlt, 1, 1, 1, 1, 1);
             });
         }
 
@@ -289,7 +289,7 @@ namespace osu.Framework.Tests.Visual.Input
                 toggleKey(Key.ControlLeft);
                 scrollMouseWheel(0, 1);
                 toggleKey(Key.ControlLeft);
-                check(TestAction.Ctrl_and_WheelUp, allPressAndReleased);
+                check(TestAction.CtrlAndWheelUp, allPressAndReleased);
                 toggleMouseButton(MouseButton.Left);
                 toggleMouseButton(MouseButton.Left);
                 check(TestAction.LeftMouse, allPressAndReleased);
@@ -320,7 +320,7 @@ namespace osu.Framework.Tests.Visual.Input
                 toggleKey(Key.ControlLeft);
                 scrollMouseWheel(0, 4);
                 toggleKey(Key.ControlLeft);
-                check(TestAction.Ctrl_and_WheelUp, allPressAndReleased(4));
+                check(TestAction.CtrlAndWheelUp, allPressAndReleased(4));
             });
         }
 
@@ -362,37 +362,37 @@ namespace osu.Framework.Tests.Visual.Input
         {
             A,
             S,
-            D_or_F,
-            Ctrl_A,
-            Ctrl_S,
-            Ctrl_D_or_F,
-            Alt_A,
-            Alt_S,
-            Alt_D_or_F,
-            LShift_A,
-            LShift_S,
-            LShift_D_or_F,
-            RShift_A,
-            RShift_S,
-            RShift_D_or_F,
-            Ctrl_Shift_A,
-            Ctrl_Shift_S,
-            Ctrl_Shift_D_or_F,
+            DOrF,
+            CtrlA,
+            CtrlS,
+            CtrlDOrF,
+            AltA,
+            AltS,
+            AltDOrF,
+            LShiftA,
+            LShiftS,
+            LShiftDOrF,
+            RShiftA,
+            RShiftS,
+            RShiftDOrF,
+            CtrlShiftA,
+            CtrlShiftS,
+            CtrlShiftDOrF,
             Ctrl,
             RShift,
             LShift,
             Alt,
-            Alt_and_LShift,
-            Ctrl_and_Alt,
-            Ctrl_or_Shift,
+            AltAndLShift,
+            CtrlAndAlt,
+            CtrlOrShift,
             LeftMouse,
             RightMouse,
             WheelUp,
             WheelDown,
             WheelLeft,
             WheelRight,
-            Ctrl_and_WheelUp,
-            AnyShift_A,
+            CtrlAndWheelUp,
+            AnyShiftA,
             AnyShift
         }
 
@@ -407,45 +407,45 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 new KeyBinding(InputKey.A, TestAction.A),
                 new KeyBinding(InputKey.S, TestAction.S),
-                new KeyBinding(InputKey.D, TestAction.D_or_F),
-                new KeyBinding(InputKey.F, TestAction.D_or_F),
+                new KeyBinding(InputKey.D, TestAction.DOrF),
+                new KeyBinding(InputKey.F, TestAction.DOrF),
 
-                new KeyBinding(new[] { InputKey.Control, InputKey.A }, TestAction.Ctrl_A),
-                new KeyBinding(new[] { InputKey.Control, InputKey.S }, TestAction.Ctrl_S),
-                new KeyBinding(new[] { InputKey.Control, InputKey.D }, TestAction.Ctrl_D_or_F),
-                new KeyBinding(new[] { InputKey.Control, InputKey.F }, TestAction.Ctrl_D_or_F),
+                new KeyBinding(new[] { InputKey.Control, InputKey.A }, TestAction.CtrlA),
+                new KeyBinding(new[] { InputKey.Control, InputKey.S }, TestAction.CtrlS),
+                new KeyBinding(new[] { InputKey.Control, InputKey.D }, TestAction.CtrlDOrF),
+                new KeyBinding(new[] { InputKey.Control, InputKey.F }, TestAction.CtrlDOrF),
 
-                new KeyBinding(new[] { InputKey.LShift, InputKey.A }, TestAction.LShift_A),
-                new KeyBinding(new[] { InputKey.LShift, InputKey.S }, TestAction.LShift_S),
-                new KeyBinding(new[] { InputKey.LShift, InputKey.D }, TestAction.LShift_D_or_F),
-                new KeyBinding(new[] { InputKey.LShift, InputKey.F }, TestAction.LShift_D_or_F),
+                new KeyBinding(new[] { InputKey.LShift, InputKey.A }, TestAction.LShiftA),
+                new KeyBinding(new[] { InputKey.LShift, InputKey.S }, TestAction.LShiftS),
+                new KeyBinding(new[] { InputKey.LShift, InputKey.D }, TestAction.LShiftDOrF),
+                new KeyBinding(new[] { InputKey.LShift, InputKey.F }, TestAction.LShiftDOrF),
 
-                new KeyBinding(new[] { InputKey.RShift, InputKey.A }, TestAction.RShift_A),
-                new KeyBinding(new[] { InputKey.RShift, InputKey.S }, TestAction.RShift_S),
-                new KeyBinding(new[] { InputKey.RShift, InputKey.D }, TestAction.RShift_D_or_F),
-                new KeyBinding(new[] { InputKey.RShift, InputKey.F }, TestAction.RShift_D_or_F),
+                new KeyBinding(new[] { InputKey.RShift, InputKey.A }, TestAction.RShiftA),
+                new KeyBinding(new[] { InputKey.RShift, InputKey.S }, TestAction.RShiftS),
+                new KeyBinding(new[] { InputKey.RShift, InputKey.D }, TestAction.RShiftDOrF),
+                new KeyBinding(new[] { InputKey.RShift, InputKey.F }, TestAction.RShiftDOrF),
 
-                new KeyBinding(new[] { InputKey.Shift, InputKey.A }, TestAction.AnyShift_A),
+                new KeyBinding(new[] { InputKey.Shift, InputKey.A }, TestAction.AnyShiftA),
 
-                new KeyBinding(new[] { InputKey.Alt, InputKey.A }, TestAction.Alt_A),
-                new KeyBinding(new[] { InputKey.Alt, InputKey.S }, TestAction.Alt_S),
-                new KeyBinding(new[] { InputKey.Alt, InputKey.D }, TestAction.Alt_D_or_F),
-                new KeyBinding(new[] { InputKey.Alt, InputKey.F }, TestAction.Alt_D_or_F),
+                new KeyBinding(new[] { InputKey.Alt, InputKey.A }, TestAction.AltA),
+                new KeyBinding(new[] { InputKey.Alt, InputKey.S }, TestAction.AltS),
+                new KeyBinding(new[] { InputKey.Alt, InputKey.D }, TestAction.AltDOrF),
+                new KeyBinding(new[] { InputKey.Alt, InputKey.F }, TestAction.AltDOrF),
 
-                new KeyBinding(new[] { InputKey.Control, InputKey.Shift, InputKey.A }, TestAction.Ctrl_Shift_A),
-                new KeyBinding(new[] { InputKey.Control, InputKey.Shift, InputKey.S }, TestAction.Ctrl_Shift_S),
-                new KeyBinding(new[] { InputKey.Control, InputKey.Shift, InputKey.D }, TestAction.Ctrl_Shift_D_or_F),
-                new KeyBinding(new[] { InputKey.Control, InputKey.Shift, InputKey.F }, TestAction.Ctrl_Shift_D_or_F),
+                new KeyBinding(new[] { InputKey.Control, InputKey.Shift, InputKey.A }, TestAction.CtrlShiftA),
+                new KeyBinding(new[] { InputKey.Control, InputKey.Shift, InputKey.S }, TestAction.CtrlShiftS),
+                new KeyBinding(new[] { InputKey.Control, InputKey.Shift, InputKey.D }, TestAction.CtrlShiftDOrF),
+                new KeyBinding(new[] { InputKey.Control, InputKey.Shift, InputKey.F }, TestAction.CtrlShiftDOrF),
 
                 new KeyBinding(new[] { InputKey.Control }, TestAction.Ctrl),
                 new KeyBinding(new[] { InputKey.Shift }, TestAction.AnyShift),
                 new KeyBinding(new[] { InputKey.LShift }, TestAction.LShift),
                 new KeyBinding(new[] { InputKey.RShift }, TestAction.RShift),
                 new KeyBinding(new[] { InputKey.Alt }, TestAction.Alt),
-                new KeyBinding(new[] { InputKey.Alt, InputKey.LShift }, TestAction.Alt_and_LShift),
-                new KeyBinding(new[] { InputKey.Control, InputKey.Alt }, TestAction.Ctrl_and_Alt),
-                new KeyBinding(new[] { InputKey.Control }, TestAction.Ctrl_or_Shift),
-                new KeyBinding(new[] { InputKey.Shift }, TestAction.Ctrl_or_Shift),
+                new KeyBinding(new[] { InputKey.Alt, InputKey.LShift }, TestAction.AltAndLShift),
+                new KeyBinding(new[] { InputKey.Control, InputKey.Alt }, TestAction.CtrlAndAlt),
+                new KeyBinding(new[] { InputKey.Control }, TestAction.CtrlOrShift),
+                new KeyBinding(new[] { InputKey.Shift }, TestAction.CtrlOrShift),
 
                 new KeyBinding(new[] { InputKey.MouseLeft }, TestAction.LeftMouse),
                 new KeyBinding(new[] { InputKey.MouseRight }, TestAction.RightMouse),
@@ -454,7 +454,7 @@ namespace osu.Framework.Tests.Visual.Input
                 new KeyBinding(new[] { InputKey.MouseWheelDown }, TestAction.WheelDown),
                 new KeyBinding(new[] { InputKey.MouseWheelLeft }, TestAction.WheelLeft),
                 new KeyBinding(new[] { InputKey.MouseWheelRight }, TestAction.WheelRight),
-                new KeyBinding(new[] { InputKey.Control, InputKey.MouseWheelUp }, TestAction.Ctrl_and_WheelUp),
+                new KeyBinding(new[] { InputKey.Control, InputKey.MouseWheelUp }, TestAction.CtrlAndWheelUp),
             };
 
             protected override bool Handle(UIEvent e)
