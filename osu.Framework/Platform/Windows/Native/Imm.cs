@@ -8,6 +8,8 @@ using System.Text;
 using Microsoft.Win32.SafeHandles;
 using osu.Framework.Extensions.EnumExtensions;
 
+// ReSharper disable InconsistentNaming
+
 namespace osu.Framework.Platform.Windows.Native
 {
     /// <summary>
