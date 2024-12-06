@@ -146,8 +146,6 @@ namespace osu.Framework.Platform
         public virtual Task SendMessageAsync(IpcMessage message) => throw new NotSupportedException("This platform does not implement IPC.");
         public virtual Task<IpcMessage> SendMessageWithResponseAsync(IpcMessage message) => throw new NotSupportedException("This platform does not implement IPC.");
 
-        public virtual Task SendM(IpcMessage message) => throw new NotSupportedException("This platform does not implement IPC.");
-
         /// <summary>
         /// Requests that a file or folder be opened externally with an associated application, if available.
         /// </summary>
