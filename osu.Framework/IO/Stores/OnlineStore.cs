@@ -24,7 +24,7 @@ namespace osu.Framework.IO.Stores
 
             try
             {
-                using (WebRequest req = new WebRequest($@"{url}"))
+                using (WebRequest req = new WebRequest(GetLookupUrl(url)))
                 {
                     await req.PerformAsync(cancellationToken).ConfigureAwait(false);
                     return req.GetResponseData();
@@ -45,7 +45,7 @@ namespace osu.Framework.IO.Stores
 
             try
             {
-                using (WebRequest req = new WebRequest($@"{url}"))
+                using (WebRequest req = new WebRequest(GetLookupUrl(url)))
                 {
                     req.Perform();
                     return req.GetResponseData();
@@ -67,6 +67,12 @@ namespace osu.Framework.IO.Stores
         }
 
         public IEnumerable<string> GetAvailableResources() => Enumerable.Empty<string>();
+
+        /// <summary>
+        /// Returns the URL used to look up the requested resource.
+        /// </summary>
+        /// <param name="url">The original URL for lookup.</param>
+        protected virtual string GetLookupUrl(string url) => url;
 
         private bool validateScheme(string url)
         {
