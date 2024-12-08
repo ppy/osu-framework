@@ -66,7 +66,7 @@ namespace osu.Framework.Graphics.Rendering
 
             vertexAction(new TexturedVertex2D(renderer)
             {
-                Position = vertexTriangle.P0,
+                Position = new Vector3(vertexTriangle.P0),
                 TexturePosition = new Vector2((inflatedCoordRect.Left + inflatedCoordRect.Right) / 2, inflatedCoordRect.Top),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
@@ -74,7 +74,7 @@ namespace osu.Framework.Graphics.Rendering
             });
             vertexAction(new TexturedVertex2D(renderer)
             {
-                Position = vertexTriangle.P1,
+                Position = new Vector3(vertexTriangle.P1),
                 TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
@@ -82,7 +82,7 @@ namespace osu.Framework.Graphics.Rendering
             });
             vertexAction(new TexturedVertex2D(renderer)
             {
-                Position = (vertexTriangle.P1 + vertexTriangle.P2) / 2,
+                Position = new Vector3((vertexTriangle.P1 + vertexTriangle.P2) / 2),
                 TexturePosition = new Vector2((inflatedCoordRect.Left + inflatedCoordRect.Right) / 2, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.Rendering
             });
             vertexAction(new TexturedVertex2D(renderer)
             {
-                Position = vertexTriangle.P2,
+                Position = new Vector3(vertexTriangle.P2),
                 TexturePosition = new Vector2(inflatedCoordRect.Right, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
@@ -241,7 +241,25 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="ortho">The rectangle to create the orthographic projection from.</param>
         public static void PushOrtho(this IRenderer renderer, RectangleF ortho)
         {
-            renderer.PushProjectionMatrix(Matrix4.CreateOrthographicOffCenter(ortho.Left, ortho.Right, ortho.Bottom, ortho.Top, -1, 1));
+            renderer.PushProjectionMatrix(Matrix4.CreateOrthographicOffCenter(ortho.Left, ortho.Right, ortho.Bottom, ortho.Top, 0.1f, 10));
+        }
+
+        public static void PushPerspective(this IRenderer renderer, RectangleF perspective)
+        {
+            float fovY = 45;
+            float focalLength = 2 * MathF.Tan(0.5f * MathUtils.DegreesToRadians(fovY));
+            float zNear = 0.1f;
+            float zFar = 1000f;
+
+            Matrix4 mat = new Matrix4(
+                focalLength * perspective.Height / perspective.Width, 0, 0, 0,
+                0, -focalLength, 0, 0,
+                0, 0, (zFar + zNear) / (zNear - zFar), 1.0f,
+                0, 0, 2 * zFar * zNear / (zNear - zFar), 0);
+
+            mat = Matrix4.CreateTranslation(-0.5f * perspective.Width, -0.5f * perspective.Height, perspective.Height * focalLength / 2) * mat;
+
+            renderer.PushProjectionMatrix(mat);
         }
 
         /// <summary>
@@ -263,7 +281,8 @@ namespace osu.Framework.Graphics.Rendering
             var currentMasking = renderer.CurrentMaskingInfo;
             // normally toMaskingSpace is fed vertices already in screen space coordinates,
             // but since we are modifying the matrix the vertices are in local space
-            currentMasking.ToMaskingSpace = new Matrix3(matrix) * currentMasking.ToMaskingSpace;
+            currentMasking.ToMaskingSpace = matrix * currentMasking.ToMaskingSpace;
+
             renderer.PushMaskingInfo(currentMasking, true);
             renderer.PushProjectionMatrix(matrix * renderer.ProjectionMatrix);
         }
@@ -274,7 +293,7 @@ namespace osu.Framework.Graphics.Rendering
             var currentMasking = renderer.CurrentMaskingInfo;
             // normally toMaskingSpace is fed vertices already in screen space coordinates,
             // but since we are modifying the matrix the vertices are in local space
-            currentMasking.ToMaskingSpace = matrix * currentMasking.ToMaskingSpace;
+            currentMasking.ToMaskingSpace = new Matrix4(matrix) * currentMasking.ToMaskingSpace;
             renderer.PushMaskingInfo(currentMasking, true);
 
             // this makes sure it also works for 3D vertices like the ones path uses
@@ -283,6 +302,7 @@ namespace osu.Framework.Graphics.Rendering
             mat.Row2.X = 0;
             mat.Row3.Y = mat.Row2.Y;
             mat.Row2.Y = 0;
+
             renderer.PushProjectionMatrix(mat * renderer.ProjectionMatrix);
         }
 
