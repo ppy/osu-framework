@@ -19,6 +19,7 @@ namespace osu.Framework.iOS
     internal class IOSWindow : SDL3MobileWindow
     {
         private UIWindow? window;
+        private IOSCallObserver callObserver;
 
         public override Size Size
         {
@@ -48,6 +49,10 @@ namespace osu.Framework.iOS
 
             UIScene.Notifications.ObserveWillDeactivate(window.WindowScene!, (_, _) => Focused = false);
             UIScene.Notifications.ObserveDidActivate(window.WindowScene!, (_, _) => Focused = true);
+
+            callObserver = new IOSCallObserver(
+                incomingCall: () => Focused = false,
+                endedCall: () => Focused = true);
         }
 
         protected override unsafe void RunMainLoop()
