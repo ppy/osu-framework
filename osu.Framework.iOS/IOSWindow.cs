@@ -18,7 +18,9 @@ namespace osu.Framework.iOS
 {
     internal class IOSWindow : SDL3MobileWindow
     {
-        private UIWindow? window;
+        private UIWindow? uiWindow;
+
+        public UIWindow UIWindow => uiWindow!;
 
         public override Size Size
         {
@@ -27,7 +29,7 @@ namespace osu.Framework.iOS
             {
                 base.Size = value;
 
-                if (window != null)
+                if (uiWindow != null)
                     updateSafeArea();
             }
         }
@@ -43,7 +45,7 @@ namespace osu.Framework.iOS
 
             base.Create();
 
-            window = Runtime.GetNSObject<UIWindow>(WindowHandle);
+            uiWindow = Runtime.GetNSObject<UIWindow>(WindowHandle)!;
             updateSafeArea();
         }
 
@@ -73,14 +75,14 @@ namespace osu.Framework.iOS
 
         private void updateSafeArea()
         {
-            Debug.Assert(window != null);
+            Debug.Assert(uiWindow != null);
 
             SafeAreaPadding.Value = new MarginPadding
             {
-                Top = (float)window.SafeAreaInsets.Top * Scale,
-                Left = (float)window.SafeAreaInsets.Left * Scale,
-                Bottom = (float)window.SafeAreaInsets.Bottom * Scale,
-                Right = (float)window.SafeAreaInsets.Right * Scale,
+                Top = (float)uiWindow.SafeAreaInsets.Top * Scale,
+                Left = (float)uiWindow.SafeAreaInsets.Left * Scale,
+                Bottom = (float)uiWindow.SafeAreaInsets.Bottom * Scale,
+                Right = (float)uiWindow.SafeAreaInsets.Right * Scale,
             };
         }
     }
