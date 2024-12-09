@@ -43,8 +43,11 @@ namespace osu.Framework.iOS
 
             base.Create();
 
-            window = Runtime.GetNSObject<UIWindow>(WindowHandle);
+            window = Runtime.GetNSObject<UIWindow>(WindowHandle)!;
             updateSafeArea();
+
+            UIScene.Notifications.ObserveWillDeactivate(window.WindowScene!, (_, _) => Focused = false);
+            UIScene.Notifications.ObserveDidActivate(window.WindowScene!, (_, _) => Focused = true);
         }
 
         protected override unsafe void RunMainLoop()
