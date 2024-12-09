@@ -100,7 +100,7 @@ namespace osu.Framework.Platform
                     }
                 }
             }
-            catch (TaskCanceledException)
+            catch (OperationCanceledException)
             {
             }
             finally
