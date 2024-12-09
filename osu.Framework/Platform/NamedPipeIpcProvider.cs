@@ -94,13 +94,16 @@ namespace osu.Framework.Platform
 
                         pipe.Disconnect();
                     }
+                    catch (OperationCanceledException)
+                    {
+                    }
                     catch (Exception e)
                     {
                         Logger.Error(e, "Error handling incoming IPC request.");
                     }
                 }
             }
-            catch (TaskCanceledException)
+            catch (OperationCanceledException)
             {
             }
             finally
