@@ -23,9 +23,10 @@ namespace osu.Framework.iOS
 {
     public class IOSGameHost : SDLGameHost
     {
-        private readonly IOSFilePresenter presenter = new IOSFilePresenter();
-
         private IOSWindow iosWindow => (IOSWindow)Window;
+
+        private IOSFilePresenter? backingPresenter;
+        private IOSFilePresenter presenter => backingPresenter ??= new IOSFilePresenter(iosWindow.UIWindow);
 
         public IOSGameHost()
             : base(string.Empty)
@@ -46,9 +47,9 @@ namespace osu.Framework.iOS
 
         public override Storage GetStorage(string path) => new IOSStorage(path, this);
 
-        public override bool OpenFileExternally(string filename) => presenter.OpenFile(filename, iosWindow.UIWindow);
+        public override bool OpenFileExternally(string filename) => presenter.OpenFile(filename);
 
-        public override bool PresentFileExternally(string filename) => presenter.PresentFile(filename, iosWindow.UIWindow);
+        public override bool PresentFileExternally(string filename) => presenter.PresentFile(filename);
 
         public override void OpenUrlExternally(string url)
         {

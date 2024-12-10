@@ -11,30 +11,30 @@ namespace osu.Framework.iOS
 {
     public class IOSFilePresenter : UIDocumentInteractionControllerDelegate
     {
+        private readonly UIWindow window;
         private readonly UIDocumentInteractionController viewController = new UIDocumentInteractionController();
 
-        private UIWindow? window;
-
-        public bool OpenFile(string filename, UIWindow window)
+        public IOSFilePresenter(UIWindow window)
         {
-            this.window ??= window;
+            this.window = window;
+        }
 
-            var gameView = window.RootViewController!.View!;
+        public bool OpenFile(string filename)
+        {
             setupViewController(filename);
 
             if (viewController.PresentPreview(true))
                 return true;
 
+            var gameView = window.RootViewController!.View!;
             return viewController.PresentOpenInMenu(gameView.Bounds, gameView, true);
         }
 
-        public bool PresentFile(string filename, UIWindow window)
+        public bool PresentFile(string filename)
         {
-            this.window ??= window;
-
-            var gameView = window.RootViewController!.View!;
             setupViewController(filename);
 
+            var gameView = window.RootViewController!.View!;
             return viewController.PresentOptionsMenu(gameView.Bounds, gameView, true);
         }
 
@@ -49,7 +49,7 @@ namespace osu.Framework.iOS
                 viewController.Uti = UTType.CreateFromExtension(Path.GetExtension(filename))?.Identifier ?? UTTypes.Data.Identifier;
         }
 
-        public override UIViewController ViewControllerForPreview(UIDocumentInteractionController controller) => window!.RootViewController!;
+        public override UIViewController ViewControllerForPreview(UIDocumentInteractionController controller) => window.RootViewController!;
 
         public override void WillBeginSendingToApplication(UIDocumentInteractionController controller, string? application)
         {
