@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 using CallKit;
 using Foundation;
 
@@ -9,26 +10,29 @@ namespace osu.Framework.iOS
 {
     internal class IOSCallObserver : NSObject, ICXCallObserverDelegate
     {
-        private readonly Action incomingCall;
-        private readonly Action endedCall;
+        private readonly Action onCall;
+        private readonly Action onCallEnded;
 
         private readonly CXCallController callController;
 
-        public IOSCallObserver(Action incomingCall, Action endedCall)
+        public IOSCallObserver(Action onCall, Action onCallEnded)
         {
-            this.incomingCall = incomingCall;
-            this.endedCall = endedCall;
+            this.onCall = onCall;
+            this.onCallEnded = onCallEnded;
 
             callController = new CXCallController();
             callController.CallObserver.SetDelegate(this, null);
+
+            if (callController.CallObserver.Calls.Any(c => !c.HasEnded))
+                onCall();
         }
 
         public void CallChanged(CXCallObserver callObserver, CXCall call)
         {
             if (!call.HasEnded)
-                incomingCall();
+                onCall();
             else
-                endedCall();
+                onCallEnded();
         }
 
         protected override void Dispose(bool disposing)
