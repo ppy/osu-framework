@@ -8,8 +8,8 @@ namespace osu.Framework.Testing.Input
 {
     public class ManualTextInputSource : TextInputSource
     {
-        public readonly Queue<bool> ActivationQueue = new Queue<bool>();
-        public readonly Queue<bool> EnsureActivatedQueue = new Queue<bool>();
+        public readonly Queue<TextInputProperties> ActivationQueue = new Queue<TextInputProperties>();
+        public readonly Queue<TextInputProperties> EnsureActivatedQueue = new Queue<TextInputProperties>();
         public readonly Queue<bool> DeactivationQueue = new Queue<bool>();
 
         public void Text(string text) => TriggerTextInput(text);
@@ -32,16 +32,16 @@ namespace osu.Framework.Testing.Input
             base.TriggerImeComposition(string.Empty, 0, 0);
         }
 
-        protected override void ActivateTextInput(bool allowIme)
+        protected override void ActivateTextInput(TextInputProperties properties)
         {
-            base.ActivateTextInput(allowIme);
-            ActivationQueue.Enqueue(allowIme);
+            base.ActivateTextInput(properties);
+            ActivationQueue.Enqueue(properties);
         }
 
-        protected override void EnsureTextInputActivated(bool allowIme)
+        protected override void EnsureTextInputActivated(TextInputProperties properties)
         {
-            base.EnsureTextInputActivated(allowIme);
-            EnsureActivatedQueue.Enqueue(allowIme);
+            base.EnsureTextInputActivated(properties);
+            EnsureActivatedQueue.Enqueue(properties);
         }
 
         protected override void DeactivateTextInput()

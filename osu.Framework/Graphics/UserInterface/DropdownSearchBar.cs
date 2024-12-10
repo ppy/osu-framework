@@ -197,20 +197,20 @@ namespace osu.Framework.Graphics.UserInterface
                 platformSource.OnImeResult += TriggerImeResult;
             }
 
-            protected override void ActivateTextInput(bool allowIme)
+            protected override void ActivateTextInput(TextInputProperties properties)
             {
-                base.ActivateTextInput(allowIme);
+                base.ActivateTextInput(properties);
 
                 if (allowTextInput)
-                    platformSource.Activate(allowIme, imeRectangle ?? RectangleF.Empty);
+                    platformSource.Activate(properties, imeRectangle ?? RectangleF.Empty);
             }
 
-            protected override void EnsureTextInputActivated(bool allowIme)
+            protected override void EnsureTextInputActivated(TextInputProperties properties)
             {
-                base.EnsureTextInputActivated(allowIme);
+                base.EnsureTextInputActivated(properties);
 
                 if (allowTextInput)
-                    platformSource.EnsureActivated(allowIme, imeRectangle);
+                    platformSource.EnsureActivated(properties, imeRectangle);
             }
 
             protected override void DeactivateTextInput()
