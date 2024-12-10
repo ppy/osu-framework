@@ -6,11 +6,13 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Foundation;
 using ObjCRuntime;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Platform;
 using osu.Framework.Platform.SDL3;
+using SDL;
 using static SDL.SDL3;
 using UIKit;
 
@@ -19,6 +21,7 @@ namespace osu.Framework.iOS
     internal class IOSWindow : SDL3MobileWindow
     {
         private UIWindow? window;
+        private IOSCallObserver callObserver;
 
         public override Size Size
         {
@@ -43,8 +46,56 @@ namespace osu.Framework.iOS
 
             base.Create();
 
-            window = Runtime.GetNSObject<UIWindow>(WindowHandle);
+            window = Runtime.GetNSObject<UIWindow>(WindowHandle)!;
             updateSafeArea();
+
+            UIApplication.Notifications.ObserveWillResignActive(onWillResignActive);
+            UIApplication.Notifications.ObserveDidBecomeActive(onDidBecomeActive);
+
+            // osu! cannot operate when a call takes place, as the audio is completely cut from the game, making it behave in unexpected manner.
+            // while this is o!f code, it's simpler to do this here rather than in osu!.
+            // we can reconsider this later on if there are framework consumers which find this behaviour undesirable.
+            callObserver = new IOSCallObserver(onCall, onCallEnded);
+            updateFocused();
+        }
+
+        private bool inCall;
+        private bool active = true;
+
+        private void onCall()
+        {
+            inCall = true;
+            updateFocused();
+        }
+
+        private void onCallEnded()
+        {
+            inCall = false;
+            updateFocused();
+        }
+
+        private void onDidBecomeActive(object? sender, NSNotificationEventArgs e)
+        {
+            active = true;
+            updateFocused();
+        }
+
+        private void onWillResignActive(object? sender, NSNotificationEventArgs e)
+        {
+            active = false;
+            updateFocused();
+        }
+
+        private void updateFocused() => Focused = active && !inCall;
+
+        protected override void HandleEvent(SDL_Event e)
+        {
+            if (e.Type == SDL_EventType.SDL_EVENT_WINDOW_FOCUS_GAINED || e.Type == SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST)
+                // "focus gained" triggers incorrectly at startup, overriding the state update logic above
+                // in the case where a call was active before the app started.
+                return;
+
+            base.HandleEvent(e);
         }
 
         protected override unsafe void RunMainLoop()
