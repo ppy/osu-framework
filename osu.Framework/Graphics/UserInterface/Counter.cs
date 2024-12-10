@@ -16,6 +16,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The current count.
         /// </summary>
+        [TransformGenerator]
         protected double Count
         {
             get => count;
@@ -38,7 +39,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         public TransformSequence<Counter> CountTo(double endCount, double duration = 0, Easing easing = Easing.None)
-            => this.TransformTo(nameof(Count), endCount, duration, easing);
+            => this.TransformTo(this.PopulateTransform(CreateCountTransform<DefaultEasingFunction>(), endCount, duration, easing));
     }
 
     public static class CounterTransformSequenceExtensions
