@@ -76,7 +76,7 @@ namespace osu.Framework.Bindables
                     b.setIndex(index, item, appliedInstances);
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, item, lastItem, index));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, item, lastItem, index));
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace osu.Framework.Bindables
                     b.add(item, appliedInstances);
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, collection.Count - 1));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, collection.Count - 1));
         }
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace osu.Framework.Bindables
                     b.insert(index, item, appliedInstances);
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
         }
 
         /// <summary>
@@ -154,7 +154,7 @@ namespace osu.Framework.Bindables
                 return;
 
             // Preserve items for subscribers
-            var clearedItems = collection.ToList();
+            List<T> clearedItems = CollectionChanged == null ? null : collection.ToList();
 
             collection.Clear();
 
@@ -164,7 +164,7 @@ namespace osu.Framework.Bindables
                     b.clear(appliedInstances);
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, clearedItems, 0));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, clearedItems, 0));
         }
 
         /// <summary>
@@ -212,7 +212,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, listItem, index));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, listItem, index));
 
             return true;
         }
@@ -233,12 +233,13 @@ namespace osu.Framework.Bindables
 
             ensureMutationAllowed();
 
-            var removedItems = collection.GetRange(index, count);
+            if (count == 0)
+                return;
+
+            // Preserve items for subscribers
+            List<T> removedItems = CollectionChanged == null ? null : collection.GetRange(index, count);
 
             collection.RemoveRange(index, count);
-
-            if (removedItems.Count == 0)
-                return;
 
             if (bindings != null)
             {
@@ -250,7 +251,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedItems, index));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedItems, index));
         }
 
         /// <summary>
@@ -277,7 +278,7 @@ namespace osu.Framework.Bindables
                     b.removeAt(index, appliedInstances);
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, index));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, index));
         }
 
         /// <summary>
@@ -294,12 +295,13 @@ namespace osu.Framework.Bindables
 
             ensureMutationAllowed();
 
-            var removed = collection.FindAll(match);
-
-            if (removed.Count == 0) return removed.Count;
+            // Preserve items for subscribers
+            List<T> removedItems = CollectionChanged == null ? null : collection.FindAll(match);
 
             // RemoveAll is internally optimised
-            collection.RemoveAll(match);
+            int countRemoved = collection.RemoveAll(match);
+            if (countRemoved == 0)
+                return 0;
 
             if (bindings != null)
             {
@@ -307,9 +309,8 @@ namespace osu.Framework.Bindables
                     b.removeAll(match, appliedInstances);
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removed));
-
-            return removed.Count;
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedItems));
+            return countRemoved;
         }
 
         /// <summary>
@@ -319,21 +320,22 @@ namespace osu.Framework.Bindables
         /// <param name="count">The count of items to be removed.</param>
         /// <param name="newItems">The items to replace the removed items with.</param>
         public void ReplaceRange(int index, int count, IEnumerable<T> newItems)
-            => replaceRange(index, count, newItems as IList ?? newItems.ToArray(), new HashSet<BindableList<T>>());
+            => replaceRange(index, count, newItems as ICollection<T> ?? newItems.ToArray(), new HashSet<BindableList<T>>());
 
-        private void replaceRange(int index, int count, IList newItems, HashSet<BindableList<T>> appliedInstances)
+        private void replaceRange(int index, int count, ICollection<T> newItems, HashSet<BindableList<T>> appliedInstances)
         {
             if (checkAlreadyApplied(appliedInstances)) return;
 
             ensureMutationAllowed();
 
-            var removedItems = collection.GetRange(index, count);
+            if (count == 0 && newItems.Count == 0)
+                return;
+
+            // Preserve items for subscribers
+            List<T> removedItems = CollectionChanged == null ? null : collection.GetRange(index, count);
 
             collection.RemoveRange(index, count);
-            collection.InsertRange(index, newItems.Cast<T>());
-
-            if (removedItems.Count == 0 && newItems.Count == 0)
-                return;
+            collection.InsertRange(index, newItems);
 
             if (bindings != null)
             {
@@ -345,7 +347,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, newItems, removedItems, index));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, (IList)newItems, removedItems!, index));
         }
 
         /// <summary>
@@ -542,15 +544,15 @@ namespace osu.Framework.Bindables
         /// <param name="items">The collection whose items should be added to this collection.</param>
         /// <exception cref="InvalidOperationException">Thrown if this collection is <see cref="Disabled"/></exception>
         public void AddRange(IEnumerable<T> items)
-            => addRange(items as IList ?? items.ToArray(), new HashSet<BindableList<T>>());
+            => addRange(items as ICollection<T> ?? items.ToArray(), new HashSet<BindableList<T>>());
 
-        private void addRange(IList items, HashSet<BindableList<T>> appliedInstances)
+        private void addRange(ICollection<T> items, HashSet<BindableList<T>> appliedInstances)
         {
             if (checkAlreadyApplied(appliedInstances)) return;
 
             ensureMutationAllowed();
 
-            collection.AddRange(items.Cast<T>());
+            collection.AddRange(items);
 
             if (bindings != null)
             {
@@ -558,7 +560,7 @@ namespace osu.Framework.Bindables
                     b.addRange(items, appliedInstances);
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items, collection.Count - items.Count));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, (IList)items, collection.Count - items.Count));
         }
 
         /// <summary>
@@ -586,7 +588,7 @@ namespace osu.Framework.Bindables
                     b.move(oldIndex, newIndex, appliedInstances);
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, item, newIndex, oldIndex));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, item, newIndex, oldIndex));
         }
 
         void IBindable.BindTo(IBindable them)
@@ -679,8 +681,6 @@ namespace osu.Framework.Bindables
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         #endregion IEnumerable
-
-        private void notifyCollectionChanged(NotifyCollectionChangedEventArgs args) => CollectionChanged?.Invoke(this, args);
 
         private void ensureMutationAllowed()
         {
