@@ -5,6 +5,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyTitle>osu!framework</AssemblyTitle>
     <AssemblyName>osu.Framework</AssemblyName>
+    <PublishAot>true</PublishAot>
     <Description>A 2D application/game framework written with rhythm games in mind.</Description>
     <!-- Enabling this breaks iOS projects from building due to silly naming conflicts (https://github.com/dotnet/runtime/issues/79500#issuecomment-1345624309).
          It's still enabled externally on packaging scripts so should be fine to disable in project. -->
