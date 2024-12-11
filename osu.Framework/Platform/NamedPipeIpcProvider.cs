@@ -34,6 +34,8 @@ namespace osu.Framework.Platform
 
         private NamedPipeServerStream? pipe;
 
+        private Mutex? mutex;
+
         /// <summary>
         /// Create a new provider.
         /// </summary>
@@ -57,7 +59,17 @@ namespace osu.Framework.Platform
 
             try
             {
-                pipe = new NamedPipeServerStream($"osu-framework-{pipeName}", PipeDirection.InOut);
+                string name = $"osu-framework-{pipeName}";
+
+                // Named pipes from different processes are allowed to coexist, but we don't want this for our purposes.
+                // Using a system global mutex allows ensuring that only one osu!framework project using the same pipe name
+                // will be able to bind.
+                mutex = new Mutex(false, $"Global\\{name}", out bool createdNew);
+
+                if (!createdNew)
+                    return false;
+
+                pipe = new NamedPipeServerStream(name, PipeDirection.InOut, 1);
 
                 listenTask = listen(pipe);
 
@@ -201,6 +213,8 @@ namespace osu.Framework.Platform
             const int thread_join_timeout = 2000;
 
             cancellationSource.Cancel();
+
+            mutex?.Dispose();
 
             if (listenTask != null)
             {
