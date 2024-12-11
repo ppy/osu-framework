@@ -62,8 +62,6 @@ namespace osu.Framework.iOS
             // iOS may be a good forward direction if this ever comes up, as a user may see a potentially higher
             // frame rate with multi-threaded mode turned on, but it is going to give them worse input latency
             // and higher power usage.
-
-            SDL_SetiOSEventPump(false);
             SDL_SetiOSAnimationCallback(SDLWindowHandle, 1, &runFrame, ObjectHandle.Handle);
         }
 
