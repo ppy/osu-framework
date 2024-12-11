@@ -9,12 +9,12 @@ using UniformTypeIdentifiers;
 
 namespace osu.Framework.iOS
 {
-    public class IOSFilePresenter : UIDocumentInteractionControllerDelegate
+    internal class IOSFilePresenter : UIDocumentInteractionControllerDelegate
     {
-        private readonly UIWindow window;
+        private readonly IOSWindow window;
         private readonly UIDocumentInteractionController viewController = new UIDocumentInteractionController();
 
-        public IOSFilePresenter(UIWindow window)
+        internal IOSFilePresenter(IOSWindow window)
         {
             this.window = window;
         }
@@ -26,7 +26,7 @@ namespace osu.Framework.iOS
             if (viewController.PresentPreview(true))
                 return true;
 
-            var gameView = window.RootViewController!.View!;
+            var gameView = window.UIWindow.RootViewController!.View!;
             return viewController.PresentOpenInMenu(gameView.Bounds, gameView, true);
         }
 
@@ -34,7 +34,7 @@ namespace osu.Framework.iOS
         {
             setupViewController(filename);
 
-            var gameView = window.RootViewController!.View!;
+            var gameView = window.UIWindow.RootViewController!.View!;
             return viewController.PresentOptionsMenu(gameView.Bounds, gameView, true);
         }
 
@@ -49,7 +49,7 @@ namespace osu.Framework.iOS
                 viewController.Uti = UTType.CreateFromExtension(Path.GetExtension(filename))?.Identifier ?? UTTypes.Data.Identifier;
         }
 
-        public override UIViewController ViewControllerForPreview(UIDocumentInteractionController controller) => window.RootViewController!;
+        public override UIViewController ViewControllerForPreview(UIDocumentInteractionController controller) => window.UIWindow.RootViewController!;
 
         public override void WillBeginSendingToApplication(UIDocumentInteractionController controller, string? application)
         {
