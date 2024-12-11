@@ -122,7 +122,8 @@ namespace osu.Framework.Platform
             {
                 try
                 {
-                    pipe.Disconnect();
+                    if (pipe.IsConnected)
+                        pipe.Disconnect();
                 }
                 catch
                 {
