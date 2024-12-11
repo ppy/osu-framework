@@ -19,6 +19,7 @@ namespace osu.Framework.iOS
     /// </summary>
     public abstract class GameApplicationDelegate : UIApplicationDelegate
     {
+        internal event Action<string>? DragDrop;
 
         private const string output_volume = "outputVolume";
 
@@ -38,6 +39,15 @@ namespace osu.Framework.iOS
 
             host = new IOSGameHost();
             host.Run(CreateGame());
+            return true;
+        }
+
+        public override bool OpenUrl(UIApplication application, NSUrl url, string sourceApplication, NSObject annotation)
+        {
+            // copied verbatim from SDL: https://github.com/libsdl-org/SDL/blob/d252a8fe126b998bd1b0f4e4cf52312cd11de378/src/video/uikit/SDL_uikitappdelegate.m#L508-L535
+            // the hope is that the SDL app delegate class does not have such handling exist there, but Apple does not provide a corresponding notification to make that possible.
+            NSUrl? fileUrl = url.FilePathUrl;
+            DragDrop?.Invoke(fileUrl != null ? fileUrl.Path! : url.AbsoluteString!);
             return true;
         }
 
