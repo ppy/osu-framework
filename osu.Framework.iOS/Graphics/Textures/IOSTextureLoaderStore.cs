@@ -2,13 +2,15 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Buffers;
 using System.IO;
 using CoreGraphics;
+using CoreImage;
 using Foundation;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using SixLabors.ImageSharp;
-using UIKit;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.iOS.Graphics.Textures
 {
@@ -19,28 +21,43 @@ namespace osu.Framework.iOS.Graphics.Textures
         {
         }
 
-        protected override Image<TPixel> ImageFromStream<TPixel>(Stream stream)
+        protected override unsafe Image<TPixel> ImageFromStream<TPixel>(Stream stream)
         {
             using (var nativeData = NSData.FromStream(stream))
             {
                 if (nativeData == null)
                     throw new ArgumentException($"{nameof(Image)} could not be created from {nameof(stream)}.");
 
-                using (var uiImage = UIImage.LoadFromData(nativeData))
+                using (var ciImage = CIImage.FromData(nativeData))
                 {
-                    if (uiImage == null) throw new ArgumentException($"{nameof(Image)} could not be created from {nameof(stream)}.");
+                    if (ciImage == null) throw new ArgumentException($"{nameof(Image)} could not be created from {nameof(stream)}.");
 
-                    int width = (int)uiImage.Size.Width;
-                    int height = (int)uiImage.Size.Height;
+                    int width = (int)ciImage.Extent.Width;
+                    int height = (int)ciImage.Extent.Height;
 
-                    // TODO: Use pool/memory when builds success with Xamarin.
-                    // Probably at .NET Core 3.1 time frame.
-                    byte[] data = new byte[width * height * 4];
-                    using (CGBitmapContext textureContext = new CGBitmapContext(data, width, height, 8, width * 4, CGColorSpace.CreateDeviceRGB(), CGImageAlphaInfo.PremultipliedLast))
-                        textureContext.DrawImage(new CGRect(0, 0, width, height), uiImage.CGImage);
+                    RgbaVector[] dataInVectors = ArrayPool<RgbaVector>.Shared.Rent(width * height);
+                    byte[] dataInBytes = ArrayPool<byte>.Shared.Rent(width * height * 4);
 
-                    var image = Image.LoadPixelData<TPixel>(data, width, height);
+                    fixed (RgbaVector* ptr = dataInVectors)
+                    {
+                        using (var context = CIContext.Create())
+                            context.RenderToBitmap(ciImage, (IntPtr)ptr, width * 16, ciImage.Extent, CIImage.FormatRGBAf, CGColorSpace.CreateDeviceRGB());
+                    }
 
+                    // unapply alpha pre-multiplication resulted by CGBitmapContext.
+                    for (int i = 0; i < dataInVectors.Length; i++)
+                    {
+                        RgbaVector v = dataInVectors[i];
+                        dataInBytes[i * 4 + 0] = (byte)Math.Round(v.A == 0 ? 0 : v.R / v.A * 255);
+                        dataInBytes[i * 4 + 1] = (byte)Math.Round(v.A == 0 ? 0 : v.G / v.A * 255);
+                        dataInBytes[i * 4 + 2] = (byte)Math.Round(v.A == 0 ? 0 : v.B / v.A * 255);
+                        dataInBytes[i * 4 + 3] = (byte)Math.Round(v.A * 255);
+                    }
+
+                    var image = Image.LoadPixelData<TPixel>(dataInBytes, width, height);
+
+                    ArrayPool<byte>.Shared.Return(dataInBytes);
+                    ArrayPool<RgbaVector>.Shared.Return(dataInVectors);
                     return image;
                 }
             }
