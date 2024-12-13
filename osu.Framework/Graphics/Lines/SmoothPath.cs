@@ -75,13 +75,12 @@ namespace osu.Framework.Graphics.Lines
                 float progress = (float)i / (textureWidth - 1);
 
                 var colour = ColourAt(progress);
-                raw[i, 0] = new Rgba32(colour.R, colour.G, colour.B, colour.A * Math.Min(progress / aa_portion, 1));
+                float alpha = Math.Min(progress / aa_portion, 1);
+                raw[i, 0] = new Rgba32(colour.R * alpha, colour.G * alpha, colour.B * alpha, colour.A * alpha);
             }
 
             if (Texture?.Width == textureWidth)
-            {
                 Texture.SetData(new TextureUpload(raw));
-            }
             else
             {
                 var texture = new DisposableTexture(renderer.CreateTexture(textureWidth, 1, true));
