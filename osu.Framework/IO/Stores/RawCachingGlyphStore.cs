@@ -162,7 +162,8 @@ namespace osu.Framework.IO.Stores
 
                     for (int x = 0; x < character.Width; x++)
                     {
-                        span[x] = new Rgba32(255, 255, 255, x < readableWidth && y < readableHeight ? readBuffer[readOffset + x] : (byte)0);
+                        byte val = x < readableWidth && y < readableHeight ? readBuffer[readOffset + x] : (byte)0;
+                        span[x] = new Rgba32(val, val, val, val);
                     }
                 }
 
