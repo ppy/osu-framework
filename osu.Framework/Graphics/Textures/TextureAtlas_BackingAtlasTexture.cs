@@ -215,10 +215,10 @@ namespace osu.Framework.Graphics.Textures
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private void transferBorderPixel(ref Rgba32 dest, Rgba32 source, bool fillOpaque)
             {
-                dest.R = source.R;
-                dest.G = source.G;
-                dest.B = source.B;
                 dest.A = fillOpaque ? source.A : (byte)0;
+                dest.R = (byte)(source.R * (dest.A / 255.0));
+                dest.G = (byte)(source.G * (dest.A / 255.0));
+                dest.B = (byte)(source.B * (dest.A / 255.0));
             }
 
             /// <summary>
