@@ -5,6 +5,7 @@
 
 using System;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Statistics;
@@ -99,7 +100,7 @@ namespace osu.Framework.Graphics
                         // We need to draw children as if they were zero-based to the top-left of the texture.
                         // We can do this by adding a translation component to our (orthogonal) projection matrix.
                         renderer.PushOrtho(screenSpaceDrawRectangle);
-                        renderer.Clear(new ClearInfo(backgroundColour));
+                        renderer.Clear(new ClearInfo(backgroundColour.ToPremultiplied()));
 
                         DrawOther(Child, renderer);
 
