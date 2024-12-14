@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Lines
 {
     public partial class Path
     {
-        private class PathDrawNode : DrawNode
+        protected class PathDrawNode : DrawNode
         {
             private const int max_res = 24;
 

@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// The current framebuffer, or null if the backbuffer is used.
         /// </summary>
-        protected IFrameBuffer? FrameBuffer { get; private set; }
+        public IFrameBuffer? FrameBuffer { get; private set; }
 
         /// <summary>
         /// The current shader, or null if no shader is currently bound.
