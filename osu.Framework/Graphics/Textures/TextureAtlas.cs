@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.Textures
 
                 using (var whiteTex = new TextureRegion(atlasTexture, bounds, WrapMode.Repeat, WrapMode.Repeat))
                     // Generate white padding as if the white texture was wrapped, even though it isn't
-                    whiteTex.SetData(new TextureUpload(new PremultipliedImage(whiteTex.Width, whiteTex.Height, Colour4.White)));
+                    whiteTex.SetData(new TextureUpload(new PremultipliedImage(whiteTex.Width, whiteTex.Height, Colour4.White.ToPremultiplied())));
 
                 currentPosition = new Vector2I(PADDING + WHITE_PIXEL_SIZE, PADDING);
             }
