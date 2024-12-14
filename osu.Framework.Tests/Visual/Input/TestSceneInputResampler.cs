@@ -15,7 +15,6 @@ using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.Input
@@ -33,12 +32,12 @@ namespace osu.Framework.Tests.Visual.Input
         {
             const int width = 2;
             Texture gradientTexture = renderer.CreateTexture(width, 1, true);
-            var image = new Image<Rgba32>(width, 1);
+            var image = new PremultipliedImage(width, 1);
 
             for (int i = 0; i < width; ++i)
             {
                 byte brightnessByte = (byte)((float)i / (width - 1) * 255);
-                image[i, 0] = new Rgba32(brightnessByte, brightnessByte, brightnessByte);
+                image.Premultiplied[i, 0] = new Rgba32(brightnessByte, brightnessByte, brightnessByte);
             }
 
             gradientTexture.SetData(new TextureUpload(image));

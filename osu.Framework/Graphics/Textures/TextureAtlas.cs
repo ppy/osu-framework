@@ -4,13 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Numerics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -84,7 +81,7 @@ namespace osu.Framework.Graphics.Textures
 
                 using (var whiteTex = new TextureRegion(atlasTexture, bounds, WrapMode.Repeat, WrapMode.Repeat))
                     // Generate white padding as if the white texture was wrapped, even though it isn't
-                    whiteTex.SetData(new TextureUpload(new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, whiteTex.Width, whiteTex.Height, new Rgba32(Vector4.One))));
+                    whiteTex.SetData(new TextureUpload(new PremultipliedImage(whiteTex.Width, whiteTex.Height, Colour4.White)));
 
                 currentPosition = new Vector2I(PADDING + WHITE_PIXEL_SIZE, PADDING);
             }
