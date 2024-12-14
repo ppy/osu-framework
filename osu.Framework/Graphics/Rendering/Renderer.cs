@@ -975,27 +975,7 @@ namespace osu.Framework.Graphics.Rendering
                         currentMaskingInfo.MaskingRect.Bottom),
                     BorderThickness = currentMaskingInfo.BorderThickness / currentMaskingInfo.BlendRange,
                     BorderColour = currentMaskingInfo.BorderThickness > 0
-                        ? new Matrix4(
-                            // TopLeft
-                            currentMaskingInfo.BorderColour.TopLeft.SRGB.R,
-                            currentMaskingInfo.BorderColour.TopLeft.SRGB.G,
-                            currentMaskingInfo.BorderColour.TopLeft.SRGB.B,
-                            currentMaskingInfo.BorderColour.TopLeft.SRGB.A,
-                            // BottomLeft
-                            currentMaskingInfo.BorderColour.BottomLeft.SRGB.R,
-                            currentMaskingInfo.BorderColour.BottomLeft.SRGB.G,
-                            currentMaskingInfo.BorderColour.BottomLeft.SRGB.B,
-                            currentMaskingInfo.BorderColour.BottomLeft.SRGB.A,
-                            // TopRight
-                            currentMaskingInfo.BorderColour.TopRight.SRGB.R,
-                            currentMaskingInfo.BorderColour.TopRight.SRGB.G,
-                            currentMaskingInfo.BorderColour.TopRight.SRGB.B,
-                            currentMaskingInfo.BorderColour.TopRight.SRGB.A,
-                            // BottomRight
-                            currentMaskingInfo.BorderColour.BottomRight.SRGB.R,
-                            currentMaskingInfo.BorderColour.BottomRight.SRGB.G,
-                            currentMaskingInfo.BorderColour.BottomRight.SRGB.B,
-                            currentMaskingInfo.BorderColour.BottomRight.SRGB.A)
+                        ? currentMaskingInfo.BorderColour
                         : globalUniformBuffer.Data.BorderColour,
                     MaskingBlendRange = currentMaskingInfo.BlendRange,
                     AlphaExponent = currentMaskingInfo.AlphaExponent,
@@ -1281,7 +1261,9 @@ namespace osu.Framework.Graphics.Rendering
                 if (field.FieldType == typeof(UniformMatrix3)
                     || field.FieldType == typeof(UniformMatrix4)
                     || field.FieldType == typeof(UniformVector3)
-                    || field.FieldType == typeof(UniformVector4))
+                    || field.FieldType == typeof(UniformVector4)
+                    || field.FieldType == typeof(UniformColour)
+                    || field.FieldType == typeof(UniformColourInfo))
                 {
                     checkAlignment(field, offset, 16);
                 }
@@ -1310,8 +1292,10 @@ namespace osu.Framework.Graphics.Rendering
                     || field.FieldType == typeof(UniformPadding8)
                     || field.FieldType == typeof(UniformPadding12)
                     || field.FieldType == typeof(UniformVector2)
+                    || field.FieldType == typeof(UniformVector3)
                     || field.FieldType == typeof(UniformVector4)
-                    || field.FieldType == typeof(UniformVector4))
+                    || field.FieldType == typeof(UniformColour)
+                    || field.FieldType == typeof(UniformColourInfo))
                 {
                     return;
                 }

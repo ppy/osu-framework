@@ -7,12 +7,14 @@ using System.Runtime.InteropServices;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shaders.Types;
 using osuTK;
+using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Tests.Visual.Graphics
@@ -116,7 +118,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                     var rng = new Random(1337);
 
                     for (int i = 0; i < colourBuffer.Size; i++)
-                        colourBuffer[i] = new ColourData { Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), 1) };
+                        colourBuffer[i] = new ColourData { Colour = PremultipliedColour.FromStraight(new Color4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), 1)) };
                 }
 
                 // Bind the custom shader and SSBO.
@@ -212,7 +214,7 @@ namespace osu.Framework.Tests.Visual.Graphics
 
                 for (int i = 0; i < areas.Count; i++)
                 {
-                    int colourIndex = colourBuffer.Push(new ColourData { Colour = new Vector4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), 1) });
+                    int colourIndex = colourBuffer.Push(new ColourData { Colour = PremultipliedColour.FromStraight(new Color4(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), 1)) });
 
                     // Bind the SSBO. This may change between iterations if a buffer transition happens via the above push.
                     shader.BindUniformBlock("g_ColourBuffer", colourBuffer.CurrentBuffer);
@@ -260,7 +262,7 @@ namespace osu.Framework.Tests.Visual.Graphics
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         private record struct ColourData
         {
-            public UniformVector4 Colour;
+            public UniformColour Colour;
         }
 
         [StructLayout(LayoutKind.Sequential)]
