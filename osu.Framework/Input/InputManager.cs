@@ -794,6 +794,7 @@ namespace osu.Framework.Input
             if (!MapMouseToLatestTouch)
                 return false;
 
+            // Update mouse position state
             if (e.IsActive == true || e.LastPosition != null)
             {
                 new MousePositionAbsoluteInputFromTouch(e)
@@ -802,6 +803,7 @@ namespace osu.Framework.Input
                 }.Apply(CurrentState, this);
             }
 
+            // Update mouse button state
             if (e.IsActive != null)
             {
                 if (e.IsActive == true)
@@ -811,6 +813,11 @@ namespace osu.Framework.Input
 
                 updateTouchMouseLeft(e);
             }
+
+            // Invalidate mouse position if releasing last touch. This is done after updating button state
+            // for click events to be processed on the targeted input queue before the position is invalidated.
+            if (e.IsActive == false && !e.State.Touch.ActiveSources.HasAnyButtonPressed)
+                new MouseInvalidatePositionInputFromTouch(e).Apply(CurrentState, this);
 
             updateTouchMouseRight(e);
             return true;
