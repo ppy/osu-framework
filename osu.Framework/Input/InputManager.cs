@@ -128,7 +128,7 @@ namespace osu.Framework.Input
         /// <remarks>
         /// This collection should not be retained as a reference. The contents is not stable outside of local usage.
         /// </remarks>
-        public SlimReadOnlyListWrapper<Drawable> PositionalInputQueue => buildPositionalInputQueue(CurrentState.Mouse.Position);
+        public SlimReadOnlyListWrapper<Drawable> PositionalInputQueue => buildPositionalInputQueue(!CurrentState.Mouse.IsPositionValid ? null : CurrentState.Mouse.Position);
 
         /// <summary>
         /// Contains all <see cref="Drawable"/>s in top-down order which are considered
@@ -627,9 +627,12 @@ namespace osu.Framework.Input
 
         private readonly List<Drawable> positionalInputQueue = new List<Drawable>();
 
-        private SlimReadOnlyListWrapper<Drawable> buildPositionalInputQueue(Vector2 screenSpacePos)
+        private SlimReadOnlyListWrapper<Drawable> buildPositionalInputQueue(Vector2? screenSpacePos)
         {
             positionalInputQueue.Clear();
+
+            if (screenSpacePos == null)
+                return positionalInputQueue.AsSlimReadOnly();
 
             if (this is UserInputManager)
                 FrameStatistics.Increment(StatisticsCounterType.PositionalIQ);
@@ -639,7 +642,7 @@ namespace osu.Framework.Input
             for (int i = 0; i < children.Count; i++)
             {
                 if (ShouldBeConsideredForInput(children[i]))
-                    children[i].BuildPositionalInputQueue(screenSpacePos, positionalInputQueue);
+                    children[i].BuildPositionalInputQueue(screenSpacePos.Value, positionalInputQueue);
             }
 
             positionalInputQueue.Reverse();
@@ -959,16 +962,19 @@ namespace osu.Framework.Input
             var state = e.State;
             var mouse = state.Mouse;
 
-            foreach (var h in InputHandlers)
+            if (e.LastPosition != null)
             {
-                if (h.Enabled.Value && h is INeedsMousePositionFeedback handler)
-                    handler.FeedbackMousePositionChange(mouse.Position, h == mouseSource);
+                foreach (var h in InputHandlers)
+                {
+                    if (h.Enabled.Value && h is INeedsMousePositionFeedback handler)
+                        handler.FeedbackMousePositionChange(mouse.Position, h == mouseSource);
+                }
+
+                handleMouseMove(state, e.LastPosition.Value);
+
+                foreach (var manager in mouseButtonEventManagers.Values)
+                    manager.HandlePositionChange(state, e.LastPosition.Value);
             }
-
-            handleMouseMove(state, e.LastPosition);
-
-            foreach (var manager in mouseButtonEventManagers.Values)
-                manager.HandlePositionChange(state, e.LastPosition);
 
             updateHoverEvents(state);
         }
