@@ -32,6 +32,8 @@ namespace osu.Framework.Tests.Visual.Input
         [SetUp]
         public new void SetUp() => Schedule(() =>
         {
+            InputManager.RightClickFromLongTouch = true;
+
             Children = new Drawable[]
             {
                 new Container
