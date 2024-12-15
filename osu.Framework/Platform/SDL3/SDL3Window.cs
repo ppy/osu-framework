@@ -666,6 +666,8 @@ namespace osu.Framework.Platform.SDL3
         /// </summary>
         public event Action<string>? DragDrop;
 
+        protected void TriggerDragDrop(string filename) => DragDrop?.Invoke(filename);
+
         #endregion
 
         public void Dispose()
