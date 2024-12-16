@@ -23,14 +23,21 @@ namespace osu.Framework.Input.Handlers.Tablet
         Bindable<Vector2> AreaSize { get; }
 
         /// <summary>
-        /// The size of the area on the window which the input should be mapped to.
+        /// Relative position of center of output area in game window, padded by half of <see cref="OutputAreaSize"/>.
+        /// Values between zero and one for each axe will always place the area inside window:
+        /// (0; 0) is most top-left position, (1;1) is most bottom-right position. Does nothing if <see cref="OutputAreaSize"/> equals to (1; 1).
         /// </summary>
-        Bindable<Vector2> OutputSize { get; }
+        Bindable<Vector2> OutputAreaPosition { get; }
+
+        /// <summary>
+        /// Relative size of output area inside game window.
+        /// </summary>
+        Bindable<Vector2> OutputAreaSize { get; }
 
         /// <summary>
         /// Information on the currently connected tablet device. May be null if no tablet is detected.
         /// </summary>
-        IBindable<TabletInfo?> Tablet { get; }
+        IBindable<TabletInfo> Tablet { get; }
 
         /// <summary>
         /// The rotation of the tablet area in degrees.
