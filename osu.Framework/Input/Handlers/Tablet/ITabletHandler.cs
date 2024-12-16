@@ -23,6 +23,11 @@ namespace osu.Framework.Input.Handlers.Tablet
         Bindable<Vector2> AreaSize { get; }
 
         /// <summary>
+        /// The size of the area on the window which the input should be mapped to.
+        /// </summary>
+        Bindable<Vector2> OutputSize { get; }
+
+        /// <summary>
         /// Information on the currently connected tablet device. May be null if no tablet is detected.
         /// </summary>
         IBindable<TabletInfo?> Tablet { get; }

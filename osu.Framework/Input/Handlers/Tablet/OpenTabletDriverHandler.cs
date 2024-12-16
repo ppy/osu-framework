@@ -38,6 +38,8 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
 
+        public Bindable<Vector2> OutputSize { get; } = new Bindable<Vector2>();
+
         public Bindable<float> Rotation { get; } = new Bindable<float>();
 
         public IBindable<TabletInfo?> Tablet => tablet;
@@ -52,10 +54,11 @@ namespace osu.Framework.Input.Handlers.Tablet
 
             outputMode = new AbsoluteTabletMode(this);
 
-            host.Window.Resized += () => updateOutputArea(host.Window);
+            host.Window.Resized += updateOutputArea;
 
             AreaOffset.BindValueChanged(_ => updateTabletAndInputArea(device));
             AreaSize.BindValueChanged(_ => updateTabletAndInputArea(device));
+            OutputSize.BindValueChanged(_ => updateOutputArea());
             Rotation.BindValueChanged(_ => updateTabletAndInputArea(device), true);
 
             Enabled.BindValueChanged(enabled =>
@@ -104,7 +107,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                 outputMode.Tablet = device.CreateReference();
 
                 updateTabletAndInputArea(device);
-                updateOutputArea(host.Window);
+                updateOutputArea();
             }
             else
                 tablet.Value = null;
@@ -119,7 +122,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                 handleAuxiliaryReport(auxiliaryReport);
         }
 
-        private void updateOutputArea(IWindow window)
+        private void updateOutputArea()
         {
             if (device == null)
                 return;
@@ -128,14 +131,14 @@ namespace osu.Framework.Input.Handlers.Tablet
             {
                 case AbsoluteOutputMode absoluteOutputMode:
                 {
-                    float outputWidth, outputHeight;
+                    System.Console.WriteLine($"OutputSize {OutputSize.Value}");
 
                     // Set output area in pixels
                     absoluteOutputMode.Output = new Area
                     {
-                        Width = outputWidth = window.ClientSize.Width,
-                        Height = outputHeight = window.ClientSize.Height,
-                        Position = new System.Numerics.Vector2(outputWidth / 2, outputHeight / 2)
+                        Width = OutputSize.Value.X,
+                        Height = OutputSize.Value.Y,
+                        Position = new System.Numerics.Vector2(host.Window.Size.Width / 2f, host.Window.Size.Height / 2f)
                     };
                     break;
                 }
