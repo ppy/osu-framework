@@ -38,13 +38,15 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
 
-        public Bindable<Vector2> OutputSize { get; } = new Bindable<Vector2>();
+        public Bindable<Vector2> OutputAreaPosition { get; } = new Bindable<Vector2>();
+
+        public Bindable<Vector2> OutputAreaSize { get; } = new Bindable<Vector2>(new Vector2(1f, 1f));
 
         public Bindable<float> Rotation { get; } = new Bindable<float>();
 
-        public IBindable<TabletInfo?> Tablet => tablet;
+        public IBindable<TabletInfo> Tablet => tablet;
 
-        private readonly Bindable<TabletInfo?> tablet = new Bindable<TabletInfo?>();
+        private readonly Bindable<TabletInfo> tablet = new Bindable<TabletInfo>();
 
         private Task? lastInitTask;
 
@@ -54,12 +56,16 @@ namespace osu.Framework.Input.Handlers.Tablet
 
             outputMode = new AbsoluteTabletMode(this);
 
-            host.Window.Resized += updateOutputArea;
+            host.Window.Resized += () => updateOutputArea(host.Window);
 
-            AreaOffset.BindValueChanged(_ => updateTabletAndInputArea(device));
-            AreaSize.BindValueChanged(_ => updateTabletAndInputArea(device));
-            OutputSize.BindValueChanged(_ => updateOutputArea());
-            Rotation.BindValueChanged(_ => updateTabletAndInputArea(device), true);
+            AreaOffset.BindValueChanged(_ => updateInputArea(device));
+            AreaSize.BindValueChanged(_ => updateInputArea(device), true);
+            Rotation.BindValueChanged(_ => updateInputArea(device), true);
+
+            OutputAreaPosition.BindValueChanged(_ => updateOutputArea(host.Window));
+            OutputAreaSize.BindValueChanged(_ => updateOutputArea(host.Window));
+
+            updateOutputArea(host.Window);
 
             Enabled.BindValueChanged(enabled =>
             {
@@ -106,11 +112,9 @@ namespace osu.Framework.Input.Handlers.Tablet
                 device.OutputMode = outputMode;
                 outputMode.Tablet = device.CreateReference();
 
-                updateTabletAndInputArea(device);
-                updateOutputArea();
+                updateInputArea(device);
+                updateOutputArea(host.Window);
             }
-            else
-                tablet.Value = null;
         }
 
         private void handleDeviceReported(object? sender, IDeviceReport report)
@@ -122,7 +126,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                 handleAuxiliaryReport(auxiliaryReport);
         }
 
-        private void updateOutputArea()
+        private void updateOutputArea(IWindow window)
         {
             if (device == null)
                 return;
@@ -131,19 +135,33 @@ namespace osu.Framework.Input.Handlers.Tablet
             {
                 case AbsoluteOutputMode absoluteOutputMode:
                 {
+                    // window size & pos
+                    float outputWidth = window.ClientSize.Width;
+                    float outputHeight = window.ClientSize.Height;
+                    float posX = outputWidth / 2;
+                    float posY = outputHeight / 2;
+
+                    // applying "output area"
+                    float areaOffsX = (1f - OutputAreaSize.Value.X) * (OutputAreaPosition.Value.X - 0.5f) * outputWidth;
+                    float areaOffsY = (1f - OutputAreaSize.Value.Y) * (OutputAreaPosition.Value.Y - 0.5f) * outputHeight;
+                    outputWidth *= OutputAreaSize.Value.X;
+                    outputHeight *= OutputAreaSize.Value.Y;
+                    posX += areaOffsX;
+                    posY += areaOffsY;
+
                     // Set output area in pixels
                     absoluteOutputMode.Output = new Area
                     {
-                        Width = OutputSize.Value.X,
-                        Height = OutputSize.Value.Y,
-                        Position = new System.Numerics.Vector2(host.Window.Size.Width / 2f, host.Window.Size.Height / 2f)
+                        Width = outputWidth,
+                        Height = outputHeight,
+                        Position = new System.Numerics.Vector2(posX, posY)
                     };
                     break;
                 }
             }
         }
 
-        private void updateTabletAndInputArea(InputDeviceTree? inputDevice)
+        private void updateInputArea(InputDeviceTree? inputDevice)
         {
             if (inputDevice == null)
                 return;
