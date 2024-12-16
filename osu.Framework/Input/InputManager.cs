@@ -507,6 +507,9 @@ namespace osu.Framework.Input
             if (FocusedDrawable == null)
                 focusTopMostRequestingDrawable();
 
+            if (!AllowRightClickFromLongTouch && touchLongPressDelegate != null)
+                cancelTouchLongPress();
+
             base.Update();
         }
 
