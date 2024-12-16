@@ -131,8 +131,6 @@ namespace osu.Framework.Input.Handlers.Tablet
             {
                 case AbsoluteOutputMode absoluteOutputMode:
                 {
-                    System.Console.WriteLine($"OutputSize {OutputSize.Value}");
-
                     // Set output area in pixels
                     absoluteOutputMode.Output = new Area
                     {
