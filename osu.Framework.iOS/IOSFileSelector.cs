@@ -18,7 +18,7 @@ namespace osu.Framework.iOS
 
         private readonly IIOSWindow window;
 
-        private readonly UIDocumentPickerViewController viewController;
+        private readonly UIDocumentPickerViewController documentPicker;
 
         public IOSFileSelector(IIOSWindow window, string[] allowedExtensions)
         {
@@ -38,7 +38,7 @@ namespace osu.Framework.iOS
 
                     var type = UTType.CreateFromExtension(extension.Replace(".", string.Empty));
                     if (type == null)
-                        throw new InvalidOperationException($"System failed to recognise extension \"{extension}\" when preparing the file selector.\n");
+                        throw new InvalidOperationException($"System failed to recognise extension \"{extension}\" while preparing the file selector.\n");
 
                     utTypes[i] = type;
                 }
@@ -47,15 +47,15 @@ namespace osu.Framework.iOS
             // files must be provided as copies, as they may be originally located in places that cannot be accessed freely (aka. iCloud Drive).
             // we can acquire access to those files via startAccessingSecurityScopedResource but we must know when the game has finished using them.
             // todo: refactor FileSelector/DirectorySelector to be aware when the game finished using a file/directory.
-            viewController = new UIDocumentPickerViewController(utTypes, true);
-            viewController.Delegate = this;
+            documentPicker = new UIDocumentPickerViewController(utTypes, true);
+            documentPicker.Delegate = this;
         }
 
         public void Present()
         {
             UIApplication.SharedApplication.InvokeOnMainThread(() =>
             {
-                window.ViewController.PresentViewController(viewController, true, null);
+                window.ViewController.PresentViewController(documentPicker, true, null);
             });
         }
 
@@ -64,7 +64,7 @@ namespace osu.Framework.iOS
 
         protected override void Dispose(bool disposing)
         {
-            viewController.Dispose();
+            documentPicker.Dispose();
             base.Dispose(disposing);
         }
     }

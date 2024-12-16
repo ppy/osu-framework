@@ -12,7 +12,7 @@ namespace osu.Framework.iOS
     public class IOSFilePresenter : UIDocumentInteractionControllerDelegate
     {
         private readonly IIOSWindow window;
-        private readonly UIDocumentInteractionController viewController = new UIDocumentInteractionController();
+        private readonly UIDocumentInteractionController documentInteraction = new UIDocumentInteractionController();
 
         public IOSFilePresenter(IIOSWindow window)
         {
@@ -23,39 +23,39 @@ namespace osu.Framework.iOS
         {
             setupViewController(filename);
 
-            if (viewController.PresentPreview(true))
+            if (documentInteraction.PresentPreview(true))
                 return true;
 
-            var gameView = window.UIWindow.RootViewController!.View!;
-            return viewController.PresentOpenInMenu(gameView.Bounds, gameView, true);
+            var gameView = window.ViewController.View!;
+            return documentInteraction.PresentOpenInMenu(gameView.Bounds, gameView, true);
         }
 
         public bool PresentFile(string filename)
         {
             setupViewController(filename);
 
-            var gameView = window.UIWindow.RootViewController!.View!;
-            return viewController.PresentOptionsMenu(gameView.Bounds, gameView, true);
+            var gameView = window.ViewController.View!;
+            return documentInteraction.PresentOptionsMenu(gameView.Bounds, gameView, true);
         }
 
         private void setupViewController(string filename)
         {
             var url = NSUrl.FromFilename(filename);
 
-            viewController.Url = url;
-            viewController.Delegate = this;
+            documentInteraction.Url = url;
+            documentInteraction.Delegate = this;
 
             if (OperatingSystem.IsIOSVersionAtLeast(14))
-                viewController.Uti = UTType.CreateFromExtension(Path.GetExtension(filename))?.Identifier ?? UTTypes.Data.Identifier;
+                documentInteraction.Uti = UTType.CreateFromExtension(Path.GetExtension(filename))?.Identifier ?? UTTypes.Data.Identifier;
         }
 
-        public override UIViewController ViewControllerForPreview(UIDocumentInteractionController controller) => window.UIWindow.RootViewController!;
+        public override UIViewController ViewControllerForPreview(UIDocumentInteractionController controller) => window.ViewController;
 
         public override void WillBeginSendingToApplication(UIDocumentInteractionController controller, string? application)
         {
             // this path is triggered when a user opens the presented document in another application,
             // the menu does not dismiss afterward and locks the game indefinitely. dismiss it manually.
-            viewController.DismissMenu(true);
+            documentInteraction.DismissMenu(true);
         }
     }
 }
