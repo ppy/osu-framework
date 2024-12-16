@@ -16,11 +16,11 @@ namespace osu.Framework.iOS
     {
         public event Action<FileInfo>? Selected;
 
-        private readonly UIWindow window;
+        private readonly IIOSWindow window;
 
         private readonly UIDocumentPickerViewController viewController;
 
-        public IOSFileSelector(UIWindow window, string[] allowedExtensions)
+        public IOSFileSelector(IIOSWindow window, string[] allowedExtensions)
         {
             this.window = window;
 
@@ -55,7 +55,7 @@ namespace osu.Framework.iOS
         {
             UIApplication.SharedApplication.InvokeOnMainThread(() =>
             {
-                window.RootViewController!.PresentViewController(viewController, true, null);
+                window.ViewController.PresentViewController(viewController, true, null);
             });
         }
 

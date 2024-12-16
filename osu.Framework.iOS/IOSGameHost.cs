@@ -23,7 +23,8 @@ namespace osu.Framework.iOS
 {
     public class IOSGameHost : SDLGameHost
     {
-        private IOSWindow iosWindow => (IOSWindow)Window;
+        public new IIOSWindow Window => (IIOSWindow)base.Window;
+
         private IOSFilePresenter presenter = null!;
 
         public IOSGameHost()
@@ -95,7 +96,7 @@ namespace osu.Framework.iOS
                 if (!OperatingSystem.IsIOSVersionAtLeast(14))
                     return;
 
-                selector = new IOSFileSelector(iosWindow.UIWindow, allowedExtensions);
+                selector = new IOSFileSelector(Window, allowedExtensions);
             });
 
             return selector;

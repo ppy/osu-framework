@@ -9,12 +9,12 @@ using UniformTypeIdentifiers;
 
 namespace osu.Framework.iOS
 {
-    internal class IOSFilePresenter : UIDocumentInteractionControllerDelegate
+    public class IOSFilePresenter : UIDocumentInteractionControllerDelegate
     {
-        private readonly IOSWindow window;
+        private readonly IIOSWindow window;
         private readonly UIDocumentInteractionController viewController = new UIDocumentInteractionController();
 
-        internal IOSFilePresenter(IOSWindow window)
+        public IOSFilePresenter(IIOSWindow window)
         {
             this.window = window;
         }
