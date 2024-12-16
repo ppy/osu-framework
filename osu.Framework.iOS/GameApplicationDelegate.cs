@@ -35,6 +35,10 @@ namespace osu.Framework.iOS
             SDL_SetiOSEventPump(true);
 
             var audioSession = AVAudioSession.SharedInstance();
+
+            // Set the default audio session to one that obeys the mute switch and does not mix with other audio,
+            // and insert an observer to disregard the mute switch when the user presses volume up/down.
+            audioSession.SetCategory(AVAudioSessionCategory.SoloAmbient);
             audioSession.AddObserver(output_volume_observer, output_volume, NSKeyValueObservingOptions.New, 0);
 
             host = new IOSGameHost();
