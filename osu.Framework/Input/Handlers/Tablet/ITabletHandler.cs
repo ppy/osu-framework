@@ -23,9 +23,9 @@ namespace osu.Framework.Input.Handlers.Tablet
         Bindable<Vector2> AreaSize { get; }
 
         /// <summary>
-        /// Relative position of center of output area in game window, padded by half of <see cref="OutputAreaSize"/>.
-        /// Values between zero and one for each axe will always place the area inside window:
-        /// (0; 0) is most top-left position, (1;1) is most bottom-right position. Does nothing if <see cref="OutputAreaSize"/> equals to (1; 1).
+        /// The relative position of the output area in the game window.
+        /// Values range from (0,0) for top-left to (1,1) for bottom-right.
+        /// Has no effect when <see cref="OutputAreaSize"/> is (1,1).
         /// </summary>
         Bindable<Vector2> OutputAreaPosition { get; }
 
