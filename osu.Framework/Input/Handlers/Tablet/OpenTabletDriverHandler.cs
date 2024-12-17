@@ -137,7 +137,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                 {
                     Vector2 windowSize = new Vector2(window.ClientSize.Width, window.ClientSize.Height);
                     Vector2 scaledSize = windowSize * OutputAreaSize.Value;
-                    Vector2 position = (windowSize / 2) + windowSize * (OutputAreaPosition.Value - (Vector2.One / 2)) * (Vector2.One - OutputAreaSize.Value);
+                    Vector2 position = (windowSize / 2) + (windowSize * (OutputAreaPosition.Value - (Vector2.One / 2)) * (Vector2.One - OutputAreaSize.Value));
 
                     absoluteOutputMode.Output = new Area
                     {
