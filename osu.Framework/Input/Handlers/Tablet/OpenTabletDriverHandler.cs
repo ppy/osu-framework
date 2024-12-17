@@ -59,7 +59,7 @@ namespace osu.Framework.Input.Handlers.Tablet
             host.Window.Resized += () => updateOutputArea(host.Window);
 
             AreaOffset.BindValueChanged(_ => updateTabletAndInputArea(device));
-            AreaSize.BindValueChanged(_ => updateTabletAndInputArea(device), true);
+            AreaSize.BindValueChanged(_ => updateTabletAndInputArea(device));
             Rotation.BindValueChanged(_ => updateTabletAndInputArea(device), true);
 
             OutputAreaPosition.BindValueChanged(_ => updateOutputArea(host.Window));
