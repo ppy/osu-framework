@@ -135,13 +135,11 @@ namespace osu.Framework.Input.Handlers.Tablet
             {
                 case AbsoluteOutputMode absoluteOutputMode:
                 {
-                    // window size & pos
                     float outputWidth = window.ClientSize.Width;
                     float outputHeight = window.ClientSize.Height;
                     float posX = outputWidth / 2;
                     float posY = outputHeight / 2;
 
-                    // applying "output area"
                     float areaOffsX = (1f - OutputAreaSize.Value.X) * (OutputAreaPosition.Value.X - 0.5f) * outputWidth;
                     float areaOffsY = (1f - OutputAreaSize.Value.Y) * (OutputAreaPosition.Value.Y - 0.5f) * outputHeight;
                     outputWidth *= OutputAreaSize.Value.X;
@@ -149,7 +147,6 @@ namespace osu.Framework.Input.Handlers.Tablet
                     posX += areaOffsX;
                     posY += areaOffsY;
 
-                    // Set output area in pixels
                     absoluteOutputMode.Output = new Area
                     {
                         Width = outputWidth,
