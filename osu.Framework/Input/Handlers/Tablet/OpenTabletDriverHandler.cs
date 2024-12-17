@@ -135,23 +135,15 @@ namespace osu.Framework.Input.Handlers.Tablet
             {
                 case AbsoluteOutputMode absoluteOutputMode:
                 {
-                    float outputWidth = window.ClientSize.Width;
-                    float outputHeight = window.ClientSize.Height;
-                    float posX = outputWidth / 2;
-                    float posY = outputHeight / 2;
-
-                    float areaOffsX = (1f - OutputAreaSize.Value.X) * (OutputAreaPosition.Value.X - 0.5f) * outputWidth;
-                    float areaOffsY = (1f - OutputAreaSize.Value.Y) * (OutputAreaPosition.Value.Y - 0.5f) * outputHeight;
-                    outputWidth *= OutputAreaSize.Value.X;
-                    outputHeight *= OutputAreaSize.Value.Y;
-                    posX += areaOffsX;
-                    posY += areaOffsY;
+                    Vector2 windowSize = new Vector2(window.ClientSize.Width, window.ClientSize.Height);
+                    Vector2 scaledSize = windowSize * OutputAreaSize.Value;
+                    Vector2 position = windowSize / 2 + windowSize * (OutputAreaPosition.Value - Vector2.One / 2) * (Vector2.One - OutputAreaSize.Value);
 
                     absoluteOutputMode.Output = new Area
                     {
-                        Width = outputWidth,
-                        Height = outputHeight,
-                        Position = new System.Numerics.Vector2(posX, posY)
+                        Width = scaledSize.X,
+                        Height = scaledSize.Y,
+                        Position = position.ToSystemNumerics()
                     };
                     break;
                 }
