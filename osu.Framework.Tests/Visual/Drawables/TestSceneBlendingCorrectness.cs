@@ -294,69 +294,48 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             AddStep("setup", () =>
             {
-                Children = new Drawable[]
+                Child = new Container
                 {
-                    new Container
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(200, 200),
+                    Children = new Drawable[]
                     {
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        Size = new Vector2(200, 200),
-                        Children = new Drawable[]
+                        new Box
                         {
-                            new Box
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = Color4.Blue,
+                            Alpha = 0.5f,
+                        },
+                        new BufferedContainer
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Children = new Drawable[]
                             {
-                                RelativeSizeAxes = Axes.Both,
-                                Colour = Color4.Blue,
-                                Alpha = 0.5f,
-                            },
-                            new BufferedContainer
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Children = new Drawable[]
+                                new Box
                                 {
-                                    new Box
-                                    {
-                                        Anchor = Anchor.Centre,
-                                        Origin = Anchor.Centre,
-                                        RelativeSizeAxes = Axes.Both,
-                                        Size = new Vector2(0.5f, 1),
-                                        Blending = BlendingParameters.Additive,
-                                        Colour = Color4.White,
-                                        Alpha = 0.5f,
-                                    },
-                                    new Box
-                                    {
-                                        Anchor = Anchor.Centre,
-                                        Origin = Anchor.Centre,
-                                        RelativeSizeAxes = Axes.Both,
-                                        Size = new Vector2(0.25f, 1),
-                                        Blending = BlendingParameters.Additive,
-                                        Colour = Color4.White,
-                                        Alpha = 0.25f,
-                                    }
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(0.5f, 1),
+                                    Blending = BlendingParameters.Additive,
+                                    Colour = Color4.White,
+                                    Alpha = 0.5f,
+                                },
+                                new Box
+                                {
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(0.25f, 1),
+                                    Blending = BlendingParameters.Additive,
+                                    Colour = Color4.White,
+                                    Alpha = 0.25f,
                                 }
                             }
                         }
                     }
                 };
-
-                AddRange(new[]
-                {
-                    new SpriteText
-                    {
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        Text = "Container",
-                        X = -150
-                    },
-                    new SpriteText
-                    {
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        Text = "Buffered",
-                        X = 150
-                    },
-                });
             });
         }
     }
