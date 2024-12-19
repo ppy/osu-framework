@@ -3,8 +3,8 @@
 
 using System;
 using System.Runtime.InteropServices;
+using osu.Framework.Graphics.Colour;
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Rendering.Vertices
@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Rendering.Vertices
         public Vector2 Position;
 
         [VertexMember(4, VertexAttribPointerType.Float)]
-        public Color4 Colour;
+        public PremultipliedColour Colour;
 
         public readonly bool Equals(Vertex2D other) => Position.Equals(other.Position) && Colour.Equals(other.Colour);
     }

@@ -38,16 +38,19 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public RectangleI Bounds { get; set; }
 
+        /// <summary>
+        /// Overview of the texture upload's pixels content. The pixel colours are alpha-premultiplied.
+        /// </summary>
         public ReadOnlySpan<Rgba32> Data => pixelMemory.Span;
 
-        public int Width => image?.Width ?? 0;
+        public int Width => image?.Premultiplied.Width ?? 0;
 
-        public int Height => image?.Height ?? 0;
+        public int Height => image?.Premultiplied.Height ?? 0;
 
         /// <summary>
         /// The backing texture. A handle is kept to avoid early GC.
         /// </summary>
-        private readonly Image<Rgba32> image;
+        private readonly PremultipliedImage image;
 
         private ReadOnlyPixelMemory<Rgba32> pixelMemory;
 
@@ -55,10 +58,10 @@ namespace osu.Framework.Graphics.Textures
         /// Create an upload from a <see cref="TextureUpload"/>. This is the preferred method.
         /// </summary>
         /// <param name="image">The texture to upload.</param>
-        public TextureUpload(Image<Rgba32> image)
+        public TextureUpload(PremultipliedImage image)
         {
             this.image = image;
-            pixelMemory = image.CreateReadOnlyPixelMemory();
+            pixelMemory = image.Premultiplied.CreateReadOnlyPixelMemory();
         }
 
         /// <summary>
@@ -68,16 +71,16 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         /// <param name="stream">The image content.</param>
         public TextureUpload(Stream stream)
-            : this(LoadFromStream<Rgba32>(stream))
+            : this(LoadFromStream(stream))
         {
         }
 
         private static bool stbiNotFound;
 
-        internal static Image<TPixel> LoadFromStream<TPixel>(Stream stream) where TPixel : unmanaged, IPixel<TPixel>
+        internal static PremultipliedImage LoadFromStream(Stream stream)
         {
             if (stbiNotFound)
-                return Image.Load<TPixel>(stream);
+                return PremultipliedImage.FromStraight(Image.Load<Rgba32>(stream));
 
             long initialPos = stream.Position;
 
@@ -88,7 +91,7 @@ namespace osu.Framework.Graphics.Textures
                     stream.ReadExactly(buffer.Memory.Span);
 
                     using (var stbiImage = Stbi.LoadFromMemory(buffer.Memory.Span, 4))
-                        return Image.LoadPixelData(MemoryMarshal.Cast<byte, TPixel>(stbiImage.Data), stbiImage.Width, stbiImage.Height);
+                        return PremultipliedImage.FromStraight(Image.LoadPixelData(MemoryMarshal.Cast<byte, Rgba32>(stbiImage.Data), stbiImage.Width, stbiImage.Height));
                 }
             }
             catch (Exception e)
@@ -98,7 +101,7 @@ namespace osu.Framework.Graphics.Textures
 
                 Logger.Log($"Texture could not be loaded via STB; falling back to ImageSharp: {e.Message}");
                 stream.Position = initialPos;
-                return Image.Load<TPixel>(stream);
+                return PremultipliedImage.FromStraight(Image.Load<Rgba32>(stream));
             }
         }
 

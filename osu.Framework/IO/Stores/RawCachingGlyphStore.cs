@@ -141,7 +141,7 @@ namespace osu.Framework.IO.Stores
 
             try
             {
-                var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height);
+                var image = new PremultipliedImage(character.Width, character.Height);
 
                 if (!pageStreamHandles.TryGetValue(page.Filename, out var source))
                     source = pageStreamHandles[page.Filename] = CacheStorage.GetStream(page.Filename);
@@ -156,13 +156,14 @@ namespace osu.Framework.IO.Stores
 
                 for (int y = 0; y < character.Height; y++)
                 {
-                    var pixelRowMemory = image.DangerousGetPixelRowMemory(y);
+                    var pixelRowMemory = image.Premultiplied.DangerousGetPixelRowMemory(y);
                     var span = pixelRowMemory.Span;
                     int readOffset = y * pageWidth + character.X;
 
                     for (int x = 0; x < character.Width; x++)
                     {
-                        span[x] = new Rgba32(255, 255, 255, x < readableWidth && y < readableHeight ? readBuffer[readOffset + x] : (byte)0);
+                        byte val = x < readableWidth && y < readableHeight ? readBuffer[readOffset + x] : (byte)0;
+                        span[x] = new Rgba32(val, val, val, val);
                     }
                 }
 

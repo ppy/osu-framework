@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using System.Diagnostics;
+using osu.Framework.Extensions.Color4Extensions;
 
 namespace osu.Framework.Graphics.Lines
 {
@@ -105,19 +106,19 @@ namespace osu.Framework.Graphics.Lines
                 {
                     Position = new Vector3(segmentRight.EndPoint.X, segmentRight.EndPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segmentRight.EndPoint)
+                    Colour = colourAt(segmentRight.EndPoint).ToPremultiplied()
                 });
                 triangleBatch.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(segmentRight.StartPoint.X, segmentRight.StartPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segmentRight.StartPoint)
+                    Colour = colourAt(segmentRight.StartPoint).ToPremultiplied()
                 });
                 triangleBatch.Add(new TexturedVertex3D
                 {
                     Position = firstMiddlePoint,
                     TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                    Colour = firstMiddleColour
+                    Colour = firstMiddleColour.ToPremultiplied()
                 });
 
                 // Outer quad, triangle 2
@@ -125,19 +126,19 @@ namespace osu.Framework.Graphics.Lines
                 {
                     Position = firstMiddlePoint,
                     TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                    Colour = firstMiddleColour
+                    Colour = firstMiddleColour.ToPremultiplied()
                 });
                 triangleBatch.Add(new TexturedVertex3D
                 {
                     Position = secondMiddlePoint,
                     TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                    Colour = secondMiddleColour
+                    Colour = secondMiddleColour.ToPremultiplied()
                 });
                 triangleBatch.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(segmentRight.EndPoint.X, segmentRight.EndPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segmentRight.EndPoint)
+                    Colour = colourAt(segmentRight.EndPoint).ToPremultiplied()
                 });
 
                 // Inner quad, triangle 1
@@ -145,19 +146,19 @@ namespace osu.Framework.Graphics.Lines
                 {
                     Position = firstMiddlePoint,
                     TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                    Colour = firstMiddleColour
+                    Colour = firstMiddleColour.ToPremultiplied()
                 });
                 triangleBatch.Add(new TexturedVertex3D
                 {
                     Position = secondMiddlePoint,
                     TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                    Colour = secondMiddleColour
+                    Colour = secondMiddleColour.ToPremultiplied()
                 });
                 triangleBatch.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(segmentLeft.EndPoint.X, segmentLeft.EndPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segmentLeft.EndPoint)
+                    Colour = colourAt(segmentLeft.EndPoint).ToPremultiplied()
                 });
 
                 // Inner quad, triangle 2
@@ -165,19 +166,19 @@ namespace osu.Framework.Graphics.Lines
                 {
                     Position = new Vector3(segmentLeft.EndPoint.X, segmentLeft.EndPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segmentLeft.EndPoint)
+                    Colour = colourAt(segmentLeft.EndPoint).ToPremultiplied()
                 });
                 triangleBatch.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(segmentLeft.StartPoint.X, segmentLeft.StartPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segmentLeft.StartPoint)
+                    Colour = colourAt(segmentLeft.StartPoint).ToPremultiplied()
                 });
                 triangleBatch.Add(new TexturedVertex3D
                 {
                     Position = firstMiddlePoint,
                     TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                    Colour = firstMiddleColour
+                    Colour = firstMiddleColour.ToPremultiplied()
                 });
             }
 
@@ -214,7 +215,7 @@ namespace osu.Framework.Graphics.Lines
                     {
                         Position = new Vector3(origin.X, origin.Y, 1),
                         TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                        Colour = originColour
+                        Colour = originColour.ToPremultiplied()
                     });
 
                     // First outer point
@@ -222,7 +223,7 @@ namespace osu.Framework.Graphics.Lines
                     {
                         Position = new Vector3(current.X, current.Y, 0),
                         TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                        Colour = currentColour
+                        Colour = currentColour.ToPremultiplied()
                     });
 
                     current = i < stepCount ? origin + pointOnCircle(theta0 + i * thetaStep) * radius : end;
@@ -233,7 +234,7 @@ namespace osu.Framework.Graphics.Lines
                     {
                         Position = new Vector3(current.X, current.Y, 0),
                         TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                        Colour = currentColour
+                        Colour = currentColour.ToPremultiplied()
                     });
                 }
             }

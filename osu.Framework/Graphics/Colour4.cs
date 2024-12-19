@@ -6,6 +6,7 @@
 using System;
 using System.Globalization;
 using System.Numerics;
+using osu.Framework.Graphics.Colour;
 using osuTK.Graphics;
 
 namespace osu.Framework.Graphics
@@ -546,6 +547,12 @@ namespace osu.Framework.Graphics
 
             return new Vector4(hue, saturation, lightness, A);
         }
+
+        /// <summary>
+        /// Converts this <see cref="Colour4"/> to premultiplied alpha and returns a resultant <see cref="PremultipliedColour"/>.
+        /// This colour is assumed to be in straight-alpha form.
+        /// </summary>
+        public PremultipliedColour ToPremultiplied() => PremultipliedColour.FromStraight(this);
 
         private const double gamma = 2.4;
 

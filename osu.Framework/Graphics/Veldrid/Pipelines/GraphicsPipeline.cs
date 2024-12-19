@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
         /// <param name="clearInfo">The clearing parameters.</param>
         public void Clear(ClearInfo clearInfo)
         {
-            Commands.ClearColorTarget(0, clearInfo.Colour.ToRgbaFloat());
+            Commands.ClearColorTarget(0, clearInfo.Colour.Premultiplied.ToRgbaFloat());
 
             var framebuffer = currentFrameBuffer?.Framebuffer ?? Device.SwapchainFramebuffer;
             if (framebuffer.DepthTarget != null)

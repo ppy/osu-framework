@@ -17,7 +17,6 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
 using osu.Framework.Text;
 using SharpFNT;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -166,7 +165,7 @@ namespace osu.Framework.IO.Stores
             var page = GetPageImage(character.Page);
             LoadedGlyphCount++;
 
-            var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height);
+            var image = new PremultipliedImage(character.Width, character.Height);
             var source = page.Data;
 
             // the spritesheet may have unused pixels trimmed
@@ -175,11 +174,11 @@ namespace osu.Framework.IO.Stores
 
             for (int y = 0; y < character.Height; y++)
             {
-                var pixelRowMemory = image.DangerousGetPixelRowMemory(y);
+                var pixelRowMemory = image.Premultiplied.DangerousGetPixelRowMemory(y);
                 int readOffset = (character.Y + y) * page.Width + character.X;
 
                 for (int x = 0; x < character.Width; x++)
-                    pixelRowMemory.Span[x] = x < readableWidth && y < readableHeight ? source[readOffset + x] : new Rgba32(255, 255, 255, 0);
+                    pixelRowMemory.Span[x] = x < readableWidth && y < readableHeight ? source[readOffset + x] : new Rgba32(0, 0, 0, 0);
             }
 
             return new TextureUpload(image);
