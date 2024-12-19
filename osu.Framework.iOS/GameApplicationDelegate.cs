@@ -27,6 +27,31 @@ namespace osu.Framework.iOS
 
         private IOSGameHost host = null!;
 
+        private bool lockScreenOrientation { get; set; }
+
+        /// <summary>
+        /// Whether the screen orientation should be locked from rotation.
+        /// </summary>
+        public bool LockScreenOrientation
+        {
+            get => lockScreenOrientation;
+            set
+            {
+                if (lockScreenOrientation == value)
+                    return;
+
+                lockScreenOrientation = value;
+
+                InvokeOnMainThread(() =>
+                {
+                    if (OperatingSystem.IsIOSVersionAtLeast(16))
+                        ((IOSWindow)host.Window).UIWindow.RootViewController!.SetNeedsUpdateOfSupportedInterfaceOrientations();
+                    else
+                        UIViewController.AttemptRotationToDeviceOrientation();
+                });
+            }
+        }
+
         public override bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
         {
             mapLibraryNames();
@@ -55,6 +80,19 @@ namespace osu.Framework.iOS
             return true;
         }
 
+        public override UIInterfaceOrientationMask GetSupportedInterfaceOrientations(UIApplication application, UIWindow? forWindow)
+        {
+            if (forWindow == null)
+                // although not documented anywhere for some reason, this may be called with forWindow = null during initialisation.
+                // return this random mask just to continue execution without nullrefs anywhere.
+                // this will be called again with a valid forWindow when it's available anyway.
+                return UIInterfaceOrientationMask.All;
+
+            var allOrientations = application.SupportedInterfaceOrientationsForWindow(forWindow);
+            var currentOrientation = getOrientationMask(forWindow.WindowScene!.InterfaceOrientation);
+            return LockScreenOrientation ? currentOrientation : allOrientations;
+        }
+
         /// <summary>
         /// Creates the <see cref="Game"/> class to launch.
         /// </summary>
@@ -66,6 +104,25 @@ namespace osu.Framework.iOS
             NativeLibrary.SetDllImportResolver(typeof(BassFx).Assembly, (_, assembly, path) => NativeLibrary.Load("@rpath/bass_fx.framework/bass_fx", assembly, path));
             NativeLibrary.SetDllImportResolver(typeof(BassMix).Assembly, (_, assembly, path) => NativeLibrary.Load("@rpath/bassmix.framework/bassmix", assembly, path));
             NativeLibrary.SetDllImportResolver(typeof(SDL3).Assembly, (_, assembly, path) => NativeLibrary.Load("@rpath/SDL3.framework/SDL3", assembly, path));
+        }
+
+        private static UIInterfaceOrientationMask getOrientationMask(UIInterfaceOrientation orientation)
+        {
+            switch (orientation)
+            {
+                case UIInterfaceOrientation.Portrait:
+                    return UIInterfaceOrientationMask.Portrait;
+
+                case UIInterfaceOrientation.PortraitUpsideDown:
+                    return UIInterfaceOrientationMask.PortraitUpsideDown;
+
+                default:
+                case UIInterfaceOrientation.LandscapeRight:
+                    return UIInterfaceOrientationMask.LandscapeRight;
+
+                case UIInterfaceOrientation.LandscapeLeft:
+                    return UIInterfaceOrientationMask.LandscapeLeft;
+            }
         }
 
         private class OutputVolumeObserver : NSObject
