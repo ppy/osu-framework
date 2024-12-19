@@ -320,9 +320,9 @@ namespace osu.Framework.Bindables
         /// <param name="count">The count of items to be removed.</param>
         /// <param name="newItems">The items to replace the removed items with.</param>
         public void ReplaceRange(int index, int count, IEnumerable<T> newItems)
-            => replaceRange(index, count, newItems as ICollection<T> ?? newItems.ToArray(), new HashSet<BindableList<T>>());
+            => replaceRange(index, count, newItems as IList ?? newItems.ToArray(), new HashSet<BindableList<T>>());
 
-        private void replaceRange(int index, int count, ICollection<T> newItems, HashSet<BindableList<T>> appliedInstances)
+        private void replaceRange(int index, int count, IList newItems, HashSet<BindableList<T>> appliedInstances)
         {
             if (checkAlreadyApplied(appliedInstances)) return;
 
@@ -335,7 +335,7 @@ namespace osu.Framework.Bindables
             List<T> removedItems = CollectionChanged == null ? null : collection.GetRange(index, count);
 
             collection.RemoveRange(index, count);
-            collection.InsertRange(index, newItems);
+            collection.InsertRange(index, (IEnumerable<T>)newItems);
 
             if (bindings != null)
             {
@@ -347,7 +347,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, (IList)newItems, removedItems!, index));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, newItems, removedItems!, index));
         }
 
         /// <summary>
@@ -544,15 +544,15 @@ namespace osu.Framework.Bindables
         /// <param name="items">The collection whose items should be added to this collection.</param>
         /// <exception cref="InvalidOperationException">Thrown if this collection is <see cref="Disabled"/></exception>
         public void AddRange(IEnumerable<T> items)
-            => addRange(items as ICollection<T> ?? items.ToArray(), new HashSet<BindableList<T>>());
+            => addRange(items as IList ?? items.ToArray(), new HashSet<BindableList<T>>());
 
-        private void addRange(ICollection<T> items, HashSet<BindableList<T>> appliedInstances)
+        private void addRange(IList items, HashSet<BindableList<T>> appliedInstances)
         {
             if (checkAlreadyApplied(appliedInstances)) return;
 
             ensureMutationAllowed();
 
-            collection.AddRange(items);
+            collection.AddRange((IEnumerable<T>)items);
 
             if (bindings != null)
             {
@@ -560,7 +560,7 @@ namespace osu.Framework.Bindables
                     b.addRange(items, appliedInstances);
             }
 
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, (IList)items, collection.Count - items.Count));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items, collection.Count - items.Count));
         }
 
         /// <summary>
