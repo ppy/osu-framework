@@ -578,15 +578,19 @@ namespace osu.Framework.Graphics.Containers
             }
 
             if (ScrollDirection == Direction.Horizontal)
-            {
                 Scrollbar.X = ToScrollbarPosition(Current);
-                ScrollContent.X = (float)(-Current + ScrollableExtent * ScrollContent.RelativeAnchorPosition.X);
-            }
             else
-            {
                 Scrollbar.Y = ToScrollbarPosition(Current);
+
+            ApplyCurrentToContent();
+        }
+
+        protected virtual void ApplyCurrentToContent()
+        {
+            if (ScrollDirection == Direction.Horizontal)
+                ScrollContent.X = (float)(-Current + ScrollableExtent * ScrollContent.RelativeAnchorPosition.X);
+            else
                 ScrollContent.Y = (float)(-Current + ScrollableExtent * ScrollContent.RelativeAnchorPosition.Y);
-            }
         }
 
         /// <summary>
