@@ -22,10 +22,15 @@ namespace osu.Framework.Input.Handlers.Mouse
     {
         private static readonly GlobalStatistic<ulong> statistic_total_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<MouseHandler>(), "Total events");
 
+        private static bool relativeModeDefaultState
+            => RuntimeInfo.OS != RuntimeInfo.Platform.Linux &&
+               RuntimeInfo.OS != RuntimeInfo.Platform.macOS &&
+               RuntimeInfo.OS != RuntimeInfo.Platform.iOS;
+
         /// <summary>
         /// Whether relative mode should be preferred when the window has focus, the cursor is contained and the OS cursor is not visible.
         /// </summary>
-        public BindableBool UseRelativeMode { get; } = new BindableBool(true)
+        public BindableBool UseRelativeMode { get; } = new BindableBool(relativeModeDefaultState)
         {
             Description = "Allows for sensitivity adjustment and tighter control of input",
         };
