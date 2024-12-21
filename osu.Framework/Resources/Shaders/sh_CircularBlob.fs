@@ -33,7 +33,7 @@ void main(void)
     highp vec2 wrappedCoord = wrap(v_TexCoord, v_TexRect);
     lowp vec4 textureColour = getRoundedColor(wrappedSampler(wrappedCoord, v_TexRect, m_Texture, m_Sampler, -0.9), wrappedCoord);
 
-    o_Colour = vec4(textureColour.rgb, textureColour.a * blobAlphaAt(pixelPos, innerRadius, texelSize, frequency, amplitude, noisePosition));
+    o_Colour = textureColour.rgba * blobAlphaAt(pixelPos, innerRadius, texelSize, frequency, amplitude, noisePosition);
 }
 
 #endif

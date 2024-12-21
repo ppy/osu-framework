@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
@@ -97,7 +98,7 @@ namespace osu.Framework.Graphics.Shapes
                     TexturePosition = new Vector2(0, drawRectangle.W),
                     TextureRect = drawRectangle,
                     BlendRange = blend,
-                    Colour = DrawColourInfo.Colour.BottomLeft.SRGB,
+                    Colour = DrawColourInfo.Colour.BottomLeft.SRGB.ToPremultiplied(),
                 });
                 vertexAction(new TexturedVertex2D(renderer)
                 {
@@ -105,7 +106,7 @@ namespace osu.Framework.Graphics.Shapes
                     TexturePosition = new Vector2(drawRectangle.Z, drawRectangle.W),
                     TextureRect = drawRectangle,
                     BlendRange = blend,
-                    Colour = DrawColourInfo.Colour.BottomRight.SRGB,
+                    Colour = DrawColourInfo.Colour.BottomRight.SRGB.ToPremultiplied(),
                 });
                 vertexAction(new TexturedVertex2D(renderer)
                 {
@@ -113,7 +114,7 @@ namespace osu.Framework.Graphics.Shapes
                     TexturePosition = new Vector2(drawRectangle.Z, 0),
                     TextureRect = drawRectangle,
                     BlendRange = blend,
-                    Colour = DrawColourInfo.Colour.TopRight.SRGB,
+                    Colour = DrawColourInfo.Colour.TopRight.SRGB.ToPremultiplied(),
                 });
                 vertexAction(new TexturedVertex2D(renderer)
                 {
@@ -121,7 +122,7 @@ namespace osu.Framework.Graphics.Shapes
                     TexturePosition = Vector2.Zero,
                     TextureRect = drawRectangle,
                     BlendRange = blend,
-                    Colour = DrawColourInfo.Colour.TopLeft.SRGB,
+                    Colour = DrawColourInfo.Colour.TopLeft.SRGB.ToPremultiplied(),
                 });
 
                 shader.Unbind();

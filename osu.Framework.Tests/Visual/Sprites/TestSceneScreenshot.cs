@@ -78,7 +78,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 var image = t.GetResultSafely();
 
                 var tex = renderer.CreateTexture(image.Width, image.Height);
-                tex.SetData(new TextureUpload(image));
+                tex.SetData(new TextureUpload(PremultipliedImage.FromStraight(image)));
 
                 display.Texture = tex;
                 background.Show();

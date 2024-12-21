@@ -15,7 +15,6 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.UserInterface
@@ -29,12 +28,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [BackgroundDependencyLoader]
         private void load(IRenderer renderer)
         {
-            var image = new Image<Rgba32>(texture_width, 1);
+            var image = new PremultipliedImage(texture_width, 1);
 
             for (int i = 0; i < texture_width; ++i)
             {
                 byte brightnessByte = (byte)((float)i / (texture_width - 1) * 255);
-                image[i, 0] = new Rgba32(255, 255, 255, brightnessByte);
+                image.Premultiplied[i, 0] = new Rgba32(brightnessByte, brightnessByte, brightnessByte, brightnessByte);
             }
 
             gradientTexture = renderer.CreateTexture(texture_width, 1, true);

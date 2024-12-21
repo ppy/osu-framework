@@ -7,6 +7,7 @@ using Android.Graphics;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Android.Graphics.Textures
 {
@@ -17,7 +18,7 @@ namespace osu.Framework.Android.Graphics.Textures
         {
         }
 
-        protected override Image<TPixel> ImageFromStream<TPixel>(Stream stream)
+        protected override PremultipliedImage ImageFromStream(Stream stream)
         {
             using (var bitmap = BitmapFactory.DecodeStream(stream))
             {
@@ -34,7 +35,7 @@ namespace osu.Framework.Android.Graphics.Textures
                 }
 
                 bitmap.Recycle();
-                return Image.LoadPixelData<TPixel>(result, bitmap.Width, bitmap.Height);
+                return PremultipliedImage.FromPremultiplied(Image.LoadPixelData<Rgba32>(result, bitmap.Width, bitmap.Height));
             }
         }
     }

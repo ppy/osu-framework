@@ -8,6 +8,7 @@ using Foundation;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using UIKit;
 
 namespace osu.Framework.iOS.Graphics.Textures
@@ -19,7 +20,7 @@ namespace osu.Framework.iOS.Graphics.Textures
         {
         }
 
-        protected override Image<TPixel> ImageFromStream<TPixel>(Stream stream)
+        protected override PremultipliedImage ImageFromStream(Stream stream)
         {
             using (var nativeData = NSData.FromStream(stream))
             {
@@ -39,9 +40,11 @@ namespace osu.Framework.iOS.Graphics.Textures
                     using (CGBitmapContext textureContext = new CGBitmapContext(data, width, height, 8, width * 4, CGColorSpace.CreateDeviceRGB(), CGImageAlphaInfo.PremultipliedLast))
                         textureContext.DrawImage(new CGRect(0, 0, width, height), uiImage.CGImage);
 
-                    var image = Image.LoadPixelData<TPixel>(data, width, height);
+                    var image = Image.LoadPixelData<Rgba32>(data, width, height);
 
-                    return image;
+                    // UIImage/CGBitmapContext already produce images in premultiplied form,
+                    // so we can directly wrap the image without performing any conversion.
+                    return PremultipliedImage.FromPremultiplied(image);
                 }
             }
         }
