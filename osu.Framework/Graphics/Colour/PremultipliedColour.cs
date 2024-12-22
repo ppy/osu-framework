@@ -3,42 +3,62 @@
 
 using System;
 using osuTK.Graphics;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Colour
 {
     /// <summary>
-    /// Represents a <see cref="Color4"/> provided in premultiplied-alpha form.
+    /// Represents a structure for containing a "premultiplied colour".
     /// </summary>
     public readonly struct PremultipliedColour : IEquatable<PremultipliedColour>
     {
         /// <summary>
-        /// The <see cref="Color4"/> after alpha multiplication.
+        /// The red component of this colour multiplied by the value of <see cref="Occlusion"/>.
         /// </summary>
-        public readonly Color4 Premultiplied;
+        public readonly float PremultipliedR;
 
-        private PremultipliedColour(Color4 premultiplied)
+        /// <summary>
+        /// The green component of this colour multiplied by the value of <see cref="Occlusion"/>.
+        /// </summary>
+        public readonly float PremultipliedG;
+
+        /// <summary>
+        /// The blue component of this colour multiplied by the value of <see cref="Occlusion"/>.
+        /// </summary>
+        public readonly float PremultipliedB;
+
+        /// <summary>
+        /// The alpha component of this colour, often referred to as "occlusion" instead of "opacity" in the context of premultiplied colours.
+        /// </summary>
+        public readonly float Occlusion;
+
+        public PremultipliedColour(float premultipliedR, float premultipliedG, float premultipliedB, float occlusion)
         {
-            Premultiplied = premultiplied;
+            PremultipliedR = premultipliedR;
+            PremultipliedG = premultipliedG;
+            PremultipliedB = premultipliedB;
+            Occlusion = occlusion;
         }
+
+        /// <summary>
+        /// Creates a <see cref="Rgba32"/> containing the premultiplied components of this colour.
+        /// </summary>
+        public Rgba32 ToPremultipliedRgba32() => new Rgba32(PremultipliedR, PremultipliedG, PremultipliedB, Occlusion);
 
         /// <summary>
         /// Creates a <see cref="PremultipliedColour"/> from a straight-alpha colour.
         /// </summary>
         /// <param name="colour">The straight-alpha colour.</param>
-        public static PremultipliedColour FromStraight(Color4 colour)
-        {
-            colour.R *= colour.A;
-            colour.G *= colour.A;
-            colour.B *= colour.A;
-            return new PremultipliedColour(colour);
-        }
+        public static PremultipliedColour FromStraight(Color4 colour) => new PremultipliedColour(
+            colour.R * colour.A,
+            colour.G * colour.A,
+            colour.B * colour.A,
+            colour.A);
 
-        /// <summary>
-        /// Creates a <see cref="PremultipliedColour"/> from a premultiplied-alpha colour.
-        /// </summary>
-        /// <param name="colour">The premultiplied-alpha colour.</param>
-        public static PremultipliedColour FromPremultiplied(Color4 colour) => new PremultipliedColour(colour);
-
-        public bool Equals(PremultipliedColour other) => Premultiplied.Equals(other.Premultiplied);
+        public bool Equals(PremultipliedColour other)
+            => PremultipliedR == other.PremultipliedR &&
+               PremultipliedG == other.PremultipliedG &&
+               PremultipliedB == other.PremultipliedB &&
+               Occlusion == other.Occlusion;
     }
 }

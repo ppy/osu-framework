@@ -3,7 +3,6 @@
 
 using System.Runtime.InteropServices;
 using osu.Framework.Graphics.Colour;
-using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Shaders.Types
 {
@@ -16,16 +15,16 @@ namespace osu.Framework.Graphics.Shaders.Types
         public UniformVector4 Value;
 
         public static implicit operator PremultipliedColour(UniformColour value)
-            => PremultipliedColour.FromPremultiplied(new Color4(value.Value.X, value.Value.Y, value.Value.Z, value.Value.W));
+            => new PremultipliedColour(value.Value.X, value.Value.Y, value.Value.Z, value.Value.W);
 
         public static implicit operator UniformColour(PremultipliedColour value) => new UniformColour
         {
             Value =
             {
-                X = value.Premultiplied.R,
-                Y = value.Premultiplied.G,
-                Z = value.Premultiplied.B,
-                W = value.Premultiplied.A,
+                X = value.PremultipliedR,
+                Y = value.PremultipliedG,
+                Z = value.PremultipliedB,
+                W = value.Occlusion,
             }
         };
     }

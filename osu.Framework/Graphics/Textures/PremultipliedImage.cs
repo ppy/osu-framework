@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Textures
         }
 
         public PremultipliedImage(int width, int height, PremultipliedColour colour)
-            : this(new Image<Rgba32>(width, height, new Rgba32(colour.Premultiplied.R, colour.Premultiplied.G, colour.Premultiplied.B, colour.Premultiplied.A)))
+            : this(new Image<Rgba32>(width, height, colour.ToPremultipliedRgba32()))
         {
         }
 
