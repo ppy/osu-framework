@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Textures
     {
         public Span<Rgba32> RawData => memoryOwner.Memory.Span;
 
-        public ReadOnlySpan<Rgba32> Data => RawData;
+        public ReadOnlySpan<Rgba32> PremultipliedData => RawData;
 
         private readonly IMemoryOwner<Rgba32> memoryOwner;
 

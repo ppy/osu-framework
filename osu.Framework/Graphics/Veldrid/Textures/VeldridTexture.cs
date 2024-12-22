@@ -470,7 +470,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
             int lastMaximumUploadedLod = maximumUploadedLod;
 
-            if (!upload.Data.IsEmpty)
+            if (!upload.PremultipliedData.IsEmpty)
             {
                 // ensure all mip levels up to the target level are initialised.
                 // generally we always upload at level 0, so this won't run.
@@ -483,7 +483,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 }
 
                 Renderer.UpdateTexture(texture, upload.Bounds.X >> upload.Level, upload.Bounds.Y >> upload.Level, upload.Bounds.Width >> upload.Level, upload.Bounds.Height >> upload.Level,
-                    upload.Level, upload.Data);
+                    upload.Level, upload.PremultipliedData);
             }
 
             if (sampler == null || maximumUploadedLod > lastMaximumUploadedLod)

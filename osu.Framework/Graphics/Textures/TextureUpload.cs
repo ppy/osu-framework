@@ -39,20 +39,20 @@ namespace osu.Framework.Graphics.Textures
         public RectangleI Bounds { get; set; }
 
         /// <summary>
-        /// Overview of the texture upload's pixels content. The pixel colours are alpha-premultiplied.
+        /// Overview of the texture upload's pixels content. The pixel colours are premultiplied.
         /// </summary>
-        public ReadOnlySpan<Rgba32> Data => pixelMemory.Span;
+        public ReadOnlySpan<Rgba32> PremultipliedData => premultipliedPixelMemory.Span;
 
-        public int Width => image?.Premultiplied.Width ?? 0;
+        public int Width => image?.Width ?? 0;
 
-        public int Height => image?.Premultiplied.Height ?? 0;
+        public int Height => image?.Height ?? 0;
 
         /// <summary>
         /// The backing texture. A handle is kept to avoid early GC.
         /// </summary>
         private readonly PremultipliedImage image;
 
-        private ReadOnlyPixelMemory<Rgba32> pixelMemory;
+        private ReadOnlyPixelMemory<Rgba32> premultipliedPixelMemory;
 
         /// <summary>
         /// Create an upload from a <see cref="TextureUpload"/>. This is the preferred method.
@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.Textures
         public TextureUpload(PremultipliedImage image)
         {
             this.image = image;
-            pixelMemory = image.Premultiplied.CreateReadOnlyPixelMemory();
+            premultipliedPixelMemory = image.CreateReadOnlyPremultipliedPixelMemory();
         }
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace osu.Framework.Graphics.Textures
                 return;
 
             image?.Dispose();
-            pixelMemory.Dispose();
+            premultipliedPixelMemory.Dispose();
 
             disposed = true;
         }

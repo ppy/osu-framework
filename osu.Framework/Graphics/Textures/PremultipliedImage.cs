@@ -2,8 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Colour;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
@@ -12,13 +14,20 @@ namespace osu.Framework.Graphics.Textures
     public class PremultipliedImage : IDisposable
     {
         /// <summary>
-        /// The underlying image in <see cref="Image{Rgba32}"/> form.
+        /// Gets the image width in px units.
         /// </summary>
-        public readonly Image<Rgba32> Premultiplied;
+        public int Width => premultipliedImage.Width;
 
-        private PremultipliedImage(Image<Rgba32> premultiplied)
+        /// <summary>
+        /// Gets the image height in px units.
+        /// </summary>
+        public int Height => premultipliedImage.Height;
+
+        private readonly Image<Rgba32> premultipliedImage;
+
+        private PremultipliedImage(Image<Rgba32> premultipliedImage)
         {
-            Premultiplied = premultiplied;
+            this.premultipliedImage = premultipliedImage;
         }
 
         public PremultipliedImage(int width, int height)
@@ -31,8 +40,6 @@ namespace osu.Framework.Graphics.Textures
         {
         }
 
-        public PremultipliedImage Clone() => FromPremultiplied(Premultiplied.Clone());
-
         /// <summary>
         /// Gets or sets the pixel at the specified position.
         /// </summary>
@@ -40,13 +47,47 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="y">The y-coordinate of the pixel.</param>
         public PremultipliedColour this[int x, int y]
         {
-            get => PremultipliedColour.FromPremultiplied(Premultiplied[x, y]);
-            set => Premultiplied[x, y] = value.ToPremultipliedRgba32();
+            get => PremultipliedColour.FromPremultiplied(premultipliedImage[x, y]);
+            set => premultipliedImage[x, y] = value.ToPremultipliedRgba32();
         }
+
+        /// <summary>
+        /// Creates a contiguous and read-only memory from the pixels of a <see cref="PremultipliedImage"/>.
+        /// Useful for retrieving unmanaged pointers to the entire pixel data of the <see cref="PremultipliedImage"/> for marshalling.
+        /// </summary>
+        /// <remarks>
+        /// The returned <see cref="ReadOnlyPixelMemory{Rgba32}"/> must be disposed when usage is finished.
+        /// </remarks>
+        /// <returns>The <see cref="ReadOnlyPixelMemory{Rgba32}"/>.</returns>
+        public ReadOnlyPixelMemory<Rgba32> CreateReadOnlyPremultipliedPixelMemory()
+            => premultipliedImage.CreateReadOnlyPixelMemory();
+
+        /// <summary>
+        /// Gets the representation of the premultiplied pixels as <see cref="Span{Rgba32}"/> of contiguous memory
+        /// at row <paramref name="rowIndex"/> beginning from the first pixel on that row.
+        /// </summary>
+        /// <param name="rowIndex">The row.</param>
+        /// <returns>The <see cref="Span{Rgba32}"/></returns>
+        public Memory<Rgba32> DangerousGetPremultipliedPixelRowMemory(int rowIndex)
+            => premultipliedImage.DangerousGetPixelRowMemory(rowIndex);
+
+        /// <summary>
+        /// Sets a pixel at the specified position with a premultiplied <see cref="Rgba32"/> colour.
+        /// </summary>
+        /// <param name="x">The x-coordinate of the pixel.</param>
+        /// <param name="y">The y-coordinate of the pixel.</param>
+        /// <param name="rgba32">The premultiplied <see cref="Rgba32"/> colour.</param>
+        public void SetPremultipliedRgba32(int x, int y, Rgba32 rgba32) => premultipliedImage[x, y] = rgba32;
+
+        /// <summary>
+        /// Clones the current image.
+        /// </summary>
+        /// <returns>Returns a new image with all the same metadata as the original.</returns>
+        public PremultipliedImage Clone() => FromPremultiplied(premultipliedImage.Clone());
 
         public void Dispose()
         {
-            Premultiplied.Dispose();
+            premultipliedImage.Dispose();
         }
 
         /// <summary>

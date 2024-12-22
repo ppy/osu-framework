@@ -14,7 +14,6 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
 using SharpFNT;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.IO.Stores
@@ -107,7 +106,7 @@ namespace osu.Framework.IO.Stores
                 using (var buffer = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<byte>(convert.Width * convert.Height))
                 {
                     var output = buffer.Memory.Span;
-                    var source = convert.Data;
+                    var source = convert.PremultipliedData;
 
                     for (int i = 0; i < output.Length; i++)
                         output[i] = source[i].A;
@@ -156,8 +155,8 @@ namespace osu.Framework.IO.Stores
 
                 for (int y = 0; y < character.Height; y++)
                 {
-                    var pixelRowMemory = image.Premultiplied.DangerousGetPixelRowMemory(y);
-                    var span = pixelRowMemory.Span;
+                    var premultipliedPixelRowMemory = image.DangerousGetPremultipliedPixelRowMemory(y);
+                    var span = premultipliedPixelRowMemory.Span;
                     int readOffset = y * pageWidth + character.X;
 
                     for (int x = 0; x < character.Width; x++)

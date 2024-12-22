@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Textures
         /// <summary>
         /// The raw data to be uploaded.
         /// </summary>
-        ReadOnlySpan<Rgba32> Data { get; }
+        ReadOnlySpan<Rgba32> PremultipliedData { get; }
 
         /// <summary>
         /// The target mipmap level to upload into.

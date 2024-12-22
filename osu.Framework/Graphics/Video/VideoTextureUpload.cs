@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Video
             return (plane == 0) ? Frame->height : (Frame->height + 1) / 2;
         }
 
-        public ReadOnlySpan<Rgba32> Data => ReadOnlySpan<Rgba32>.Empty;
+        public ReadOnlySpan<Rgba32> PremultipliedData => ReadOnlySpan<Rgba32>.Empty;
 
         public int Level => 0;
 

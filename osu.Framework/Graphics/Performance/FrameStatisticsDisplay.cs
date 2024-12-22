@@ -261,7 +261,7 @@ namespace osu.Framework.Graphics.Performance
             for (int i = 0; i < HEIGHT; i++)
             {
                 for (int k = 0; k < WIDTH; k++)
-                    fullBackground.Premultiplied[k, i] = columnUpload.RawData[i];
+                    fullBackground.SetPremultipliedRgba32(k, i, columnUpload.RawData[i]);
             }
 
             addArea(null, null, HEIGHT, amount_count_steps, columnUpload);

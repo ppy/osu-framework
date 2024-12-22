@@ -51,7 +51,7 @@ namespace osu.Framework.Graphics.Textures
                 // Can only perform padding when the bounds are a sub-part of the texture
                 RectangleI middleBounds = upload.Bounds;
 
-                if (middleBounds.IsEmpty || middleBounds.Width * middleBounds.Height > upload.Data.Length)
+                if (middleBounds.IsEmpty || middleBounds.Width * middleBounds.Height > upload.PremultipliedData.Length)
                 {
                     // For a texture atlas, we don't care about opacity, so we avoid
                     // any computations related to it by assuming it to be mixed.
@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.Textures
 
                 int actualPadding = padding / (1 << upload.Level);
 
-                var data = upload.Data;
+                var data = upload.PremultipliedData;
 
                 uploadCornerPadding(data, middleBounds, actualPadding, wrapModeS != WrapMode.None && wrapModeT != WrapMode.None);
                 uploadHorizontalPadding(data, middleBounds, actualPadding, wrapModeS != WrapMode.None);
