@@ -23,7 +23,6 @@ using osu.Framework.Graphics.Pooling;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Platform;
 using osuTK;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using WindowState = osu.Framework.Platform.WindowState;
 
@@ -255,14 +254,14 @@ namespace osu.Framework.Graphics.Performance
         {
             //initialise background
             var columnUpload = new ArrayPoolTextureUpload(1, HEIGHT);
-            var fullBackground = new Image<Rgba32>(WIDTH, HEIGHT);
+            var fullBackground = new PremultipliedImage(WIDTH, HEIGHT);
 
             addArea(null, null, HEIGHT, amount_ms_steps, columnUpload);
 
             for (int i = 0; i < HEIGHT; i++)
             {
                 for (int k = 0; k < WIDTH; k++)
-                    fullBackground[k, i] = columnUpload.RawData[i];
+                    fullBackground.SetPremultipliedRgba32(k, i, columnUpload.RawData[i]);
             }
 
             addArea(null, null, HEIGHT, amount_count_steps, columnUpload);
@@ -506,7 +505,7 @@ namespace osu.Framework.Graphics.Performance
                 else if (acceptableRange)
                     brightnessAdjust *= 0.8f;
 
-                columnUpload.RawData[i] = new Rgba32(col.R * brightnessAdjust, col.G * brightnessAdjust, col.B * brightnessAdjust, col.A);
+                columnUpload.RawData[i] = new Rgba32(col.R * col.A * brightnessAdjust, col.G * col.A * brightnessAdjust, col.B * col.A * brightnessAdjust, col.A);
 
                 currentHeight--;
             }

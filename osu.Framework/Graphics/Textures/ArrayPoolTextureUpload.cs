@@ -36,7 +36,7 @@ namespace osu.Framework.Graphics.Textures
 
         public Span<Rgba32> RawData => data;
 
-        public ReadOnlySpan<Rgba32> Data => data;
+        public ReadOnlySpan<Rgba32> PremultipliedData => data;
 
         public int Level { get; set; }
 

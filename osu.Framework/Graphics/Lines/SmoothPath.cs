@@ -8,8 +8,6 @@ using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osuTK.Graphics;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Lines
 {
@@ -66,7 +64,7 @@ namespace osu.Framework.Graphics.Lines
             int textureWidth = (int)PathRadius * 2;
 
             //initialise background
-            var raw = new Image<Rgba32>(textureWidth, 1);
+            var raw = new PremultipliedImage(textureWidth, 1);
 
             const float aa_portion = 0.02f;
 
@@ -75,13 +73,11 @@ namespace osu.Framework.Graphics.Lines
                 float progress = (float)i / (textureWidth - 1);
 
                 var colour = ColourAt(progress);
-                raw[i, 0] = new Rgba32(colour.R, colour.G, colour.B, colour.A * Math.Min(progress / aa_portion, 1));
+                raw[i, 0] = colour.Opacity(colour.A * Math.Min(progress / aa_portion, 1)).ToPremultiplied();
             }
 
             if (Texture?.Width == textureWidth)
-            {
                 Texture.SetData(new TextureUpload(raw));
-            }
             else
             {
                 var texture = new DisposableTexture(renderer.CreateTexture(textureWidth, 1, true));

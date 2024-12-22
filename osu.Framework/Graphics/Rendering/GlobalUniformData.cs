@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Rendering
         public UniformFloat BorderThickness;
         private readonly UniformPadding12 pad3;
 
-        public UniformMatrix4 BorderColour;
+        public UniformColourInfo BorderColour;
         public UniformFloat MaskingBlendRange;
         public UniformFloat AlphaExponent;
         public UniformVector2 EdgeOffset;

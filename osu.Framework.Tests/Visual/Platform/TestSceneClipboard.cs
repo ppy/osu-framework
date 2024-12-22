@@ -73,7 +73,7 @@ namespace osu.Framework.Tests.Visual.Platform
                 clipboardImage = image!.Clone();
 
                 var texture = renderer.CreateTexture(image.Width, image.Height);
-                texture.SetData(new TextureUpload(image));
+                texture.SetData(new TextureUpload(PremultipliedImage.FromStraight(image)));
 
                 Child = new Sprite
                 {

@@ -213,7 +213,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             {
                 using (upload)
                 {
-                    fixed (Rgba32* ptr = upload.Data)
+                    fixed (Rgba32* ptr = upload.PremultipliedData)
                         DoUpload(upload, (IntPtr)ptr);
 
                     uploadedRegions.Add(upload.Bounds);

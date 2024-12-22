@@ -202,14 +202,14 @@ namespace osu.Framework.Graphics.Textures
             if (upload.Bounds.Width > NativeTexture.MaxSize || upload.Bounds.Height > NativeTexture.MaxSize)
                 throw new TextureTooLargeForGLException();
 
-            if (upload.Bounds.IsEmpty && upload.Data.Length > 0)
+            if (upload.Bounds.IsEmpty && upload.PremultipliedData.Length > 0)
             {
                 upload.Bounds = new RectangleI(0, 0, Width, Height);
 
-                if (upload.Bounds.Width * upload.Bounds.Height > upload.Data.Length)
+                if (upload.Bounds.Width * upload.Bounds.Height > upload.PremultipliedData.Length)
                 {
                     throw new InvalidOperationException(
-                        $"Size of texture upload ({upload.Bounds.Width}x{upload.Bounds.Height}) does not contain enough data ({upload.Data.Length} < {upload.Bounds.Width * upload.Bounds.Height})");
+                        $"Size of texture upload ({upload.Bounds.Width}x{upload.Bounds.Height}) does not contain enough data ({upload.PremultipliedData.Length} < {upload.Bounds.Width * upload.Bounds.Height})");
                 }
             }
 

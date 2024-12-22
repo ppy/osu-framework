@@ -72,17 +72,17 @@ namespace osu.Framework.Graphics
 
         public static BlendingParameters Mixture => new BlendingParameters
         {
-            Source = BlendingType.SrcAlpha,
+            Source = BlendingType.One,
             Destination = BlendingType.OneMinusSrcAlpha,
             SourceAlpha = BlendingType.One,
-            DestinationAlpha = BlendingType.One,
+            DestinationAlpha = BlendingType.OneMinusSrcAlpha,
             RGBEquation = BlendingEquation.Add,
             AlphaEquation = BlendingEquation.Add,
         };
 
         public static BlendingParameters Additive => new BlendingParameters
         {
-            Source = BlendingType.SrcAlpha,
+            Source = BlendingType.One,
             Destination = BlendingType.One,
             SourceAlpha = BlendingType.One,
             DestinationAlpha = BlendingType.One,
@@ -123,7 +123,7 @@ namespace osu.Framework.Graphics
         public void ApplyDefaultToInherited()
         {
             if (Source == BlendingType.Inherit)
-                Source = BlendingType.SrcAlpha;
+                Source = BlendingType.One;
 
             if (Destination == BlendingType.Inherit)
                 Destination = BlendingType.OneMinusSrcAlpha;
@@ -132,7 +132,7 @@ namespace osu.Framework.Graphics
                 SourceAlpha = BlendingType.One;
 
             if (DestinationAlpha == BlendingType.Inherit)
-                DestinationAlpha = BlendingType.One;
+                DestinationAlpha = BlendingType.OneMinusSrcAlpha;
 
             if (RGBEquation == BlendingEquation.Inherit)
                 RGBEquation = BlendingEquation.Add;

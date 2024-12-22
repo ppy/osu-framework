@@ -93,7 +93,7 @@ namespace osu.Framework.Tests.Visual.Performance
         {
             private readonly ITextureUpload upload;
 
-            public ReadOnlySpan<Rgba32> Data => upload.Data;
+            public ReadOnlySpan<Rgba32> PremultipliedData => upload.PremultipliedData;
 
             public int Level => upload.Level;
 

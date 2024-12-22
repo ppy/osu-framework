@@ -220,7 +220,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             colourEquation.Current.Value = foregroundContainer.Blending.RGBEquation;
             alphaEquation.Current.Value = foregroundContainer.Blending.AlphaEquation;
 
-            blendingSrcDropdown.Current.Value = BlendingType.SrcAlpha;
+            blendingSrcDropdown.Current.Value = BlendingType.One;
             blendingDestDropdown.Current.Value = BlendingType.OneMinusSrcAlpha;
             blendingAlphaSrcDropdown.Current.Value = BlendingType.One;
             blendingAlphaDestDropdown.Current.Value = BlendingType.One;

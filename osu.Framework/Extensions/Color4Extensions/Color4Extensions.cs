@@ -4,6 +4,7 @@
 using osuTK.Graphics;
 using System;
 using System.Globalization;
+using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Extensions.Color4Extensions
 {
@@ -288,5 +289,12 @@ namespace osu.Framework.Extensions.Color4Extensions
 
             return (h, s, v);
         }
+
+        /// <summary>
+        /// Converts a <see cref="Color4"/> to premultiplied alpha and returns a resultant <see cref="PremultipliedColour"/>.
+        /// The input colour is assumed to be in straight-alpha form.
+        /// </summary>
+        /// <param name="colour">The colour as straight-alpha.</param>
+        public static PremultipliedColour ToPremultiplied(this Color4 colour) => PremultipliedColour.FromStraight(colour);
     }
 }

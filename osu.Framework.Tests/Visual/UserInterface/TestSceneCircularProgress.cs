@@ -4,6 +4,7 @@
 #nullable disable
 
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -13,8 +14,6 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
 using osuTK;
 using osuTK.Graphics;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
@@ -38,31 +37,31 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             const int width = 128;
 
-            var image = new Image<Rgba32>(width, 1);
+            var image = new PremultipliedImage(width, 1);
 
             gradientTextureHorizontal = renderer.CreateTexture(width, 1, true);
 
             for (int i = 0; i < width; ++i)
             {
                 float brightness = (float)i / (width - 1);
-                image[i, 0] = new Rgba32((byte)(128 + (1 - brightness) * 127), (byte)(128 + brightness * 127), 128, 255);
+                image[i, 0] = new Color4((byte)(128 + (1 - brightness) * 127), (byte)(128 + brightness * 127), 128, 255).ToPremultiplied();
             }
 
             gradientTextureHorizontal.SetData(new TextureUpload(image));
 
-            image = new Image<Rgba32>(width, 1);
+            image = new PremultipliedImage(width, 1);
 
             gradientTextureVertical = renderer.CreateTexture(1, width, true);
 
             for (int i = 0; i < width; ++i)
             {
                 float brightness = (float)i / (width - 1);
-                image[i, 0] = new Rgba32((byte)(128 + (1 - brightness) * 127), (byte)(128 + brightness * 127), 128, 255);
+                image[i, 0] = new Color4((byte)(128 + (1 - brightness) * 127), (byte)(128 + brightness * 127), 128, 255).ToPremultiplied();
             }
 
             gradientTextureVertical.SetData(new TextureUpload(image));
 
-            image = new Image<Rgba32>(width, width);
+            image = new PremultipliedImage(width, width);
 
             gradientTextureBoth = renderer.CreateTexture(width, width, true);
 
@@ -72,11 +71,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 {
                     float brightness = (float)i / (width - 1);
                     float brightness2 = (float)j / (width - 1);
-                    image[i, j] = new Rgba32(
+                    image[i, j] = new Color4(
                         (byte)(128 + (1 + brightness - brightness2) / 2 * 127),
                         (byte)(128 + (1 + brightness2 - brightness) / 2 * 127),
                         (byte)(128 + (brightness + brightness2) / 2 * 127),
-                        255);
+                        255).ToPremultiplied();
                 }
             }
 

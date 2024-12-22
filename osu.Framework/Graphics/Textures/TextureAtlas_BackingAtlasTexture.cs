@@ -51,7 +51,7 @@ namespace osu.Framework.Graphics.Textures
                 // Can only perform padding when the bounds are a sub-part of the texture
                 RectangleI middleBounds = upload.Bounds;
 
-                if (middleBounds.IsEmpty || middleBounds.Width * middleBounds.Height > upload.Data.Length)
+                if (middleBounds.IsEmpty || middleBounds.Width * middleBounds.Height > upload.PremultipliedData.Length)
                 {
                     // For a texture atlas, we don't care about opacity, so we avoid
                     // any computations related to it by assuming it to be mixed.
@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.Textures
 
                 int actualPadding = padding / (1 << upload.Level);
 
-                var data = upload.Data;
+                var data = upload.PremultipliedData;
 
                 uploadCornerPadding(data, middleBounds, actualPadding, wrapModeS != WrapMode.None && wrapModeT != WrapMode.None);
                 uploadHorizontalPadding(data, middleBounds, actualPadding, wrapModeS != WrapMode.None);
@@ -215,10 +215,10 @@ namespace osu.Framework.Graphics.Textures
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private void transferBorderPixel(ref Rgba32 dest, Rgba32 source, bool fillOpaque)
             {
-                dest.R = source.R;
-                dest.G = source.G;
-                dest.B = source.B;
                 dest.A = fillOpaque ? source.A : (byte)0;
+                dest.R = (byte)(source.R * (dest.A / 255.0));
+                dest.G = (byte)(source.G * (dest.A / 255.0));
+                dest.B = (byte)(source.B * (dest.A / 255.0));
             }
 
             /// <summary>

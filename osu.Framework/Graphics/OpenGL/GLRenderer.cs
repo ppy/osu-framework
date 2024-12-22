@@ -238,8 +238,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         protected override void ClearImplementation(ClearInfo clearInfo)
         {
-            if (clearInfo.Colour != CurrentClearInfo.Colour)
-                GL.ClearColor(clearInfo.Colour);
+            if (!clearInfo.Colour.Equals(CurrentClearInfo.Colour))
+                GL.ClearColor(new Color4(clearInfo.Colour.PremultipliedR, clearInfo.Colour.PremultipliedG, clearInfo.Colour.PremultipliedB, clearInfo.Colour.Occlusion));
 
             if (clearInfo.Depth != CurrentClearInfo.Depth)
             {

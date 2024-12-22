@@ -7,10 +7,10 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ObjectExtensions;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
-using osuTK.Graphics;
 using SharpGen.Runtime;
 using Veldrid;
 using Veldrid.MetalBindings;
@@ -27,7 +27,8 @@ namespace osu.Framework.Graphics.Veldrid
 {
     internal static class VeldridExtensions
     {
-        public static RgbaFloat ToRgbaFloat(this Color4 colour) => new RgbaFloat(colour.R, colour.G, colour.B, colour.A);
+        public static RgbaFloat ToPremultipliedRgbaFloat(this PremultipliedColour colour)
+            => new RgbaFloat(colour.PremultipliedR, colour.PremultipliedG, colour.PremultipliedB, colour.Occlusion);
 
         public static BlendFactor ToBlendFactor(this BlendingType type)
         {
