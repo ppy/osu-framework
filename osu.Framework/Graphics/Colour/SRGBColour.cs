@@ -123,7 +123,7 @@ namespace osu.Framework.Graphics.Colour
         /// Multiplies the alpha value of this colour by the given alpha factor.
         /// </summary>
         /// <param name="alpha">The alpha factor to multiply with.</param>
-        public void MultiplyAlpha(float alpha) => SRGB.A = Math.Min(1, SRGB.A * alpha);
+        public void MultiplyAlpha(float alpha) => SRGB.A *= alpha;
 
         private static bool isWhite(SRGBColour colour) => colour.SRGB.R == 1 && colour.SRGB.G == 1 && colour.SRGB.B == 1;
 
