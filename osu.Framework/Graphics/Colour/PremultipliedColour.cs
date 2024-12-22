@@ -55,6 +55,16 @@ namespace osu.Framework.Graphics.Colour
             colour.B * colour.A,
             colour.A);
 
+        /// <summary>
+        /// Creates a <see cref="PremultipliedColour"/> from a premultiplied-alpha <see cref="Rgba32"/> colour.
+        /// </summary>
+        /// <param name="premultipliedColour">The premultiplied-alpha <see cref="Rgba32"/> colour.</param>
+        public static PremultipliedColour FromPremultiplied(Rgba32 premultipliedColour)
+        {
+            var premultipliedVector = premultipliedColour.ToVector4();
+            return new PremultipliedColour(premultipliedVector.X, premultipliedVector.Y, premultipliedVector.Z, premultipliedVector.W);
+        }
+
         public bool Equals(PremultipliedColour other)
             => PremultipliedR == other.PremultipliedR &&
                PremultipliedG == other.PremultipliedG &&

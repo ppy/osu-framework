@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Textures
     public class PremultipliedImage : IDisposable
     {
         /// <summary>
-        /// The underlying image in <see cref="Image{TPixel}"/> form.
+        /// The underlying image in <see cref="Image{Rgba32}"/> form.
         /// </summary>
         public readonly Image<Rgba32> Premultiplied;
 
@@ -32,6 +32,17 @@ namespace osu.Framework.Graphics.Textures
         }
 
         public PremultipliedImage Clone() => FromPremultiplied(Premultiplied.Clone());
+
+        /// <summary>
+        /// Gets or sets the pixel at the specified position.
+        /// </summary>
+        /// <param name="x">The x-coordinate of the pixel.</param>
+        /// <param name="y">The y-coordinate of the pixel.</param>
+        public PremultipliedColour this[int x, int y]
+        {
+            get => PremultipliedColour.FromPremultiplied(Premultiplied[x, y]);
+            set => Premultiplied[x, y] = value.ToPremultipliedRgba32();
+        }
 
         public void Dispose()
         {

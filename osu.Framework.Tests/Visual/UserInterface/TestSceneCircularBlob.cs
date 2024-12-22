@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -11,7 +12,6 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
 using osuTK;
 using osuTK.Graphics;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
@@ -38,7 +38,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             for (int i = 0; i < width; ++i)
             {
                 float brightness = (float)i / (width - 1);
-                image.Premultiplied[i, 0] = new Rgba32((byte)(128 + (1 - brightness) * 127), (byte)(128 + brightness * 127), 128, 255);
+                image[i, 0] = new Color4((byte)(128 + (1 - brightness) * 127), (byte)(128 + brightness * 127), 128, 255).ToPremultiplied();
             }
 
             gradientTextureHorizontal.SetData(new TextureUpload(image));
@@ -50,7 +50,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             for (int i = 0; i < width; ++i)
             {
                 float brightness = (float)i / (width - 1);
-                image.Premultiplied[i, 0] = new Rgba32((byte)(128 + (1 - brightness) * 127), (byte)(128 + brightness * 127), 128, 255);
+                image[i, 0] = new Color4((byte)(128 + (1 - brightness) * 127), (byte)(128 + brightness * 127), 128, 255).ToPremultiplied();
             }
 
             gradientTextureVertical.SetData(new TextureUpload(image));
@@ -65,11 +65,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 {
                     float brightness = (float)i / (width - 1);
                     float brightness2 = (float)j / (width - 1);
-                    image.Premultiplied[i, j] = new Rgba32(
+                    image[i, j] = new Color4(
                         (byte)(128 + (1 + brightness - brightness2) / 2 * 127),
                         (byte)(128 + (1 + brightness2 - brightness) / 2 * 127),
                         (byte)(128 + (brightness + brightness2) / 2 * 127),
-                        255);
+                        255).ToPremultiplied();
                 }
             }
 

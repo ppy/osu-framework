@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Lines;
@@ -15,7 +16,6 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
@@ -33,7 +33,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             for (int i = 0; i < texture_width; ++i)
             {
                 byte brightnessByte = (byte)((float)i / (texture_width - 1) * 255);
-                image.Premultiplied[i, 0] = new Rgba32(brightnessByte, brightnessByte, brightnessByte, brightnessByte);
+                image[i, 0] = new Color4(255, 255, 255, brightnessByte).ToPremultiplied();
             }
 
             gradientTexture = renderer.CreateTexture(texture_width, 1, true);

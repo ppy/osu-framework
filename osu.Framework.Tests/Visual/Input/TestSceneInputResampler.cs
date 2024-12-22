@@ -5,6 +5,7 @@
 
 using System;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Rendering;
@@ -15,7 +16,6 @@ using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.Input
 {
@@ -37,7 +37,7 @@ namespace osu.Framework.Tests.Visual.Input
             for (int i = 0; i < width; ++i)
             {
                 byte brightnessByte = (byte)((float)i / (width - 1) * 255);
-                image.Premultiplied[i, 0] = new Rgba32(brightnessByte, brightnessByte, brightnessByte);
+                image[i, 0] = new Color4(brightnessByte, brightnessByte, brightnessByte, 255).ToPremultiplied();
             }
 
             gradientTexture.SetData(new TextureUpload(image));

@@ -8,7 +8,6 @@ using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osuTK.Graphics;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Lines
 {
@@ -74,8 +73,7 @@ namespace osu.Framework.Graphics.Lines
                 float progress = (float)i / (textureWidth - 1);
 
                 var colour = ColourAt(progress);
-                float alpha = Math.Min(progress / aa_portion, 1);
-                raw.Premultiplied[i, 0] = new Rgba32(colour.R * alpha, colour.G * alpha, colour.B * alpha, colour.A * alpha);
+                raw[i, 0] = colour.Opacity(colour.A * Math.Min(progress / aa_portion, 1)).ToPremultiplied();
             }
 
             if (Texture?.Width == textureWidth)
