@@ -61,7 +61,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("click top left corner", () =>
             {
-                InputManager.MoveMouseTo(colourPicker.SaturationValueControl.ScreenSpaceDrawQuad.TopLeft + new Vector2(1));
+                InputManager.MoveMouseTo(colourPicker.SaturationValueControl.ScreenSpaceDrawQuad.TopLeft.Xy + new Vector2(1));
                 InputManager.Click(MouseButton.Left);
             });
             assertSaturationAndValue(0, 1);
@@ -76,14 +76,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("click bottom left corner", () =>
             {
-                InputManager.MoveMouseTo(colourPicker.SaturationValueControl.ScreenSpaceDrawQuad.BottomLeft + new Vector2(1, -1));
+                InputManager.MoveMouseTo(colourPicker.SaturationValueControl.ScreenSpaceDrawQuad.BottomLeft.Xy + new Vector2(1, -1));
                 InputManager.Click(MouseButton.Left);
             });
             assertSaturationAndValue(0, 0);
 
             AddStep("click bottom right corner", () =>
             {
-                InputManager.MoveMouseTo(colourPicker.SaturationValueControl.ScreenSpaceDrawQuad.BottomRight - new Vector2(1));
+                InputManager.MoveMouseTo(colourPicker.SaturationValueControl.ScreenSpaceDrawQuad.BottomRight.Xy - new Vector2(1));
                 InputManager.Click(MouseButton.Left);
             });
             assertSaturationAndValue(1, 0);
