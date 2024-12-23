@@ -12,7 +12,7 @@ using ObjCRuntime;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Advanced;
 using UIKit;
 
 namespace osu.Framework.iOS.Graphics.Textures
@@ -53,21 +53,26 @@ namespace osu.Framework.iOS.Graphics.Textures
                     vImageBuffer accelerateImage = default;
 
                     // perform initial call to retrieve preferred alignment and bytes-per-row values for the given image dimensions.
-                    long alignment = (long)vImageBuffer_Init(&accelerateImage, (uint)height, (uint)width, 32, vImageFlags.NoAllocate);
+                    nuint alignment = (nuint)vImageBuffer_Init(&accelerateImage, (uint)height, (uint)width, 32, vImageFlags.NoAllocate);
                     Debug.Assert(alignment > 0);
 
                     // allocate aligned memory region to contain image pixel data.
-                    int bytesCount = accelerateImage.BytesPerRow * accelerateImage.Height;
-                    accelerateImage.Data = (IntPtr)NativeMemory.AlignedAlloc((nuint)(accelerateImage.BytesPerRow * accelerateImage.Height), (nuint)alignment);
+                    int bytesPerRow = accelerateImage.BytesPerRow;
+                    int bytesCount = bytesPerRow * accelerateImage.Height;
+                    accelerateImage.Data = (IntPtr)NativeMemory.AlignedAlloc((nuint)bytesCount, alignment);
 
                     var result = vImageBuffer_InitWithCGImage(&accelerateImage, &format, null, uiImage.CGImage!.Handle, vImageFlags.NoAllocate);
                     Debug.Assert(result == vImageError.NoError);
 
-                    var dataSpan = new ReadOnlySpan<byte>(accelerateImage.Data.ToPointer(), bytesCount);
+                    var image = new Image<TPixel>(width, height);
+                    byte* data = (byte*)accelerateImage.Data;
 
-                    int stride = accelerateImage.BytesPerRow / 4;
-                    var image = Image.LoadPixelData<TPixel>(dataSpan, stride, height);
-                    image.Mutate(i => i.Crop(width, height));
+                    for (int i = 0; i < height; i++)
+                    {
+                        var imageRow = image.DangerousGetPixelRowMemory(i);
+                        var dataRow = new ReadOnlySpan<TPixel>(&data[bytesPerRow * i], width);
+                        dataRow.CopyTo(imageRow.Span);
+                    }
 
                     NativeMemory.AlignedFree(accelerateImage.Data.ToPointer());
                     return image;
