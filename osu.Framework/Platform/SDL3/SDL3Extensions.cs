@@ -1011,6 +1011,34 @@ namespace osu.Framework.Platform.SDL3
                 w = rectangle.Width,
             };
 
+        public static SDL_TextInputType ToSDLTextInputType(this TextInputType type)
+        {
+            switch (type)
+            {
+                default:
+                case TextInputType.Text:
+                    return SDL_TextInputType.SDL_TEXTINPUT_TYPE_TEXT;
+
+                case TextInputType.Name:
+                    return SDL_TextInputType.SDL_TEXTINPUT_TYPE_TEXT_NAME;
+
+                case TextInputType.EmailAddress:
+                    return SDL_TextInputType.SDL_TEXTINPUT_TYPE_TEXT_EMAIL;
+
+                case TextInputType.Username:
+                    return SDL_TextInputType.SDL_TEXTINPUT_TYPE_TEXT_USERNAME;
+
+                case TextInputType.Number:
+                    return SDL_TextInputType.SDL_TEXTINPUT_TYPE_NUMBER;
+
+                case TextInputType.Password:
+                    return SDL_TextInputType.SDL_TEXTINPUT_TYPE_TEXT_PASSWORD_HIDDEN;
+
+                case TextInputType.NumericalPassword:
+                    return SDL_TextInputType.SDL_TEXTINPUT_TYPE_NUMBER_PASSWORD_HIDDEN;
+            }
+        }
+
         public static unsafe DisplayMode ToDisplayMode(this SDL_DisplayMode mode, int displayIndex)
         {
             int bpp;
