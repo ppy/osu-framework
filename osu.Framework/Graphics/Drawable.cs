@@ -22,6 +22,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -2709,6 +2710,8 @@ namespace osu.Framework.Graphics
     /// x and y counterparts can be accessed using bitwise flags.
     /// </summary>
     [Flags]
+    // todo: revisit when we have a way to exclude enum members from naming rules
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public enum Anchor
     {
         TopLeft = y0 | x0,

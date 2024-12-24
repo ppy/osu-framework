@@ -154,16 +154,16 @@ namespace osu.Framework
             Textures = new TextureStore(Host.Renderer, Host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")),
                 filteringMode: DefaultTextureFilteringMode);
 
-            Textures.AddTextureSource(Host.CreateTextureLoaderStore(new OnlineStore()));
+            Textures.AddTextureSource(Host.CreateTextureLoaderStore(CreateOnlineStore()));
             dependencies.Cache(Textures);
 
             var tracks = new ResourceStore<byte[]>();
             tracks.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Tracks"));
-            tracks.AddStore(new OnlineStore());
+            tracks.AddStore(CreateOnlineStore());
 
             var samples = new ResourceStore<byte[]>();
             samples.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
-            samples.AddStore(new OnlineStore());
+            samples.AddStore(CreateOnlineStore());
 
             Audio = new AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
             dependencies.Cache(Audio);
@@ -233,6 +233,11 @@ namespace osu.Framework
                 }
             }, true);
         }
+
+        /// <summary>
+        /// Creates an <see cref="OnlineStore"/> to be used for online textures/tracks/samples lookups.
+        /// </summary>
+        protected virtual OnlineStore CreateOnlineStore() => new OnlineStore();
 
         /// <summary>
         /// Add a font to be globally accessible to the game.

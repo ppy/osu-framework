@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                         throw new NotImplementedException($"Topology '{topology}' is not yet implemented for this renderer.");
 
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException(nameof(topology));
                 }
             }
             else

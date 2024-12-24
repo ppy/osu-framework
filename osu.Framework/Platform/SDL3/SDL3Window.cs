@@ -316,7 +316,7 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_EventType.SDL_EVENT_WINDOW_RESIZED:
                     // polling via SDL_PollEvent blocks on resizes (https://stackoverflow.com/a/50858339)
                     if (!updatingWindowStateAndSize)
-                        fetchWindowSize();
+                        fetchWindowSize(storeToConfig: false);
 
                     break;
             }
@@ -665,6 +665,8 @@ namespace osu.Framework.Platform.SDL3
         /// Invoked when the user drops a file into the window.
         /// </summary>
         public event Action<string>? DragDrop;
+
+        protected void TriggerDragDrop(string filename) => DragDrop?.Invoke(filename);
 
         #endregion
 

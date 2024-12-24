@@ -230,7 +230,7 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_EventType.SDL_EVENT_DROP_FILE:
                     string? str = evtDrop.GetData();
                     if (str != null)
-                        DragDrop?.Invoke(str);
+                        TriggerDragDrop(str);
 
                     break;
             }

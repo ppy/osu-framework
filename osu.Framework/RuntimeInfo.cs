@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using osu.Framework.Development;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -62,6 +63,8 @@ namespace osu.Framework
                 throw new PlatformNotSupportedException("Operating system could not be detected correctly.");
         }
 
+        // todo: revisit when we have a way to exclude enum members from naming rules
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
         public enum Platform
         {
             Windows = 1,

@@ -203,8 +203,8 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void LoadComplete()
         {
             // Default to first selection in list, if we can
-            if (firstSelection && SelectFirstTabByDefault && !Current.Disabled && Items.Any())
-                Current.Value = Items.First();
+            if (firstSelection && SelectFirstTabByDefault && !Current.Disabled && Items.Count > 0)
+                Current.Value = Items[0];
 
             Current.BindValueChanged(v =>
             {
@@ -545,7 +545,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             private void updateChildIfNeeded(TabItem<T> child, bool isVisible)
             {
-                if (!tabVisibility.ContainsKey(child) || tabVisibility[child] != isVisible)
+                if (!tabVisibility.TryGetValue(child, out bool currentVisibility) || currentVisibility != isVisible)
                 {
                     TabVisibilityChanged?.Invoke(child, isVisible);
                     tabVisibility[child] = isVisible;

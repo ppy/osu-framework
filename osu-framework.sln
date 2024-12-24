@@ -28,10 +28,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D29A2153-C171-457E-A147-720976BA430F}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
-		.globalconfig = .globalconfig
 		Directory.Build.props = Directory.Build.props
 		.config\dotnet-tools.json = .config\dotnet-tools.json
-		CodeAnalysis\osu-framework.ruleset = CodeAnalysis\osu-framework.ruleset
+		global.json = global.json
 		osu-framework.sln.DotSettings = osu-framework.sln.DotSettings
 		osu.Framework.Android.props = osu.Framework.Android.props
 		osu.Framework.iOS.props = osu.Framework.iOS.props
@@ -73,8 +72,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.SourceGenerat
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CodeAnalysis", "CodeAnalysis", "{50334A1F-990D-45FA-A1FE-C92F1994D97B}"
 	ProjectSection(SolutionItems) = preProject
+		CodeAnalysis\osu-framework.globalconfig = CodeAnalysis\osu-framework.globalconfig
 		CodeAnalysis\BannedSymbols.txt = CodeAnalysis\BannedSymbols.txt
-		CodeAnalysis\osu-framework.ruleset = CodeAnalysis\osu-framework.ruleset
 	EndProjectSection
 EndProject
 Global

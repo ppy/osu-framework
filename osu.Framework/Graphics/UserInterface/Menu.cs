@@ -33,6 +33,12 @@ namespace osu.Framework.Graphics.UserInterface
         public event Action<MenuState> StateChanged;
 
         /// <summary>
+        /// Invoked when a Sub-<see cref="Menu"/> is opened.
+        /// </summary>
+        [CanBeNull]
+        public event Action<Menu> OnSubmenuOpen;
+
+        /// <summary>
         /// Gets or sets the delay before opening sub-<see cref="Menu"/>s when menu items are hovered.
         /// </summary>
         protected double HoverOpenDelay = 100;
@@ -563,6 +569,8 @@ namespace osu.Framework.Graphics.UserInterface
                 submenu.StateChanged += submenuStateChanged;
             }
 
+            bool submenuChanged = submenu.triggeringItem != item;
+
             submenu.triggeringItem = item;
             submenu.positionLayout.Invalidate();
 
@@ -574,6 +582,10 @@ namespace osu.Framework.Graphics.UserInterface
                     Schedule(delegate { GetContainingFocusManager().AsNonNull().ChangeFocus(submenu); });
                 else
                     submenu.Open();
+
+                // Check if submenu has changed before firing, to prevent extraneous callbacks (e.g. re-hovering the triggeringItem of an already open submenu)
+                if (submenuChanged)
+                    OnSubmenuOpen?.Invoke(submenu);
             }
             else
                 submenu.Close();

@@ -1,10 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
@@ -22,6 +19,7 @@ namespace osu.Framework.Graphics.Containers
     /// </remarks>
     /// <typeparam name="TModel">The type of rearrangeable item.</typeparam>
     public abstract partial class RearrangeableListContainer<TModel> : CompositeDrawable
+        where TModel : notnull
     {
         private const float exp_base = 1.05f;
 
@@ -51,7 +49,7 @@ namespace osu.Framework.Graphics.Containers
         protected IReadOnlyDictionary<TModel, RearrangeableListItem<TModel>> ItemMap => itemMap;
 
         private readonly Dictionary<TModel, RearrangeableListItem<TModel>> itemMap = new Dictionary<TModel, RearrangeableListItem<TModel>>();
-        private RearrangeableListItem<TModel> currentlyDraggedItem;
+        private RearrangeableListItem<TModel>? currentlyDraggedItem;
         private Vector2 screenSpaceDragPosition;
 
         /// <summary>
@@ -82,16 +80,16 @@ namespace osu.Framework.Graphics.Containers
         {
         }
 
-        private void collectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        private void collectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    addItems(e.NewItems);
+                    addItems(e.NewItems?.Cast<TModel>() ?? []);
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
-                    removeItems(e.OldItems);
+                    removeItems(e.OldItems?.Cast<TModel>() ?? []);
 
                     // Explicitly reset scroll position here so that ScrollContainer doesn't retain our
                     // scroll position if we quickly add new items after calling a Clear().
@@ -107,8 +105,11 @@ namespace osu.Framework.Graphics.Containers
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
-                    removeItems(e.OldItems);
-                    addItems(e.NewItems);
+                    IEnumerable<TModel> tOldItems = e.OldItems?.Cast<TModel>() ?? [];
+                    IEnumerable<TModel> tNewItems = e.NewItems?.Cast<TModel>() ?? [];
+
+                    removeItems(tOldItems.Except(tNewItems));
+                    addItems(tNewItems.Except(tOldItems));
                     break;
 
                 case NotifyCollectionChangedAction.Move:
@@ -118,9 +119,9 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private void removeItems(IList items)
+        private void removeItems(IEnumerable<TModel> items)
         {
-            foreach (var item in items.Cast<TModel>())
+            foreach (var item in items)
             {
                 if (currentlyDraggedItem != null && EqualityComparer<TModel>.Default.Equals(currentlyDraggedItem.Model, item))
                     currentlyDraggedItem = null;
@@ -137,11 +138,11 @@ namespace osu.Framework.Graphics.Containers
             OnItemsChanged();
         }
 
-        private void addItems(IList items)
+        private void addItems(IEnumerable<TModel> items)
         {
             var drawablesToAdd = new List<Drawable>();
 
-            foreach (var item in items.Cast<TModel>())
+            foreach (var item in items)
             {
                 if (itemMap.ContainsKey(item))
                 {
@@ -183,11 +184,15 @@ namespace osu.Framework.Graphics.Containers
         {
             for (int i = 0; i < Items.Count; i++)
             {
-                var drawable = itemMap[Items[i]];
+                // A drawable for the item may not exist yet, for example in a replace-range operation where the removal happens first.
+                if (!itemMap.TryGetValue(Items[i], out var drawable))
+                    continue;
 
-                // If the async load didn't complete, the item wouldn't exist in the container and an exception would be thrown
-                if (drawable.Parent == ListContainer)
-                    ListContainer!.SetLayoutPosition(drawable, i);
+                // The item may not be loaded yet, because add operations are asynchronous.
+                if (drawable.Parent != ListContainer)
+                    continue;
+
+                ListContainer.SetLayoutPosition(drawable, i);
             }
         }
 
@@ -212,9 +217,7 @@ namespace osu.Framework.Graphics.Containers
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
-
-            if (currentlyDraggedItem != null)
-                updateArrangement();
+            updateArrangement();
         }
 
         private void updateScrollPosition()
@@ -239,6 +242,9 @@ namespace osu.Framework.Graphics.Containers
 
         private void updateArrangement()
         {
+            if (currentlyDraggedItem == null)
+                return;
+
             var localPos = ListContainer.ToLocalSpace(screenSpaceDragPosition);
             int srcIndex = Items.IndexOf(currentlyDraggedItem.Model);
 
