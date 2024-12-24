@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Foundation;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
@@ -11,6 +12,8 @@ using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Handlers;
+using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.IO.Stores;
 using osu.Framework.iOS.Graphics.Textures;
 using osu.Framework.iOS.Graphics.Video;
@@ -82,6 +85,20 @@ namespace osu.Framework.iOS
 
         public override VideoDecoder CreateVideoDecoder(Stream stream)
             => new IOSVideoDecoder(Renderer, stream);
+
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
+        {
+            var handlers = base.CreateAvailableInputHandlers();
+
+            foreach (var h in handlers.OfType<MouseHandler>())
+            {
+                // Similar to macOS, "relative mode" is also broken on iOS.
+                h.UseRelativeMode.Value = false;
+                h.UseRelativeMode.Default = false;
+            }
+
+            return handlers;
+        }
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => MacOSGameHost.KeyBindings;
     }
