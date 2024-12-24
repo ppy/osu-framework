@@ -12,6 +12,11 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public partial class BasicFileSelector : FileSelector
     {
+        public BasicFileSelector(string initialPath = null, string[] validFileExtensions = null)
+            : base(initialPath, validFileExtensions)
+        {
+        }
+
         protected override DirectorySelectorBreadcrumbDisplay CreateBreadcrumb() => new BasicDirectorySelectorBreadcrumbDisplay();
 
         protected override Drawable CreateHiddenToggleButton() => new BasicButton
