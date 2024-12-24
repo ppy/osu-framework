@@ -11,6 +11,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Platform;
 using osu.Framework.Platform.SDL3;
+using SDL;
 using static SDL.SDL3;
 using UIKit;
 
@@ -21,6 +22,8 @@ namespace osu.Framework.iOS
         private UIWindow? uiWindow;
 
         public UIWindow UIWindow => uiWindow!;
+
+        private IOSCallObserver callObserver = null!;
 
         public override Size Size
         {
@@ -50,7 +53,55 @@ namespace osu.Framework.iOS
 
             var appDelegate = (GameApplicationDelegate)UIApplication.SharedApplication.Delegate;
             appDelegate.DragDrop += TriggerDragDrop;
+
+            // osu! cannot operate when a call takes place, as the audio is completely cut from the game, making it behave in unexpected manner.
+            // while this is o!f code, it's simpler to do this here rather than in osu!.
+            // we can reconsider this if there are framework consumers which find this behaviour undesirable.
+            callObserver = new IOSCallObserver();
+            callObserver.OnCall += onCall;
+            callObserver.OnCallEnded += onCallEnded;
+
+            updateFocused();
         }
+
+        private bool appInForeground;
+        private bool inCall;
+
+        protected override void HandleEvent(SDL_Event e)
+        {
+            switch (e.Type)
+            {
+                case SDL_EventType.SDL_EVENT_WINDOW_MINIMIZED:
+                case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST:
+                    appInForeground = false;
+                    updateFocused();
+                    break;
+
+                case SDL_EventType.SDL_EVENT_WINDOW_RESTORED:
+                case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_GAINED:
+                    appInForeground = true;
+                    updateFocused();
+                    break;
+
+                default:
+                    base.HandleEvent(e);
+                    break;
+            }
+        }
+
+        private void onCall()
+        {
+            inCall = true;
+            updateFocused();
+        }
+
+        private void onCallEnded()
+        {
+            inCall = false;
+            updateFocused();
+        }
+
+        private void updateFocused() => Focused = appInForeground && !inCall;
 
         protected override unsafe void RunMainLoop()
         {
