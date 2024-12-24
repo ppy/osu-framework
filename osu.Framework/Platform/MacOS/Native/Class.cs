@@ -46,7 +46,8 @@ namespace osu.Framework.Platform.MacOS.Native
         /// <param name="typeString">The type encoding of the selector.</param>
         /// <param name="action">The delegate to use as the new implementation.</param>
         /// <returns>A selector for the newly registered method, containing the old implementation.</returns>
-        public static IntPtr SwizzleMethod(IntPtr classHandle, string selector, string typeString, Delegate action)
+        public static IntPtr SwizzleMethod<T>(IntPtr classHandle, string selector, string typeString, T action)
+            where T : Delegate
         {
             IntPtr targetSelector = Selector.Get(selector);
             IntPtr targetMethod = class_getInstanceMethod(classHandle, targetSelector);
