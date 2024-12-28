@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Platform.Apple.Native;
 using osu.Framework.Platform.MacOS.Native;
 using SixLabors.ImageSharp;
 
@@ -11,13 +12,13 @@ namespace osu.Framework.Platform.MacOS
     {
         private readonly NSPasteboard generalPasteboard = NSPasteboard.GeneralPasteboard();
 
-        public override string? GetText() => Cocoa.FromNSString(getFromPasteboard(Class.Get("NSString")));
+        public override string? GetText() => Interop.FromNSString(getFromPasteboard(Class.Get("NSString")));
 
-        public override Image<TPixel>? GetImage<TPixel>() => Cocoa.FromNSImage<TPixel>(getFromPasteboard(Class.Get("NSImage")));
+        public override Image<TPixel>? GetImage<TPixel>() => Interop.FromNSImage<TPixel>(getFromPasteboard(Class.Get("NSImage")));
 
-        public override void SetText(string text) => setToPasteboard(Cocoa.ToNSString(text));
+        public override void SetText(string text) => setToPasteboard(Interop.ToNSString(text));
 
-        public override bool SetImage(Image image) => setToPasteboard(Cocoa.ToNSImage(image));
+        public override bool SetImage(Image image) => setToPasteboard(Interop.ToNSImage(image));
 
         private IntPtr getFromPasteboard(IntPtr @class)
         {

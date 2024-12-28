@@ -3,8 +3,9 @@
 
 using System;
 using System.Runtime.InteropServices;
+using osu.Framework.Platform.MacOS.Native;
 
-namespace osu.Framework.Platform.MacOS.Native
+namespace osu.Framework.Platform.Apple.Native
 {
     internal readonly struct NSData
     {
@@ -22,19 +23,19 @@ namespace osu.Framework.Platform.MacOS.Native
 
         internal byte[] ToBytes()
         {
-            IntPtr pointer = Cocoa.SendIntPtr(Handle, sel_bytes);
-            int size = Cocoa.SendInt(Handle, sel_length);
+            IntPtr pointer = Interop.SendIntPtr(Handle, sel_bytes);
+            int size = Interop.SendInt(Handle, sel_length);
 
             byte[] bytes = new byte[size];
             Marshal.Copy(pointer, bytes, 0, size);
             return bytes;
         }
 
-        internal static unsafe NSData FromBytes(byte[] bytes)
+        internal static unsafe NSData FromBytes(ReadOnlySpan<byte> bytes)
         {
             fixed (byte* ptr = bytes)
             {
-                IntPtr handle = Cocoa.SendIntPtr(class_pointer, sel_data_with_bytes, (IntPtr)ptr, (ulong)bytes.LongLength);
+                IntPtr handle = Interop.SendIntPtr(class_pointer, sel_data_with_bytes, (IntPtr)ptr, (ulong)bytes.Length);
                 return new NSData(handle);
             }
         }
