@@ -3,8 +3,11 @@
 
 // ReSharper disable InconsistentNaming
 
+using System.Runtime.InteropServices;
+
 namespace osu.Framework.Platform.Apple.Native.Accelerate
 {
+    [StructLayout(LayoutKind.Sequential)]
     internal unsafe struct vImage_CGImageFormat
     {
         public uint BitsPerComponent;
