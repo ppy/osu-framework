@@ -21,6 +21,6 @@ namespace osu.Framework.Platform.MacOS.Native
 
         internal static NSWorkspace SharedWorkspace() => new NSWorkspace(Interop.SendIntPtr(class_pointer, sel_shared_workspace));
 
-        internal bool SelectFile(string file) => Interop.SendBool(Handle, sel_select_file, Interop.ToNSString(file));
+        internal bool SelectFile(string file) => Interop.SendBool(Handle, sel_select_file, NSString.FromString(file).Handle);
     }
 }

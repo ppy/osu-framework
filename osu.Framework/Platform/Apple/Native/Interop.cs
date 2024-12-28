@@ -2,12 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.IO;
 using System.Runtime.InteropServices;
-using osu.Framework.Platform.MacOS.Native;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Tiff;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Platform.Apple.Native
 {
@@ -98,48 +93,6 @@ namespace osu.Framework.Platform.Apple.Native
         static Interop()
         {
             AppKitLibrary = dlopen(LIB_APPKIT, RTLD_NOW);
-        }
-
-        private static readonly IntPtr sel_utf8_string = Selector.Get("UTF8String");
-        private static readonly IntPtr sel_tiff_representation = Selector.Get("TIFFRepresentation");
-
-        public static string? FromNSString(IntPtr handle) => Marshal.PtrToStringUTF8(SendIntPtr(handle, sel_utf8_string));
-
-        public static Image<TPixel>? FromNSImage<TPixel>(IntPtr handle)
-            where TPixel : unmanaged, IPixel<TPixel>
-        {
-            if (handle == IntPtr.Zero)
-                return null;
-
-            var tiffRepresentation = new NSData(SendIntPtr(handle, sel_tiff_representation));
-            return Image.Load<TPixel>(tiffRepresentation.ToBytes());
-        }
-
-        public static unsafe IntPtr ToNSString(string? str)
-        {
-            if (str == null)
-                return IntPtr.Zero;
-
-            fixed (char* ptrFirstChar = str)
-            {
-                IntPtr handle = SendIntPtr(Class.Get("NSString"), Selector.Get("alloc"));
-                return SendIntPtr(handle, Selector.Get("initWithCharacters:length:"), (IntPtr)ptrFirstChar, str.Length);
-            }
-        }
-
-        public static IntPtr ToNSImage(Image? image)
-        {
-            if (image == null)
-                return IntPtr.Zero;
-
-            using (var stream = new MemoryStream())
-            {
-                image.Save(stream, TiffFormat.Instance);
-                byte[] array = stream.ToArray();
-
-                IntPtr handle = SendIntPtr(Class.Get("NSImage"), Selector.Get("alloc"));
-                return SendIntPtr(handle, Selector.Get("initWithData:"), NSData.FromBytes(array));
-            }
         }
 
         public static IntPtr GetStringConstant(IntPtr handle, string symbol)
