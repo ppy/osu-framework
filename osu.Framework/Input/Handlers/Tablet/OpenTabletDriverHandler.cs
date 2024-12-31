@@ -115,6 +115,8 @@ namespace osu.Framework.Input.Handlers.Tablet
                 updateTabletAndInputArea(device);
                 updateOutputArea(host.Window);
             }
+            else
+                tablet.Value = null;
         }
 
         private void handleDeviceReported(object? sender, IDeviceReport report)
