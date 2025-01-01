@@ -25,7 +25,7 @@ namespace osu.Framework.iOS
 
         private static readonly OutputVolumeObserver output_volume_observer = new OutputVolumeObserver();
 
-        private IOSGameHost host = null!;
+        public IOSGameHost Host { get; private set; } = null!;
 
         public override bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
         {
@@ -41,8 +41,8 @@ namespace osu.Framework.iOS
             audioSession.SetCategory(AVAudioSessionCategory.SoloAmbient);
             audioSession.AddObserver(output_volume_observer, output_volume, NSKeyValueObservingOptions.New, 0);
 
-            host = new IOSGameHost();
-            host.Run(CreateGame());
+            Host = new IOSGameHost();
+            Host.Run(CreateGame());
             return true;
         }
 
