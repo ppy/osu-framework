@@ -3,14 +3,16 @@
 
 using System;
 using System.Runtime.InteropServices;
+using osu.Framework.Platform.MacOS.Native;
 
-namespace osu.Framework.Platform.MacOS.Native
+namespace osu.Framework.Platform.Apple.Native
 {
-    internal readonly struct NSData
+    internal readonly struct NSData : IDisposable
     {
         internal IntPtr Handle { get; }
 
         private static readonly IntPtr class_pointer = Class.Get("NSData");
+        private static readonly IntPtr sel_release = Selector.Get("release");
         private static readonly IntPtr sel_data_with_bytes = Selector.Get("dataWithBytes:length:");
         private static readonly IntPtr sel_bytes = Selector.Get("bytes");
         private static readonly IntPtr sel_length = Selector.Get("length");
@@ -22,19 +24,27 @@ namespace osu.Framework.Platform.MacOS.Native
 
         internal byte[] ToBytes()
         {
-            IntPtr pointer = Cocoa.SendIntPtr(Handle, sel_bytes);
-            int size = Cocoa.SendInt(Handle, sel_length);
+            IntPtr pointer = Interop.SendIntPtr(Handle, sel_bytes);
+            int size = Interop.SendInt(Handle, sel_length);
 
             byte[] bytes = new byte[size];
             Marshal.Copy(pointer, bytes, 0, size);
             return bytes;
         }
 
-        internal static unsafe NSData FromBytes(byte[] bytes)
+        internal void Release() => Interop.SendVoid(Handle, sel_release);
+
+        public void Dispose()
+        {
+            if (Handle != IntPtr.Zero)
+                Release();
+        }
+
+        internal static unsafe NSData FromBytes(ReadOnlySpan<byte> bytes)
         {
             fixed (byte* ptr = bytes)
             {
-                IntPtr handle = Cocoa.SendIntPtr(class_pointer, sel_data_with_bytes, (IntPtr)ptr, (ulong)bytes.LongLength);
+                IntPtr handle = Interop.SendIntPtr(class_pointer, sel_data_with_bytes, (IntPtr)ptr, (ulong)bytes.Length);
                 return new NSData(handle);
             }
         }

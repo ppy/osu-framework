@@ -2,8 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Platform.MacOS.Native;
 
-namespace osu.Framework.Platform.MacOS.Native
+namespace osu.Framework.Platform.Apple.Native
 {
     internal readonly struct NSArray
     {
@@ -22,19 +23,19 @@ namespace osu.Framework.Platform.MacOS.Native
             Handle = handle;
         }
 
-        internal static NSArray ArrayWithObject(IntPtr obj) => new NSArray(Cocoa.SendIntPtr(class_pointer, sel_array_with_object, obj));
+        internal static NSArray ArrayWithObject(IntPtr obj) => new NSArray(Interop.SendIntPtr(class_pointer, sel_array_with_object, obj));
 
         internal static NSArray ArrayWithObjects(IntPtr[] objs)
         {
-            IntPtr mutableArray = Cocoa.SendIntPtr(mutable_class_pointer, sel_array);
+            IntPtr mutableArray = Interop.SendIntPtr(mutable_class_pointer, sel_array);
             foreach (IntPtr obj in objs)
-                Cocoa.SendVoid(mutableArray, sel_add_object, obj);
+                Interop.SendVoid(mutableArray, sel_add_object, obj);
             return new NSArray(mutableArray);
         }
 
-        internal int Count() => Cocoa.SendInt(Handle, sel_count);
+        internal int Count() => Interop.SendInt(Handle, sel_count);
 
-        internal IntPtr ObjectAtIndex(int index) => Cocoa.SendIntPtr(Handle, sel_object_at_index, index);
+        internal IntPtr ObjectAtIndex(int index) => Interop.SendIntPtr(Handle, sel_object_at_index, index);
 
         internal IntPtr[] ToArray()
         {
