@@ -1,0 +1,19 @@
+namespace osu.Framework.Graphics.Transforms
+{
+    public class Transform<TValue, TEasing, T>
+        where TEasing : IEasingFunction
+    {
+    }
+    
+    public class TransformCustom<TValue, TEasing, T> : Transform<TValue, TEasing, T>
+        where TEasing : IEasingFunction
+    {
+        public TransformCustom(string propertyOrFieldName, ReadFunc<T, TValue> read, WriteFunc<T, TValue> write, string? grouping = null)
+        {
+        }
+    }
+    
+    public delegate TValue ReadFunc<in T, out TValue>(T transformable);
+    
+    public delegate void WriteFunc<in T, in TValue>(T transformable, TValue value);
+}

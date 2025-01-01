@@ -2,6 +2,7 @@
   <PropertyGroup Label="Project">
     <TargetFramework>net8.0</TargetFramework>
     <OutputType>WinExe</OutputType>
+    <PublishAot>true</PublishAot>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateProgramFile>false</GenerateProgramFile>

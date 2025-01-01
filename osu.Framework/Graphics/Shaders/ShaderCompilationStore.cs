@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics.Shaders
                 Reflection = crossResult.Reflection
             };
 
-            saveToCache(filename, compilation);
+            // saveToCache(filename, compilation);
 
             return compilation;
         }
@@ -74,7 +74,7 @@ namespace osu.Framework.Graphics.Shaders
                 Reflection = crossResult.Reflection
             };
 
-            saveToCache(filename, compilation);
+            // saveToCache(filename, compilation);
 
             return compilation;
         }

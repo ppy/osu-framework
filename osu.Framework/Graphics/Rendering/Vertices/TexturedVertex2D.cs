@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using osuTK;
 using osuTK.Graphics;
@@ -10,6 +11,7 @@ using osuTK.Graphics.ES30;
 namespace osu.Framework.Graphics.Rendering.Vertices
 {
     [StructLayout(LayoutKind.Sequential)]
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
     public struct TexturedVertex2D : IEquatable<TexturedVertex2D>, IVertex
     {
         [VertexMember(2, VertexAttribPointerType.Float)]

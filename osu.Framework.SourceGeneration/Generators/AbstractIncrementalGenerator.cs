@@ -19,7 +19,16 @@ namespace osu.Framework.SourceGeneration.Generators
             // Stage 1: Create SyntaxTarget objects for all classes.
             IncrementalValuesProvider<IncrementalSyntaxTarget> syntaxTargets =
                 context.SyntaxProvider.CreateSyntaxProvider(
-                           (n, _) => isSyntaxTarget(n),
+                           (n, _) =>
+                           {
+                               if (n is not ClassDeclarationSyntax classSyntax)
+                                   return false;
+
+                               if (classSyntax.AncestorsAndSelf().OfType<ClassDeclarationSyntax>().Any(c => !c.Modifiers.Any(SyntaxKind.PartialKeyword)))
+                                   return false;
+
+                               return IsSyntaxTarget(classSyntax);
+                           },
                            (ctx, _) => returnWithEvent(new IncrementalSyntaxTarget((ClassDeclarationSyntax)ctx.Node, ctx.SemanticModel), EventDriver.OnSyntaxTargetCreated))
                        .Select((t, _) => t.WithName())
                        .Combine(context.CompilationProvider)
@@ -73,16 +82,7 @@ namespace osu.Framework.SourceGeneration.Generators
 
         protected abstract IncrementalSourceEmitter CreateSourceEmitter(IncrementalSemanticTarget target);
 
-        private static bool isSyntaxTarget(SyntaxNode syntaxNode)
-        {
-            if (syntaxNode is not ClassDeclarationSyntax classSyntax)
-                return false;
-
-            if (classSyntax.AncestorsAndSelf().OfType<ClassDeclarationSyntax>().Any(c => !c.Modifiers.Any(SyntaxKind.PartialKeyword)))
-                return false;
-
-            return true;
-        }
+        protected virtual bool IsSyntaxTarget(ClassDeclarationSyntax syntaxNode) => true;
 
         private void emit(SourceProductionContext context, IncrementalSemanticTarget target)
         {

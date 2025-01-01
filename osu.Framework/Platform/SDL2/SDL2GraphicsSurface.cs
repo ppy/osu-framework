@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
@@ -95,16 +96,18 @@ namespace osu.Framework.Platform.SDL2
 
         private void loadBindings()
         {
-            loadEntryPoints(new osuTK.Graphics.OpenGL.GL());
-            loadEntryPoints(new osuTK.Graphics.OpenGL4.GL());
-            loadEntryPoints(new osuTK.Graphics.ES11.GL());
-            loadEntryPoints(new osuTK.Graphics.ES20.GL());
-            loadEntryPoints(new GL());
+            loadEntryPoints(new osuTK.Graphics.OpenGL.GL(), typeof(GraphicsBindingsBase));
+            loadEntryPoints(new osuTK.Graphics.OpenGL4.GL(), typeof(GraphicsBindingsBase));
+            loadEntryPoints(new osuTK.Graphics.ES11.GL(), typeof(GraphicsBindingsBase));
+            loadEntryPoints(new osuTK.Graphics.ES20.GL(), typeof(GraphicsBindingsBase));
+            loadEntryPoints(new GL(), typeof(GraphicsBindingsBase));
         }
 
-        private unsafe void loadEntryPoints(GraphicsBindingsBase bindings)
+        private static unsafe void loadEntryPoints(
+            GraphicsBindingsBase bindings,
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)]
+            Type type)
         {
-            var type = bindings.GetType();
             var pointsInfo = type.GetRuntimeFields().First(x => x.Name == "_EntryPointsInstance");
             var namesInfo = type.GetRuntimeFields().First(x => x.Name == "_EntryPointNamesInstance");
             var offsetsInfo = type.GetRuntimeFields().First(x => x.Name == "_EntryPointNameOffsetsInstance");
@@ -131,7 +134,7 @@ namespace osu.Framework.Platform.SDL2
             pointsInfo.SetValue(bindings, entryPointsInstance);
         }
 
-        private IntPtr getProcAddress(string symbol)
+        private static IntPtr getProcAddress(string symbol)
         {
             const int error_category = (int)SDL_LogCategory.SDL_LOG_CATEGORY_ERROR;
             SDL_LogPriority oldPriority = SDL_LogGetPriority(error_category);
