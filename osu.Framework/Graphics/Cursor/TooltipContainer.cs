@@ -5,12 +5,15 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
+using osu.Framework.Input.StateChanges;
 using osu.Framework.Localisation;
+using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics;
 
@@ -49,6 +52,9 @@ namespace osu.Framework.Graphics.Cursor
 
         private readonly Container content;
         protected override Container<Drawable> Content => content;
+
+        [Resolved]
+        private GameHost host { get; set; }
 
         /// <summary>
         /// Creates a tooltip container where the tooltip is positioned at the bottom-right of
@@ -113,6 +119,14 @@ namespace osu.Framework.Graphics.Cursor
                     (cursorQuad.TopRight - cursorCentre).Length);
             }
 
+            if (inputManager.CurrentState.Mouse.LastSource is ISourcedFromTouch)
+                return computeTouchTooltipPosition(cursorCentre);
+
+            return computeMouseTooltipPosition(cursorCentre, boundingRadius);
+        }
+
+        private Vector2 computeMouseTooltipPosition(Vector2 cursorCentre, float boundingRadius)
+        {
             Vector2 southEast = new Vector2(1).Normalized();
             Vector2 tooltipPos = cursorCentre + southEast * boundingRadius;
 
@@ -126,6 +140,37 @@ namespace osu.Framework.Graphics.Cursor
             else
                 tooltipPos.Y = cursorCentre.Y + dY;
 
+            return tooltipPos;
+        }
+
+        private Vector2 computeTouchTooltipPosition(Vector2 touchCentre)
+        {
+            // the screen's ppi affects how farther away should the tooltip be to not be obstructed by the user's fingers.
+            // todo: this is broken on Android because SDL returns pixel density via SDL_GetWindowDisplayScale rather than window size / SDL_GetWindowPixelDensity.
+            float displayScale = host.Window.Scale;
+            float topDisplayYDistance = 25f * displayScale;
+            float sideDisplayXDistance = 30f * displayScale;
+
+            Vector2 tooltipPosBottomCentre = touchCentre + new Vector2(0, -topDisplayYDistance);
+            Vector2 tooltipPos;
+
+            if (tooltipPosBottomCentre.Y < CurrentTooltip.DrawSize.Y - 5)
+            {
+                // there's not enough space to display the tooltip above the touch. display to the right/left instead..
+                Vector2 tooltipCentreRight = touchCentre + new Vector2(-sideDisplayXDistance, 0);
+
+                if (tooltipCentreRight.X < CurrentTooltip.DrawSize.X - 5)
+                {
+                    Vector2 tooltipCentreLeft = touchCentre + new Vector2(sideDisplayXDistance, 0);
+                    tooltipPos = tooltipCentreLeft - new Vector2(0, CurrentTooltip.DrawSize.Y / 2);
+                }
+                else
+                    tooltipPos = tooltipCentreRight - new Vector2(CurrentTooltip.DrawSize.X, CurrentTooltip.DrawSize.Y / 2);
+            }
+            else
+                tooltipPos = tooltipPosBottomCentre - new Vector2(CurrentTooltip.DrawSize.X / 2, CurrentTooltip.DrawSize.Y);
+
+            tooltipPos.X = Math.Clamp(tooltipPos.X, 0, DrawWidth - CurrentTooltip.DrawSize.X);
             return tooltipPos;
         }
 
