@@ -11,6 +11,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.Events;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -33,27 +34,38 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool TryGetEntriesForPath(DirectoryInfo path, out ICollection<DirectorySelectorItem> items)
         {
+            bool gotAllEntries = true;
             items = new List<DirectorySelectorItem>();
 
             if (!base.TryGetEntriesForPath(path, out var directories))
-                return false;
+                gotAllEntries = false;
 
             items = directories;
 
             try
             {
-                IEnumerable<FileInfo> files = path.GetFiles();
+                IEnumerable<string> filenames = Directory.GetFiles(path.FullName).OrderBy(f => f);
 
-                if (validFileExtensions.Length > 0)
-                    files = files.Where(f => validFileExtensions.Contains(f.Extension));
-
-                foreach (var file in files.OrderBy(d => d.Name))
+                foreach (string filename in filenames)
                 {
-                    if (ShowHiddenItems.Value || !file.Attributes.HasFlagFast(FileAttributes.Hidden))
-                        items.Add(CreateFileItem(file));
+                    try
+                    {
+                        FileInfo file = new FileInfo(filename);
+
+                        if (validFileExtensions.Length > 0 && !validFileExtensions.Contains(file.Extension))
+                            continue;
+
+                        if (ShowHiddenItems.Value || !file.Attributes.HasFlagFast(FileAttributes.Hidden))
+                            items.Add(CreateFileItem(file));
+                    }
+                    catch
+                    {
+                        Logger.Log($"File {filename} is inaccessible", LoggingTarget.Information, LogLevel.Debug);
+                        gotAllEntries = false;
+                    }
                 }
 
-                return true;
+                return items.Count > 0 || gotAllEntries;
             }
             catch
             {
