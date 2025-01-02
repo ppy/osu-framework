@@ -22,6 +22,8 @@ namespace osu.Framework.Platform.Apple.Native
             Handle = handle;
         }
 
+        public static implicit operator NSData(NSMutableData data) => new NSData(data.Handle);
+
         internal byte[] ToBytes()
         {
             IntPtr pointer = Interop.SendIntPtr(Handle, sel_bytes);

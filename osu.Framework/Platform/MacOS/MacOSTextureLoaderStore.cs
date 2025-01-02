@@ -1,19 +1,19 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.IO;
-using Foundation;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform.Apple;
+using osu.Framework.Platform.Apple.Native;
+using osu.Framework.Platform.MacOS.Native;
 using SixLabors.ImageSharp;
-using UIKit;
 
-namespace osu.Framework.iOS.Graphics.Textures
+namespace osu.Framework.Platform.MacOS
 {
-    internal class IOSTextureLoaderStore : AppleTextureLoaderStore
+    internal class MacOSTextureLoaderStore : AppleTextureLoaderStore
     {
-        public IOSTextureLoaderStore(IResourceStore<byte[]> store)
+        public MacOSTextureLoaderStore(IResourceStore<byte[]> store)
             : base(store)
         {
         }
@@ -23,14 +23,14 @@ namespace osu.Framework.iOS.Graphics.Textures
             int length = (int)(stream.Length - stream.Position);
             using var nativeData = NSMutableData.FromLength(length);
 
-            var bytesSpan = new Span<byte>(nativeData.MutableBytes.ToPointer(), length);
+            var bytesSpan = new Span<byte>(nativeData.MutableBytes, length);
             stream.ReadExactly(bytesSpan);
 
-            using var uiImage = UIImage.LoadFromData(nativeData);
-            if (uiImage == null)
+            using var nsImage = NSImage.LoadFromData(nativeData);
+            if (nsImage.Handle == IntPtr.Zero)
                 throw new ArgumentException($"{nameof(Image)} could not be created from {nameof(stream)}.");
 
-            var cgImage = new Platform.Apple.Native.CGImage(uiImage.CGImage!.Handle);
+            var cgImage = nsImage.CGImage;
             return ImageFromCGImage<TPixel>(cgImage);
         }
     }

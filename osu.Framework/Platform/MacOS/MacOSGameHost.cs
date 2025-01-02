@@ -7,10 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using osu.Framework.Platform.MacOS.Native;
 
@@ -43,6 +45,9 @@ namespace osu.Framework.Platform.MacOS
         protected override Clipboard CreateClipboard() => new MacOSClipboard();
 
         protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new MacOSReadableKeyCombinationProvider();
+
+        public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
+            => new MacOSTextureLoaderStore(underlyingStore);
 
         protected override void Swap()
         {
