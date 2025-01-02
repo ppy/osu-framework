@@ -147,7 +147,7 @@ namespace osu.Framework.Graphics.Cursor
         {
             // the screen's ppi affects how farther away should the tooltip be to not be obstructed by the user's fingers.
             // todo: this is broken on Android because SDL returns pixel density via SDL_GetWindowDisplayScale rather than window size / SDL_GetWindowPixelDensity.
-            float displayScale = host.Window.Scale;
+            float displayScale = host.Window?.Scale ?? 1f;
             float topDisplayYDistance = 25f * displayScale;
             float sideDisplayXDistance = 30f * displayScale;
 
