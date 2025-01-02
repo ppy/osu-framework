@@ -141,14 +141,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             int x = 0, y = 0;
 
-            AddSliderStep("touch x", -100, 100, 0, v =>
+            AddSliderStep("touch x", -200, 200, 0, v =>
             {
                 x = v;
 
                 if (topLeftBox != null)
                     InputManager.MoveTouchTo(new Touch(TouchSource.Touch1, topLeftBox.ScreenSpaceDrawQuad.Centre + new Vector2(x, y)));
             });
-            AddSliderStep("touch y", -100, 100, 0, v =>
+            AddSliderStep("touch y", -200, 200, 0, v =>
             {
                 y = v;
 
