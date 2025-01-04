@@ -800,6 +800,40 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("nothing selected", () => textBox.SelectedText == string.Empty);
         }
 
+        [Test()]
+        public void TestTextChangedDuringDoubleClickDrag()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(300, 40),
+                    Text = "initial text",
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("set text", () => textBox.Text = "aaaaaaaaaaaaaaaaaaaa");
+
+            AddStep("select word", () =>
+            {
+                InputManager.Click(MouseButton.Left);
+                InputManager.PressButton(MouseButton.Left);
+            });
+
+            AddStep("insert text", () => textBox.InsertString("a"));
+            AddAssert("text overwritten", () => textBox.Text == "a");
+            AddStep("start drag", () => InputManager.MoveMouseTo(textBox, new Vector2(-50, 0)));
+            AddStep("end drag", () => InputManager.ReleaseButton(MouseButton.Left));
+        }
+
         [Test]
         public void TestSelectAll()
         {
