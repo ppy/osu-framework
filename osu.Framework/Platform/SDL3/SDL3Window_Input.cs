@@ -300,6 +300,7 @@ namespace osu.Framework.Platform.SDL3
                     break;
 
                 case SDL_EventType.SDL_EVENT_FINGER_UP:
+                case SDL_EventType.SDL_EVENT_FINGER_CANCELED:
                     TouchUp?.Invoke(touch);
                     activeTouches[(int)existingSource] = null;
                     break;
