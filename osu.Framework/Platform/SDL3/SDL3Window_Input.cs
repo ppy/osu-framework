@@ -498,14 +498,27 @@ namespace osu.Framework.Platform.SDL3
 
         private void handlePenMotionEvent(SDL_PenMotionEvent evtPenMotion)
         {
+            PenMove?.Invoke(new Vector2(evtPenMotion.x, evtPenMotion.y) * Scale);
         }
 
         private void handlePenTouchEvent(SDL_PenTouchEvent evtPenTouch)
         {
+            PenTouch?.Invoke(evtPenTouch.down);
         }
+
+        /// <summary>
+        /// The first SDL pen button as defined in https://wiki.libsdl.org/SDL3/SDL_PenButtonEvent.
+        /// </summary>
+        private const byte first_pen_button = 1;
 
         private void handlePenButtonEvent(SDL_PenButtonEvent evtPenButton)
         {
+            var button = (TabletPenButton)(evtPenButton.button - first_pen_button);
+
+            if (button >= TabletPenButton.Primary && button <= TabletPenButton.Button8)
+                PenButton?.Invoke(button, evtPenButton.down);
+            else
+                Logger.Log($"Dropping SDL_PenButtonEvent with button index={evtPenButton.button} (out of range).");
         }
 
         private MouseButton mouseButtonFromEvent(SDLButton button)
@@ -694,6 +707,21 @@ namespace osu.Framework.Platform.SDL3
         /// Invoked when a finger leaves the touchscreen.
         /// </summary>
         public event Action<Touch>? TouchUp;
+
+        /// <summary>
+        /// Invoked when a pen moves.
+        /// </summary>
+        public event Action<Vector2>? PenMove;
+
+        /// <summary>
+        /// invoked when a pen touches (<c>true</c>) or lifts (<c>false</c>) from the tablet surface.
+        /// </summary>
+        public event Action<bool>? PenTouch;
+
+        /// <summary>
+        /// Invoked when a <see cref="TabletPenButton">pen button</see> is pressed (<c>true</c>) or released (<c>false</c>).
+        /// </summary>
+        public event Action<TabletPenButton, bool>? PenButton;
 
         #endregion
     }
