@@ -88,11 +88,15 @@ namespace osu.Framework.Input.Handlers.Tablet
             return true;
         }
 
-        void IAbsolutePointer.SetPosition(System.Numerics.Vector2 pos) => enqueueInput(new MousePositionAbsoluteInput { Position = new Vector2(pos.X, pos.Y) });
+        private TabletPenDeviceType lastTabletDeviceType = TabletPenDeviceType.Unknown;
 
-        void IRelativePointer.SetPosition(System.Numerics.Vector2 delta) => enqueueInput(new MousePositionRelativeInput { Delta = new Vector2(delta.X, delta.Y) });
+        void IAbsolutePointer.SetPosition(System.Numerics.Vector2 pos)
+            => enqueueInput(new TabletPenPositionAbsoluteInput { Position = new Vector2(pos.X, pos.Y), DeviceType = lastTabletDeviceType = TabletPenDeviceType.Unknown });
 
-        void IPressureHandler.SetPressure(float percentage) => enqueueInput(new MouseButtonInput(osuTK.Input.MouseButton.Left, percentage > 0));
+        void IRelativePointer.SetPosition(System.Numerics.Vector2 delta)
+            => enqueueInput(new TabletPenPositionRelativeInput { Delta = new Vector2(delta.X, delta.Y), DeviceType = lastTabletDeviceType = TabletPenDeviceType.Indirect });
+
+        void IPressureHandler.SetPressure(float percentage) => enqueueInput(new TabletPenInput(percentage > 0) { DeviceType = lastTabletDeviceType });
 
         private void handleTabletsChanged(object? sender, IEnumerable<TabletReference> tablets)
         {
