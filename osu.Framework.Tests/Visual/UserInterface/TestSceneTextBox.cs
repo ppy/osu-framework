@@ -800,7 +800,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("nothing selected", () => textBox.SelectedText == string.Empty);
         }
 
-        [Test()]
+        [Test]
         public void TestTextChangedDuringDoubleClickDrag()
         {
             InsertableTextBox textBox = null;
