@@ -22,9 +22,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Extensions.EnumExtensions;
@@ -66,6 +68,7 @@ namespace osu.Framework.Graphics
             AddLayout(screenSpaceDrawQuadBacking);
             AddLayout(drawColourInfoBacking);
             AddLayout(requiredParentSizeToFitBacking);
+            AddLayout(maskingBacking);
         }
 
         private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), "Total constructed");
@@ -495,21 +498,40 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Computes the masking bounds of this <see cref="Drawable"/>.
+        /// </summary>
+        /// <returns>The <see cref="RectangleF"/> that defines the masking bounds.</returns>
+        public virtual RectangleF ComputeMaskingBounds()
+        {
+            if (HasProxy)
+                return proxy.ComputeMaskingBounds();
+
+            if (parent == null)
+                return ScreenSpaceDrawQuad.AABBFloat;
+
+            return parent.ChildMaskingBounds;
+        }
+
+        private RectangleF? lastMaskingBounds;
+
+        /// <summary>
         /// Updates all masking calculations for this <see cref="Drawable"/>.
         /// This occurs post-<see cref="UpdateSubTree"/> to ensure that all <see cref="Drawable"/> updates have taken place.
         /// </summary>
-        /// <param name="source">The parent that triggered this update on this <see cref="Drawable"/>.</param>
-        /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds.</param>
         /// <returns>Whether masking calculations have taken place.</returns>
-        public virtual bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
+        public virtual bool UpdateSubTreeMasking()
         {
             if (!IsPresent)
                 return false;
 
-            if (HasProxy && source != proxy)
-                return false;
+            var maskingBounds = ComputeMaskingBounds();
 
-            IsMaskedAway = ComputeIsMaskedAway(maskingBounds);
+            if (!maskingBacking.IsValid || lastMaskingBounds != maskingBounds)
+            {
+                lastMaskingBounds = maskingBounds;
+                IsMaskedAway = maskingBacking.Value = ComputeIsMaskedAway(maskingBounds);
+            }
+
             return true;
         }
 
@@ -1470,7 +1492,16 @@ namespace osu.Framework.Graphics
         /// As this is performing an upward tree traversal, avoid calling every frame.
         /// </summary>
         /// <returns>The first parent <see cref="InputManager"/>.</returns>
-        protected InputManager GetContainingInputManager() => this.FindClosestParent<InputManager>();
+        [CanBeNull]
+        protected internal InputManager GetContainingInputManager() => this.FindClosestParent<InputManager>();
+
+        /// <summary>
+        /// Retrieve the first parent in the tree which implements <see cref="IFocusManager"/>.
+        /// As this is performing an upward tree traversal, avoid calling every frame.
+        /// </summary>
+        /// <returns>The first parent <see cref="IFocusManager"/>.</returns>
+        [CanBeNull]
+        protected internal IFocusManager GetContainingFocusManager() => this.FindClosestParent<IFocusManager>();
 
         private CompositeDrawable parent;
 
@@ -1517,7 +1548,7 @@ namespace osu.Framework.Graphics
         public bool HasProxy => proxy != null;
 
         /// <summary>
-        /// True iff this <see cref="Drawable"/> is not a proxy of any <see cref="Drawable"/>.
+        /// True iff this <see cref="Drawable"/> is a proxy of any <see cref="Drawable"/>.
         /// </summary>
         public bool IsProxy => Original != this;
 
@@ -1555,6 +1586,8 @@ namespace osu.Framework.Graphics
         /// actually masked away, but it may be false, even if the Drawable was masked away.
         /// </summary>
         internal bool IsMaskedAway { get; private set; }
+
+        private readonly LayoutValue<bool> maskingBacking = new LayoutValue<bool>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence);
 
         private readonly LayoutValue<Quad> screenSpaceDrawQuadBacking = new LayoutValue<Quad>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence);
 
@@ -2375,6 +2408,11 @@ namespace osu.Framework.Graphics
         public virtual bool AcceptsFocus => false;
 
         /// <summary>
+        /// If true, returning true in <see cref="OnClick"/> causes the current focus target to be unfocused.
+        /// </summary>
+        public virtual bool ChangeFocusOnClick => true;
+
+        /// <summary>
         /// Whether this Drawable is currently hovered over.
         /// </summary>
         /// <remarks>This is updated only if <see cref="HandlePositionalInput"/> is true.</remarks>
@@ -2672,6 +2710,8 @@ namespace osu.Framework.Graphics
     /// x and y counterparts can be accessed using bitwise flags.
     /// </summary>
     [Flags]
+    // todo: revisit when we have a way to exclude enum members from naming rules
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public enum Anchor
     {
         TopLeft = y0 | x0,

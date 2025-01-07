@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -10,14 +9,17 @@ using ObjCRuntime;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Platform;
-using SDL;
+using osu.Framework.Platform.SDL3;
+using static SDL.SDL3;
 using UIKit;
 
 namespace osu.Framework.iOS
 {
-    internal class IOSWindow : SDL3Window
+    internal class IOSWindow : SDL3MobileWindow, IIOSWindow
     {
-        private UIWindow? window;
+        public UIWindow UIWindow { get; private set; } = null!;
+
+        public UIViewController ViewController => UIWindow.RootViewController!;
 
         public override Size Size
         {
@@ -25,31 +27,26 @@ namespace osu.Framework.iOS
             protected set
             {
                 base.Size = value;
-
-                if (window != null)
-                    updateSafeArea();
+                updateSafeArea();
             }
         }
 
-        public IOSWindow(GraphicsSurfaceType surfaceType)
-            : base(surfaceType)
+        public IOSWindow(GraphicsSurfaceType surfaceType, string appName)
+            : base(surfaceType, appName)
         {
-        }
-
-        protected override unsafe void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
-        {
-            // This sets the status bar to hidden.
-            SDL3.SDL_SetWindowFullscreen(SDLWindowHandle, SDL_bool.SDL_TRUE);
-
-            // Don't run base logic at all. Let's keep things simple.
         }
 
         public override void Create()
         {
+            SDL_SetHint(SDL_HINT_IOS_HIDE_HOME_INDICATOR, "2"u8);
+
             base.Create();
 
-            window = Runtime.GetNSObject<UIWindow>(WindowHandle);
+            UIWindow = Runtime.GetNSObject<UIWindow>(WindowHandle)!;
             updateSafeArea();
+
+            var appDelegate = (GameApplicationDelegate)UIApplication.SharedApplication.Delegate;
+            appDelegate.DragDrop += TriggerDragDrop;
         }
 
         protected override unsafe void RunMainLoop()
@@ -62,8 +59,7 @@ namespace osu.Framework.iOS
             // iOS may be a good forward direction if this ever comes up, as a user may see a potentially higher
             // frame rate with multi-threaded mode turned on, but it is going to give them worse input latency
             // and higher power usage.
-            SDL3.SDL_iPhoneSetEventPump(SDL_bool.SDL_FALSE);
-            SDL3.SDL_iPhoneSetAnimationCallback(SDLWindowHandle, 1, &runFrame, ObjectHandle.Handle);
+            SDL_SetiOSAnimationCallback(SDLWindowHandle, 1, &runFrame, ObjectHandle.Handle);
         }
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
@@ -77,14 +73,15 @@ namespace osu.Framework.iOS
 
         private void updateSafeArea()
         {
-            Debug.Assert(window != null);
+            if (!Exists)
+                return;
 
             SafeAreaPadding.Value = new MarginPadding
             {
-                Top = (float)window.SafeAreaInsets.Top * Scale,
-                Left = (float)window.SafeAreaInsets.Left * Scale,
-                Bottom = (float)window.SafeAreaInsets.Bottom * Scale,
-                Right = (float)window.SafeAreaInsets.Right * Scale,
+                Top = (float)UIWindow.SafeAreaInsets.Top * Scale,
+                Left = (float)UIWindow.SafeAreaInsets.Left * Scale,
+                Bottom = (float)UIWindow.SafeAreaInsets.Bottom * Scale,
+                Right = (float)UIWindow.SafeAreaInsets.Right * Scale,
             };
         }
     }

@@ -3,15 +3,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Mix;
-using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
-using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Audio.Mixing.Bass
@@ -29,14 +25,11 @@ namespace osu.Framework.Audio.Mixing.Bass
         public int Handle { get; private set; }
 
         /// <summary>
-        /// The list of effects which are currently active in the BASS mix.
-        /// </summary>
-        internal readonly List<EffectWithHandle> ActiveEffects = new List<EffectWithHandle>();
-
-        /// <summary>
         /// The list of channels which are currently active in the BASS mix.
         /// </summary>
         private readonly List<IBassAudioChannel> activeChannels = new List<IBassAudioChannel>();
+
+        private readonly Dictionary<IEffectParameter, int> activeEffects = new Dictionary<IEffectParameter, int>();
 
         private const int frequency = 44100;
 
@@ -53,7 +46,32 @@ namespace osu.Framework.Audio.Mixing.Bass
             EnqueueAction(createMixer);
         }
 
-        public override BindableList<IEffectParameter> Effects { get; } = new BindableList<IEffectParameter>();
+        public override void AddEffect(IEffectParameter effect, int priority = 0) => EnqueueAction(() =>
+        {
+            if (activeEffects.ContainsKey(effect))
+                return;
+
+            int handle = ManagedBass.Bass.ChannelSetFX(Handle, effect.FXType, priority);
+            ManagedBass.Bass.FXSetParameters(handle, effect);
+
+            activeEffects[effect] = handle;
+        });
+
+        public override void RemoveEffect(IEffectParameter effect) => EnqueueAction(() =>
+        {
+            if (!activeEffects.Remove(effect, out int handle))
+                return;
+
+            ManagedBass.Bass.ChannelRemoveFX(Handle, handle);
+        });
+
+        public override void UpdateEffect(IEffectParameter effect) => EnqueueAction(() =>
+        {
+            if (!activeEffects.TryGetValue(effect, out int handle))
+                return;
+
+            ManagedBass.Bass.FXSetParameters(handle, effect);
+        });
 
         protected override void AddInternal(IAudioChannel channel)
         {
@@ -168,7 +186,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <param name="mode">How to set the position.</param>
         /// <returns>
         /// If successful, then <see langword="true"/> is returned, else <see langword="false"/> is returned.
-        /// Use <see cref="P:ManagedBass.Bass.LastError"/> to get the error code.
+        /// Use <see cref="ManagedBass.Bass.LastError"/> to get the error code.
         /// </returns>
         public bool ChannelSetPosition(IBassAudioChannel channel, long position, PositionFlags mode = PositionFlags.Bytes)
         {
@@ -204,11 +222,11 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <remarks>See: <see cref="ManagedBass.Bass.ChannelGetData(int, float[], int)"/>.</remarks>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to retrieve the data of.</param>
         /// <param name="buffer">float[] to write the data to.</param>
-        /// <param name="length">Number of bytes wanted, and/or <see cref="T:ManagedBass.DataFlags"/>.</param>
-        /// <returns>If an error occurs, -1 is returned, use <see cref="P:ManagedBass.Bass.LastError"/> to get the error code.
+        /// <param name="length">Number of bytes wanted, and/or <see cref="DataFlags"/>.</param>
+        /// <returns>If an error occurs, -1 is returned, use <see cref="ManagedBass.Bass.LastError"/> to get the error code.
         /// <para>When requesting FFT data, the number of bytes read from the channel (to perform the FFT) is returned.</para>
-        /// <para>When requesting sample data, the number of bytes written to buffer will be returned (not necessarily the same as the number of bytes read when using the <see cref="F:ManagedBass.DataFlags.Float"/> or DataFlags.Fixed flag).</para>
-        /// <para>When using the <see cref="F:ManagedBass.DataFlags.Available"/> flag, the number of bytes in the channel's buffer is returned.</para>
+        /// <para>When requesting sample data, the number of bytes written to buffer will be returned (not necessarily the same as the number of bytes read when using the <see cref="DataFlags.Float"/> or DataFlags.Fixed flag).</para>
+        /// <para>When using the <see cref="DataFlags.Available"/> flag, the number of bytes in the channel's buffer is returned.</para>
         /// </returns>
         public int ChannelGetData(IBassAudioChannel channel, float[] buffer, int length)
             => BassMix.ChannelGetData(channel.Handle, buffer, length);
@@ -222,7 +240,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <param name="parameter">The sync parameters, depending on the sync type.</param>
         /// <param name="procedure">The callback function which should be invoked with the sync.</param>
         /// <param name="user">User instance data to pass to the callback function.</param>
-        /// <returns>If successful, then the new synchroniser's handle is returned, else 0 is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+        /// <returns>If successful, then the new synchroniser's handle is returned, else 0 is returned. Use <see cref="ManagedBass.Bass.LastError" /> to get the error code.</returns>
         public int ChannelSetSync(IBassAudioChannel channel, SyncFlags type, long parameter, SyncProcedure procedure, IntPtr user = default)
             => BassMix.ChannelSetSync(channel.Handle, type, parameter, procedure, user);
 
@@ -230,8 +248,8 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// Removes a synchroniser from a mixer source channel.
         /// </summary>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to remove the synchroniser for.</param>
-        /// <param name="sync">Handle of the synchroniser to remove (return value of a previous <see cref="M:ManagedBass.Mix.BassMix.ChannelSetSync(System.Int32,ManagedBass.SyncFlags,System.Int64,ManagedBass.SyncProcedure,System.IntPtr)" /> call).</param>
-        /// <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+        /// <param name="sync">Handle of the synchroniser to remove (return value of a previous <see cref="BassMix.ChannelSetSync(int,SyncFlags,long,SyncProcedure,IntPtr)" /> call).</param>
+        /// <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="ManagedBass.Bass.LastError" /> to get the error code.</returns>
         public bool ChannelRemoveSync(IBassAudioChannel channel, int sync)
             => BassMix.ChannelRemoveSync(channel.Handle, sync);
 
@@ -239,7 +257,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// Frees a channel's resources.
         /// </summary>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to free.</param>
-        /// <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+        /// <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="ManagedBass.Bass.LastError" /> to get the error code.</returns>
         public bool StreamFree(IBassAudioChannel channel)
         {
             Remove(channel, false);
@@ -301,8 +319,6 @@ namespace osu.Framework.Audio.Mixing.Bass
             foreach (var channel in toAdd)
                 AddChannelToBassMix(channel);
 
-            Effects.BindCollectionChanged(onEffectsChanged, true);
-
             if (manager?.GlobalMixerHandle.Value != null)
                 BassMix.MixerAddChannel(manager.GlobalMixerHandle.Value.Value, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
 
@@ -341,93 +357,6 @@ namespace osu.Framework.Audio.Mixing.Bass
             BassMix.MixerRemoveChannel(channel.Handle);
         }
 
-        private void onEffectsChanged(object? sender, NotifyCollectionChangedEventArgs e) => EnqueueAction(() =>
-        {
-            switch (e.Action)
-            {
-                case NotifyCollectionChangedAction.Add:
-                {
-                    Debug.Assert(e.NewItems != null);
-
-                    // Work around BindableList sending initial event start with index -1.
-                    int startIndex = Math.Max(0, e.NewStartingIndex);
-
-                    ActiveEffects.InsertRange(startIndex, e.NewItems.OfType<IEffectParameter>().Select(eff => new EffectWithHandle(eff)));
-                    applyEffects(startIndex, ActiveEffects.Count - 1);
-                    break;
-                }
-
-                case NotifyCollectionChangedAction.Move:
-                {
-                    EffectWithHandle effect = ActiveEffects[e.OldStartingIndex];
-                    ActiveEffects.RemoveAt(e.OldStartingIndex);
-                    ActiveEffects.Insert(e.NewStartingIndex, effect);
-                    applyEffects(Math.Min(e.OldStartingIndex, e.NewStartingIndex), ActiveEffects.Count - 1);
-                    break;
-                }
-
-                case NotifyCollectionChangedAction.Remove:
-                {
-                    Debug.Assert(e.OldItems != null);
-
-                    for (int i = 0; i < e.OldItems.Count; i++)
-                        removeEffect(ActiveEffects[e.OldStartingIndex + i]);
-                    ActiveEffects.RemoveRange(e.OldStartingIndex, e.OldItems.Count);
-                    applyEffects(e.OldStartingIndex, ActiveEffects.Count - 1);
-                    break;
-                }
-
-                case NotifyCollectionChangedAction.Replace:
-                {
-                    Debug.Assert(e.NewItems != null);
-
-                    EffectWithHandle oldEffect = ActiveEffects[e.NewStartingIndex];
-                    EffectWithHandle newEffect = new EffectWithHandle((IEffectParameter)e.NewItems[0].AsNonNull()) { Handle = oldEffect.Handle };
-
-                    ActiveEffects[e.NewStartingIndex] = newEffect;
-
-                    // If the effect types don't match, the old effect has to be removed altogether. Otherwise, the new parameters can be applied onto the existing handle.
-                    if (oldEffect.Effect.FXType != newEffect.Effect.FXType)
-                        removeEffect(oldEffect);
-
-                    applyEffects(e.NewStartingIndex, e.NewStartingIndex);
-                    break;
-                }
-
-                case NotifyCollectionChangedAction.Reset:
-                {
-                    foreach (var effect in ActiveEffects)
-                        removeEffect(effect);
-                    ActiveEffects.Clear();
-                    break;
-                }
-            }
-
-            void removeEffect(EffectWithHandle effect)
-            {
-                Debug.Assert(effect.Handle != 0);
-
-                ManagedBass.Bass.ChannelRemoveFX(Handle, effect.Handle);
-                effect.Handle = 0;
-            }
-
-            void applyEffects(int startIndex, int endIndex)
-            {
-                for (int i = startIndex; i <= endIndex; i++)
-                {
-                    var effect = ActiveEffects[i];
-
-                    // Effects with greatest priority are stored at the front of the list.
-                    effect.Priority = -i;
-
-                    if (effect.Handle == 0)
-                        effect.Handle = ManagedBass.Bass.ChannelSetFX(Handle, effect.Effect.FXType, effect.Priority);
-
-                    ManagedBass.Bass.FXSetParameters(effect.Handle, effect.Effect);
-                }
-            }
-        });
-
         /// <summary>
         /// Flushes the mixer, causing pause and seek events to take effect immediately.
         /// </summary>
@@ -452,19 +381,6 @@ namespace osu.Framework.Audio.Mixing.Bass
             {
                 ManagedBass.Bass.StreamFree(Handle);
                 Handle = 0;
-            }
-        }
-
-        internal class EffectWithHandle
-        {
-            public int Handle { get; set; }
-            public int Priority { get; set; }
-
-            public readonly IEffectParameter Effect;
-
-            public EffectWithHandle(IEffectParameter effect)
-            {
-                Effect = effect;
             }
         }
     }

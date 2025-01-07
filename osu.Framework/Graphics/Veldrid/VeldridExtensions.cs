@@ -14,15 +14,13 @@ using osuTK.Graphics;
 using SharpGen.Runtime;
 using Veldrid;
 using Veldrid.MetalBindings;
-using Veldrid.OpenGLBinding;
+using Veldrid.OpenGLBindings;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 using Vulkan;
-using GetPName = Veldrid.OpenGLBinding.GetPName;
 using GraphicsBackend = Veldrid.GraphicsBackend;
 using PrimitiveTopology = Veldrid.PrimitiveTopology;
 using StencilOperation = Veldrid.StencilOperation;
-using StringName = Veldrid.OpenGLBinding.StringName;
 using VertexAttribPointerType = osuTK.Graphics.ES30.VertexAttribPointerType;
 
 namespace osu.Framework.Graphics.Veldrid
@@ -125,19 +123,19 @@ namespace osu.Framework.Graphics.Veldrid
                 switch (renderBufferFormats[i])
                 {
                     case RenderBufferFormat.D16:
-                        pixelFormats[i] = PixelFormat.R16_UNorm;
+                        pixelFormats[i] = PixelFormat.R16UNorm;
                         break;
 
                     case RenderBufferFormat.D32:
-                        pixelFormats[i] = PixelFormat.R32_Float;
+                        pixelFormats[i] = PixelFormat.R32Float;
                         break;
 
                     case RenderBufferFormat.D24S8:
-                        pixelFormats[i] = PixelFormat.D24_UNorm_S8_UInt;
+                        pixelFormats[i] = PixelFormat.D24UNormS8UInt;
                         break;
 
                     case RenderBufferFormat.D32S8:
-                        pixelFormats[i] = PixelFormat.D32_Float_S8_UInt;
+                        pixelFormats[i] = PixelFormat.D32FloatS8UInt;
                         break;
 
                     default:
@@ -153,10 +151,10 @@ namespace osu.Framework.Graphics.Veldrid
             switch (mode)
             {
                 case TextureFilteringMode.Linear:
-                    return SamplerFilter.MinLinear_MagLinear_MipLinear;
+                    return SamplerFilter.MinLinearMagLinearMipLinear;
 
                 case TextureFilteringMode.Nearest:
-                    return SamplerFilter.MinPoint_MagPoint_MipPoint;
+                    return SamplerFilter.MinPointMagPointMipPoint;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(mode));

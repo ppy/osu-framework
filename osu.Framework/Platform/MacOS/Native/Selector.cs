@@ -3,12 +3,13 @@
 
 using System;
 using System.Runtime.InteropServices;
+using osu.Framework.Platform.Apple.Native;
 
 namespace osu.Framework.Platform.MacOS.Native
 {
-    internal static class Selector
+    internal static partial class Selector
     {
-        [DllImport(Cocoa.LIB_OBJ_C, EntryPoint = "sel_registerName")]
-        public static extern IntPtr Get(string name);
+        [LibraryImport(Interop.LIB_OBJ_C, EntryPoint = "sel_registerName", StringMarshalling = StringMarshalling.Utf8)]
+        public static partial IntPtr Get(string name);
     }
 }

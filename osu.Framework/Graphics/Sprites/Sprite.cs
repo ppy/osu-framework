@@ -30,6 +30,12 @@ namespace osu.Framework.Graphics.Sprites
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
         }
 
+        /// <summary>
+        /// The shader which should be used for rendering this sprite.
+        /// </summary>
+        /// <remarks>
+        /// This is automatically populated, but may be overridden if required for special cases.
+        /// If overriding, set in a <see cref="BackgroundDependencyLoaderAttribute"/> method or later.</remarks>
         public IShader TextureShader { get; protected set; }
 
         private RectangleF textureRectangle = new RectangleF(0, 0, 1, 1);

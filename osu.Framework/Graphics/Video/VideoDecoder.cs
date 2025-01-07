@@ -268,21 +268,25 @@ namespace osu.Framework.Graphics.Video
             if (codecContext == null)
                 return Matrix3.Zero;
 
-            switch (codecContext->colorspace)
-            {
-                case AVColorSpace.AVCOL_SPC_BT709:
-                    return new Matrix3(1.164f, 1.164f, 1.164f,
-                        0.000f, -0.213f, 2.112f,
-                        1.793f, -0.533f, 0.000f);
+            // this matches QuickTime Player's choice of colour spaces:
+            // - any video with width < 704 and height < 576 uses the SDTV colorspace.
+            // - any video with width >= 704 and height >= 576 uses the HDTV colorspace.
+            // (704x576 in particular has a special colour space, but we don't worry about it).
+            bool unspecifiedUsesHDTV = codecContext->width >= 704 || codecContext->height >= 576;
 
-                case AVColorSpace.AVCOL_SPC_UNSPECIFIED:
-                case AVColorSpace.AVCOL_SPC_SMPTE170M:
-                case AVColorSpace.AVCOL_SPC_SMPTE240M:
-                default:
-                    return new Matrix3(1.164f, 1.164f, 1.164f,
-                        0.000f, -0.392f, 2.017f,
-                        1.596f, -0.813f, 0.000f);
+            if (codecContext->colorspace == AVColorSpace.AVCOL_SPC_BT709
+                || (codecContext->colorspace == AVColorSpace.AVCOL_SPC_UNSPECIFIED && unspecifiedUsesHDTV))
+            {
+                // matrix coefficients for HDTV / Rec. 709 colorspace.
+                return new Matrix3(1.164f, 1.164f, 1.164f,
+                    0.000f, -0.213f, 2.112f,
+                    1.793f, -0.533f, 0.000f);
             }
+
+            // matrix coefficients for SDTV / Rec. 601 colorspace.
+            return new Matrix3(1.164f, 1.164f, 1.164f,
+                0.000f, -0.392f, 2.017f,
+                1.596f, -0.813f, 0.000f);
         }
 
         [MonoPInvokeCallback(typeof(avio_alloc_context_read_packet))]
@@ -349,7 +353,12 @@ namespace osu.Framework.Graphics.Video
             formatContext->pb = ioContext;
             formatContext->flags |= FFmpegFuncs.AVFMT_FLAG_GENPTS; // required for most HW decoders as they only read `pts`
 
-            int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "pipe:", null, null);
+            AVDictionary* options = null;
+            // see https://github.com/ppy/osu/issues/13696 for reasoning
+            ffmpeg.av_dict_set?.Invoke(&options, "ignore_editlist", "1", 0);
+            int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "pipe:", null, &options);
+            ffmpeg.av_dict_free?.Invoke(&options);
+
             inputOpened = openInputResult >= 0;
             if (!inputOpened)
                 throw new InvalidOperationException($"Error opening file or stream: {getErrorMessage(openInputResult)}");
@@ -842,6 +851,8 @@ namespace osu.Framework.Graphics.Video
 
             return new FFmpegFuncs
             {
+                av_dict_set = FFmpeg.AutoGen.ffmpeg.av_dict_set,
+                av_dict_free = FFmpeg.AutoGen.ffmpeg.av_dict_free,
                 av_frame_alloc = FFmpeg.AutoGen.ffmpeg.av_frame_alloc,
                 av_frame_free = FFmpeg.AutoGen.ffmpeg.av_frame_free,
                 av_frame_unref = FFmpeg.AutoGen.ffmpeg.av_frame_unref,

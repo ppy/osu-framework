@@ -1,14 +1,15 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Rendering.Dummy;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Logging;
+using osu.Framework.Threading;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Platform
@@ -21,7 +22,7 @@ namespace osu.Framework.Platform
         public const double CLOCK_RATE = 1000.0 / 30;
 
         private readonly bool realtime;
-        private IFrameBasedClock customClock;
+        private IFrameBasedClock? customClock;
 
         protected override IFrameBasedClock SceneGraphClock => customClock ?? base.SceneGraphClock;
 
@@ -41,7 +42,7 @@ namespace osu.Framework.Platform
 
         public override IEnumerable<string> UserStoragePaths => new[] { "./headless/" };
 
-        public HeadlessGameHost(string gameName = null, HostOptions options = null, bool realtime = true)
+        public HeadlessGameHost(string? gameName = null, HostOptions? options = null, bool realtime = true)
             : base(gameName ?? Guid.NewGuid().ToString(), options)
         {
             this.realtime = realtime;
@@ -49,7 +50,7 @@ namespace osu.Framework.Platform
 
         protected override bool RequireWindowExists => false;
 
-        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => null;
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => null!;
 
         protected override Clipboard CreateClipboard() => new HeadlessClipboard();
 
@@ -78,7 +79,7 @@ namespace osu.Framework.Platform
 
             if (!realtime)
             {
-                customClock = new FramedClock(new FastClock(CLOCK_RATE));
+                customClock = new FramedClock(new FastClock(CLOCK_RATE, Threads.ToArray()));
 
                 // time is incremented per frame, rather than based on the real-world time.
                 // therefore our goal is to run frames as fast as possible.
@@ -108,6 +109,12 @@ namespace osu.Framework.Platform
         private class FastClock : IClock
         {
             private readonly double increment;
+
+            private readonly GameThread[] gameThreads;
+            private readonly ulong[] gameThreadLastFrames;
+
+            private readonly Stopwatch stopwatch = new Stopwatch();
+
             private double time;
 
             /// <summary>
@@ -115,12 +122,49 @@ namespace osu.Framework.Platform
             /// Run fast. Run consistent.
             /// </summary>
             /// <param name="increment">Milliseconds we should increment the clock by each time the time is requested.</param>
-            public FastClock(double increment)
+            /// <param name="gameThreads">The game threads.</param>
+            public FastClock(double increment, GameThread[] gameThreads)
             {
                 this.increment = increment;
+                this.gameThreads = gameThreads;
+                gameThreadLastFrames = new ulong[gameThreads.Length];
             }
 
-            public double CurrentTime => time += increment;
+            public double CurrentTime
+            {
+                get
+                {
+                    double realElapsedTime = stopwatch.Elapsed.TotalMilliseconds;
+                    stopwatch.Restart();
+
+                    if (allThreadsHaveProgressed)
+                    {
+                        for (int i = 0; i < gameThreads.Length; i++)
+                            gameThreadLastFrames[i] = gameThreads[i].FrameIndex;
+
+                        // Increment time at the expedited rate.
+                        return time += increment;
+                    }
+
+                    // Fall back to real time to ensure we don't break random tests that expect threads to be running.
+                    return time += realElapsedTime;
+                }
+            }
+
+            private bool allThreadsHaveProgressed
+            {
+                get
+                {
+                    for (int i = 0; i < gameThreads.Length; i++)
+                    {
+                        if (gameThreads[i].FrameIndex == gameThreadLastFrames[i])
+                            return false;
+                    }
+
+                    return true;
+                }
+            }
+
             public double Rate => 1;
             public bool IsRunning => true;
         }

@@ -7,7 +7,9 @@ namespace osu.Framework.Graphics
     partial class Drawable : global::osu.Framework.Input.ISourceGeneratedHandleInputCache
     {
         global::System.Type global::osu.Framework.Input.ISourceGeneratedHandleInputCache.KnownType => typeof(global::osu.Framework.Graphics.Drawable);
+
         bool global::osu.Framework.Input.ISourceGeneratedHandleInputCache.RequestsPositionalInput => false;
+
         bool global::osu.Framework.Input.ISourceGeneratedHandleInputCache.RequestsNonPositionalInput => false;
     }
 }

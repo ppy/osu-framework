@@ -207,6 +207,8 @@ namespace osu.Framework.Graphics.Visualisation
             overlay.Target = Searching ? cursorTarget : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
         }
 
+        private static readonly Dictionary<Type, bool> is_type_valid_target_cache = new Dictionary<Type, bool>();
+
         private void updateCursorTarget()
         {
             Drawable drawableTarget = null;
@@ -220,6 +222,14 @@ namespace osu.Framework.Graphics.Visualisation
             // Finds the targeted drawable and composite drawable. The search stops if a drawable is targeted.
             void findTarget(Drawable drawable)
             {
+                // Ignore proxied drawables (they may be at a different visual layer).
+                if (drawable.HasProxy)
+                    return;
+
+                // When a proxy is encountered, restore the original drawable for target testing.
+                while (drawable.IsProxy)
+                    drawable = drawable.Original;
+
                 if (drawable == this || drawable is Component)
                     return;
 
@@ -268,30 +278,32 @@ namespace osu.Framework.Graphics.Visualisation
                     if (!validForTarget(drawable))
                         return;
 
-                    // Special case for full-screen overlays that act as input receptors, but don't display anything
-                    if (!hasCustomDrawNode(drawable))
-                        return;
-
                     drawableTarget = drawable;
                 }
             }
 
             // Valid if the drawable contains the mouse position and the position wouldn't be masked by the parent
             bool validForTarget(Drawable drawable)
-                => drawable.ScreenSpaceDrawQuad.Contains(inputManager.CurrentState.Mouse.Position)
-                   && maskingQuad?.Contains(inputManager.CurrentState.Mouse.Position) != false;
-        }
+            {
+                if (!drawable.ScreenSpaceDrawQuad.Contains(inputManager.CurrentState.Mouse.Position)
+                    || maskingQuad?.Contains(inputManager.CurrentState.Mouse.Position) == false)
+                {
+                    return false;
+                }
 
-        private static readonly Dictionary<Type, bool> has_custom_drawnode_cache = new Dictionary<Type, bool>();
+                Type type = drawable.GetType();
 
-        private bool hasCustomDrawNode(Drawable drawable)
-        {
-            var type = drawable.GetType();
+                if (is_type_valid_target_cache.TryGetValue(type, out bool valid))
+                    return valid;
 
-            if (has_custom_drawnode_cache.TryGetValue(type, out bool existing))
-                return existing;
+                // Exclude "overlay" objects (Component/etc) that don't draw anything and don't override CreateDrawNode().
+                valid = type.GetMethod(nameof(CreateDrawNode), BindingFlags.Instance | BindingFlags.NonPublic)?.DeclaringType != typeof(Drawable);
 
-            return has_custom_drawnode_cache[type] = type.GetMethod(nameof(CreateDrawNode), BindingFlags.Instance | BindingFlags.NonPublic)?.DeclaringType != typeof(Drawable);
+                // Exclude objects that specify they should be hidden anyway.
+                valid &= !type.GetCustomAttributes<DrawVisualiserHiddenAttribute>(true).Any();
+
+                return is_type_valid_target_cache[type] = valid;
+            }
         }
 
         public bool Searching { get; private set; }

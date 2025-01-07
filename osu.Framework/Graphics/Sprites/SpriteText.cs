@@ -41,7 +41,13 @@ namespace osu.Framework.Graphics.Sprites
 
         private ILocalisedBindableString localisedText;
 
-        public IShader TextureShader { get; private set; }
+        /// <summary>
+        /// The shader which should be used for rendering this sprite text.
+        /// </summary>
+        /// <remarks>
+        /// This is automatically populated, but may be overridden if required for special cases.
+        /// If overriding, set in a <see cref="BackgroundDependencyLoaderAttribute"/> method or later.</remarks>
+        public IShader TextureShader { get; protected set; }
 
         public SpriteText()
         {

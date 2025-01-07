@@ -308,12 +308,15 @@ fabric.properties
 # Reference:  https://github.com/JetBrains/resharper-rider-samples/blob/master/.gitignore
 
 # User specific
-**/.idea/**/workspace.xml
-**/.idea/**/tasks.xml
-**/.idea/shelf/*
-**/.idea/dictionaries
 **/.idea/httpRequests/
 **/.idea/**/usage.statistics.xml
+**/.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+.idea/*/.idea/projectSettingsUpdater.xml
+.idea/*/.idea/encodings.xml
 
 # Sensitive or high-churn files
 **/.idea/**/dataSources/
@@ -339,3 +342,8 @@ inspectcode
 
 .idea/.idea.osu-framework.Desktop/.idea/misc.xml
 .idea/.idea.osu-framework.Android/.idea/deploymentTargetDropDown.xml
+
+# NativeLibs build folders and tarballs
+osu.Framework.NativeLibs/scripts/ffmpeg/*/
+osu.Framework.NativeLibs/scripts/ffmpeg/*.tar.gz
+

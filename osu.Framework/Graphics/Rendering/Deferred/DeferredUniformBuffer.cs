@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using osu.Framework.Development;
 using osu.Framework.Graphics.Rendering.Deferred.Allocation;
 using osu.Framework.Graphics.Rendering.Deferred.Events;
 using osu.Framework.Graphics.Veldrid.Buffers;
@@ -24,6 +26,8 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
         public DeferredUniformBuffer(DeferredRenderer renderer)
         {
+            Trace.Assert(ThreadSafety.IsDrawThread);
+
             this.renderer = renderer;
         }
 

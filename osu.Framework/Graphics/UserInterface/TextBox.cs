@@ -8,10 +8,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Caching;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Extensions.PlatformActionExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
@@ -535,7 +537,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             OnCommit = null;
 
-            unbindInput(false);
+            unbindInput(null);
 
             base.Dispose(isDisposing);
         }
@@ -720,6 +722,8 @@ namespace osu.Framework.Graphics.UserInterface
             textChanging = false;
         }
 
+        private bool ignoreOngoingDragSelection;
+
         /// <summary>
         /// Removes the selected text if a selection persists.
         /// </summary>
@@ -769,6 +773,7 @@ namespace osu.Framework.Graphics.UserInterface
                 TextFlow.ChangeChildDepth(TextFlow[i], getDepthForCharacterIndex(i));
 
             selectionStart = selectionEnd = removeStart;
+            doubleClickWord = null;
 
             endTextChange(beganChange);
             cursorAndLayout.Invalidate();
@@ -866,7 +871,9 @@ namespace osu.Framework.Graphics.UserInterface
                 drawableCreationParameters?.Invoke(drawable);
 
                 text = text.Insert(selectionLeft, c.ToString());
+
                 selectionStart = selectionEnd = selectionLeft + 1;
+                ignoreOngoingDragSelection = true;
 
                 cursorAndLayout.Invalidate();
             }
@@ -1154,9 +1161,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void killFocus()
         {
-            var manager = GetContainingInputManager();
-            if (manager?.FocusedDrawable == this)
-                manager.ChangeFocus(null);
+            if (GetContainingInputManager()?.FocusedDrawable == this)
+                GetContainingFocusManager()?.ChangeFocus(null);
         }
 
         /// <summary>
@@ -1187,12 +1193,26 @@ namespace osu.Framework.Graphics.UserInterface
             base.OnKeyUp(e);
         }
 
+        protected override bool OnDragStart(DragStartEvent e)
+        {
+            ignoreOngoingDragSelection = false;
+
+            if (HasFocus)
+                return true;
+
+            Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
+            return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
+        }
+
         protected override void OnDrag(DragEvent e)
         {
             if (ReadOnly)
                 return;
 
             FinalizeImeComposition(true);
+
+            if (ignoreOngoingDragSelection)
+                return;
 
             var lastSelectionBounds = getTextSelectionBounds();
 
@@ -1224,21 +1244,12 @@ namespace osu.Framework.Graphics.UserInterface
 
                 selectionEnd = getCharacterClosestTo(e.MousePosition);
                 if (hasSelection)
-                    GetContainingInputManager().ChangeFocus(this);
+                    GetContainingFocusManager().AsNonNull().ChangeFocus(this);
             }
 
             cursorAndLayout.Invalidate();
 
             onTextSelectionChanged(doubleClickWord != null ? TextSelectionType.Word : TextSelectionType.Character, lastSelectionBounds);
-        }
-
-        protected override bool OnDragStart(DragStartEvent e)
-        {
-            if (HasFocus) return true;
-
-            Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
-
-            return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
         }
 
         protected override bool OnDoubleClick(DoubleClickEvent e)
@@ -1316,7 +1327,7 @@ namespace osu.Framework.Graphics.UserInterface
             // let's say that a focus loss is not a user event as focus is commonly indirectly lost.
             FinalizeImeComposition(false);
 
-            unbindInput(e.NextFocused is TextBox);
+            unbindInput(e.NextFocused as TextBox);
 
             updateCaretVisibility();
 
@@ -1336,7 +1347,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void OnFocus(FocusEvent e)
         {
-            bindInput(e.PreviouslyFocused is TextBox);
+            bindInput(e.PreviouslyFocused as TextBox);
 
             updateCaretVisibility();
         }
@@ -1350,8 +1361,10 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private bool textInputBound;
 
-        private void bindInput(bool previousFocusWasTextBox)
+        private void bindInput([CanBeNull] TextBox previous)
         {
+            Debug.Assert(textInput != null);
+
             if (textInputBound)
             {
                 textInput.EnsureActivated(AllowIme);
@@ -1361,10 +1374,10 @@ namespace osu.Framework.Graphics.UserInterface
             // TextBox has special handling of text input activation when focus is changed directly from one TextBox to another.
             // We don't deactivate and activate, but instead keep text input active during the focus handoff, so that virtual keyboards on phones don't flicker.
 
-            if (previousFocusWasTextBox)
-                textInput.EnsureActivated(AllowIme);
+            if (previous?.textInput == textInput)
+                textInput.EnsureActivated(AllowIme, ScreenSpaceDrawQuad.AABBFloat);
             else
-                textInput.Activate(AllowIme);
+                textInput.Activate(AllowIme, ScreenSpaceDrawQuad.AABBFloat);
 
             textInput.OnTextInput += handleTextInput;
             textInput.OnImeComposition += handleImeComposition;
@@ -1373,20 +1386,23 @@ namespace osu.Framework.Graphics.UserInterface
             textInputBound = true;
         }
 
-        private void unbindInput(bool nextFocusIsTextBox)
+        private void unbindInput([CanBeNull] TextBox next)
         {
             if (!textInputBound)
                 return;
 
             textInputBound = false;
 
-            // see the comment above, in `bindInput(bool)`.
-            if (!nextFocusIsTextBox)
-                textInput.Deactivate();
+            if (textInput != null)
+            {
+                // see the comment above, in `bindInput(bool)`.
+                if (next?.textInput != textInput)
+                    textInput.Deactivate();
 
-            textInput.OnTextInput -= handleTextInput;
-            textInput.OnImeComposition -= handleImeComposition;
-            textInput.OnImeResult -= handleImeResult;
+                textInput.OnTextInput -= handleTextInput;
+                textInput.OnImeComposition -= handleImeComposition;
+                textInput.OnImeResult -= handleImeResult;
+            }
 
             // in case keys are held and we lose focus, we should no longer block key events
             textInputBlocking = false;
@@ -1409,7 +1425,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// Reverts the <see cref="textInputBlocking"/> flag to <c>false</c> if no keys are pressed.
         /// </summary>
         private void revertBlockingStateIfRequired() =>
-            textInputBlocking &= GetContainingInputManager().CurrentState.Keyboard.Keys.HasAnyButtonPressed;
+            textInputBlocking &= GetContainingInputManager()?.CurrentState.Keyboard.Keys.HasAnyButtonPressed == true;
 
         private void handleImeComposition(string composition, int selectionStart, int selectionLength)
         {

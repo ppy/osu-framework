@@ -5,7 +5,9 @@
 
 using System;
 using System.Diagnostics;
+using JetBrains.Annotations;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
@@ -134,7 +136,10 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The maximum distance that the scrollbar can move in the scroll direction.
         /// </summary>
-        public float ScrollbarMovementExtent => Math.Max(DisplayableContent - Scrollbar.DrawSize[ScrollDim], 0);
+        /// <remarks>
+        /// May not be accurate to actual display of scrollbar if <see cref="ToScrollbarPosition"/> or <see cref="FromScrollbarPosition"/> are overridden.
+        /// </remarks>
+        protected float ScrollbarMovementExtent => Math.Max(DisplayableContent - Scrollbar.DrawSize[ScrollDim], 0);
 
         /// <summary>
         /// Clamp a value to the available scroll range.
@@ -185,6 +190,7 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly LayoutValue<IScrollContainer> parentScrollContainerCache = new LayoutValue<IScrollContainer>(Invalidation.Parent);
 
+        [CanBeNull]
         private IScrollContainer parentScrollContainer => parentScrollContainerCache.IsValid
             ? parentScrollContainerCache.Value
             : parentScrollContainerCache.Value = this.FindClosestParent<IScrollContainer>();
@@ -236,7 +242,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void updatePadding()
         {
-            if (scrollbarOverlapsContent || AvailableContent <= DisplayableContent)
+            if (scrollbarOverlapsContent || !Precision.DefinitelyBigger(AvailableContent, DisplayableContent, 1f))
                 ScrollContent.Padding = new MarginPadding();
             else
             {
@@ -272,7 +278,7 @@ namespace osu.Framework.Graphics.Containers
 
             IsDragging = true;
 
-            dragButtonManager = GetContainingInputManager().GetButtonEventManagerFor(e.Button);
+            dragButtonManager = GetContainingInputManager().AsNonNull().GetButtonEventManagerFor(e.Button);
 
             return true;
         }
@@ -342,8 +348,6 @@ namespace osu.Framework.Graphics.Containers
             float scrollOffset = -childDelta[ScrollDim];
             float clampedScrollOffset = Clamp(Target + scrollOffset) - Clamp(Target);
 
-            Debug.Assert(Precision.AlmostBigger(Math.Abs(scrollOffset), clampedScrollOffset * Math.Sign(scrollOffset)));
-
             // If we are dragging past the extent of the scrollable area, half the offset
             // such that the user can feel it.
             scrollOffset = clampedScrollOffset + (scrollOffset - clampedScrollOffset) / 2;
@@ -408,7 +412,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        private void onScrollbarMovement(float value) => OnUserScroll(Clamp(fromScrollbarPosition(value)), false);
+        private void onScrollbarMovement(float value) => OnUserScroll(Clamp(FromScrollbarPosition(value)), false);
 
         /// <summary>
         /// Immediately offsets the current and target scroll position.
@@ -567,7 +571,7 @@ namespace osu.Framework.Graphics.Containers
                 float size = ScrollDirection == Direction.Horizontal ? DrawWidth : DrawHeight;
                 if (size > 0)
                     Scrollbar.ResizeTo(Math.Clamp(AvailableContent > 0 ? DisplayableContent / AvailableContent : 0, Math.Min(Scrollbar.MinimumDimSize / size, 1), 1), 200, Easing.OutQuint);
-                Scrollbar.FadeTo(ScrollbarVisible && AvailableContent - 1 > DisplayableContent ? 1 : 0, 200);
+                Scrollbar.FadeTo(ScrollbarVisible && Precision.DefinitelyBigger(AvailableContent, DisplayableContent, 1f) ? 1 : 0, 200);
                 updatePadding();
 
                 scrollbarCache.Validate();
@@ -575,12 +579,12 @@ namespace osu.Framework.Graphics.Containers
 
             if (ScrollDirection == Direction.Horizontal)
             {
-                Scrollbar.X = toScrollbarPosition(Current);
+                Scrollbar.X = ToScrollbarPosition(Current);
                 ScrollContent.X = -Current + ScrollableExtent * ScrollContent.RelativeAnchorPosition.X;
             }
             else
             {
-                Scrollbar.Y = toScrollbarPosition(Current);
+                Scrollbar.Y = ToScrollbarPosition(Current);
                 ScrollContent.Y = -Current + ScrollableExtent * ScrollContent.RelativeAnchorPosition.Y;
             }
         }
@@ -590,7 +594,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="scrollPosition">The absolute scroll position (e.g. <see cref="Current"/>).</param>
         /// <returns>The scrollbar position.</returns>
-        private float toScrollbarPosition(float scrollPosition)
+        protected virtual float ToScrollbarPosition(float scrollPosition)
         {
             if (Precision.AlmostEquals(0, ScrollableExtent))
                 return 0;
@@ -603,7 +607,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="scrollbarPosition">The scrollbar position.</param>
         /// <returns>The absolute scroll position.</returns>
-        private float fromScrollbarPosition(float scrollbarPosition)
+        protected virtual float FromScrollbarPosition(float scrollbarPosition)
         {
             if (Precision.AlmostEquals(0, ScrollbarMovementExtent))
                 return 0;

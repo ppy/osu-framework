@@ -5,6 +5,7 @@
 
 using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
+using JetBrains.Annotations;
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE1006 // Naming style
@@ -14,6 +15,10 @@ namespace osu.Framework.Graphics.Video
     public unsafe class FFmpegFuncs
     {
         #region Delegates
+
+        public delegate int AvDictSetDelegate(AVDictionary** pm, [MarshalAs(UnmanagedType.LPUTF8Str)] string key, [MarshalAs(UnmanagedType.LPUTF8Str)] string value, int flags);
+
+        public delegate void AvDictFreeDelegate(AVDictionary** m);
 
         public delegate AVFrame* AvFrameAllocDelegate();
 
@@ -88,6 +93,12 @@ namespace osu.Framework.Graphics.Video
         public delegate int SwsScaleDelegate(SwsContext* c, byte*[] srcSlice, int[] srcStride, int srcSliceY, int srcSliceH, byte*[] dst, int[] dstStride);
 
         #endregion
+
+        [CanBeNull]
+        public AvDictSetDelegate av_dict_set;
+
+        [CanBeNull]
+        public AvDictFreeDelegate av_dict_free;
 
         public AvFrameAllocDelegate av_frame_alloc;
         public AvFrameFreeDelegate av_frame_free;

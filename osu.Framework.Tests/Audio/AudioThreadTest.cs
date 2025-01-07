@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Audio.Track;
+using osu.Framework.Extensions;
 using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
 
@@ -87,7 +88,7 @@ namespace osu.Framework.Tests.Audio
 
             runScheduled();
 
-            Task.WaitAll(cts.Task);
+            cts.Task.WaitSafely();
         }
     }
 }

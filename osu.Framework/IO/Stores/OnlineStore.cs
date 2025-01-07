@@ -17,11 +17,14 @@ namespace osu.Framework.IO.Stores
     {
         public async Task<byte[]> GetAsync(string url, CancellationToken cancellationToken = default)
         {
+            if (!validateScheme(url))
+                return null;
+
             this.LogIfNonBackgroundThread(url);
 
             try
             {
-                using (WebRequest req = new WebRequest($@"{url}"))
+                using (WebRequest req = new WebRequest(GetLookupUrl(url)))
                 {
                     await req.PerformAsync(cancellationToken).ConfigureAwait(false);
                     return req.GetResponseData();
@@ -35,14 +38,14 @@ namespace osu.Framework.IO.Stores
 
         public virtual byte[] Get(string url)
         {
-            if (!url.StartsWith(@"https://", StringComparison.Ordinal))
+            if (!validateScheme(url))
                 return null;
 
             this.LogIfNonBackgroundThread(url);
 
             try
             {
-                using (WebRequest req = new WebRequest($@"{url}"))
+                using (WebRequest req = new WebRequest(GetLookupUrl(url)))
                 {
                     req.Perform();
                     return req.GetResponseData();
@@ -64,6 +67,20 @@ namespace osu.Framework.IO.Stores
         }
 
         public IEnumerable<string> GetAvailableResources() => Enumerable.Empty<string>();
+
+        /// <summary>
+        /// Returns the URL used to look up the requested resource.
+        /// </summary>
+        /// <param name="url">The original URL for lookup.</param>
+        protected virtual string GetLookupUrl(string url) => url;
+
+        private bool validateScheme(string url)
+        {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out Uri uri))
+                return false;
+
+            return uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps;
+        }
 
         #region IDisposable Support
 

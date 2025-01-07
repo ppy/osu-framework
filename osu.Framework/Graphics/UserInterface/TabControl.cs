@@ -203,8 +203,8 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void LoadComplete()
         {
             // Default to first selection in list, if we can
-            if (firstSelection && SelectFirstTabByDefault && !Current.Disabled && Items.Any())
-                Current.Value = Items.First();
+            if (firstSelection && SelectFirstTabByDefault && !Current.Disabled && Items.Count > 0)
+                Current.Value = Items[0];
 
             Current.BindValueChanged(v =>
             {
@@ -375,13 +375,13 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Selects a <see cref="TabItem{T}"/> and signals an event that the user selected the given tab via <see cref="OnUserTabSelectionChanged"/>.
+        /// Selects a <see cref="TabItem{T}"/> and signals an event that the user selected the given tab via <see cref="TabItem{T}.OnActivatedByUser"/>.
         /// </summary>
         /// <param name="tab">The tab to select.</param>
         protected void SelectTab(TabItem<T> tab)
         {
-            if (selectTab(tab))
-                OnUserTabSelectionChanged(tab);
+            if (selectTab(tab) && tab != null)
+                tab.OnActivatedByUser();
         }
 
         /// <summary>
@@ -392,7 +392,7 @@ namespace osu.Framework.Graphics.UserInterface
         public void SwitchTab(int direction, bool wrap = true)
         {
             if (switchTab(direction, wrap))
-                OnUserTabSelectionChanged(SelectedTab);
+                SelectedTab.OnActivatedByUser();
         }
 
         private bool switchTab(int direction, bool wrap = true)
@@ -462,15 +462,6 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         public void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
-        {
-        }
-
-        /// <summary>
-        /// Invoked when the user directly changed tab selection, either by clicking on another tab or switching to the tab using <see cref="PlatformAction"/> key bindings.
-        /// Note that this does not get invoked when tab selection is changed as a result of a user closing the currently selected tab (see <see cref="SwitchTabOnRemove"/>).
-        /// </summary>
-        /// <param name="item">The new tab item.</param>
-        protected virtual void OnUserTabSelectionChanged(TabItem<T> item)
         {
         }
 
@@ -554,7 +545,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             private void updateChildIfNeeded(TabItem<T> child, bool isVisible)
             {
-                if (!tabVisibility.ContainsKey(child) || tabVisibility[child] != isVisible)
+                if (!tabVisibility.TryGetValue(child, out bool currentVisibility) || currentVisibility != isVisible)
                 {
                     TabVisibilityChanged?.Invoke(child, isVisible);
                     tabVisibility[child] = isVisible;

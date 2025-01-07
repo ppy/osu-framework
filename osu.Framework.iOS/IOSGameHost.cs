@@ -21,22 +21,22 @@ using UIKit;
 
 namespace osu.Framework.iOS
 {
-    public class IOSGameHost : SDL3GameHost
+    public class IOSGameHost : SDLGameHost
     {
+        public new IIOSWindow Window => (IIOSWindow)base.Window;
+
+        private IOSFilePresenter presenter = null!;
+
         public IOSGameHost()
             : base(string.Empty)
         {
         }
 
-        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface) => new IOSWindow(preferredSurface);
-
-        protected override void SetupForRun()
+        protected override IWindow CreateWindow(GraphicsSurfaceType preferredSurface)
         {
-            base.SetupForRun();
-
-            AllowScreenSuspension.Result.BindValueChanged(allow =>
-                    InputThread.Scheduler.Add(() => UIApplication.SharedApplication.IdleTimerDisabled = !allow.NewValue),
-                true);
+            var window = new IOSWindow(preferredSurface, Options.FriendlyGameName);
+            presenter = new IOSFilePresenter(window);
+            return window;
         }
 
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
@@ -47,15 +47,13 @@ namespace osu.Framework.iOS
             base.SetupConfig(defaultOverrides);
         }
 
-        public override bool OnScreenKeyboardOverlapsGameWindow => true;
-
         public override bool CanExit => false;
 
         public override Storage GetStorage(string path) => new IOSStorage(path, this);
 
-        public override bool OpenFileExternally(string filename) => false;
+        public override bool OpenFileExternally(string filename) => presenter.OpenFile(filename);
 
-        public override bool PresentFileExternally(string filename) => false;
+        public override bool PresentFileExternally(string filename) => presenter.PresentFile(filename);
 
         public override void OpenUrlExternally(string url)
         {
@@ -86,6 +84,23 @@ namespace osu.Framework.iOS
 
         public override VideoDecoder CreateVideoDecoder(Stream stream)
             => new IOSVideoDecoder(Renderer, stream);
+
+        public override ISystemFileSelector? CreateSystemFileSelector(string[] allowedExtensions)
+        {
+            IOSFileSelector? selector = null;
+
+            UIApplication.SharedApplication.InvokeOnMainThread(() =>
+            {
+                // creating UIDocumentPickerViewController programmatically is only supported on iOS 14.0+.
+                // on lower versions, return null and fall back to our normal file selector display.
+                if (!OperatingSystem.IsIOSVersionAtLeast(14))
+                    return;
+
+                selector = new IOSFileSelector(Window, allowedExtensions);
+            });
+
+            return selector;
+        }
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => MacOSGameHost.KeyBindings;
     }

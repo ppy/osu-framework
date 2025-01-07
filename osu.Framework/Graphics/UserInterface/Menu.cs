@@ -9,6 +9,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Extensions.ObjectExtensions;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -30,6 +31,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         [CanBeNull]
         public event Action<MenuState> StateChanged;
+
+        /// <summary>
+        /// Invoked when a Sub-<see cref="Menu"/> is opened.
+        /// </summary>
+        [CanBeNull]
+        public event Action<Menu> OnSubmenuOpen;
 
         /// <summary>
         /// Gets or sets the delay before opening sub-<see cref="Menu"/>s when menu items are hovered.
@@ -249,7 +256,7 @@ namespace osu.Framework.Graphics.UserInterface
                     AnimateClose();
 
                     if (HasFocus)
-                        GetContainingInputManager()?.ChangeFocus(parentMenu);
+                        GetContainingFocusManager()?.ChangeFocus(parentMenu);
                     break;
 
                 case MenuState.Open:
@@ -262,7 +269,7 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         Schedule(delegate
                         {
-                            if (State == MenuState.Open) GetContainingInputManager().ChangeFocus(this);
+                            if (State == MenuState.Open) GetContainingFocusManager().AsNonNull().ChangeFocus(this);
                         });
                     }
 
@@ -386,7 +393,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (!positionLayout.IsValid && State == MenuState.Open && parentMenu != null)
             {
-                var inputManager = GetContainingInputManager();
+                var inputManager = GetContainingInputManager().AsNonNull();
 
                 // This is the default position to which this menu should be anchored to the parent menu item which triggered it (top left of the triggering item)
                 var triggeringItemTopLeftPosition = triggeringItem.ToSpaceOfOtherDrawable(Vector2.Zero, parentMenu);
@@ -562,6 +569,8 @@ namespace osu.Framework.Graphics.UserInterface
                 submenu.StateChanged += submenuStateChanged;
             }
 
+            bool submenuChanged = submenu.triggeringItem != item;
+
             submenu.triggeringItem = item;
             submenu.positionLayout.Invalidate();
 
@@ -570,9 +579,13 @@ namespace osu.Framework.Graphics.UserInterface
             if (item.Item.Items.Count > 0)
             {
                 if (submenu.State == MenuState.Open)
-                    Schedule(delegate { GetContainingInputManager().ChangeFocus(submenu); });
+                    Schedule(delegate { GetContainingFocusManager().AsNonNull().ChangeFocus(submenu); });
                 else
                     submenu.Open();
+
+                // Check if submenu has changed before firing, to prevent extraneous callbacks (e.g. re-hovering the triggeringItem of an already open submenu)
+                if (submenuChanged)
+                    OnSubmenuOpen?.Invoke(submenu);
             }
             else
                 submenu.Close();

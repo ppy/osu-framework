@@ -44,6 +44,11 @@ namespace osu.Framework.Graphics.Textures
         public float DisplayHeight => Height / ScaleAdjust;
 
         /// <summary>
+        /// The size of this texture when drawn to the screen.
+        /// </summary>
+        public Vector2 DisplaySize => Vector2.Divide(Size, ScaleAdjust);
+
+        /// <summary>
         /// The texture opacity.
         /// </summary>
         public Opacity Opacity { get; protected set; } = Opacity.Mixed;
