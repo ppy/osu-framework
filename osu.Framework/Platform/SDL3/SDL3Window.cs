@@ -288,12 +288,12 @@ namespace osu.Framework.Platform.SDL3
         /// See: https://wiki.libsdl.org/SDL3/SDL_EventType#android_ios_and_winrt_events
         /// </remarks>
         /// <returns>A <c>bool</c> denoting whether to keep the event. <c>false</c> will drop the event.</returns>
-        protected virtual bool HandleEventFromFilter(SDL_Event evt)
+        protected virtual bool HandleEventFromFilter(SDL_Event e)
         {
-            switch (evt.Type)
+            switch (e.Type)
             {
                 case SDL_EventType.SDL_EVENT_TERMINATING:
-                    handleQuitEvent(evt.quit);
+                    handleQuitEvent(e.quit);
                     break;
 
                 case SDL_EventType.SDL_EVENT_DID_ENTER_BACKGROUND:
@@ -307,6 +307,36 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_EventType.SDL_EVENT_LOW_MEMORY:
                     LowOnMemory?.Invoke();
                     break;
+
+                case SDL_EventType.SDL_EVENT_MOUSE_MOTION:
+                    handleMouseMotionEvent(e.motion);
+                    return false;
+
+                case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN:
+                case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP:
+                    handleMouseButtonEvent(e.button);
+                    return false;
+
+                case SDL_EventType.SDL_EVENT_MOUSE_WHEEL:
+                    handleMouseWheelEvent(e.wheel);
+                    return false;
+
+                case SDL_EventType.SDL_EVENT_JOYSTICK_AXIS_MOTION:
+                    handleJoyAxisEvent(e.jaxis);
+                    return false;
+
+                case SDL_EventType.SDL_EVENT_JOYSTICK_BALL_MOTION:
+                    handleJoyBallEvent(e.jball);
+                    return false;
+
+                case SDL_EventType.SDL_EVENT_JOYSTICK_HAT_MOTION:
+                    handleJoyHatEvent(e.jhat);
+                    return false;
+
+                case SDL_EventType.SDL_EVENT_JOYSTICK_BUTTON_DOWN:
+                case SDL_EventType.SDL_EVENT_JOYSTICK_BUTTON_UP:
+                    handleJoyButtonEvent(e.jbutton);
+                    return false;
             }
 
             return true;
@@ -515,36 +545,6 @@ namespace osu.Framework.Platform.SDL3
 
                 case SDL_EventType.SDL_EVENT_KEYMAP_CHANGED:
                     handleKeymapChangedEvent();
-                    break;
-
-                case SDL_EventType.SDL_EVENT_MOUSE_MOTION:
-                    handleMouseMotionEvent(e.motion);
-                    break;
-
-                case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN:
-                case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP:
-                    handleMouseButtonEvent(e.button);
-                    break;
-
-                case SDL_EventType.SDL_EVENT_MOUSE_WHEEL:
-                    handleMouseWheelEvent(e.wheel);
-                    break;
-
-                case SDL_EventType.SDL_EVENT_JOYSTICK_AXIS_MOTION:
-                    handleJoyAxisEvent(e.jaxis);
-                    break;
-
-                case SDL_EventType.SDL_EVENT_JOYSTICK_BALL_MOTION:
-                    handleJoyBallEvent(e.jball);
-                    break;
-
-                case SDL_EventType.SDL_EVENT_JOYSTICK_HAT_MOTION:
-                    handleJoyHatEvent(e.jhat);
-                    break;
-
-                case SDL_EventType.SDL_EVENT_JOYSTICK_BUTTON_DOWN:
-                case SDL_EventType.SDL_EVENT_JOYSTICK_BUTTON_UP:
-                    handleJoyButtonEvent(e.jbutton);
                     break;
 
                 case SDL_EventType.SDL_EVENT_JOYSTICK_ADDED:
