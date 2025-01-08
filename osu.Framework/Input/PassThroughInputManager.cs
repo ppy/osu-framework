@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.StateChanges;
@@ -99,14 +100,31 @@ namespace osu.Framework.Input
             if (e is MouseEvent && e.CurrentState.Mouse.LastSource is ISourcedFromTouch)
                 return false;
 
+            var penInput = e.CurrentState.Mouse.LastSource as ITabletPenInput;
+
             switch (e)
             {
+                case MouseDownEvent penDown when penInput != null:
+                    Assert.That(penDown.Button == MouseButton.Left);
+                    new TabletPenInput(true) { DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
+                    break;
+
                 case MouseDownEvent mouseDown:
                     new MouseButtonInput(mouseDown.Button, true).Apply(CurrentState, this);
                     break;
 
+                case MouseUpEvent penUp when penInput != null:
+                    Assert.That(penUp.Button == MouseButton.Left);
+                    new TabletPenInput(false) { DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
+                    break;
+
                 case MouseUpEvent mouseUp:
                     new MouseButtonInput(mouseUp.Button, false).Apply(CurrentState, this);
+                    break;
+
+                case MouseMoveEvent penMove when penInput != null:
+                    if (penMove.ScreenSpaceMousePosition != CurrentState.Mouse.Position)
+                        new TabletPenPositionAbsoluteInput { Position = penMove.ScreenSpaceMousePosition, DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
                     break;
 
                 case MouseMoveEvent mouseMove:
