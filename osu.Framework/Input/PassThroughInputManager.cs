@@ -3,8 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.StateChanges;
@@ -105,7 +105,7 @@ namespace osu.Framework.Input
             switch (e)
             {
                 case MouseDownEvent penDown when penInput != null:
-                    Assert.That(penDown.Button == MouseButton.Left);
+                    Debug.Assert(penDown.Button == MouseButton.Left);
                     new TabletPenInput(true) { DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
                     break;
 
@@ -114,7 +114,7 @@ namespace osu.Framework.Input
                     break;
 
                 case MouseUpEvent penUp when penInput != null:
-                    Assert.That(penUp.Button == MouseButton.Left);
+                    Debug.Assert(penUp.Button == MouseButton.Left);
                     new TabletPenInput(false) { DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
                     break;
 
