@@ -297,7 +297,7 @@ namespace osu.Framework.Tests.Visual.Input
             });
 
             AddStep("move pen to box",
-                () => InputManager.Input(new TabletPenPositionAbsoluteInput { Position = testInputManager.ScreenSpaceDrawQuad.Centre, DeviceType = TabletPenDeviceType.Unknown }));
+                () => InputManager.Input(new MousePositionAbsoluteInputFromPen { Position = testInputManager.ScreenSpaceDrawQuad.Centre, DeviceType = TabletPenDeviceType.Unknown }));
 
             AddAssert("ensure parent manager produced mouse", () => InputManager.CurrentState.Mouse.Position == testInputManager.ScreenSpaceDrawQuad.Centre);
             AddAssert("ensure pass-through produced mouse", () => testInputManager.CurrentState.Mouse.Position == testInputManager.ScreenSpaceDrawQuad.Centre);
@@ -308,7 +308,7 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("inner box received 1 pen event", () => inner.PenEvents, () => Is.EqualTo(1));
             AddAssert("inner box received no mouse events", () => inner.MouseEvents, () => Is.EqualTo(0));
 
-            AddStep("click pen", () => InputManager.Input(new TabletPenInput(true) { DeviceType = TabletPenDeviceType.Unknown }));
+            AddStep("click pen", () => InputManager.Input(new MouseButtonInputFromPen(true) { DeviceType = TabletPenDeviceType.Unknown }));
 
             AddAssert("ensure parent manager produced mouse", () => InputManager.CurrentState.Mouse.Buttons.Single() == MouseButton.Left);
             AddAssert("ensure pass-through produced mouse", () => testInputManager.CurrentState.Mouse.Buttons.Single() == MouseButton.Left);
@@ -319,7 +319,7 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("inner box received 2 pen events", () => inner.PenEvents, () => Is.EqualTo(2));
             AddAssert("inner box received no mouse events", () => inner.MouseEvents, () => Is.EqualTo(0));
 
-            AddStep("release pen", () => InputManager.Input(new TabletPenInput(false) { DeviceType = TabletPenDeviceType.Unknown }));
+            AddStep("release pen", () => InputManager.Input(new MouseButtonInputFromPen(false) { DeviceType = TabletPenDeviceType.Unknown }));
 
             AddAssert("ensure parent manager produced mouse", () => InputManager.CurrentState.Mouse.Buttons.HasAnyButtonPressed, () => Is.False);
             AddAssert("ensure pass-through produced mouse", () => testInputManager.CurrentState.Mouse.Buttons.HasAnyButtonPressed, () => Is.False);
@@ -360,7 +360,7 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 switch (e.CurrentState.Mouse.LastSource)
                 {
-                    case ITabletPenInput:
+                    case ISourcedFromPen:
                         PenEvents++;
                         break;
 
@@ -376,7 +376,7 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 switch (e.CurrentState.Mouse.LastSource)
                 {
-                    case ITabletPenInput:
+                    case ISourcedFromPen:
                         PenEvents++;
                         break;
 
@@ -392,7 +392,7 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 switch (e.CurrentState.Mouse.LastSource)
                 {
-                    case ITabletPenInput:
+                    case ISourcedFromPen:
                         PenEvents++;
                         break;
 

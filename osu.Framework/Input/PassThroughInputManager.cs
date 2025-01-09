@@ -100,13 +100,13 @@ namespace osu.Framework.Input
             if (e is MouseEvent && e.CurrentState.Mouse.LastSource is ISourcedFromTouch)
                 return false;
 
-            var penInput = e.CurrentState.Mouse.LastSource as ITabletPenInput;
+            var penInput = e.CurrentState.Mouse.LastSource as ISourcedFromPen;
 
             switch (e)
             {
                 case MouseDownEvent penDown when penInput != null:
                     Debug.Assert(penDown.Button == MouseButton.Left);
-                    new TabletPenInput(true) { DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
+                    new MouseButtonInputFromPen(true) { DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
                     break;
 
                 case MouseDownEvent mouseDown:
@@ -115,7 +115,7 @@ namespace osu.Framework.Input
 
                 case MouseUpEvent penUp when penInput != null:
                     Debug.Assert(penUp.Button == MouseButton.Left);
-                    new TabletPenInput(false) { DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
+                    new MouseButtonInputFromPen(false) { DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
                     break;
 
                 case MouseUpEvent mouseUp:
@@ -124,7 +124,7 @@ namespace osu.Framework.Input
 
                 case MouseMoveEvent penMove when penInput != null:
                     if (penMove.ScreenSpaceMousePosition != CurrentState.Mouse.Position)
-                        new TabletPenPositionAbsoluteInput { Position = penMove.ScreenSpaceMousePosition, DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
+                        new MousePositionAbsoluteInputFromPen { Position = penMove.ScreenSpaceMousePosition, DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
                     break;
 
                 case MouseMoveEvent mouseMove:

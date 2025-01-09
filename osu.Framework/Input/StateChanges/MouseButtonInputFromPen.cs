@@ -5,9 +5,9 @@ using osuTK.Input;
 
 namespace osu.Framework.Input.StateChanges
 {
-    public class TabletPenInput : MouseButtonInput, ITabletPenInput
+    public class MouseButtonInputFromPen : MouseButtonInput, ISourcedFromPen
     {
-        public TabletPenInput(bool isPressed)
+        public MouseButtonInputFromPen(bool isPressed)
             : base(MouseButton.Left, isPressed)
         {
         }

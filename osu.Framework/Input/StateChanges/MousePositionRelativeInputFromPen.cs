@@ -3,7 +3,7 @@
 
 namespace osu.Framework.Input.StateChanges
 {
-    public class TabletPenPositionRelativeInput : MousePositionRelativeInput, ITabletPenInput
+    public class MousePositionRelativeInputFromPen : MousePositionRelativeInput, ISourcedFromPen
     {
         public required TabletPenDeviceType DeviceType { get; init; }
     }

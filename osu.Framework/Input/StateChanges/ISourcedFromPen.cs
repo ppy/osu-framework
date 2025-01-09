@@ -6,7 +6,7 @@ namespace osu.Framework.Input.StateChanges
     /// <summary>
     /// Denotes a simulated mouse input that was made by a tablet/pen device.
     /// </summary>
-    public interface ITabletPenInput : IInput
+    public interface ISourcedFromPen : IInput
     {
         public TabletPenDeviceType DeviceType { get; }
     }

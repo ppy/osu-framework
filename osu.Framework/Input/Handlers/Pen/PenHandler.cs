@@ -51,7 +51,7 @@ namespace osu.Framework.Input.Handlers.Pen
 
         private void handlePenMove(Vector2 position)
         {
-            enqueueInput(new TabletPenPositionAbsoluteInput
+            enqueueInput(new MousePositionAbsoluteInputFromPen
             {
                 Position = position,
                 DeviceType = device_type
@@ -60,7 +60,7 @@ namespace osu.Framework.Input.Handlers.Pen
 
         private void handlePenTouch(bool pressed)
         {
-            enqueueInput(new TabletPenInput(pressed) { DeviceType = device_type });
+            enqueueInput(new MouseButtonInputFromPen(pressed) { DeviceType = device_type });
         }
 
         private void handlePenButton(TabletPenButton button, bool pressed)
