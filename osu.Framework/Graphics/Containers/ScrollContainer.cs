@@ -585,6 +585,14 @@ namespace osu.Framework.Graphics.Containers
             ApplyCurrentToContent();
         }
 
+        /// <summary>
+        /// This is the final internal step of updating the scroll container, which takes
+        /// <see cref="Current"/> and applied it to <see cref="ScrollContent"/> in order to
+        /// correctly offset children.
+        ///
+        /// Overriding this method can be used to inhibit this default behaviour, to for instance
+        /// redirect the positioning to another container or change the way it is applied.
+        /// </summary>
         protected virtual void ApplyCurrentToContent()
         {
             if (ScrollDirection == Direction.Horizontal)
