@@ -27,7 +27,7 @@ namespace osu.Framework.Platform.Apple.Native
         [LibraryImport(Interop.LIB_CORE_GRAPHICS, EntryPoint = "CGImageRelease")]
         internal static partial void Release(CGImage image);
 
-        [LibraryImport("/System/Library/Frameworks/CoreFoundation.framework/Versions/Current/CoreFoundation", EntryPoint = "CFGetRetainCount")]
+        [LibraryImport(Interop.LIB_CORE_FOUNDATION, EntryPoint = "CFGetRetainCount")]
         internal static partial int GetRetainCount(CGImage image);
     }
 }
