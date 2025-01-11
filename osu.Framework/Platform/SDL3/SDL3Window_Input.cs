@@ -423,10 +423,17 @@ namespace osu.Framework.Platform.SDL3
         {
             bool isPrecise(float f) => f % 1 != 0;
 
-            if (isPrecise(evtWheel.x) || isPrecise(evtWheel.y))
-                lastPreciseScroll = evtWheel.timestamp;
+            bool precise;
 
-            bool precise = evtWheel.timestamp < lastPreciseScroll + precise_scroll_debounce;
+            if (isPrecise(evtWheel.x) || isPrecise(evtWheel.y))
+            {
+                precise = true;
+                lastPreciseScroll = evtWheel.timestamp;
+            }
+            else
+            {
+                precise = evtWheel.timestamp < lastPreciseScroll + precise_scroll_debounce;
+            }
 
             // SDL reports horizontal scroll opposite of what framework expects (in non-"natural" mode, scrolling to the right gives positive deltas while we want negative).
             TriggerMouseWheel(new Vector2(-evtWheel.x, evtWheel.y), precise);
