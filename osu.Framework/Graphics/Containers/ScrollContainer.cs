@@ -596,9 +596,9 @@ namespace osu.Framework.Graphics.Containers
         protected virtual void ApplyCurrentToContent()
         {
             if (ScrollDirection == Direction.Horizontal)
-                ScrollContent.X = (float)(-Current + ScrollableExtent * ScrollContent.RelativeAnchorPosition.X);
+                ScrollContent.X = (float)(-Current + (ScrollableExtent * ScrollContent.RelativeAnchorPosition.X));
             else
-                ScrollContent.Y = (float)(-Current + ScrollableExtent * ScrollContent.RelativeAnchorPosition.Y);
+                ScrollContent.Y = (float)(-Current + (ScrollableExtent * ScrollContent.RelativeAnchorPosition.Y));
         }
 
         /// <summary>

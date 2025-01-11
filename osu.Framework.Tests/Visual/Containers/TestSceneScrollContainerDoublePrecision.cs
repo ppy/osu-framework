@@ -90,60 +90,60 @@ namespace osu.Framework.Tests.Visual.Containers
             AddStep($"scroll {index} into view", () => scrollContainer.ScrollIntoView(scrollContainer.ChildrenOfType<BoxWithDouble>().Skip(index).First()));
             AddUntilStep($"{index} is visible", () => !scrollContainer.ChildrenOfType<BoxWithDouble>().Skip(index).First().IsMaskedAway);
         }
-    }
 
-    public partial class DoubleScrollContainer : BasicScrollContainer
-    {
-        private readonly Container<BoxWithDouble> layoutContent;
-
-        public override void Add(Drawable drawable)
+        public partial class DoubleScrollContainer : BasicScrollContainer
         {
-            if (drawable is not BoxWithDouble boxWithDouble)
-                throw new InvalidOperationException();
+            private readonly Container<BoxWithDouble> layoutContent;
 
-            Add(boxWithDouble);
-        }
-
-        public void Add(BoxWithDouble drawable)
-        {
-            if (drawable is not BoxWithDouble boxWithDouble)
-                throw new InvalidOperationException();
-
-            layoutContent.Height = (float)Math.Max(layoutContent.Height, boxWithDouble.DoubleLocation + boxWithDouble.DrawHeight);
-            layoutContent.Add(drawable);
-        }
-
-        public DoubleScrollContainer()
-        {
-            // Managing our own custom layout within ScrollContent causes feedback with internal ScrollContainer calculations,
-            // so we must maintain one level of separation from ScrollContent.
-            base.Add(layoutContent = new Container<BoxWithDouble>
+            public override void Add(Drawable drawable)
             {
-                RelativeSizeAxes = Axes.X,
-            });
+                if (drawable is not BoxWithDouble boxWithDouble)
+                    throw new InvalidOperationException();
+
+                Add(boxWithDouble);
+            }
+
+            public void Add(BoxWithDouble drawable)
+            {
+                if (drawable is not BoxWithDouble boxWithDouble)
+                    throw new InvalidOperationException();
+
+                layoutContent.Height = (float)Math.Max(layoutContent.Height, boxWithDouble.DoubleLocation + boxWithDouble.DrawHeight);
+                layoutContent.Add(drawable);
+            }
+
+            public DoubleScrollContainer()
+            {
+                // Managing our own custom layout within ScrollContent causes feedback with internal ScrollContainer calculations,
+                // so we must maintain one level of separation from ScrollContent.
+                base.Add(layoutContent = new Container<BoxWithDouble>
+                {
+                    RelativeSizeAxes = Axes.X,
+                });
+            }
+
+            public override double GetChildPosInContent(Drawable d, Vector2 offset)
+            {
+                if (d is not BoxWithDouble boxWithDouble)
+                    return base.GetChildPosInContent(d, offset);
+
+                return boxWithDouble.DoubleLocation + offset.X;
+            }
+
+            protected override void ApplyCurrentToContent()
+            {
+                Debug.Assert(ScrollDirection == Direction.Vertical);
+
+                double scrollableExtent = -Current + ScrollableExtent * ScrollContent.RelativeAnchorPosition.Y;
+
+                foreach (var d in layoutContent)
+                    d.Y = (float)(d.DoubleLocation + scrollableExtent);
+            }
         }
 
-        public override double GetChildPosInContent(Drawable d, Vector2 offset)
+        public partial class BoxWithDouble : Box
         {
-            if (d is not BoxWithDouble boxWithDouble)
-                return base.GetChildPosInContent(d, offset);
-
-            return boxWithDouble.DoubleLocation + offset.X;
+            public double DoubleLocation { get; set; }
         }
-
-        protected override void ApplyCurrentToContent()
-        {
-            Debug.Assert(ScrollDirection == Direction.Vertical);
-
-            double scrollableExtent = -Current + ScrollableExtent * ScrollContent.RelativeAnchorPosition.Y;
-
-            foreach (var d in layoutContent)
-                d.Y = (float)(d.DoubleLocation + scrollableExtent);
-        }
-    }
-
-    public partial class BoxWithDouble : Box
-    {
-        public double DoubleLocation { get; set; }
     }
 }
