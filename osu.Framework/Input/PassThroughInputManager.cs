@@ -100,31 +100,36 @@ namespace osu.Framework.Input
             if (e is MouseEvent && e.CurrentState.Mouse.LastSource is ISourcedFromTouch)
                 return false;
 
-            var penInput = e.CurrentState.Mouse.LastSource as ISourcedFromPen;
+            // Synthesize pen inputs from pen events
+            if (e is MouseEvent && e.CurrentState.Mouse.LastSource is ISourcedFromPen penInput)
+            {
+                switch (e)
+                {
+                    case MouseDownEvent penDown:
+                        Debug.Assert(penDown.Button == MouseButton.Left);
+                        new MouseButtonInputFromPen(true) { DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
+                        break;
+
+                    case MouseUpEvent penUp:
+                        Debug.Assert(penUp.Button == MouseButton.Left);
+                        new MouseButtonInputFromPen(false) { DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
+                        break;
+
+                    case MouseMoveEvent penMove:
+                        if (penMove.ScreenSpaceMousePosition != CurrentState.Mouse.Position)
+                            new MousePositionAbsoluteInputFromPen { Position = penMove.ScreenSpaceMousePosition, DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
+                        break;
+                }
+            }
 
             switch (e)
             {
-                case MouseDownEvent penDown when penInput != null:
-                    Debug.Assert(penDown.Button == MouseButton.Left);
-                    new MouseButtonInputFromPen(true) { DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
-                    break;
-
                 case MouseDownEvent mouseDown:
                     new MouseButtonInput(mouseDown.Button, true).Apply(CurrentState, this);
                     break;
 
-                case MouseUpEvent penUp when penInput != null:
-                    Debug.Assert(penUp.Button == MouseButton.Left);
-                    new MouseButtonInputFromPen(false) { DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
-                    break;
-
                 case MouseUpEvent mouseUp:
                     new MouseButtonInput(mouseUp.Button, false).Apply(CurrentState, this);
-                    break;
-
-                case MouseMoveEvent penMove when penInput != null:
-                    if (penMove.ScreenSpaceMousePosition != CurrentState.Mouse.Position)
-                        new MousePositionAbsoluteInputFromPen { Position = penMove.ScreenSpaceMousePosition, DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
                     break;
 
                 case MouseMoveEvent mouseMove:
