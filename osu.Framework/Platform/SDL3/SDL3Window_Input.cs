@@ -714,7 +714,7 @@ namespace osu.Framework.Platform.SDL3
         public event Action<Vector2>? PenMove;
 
         /// <summary>
-        /// invoked when a pen touches (<c>true</c>) or lifts (<c>false</c>) from the tablet surface.
+        /// Invoked when a pen touches (<c>true</c>) or lifts (<c>false</c>) from the tablet surface.
         /// </summary>
         public event Action<bool>? PenTouch;
 

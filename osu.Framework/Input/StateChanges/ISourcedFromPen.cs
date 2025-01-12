@@ -8,6 +8,9 @@ namespace osu.Framework.Input.StateChanges
     /// </summary>
     public interface ISourcedFromPen : IInput
     {
-        public TabletPenDeviceType DeviceType { get; }
+        /// <summary>
+        /// The type of the tablet or pen device that made this input.
+        /// </summary>
+        TabletPenDeviceType DeviceType { get; }
     }
 }
