@@ -9,21 +9,22 @@ namespace osu.Framework.Audio
     public class VolumeScaler
     {
         public const double MIN = -60;
+        public const double STEP = 0.5;
 
         private const double ln_ten = 2.302585092994045684017991454684364208;
-        private const double k = ln_ten * MIN / 20;
+        private const double k = ln_ten / 20;
 
         public readonly BindableNumber<double> Real;
         public readonly BindableNumber<double> Scaled = new BindableNumber<double>(1)
         {
-            MinValue = 0,
-            MaxValue = 1,
-            Precision = 0.01,
+            MinValue = MIN,
+            MaxValue = 0,
+            Precision = STEP,
         };
 
-        private double scaledToReal(double x) => x <= 0 ? 0 : Math.Exp(k * (1 - x));
+        private double scaledToReal(double x) => x <= MIN ? 0 : Math.Exp(k * x);
 
-        private double realToScaled(double x) => x <= 0 ? 0 : 1 - Math.Log(x) / k;
+        private double realToScaled(double x) => x <= 0 ? MIN : Math.Log(x) / k;
 
         public VolumeScaler(BindableNumber<double>? real = null)
         {
