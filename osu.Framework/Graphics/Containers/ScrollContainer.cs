@@ -587,7 +587,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// This is the final internal step of updating the scroll container, which takes
-        /// <see cref="Current"/> and applied it to <see cref="ScrollContent"/> in order to
+        /// <see cref="Current"/> and applies it to <see cref="ScrollContent"/> in order to
         /// correctly offset children.
         ///
         /// Overriding this method can be used to inhibit this default behaviour, to for instance
