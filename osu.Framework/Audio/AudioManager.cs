@@ -93,17 +93,17 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Volume of all audio game-wide.
         /// </summary>
-        public new readonly VolumeScaler Volume;
+        public new readonly BindableVolume Volume;
 
         /// <summary>
         /// Volume of all samples played game-wide.
         /// </summary>
-        public readonly VolumeScaler VolumeSample = new VolumeScaler();
+        public readonly BindableVolume VolumeSample = new BindableVolume();
 
         /// <summary>
         /// Volume of all tracks played game-wide.
         /// </summary>
-        public readonly VolumeScaler VolumeTrack = new VolumeScaler();
+        public readonly BindableVolume VolumeTrack = new BindableVolume();
 
         /// <summary>
         /// Whether a global mixer is being used for audio routing.
@@ -176,7 +176,7 @@ namespace osu.Framework.Audio
             AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
             AddItem(SampleMixer = createAudioMixer(null, nameof(SampleMixer)));
 
-            Volume = new VolumeScaler(base.Volume);
+            Volume = new BindableVolume(base.Volume);
 
             globalTrackStore = new Lazy<TrackStore>(() =>
             {

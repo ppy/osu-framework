@@ -6,7 +6,7 @@ using osu.Framework.Bindables;
 
 namespace osu.Framework.Audio
 {
-    public class VolumeScaler
+    public class BindableVolume
     {
         public const double MIN = -60;
         public const double STEP = 0.5;
@@ -25,7 +25,7 @@ namespace osu.Framework.Audio
 
         private double realToScaled(double x) => x <= 0 ? MIN : Math.Log(x) / k;
 
-        public VolumeScaler(BindableNumber<double>? real = null)
+        public BindableVolume(BindableNumber<double>? real = null)
         {
             Real = real ?? new BindableNumber<double>(1) { MinValue = 0, MaxValue = 1 };
             Scaled.BindValueChanged(x => Real.Value = scaledToReal(x.NewValue));
