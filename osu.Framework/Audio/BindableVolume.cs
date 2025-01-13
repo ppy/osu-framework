@@ -32,10 +32,9 @@ namespace osu.Framework.Audio
             Scaled.BindValueChanged(x => Real.Value = scaledToReal(x.NewValue));
         }
 
-        public double Value
+        public void SetFromLinear(double linear)
         {
-            get => Real.Value;
-            set => Scaled.Value = realToScaled(value);
+            Scaled.Value = realToScaled(linear);
         }
 
         public void Scale()
