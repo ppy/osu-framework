@@ -108,17 +108,17 @@ namespace osu.Framework.Input
                     case MouseDownEvent penDown:
                         Debug.Assert(penDown.Button == MouseButton.Left);
                         new MouseButtonInputFromPen(true) { DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
-                        break;
+                        return false;
 
                     case MouseUpEvent penUp:
                         Debug.Assert(penUp.Button == MouseButton.Left);
                         new MouseButtonInputFromPen(false) { DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
-                        break;
+                        return false;
 
                     case MouseMoveEvent penMove:
                         if (penMove.ScreenSpaceMousePosition != CurrentState.Mouse.Position)
                             new MousePositionAbsoluteInputFromPen { Position = penMove.ScreenSpaceMousePosition, DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
-                        break;
+                        return false;
                 }
             }
 
