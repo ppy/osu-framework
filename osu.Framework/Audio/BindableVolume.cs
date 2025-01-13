@@ -11,7 +11,8 @@ namespace osu.Framework.Audio
         public const double MIN = -60;
         public const double STEP = 0.5;
 
-        private const double k = Math.Log(10) / 20;
+        private const double ln_ten = 2.302585092994045684017991454684364208;
+        private const double k = ln_ten / 20;
 
         public readonly BindableNumber<double> Real;
         public readonly BindableNumber<double> Scaled = new BindableNumber<double>(1)
