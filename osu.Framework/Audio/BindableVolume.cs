@@ -6,7 +6,7 @@ using osu.Framework.Bindables;
 
 namespace osu.Framework.Audio
 {
-    public class BindableVolume
+    public sealed class BindableVolume
     {
         public const double MIN = -60;
         public const double STEP = 0.5;
