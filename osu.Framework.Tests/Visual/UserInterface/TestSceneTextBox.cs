@@ -95,7 +95,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                 textBoxes.Add(new CustomTextBox
                 {
-                    Text = @"Custom textbox",
+                    PlaceholderText = "Custom textbox",
+                    Size = new Vector2(500, 30),
+                    TabbableContentContainer = textBoxes
+                });
+
+                textBoxes.Add(new BasicTextBox
+                {
+                    InputProperties = new TextInputProperties(TextInputType.Text, AutoCapitalisation: true),
+                    Text = "Auto-capitalised textbox",
                     Size = new Vector2(500, 30),
                     TabbableContentContainer = textBoxes
                 });

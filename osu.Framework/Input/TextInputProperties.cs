@@ -16,5 +16,6 @@ namespace osu.Framework.Input
     /// while others will ignore and always have the IME (dis)allowed.
     /// </para>
     /// </param>
-    public record struct TextInputProperties(TextInputType Type, bool AllowIme = true);
+    /// <param name="AutoCapitalisation">Whether text should be automatically capitalised.</param>
+    public record struct TextInputProperties(TextInputType Type, bool AllowIme = true, bool AutoCapitalisation = false);
 }
