@@ -38,6 +38,10 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
 
+        public Bindable<Vector2> OutputAreaPosition { get; } = new Bindable<Vector2>();
+
+        public Bindable<Vector2> OutputAreaSize { get; } = new Bindable<Vector2>(new Vector2(1f, 1f));
+
         public Bindable<float> Rotation { get; } = new Bindable<float>();
 
         public IBindable<TabletInfo?> Tablet => tablet;
@@ -57,6 +61,11 @@ namespace osu.Framework.Input.Handlers.Tablet
             AreaOffset.BindValueChanged(_ => updateTabletAndInputArea(device));
             AreaSize.BindValueChanged(_ => updateTabletAndInputArea(device));
             Rotation.BindValueChanged(_ => updateTabletAndInputArea(device), true);
+
+            OutputAreaPosition.BindValueChanged(_ => updateOutputArea(host.Window));
+            OutputAreaSize.BindValueChanged(_ => updateOutputArea(host.Window));
+
+            updateOutputArea(host.Window);
 
             Enabled.BindValueChanged(enabled =>
             {
@@ -128,14 +137,16 @@ namespace osu.Framework.Input.Handlers.Tablet
             {
                 case AbsoluteOutputMode absoluteOutputMode:
                 {
-                    float outputWidth, outputHeight;
+                    Vector2 windowSize = new Vector2(window.ClientSize.Width, window.ClientSize.Height);
+                    Vector2 scaledSize = windowSize * OutputAreaSize.Value;
+                    Vector2 offset = windowSize * (OutputAreaPosition.Value - (new Vector2(0.5f))) * (Vector2.One - OutputAreaSize.Value);
+                    Vector2 position = (windowSize / 2) + offset;
 
-                    // Set output area in pixels
                     absoluteOutputMode.Output = new Area
                     {
-                        Width = outputWidth = window.ClientSize.Width,
-                        Height = outputHeight = window.ClientSize.Height,
-                        Position = new System.Numerics.Vector2(outputWidth / 2, outputHeight / 2)
+                        Width = scaledSize.X,
+                        Height = scaledSize.Y,
+                        Position = position.ToSystemNumerics()
                     };
                     break;
                 }
