@@ -467,7 +467,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private partial class TestRearrangeableList : BasicRearrangeableListContainer<int>
         {
-            public float ScrollPosition => ScrollContainer.Current;
+            public float ScrollPosition => (float)ScrollContainer.Current;
 
             public new IReadOnlyDictionary<int, RearrangeableListItem<int>> ItemMap => base.ItemMap;
 
