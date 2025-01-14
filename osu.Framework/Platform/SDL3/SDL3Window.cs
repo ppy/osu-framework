@@ -567,6 +567,7 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_EventType.SDL_EVENT_FINGER_DOWN:
                 case SDL_EventType.SDL_EVENT_FINGER_UP:
                 case SDL_EventType.SDL_EVENT_FINGER_MOTION:
+                case SDL_EventType.SDL_EVENT_FINGER_CANCELED:
                     HandleTouchFingerEvent(e.tfinger);
                     break;
 
