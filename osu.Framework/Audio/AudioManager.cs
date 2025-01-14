@@ -182,7 +182,7 @@ namespace osu.Framework.Audio
             {
                 var store = new TrackStore(trackStore, TrackMixer);
                 AddItem(store);
-                store.AddAdjustment(AdjustableProperty.Volume, VolumeTrack.Real);
+                store.AddAdjustment(AdjustableProperty.Volume, VolumeTrack.Linear);
                 return store;
             });
 
@@ -190,7 +190,7 @@ namespace osu.Framework.Audio
             {
                 var store = new SampleStore(sampleStore, SampleMixer);
                 AddItem(store);
-                store.AddAdjustment(AdjustableProperty.Volume, VolumeSample.Real);
+                store.AddAdjustment(AdjustableProperty.Volume, VolumeSample.Linear);
                 return store;
             });
 

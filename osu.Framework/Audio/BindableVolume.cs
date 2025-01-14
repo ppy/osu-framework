@@ -13,33 +13,33 @@ namespace osu.Framework.Audio
 
         private static readonly double k = Math.Log(10) / 20;
 
-        public readonly BindableNumber<double> Real;
-        public readonly BindableNumber<double> Scaled = new BindableNumber<double>(1)
+        public readonly BindableNumber<double> Linear;
+        public readonly BindableNumber<double> Decibel = new BindableNumber<double>(1)
         {
             MinValue = MIN,
             MaxValue = 0,
             Precision = STEP,
         };
 
-        private double scaledToReal(double x) => x <= MIN ? 0 : Math.Exp(k * x);
+        private double decibelToLinear(double x) => x <= MIN ? 0 : Math.Exp(k * x);
 
-        private double realToScaled(double x) => x <= 0 ? MIN : Math.Log(x) / k;
+        private double linearToDecibel(double x) => x <= 0 ? MIN : Math.Log(x) / k;
 
-        public BindableVolume(BindableNumber<double>? real = null)
+        public BindableVolume(BindableNumber<double>? linear = null)
         {
-            Real = real ?? new BindableNumber<double>(1) { MinValue = 0, MaxValue = 1 };
-            Scaled.BindValueChanged(x => Real.Value = scaledToReal(x.NewValue));
+            Linear = linear ?? new BindableNumber<double>(1) { MinValue = 0, MaxValue = 1 };
+            Decibel.BindValueChanged(x => Linear.Value = decibelToLinear(x.NewValue));
         }
 
         public void SetFromLinear(double linear)
         {
-            Scaled.Value = realToScaled(linear);
+            Decibel.Value = linearToDecibel(linear);
         }
 
         public void Scale()
         {
-            Scaled.Value = realToScaled(Real.Value);
-            Scaled.Default = realToScaled(Real.Default);
+            Decibel.Value = linearToDecibel(Linear.Value);
+            Decibel.Default = linearToDecibel(Linear.Default);
         }
     }
 }
