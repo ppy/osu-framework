@@ -4,10 +4,14 @@
 namespace osu.Framework.Input
 {
     /// <summary>
-    /// Marker interface which suppresses logging of keyboard input events.
+    /// An interface which suppresses logging of keyboard input events.
     /// Useful for password fields, where user input should not be logged.
     /// </summary>
-    public interface ISuppressKeyEventLogging
+    public interface ICanSuppressKeyEventLogging
     {
+        /// <summary>
+        /// Whether key event logging should be suppressed for this drawable.
+        /// </summary>
+        bool SuppressKeyEventLogging { get; }
     }
 }
