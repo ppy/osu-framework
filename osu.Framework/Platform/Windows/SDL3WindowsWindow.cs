@@ -60,16 +60,16 @@ namespace osu.Framework.Platform.Windows
                 Native.Input.SetWindowFeedbackSetting(WindowHandle, feedbackType, false);
         }
 
-        protected override void HandleEventFromFilter(SDL_Event evt)
+        protected override bool HandleEventFromFilter(SDL_Event e)
         {
-            switch (evt.Type)
+            switch (e.Type)
             {
                 case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST:
                     warpCursorFromFocusLoss();
                     break;
             }
 
-            base.HandleEventFromFilter(evt);
+            return base.HandleEventFromFilter(e);
         }
 
         public Vector2? LastMousePosition { get; set; }
