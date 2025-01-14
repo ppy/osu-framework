@@ -1,17 +1,15 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
 using System.Linq;
-using JetBrains.Annotations;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Bindables
@@ -21,13 +19,12 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// An event which is raised when this <see cref="BindableList{T}"/> changes.
         /// </summary>
-        public event NotifyCollectionChangedEventHandler CollectionChanged;
+        public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
         /// <summary>
         /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="triggerDisabledChange(bool)"/>).
         /// </summary>
-        [CanBeNull]
-        public event Action<bool> DisabledChanged;
+        public event Action<bool>? DisabledChanged;
 
         private readonly List<T> collection = new List<T>();
 
@@ -35,13 +32,13 @@ namespace osu.Framework.Bindables
 
         private WeakReference<BindableList<T>> weakReference => weakReferenceCache.IsValid ? weakReferenceCache.Value : weakReferenceCache.Value = new WeakReference<BindableList<T>>(this);
 
-        private LockedWeakList<BindableList<T>> bindings;
+        private LockedWeakList<BindableList<T>>? bindings;
 
         /// <summary>
         /// Creates a new <see cref="BindableList{T}"/>, optionally adding the items of the given collection.
         /// </summary>
         /// <param name="items">The items that are going to be contained in the newly created <see cref="BindableList{T}"/>.</param>
-        public BindableList(IEnumerable<T> items = null)
+        public BindableList(IEnumerable<T>? items = null)
         {
             if (items != null)
                 collection.AddRange(items);
@@ -390,25 +387,25 @@ namespace osu.Framework.Bindables
 
         #region IList
 
-        object IList.this[int index]
+        object? IList.this[int index]
         {
             get => this[index];
-            set => this[index] = (T)value;
+            set => this[index] = (T)value.AsNonNull();
         }
 
-        int IList.Add(object value)
+        int IList.Add(object? value)
         {
-            Add((T)value);
+            Add((T)value.AsNonNull());
             return Count - 1;
         }
 
-        bool IList.Contains(object value) => Contains((T)value);
+        bool IList.Contains(object? value) => Contains((T)value.AsNonNull());
 
-        int IList.IndexOf(object value) => IndexOf((T)value);
+        int IList.IndexOf(object? value) => IndexOf((T)value.AsNonNull());
 
-        void IList.Insert(int index, object value) => Insert(index, (T)value);
+        void IList.Insert(int index, object? value) => Insert(index, (T)value.AsNonNull());
 
-        void IList.Remove(object value) => Remove((T)value);
+        void IList.Remove(object? value) => Remove((T)value.AsNonNull());
 
         bool IList.IsFixedSize => false;
 
@@ -423,7 +420,7 @@ namespace osu.Framework.Bindables
         /// <param name="input">The input which is to be parsed.</param>
         /// <param name="provider">Not valid for <see cref="BindableList{T}"/>.</param>
         /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
-        public void Parse(object input, IFormatProvider provider)
+        public void Parse(object? input, IFormatProvider provider)
         {
             ensureMutationAllowed();
 
@@ -532,7 +529,7 @@ namespace osu.Framework.Bindables
 
         #region IHasDescription
 
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         #endregion IHasDescription
 
@@ -690,6 +687,6 @@ namespace osu.Framework.Bindables
 
         public bool IsDefault => Count == 0;
 
-        string IFormattable.ToString(string format, IFormatProvider formatProvider) => ((FormattableString)$"{GetType().ReadableName()}({nameof(Count)}={Count})").ToString(formatProvider);
+        string IFormattable.ToString(string? format, IFormatProvider? formatProvider) => ((FormattableString)$"{GetType().ReadableName()}({nameof(Count)}={Count})").ToString(formatProvider);
     }
 }
