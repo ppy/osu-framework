@@ -32,9 +32,9 @@ namespace osu.Framework.Configuration
             SetDefault(FrameworkSetting.WindowedPositionY, 0.5, -0.5, 1.5);
             SetDefault(FrameworkSetting.LastDisplayDevice, DisplayIndex.Default);
             SetDefault(FrameworkSetting.AudioDevice, string.Empty);
-            SetDefault(FrameworkSetting.VolumeUniversal, 1.0, 0.0, 1.0, 0.01);
-            SetDefault(FrameworkSetting.VolumeMusic, 1.0, 0.0, 1.0, 0.01);
-            SetDefault(FrameworkSetting.VolumeEffect, 1.0, 0.0, 1.0, 0.01);
+            SetDefault(FrameworkSetting.VolumeUniversal, 1.0, 0.0, 1.0);
+            SetDefault(FrameworkSetting.VolumeMusic, 1.0, 0.0, 1.0);
+            SetDefault(FrameworkSetting.VolumeEffect, 1.0, 0.0, 1.0);
             SetDefault(FrameworkSetting.HardwareVideoDecoder, HardwareVideoDecoder.Any);
             SetDefault(FrameworkSetting.SizeFullscreen, new Size(9999, 9999), new Size(320, 240));
             SetDefault(FrameworkSetting.MinimiseOnFocusLossInFullscreen, RuntimeInfo.IsDesktop);
