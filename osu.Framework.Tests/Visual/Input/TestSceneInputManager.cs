@@ -213,6 +213,11 @@ namespace osu.Framework.Tests.Visual.Input
             setCursorConfineRect(false);
 
             AddStep("Reset handlers", () => host.ResetInputHandlers());
+
+            AddLabel("Input handlers");
+
+            foreach (var h in host.AvailableInputHandlers)
+                AddToggleStep($"{h.Description} enabled", v => h.Enabled.Value = v);
         }
 
         private void setCursorSensitivityConfig(double sensitivity)

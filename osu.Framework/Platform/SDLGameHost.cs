@@ -8,6 +8,7 @@ using osu.Framework.Input.Handlers.Joystick;
 using osu.Framework.Input.Handlers.Keyboard;
 using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Input.Handlers.Pen;
 using osu.Framework.Input.Handlers.Tablet;
 using osu.Framework.Input.Handlers.Touch;
 using osu.Framework.Platform.SDL2;
@@ -46,6 +47,7 @@ namespace osu.Framework.Platform
                 new KeyboardHandler(),
                 // tablet should get priority over mouse to correctly handle cases where tablet drivers report as mice as well.
                 new OpenTabletDriverHandler(),
+                new PenHandler(),
                 new MouseHandler(),
                 new TouchHandler(),
                 new JoystickHandler(),
