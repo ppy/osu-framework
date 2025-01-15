@@ -133,7 +133,7 @@ namespace osu.Framework
         /// This should be used to set up any low level tasks such as exception handling.
         /// </summary>
         /// <remarks>
-        /// At this point in execution, only <see cref="Storage"/>
+        /// At this point in execution, only <see cref="Storage"/> and <see cref="CacheStorage"/> are guaranteed to be valid for use.
         /// </remarks>
         /// <param name="gameStorage">The default game storage.</param>
         /// <param name="cacheStorage">The default cache storage.</param>
