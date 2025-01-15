@@ -134,6 +134,7 @@ namespace osu.Framework
         /// </summary>
         /// <remarks>
         /// At this point in execution, only <see cref="GameHost.Storage"/> and <see cref="GameHost.CacheStorage"/> are guaranteed to be valid for use.
+        /// They are provided as <paramref name="gameStorage"/> and <paramref name="cacheStorage"/> respectively for convenience.
         /// </remarks>
         /// <param name="gameStorage">The default game storage.</param>
         /// <param name="cacheStorage">The default cache storage.</param>
