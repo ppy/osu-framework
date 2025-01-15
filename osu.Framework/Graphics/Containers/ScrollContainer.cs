@@ -418,7 +418,7 @@ namespace osu.Framework.Graphics.Containers
         /// Immediately offsets the current and target scroll position.
         /// </summary>
         /// <param name="offset">The scroll offset.</param>
-        public void OffsetScrollPosition(float offset)
+        public virtual void OffsetScrollPosition(double offset)
         {
             Target += offset;
             Current += offset;
