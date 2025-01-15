@@ -129,6 +129,19 @@ namespace osu.Framework
         protected sealed override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(Add)} or {nameof(Content)} instead.");
 
         /// <summary>
+        /// The earliest point of entry during <see cref="GameHost.Run"/> starting execution of a game.
+        /// This should be used to set up any low level tasks such as exception handling.
+        /// </summary>
+        /// <remarks>
+        /// At this point in execution, only <see cref="Storage"/>
+        /// </remarks>
+        /// <param name="gameStorage">The default game storage.</param>
+        /// <param name="cacheStorage">The default cache storage.</param>
+        public virtual void SetupLogging(Storage gameStorage, Storage cacheStorage)
+        {
+        }
+
+        /// <summary>
         /// As Load is run post host creation, you can override this method to alter properties of the host before it makes itself visible to the user.
         /// </summary>
         /// <param name="host"></param>
