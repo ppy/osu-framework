@@ -35,9 +35,12 @@ namespace osu.Framework.Platform.MacOS
             using var stream = new MemoryStream();
             image.SaveAsTiff(stream);
 
-            using var nsData = NSData.FromBytes(stream.ToArray());
-            using var nsImage = NSImage.LoadFromData(nsData);
-            return setToPasteboard(nsImage.Handle);
+            using (NSAutoreleasePool.Init())
+            {
+                var nsData = NSData.FromBytes(stream.ToArray());
+                using var nsImage = NSImage.LoadFromData(nsData);
+                return setToPasteboard(nsImage.Handle);
+            }
         }
 
         private IntPtr getFromPasteboard(IntPtr @class)

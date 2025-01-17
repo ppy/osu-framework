@@ -20,18 +20,21 @@ namespace osu.Framework.iOS.Graphics.Textures
 
         protected override unsafe Image<TPixel> ImageFromStream<TPixel>(Stream stream)
         {
-            int length = (int)(stream.Length - stream.Position);
-            using var nativeData = NSMutableData.FromLength(length);
+            using (new NSAutoreleasePool())
+            {
+                int length = (int)(stream.Length - stream.Position);
+                var nativeData = NSMutableData.FromLength(length);
 
-            var bytesSpan = new Span<byte>(nativeData.MutableBytes.ToPointer(), length);
-            stream.ReadExactly(bytesSpan);
+                var bytesSpan = new Span<byte>(nativeData.MutableBytes.ToPointer(), length);
+                stream.ReadExactly(bytesSpan);
 
-            using var uiImage = UIImage.LoadFromData(nativeData);
-            if (uiImage == null)
-                throw new ArgumentException($"{nameof(Image)} could not be created from {nameof(stream)}.");
+                using var uiImage = UIImage.LoadFromData(nativeData);
+                if (uiImage == null)
+                    throw new ArgumentException($"{nameof(Image)} could not be created from {nameof(stream)}.");
 
-            var cgImage = new Platform.Apple.Native.CGImage(uiImage.CGImage!.Handle);
-            return ImageFromCGImage<TPixel>(cgImage);
+                var cgImage = new Platform.Apple.Native.CGImage(uiImage.CGImage!.Handle);
+                return ImageFromCGImage<TPixel>(cgImage);
+            }
         }
     }
 }
