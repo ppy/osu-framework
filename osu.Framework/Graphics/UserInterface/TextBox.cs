@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
+using Markdig.Helpers;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Caching;
@@ -428,6 +429,16 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
+        private bool isCharacterSymbol(char character)
+        {
+            return !character.IsAlphaNumeric() && !character.IsWhitespace();
+        }
+
+        private bool isCharacterAlphanumeric(char character)
+        {
+            return character.IsAlphaNumeric();
+        }
+
         /// <summary>
         /// Find the word boundary in the backward direction, then return the negative amount of characters.
         /// </summary>
@@ -436,11 +447,23 @@ namespace osu.Framework.Graphics.UserInterface
             if (!AllowWordNavigation)
                 return -1;
 
+            if (Text.Length == 0) return 0;
+
             int searchPrev = Math.Clamp(selectionEnd - 1, 0, Math.Max(0, Text.Length - 1));
             while (searchPrev > 0 && text[searchPrev] == ' ')
                 searchPrev--;
-            int lastSpace = text.LastIndexOf(' ', searchPrev);
-            return lastSpace > 0 ? -(selectionEnd - lastSpace - 1) : -selectionEnd;
+
+            // Skip one character if it is a symbol to avoid cases like "author=<cursor>" requiring two taps
+            if (isCharacterSymbol(text[searchPrev]))
+                searchPrev--;
+
+            if (searchPrev <= 0) return -selectionEnd;
+
+            Func<char, bool> searchFunc = isCharacterSymbol(text[searchPrev]) ? isCharacterSymbol : isCharacterAlphanumeric;
+            while (searchPrev > 0 && searchFunc(text[searchPrev]))
+                searchPrev--;
+
+            return searchPrev > 0 ? -(selectionEnd - searchPrev - 1) : -selectionEnd;
         }
 
         /// <summary>
@@ -451,11 +474,22 @@ namespace osu.Framework.Graphics.UserInterface
             if (!AllowWordNavigation)
                 return 1;
 
+            if (Text.Length == 0) return 0;
+
             int searchNext = Math.Clamp(selectionEnd, 0, Math.Max(0, Text.Length - 1));
             while (searchNext < Text.Length && text[searchNext] == ' ')
                 searchNext++;
-            int nextSpace = text.IndexOf(' ', searchNext);
-            return (nextSpace >= 0 ? nextSpace : text.Length) - selectionEnd;
+
+            if (searchNext < text.Length && isCharacterSymbol(text[searchNext]))
+                searchNext++;
+
+            if (searchNext >= text.Length) return text.Length - selectionEnd;
+
+            Func<char, bool> searchFunc = isCharacterSymbol(text[searchNext]) ? isCharacterSymbol : isCharacterAlphanumeric;
+            while (searchNext < Text.Length && searchFunc(text[searchNext]))
+                searchNext++;
+
+            return (searchNext >= 0 ? searchNext : text.Length) - selectionEnd;
         }
 
         // Currently only single line is supported and line length and text length are the same.
