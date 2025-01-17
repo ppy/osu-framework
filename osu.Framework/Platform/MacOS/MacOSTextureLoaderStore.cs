@@ -20,18 +20,21 @@ namespace osu.Framework.Platform.MacOS
 
         protected override unsafe Image<TPixel> ImageFromStream<TPixel>(Stream stream)
         {
-            int length = (int)(stream.Length - stream.Position);
-            using var nativeData = NSMutableData.FromLength(length);
+            using (NSAutoreleasePool.Init())
+            {
+                int length = (int)(stream.Length - stream.Position);
+                var nativeData = NSMutableData.FromLength(length);
 
-            var bytesSpan = new Span<byte>(nativeData.MutableBytes, length);
-            stream.ReadExactly(bytesSpan);
+                var bytesSpan = new Span<byte>(nativeData.MutableBytes, length);
+                stream.ReadExactly(bytesSpan);
 
-            using var nsImage = NSImage.LoadFromData(nativeData);
-            if (nsImage.Handle == IntPtr.Zero)
-                throw new ArgumentException($"{nameof(Image)} could not be created from {nameof(stream)}.");
+                using var nsImage = NSImage.LoadFromData(nativeData);
+                if (nsImage.Handle == IntPtr.Zero)
+                    throw new ArgumentException($"{nameof(Image)} could not be created from {nameof(stream)}.");
 
-            var cgImage = nsImage.CGImage;
-            return ImageFromCGImage<TPixel>(cgImage);
+                var cgImage = nsImage.CGImage;
+                return ImageFromCGImage<TPixel>(cgImage);
+            }
         }
     }
 }

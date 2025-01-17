@@ -2,16 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Platform.MacOS.Native;
 
 namespace osu.Framework.Platform.Apple.Native
 {
-    internal readonly struct NSMutableData : IDisposable
+    internal readonly struct NSMutableData
     {
         internal IntPtr Handle { get; }
 
         private static readonly IntPtr class_pointer = Class.Get("NSMutableData");
-        private static readonly IntPtr sel_release = Selector.Get("release");
         private static readonly IntPtr sel_data_with_length = Selector.Get("dataWithLength:");
         private static readonly IntPtr sel_mutable_bytes = Selector.Get("mutableBytes");
 
@@ -21,14 +19,6 @@ namespace osu.Framework.Platform.Apple.Native
         }
 
         internal unsafe byte* MutableBytes => (byte*)Interop.SendIntPtr(Handle, sel_mutable_bytes);
-
-        internal void Release() => Interop.SendVoid(Handle, sel_release);
-
-        public void Dispose()
-        {
-            if (Handle != IntPtr.Zero)
-                Release();
-        }
 
         internal static NSMutableData FromLength(int length)
         {
