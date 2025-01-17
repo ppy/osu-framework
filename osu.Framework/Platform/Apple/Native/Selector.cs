@@ -3,9 +3,8 @@
 
 using System;
 using System.Runtime.InteropServices;
-using osu.Framework.Platform.Apple.Native;
 
-namespace osu.Framework.Platform.MacOS.Native
+namespace osu.Framework.Platform.Apple.Native
 {
     internal static partial class Selector
     {
