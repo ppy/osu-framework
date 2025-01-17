@@ -447,7 +447,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!AllowWordNavigation)
                 return -1;
 
-            if (Text.Length == 0) return 0;
+            if (text.Length == 0) return 0;
 
             int searchPrev = Math.Clamp(selectionEnd - 1, 0, Math.Max(0, Text.Length - 1));
             while (searchPrev > 0 && text[searchPrev] == ' ')
@@ -474,7 +474,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!AllowWordNavigation)
                 return 1;
 
-            if (Text.Length == 0) return 0;
+            if (text.Length == 0) return 0;
 
             int searchNext = Math.Clamp(selectionEnd, 0, Math.Max(0, Text.Length - 1));
             while (searchNext < Text.Length && text[searchNext] == ' ')
