@@ -3,7 +3,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using osu.Framework.Platform.MacOS.Native;
 
 namespace osu.Framework.Platform.Apple.Native
 {

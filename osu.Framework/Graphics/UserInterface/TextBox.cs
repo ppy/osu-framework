@@ -785,6 +785,7 @@ namespace osu.Framework.Graphics.UserInterface
                 TextFlow.ChangeChildDepth(TextFlow[i], getDepthForCharacterIndex(i));
 
             selectionStart = selectionEnd = removeStart;
+            doubleClickWord = null;
 
             endTextChange(beganChange);
             cursorAndLayout.Invalidate();

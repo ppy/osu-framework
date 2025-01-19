@@ -16,6 +16,9 @@ namespace osu.Framework.Graphics.UserInterface
         public Bindable<string> SearchTerm { get; } = new Bindable<string>();
 
         [Resolved]
+        private GameHost host { get; set; } = null!;
+
+        [Resolved]
         private IDropdown dropdown { get; set; } = null!;
 
         private TextBox textBox = null!;
@@ -29,9 +32,6 @@ namespace osu.Framework.Graphics.UserInterface
             set
             {
                 alwaysDisplayOnFocus = value;
-
-                if (inputSource != null)
-                    inputSource.AlwaysDisplayOnFocus = value;
 
                 if (IsLoaded)
                     updateTextBoxVisibility();
@@ -62,10 +62,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
         {
-            inputSource = new DropdownTextInputSource(parent.Get<TextInputSource>(), parent.Get<GameHost>())
-            {
-                AlwaysDisplayOnFocus = AlwaysDisplayOnFocus
-            };
+            inputSource = new DropdownTextInputSource(parent.Get<TextInputSource>(), parent.Get<GameHost>());
 
             var dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
             dependencies.CacheAs(typeof(TextInputSource), inputSource);
@@ -120,7 +117,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private void updateTextBoxVisibility()
         {
-            bool showTextBox = AlwaysDisplayOnFocus || !string.IsNullOrEmpty(SearchTerm.Value);
+            bool showTextBox = !host.OnScreenKeyboardOverlapsGameWindow && (AlwaysDisplayOnFocus || !string.IsNullOrEmpty(SearchTerm.Value));
             State.Value = textBox.HasFocus && showTextBox ? Visibility.Visible : Visibility.Hidden;
         }
 
@@ -179,9 +176,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private class DropdownTextInputSource : TextInputSource
         {
-            public bool AlwaysDisplayOnFocus { get; set; }
-
-            private bool allowTextInput => !host.OnScreenKeyboardOverlapsGameWindow || AlwaysDisplayOnFocus;
+            private bool allowTextInput => !host.OnScreenKeyboardOverlapsGameWindow;
 
             private readonly TextInputSource platformSource;
             private readonly GameHost host;
