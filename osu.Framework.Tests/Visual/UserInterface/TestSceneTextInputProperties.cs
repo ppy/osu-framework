@@ -29,7 +29,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Width = 0.9f,
                         Anchor = Anchor.TopCentre,
                         Origin = Anchor.TopCentre,
-                        Spacing = new Vector2(0, 13),
+                        Spacing = new Vector2(20, 13),
                     }
                 };
 
@@ -40,6 +40,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         TabbableContentContainer = flow,
                         RelativeSizeAxes = Axes.X,
                         Height = 40,
+                        Width = 0.45f,
                         PlaceholderText = $"{textInputType} (allow IME)",
                         InputProperties = new TextInputProperties
                         {
@@ -52,6 +53,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         TabbableContentContainer = flow,
                         RelativeSizeAxes = Axes.X,
                         Height = 40,
+                        Width = 0.45f,
                         PlaceholderText = $"{textInputType} (no IME)",
                         InputProperties = new TextInputProperties
                         {
