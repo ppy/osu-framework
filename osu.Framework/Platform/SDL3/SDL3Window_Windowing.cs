@@ -408,8 +408,16 @@ namespace osu.Framework.Platform.SDL3
             get
             {
                 SDL_Rect rect;
-                SDL_GetDisplayBounds(displayID, &rect);
-                return new Rectangle(rect.x, rect.y, rect.w, rect.h);
+
+                if (SDL_GetDisplayBounds(displayID, &rect))
+                {
+                    return new Rectangle(rect.x, rect.y, rect.w, rect.h);
+                }
+                else
+                {
+                    Logger.Log($"Failed to get window display bounds. SDL Error: {SDL_GetError()}");
+                    return Rectangle.Empty;
+                }
             }
         }
 
@@ -447,7 +455,12 @@ namespace osu.Framework.Platform.SDL3
         private unsafe void fetchWindowSize(bool storeToConfig = true)
         {
             int w, h;
-            SDL_GetWindowSize(SDLWindowHandle, &w, &h);
+
+            if (!SDL_GetWindowSize(SDLWindowHandle, &w, &h))
+            {
+                Logger.Log($"Failed to get window size. SDL Error: {SDL_GetError()}");
+                return;
+            }
 
             int drawableW = graphicsSurface.GetDrawableSize().Width;
 
@@ -474,8 +487,7 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_EventType.SDL_EVENT_WINDOW_MOVED:
                     // explicitly requery as there are occasions where what SDL has provided us with is not up-to-date.
                     int x, y;
-                    SDL_GetWindowPosition(SDLWindowHandle, &x, &y);
-                    var newPosition = new Point(x, y);
+                    Point newPosition = SDL_GetWindowPosition(SDLWindowHandle, &x, &y) ? new Point(x, y) : new Point(evtWindow.data1, evtWindow.data2);
 
                     if (!newPosition.Equals(Position))
                     {
