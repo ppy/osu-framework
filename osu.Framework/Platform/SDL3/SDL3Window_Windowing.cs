@@ -33,7 +33,7 @@ namespace osu.Framework.Platform.SDL3
             CurrentDisplayBindable.Default = PrimaryDisplay;
             CurrentDisplayBindable.ValueChanged += evt =>
             {
-                windowDisplayIndexBindable.Value = (DisplayIndex)evt.NewValue.Index;
+                windowDisplayIndexBindable.Value = (DisplayIndex)(evt.NewValue?.Index ?? 0);
             };
 
             config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndexBindable);
@@ -215,7 +215,7 @@ namespace osu.Framework.Platform.SDL3
             set => sizeWindowed.MaxValue = value;
         }
 
-        public Bindable<Display> CurrentDisplayBindable { get; } = new Bindable<Display>();
+        public Bindable<Display?> CurrentDisplayBindable { get; } = new Bindable<Display?>();
 
         /// <summary>
         /// Bound to <see cref="FrameworkSetting.WindowMode"/>.
@@ -332,7 +332,10 @@ namespace osu.Framework.Platform.SDL3
             using var displays = SDL_GetDisplays();
 
             if (displays == null)
-                throw new InvalidOperationException($"Failed to get number of SDL displays. SDL Error: {SDL_GetError()}");
+            {
+                Logger.Log($"Failed to get number of SDL displays. SDL Error: {SDL_GetError()}");
+                return ImmutableArray<Display>.Empty;
+            }
 
             var builder = ImmutableArray.CreateBuilder<Display>(displays.Count);
 
@@ -391,9 +394,9 @@ namespace osu.Framework.Platform.SDL3
         /// <summary>
         /// Gets the <see cref="Display"/> that has been set as "primary" or "default" in the operating system.
         /// </summary>
-        public virtual Display PrimaryDisplay => Displays.First();
+        public virtual Display? PrimaryDisplay => Displays.IsEmpty ? null : Displays.First();
 
-        private Display currentDisplay = null!;
+        private Display? currentDisplay;
         private SDL_DisplayID displayID;
 
         private readonly Bindable<DisplayMode> currentDisplayMode = new Bindable<DisplayMode>();
@@ -566,7 +569,7 @@ namespace osu.Framework.Platform.SDL3
         private unsafe void updateAndFetchWindowSpecifics()
         {
             // don't attempt to run before the window is initialised, as Create() will do so anyway.
-            if (SDLWindowHandle == null)
+            if (SDLWindowHandle == null || currentDisplay == null)
                 return;
 
             var stateBefore = windowState;
@@ -770,7 +773,7 @@ namespace osu.Framework.Platform.SDL3
 
         private void storeWindowPositionToConfig()
         {
-            if (WindowState != WindowState.Normal)
+            if (WindowState != WindowState.Normal || currentDisplay == null)
                 return;
 
             var displayBounds = currentDisplay.Bounds;
