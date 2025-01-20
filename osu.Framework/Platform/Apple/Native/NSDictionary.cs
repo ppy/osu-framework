@@ -3,7 +3,7 @@
 
 using System;
 
-namespace osu.Framework.Platform.MacOS.Native
+namespace osu.Framework.Platform.Apple.Native
 {
     internal readonly struct NSDictionary
     {

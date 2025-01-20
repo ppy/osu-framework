@@ -29,12 +29,17 @@ using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract partial class TextBox : TabbableContainer, IHasCurrentValue<string>, IKeyBindingHandler<PlatformAction>
+    public abstract partial class TextBox : TabbableContainer, IHasCurrentValue<string>, IKeyBindingHandler<PlatformAction>, ICanSuppressKeyEventLogging
     {
         protected FillFlowContainer TextFlow { get; private set; }
         protected Container TextContainer { get; private set; }
 
         public override bool HandleNonPositionalInput => HasFocus;
+
+        /// <summary>
+        /// A character displayed whenever the type of text input set by <see cref="TextInputProperties.Type"/> is hidden.
+        /// </summary>
+        protected virtual char MaskCharacter => '*';
 
         /// <summary>
         /// Padding to be used within the TextContainer. Requires special handling due to the sideways scrolling of text content.
@@ -50,12 +55,14 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Whether clipboard copying functionality is allowed.
         /// </summary>
-        protected virtual bool AllowClipboardExport => true;
+        protected virtual bool AllowClipboardExport => !InputProperties.Type.IsPassword();
 
         /// <summary>
         /// Whether seeking to word boundaries is allowed.
         /// </summary>
-        protected virtual bool AllowWordNavigation => true;
+        protected virtual bool AllowWordNavigation => !InputProperties.Type.IsPassword();
+
+        bool ICanSuppressKeyEventLogging.SuppressKeyEventLogging => InputProperties.Type.IsPassword();
 
         /// <summary>
         /// Represents the left/right selection coordinates of the word double clicked on when dragging.
@@ -67,17 +74,13 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public virtual bool HandleLeftRightArrows => true;
 
-        /// <summary>
-        /// Whether to allow IME input when this text box has input focus.
-        /// </summary>
-        /// <remarks>
-        /// This is just a hint to the native implementation, some might respect this,
-        /// while others will ignore and always have the IME (dis)allowed.
-        /// </remarks>
-        /// <example>
-        /// Useful for situations where IME input is not wanted, such as for passwords, numbers, or romanised text.
-        /// </example>
+        [Obsolete($"Use {nameof(InputProperties)} instead.")] // can be removed 20250506
         protected virtual bool AllowIme => true;
+
+        /// <summary>
+        /// A set of properties to consider when interacting with this <see cref="TextBox"/>.
+        /// </summary>
+        public TextInputProperties InputProperties { get; init; }
 
         /// <summary>
         /// Check if a character can be added to this TextBox.
@@ -87,9 +90,14 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual bool CanAddCharacter(char character) => true;
 
         /// <summary>
-        /// Private helper for <see cref="CanAddCharacter"/>, additionally requiring that the character is not a control character.
+        /// Private helper for <see cref="CanAddCharacter"/>, additionally requiring that the character is not a control character and obeys <see cref="TextInputProperties.Type"/>.
         /// </summary>
-        private bool canAddCharacter(char character) => !char.IsControl(character) && CanAddCharacter(character);
+        private bool canAddCharacter(char character)
+        {
+            return !char.IsControl(character)
+                   && (!InputProperties.Type.IsNumerical() || char.IsAsciiDigit(character))
+                   && CanAddCharacter(character);
+        }
 
         private bool readOnly;
 
@@ -158,6 +166,10 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected TextBox()
         {
+#pragma warning disable CS0618 // Type or member is obsolete
+            InputProperties = new TextInputProperties(TextInputType.Text, AllowIme);
+#pragma warning restore CS0618 // Type or member is obsolete
+
             Masking = true;
 
             Children = new Drawable[]
@@ -773,6 +785,7 @@ namespace osu.Framework.Graphics.UserInterface
                 TextFlow.ChangeChildDepth(TextFlow[i], getDepthForCharacterIndex(i));
 
             selectionStart = selectionEnd = removeStart;
+            doubleClickWord = null;
 
             endTextChange(beganChange);
             cursorAndLayout.Invalidate();
@@ -789,6 +802,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected virtual Drawable AddCharacterToFlow(char c)
         {
+            if (InputProperties.Type.IsPassword())
+                c = MaskCharacter;
+
             // Remove all characters to the right and store them in a local list,
             // such that their depth can be updated.
             List<Drawable> charsRight = new List<Drawable>();
@@ -1339,7 +1355,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnClick(ClickEvent e)
         {
             if (!ReadOnly && textInputBound)
-                textInput.EnsureActivated(AllowIme);
+                textInput.EnsureActivated(InputProperties);
 
             return !ReadOnly;
         }
@@ -1366,7 +1382,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (textInputBound)
             {
-                textInput.EnsureActivated(AllowIme);
+                textInput.EnsureActivated(InputProperties);
                 return;
             }
 
@@ -1374,9 +1390,9 @@ namespace osu.Framework.Graphics.UserInterface
             // We don't deactivate and activate, but instead keep text input active during the focus handoff, so that virtual keyboards on phones don't flicker.
 
             if (previous?.textInput == textInput)
-                textInput.EnsureActivated(AllowIme, ScreenSpaceDrawQuad.AABBFloat);
+                textInput.EnsureActivated(InputProperties, ScreenSpaceDrawQuad.AABBFloat);
             else
-                textInput.Activate(AllowIme, ScreenSpaceDrawQuad.AABBFloat);
+                textInput.Activate(InputProperties, ScreenSpaceDrawQuad.AABBFloat);
 
             textInput.OnTextInput += handleTextInput;
             textInput.OnImeComposition += handleImeComposition;

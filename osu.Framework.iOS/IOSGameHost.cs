@@ -26,6 +26,8 @@ namespace osu.Framework.iOS
 {
     public class IOSGameHost : SDLGameHost
     {
+        public new IIOSWindow Window => (IIOSWindow)base.Window;
+
         private IOSFilePresenter presenter = null!;
 
         public IOSGameHost()
@@ -98,6 +100,23 @@ namespace osu.Framework.iOS
             }
 
             return handlers;
+        }
+
+        public override ISystemFileSelector? CreateSystemFileSelector(string[] allowedExtensions)
+        {
+            IOSFileSelector? selector = null;
+
+            UIApplication.SharedApplication.InvokeOnMainThread(() =>
+            {
+                // creating UIDocumentPickerViewController programmatically is only supported on iOS 14.0+.
+                // on lower versions, return null and fall back to our normal file selector display.
+                if (!OperatingSystem.IsIOSVersionAtLeast(14))
+                    return;
+
+                selector = new IOSFileSelector(Window, allowedExtensions);
+            });
+
+            return selector;
         }
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => MacOSGameHost.KeyBindings;

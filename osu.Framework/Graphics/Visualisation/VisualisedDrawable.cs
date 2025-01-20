@@ -13,8 +13,10 @@ using osuTK.Graphics;
 using osuTK.Input;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 
@@ -76,6 +78,8 @@ namespace osu.Framework.Graphics.Visualisation
         private Drawable activityInvalidate;
         private Drawable activityAutosize;
         private Drawable activityLayout;
+        private Drawable inputReceiving;
+
         private VisualisedDrawableFlow flow;
         private Container connectionContainer;
 
@@ -122,6 +126,30 @@ namespace osu.Framework.Graphics.Visualisation
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
                             Colour = Color4.Transparent,
+                        },
+                        inputReceiving = new Container
+                        {
+                            Size = new Vector2(5, line_height),
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            Position = new Vector2(9, 0),
+                            Alpha = 0,
+                            Children = new Drawable[]
+                            {
+                                new Box
+                                {
+                                    Colour = Color4.Cyan,
+                                    RelativeSizeAxes = Axes.Both,
+                                },
+                                new SpriteIcon
+                                {
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    Colour = Color4.Cyan.Darken(5),
+                                    Icon = FontAwesome.Solid.MousePointer,
+                                    Size = new Vector2(6),
+                                }
+                            }
                         },
                         activityInvalidate = new Box
                         {
@@ -170,7 +198,7 @@ namespace osu.Framework.Graphics.Visualisation
                             AutoSizeAxes = Axes.Both,
                             Direction = FillDirection.Horizontal,
                             Spacing = new Vector2(5),
-                            Position = new Vector2(24, 0),
+                            Position = new Vector2(30, 0),
                             Children = new Drawable[]
                             {
                                 text = new SpriteText { Font = FrameworkFont.Regular },
@@ -206,7 +234,7 @@ namespace osu.Framework.Graphics.Visualisation
                 }
             });
 
-            previewBox.Position = new Vector2(9, 0);
+            previewBox.Position = new Vector2(15, 0);
             previewBox.Size = new Vector2(line_height, line_height);
 
             var compositeTarget = Target as CompositeDrawable;
@@ -418,6 +446,12 @@ namespace osu.Framework.Graphics.Visualisation
         private void updateSpecifics()
         {
             Vector2 posInTree = ToSpaceOfOtherDrawable(Vector2.Zero, tree);
+
+            inputReceiving.Alpha =
+                Target.GetContainingInputManager() is InputManager inputManager &&
+                Target.ReceivePositionalInputAt(inputManager.CurrentState.Mouse.Position)
+                    ? 1
+                    : 0;
 
             if (posInTree.Y < -previewBox.DrawHeight || posInTree.Y > tree.Height)
             {
