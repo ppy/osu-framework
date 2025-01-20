@@ -26,9 +26,14 @@ namespace osu.Framework.Input
         Username,
 
         /// <summary>
-        /// The text input is numerical.
+        /// The text input is a whole number.
         /// </summary>
         Number,
+
+        /// <summary>
+        /// The text input is numerical with decimal point.
+        /// </summary>
+        Decimal,
 
         /// <summary>
         /// The text input is a password hidden from the user.
@@ -60,6 +65,7 @@ namespace osu.Framework.Input
         {
             switch (type)
             {
+                case TextInputType.Decimal:
                 case TextInputType.Number:
                 case TextInputType.NumericalPassword:
                     return true;
