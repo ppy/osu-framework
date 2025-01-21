@@ -741,6 +741,7 @@ namespace osu.Framework.Platform
                 CacheStorage = GetDefaultGameStorage().GetStorageForDirectory("cache");
 
                 SetupForRun();
+                game.SetupLogging(Storage, CacheStorage);
 
                 populateInputHandlers();
 

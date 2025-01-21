@@ -206,7 +206,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddAssert("text input not deactivated", () => textInput.DeactivationQueue.Count == 0);
             AddAssert("text input not activated again", () => textInput.ActivationQueue.Count == 0);
-            AddAssert("text input ensure activated", () => textInput.EnsureActivatedQueue.Dequeue() && textInput.EnsureActivatedQueue.Count == 0);
+            AddAssert("text input ensure activated", () => textInput.EnsureActivatedQueue.Dequeue() != default && textInput.EnsureActivatedQueue.Count == 0);
 
             AddStep("click deselection", () =>
             {
@@ -217,7 +217,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddAssert("text input not deactivated", () => textInput.DeactivationQueue.Count == 0);
             AddAssert("text input not activated again", () => textInput.ActivationQueue.Count == 0);
-            AddAssert("text input ensure activated", () => textInput.EnsureActivatedQueue.Dequeue() && textInput.EnsureActivatedQueue.Count == 0);
+            AddAssert("text input ensure activated", () => textInput.EnsureActivatedQueue.Dequeue() != default && textInput.EnsureActivatedQueue.Count == 0);
 
             AddStep("click-drag selection", () =>
             {
@@ -500,7 +500,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("add second textbox", () => textInputContainer.Add(secondTextBox = new EventQueuesTextBox
             {
-                ImeAllowed = allowIme,
+                InputProperties = new TextInputProperties(TextInputType.Text, allowIme),
                 Anchor = Anchor.CentreLeft,
                 Origin = Anchor.CentreLeft,
                 CommitOnFocusLost = true,
@@ -517,7 +517,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddAssert("text input not deactivated", () => textInput.DeactivationQueue.Count == 0);
             AddAssert("text input not activated again", () => textInput.ActivationQueue.Count == 0);
-            AddAssert($"text input ensure activated {(allowIme ? "with" : "without")} IME", () => textInput.EnsureActivatedQueue.Dequeue() == allowIme && textInput.EnsureActivatedQueue.Count == 0);
+            AddAssert($"text input ensure activated {(allowIme ? "with" : "without")} IME", () => textInput.EnsureActivatedQueue.Dequeue().AllowIme == allowIme && textInput.EnsureActivatedQueue.Count == 0);
 
             AddStep("commit text", () => InputManager.Key(Key.Enter));
             AddAssert("text input deactivated", () => textInput.DeactivationQueue.Dequeue());
@@ -574,10 +574,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         public partial class EventQueuesTextBox : TestSceneTextBox.InsertableTextBox
         {
-            public bool ImeAllowed { get; set; } = true;
-
-            protected override bool AllowIme => ImeAllowed;
-
             public readonly Queue<bool> InputErrorQueue = new Queue<bool>();
             public readonly Queue<string> UserConsumedTextQueue = new Queue<string>();
             public readonly Queue<string> UserRemovedTextQueue = new Queue<string>();
