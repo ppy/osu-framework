@@ -117,7 +117,14 @@ namespace osu.Framework.Input
 
                     case MouseMoveEvent penMove:
                         if (penMove.ScreenSpaceMousePosition != CurrentState.Mouse.Position)
-                            new MousePositionAbsoluteInputFromPen { Position = penMove.ScreenSpaceMousePosition, DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
+                        {
+                            new MousePositionAbsoluteInputFromPen
+                            {
+                                Position = penMove.ScreenSpaceMousePosition,
+                                DeviceType = penInput.DeviceType
+                            }.Apply(CurrentState, this);
+                        }
+
                         return false;
                 }
             }
