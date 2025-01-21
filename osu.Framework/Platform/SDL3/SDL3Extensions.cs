@@ -1016,9 +1016,6 @@ namespace osu.Framework.Platform.SDL3
             switch (type)
             {
                 default:
-                // todo: SDL does not have a corresponding type for "number with decimal point", fall back to text for now.
-                // On iOS, using SDL_TEXTINPUT_TYPE_NUMBER does not offer a key for inserting a decimal.
-                case TextInputType.Decimal:
                 case TextInputType.Text:
                     return SDL_TextInputType.SDL_TEXTINPUT_TYPE_TEXT;
 
@@ -1032,6 +1029,7 @@ namespace osu.Framework.Platform.SDL3
                     return SDL_TextInputType.SDL_TEXTINPUT_TYPE_TEXT_USERNAME;
 
                 case TextInputType.Number:
+                case TextInputType.Decimal:
                     return SDL_TextInputType.SDL_TEXTINPUT_TYPE_NUMBER;
 
                 case TextInputType.Password:
