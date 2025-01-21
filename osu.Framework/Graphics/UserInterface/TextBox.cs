@@ -429,12 +429,12 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        private bool isCharacterSymbol(char character)
+        private static bool isCharacterSymbol(char character)
         {
             return !character.IsAlphaNumeric() && !character.IsWhitespace();
         }
 
-        private bool isCharacterAlphanumeric(char character)
+        private static bool isCharacterAlphanumeric(char character)
         {
             return character.IsAlphaNumeric();
         }
