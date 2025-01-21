@@ -851,9 +851,10 @@ namespace osu.Framework.Platform
             switch (RuntimeInfo.OS)
             {
                 case RuntimeInfo.Platform.Windows:
+                    yield return RendererType.OpenGL;
+                    // The D3D implementation is very hacky and not well supported on all systems.
                     yield return RendererType.Direct3D11;
                     yield return RendererType.Deferred_Direct3D11;
-                    yield return RendererType.OpenGL;
                     yield return RendererType.Deferred_Vulkan;
 
                     break;
