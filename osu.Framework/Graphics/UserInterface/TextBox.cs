@@ -103,17 +103,20 @@ namespace osu.Framework.Graphics.UserInterface
                 // discard control/special characters.
                 return false;
 
-            if (InputProperties.Type.IsNumerical())
+            var currentNumberFormat = CultureInfo.CurrentCulture.NumberFormat;
+
+            switch (InputProperties.Type)
             {
-                // if the input type is decimal and the character is a decimal separator, allow it.
-                if (InputProperties.Type == TextInputType.Decimal && CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator.Contains(character))
+                case TextInputType.Decimal:
+                    return char.IsAsciiDigit(character) || currentNumberFormat.NumberDecimalSeparator.Contains(character);
+
+                case TextInputType.Number:
+                case TextInputType.NumericalPassword:
+                    return char.IsAsciiDigit(character);
+
+                default:
                     return true;
-
-                // otherwise, only allow ascii digits for numerical input type.
-                return char.IsAsciiDigit(character);
             }
-
-            return true;
         }
 
         private bool readOnly;
