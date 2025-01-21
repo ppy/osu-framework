@@ -450,20 +450,48 @@ namespace osu.Framework.Graphics.UserInterface
             if (text.Length == 0) return 0;
 
             int searchPrev = Math.Clamp(selectionEnd - 1, 0, Math.Max(0, Text.Length - 1));
-            while (searchPrev > 0 && text[searchPrev] == ' ')
-                searchPrev--;
 
-            // Skip one character if it is a symbol to avoid cases like "author=<cursor>" requiring two taps
-            if (isCharacterSymbol(text[searchPrev]))
-                searchPrev--;
+            TextBoundaryStep currentStep = TextBoundaryStep.InitialWhitespace;
+            Func<char, bool> iterationFunc = isCharacterAlphanumeric;
+            bool finished = false;
+            while (!finished && searchPrev >= 0)
+            {
+                char character = text[searchPrev];
+                switch (currentStep)
+                {
+                    case TextBoundaryStep.InitialWhitespace:
+                        if (character == ' ')
+                            searchPrev--;
+                        else
+                            currentStep = TextBoundaryStep.SingleSymbolSkip;
+                        break;
+                    case TextBoundaryStep.SingleSymbolSkip:
+                        if (isCharacterSymbol(character))
+                            searchPrev--;
+                        currentStep = TextBoundaryStep.GetRequiredIterationFunction;
+                        break;
+                    case TextBoundaryStep.GetRequiredIterationFunction:
+                        if (isCharacterSymbol(character))
+                        {
+                            iterationFunc = isCharacterSymbol;
+                            searchPrev--;
+                        }
+                        else
+                        {
+                            iterationFunc = isCharacterAlphanumeric;
+                        }
+                        currentStep = TextBoundaryStep.FinalIteration;
+                        break;
+                    case TextBoundaryStep.FinalIteration:
+                        if (iterationFunc(character))
+                            searchPrev--;
+                        else
+                            finished = true;
+                        break;
+                }
+            }
 
-            if (searchPrev <= 0) return -selectionEnd;
-
-            Func<char, bool> searchFunc = isCharacterSymbol(text[searchPrev]) ? isCharacterSymbol : isCharacterAlphanumeric;
-            while (searchPrev > 0 && searchFunc(text[searchPrev]))
-                searchPrev--;
-
-            return searchPrev > 0 ? -(selectionEnd - searchPrev - 1) : -selectionEnd;
+            return searchPrev >= 0 ? -(selectionEnd - searchPrev - 1) : -selectionEnd;
         }
 
         /// <summary>
@@ -477,17 +505,46 @@ namespace osu.Framework.Graphics.UserInterface
             if (text.Length == 0) return 0;
 
             int searchNext = Math.Clamp(selectionEnd, 0, Math.Max(0, Text.Length - 1));
-            while (searchNext < Text.Length && text[searchNext] == ' ')
-                searchNext++;
 
-            if (searchNext < text.Length && isCharacterSymbol(text[searchNext]))
-                searchNext++;
-
-            if (searchNext >= text.Length) return text.Length - selectionEnd;
-
-            Func<char, bool> searchFunc = isCharacterSymbol(text[searchNext]) ? isCharacterSymbol : isCharacterAlphanumeric;
-            while (searchNext < Text.Length && searchFunc(text[searchNext]))
-                searchNext++;
+            TextBoundaryStep currentStep = TextBoundaryStep.InitialWhitespace;
+            Func<char, bool> iterationFunc = isCharacterAlphanumeric;
+            bool finished = false;
+            while (!finished && searchNext < text.Length)
+            {
+                char character = text[searchNext];
+                switch (currentStep)
+                {
+                    case TextBoundaryStep.InitialWhitespace:
+                        if (character == ' ')
+                            searchNext++;
+                        else
+                            currentStep = TextBoundaryStep.SingleSymbolSkip;
+                        break;
+                    case TextBoundaryStep.SingleSymbolSkip:
+                        if (isCharacterSymbol(character))
+                            searchNext++;
+                        currentStep = TextBoundaryStep.GetRequiredIterationFunction;
+                        break;
+                    case TextBoundaryStep.GetRequiredIterationFunction:
+                        if (isCharacterSymbol(character))
+                        {
+                            iterationFunc = isCharacterSymbol;
+                            searchNext++;
+                        }
+                        else
+                        {
+                            iterationFunc = isCharacterAlphanumeric;
+                        }
+                        currentStep = TextBoundaryStep.FinalIteration;
+                        break;
+                    case TextBoundaryStep.FinalIteration:
+                        if (iterationFunc(character))
+                            searchNext++;
+                        else
+                            finished = true;
+                        break;
+                }
+            }
 
             return (searchNext >= 0 ? searchNext : text.Length) - selectionEnd;
         }
@@ -1804,6 +1861,29 @@ namespace osu.Framework.Graphics.UserInterface
             /// All of the text was selected (i.e. via <see cref="PlatformAction.SelectAll"/>).
             /// </summary>
             All
+        }
+
+        private enum TextBoundaryStep
+        {
+            /// <summary>
+            /// This step skips over all the adjacent initial whitespace, if any
+            /// </summary>
+            InitialWhitespace,
+
+            /// <summary>
+            /// Skip a single symbol character in order to be able to go over cases like "author=" in a single step 
+            /// </summary>
+            SingleSymbolSkip,
+
+            /// <summary>
+            /// Figure out whether we should go over symbol or alphanumerical characters during the next iteration
+            /// </summary>
+            GetRequiredIterationFunction,
+
+            /// <summary>
+            /// Iterate over the characters until the test function returns false
+            /// </summary>
+            FinalIteration
         }
     }
 }
