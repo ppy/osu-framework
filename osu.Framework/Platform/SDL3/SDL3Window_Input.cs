@@ -195,6 +195,12 @@ namespace osu.Framework.Platform.SDL3
 
             var props = currentTextInputProperties.Value;
             SDL_SetNumberProperty(props, SDL_PROP_TEXTINPUT_TYPE_NUMBER, (long)properties.Type.ToSDLTextInputType());
+
+            if (!properties.AutoCapitalisation)
+                SDL_SetNumberProperty(props, SDL_PROP_TEXTINPUT_CAPITALIZATION_NUMBER, (long)SDL_Capitalization.SDL_CAPITALIZE_NONE);
+            else
+                SDL_ClearProperty(props, SDL_PROP_TEXTINPUT_CAPITALIZATION_NUMBER);
+
             SDL_StartTextInputWithProperties(SDLWindowHandle, props);
         });
 
