@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
@@ -98,6 +99,35 @@ namespace osu.Framework.Input
             // child drawable handling actual touches, we will produce one ourselves.
             if (e is MouseEvent && e.CurrentState.Mouse.LastSource is ISourcedFromTouch)
                 return false;
+
+            // Synthesize pen inputs from pen events
+            if (e is MouseEvent && e.CurrentState.Mouse.LastSource is ISourcedFromPen penInput)
+            {
+                switch (e)
+                {
+                    case MouseDownEvent penDown:
+                        Debug.Assert(penDown.Button == MouseButton.Left);
+                        new MouseButtonInputFromPen(true) { DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
+                        return false;
+
+                    case MouseUpEvent penUp:
+                        Debug.Assert(penUp.Button == MouseButton.Left);
+                        new MouseButtonInputFromPen(false) { DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
+                        return false;
+
+                    case MouseMoveEvent penMove:
+                        if (penMove.ScreenSpaceMousePosition != CurrentState.Mouse.Position)
+                        {
+                            new MousePositionAbsoluteInputFromPen
+                            {
+                                Position = penMove.ScreenSpaceMousePosition,
+                                DeviceType = penInput.DeviceType
+                            }.Apply(CurrentState, this);
+                        }
+
+                        return false;
+                }
+            }
 
             switch (e)
             {

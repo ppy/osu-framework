@@ -120,7 +120,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void performFilter()
         {
-            string[] terms = (searchTerm ?? string.Empty).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] terms = (searchTerm ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries);
             matchSubTree(this, terms, terms.Length > 0, allowNonContiguousMatching);
         }
 

@@ -10,6 +10,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
+using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using osu.Framework.Testing.Input;
@@ -272,6 +273,63 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("pass-through handled mouse", () => testInputManager.CurrentState.Mouse.Buttons.Single() == MouseButton.Left);
         }
 
+        [Test]
+        public void TestPenInputPassThrough()
+        {
+            MouseBox outer = null!;
+            MouseBox inner = null!;
+
+            addTestInputManagerStep();
+            AddStep("setup hierarchy", () =>
+            {
+                Add(outer = new MouseBox
+                {
+                    Alpha = 0.5f,
+                    Depth = 1,
+                    RelativeSizeAxes = Axes.Both,
+                });
+
+                testInputManager.Add(inner = new MouseBox
+                {
+                    Alpha = 0.5f,
+                    RelativeSizeAxes = Axes.Both,
+                });
+            });
+
+            AddStep("move pen to box", () => InputManager.MovePenTo(testInputManager));
+
+            AddAssert("ensure parent manager produced mouse", () => InputManager.CurrentState.Mouse.Position == testInputManager.ScreenSpaceDrawQuad.Centre);
+            AddAssert("ensure pass-through produced mouse", () => testInputManager.CurrentState.Mouse.Position == testInputManager.ScreenSpaceDrawQuad.Centre);
+
+            AddAssert("outer box received 1 pen event", () => outer.PenEvents, () => Is.EqualTo(1));
+            AddAssert("outer box received no mouse events", () => outer.MouseEvents, () => Is.EqualTo(0));
+
+            AddAssert("inner box received 1 pen event", () => inner.PenEvents, () => Is.EqualTo(1));
+            AddAssert("inner box received no mouse events", () => inner.MouseEvents, () => Is.EqualTo(0));
+
+            AddStep("press pen", () => InputManager.PressPen());
+
+            AddAssert("ensure parent manager produced mouse", () => InputManager.CurrentState.Mouse.Buttons.Single() == MouseButton.Left);
+            AddAssert("ensure pass-through produced mouse", () => testInputManager.CurrentState.Mouse.Buttons.Single() == MouseButton.Left);
+
+            AddAssert("outer box received 2 pen events", () => outer.PenEvents, () => Is.EqualTo(2));
+            AddAssert("outer box received no mouse events", () => outer.MouseEvents, () => Is.EqualTo(0));
+
+            AddAssert("inner box received 2 pen events", () => inner.PenEvents, () => Is.EqualTo(2));
+            AddAssert("inner box received no mouse events", () => inner.MouseEvents, () => Is.EqualTo(0));
+
+            AddStep("release pen", () => InputManager.ReleasePen());
+
+            AddAssert("ensure parent manager produced mouse", () => InputManager.CurrentState.Mouse.Buttons.HasAnyButtonPressed, () => Is.False);
+            AddAssert("ensure pass-through produced mouse", () => testInputManager.CurrentState.Mouse.Buttons.HasAnyButtonPressed, () => Is.False);
+
+            AddAssert("outer box received 3 pen events", () => outer.PenEvents, () => Is.EqualTo(3));
+            AddAssert("outer box received no mouse events", () => outer.MouseEvents, () => Is.EqualTo(0));
+
+            AddAssert("inner box received 3 pen events", () => inner.PenEvents, () => Is.EqualTo(3));
+            AddAssert("inner box received no mouse events", () => inner.MouseEvents, () => Is.EqualTo(0));
+        }
+
         public partial class TestInputManager : ManualInputManager
         {
             public readonly TestSceneInputManager.ContainingInputManagerStatusText Status;
@@ -290,6 +348,60 @@ namespace osu.Framework.Tests.Visual.Input
             public Func<UIEvent, bool> OnHandle;
 
             protected override bool Handle(UIEvent e) => OnHandle?.Invoke(e) ?? false;
+        }
+
+        public partial class MouseBox : Box
+        {
+            public int MouseEvents { get; private set; }
+            public int PenEvents { get; private set; }
+
+            protected override bool OnMouseMove(MouseMoveEvent e)
+            {
+                switch (e.CurrentState.Mouse.LastSource)
+                {
+                    case ISourcedFromPen:
+                        PenEvents++;
+                        break;
+
+                    default:
+                        MouseEvents++;
+                        break;
+                }
+
+                return base.OnMouseMove(e);
+            }
+
+            protected override bool OnMouseDown(MouseDownEvent e)
+            {
+                switch (e.CurrentState.Mouse.LastSource)
+                {
+                    case ISourcedFromPen:
+                        PenEvents++;
+                        break;
+
+                    default:
+                        MouseEvents++;
+                        break;
+                }
+
+                return base.OnMouseDown(e);
+            }
+
+            protected override void OnMouseUp(MouseUpEvent e)
+            {
+                switch (e.CurrentState.Mouse.LastSource)
+                {
+                    case ISourcedFromPen:
+                        PenEvents++;
+                        break;
+
+                    default:
+                        MouseEvents++;
+                        break;
+                }
+
+                base.OnMouseUp(e);
+            }
         }
     }
 }

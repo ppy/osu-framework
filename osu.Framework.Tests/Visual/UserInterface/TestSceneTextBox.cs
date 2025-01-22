@@ -95,7 +95,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                 textBoxes.Add(new CustomTextBox
                 {
-                    Text = @"Custom textbox",
+                    PlaceholderText = "Custom textbox",
+                    Size = new Vector2(500, 30),
+                    TabbableContentContainer = textBoxes
+                });
+
+                textBoxes.Add(new BasicTextBox
+                {
+                    InputProperties = new TextInputProperties(TextInputType.Text, AutoCapitalisation: true),
+                    Text = "Auto-capitalised textbox",
                     Size = new Vector2(500, 30),
                     TabbableContentContainer = textBoxes
                 });
@@ -122,8 +130,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     TabbableContentContainer = otherTextBoxes
                 });
 
-                otherTextBoxes.Add(new BasicPasswordTextBox
+                otherTextBoxes.Add(new BasicTextBox
                 {
+                    InputProperties = new TextInputProperties(TextInputType.Password),
                     PlaceholderText = @"Password textbox",
                     Text = "Secret ;)",
                     Size = new Vector2(500, 30),
@@ -169,12 +178,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestNumbersOnly()
         {
-            NumberTextBox numbers = null;
+            BasicTextBox numbers = null;
 
             AddStep("add number textbox", () =>
             {
-                textBoxes.Add(numbers = new NumberTextBox
+                textBoxes.Add(numbers = new BasicTextBox
                 {
+                    InputProperties = new TextInputProperties(TextInputType.Number),
                     PlaceholderText = @"Only numbers",
                     Size = new Vector2(500, 30),
                     TabbableContentContainer = textBoxes
@@ -1074,13 +1084,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public string FlowingText => string.Concat(TextFlow.FlowingChildren.OfType<FallingDownContainer>().Select(c => c.OfType<SpriteText>().Single().Text.ToString()[0]));
 
             public new void InsertString(string text) => base.InsertString(text);
-        }
-
-        private partial class NumberTextBox : BasicTextBox
-        {
-            protected override bool CanAddCharacter(char character) => char.IsAsciiDigit(character);
-
-            protected override bool AllowIme => false;
         }
 
         private partial class CustomTextBox : BasicTextBox

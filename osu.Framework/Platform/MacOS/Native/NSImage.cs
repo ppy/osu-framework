@@ -21,6 +21,9 @@ namespace osu.Framework.Platform.MacOS.Native
         private static readonly IntPtr sel_release = Selector.Get("release");
         private static readonly IntPtr sel_init_with_data = Selector.Get("initWithData:");
         private static readonly IntPtr sel_tiff_representation = Selector.Get("TIFFRepresentation");
+        private static readonly IntPtr sel_cg_image_for_proposed_rect = Selector.Get("CGImageForProposedRect:context:hints:");
+
+        internal CGImage CGImage => new CGImage(Interop.SendIntPtr(Handle, sel_cg_image_for_proposed_rect, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero));
 
         internal NSData TiffRepresentation => new NSData(Interop.SendIntPtr(Handle, sel_tiff_representation));
 

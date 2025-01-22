@@ -37,16 +37,16 @@ namespace osu.Framework.Input
             TriggerImeComposition(text, selectionStart, selectionLength);
         }
 
-        protected override void ActivateTextInput(bool allowIme)
+        protected override void ActivateTextInput(TextInputProperties properties)
         {
             window.TextInput += handleTextInput;
             window.TextEditing += handleTextEditing;
-            window.StartTextInput(allowIme);
+            window.StartTextInput(properties);
         }
 
-        protected override void EnsureTextInputActivated(bool allowIme)
+        protected override void EnsureTextInputActivated(TextInputProperties properties)
         {
-            window.StartTextInput(allowIme);
+            window.StartTextInput(properties);
         }
 
         protected override void DeactivateTextInput()

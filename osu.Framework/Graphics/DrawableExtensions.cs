@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics
         /// <param name="drawable">The <see cref="Drawable"/> to be checked.</param>
         /// <param name="root">The root to be checked against.</param>
         /// <returns>Whether the drawable was rooted.</returns>
-        internal static bool IsRootedAt(this Drawable? drawable, Drawable root)
+        public static bool IsRootedAt(this Drawable? drawable, Drawable root)
         {
             if (drawable == root) return true;
 
