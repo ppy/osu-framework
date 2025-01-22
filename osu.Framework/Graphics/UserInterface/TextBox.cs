@@ -451,39 +451,27 @@ namespace osu.Framework.Graphics.UserInterface
 
             int searchPrev = Math.Clamp(selectionEnd - 1, 0, Math.Max(0, Text.Length - 1));
 
-            TextBoundaryStep currentStep = TextBoundaryStep.InitialWhitespace;
-            Func<char, bool> iterationFunc = isCharacterAlphanumeric;
+            WordTraversalStep currentStep = WordTraversalStep.InitialWhitespace;
             bool finished = false;
             while (!finished && searchPrev >= 0)
             {
                 char character = text[searchPrev];
                 switch (currentStep)
                 {
-                    case TextBoundaryStep.InitialWhitespace:
+                    case WordTraversalStep.InitialWhitespace:
                         if (character == ' ')
                             searchPrev--;
                         else
-                            currentStep = TextBoundaryStep.SingleSymbolSkip;
+                            currentStep = WordTraversalStep.Symbol;
                         break;
-                    case TextBoundaryStep.SingleSymbolSkip:
+                    case WordTraversalStep.Symbol:
                         if (isCharacterSymbol(character))
                             searchPrev--;
-                        currentStep = TextBoundaryStep.GetRequiredIterationFunction;
-                        break;
-                    case TextBoundaryStep.GetRequiredIterationFunction:
-                        if (isCharacterSymbol(character))
-                        {
-                            iterationFunc = isCharacterSymbol;
-                            searchPrev--;
-                        }
                         else
-                        {
-                            iterationFunc = isCharacterAlphanumeric;
-                        }
-                        currentStep = TextBoundaryStep.FinalIteration;
+                            currentStep = WordTraversalStep.Alphanumerical;
                         break;
-                    case TextBoundaryStep.FinalIteration:
-                        if (iterationFunc(character))
+                    case WordTraversalStep.Alphanumerical:
+                        if (isCharacterAlphanumeric(character))
                             searchPrev--;
                         else
                             finished = true;
@@ -506,39 +494,27 @@ namespace osu.Framework.Graphics.UserInterface
 
             int searchNext = Math.Clamp(selectionEnd, 0, Math.Max(0, Text.Length - 1));
 
-            TextBoundaryStep currentStep = TextBoundaryStep.InitialWhitespace;
-            Func<char, bool> iterationFunc = isCharacterAlphanumeric;
+            WordTraversalStep currentStep = WordTraversalStep.InitialWhitespace;
             bool finished = false;
             while (!finished && searchNext < text.Length)
             {
                 char character = text[searchNext];
                 switch (currentStep)
                 {
-                    case TextBoundaryStep.InitialWhitespace:
+                    case WordTraversalStep.InitialWhitespace:
                         if (character == ' ')
                             searchNext++;
                         else
-                            currentStep = TextBoundaryStep.SingleSymbolSkip;
+                            currentStep = WordTraversalStep.Alphanumerical;
                         break;
-                    case TextBoundaryStep.SingleSymbolSkip:
-                        if (isCharacterSymbol(character))
+                    case WordTraversalStep.Alphanumerical:
+                        if (isCharacterAlphanumeric(character))
                             searchNext++;
-                        currentStep = TextBoundaryStep.GetRequiredIterationFunction;
-                        break;
-                    case TextBoundaryStep.GetRequiredIterationFunction:
-                        if (isCharacterSymbol(character))
-                        {
-                            iterationFunc = isCharacterSymbol;
-                            searchNext++;
-                        }
                         else
-                        {
-                            iterationFunc = isCharacterAlphanumeric;
-                        }
-                        currentStep = TextBoundaryStep.FinalIteration;
+                            currentStep = WordTraversalStep.Symbol;
                         break;
-                    case TextBoundaryStep.FinalIteration:
-                        if (iterationFunc(character))
+                    case WordTraversalStep.Symbol:
+                        if (isCharacterSymbol(character))
                             searchNext++;
                         else
                             finished = true;
@@ -1863,27 +1839,11 @@ namespace osu.Framework.Graphics.UserInterface
             All
         }
 
-        private enum TextBoundaryStep
+        private enum WordTraversalStep
         {
-            /// <summary>
-            /// This step skips over all the adjacent initial whitespace, if any
-            /// </summary>
             InitialWhitespace,
-
-            /// <summary>
-            /// Skip a single symbol character in order to be able to go over cases like "author=" in a single step 
-            /// </summary>
-            SingleSymbolSkip,
-
-            /// <summary>
-            /// Figure out whether we should go over symbol or alphanumerical characters during the next iteration
-            /// </summary>
-            GetRequiredIterationFunction,
-
-            /// <summary>
-            /// Iterate over the characters until the test function returns false
-            /// </summary>
-            FinalIteration
+            Symbol,
+            Alphanumerical,
         }
     }
 }
