@@ -151,9 +151,7 @@ namespace osu.Framework.Platform.SDL3
 
         private PointF previousPolledPoint = PointF.Empty;
 
-        private SDL_MouseButtonFlags mousePressedButtons;
-
-        private SDL_MouseButtonFlags penPressedButtons;
+        private SDL_MouseButtonFlags pressedButtons;
 
         private void pollMouse()
         {
@@ -172,7 +170,7 @@ namespace osu.Framework.Platform.SDL3
             }
 
             // a button should be released if it was pressed and its current global state differs (its bit in globalButtons is set to 0)
-            SDL_MouseButtonFlags buttonsToRelease = mousePressedButtons & (globalButtons ^ mousePressedButtons) & ~penPressedButtons;
+            SDL_MouseButtonFlags buttonsToRelease = pressedButtons & (globalButtons ^ pressedButtons);
 
             // the outer if just optimises for the common case that there are no buttons to release.
             if (buttonsToRelease != 0)
@@ -183,7 +181,7 @@ namespace osu.Framework.Platform.SDL3
                 if (buttonsToRelease.HasFlagFast(SDL_MouseButtonFlags.SDL_BUTTON_X1MASK)) MouseUp?.Invoke(MouseButton.Button1);
                 if (buttonsToRelease.HasFlagFast(SDL_MouseButtonFlags.SDL_BUTTON_X2MASK)) MouseUp?.Invoke(MouseButton.Button2);
 
-                mousePressedButtons &= ~buttonsToRelease;
+                pressedButtons &= ~buttonsToRelease;
             }
         }
 
@@ -460,24 +458,12 @@ namespace osu.Framework.Platform.SDL3
             switch (evtButton.type)
             {
                 case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN:
-                    if (penPressedButtons.HasFlagFast(mask))
-                    {
-                        Logger.Log("Mouse tried pressing a button already pressed by tablet!", level: LogLevel.Debug);
-                        return;
-                    }
-
-                    mousePressedButtons |= mask;
+                    pressedButtons |= mask;
                     MouseDown?.Invoke(button);
                     break;
 
                 case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP:
-                    if (!mousePressedButtons.HasFlagFast(mask))
-                    {
-                        Logger.Log("Mouse tried releasing a button already released by tablet!", level: LogLevel.Debug);
-                        return;
-                    }
-
-                    mousePressedButtons &= ~mask;
+                    pressedButtons &= ~mask;
                     MouseUp?.Invoke(button);
                     break;
             }
@@ -531,51 +517,27 @@ namespace osu.Framework.Platform.SDL3
 
         private void handlePenMotionEvent(SDL_PenMotionEvent evtPenMotion)
         {
-            MouseMove?.Invoke(new Vector2(evtPenMotion.x * Scale, evtPenMotion.y * Scale));
+            PenMove?.Invoke(new Vector2(evtPenMotion.x, evtPenMotion.y) * Scale);
         }
 
         private void handlePenTouchEvent(SDL_PenTouchEvent evtPenTouch)
         {
-            if (evtPenTouch.eraser)
-                return;
-
-            handlePenPressEvent(0, evtPenTouch.down);
+            PenTouch?.Invoke(evtPenTouch.down);
         }
+
+        /// <summary>
+        /// The first SDL pen button as defined in https://wiki.libsdl.org/SDL3/SDL_PenButtonEvent.
+        /// </summary>
+        private const byte first_pen_button = 1;
 
         private void handlePenButtonEvent(SDL_PenButtonEvent evtPenButton)
         {
-            handlePenPressEvent(evtPenButton.button, evtPenButton.down);
-        }
+            var button = (TabletPenButton)(evtPenButton.button - first_pen_button);
 
-        private void handlePenPressEvent(byte penButton, bool pressed)
-        {
-            mouseButtonFromPen(pressed, penButton, out MouseButton button, out SDL_MouseButtonFlags mask);
-
-            if (mask == 0)
-                return;
-
-            if (pressed)
-            {
-                if (mousePressedButtons.HasFlagFast(mask))
-                {
-                    Logger.Log("Tablet tried pressing a button already pressed by mouse!", level: LogLevel.Debug);
-                    return;
-                }
-
-                penPressedButtons |= mask;
-                MouseDown?.Invoke(button);
-            }
+            if (button >= TabletPenButton.Primary && button <= TabletPenButton.Button8)
+                PenButton?.Invoke(button, evtPenButton.down);
             else
-            {
-                if (!penPressedButtons.HasFlagFast(mask))
-                {
-                    Logger.Log("Tablet tried releasing a button already released by mouse!", level: LogLevel.Debug);
-                    return;
-                }
-
-                penPressedButtons &= ~mask;
-                MouseUp?.Invoke(button);
-            }
+                Logger.Log($"Dropping SDL_PenButtonEvent with button index={evtPenButton.button} (out of range).");
         }
 
         private MouseButton mouseButtonFromEvent(SDLButton button)
@@ -764,6 +726,21 @@ namespace osu.Framework.Platform.SDL3
         /// Invoked when a finger leaves the touchscreen.
         /// </summary>
         public event Action<Touch>? TouchUp;
+
+        /// <summary>
+        /// Invoked when a pen moves.
+        /// </summary>
+        public event Action<Vector2>? PenMove;
+
+        /// <summary>
+        /// Invoked when a pen touches (<c>true</c>) or lifts (<c>false</c>) from the tablet surface.
+        /// </summary>
+        public event Action<bool>? PenTouch;
+
+        /// <summary>
+        /// Invoked when a <see cref="TabletPenButton">pen button</see> is pressed (<c>true</c>) or released (<c>false</c>).
+        /// </summary>
+        public event Action<TabletPenButton, bool>? PenButton;
 
         #endregion
     }
