@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Threading;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.EnumExtensions;
@@ -151,11 +152,12 @@ namespace osu.Framework.Platform.SDL3
 
         private PointF previousPolledPoint = PointF.Empty;
 
-        private SDL_MouseButtonFlags pressedButtons;
+        private volatile uint pressedButtons;
 
         private void pollMouse()
         {
             float x, y;
+            var pressed = (SDL_MouseButtonFlags)pressedButtons;
             SDL_MouseButtonFlags globalButtons = SDL_GetGlobalMouseState(&x, &y);
 
             if (previousPolledPoint.X != x || previousPolledPoint.Y != y)
@@ -170,18 +172,18 @@ namespace osu.Framework.Platform.SDL3
             }
 
             // a button should be released if it was pressed and its current global state differs (its bit in globalButtons is set to 0)
-            SDL_MouseButtonFlags buttonsToRelease = pressedButtons & (globalButtons ^ pressedButtons);
+            SDL_MouseButtonFlags buttonsToRelease = pressed & (globalButtons ^ pressed);
 
             // the outer if just optimises for the common case that there are no buttons to release.
             if (buttonsToRelease != 0)
             {
+                Interlocked.And(ref pressedButtons, (uint)~buttonsToRelease);
+
                 if (buttonsToRelease.HasFlagFast(SDL_MouseButtonFlags.SDL_BUTTON_LMASK)) MouseUp?.Invoke(MouseButton.Left);
                 if (buttonsToRelease.HasFlagFast(SDL_MouseButtonFlags.SDL_BUTTON_MMASK)) MouseUp?.Invoke(MouseButton.Middle);
                 if (buttonsToRelease.HasFlagFast(SDL_MouseButtonFlags.SDL_BUTTON_RMASK)) MouseUp?.Invoke(MouseButton.Right);
                 if (buttonsToRelease.HasFlagFast(SDL_MouseButtonFlags.SDL_BUTTON_X1MASK)) MouseUp?.Invoke(MouseButton.Button1);
                 if (buttonsToRelease.HasFlagFast(SDL_MouseButtonFlags.SDL_BUTTON_X2MASK)) MouseUp?.Invoke(MouseButton.Button2);
-
-                pressedButtons &= ~buttonsToRelease;
             }
         }
 
@@ -465,12 +467,12 @@ namespace osu.Framework.Platform.SDL3
             switch (evtButton.type)
             {
                 case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN:
-                    pressedButtons |= mask;
                     MouseDown?.Invoke(button);
+                    Interlocked.Or(ref pressedButtons, (uint)mask);
                     break;
 
                 case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP:
-                    pressedButtons &= ~mask;
+                    Interlocked.And(ref pressedButtons, (uint)~mask);
                     MouseUp?.Invoke(button);
                     break;
             }
