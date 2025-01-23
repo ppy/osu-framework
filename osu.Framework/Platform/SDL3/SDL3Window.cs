@@ -287,12 +287,13 @@ namespace osu.Framework.Platform.SDL3
         /// As per SDL's recommendation, application events should always be handled via the event filter.
         /// See: https://wiki.libsdl.org/SDL3/SDL_EventType#android_ios_and_winrt_events
         /// </remarks>
-        protected virtual void HandleEventFromFilter(SDL_Event evt)
+        /// <returns>A <c>bool</c> denoting whether to keep the event. <c>false</c> will drop the event.</returns>
+        protected virtual bool HandleEventFromFilter(SDL_Event e)
         {
-            switch (evt.Type)
+            switch (e.Type)
             {
                 case SDL_EventType.SDL_EVENT_TERMINATING:
-                    handleQuitEvent(evt.quit);
+                    handleQuitEvent(e.quit);
                     break;
 
                 case SDL_EventType.SDL_EVENT_DID_ENTER_BACKGROUND:
@@ -306,7 +307,22 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_EventType.SDL_EVENT_LOW_MEMORY:
                     LowOnMemory?.Invoke();
                     break;
+
+                case SDL_EventType.SDL_EVENT_MOUSE_MOTION:
+                    handleMouseMotionEvent(e.motion);
+                    return false;
+
+                case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN:
+                case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP:
+                    handleMouseButtonEvent(e.button);
+                    return false;
+
+                case SDL_EventType.SDL_EVENT_MOUSE_WHEEL:
+                    handleMouseWheelEvent(e.wheel);
+                    return false;
             }
+
+            return true;
         }
 
         protected void HandleEventFromWatch(SDL_Event evt)
@@ -327,7 +343,7 @@ namespace osu.Framework.Platform.SDL3
         {
             var handle = new ObjectHandle<SDL3Window>(userdata);
             if (handle.GetTarget(out SDL3Window window))
-                window.HandleEventFromFilter(*eventPtr);
+                return window.HandleEventFromFilter(*eventPtr);
 
             return true;
         }
@@ -512,19 +528,6 @@ namespace osu.Framework.Platform.SDL3
 
                 case SDL_EventType.SDL_EVENT_KEYMAP_CHANGED:
                     handleKeymapChangedEvent();
-                    break;
-
-                case SDL_EventType.SDL_EVENT_MOUSE_MOTION:
-                    handleMouseMotionEvent(e.motion);
-                    break;
-
-                case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN:
-                case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP:
-                    handleMouseButtonEvent(e.button);
-                    break;
-
-                case SDL_EventType.SDL_EVENT_MOUSE_WHEEL:
-                    handleMouseWheelEvent(e.wheel);
                     break;
 
                 case SDL_EventType.SDL_EVENT_JOYSTICK_AXIS_MOTION:
