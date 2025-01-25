@@ -25,7 +25,7 @@ namespace osu.Framework.Tests.Visual.Input
 {
     public partial class TestSceneTouchInput : ManualInputManagerTestScene
     {
-        private static readonly TouchSource[] touch_sources = (TouchSource[])Enum.GetValues(typeof(TouchSource));
+        private static readonly TouchSource[] touch_sources = Enum.GetValues<TouchSource>().Take(10).ToArray();
 
         private Container<InputReceptor> receptors;
 

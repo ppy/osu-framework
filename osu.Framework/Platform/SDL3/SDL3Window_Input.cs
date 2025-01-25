@@ -524,14 +524,29 @@ namespace osu.Framework.Platform.SDL3
 
         private void handleKeymapChangedEvent() => KeymapChanged?.Invoke();
 
+        // pen input events should ultimately have its own input flow with code from InputManager to fall back to mouse input,
+        // but as the current structure of InputManager completely disallows that, synthesize touch input on pen events
+        // so it still works correctly for our use case (consider OsuTouchInputMapper in osu!).
+
         private void handlePenMotionEvent(SDL_PenMotionEvent evtPenMotion)
         {
-            PenMove?.Invoke(new Vector2(evtPenMotion.x, evtPenMotion.y) * Scale);
+            var pos = new Vector2(evtPenMotion.x, evtPenMotion.y) * Scale;
+
+            if (evtPenMotion.pen_state.HasFlagFast(SDL_PenInputFlags.SDL_PEN_INPUT_DOWN))
+                TouchDown?.Invoke(new Touch(TouchSource.PenTouch, pos));
+            else
+                PenMove?.Invoke(pos);
         }
 
         private void handlePenTouchEvent(SDL_PenTouchEvent evtPenTouch)
         {
-            PenTouch?.Invoke(evtPenTouch.down);
+            var pos = new Vector2(evtPenTouch.x, evtPenTouch.y) * Scale;
+            var touch = new Touch(TouchSource.PenTouch, pos);
+
+            if (evtPenTouch.down)
+                TouchDown?.Invoke(touch);
+            else
+                TouchUp?.Invoke(touch);
         }
 
         /// <summary>
@@ -740,11 +755,6 @@ namespace osu.Framework.Platform.SDL3
         /// Invoked when a pen moves.
         /// </summary>
         public event Action<Vector2>? PenMove;
-
-        /// <summary>
-        /// Invoked when a pen touches (<c>true</c>) or lifts (<c>false</c>) from the tablet surface.
-        /// </summary>
-        public event Action<bool>? PenTouch;
 
         /// <summary>
         /// Invoked when a <see cref="TabletPenButton">pen button</see> is pressed (<c>true</c>) or released (<c>false</c>).

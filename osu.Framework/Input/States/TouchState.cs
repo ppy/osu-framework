@@ -9,9 +9,14 @@ namespace osu.Framework.Input.States
     public class TouchState
     {
         /// <summary>
-        /// The maximum amount of touches this can handle.
+        /// The maximum amount of touches this can handle (excluding <see cref="TouchSource.PenTouch"/>).
         /// </summary>
-        public static readonly int MAX_TOUCH_COUNT = Enum.GetValues<TouchSource>().Length;
+        public static readonly int MAX_TOUCH_COUNT = 10;
+
+        /// <summary>
+        /// The maximum number of <see cref="TouchSource"/>s.
+        /// </summary>
+        public static readonly int MAX_SOURCES_COUNT = Enum.GetValues<TouchSource>().Length;
 
         /// <summary>
         /// The list of currently active touch sources.
@@ -25,7 +30,7 @@ namespace osu.Framework.Input.States
         /// Using <see cref="GetTouchPosition"/> is recommended for retrieving
         /// logically correct values, as this may contain already stale values.
         /// </remarks>
-        public readonly Vector2[] TouchPositions = new Vector2[MAX_TOUCH_COUNT];
+        public readonly Vector2[] TouchPositions = new Vector2[MAX_SOURCES_COUNT];
 
         /// <summary>
         /// Retrieves the current touch position of a specified <paramref name="source"/>.
