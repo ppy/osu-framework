@@ -269,7 +269,7 @@ namespace osu.Framework.Platform.SDL3
             return null;
         }
 
-        protected virtual void HandleTouchFingerEvent(SDL_TouchFingerEvent evtTfinger)
+        private void handleTouchFingerEvent(SDL_TouchFingerEvent evtTfinger)
         {
             var existingSource = getTouchSource(evtTfinger.fingerID);
 
