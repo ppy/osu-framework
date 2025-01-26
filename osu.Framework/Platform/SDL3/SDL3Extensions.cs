@@ -1017,6 +1017,7 @@ namespace osu.Framework.Platform.SDL3
             {
                 default:
                 case TextInputType.Text:
+                case TextInputType.Code:
                     return SDL_TextInputType.SDL_TEXTINPUT_TYPE_TEXT;
 
                 case TextInputType.Name:
