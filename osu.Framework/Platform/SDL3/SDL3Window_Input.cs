@@ -201,6 +201,11 @@ namespace osu.Framework.Platform.SDL3
             else
                 SDL_ClearProperty(props, SDL_PROP_TEXTINPUT_CAPITALIZATION_NUMBER);
 
+            if (properties.Type == TextInputType.Code)
+                SDL_SetBooleanProperty(props, SDL_PROP_TEXTINPUT_AUTOCORRECT_BOOLEAN, false);
+            else
+                SDL_ClearProperty(props, SDL_PROP_TEXTINPUT_AUTOCORRECT_BOOLEAN);
+
             SDL_StartTextInputWithProperties(SDLWindowHandle, props);
         });
 
