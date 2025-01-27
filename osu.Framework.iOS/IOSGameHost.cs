@@ -30,6 +30,8 @@ namespace osu.Framework.iOS
 
         private IOSFilePresenter presenter = null!;
 
+        public override bool OnScreenKeyboardOverlapsGameWindow => true;
+
         public IOSGameHost()
             : base(string.Empty)
         {
