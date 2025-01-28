@@ -90,6 +90,7 @@ namespace osu.Framework.Testing
             exitNestedGame();
 
             nestedGame = game;
+            nestedGame.SetupLogging(host.Storage, host.CacheStorage);
             nestedGame.SetHost(host);
 
             base.Add(nestedGame);

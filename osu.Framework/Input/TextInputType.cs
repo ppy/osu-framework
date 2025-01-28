@@ -16,14 +16,9 @@ namespace osu.Framework.Input
         Name,
 
         /// <summary>
-        /// The text input is an email address.
+        /// The text input is an alphanumeric code which can be visible to the user.
         /// </summary>
-        EmailAddress,
-
-        /// <summary>
-        /// The text input is a username.
-        /// </summary>
-        Username,
+        Code,
 
         /// <summary>
         /// The text input is a whole number.
@@ -36,7 +31,17 @@ namespace osu.Framework.Input
         Decimal,
 
         /// <summary>
-        /// The text input is a password hidden from the user.
+        /// The text input is an email address.
+        /// </summary>
+        EmailAddress,
+
+        /// <summary>
+        /// The text input is a username. This may hint the operating system to provide a shortcut to a credentials manager for autofill.
+        /// </summary>
+        Username,
+
+        /// <summary>
+        /// The text input is a password hidden from the user. This may hint the operating system to provide a shortcut to a credentials manager for autofill.
         /// </summary>
         Password,
 
