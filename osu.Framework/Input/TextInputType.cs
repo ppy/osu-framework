@@ -21,9 +21,14 @@ namespace osu.Framework.Input
         Code,
 
         /// <summary>
-        /// The text input is numerical.
+        /// The text input is a whole number.
         /// </summary>
         Number,
+
+        /// <summary>
+        /// The text input is numerical with decimal point.
+        /// </summary>
+        Decimal,
 
         /// <summary>
         /// The text input is an email address.
@@ -53,19 +58,6 @@ namespace osu.Framework.Input
             switch (type)
             {
                 case TextInputType.Password:
-                case TextInputType.NumericalPassword:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
-
-        public static bool IsNumerical(this TextInputType type)
-        {
-            switch (type)
-            {
-                case TextInputType.Number:
                 case TextInputType.NumericalPassword:
                     return true;
 

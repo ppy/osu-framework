@@ -274,7 +274,7 @@ namespace osu.Framework.Platform.SDL3
             return null;
         }
 
-        protected virtual void HandleTouchFingerEvent(SDL_TouchFingerEvent evtTfinger)
+        private void handleTouchFingerEvent(SDL_TouchFingerEvent evtTfinger)
         {
             var existingSource = getTouchSource(evtTfinger.fingerID);
 
@@ -305,6 +305,7 @@ namespace osu.Framework.Platform.SDL3
                     break;
 
                 case SDL_EventType.SDL_EVENT_FINGER_UP:
+                case SDL_EventType.SDL_EVENT_FINGER_CANCELED:
                     TouchUp?.Invoke(touch);
                     activeTouches[(int)existingSource] = null;
                     break;
