@@ -1029,6 +1029,7 @@ namespace osu.Framework.Platform.SDL3
                     return SDL_TextInputType.SDL_TEXTINPUT_TYPE_TEXT_USERNAME;
 
                 case TextInputType.Number:
+                case TextInputType.Decimal:
                     return SDL_TextInputType.SDL_TEXTINPUT_TYPE_NUMBER;
 
                 case TextInputType.Password:
