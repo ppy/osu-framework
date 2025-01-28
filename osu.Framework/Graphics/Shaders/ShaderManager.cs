@@ -90,11 +90,11 @@ namespace osu.Framework.Graphics.Shaders
 
         private string ensureValidName(string name, ShaderPartType partType)
         {
-            bool hasExistingExtension = !string.IsNullOrEmpty(Path.GetExtension(name));
+            bool noFileEnding = string.IsNullOrEmpty(Path.GetExtension(name));
 
             string ending = string.Empty;
 
-            if (!hasExistingExtension)
+            if (noFileEnding)
                 ending = getFileEnding(partType);
 
             if (!name.StartsWith(shader_prefix, StringComparison.Ordinal))
