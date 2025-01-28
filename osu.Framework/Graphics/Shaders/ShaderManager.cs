@@ -83,14 +83,19 @@ namespace osu.Framework.Graphics.Shaders
             byte[]? rawData = GetRawData(name);
 
             if (rawData == null)
-                throw new FileNotFoundException($"{type} shader part could not be found.", name);
+                throw new FileNotFoundException($"{type} shader part could not be found. If using a different file extension than .fs or .vs, Be sure to include it in the argument.", name);
 
             return partCache[name] = renderer.CreateShaderPart(this, name, rawData, type);
         }
 
         private string ensureValidName(string name, ShaderPartType partType)
         {
-            string ending = getFileEnding(partType);
+            bool hasExistingExtension = !string.IsNullOrEmpty(Path.GetExtension(name));
+
+            string ending = string.Empty;
+
+            if (!hasExistingExtension)
+                ending = getFileEnding(partType);
 
             if (!name.StartsWith(shader_prefix, StringComparison.Ordinal))
                 name = shader_prefix + name;
