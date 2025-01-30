@@ -6,6 +6,7 @@ using osu.Framework.Platform;
 using osu.Framework.Platform.SDL3;
 using osu.Framework.Statistics;
 using osuTK;
+using osuTK.Input;
 
 namespace osu.Framework.Input.Handlers.Pen
 {
@@ -45,22 +46,31 @@ namespace osu.Framework.Input.Handlers.Pen
             return true;
         }
 
-        // iPadOS doesn't support external tablets, so we are sure it's direct Apple Pencil input.
-        // Other platforms support both direct and indirect tablet input, but SDL doesn't provide any information on the current device type.
-        private static readonly TabletPenDeviceType device_type = RuntimeInfo.OS == RuntimeInfo.Platform.iOS ? TabletPenDeviceType.Direct : TabletPenDeviceType.Unknown;
+        // Pen input is not necessarily direct on mobile platforms (specifically Android, where external tablets are supported),
+        // but until users experience issues with this, consider it "direct" for now.
+        private static readonly TabletPenDeviceType device_type = RuntimeInfo.IsMobile ? TabletPenDeviceType.Direct : TabletPenDeviceType.Unknown;
+
+        private bool penDown;
+        private Vector2 currentPosition;
 
         private void handlePenMove(Vector2 position)
         {
-            enqueueInput(new MousePositionAbsoluteInputFromPen
-            {
-                Position = position,
-                DeviceType = device_type
-            });
+            currentPosition = position;
+
+            if (penDown && device_type == TabletPenDeviceType.Direct)
+                enqueueInput(new TouchInput(new Input.Touch(TouchSource.PenTouch, position), true));
+            else
+                enqueueInput(new MousePositionAbsoluteInput { Position = position });
         }
 
         private void handlePenTouch(bool pressed)
         {
-            enqueueInput(new MouseButtonInputFromPen(pressed) { DeviceType = device_type });
+            penDown = pressed;
+
+            if (device_type == TabletPenDeviceType.Direct)
+                enqueueInput(new TouchInput(new Input.Touch(TouchSource.PenTouch, currentPosition), pressed));
+            else
+                enqueueInput(new MouseButtonInput(MouseButton.Left, pressed));
         }
 
         private void handlePenButton(TabletPenButton button, bool pressed)
