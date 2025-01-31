@@ -56,9 +56,17 @@ namespace osu.Framework.iOS
 
         public override Storage GetStorage(string path) => new IOSStorage(path, this);
 
-        public override bool OpenFileExternally(string filename) => presenter.OpenFile(filename);
+        public override bool OpenFileExternally(string filename)
+        {
+            UIApplication.SharedApplication.InvokeOnMainThread(() => presenter.OpenFile(filename));
+            return true;
+        }
 
-        public override bool PresentFileExternally(string filename) => presenter.PresentFile(filename);
+        public override bool PresentFileExternally(string filename)
+        {
+            UIApplication.SharedApplication.InvokeOnMainThread(() => presenter.PresentFile(filename));
+            return true;
+        }
 
         public override void OpenUrlExternally(string url)
         {
