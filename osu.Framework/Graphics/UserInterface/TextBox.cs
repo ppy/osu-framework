@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
+using Markdig.Helpers;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Caching;
@@ -448,6 +449,16 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
+        private static bool isCharacterSymbol(char character)
+        {
+            return !character.IsAlphaNumeric() && !character.IsWhitespace();
+        }
+
+        private static bool isCharacterAlphanumeric(char character)
+        {
+            return character.IsAlphaNumeric();
+        }
+
         /// <summary>
         /// Find the word boundary in the backward direction, then return the negative amount of characters.
         /// </summary>
@@ -456,11 +467,39 @@ namespace osu.Framework.Graphics.UserInterface
             if (!AllowWordNavigation)
                 return -1;
 
+            if (text.Length == 0) return 0;
+
             int searchPrev = Math.Clamp(selectionEnd - 1, 0, Math.Max(0, Text.Length - 1));
-            while (searchPrev > 0 && text[searchPrev] == ' ')
-                searchPrev--;
-            int lastSpace = text.LastIndexOf(' ', searchPrev);
-            return lastSpace > 0 ? -(selectionEnd - lastSpace - 1) : -selectionEnd;
+
+            WordTraversalStep currentStep = WordTraversalStep.InitialWhitespace;
+            bool finished = false;
+            while (!finished && searchPrev >= 0)
+            {
+                char character = text[searchPrev];
+                switch (currentStep)
+                {
+                    case WordTraversalStep.InitialWhitespace:
+                        if (character == ' ')
+                            searchPrev--;
+                        else
+                            currentStep = WordTraversalStep.Symbol;
+                        break;
+                    case WordTraversalStep.Symbol:
+                        if (isCharacterSymbol(character))
+                            searchPrev--;
+                        else
+                            currentStep = WordTraversalStep.Alphanumerical;
+                        break;
+                    case WordTraversalStep.Alphanumerical:
+                        if (isCharacterAlphanumeric(character))
+                            searchPrev--;
+                        else
+                            finished = true;
+                        break;
+                }
+            }
+
+            return searchPrev >= 0 ? -(selectionEnd - searchPrev - 1) : -selectionEnd;
         }
 
         /// <summary>
@@ -471,11 +510,39 @@ namespace osu.Framework.Graphics.UserInterface
             if (!AllowWordNavigation)
                 return 1;
 
+            if (text.Length == 0) return 0;
+
             int searchNext = Math.Clamp(selectionEnd, 0, Math.Max(0, Text.Length - 1));
-            while (searchNext < Text.Length && text[searchNext] == ' ')
-                searchNext++;
-            int nextSpace = text.IndexOf(' ', searchNext);
-            return (nextSpace >= 0 ? nextSpace : text.Length) - selectionEnd;
+
+            WordTraversalStep currentStep = WordTraversalStep.InitialWhitespace;
+            bool finished = false;
+            while (!finished && searchNext < text.Length)
+            {
+                char character = text[searchNext];
+                switch (currentStep)
+                {
+                    case WordTraversalStep.InitialWhitespace:
+                        if (character == ' ')
+                            searchNext++;
+                        else
+                            currentStep = WordTraversalStep.Alphanumerical;
+                        break;
+                    case WordTraversalStep.Alphanumerical:
+                        if (isCharacterAlphanumeric(character))
+                            searchNext++;
+                        else
+                            currentStep = WordTraversalStep.Symbol;
+                        break;
+                    case WordTraversalStep.Symbol:
+                        if (isCharacterSymbol(character))
+                            searchNext++;
+                        else
+                            finished = true;
+                        break;
+                }
+            }
+
+            return (searchNext >= 0 ? searchNext : text.Length) - selectionEnd;
         }
 
         // Currently only single line is supported and line length and text length are the same.
@@ -1790,6 +1857,13 @@ namespace osu.Framework.Graphics.UserInterface
             /// All of the text was selected (i.e. via <see cref="PlatformAction.SelectAll"/>).
             /// </summary>
             All
+        }
+
+        private enum WordTraversalStep
+        {
+            InitialWhitespace,
+            Symbol,
+            Alphanumerical,
         }
     }
 }
