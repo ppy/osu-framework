@@ -42,12 +42,13 @@ namespace osu.Framework.Graphics.Visualisation.Audio
                     },
                     new SpriteText
                     {
-                        Anchor = Anchor.BottomCentre,
-                        Origin = Anchor.BottomCentre,
+                        Anchor = Anchor.BottomLeft,
+                        Origin = Anchor.BottomLeft,
                         Text = mixer.Identifier,
                         Font = FrameworkFont.Condensed.With(size: 14),
                         Colour = FrameworkColour.Yellow,
                         Padding = new MarginPadding(2),
+                        Margin = new MarginPadding(10)
                     },
                     new FillFlowContainer
                     {
