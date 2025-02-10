@@ -16,22 +16,32 @@ namespace osu.Framework.Input
         Name,
 
         /// <summary>
+        /// The text input is an alphanumeric code which can be visible to the user.
+        /// </summary>
+        Code,
+
+        /// <summary>
+        /// The text input is a whole number.
+        /// </summary>
+        Number,
+
+        /// <summary>
+        /// The text input is numerical with decimal point.
+        /// </summary>
+        Decimal,
+
+        /// <summary>
         /// The text input is an email address.
         /// </summary>
         EmailAddress,
 
         /// <summary>
-        /// The text input is a username.
+        /// The text input is a username. This may hint the operating system to provide a shortcut to a credentials manager for autofill.
         /// </summary>
         Username,
 
         /// <summary>
-        /// The text input is numerical.
-        /// </summary>
-        Number,
-
-        /// <summary>
-        /// The text input is a password hidden from the user.
+        /// The text input is a password hidden from the user. This may hint the operating system to provide a shortcut to a credentials manager for autofill.
         /// </summary>
         Password,
 
@@ -48,19 +58,6 @@ namespace osu.Framework.Input
             switch (type)
             {
                 case TextInputType.Password:
-                case TextInputType.NumericalPassword:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
-
-        public static bool IsNumerical(this TextInputType type)
-        {
-            switch (type)
-            {
-                case TextInputType.Number:
                 case TextInputType.NumericalPassword:
                     return true;
 

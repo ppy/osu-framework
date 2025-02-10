@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Primitives;
@@ -1017,6 +1016,7 @@ namespace osu.Framework.Platform.SDL3
             {
                 default:
                 case TextInputType.Text:
+                case TextInputType.Code:
                     return SDL_TextInputType.SDL_TEXTINPUT_TYPE_TEXT;
 
                 case TextInputType.Name:
@@ -1029,6 +1029,7 @@ namespace osu.Framework.Platform.SDL3
                     return SDL_TextInputType.SDL_TEXTINPUT_TYPE_TEXT_USERNAME;
 
                 case TextInputType.Number:
+                case TextInputType.Decimal:
                     return SDL_TextInputType.SDL_TEXTINPUT_TYPE_NUMBER;
 
                 case TextInputType.Password:
@@ -1126,18 +1127,6 @@ namespace osu.Framework.Platform.SDL3
             string? error = SDL_GetError();
             SDL_ClearError();
             return error;
-        }
-
-        /// <summary>
-        /// Gets the <paramref name="name"/> of the touch device for this <see cref="SDL_TouchFingerEvent"/>.
-        /// </summary>
-        /// <remarks>
-        /// On Windows, this will return <c>"touch"</c> for touchscreen events or <c>"pen"</c> for pen/tablet events.
-        /// </remarks>
-        public static bool TryGetTouchName(this SDL_TouchFingerEvent e, [NotNullWhen(true)] out string? name)
-        {
-            name = SDL_GetTouchDeviceName(e.touchID);
-            return name != null;
         }
     }
 }

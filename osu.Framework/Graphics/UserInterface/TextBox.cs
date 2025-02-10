@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
@@ -94,9 +95,28 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private bool canAddCharacter(char character)
         {
-            return !char.IsControl(character)
-                   && (!InputProperties.Type.IsNumerical() || char.IsAsciiDigit(character))
-                   && CanAddCharacter(character);
+            if (!CanAddCharacter(character))
+                // discard characters explicitly overriden by custom implementation.
+                return false;
+
+            if (char.IsControl(character))
+                // discard control/special characters.
+                return false;
+
+            var currentNumberFormat = CultureInfo.CurrentCulture.NumberFormat;
+
+            switch (InputProperties.Type)
+            {
+                case TextInputType.Decimal:
+                    return char.IsAsciiDigit(character) || currentNumberFormat.NumberDecimalSeparator.Contains(character);
+
+                case TextInputType.Number:
+                case TextInputType.NumericalPassword:
+                    return char.IsAsciiDigit(character);
+
+                default:
+                    return true;
+            }
         }
 
         private bool readOnly;
