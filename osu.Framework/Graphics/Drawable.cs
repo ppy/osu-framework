@@ -570,6 +570,7 @@ namespace osu.Framework.Graphics
         /// <see cref="Parent"/>'s coordinate system. May be in absolute or relative units
         /// (controlled by <see cref="RelativePositionAxes"/>).
         /// </summary>
+        [TransformGenerator]
         public Vector2 Position
         {
             get => position;
@@ -599,6 +600,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// X component of <see cref="Position"/>.
         /// </summary>
+        [TransformGenerator(Grouping = nameof(Position))]
         public float X
         {
             get => x;
@@ -617,6 +619,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Y component of <see cref="Position"/>.
         /// </summary>
+        [TransformGenerator(Grouping = nameof(Position))]
         public float Y
         {
             get => y;
@@ -709,6 +712,7 @@ namespace osu.Framework.Graphics
         /// Size of this Drawable in the <see cref="Parent"/>'s coordinate system.
         /// May be in absolute or relative units (controlled by <see cref="RelativeSizeAxes"/>).
         /// </summary>
+        [TransformGenerator]
         public virtual Vector2 Size
         {
             get => size;
@@ -738,6 +742,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// X component of <see cref="Size"/>.
         /// </summary>
+        [TransformGenerator(Grouping = nameof(Size))]
         public virtual float Width
         {
             get => width;
@@ -756,6 +761,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Y component of <see cref="Size"/>.
         /// </summary>
+        [TransformGenerator(Grouping = nameof(Size))]
         public virtual float Height
         {
             get => height;
@@ -988,6 +994,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Base relative scaling factor around <see cref="OriginPosition"/>.
         /// </summary>
+        [TransformGenerator]
         public Vector2 Scale
         {
             get => scale;
@@ -1084,6 +1091,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Rotation in degrees around <see cref="OriginPosition"/>.
         /// </summary>
+        [TransformGenerator]
         public float Rotation
         {
             get => rotation;
@@ -1295,6 +1303,7 @@ namespace osu.Framework.Graphics
         /// corners of this <see cref="Drawable"/>, which are then interpolated, but can also be assigned
         /// just a single colour. Implicit casts from <see cref="SRGBColour"/> and from <see cref="Color4"/> exist.
         /// </summary>
+        [TransformGenerator]
         public ColourInfo Colour
         {
             get => colour;
@@ -1314,6 +1323,7 @@ namespace osu.Framework.Graphics
         /// Multiplicative alpha factor applied on top of <see cref="ColourInfo"/> and its existing
         /// alpha channel(s).
         /// </summary>
+        [TransformGenerator]
         public float Alpha
         {
             get => alpha;
