@@ -31,13 +31,11 @@ namespace osu.Framework.Input.Handlers.Pen
                 if (enabled.NewValue)
                 {
                     window.PenMove += handlePenMove;
-                    window.PenTouch += handlePenTouch;
                     window.PenButton += handlePenButton;
                 }
                 else
                 {
                     window.PenMove -= handlePenMove;
-                    window.PenTouch -= handlePenTouch;
                     window.PenButton -= handlePenButton;
                 }
             }, true);
@@ -56,11 +54,6 @@ namespace osu.Framework.Input.Handlers.Pen
                 Position = position,
                 DeviceType = device_type
             });
-        }
-
-        private void handlePenTouch(bool pressed)
-        {
-            enqueueInput(new MouseButtonInputFromPen(pressed) { DeviceType = device_type });
         }
 
         private void handlePenButton(TabletPenButton button, bool pressed)
