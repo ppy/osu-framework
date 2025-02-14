@@ -3,18 +3,19 @@
 
 using System;
 using System.IO;
+using CoreGraphics;
 using Foundation;
 using UIKit;
 using UniformTypeIdentifiers;
 
 namespace osu.Framework.iOS
 {
-    internal class IOSFilePresenter : UIDocumentInteractionControllerDelegate
+    public class IOSFilePresenter : UIDocumentInteractionControllerDelegate
     {
-        private readonly IOSWindow window;
-        private readonly UIDocumentInteractionController viewController = new UIDocumentInteractionController();
+        private readonly IIOSWindow window;
+        private readonly UIDocumentInteractionController documentInteraction = new UIDocumentInteractionController();
 
-        internal IOSFilePresenter(IOSWindow window)
+        public IOSFilePresenter(IIOSWindow window)
         {
             this.window = window;
         }
@@ -23,39 +24,47 @@ namespace osu.Framework.iOS
         {
             setupViewController(filename);
 
-            if (viewController.PresentPreview(true))
+            if (documentInteraction.PresentPreview(true))
                 return true;
 
-            var gameView = window.UIWindow.RootViewController!.View!;
-            return viewController.PresentOpenInMenu(gameView.Bounds, gameView, true);
+            // Since file menus on iPadOS appear in a popover-like style, UIDocumentInteractionController requires specifying
+            // a rectangle in the present functions to display the menu as a popover around that rectangle.
+            // Ultimately, we want to be given a rectangle by the game so the popover doesn't look out of place,
+            // but for the time being, specify CGRectZero to make the popover display at the top left.
+            var gameView = window.ViewController.View!;
+            return documentInteraction.PresentOpenInMenu(CGRect.Empty, gameView, true);
         }
 
         public bool PresentFile(string filename)
         {
             setupViewController(filename);
 
-            var gameView = window.UIWindow.RootViewController!.View!;
-            return viewController.PresentOptionsMenu(gameView.Bounds, gameView, true);
+            // Since file menus on iPadOS appear in a popover-like style, UIDocumentInteractionController requires specifying
+            // a rectangle in the present functions to display the menu as a popover around that rectangle.
+            // Ultimately, we want to be given a rectangle by the game so the popover doesn't look out of place,
+            // but for the time being, specify CGRectZero to make the popover display at the top left.
+            var gameView = window.ViewController.View!;
+            return documentInteraction.PresentOptionsMenu(CGRect.Empty, gameView, true);
         }
 
         private void setupViewController(string filename)
         {
             var url = NSUrl.FromFilename(filename);
 
-            viewController.Url = url;
-            viewController.Delegate = this;
+            documentInteraction.Url = url;
+            documentInteraction.Delegate = this;
 
             if (OperatingSystem.IsIOSVersionAtLeast(14))
-                viewController.Uti = UTType.CreateFromExtension(Path.GetExtension(filename))?.Identifier ?? UTTypes.Data.Identifier;
+                documentInteraction.Uti = UTType.CreateFromExtension(Path.GetExtension(filename))?.Identifier ?? UTTypes.Data.Identifier;
         }
 
-        public override UIViewController ViewControllerForPreview(UIDocumentInteractionController controller) => window.UIWindow.RootViewController!;
+        public override UIViewController ViewControllerForPreview(UIDocumentInteractionController controller) => window.ViewController;
 
         public override void WillBeginSendingToApplication(UIDocumentInteractionController controller, string? application)
         {
             // this path is triggered when a user opens the presented document in another application,
             // the menu does not dismiss afterward and locks the game indefinitely. dismiss it manually.
-            viewController.DismissMenu(true);
+            documentInteraction.DismissMenu(true);
         }
     }
 }

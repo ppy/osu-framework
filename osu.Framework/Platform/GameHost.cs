@@ -123,7 +123,6 @@ namespace osu.Framework.Platform
 
         /// <summary>
         /// Whether the on-screen keyboard covers a portion of the game window when presented to the user.
-        /// This is usually true on mobile platforms, but may change to false if a hardware keyboard is connected.
         /// </summary>
         public virtual bool OnScreenKeyboardOverlapsGameWindow => false;
 
@@ -201,6 +200,13 @@ namespace osu.Framework.Platform
         /// Provides a sane starting point for user-accessible storage.
         /// </remarks>
         public virtual string InitialFileSelectorPath => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+        /// <summary>
+        /// Creates a provider component for interacting with a system-provided file selector.
+        /// </summary>
+        /// <param name="allowedExtensions">The list of extensions allowed to be selected, or empty to allow all files.</param>
+        [CanBeNull]
+        public virtual ISystemFileSelector CreateSystemFileSelector(string[] allowedExtensions) => null;
 
         /// <summary>
         /// Retrieve a storage for the specified location.
@@ -734,6 +740,7 @@ namespace osu.Framework.Platform
                 CacheStorage = GetDefaultGameStorage().GetStorageForDirectory("cache");
 
                 SetupForRun();
+                game.SetupLogging(Storage, CacheStorage);
 
                 populateInputHandlers();
 

@@ -36,7 +36,7 @@ namespace osu.Framework.Platform
 
         void UpdateMousePosition(Vector2 position);
 
-        void StartTextInput(bool allowIme);
+        void StartTextInput(TextInputProperties properties);
         void StopTextInput();
         void SetTextInputRect(RectangleF rectangle);
         void ResetIme();

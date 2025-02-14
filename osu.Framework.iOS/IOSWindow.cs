@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -17,11 +16,11 @@ using UIKit;
 
 namespace osu.Framework.iOS
 {
-    internal class IOSWindow : SDL3MobileWindow
+    internal class IOSWindow : SDL3MobileWindow, IIOSWindow
     {
-        private UIWindow? uiWindow;
+        public UIWindow UIWindow { get; private set; } = null!;
 
-        public UIWindow UIWindow => uiWindow!;
+        public UIViewController ViewController => UIWindow.RootViewController!;
 
         private IOSCallObserver callObserver = null!;
 
@@ -31,9 +30,7 @@ namespace osu.Framework.iOS
             protected set
             {
                 base.Size = value;
-
-                if (uiWindow != null)
-                    updateSafeArea();
+                updateSafeArea();
             }
         }
 
@@ -48,7 +45,7 @@ namespace osu.Framework.iOS
 
             base.Create();
 
-            uiWindow = Runtime.GetNSObject<UIWindow>(WindowHandle);
+            UIWindow = Runtime.GetNSObject<UIWindow>(WindowHandle)!;
             updateSafeArea();
 
             var appDelegate = (GameApplicationDelegate)UIApplication.SharedApplication.Delegate;
@@ -127,14 +124,15 @@ namespace osu.Framework.iOS
 
         private void updateSafeArea()
         {
-            Debug.Assert(uiWindow != null);
+            if (!Exists)
+                return;
 
             SafeAreaPadding.Value = new MarginPadding
             {
-                Top = (float)uiWindow.SafeAreaInsets.Top * Scale,
-                Left = (float)uiWindow.SafeAreaInsets.Left * Scale,
-                Bottom = (float)uiWindow.SafeAreaInsets.Bottom * Scale,
-                Right = (float)uiWindow.SafeAreaInsets.Right * Scale,
+                Top = (float)UIWindow.SafeAreaInsets.Top * Scale,
+                Left = (float)UIWindow.SafeAreaInsets.Left * Scale,
+                Bottom = (float)UIWindow.SafeAreaInsets.Bottom * Scale,
+                Right = (float)UIWindow.SafeAreaInsets.Right * Scale,
             };
         }
     }

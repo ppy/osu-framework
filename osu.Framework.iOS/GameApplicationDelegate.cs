@@ -25,7 +25,7 @@ namespace osu.Framework.iOS
 
         private static readonly OutputVolumeObserver output_volume_observer = new OutputVolumeObserver();
 
-        private IOSGameHost host = null!;
+        public IOSGameHost Host { get; private set; } = null!;
 
         public override bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
         {
@@ -41,12 +41,12 @@ namespace osu.Framework.iOS
             audioSession.SetCategory(AVAudioSessionCategory.SoloAmbient);
             audioSession.AddObserver(output_volume_observer, output_volume, NSKeyValueObservingOptions.New, 0);
 
-            host = new IOSGameHost();
-            host.Run(CreateGame());
+            Host = new IOSGameHost();
+            Host.Run(CreateGame());
             return true;
         }
 
-        public override bool OpenUrl(UIApplication application, NSUrl url, string sourceApplication, NSObject annotation)
+        public override bool OpenUrl(UIApplication app, NSUrl url, NSDictionary options)
         {
             // copied verbatim from SDL: https://github.com/libsdl-org/SDL/blob/d252a8fe126b998bd1b0f4e4cf52312cd11de378/src/video/uikit/SDL_uikitappdelegate.m#L508-L535
             // the hope is that the SDL app delegate class does not have such handling exist there, but Apple does not provide a corresponding notification to make that possible.

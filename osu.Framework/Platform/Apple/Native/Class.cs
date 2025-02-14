@@ -4,21 +4,21 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace osu.Framework.Platform.MacOS.Native
+namespace osu.Framework.Platform.Apple.Native
 {
-    internal static class Class
+    internal static partial class Class
     {
-        [DllImport(Cocoa.LIB_OBJ_C)]
-        private static extern IntPtr class_replaceMethod(IntPtr classHandle, IntPtr selector, IntPtr method, string types);
+        [LibraryImport(Interop.LIB_OBJ_C, StringMarshalling = StringMarshalling.Utf8)]
+        private static partial IntPtr class_replaceMethod(IntPtr classHandle, IntPtr selector, IntPtr method, string types);
 
-        [DllImport(Cocoa.LIB_OBJ_C)]
-        private static extern IntPtr class_getInstanceMethod(IntPtr classHandle, IntPtr selector);
+        [LibraryImport(Interop.LIB_OBJ_C)]
+        private static partial IntPtr class_getInstanceMethod(IntPtr classHandle, IntPtr selector);
 
-        [DllImport(Cocoa.LIB_OBJ_C)]
-        private static extern void method_exchangeImplementations(IntPtr method1, IntPtr method2);
+        [LibraryImport(Interop.LIB_OBJ_C)]
+        private static partial void method_exchangeImplementations(IntPtr method1, IntPtr method2);
 
-        [DllImport(Cocoa.LIB_OBJ_C)]
-        private static extern IntPtr objc_getClass(string name);
+        [LibraryImport(Interop.LIB_OBJ_C, StringMarshalling = StringMarshalling.Utf8)]
+        private static partial IntPtr objc_getClass(string name);
 
         public static IntPtr Get(string name)
         {
