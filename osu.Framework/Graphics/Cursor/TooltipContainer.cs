@@ -5,12 +5,15 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
+using osu.Framework.Input.StateChanges;
 using osu.Framework.Localisation;
+using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics;
 
@@ -49,6 +52,9 @@ namespace osu.Framework.Graphics.Cursor
 
         private readonly Container content;
         protected override Container<Drawable> Content => content;
+
+        [Resolved]
+        private GameHost host { get; set; }
 
         /// <summary>
         /// Creates a tooltip container where the tooltip is positioned at the bottom-right of
@@ -91,7 +97,14 @@ namespace osu.Framework.Graphics.Cursor
 
         private Vector2 computeTooltipPosition()
         {
-            // Update the position of the displayed tooltip.
+            if (inputManager.CurrentState.Mouse.LastSource is ISourcedFromTouch)
+                return computeTouchTooltipPosition();
+
+            return computeMouseTooltipPosition();
+        }
+
+        private Vector2 computeMouseTooltipPosition()
+        {
             // Our goal is to find the bounding circle of the cursor in screen-space, and to
             // position the top-left corner of the tooltip at the circle's southeast position.
             float boundingRadius;
@@ -126,6 +139,41 @@ namespace osu.Framework.Graphics.Cursor
             else
                 tooltipPos.Y = cursorCentre.Y + dY;
 
+            return tooltipPos;
+        }
+
+        private Vector2 computeTouchTooltipPosition()
+        {
+            Vector2 touchCentre = ToLocalSpace(inputManager.CurrentState.Mouse.Position);
+
+            const float space_lenience = 5f;
+
+            // the screen's ppi affects how farther away should the tooltip be to not be obstructed by the user's fingers.
+            // todo: this is broken on Android because SDL returns pixel density via SDL_GetWindowDisplayScale rather than window size / SDL_GetWindowPixelDensity.
+            float displayScale = host.Window?.Scale ?? 1f;
+
+            // spacing between the user's finger and the tooltip
+            float horizontalSpacing = 25f * displayScale;
+            float verticalSpacing = 30f * displayScale;
+
+            Vector2 tooltipSize = CurrentTooltip.DrawSize;
+            Vector2 tooltipBottomCentre = touchCentre + new Vector2(0, -verticalSpacing);
+            Vector2 tooltipCentreRight = touchCentre + new Vector2(-horizontalSpacing, 0);
+            Vector2 tooltipCentreLeft = touchCentre + new Vector2(horizontalSpacing, 0);
+
+            bool hasSpaceToDisplayAtTop = tooltipBottomCentre.Y >= tooltipSize.Y - space_lenience;
+            bool hasSpaceToDisplayAtLeft = tooltipCentreRight.X >= tooltipSize.X - space_lenience;
+
+            Vector2 tooltipPos;
+
+            if (hasSpaceToDisplayAtTop)
+                tooltipPos = tooltipBottomCentre - new Vector2(tooltipSize.X / 2, tooltipSize.Y);
+            else if (hasSpaceToDisplayAtLeft)
+                tooltipPos = tooltipCentreRight - new Vector2(tooltipSize.X, tooltipSize.Y / 2);
+            else
+                tooltipPos = tooltipCentreLeft - new Vector2(0, tooltipSize.Y / 2);
+
+            tooltipPos.X = Math.Clamp(tooltipPos.X, 0, DrawWidth - tooltipSize.X);
             return tooltipPos;
         }
 
