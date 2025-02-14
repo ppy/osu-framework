@@ -97,7 +97,14 @@ namespace osu.Framework.Graphics.Cursor
 
         private Vector2 computeTooltipPosition()
         {
-            // Update the position of the displayed tooltip.
+            if (inputManager.CurrentState.Mouse.LastSource is ISourcedFromTouch)
+                return computeTouchTooltipPosition();
+
+            return computeMouseTooltipPosition();
+        }
+
+        private Vector2 computeMouseTooltipPosition()
+        {
             // Our goal is to find the bounding circle of the cursor in screen-space, and to
             // position the top-left corner of the tooltip at the circle's southeast position.
             float boundingRadius;
@@ -119,14 +126,6 @@ namespace osu.Framework.Graphics.Cursor
                     (cursorQuad.TopRight - cursorCentre).Length);
             }
 
-            if (inputManager.CurrentState.Mouse.LastSource is ISourcedFromTouch)
-                return computeTouchTooltipPosition(cursorCentre);
-
-            return computeMouseTooltipPosition(cursorCentre, boundingRadius);
-        }
-
-        private Vector2 computeMouseTooltipPosition(Vector2 cursorCentre, float boundingRadius)
-        {
             Vector2 southEast = new Vector2(1).Normalized();
             Vector2 tooltipPos = cursorCentre + southEast * boundingRadius;
 
@@ -143,8 +142,10 @@ namespace osu.Framework.Graphics.Cursor
             return tooltipPos;
         }
 
-        private Vector2 computeTouchTooltipPosition(Vector2 touchCentre)
+        private Vector2 computeTouchTooltipPosition()
         {
+            Vector2 touchCentre = ToLocalSpace(inputManager.CurrentState.Mouse.Position);
+
             const float space_lenience = 5f;
 
             // the screen's ppi affects how farther away should the tooltip be to not be obstructed by the user's fingers.
