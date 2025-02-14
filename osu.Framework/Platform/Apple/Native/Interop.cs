@@ -13,6 +13,7 @@ namespace osu.Framework.Platform.Apple.Native
         internal const string LIB_OBJ_C = "/usr/lib/libobjc.dylib";
         internal const string LIB_CORE_GRAPHICS = "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics";
         internal const string LIB_ACCELERATE = "/System/Library/Frameworks/Accelerate.framework/Accelerate";
+        internal const string LIB_CORE_FOUNDATION = "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation";
 
         internal const int RTLD_NOW = 2;
 

@@ -90,6 +90,7 @@ namespace osu.Framework.Testing
             exitNestedGame();
 
             nestedGame = game;
+            nestedGame.SetupLogging(host.Storage, host.CacheStorage);
             nestedGame.SetHost(host);
 
             base.Add(nestedGame);
@@ -547,6 +548,10 @@ namespace osu.Framework.Testing
             {
                 if (test.Fixture is not TestScene testScene)
                     return;
+
+                bool hasSoloAttribute = test.Method?.MethodInfo.CustomAttributes.Any(a => a.AttributeType == typeof(SoloAttribute)) == true;
+                if (DebugUtils.IsNUnitRunning && hasSoloAttribute)
+                    throw new InvalidOperationException($"{nameof(SoloAttribute)} should not be specified on tests running under NUnit.");
 
                 // Since the host is created in OneTimeSetUp, all game threads will have the fixture's execution context
                 // This is undesirable since each test is run using those same threads, so we must make sure the execution context

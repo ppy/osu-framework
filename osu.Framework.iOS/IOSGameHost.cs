@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Foundation;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
@@ -11,6 +12,8 @@ using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Handlers;
+using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.IO.Stores;
 using osu.Framework.iOS.Graphics.Textures;
 using osu.Framework.iOS.Graphics.Video;
@@ -26,6 +29,8 @@ namespace osu.Framework.iOS
         public new IIOSWindow Window => (IIOSWindow)base.Window;
 
         private IOSFilePresenter presenter = null!;
+
+        public override bool OnScreenKeyboardOverlapsGameWindow => true;
 
         public IOSGameHost()
             : base(string.Empty)
@@ -51,9 +56,17 @@ namespace osu.Framework.iOS
 
         public override Storage GetStorage(string path) => new IOSStorage(path, this);
 
-        public override bool OpenFileExternally(string filename) => presenter.OpenFile(filename);
+        public override bool OpenFileExternally(string filename)
+        {
+            UIApplication.SharedApplication.InvokeOnMainThread(() => presenter.OpenFile(filename));
+            return true;
+        }
 
-        public override bool PresentFileExternally(string filename) => presenter.PresentFile(filename);
+        public override bool PresentFileExternally(string filename)
+        {
+            UIApplication.SharedApplication.InvokeOnMainThread(() => presenter.PresentFile(filename));
+            return true;
+        }
 
         public override void OpenUrlExternally(string url)
         {
@@ -84,6 +97,20 @@ namespace osu.Framework.iOS
 
         public override VideoDecoder CreateVideoDecoder(Stream stream)
             => new IOSVideoDecoder(Renderer, stream);
+
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
+        {
+            var handlers = base.CreateAvailableInputHandlers();
+
+            foreach (var h in handlers.OfType<MouseHandler>())
+            {
+                // Similar to macOS, "relative mode" is also broken on iOS.
+                h.UseRelativeMode.Value = false;
+                h.UseRelativeMode.Default = false;
+            }
+
+            return handlers;
+        }
 
         public override ISystemFileSelector? CreateSystemFileSelector(string[] allowedExtensions)
         {

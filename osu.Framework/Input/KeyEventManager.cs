@@ -33,5 +33,7 @@ namespace osu.Framework.Input
 
         protected override void HandleButtonUp(InputState state, List<Drawable> targets) =>
             PropagateButtonEvent(targets, new KeyUpEvent(state, Button));
+
+        protected override bool SuppressLoggingEventInformation(Drawable drawable) => drawable is ICanSuppressKeyEventLogging canSuppress && canSuppress.SuppressKeyEventLogging;
     }
 }
