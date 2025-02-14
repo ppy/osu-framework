@@ -22,7 +22,7 @@ namespace osu.Framework.iOS
 
         public UIViewController ViewController => UIWindow.RootViewController!;
 
-        private IOSCallObserver callObserver = null!;
+        private IOSCallObserver? callObserver;
 
         public override Size Size
         {
@@ -111,6 +111,12 @@ namespace osu.Framework.iOS
             // frame rate with multi-threaded mode turned on, but it is going to give them worse input latency
             // and higher power usage.
             SDL_SetiOSAnimationCallback(SDLWindowHandle, 1, &runFrame, ObjectHandle.Handle);
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            callObserver?.Dispose();
         }
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]

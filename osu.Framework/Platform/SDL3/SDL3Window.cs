@@ -676,7 +676,7 @@ namespace osu.Framework.Platform.SDL3
 
         #endregion
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             Close();
             SDL_Quit();
