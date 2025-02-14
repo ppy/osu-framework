@@ -145,32 +145,34 @@ namespace osu.Framework.Graphics.Cursor
 
         private Vector2 computeTouchTooltipPosition(Vector2 touchCentre)
         {
+            const float space_lenience = 5f;
+
             // the screen's ppi affects how farther away should the tooltip be to not be obstructed by the user's fingers.
             // todo: this is broken on Android because SDL returns pixel density via SDL_GetWindowDisplayScale rather than window size / SDL_GetWindowPixelDensity.
             float displayScale = host.Window?.Scale ?? 1f;
-            float topDisplayYDistance = 25f * displayScale;
-            float sideDisplayXDistance = 30f * displayScale;
 
-            Vector2 tooltipPosBottomCentre = touchCentre + new Vector2(0, -topDisplayYDistance);
+            // spacing between the user's finger and the tooltip
+            float horizontalSpacing = 25f * displayScale;
+            float verticalSpacing = 30f * displayScale;
+
+            Vector2 tooltipSize = CurrentTooltip.DrawSize;
+            Vector2 tooltipBottomCentre = touchCentre + new Vector2(0, -verticalSpacing);
+            Vector2 tooltipCentreRight = touchCentre + new Vector2(-horizontalSpacing, 0);
+            Vector2 tooltipCentreLeft = touchCentre + new Vector2(horizontalSpacing, 0);
+
+            bool hasSpaceToDisplayAtTop = tooltipBottomCentre.Y >= tooltipSize.Y - space_lenience;
+            bool hasSpaceToDisplayAtLeft = tooltipCentreRight.X >= tooltipSize.X - space_lenience;
+
             Vector2 tooltipPos;
 
-            if (tooltipPosBottomCentre.Y < CurrentTooltip.DrawSize.Y - 5)
-            {
-                // there's not enough space to display the tooltip above the touch. display to the right/left instead..
-                Vector2 tooltipCentreRight = touchCentre + new Vector2(-sideDisplayXDistance, 0);
-
-                if (tooltipCentreRight.X < CurrentTooltip.DrawSize.X - 5)
-                {
-                    Vector2 tooltipCentreLeft = touchCentre + new Vector2(sideDisplayXDistance, 0);
-                    tooltipPos = tooltipCentreLeft - new Vector2(0, CurrentTooltip.DrawSize.Y / 2);
-                }
-                else
-                    tooltipPos = tooltipCentreRight - new Vector2(CurrentTooltip.DrawSize.X, CurrentTooltip.DrawSize.Y / 2);
-            }
+            if (hasSpaceToDisplayAtTop)
+                tooltipPos = tooltipBottomCentre - new Vector2(tooltipSize.X / 2, tooltipSize.Y);
+            else if (hasSpaceToDisplayAtLeft)
+                tooltipPos = tooltipCentreRight - new Vector2(tooltipSize.X, tooltipSize.Y / 2);
             else
-                tooltipPos = tooltipPosBottomCentre - new Vector2(CurrentTooltip.DrawSize.X / 2, CurrentTooltip.DrawSize.Y);
+                tooltipPos = tooltipCentreLeft - new Vector2(0, tooltipSize.Y / 2);
 
-            tooltipPos.X = Math.Clamp(tooltipPos.X, 0, DrawWidth - CurrentTooltip.DrawSize.X);
+            tooltipPos.X = Math.Clamp(tooltipPos.X, 0, DrawWidth - tooltipSize.X);
             return tooltipPos;
         }
 
