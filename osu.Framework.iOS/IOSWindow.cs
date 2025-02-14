@@ -10,9 +10,8 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Platform;
 using osu.Framework.Platform.SDL3;
-using SDL;
-using static SDL.SDL3;
 using UIKit;
+using static SDL.SDL3;
 
 namespace osu.Framework.iOS
 {
@@ -57,48 +56,23 @@ namespace osu.Framework.iOS
             callObserver = new IOSCallObserver();
             callObserver.OnCall += onCall;
             callObserver.OnCallEnded += onCallEnded;
-
-            updateFocused();
         }
 
-        private bool appInForeground;
         private bool inCall;
-
-        protected override void HandleEvent(SDL_Event e)
-        {
-            switch (e.Type)
-            {
-                case SDL_EventType.SDL_EVENT_WINDOW_MINIMIZED:
-                case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST:
-                    appInForeground = false;
-                    updateFocused();
-                    break;
-
-                case SDL_EventType.SDL_EVENT_WINDOW_RESTORED:
-                case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_GAINED:
-                    appInForeground = true;
-                    updateFocused();
-                    break;
-
-                default:
-                    base.HandleEvent(e);
-                    break;
-            }
-        }
 
         private void onCall()
         {
             inCall = true;
-            updateFocused();
+            UpdateActiveState();
         }
 
         private void onCallEnded()
         {
             inCall = false;
-            updateFocused();
+            UpdateActiveState();
         }
 
-        private void updateFocused() => Focused = appInForeground && !inCall;
+        protected override bool ShouldBeActive => base.ShouldBeActive && !inCall;
 
         protected override unsafe void RunMainLoop()
         {
