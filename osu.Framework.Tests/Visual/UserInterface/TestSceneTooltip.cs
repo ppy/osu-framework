@@ -127,6 +127,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestTooltipViaTouch()
         {
+            AddStep("cursor-less", () => generateTest(true));
+
             hoverTooltipProviderViaTouch(() => tooltipTextBox);
             assertTooltipText(() => tooltipTextBox.Text);
 
