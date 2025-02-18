@@ -50,7 +50,7 @@ namespace osu.Framework.Tests.Visual.Platform
             AddStep($"switch to {startingState}", () => window.WindowState = startingState);
             AddStep("fetch a different display", () =>
             {
-                int current = window.CurrentDisplayBindable.Value.Index;
+                int current = window.CurrentDisplayBindable.Value!.Index;
                 display = window.Displays.First(d => d.Index != current);
             });
             AddStep("change to that display", () => window.CurrentDisplayBindable.Value = display);
