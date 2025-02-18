@@ -309,19 +309,6 @@ namespace osu.Framework.Extensions
             => path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
         /// <summary>
-        /// Whether this character is an ASCII digit (0-9).
-        /// </summary>
-        /// <remarks>
-        /// Useful for checking if a character plays well with <c>int.TryParse()</c>.
-        /// <see cref="char.IsNumber(char)"/> returns <c>true</c> for non-ASCII digits and other Unicode numbers;
-        /// we don't want that, so we explicitly check the character value.
-        /// </remarks>
-        /// <param name="character">The character to check.</param>
-        /// <returns>True if the character is an ASCII digit.</returns>
-        [Obsolete("Use char.IsAsciiDigit.")] // can be removed 20240901
-        public static bool IsAsciiDigit(this char character) => char.IsAsciiDigit(character);
-
-        /// <summary>
         /// Checks whether the provided URL is a safe protocol to execute a system <see cref="Process.Start()"/> call with.
         /// </summary>
         /// <remarks>
