@@ -814,8 +814,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 return screen1;
             });
 
-            AddStep("ensure push throws", () => Assert.Throws<InvalidOperationException>(
-                () => screen1.Exit()));
+            AddStep("ensure push throws", () => Assert.Throws<InvalidOperationException>(() => screen1.Exit()));
         }
 
         [Test]

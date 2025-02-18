@@ -110,7 +110,8 @@ namespace osu.Framework.Input.Handlers.Tablet
 
             if (device != null)
             {
-                device.OutputMode = outputMode;
+                // Important to reinitialise outputMode here as the previous one is likely disposed.
+                device.OutputMode = outputMode = new AbsoluteTabletMode(this);
                 outputMode.Tablet = device.CreateReference();
 
                 updateTabletAndInputArea(device);
