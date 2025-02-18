@@ -28,7 +28,7 @@ namespace osu.Framework.Platform.MacOS
                 var bytesSpan = new Span<byte>(nativeData.MutableBytes, length);
                 stream.ReadExactly(bytesSpan);
 
-                using var nsImage = NSImage.LoadFromData(nativeData);
+                using var nsImage = NSImage.InitWithData(nativeData);
                 if (nsImage.Handle == IntPtr.Zero)
                     throw new ArgumentException($"{nameof(Image)} could not be created from {nameof(stream)}.");
 
