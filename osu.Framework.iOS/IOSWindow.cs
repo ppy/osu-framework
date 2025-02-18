@@ -10,8 +10,8 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Platform;
 using osu.Framework.Platform.SDL3;
-using static SDL.SDL3;
 using UIKit;
+using static SDL.SDL3;
 
 namespace osu.Framework.iOS
 {
@@ -20,6 +20,8 @@ namespace osu.Framework.iOS
         public UIWindow UIWindow { get; private set; } = null!;
 
         public UIViewController ViewController => UIWindow.RootViewController!;
+
+        private IOSCallObserver? callObserver;
 
         public override Size Size
         {
@@ -47,7 +49,30 @@ namespace osu.Framework.iOS
 
             var appDelegate = (GameApplicationDelegate)UIApplication.SharedApplication.Delegate;
             appDelegate.DragDrop += TriggerDragDrop;
+
+            // osu! cannot operate when a call takes place, as the audio is completely cut from the game, making it behave in unexpected manner.
+            // while this is o!f code, it's simpler to do this here rather than in osu!.
+            // we can reconsider this if there are framework consumers which find this behaviour undesirable.
+            callObserver = new IOSCallObserver();
+            callObserver.OnCall += onCall;
+            callObserver.OnCallEnded += onCallEnded;
         }
+
+        private bool inCall;
+
+        private void onCall()
+        {
+            inCall = true;
+            UpdateActiveState();
+        }
+
+        private void onCallEnded()
+        {
+            inCall = false;
+            UpdateActiveState();
+        }
+
+        protected override bool ShouldBeActive => base.ShouldBeActive && !inCall;
 
         protected override unsafe void RunMainLoop()
         {
@@ -60,6 +85,12 @@ namespace osu.Framework.iOS
             // frame rate with multi-threaded mode turned on, but it is going to give them worse input latency
             // and higher power usage.
             SDL_SetiOSAnimationCallback(SDLWindowHandle, 1, &runFrame, ObjectHandle.Handle);
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            callObserver?.Dispose();
         }
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
