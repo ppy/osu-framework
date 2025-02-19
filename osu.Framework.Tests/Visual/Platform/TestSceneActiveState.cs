@@ -9,6 +9,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osuTK.Graphics;
 
@@ -49,7 +50,12 @@ namespace osu.Framework.Tests.Visual.Platform
                 },
             };
 
-            isActive.BindValueChanged(active => isActiveBox.Colour = active.NewValue ? Color4.Green : Color4.Red, true);
+            isActive.BindValueChanged(active =>
+            {
+                Logger.Log($"Game activity changed from {active.OldValue} to {active.NewValue}");
+                isActiveBox.Colour = active.NewValue ? Color4.Green : Color4.Red;
+            }, true);
+
             cursorInWindow?.BindValueChanged(active => cursorInWindowBox.Colour = active.NewValue ? Color4.Green : Color4.Red, true);
         }
 

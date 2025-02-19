@@ -122,22 +122,10 @@ namespace osu.Framework.Platform.SDL3
             WindowMode.TriggerChange();
         }
 
-        private bool focused;
-
         /// <summary>
         /// Whether the window currently has focus.
         /// </summary>
-        public bool Focused
-        {
-            get => focused;
-            protected set
-            {
-                if (value == focused)
-                    return;
-
-                isActive.Value = focused = value;
-            }
-        }
+        public bool Focused { get; private set; }
 
         public WindowMode DefaultWindowMode => RuntimeInfo.IsMobile ? Configuration.WindowMode.Fullscreen : Configuration.WindowMode.Windowed;
 
@@ -222,9 +210,17 @@ namespace osu.Framework.Platform.SDL3
         /// </summary>
         public Bindable<WindowMode> WindowMode { get; } = new Bindable<WindowMode>();
 
+        public IBindable<bool> IsActive => isActive;
+
         private readonly BindableBool isActive = new BindableBool();
 
-        public IBindable<bool> IsActive => isActive;
+        /// <summary>
+        /// Whether <see cref="IsActive"/> should be <c>true</c>.
+        /// Takes effect on next call to <see cref="UpdateActiveState"/>.
+        /// </summary>
+        protected virtual bool ShouldBeActive => Focused;
+
+        protected void UpdateActiveState() => isActive.Value = ShouldBeActive;
 
         private readonly BindableBool cursorInWindow = new BindableBool();
 
@@ -505,11 +501,13 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_EventType.SDL_EVENT_WINDOW_RESTORED:
                 case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_GAINED:
                     Focused = true;
+                    UpdateActiveState();
                     break;
 
                 case SDL_EventType.SDL_EVENT_WINDOW_MINIMIZED:
                 case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST:
                     Focused = false;
+                    UpdateActiveState();
                     break;
 
                 case SDL_EventType.SDL_EVENT_WINDOW_CLOSE_REQUESTED:
