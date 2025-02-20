@@ -37,6 +37,8 @@ namespace osu.Framework.Input.Handlers.Mouse
             Precision = 0.01
         };
 
+        public override bool IsOsCursor => true;
+
         public override string Description => "Mouse";
 
         public override bool IsActive => true;
@@ -137,12 +139,12 @@ namespace osu.Framework.Input.Handlers.Mouse
             return true;
         }
 
-        public virtual void FeedbackMousePositionChange(Vector2 position, bool isSelfFeedback)
+        public virtual void FeedbackMousePositionChange(Vector2 position, bool isSelfFeedback, bool isOsCursor)
         {
             if (!Enabled.Value)
                 return;
 
-            if (!isSelfFeedback && isActive.Value)
+            if (!isSelfFeedback && !isOsCursor && isActive.Value)
                 // if another handler has updated the cursor position, handle updating the OS cursor so we can seamlessly revert
                 // to mouse control at any point.
                 window.UpdateMousePosition(position);

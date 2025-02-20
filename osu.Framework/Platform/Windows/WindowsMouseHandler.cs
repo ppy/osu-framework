@@ -31,10 +31,10 @@ namespace osu.Framework.Platform.Windows
             return base.Initialize(host);
         }
 
-        public override void FeedbackMousePositionChange(Vector2 position, bool isSelfFeedback)
+        public override void FeedbackMousePositionChange(Vector2 position, bool isSelfFeedback, bool isOsCursor)
         {
             window.LastMousePosition = position;
-            base.FeedbackMousePositionChange(position, isSelfFeedback);
+            base.FeedbackMousePositionChange(position, isSelfFeedback, isOsCursor);
         }
     }
 }

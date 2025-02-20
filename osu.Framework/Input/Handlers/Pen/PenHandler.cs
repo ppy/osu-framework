@@ -16,6 +16,8 @@ namespace osu.Framework.Input.Handlers.Pen
     {
         private static readonly GlobalStatistic<ulong> statistic_total_events = GlobalStatistics.Get<ulong>(StatisticGroupFor<PenHandler>(), "Total events");
 
+        public override bool IsOsCursor => true;
+
         public override bool IsActive => true;
 
         public override bool Initialize(GameHost host)

@@ -32,6 +32,8 @@ namespace osu.Framework.Input.Handlers
 
         private bool isInitialized;
 
+        public virtual bool IsOsCursor => false;
+
         /// <summary>
         /// Used to initialize resources specific to this InputHandler. It gets called once.
         /// </summary>

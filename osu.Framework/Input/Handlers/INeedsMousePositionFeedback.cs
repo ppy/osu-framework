@@ -15,6 +15,7 @@ namespace osu.Framework.Input.Handlers
         /// </summary>
         /// <param name="position">The final mouse position.</param>
         /// <param name="isSelfFeedback">Whether the feedback was triggered from this handler.</param>
-        void FeedbackMousePositionChange(Vector2 position, bool isSelfFeedback);
+        /// <param name="isOsCursor">Whether the position represents OS cursor.</param>
+        void FeedbackMousePositionChange(Vector2 position, bool isSelfFeedback, bool isOsCursor);
     }
 }
