@@ -53,7 +53,10 @@ namespace osu.Framework
             if (DebugUtils.IsDebugBuild)
                 AllowInsecureRequests = parseBool(Environment.GetEnvironmentVariable("OSU_INSECURE_REQUESTS")) ?? false;
 
-            UseSDL3 = RuntimeInfo.IsMobile || (parseBool(Environment.GetEnvironmentVariable("OSU_SDL3")) ?? true);
+            // Windows excluded for now due to https://github.com/ppy/osu/issues/28223#issuecomment-2664711237.
+            bool sdl3DefaultsOn = RuntimeInfo.IsUnix;
+
+            UseSDL3 = RuntimeInfo.IsMobile || (parseBool(Environment.GetEnvironmentVariable("OSU_SDL3")) ?? sdl3DefaultsOn);
         }
 
         private static bool? parseBool(string? value)
