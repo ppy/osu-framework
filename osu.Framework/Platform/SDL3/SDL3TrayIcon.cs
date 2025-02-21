@@ -1,22 +1,13 @@
 using System;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
-using osu.Framework.Configuration;
-using osu.Framework.Extensions.EnumExtensions;
-using osu.Framework.Extensions.ImageExtensions;
-using osu.Framework.Logging;
 using osu.Framework.Threading;
 using SDL;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using Image = SixLabors.ImageSharp.Image;
-using Point = System.Drawing.Point;
+using Vulkan.Xlib;
 using static SDL.SDL3;
-using System.Transactions;
 
 namespace osu.Framework.Platform.SDL3
 {
@@ -25,15 +16,22 @@ namespace osu.Framework.Platform.SDL3
         private SDL_Tray* innerTray;
         private SDL_TrayMenu* rootMenu;
 
+        private TrayIcon trayIcon;
+
         internal SDL3TrayIcon(TrayIcon tray)
         {
-            innerTray = SDL_CreateTray(null, tray.Label);
+            trayIcon = tray;
+        }
 
-            if (tray.Menu is null)
+        internal void Create()
+        {
+            innerTray = SDL_CreateTray(null, trayIcon.Label);
+
+            if (trayIcon.Menu is null)
                 return;
 
             rootMenu = SDL_CreateTrayMenu(innerTray);
-            insertMenu(rootMenu, tray.Menu);
+            insertMenu(rootMenu, trayIcon.Menu);
         }
 
         private void insertMenu(SDL_TrayMenu* menu, TrayMenuEntry[] entries)

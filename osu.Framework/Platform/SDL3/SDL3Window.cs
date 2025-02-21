@@ -637,7 +637,9 @@ namespace osu.Framework.Platform.SDL3
 
         public IDisposable CreateTrayIcon(TrayIcon tray)
         {
-            return new SDL3TrayIcon(tray);
+            SDL3TrayIcon icon = new SDL3TrayIcon(tray);
+            ScheduleCommand(icon.Create);
+            return icon;
         }
 
         #region Events
