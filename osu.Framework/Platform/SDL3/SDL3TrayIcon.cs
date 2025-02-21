@@ -48,8 +48,12 @@ namespace osu.Framework.Platform.SDL3
                     if (!button.Enabled)
                         flags |= SDL_TrayEntryFlags.SDL_TRAYENTRY_DISABLED;
 
-                    SDL_InsertTrayEntryAt(menu, -1, button.Label, flags);
-                    // TODO: add callback
+                    SDL_TrayEntry* nativeEntry = SDL_InsertTrayEntryAt(menu, -1, button.Label, flags);
+
+                    if (button.Action is not null)
+                    {
+                        SetCallback(nativeEntry, button.Action);
+                    }
                 }
                 else if (entry is TrayCheckBox checkbox)
                 {
@@ -61,8 +65,12 @@ namespace osu.Framework.Platform.SDL3
                     if (checkbox.Checked)
                         flags |= SDL_TrayEntryFlags.SDL_TRAYENTRY_CHECKED;
 
-                    SDL_InsertTrayEntryAt(menu, -1, checkbox.Label, flags);
-                    // TODO: add callback
+                    SDL_TrayEntry* nativeEntry = SDL_InsertTrayEntryAt(menu, -1, checkbox.Label, flags);
+
+                    if (checkbox.Action is not null)
+                    {
+                        SetCallback(nativeEntry, checkbox.Action);
+                    }
                 }
                 else if (entry is TraySeparator)
                 {
@@ -84,6 +92,22 @@ namespace osu.Framework.Platform.SDL3
                     }
                 }
             }
+        }
+
+        protected static void SetCallback(SDL_TrayEntry* entry, Action callback)
+        {
+            var objectHandle = new ObjectHandle<Action>(callback, GCHandleType.Normal);
+            SDL_SetTrayEntryCallback(entry, &nativeOnSelect, objectHandle.Handle); // this is leaking object handles, figure something out
+            // ideally store these in a list or something, and dispose them at the right time.
+        }
+
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+        private static void nativeOnSelect(IntPtr userdata, SDL_TrayEntry* entry)
+        {
+            var objectHandle = new ObjectHandle<Action>(userdata, true);
+
+            if (objectHandle.GetTarget(out var action))
+                action();
         }
 
         ~SDL3TrayIcon()
