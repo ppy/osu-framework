@@ -34,6 +34,8 @@ namespace osu.Framework.Platform
         public required string Label { get; set; }
 
         public bool Checked { get; set; }
+
+        public Action? Action { get; set; }
     }
 
     public class TraySubMenu : TrayMenuEntry
