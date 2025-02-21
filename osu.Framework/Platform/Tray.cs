@@ -8,40 +8,39 @@ using System;
 
 namespace osu.Framework.Platform
 {
-    public class TrayIcon : IDisposable
+    public class TrayIcon
     {
-        string Label { get; set; }
+        public required string Label { get; set; }
 
         // Icon Icon { get; set; }
 
-        TrayMenuEntry[] Menu { get; set; }
+        public TrayMenuEntry[]? Menu { get; set; }
     }
 
     public abstract class TrayMenuEntry
     {
-        bool Enabled { get; set; }
+        public bool Enabled { get; set; }
     }
 
     public class TrayButton : TrayMenuEntry
     {
-        string Label { get; set; }
+        public required string Label { get; set; }
 
-        Action Action { get; set; }
-        
+        public Action? Action { get; set; }
     }
 
     public class TrayCheckBox : TrayMenuEntry
     {
-        string Label { get; set; }
-        
-        bool Checked { get; set; }
+        public required string Label { get; set; }
+
+        public bool Checked { get; set; }
     }
 
     public class TraySubMenu : TrayMenuEntry
     {
-        string Label { get; set; }
+        public required string Label { get; set; }
 
-        TrayMenuEntry[] Menu { get; set; }
+        public TrayMenuEntry[]? Menu { get; set; }
     }
 
     public class TraySeparator : TrayMenuEntry
