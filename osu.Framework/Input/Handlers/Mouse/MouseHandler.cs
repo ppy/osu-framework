@@ -144,7 +144,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 return;
 
             // https://github.com/ppy/osu/issues/31948
-            // Pen malfunctions if MouseHandler tries to move the mouse cursor to pen position on Linux/X11.
+            // Pen malfunctions if MouseHandler tries to move the mouse cursor to pen position on Linux.
             bool disableUpdatingMousePosition = handler is PenHandler && RuntimeInfo.OS == RuntimeInfo.Platform.Linux && FrameworkEnvironment.UseSDL3;
 
             if (handler != this && isActive.Value && !disableUpdatingMousePosition)
