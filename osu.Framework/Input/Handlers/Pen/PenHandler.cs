@@ -6,7 +6,6 @@ using osu.Framework.Platform;
 using osu.Framework.Platform.SDL3;
 using osu.Framework.Statistics;
 using osuTK;
-using osuTK.Input;
 
 namespace osu.Framework.Input.Handlers.Pen
 {
@@ -60,7 +59,7 @@ namespace osu.Framework.Input.Handlers.Pen
             if (penDown && device_type == TabletPenDeviceType.Direct)
                 enqueueInput(new TouchInput(new Input.Touch(TouchSource.PenTouch, position), true));
             else
-                enqueueInput(new MousePositionAbsoluteInput { Position = position });
+                enqueueInput(new MousePositionAbsoluteInputFromPen { DeviceType = device_type, Position = position });
         }
 
         private void handlePenTouch(bool pressed)
@@ -70,7 +69,7 @@ namespace osu.Framework.Input.Handlers.Pen
             if (device_type == TabletPenDeviceType.Direct)
                 enqueueInput(new TouchInput(new Input.Touch(TouchSource.PenTouch, currentPosition), pressed));
             else
-                enqueueInput(new MouseButtonInput(MouseButton.Left, pressed));
+                enqueueInput(new MouseButtonInputFromPen(pressed) { DeviceType = device_type });
         }
 
         private void handlePenButton(TabletPenButton button, bool pressed)
