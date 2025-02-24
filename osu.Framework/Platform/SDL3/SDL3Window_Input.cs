@@ -11,6 +11,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
+using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.States;
 using osu.Framework.Logging;
 using osuTK;
@@ -530,14 +531,40 @@ namespace osu.Framework.Platform.SDL3
 
         private void handleKeymapChangedEvent() => KeymapChanged?.Invoke();
 
+        protected abstract TabletPenDeviceType GetPenDeviceType(SDL_PenID id);
+
+        private readonly Dictionary<SDL_PenID, TabletPenDeviceType> penDeviceTypes = new Dictionary<SDL_PenID, TabletPenDeviceType>();
+
+        private void handlePenProximityEvent(SDL_PenProximityEvent evtPenProximity)
+        {
+            var id = evtPenProximity.which;
+
+            if (evtPenProximity.type == SDL_EventType.SDL_EVENT_PEN_PROXIMITY_IN)
+            {
+                Debug.Assert(!penDeviceTypes.ContainsKey(id));
+                penDeviceTypes[id] = GetPenDeviceType(id);
+            }
+            else
+            {
+                Debug.Assert(penDeviceTypes.ContainsKey(id));
+                penDeviceTypes.Remove(id);
+            }
+        }
+
         private void handlePenMotionEvent(SDL_PenMotionEvent evtPenMotion)
         {
-            PenMove?.Invoke(new Vector2(evtPenMotion.x, evtPenMotion.y) * Scale, evtPenMotion.pen_state.HasFlagFast(SDL_PenInputFlags.SDL_PEN_INPUT_DOWN));
+            Debug.Assert(penDeviceTypes.ContainsKey(evtPenMotion.which));
+
+            if (penDeviceTypes.TryGetValue(evtPenMotion.which, out var deviceType))
+                PenMove?.Invoke(deviceType, new Vector2(evtPenMotion.x, evtPenMotion.y) * Scale, evtPenMotion.pen_state.HasFlagFast(SDL_PenInputFlags.SDL_PEN_INPUT_DOWN));
         }
 
         private void handlePenTouchEvent(SDL_PenTouchEvent evtPenTouch)
         {
-            PenTouch?.Invoke(evtPenTouch.down, new Vector2(evtPenTouch.x, evtPenTouch.y) * Scale);
+            Debug.Assert(penDeviceTypes.ContainsKey(evtPenTouch.which));
+
+            if (penDeviceTypes.TryGetValue(evtPenTouch.which, out var deviceType))
+                PenTouch?.Invoke(deviceType, evtPenTouch.down, new Vector2(evtPenTouch.x, evtPenTouch.y) * Scale);
         }
 
         /// <summary>
@@ -743,15 +770,20 @@ namespace osu.Framework.Platform.SDL3
         public event Action<Touch>? TouchUp;
 
         /// <summary>
+        /// Invoked when a pen enters (<c>true</c>) or leaves (<c>false</c>) tablet hover detection.
+        /// </summary>
+        public event Action<bool>? PenProximity;
+
+        /// <summary>
         /// Invoked when a pen moves. Passes pen position and whether the pen is touching the tablet surface.
         /// </summary>
-        public event Action<Vector2, bool>? PenMove;
+        public event Action<TabletPenDeviceType, Vector2, bool>? PenMove;
 
         /// <summary>
         /// Invoked when a pen touches (<c>true</c>) or lifts (<c>false</c>) from the tablet surface.
         /// Also passes the current position of the pen.
         /// </summary>
-        public event Action<bool, Vector2>? PenTouch;
+        public event Action<TabletPenDeviceType, bool, Vector2>? PenTouch;
 
         /// <summary>
         /// Invoked when a <see cref="TabletPenButton">pen button</see> is pressed (<c>true</c>) or released (<c>false</c>).
