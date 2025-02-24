@@ -247,7 +247,7 @@ namespace osu.Framework.Platform.SDL3
             }
         }
 
-        private readonly SDL_FingerID?[] activeTouches = new SDL_FingerID?[TouchState.MAX_TOUCH_COUNT];
+        private readonly SDL_FingerID?[] activeTouches = new SDL_FingerID?[TouchState.MAX_NATIVE_TOUCH_COUNT];
 
         private TouchSource? getTouchSource(SDL_FingerID fingerId)
         {
@@ -270,7 +270,7 @@ namespace osu.Framework.Platform.SDL3
                 return (TouchSource)i;
             }
 
-            // we only handle up to TouchState.MAX_TOUCH_COUNT. Ignore any further touches for now.
+            // we only handle up to TouchState.MAX_NATIVE_TOUCH_COUNT. Ignore any further touches for now.
             return null;
         }
 
