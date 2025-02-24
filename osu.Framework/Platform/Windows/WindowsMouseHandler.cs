@@ -25,8 +25,8 @@ namespace osu.Framework.Platform.Windows
 
             window = windowsWindow;
 
-            if (window is SDL2WindowsWindow)
-                initialiseSDL2(host);
+            if (window is SDL2WindowsWindow sdl2WindowsWindow)
+                initialiseSDL2(sdl2WindowsWindow);
 
             return base.Initialize(host);
         }

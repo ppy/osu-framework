@@ -19,7 +19,7 @@ namespace osu.Framework.Platform.Windows.Native
             int cbSize);
 
         [DllImport("user32.dll")]
-        public static extern int GetRawInputData(IntPtr hRawInput, RawInputCommand uiCommand, out RawInputData pData, ref int pcbSize, int cbSizeHeader);
+        public static extern int GetRawInputData(IntPtr hRawInput, RawInputCommand uiCommand, IntPtr pData, ref int pcbSize, int cbSizeHeader);
 
         internal static Rectangle VirtualScreenRect => new Rectangle(
             GetSystemMetrics(SM_XVIRTUALSCREEN),

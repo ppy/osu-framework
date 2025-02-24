@@ -1,14 +1,12 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Drawing;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform.Windows.Native;
 using osu.Framework.Statistics;
 using osuTK;
-using static SDL2.SDL;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -23,16 +21,18 @@ namespace osu.Framework.Platform.Windows
 
         private const int raw_input_coordinate_space = 65535;
 
-        private SDL_WindowsMessageHook sdl2Callback = null!;
-
-        private void initialiseSDL2(GameHost host)
+        private void initialiseSDL2(SDL2WindowsWindow window)
         {
-            // ReSharper disable once ConvertClosureToMethodGroup
-            sdl2Callback = (ptr, wnd, u, param, l) => onWndProcSDL2(ptr, wnd, u, param, l);
-
             Enabled.BindValueChanged(enabled =>
             {
-                host.InputThread.Scheduler.Add(() => SDL_SetWindowsMessageHook(enabled.NewValue ? sdl2Callback : null, IntPtr.Zero));
+                if (enabled.NewValue)
+                {
+                    window.RawInputManager.RawMouse += onRawMouse;
+                }
+                else
+                {
+                    window.RawInputManager.RawMouse -= onRawMouse;
+                }
             }, true);
         }
 
@@ -47,30 +47,18 @@ namespace osu.Framework.Platform.Windows
             base.HandleMouseMoveRelative(delta);
         }
 
-        private unsafe IntPtr onWndProcSDL2(IntPtr userData, IntPtr hWnd, uint message, ulong wParam, long lParam)
+        private void onRawMouse(RawInputData data)
         {
             if (!Enabled.Value)
-                return IntPtr.Zero;
-
-            if (message != Native.Input.WM_INPUT)
-                return IntPtr.Zero;
+                return;
 
             if (Native.Input.IsTouchEvent(Native.Input.GetMessageExtraInfo()))
             {
                 // sometimes GetMessageExtraInfo returns 0, so additionally, mouse.ExtraInformation is checked below.
                 // touch events are handled by TouchHandler
                 statistic_dropped_touch_inputs.Value++;
-                return IntPtr.Zero;
+                return;
             }
-
-            int payloadSize = sizeof(RawInputData);
-
-#pragma warning disable CA2020 // Prevent behavioral change for IntPtr conversion
-            Native.Input.GetRawInputData((IntPtr)lParam, RawInputCommand.Input, out var data, ref payloadSize, sizeof(RawInputHeader));
-#pragma warning restore CA2020
-
-            if (data.Header.Type != RawInputType.Mouse)
-                return IntPtr.Zero;
 
             var mouse = data.Mouse;
 
@@ -78,7 +66,7 @@ namespace osu.Framework.Platform.Windows
             if (Native.Input.HasTouchFlag(mouse.ExtraInformation))
             {
                 statistic_dropped_touch_inputs.Value++;
-                return IntPtr.Zero;
+                return;
             }
 
             //TODO: this isn't correct.
@@ -103,7 +91,7 @@ namespace osu.Framework.Platform.Windows
                 if (mouse.LastX == 0 && mouse.LastY == 0)
                 {
                     // not sure if this is the case for all tablets, but on osu!tablet these can appear and are noise.
-                    return IntPtr.Zero;
+                    return;
                 }
 
                 // i am not sure what this 64 flag is, but it's set on the osu!tablet at very least.
@@ -137,8 +125,6 @@ namespace osu.Framework.Platform.Windows
                 PendingInputs.Enqueue(new MousePositionRelativeInput { Delta = new Vector2(mouse.LastX, mouse.LastY) * sensitivity });
                 statistic_relative_events.Value++;
             }
-
-            return IntPtr.Zero;
         }
     }
 }
