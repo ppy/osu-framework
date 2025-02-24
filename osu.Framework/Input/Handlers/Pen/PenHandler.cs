@@ -49,25 +49,18 @@ namespace osu.Framework.Input.Handlers.Pen
         // but until users experience issues with this, consider it "direct" for now.
         private static readonly TabletPenDeviceType device_type = RuntimeInfo.IsMobile ? TabletPenDeviceType.Direct : TabletPenDeviceType.Unknown;
 
-        private bool penDown;
-        private Vector2 currentPosition;
-
-        private void handlePenMove(Vector2 position)
+        private void handlePenMove(Vector2 position, bool pressed)
         {
-            currentPosition = position;
-
-            if (penDown && device_type == TabletPenDeviceType.Direct)
+            if (pressed && device_type == TabletPenDeviceType.Direct)
                 enqueueInput(new TouchInput(new Input.Touch(TouchSource.PenTouch, position), true));
             else
                 enqueueInput(new MousePositionAbsoluteInputFromPen { DeviceType = device_type, Position = position });
         }
 
-        private void handlePenTouch(bool pressed)
+        private void handlePenTouch(bool pressed, Vector2 position)
         {
-            penDown = pressed;
-
             if (device_type == TabletPenDeviceType.Direct)
-                enqueueInput(new TouchInput(new Input.Touch(TouchSource.PenTouch, currentPosition), pressed));
+                enqueueInput(new TouchInput(new Input.Touch(TouchSource.PenTouch, position), pressed));
             else
                 enqueueInput(new MouseButtonInputFromPen(pressed) { DeviceType = device_type });
         }
