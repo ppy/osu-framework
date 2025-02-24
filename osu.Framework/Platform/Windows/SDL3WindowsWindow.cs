@@ -19,7 +19,7 @@ using static SDL.SDL3;
 namespace osu.Framework.Platform.Windows
 {
     [SupportedOSPlatform("windows")]
-    internal class SDL3WindowsWindow : SDL3DesktopWindow, IWindowsWindow
+    internal class SDL3WindowsWindow : SDL3DesktopWindow, IWindowsWindow, IHasTouchpadInput
     {
         private const int seticon_message = 0x0080;
         private const int icon_big = 1;
@@ -37,6 +37,8 @@ namespace osu.Framework.Platform.Windows
         private readonly bool applyBorderlessWindowHack;
 
         private readonly WindowsRawInputManager rawInputManager;
+        private readonly WindowsTouchpadReader? touchpadReader;
+        public event Action<TouchpadData>? TouchpadDataUpdate;
 
         public SDL3WindowsWindow(GraphicsSurfaceType surfaceType, string appName)
             : base(surfaceType, appName)
@@ -54,6 +56,8 @@ namespace osu.Framework.Platform.Windows
             }
 
             rawInputManager = new WindowsRawInputManager(WindowHandle);
+            touchpadReader = new WindowsTouchpadReader(rawInputManager);
+            touchpadReader.TouchpadDataUpdate += TouchpadDataUpdate;
 
             unsafe
             {

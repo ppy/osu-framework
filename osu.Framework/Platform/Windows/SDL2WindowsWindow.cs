@@ -18,7 +18,7 @@ using static SDL2.SDL;
 namespace osu.Framework.Platform.Windows
 {
     [SupportedOSPlatform("windows")]
-    internal class SDL2WindowsWindow : SDL2DesktopWindow, IWindowsWindow
+    internal class SDL2WindowsWindow : SDL2DesktopWindow, IWindowsWindow, IHasTouchpadInput
     {
         private const int seticon_message = 0x0080;
         private const int icon_big = 1;
@@ -41,6 +41,8 @@ namespace osu.Framework.Platform.Windows
         private readonly SDL_WindowsMessageHook sdl2Callback;
 
         public readonly WindowsRawInputManager RawInputManager;
+        private readonly WindowsTouchpadReader touchpadReader;
+        public event Action<TouchpadData>? TouchpadDataUpdate;
 
         public SDL2WindowsWindow(GraphicsSurfaceType surfaceType, string appName)
             : base(surfaceType, appName)
@@ -61,6 +63,8 @@ namespace osu.Framework.Platform.Windows
                 declareDpiAware();
 
             RawInputManager = new WindowsRawInputManager(WindowHandle);
+            touchpadReader = new WindowsTouchpadReader(RawInputManager);
+            touchpadReader.TouchpadDataUpdate += data => TouchpadDataUpdate?.Invoke(data);
 
             // ReSharper disable once ConvertClosureToMethodGroup
             sdl2Callback = (ptr, wnd, u, param, l) => windowsMessageHookSDL2(ptr, wnd, u, param, l);

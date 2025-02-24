@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using osu.Framework.Logging;
 using osu.Framework.Platform.Windows.Native;
@@ -27,7 +28,24 @@ namespace osu.Framework.Platform.Windows
             }
         }
 
+        public event Action<RawInputDataHidHeader, List<byte[]>>? RawTouchpad
+        {
+            add
+            {
+                if (rawTouchpad == null)
+                    register(HIDUsagePage.Digitizer, HIDUsage.TouchPad, true);
+                rawTouchpad += value;
+            }
+            remove
+            {
+                rawTouchpad -= value;
+                if (rawTouchpad == null)
+                    register(HIDUsagePage.Digitizer, HIDUsage.TouchPad, false);
+            }
+        }
+
         private event Action<RawInputData>? rawMouse;
+        private event Action<RawInputDataHidHeader, List<byte[]>>? rawTouchpad;
 
         /// <summary>The HWND associated with the manager. Used on registering.</summary>
         public readonly IntPtr WindowHandle;
@@ -96,8 +114,38 @@ namespace osu.Framework.Platform.Windows
                         break;
                     }
 
-                    case RawInputType.Keyboard:
                     case RawInputType.HID:
+                    {
+                        if (size < sizeof(RawInputDataHidHeader))
+                        {
+                            Logger.Log($"Raw HID header buffer too small ({size} < {sizeof(RawInputDataHidHeader)})", LoggingTarget.Input, LogLevel.Error);
+                            return;
+                        }
+
+                        var hidHeader = Marshal.PtrToStructure<RawInputDataHidHeader>(buffer);
+
+                        if (size < sizeof(RawInputDataHidHeader) + hidHeader.SizeHid * hidHeader.Count)
+                        {
+                            Logger.Log($"Raw HID data buffer too small ({size} < {sizeof(RawInputDataHidHeader)} + {hidHeader.SizeHid} * {hidHeader.Count})", LoggingTarget.Input, LogLevel.Error);
+                            return;
+                        }
+
+                        List<byte[]> buffers = new List<byte[]>();
+
+                        for (int i = 0; i < hidHeader.Count; i++)
+                        {
+                            IntPtr dataPtr = IntPtr.Add(buffer, sizeof(RawInputDataHidHeader) + hidHeader.SizeHid * i);
+                            byte[] report = new byte[hidHeader.SizeHid];
+                            Marshal.Copy(dataPtr, report, 0, hidHeader.SizeHid);
+                            buffers.Add(report);
+                        }
+
+                        // TODO maybe invoke one by one rather than as a `List`?
+                        rawTouchpad?.Invoke(hidHeader, buffers);
+                        break;
+                    }
+
+                    case RawInputType.Keyboard:
                     default:
                         break;
                 }
