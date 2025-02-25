@@ -166,7 +166,8 @@ namespace osu.Framework.Platform.SDL3
             int version = SDL_GetVersion();
             Logger.Log($@"SDL3 Initialized
                           SDL3 Version: {SDL_VERSIONNUM_MAJOR(version)}.{SDL_VERSIONNUM_MINOR(version)}.{SDL_VERSIONNUM_MICRO(version)}
-                          SDL3 Revision: {SDL_GetRevision()}");
+                          SDL3 Revision: {SDL_GetRevision()}
+                          SDL3 Video driver: {SDL_GetCurrentVideoDriver()}");
 
             SDL_SetLogPriority(SDL_LogCategory.SDL_LOG_CATEGORY_ERROR, SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG);
             SDL_SetLogOutputFunction(&logOutput, IntPtr.Zero);
