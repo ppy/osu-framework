@@ -109,12 +109,12 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// Query string parameters.
         /// </summary>
-        private readonly Dictionary<string, string> queryParameters = new Dictionary<string, string>();
+        private readonly List<(string key, string value)> queryParameters = new List<(string key, string value)>();
 
         /// <summary>
         /// Form parameters.
         /// </summary>
-        private readonly Dictionary<string, string> formParameters = new Dictionary<string, string>();
+        private readonly List<(string key, string value)> formParameters = new List<(string key, string value)>();
 
         /// <summary>
         /// FILE parameters.
@@ -304,7 +304,7 @@ namespace osu.Framework.IO.Network
 
                     StringBuilder requestParameters = new StringBuilder();
                     foreach (var p in queryParameters)
-                        requestParameters.Append($@"{p.Key}={Uri.EscapeDataString(p.Value)}&");
+                        requestParameters.Append($"{p.key}={Uri.EscapeDataString(p.value)}&");
                     string requestString = requestParameters.ToString().TrimEnd('&');
                     url = string.IsNullOrEmpty(requestString) ? url : $"{url}?{requestString}";
 
@@ -345,7 +345,7 @@ namespace osu.Framework.IO.Network
                             var formData = new MultipartFormDataContent(form_boundary);
 
                             foreach (var p in formParameters)
-                                formData.Add(new StringContent(p.Value), p.Key);
+                                formData.Add(new StringContent(p.value), p.key);
 
                             foreach (var p in files)
                             {
@@ -681,7 +681,7 @@ namespace osu.Framework.IO.Network
 
         /// <summary>
         /// <para>
-        /// Add a new parameter to this request. Replaces any existing parameter with the same name.
+        /// Add a new parameter to this request.
         /// </para>
         /// <para>
         /// If this request's <see cref="Method"/> supports a request body (<c>POST, PUT, DELETE, PATCH</c>), a <see cref="RequestParameterType.Form"/> parameter will be added;
@@ -701,7 +701,7 @@ namespace osu.Framework.IO.Network
             => AddParameter(name, value, supportsRequestBody(Method) ? RequestParameterType.Form : RequestParameterType.Query);
 
         /// <summary>
-        /// Add a new parameter to this request. Replaces any existing parameter with the same name.
+        /// Add a new parameter to this request.
         /// <see cref="RequestParameterType.Form"/> parameters may not be used in conjunction with <see cref="AddRaw(Stream)"/>.
         /// </summary>
         /// <remarks>
@@ -718,14 +718,14 @@ namespace osu.Framework.IO.Network
             switch (type)
             {
                 case RequestParameterType.Query:
-                    queryParameters[name] = value;
+                    queryParameters.Add((name, value));
                     break;
 
                 case RequestParameterType.Form:
                     if (!supportsRequestBody(Method))
                         throw new ArgumentException("Cannot add form parameter to a request type which has no body.", nameof(type));
 
-                    formParameters[name] = value;
+                    formParameters.Add((name, value));
                     break;
             }
         }
