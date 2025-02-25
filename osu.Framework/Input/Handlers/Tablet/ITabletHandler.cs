@@ -35,7 +35,7 @@ namespace osu.Framework.Input.Handlers.Tablet
         /// <summary>
         /// The minimum pressure percentage required to click.
         /// </summary>
-        Bindable<float> PressureThreshold { get; }
+        BindableFloat PressureThreshold { get; }
 
         BindableBool Enabled { get; }
     }
