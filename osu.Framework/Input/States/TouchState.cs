@@ -9,9 +9,14 @@ namespace osu.Framework.Input.States
     public class TouchState
     {
         /// <summary>
-        /// The maximum amount of touches this can handle.
+        /// The maximum number of touches this can handle.
         /// </summary>
         public static readonly int MAX_TOUCH_COUNT = Enum.GetValues<TouchSource>().Length;
+
+        /// <summary>
+        /// The maximum number of touches this can handle excluding the synthetic source <see cref="TouchSource.PenTouch"/>.
+        /// </summary>
+        internal static readonly int MAX_NATIVE_TOUCH_COUNT = 10;
 
         /// <summary>
         /// The list of currently active touch sources.
