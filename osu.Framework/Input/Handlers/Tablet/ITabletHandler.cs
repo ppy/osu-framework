@@ -32,6 +32,11 @@ namespace osu.Framework.Input.Handlers.Tablet
         /// </summary>
         Bindable<float> Rotation { get; }
 
+        /// <summary>
+        /// The minimum pressure percentage required to click.
+        /// </summary>
+        BindableFloat PressureThreshold { get; }
+
         BindableBool Enabled { get; }
     }
 }

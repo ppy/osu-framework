@@ -40,6 +40,13 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public Bindable<float> Rotation { get; } = new Bindable<float>();
 
+        public BindableFloat PressureThreshold { get; } = new BindableFloat(0.0f)
+        {
+            MinValue = 0f,
+            MaxValue = 1f,
+            Precision = 0.005f,
+        };
+
         public IBindable<TabletInfo?> Tablet => tablet;
 
         private readonly Bindable<TabletInfo?> tablet = new Bindable<TabletInfo?>();
@@ -102,7 +109,7 @@ namespace osu.Framework.Input.Handlers.Tablet
             enqueueInput(new MousePositionRelativeInputFromPen { Delta = new Vector2(delta.X, delta.Y), DeviceType = lastTabletDeviceType });
         }
 
-        void IPressureHandler.SetPressure(float percentage) => enqueueInput(new MouseButtonInputFromPen(percentage > 0) { DeviceType = lastTabletDeviceType });
+        void IPressureHandler.SetPressure(float percentage) => enqueueInput(new MouseButtonInputFromPen(percentage > PressureThreshold.Value) { DeviceType = lastTabletDeviceType });
 
         private void handleTabletsChanged(object? sender, IEnumerable<TabletReference> tablets)
         {
