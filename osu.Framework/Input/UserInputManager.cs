@@ -94,7 +94,7 @@ namespace osu.Framework.Input
                     break;
 
                 default:
-                    windowLocation = Host.Window.CurrentDisplayBindable.Value.Bounds.Location;
+                    windowLocation = Host.Window.CurrentDisplayBindable.Value?.Bounds.Location ?? Host.Window.Position;
                     break;
             }
 
