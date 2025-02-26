@@ -33,7 +33,7 @@ namespace osu.Framework.Platform.SDL3
             CurrentDisplayBindable.Default = PrimaryDisplay;
             CurrentDisplayBindable.ValueChanged += evt =>
             {
-                windowDisplayIndexBindable.Value = (DisplayIndex)evt.NewValue.Index;
+                windowDisplayIndexBindable.Value = (DisplayIndex)(evt.NewValue?.Index ?? 0);
             };
 
             config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndexBindable);
@@ -215,7 +215,7 @@ namespace osu.Framework.Platform.SDL3
             set => sizeWindowed.MaxValue = value;
         }
 
-        public Bindable<Display> CurrentDisplayBindable { get; } = new Bindable<Display>();
+        public Bindable<Display?> CurrentDisplayBindable { get; } = new Bindable<Display?>();
 
         /// <summary>
         /// Bound to <see cref="FrameworkSetting.WindowMode"/>.
@@ -332,7 +332,10 @@ namespace osu.Framework.Platform.SDL3
             using var displays = SDL_GetDisplays();
 
             if (displays == null)
-                throw new InvalidOperationException($"Failed to get number of SDL displays. SDL Error: {SDL_GetError()}");
+            {
+                Logger.Log($"Failed to get number of SDL displays. SDL Error: {SDL_GetError()}");
+                return ImmutableArray<Display>.Empty;
+            }
 
             var builder = ImmutableArray.CreateBuilder<Display>(displays.Count);
 
@@ -391,9 +394,9 @@ namespace osu.Framework.Platform.SDL3
         /// <summary>
         /// Gets the <see cref="Display"/> that has been set as "primary" or "default" in the operating system.
         /// </summary>
-        public virtual Display PrimaryDisplay => Displays.First();
+        public virtual Display? PrimaryDisplay => Displays.FirstOrDefault();
 
-        private Display currentDisplay = null!;
+        private Display? currentDisplay;
         private SDL_DisplayID displayID;
 
         private readonly Bindable<DisplayMode> currentDisplayMode = new Bindable<DisplayMode>();
@@ -408,8 +411,16 @@ namespace osu.Framework.Platform.SDL3
             get
             {
                 SDL_Rect rect;
-                SDL_GetDisplayBounds(displayID, &rect);
-                return new Rectangle(rect.x, rect.y, rect.w, rect.h);
+
+                if (SDL_GetDisplayBounds(displayID, &rect))
+                {
+                    return new Rectangle(rect.x, rect.y, rect.w, rect.h);
+                }
+                else
+                {
+                    Logger.Log($"Failed to get window display bounds. SDL Error: {SDL_GetError()}");
+                    return new Rectangle(0, 0, 1, 1);
+                }
             }
         }
 
@@ -447,7 +458,12 @@ namespace osu.Framework.Platform.SDL3
         private unsafe void fetchWindowSize(bool storeToConfig = true)
         {
             int w, h;
-            SDL_GetWindowSize(SDLWindowHandle, &w, &h);
+
+            if (!SDL_GetWindowSize(SDLWindowHandle, &w, &h))
+            {
+                Logger.Log($"Failed to get window size. SDL Error: {SDL_GetError()}");
+                return;
+            }
 
             int drawableW = graphicsSurface.GetDrawableSize().Width;
 
@@ -474,8 +490,7 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_EventType.SDL_EVENT_WINDOW_MOVED:
                     // explicitly requery as there are occasions where what SDL has provided us with is not up-to-date.
                     int x, y;
-                    SDL_GetWindowPosition(SDLWindowHandle, &x, &y);
-                    var newPosition = new Point(x, y);
+                    Point newPosition = SDL_GetWindowPosition(SDLWindowHandle, &x, &y) ? new Point(x, y) : new Point(evtWindow.data1, evtWindow.data2);
 
                     if (!newPosition.Equals(Position))
                     {
@@ -553,8 +568,13 @@ namespace osu.Framework.Platform.SDL3
         /// </summary>
         private unsafe void updateAndFetchWindowSpecifics()
         {
+            // don't update if currentDisplay is not null to not override manual display change.
+            if (currentDisplay == null)
+                updateCurrentDisplay();
+
             // don't attempt to run before the window is initialised, as Create() will do so anyway.
-            if (SDLWindowHandle == null)
+            // stop updating until a display becomes available.
+            if (SDLWindowHandle == null || currentDisplay == null)
                 return;
 
             var stateBefore = windowState;
@@ -591,6 +611,14 @@ namespace osu.Framework.Platform.SDL3
                 if (tryFetchMaximisedState(windowState, out bool maximized))
                     windowMaximised = maximized;
             }
+
+            updateCurrentDisplay();
+        }
+
+        private unsafe void updateCurrentDisplay()
+        {
+            if (SDLWindowHandle == null)
+                return;
 
             var newDisplayID = SDL_GetDisplayForWindow(SDLWindowHandle);
 
@@ -758,7 +786,7 @@ namespace osu.Framework.Platform.SDL3
 
         private void storeWindowPositionToConfig()
         {
-            if (WindowState != WindowState.Normal)
+            if (WindowState != WindowState.Normal || currentDisplay == null)
                 return;
 
             var displayBounds = currentDisplay.Bounds;

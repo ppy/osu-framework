@@ -1053,7 +1053,7 @@ namespace osu.Framework.Platform
 
             Window.CurrentDisplayBindable.BindValueChanged(display =>
             {
-                if (Renderer is VeldridRenderer veldridRenderer)
+                if (Renderer is VeldridRenderer veldridRenderer && display != null)
                 {
                     Rectangle bounds = display.NewValue.Bounds;
 
