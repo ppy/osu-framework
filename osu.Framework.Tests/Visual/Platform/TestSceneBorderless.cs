@@ -85,13 +85,13 @@ namespace osu.Framework.Tests.Visual.Platform
                 AddStep("switch to borderless", () => windowMode.Value = WindowMode.Borderless);
                 AddAssert("check window position", () => new Point(window.Position.X, window.Position.Y) == display.Bounds.Location);
                 AddAssert("check window size", () => new Size(window.Size.Width, window.Size.Height) == display.Bounds.Size, desc2);
-                AddAssert("check current screen", () => window.CurrentDisplayBindable.Value.Index == display.Index);
+                AddAssert("check current screen", () => window.CurrentDisplayBindable.Value?.Index == display.Index);
 
                 // verify the window size is restored correctly
                 AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
                 AddAssert("check client size", () => window.ClientSize == new Size(1280, 720));
                 AddAssert("check window position", () => originalWindowPosition == window.Position);
-                AddAssert("check current screen", () => window.CurrentDisplayBindable.Value.Index == display.Index);
+                AddAssert("check current screen", () => window.CurrentDisplayBindable.Value?.Index == display.Index);
             }
         }
 
@@ -107,7 +107,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             currentActualSize.Text = $"Window size: {window?.Size}";
             currentClientSize.Text = $"Client size: {window?.ClientSize}";
-            currentDisplay.Text = $"Current Display: {window?.CurrentDisplayBindable.Value.Name}";
+            currentDisplay.Text = $"Current Display: {window?.CurrentDisplayBindable.Value?.Name ?? "Not available"}";
         }
     }
 }
