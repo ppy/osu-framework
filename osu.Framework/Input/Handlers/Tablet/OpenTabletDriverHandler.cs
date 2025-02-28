@@ -53,7 +53,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private Task? lastInitTask;
 
-        private IBindable<bool> isActive;
+        private IBindable<bool> isActive = null!;
 
         public override bool Initialize(GameHost host)
         {
