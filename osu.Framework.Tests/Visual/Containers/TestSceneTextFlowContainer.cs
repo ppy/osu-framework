@@ -19,7 +19,7 @@ namespace osu.Framework.Tests.Visual.Containers
 {
     public partial class TestSceneTextFlowContainer : FrameworkTestScene
     {
-        private const string default_text = "Default text\n\nnewline";
+        private const string default_text = "Default text which is long enough such that it will break a line\n\nnewline";
 
         private TextFlowContainer textContainer;
 
@@ -52,6 +52,9 @@ namespace osu.Framework.Tests.Visual.Containers
         [TestCase(Anchor.TopLeft)]
         [TestCase(Anchor.TopCentre)]
         [TestCase(Anchor.TopRight)]
+        [TestCase(Anchor.CentreLeft)]
+        [TestCase(Anchor.Centre)]
+        [TestCase(Anchor.CentreRight)]
         [TestCase(Anchor.BottomLeft)]
         [TestCase(Anchor.BottomCentre)]
         [TestCase(Anchor.BottomRight)]
