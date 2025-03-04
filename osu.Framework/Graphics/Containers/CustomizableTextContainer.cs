@@ -98,7 +98,7 @@ namespace osu.Framework.Graphics.Containers
             // placeholders via AddPlaceholder() are similar to manual text parts
             // in that they were added/registered externally and cannot be recreated.
             // remove them before proceeding with part recreation to avoid accidentally disposing them in the process.
-            RemoveRange(Placeholders, false);
+            Flow.RemoveRange(Placeholders, false);
 
             base.RecreateAllParts();
         }

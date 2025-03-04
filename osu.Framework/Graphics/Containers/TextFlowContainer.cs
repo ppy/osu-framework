@@ -8,18 +8,20 @@ using osu.Framework.Graphics.Sprites;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Localisation;
+using osuTK;
 
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
     /// A drawable text object that supports more advanced text formatting.
     /// </summary>
-    public partial class TextFlowContainer : FillFlowContainer
+    public partial class TextFlowContainer : CompositeDrawable
     {
         private float firstLineIndent;
         private readonly Action<SpriteText> defaultCreationParameters;
@@ -115,6 +117,9 @@ namespace osu.Framework.Graphics.Containers
 
                 textAnchor = value;
 
+                Flow.Anchor = value;
+                Flow.Origin = value;
+
                 layout.Invalidate();
             }
         }
@@ -127,22 +132,103 @@ namespace osu.Framework.Graphics.Containers
         {
             set
             {
-                Clear();
+                Flow.Clear();
                 parts.Clear();
 
                 AddText(value);
             }
         }
 
+        public new Axes RelativeSizeAxes
+        {
+            get => base.RelativeSizeAxes;
+            set
+            {
+                base.RelativeSizeAxes = value;
+                setFlowSizing();
+            }
+        }
+
+        public new Axes AutoSizeAxes
+        {
+            get => base.AutoSizeAxes;
+            set
+            {
+                base.AutoSizeAxes = value;
+                setFlowSizing();
+            }
+        }
+
+        public override float Width
+        {
+            get => base.Width;
+            set
+            {
+                base.Width = value;
+                setFlowSizing();
+            }
+        }
+
+        private void setFlowSizing()
+        {
+            // if the user has imposed `RelativeSizeAxes` or a fixed size on the X axis on the entire flow,
+            // we want the child flow that actually does the layout here to match that.
+            // however, the child flow must always be auto-sized in the Y axis
+            // to correctly respect `TextAnchor`.
+            Flow.AutoSizeAxes = (AutoSizeAxes & ~RelativeSizeAxes) | Axes.Y;
+            Flow.RelativeSizeAxes = RelativeSizeAxes & ~Flow.AutoSizeAxes;
+            if ((Flow.AutoSizeAxes & Axes.X) == 0)
+                Flow.Width = Width;
+        }
+
+        public new MarginPadding Padding
+        {
+            get => base.Padding;
+            set => base.Padding = value;
+        }
+
+        public Vector2 Spacing
+        {
+            get => Flow.Spacing;
+            set => Flow.Spacing = value;
+        }
+
+        public Vector2 MaximumSize
+        {
+            get => Flow.MaximumSize;
+            set => Flow.MaximumSize = value;
+        }
+
+        public new bool Masking
+        {
+            get => base.Masking;
+            set => base.Masking = value;
+        }
+
+        public FillDirection Direction
+        {
+            get => Flow.Direction;
+            set => Flow.Direction = value;
+        }
+
+        public IEnumerable<Drawable> Children => Flow.Children;
+
         [Resolved]
         internal LocalisationManager Localisation { get; private set; }
 
+        protected readonly FillFlowContainer Flow;
         private readonly Bindable<LocalisationParameters> localisationParameters = new Bindable<LocalisationParameters>();
 
         public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
         {
             this.defaultCreationParameters = defaultCreationParameters;
+
+            InternalChild = Flow = CreateFlow().With(f => f.AutoSizeAxes = Axes.Both);
+            Flow.OnLayoutInvalidated += () => layout.Invalidate();
         }
+
+        [Pure]
+        protected virtual FillFlowContainer CreateFlow() => new InnerFlow();
 
         protected override void LoadAsyncComplete()
         {
@@ -160,36 +246,12 @@ namespace osu.Framework.Graphics.Containers
             ((IBindable<LocalisationParameters>)localisationParameters).BindTo(Localisation.CurrentParameters);
         }
 
-        protected override void InvalidateLayout()
-        {
-            base.InvalidateLayout();
-            layout.Invalidate();
-        }
-
         protected override void Update()
         {
             base.Update();
 
             if (!partsCache.IsValid)
                 RecreateAllParts();
-        }
-
-        public override IEnumerable<Drawable> FlowingChildren
-        {
-            get
-            {
-                if ((TextAnchor & (Anchor.x2 | Anchor.y2)) == 0)
-                    return base.FlowingChildren;
-
-                var childArray = base.FlowingChildren.ToArray();
-
-                if ((TextAnchor & Anchor.x2) > 0)
-                    reverseHorizontal(childArray);
-                if ((TextAnchor & Anchor.y2) > 0)
-                    reverseVertical(childArray);
-
-                return childArray;
-            }
         }
 
         protected override void UpdateAfterChildren()
@@ -279,14 +341,9 @@ namespace osu.Framework.Graphics.Containers
 
         internal void ApplyDefaultCreationParameters(SpriteText spriteText) => defaultCreationParameters?.Invoke(spriteText);
 
-        public override void Add(Drawable drawable)
+        public void Clear(bool disposeChildren = true)
         {
-            throw new InvalidOperationException($"Use {nameof(AddText)} to add text to a {nameof(TextFlowContainer)}.");
-        }
-
-        public override void Clear(bool disposeChildren)
-        {
-            base.Clear(disposeChildren);
+            Flow.Clear(disposeChildren);
             parts.Clear();
         }
 
@@ -322,10 +379,10 @@ namespace osu.Framework.Graphics.Containers
             // manual parts need to be manually removed before clearing contents,
             // to avoid accidentally disposing of them in the process.
             foreach (var manualPart in parts.OfType<TextPartManual>())
-                RemoveRange(manualPart.Drawables, false);
+                Flow.RemoveRange(manualPart.Drawables, false);
 
             // make sure not to clear the list of parts by accident.
-            base.Clear(true);
+            Flow.Clear(true);
 
             foreach (var part in parts)
                 recreatePart(part);
@@ -337,33 +394,7 @@ namespace osu.Framework.Graphics.Containers
         {
             part.RecreateDrawablesFor(this);
             foreach (var drawable in part.Drawables)
-                base.Add(drawable);
-        }
-
-        private void reverseHorizontal(Drawable[] children)
-        {
-            int reverseStartIndex = 0;
-
-            // Inverse the order of all children when displaying backwards, stopping at newline boundaries
-            for (int i = 0; i < children.Length; i++)
-            {
-                if (!(children[i] is NewLineContainer))
-                    continue;
-
-                Array.Reverse(children, reverseStartIndex, i - reverseStartIndex);
-                reverseStartIndex = i + 1;
-            }
-
-            // Extra loop for the last newline boundary (or all children if there are no newlines)
-            Array.Reverse(children, reverseStartIndex, children.Length - reverseStartIndex);
-        }
-
-        private void reverseVertical(Drawable[] children)
-        {
-            // A vertical reverse reverses the order of the newline sections, but not the order within the newline sections
-            // For code clarity this is done by reversing the entire array, and then reversing within the newline sections to restore horizontal order
-            Array.Reverse(children);
-            reverseHorizontal(children);
+                Flow.Add(drawable);
         }
 
         private readonly Cached layout = new Cached();
@@ -373,11 +404,8 @@ namespace osu.Framework.Graphics.Containers
             var childrenByLine = new List<List<Drawable>>();
             var curLine = new List<Drawable>();
 
-            foreach (var c in Children)
+            foreach (var c in Flow.Children)
             {
-                c.Anchor = TextAnchor;
-                c.Origin = TextAnchor;
-
                 if (c is NewLineContainer nlc)
                 {
                     curLine.Add(nlc);
@@ -411,6 +439,10 @@ namespace osu.Framework.Graphics.Containers
                 float currentLineHeight = 0f;
                 float lineSpacingValue = lastLineHeight * LineSpacing;
 
+                // Compute the offset of this line from the right
+                Drawable lastTextPartInLine = (line[^1] is NewLineContainer && line.Count >= 2) ? line[^2] : line[^1];
+                float lineOffsetFromRight = Flow.ChildSize.X - (lastTextPartInLine.X + lastTextPartInLine.DrawWidth);
+
                 foreach (Drawable c in line)
                 {
                     if (c is NewLineContainer nlc)
@@ -431,6 +463,11 @@ namespace osu.Framework.Graphics.Containers
                     if (c.Height > currentLineHeight)
                         currentLineHeight = c.Height;
 
+                    if ((TextAnchor & Anchor.x1) != 0)
+                        c.X += lineOffsetFromRight / 2;
+                    else if ((TextAnchor & Anchor.x2) != 0)
+                        c.X += lineOffsetFromRight;
+
                     isFirstChild = false;
                 }
 
@@ -441,7 +478,10 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected override bool ForceNewRow(Drawable child) => child is NewLineContainer;
+        protected partial class InnerFlow : FillFlowContainer
+        {
+            protected override bool ForceNewRow(Drawable child) => child is NewLineContainer;
+        }
 
         public partial class NewLineContainer : Container
         {

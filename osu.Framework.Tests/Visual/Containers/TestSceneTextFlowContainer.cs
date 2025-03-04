@@ -61,7 +61,6 @@ namespace osu.Framework.Tests.Visual.Containers
         public void TestChangeTextAnchor(Anchor anchor)
         {
             AddStep("change text anchor", () => textContainer.TextAnchor = anchor);
-            AddAssert("children have correct anchors", () => textContainer.Children.All(c => c.Anchor == anchor && c.Origin == anchor));
             AddAssert("children are positioned correctly", () =>
             {
                 string result = string.Concat(textContainer.Children
@@ -70,14 +69,6 @@ namespace osu.Framework.Tests.Visual.Containers
                                                            .Select(c => (c as SpriteText)?.Text.ToString() ?? "\n"));
                 return result == default_text;
             });
-        }
-
-        [Test]
-        public void TestAddTextWithTextAnchor()
-        {
-            AddStep("change text anchor", () => textContainer.TextAnchor = Anchor.TopCentre);
-            AddStep("add text", () => textContainer.AddText("added text"));
-            AddAssert("children have correct anchors", () => textContainer.Children.All(c => c.Anchor == Anchor.TopCentre && c.Origin == Anchor.TopCentre));
         }
 
         [Test]
@@ -136,6 +127,6 @@ namespace osu.Framework.Tests.Visual.Containers
             => AddAssert($"text flow has {count} sprite texts", () => textContainer.ChildrenOfType<SpriteText>().Count() == count);
 
         private void assertTotalChildCount(int count)
-            => AddAssert($"text flow has {count} children", () => textContainer.Count == count);
+            => AddAssert($"text flow has {count} children", () => textContainer.Children.Count() == count);
     }
 }
