@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
-using Markdig.Helpers;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Caching;
@@ -429,16 +428,6 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        private static bool isCharacterSymbol(char character)
-        {
-            return !character.IsAlphaNumeric() && !character.IsWhitespace();
-        }
-
-        private static bool isCharacterAlphanumeric(char character)
-        {
-            return character.IsAlphaNumeric();
-        }
-
         /// <summary>
         /// Find the word boundary in the backward direction, then return the negative amount of characters.
         /// </summary>
@@ -477,7 +466,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (direction == -1)
                 position -= 1;
 
-            WordTraversalStep currentStep = WordTraversalStep.InitialWhitespace;
+            WordTraversalStep currentStep = WordTraversalStep.Whitespace;
 
             while (true)
             {
@@ -491,18 +480,18 @@ namespace osu.Framework.Graphics.UserInterface
 
                 switch (currentStep)
                 {
-                    case WordTraversalStep.InitialWhitespace:
-                        if (character == ' ')
+                    case WordTraversalStep.Whitespace:
+                        if (char.IsWhiteSpace(character))
                             position += direction;
-                        else if (isCharacterAlphanumeric(character))
-                            currentStep = WordTraversalStep.Alphanumerical;
+                        else if (char.IsLetterOrDigit(character))
+                            currentStep = WordTraversalStep.LetterOrDigit;
                         else
                             currentStep = WordTraversalStep.Symbol;
 
                         continue;
 
-                    case WordTraversalStep.Alphanumerical:
-                        if (isCharacterAlphanumeric(character))
+                    case WordTraversalStep.LetterOrDigit:
+                        if (char.IsLetterOrDigit(character))
                         {
                             position += direction;
                             continue;
@@ -511,13 +500,11 @@ namespace osu.Framework.Graphics.UserInterface
                         break;
 
                     case WordTraversalStep.Symbol:
-                        if (isCharacterSymbol(character))
-                        {
-                            position += direction;
-                            continue;
-                        }
+                        if (char.IsLetter(character) || char.IsWhiteSpace(character))
+                            break;
 
-                        break;
+                        position += direction;
+                        continue;
                 }
 
                 break;
@@ -1847,9 +1834,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         private enum WordTraversalStep
         {
-            InitialWhitespace,
+            Whitespace,
+            LetterOrDigit,
             Symbol,
-            Alphanumerical,
         }
     }
 }
