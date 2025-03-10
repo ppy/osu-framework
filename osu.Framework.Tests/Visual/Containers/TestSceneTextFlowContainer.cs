@@ -19,7 +19,7 @@ namespace osu.Framework.Tests.Visual.Containers
 {
     public partial class TestSceneTextFlowContainer : FrameworkTestScene
     {
-        private const string default_text = "Default text\n\nnewline";
+        private const string default_text = "Default text which is long enough such that it will break a line\n\nnewline";
 
         private TextFlowContainer textContainer;
 
@@ -52,13 +52,15 @@ namespace osu.Framework.Tests.Visual.Containers
         [TestCase(Anchor.TopLeft)]
         [TestCase(Anchor.TopCentre)]
         [TestCase(Anchor.TopRight)]
+        [TestCase(Anchor.CentreLeft)]
+        [TestCase(Anchor.Centre)]
+        [TestCase(Anchor.CentreRight)]
         [TestCase(Anchor.BottomLeft)]
         [TestCase(Anchor.BottomCentre)]
         [TestCase(Anchor.BottomRight)]
         public void TestChangeTextAnchor(Anchor anchor)
         {
             AddStep("change text anchor", () => textContainer.TextAnchor = anchor);
-            AddAssert("children have correct anchors", () => textContainer.Children.All(c => c.Anchor == anchor && c.Origin == anchor));
             AddAssert("children are positioned correctly", () =>
             {
                 string result = string.Concat(textContainer.Children
@@ -67,14 +69,6 @@ namespace osu.Framework.Tests.Visual.Containers
                                                            .Select(c => (c as SpriteText)?.Text.ToString() ?? "\n"));
                 return result == default_text;
             });
-        }
-
-        [Test]
-        public void TestAddTextWithTextAnchor()
-        {
-            AddStep("change text anchor", () => textContainer.TextAnchor = Anchor.TopCentre);
-            AddStep("add text", () => textContainer.AddText("added text"));
-            AddAssert("children have correct anchors", () => textContainer.Children.All(c => c.Anchor == Anchor.TopCentre && c.Origin == Anchor.TopCentre));
         }
 
         [Test]
@@ -133,6 +127,6 @@ namespace osu.Framework.Tests.Visual.Containers
             => AddAssert($"text flow has {count} sprite texts", () => textContainer.ChildrenOfType<SpriteText>().Count() == count);
 
         private void assertTotalChildCount(int count)
-            => AddAssert($"text flow has {count} children", () => textContainer.Count == count);
+            => AddAssert($"text flow has {count} children", () => textContainer.Children.Count() == count);
     }
 }
