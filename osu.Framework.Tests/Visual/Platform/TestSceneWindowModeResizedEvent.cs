@@ -80,7 +80,7 @@ namespace osu.Framework.Tests.Visual.Platform
             if (finalMode == WindowMode.Windowed)
                 AddAssert("resized to windowed size", () => resizeInvokes.Dequeue(), () => Is.EqualTo(windowed_size));
             else
-                AddAssert("resized to display size", () => resizeInvokes.Dequeue(), () => Is.EqualTo(window.CurrentDisplayBindable.Value.Bounds.Size));
+                AddAssert("resized to display size", () => resizeInvokes.Dequeue(), () => Is.EqualTo(window.CurrentDisplayBindable.Value?.Bounds.Size));
         }
 
         protected override void Dispose(bool isDisposing)
