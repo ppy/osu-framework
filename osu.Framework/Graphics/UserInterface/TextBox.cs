@@ -447,39 +447,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!AllowWordNavigation)
                 return -1;
 
-            if (text.Length == 0) return 0;
-
-            int searchPrev = Math.Clamp(selectionEnd - 1, 0, Math.Max(0, Text.Length - 1));
-
-            WordTraversalStep currentStep = WordTraversalStep.InitialWhitespace;
-            bool finished = false;
-            while (!finished && searchPrev >= 0)
-            {
-                char character = text[searchPrev];
-                switch (currentStep)
-                {
-                    case WordTraversalStep.InitialWhitespace:
-                        if (character == ' ')
-                            searchPrev--;
-                        else
-                            currentStep = WordTraversalStep.Symbol;
-                        break;
-                    case WordTraversalStep.Symbol:
-                        if (isCharacterSymbol(character))
-                            searchPrev--;
-                        else
-                            currentStep = WordTraversalStep.Alphanumerical;
-                        break;
-                    case WordTraversalStep.Alphanumerical:
-                        if (isCharacterAlphanumeric(character))
-                            searchPrev--;
-                        else
-                            finished = true;
-                        break;
-                }
-            }
-
-            return searchPrev >= 0 ? -(selectionEnd - searchPrev - 1) : -selectionEnd;
+            return findNextWord(text, selectionEnd, -1) - selectionEnd;
         }
 
         /// <summary>
@@ -490,39 +458,77 @@ namespace osu.Framework.Graphics.UserInterface
             if (!AllowWordNavigation)
                 return 1;
 
-            if (text.Length == 0) return 0;
+            return findNextWord(text, selectionEnd, 1) - selectionEnd;
+        }
 
-            int searchNext = Math.Clamp(selectionEnd, 0, Math.Max(0, Text.Length - 1));
+        /// <summary>
+        /// Finds the position of the next word from the current index in a given string.
+        /// </summary>
+        /// <param name="text">The text string.</param>
+        /// <param name="position">The current cursor position in <paramref name="text"/>.</param>
+        /// <param name="direction">The direction in which to find the next word.</param>
+        /// <returns>The index of the next word in <paramref name="text"/> in the range [0, text.Length].</returns>
+        private static int findNextWord(string text, int position, int direction)
+        {
+            Debug.Assert(direction == -1 || direction == 1);
+
+            // When going backwards, the initial position will always be the index of the first character in the next word,
+            // but it should be the index of the character in the last word.
+            if (direction == -1)
+                position -= 1;
 
             WordTraversalStep currentStep = WordTraversalStep.InitialWhitespace;
-            bool finished = false;
-            while (!finished && searchNext < text.Length)
+
+            while (true)
             {
-                char character = text[searchNext];
+                if (position < 0)
+                    return 0;
+
+                if (position >= text.Length)
+                    return text.Length;
+
+                char character = text[position];
+
                 switch (currentStep)
                 {
                     case WordTraversalStep.InitialWhitespace:
                         if (character == ' ')
-                            searchNext++;
-                        else
+                            position += direction;
+                        else if (isCharacterAlphanumeric(character))
                             currentStep = WordTraversalStep.Alphanumerical;
-                        break;
-                    case WordTraversalStep.Alphanumerical:
-                        if (isCharacterAlphanumeric(character))
-                            searchNext++;
                         else
                             currentStep = WordTraversalStep.Symbol;
+
+                        continue;
+
+                    case WordTraversalStep.Alphanumerical:
+                        if (isCharacterAlphanumeric(character))
+                        {
+                            position += direction;
+                            continue;
+                        }
+
                         break;
+
                     case WordTraversalStep.Symbol:
                         if (isCharacterSymbol(character))
-                            searchNext++;
-                        else
-                            finished = true;
+                        {
+                            position += direction;
+                            continue;
+                        }
+
                         break;
                 }
+
+                break;
             }
 
-            return (searchNext >= 0 ? searchNext : text.Length) - selectionEnd;
+            // When going backwards, the final position will always be the the index of the last character of the previous word,
+            // but it should be the index of the first character in the next word.
+            if (direction == -1)
+                position += 1;
+
+            return position;
         }
 
         // Currently only single line is supported and line length and text length are the same.
