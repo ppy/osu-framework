@@ -67,6 +67,8 @@ namespace osu.Framework.Audio
             if (channel == 0)
                 throw new InvalidOperationException("Attempted to set the channel frequency without calling SetChannel() first.");
 
+            // In the past, allowing frequency to go too low (like 1 Hz) caused audible artifacts.
+            // For this reason, the lower range is clamped to 100Hz, a value which is usually low enough to naturally be silent.
             int channelFrequency = (int)Math.Max(100, Math.Abs(initialFrequency * relativeFrequency));
             Bass.ChannelSetAttribute(channel, ChannelAttribute.Frequency, channelFrequency);
 
