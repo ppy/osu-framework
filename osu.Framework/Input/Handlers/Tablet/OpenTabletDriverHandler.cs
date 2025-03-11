@@ -53,7 +53,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private Task? lastInitTask;
 
-        private IBindable<bool> isActive = null!;
+        private IBindable<bool> windowActive = null!;
 
         public override bool Initialize(GameHost host)
         {
@@ -62,7 +62,7 @@ namespace osu.Framework.Input.Handlers.Tablet
             outputMode = new AbsoluteTabletMode(this);
 
             host.Window.Resized += () => updateOutputArea(host.Window);
-            isActive = host.Window.IsActive.GetBoundCopy();
+            windowActive = host.Window.IsActive.GetBoundCopy();
 
             AreaOffset.BindValueChanged(_ => updateTabletAndInputArea(device));
             AreaSize.BindValueChanged(_ => updateTabletAndInputArea(device));
@@ -206,9 +206,6 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private void handleTabletReport(ITabletReport tabletReport)
         {
-            if (!isActive.Value)
-                return;
-
             int buttonCount = tabletReport.PenButtons.Length;
             var buttons = new ButtonInputEntry<TabletPenButton>[buttonCount];
             for (int i = 0; i < buttonCount; i++)
@@ -219,7 +216,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private void handleAuxiliaryReport(IAuxReport auxiliaryReport)
         {
-            if (!isActive.Value)
+            if (!windowActive.Value)
                 return;
 
             int buttonCount = auxiliaryReport.AuxButtons.Length;
@@ -232,6 +229,9 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private void enqueueInput(IInput input)
         {
+            if (!windowActive.Value)
+                return;
+
             PendingInputs.Enqueue(input);
             FrameStatistics.Increment(StatisticsCounterType.TabletEvents);
             statistic_total_events.Value++;
