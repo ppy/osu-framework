@@ -490,6 +490,15 @@ namespace osu.Framework.Graphics.UserInterface
 
                         continue;
 
+                    case WordTraversalStep.Symbol:
+                        if (char.IsLetterOrDigit(character))
+                            currentStep = WordTraversalStep.LetterOrDigit;
+                        else if (char.IsWhiteSpace(character))
+                            break;
+
+                        position += direction;
+                        continue;
+
                     case WordTraversalStep.LetterOrDigit:
                         if (char.IsLetterOrDigit(character))
                         {
@@ -498,13 +507,6 @@ namespace osu.Framework.Graphics.UserInterface
                         }
 
                         break;
-
-                    case WordTraversalStep.Symbol:
-                        if (char.IsLetterOrDigit(character) || char.IsWhiteSpace(character))
-                            break;
-
-                        position += direction;
-                        continue;
                 }
 
                 break;

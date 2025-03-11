@@ -392,11 +392,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("insert text", () => textBox.InsertString("author=test123 $$$aaa 5.5..."));
             AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
-            AddAssert("some text remains", () => textBox.Text == "author=test123 $$$aaa 5.5");
-            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
             AddAssert("some text remains", () => textBox.Text == "author=test123 $$$aaa 5.");
-            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
-            AddAssert("some text remains", () => textBox.Text == "author=test123 $$$aaa 5");
             AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
             AddAssert("some text remains", () => textBox.Text == "author=test123 $$$aaa ");
             AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
@@ -405,8 +401,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("some text remains", () => textBox.Text == "author=test123 ");
             AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
             AddAssert("some text remains", () => textBox.Text == "author=");
-            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
-            AddAssert("some text remains", () => textBox.Text == "author");
             AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
             AddAssert("text is empty", () => textBox.Text.Length == 0);
             AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
@@ -499,17 +493,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
             AddAssert("some text remains", () => textBox.Text == "=test123 $$$aaa 5.5...");
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
-            AddAssert("some text remains", () => textBox.Text == "test123 $$$aaa 5.5...");
-            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
             AddAssert("some text remains", () => textBox.Text == " $$$aaa 5.5...");
-            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
-            AddAssert("some text remains", () => textBox.Text == "aaa 5.5...");
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
             AddAssert("some text remains", () => textBox.Text == " 5.5...");
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
             AddAssert("some text remains", () => textBox.Text == ".5...");
-            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
-            AddAssert("some text remains", () => textBox.Text == "5...");
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
             AddAssert("some text remains", () => textBox.Text == "...");
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
