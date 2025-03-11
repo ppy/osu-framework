@@ -67,7 +67,7 @@ namespace osu.Framework.Audio
             if (channel == 0)
                 throw new InvalidOperationException("Attempted to set the channel frequency without calling SetChannel() first.");
 
-            int channelFrequency = (int)Math.Max(1, Math.Abs(initialFrequency * relativeFrequency));
+            int channelFrequency = (int)Math.Max(100, Math.Abs(initialFrequency * relativeFrequency));
             Bass.ChannelSetAttribute(channel, ChannelAttribute.Frequency, channelFrequency);
 
             // Maintain internal pause on zero frequency due to BASS not supporting them (0 is took for original rate in BASS API)
