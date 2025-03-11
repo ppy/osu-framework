@@ -500,7 +500,7 @@ namespace osu.Framework.Graphics.UserInterface
                         break;
 
                     case WordTraversalStep.Symbol:
-                        if (char.IsLetter(character) || char.IsWhiteSpace(character))
+                        if (char.IsLetterOrDigit(character) || char.IsWhiteSpace(character))
                             break;
 
                         position += direction;
