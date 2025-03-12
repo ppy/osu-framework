@@ -404,7 +404,7 @@ namespace osu.Framework.Graphics.Containers
             var childrenByLine = new List<List<Drawable>>();
             var curLine = new List<Drawable>();
 
-            foreach (var c in Flow.Children)
+            foreach (var c in Flow.FlowingChildren)
             {
                 if (c is NewLineContainer nlc)
                 {
