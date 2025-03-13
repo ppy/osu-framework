@@ -48,11 +48,7 @@ namespace osu.Framework.Tests.Visual.Platform
             AddStep($"switch to {startingMode}", () => window.WindowMode.Value = startingMode);
 
             AddStep($"switch to {startingState}", () => window.WindowState = startingState);
-            AddStep("fetch a different display", () =>
-            {
-                int current = window.CurrentDisplayBindable.Value.Index;
-                display = window.Displays.First(d => d.Index != current);
-            });
+            AddStep("fetch a different display", () => display = window.Displays.First(d => d.Index != window.CurrentDisplayBindable.Value?.Index));
             AddStep("change to that display", () => window.CurrentDisplayBindable.Value = display);
             AddAssert("display changed to requested", () => window.CurrentDisplayBindable.Value, () => Is.EqualTo(display));
 
