@@ -45,22 +45,20 @@ namespace osu.Framework.Input.Handlers.Pen
             return true;
         }
 
-        // iPadOS doesn't support external tablets, so we are sure it's direct Apple Pencil input.
-        // Other platforms support both direct and indirect tablet input, but SDL doesn't provide any information on the current device type.
-        private static readonly TabletPenDeviceType device_type = RuntimeInfo.OS == RuntimeInfo.Platform.iOS ? TabletPenDeviceType.Direct : TabletPenDeviceType.Unknown;
-
-        private void handlePenMove(Vector2 position)
+        private void handlePenMove(TabletPenDeviceType deviceType, Vector2 position, bool pressed)
         {
-            enqueueInput(new MousePositionAbsoluteInputFromPen
-            {
-                Position = position,
-                DeviceType = device_type
-            });
+            if (pressed && deviceType == TabletPenDeviceType.Direct)
+                enqueueInput(new TouchInput(new Input.Touch(TouchSource.PenTouch, position), true));
+            else
+                enqueueInput(new MousePositionAbsoluteInputFromPen { DeviceType = deviceType, Position = position });
         }
 
-        private void handlePenTouch(bool pressed)
+        private void handlePenTouch(TabletPenDeviceType deviceType, bool pressed, Vector2 position)
         {
-            enqueueInput(new MouseButtonInputFromPen(pressed) { DeviceType = device_type });
+            if (deviceType == TabletPenDeviceType.Direct)
+                enqueueInput(new TouchInput(new Input.Touch(TouchSource.PenTouch, position), pressed));
+            else
+                enqueueInput(new MouseButtonInputFromPen(pressed) { DeviceType = deviceType });
         }
 
         private void handlePenButton(TabletPenButton button, bool pressed)
