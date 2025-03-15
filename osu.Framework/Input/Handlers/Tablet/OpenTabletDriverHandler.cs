@@ -53,6 +53,8 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private Task? lastInitTask;
 
+        private IBindable<bool> windowActive = null!;
+
         public override bool Initialize(GameHost host)
         {
             this.host = host;
@@ -60,6 +62,7 @@ namespace osu.Framework.Input.Handlers.Tablet
             outputMode = new AbsoluteTabletMode(this);
 
             host.Window.Resized += () => updateOutputArea(host.Window);
+            windowActive = host.Window.IsActive.GetBoundCopy();
 
             AreaOffset.BindValueChanged(_ => updateTabletAndInputArea(device));
             AreaSize.BindValueChanged(_ => updateTabletAndInputArea(device));
@@ -223,6 +226,9 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private void enqueueInput(IInput input)
         {
+            if (!windowActive.Value)
+                return;
+
             PendingInputs.Enqueue(input);
             FrameStatistics.Increment(StatisticsCounterType.TabletEvents);
             statistic_total_events.Value++;
