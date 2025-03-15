@@ -216,9 +216,6 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private void handleAuxiliaryReport(IAuxReport auxiliaryReport)
         {
-            if (!windowActive.Value)
-                return;
-
             int buttonCount = auxiliaryReport.AuxButtons.Length;
             var buttons = new ButtonInputEntry<TabletAuxiliaryButton>[buttonCount];
             for (int i = 0; i < buttonCount; i++)
