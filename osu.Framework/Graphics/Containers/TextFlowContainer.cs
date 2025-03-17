@@ -175,10 +175,16 @@ namespace osu.Framework.Graphics.Containers
             // we want the child flow that actually does the layout here to match that.
             // however, the child flow must always be auto-sized in the Y axis
             // to correctly respect `TextAnchor`.
-            Flow.AutoSizeAxes = (AutoSizeAxes & ~RelativeSizeAxes) | Axes.Y;
-            Flow.RelativeSizeAxes = RelativeSizeAxes & ~Flow.AutoSizeAxes;
-            if ((Flow.AutoSizeAxes & Axes.X) == 0)
-                Flow.Width = Width;
+            if (AutoSizeAxes.HasFlagFast(Axes.X))
+            {
+                Flow.RelativeSizeAxes = Axes.None;
+                Flow.AutoSizeAxes = Axes.Both;
+            }
+            else
+            {
+                Flow.AutoSizeAxes = Axes.Y;
+                Flow.RelativeSizeAxes = Axes.X;
+            }
         }
 
         public new MarginPadding Padding
