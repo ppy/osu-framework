@@ -247,7 +247,7 @@ namespace osu.Framework.Platform.SDL3
             }
         }
 
-        private readonly SDL_FingerID?[] activeTouches = new SDL_FingerID?[TouchState.MAX_TOUCH_COUNT];
+        private readonly SDL_FingerID?[] activeTouches = new SDL_FingerID?[TouchState.MAX_NATIVE_TOUCH_COUNT];
 
         private TouchSource? getTouchSource(SDL_FingerID fingerId)
         {
@@ -270,7 +270,7 @@ namespace osu.Framework.Platform.SDL3
                 return (TouchSource)i;
             }
 
-            // we only handle up to TouchState.MAX_TOUCH_COUNT. Ignore any further touches for now.
+            // we only handle up to TouchState.MAX_NATIVE_TOUCH_COUNT. Ignore any further touches for now.
             return null;
         }
 
@@ -532,12 +532,12 @@ namespace osu.Framework.Platform.SDL3
 
         private void handlePenMotionEvent(SDL_PenMotionEvent evtPenMotion)
         {
-            PenMove?.Invoke(new Vector2(evtPenMotion.x, evtPenMotion.y) * Scale);
+            PenMove?.Invoke(new Vector2(evtPenMotion.x, evtPenMotion.y) * Scale, evtPenMotion.pen_state.HasFlagFast(SDL_PenInputFlags.SDL_PEN_INPUT_DOWN));
         }
 
         private void handlePenTouchEvent(SDL_PenTouchEvent evtPenTouch)
         {
-            PenTouch?.Invoke(evtPenTouch.down);
+            PenTouch?.Invoke(evtPenTouch.down, new Vector2(evtPenTouch.x, evtPenTouch.y) * Scale);
         }
 
         /// <summary>
@@ -743,14 +743,15 @@ namespace osu.Framework.Platform.SDL3
         public event Action<Touch>? TouchUp;
 
         /// <summary>
-        /// Invoked when a pen moves.
+        /// Invoked when a pen moves. Passes pen position and whether the pen is touching the tablet surface.
         /// </summary>
-        public event Action<Vector2>? PenMove;
+        public event Action<Vector2, bool>? PenMove;
 
         /// <summary>
         /// Invoked when a pen touches (<c>true</c>) or lifts (<c>false</c>) from the tablet surface.
+        /// Also passes the current position of the pen.
         /// </summary>
-        public event Action<bool>? PenTouch;
+        public event Action<bool, Vector2>? PenTouch;
 
         /// <summary>
         /// Invoked when a <see cref="TabletPenButton">pen button</see> is pressed (<c>true</c>) or released (<c>false</c>).

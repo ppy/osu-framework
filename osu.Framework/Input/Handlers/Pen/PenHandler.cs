@@ -45,22 +45,24 @@ namespace osu.Framework.Input.Handlers.Pen
             return true;
         }
 
-        // iPadOS doesn't support external tablets, so we are sure it's direct Apple Pencil input.
-        // Other platforms support both direct and indirect tablet input, but SDL doesn't provide any information on the current device type.
-        private static readonly TabletPenDeviceType device_type = RuntimeInfo.OS == RuntimeInfo.Platform.iOS ? TabletPenDeviceType.Direct : TabletPenDeviceType.Unknown;
+        // Pen input is not necessarily direct on mobile platforms (specifically Android, where external tablets are supported),
+        // but until users experience issues with this, consider it "direct" for now.
+        private static readonly TabletPenDeviceType device_type = RuntimeInfo.IsMobile ? TabletPenDeviceType.Direct : TabletPenDeviceType.Unknown;
 
-        private void handlePenMove(Vector2 position)
+        private void handlePenMove(Vector2 position, bool pressed)
         {
-            enqueueInput(new MousePositionAbsoluteInputFromPen
-            {
-                Position = position,
-                DeviceType = device_type
-            });
+            if (pressed && device_type == TabletPenDeviceType.Direct)
+                enqueueInput(new TouchInput(new Input.Touch(TouchSource.PenTouch, position), true));
+            else
+                enqueueInput(new MousePositionAbsoluteInputFromPen { DeviceType = device_type, Position = position });
         }
 
-        private void handlePenTouch(bool pressed)
+        private void handlePenTouch(bool pressed, Vector2 position)
         {
-            enqueueInput(new MouseButtonInputFromPen(pressed) { DeviceType = device_type });
+            if (device_type == TabletPenDeviceType.Direct)
+                enqueueInput(new TouchInput(new Input.Touch(TouchSource.PenTouch, position), pressed));
+            else
+                enqueueInput(new MouseButtonInputFromPen(pressed) { DeviceType = device_type });
         }
 
         private void handlePenButton(TabletPenButton button, bool pressed)
