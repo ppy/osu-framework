@@ -608,7 +608,7 @@ namespace osu.Framework.Graphics.Containers
                     }
 
                     // DIFFERENCE: Original code did height accounting here to handle bottom / centre anchors.
-                    // We don't need to do that. This flow and its children will always be anchored top.
+                    // We don't need to do that. This flow's children will always be anchored top.
 
                     // DIFFERENCE: Second pass, adjusting the positions for text anchor & line base height.
                     for (int i = 0; i < children.Length; i++)
