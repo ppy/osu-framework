@@ -335,7 +335,10 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_EventType.SDL_EVENT_WINDOW_RESIZED:
                     // polling via SDL_PollEvent blocks on resizes (https://stackoverflow.com/a/50858339)
                     if (!updatingWindowStateAndSize)
-                        fetchWindowSize(storeToConfig: false);
+                    {
+                        bool isUserResizing = SDL_GetGlobalMouseState(null, null).HasFlagFast(SDL_MouseButtonFlags.SDL_BUTTON_LMASK);
+                        fetchWindowSize(storeToConfig: isUserResizing);
+                    }
 
                     break;
             }

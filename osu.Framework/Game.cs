@@ -9,7 +9,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
-using osu.Framework.Development;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Performance;
@@ -285,7 +284,7 @@ namespace osu.Framework
 
             FrameStatistics.BindValueChanged(e => performanceOverlay.State = e.NewValue, true);
 
-            if (FrameworkEnvironment.FrameStatisticsViaTouch && DebugUtils.IsDebugBuild)
+            if (FrameworkEnvironment.FrameStatisticsViaTouch)
             {
                 base.AddInternal(new FrameStatisticsTouchReceptor(this)
                 {
@@ -293,7 +292,7 @@ namespace osu.Framework
                     Anchor = Anchor.BottomRight,
                     Origin = Anchor.BottomRight,
                     RelativeSizeAxes = Axes.Both,
-                    Size = new Vector2(0.5f),
+                    Size = new Vector2(0.2f),
                 });
             }
         }
