@@ -69,16 +69,10 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate || !layout.IsValid;
 
-        internal event Action OnLayoutInvalidated;
-
         /// <summary>
         /// Invoked when layout should be invalidated.
         /// </summary>
-        protected virtual void InvalidateLayout()
-        {
-            layout.Invalidate();
-            OnLayoutInvalidated?.Invoke();
-        }
+        protected internal void InvalidateLayout() => layout.Invalidate();
 
         private readonly Dictionary<Drawable, float> layoutChildren = new Dictionary<Drawable, float>();
 

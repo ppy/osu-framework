@@ -6,6 +6,7 @@
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Sprites;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -14,6 +15,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Localisation;
+using osu.Framework.Utils;
 using osuTK;
 
 namespace osu.Framework.Graphics.Containers
@@ -23,7 +25,6 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public partial class TextFlowContainer : CompositeDrawable
     {
-        private float firstLineIndent;
         private readonly Action<SpriteText> defaultCreationParameters;
 
         private readonly List<ITextPart> parts = new List<ITextPart>();
@@ -35,36 +36,18 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float FirstLineIndent
         {
-            get => firstLineIndent;
-            set
-            {
-                if (value == firstLineIndent) return;
-
-                firstLineIndent = value;
-
-                layout.Invalidate();
-            }
+            get => Flow.FirstLineIndent;
+            set => Flow.FirstLineIndent = value;
         }
-
-        private float contentIndent;
 
         /// <summary>
         /// An indent value for all lines proceeding the first line in a paragraph.
         /// </summary>
         public float ContentIndent
         {
-            get => contentIndent;
-            set
-            {
-                if (value == contentIndent) return;
-
-                contentIndent = value;
-
-                layout.Invalidate();
-            }
+            get => Flow.ContentIndent;
+            set => Flow.ContentIndent = value;
         }
-
-        private float paragraphSpacing = 0.5f;
 
         /// <summary>
         /// Vertical space between paragraphs (i.e. text separated by '\n') in multiples of the text size.
@@ -72,18 +55,9 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float ParagraphSpacing
         {
-            get => paragraphSpacing;
-            set
-            {
-                if (value == paragraphSpacing) return;
-
-                paragraphSpacing = value;
-
-                layout.Invalidate();
-            }
+            get => Flow.ParagraphSpacing;
+            set => Flow.ParagraphSpacing = value;
         }
-
-        private float lineSpacing;
 
         /// <summary>
         /// Vertical space between lines both when a new paragraph begins and when line wrapping occurs.
@@ -91,37 +65,17 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float LineSpacing
         {
-            get => lineSpacing;
-            set
-            {
-                if (value == lineSpacing) return;
-
-                lineSpacing = value;
-
-                layout.Invalidate();
-            }
+            get => Flow.LineSpacing;
+            set => Flow.LineSpacing = value;
         }
-
-        private Anchor textAnchor = Anchor.TopLeft;
 
         /// <summary>
         /// The <see cref="Anchor"/> which text should flow from.
         /// </summary>
         public Anchor TextAnchor
         {
-            get => textAnchor;
-            set
-            {
-                if (textAnchor == value)
-                    return;
-
-                textAnchor = value;
-
-                Flow.Anchor = value;
-                Flow.Origin = value;
-
-                layout.Invalidate();
-            }
+            get => Flow.TextAnchor;
+            set => Flow.TextAnchor = value;
         }
 
         /// <summary>
@@ -222,7 +176,7 @@ namespace osu.Framework.Graphics.Containers
         [Resolved]
         internal LocalisationManager Localisation { get; private set; }
 
-        protected readonly FillFlowContainer Flow;
+        protected readonly InnerFlow Flow;
         private readonly Bindable<LocalisationParameters> localisationParameters = new Bindable<LocalisationParameters>();
 
         public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
@@ -230,11 +184,10 @@ namespace osu.Framework.Graphics.Containers
             this.defaultCreationParameters = defaultCreationParameters;
 
             InternalChild = Flow = CreateFlow().With(f => f.AutoSizeAxes = Axes.Both);
-            Flow.OnLayoutInvalidated += () => layout.Invalidate();
         }
 
         [Pure]
-        protected virtual FillFlowContainer CreateFlow() => new InnerFlow();
+        protected virtual InnerFlow CreateFlow() => new InnerFlow();
 
         protected override void LoadAsyncComplete()
         {
@@ -258,17 +211,6 @@ namespace osu.Framework.Graphics.Containers
 
             if (!partsCache.IsValid)
                 RecreateAllParts();
-        }
-
-        protected override void UpdateAfterChildren()
-        {
-            if (!layout.IsValid)
-            {
-                computeLayout();
-                layout.Validate();
-            }
-
-            base.UpdateAfterChildren();
         }
 
         protected override int Compare(Drawable x, Drawable y)
@@ -403,90 +345,305 @@ namespace osu.Framework.Graphics.Containers
                 Flow.Add(drawable);
         }
 
-        private readonly Cached layout = new Cached();
-
-        private void computeLayout()
-        {
-            var childrenByLine = new List<List<Drawable>>();
-            var curLine = new List<Drawable>();
-
-            foreach (var c in Flow.FlowingChildren)
-            {
-                if (c is NewLineContainer nlc)
-                {
-                    curLine.Add(nlc);
-                    childrenByLine.Add(curLine);
-                    curLine = new List<Drawable>();
-                }
-                else
-                {
-                    if (c.X == 0)
-                    {
-                        if (curLine.Count > 0)
-                            childrenByLine.Add(curLine);
-                        curLine = new List<Drawable>();
-                    }
-
-                    curLine.Add(c);
-                }
-            }
-
-            if (curLine.Count > 0)
-                childrenByLine.Add(curLine);
-
-            bool isFirstLine = true;
-            float lastLineHeight = 0f;
-
-            foreach (var line in childrenByLine)
-            {
-                bool isFirstChild = true;
-                IEnumerable<float> lineBaseHeightValues = line.OfType<IHasLineBaseHeight>().Select(l => l.LineBaseHeight);
-                float lineBaseHeight = lineBaseHeightValues.Any() ? lineBaseHeightValues.Max() : 0f;
-                float currentLineHeight = 0f;
-                float lineSpacingValue = lastLineHeight * LineSpacing;
-
-                // Compute the offset of this line from the right
-                Drawable lastTextPartInLine = (line[^1] is NewLineContainer && line.Count >= 2) ? line[^2] : line[^1];
-                float lineOffsetFromRight = Flow.ChildSize.X - (lastTextPartInLine.X + lastTextPartInLine.DrawWidth);
-
-                foreach (Drawable c in line)
-                {
-                    if (c is NewLineContainer nlc)
-                    {
-                        nlc.Height = nlc.IndicatesNewParagraph ? (currentLineHeight == 0 ? lastLineHeight : currentLineHeight) * ParagraphSpacing : 0;
-                        continue;
-                    }
-
-                    float childLineBaseHeight = (c as IHasLineBaseHeight)?.LineBaseHeight ?? 0f;
-                    MarginPadding margin = new MarginPadding { Top = (childLineBaseHeight != 0f ? lineBaseHeight - childLineBaseHeight : 0f) + lineSpacingValue };
-                    if (isFirstLine)
-                        margin.Left = FirstLineIndent;
-                    else if (isFirstChild)
-                        margin.Left = ContentIndent;
-
-                    c.Margin = margin;
-
-                    if (c.Height > currentLineHeight)
-                        currentLineHeight = c.Height;
-
-                    if ((TextAnchor & Anchor.x1) != 0)
-                        c.X += lineOffsetFromRight / 2;
-                    else if ((TextAnchor & Anchor.x2) != 0)
-                        c.X += lineOffsetFromRight;
-
-                    isFirstChild = false;
-                }
-
-                if (currentLineHeight != 0f)
-                    lastLineHeight = currentLineHeight;
-
-                isFirstLine = false;
-            }
-        }
-
         protected partial class InnerFlow : FillFlowContainer
         {
-            protected override bool ForceNewRow(Drawable child) => child is NewLineContainer;
+            private float firstLineIndent;
+
+            /// <summary>
+            /// An indent value for the first (header) line of a paragraph.
+            /// </summary>
+            public float FirstLineIndent
+            {
+                get => firstLineIndent;
+                set
+                {
+                    if (value == firstLineIndent) return;
+
+                    firstLineIndent = value;
+
+                    InvalidateLayout();
+                }
+            }
+
+            private float contentIndent;
+
+            /// <summary>
+            /// An indent value for all lines proceeding the first line in a paragraph.
+            /// </summary>
+            public float ContentIndent
+            {
+                get => contentIndent;
+                set
+                {
+                    if (value == contentIndent) return;
+
+                    contentIndent = value;
+
+                    InvalidateLayout();
+                }
+            }
+
+            private float paragraphSpacing = 0.5f;
+
+            /// <summary>
+            /// Vertical space between paragraphs (i.e. text separated by '\n') in multiples of the text size.
+            /// The default value is 0.5.
+            /// </summary>
+            public float ParagraphSpacing
+            {
+                get => paragraphSpacing;
+                set
+                {
+                    if (value == paragraphSpacing) return;
+
+                    paragraphSpacing = value;
+
+                    InvalidateLayout();
+                }
+            }
+
+            private float lineSpacing;
+
+            /// <summary>
+            /// Vertical space between lines both when a new paragraph begins and when line wrapping occurs.
+            /// Additive with <see cref="ParagraphSpacing"/> on new paragraph. Default value is 0.
+            /// </summary>
+            public float LineSpacing
+            {
+                get => lineSpacing;
+                set
+                {
+                    if (value == lineSpacing) return;
+
+                    lineSpacing = value;
+
+                    InvalidateLayout();
+                }
+            }
+
+            private Anchor textAnchor = Anchor.TopLeft;
+
+            /// <summary>
+            /// The <see cref="Anchor"/> which text should flow from.
+            /// </summary>
+            public Anchor TextAnchor
+            {
+                get => textAnchor;
+                set
+                {
+                    if (textAnchor == value)
+                        return;
+
+                    textAnchor = value;
+
+                    Anchor = value;
+                    Origin = value;
+
+                    InvalidateLayout();
+                }
+            }
+
+            protected override IEnumerable<Vector2> ComputeLayoutPositions()
+            {
+                // NOTE: This is a copy of `FillFlowContainer.ComputeLayoutPositions()`
+                // with significant enough alterations to support all of the weird features that text flow wants to support
+                // (like "bottom right anchor" that doesn't invert the order of the lines of text,
+                // or like content indent, etc., etc.)
+                // All differences will be highlighted via inline comments prefixed with DIFFERENCE:
+
+                var max = MaximumSize;
+
+                if (max == Vector2.Zero)
+                {
+                    var s = ChildSize;
+
+                    // If we are autosize and haven't specified a maximum size, we should allow infinite expansion.
+                    // If we are inheriting then we need to use the parent size (our ActualSize).
+                    max.X = AutoSizeAxes.HasFlagFast(Axes.X) ? float.PositiveInfinity : s.X;
+                    max.Y = AutoSizeAxes.HasFlagFast(Axes.Y) ? float.PositiveInfinity : s.Y;
+                }
+
+                var children = FlowingChildren.ToArray();
+                if (children.Length == 0)
+                    yield break;
+
+                // The positions for each child we will return later on.
+                var layoutPositions = ArrayPool<Vector2>.Shared.Rent(children.Length);
+
+                // We need to keep track of row widths such that we can compute correct
+                // positions for horizontal centre anchor children.
+                // We also store for each child to which row it belongs.
+                int[] rowIndices = ArrayPool<int>.Shared.Rent(children.Length);
+
+                // DIFFERENCE: Contrary to `FillFlow` we care about the offset to the end of the flow (right side),
+                // rather than to the middle.
+                var rowWidths = new List<float> { 0 };
+                // DIFFERENCE: We need to track "line base heights" as provided by `IHasLineBaseHeight`
+                // for correct layouting of multiple font sizes on one line.
+                var lineBaseHeights = new List<float> { 0 };
+
+                // Variables keeping track of the current state while iterating over children
+                // and computing initial flow positions.
+                float rowHeight = 0;
+                // DIFFERENCE: rowBeginOffset is missing because all children are presumed to be anchored and origined top-left.
+                var current = Vector2.Zero;
+
+                // First pass, computing initial flow positions
+                Vector2 size = Vector2.Zero;
+
+                // defer the return of the rented lists
+                try
+                {
+                    for (int i = 0; i < children.Length; ++i)
+                    {
+                        Drawable c = children[i];
+
+                        static Axes toAxes(FillDirection direction)
+                        {
+                            switch (direction)
+                            {
+                                case FillDirection.Full:
+                                    return Axes.Both;
+
+                                case FillDirection.Horizontal:
+                                    return Axes.X;
+
+                                case FillDirection.Vertical:
+                                    return Axes.Y;
+
+                                default:
+                                    throw new ArgumentException($"{direction.ToString()} is not defined");
+                            }
+                        }
+
+                        // In some cases (see the right hand side of the conditional) we want to permit relatively sized children
+                        // in our fill direction; specifically, when children use FillMode.Fit to preserve the aspect ratio.
+                        // Consider the following use case: A fill flow container has a fixed width but an automatic height, and fills
+                        // in the vertical direction. Now, we can add relatively sized children with FillMode.Fit to make sure their
+                        // aspect ratio is preserved while still allowing them to fill vertically. This special case can not result
+                        // in an autosize-related feedback loop, and we can thus simply allow it.
+                        if ((c.RelativeSizeAxes & AutoSizeAxes & toAxes(Direction)) != 0
+                            && (c.FillMode != FillMode.Fit || c.RelativeSizeAxes != Axes.Both || c.Size.X > RelativeChildSize.X
+                                || c.Size.Y > RelativeChildSize.Y || AutoSizeAxes == Axes.Both))
+                        {
+                            throw new InvalidOperationException(
+                                "Drawables inside a fill flow container may not have a relative size axis that the fill flow container is filling in and auto sizing for. " +
+                                $"The fill flow container is set to flow in the {Direction} direction and autosize in {AutoSizeAxes} axes and the child is set to relative size in {c.RelativeSizeAxes} axes.");
+                        }
+
+                        // DIFFERENCE: Disallow custom anchor/origin positions other than top left.
+                        // Things will be accounted for accurately later.
+                        // All calls to `spacingFactor()` in the original code thus reduce to returning (0,0).
+                        if (c.RelativeAnchorPosition != Vector2.Zero)
+                            throw new InvalidOperationException($"All drawables in a {nameof(TextFlowContainer)} must not specify custom {RelativeAnchorPosition}s. Only (0,0) is supported.");
+                        if (c.RelativeOriginPosition != Vector2.Zero)
+                            throw new InvalidOperationException($"All drawables in a {nameof(TextFlowContainer)} must not specify custom {RelativeOriginPosition}s. Only (0,0) is supported.");
+
+                        // Populate running variables with sane initial values.
+                        if (i == 0)
+                        {
+                            size = c.BoundingBox.Size;
+                            // DIFFERENCE: Handle `ContentIndent` & `FirstLineIndent`.
+                            // This only does the correct thing if the text is anchored to the left;
+                            // right still could be made to work I guess, but what do you even do with centre?
+                            current.X = ContentIndent + FirstLineIndent;
+                        }
+
+                        // DIFFERENCE: As per prior comments, `1 - spacingFactor(c).X` from the original code is just 1.
+                        float rowWidth = current.X + size.X;
+
+                        // We've exceeded our allowed width, move to a new row
+                        // DIFFERENCE: `NewLineContainer`s also force a new row.
+                        if (Direction != FillDirection.Horizontal && (Precision.DefinitelyBigger(rowWidth, max.X) || Direction == FillDirection.Vertical || c is NewLineContainer))
+                        {
+                            // DIFFERENCE: Handle `ContentIndent`. Only kinda correct for left text anchor.
+                            current.X = ContentIndent;
+                            // DIFFERENCE: Handle `LineSpacing`. This is deferred to the point of line break to avoid complicating the accounting.
+                            current.Y += rowHeight * (1 + LineSpacing);
+
+                            // DIFFERENCE: A new line also has an implicit height if it starts a new paragraph.
+                            if (c is NewLineContainer nlc)
+                                current.Y += nlc.IndicatesNewParagraph ? rowHeight * ParagraphSpacing : 0;
+
+                            layoutPositions[i] = current;
+
+                            rowWidths.Add(0);
+                            // DIFFERENCE: `IHasLineBaseHeight` tracking.
+                            lineBaseHeights.Add((c as IHasLineBaseHeight)?.LineBaseHeight ?? 0);
+
+                            rowHeight = 0;
+                        }
+                        else
+                        {
+                            layoutPositions[i] = current;
+
+                            // DIFFERENCE: Store width of the row, to be applied in case of non-left anchor
+                            // in a second pass.
+                            rowWidths[^1] = rowWidth;
+                            // DIFFERENCE: `IHasLineBaseHeight` tracking.
+                            lineBaseHeights[^1] = Math.Max(lineBaseHeights[^1], (c as IHasLineBaseHeight)?.LineBaseHeight ?? 0);
+                        }
+
+                        rowIndices[i] = rowWidths.Count - 1;
+                        Vector2 stride = Vector2.Zero;
+
+                        if (i < children.Length - 1)
+                        {
+                            // Compute stride.
+                            // DIFFERENCE: All drawables are anchored top-left, so this reduces just to size.
+                            stride = size;
+
+                            c = children[i + 1];
+                            size = c.BoundingBox.Size;
+
+                            // DIFFERENCE: The original code did `stride += spacingFactor(c) * size`,
+                            // but because all drawables here are anchored top-left, that's just zero.
+                        }
+
+                        stride += Spacing;
+
+                        if (stride.Y > rowHeight)
+                            rowHeight = stride.Y;
+                        current.X += stride.X;
+                    }
+
+                    // DIFFERENCE: Original code did height accounting here to handle bottom / centre anchors.
+                    // We don't need to do that. This flow's children will always be anchored top.
+
+                    // DIFFERENCE: Second pass, adjusting the positions for text anchor & line base height.
+                    if (!float.IsFinite(max.X))
+                    {
+                        float newMax = 0;
+                        foreach (float rowWidth in rowWidths)
+                            newMax = MathF.Max(newMax, rowWidth);
+                        max.X = newMax;
+                    }
+
+                    for (int i = 0; i < children.Length; i++)
+                    {
+                        var c = children[i];
+
+                        var layoutPosition = layoutPositions[i];
+
+                        float rowOffsetToEnd = max.X - rowWidths[rowIndices[i]];
+
+                        if (TextAnchor.HasFlagFast(Anchor.x1))
+                            layoutPosition.X += rowOffsetToEnd / 2;
+                        else if (TextAnchor.HasFlagFast(Anchor.x2))
+                            layoutPosition.X += rowOffsetToEnd;
+
+                        if (c is IHasLineBaseHeight hasLineBaseHeight)
+                            layoutPosition.Y += lineBaseHeights[rowIndices[i]] - hasLineBaseHeight.LineBaseHeight;
+
+                        yield return layoutPosition;
+                    }
+                }
+                finally
+                {
+                    ArrayPool<Vector2>.Shared.Return(layoutPositions);
+                    ArrayPool<int>.Shared.Return(rowIndices);
+                }
+            }
         }
 
         public partial class NewLineContainer : Container
