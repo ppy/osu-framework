@@ -143,6 +143,12 @@ namespace osu.Framework.Tests.Visual.Containers
                 topLevelContainer.RelativeSizeAxes = textContainer.RelativeSizeAxes = Axes.None;
                 topLevelContainer.AutoSizeAxes = textContainer.AutoSizeAxes = Axes.Both;
             });
+            AddStep("set autosize width with right anchored text", () =>
+            {
+                topLevelContainer.RelativeSizeAxes = textContainer.RelativeSizeAxes = Axes.None;
+                topLevelContainer.AutoSizeAxes = textContainer.AutoSizeAxes = Axes.Both;
+                textContainer.TextAnchor = Anchor.TopRight;
+            });
         }
 
         [Test]
