@@ -459,8 +459,8 @@ namespace osu.Framework.Graphics.Containers
 
                     // If we are autosize and haven't specified a maximum size, we should allow infinite expansion.
                     // If we are inheriting then we need to use the parent size (our ActualSize).
-                    max.X = AutoSizeAxes.HasFlagFast(Axes.X) ? float.MaxValue : s.X;
-                    max.Y = AutoSizeAxes.HasFlagFast(Axes.Y) ? float.MaxValue : s.Y;
+                    max.X = AutoSizeAxes.HasFlagFast(Axes.X) ? float.PositiveInfinity : s.X;
+                    max.Y = AutoSizeAxes.HasFlagFast(Axes.Y) ? float.PositiveInfinity : s.Y;
                 }
 
                 var children = FlowingChildren.ToArray();
@@ -477,7 +477,7 @@ namespace osu.Framework.Graphics.Containers
 
                 // DIFFERENCE: Contrary to `FillFlow` we care about the offset to the end of the flow (right side),
                 // rather than to the middle.
-                var rowOffsetsToEnd = new List<float> { 0 };
+                var rowWidths = new List<float> { 0 };
                 // DIFFERENCE: We need to track "line base heights" as provided by `IHasLineBaseHeight`
                 // for correct layouting of multiple font sizes on one line.
                 var lineBaseHeights = new List<float> { 0 };
@@ -567,7 +567,7 @@ namespace osu.Framework.Graphics.Containers
 
                             layoutPositions[i] = current;
 
-                            rowOffsetsToEnd.Add(0);
+                            rowWidths.Add(0);
                             // DIFFERENCE: `IHasLineBaseHeight` tracking.
                             lineBaseHeights.Add((c as IHasLineBaseHeight)?.LineBaseHeight ?? 0);
 
@@ -577,14 +577,14 @@ namespace osu.Framework.Graphics.Containers
                         {
                             layoutPositions[i] = current;
 
-                            // DIFFERENCE: Compute offset to the end of the row, to be applied in case of non-left anchor
+                            // DIFFERENCE: Store width of the row, to be applied in case of non-left anchor
                             // in a second pass.
-                            rowOffsetsToEnd[^1] = max.X - rowWidth;
+                            rowWidths[^1] = rowWidth;
                             // DIFFERENCE: `IHasLineBaseHeight` tracking.
                             lineBaseHeights[^1] = Math.Max(lineBaseHeights[^1], (c as IHasLineBaseHeight)?.LineBaseHeight ?? 0);
                         }
 
-                        rowIndices[i] = rowOffsetsToEnd.Count - 1;
+                        rowIndices[i] = rowWidths.Count - 1;
                         Vector2 stride = Vector2.Zero;
 
                         if (i < children.Length - 1)
@@ -611,16 +611,26 @@ namespace osu.Framework.Graphics.Containers
                     // We don't need to do that. This flow's children will always be anchored top.
 
                     // DIFFERENCE: Second pass, adjusting the positions for text anchor & line base height.
+                    if (!float.IsFinite(max.X))
+                    {
+                        float newMax = 0;
+                        foreach (float rowWidth in rowWidths)
+                            newMax = MathF.Max(newMax, rowWidth);
+                        max.X = newMax;
+                    }
+
                     for (int i = 0; i < children.Length; i++)
                     {
                         var c = children[i];
 
                         var layoutPosition = layoutPositions[i];
 
+                        float rowOffsetToEnd = max.X - rowWidths[rowIndices[i]];
+
                         if (TextAnchor.HasFlagFast(Anchor.x1))
-                            layoutPosition.X += rowOffsetsToEnd[rowIndices[i]] / 2;
+                            layoutPosition.X += rowOffsetToEnd / 2;
                         else if (TextAnchor.HasFlagFast(Anchor.x2))
-                            layoutPosition.X += rowOffsetsToEnd[rowIndices[i]];
+                            layoutPosition.X += rowOffsetToEnd;
 
                         if (c is IHasLineBaseHeight hasLineBaseHeight)
                             layoutPosition.Y += lineBaseHeights[rowIndices[i]] - hasLineBaseHeight.LineBaseHeight;
