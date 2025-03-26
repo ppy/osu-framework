@@ -112,7 +112,7 @@ namespace osu.Framework.Tests.Bindables
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(locale);
 
             var bindable = new BindableFloat(value);
-            string? asString = bindable.ToString();
+            string asString = bindable.ToString();
             Assert.AreEqual(expected, asString);
             Assert.DoesNotThrow(() => bindable.Parse(asString, CultureInfo.CurrentCulture));
             Assert.AreEqual(value, bindable.Value, Precision.FLOAT_EPSILON);
