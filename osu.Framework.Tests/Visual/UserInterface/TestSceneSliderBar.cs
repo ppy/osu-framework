@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -113,6 +114,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             sliderBar.Current.Disabled = false;
             sliderBar.Current.Value = 0;
+            sliderBar.MouseStep = 0;
+            sliderBar.MinValue = sliderBarValue.MinValue;
+            sliderBar.MaxValue = sliderBarValue.MaxValue;
             sliderBar.GetContainingFocusManager()!.ChangeFocus(null);
             sliderBarWithNub.GetContainingFocusManager()!.ChangeFocus(null);
         });
@@ -187,11 +191,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkValue(-4);
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void TestAdjustmentPrecision(bool disabled)
+        [TestCase(false, 0)]
+        [TestCase(false, 1)]
+        [TestCase(false, 3)]
+        [TestCase(true, 0)]
+        public void TestAdjustmentPrecision(bool disabled, float step)
         {
             AddStep($"set disabled to {disabled}", () => sliderBar.Current.Disabled = disabled);
+
+            AddStep($"Set step to {step}", () => sliderBar.MouseStep = step);
 
             AddStep("Click at 25% mark", () =>
             {
@@ -199,7 +207,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
             // We're translating to/from screen-space coordinates for click coordinates so we want to be more lenient with the value comparisons in these tests
-            checkValue(disabled ? 0 : -5);
+            checkValue(disabled ? 0 : step == 0 ? -5 : MathF.Round(-5 / step) * step);
             AddStep("Press left arrow key", () =>
             {
                 bool before = sliderBar.IsHovered;
@@ -208,7 +216,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.ReleaseKey(Key.Left);
                 sliderBar.IsHovered = before;
             });
-            checkValue(disabled ? 0 : -6);
+            checkValue(disabled ? 0 : step == 0 ? -6 : MathF.Round(-5 / step) * step - 1);
             AddStep("Click at 75% mark, holding shift", () =>
             {
                 InputManager.PressKey(Key.LShift);
@@ -217,6 +225,56 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.ReleaseKey(Key.LShift);
             });
             checkValue(disabled ? 0 : 5);
+        }
+
+        [Test]
+        public void TestCustomRange()
+        {
+            AddStep("Set range to -5 to 5", () =>
+            {
+                sliderBar.MinValue = -5;
+                sliderBar.MaxValue = 5;
+            });
+
+            AddStep("Click at 25% mark", () =>
+            {
+                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.25f, 0.5f)));
+                InputManager.Click(MouseButton.Left);
+            });
+            checkValue(-2.5f);
+
+            AddStep("Press right arrow key", () =>
+            {
+                bool before = sliderBar.IsHovered;
+                sliderBar.IsHovered = true;
+                InputManager.PressKey(Key.Right);
+                InputManager.ReleaseKey(Key.Right);
+                sliderBar.IsHovered = before;
+            });
+            checkValue(-1.5f);
+
+            AddStep("Set value to 10", () => sliderBarValue.Value = 10);
+            AddStep("Press left arrow key", () =>
+            {
+                bool before = sliderBar.IsHovered;
+                sliderBar.IsHovered = true;
+                InputManager.PressKey(Key.Left);
+                InputManager.ReleaseKey(Key.Left);
+                sliderBar.IsHovered = before;
+            });
+            checkValue(4f);
+
+            AddStep("Press right arrow key twice", () =>
+            {
+                bool before = sliderBar.IsHovered;
+                sliderBar.IsHovered = true;
+                InputManager.PressKey(Key.Right);
+                InputManager.ReleaseKey(Key.Right);
+                InputManager.PressKey(Key.Right);
+                InputManager.ReleaseKey(Key.Right);
+                sliderBar.IsHovered = before;
+            });
+            checkValue(5f);
         }
 
         [TestCase(false)]
@@ -299,7 +357,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkValue(0);
         }
 
-        private void checkValue(int expected) =>
+        private void checkValue(float expected) =>
             AddAssert($"Value == {expected}", () => sliderBarValue.Value, () => Is.EqualTo(expected).Within(Precision.FLOAT_EPSILON));
 
         private void sliderBarValueChanged(ValueChangedEvent<double> args)
