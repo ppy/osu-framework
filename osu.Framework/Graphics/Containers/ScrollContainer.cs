@@ -116,6 +116,12 @@ namespace osu.Framework.Graphics.Containers
         private double distanceDecay;
 
         /// <summary>
+        /// Counter for the number of frames where <see cref="lastAvailableContent"/> and <see cref="lastUpdateDisplayableContent"/> are equal.
+        /// Used to determine when the container sizing animation has finished.
+        /// </summary>
+        private float equalSizeFrames = 0f;
+
+        /// <summary>
         /// The current scroll position.
         /// </summary>
         public double Current { get; private set; }
@@ -232,8 +238,6 @@ namespace osu.Framework.Graphics.Containers
             // also avoids creating many needless Transforms every update frame.
             if (lastAvailableContent != AvailableContent || lastUpdateDisplayableContent != DisplayableContent)
             {
-                lastAvailableContent = AvailableContent;
-                lastUpdateDisplayableContent = DisplayableContent;
                 scrollbarCache.Invalidate();
             }
         }
@@ -559,6 +563,23 @@ namespace osu.Framework.Graphics.Containers
                 Current = Target;
         }
 
+        /// <summary>
+        /// Determines if the size animation on the container has finished by comparing it with the previous frame.
+        /// </summary>
+        private bool hasSizingAnimationFinished()
+        {
+            if (Precision.AlmostEquals(lastAvailableContent, AvailableContent, 0.05f) &&
+                Precision.AlmostEquals(lastUpdateDisplayableContent, DisplayableContent, 0.05f))
+            {
+                equalSizeFrames++;
+                if (equalSizeFrames >= 3) // If we have the almost equals success for 3 frames we can assume the animation has actually finished.
+                    return true;
+            }
+            else
+                equalSizeFrames = 0;
+            return false;
+        }
+
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
@@ -570,8 +591,13 @@ namespace osu.Framework.Graphics.Containers
             {
                 float size = ScrollDirection == Direction.Horizontal ? DrawWidth : DrawHeight;
                 if (size > 0)
+                {
                     Scrollbar.ResizeTo(Math.Clamp(AvailableContent > 0 ? DisplayableContent / AvailableContent : 0, Math.Min(Scrollbar.MinimumDimSize / size, 1), 1), 200, Easing.OutQuint);
-                Scrollbar.FadeTo(ScrollbarVisible && Precision.DefinitelyBigger(AvailableContent, DisplayableContent, 1f) ? 1 : 0, 200);
+                    if (hasSizingAnimationFinished()) // This stops the scrollbar from appearing when it is not needed but introduces small latency.
+                        Scrollbar.FadeTo(ScrollbarVisible && Precision.DefinitelyBigger(AvailableContent, DisplayableContent, 1f) ? 1 : 0, 200);
+                    else
+                        Scrollbar.Alpha = 0; // hide the scrollbar during the animation to prevent it from appearing when it is not needed.
+                }
                 updatePadding();
 
                 scrollbarCache.Validate();
@@ -583,6 +609,8 @@ namespace osu.Framework.Graphics.Containers
                 Scrollbar.Y = ToScrollbarPosition(Current);
 
             ApplyCurrentToContent();
+            lastAvailableContent = AvailableContent;
+            lastUpdateDisplayableContent = DisplayableContent;
         }
 
         /// <summary>
