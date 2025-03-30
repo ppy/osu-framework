@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,11 +25,11 @@ namespace osu.Framework.Tests.Text
         private static readonly FontUsage normal_font = new FontUsage("Roboto", weight: "Regular", size: font_size);
         private static readonly FontUsage fixed_width_font = new FontUsage("Roboto", weight: "Regular", size: font_size, fixedWidth: true);
 
-        private FontStore fontStore;
-        private ITexturedCharacterGlyph glyphA;
-        private ITexturedCharacterGlyph glyphB;
-        private ITexturedCharacterGlyph glyphM;
-        private ITexturedCharacterGlyph glyphIcon;
+        private FontStore fontStore = null!;
+        private ITexturedCharacterGlyph glyphA = null!;
+        private ITexturedCharacterGlyph glyphB = null!;
+        private ITexturedCharacterGlyph glyphM = null!;
+        private ITexturedCharacterGlyph glyphIcon = null!;
 
         [SetUp]
         public void SetUp()
@@ -40,10 +38,10 @@ namespace osu.Framework.Tests.Text
             fontStore.AddTextureSource(new GlyphStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources"), "Fonts/Roboto/Roboto-Regular"));
             fontStore.AddTextureSource(new GlyphStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources"), "Fonts/FontAwesome5/FontAwesome-Solid"));
 
-            glyphA = fontStore.Get(null, 'a');
-            glyphB = fontStore.Get(null, 'b');
-            glyphM = fontStore.Get(null, 'm');
-            glyphIcon = fontStore.Get(null, FontAwesome.Solid.Smile.Icon);
+            glyphA = fontStore.Get(null, 'a').AsNonNull();
+            glyphB = fontStore.Get(null, 'b').AsNonNull();
+            glyphM = fontStore.Get(null, 'm').AsNonNull();
+            glyphIcon = fontStore.Get(null, FontAwesome.Solid.Smile.Icon).AsNonNull();
         }
 
         /// <summary>
@@ -632,7 +630,7 @@ namespace osu.Framework.Tests.Text
         public void TearDown()
         {
             fontStore.Dispose();
-            fontStore = null;
+            fontStore = null!;
         }
 
         /// <summary>
@@ -650,7 +648,7 @@ namespace osu.Framework.Tests.Text
                 this.glyphs = glyphs;
             }
 
-            public ITexturedCharacterGlyph Get(string fontName, char character)
+            public ITexturedCharacterGlyph Get(string? fontName, char character)
             {
                 if (string.IsNullOrEmpty(fontName))
                     return glyphs.FirstOrDefault(g => g.Glyph.Character == character).Glyph;
@@ -658,7 +656,7 @@ namespace osu.Framework.Tests.Text
                 return glyphs.FirstOrDefault(g => g.Font.FontName == fontName && g.Glyph.Character == character).Glyph;
             }
 
-            public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => throw new NotImplementedException();
+            public Task<ITexturedCharacterGlyph?> GetAsync(string fontName, char character) => throw new NotImplementedException();
         }
 
         private readonly struct GlyphEntry
