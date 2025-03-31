@@ -108,10 +108,10 @@ namespace osu.Framework.Tests.Visual.Containers
                 };
             });
 
-            AddAssert("no AutoSize transform present", () => container.Transforms.All(it => it.TargetMember != "baseSize"));
+            AddAssert("no autosize transform present", () => !container.TransformsForTargetMember("baseSize").Any());
             AddAssert("size matches child", () => container.Size == child.Size);
             AddStep("update child size", () => child.Size = new Vector2(200));
-            AddAssert("autoSize transform present", () => container.Transforms.Any(it => it.TargetMember == "baseSize"));
+            AddAssert("autoSize transform present", () => container.TransformsForTargetMember("baseSize").Any());
         }
 
         private partial class SortableComposite : CompositeDrawable
