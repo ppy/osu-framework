@@ -945,13 +945,6 @@ namespace osu.Framework.Graphics.Containers
             UpdateAfterChildren();
 
             updateChildrenSizeDependencies();
-
-            if (SkipInitialAutoSizeTransform && !didInitialAutosize)
-            {
-                FinishTransforms(false, nameof(baseSize));
-                didInitialAutosize = true;
-            }
-
             UpdateAfterAutoSize();
             return true;
         }
@@ -961,8 +954,6 @@ namespace osu.Framework.Graphics.Containers
             Debug.Assert(c.LoadState >= LoadState.Ready);
             c.UpdateSubTree();
         }
-
-        private bool didInitialAutosize;
 
         /// <summary>
         /// Updates all masking calculations for this <see cref="CompositeDrawable"/> and its <see cref="AliveInternalChildren"/>.
@@ -1987,6 +1978,12 @@ namespace osu.Framework.Graphics.Containers
 
         private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
         {
+            if (SkipInitialAutoSizeTransform && !didInitialAutosize)
+            {
+                duration = 0;
+                didInitialAutosize = true;
+            }
+
             var currentTransform = TransformsForTargetMember(nameof(baseSize)).FirstOrDefault() as AutoSizeTransform;
 
             if ((currentTransform?.EndValue ?? Size) != newSize)
@@ -2001,6 +1998,8 @@ namespace osu.Framework.Graphics.Containers
                     this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, duration, easing));
             }
         }
+
+        private bool didInitialAutosize;
 
         /// <summary>
         /// A helper property for <see cref="autoSizeResizeTo(Vector2, double, Easing)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
