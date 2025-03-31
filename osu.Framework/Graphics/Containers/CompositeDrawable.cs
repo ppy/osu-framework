@@ -945,6 +945,13 @@ namespace osu.Framework.Graphics.Containers
             UpdateAfterChildren();
 
             updateChildrenSizeDependencies();
+
+            if (SkipInitialAutoSizeTransform && !didInitialAutosize)
+            {
+                FinishTransforms(false, nameof(baseSize));
+                didInitialAutosize = true;
+            }
+
             UpdateAfterAutoSize();
             return true;
         }
@@ -954,6 +961,8 @@ namespace osu.Framework.Graphics.Containers
             Debug.Assert(c.LoadState >= LoadState.Ready);
             c.UpdateSubTree();
         }
+
+        private bool didInitialAutosize;
 
         /// <summary>
         /// Updates all masking calculations for this <see cref="CompositeDrawable"/> and its <see cref="AliveInternalChildren"/>.
@@ -1823,6 +1832,12 @@ namespace osu.Framework.Graphics.Containers
         /// is non-zero.
         /// </summary>
         public Easing AutoSizeEasing { get; protected set; }
+
+        /// <summary>
+        /// Whether the first resize should be instantaneously when autosize gets applied for the first time and <see cref="AutoSizeDuration"/>
+        /// is non-zero.
+        /// </summary>
+        public bool SkipInitialAutoSizeTransform { get; protected set; }
 
         /// <summary>
         /// Fired after this <see cref="CompositeDrawable"/>'s <see cref="Size"/> is updated through autosize.

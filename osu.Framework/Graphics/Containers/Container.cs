@@ -511,6 +511,16 @@ namespace osu.Framework.Graphics.Containers
             set => base.AutoSizeEasing = value;
         }
 
+        /// <summary>
+        /// Whether the first resize should be instantaneously when autosize gets applied for the first time and <see cref="AutoSizeDuration"/>
+        /// is non-zero.
+        /// </summary>
+        public new bool SkipInitialAutoSizeTransform
+        {
+            get => base.SkipInitialAutoSizeTransform;
+            set => base.SkipInitialAutoSizeTransform = value;
+        }
+
         public struct Enumerator : IEnumerator<T>
         {
             private Container<T> container;

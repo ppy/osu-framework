@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -87,6 +88,29 @@ namespace osu.Framework.Tests.Visual.Containers
 
             AddAssert("transforms cleared", () => clearedTransforms);
             AddUntilStep("container still autosized", () => container.Size == new Vector2(100));
+        }
+
+        [Test]
+        public void TestSkipInitialAutoSizeTransform()
+        {
+            Container container = null;
+            Drawable child = null;
+
+            AddStep("create hierarchy", () =>
+            {
+                Child = container = new Container
+                {
+                    Masking = true,
+                    AutoSizeAxes = Axes.Both,
+                    AutoSizeDuration = 1000,
+                    SkipInitialAutoSizeTransform = true,
+                    Child = child = new Box { Size = new Vector2(100) },
+                };
+            });
+
+            AddAssert("no AutoSize transform present", () => container.Transforms.All(it => it.TargetMember != "baseSize"));
+            AddStep("update child size", () => child.Size = new Vector2(200));
+            AddAssert("autoSize transform present", () => container.Transforms.Any(it => it.TargetMember == "baseSize"));
         }
 
         private partial class SortableComposite : CompositeDrawable
