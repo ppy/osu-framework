@@ -1967,16 +1967,14 @@ namespace osu.Framework.Graphics.Containers
             finally
             {
                 isComputingChildrenSizeDependencies = false;
+                didInitialAutosize = true;
             }
         }
 
         private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
         {
             if (!didInitialAutosize)
-            {
                 duration = 0;
-                didInitialAutosize = true;
-            }
 
             var currentTransform = TransformsForTargetMember(nameof(baseSize)).FirstOrDefault() as AutoSizeTransform;
 
