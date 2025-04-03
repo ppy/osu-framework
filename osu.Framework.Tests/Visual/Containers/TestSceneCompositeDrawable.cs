@@ -103,7 +103,6 @@ namespace osu.Framework.Tests.Visual.Containers
                     Masking = true,
                     AutoSizeAxes = Axes.Both,
                     AutoSizeDuration = 1000,
-                    SkipInitialAutoSizeTransform = true,
                     Child = child = new Box { Size = new Vector2(100) },
                 };
             });

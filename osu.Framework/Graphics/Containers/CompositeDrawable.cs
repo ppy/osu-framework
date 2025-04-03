@@ -1825,12 +1825,6 @@ namespace osu.Framework.Graphics.Containers
         public Easing AutoSizeEasing { get; protected set; }
 
         /// <summary>
-        /// Whether the first resize should be instantaneously when autosize gets applied for the first time and <see cref="AutoSizeDuration"/>
-        /// is non-zero.
-        /// </summary>
-        public bool SkipInitialAutoSizeTransform { get; protected set; }
-
-        /// <summary>
         /// Fired after this <see cref="CompositeDrawable"/>'s <see cref="Size"/> is updated through autosize.
         /// </summary>
         internal event Action OnAutoSize;
@@ -1978,7 +1972,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
         {
-            if (SkipInitialAutoSizeTransform && !didInitialAutosize)
+            if (!didInitialAutosize)
             {
                 duration = 0;
                 didInitialAutosize = true;
