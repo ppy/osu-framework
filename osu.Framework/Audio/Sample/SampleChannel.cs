@@ -44,7 +44,7 @@ namespace osu.Framework.Audio.Sample
 
         public virtual bool Looping { get; set; }
 
-        public override bool IsAlive => base.IsAlive && Playing;
+        public override bool IsAlive => ManualFree ? base.IsAlive : base.IsAlive && Playing;
 
         public virtual ChannelAmplitudes CurrentAmplitudes { get; } = ChannelAmplitudes.Empty;
 
@@ -61,6 +61,8 @@ namespace osu.Framework.Audio.Sample
         Task IAudioChannel.EnqueueAction(Action action) => EnqueueAction(action);
 
         #endregion
+
+        public bool ManualFree { get; set; }
 
         protected override void Dispose(bool disposing)
         {
