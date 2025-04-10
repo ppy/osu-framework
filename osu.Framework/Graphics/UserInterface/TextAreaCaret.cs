@@ -13,17 +13,21 @@ namespace osu.Framework.Graphics.UserInterface
     {
         public void DisplayAt(Vector2 position, float lineHeight)
         {
-            InternalChild = new Box
+            foreach (var c in InternalChildren)
+                c.Expire();
+
+            AddInternal(new Box
             {
                 Position = position,
                 Origin = Anchor.TopCentre,
                 Size = new Vector2(1.5f, lineHeight)
-            };
+            });
         }
 
         public void DisplayRange(IEnumerable<RectangleF> selectionRects)
         {
-            ClearInternal();
+            foreach (var c in InternalChildren)
+                c.Expire();
 
             foreach (var rect in selectionRects)
             {
