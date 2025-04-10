@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics.Sprites
             /// </summary>
             private void updateScreenSpaceCharacters()
             {
-                int partCount = Source.characters.Count;
+                int partCount = Source.Characters.Count;
 
                 if (parts == null)
                     parts = new List<ScreenSpaceCharacterPart>(partCount);
@@ -98,7 +98,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 Vector2 inflationAmount = DrawInfo.MatrixInverse.ExtractScale().Xy;
 
-                foreach (var character in Source.characters)
+                foreach (var character in Source.Characters)
                 {
                     parts.Add(new ScreenSpaceCharacterPart
                     {
