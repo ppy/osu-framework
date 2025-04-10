@@ -473,6 +473,31 @@ namespace osu.Framework.Graphics.UserInterface
         // TODO: see if there's a better way of preventing the scroll container from accepting mouse input.
         protected override bool OnMouseDown(MouseDownEvent e) => e.Button == MouseButton.Left;
 
+        protected override bool OnDragStart(DragStartEvent e)
+        {
+            var position = textLayout.GetClosestTextPosition(textLayout.ToLocalSpace(e.ScreenSpaceMouseDownPosition));
+
+            selection.MoveCursorTo(textLayout.TextPositionToIndex(position));
+
+            handleDrag(e);
+
+            return true;
+        }
+
+        protected override void OnDrag(DragEvent e)
+        {
+            base.OnDrag(e);
+
+            handleDrag(e);
+        }
+
+        private void handleDrag(MouseButtonEvent e)
+        {
+            var position = textLayout.GetClosestTextPosition(textLayout.ToLocalSpace(e.ScreenSpaceMousePosition));
+
+            selection.SetSelection(selection.SelectionStart, textLayout.TextPositionToIndex(position));
+        }
+
         internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
         {
             if (!base.BuildPositionalInputQueue(screenSpacePos, queue))
