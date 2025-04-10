@@ -8,7 +8,6 @@ using System.Linq;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Logging;
 using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -55,8 +54,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             // rowIndices may be larger than children.Length
             Lines = new LineInfo[rowIndices.Take(children.Length).Max() + 1];
-
-            Logger.Log($"row indices: {string.Join(", ", rowIndices)}, children: {children.Length}");
 
             RectangleF currentLineBounds = default;
 
