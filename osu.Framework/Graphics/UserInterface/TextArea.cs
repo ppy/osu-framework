@@ -321,6 +321,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
+            if (!HasFocus)
+                return false;
+
             switch (e.Key)
             {
                 case Key.Up:
@@ -347,6 +350,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         public bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
         {
+            if (!HasFocus)
+                return false;
+
             switch (e.Action)
             {
                 case PlatformAction.SelectAll:
