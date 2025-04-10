@@ -183,7 +183,7 @@ namespace osu.Framework.Graphics.Containers
                     float rowWidth = rowBeginOffset + current.X + (1 - spacingFactor(c).X) * size.X;
 
                     //We've exceeded our allowed width, move to a new row
-                    if (direction != FillDirection.Horizontal && (Precision.DefinitelyBigger(rowWidth, max.X) || direction == FillDirection.Vertical))
+                    if (direction != FillDirection.Horizontal && (Precision.DefinitelyBigger(rowWidth, max.X) || direction == FillDirection.Vertical || ForceNewRow(c)))
                     {
                         current.X = 0;
                         current.Y += rowHeight;
@@ -286,6 +286,8 @@ namespace osu.Framework.Graphics.Containers
 
                     yield return layoutPosition;
                 }
+
+                OnLayoutComputed(children, layoutPositions, rowIndices);
             }
             finally
             {
@@ -293,6 +295,12 @@ namespace osu.Framework.Graphics.Containers
                 ArrayPool<int>.Shared.Return(rowIndices);
             }
         }
+
+        protected virtual void OnLayoutComputed(Drawable[] children, Vector2[] layoutPositions, int[] rowIndices)
+        {
+        }
+
+        protected virtual bool ForceNewRow(Drawable drawable) => false;
     }
 
     /// <summary>

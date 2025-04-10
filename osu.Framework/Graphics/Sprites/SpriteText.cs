@@ -444,7 +444,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// The characters in local space.
         /// </summary>
-        private List<TextBuilderGlyph> characters
+        internal List<TextBuilderGlyph> Characters
         {
             get
             {
