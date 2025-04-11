@@ -2012,7 +2012,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// When valid, holds the current target size computed for automatic sizing.
+        /// When valid, holds the current target size that should be approached when using automatic sizing and <see cref="AutoSizeDuration"/> is non-zero.
         /// </summary>
         private readonly Cached<Vector2> targetAutoSize = new Cached<Vector2>();
 
