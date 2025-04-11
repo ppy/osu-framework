@@ -89,6 +89,54 @@ namespace osu.Framework.Tests.Visual.Containers
             AddUntilStep("container still autosized", () => container.Size == new Vector2(100));
         }
 
+        [Test]
+        public void TestAutoSizeDuration()
+        {
+            Container parent = null;
+            Drawable child = null;
+
+            AddStep("create hierarchy", () =>
+            {
+                Child = parent = new Container
+                {
+                    Masking = true,
+                    AutoSizeAxes = Axes.Both,
+                    AutoSizeDuration = 500,
+                    Children = new Drawable[]
+                    {
+                        new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = Color4.Yellow,
+                        },
+                        new Container
+                        {
+                            Padding = new MarginPadding(50),
+                            AutoSizeAxes = Axes.Both,
+                            Child = child = new Box
+                            {
+                                Size = new Vector2(100),
+                                Colour = Color4.Red,
+                            }
+                        }
+                    }
+                };
+            });
+
+            AddSliderStep("AutoSizeDuration", 0f, 1500f, 500f, value =>
+            {
+                if (parent != null) parent.AutoSizeDuration = value;
+            });
+            AddSliderStep("Width", 0f, 300f, 100f, value =>
+            {
+                if (child != null) child.Width = value;
+            });
+            AddSliderStep("Height", 0f, 300f, 100f, value =>
+            {
+                if (child != null) child.Height = value;
+            });
+        }
+
         private partial class SortableComposite : CompositeDrawable
         {
             public SortableComposite()
