@@ -501,6 +501,9 @@ namespace osu.Framework.Graphics.Containers
             set => base.AutoSizeDuration = value;
         }
 
+        /// <summary>
+        /// Immediately resizes to the current target size if <see cref="AutoSizeDuration"/> is non-zero.
+        /// </summary>
         public new void FinishAutoSizeTransforms() => base.FinishAutoSizeTransforms();
 
         public struct Enumerator : IEnumerator<T>
