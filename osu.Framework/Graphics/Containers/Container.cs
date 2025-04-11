@@ -501,6 +501,8 @@ namespace osu.Framework.Graphics.Containers
             set => base.AutoSizeDuration = value;
         }
 
+        public new void FinishAutoSizeTransforms() => base.FinishAutoSizeTransforms();
+
         public struct Enumerator : IEnumerator<T>
         {
             private Container<T> container;

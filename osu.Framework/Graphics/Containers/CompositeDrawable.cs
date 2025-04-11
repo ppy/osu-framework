@@ -2003,6 +2003,14 @@ namespace osu.Framework.Graphics.Containers
             baseSize = newSize;
         }
 
+        protected void FinishAutoSizeTransforms()
+        {
+            updateChildrenSizeDependencies();
+
+            if (targetAutoSize.IsValid)
+                autoSizeResizeTo(targetAutoSize.Value, 0);
+        }
+
         /// <summary>
         /// When valid, holds the current target size computed for automatic sizing.
         /// </summary>

@@ -8,6 +8,7 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
 
@@ -135,6 +136,43 @@ namespace osu.Framework.Tests.Visual.Containers
             {
                 if (child != null) child.Height = value;
             });
+        }
+
+        [Test]
+        public void TestFinishAutoSizeTransforms()
+        {
+            Container parent = null;
+            Drawable child = null;
+
+            AddStep("create hierarchy", () =>
+            {
+                Child = parent = new Container
+                {
+                    Masking = true,
+                    AutoSizeAxes = Axes.Both,
+                    AutoSizeDuration = 1000,
+                    Name = "Parent",
+                    Children = new Drawable[]
+                    {
+                        new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = Color4.Yellow,
+                        },
+                        child = new Box
+                        {
+                            Size = new Vector2(100),
+                            Colour = Color4.Red,
+                            Alpha = 0.5f,
+                        }
+                    }
+                };
+            });
+            AddAssert("size matches child", () => Precision.AlmostEquals(parent.ChildSize, child.DrawSize));
+            AddStep("resize child", () => child.Size = new Vector2(200));
+            AddAssert("size doesn't match child", () => !Precision.AlmostEquals(parent.ChildSize, child.DrawSize));
+            AddStep("finish autosize transform", () => parent.FinishAutoSizeTransforms());
+            AddAssert("size matches child", () => Precision.AlmostEquals(parent.ChildSize, child.DrawSize));
         }
 
         private partial class SortableComposite : CompositeDrawable
