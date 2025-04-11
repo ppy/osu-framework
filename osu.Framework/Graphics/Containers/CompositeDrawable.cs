@@ -1937,6 +1937,9 @@ namespace osu.Framework.Graphics.Containers
 
             targetAutoSize.Value = computeAutoSize() + Padding.Total;
 
+            if (AutoSizeDuration <= 0)
+                applyAutoSize(targetAutoSize.Value);
+
             //note that this is called before autoSize becomes valid. may be something to consider down the line.
             //might work better to add an OnRefresh event in Cached<> and invoke there.
             OnAutoSize?.Invoke();
