@@ -115,26 +115,33 @@ namespace osu.Framework.Graphics.UserInterface
         private void updateValue() => UpdateValue(NormalizedValue);
 
         private bool handleClick;
+        private bool relativeDragging;
         private float? relativeValueAtMouseDown;
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (ShouldHandleAsRelativeDrag(e))
+            if (!relativeDragging)
             {
-                float min = float.CreateTruncating(currentNumberInstantaneous.MinValue);
-                float max = float.CreateTruncating(currentNumberInstantaneous.MaxValue);
-                float val = float.CreateTruncating(currentNumberInstantaneous.Value);
+                if (ShouldHandleAsRelativeDrag(e))
+                {
+                    float min = float.CreateTruncating(currentNumberInstantaneous.MinValue);
+                    float max = float.CreateTruncating(currentNumberInstantaneous.MaxValue);
+                    float val = float.CreateTruncating(currentNumberInstantaneous.Value);
 
-                relativeValueAtMouseDown = (val - min) / (max - min);
+                    relativeValueAtMouseDown = (val - min) / (max - min);
 
-                // Click shouldn't be handled if relative dragging is happening (i.e. while holding a nub).
-                // This is generally an expectation by most OSes and UIs.
-                handleClick = false;
-            }
-            else
-            {
-                handleClick = true;
-                relativeValueAtMouseDown = null;
+                    // Click shouldn't be handled if relative dragging is happening (i.e. while holding a nub).
+                    // This is generally an expectation by most OSes and UIs.
+                    handleClick = false;
+
+                    // Relative value at mouse down shouldn't change until dragging ends.
+                    relativeDragging = true;
+                }
+                else
+                {
+                    handleClick = true;
+                    relativeValueAtMouseDown = null;
+                }
             }
 
             return base.OnMouseDown(e);
@@ -171,7 +178,11 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected override void OnDragEnd(DragEndEvent e) => Commit();
+        protected override void OnDragEnd(DragEndEvent e)
+        {
+            relativeDragging = false;
+            Commit();
+        }
 
         public override bool AcceptsFocus => true;
 
