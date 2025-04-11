@@ -2000,6 +2000,9 @@ namespace osu.Framework.Graphics.Containers
             baseSize = newSize;
         }
 
+        /// <summary>
+        /// Immediately resizes to the current target size if <see cref="AutoSizeDuration"/> is non-zero.
+        /// </summary>
         protected void FinishAutoSizeTransforms()
         {
             updateChildrenSizeDependencies();
