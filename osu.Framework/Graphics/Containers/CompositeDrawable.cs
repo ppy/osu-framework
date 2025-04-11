@@ -946,6 +946,7 @@ namespace osu.Framework.Graphics.Containers
             UpdateAfterChildren();
 
             updateChildrenSizeDependencies();
+            applyAutoSize();
             UpdateAfterAutoSize();
             return true;
         }
@@ -1933,12 +1934,15 @@ namespace osu.Framework.Graphics.Containers
         private void updateAutoSize()
         {
             if (AutoSizeAxes == Axes.None)
+            {
+                targetAutoSize.Invalidate();
                 return;
+            }
 
             targetAutoSize.Value = computeAutoSize() + Padding.Total;
 
-            if (AutoSizeDuration <= 0)
-                applyAutoSize(targetAutoSize.Value);
+            if (!didInitialAutoSize || AutoSizeDuration <= 0)
+                autoSizeResizeTo(targetAutoSize.Value, 0);
 
             //note that this is called before autoSize becomes valid. may be something to consider down the line.
             //might work better to add an OnRefresh event in Cached<> and invoke there.
@@ -1956,9 +1960,6 @@ namespace osu.Framework.Graphics.Containers
                     updateAutoSize();
                     childrenSizeDependencies.Validate();
                 }
-
-                if (targetAutoSize.IsValid)
-                    applyAutoSize(targetAutoSize.Value);
             }
             finally
             {
@@ -1966,21 +1967,32 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private void applyAutoSize(Vector2 targetSize)
+        private void applyAutoSize()
+        {
+            if (AutoSizeAxes == Axes.None)
+                return;
+
+            if (targetAutoSize.IsValid)
+                autoSizeResizeTo(targetAutoSize.Value, AutoSizeDuration);
+
+            didInitialAutoSize = true;
+        }
+
+        private void autoSizeResizeTo(Vector2 targetSize, double duration)
         {
             targetSize = new Vector2(
                 AutoSizeAxes.HasFlagFast(Axes.X) ? targetSize.X : base.Width,
                 AutoSizeAxes.HasFlagFast(Axes.Y) ? targetSize.Y : base.Height
             );
 
-            if (AutoSizeDuration <= 0)
+            if (duration <= 0)
             {
                 baseSize = targetSize;
                 targetAutoSize.Invalidate();
                 return;
             }
 
-            Vector2 newSize = Interpolation.DampContinuously(baseSize, targetSize, AutoSizeDuration / 4, Time.Elapsed);
+            Vector2 newSize = Interpolation.DampContinuously(baseSize, targetSize, duration / 4, Time.Elapsed);
 
             if (Precision.AlmostEquals(newSize, targetSize, 0.5f))
             {
@@ -1996,8 +2008,10 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private readonly Cached<Vector2> targetAutoSize = new Cached<Vector2>();
 
+        private bool didInitialAutoSize;
+
         /// <summary>
-        /// A helper property for <see cref="applyAutoSize(Vector2)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
+        /// A helper property for <see cref="autoSizeResizeTo(Vector2, double)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
         /// </summary>
         private Vector2 baseSize
         {
