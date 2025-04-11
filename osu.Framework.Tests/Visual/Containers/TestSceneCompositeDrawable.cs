@@ -168,11 +168,11 @@ namespace osu.Framework.Tests.Visual.Containers
                     }
                 };
             });
-            AddAssert("size matches child", () => Precision.AlmostEquals(parent.ChildSize, child.DrawSize));
+            AddAssert("size matches child", () => Precision.AlmostEquals(parent.ChildSize, child.LayoutSize));
             AddStep("resize child", () => child.Size = new Vector2(200));
-            AddAssert("size doesn't match child", () => !Precision.AlmostEquals(parent.ChildSize, child.DrawSize));
+            AddAssert("size doesn't match child", () => !Precision.AlmostEquals(parent.ChildSize, child.LayoutSize));
             AddStep("finish autosize transform", () => parent.FinishAutoSizeTransforms());
-            AddAssert("size matches child", () => Precision.AlmostEquals(parent.ChildSize, child.DrawSize));
+            AddAssert("size matches child", () => Precision.AlmostEquals(parent.ChildSize, child.LayoutSize));
         }
 
         private partial class SortableComposite : CompositeDrawable
