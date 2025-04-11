@@ -1969,9 +1969,6 @@ namespace osu.Framework.Graphics.Containers
 
         private void applyAutoSize()
         {
-            if (AutoSizeAxes == Axes.None)
-                return;
-
             if (targetAutoSize.IsValid)
                 autoSizeResizeTo(targetAutoSize.Value, AutoSizeDuration);
 
