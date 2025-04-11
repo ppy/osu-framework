@@ -492,23 +492,13 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// The duration which automatic sizing should take. If zero, then it is instantaneous.
-        /// Otherwise, this is equivalent to applying an automatic size via a resize transform.
+        /// The duration which automatic sizing should approximately take. If zero, then it is instantaneous.
+        /// AutoSize is being applied continuously so the actual amount of time taken depends on the overall change in value.
         /// </summary>
         public new float AutoSizeDuration
         {
             get => base.AutoSizeDuration;
             set => base.AutoSizeDuration = value;
-        }
-
-        /// <summary>
-        /// The type of easing which should be used for smooth automatic sizing when <see cref="AutoSizeDuration"/>
-        /// is non-zero.
-        /// </summary>
-        public new Easing AutoSizeEasing
-        {
-            get => base.AutoSizeEasing;
-            set => base.AutoSizeEasing = value;
         }
 
         public struct Enumerator : IEnumerator<T>

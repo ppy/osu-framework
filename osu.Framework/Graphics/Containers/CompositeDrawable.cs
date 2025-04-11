@@ -22,6 +22,7 @@ using osu.Framework.Threading;
 using osu.Framework.Statistics;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using osu.Framework.Caching;
 using osu.Framework.Development;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ExceptionExtensions;
@@ -1813,16 +1814,10 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// The duration which automatic sizing should take. If zero, then it is instantaneous.
-        /// Otherwise, this is equivalent to applying an automatic size via a resize transform.
+        /// The duration which automatic sizing should approximately take. If zero, then it is instantaneous.
+        /// AutoSize is being applied continuously so the actual amount of time taken depends on the overall change in value.
         /// </summary>
         public float AutoSizeDuration { get; protected set; }
-
-        /// <summary>
-        /// The type of easing which should be used for smooth automatic sizing when <see cref="AutoSizeDuration"/>
-        /// is non-zero.
-        /// </summary>
-        public Easing AutoSizeEasing { get; protected set; }
 
         /// <summary>
         /// Fired after this <see cref="CompositeDrawable"/>'s <see cref="Size"/> is updated through autosize.
@@ -1940,12 +1935,7 @@ namespace osu.Framework.Graphics.Containers
             if (AutoSizeAxes == Axes.None)
                 return;
 
-            Vector2 b = computeAutoSize() + Padding.Total;
-
-            autoSizeResizeTo(new Vector2(
-                AutoSizeAxes.HasFlagFast(Axes.X) ? b.X : base.Width,
-                AutoSizeAxes.HasFlagFast(Axes.Y) ? b.Y : base.Height
-            ), AutoSizeDuration, AutoSizeEasing);
+            targetAutoSize.Value = computeAutoSize() + Padding.Total;
 
             //note that this is called before autoSize becomes valid. may be something to consider down the line.
             //might work better to add an OnRefresh event in Cached<> and invoke there.
@@ -1963,6 +1953,9 @@ namespace osu.Framework.Graphics.Containers
                     updateAutoSize();
                     childrenSizeDependencies.Validate();
                 }
+
+                if (targetAutoSize.IsValid)
+                    applyAutoSize(targetAutoSize.Value);
             }
             finally
             {
@@ -1970,25 +1963,38 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
+        private void applyAutoSize(Vector2 targetSize)
         {
-            var currentTransform = TransformsForTargetMember(nameof(baseSize)).FirstOrDefault() as AutoSizeTransform;
+            targetSize = new Vector2(
+                AutoSizeAxes.HasFlagFast(Axes.X) ? targetSize.X : base.Width,
+                AutoSizeAxes.HasFlagFast(Axes.Y) ? targetSize.Y : base.Height
+            );
 
-            if ((currentTransform?.EndValue ?? Size) != newSize)
+            if (AutoSizeDuration <= 0)
             {
-                if (duration == 0)
-                {
-                    if (currentTransform != null)
-                        ClearTransforms(false, nameof(baseSize));
-                    baseSize = newSize;
-                }
-                else
-                    this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, duration, easing));
+                baseSize = targetSize;
+                targetAutoSize.Invalidate();
+                return;
             }
+
+            Vector2 newSize = Interpolation.DampContinuously(baseSize, targetSize, AutoSizeDuration / 4, Time.Elapsed);
+
+            if (Precision.AlmostEquals(newSize, targetSize, 0.5f))
+            {
+                newSize = targetSize;
+                targetAutoSize.Invalidate();
+            }
+
+            baseSize = newSize;
         }
 
         /// <summary>
-        /// A helper property for <see cref="autoSizeResizeTo(Vector2, double, Easing)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
+        /// When valid, holds the current target size computed for automatic sizing.
+        /// </summary>
+        private readonly Cached<Vector2> targetAutoSize = new Cached<Vector2>();
+
+        /// <summary>
+        /// A helper property for <see cref="applyAutoSize(Vector2)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
         /// </summary>
         private Vector2 baseSize
         {
@@ -1997,14 +2003,6 @@ namespace osu.Framework.Graphics.Containers
             {
                 base.Width = value.X;
                 base.Height = value.Y;
-            }
-        }
-
-        private class AutoSizeTransform : TransformCustom<Vector2, CompositeDrawable>
-        {
-            public AutoSizeTransform()
-                : base(nameof(baseSize))
-            {
             }
         }
 

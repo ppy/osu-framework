@@ -37,7 +37,6 @@ namespace osu.Framework.Tests.Visual.Layout
                 autoSizeContainer = new Container
                 {
                     Clock = new FramedClock(manualClock),
-                    AutoSizeEasing = Easing.None,
                     Children = new[]
                     {
                         new Box
