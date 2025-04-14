@@ -115,12 +115,13 @@ namespace osu.Framework.Graphics.UserInterface
         private void updateValue() => UpdateValue(NormalizedValue);
 
         private bool handleClick;
-        private bool relativeDragging;
+        private bool currentlyDragging;
         private float? relativeValueAtMouseDown;
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (!relativeDragging)
+            // Relative value at MouseDown shouldn't change until dragging ends.
+            if (!currentlyDragging)
             {
                 if (ShouldHandleAsRelativeDrag(e))
                 {
@@ -133,9 +134,6 @@ namespace osu.Framework.Graphics.UserInterface
                     // Click shouldn't be handled if relative dragging is happening (i.e. while holding a nub).
                     // This is generally an expectation by most OSes and UIs.
                     handleClick = false;
-
-                    // Relative value at mouse down shouldn't change until dragging ends.
-                    relativeDragging = true;
                 }
                 else
                 {
@@ -173,6 +171,8 @@ namespace osu.Framework.Graphics.UserInterface
                 return false;
             }
 
+            currentlyDragging = true;
+
             GetContainingFocusManager()?.ChangeFocus(this);
             handleMouseInput(e);
             return true;
@@ -180,7 +180,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void OnDragEnd(DragEndEvent e)
         {
-            relativeDragging = false;
+            currentlyDragging = false;
             Commit();
         }
 
