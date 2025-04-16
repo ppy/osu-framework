@@ -120,25 +120,25 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnMouseDown(MouseDownEvent e)
         {
             // Relative value at MouseDown shouldn't change until dragging ends.
-            if (!IsDragged)
+            if (IsDragged)
+                return base.OnMouseDown(e);
+
+            if (ShouldHandleAsRelativeDrag(e))
             {
-                if (ShouldHandleAsRelativeDrag(e))
-                {
-                    float min = float.CreateTruncating(currentNumberInstantaneous.MinValue);
-                    float max = float.CreateTruncating(currentNumberInstantaneous.MaxValue);
-                    float val = float.CreateTruncating(currentNumberInstantaneous.Value);
+                float min = float.CreateTruncating(currentNumberInstantaneous.MinValue);
+                float max = float.CreateTruncating(currentNumberInstantaneous.MaxValue);
+                float val = float.CreateTruncating(currentNumberInstantaneous.Value);
 
-                    relativeValueAtMouseDown = (val - min) / (max - min);
+                relativeValueAtMouseDown = (val - min) / (max - min);
 
-                    // Click shouldn't be handled if relative dragging is happening (i.e. while holding a nub).
-                    // This is generally an expectation by most OSes and UIs.
-                    handleClick = false;
-                }
-                else
-                {
-                    handleClick = true;
-                    relativeValueAtMouseDown = null;
-                }
+                // Click shouldn't be handled if relative dragging is happening (i.e. while holding a nub).
+                // This is generally an expectation by most OSes and UIs.
+                handleClick = false;
+            }
+            else
+            {
+                handleClick = true;
+                relativeValueAtMouseDown = null;
             }
 
             return base.OnMouseDown(e);
