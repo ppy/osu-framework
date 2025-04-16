@@ -115,13 +115,12 @@ namespace osu.Framework.Graphics.UserInterface
         private void updateValue() => UpdateValue(NormalizedValue);
 
         private bool handleClick;
-        private bool currentlyDragging;
         private float? relativeValueAtMouseDown;
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
             // Relative value at MouseDown shouldn't change until dragging ends.
-            if (!currentlyDragging)
+            if (!IsDragged)
             {
                 if (ShouldHandleAsRelativeDrag(e))
                 {
@@ -171,8 +170,6 @@ namespace osu.Framework.Graphics.UserInterface
                 return false;
             }
 
-            currentlyDragging = true;
-
             GetContainingFocusManager()?.ChangeFocus(this);
             handleMouseInput(e);
             return true;
@@ -180,7 +177,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void OnDragEnd(DragEndEvent e)
         {
-            currentlyDragging = false;
             Commit();
         }
 
