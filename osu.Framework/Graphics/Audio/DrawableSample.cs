@@ -51,8 +51,6 @@ namespace osu.Framework.Graphics.Audio
 
         string ISample.Name => sample.Name;
 
-        public double Length => sample.Length;
-
         public Bindable<int> PlaybackConcurrency { get; } = new Bindable<int>(Sample.DEFAULT_CONCURRENCY);
 
         private IAudioMixer? mixer;
