@@ -165,6 +165,21 @@ namespace osu.Framework.Tests.Visual.Containers
             AddStep("cancel", () => repeat.Cancel());
         }
 
+        [TestCase(Anchor.TopLeft)]
+        [TestCase(Anchor.Centre)]
+        [TestCase(Anchor.BottomRight)]
+        public void TestAlignmentIsCorrectWhenLineBreaksAtLastWordOfParagraph(Anchor textAnchor)
+        {
+            AddStep("set text to break at last word of paragraph", () =>
+            {
+                textContainer.Clear();
+                textContainer.AddParagraph("first paragraph lorem ipsum dolor sit amet");
+                textContainer.AddParagraph(string.Empty);
+                textContainer.AddParagraph("second paragraph lorem ipsum dolor sit ametttttttttttttttttt");
+                textContainer.TextAnchor = textAnchor;
+            });
+        }
+
         private void assertSpriteTextCount(int count)
             => AddAssert($"text flow has {count} sprite texts", () => textContainer.ChildrenOfType<SpriteText>().Count() == count);
 
