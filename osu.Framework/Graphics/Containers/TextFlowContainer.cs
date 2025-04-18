@@ -567,7 +567,8 @@ namespace osu.Framework.Graphics.Containers
 
                             layoutPositions[i] = current;
 
-                            rowWidths.Add(0);
+                            // DIFFERENCE: `FillFlowContainer` does 0 here, because it's tracking offsets *to middle*, not total row widths.
+                            rowWidths.Add(current.X + size.X);
                             // DIFFERENCE: `IHasLineBaseHeight` tracking.
                             lineBaseHeights.Add((c as IHasLineBaseHeight)?.LineBaseHeight ?? 0);
 
