@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Runtime.Versioning;
 using Android.Content;
 using Android.Runtime;
 using Org.Libsdl.App;
@@ -124,6 +125,7 @@ namespace osu.Framework.Android
             };
         }
 
+        [SupportedOSPlatform("android29.0")]
         private TabletPenDeviceType getPenDeviceType(MotionEvent e)
         {
             var device = e.Device;
@@ -139,6 +141,9 @@ namespace osu.Framework.Android
         /// </summary>
         public override bool DispatchGenericMotionEvent(MotionEvent? e)
         {
+            if (!OperatingSystem.IsAndroidVersionAtLeast(29))
+                return base.DispatchGenericMotionEvent(e);
+
             Debug.Assert(e != null);
 
             switch (e.ActionMasked)
@@ -165,6 +170,9 @@ namespace osu.Framework.Android
         /// </summary>
         public override bool OnTouch(View? view, MotionEvent? e)
         {
+            if (!OperatingSystem.IsAndroidVersionAtLeast(29))
+                return base.OnTouch(view, e);
+
             Debug.Assert(e != null);
 
             // SDLSurface does some weird checks here for event action index, but it doesn't really matter as we only expect one pen at a time
