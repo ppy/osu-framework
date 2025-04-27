@@ -8,8 +8,10 @@ using System.Runtime.InteropServices;
 using ObjCRuntime;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
+using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Platform.SDL3;
+using SDL;
 using static SDL.SDL3;
 using UIKit;
 
@@ -35,6 +37,9 @@ namespace osu.Framework.iOS
             : base(surfaceType, appName)
         {
         }
+
+        // On iPadOS, the only supported pen device is the Apple Pencil, and it's always used with the internal screen.
+        protected override TabletPenDeviceType GetPenDeviceType(SDL_PenID id) => TabletPenDeviceType.Direct;
 
         public override void Create()
         {
