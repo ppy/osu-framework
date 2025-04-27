@@ -32,7 +32,7 @@ namespace osu.Framework.Android
 
         protected abstract Game CreateGame();
 
-        protected override string[] GetLibraries() => new string[] { "SDL3" };
+        protected override string[] GetLibraries() => new[] { "SDL3" };
 
         protected override SDLSurface CreateSDLSurface(Context? context) => new AndroidGameSurface(this, context);
 
