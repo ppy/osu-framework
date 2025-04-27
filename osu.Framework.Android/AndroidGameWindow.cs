@@ -2,8 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Platform.SDL3;
+using SDL;
 
 namespace osu.Framework.Android
 {
@@ -15,6 +17,8 @@ namespace osu.Framework.Android
             : base(surfaceType, appName)
         {
         }
+
+        protected override TabletPenDeviceType GetPenDeviceType(SDL_PenID id) => AndroidGameActivity.Surface.LastPenDeviceType;
 
         public override void Create()
         {

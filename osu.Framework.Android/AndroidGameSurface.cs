@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using Android.Content;
 using Android.Runtime;
 using Org.Libsdl.App;
@@ -11,6 +12,7 @@ using osu.Framework.Bindables;
 using Android.Views;
 using AndroidX.Core.View;
 using AndroidX.Window.Layout;
+using osu.Framework.Input.StateChanges;
 
 namespace osu.Framework.Android
 {
@@ -19,6 +21,10 @@ namespace osu.Framework.Android
         private AndroidGameActivity activity { get; } = null!;
 
         public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
+
+        private const TabletPenDeviceType default_pen_device_type = TabletPenDeviceType.Direct;
+
+        public volatile TabletPenDeviceType LastPenDeviceType = default_pen_device_type;
 
         public AndroidGameSurface(AndroidGameActivity activity, Context? context)
             : base(context)
@@ -116,6 +122,62 @@ namespace osu.Framework.Android
                 Right = windowArea.Right - usableWindowArea.Right,
                 Bottom = windowArea.Bottom - usableWindowArea.Bottom,
             };
+        }
+
+        private TabletPenDeviceType getPenDeviceType(MotionEvent e)
+        {
+            var device = e.Device;
+
+            if (device == null)
+                return default_pen_device_type;
+
+            return device.IsExternal ? TabletPenDeviceType.Indirect : TabletPenDeviceType.Direct;
+        }
+
+        /// <summary>
+        /// Sets <see cref="LastPenDeviceType"/> iff <c>SDLGenericMotionListener_API14.onGenericMotion()</c> would call <c>onNativePen()</c>.
+        /// </summary>
+        public override bool DispatchGenericMotionEvent(MotionEvent? e)
+        {
+            Debug.Assert(e != null);
+
+            switch (e.ActionMasked)
+            {
+                case MotionEventActions.HoverEnter:
+                case MotionEventActions.HoverMove:
+                case MotionEventActions.HoverExit:
+                    for (int i = 0; i < e.PointerCount; i++)
+                    {
+                        var toolType = e.GetToolType(i);
+
+                        if (toolType == MotionEventToolType.Stylus || toolType == MotionEventToolType.Eraser)
+                            LastPenDeviceType = getPenDeviceType(e);
+                    }
+
+                    break;
+            }
+
+            return base.DispatchGenericMotionEvent(e);
+        }
+
+        /// <summary>
+        /// Sets <see cref="LastPenDeviceType"/> iff <c>SDLSurface.onGenericMotion()</c> would call <c>onNativePen()</c>.
+        /// </summary>
+        public override bool OnTouch(View? view, MotionEvent? e)
+        {
+            Debug.Assert(e != null);
+
+            // SDLSurface does some weird checks here for event action index, but it doesn't really matter as we only expect one pen at a time
+
+            for (int i = 0; i < e.PointerCount; i++)
+            {
+                var toolType = e.GetToolType(i);
+
+                if (toolType == MotionEventToolType.Stylus || toolType == MotionEventToolType.Eraser)
+                    LastPenDeviceType = getPenDeviceType(e);
+            }
+
+            return base.OnTouch(view, e);
         }
     }
 }
