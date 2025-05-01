@@ -1,10 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
@@ -25,20 +24,17 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
         /// </summary>
-        [CanBeNull]
-        public event Action<ValueChangedEvent<T>> ValueChanged;
+        public event Action<ValueChangedEvent<T>>? ValueChanged;
 
         /// <summary>
         /// An event which is raised when <see cref="Disabled"/> has changed (or manually via <see cref="TriggerDisabledChange"/>).
         /// </summary>
-        [CanBeNull]
-        public event Action<bool> DisabledChanged;
+        public event Action<bool>? DisabledChanged;
 
         /// <summary>
         /// An event which is raised when <see cref="Default"/> has changed (or manually via <see cref="TriggerDefaultChange"/>).
         /// </summary>
-        [CanBeNull]
-        public event Action<ValueChangedEvent<T>> DefaultChanged;
+        public event Action<ValueChangedEvent<T>>? DefaultChanged;
 
         private T value;
 
@@ -63,7 +59,7 @@ namespace osu.Framework.Bindables
             }
         }
 
-        internal void SetDisabled(bool value, bool bypassChecks = false, Bindable<T> source = null)
+        internal void SetDisabled(bool value, bool bypassChecks = false, Bindable<T>? source = null)
         {
             if (!bypassChecks)
                 throwIfLeased();
@@ -94,7 +90,7 @@ namespace osu.Framework.Bindables
                 // if the leased bindable decides to disable exclusive access (by setting Disabled = false) then anything will be able to write to Value.
 
                 if (Disabled)
-                    throw new InvalidOperationException($"Can not set value to \"{value.ToString()}\" as bindable is disabled.");
+                    throw new InvalidOperationException($"Can not set value to \"{value}\" as bindable is disabled.");
 
                 if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
 
@@ -102,7 +98,7 @@ namespace osu.Framework.Bindables
             }
         }
 
-        internal void SetValue(T previousValue, T value, bool bypassChecks = false, Bindable<T> source = null)
+        internal void SetValue(T previousValue, T value, bool bypassChecks = false, Bindable<T>? source = null)
         {
             this.value = value;
             TriggerValueChange(previousValue, source ?? this, true, bypassChecks);
@@ -120,7 +116,7 @@ namespace osu.Framework.Bindables
                 // if the leased bindable decides to disable exclusive access (by setting Disabled = false) then anything will be able to write to Default.
 
                 if (Disabled)
-                    throw new InvalidOperationException($"Can not set default value to \"{value.ToString()}\" as bindable is disabled.");
+                    throw new InvalidOperationException($"Can not set default value to \"{value}\" as bindable is disabled.");
 
                 if (EqualityComparer<T>.Default.Equals(defaultValue, value)) return;
 
@@ -128,13 +124,13 @@ namespace osu.Framework.Bindables
             }
         }
 
-        internal void SetDefaultValue(T previousValue, T value, bool bypassChecks = false, Bindable<T> source = null)
+        internal void SetDefaultValue(T previousValue, T value, bool bypassChecks = false, Bindable<T>? source = null)
         {
             defaultValue = value;
             TriggerDefaultChange(previousValue, source ?? this, true, bypassChecks);
         }
 
-        private WeakReference<Bindable<T>> weakReferenceInstance;
+        private WeakReference<Bindable<T>>? weakReferenceInstance;
 
         private WeakReference<Bindable<T>> weakReference => weakReferenceInstance ??= new WeakReference<Bindable<T>>(this);
 
@@ -143,7 +139,7 @@ namespace osu.Framework.Bindables
         /// </summary>
         [UsedImplicitly]
         private Bindable()
-            : this(default)
+            : this(default!)
         {
         }
 
@@ -151,12 +147,14 @@ namespace osu.Framework.Bindables
         /// Creates a new bindable instance initialised with a default value.
         /// </summary>
         /// <param name="defaultValue">The initial and default value for this bindable.</param>
-        public Bindable(T defaultValue = default)
+        public Bindable(T defaultValue = default!)
         {
-            value = Default = defaultValue;
+            // TODO: add a custom analyser warning about no default value provided for non-nullable T
+            // remember to also check for derived class constructors
+            value = this.defaultValue = defaultValue;
         }
 
-        protected LockedWeakList<Bindable<T>> Bindings { get; private set; }
+        protected LockedWeakList<Bindable<T>>? Bindings { get; private set; }
 
         void IBindable.BindTo(IBindable them)
         {
@@ -249,7 +247,7 @@ namespace osu.Framework.Bindables
         /// </summary>
         /// <param name="input">The input which is to be parsed.</param>
         /// <param name="provider">An object that provides culture-specific formatting information about <paramref name="input"/>.</param>
-        public virtual void Parse(object input, IFormatProvider provider)
+        public virtual void Parse(object? input, IFormatProvider provider)
         {
             switch (input)
             {
@@ -263,7 +261,7 @@ namespace osu.Framework.Bindables
                     // Nullable value types and reference types (annotated or not) are allowed to be initialised with `null`.
                     if (typeof(T).IsNullable() || typeof(T).IsClass)
                     {
-                        Value = default;
+                        Value = default!;
                         break;
                     }
 
@@ -283,7 +281,7 @@ namespace osu.Framework.Bindables
                         // Nullable value types and reference types are initialised to `null` on empty strings.
                         if (typeof(T).IsNullable() || typeof(T).IsClass)
                         {
-                            Value = default;
+                            Value = default!;
                             break;
                         }
 
@@ -417,11 +415,11 @@ namespace osu.Framework.Bindables
             tThem.removeWeakReference(weakReference);
         }
 
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         public sealed override string ToString() => ToString(null, CultureInfo.CurrentCulture);
 
-        public virtual string ToString(string format, IFormatProvider formatProvider) => string.Format(formatProvider, $"{{0:{format}}}", Value);
+        public virtual string ToString(string? format, IFormatProvider? formatProvider) => string.Format(formatProvider, $"{{0:{format}}}", Value);
 
         /// <summary>
         /// Create an unbound clone of this bindable.
@@ -454,11 +452,14 @@ namespace osu.Framework.Bindables
 
         void ISerializableBindable.DeserializeFrom(JsonReader reader, JsonSerializer serializer)
         {
-            Value = serializer.Deserialize<T>(reader);
+            // Deserialize returns null for json literal "null".
+            // The nullability of type parameter T is unavailable here, so we can't do any validation.
+            Value = serializer.Deserialize<T>(reader).AsNonNull();
         }
 
-        private LeasedBindable<T> leasedBindable;
+        private LeasedBindable<T>? leasedBindable;
 
+        [MemberNotNullWhen(true, nameof(leasedBindable))]
         private bool isLeased => leasedBindable != null;
 
         /// <summary>

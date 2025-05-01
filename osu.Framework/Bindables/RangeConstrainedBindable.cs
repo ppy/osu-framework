@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 
@@ -10,9 +8,9 @@ namespace osu.Framework.Bindables
 {
     public abstract class RangeConstrainedBindable<T> : Bindable<T>
     {
-        public event Action<T> MinValueChanged;
+        public event Action<T>? MinValueChanged;
 
-        public event Action<T> MaxValueChanged;
+        public event Action<T>? MaxValueChanged;
 
         private T minValue;
 
@@ -64,7 +62,7 @@ namespace osu.Framework.Bindables
         public bool HasDefinedRange => !EqualityComparer<T>.Default.Equals(MinValue, DefaultMinValue) ||
                                        !EqualityComparer<T>.Default.Equals(MaxValue, DefaultMaxValue);
 
-        protected RangeConstrainedBindable(T defaultValue = default)
+        protected RangeConstrainedBindable(T defaultValue = default!)
             : base(defaultValue)
         {
             minValue = DefaultMinValue;
@@ -92,25 +90,25 @@ namespace osu.Framework.Bindables
         private static float convertToSingle(T val)
         {
             if (typeof(T) == typeof(sbyte))
-                return Convert.ToSingle((sbyte)(object)val);
+                return Convert.ToSingle((sbyte)(object)val!);
             if (typeof(T) == typeof(byte))
-                return Convert.ToSingle((byte)(object)val);
+                return Convert.ToSingle((byte)(object)val!);
             if (typeof(T) == typeof(short))
-                return Convert.ToSingle((short)(object)val);
+                return Convert.ToSingle((short)(object)val!);
             if (typeof(T) == typeof(ushort))
-                return Convert.ToSingle((ushort)(object)val);
+                return Convert.ToSingle((ushort)(object)val!);
             if (typeof(T) == typeof(int))
-                return Convert.ToSingle((int)(object)val);
+                return Convert.ToSingle((int)(object)val!);
             if (typeof(T) == typeof(uint))
-                return Convert.ToSingle((uint)(object)val);
+                return Convert.ToSingle((uint)(object)val!);
             if (typeof(T) == typeof(long))
-                return Convert.ToSingle((long)(object)val);
+                return Convert.ToSingle((long)(object)val!);
             if (typeof(T) == typeof(ulong))
-                return Convert.ToSingle((ulong)(object)val);
+                return Convert.ToSingle((ulong)(object)val!);
             if (typeof(T) == typeof(double))
-                return Convert.ToSingle((double)(object)val);
+                return Convert.ToSingle((double)(object)val!);
             if (typeof(T) == typeof(float))
-                return (float)(object)val;
+                return (float)(object)val!;
 
             throw new InvalidOperationException();
         }
@@ -159,7 +157,7 @@ namespace osu.Framework.Bindables
             TriggerMaxValueChange(this, false);
         }
 
-        protected void TriggerMinValueChange(RangeConstrainedBindable<T> source = null, bool propagateToBindings = true)
+        protected void TriggerMinValueChange(RangeConstrainedBindable<T>? source = null, bool propagateToBindings = true)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = minValue;
@@ -179,7 +177,7 @@ namespace osu.Framework.Bindables
                 MinValueChanged?.Invoke(minValue);
         }
 
-        protected void TriggerMaxValueChange(RangeConstrainedBindable<T> source = null, bool propagateToBindings = true)
+        protected void TriggerMaxValueChange(RangeConstrainedBindable<T>? source = null, bool propagateToBindings = true)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = maxValue;

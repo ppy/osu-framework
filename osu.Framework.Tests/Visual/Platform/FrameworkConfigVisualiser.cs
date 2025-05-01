@@ -59,6 +59,6 @@ namespace osu.Framework.Tests.Visual.Platform
             }));
         }
 
-        private void updateText() => valueText.Text = bindable.ToString() ?? "<null>";
+        private void updateText() => valueText.Text = bindable?.ToString() ?? "<null>";
     }
 }

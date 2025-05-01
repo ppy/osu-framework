@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 
 namespace osu.Framework.Bindables
@@ -13,7 +11,7 @@ namespace osu.Framework.Bindables
     /// <typeparam name="T">The type of our stored <see cref="Bindable{T}.Value"/>.</typeparam>
     public class BindableWithCurrent<T> : Bindable<T>, IBindableWithCurrent<T>
     {
-        private Bindable<T> currentBound;
+        private Bindable<T>? currentBound;
 
         public Bindable<T> Current
         {
@@ -27,7 +25,7 @@ namespace osu.Framework.Bindables
             }
         }
 
-        public BindableWithCurrent(T defaultValue = default)
+        public BindableWithCurrent(T defaultValue = default!)
             : base(defaultValue)
         {
         }
