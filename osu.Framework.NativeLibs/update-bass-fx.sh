@@ -11,4 +11,12 @@ unzip -jo bass_fx-linux.zip x86_64/libbass_fx.so -d runtimes/linux-x64/native/
 curl -Lso bass_fx-osx.zip https://www.un4seen.com/stuff/bass_fx-osx.zip
 unzip -jo bass_fx-osx.zip libbass_fx.dylib -d runtimes/osx/native/
 
+curl -Lso bass_fx24-ios.zip https://www.un4seen.com/files/z/0/bass_fx24-ios.zip
+unzip -o bass_fx24-ios.zip bass_fx.xcframework/* -d ../osu.Framework.iOS/runtimes/ios/native/
+
+curl -Lso bass_fx24-android.zip https://www.un4seen.com/files/z/0/bass_fx24-android.zip
+unzip -jo bass_fx24-android.zip libs/arm64-v8a/* -d ../osu.Framework.Android/arm64-v8a/
+unzip -jo bass_fx24-android.zip libs/armeabi-v7a/* -d ../osu.Framework.Android/armeabi-v7a/
+unzip -jo bass_fx24-android.zip libs/x86/* -d ../osu.Framework.Android/x86/
+
 rm bass*.zip
