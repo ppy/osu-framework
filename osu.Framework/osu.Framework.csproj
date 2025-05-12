@@ -43,7 +43,7 @@
 
     <!-- DO NOT use ProjectReference for native packaging project.
          See https://github.com/NuGet/Home/issues/4514 and https://github.com/dotnet/sdk/issues/765 . -->
-    <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2024.809.1-nativelibs" />
+    <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2025.511.0-nativelibs" />
 
     <!-- Any version ahead of this will cause AOT issues with iOS
          See https://github.com/mono/mono/issues/21188 -->
