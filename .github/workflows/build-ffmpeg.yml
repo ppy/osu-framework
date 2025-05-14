@@ -172,30 +172,13 @@ jobs:
           path: win-arm64
 
   build-linux:
-    name: Build Linux
+    name: Build Linux (x64)
     runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: [x64, arm64]
-
     steps:
-      - name: Install dependencies (x64)
-        if: matrix.arch == 'x64'
+      - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install nasm
-
-      - name: Install dependencies (arm64)
-        if: matrix.arch == 'arm64'
-        run: |
-          sudo apt-get update
-          sudo apt-get install \
-            make \
-            gcc-aarch64-linux-gnu \
-            libc-dev-arm64-cross \
-            binutils-aarch64-linux-gnu \
-            pkg-config-aarch64-linux-gnu
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -203,13 +186,31 @@ jobs:
       - name: Build
         run: osu.Framework.NativeLibs/scripts/ffmpeg/build-linux.sh
         env:
-          arch: ${{ matrix.arch }}
+          arch: x64
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: linux-${{ matrix.arch }}
-          path: linux-${{ matrix.arch }}
+          name: linux-x64
+          path: linux-x64
+
+  build-linux-arm64:
+    name: Build Linux (arm64)
+    runs-on: ubuntu-22.04-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: osu.Framework.NativeLibs/scripts/ffmpeg/build-linux.sh
+        env:
+          arch: arm64
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-arm64
+          path: linux-arm64
 
   build-android:
     name: Build Android
