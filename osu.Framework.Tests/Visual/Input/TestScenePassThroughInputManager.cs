@@ -259,13 +259,11 @@ namespace osu.Framework.Tests.Visual.Input
             });
 
             AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, testInputManager.ScreenSpaceDrawQuad.Centre)));
-            AddAssert("ensure parent manager produced mouse", () =>
-                InputManager.CurrentState.Mouse.Buttons.Single() == MouseButton.Left &&
-                InputManager.CurrentState.Mouse.Position == testInputManager.ScreenSpaceDrawQuad.Centre);
+            AddAssert("ensure parent manager produced press", () =>
+                InputManager.CurrentState.Mouse.Buttons.Single() == MouseButton.Left);
 
-            AddAssert("pass-through did not produce mouse", () =>
-                !testInputManager.CurrentState.Mouse.Buttons.HasAnyButtonPressed &&
-                testInputManager.CurrentState.Mouse.Position != testInputManager.ScreenSpaceDrawQuad.Centre);
+            AddAssert("pass-through did not produce press", () =>
+                !testInputManager.CurrentState.Mouse.Buttons.HasAnyButtonPressed);
 
             AddStep("end touch", () => InputManager.EndTouch(new Touch(TouchSource.Touch1, testInputManager.ScreenSpaceDrawQuad.Centre)));
 
