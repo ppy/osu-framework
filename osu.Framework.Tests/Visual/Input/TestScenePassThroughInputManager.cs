@@ -330,6 +330,22 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("inner box received no mouse events", () => inner.MouseEvents, () => Is.EqualTo(0));
         }
 
+        [Test]
+        public void TestInitialMousePositionSynced()
+        {
+            Vector2 immediateMousePosition = Vector2.Zero;
+
+            AddStep("move mouse to centre", () => InputManager.MoveMouseTo(InputManager.ScreenSpaceDrawQuad.Centre));
+            AddStep("load test input manager and immediately read mouse position", () =>
+            {
+                var testManager = new TestInputManager();
+                Add(testManager);
+                testManager.UpdateSubTree();
+                immediateMousePosition = testManager.CurrentState.Mouse.Position;
+            });
+            AddAssert("mouse position synced", () => immediateMousePosition, () => Is.EqualTo(InputManager.CurrentState.Mouse.Position));
+        }
+
         public partial class TestInputManager : ManualInputManager
         {
             public readonly TestSceneInputManager.ContainingInputManagerStatusText Status;
