@@ -410,7 +410,6 @@ namespace osu.Framework.Audio.Track
 
             cancelSource.Cancel();
             cancelSource.Dispose();
-            points = Array.Empty<Point>();
 
             // Try disposing the stream again in case the task was not started.
             data?.Dispose();
