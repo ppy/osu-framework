@@ -101,7 +101,6 @@ namespace osu.Framework.Tests.Visual.Input
                 };
             });
 
-            // InitialMousePosition cannot be used here because the event counters should be reset after the initial mouse move.
             AddStep("move mouse to center", () => InputManager.MoveMouseTo(actionContainer));
             AddStep("reset event counters", () =>
             {
