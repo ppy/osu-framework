@@ -51,7 +51,10 @@ namespace osu.Framework.Platform.Windows.Native
         public void Dispose()
         {
             if (waitableTimer != IntPtr.Zero)
+            {
                 Execution.CloseHandle(waitableTimer);
+                waitableTimer = IntPtr.Zero;
+            }
         }
     }
 }
