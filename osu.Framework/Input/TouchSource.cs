@@ -57,5 +57,10 @@ namespace osu.Framework.Input
         /// The tenth and last available touch source.
         /// </summary>
         Touch10,
+
+        /// <summary>
+        /// A touch source that represents a pen/stylus.
+        /// </summary>
+        PenTouch,
     }
 }

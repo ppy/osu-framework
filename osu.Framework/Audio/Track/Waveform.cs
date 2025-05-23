@@ -75,6 +75,8 @@ namespace osu.Framework.Audio.Track
         {
             this.data = data;
 
+            var token = cancelSource.Token;
+
             readTask = Task.Run(() =>
             {
                 this.data = null;
@@ -163,6 +165,8 @@ namespace osu.Framework.Audio.Track
 
                             if (pointSamples >= samplesPerPoint)
                             {
+                                token.ThrowIfCancellationRequested();
+
                                 // There may be unclipped samples, so clip them ourselves
                                 point.AmplitudeLeft = Math.Min(1, point.AmplitudeLeft);
                                 point.AmplitudeRight = Math.Min(1, point.AmplitudeRight);
@@ -184,7 +188,7 @@ namespace osu.Framework.Audio.Track
                     data.Dispose();
                     data = null;
                 }
-            }, cancelSource.Token);
+            }, token);
         }
 
         private float computeIntensity(int frequency, Complex[] bins, float startFrequency, float endFrequency)
@@ -209,7 +213,7 @@ namespace osu.Framework.Audio.Track
         /// <returns>An async task for the generation of the <see cref="Waveform"/>.</returns>
         public async Task<Waveform> GenerateResampledAsync(int pointCount, CancellationToken cancellationToken = default)
         {
-            if (pointCount < 0) throw new ArgumentOutOfRangeException(nameof(pointCount));
+            ArgumentOutOfRangeException.ThrowIfNegative(pointCount);
 
             if (pointCount == 0)
                 return new Waveform(null);
@@ -343,7 +347,6 @@ namespace osu.Framework.Audio.Track
 
             cancelSource.Cancel();
             cancelSource.Dispose();
-            points = Array.Empty<Point>();
 
             // Try disposing the stream again in case the task was not started.
             data?.Dispose();

@@ -119,6 +119,10 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
+            // Relative value at MouseDown shouldn't change until dragging ends.
+            if (IsDragged)
+                return base.OnMouseDown(e);
+
             if (ShouldHandleAsRelativeDrag(e))
             {
                 float min = float.CreateTruncating(currentNumberInstantaneous.MinValue);
@@ -166,18 +170,24 @@ namespace osu.Framework.Graphics.UserInterface
                 return false;
             }
 
+            GetContainingFocusManager()?.ChangeFocus(this);
             handleMouseInput(e);
             return true;
         }
 
-        protected override void OnDragEnd(DragEndEvent e) => Commit();
+        protected override void OnDragEnd(DragEndEvent e)
+        {
+            Commit();
+        }
+
+        public override bool AcceptsFocus => true;
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
             if (currentNumberInstantaneous.Disabled)
                 return false;
 
-            if (!IsHovered)
+            if (!IsHovered && !HasFocus)
                 return false;
 
             float step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;

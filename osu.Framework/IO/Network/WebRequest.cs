@@ -109,17 +109,17 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// Query string parameters.
         /// </summary>
-        private readonly Dictionary<string, string> queryParameters = new Dictionary<string, string>();
+        private readonly List<(string key, string value)> queryParameters = new List<(string key, string value)>();
 
         /// <summary>
         /// Form parameters.
         /// </summary>
-        private readonly Dictionary<string, string> formParameters = new Dictionary<string, string>();
+        private readonly List<(string key, string value)> formParameters = new List<(string key, string value)>();
 
         /// <summary>
         /// FILE parameters.
         /// </summary>
-        private readonly IDictionary<string, byte[]> files = new Dictionary<string, byte[]>();
+        private readonly List<FormFile> files = new List<FormFile>();
 
         /// <summary>
         /// The request headers.
@@ -304,7 +304,7 @@ namespace osu.Framework.IO.Network
 
                     StringBuilder requestParameters = new StringBuilder();
                     foreach (var p in queryParameters)
-                        requestParameters.Append($@"{p.Key}={Uri.EscapeDataString(p.Value)}&");
+                        requestParameters.Append($"{p.key}={Uri.EscapeDataString(p.value)}&");
                     string requestString = requestParameters.ToString().TrimEnd('&');
                     url = string.IsNullOrEmpty(requestString) ? url : $"{url}?{requestString}";
 
@@ -345,13 +345,13 @@ namespace osu.Framework.IO.Network
                             var formData = new MultipartFormDataContent(form_boundary);
 
                             foreach (var p in formParameters)
-                                formData.Add(new StringContent(p.Value), p.Key);
+                                formData.Add(new StringContent(p.value), p.key);
 
                             foreach (var p in files)
                             {
-                                var byteContent = new ByteArrayContent(p.Value);
+                                var byteContent = new ByteArrayContent(p.Content);
                                 byteContent.Headers.Add("Content-Type", "application/octet-stream");
-                                formData.Add(byteContent, p.Key, p.Key);
+                                formData.Add(byteContent, p.ParamName, p.Filename);
                             }
 
                             postContent = await formData.ReadAsStreamAsync(linkedToken.Token).ConfigureAwait(false);
@@ -662,22 +662,26 @@ namespace osu.Framework.IO.Network
         }
 
         /// <summary>
-        /// Add a new FILE parameter to this request. Replaces any existing file with the same name.
+        /// Add a new FILE parameter to this request.
         /// This may not be used in conjunction with <see cref="AddRaw(Stream)"/>. GET requests may not contain files.
         /// </summary>
-        /// <param name="name">The name of the file. This becomes the name of the file in a multi-part form POST content.</param>
+        /// <param name="paramName">The name of the form parameter of the request that the file relates to.</param>
         /// <param name="data">The file data.</param>
-        public void AddFile(string name, byte[] data)
+        /// <param name="filename">
+        /// The filename of the file to be sent to be reported to the server in the <c>Content-Disposition</c> header.
+        /// <c>blob</c> is used by default if omitted, to <see href="https://developer.mozilla.org/en-US/docs/Web/API/FormData/append#filename">mirror browser behaviour</see>.
+        /// </param>
+        public void AddFile(string paramName, byte[] data, string filename = "blob")
         {
-            ArgumentNullException.ThrowIfNull(name);
+            ArgumentNullException.ThrowIfNull(paramName);
             ArgumentNullException.ThrowIfNull(data);
 
-            files[name] = data;
+            files.Add(new FormFile(paramName, data, filename));
         }
 
         /// <summary>
         /// <para>
-        /// Add a new parameter to this request. Replaces any existing parameter with the same name.
+        /// Add a new parameter to this request.
         /// </para>
         /// <para>
         /// If this request's <see cref="Method"/> supports a request body (<c>POST, PUT, DELETE, PATCH</c>), a <see cref="RequestParameterType.Form"/> parameter will be added;
@@ -697,7 +701,7 @@ namespace osu.Framework.IO.Network
             => AddParameter(name, value, supportsRequestBody(Method) ? RequestParameterType.Form : RequestParameterType.Query);
 
         /// <summary>
-        /// Add a new parameter to this request. Replaces any existing parameter with the same name.
+        /// Add a new parameter to this request.
         /// <see cref="RequestParameterType.Form"/> parameters may not be used in conjunction with <see cref="AddRaw(Stream)"/>.
         /// </summary>
         /// <remarks>
@@ -714,14 +718,14 @@ namespace osu.Framework.IO.Network
             switch (type)
             {
                 case RequestParameterType.Query:
-                    queryParameters[name] = value;
+                    queryParameters.Add((name, value));
                     break;
 
                 case RequestParameterType.Form:
                     if (!supportsRequestBody(Method))
                         throw new ArgumentException("Cannot add form parameter to a request type which has no body.", nameof(type));
 
-                    formParameters[name] = value;
+                    formParameters.Add((name, value));
                     break;
             }
         }
@@ -931,5 +935,7 @@ namespace osu.Framework.IO.Network
                 baseStream.Dispose();
             }
         }
+
+        private record struct FormFile(string ParamName, byte[] Content, string Filename);
     }
 }

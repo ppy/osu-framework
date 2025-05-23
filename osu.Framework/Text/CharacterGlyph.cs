@@ -1,10 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
 using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Text
@@ -17,9 +14,9 @@ namespace osu.Framework.Text
         public float Baseline { get; }
         public char Character { get; }
 
-        private readonly IGlyphStore containingStore;
+        private readonly IGlyphStore? containingStore;
 
-        public CharacterGlyph(char character, float xOffset, float yOffset, float xAdvance, float baseline, [CanBeNull] IGlyphStore containingStore)
+        public CharacterGlyph(char character, float xOffset, float yOffset, float xAdvance, float baseline, IGlyphStore? containingStore)
         {
             this.containingStore = containingStore;
 

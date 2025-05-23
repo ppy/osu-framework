@@ -95,7 +95,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                 textBoxes.Add(new CustomTextBox
                 {
-                    Text = @"Custom textbox",
+                    PlaceholderText = "Custom textbox",
+                    Size = new Vector2(500, 30),
+                    TabbableContentContainer = textBoxes
+                });
+
+                textBoxes.Add(new BasicTextBox
+                {
+                    InputProperties = new TextInputProperties(TextInputType.Text, AutoCapitalisation: true),
+                    Text = "Auto-capitalised textbox",
                     Size = new Vector2(500, 30),
                     TabbableContentContainer = textBoxes
                 });
@@ -122,8 +130,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     TabbableContentContainer = otherTextBoxes
                 });
 
-                otherTextBoxes.Add(new BasicPasswordTextBox
+                otherTextBoxes.Add(new BasicTextBox
                 {
+                    InputProperties = new TextInputProperties(TextInputType.Password),
                     PlaceholderText = @"Password textbox",
                     Text = "Secret ;)",
                     Size = new Vector2(500, 30),
@@ -169,12 +178,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestNumbersOnly()
         {
-            NumberTextBox numbers = null;
+            BasicTextBox numbers = null;
 
             AddStep("add number textbox", () =>
             {
-                textBoxes.Add(numbers = new NumberTextBox
+                textBoxes.Add(numbers = new BasicTextBox
                 {
+                    InputProperties = new TextInputProperties(TextInputType.Number),
                     PlaceholderText = @"Only numbers",
                     Size = new Vector2(500, 30),
                     TabbableContentContainer = textBoxes
@@ -370,6 +380,42 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestPreviousWordDeletionWithSymbols()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(200, 40),
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("insert text", () => textBox.InsertString("author=test123 $$$aaa 5.5..."));
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("some text remains", () => textBox.Text == "author=test123 $$$aaa 5.");
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("some text remains", () => textBox.Text == "author=test123 $$$aaa ");
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("some text remains", () => textBox.Text == "author=test123 $$$");
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("some text remains", () => textBox.Text == "author=test123 ");
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("some text remains", () => textBox.Text == "author=");
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+        }
+
+        [Test]
         public void TestNextWordDeletion()
         {
             InsertableTextBox textBox = null;
@@ -425,6 +471,43 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("two words remain", () => textBox.Text == " b c");
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
             AddAssert("one word remains", () => textBox.Text == " c");
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+        }
+
+        [Test]
+        public void TestNextWordDeletionWithSymbols()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(200, 40)
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("insert text", () => textBox.InsertString("author=test123 $$$aaa 5.5..."));
+            AddStep("move caret to start", () => InputManager.Keys(PlatformAction.MoveBackwardLine));
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("some text remains", () => textBox.Text == "=test123 $$$aaa 5.5...");
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("some text remains", () => textBox.Text == " $$$aaa 5.5...");
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("some text remains", () => textBox.Text == " 5.5...");
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("some text remains", () => textBox.Text == ".5...");
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("some text remains", () => textBox.Text == "...");
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
             AddAssert("text is empty", () => textBox.Text.Length == 0);
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
@@ -801,6 +884,40 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestTextChangedDuringDoubleClickDrag()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(300, 40),
+                    Text = "initial text",
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("set text", () => textBox.Text = "aaaaaaaaaaaaaaaaaaaa");
+
+            AddStep("select word", () =>
+            {
+                InputManager.Click(MouseButton.Left);
+                InputManager.PressButton(MouseButton.Left);
+            });
+
+            AddStep("insert text", () => textBox.InsertString("a"));
+            AddAssert("text overwritten", () => textBox.Text == "a");
+            AddStep("start drag", () => InputManager.MoveMouseTo(textBox, new Vector2(-50, 0)));
+            AddStep("end drag", () => InputManager.ReleaseButton(MouseButton.Left));
+        }
+
+        [Test]
         public void TestSelectAll()
         {
             TextBox textBox = null;
@@ -1040,13 +1157,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public string FlowingText => string.Concat(TextFlow.FlowingChildren.OfType<FallingDownContainer>().Select(c => c.OfType<SpriteText>().Single().Text.ToString()[0]));
 
             public new void InsertString(string text) => base.InsertString(text);
-        }
-
-        private partial class NumberTextBox : BasicTextBox
-        {
-            protected override bool CanAddCharacter(char character) => char.IsAsciiDigit(character);
-
-            protected override bool AllowIme => false;
         }
 
         private partial class CustomTextBox : BasicTextBox

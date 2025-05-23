@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The current scroll position.
         /// </summary>
-        public float Current { get; private set; }
+        public double Current { get; private set; }
 
         /// <summary>
         /// The target scroll position which is exponentially approached by current via a rate of distance decay.
@@ -126,24 +126,27 @@ namespace osu.Framework.Graphics.Containers
         /// <remarks>
         /// When not animating scroll position, this will always be equal to <see cref="Current"/>.
         /// </remarks>
-        public float Target { get; private set; }
+        public double Target { get; private set; }
 
         /// <summary>
         /// The maximum distance that can be scrolled in the scroll direction.
         /// </summary>
-        public float ScrollableExtent => Math.Max(AvailableContent - DisplayableContent, 0);
+        public double ScrollableExtent => Math.Max(AvailableContent - DisplayableContent, 0);
 
         /// <summary>
         /// The maximum distance that the scrollbar can move in the scroll direction.
         /// </summary>
-        public float ScrollbarMovementExtent => Math.Max(DisplayableContent - Scrollbar.DrawSize[ScrollDim], 0);
+        /// <remarks>
+        /// May not be accurate to actual display of scrollbar if <see cref="ToScrollbarPosition"/> or <see cref="FromScrollbarPosition"/> are overridden.
+        /// </remarks>
+        protected double ScrollbarMovementExtent => Math.Max(DisplayableContent - Scrollbar.DrawSize[ScrollDim], 0);
 
         /// <summary>
         /// Clamp a value to the available scroll range.
         /// </summary>
         /// <param name="position">The value to clamp.</param>
         /// <param name="extension">An extension value beyond the normal extent.</param>
-        protected float Clamp(float position, float extension = 0) => Math.Max(Math.Min(position, ScrollableExtent + extension), -extension);
+        protected double Clamp(double position, double extension = 0) => Math.Max(Math.Min(position, ScrollableExtent + extension), -extension);
 
         protected override Container<T> Content => ScrollContent;
 
@@ -342,8 +345,8 @@ namespace osu.Framework.Graphics.Containers
 
             Vector2 childDelta = ToLocalSpace(e.ScreenSpaceMousePosition) - ToLocalSpace(e.ScreenSpaceLastMousePosition);
 
-            float scrollOffset = -childDelta[ScrollDim];
-            float clampedScrollOffset = Clamp(Target + scrollOffset) - Clamp(Target);
+            double scrollOffset = -childDelta[ScrollDim];
+            double clampedScrollOffset = Clamp(Target + scrollOffset) - Clamp(Target);
 
             // If we are dragging past the extent of the scrollable area, half the offset
             // such that the user can feel it.
@@ -409,19 +412,19 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        private void onScrollbarMovement(float value) => OnUserScroll(Clamp(fromScrollbarPosition(value)), false);
+        private void onScrollbarMovement(float value) => OnUserScroll(Clamp(FromScrollbarPosition(value)), false);
 
         /// <summary>
         /// Immediately offsets the current and target scroll position.
         /// </summary>
         /// <param name="offset">The scroll offset.</param>
-        public void OffsetScrollPosition(float offset)
+        public virtual void OffsetScrollPosition(double offset)
         {
             Target += offset;
             Current += offset;
         }
 
-        private void scrollByOffset(float value, bool animated, double distanceDecay = float.PositiveInfinity) =>
+        private void scrollByOffset(double value, bool animated, double distanceDecay = float.PositiveInfinity) =>
             OnUserScroll(Target + value, animated, distanceDecay);
 
         /// <summary>
@@ -451,7 +454,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="offset">The amount by which we should scroll.</param>
         /// <param name="animated">Whether to animate the movement.</param>
-        public void ScrollBy(float offset, bool animated = true) => scrollTo(Target + offset, animated);
+        public void ScrollBy(double offset, bool animated = true) => scrollTo(Target + offset, animated);
 
         /// <summary>
         /// Handle a scroll to an absolute position from a user input.
@@ -459,7 +462,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="value">The position to scroll to.</param>
         /// <param name="animated">Whether to animate the movement.</param>
         /// <param name="distanceDecay">Controls the rate with which the target position is approached after jumping to a specific location. Default is <see cref="DistanceDecayJump"/>.</param>
-        protected virtual void OnUserScroll(float value, bool animated = true, double? distanceDecay = null) =>
+        protected virtual void OnUserScroll(double value, bool animated = true, double? distanceDecay = null) =>
             ScrollTo(value, animated, distanceDecay);
 
         /// <summary>
@@ -468,9 +471,9 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="value">The position to scroll to.</param>
         /// <param name="animated">Whether to animate the movement.</param>
         /// <param name="distanceDecay">Controls the rate with which the target position is approached after jumping to a specific location. Default is <see cref="DistanceDecayJump"/>.</param>
-        public void ScrollTo(float value, bool animated = true, double? distanceDecay = null) => scrollTo(value, animated, distanceDecay ?? DistanceDecayJump);
+        public void ScrollTo(double value, bool animated = true, double? distanceDecay = null) => scrollTo(value, animated, distanceDecay ?? DistanceDecayJump);
 
-        private void scrollTo(float value, bool animated, double distanceDecay = float.PositiveInfinity)
+        private void scrollTo(double value, bool animated, double distanceDecay = double.PositiveInfinity)
         {
             Target = Clamp(value, ClampExtension);
 
@@ -494,11 +497,11 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="animated">Whether to animate the movement.</param>
         public void ScrollIntoView(Drawable d, bool animated = true)
         {
-            float childPos0 = GetChildPosInContent(d);
-            float childPos1 = GetChildPosInContent(d, d.DrawSize);
+            double childPos0 = GetChildPosInContent(d);
+            double childPos1 = GetChildPosInContent(d, d.DrawSize);
 
-            float minPos = Math.Min(childPos0, childPos1);
-            float maxPos = Math.Max(childPos0, childPos1);
+            double minPos = Math.Min(childPos0, childPos1);
+            double maxPos = Math.Max(childPos0, childPos1);
 
             if (minPos < Current || (minPos > Current && d.DrawSize[ScrollDim] > DisplayableContent))
                 ScrollTo(minPos, animated);
@@ -512,14 +515,14 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="d">The child to get the position from.</param>
         /// <param name="offset">Positional offset in the child's space.</param>
         /// <returns>The position of the child.</returns>
-        public float GetChildPosInContent(Drawable d, Vector2 offset) => d.ToSpaceOfOtherDrawable(offset, ScrollContent)[ScrollDim];
+        public virtual double GetChildPosInContent(Drawable d, Vector2 offset) => d.ToSpaceOfOtherDrawable(offset, ScrollContent)[ScrollDim];
 
         /// <summary>
         /// Determines the position of a child in the content.
         /// </summary>
         /// <param name="d">The child to get the position from.</param>
         /// <returns>The position of the child.</returns>
-        public float GetChildPosInContent(Drawable d) => GetChildPosInContent(d, Vector2.Zero);
+        public double GetChildPosInContent(Drawable d) => GetChildPosInContent(d, Vector2.Zero);
 
         private void updatePosition()
         {
@@ -541,15 +544,15 @@ namespace osu.Framework.Graphics.Containers
                     localDistanceDecay = distance_decay_clamping * 2;
 
                 // Lastly, we gradually nudge the target towards valid bounds.
-                Target = (float)Interpolation.Lerp(Clamp(Target), Target, Math.Exp(-distance_decay_clamping * Time.Elapsed));
+                Target = Interpolation.Lerp(Clamp(Target), Target, Math.Exp(-distance_decay_clamping * Time.Elapsed));
 
-                float clampedTarget = Clamp(Target);
+                double clampedTarget = Clamp(Target);
                 if (Precision.AlmostEquals(clampedTarget, Target))
                     Target = clampedTarget;
             }
 
             // Exponential interpolation between the target and our current scroll position.
-            Current = (float)Interpolation.Lerp(Target, Current, Math.Exp(-localDistanceDecay * Time.Elapsed));
+            Current = Interpolation.Lerp(Target, Current, Math.Exp(-localDistanceDecay * Time.Elapsed));
 
             // This prevents us from entering the de-normalized range of floating point numbers when approaching target closely.
             if (Precision.AlmostEquals(Current, Target))
@@ -575,15 +578,27 @@ namespace osu.Framework.Graphics.Containers
             }
 
             if (ScrollDirection == Direction.Horizontal)
-            {
-                Scrollbar.X = toScrollbarPosition(Current);
-                ScrollContent.X = -Current + ScrollableExtent * ScrollContent.RelativeAnchorPosition.X;
-            }
+                Scrollbar.X = ToScrollbarPosition(Current);
             else
-            {
-                Scrollbar.Y = toScrollbarPosition(Current);
-                ScrollContent.Y = -Current + ScrollableExtent * ScrollContent.RelativeAnchorPosition.Y;
-            }
+                Scrollbar.Y = ToScrollbarPosition(Current);
+
+            ApplyCurrentToContent();
+        }
+
+        /// <summary>
+        /// This is the final internal step of updating the scroll container, which takes
+        /// <see cref="Current"/> and applies it to <see cref="ScrollContent"/> in order to
+        /// correctly offset children.
+        ///
+        /// Overriding this method can be used to inhibit this default behaviour, to for instance
+        /// redirect the positioning to another container or change the way it is applied.
+        /// </summary>
+        protected virtual void ApplyCurrentToContent()
+        {
+            if (ScrollDirection == Direction.Horizontal)
+                ScrollContent.X = (float)(-Current + (ScrollableExtent * ScrollContent.RelativeAnchorPosition.X));
+            else
+                ScrollContent.Y = (float)(-Current + (ScrollableExtent * ScrollContent.RelativeAnchorPosition.Y));
         }
 
         /// <summary>
@@ -591,12 +606,12 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="scrollPosition">The absolute scroll position (e.g. <see cref="Current"/>).</param>
         /// <returns>The scrollbar position.</returns>
-        private float toScrollbarPosition(float scrollPosition)
+        protected virtual float ToScrollbarPosition(double scrollPosition)
         {
             if (Precision.AlmostEquals(0, ScrollableExtent))
                 return 0;
 
-            return ScrollbarMovementExtent * (scrollPosition / ScrollableExtent);
+            return (float)(ScrollbarMovementExtent * (scrollPosition / ScrollableExtent));
         }
 
         /// <summary>
@@ -604,12 +619,12 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="scrollbarPosition">The scrollbar position.</param>
         /// <returns>The absolute scroll position.</returns>
-        private float fromScrollbarPosition(float scrollbarPosition)
+        protected virtual float FromScrollbarPosition(float scrollbarPosition)
         {
             if (Precision.AlmostEquals(0, ScrollbarMovementExtent))
                 return 0;
 
-            return ScrollableExtent * (scrollbarPosition / ScrollbarMovementExtent);
+            return (float)(ScrollableExtent * (scrollbarPosition / ScrollbarMovementExtent));
         }
 
         /// <summary>

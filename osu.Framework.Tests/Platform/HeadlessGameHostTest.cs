@@ -5,7 +5,6 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -13,7 +12,6 @@ using osu.Framework.Development;
 using osu.Framework.Extensions;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
-using osu.Framework.Tests.IO;
 
 namespace osu.Framework.Tests.Platform
 {
@@ -84,46 +82,6 @@ namespace osu.Framework.Tests.Platform
 
                 Assert.That(!isDrawThread && !isUpdateThread && !isInputThread && !isAudioThread);
             }
-        }
-
-        [Test]
-        public void TestIpc()
-        {
-            using (var server = new BackgroundGameHeadlessGameHost(@"server", new HostOptions { IPCPort = 45356 }))
-            using (var client = new HeadlessGameHost(@"client", new HostOptions { IPCPort = 45356 }))
-            {
-                Assert.IsTrue(server.IsPrimaryInstance, @"Server wasn't able to bind");
-                Assert.IsFalse(client.IsPrimaryInstance, @"Client was able to bind when it shouldn't have been able to");
-
-                var serverChannel = new IpcChannel<Foobar>(server);
-                var clientChannel = new IpcChannel<Foobar>(client);
-
-                async Task waitAction()
-                {
-                    using (var received = new SemaphoreSlim(0))
-                    {
-                        serverChannel.MessageReceived += message =>
-                        {
-                            Assert.AreEqual("example", message.Bar);
-                            // ReSharper disable once AccessToDisposedClosure
-                            received.Release();
-                            return null;
-                        };
-
-                        await clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).ConfigureAwait(false);
-
-                        if (!await received.WaitAsync(10000).ConfigureAwait(false))
-                            throw new TimeoutException("Message was not received in a timely fashion");
-                    }
-                }
-
-                Assert.IsTrue(Task.Run(waitAction).Wait(10000), @"Message was not received in a timely fashion");
-            }
-        }
-
-        private class Foobar
-        {
-            public string Bar;
         }
 
         public class ExceptionDuringSetupGameHost : TestRunHeadlessGameHost

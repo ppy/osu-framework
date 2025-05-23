@@ -90,13 +90,16 @@ namespace osu.Framework.Input
             switch (Host.Window.WindowMode.Value)
             {
                 case WindowMode.Windowed:
-                    windowLocation = Host.Window is ISDLWindow sdlWindow ? sdlWindow.Position : Point.Empty;
+                    windowLocation = Host.Window.Position;
                     break;
 
                 default:
                     windowLocation = Host.Window.CurrentDisplayBindable.Value.Bounds.Location;
                     break;
             }
+
+            float scale = Host.Window.Scale;
+            mousePosition /= scale;
 
             int x = (int)MathF.Floor(windowLocation.X + mousePosition.X);
             int y = (int)MathF.Floor(windowLocation.Y + mousePosition.Y);

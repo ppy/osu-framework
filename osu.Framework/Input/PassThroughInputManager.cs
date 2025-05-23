@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
@@ -42,10 +43,7 @@ namespace osu.Framework.Input
                 useParentInput = value;
 
                 if (UseParentInput)
-                {
-                    syncReleasedInputs();
-                    syncJoystickAxes();
-                }
+                    syncWithParent();
             }
         }
 
@@ -98,6 +96,35 @@ namespace osu.Framework.Input
             // child drawable handling actual touches, we will produce one ourselves.
             if (e is MouseEvent && e.CurrentState.Mouse.LastSource is ISourcedFromTouch)
                 return false;
+
+            // Synthesize pen inputs from pen events
+            if (e is MouseEvent && e.CurrentState.Mouse.LastSource is ISourcedFromPen penInput)
+            {
+                switch (e)
+                {
+                    case MouseDownEvent penDown:
+                        Debug.Assert(penDown.Button == MouseButton.Left);
+                        new MouseButtonInputFromPen(true) { DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
+                        return false;
+
+                    case MouseUpEvent penUp:
+                        Debug.Assert(penUp.Button == MouseButton.Left);
+                        new MouseButtonInputFromPen(false) { DeviceType = penInput.DeviceType }.Apply(CurrentState, this);
+                        return false;
+
+                    case MouseMoveEvent penMove:
+                        if (penMove.ScreenSpaceMousePosition != CurrentState.Mouse.Position)
+                        {
+                            new MousePositionAbsoluteInputFromPen
+                            {
+                                Position = penMove.ScreenSpaceMousePosition,
+                                DeviceType = penInput.DeviceType
+                            }.Apply(CurrentState, this);
+                        }
+
+                        return false;
+                }
+            }
 
             switch (e)
             {
@@ -179,15 +206,21 @@ namespace osu.Framework.Input
 
             // There are scenarios wherein we cannot receive the release events of pressed inputs. For simplicity, sync every frame.
             if (UseParentInput)
-            {
-                syncReleasedInputs();
-                syncJoystickAxes();
-            }
+                syncWithParent();
         }
 
         /// <summary>
-        /// Updates state of any buttons that have been released by parent while <see cref="UseParentInput"/> was disabled.
+        /// Synchronises <see cref="InputManager.CurrentState"/> with the parent input manager
+        /// to catch up with any changes that occurred since <see cref="UseParentInput"/> was disabled,
+        /// or to set our initial state such that it matches the parent input manager.
         /// </summary>
+        private void syncWithParent()
+        {
+            syncReleasedInputs();
+            syncJoystickAxes();
+            syncMousePosition();
+        }
+
         private void syncReleasedInputs()
         {
             if (parentInputManager == null)
@@ -218,9 +251,6 @@ namespace osu.Framework.Input
                 new TabletAuxiliaryButtonInput(button, false).Apply(CurrentState, this);
         }
 
-        /// <summary>
-        /// Updates state of joystick axes that have changed values while <see cref="UseParentInput"/> was disabled.
-        /// </summary>
         private void syncJoystickAxes()
         {
             if (parentInputManager == null)
@@ -238,6 +268,17 @@ namespace osu.Framework.Input
                     break;
                 }
             }
+        }
+
+        private void syncMousePosition()
+        {
+            if (parentInputManager == null)
+                return;
+
+            var parentMousePosition = parentInputManager.CurrentState.Mouse.Position;
+
+            if (parentMousePosition != CurrentState.Mouse.Position)
+                new MousePositionAbsoluteInput { Position = parentMousePosition }.Apply(CurrentState, this);
         }
     }
 }

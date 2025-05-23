@@ -9,7 +9,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
-using osu.Framework.Development;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Performance;
@@ -130,6 +129,20 @@ namespace osu.Framework
         protected sealed override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(Add)} or {nameof(Content)} instead.");
 
         /// <summary>
+        /// The earliest point of entry during <see cref="GameHost.Run"/> starting execution of a game.
+        /// This should be used to set up any low level tasks such as exception handling.
+        /// </summary>
+        /// <remarks>
+        /// At this point in execution, only <see cref="GameHost.Storage"/> and <see cref="GameHost.CacheStorage"/> are guaranteed to be valid for use.
+        /// They are provided as <paramref name="gameStorage"/> and <paramref name="cacheStorage"/> respectively for convenience.
+        /// </remarks>
+        /// <param name="gameStorage">The default game storage.</param>
+        /// <param name="cacheStorage">The default cache storage.</param>
+        public virtual void SetupLogging(Storage gameStorage, Storage cacheStorage)
+        {
+        }
+
+        /// <summary>
         /// As Load is run post host creation, you can override this method to alter properties of the host before it makes itself visible to the user.
         /// </summary>
         /// <param name="host"></param>
@@ -155,16 +168,16 @@ namespace osu.Framework
             Textures = new TextureStore(Host.Renderer, Host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")),
                 filteringMode: DefaultTextureFilteringMode);
 
-            Textures.AddTextureSource(Host.CreateTextureLoaderStore(new OnlineStore()));
+            Textures.AddTextureSource(Host.CreateTextureLoaderStore(CreateOnlineStore()));
             dependencies.Cache(Textures);
 
             var tracks = new ResourceStore<byte[]>();
             tracks.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Tracks"));
-            tracks.AddStore(new OnlineStore());
+            tracks.AddStore(CreateOnlineStore());
 
             var samples = new ResourceStore<byte[]>();
             samples.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
-            samples.AddStore(new OnlineStore());
+            samples.AddStore(CreateOnlineStore());
 
             switch (config.Get<AudioDriver>(FrameworkSetting.AudioDriver))
             {
@@ -251,6 +264,11 @@ namespace osu.Framework
         }
 
         /// <summary>
+        /// Creates an <see cref="OnlineStore"/> to be used for online textures/tracks/samples lookups.
+        /// </summary>
+        protected virtual OnlineStore CreateOnlineStore() => new OnlineStore();
+
+        /// <summary>
         /// Add a font to be globally accessible to the game.
         /// </summary>
         /// <param name="store">The backing store with font resources.</param>
@@ -282,7 +300,7 @@ namespace osu.Framework
 
             FrameStatistics.BindValueChanged(e => performanceOverlay.State = e.NewValue, true);
 
-            if (FrameworkEnvironment.FrameStatisticsViaTouch && DebugUtils.IsDebugBuild)
+            if (FrameworkEnvironment.FrameStatisticsViaTouch)
             {
                 base.AddInternal(new FrameStatisticsTouchReceptor(this)
                 {
@@ -290,7 +308,7 @@ namespace osu.Framework
                     Anchor = Anchor.BottomRight,
                     Origin = Anchor.BottomRight,
                     RelativeSizeAxes = Axes.Both,
-                    Size = new Vector2(0.5f),
+                    Size = new Vector2(0.2f),
                 });
             }
         }

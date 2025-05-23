@@ -1,5 +1,4 @@
 using osu.Framework.Allocation;
-using osu.Framework.Platform;
 using NUnit.Framework;
 
 namespace FlappyDon.Game.Tests.Visual
@@ -11,14 +10,10 @@ namespace FlappyDon.Game.Tests.Visual
     [TestFixture]
     public partial class TestSceneFlappyDonGame : FlappyDonTestScene
     {
-        private FlappyDonGame game;
-
         [BackgroundDependencyLoader]
-        private void load(GameHost host)
+        private void load()
         {
-            game = new FlappyDonGame();
-            game.SetHost(host);
-            AddGame(game);
+            AddGame(new FlappyDonGame());
         }
     }
 }

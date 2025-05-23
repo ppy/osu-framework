@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Platform.Apple.Native;
 
 namespace osu.Framework.Platform.MacOS.Native
 {
@@ -21,19 +22,19 @@ namespace osu.Framework.Platform.MacOS.Native
             Handle = handle;
         }
 
-        internal static NSPasteboard GeneralPasteboard() => new NSPasteboard(Cocoa.SendIntPtr(class_pointer, sel_general_pasteboard));
+        internal static NSPasteboard GeneralPasteboard() => new NSPasteboard(Interop.SendIntPtr(class_pointer, sel_general_pasteboard));
 
-        internal int ClearContents() => Cocoa.SendInt(Handle, sel_clear_contents);
+        internal int ClearContents() => Interop.SendInt(Handle, sel_clear_contents);
 
         internal bool CanReadObjectForClasses(NSArray classArray, NSDictionary? optionDict) =>
-            Cocoa.SendBool(Handle, sel_can_read_object_for_classes, classArray.Handle, optionDict?.Handle ?? IntPtr.Zero);
+            Interop.SendBool(Handle, sel_can_read_object_for_classes, classArray.Handle, optionDict?.Handle ?? IntPtr.Zero);
 
         internal NSArray? ReadObjectsForClasses(NSArray classArray, NSDictionary? optionDict)
         {
-            IntPtr result = Cocoa.SendIntPtr(Handle, sel_read_objects_for_classes, classArray.Handle, optionDict?.Handle ?? IntPtr.Zero);
+            IntPtr result = Interop.SendIntPtr(Handle, sel_read_objects_for_classes, classArray.Handle, optionDict?.Handle ?? IntPtr.Zero);
             return result == IntPtr.Zero ? null : new NSArray(result);
         }
 
-        internal bool WriteObjects(NSArray objects) => Cocoa.SendBool(Handle, sel_write_objects, objects.Handle);
+        internal bool WriteObjects(NSArray objects) => Interop.SendBool(Handle, sel_write_objects, objects.Handle);
     }
 }

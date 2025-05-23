@@ -90,6 +90,7 @@ namespace osu.Framework.Testing
             exitNestedGame();
 
             nestedGame = game;
+            nestedGame.SetupLogging(host.Storage, host.CacheStorage);
             nestedGame.SetHost(host);
 
             base.Add(nestedGame);
@@ -204,7 +205,7 @@ namespace osu.Framework.Testing
         private ScheduledDelegate stepRunner;
         private readonly ScrollContainer<Drawable> scroll;
 
-        public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null, Func<StepButton, bool> stopCondition = null, StepButton startFromStep = null)
+        public void RunAllSteps(Action onCompletion = null, Action<StepButton, Exception> onError = null, Func<StepButton, bool> stopCondition = null, StepButton startFromStep = null)
         {
             // schedule once as we want to ensure we have run our LoadComplete before attempting to execute steps.
             // a user may be adding a step in LoadComplete.
@@ -222,7 +223,7 @@ namespace osu.Framework.Testing
 
         private StepButton loadableStep => actionIndex >= 0 ? StepsContainer.Children.ElementAtOrDefault(actionIndex) as StepButton : null;
 
-        private void runNextStep(Action onCompletion, Action<Exception> onError, Func<StepButton, bool> stopCondition)
+        private void runNextStep(Action onCompletion, Action<StepButton, Exception> onError, Func<StepButton, bool> stopCondition)
         {
             try
             {
@@ -242,7 +243,7 @@ namespace osu.Framework.Testing
                     : "💥 Failed");
 
                 LoadingComponentsLogger.LogAndFlush();
-                onError?.Invoke(e);
+                onError?.Invoke(loadableStep, e);
                 return;
             }
 
@@ -271,145 +272,164 @@ namespace osu.Framework.Testing
                 stepRunner = Scheduler.AddDelayed(() => runNextStep(onCompletion, onError, stopCondition), TimePerAction);
         }
 
-        public void AddStep(StepButton step) => schedule(() => StepsContainer.Add(step));
-
-        private bool addStepsAsSetupSteps;
-
         public void ChangeBackgroundColour(ColourInfo colour)
             => backgroundFill.FadeColour(colour, 200, Easing.OutQuint);
 
-        public StepButton AddStep(string description, Action action)
+        private bool addStepsAsSetupSteps;
+
+        public void AddStep(StepButton step)
         {
-            var step = new SingleStepButton(addStepsAsSetupSteps)
+            schedule(() =>
             {
-                Text = description,
-                Action = action
-            };
-
-            AddStep(step);
-
-            return step;
+                StepsContainer.Add(step);
+            });
         }
 
-        public LabelStep AddLabel(string description)
+        public void AddStep([NotNull] string description, [NotNull] Action action)
         {
-            var step = new LabelStep
+            AddStep(new SingleStepButton
             {
                 Text = description,
-            };
-
-            step.Action = () =>
-            {
-                Logger.Log($@"💨 {this} {description}");
-
-                // kinda hacky way to avoid this doesn't get triggered by automated runs.
-                if (step.IsHovered)
-                    RunAllSteps(startFromStep: step, stopCondition: s => s is LabelStep);
-            };
-
-            AddStep(step);
-
-            return step;
+                Action = action,
+                IsSetupStep = addStepsAsSetupSteps
+            });
         }
 
-        protected void AddRepeatStep(string description, Action action, int invocationCount) => schedule(() =>
+        public void AddLabel([NotNull] string description)
         {
-            StepsContainer.Add(new RepeatStepButton(action, invocationCount, addStepsAsSetupSteps)
+            AddStep(new LabelStep
             {
                 Text = description,
-            });
-        });
+                IsSetupStep = false,
+                Action = step =>
+                {
+                    Logger.Log($@"💨 {this} {description}");
 
-        protected void AddToggleStep(string description, Action<bool> action) => schedule(() =>
+                    // kinda hacky way to avoid this doesn't get triggered by automated runs.
+                    if (step.IsHovered)
+                        RunAllSteps(startFromStep: step, stopCondition: s => s is LabelStep, onError: (s, e) => Logger.Error(e, $"Step {s} triggered error"));
+                },
+            });
+        }
+
+        protected void AddRepeatStep([NotNull] string description, [NotNull] Action action, int invocationCount)
         {
-            StepsContainer.Add(new ToggleStepButton(action)
+            AddStep(new RepeatStepButton
             {
-                Text = description
+                Text = description,
+                IsSetupStep = addStepsAsSetupSteps,
+                Action = action,
+                Count = invocationCount
             });
-        });
+        }
 
-        protected void AddUntilStep(string description, Func<bool> waitUntilTrueDelegate) => schedule(() =>
+        protected void AddToggleStep([NotNull] string description, [NotNull] Action<bool> action)
         {
-            StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate, addStepsAsSetupSteps)
+            AddStep(new ToggleStepButton
+            {
+                Text = description,
+                IsSetupStep = addStepsAsSetupSteps,
+                Action = action,
+            });
+        }
+
+        protected void AddUntilStep([CanBeNull] string description, [NotNull] Func<bool> waitUntilTrueDelegate)
+        {
+            AddStep(new UntilStepButton
             {
                 Text = description ?? @"Until",
+                IsSetupStep = addStepsAsSetupSteps,
+                CallStack = new StackTrace(1, true),
+                Assertion = waitUntilTrueDelegate,
             });
-        });
+        }
 
-        protected void AddUntilStep<T>(string description, ActualValueDelegate<T> actualValue, Func<IResolveConstraint> constraint) => schedule(() =>
+        protected void AddUntilStep<T>([CanBeNull] string description, [NotNull] ActualValueDelegate<T> actualValue, [NotNull] Func<IResolveConstraint> constraint)
         {
             ConstraintResult lastResult = null;
 
-            StepsContainer.Add(
-                new UntilStepButton(
-                    () =>
-                    {
-                        lastResult = constraint().Resolve().ApplyTo(actualValue());
-                        return lastResult.IsSuccess;
-                    },
-                    addStepsAsSetupSteps,
-                    () =>
-                    {
-                        var writer = new TextMessageWriter(string.Empty);
-                        lastResult.WriteMessageTo(writer);
-                        return writer.ToString().TrimStart();
-                    })
-                {
-                    Text = description ?? @"Until",
-                });
-        });
-
-        protected void AddWaitStep(string description, int waitCount) => schedule(() =>
-        {
-            StepsContainer.Add(new RepeatStepButton(() => { }, waitCount, addStepsAsSetupSteps)
+            AddStep(new UntilStepButton
             {
-                Text = description ?? @"Wait",
-            });
-        });
-
-        protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged) where T : struct, INumber<T>, IMinMaxValue<T> => schedule(() =>
-        {
-            StepsContainer.Add(new StepSlider<T>(description, min, max, start)
-            {
-                ValueChanged = valueChanged,
-            });
-        });
-
-        protected void AddAssert(string description, Func<bool> assert, string extendedDescription = null) => schedule(() =>
-        {
-            StepsContainer.Add(new AssertButton(addStepsAsSetupSteps)
-            {
-                Text = description,
-                ExtendedDescription = extendedDescription,
-                CallStack = new StackTrace(1),
-                Assertion = assert,
-            });
-        });
-
-        protected void AddAssert<T>(string description, ActualValueDelegate<T> actualValue, Func<IResolveConstraint> constraint, string extendedDescription = null) => schedule(() =>
-        {
-            ConstraintResult lastResult = null;
-
-            StepsContainer.Add(new AssertButton(addStepsAsSetupSteps, () =>
-            {
-                if (lastResult == null)
-                    return string.Empty;
-
-                var writer = new TextMessageWriter(string.Empty);
-                lastResult.WriteMessageTo(writer);
-                return writer.ToString().TrimStart();
-            })
-            {
-                Text = description,
-                ExtendedDescription = extendedDescription,
-                CallStack = new StackTrace(1),
+                Text = description ?? @"Until",
+                IsSetupStep = addStepsAsSetupSteps,
+                CallStack = new StackTrace(1, true),
                 Assertion = () =>
                 {
                     lastResult = constraint().Resolve().ApplyTo(actualValue());
                     return lastResult.IsSuccess;
+                },
+                GetFailureMessage = () =>
+                {
+                    if (lastResult == null)
+                        return string.Empty;
+
+                    var writer = new TextMessageWriter(string.Empty);
+                    lastResult.WriteMessageTo(writer);
+                    return writer.ToString().TrimStart();
                 }
             });
-        });
+        }
+
+        protected void AddWaitStep([CanBeNull] string description, int waitCount)
+        {
+            AddStep(new RepeatStepButton
+            {
+                Text = description ?? @"Wait",
+                IsSetupStep = addStepsAsSetupSteps,
+                Count = waitCount
+            });
+        }
+
+        protected void AddSliderStep<T>([NotNull] string description, T min, T max, T start, [NotNull] Action<T> valueChanged) where T : struct, INumber<T>, IMinMaxValue<T>
+        {
+            schedule(() =>
+            {
+                StepsContainer.Add(new StepSlider<T>(description, min, max, start)
+                {
+                    ValueChanged = valueChanged,
+                });
+            });
+        }
+
+        protected void AddAssert([NotNull] string description, [NotNull] Func<bool> assert, [CanBeNull] string extendedDescription = null)
+        {
+            AddStep(new AssertButton
+            {
+                Text = description,
+                IsSetupStep = addStepsAsSetupSteps,
+                ExtendedDescription = extendedDescription,
+                CallStack = new StackTrace(1, true),
+                Assertion = assert,
+            });
+        }
+
+        protected void AddAssert<T>([NotNull] string description, [NotNull] ActualValueDelegate<T> actualValue, [NotNull] Func<IResolveConstraint> constraint,
+                                    [CanBeNull] string extendedDescription = null)
+        {
+            ConstraintResult lastResult = null;
+
+            AddStep(new AssertButton
+            {
+                Text = description,
+                IsSetupStep = addStepsAsSetupSteps,
+                ExtendedDescription = extendedDescription,
+                CallStack = new StackTrace(1, true),
+                Assertion = () =>
+                {
+                    lastResult = constraint().Resolve().ApplyTo(actualValue());
+                    return lastResult.IsSuccess;
+                },
+                GetFailureMessage = () =>
+                {
+                    if (lastResult == null)
+                        return string.Empty;
+
+                    var writer = new TextMessageWriter(string.Empty);
+                    lastResult.WriteMessageTo(writer);
+                    return writer.ToString().TrimStart();
+                }
+            });
+        }
 
         internal void RunSetUpSteps()
         {
@@ -528,6 +548,10 @@ namespace osu.Framework.Testing
             {
                 if (test.Fixture is not TestScene testScene)
                     return;
+
+                bool hasSoloAttribute = test.Method?.MethodInfo.CustomAttributes.Any(a => a.AttributeType == typeof(SoloAttribute)) == true;
+                if (DebugUtils.IsNUnitRunning && hasSoloAttribute)
+                    throw new InvalidOperationException($"{nameof(SoloAttribute)} should not be specified on tests running under NUnit.");
 
                 // Since the host is created in OneTimeSetUp, all game threads will have the fixture's execution context
                 // This is undesirable since each test is run using those same threads, so we must make sure the execution context

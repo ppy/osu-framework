@@ -339,9 +339,9 @@ namespace osu.Framework.Tests.Visual.Input
                 {
                     Child = new TestKeyBindingReceptor
                     {
-                        Pressed = a => pressedReceived = a == TestAction.ActionAB,
-                        Repeated = a => repeatedReceived = a == TestAction.ActionAB,
-                        Released = a => releasedReceived = a == TestAction.ActionAB,
+                        Pressed = a => pressedReceived = a == TestAction.ActionAb,
+                        Repeated = a => repeatedReceived = a == TestAction.ActionAb,
+                        Released = a => releasedReceived = a == TestAction.ActionAb,
                     }
                 };
             });
@@ -500,7 +500,7 @@ namespace osu.Framework.Tests.Visual.Input
             public override IEnumerable<IKeyBinding> DefaultKeyBindings => new IKeyBinding[]
             {
                 new KeyBinding(InputKey.A, TestAction.ActionA),
-                new KeyBinding(new KeyCombination(InputKey.A, InputKey.B), TestAction.ActionAB),
+                new KeyBinding(new KeyCombination(InputKey.A, InputKey.B), TestAction.ActionAb),
                 new KeyBinding(InputKey.Enter, TestAction.ActionEnter),
                 new KeyBinding(InputKey.Control, TestAction.ActionControl),
                 new KeyBinding(InputKey.ExtraMouseButton4, TestAction.ActionMouse4),
@@ -529,7 +529,7 @@ namespace osu.Framework.Tests.Visual.Input
         private enum TestAction
         {
             ActionA,
-            ActionAB,
+            ActionAb,
             ActionEnter,
             ActionControl,
             ActionMouse4,

@@ -403,7 +403,7 @@ namespace osu.Framework.Testing
             var methods = newTest.GetType().GetMethods();
 
             var soloTests = methods.Where(m => m.GetCustomAttribute(typeof(SoloAttribute), false) != null).ToArray();
-            if (soloTests.Any())
+            if (soloTests.Length > 0)
                 methods = soloTests;
 
             foreach (var m in methods)
@@ -519,11 +519,12 @@ namespace osu.Framework.Testing
             {
                 var setUpMethods = ReflectionUtils.GetMethodsWithAttribute(newTest.GetType(), typeof(SetUpAttribute), true);
 
-                if (setUpMethods.Any())
+                if (setUpMethods.Length > 0)
                 {
-                    CurrentTest.AddStep(new SingleStepButton(true)
+                    CurrentTest.AddStep(new SingleStepButton
                     {
                         Text = "[SetUp]",
+                        IsSetupStep = true,
                         LightColour = Color4.Teal,
                         Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
                     });
@@ -589,7 +590,7 @@ namespace osu.Framework.Testing
         private void runTests(Action onCompletion)
         {
             int actualStepCount = 0;
-            CurrentTest.RunAllSteps(onCompletion, e => Logger.Log($@"Error on step: {e}"), s =>
+            CurrentTest.RunAllSteps(onCompletion, (s, e) => Logger.Error(e, $"Step {s} triggered an error"), s =>
             {
                 if (!interactive || RunAllSteps.Value)
                     return false;

@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.IO;
+using osu.Framework.Platform.Apple.Native;
 using osu.Framework.Platform.MacOS.Native;
 using SixLabors.ImageSharp;
 
@@ -11,13 +13,35 @@ namespace osu.Framework.Platform.MacOS
     {
         private readonly NSPasteboard generalPasteboard = NSPasteboard.GeneralPasteboard();
 
-        public override string? GetText() => Cocoa.FromNSString(getFromPasteboard(Class.Get("NSString")));
+        public override string GetText()
+        {
+            var nsString = new NSString(getFromPasteboard(Class.Get("NSString")));
+            return nsString.ToString();
+        }
 
-        public override Image<TPixel>? GetImage<TPixel>() => Cocoa.FromNSImage<TPixel>(getFromPasteboard(Class.Get("NSImage")));
+        public override Image<TPixel>? GetImage<TPixel>()
+        {
+            var nsImage = new NSImage(getFromPasteboard(Class.Get("NSImage")));
+            if (nsImage.Handle == IntPtr.Zero)
+                return null;
 
-        public override void SetText(string text) => setToPasteboard(Cocoa.ToNSString(text));
+            return Image.Load<TPixel>(nsImage.TiffRepresentation.ToBytes());
+        }
 
-        public override bool SetImage(Image image) => setToPasteboard(Cocoa.ToNSImage(image));
+        public override void SetText(string text) => setToPasteboard(NSString.FromString(text).Handle);
+
+        public override bool SetImage(Image image)
+        {
+            using var stream = new MemoryStream();
+            image.SaveAsTiff(stream);
+
+            using (NSAutoreleasePool.Init())
+            {
+                var nsData = NSData.FromBytes(stream.ToArray());
+                using var nsImage = NSImage.InitWithData(nsData);
+                return setToPasteboard(nsImage.Handle);
+            }
+        }
 
         private IntPtr getFromPasteboard(IntPtr @class)
         {

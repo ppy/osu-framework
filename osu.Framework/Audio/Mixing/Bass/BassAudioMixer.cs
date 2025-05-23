@@ -186,7 +186,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <param name="mode">How to set the position.</param>
         /// <returns>
         /// If successful, then <see langword="true"/> is returned, else <see langword="false"/> is returned.
-        /// Use <see cref="P:ManagedBass.Bass.LastError"/> to get the error code.
+        /// Use <see cref="ManagedBass.Bass.LastError"/> to get the error code.
         /// </returns>
         public bool ChannelSetPosition(IBassAudioChannel channel, long position, PositionFlags mode = PositionFlags.Bytes)
         {
@@ -222,11 +222,11 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <remarks>See: <see cref="ManagedBass.Bass.ChannelGetData(int, float[], int)"/>.</remarks>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to retrieve the data of.</param>
         /// <param name="buffer">float[] to write the data to.</param>
-        /// <param name="length">Number of bytes wanted, and/or <see cref="T:ManagedBass.DataFlags"/>.</param>
-        /// <returns>If an error occurs, -1 is returned, use <see cref="P:ManagedBass.Bass.LastError"/> to get the error code.
+        /// <param name="length">Number of bytes wanted, and/or <see cref="DataFlags"/>.</param>
+        /// <returns>If an error occurs, -1 is returned, use <see cref="ManagedBass.Bass.LastError"/> to get the error code.
         /// <para>When requesting FFT data, the number of bytes read from the channel (to perform the FFT) is returned.</para>
-        /// <para>When requesting sample data, the number of bytes written to buffer will be returned (not necessarily the same as the number of bytes read when using the <see cref="F:ManagedBass.DataFlags.Float"/> or DataFlags.Fixed flag).</para>
-        /// <para>When using the <see cref="F:ManagedBass.DataFlags.Available"/> flag, the number of bytes in the channel's buffer is returned.</para>
+        /// <para>When requesting sample data, the number of bytes written to buffer will be returned (not necessarily the same as the number of bytes read when using the <see cref="DataFlags.Float"/> or DataFlags.Fixed flag).</para>
+        /// <para>When using the <see cref="DataFlags.Available"/> flag, the number of bytes in the channel's buffer is returned.</para>
         /// </returns>
         public int ChannelGetData(IBassAudioChannel channel, float[] buffer, int length)
             => BassMix.ChannelGetData(channel.Handle, buffer, length);
@@ -240,7 +240,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <param name="parameter">The sync parameters, depending on the sync type.</param>
         /// <param name="procedure">The callback function which should be invoked with the sync.</param>
         /// <param name="user">User instance data to pass to the callback function.</param>
-        /// <returns>If successful, then the new synchroniser's handle is returned, else 0 is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+        /// <returns>If successful, then the new synchroniser's handle is returned, else 0 is returned. Use <see cref="ManagedBass.Bass.LastError" /> to get the error code.</returns>
         public int ChannelSetSync(IBassAudioChannel channel, SyncFlags type, long parameter, SyncProcedure procedure, IntPtr user = default)
             => BassMix.ChannelSetSync(channel.Handle, type, parameter, procedure, user);
 
@@ -248,8 +248,8 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// Removes a synchroniser from a mixer source channel.
         /// </summary>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to remove the synchroniser for.</param>
-        /// <param name="sync">Handle of the synchroniser to remove (return value of a previous <see cref="M:ManagedBass.Mix.BassMix.ChannelSetSync(System.Int32,ManagedBass.SyncFlags,System.Int64,ManagedBass.SyncProcedure,System.IntPtr)" /> call).</param>
-        /// <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+        /// <param name="sync">Handle of the synchroniser to remove (return value of a previous <see cref="BassMix.ChannelSetSync(int,SyncFlags,long,SyncProcedure,IntPtr)" /> call).</param>
+        /// <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="ManagedBass.Bass.LastError" /> to get the error code.</returns>
         public bool ChannelRemoveSync(IBassAudioChannel channel, int sync)
             => BassMix.ChannelRemoveSync(channel.Handle, sync);
 
@@ -257,7 +257,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// Frees a channel's resources.
         /// </summary>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to free.</param>
-        /// <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+        /// <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="ManagedBass.Bass.LastError" /> to get the error code.</returns>
         public bool StreamFree(IBassAudioChannel channel)
         {
             Remove(channel, false);

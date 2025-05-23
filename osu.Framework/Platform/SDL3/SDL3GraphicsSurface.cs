@@ -33,12 +33,12 @@ namespace osu.Framework.Platform.SDL3
             switch (surfaceType)
             {
                 case GraphicsSurfaceType.OpenGL:
-                    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_RED_SIZE, 8);
-                    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_GREEN_SIZE, 8);
-                    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_BLUE_SIZE, 8);
-                    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_ACCUM_ALPHA_SIZE, 0);
-                    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_DEPTH_SIZE, 16);
-                    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_STENCIL_SIZE, 8);
+                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_RED_SIZE, 8);
+                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_GREEN_SIZE, 8);
+                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_BLUE_SIZE, 8);
+                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_ACCUM_ALPHA_SIZE, 0);
+                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_DEPTH_SIZE, 16);
+                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_STENCIL_SIZE, 8);
                     break;
 
                 case GraphicsSurfaceType.Vulkan:
@@ -70,19 +70,19 @@ namespace osu.Framework.Platform.SDL3
         {
             if (RuntimeInfo.IsMobile)
             {
-                SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_ES);
+                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL_GLProfile.SDL_GL_CONTEXT_PROFILE_ES);
 
                 // Minimum OpenGL version for ES profile:
-                SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-                SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 0);
+                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_MINOR_VERSION, 0);
             }
             else
             {
-                SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
+                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL_GLProfile.SDL_GL_CONTEXT_PROFILE_CORE);
 
                 // Minimum OpenGL version for core profile:
-                SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-                SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 2);
+                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_MINOR_VERSION, 2);
             }
 
             context = SDL_GL_CreateContext(window.SDLWindowHandle);
@@ -156,14 +156,10 @@ namespace osu.Framework.Platform.SDL3
                 if (window.SDLWindowHandle == null)
                     return null;
 
-                // TODO: Migrate to SDL3 when https://github.com/libsdl-org/SDL/issues/9430 is resolved
-                // var wmInfo = window.GetWindowSystemInformation();
-                //
-                // switch (wmInfo.subsystem)
-                // {
-                //     case SDL_SYSWM_TYPE.SDL_SYSWM_UIKIT:
-                //         return (int)wmInfo.info.uikit.framebuffer;
-                // }
+                var props = SDL_GetWindowProperties(window.SDLWindowHandle);
+
+                if (SDL_HasProperty(props, SDL_PROP_WINDOW_UIKIT_OPENGL_FRAMEBUFFER_NUMBER))
+                    return (int)SDL_GetNumberProperty(props, SDL_PROP_WINDOW_UIKIT_OPENGL_FRAMEBUFFER_NUMBER, 0);
 
                 return null;
             }

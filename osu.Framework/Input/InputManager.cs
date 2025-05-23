@@ -10,7 +10,6 @@ using System.Diagnostics;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.ListExtensions;
-using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
@@ -507,6 +506,9 @@ namespace osu.Framework.Input
             if (FocusedDrawable == null)
                 focusTopMostRequestingDrawable();
 
+            if (!AllowRightClickFromLongTouch && touchLongPressDelegate != null)
+                cancelTouchLongPress();
+
             base.Update();
         }
 
@@ -999,35 +1001,11 @@ namespace osu.Framework.Input
         {
             foreach (var d in drawables)
             {
-                if (!d.TriggerEvent(e)) continue;
-
-                if (shouldLog(e))
-                {
-                    string detail = d is ISuppressKeyEventLogging ? e.GetType().ReadableName() : e.ToString();
-                    Logger.Log($"{detail} handled by {d}.", LoggingTarget.Runtime, LogLevel.Debug);
-                }
-
-                return true;
+                if (d.TriggerEvent(e))
+                    return true;
             }
 
             return false;
-        }
-
-        private bool shouldLog(UIEvent eventType)
-        {
-            switch (eventType)
-            {
-                case KeyDownEvent k:
-                    return !k.Repeat;
-
-                case DragEvent:
-                case ScrollEvent:
-                case MouseMoveEvent:
-                    return false;
-
-                default:
-                    return true;
-            }
         }
 
         /// <summary>

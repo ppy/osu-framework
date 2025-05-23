@@ -172,7 +172,7 @@ namespace osu.Framework.Platform.SDL2
             }
         }
 
-        public virtual void StartTextInput(bool allowIme) => ScheduleCommand(SDL_StartTextInput);
+        public virtual void StartTextInput(TextInputProperties properties) => ScheduleCommand(SDL_StartTextInput);
 
         public void StopTextInput() => ScheduleCommand(SDL_StopTextInput);
 
@@ -207,7 +207,7 @@ namespace osu.Framework.Platform.SDL2
             }
         }
 
-        private readonly long?[] activeTouches = new long?[TouchState.MAX_TOUCH_COUNT];
+        private readonly long?[] activeTouches = new long?[TouchState.MAX_NATIVE_TOUCH_COUNT];
 
         private TouchSource? getTouchSource(long fingerId)
         {
@@ -230,7 +230,7 @@ namespace osu.Framework.Platform.SDL2
                 return (TouchSource)i;
             }
 
-            // we only handle up to TouchState.MAX_TOUCH_COUNT. Ignore any further touches for now.
+            // we only handle up to TouchState.MAX_NATIVE_TOUCH_COUNT. Ignore any further touches for now.
             return null;
         }
 

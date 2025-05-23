@@ -5,6 +5,8 @@ using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 
+// ReSharper disable InconsistentNaming
+
 namespace osu.Framework.Platform.Windows.Native
 {
     internal static class Input

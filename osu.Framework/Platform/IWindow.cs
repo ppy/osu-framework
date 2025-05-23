@@ -39,6 +39,22 @@ namespace osu.Framework.Platform
         void Create();
 
         /// <summary>
+        /// Start the window's run loop.
+        /// Is a blocking call on desktop platforms, and a non-blocking call on mobile platforms.
+        /// </summary>
+        void Run();
+
+        /// <summary>
+        /// Invoked once a draw session has finished.
+        /// </summary>
+        void OnDraw();
+
+        /// <summary>
+        /// Forcefully closes the window.
+        /// </summary>
+        void Close();
+
+        /// <summary>
         /// Invoked once every window event loop.
         /// </summary>
         event Action? Update;
@@ -81,7 +97,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the user drops a file into the window.
         /// </summary>
-        public event Action<string>? DragDrop;
+        event Action<string>? DragDrop;
 
         /// <summary>
         /// Whether the OS cursor is currently contained within the game window.
@@ -107,6 +123,11 @@ namespace osu.Framework.Platform
         /// Controls the state of the window.
         /// </summary>
         WindowState WindowState { get; set; }
+
+        /// <summary>
+        /// Invoked when <see cref="WindowState"/> changes.
+        /// </summary>
+        event Action<WindowState>? WindowStateChanged;
 
         /// <summary>
         /// Returns the default <see cref="WindowMode"/> for the implementation.
@@ -162,11 +183,6 @@ namespace osu.Framework.Platform
         IBindable<DisplayMode> CurrentDisplayMode { get; }
 
         /// <summary>
-        /// Forcefully closes the window.
-        /// </summary>
-        void Close();
-
-        /// <summary>
         /// Attempts to raise the window, bringing it above other windows and requesting input focus.
         /// </summary>
         void Raise();
@@ -212,42 +228,49 @@ namespace osu.Framework.Platform
         void DisableScreenSuspension();
 
         /// <summary>
-        /// Start the window's run loop.
-        /// Is a blocking call on desktop platforms, and a non-blocking call on mobile platforms.
-        /// </summary>
-        void Run();
-
-        /// <summary>
-        /// Invoked once a draw session has finished.
-        /// </summary>
-        void OnDraw();
-
-        /// <summary>
         /// Whether the window currently has focus.
         /// </summary>
+        [Obsolete("Use IWindow.IsActive.Value instead.")] // can be removed 20250528
         bool Focused { get; }
 
         /// <summary>
         /// Sets the window icon to the provided <paramref name="imageStream"/>.
         /// </summary>
-        public void SetIconFromStream(Stream imageStream);
+        void SetIconFromStream(Stream imageStream);
 
         /// <summary>
         /// Convert a screen based coordinate to local window space.
         /// </summary>
         /// <param name="point"></param>
+        [Obsolete("This member should not be used. It was never properly implemented for cross-platform use.")] // can be removed 20250528
         Point PointToClient(Point point);
 
         /// <summary>
         /// Convert a window based coordinate to global screen space.
         /// </summary>
         /// <param name="point"></param>
+        [Obsolete("This member should not be used. It was never properly implemented for cross-platform use.")] // can be removed 20250528
         Point PointToScreen(Point point);
 
         /// <summary>
-        /// The client size of the window (excluding any window decoration/border).
+        /// The client size of the window in pixels (excluding any window decoration/border).
         /// </summary>
         Size ClientSize { get; }
+
+        /// <summary>
+        /// The position of the window.
+        /// </summary>
+        Point Position { get; }
+
+        /// <summary>
+        /// The size of the window in scaled pixels (excluding any window decoration/border).
+        /// </summary>
+        Size Size { get; }
+
+        /// <summary>
+        /// The ratio of <see cref="ClientSize"/> and <see cref="Size"/>.
+        /// </summary>
+        float Scale { get; }
 
         /// <summary>
         /// The minimum size of the window.
@@ -260,6 +283,11 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when setting a negative or zero size, or a size less than <see cref="MinSize"/>.</exception>
         Size MaxSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether the window is user-resizable.
+        /// </summary>
+        bool Resizable { get; set; }
 
         /// <summary>
         /// The window title.

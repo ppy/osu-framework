@@ -2,17 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Diagnostics;
 using System.Drawing;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using osu.Framework.Allocation;
+using osu.Framework.Input;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform.SDL3;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
-using osuTK.Input;
 using SDL;
 using Icon = osu.Framework.Platform.Windows.Native.Icon;
 using static SDL.SDL3;
@@ -62,46 +59,16 @@ namespace osu.Framework.Platform.Windows
                 Native.Input.SetWindowFeedbackSetting(WindowHandle, feedbackType, false);
         }
 
-        public override unsafe void Run()
+        protected override bool HandleEventFromFilter(SDL_Event e)
         {
-            SDL_SetWindowsMessageHook(&messageHook, ObjectHandle.Handle);
-            base.Run();
-        }
-
-        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-        private static unsafe SDLBool messageHook(IntPtr userdata, MSG* msg)
-        {
-            var handle = new ObjectHandle<SDL3WindowsWindow>(userdata);
-            if (handle.GetTarget(out SDL3WindowsWindow window))
-                return window.handleEventFromHook(*msg);
-
-            return true;
-        }
-
-        private SDLBool handleEventFromHook(MSG msg)
-        {
-            switch (msg.message)
-            {
-                case Imm.WM_IME_STARTCOMPOSITION:
-                case Imm.WM_IME_COMPOSITION:
-                case Imm.WM_IME_ENDCOMPOSITION:
-                    handleImeMessage(msg.hwnd, msg.message, msg.lParam);
-                    break;
-            }
-
-            return true;
-        }
-
-        protected override void HandleEventFromFilter(SDL_Event evt)
-        {
-            switch (evt.Type)
+            switch (e.Type)
             {
                 case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST:
                     warpCursorFromFocusLoss();
                     break;
             }
 
-            base.HandleEventFromFilter(evt);
+            return base.HandleEventFromFilter(e);
         }
 
         public Vector2? LastMousePosition { get; set; }
@@ -125,118 +92,13 @@ namespace osu.Framework.Platform.Windows
             }
         }
 
-        #region IME handling
-
-        public override void StartTextInput(bool allowIme)
+        public override void StartTextInput(TextInputProperties properties)
         {
-            base.StartTextInput(allowIme);
-            ScheduleCommand(() => Imm.SetImeAllowed(WindowHandle, allowIme));
+            base.StartTextInput(properties);
+            ScheduleCommand(() => Imm.SetImeAllowed(WindowHandle, properties.Type.SupportsIme() && properties.AllowIme));
         }
 
         public override void ResetIme() => ScheduleCommand(() => Imm.CancelComposition(WindowHandle));
-
-        protected override void HandleTextInputEvent(SDL_TextInputEvent evtText)
-        {
-            string? sdlResult = evtText.GetText();
-            Debug.Assert(sdlResult != null);
-
-            // Block SDL text input if it was already handled by `handleImeMessage()`.
-            // SDL truncates text over 32 bytes and sends it as multiple events.
-            // We assume these events will be handled in the same `pollSDLEvents()` call.
-            if (lastImeResult?.Contains(sdlResult) == true)
-            {
-                // clear the result after this SDL event loop finishes so normal text input isn't blocked.
-                EventScheduler.AddOnce(() => lastImeResult = null);
-                return;
-            }
-
-            // also block if there is an ongoing composition (unlikely to occur).
-            if (imeCompositionActive) return;
-
-            base.HandleTextInputEvent(evtText);
-        }
-
-        protected override void HandleTextEditingEvent(SDL_TextEditingEvent evtEdit)
-        {
-            // handled by custom logic below
-        }
-
-        /// <summary>
-        /// Whether IME composition is active.
-        /// </summary>
-        /// <remarks>Used for blocking SDL IME results since we handle those ourselves.</remarks>
-        private bool imeCompositionActive;
-
-        /// <summary>
-        /// The last IME result.
-        /// </summary>
-        /// <remarks>
-        /// Used for blocking SDL IME results since we handle those ourselves.
-        /// Cleared when the SDL events are blocked.
-        /// </remarks>
-        private string? lastImeResult;
-
-        private void handleImeMessage(IntPtr hWnd, uint uMsg, long lParam)
-        {
-            switch (uMsg)
-            {
-                case Imm.WM_IME_STARTCOMPOSITION:
-                    imeCompositionActive = true;
-                    ScheduleEvent(() => TriggerTextEditing(string.Empty, 0, 0));
-                    break;
-
-                case Imm.WM_IME_COMPOSITION:
-                    using (var inputContext = new Imm.InputContext(hWnd, lParam))
-                    {
-                        if (inputContext.TryGetImeResult(out string? resultText))
-                        {
-                            lastImeResult = resultText;
-                            ScheduleEvent(() => TriggerTextInput(resultText));
-                        }
-
-                        if (inputContext.TryGetImeComposition(out string? compositionText, out int start, out int length))
-                        {
-                            ScheduleEvent(() => TriggerTextEditing(compositionText, start, length));
-                        }
-                    }
-
-                    break;
-
-                case Imm.WM_IME_ENDCOMPOSITION:
-                    imeCompositionActive = false;
-                    ScheduleEvent(() => TriggerTextEditing(string.Empty, 0, 0));
-                    break;
-            }
-        }
-
-        #endregion
-
-        protected override void HandleTouchFingerEvent(SDL_TouchFingerEvent evtTfinger)
-        {
-            if (evtTfinger.TryGetTouchName(out string? name) && name == "pen")
-            {
-                // Windows Ink tablet/pen handling
-                // InputManager expects to receive this as mouse events, to have proper `mouseSource` input priority (see InputManager.GetPendingInputs)
-                // osu! expects to get tablet events as mouse events, and touch events as touch events for touch device (TD mod) handling (see https://github.com/ppy/osu/issues/25590)
-
-                TriggerMouseMove(evtTfinger.x * ClientSize.Width, evtTfinger.y * ClientSize.Height);
-
-                switch (evtTfinger.type)
-                {
-                    case SDL_EventType.SDL_EVENT_FINGER_DOWN:
-                        TriggerMouseDown(MouseButton.Left);
-                        break;
-
-                    case SDL_EventType.SDL_EVENT_FINGER_UP:
-                        TriggerMouseUp(MouseButton.Left);
-                        break;
-                }
-
-                return;
-            }
-
-            base.HandleTouchFingerEvent(evtTfinger);
-        }
 
         public override Size Size
         {

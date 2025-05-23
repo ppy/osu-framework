@@ -4,9 +4,10 @@
 #nullable disable
 
 using System;
-using osu.Framework.Platform.MacOS.Native;
+using osu.Framework.Platform.Apple.Native;
 using osu.Framework.Platform.SDL2;
 using osuTK;
+using Selector = osu.Framework.Platform.Apple.Native.Selector;
 
 namespace osu.Framework.Platform.MacOS
 {
@@ -45,15 +46,15 @@ namespace osu.Framework.Platform.MacOS
         /// </summary>
         private void scrollWheel(IntPtr receiver, IntPtr selector, IntPtr theEvent)
         {
-            bool hasPrecise = Cocoa.SendBool(theEvent, sel_respondstoselector_, sel_hasprecisescrollingdeltas) &&
-                              Cocoa.SendBool(theEvent, sel_hasprecisescrollingdeltas);
+            bool hasPrecise = Interop.SendBool(theEvent, sel_respondstoselector_, sel_hasprecisescrollingdeltas) &&
+                              Interop.SendBool(theEvent, sel_hasprecisescrollingdeltas);
 
             if (!hasPrecise)
             {
                 // calls the unswizzled [SDLView scrollWheel:(NSEvent *)] method if this is a regular scroll wheel event
                 // the receiver may sometimes not be SDLView, ensure it has a scroll wheel selector implemented before attempting to call.
-                if (Cocoa.SendBool(receiver, sel_respondstoselector_, originalScrollWheel))
-                    Cocoa.SendVoid(receiver, originalScrollWheel, theEvent);
+                if (Interop.SendBool(receiver, sel_respondstoselector_, originalScrollWheel))
+                    Interop.SendVoid(receiver, originalScrollWheel, theEvent);
 
                 return;
             }
@@ -62,8 +63,8 @@ namespace osu.Framework.Platform.MacOS
             // this is additionally scaled down by a factor of 8 so that a precise scroll of 1.0 is roughly equivalent to one notch on a traditional scroll wheel.
             const float scale_factor = 0.1f / 8;
 
-            float scrollingDeltaX = Cocoa.SendFloat(theEvent, sel_scrollingdeltax);
-            float scrollingDeltaY = Cocoa.SendFloat(theEvent, sel_scrollingdeltay);
+            float scrollingDeltaX = Interop.SendFloat(theEvent, sel_scrollingdeltax);
+            float scrollingDeltaY = Interop.SendFloat(theEvent, sel_scrollingdeltay);
 
             ScheduleEvent(() => TriggerMouseWheel(new Vector2(scrollingDeltaX * scale_factor, scrollingDeltaY * scale_factor), true));
         }

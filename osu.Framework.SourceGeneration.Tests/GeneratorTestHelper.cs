@@ -7,7 +7,6 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
 
 namespace osu.Framework.SourceGeneration.Tests
 {
@@ -23,7 +22,7 @@ namespace osu.Framework.SourceGeneration.Tests
                                                 .Where(d => d.Severity == DiagnosticSeverity.Error)
                                                 .ToArray();
 
-            if (compilationDiagnostics.Any() || generatorDiagnostics.Any())
+            if (compilationDiagnostics.Length > 0 || generatorDiagnostics.Length > 0)
             {
                 var sb = new StringBuilder();
 
@@ -57,7 +56,7 @@ namespace osu.Framework.SourceGeneration.Tests
 
                 string actual = source.SourceText.ToString();
 
-                new XUnitVerifier().EqualOrDiff(content, actual, $"Phase {phase}: Generated source {filename} did not match expected content");
+                new DefaultVerifier().EqualOrDiff(content, actual, $"Phase {phase}: Generated source {filename} did not match expected content");
 
                 matches++;
             }
@@ -77,7 +76,7 @@ namespace osu.Framework.SourceGeneration.Tests
         {
             Compilation = CSharpCompilation.Create("test",
                 references: new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release));
         }
 
         public GeneratorDriverRunResult RunGenerators(ref GeneratorDriver driver)

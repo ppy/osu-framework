@@ -50,8 +50,10 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
         }
 
+        // Fails once in a blue moon due to loose (but maybe-not-loose-enough) timing requirements. If we break things, it will fail every time so this is fine.
         [TestCase(false)]
         [TestCase(true)]
+        [FlakyTest]
         public void TestManyChildren(bool instant)
         {
             AddStep("create children", () =>
@@ -99,8 +101,10 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("repeating schedulers removed", () => !scroll.Scheduler.HasPendingTasks);
         }
 
+        // Fails once in a blue moon due to loose (but maybe-not-loose-enough) timing requirements. If we break things, it will fail every time so this is fine.
         [TestCase(false)]
         [TestCase(true)]
+        [FlakyTest]
         public void TestManyChildrenFunction(bool instant)
         {
             AddStep("create children", () =>

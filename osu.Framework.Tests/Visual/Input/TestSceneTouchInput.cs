@@ -32,6 +32,8 @@ namespace osu.Framework.Tests.Visual.Input
         [SetUp]
         public new void SetUp() => Schedule(() =>
         {
+            InputManager.RightClickFromLongTouch = true;
+
             Children = new Drawable[]
             {
                 new Container
@@ -201,8 +203,8 @@ namespace osu.Framework.Tests.Visual.Input
 
             AddStep("retrieve receptors", () =>
             {
-                firstReceptor = receptors[(int)TouchSource.Touch1];
-                lastReceptor = receptors[(int)TouchSource.Touch10];
+                firstReceptor = receptors.First();
+                lastReceptor = receptors.Last();
             });
 
             AddStep("activate first", () =>
@@ -604,6 +606,25 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("move first", () => InputManager.MoveTouchTo(new Touch(TouchSource.Touch1, getTouchMovePos(TouchSource.Touch1))));
             AddWaitStep("wait a bit", 4);
             AddAssert("no right click received", () => primaryReceptor.MouseEvents.Count == 0 && secondaryReceptor.MouseEvents.Count == 0);
+        }
+
+        [Test]
+        public void TestHoldTouchAndDisableHoldingBeforeRightClick()
+        {
+            InputReceptor primaryReceptor = null;
+
+            AddStep("retrieve primary receptor", () => primaryReceptor = receptors[(int)TouchSource.Touch1]);
+            AddStep("setup handlers to receive mouse-from-touch", () =>
+            {
+                primaryReceptor.HandleTouch = _ => false;
+                primaryReceptor.HandleMouse = e => e is MouseButtonEvent button && button.Button == MouseButton.Right;
+            });
+
+            AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
+            AddWaitStep("hold shortly", 2);
+            AddStep("turn off hold-to-right-click", () => InputManager.RightClickFromLongTouch = false);
+            AddWaitStep("wait a bit", 4);
+            AddAssert("no right click received", () => primaryReceptor.MouseEvents.Count == 0);
         }
 
         private partial class InputReceptor : Container
