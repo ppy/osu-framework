@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
@@ -151,11 +152,12 @@ namespace osu.Framework.Graphics.Sprites
                     return;
 
                 for (int i = 0; i < DrawQuads.Length; i++)
-                    renderer.DrawQuad(Texture, DrawQuads[i], DrawColourInfo.Colour, null, null, Vector2.Zero, null, TextureRects[i]);
+                    renderer.DrawQuad(Texture, DrawQuads[i], ColourInfo[i], null, null, Vector2.Zero, null, TextureRects[i]);
             }
 
             protected readonly RectangleF[] TextureRects = new RectangleF[9];
             protected readonly Quad[] DrawQuads = new Quad[9];
+            protected readonly ColourInfo[] ColourInfo = new ColourInfo[9];
 
             public override void ApplyState()
             {
@@ -163,6 +165,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 computeTextureRects(Source.RelativeTextureInset);
                 computeDrawQuads(Source.RelativeGeometryInset);
+                computeColourInfo(Source.RelativeGeometryInset);
             }
 
             private void computeDrawQuads(MarginPadding inset)
@@ -177,42 +180,7 @@ namespace osu.Framework.Graphics.Sprites
                 DrawQuads[7] = computePart(Anchor.BottomCentre);
                 DrawQuads[8] = computePart(Anchor.BottomRight);
 
-                Quad computePart(Anchor anchor)
-                {
-                    Quad drawQuad = ScreenSpaceDrawQuad;
-
-                    if ((anchor & Anchor.x0) > 0)
-                        drawQuad = horizontalSlice(drawQuad, 0, inset.Left);
-                    else if ((anchor & Anchor.x1) > 0)
-                        drawQuad = horizontalSlice(drawQuad, inset.Left, 1 - inset.Right);
-                    else if ((anchor & Anchor.x2) > 0)
-                        drawQuad = horizontalSlice(drawQuad, 1 - inset.Right, 1);
-
-                    if ((anchor & Anchor.y0) > 0)
-                        drawQuad = verticalSlice(drawQuad, 0, inset.Top);
-                    else if ((anchor & Anchor.y1) > 0)
-                        drawQuad = verticalSlice(drawQuad, inset.Top, 1 - inset.Bottom);
-                    else if ((anchor & Anchor.y2) > 0)
-                        drawQuad = verticalSlice(drawQuad, 1 - inset.Bottom, 1);
-
-                    return drawQuad;
-                }
-
-                static Quad horizontalSlice(Quad quad, float start, float end) =>
-                    new Quad(
-                        Vector2.Lerp(quad.TopLeft, quad.TopRight, start),
-                        Vector2.Lerp(quad.TopLeft, quad.TopRight, end),
-                        Vector2.Lerp(quad.BottomLeft, quad.BottomRight, start),
-                        Vector2.Lerp(quad.BottomLeft, quad.BottomRight, end)
-                    );
-
-                static Quad verticalSlice(Quad quad, float start, float end) =>
-                    new Quad(
-                        Vector2.Lerp(quad.TopLeft, quad.BottomLeft, start),
-                        Vector2.Lerp(quad.TopRight, quad.BottomRight, start),
-                        Vector2.Lerp(quad.TopLeft, quad.BottomLeft, end),
-                        Vector2.Lerp(quad.TopRight, quad.BottomRight, end)
-                    );
+                Quad computePart(Anchor anchor) => getInterpolatedQuad(ScreenSpaceDrawQuad, inset, anchor);
             }
 
             private void computeTextureRects(MarginPadding inset)
@@ -263,6 +231,61 @@ namespace osu.Framework.Graphics.Sprites
 
                     return textureCoords;
                 }
+            }
+
+            private void computeColourInfo(MarginPadding inset)
+            {
+                ColourInfo[0] = computePart(Anchor.TopLeft);
+                ColourInfo[1] = computePart(Anchor.TopCentre);
+                ColourInfo[2] = computePart(Anchor.TopRight);
+                ColourInfo[3] = computePart(Anchor.CentreLeft);
+                ColourInfo[4] = computePart(Anchor.Centre);
+                ColourInfo[5] = computePart(Anchor.CentreRight);
+                ColourInfo[6] = computePart(Anchor.BottomLeft);
+                ColourInfo[7] = computePart(Anchor.BottomCentre);
+                ColourInfo[8] = computePart(Anchor.BottomRight);
+
+                ColourInfo computePart(Anchor anchor)
+                {
+                    var quad = getInterpolatedQuad(new RectangleF(0, 0, 1, 1), inset, anchor);
+
+                    return DrawColourInfo.Colour.Interpolate(quad);
+                }
+            }
+
+            private static Quad getInterpolatedQuad(Quad quad, MarginPadding inset, Anchor anchor)
+            {
+                if ((anchor & Anchor.x0) > 0)
+                    quad = horizontalSlice(quad, 0, inset.Left);
+                else if ((anchor & Anchor.x1) > 0)
+                    quad = horizontalSlice(quad, inset.Left, 1 - inset.Right);
+                else if ((anchor & Anchor.x2) > 0)
+                    quad = horizontalSlice(quad, 1 - inset.Right, 1);
+
+                if ((anchor & Anchor.y0) > 0)
+                    quad = verticalSlice(quad, 0, inset.Top);
+                else if ((anchor & Anchor.y1) > 0)
+                    quad = verticalSlice(quad, inset.Top, 1 - inset.Bottom);
+                else if ((anchor & Anchor.y2) > 0)
+                    quad = verticalSlice(quad, 1 - inset.Bottom, 1);
+
+                return quad;
+
+                static Quad horizontalSlice(Quad quad, float start, float end) =>
+                    new Quad(
+                        Vector2.Lerp(quad.TopLeft, quad.TopRight, start),
+                        Vector2.Lerp(quad.TopLeft, quad.TopRight, end),
+                        Vector2.Lerp(quad.BottomLeft, quad.BottomRight, start),
+                        Vector2.Lerp(quad.BottomLeft, quad.BottomRight, end)
+                    );
+
+                static Quad verticalSlice(Quad quad, float start, float end) =>
+                    new Quad(
+                        Vector2.Lerp(quad.TopLeft, quad.BottomLeft, start),
+                        Vector2.Lerp(quad.TopRight, quad.BottomRight, start),
+                        Vector2.Lerp(quad.TopLeft, quad.BottomLeft, end),
+                        Vector2.Lerp(quad.TopRight, quad.BottomRight, end)
+                    );
             }
         }
     }
