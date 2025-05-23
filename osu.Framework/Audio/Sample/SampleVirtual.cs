@@ -11,9 +11,12 @@ namespace osu.Framework.Audio.Sample
     {
         protected override SampleChannel CreateChannel() => new SampleChannelVirtual(Name);
 
-        public SampleVirtual(string name = "virtual")
+        public override double Length { get; }
+
+        public SampleVirtual(string name = "virtual", double length = 0)
             : base(name)
         {
+            Length = length;
         }
     }
 }
