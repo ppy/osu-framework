@@ -17,8 +17,14 @@ namespace osu.Framework.Audio.Sample
 
         /// <summary>
         /// The length in milliseconds of this <see cref="ISample"/>.
+        /// <remarks>The value may not be available yet if <see cref="ISample.IsLoaded"/> is false.</remarks>
         /// </summary>
         double Length { get; }
+
+        /// <summary>
+        /// Whether this <see cref="ISample"/> is fully loaded.
+        /// </summary>
+        public bool IsLoaded { get; }
 
         /// <summary>
         /// The number of times this sample (as identified by name) can be played back concurrently.

@@ -19,10 +19,6 @@ namespace osu.Framework.Audio.Sample
             Name = name;
         }
 
-        /// <summary>
-        /// The length of the sample in milliseconds.
-        /// <remarks>The value may not be available yet if <see cref="AudioComponent.IsLoaded"/> is false.</remarks>
-        /// </summary>
         public abstract double Length { get; }
 
         public Bindable<int> PlaybackConcurrency { get; } = new Bindable<int>(DEFAULT_CONCURRENCY);
