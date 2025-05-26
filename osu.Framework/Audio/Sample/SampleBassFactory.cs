@@ -93,7 +93,7 @@ namespace osu.Framework.Audio.Sample
             if (!IsLoaded)
                 return;
 
-            Length = Bass.ChannelBytes2Seconds(SampleId, dataLength) * 1000;
+            Length = Bass.ChannelBytes2Seconds(SampleId, Bass.ChannelGetLength(SampleId)) * 1000;
             memoryLease = NativeMemoryTracker.AddMemory(this, dataLength);
         }
 
