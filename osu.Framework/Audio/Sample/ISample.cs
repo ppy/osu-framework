@@ -17,8 +17,10 @@ namespace osu.Framework.Audio.Sample
 
         /// <summary>
         /// The length in milliseconds of this <see cref="ISample"/>.
-        /// <remarks>The value may not be available yet if <see cref="ISample.IsLoaded"/> is false.</remarks>
         /// </summary>
+        /// <remarks>
+        /// The value may not be available yet if <see cref="ISample.IsLoaded"/> is false.
+        /// </remarks>
         double Length { get; }
 
         /// <summary>
