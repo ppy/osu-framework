@@ -656,7 +656,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 InputManager.MoveMouseTo(firstTextBox.ScreenSpaceDrawQuad.Centre);
                 InputManager.PressButton(MouseButton.Left);
-                InputManager.MoveMouseTo(firstTextBox.ScreenSpaceDrawQuad.TopLeft);
+                InputManager.MoveMouseTo(firstTextBox.ScreenSpaceDrawQuad.TopLeft.Xy);
                 InputManager.ReleaseButton(MouseButton.Left);
             });
             AddAssert("first textbox has no focus", () => !firstTextBox.HasFocus);
@@ -847,7 +847,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("click close to the right edge of textbox", () =>
             {
-                InputManager.MoveMouseTo((textBox.ScreenSpaceDrawQuad.TopRight + textBox.ScreenSpaceDrawQuad.BottomRight) / 2 - new Vector2(1, 0));
+                InputManager.MoveMouseTo((textBox.ScreenSpaceDrawQuad.TopRight.Xy + textBox.ScreenSpaceDrawQuad.BottomRight.Xy) / 2 - new Vector2(1, 0));
                 InputManager.Click(MouseButton.Left);
             });
             AddUntilStep("wait for transforms to finish", () => textBox.TextContainerTransformsFinished);

@@ -33,9 +33,9 @@ namespace osu.Framework.Graphics.Shapes
         public override RectangleF BoundingBox => toTriangle(ToParentSpace(LayoutRectangle)).AABBFloat;
 
         private static Primitives.Triangle toTriangle(Quad q) => new Primitives.Triangle(
-            (q.TopLeft + q.TopRight) / 2,
-            q.BottomLeft,
-            q.BottomRight);
+            (q.TopLeft.Xy + q.TopRight.Xy) / 2,
+            q.BottomLeft.Xy,
+            q.BottomRight.Xy);
 
         public override bool Contains(Vector2 screenSpacePos) => toTriangle(ScreenSpaceDrawQuad).Contains(screenSpacePos);
 
