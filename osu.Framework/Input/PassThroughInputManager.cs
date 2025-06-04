@@ -53,6 +53,7 @@ namespace osu.Framework.Input
         {
             base.LoadComplete();
             parentInputManager = GetContainingInputManager();
+            syncWithParent();
         }
 
         public override bool HandleHoverEvents => parentInputManager != null && UseParentInput ? parentInputManager.HandleHoverEvents : base.HandleHoverEvents;
@@ -205,8 +206,13 @@ namespace osu.Framework.Input
             base.Update();
 
             // There are scenarios wherein we cannot receive the release events of pressed inputs. For simplicity, sync every frame.
+            // This intentionally omits mouse position syncing because they don't apply to the above logic of "being unable to receive" such events
+            // (and also because there are game-side usages that stop working correctly if that is done, e.g. osu! touch input handling)
             if (UseParentInput)
-                syncWithParent();
+            {
+                syncReleasedInputs();
+                syncJoystickAxes();
+            }
         }
 
         /// <summary>
