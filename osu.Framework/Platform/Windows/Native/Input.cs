@@ -19,7 +19,13 @@ namespace osu.Framework.Platform.Windows.Native
             int cbSize);
 
         [DllImport("user32.dll")]
-        public static extern int GetRawInputData(IntPtr hRawInput, RawInputCommand uiCommand, out RawInputData pData, ref int pcbSize, int cbSizeHeader);
+        public static extern int GetRawInputData(IntPtr hRawInput, RawInputCommand uiCommand, IntPtr pData, ref int pcbSize, int cbSizeHeader);
+
+        [DllImport("user32.dll")]
+        public static extern int GetRawInputDeviceInfo(IntPtr hDevice, RawInputDeviceInfoCommand uiCommand, ref RID_DEVICE_INFO info, ref int pcbSize);
+
+        [DllImport("user32.dll")]
+        public static extern int GetRawInputDeviceInfo(IntPtr hDevice, RawInputDeviceInfoCommand uiCommand, IntPtr pData, ref int pcbSize);
 
         internal static Rectangle VirtualScreenRect => new Rectangle(
             GetSystemMetrics(SM_XVIRTUALSCREEN),
@@ -144,6 +150,22 @@ namespace osu.Framework.Platform.Windows.Native
         /// The device-specific additional information for the event.
         /// </summary>
         public uint ExtraInformation;
+    }
+
+    /// <summary>Header of the raw input data if is a HID device.</summary>
+    /// <remarks>
+    /// This is just a header, because variable sized HID reports is following this.
+    /// </remarks>
+    public struct RawInputDataHidHeader
+    {
+        /// <summary>Header for the data.</summary>
+        public RawInputHeader Header;
+
+        /// <summary>Size of each HID report.</summary>
+        public int SizeHid;
+
+        /// <summary>Count of HID reports.</summary>
+        public int Count;
     }
 
     /// <summary>
@@ -317,17 +339,10 @@ namespace osu.Framework.Platform.Windows.Native
         AppKeys = 0x00000400
     }
 
-    public enum HIDUsage : ushort
-    {
-        Pointer = 0x01,
-        Mouse = 0x02,
-        Joystick = 0x04,
-        Gamepad = 0x05,
-        Keyboard = 0x06,
-        Keypad = 0x07,
-        SystemControl = 0x80,
-    }
-
+    /// <summary>HID usage page values.</summary>
+    /// <remarks>
+    /// See "HID Usage Tables" on the USB-IF website for a full list of UsagePages and the corresponding Usages.
+    /// </remarks>
     public enum HIDUsagePage : ushort
     {
         Undefined = 0x00,
@@ -360,6 +375,21 @@ namespace osu.Framework.Platform.Windows.Native
         MSR = 0x8E
     }
 
+    /// <summary>HID usage values.</summary>
+    /// <remarks>
+    /// The meaning of every numeral Usage value is dependent on the UsagePage.
+    /// </remarks>
+    public enum HIDUsage : ushort
+    {
+        Undefined = 0x00,
+
+        /// <summary>For <see cref="HIDUsagePage.Generic"/>.</summary>
+        Mouse = 0x02,
+
+        /// <summary>For <see cref="HIDUsagePage.Digitizer"/>.</summary>
+        TouchPad = 0x05,
+    }
+
     public enum FeedbackType
     {
         TouchContactVisualization = 1,
@@ -373,5 +403,75 @@ namespace osu.Framework.Platform.Windows.Native
         TouchPressAndHold = 9,
         TouchRightTap = 10,
         GesturePressAndTap = 11,
+    }
+
+    /// <summary>What information to retrieve for a raw input device.</summary>
+    public enum RawInputDeviceInfoCommand
+    {
+        /// <summary>Get preparsed data for <see cref="Hid"/> APIs.</summary>
+        PreparsedData = 0x20000005,
+
+        /// <summary>Get device path for opening directly (if possible).</summary>
+        DeviceName = 0x20000007,
+
+        /// <summary>Get <see cref="RID_DEVICE_INFO"/>.</summary>
+        DeviceInfo = 0x2000000B,
+    }
+
+    /// <summary>Raw input device info.</summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RID_DEVICE_INFO
+    {
+        /// <summary>Size of this structure, must be filled before calling GetRawInputDeviceInfo.</summary>
+        public int Size;
+
+        /// <summary>Type of this device.</summary>
+        public RawInputType Type;
+
+        /// <summary>Detailed information, depending on the device type.</summary>
+        public Union union;
+
+        [StructLayout(LayoutKind.Explicit)]
+        public struct Union
+        {
+            [FieldOffset(0)]
+            public RID_DEVICE_INFO_MOUSE mouse;
+
+            [FieldOffset(0)]
+            public RID_DEVICE_INFO_KEYBOARD keyboard;
+
+            [FieldOffset(0)]
+            public RID_DEVICE_INFO_HID hid;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RID_DEVICE_INFO_MOUSE
+        {
+            public uint Id;
+            public uint NumberOfButtons;
+            public uint SampleRate;
+            public uint HasHorizontalWheel;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RID_DEVICE_INFO_KEYBOARD
+        {
+            public uint Type;
+            public uint SubType;
+            public uint KeyboardMode;
+            public uint NumberOfFunctionKeys;
+            public uint NumberOfIndicators;
+            public uint NumberOfKeysTotal;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RID_DEVICE_INFO_HID
+        {
+            public uint VendorId;
+            public uint ProductId;
+            public uint VersionNumber;
+            public ushort UsagePage;
+            public ushort Usage;
+        }
     }
 }
