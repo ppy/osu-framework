@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using ManagedBass;
 using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Track;
@@ -117,6 +118,9 @@ namespace osu.Framework.Audio.Sample
 
         public override void Play()
         {
+            // Check if this channel is disposed first to not set enqueuedPlaybackStart to true, as it makes Playing true.
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
+
             userRequestedPlay = true;
 
             // Pin Playing and IsAlive to true so that the channel isn't killed by the next update. This is only reset after playback is started.
