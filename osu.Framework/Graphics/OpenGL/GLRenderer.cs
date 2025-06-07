@@ -375,7 +375,7 @@ namespace osu.Framework.Graphics.OpenGL
             return image;
         }
 
-        protected internal override Image<Rgba32>? ExtractFrameBufferData(IFrameBuffer frameBuffer)
+        protected internal override Image<Rgba32> ExtractFrameBufferData(IFrameBuffer frameBuffer)
         {
             int width = frameBuffer.Texture.Width;
             int height = frameBuffer.Texture.Height;

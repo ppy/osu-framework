@@ -43,10 +43,10 @@ namespace osu.Framework.Graphics.Visualisation
 
         public override bool IsPresent => true;
 
-        public IShader? TextureShader => textureShader;
-        public Color4 BackgroundColour => new Color4(0, 0, 0, 0);
-        public DrawColourInfo? FrameBufferDrawColour => new DrawColourInfo(Color4.White);
-        public Vector2 FrameBufferScale => Vector2.One;
+        IShader ITexturedShaderDrawable.TextureShader => textureShader;
+        Color4 IBufferedDrawable.BackgroundColour => new Color4(0, 0, 0, 0);
+        DrawColourInfo? IBufferedDrawable.FrameBufferDrawColour => new DrawColourInfo(Color4.White);
+        Vector2 IBufferedDrawable.FrameBufferScale => Vector2.One;
 
         public override DrawColourInfo DrawColourInfo => new DrawColourInfo(Color4.White);
 
