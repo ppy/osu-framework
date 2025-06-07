@@ -351,6 +351,11 @@ namespace osu.Framework.Graphics.Rendering
         protected internal Image<Rgba32> TakeScreenshot();
 
         /// <summary>
+        /// Returns an image containing the content of a framebuffer.
+        /// </summary>
+        public Image<Rgba32>? ExtractFrameBufferData(IFrameBuffer frameBuffer);
+
+        /// <summary>
         /// Creates a new <see cref="IShaderPart"/>.
         /// </summary>
         /// <param name="store">The shader store to load headers with.</param>

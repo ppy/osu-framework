@@ -308,45 +308,49 @@ namespace osu.Framework.Graphics.Veldrid
                 }
 
                 default:
-                {
-                    uint width = texture.Width;
-                    uint height = texture.Height;
-
-                    using var staging = Factory.CreateTexture(TextureDescription.Texture2D(width, height, 1, 1, texture.Format, TextureUsage.Staging));
-                    using var commands = Factory.CreateCommandList();
-                    using var fence = Factory.CreateFence(false);
-
-                    commands.Begin();
-                    commands.CopyTexture(texture, staging);
-                    commands.End();
-                    Device.SubmitCommands(commands, fence);
-
-                    if (!waitForFence(fence, 5000))
-                    {
-                        Logger.Log("Failed to capture swapchain framebuffer content within reasonable time.", level: LogLevel.Important);
-                        return new Image<Rgba32>((int)width, (int)height);
-                    }
-
-                    var resource = Device.Map(staging, MapMode.Read);
-                    var span = new Span<Bgra32>(resource.Data.ToPointer(), (int)(resource.SizeInBytes / Marshal.SizeOf<Bgra32>()));
-
-                    // on some backends (Direct3D11, in particular), the staging resource data may contain padding at the end of each row for alignment,
-                    // which means that for the image width, we cannot use the framebuffer's width raw.
-                    using var image = Image.LoadPixelData<Bgra32>(span, (int)(resource.RowPitch / Marshal.SizeOf<Bgra32>()), (int)height);
-
-                    if (!Device.IsUvOriginTopLeft)
-                        image.Mutate(i => i.Flip(FlipMode.Vertical));
-
-                    // if the image width doesn't match the framebuffer, it means that we still have padding at the end of each row mentioned above to get rid of.
-                    // snip it to get a clean image.
-                    if (image.Width != width)
-                        image.Mutate(i => i.Crop((int)width, (int)height));
-
-                    Device.Unmap(staging);
-
-                    return image.CloneAs<Rgba32>();
-                }
+                    return ExtractTexture<Bgra32>(texture, flipVertical: !Device.IsUvOriginTopLeft);
             }
+        }
+
+        public unsafe Image<Rgba32> ExtractTexture<TPixel>(Texture texture, bool flipVertical = false)
+            where TPixel : unmanaged, IPixel<TPixel>
+        {
+            uint width = texture.Width;
+            uint height = texture.Height;
+
+            using var staging = Factory.CreateTexture(TextureDescription.Texture2D(width, height, texture.MipLevels, texture.ArrayLayers, texture.Format, TextureUsage.Staging));
+            using var commands = Factory.CreateCommandList();
+            using var fence = Factory.CreateFence(false);
+
+            commands.Begin();
+            commands.CopyTexture(texture, staging);
+            commands.End();
+            Device.SubmitCommands(commands, fence);
+
+            if (!waitForFence(fence, 5000))
+            {
+                Logger.Log("Failed to capture framebuffer content within reasonable time.", level: LogLevel.Important);
+                return new Image<Rgba32>((int)width, (int)height);
+            }
+
+            var resource = Device.Map(staging, MapMode.Read);
+            var span = new Span<TPixel>(resource.Data.ToPointer(), (int)(resource.SizeInBytes / Marshal.SizeOf<TPixel>()));
+
+            // on some backends (Direct3D11, in particular), the staging resource data may contain padding at the end of each row for alignment,
+            // which means that for the image width, we cannot use the framebuffer's width raw.
+            using var image = Image.LoadPixelData<TPixel>(span, (int)(resource.RowPitch / Marshal.SizeOf<TPixel>()), (int)height);
+
+            if (flipVertical)
+                image.Mutate(i => i.Flip(FlipMode.Vertical));
+
+            // if the image width doesn't match the framebuffer, it means that we still have padding at the end of each row mentioned above to get rid of.
+            // snip it to get a clean image.
+            if (image.Width != width)
+                image.Mutate(i => i.Crop((int)texture.Width, (int)texture.Height));
+
+            Device.Unmap(staging);
+
+            return image.CloneAs<Rgba32>();
         }
 
         /// <summary>
