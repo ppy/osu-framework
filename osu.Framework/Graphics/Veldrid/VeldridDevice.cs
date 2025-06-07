@@ -329,7 +329,7 @@ namespace osu.Framework.Graphics.Veldrid
 
             if (!waitForFence(fence, 5000))
             {
-                Logger.Log("Failed to capture swapchain framebuffer content within reasonable time.", level: LogLevel.Important);
+                Logger.Log("Failed to capture framebuffer content within reasonable time.", level: LogLevel.Important);
                 return new Image<Rgba32>((int)width, (int)height);
             }
 
