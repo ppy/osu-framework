@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
+using osu.Framework.Platform;
 using osu.Framework.Utils;
 using osuTK;
 
@@ -31,6 +32,9 @@ namespace osu.Framework.Graphics.Visualisation
 
         [Cached]
         private readonly TreeContainer treeContainer;
+
+        [Resolved]
+        private Clipboard clipboard { get; set; } = null!;
 
         private VisualisedDrawable highlightedTarget;
         private readonly DrawableInspector drawableInspector;
@@ -55,6 +59,13 @@ namespace osu.Framework.Graphics.Visualisation
                     },
                     GoUpOneParent = goUpOneParent,
                     ToggleInspector = toggleInspector,
+                    TakeScreenshot = () =>
+                    {
+                        if (Target == null)
+                            return;
+
+                        takeScreenshot(Target);
+                    },
                 },
                 new CursorContainer()
             };
@@ -111,6 +122,26 @@ namespace osu.Framework.Graphics.Visualisation
 
             if (drawableInspector.State.Value == Visibility.Visible)
                 setHighlight(targetVisualiser);
+        }
+
+        private void takeScreenshot(Drawable target)
+        {
+            Add(new DrawableScreenshotter(target, image =>
+            {
+                if (image == null)
+                    return;
+
+                clipboard.SetImage(image);
+
+                var flash = new FlashyBox(static d => d.ScreenSpaceDrawQuad)
+                {
+                    Target = target,
+                    Depth = 1
+                };
+                Add(flash);
+
+                flash.FadeOut(1000, Easing.Out).Expire();
+            }));
         }
 
         protected override void LoadComplete()
