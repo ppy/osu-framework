@@ -59,13 +59,7 @@ namespace osu.Framework.Graphics.Visualisation
                     },
                     GoUpOneParent = goUpOneParent,
                     ToggleInspector = toggleInspector,
-                    TakeScreenshot = () =>
-                    {
-                        if (Target == null)
-                            return;
-
-                        takeScreenshot(Target);
-                    },
+                    TakeScreenshot = takeScreenshot,
                 },
                 new CursorContainer()
             };
@@ -124,18 +118,25 @@ namespace osu.Framework.Graphics.Visualisation
                 setHighlight(targetVisualiser);
         }
 
-        private void takeScreenshot(Drawable target)
+        private void takeScreenshot()
         {
-            Add(new DrawableScreenshotter(target, image =>
+            var currentTarget = Target;
+            if (currentTarget == null)
+                return;
+
+            Add(new DrawableScreenshotter(currentTarget, image =>
             {
                 if (image == null)
                     return;
 
                 clipboard.SetImage(image);
 
+                if (currentTarget.IsDisposed)
+                    return;
+
                 var flash = new FlashyBox(static d => d.ScreenSpaceDrawQuad)
                 {
-                    Target = target,
+                    Target = currentTarget,
                     Depth = 1
                 };
                 Add(flash);
