@@ -185,12 +185,32 @@ jobs:
 
       - name: Build
         run: osu.Framework.NativeLibs/scripts/ffmpeg/build-linux.sh
+        env:
+          arch: x64
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: linux-x64
           path: linux-x64
+
+  build-linux-arm64:
+    name: Build Linux (arm64)
+    runs-on: ubuntu-22.04-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: osu.Framework.NativeLibs/scripts/ffmpeg/build-linux.sh
+        env:
+          arch: arm64
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-arm64
+          path: linux-arm64
 
   build-android:
     name: Build Android
@@ -244,6 +264,10 @@ jobs:
         with:
           name: linux-x64
           path: osu.Framework.NativeLibs/runtimes/linux-x64/native
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-arm64
+          path: osu.Framework.NativeLibs/runtimes/linux-arm64/native
       - uses: actions/download-artifact@v4
         with:
           name: win-arm64
