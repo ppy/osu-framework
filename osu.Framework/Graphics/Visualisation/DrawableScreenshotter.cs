@@ -91,7 +91,12 @@ namespace osu.Framework.Graphics.Visualisation
             Target.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
 
             if (targetDrawNode == null)
+            {
+                onImageReceived(null);
+
+                Expire();
                 return null;
+            }
 
             var drawNode = new DrawableScreenshotterDrawNode(this, targetDrawNode, sharedData, onRendered);
 
