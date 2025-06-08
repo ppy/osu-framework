@@ -85,10 +85,7 @@ namespace osu.Framework.Graphics.Visualisation
             if (didRender)
                 return null;
 
-            // This looks a bit weird, but we essentially want a DrawNode that we can safely dispose once we've rendered it.
-            // The second call to GenerateDrawNodeSubtree is there to make sure the drawable is no longer referencing this DrawNode
             var targetDrawNode = Target.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
-            Target.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
 
             if (targetDrawNode == null)
             {
@@ -97,6 +94,10 @@ namespace osu.Framework.Graphics.Visualisation
                 Expire();
                 return null;
             }
+
+            // This looks a bit odd, but we essentially want a drawNode that we can safely dispose once we've rendered it.
+            // This call will force the target drawable to recreate its drawNode subtree so the one we got should be completely detached.
+            Target.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
 
             var drawNode = new DrawableScreenshotterDrawNode(this, targetDrawNode, sharedData, onRendered);
 
