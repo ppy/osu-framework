@@ -328,6 +328,11 @@ namespace osu.Framework.Graphics.Rendering
         protected internal abstract Image<Rgba32> TakeScreenshot();
 
         /// <summary>
+        /// Returns an image containing the content of a framebuffer.
+        /// </summary>
+        protected internal virtual Image<Rgba32>? ExtractFrameBufferData(IFrameBuffer frameBuffer) => null;
+
+        /// <summary>
         /// Performs a once-off initialisation of this <see cref="Renderer"/>.
         /// </summary>
         protected abstract void Initialise(IGraphicsSurface graphicsSurface);
@@ -1219,6 +1224,7 @@ namespace osu.Framework.Graphics.Rendering
         void IRenderer.PushQuadBatch(IVertexBatch<TexturedVertex2D> quadBatch) => PushQuadBatch(quadBatch);
         void IRenderer.PopQuadBatch() => PopQuadBatch();
         Image<Rgba32> IRenderer.TakeScreenshot() => TakeScreenshot();
+        Image<Rgba32>? IRenderer.ExtractFrameBufferData(IFrameBuffer frameBuffer) => ExtractFrameBufferData(frameBuffer);
         IShaderPart IRenderer.CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType) => CreateShaderPart(store, name, rawData, partType);
         IShader IRenderer.CreateShader(string name, IShaderPart[] parts) => CreateShader(name, parts, shaderCompilationStore);
 
