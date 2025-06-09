@@ -843,6 +843,17 @@ namespace osu.Framework.Platform
         {
             yield return RendererType.Automatic;
 
+            bool isVulkanSupported;
+
+            try
+            {
+                isVulkanSupported = Veldrid.GraphicsDevice.IsBackendSupported(Veldrid.GraphicsBackend.Vulkan);
+            }
+            catch
+            {
+                isVulkanSupported = false;
+            }
+
             // Preferred per-platform renderers
             switch (RuntimeInfo.OS)
             {
@@ -850,14 +861,18 @@ namespace osu.Framework.Platform
                     yield return RendererType.Direct3D11;
                     yield return RendererType.Deferred_Direct3D11;
                     yield return RendererType.OpenGL;
-                    yield return RendererType.Deferred_Vulkan;
+
+                    if (isVulkanSupported)
+                        yield return RendererType.Deferred_Vulkan;
 
                     break;
 
                 case RuntimeInfo.Platform.Linux:
                     yield return RendererType.OpenGL;
                     yield return RendererType.Deferred_OpenGL;
-                    yield return RendererType.Deferred_Vulkan;
+
+                    if (isVulkanSupported)
+                        yield return RendererType.Deferred_Vulkan;
 
                     break;
 
@@ -865,6 +880,9 @@ namespace osu.Framework.Platform
                     yield return RendererType.Metal;
                     yield return RendererType.Deferred_Metal;
                     yield return RendererType.OpenGL;
+
+                    if (isVulkanSupported)
+                        yield return RendererType.Deferred_Vulkan;
 
                     break;
 
