@@ -9,6 +9,7 @@ curl -Lso bass24-arm64.zip https://www.un4seen.com/files/bass24-arm64.zip
 unzip -qjo bass24-arm64.zip arm64/bass.dll -d runtimes/win-arm64/native/
 
 curl -Lso bass-linux.zip https://www.un4seen.com/stuff/bass-linux.zip
+unzip -qjo bass-linux.zip aarch64/libbass.so -d runtimes/linux-arm64/native/
 unzip -qjo bass-linux.zip x86/libbass.so -d runtimes/linux-x86/native/
 unzip -qjo bass-linux.zip x86_64/libbass.so -d runtimes/linux-x64/native/
 
@@ -32,6 +33,7 @@ curl -Lso bass_fx-arm64.zip https://www.un4seen.com/stuff/bass_fx-arm64.zip
 unzip -qjo bass_fx-arm64.zip bass_fx.dll -d runtimes/win-arm64/native/
 
 curl -Lso bass_fx-linux.zip https://www.un4seen.com/stuff/bass_fx-linux.zip
+unzip -qjo bass_fx-linux.zip aarch64/libbass_fx.so -d runtimes/linux-arm64/native/
 unzip -qjo bass_fx-linux.zip x86/libbass_fx.so -d runtimes/linux-x86/native/
 unzip -qjo bass_fx-linux.zip x86_64/libbass_fx.so -d runtimes/linux-x64/native/
 
@@ -55,6 +57,7 @@ unzip -qjo bassmix24.zip bassmix.dll -d runtimes/win-x86/native/
 unzip -qjo bass24-arm64.zip arm64/bassmix.dll -d runtimes/win-arm64/native/
 
 curl -Lso bassmix24-linux.zip https://www.un4seen.com/stuff/bassmix-linux.zip
+unzip -qjo bassmix24-linux.zip aarch64/libbassmix.so -d runtimes/linux-arm64/native/
 unzip -qjo bassmix24-linux.zip x86/libbassmix.so -d runtimes/linux-x86/native/
 unzip -qjo bassmix24-linux.zip x86_64/libbassmix.so -d runtimes/linux-x64/native/
 
