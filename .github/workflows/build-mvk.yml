@@ -1,0 +1,43 @@
+name: Build MoltenVK
+on: workflow_dispatch
+
+jobs:
+  build-macos:
+    name: Build macOS
+    runs-on: macos-13
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: osu.Framework.NativeLibs/scripts/moltenvk/build-macOS.sh
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: macOS-universal
+          path: macOS-universal
+
+  make-pr:
+    name: Create pull request
+    runs-on: ubuntu-22.04
+    needs:
+      - build-macos
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: macOS-universal
+          path: osu.Framework.NativeLibs/runtimes/osx/native
+
+      - uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: Update MoltenVK binary
+          title: Update MoltenVK binary
+          body: This PR has been auto-generated to update the MoltenVK binary.
+          branch: update-mvk-binary
+          delete-branch: true
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'

@@ -346,4 +346,6 @@ inspectcode
 # NativeLibs build folders and tarballs
 osu.Framework.NativeLibs/scripts/ffmpeg/*/
 osu.Framework.NativeLibs/scripts/ffmpeg/*.tar.gz
+osu.Framework.NativeLibs/scripts/moltenvk/*/
+osu.Framework.NativeLibs/scripts/moltenvk/*.dylib
 
