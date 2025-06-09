@@ -134,9 +134,9 @@ namespace osu.Framework.Graphics.Veldrid
 
                 case RuntimeInfo.Platform.macOS:
                 {
-                    // OpenGL doesn't use a swapchain, so it's only needed on Metal.
+                    // OpenGL doesn't use a swapchain, so it's only needed on Metal/MoltenVK.
                     // Creating a Metal surface in general would otherwise destroy the GL context.
-                    if (this.graphicsSurface.Type == GraphicsSurfaceType.Metal)
+                    if (this.graphicsSurface.Type != GraphicsSurfaceType.OpenGL)
                     {
                         var metalGraphics = (IMetalGraphicsSurface)this.graphicsSurface;
                         swapchain.Source = SwapchainSource.CreateNSView(metalGraphics.CreateMetalView());
