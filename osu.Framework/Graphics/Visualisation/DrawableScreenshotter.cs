@@ -88,7 +88,16 @@ namespace osu.Framework.Graphics.Visualisation
             var targetDrawNode = Target.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
 
             if (targetDrawNode == null)
+            {
+                onImageReceived(null);
+
+                Expire();
                 return null;
+            }
+
+            // This looks a bit odd, but we essentially want a drawNode that we can safely dispose once we've rendered it.
+            // This call will force the target drawable to recreate its drawNode subtree so the one we got should be completely detached.
+            Target.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
 
             var drawNode = new DrawableScreenshotterDrawNode(this, targetDrawNode, sharedData, onRendered);
 
