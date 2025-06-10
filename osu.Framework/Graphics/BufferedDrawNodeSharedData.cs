@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics
         private readonly RenderBufferFormat[] mainBufferFormats;
         private readonly TextureFilteringMode filterMode;
 
-        private IRenderer renderer;
+        protected IRenderer Renderer;
         private IFrameBuffer mainBuffer;
 
         /// <summary>
@@ -80,11 +80,11 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The <see cref="IFrameBuffer"/> which contains the original version of the rendered <see cref="Drawable"/>.
         /// </summary>
-        public IFrameBuffer MainBuffer => mainBuffer ??= renderer.CreateFrameBuffer(mainBufferFormats, filterMode);
+        public IFrameBuffer MainBuffer => mainBuffer ??= Renderer.CreateFrameBuffer(mainBufferFormats, filterMode);
 
         public void Initialise(IRenderer renderer)
         {
-            this.renderer = renderer;
+            Renderer = renderer;
             IsInitialised = true;
         }
 
@@ -110,7 +110,7 @@ namespace osu.Framework.Graphics
             return getEffectBufferAtIndex(currentEffectBuffer);
         }
 
-        private IFrameBuffer getEffectBufferAtIndex(int index) => effectBuffers[index] ??= renderer.CreateFrameBuffer(filteringMode: filterMode);
+        private IFrameBuffer getEffectBufferAtIndex(int index) => effectBuffers[index] ??= Renderer.CreateFrameBuffer(filteringMode: filterMode);
 
         /// <summary>
         /// Resets <see cref="CurrentEffectBuffer"/>.
@@ -120,7 +120,7 @@ namespace osu.Framework.Graphics
 
         public void Dispose()
         {
-            renderer?.ScheduleDisposal(d => d.Dispose(true), this);
+            Renderer?.ScheduleDisposal(d => d.Dispose(true), this);
             GC.SuppressFinalize(this);
         }
 
