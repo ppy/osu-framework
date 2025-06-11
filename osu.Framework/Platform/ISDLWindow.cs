@@ -10,7 +10,7 @@ using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Platform
 {
-    internal interface ISDLWindow : IWindow
+    public interface ISDLWindow : IWindow
     {
         event Action<JoystickButton> JoystickButtonDown;
         event Action<JoystickButton> JoystickButtonUp;
@@ -40,6 +40,7 @@ namespace osu.Framework.Platform
         void StopTextInput();
         void SetTextInputRect(RectangleF rectangle);
         void ResetIme();
+        IDisposable CreateTrayIcon(TrayIcon icon);
     }
 
     /// <summary>
