@@ -32,7 +32,7 @@ namespace osu.Framework.Platform.SDL2
             CurrentDisplayBindable.Default = PrimaryDisplay;
             CurrentDisplayBindable.ValueChanged += evt =>
             {
-                windowDisplayIndexBindable.Value = (DisplayIndex)evt.NewValue.Index;
+                windowDisplayIndexBindable.Value = (DisplayIndex)(evt.NewValue?.Index ?? 0);
             };
 
             config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndexBindable);
@@ -211,7 +211,7 @@ namespace osu.Framework.Platform.SDL2
             set => sizeWindowed.MaxValue = value;
         }
 
-        public Bindable<Display> CurrentDisplayBindable { get; } = new Bindable<Display>();
+        public Bindable<Display?> CurrentDisplayBindable { get; } = new Bindable<Display?>();
 
         /// <summary>
         /// Bound to <see cref="FrameworkSetting.WindowMode"/>.
@@ -328,7 +328,10 @@ namespace osu.Framework.Platform.SDL2
             int numDisplays = SDL_GetNumVideoDisplays();
 
             if (numDisplays <= 0)
-                throw new InvalidOperationException($"Failed to get number of SDL displays. Return code: {numDisplays}. SDL Error: {SDL_GetError()}");
+            {
+                Logger.Log($"Failed to get number of SDL displays. Return code: {numDisplays}. SDL Error: {SDL_GetError()}");
+                return ImmutableArray<Display>.Empty;
+            }
 
             var builder = ImmutableArray.CreateBuilder<Display>(numDisplays);
 
@@ -388,9 +391,9 @@ namespace osu.Framework.Platform.SDL2
         /// <summary>
         /// Gets the <see cref="Display"/> that has been set as "primary" or "default" in the operating system.
         /// </summary>
-        public virtual Display PrimaryDisplay => Displays.First();
+        public virtual Display? PrimaryDisplay => Displays.FirstOrDefault();
 
-        private Display currentDisplay = null!;
+        private Display? currentDisplay;
         private int displayIndex = -1;
 
         private readonly Bindable<DisplayMode> currentDisplayMode = new Bindable<DisplayMode>();
@@ -404,8 +407,15 @@ namespace osu.Framework.Platform.SDL2
         {
             get
             {
-                SDL_GetDisplayBounds(displayIndex, out var rect);
-                return new Rectangle(rect.x, rect.y, rect.w, rect.h);
+                if (SDL_GetDisplayBounds(displayIndex, out var rect) >= 0)
+                {
+                    return new Rectangle(rect.x, rect.y, rect.w, rect.h);
+                }
+                else
+                {
+                    Logger.Log($"Failed to get window display bounds. SDL Error: {SDL_GetError()}");
+                    return new Rectangle(0, 0, 1, 1);
+                }
             }
         }
 
@@ -543,8 +553,12 @@ namespace osu.Framework.Platform.SDL2
         /// </summary>
         private void updateAndFetchWindowSpecifics()
         {
+            // only update when currentDisplay is null to not override manual display change.
+            if (currentDisplay == null)
+                updateCurrentDisplay();
+
             // don't attempt to run before the window is initialised, as Create() will do so anyway.
-            if (SDLWindowHandle == IntPtr.Zero)
+            if (SDLWindowHandle == IntPtr.Zero || currentDisplay == null)
                 return;
 
             var stateBefore = windowState;
@@ -581,6 +595,14 @@ namespace osu.Framework.Platform.SDL2
                 if (tryFetchMaximisedState(windowState, out bool maximized))
                     windowMaximised = maximized;
             }
+
+            updateCurrentDisplay();
+        }
+
+        private void updateCurrentDisplay()
+        {
+            if (SDLWindowHandle == IntPtr.Zero)
+                return;
 
             int newDisplayIndex = SDL_GetWindowDisplayIndex(SDLWindowHandle);
 
@@ -729,7 +751,7 @@ namespace osu.Framework.Platform.SDL2
 
         private void storeWindowPositionToConfig()
         {
-            if (WindowState != WindowState.Normal)
+            if (WindowState != WindowState.Normal || currentDisplay == null)
                 return;
 
             var displayBounds = currentDisplay.Bounds;
