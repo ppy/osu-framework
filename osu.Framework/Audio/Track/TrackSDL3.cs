@@ -129,7 +129,7 @@ namespace osu.Framework.Audio.Track
                     player.FillRequiredSamples();
             }
 
-            if (amplitudeProcessor != null && isRunning && Math.Abs(currentTime - lastTime) > 1000.0 / 60.0)
+            if (amplitudeProcessor != null && isRunning && Math.Abs(currentTime - lastTime) > 1000.0 / 60.0 && isCompletelyLoaded)
             {
                 lastTime = currentTime;
                 samples ??= new float[(int)(player.SrcRate * (1f / 60)) * player.SrcChannels];
