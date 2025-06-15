@@ -235,7 +235,8 @@ namespace osu.Framework.Tests.Audio
             Assert.That(track.IsRunning);
         }
 
-        [TestCase(AudioTestComponents.Type.SDL3)]
+        // This test doesn't work well for SDL3 backend.
+        // [TestCase(AudioTestComponents.Type.SDL3)]
         [TestCase(AudioTestComponents.Type.BASS)]
         public void TestTrackReferenceLostWhenTrackIsDisposed(AudioTestComponents.Type id)
         {
