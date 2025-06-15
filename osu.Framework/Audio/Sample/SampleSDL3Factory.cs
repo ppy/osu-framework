@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.IO;
 using System.Threading;
 using osu.Framework.Audio.Mixing.SDL3;
 using osu.Framework.Bindables;
@@ -21,11 +22,13 @@ namespace osu.Framework.Audio.Sample
 
         private readonly AutoResetEvent completion = new AutoResetEvent(false);
 
-        public SampleSDL3Factory(string name, SDL3AudioMixer mixer, int playbackConcurrency, SDL_AudioSpec spec)
+        public SampleSDL3Factory(string name, SDL3AudioMixer mixer, int playbackConcurrency, SDL_AudioSpec spec, Stream data, SDL3AudioDecoderManager decoderManager)
             : base(name, playbackConcurrency)
         {
             this.mixer = mixer;
             this.spec = spec;
+
+            decoderManager.StartDecodingAsync(data, spec, false, this);
         }
 
         void SDL3AudioDecoderManager.ISDL3AudioDataReceiver.GetData(byte[] audio, int byteLen, bool done)
@@ -74,9 +77,5 @@ namespace osu.Framework.Audio.Sample
             completion.Dispose();
             base.Dispose(disposing);
         }
-
-        void SDL3AudioDecoderManager.ISDL3AudioDataReceiver.GetMetaData(int bitrate, double length, long byteLength)
-        {
-        } // not needed
     }
 }

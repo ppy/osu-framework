@@ -316,7 +316,7 @@ namespace osu.Framework.Audio
                     }
 
                     fixed (float* ptr = audioBuffer)
-                        SDL_PutAudioStreamData(stream, (IntPtr)ptr, additionalAmount * 4);
+                        SDL_PutAudioStreamData(stream, (IntPtr)ptr, additionalAmount * sizeof(float));
                 }
                 catch (Exception e)
                 {
@@ -324,51 +324,9 @@ namespace osu.Framework.Audio
                 }
             }
 
-            /// <summary>
-            /// With how decoders work, we need this to get test passed
-            /// I don't want this either... otherwise we have to dispose decoder in tests
-            /// </summary>
-            private class ReceiverGCWrapper : SDL3AudioDecoderManager.ISDL3AudioDataReceiver
-            {
-                private readonly WeakReference<SDL3AudioDecoderManager.ISDL3AudioDataReceiver> channelWeakReference;
+            internal Track.Track GetNewTrack(Stream data, string name) => new TrackSDL3(name, AudioSpec, BufferSize, data, decoderManager);
 
-                internal ReceiverGCWrapper(WeakReference<SDL3AudioDecoderManager.ISDL3AudioDataReceiver> channel)
-                {
-                    channelWeakReference = channel;
-                }
-
-                void SDL3AudioDecoderManager.ISDL3AudioDataReceiver.GetData(byte[] data, int length, bool done)
-                {
-                    if (channelWeakReference.TryGetTarget(out SDL3AudioDecoderManager.ISDL3AudioDataReceiver r))
-                        r.GetData(data, length, done);
-                    else
-                        throw new ObjectDisposedException("channel is already disposed");
-                }
-
-                void SDL3AudioDecoderManager.ISDL3AudioDataReceiver.GetMetaData(int bitrate, double length, long byteLength)
-                {
-                    if (channelWeakReference.TryGetTarget(out SDL3AudioDecoderManager.ISDL3AudioDataReceiver r))
-                        r.GetMetaData(bitrate, length, byteLength);
-                    else
-                        throw new ObjectDisposedException("channel is already disposed");
-                }
-            }
-
-            internal Track.Track GetNewTrack(Stream data, string name)
-            {
-                TrackSDL3 track = new TrackSDL3(name, AudioSpec, BufferSize);
-                ReceiverGCWrapper receiverGC = new ReceiverGCWrapper(new WeakReference<SDL3AudioDecoderManager.ISDL3AudioDataReceiver>(track));
-                decoderManager.StartDecodingAsync(data, AudioSpec, true, receiverGC);
-                return track;
-            }
-
-            internal SampleFactory GetSampleFactory(Stream data, string name, AudioMixer mixer, int playbackConcurrency)
-            {
-                SampleSDL3Factory sampleFactory = new SampleSDL3Factory(name, (SDL3AudioMixer)mixer, playbackConcurrency, AudioSpec);
-                ReceiverGCWrapper receiverGC = new ReceiverGCWrapper(new WeakReference<SDL3AudioDecoderManager.ISDL3AudioDataReceiver>(sampleFactory));
-                decoderManager.StartDecodingAsync(data, AudioSpec, false, receiverGC);
-                return sampleFactory;
-            }
+            internal SampleFactory GetSampleFactory(Stream data, string name, AudioMixer mixer, int playbackConcurrency) => new SampleSDL3Factory(name, (SDL3AudioMixer)mixer, playbackConcurrency, AudioSpec, data, decoderManager);
 
             public void Dispose()
             {

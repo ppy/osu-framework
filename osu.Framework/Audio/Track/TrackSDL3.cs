@@ -2,11 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Audio.Mixing.SDL3;
 using osu.Framework.Extensions;
-using osu.Framework.Logging;
 using SDL;
 
 namespace osu.Framework.Audio.Track
@@ -39,7 +39,7 @@ namespace osu.Framework.Audio.Track
         private volatile int bitrate;
         public override int? Bitrate => bitrate;
 
-        public TrackSDL3(string name, SDL_AudioSpec spec, int samples)
+        public TrackSDL3(string name, SDL_AudioSpec spec, int samples, Stream data, SDL3AudioDecoderManager decoderManager)
             : base(name)
         {
             // SoundTouch limitation
@@ -51,6 +51,28 @@ namespace osu.Framework.Audio.Track
             };
 
             player = new TempoSDL3AudioPlayer(spec.freq, spec.channels, samples);
+
+            EnqueueAction(() =>
+            {
+                SDL3AudioDecoderManager.SDL3AudioDecoder decoder = SDL3AudioDecoderManager.CreateDecoder(data, spec, true, true, this);
+                decoder.InitDecoder();
+
+                if (decoder.Loading)
+                {
+                    Length = decoder.Length;
+                    bitrate = decoder.Bitrate;
+
+                    lock (syncRoot)
+                    {
+                        if (!player.IsLoading)
+                            player.PrepareStream(decoder.ByteLength);
+                    }
+
+                    isLoaded = true;
+
+                    decoderManager.AddToDecodingList(decoder);
+                }
+            });
         }
 
         private readonly object syncRoot = new object();
@@ -64,12 +86,6 @@ namespace osu.Framework.Audio.Track
             {
                 if (!player.IsLoaded)
                 {
-                    if (!player.IsLoading)
-                    {
-                        Logger.Log("GetMetaData should be called first, falling back to default buffer size", level: LogLevel.Important);
-                        player.PrepareStream();
-                    }
-
                     player.PutSamplesInStream(audio, length);
 
                     if (done)
@@ -79,23 +95,6 @@ namespace osu.Framework.Audio.Track
                         isCompletelyLoaded = true;
                     }
                 }
-            }
-        }
-
-        void SDL3AudioDecoderManager.ISDL3AudioDataReceiver.GetMetaData(int bitrate, double length, long byteLength)
-        {
-            if (!isLoaded)
-            {
-                Length = length;
-                this.bitrate = bitrate;
-
-                lock (syncRoot)
-                {
-                    if (!player.IsLoading)
-                        player.PrepareStream(byteLength);
-                }
-
-                isLoaded = true;
             }
         }
 

@@ -31,8 +31,6 @@ namespace osu.Framework.Audio
             /// <param name="length">Length in byte of decoded audio. Use this instead of data.Length</param>
             /// <param name="done">Whether if this is the last data or not.</param>
             void GetData(byte[] data, int length, bool done);
-
-            void GetMetaData(int bitrate, double length, long byteLength);
         }
 
         private readonly LinkedList<SDL3AudioDecoder> jobs = new LinkedList<SDL3AudioDecoder>();
@@ -105,6 +103,20 @@ namespace osu.Framework.Audio
             return decoder;
         }
 
+        public void AddToDecodingList(SDL3AudioDecoder decoder)
+        {
+            if (disposedValue)
+                throw new InvalidOperationException($"Cannot add a job on disposed {nameof(SDL3AudioDecoderManager)}");
+
+            if (!decoder.Loading)
+                throw new InvalidOperationException($"A helper method is not meant to be used to start a decoding job, run once or use {nameof(StartDecodingAsync)}");
+
+            lock (jobs)
+                jobs.AddFirst(decoder);
+
+            decoderWaitHandle.Set();
+        }
+
         private void loop(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
@@ -129,13 +141,6 @@ namespace osu.Framework.Audio
                                 try
                                 {
                                     int read = decodeAudio(decoder, out byte[] decoded);
-
-                                    if (!decoder.MetadataSended)
-                                    {
-                                        decoder.MetadataSended = true;
-                                        decoder.Pass?.GetMetaData(decoder.Bitrate, decoder.Length, decoder.ByteLength);
-                                    }
-
                                     decoder.Pass?.GetData(decoded, read, !decoder.Loading);
                                 }
                                 catch (ObjectDisposedException)
@@ -264,42 +269,22 @@ namespace osu.Framework.Audio
             /// </summary>
             internal readonly ISDL3AudioDataReceiver? Pass;
 
-            private int bitrate;
-
             /// <summary>
             /// Audio bitrate. Decoder may fill this in after the first call of <see cref="LoadFromStream(out byte[])"/>.
             /// </summary>
-            public int Bitrate
-            {
-                get => bitrate;
-                set => Interlocked.Exchange(ref bitrate, value);
-            }
-
-            private double length;
+            public int Bitrate { get; private set; }
 
             /// <summary>
             /// Audio length in milliseconds. Decoder may fill this in after the first call of <see cref="LoadFromStream(out byte[])"/>.
             /// </summary>
-            public double Length
-            {
-                get => length;
-                set => Interlocked.Exchange(ref length, value);
-            }
-
-            private long byteLength;
+            public double Length { get; private set; }
 
             /// <summary>
             /// Audio length in byte. Note that this may not be accurate. You cannot depend on this value entirely.
             /// You can find out the actual byte length by summing up byte counts you received once decoding is done.
             /// Decoder may fill this in after the first call of <see cref="LoadFromStream(out byte[])"/>.
             /// </summary>
-            public long ByteLength
-            {
-                get => byteLength;
-                set => Interlocked.Exchange(ref byteLength, value);
-            }
-
-            internal bool MetadataSended;
+            public long ByteLength { get; private set; }
 
             internal volatile bool StopJob;
 
@@ -334,6 +319,8 @@ namespace osu.Framework.Audio
                     Stream.Dispose();
             }
 
+            public abstract void InitDecoder();
+
             protected abstract int LoadFromStreamInternal(out byte[] decoded);
 
             /// <summary>
@@ -348,6 +335,9 @@ namespace osu.Framework.Audio
 
                 try
                 {
+                    if (!Loading)
+                        InitDecoder();
+
                     read = LoadFromStreamInternal(out decoded);
                 }
                 catch (Exception e)
@@ -419,7 +409,7 @@ namespace osu.Framework.Audio
                     base.Dispose();
                 }
 
-                protected override int LoadFromStreamInternal(out byte[] decoded)
+                public override void InitDecoder()
                 {
                     if (Bass.CurrentDevice < 0)
                         throw new InvalidOperationException($"Initialize a BASS device to decode audio: {Bass.LastError}");
@@ -465,7 +455,10 @@ namespace osu.Framework.Audio
 
                         Loading = true;
                     }
+                }
 
+                protected override int LoadFromStreamInternal(out byte[] decoded)
+                {
                     int handle = resampler == 0 ? decodeStream : resampler;
 
                     int bufferLen = (int)Bass.ChannelSeconds2Bytes(handle, 1);
@@ -513,7 +506,7 @@ namespace osu.Framework.Audio
                     base.Dispose();
                 }
 
-                protected override int LoadFromStreamInternal(out byte[] decoded)
+                public override void InitDecoder()
                 {
                     if (ffmpeg == null)
                     {
@@ -529,6 +522,12 @@ namespace osu.Framework.Audio
 
                         Loading = true;
                     }
+                }
+
+                protected override int LoadFromStreamInternal(out byte[] decoded)
+                {
+                    if (ffmpeg == null)
+                        throw new InvalidOperationException($"Run {nameof(InitDecoder)} first");
 
                     int got = ffmpeg.DecodeNextAudioFrame(out decoded, !IsTrack);
 

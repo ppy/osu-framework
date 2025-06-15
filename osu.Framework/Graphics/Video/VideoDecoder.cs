@@ -337,15 +337,14 @@ namespace osu.Framework.Graphics.Video
             if (videoCodecContext == null)
                 return Matrix3.Zero;
 
-            switch (videoCodecContext->colorspace)
             // this matches QuickTime Player's choice of colour spaces:
             // - any video with width < 704 and height < 576 uses the SDTV colorspace.
             // - any video with width >= 704 and height >= 576 uses the HDTV colorspace.
             // (704x576 in particular has a special colour space, but we don't worry about it).
-            bool unspecifiedUsesHDTV = codecContext->width >= 704 || codecContext->height >= 576;
+            bool unspecifiedUsesHDTV = videoCodecContext->width >= 704 || videoCodecContext->height >= 576;
 
-            if (codecContext->colorspace == AVColorSpace.AVCOL_SPC_BT709
-                || (codecContext->colorspace == AVColorSpace.AVCOL_SPC_UNSPECIFIED && unspecifiedUsesHDTV))
+            if (videoCodecContext->colorspace == AVColorSpace.AVCOL_SPC_BT709
+                || (videoCodecContext->colorspace == AVColorSpace.AVCOL_SPC_UNSPECIFIED && unspecifiedUsesHDTV))
             {
                 // matrix coefficients for HDTV / Rec. 709 colorspace.
                 return new Matrix3(1.164f, 1.164f, 1.164f,

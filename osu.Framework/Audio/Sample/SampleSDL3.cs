@@ -9,6 +9,8 @@ namespace osu.Framework.Audio.Sample
     {
         public override bool IsLoaded => factory.IsLoaded;
 
+        public override double Length => factory.Length;
+
         private readonly SampleSDL3Factory factory;
         private readonly SDL3AudioMixer mixer;
 
