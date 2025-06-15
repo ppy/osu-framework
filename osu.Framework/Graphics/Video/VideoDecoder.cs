@@ -23,6 +23,7 @@ using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Platform.Linux.Native;
+using System.Buffers;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -54,12 +55,12 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// The frame rate of the video stream this decoder is decoding.
         /// </summary>
-        public double FrameRate => stream == null ? 0 : stream->avg_frame_rate.GetValue();
+        public double FrameRate => videoStream == null ? 0 : videoStream->avg_frame_rate.GetValue();
 
         /// <summary>
         /// True if the decoder can seek, false otherwise. Determined by the stream this decoder was created with.
         /// </summary>
-        public bool CanSeek => videoStream?.CanSeek == true;
+        public bool CanSeek => dataStream?.CanSeek == true;
 
         /// <summary>
         /// The current state of the decoding process.
@@ -74,9 +75,14 @@ namespace osu.Framework.Graphics.Video
         // libav-context-related
         private AVFormatContext* formatContext;
         private AVIOContext* ioContext;
-        private AVStream* stream;
-        private AVCodecContext* codecContext;
+
+        private AVStream* videoStream;
+        private AVCodecContext* videoCodecContext;
         private SwsContext* swsContext;
+
+        private AVStream* audioStream;
+        private AVCodecContext* audioCodecContext;
+        private SwrContext* swrContext;
 
         private avio_alloc_context_read_packet readPacketCallback;
         private avio_alloc_context_seek seekCallback;
@@ -84,9 +90,10 @@ namespace osu.Framework.Graphics.Video
         private bool inputOpened;
         private bool isDisposed;
         private bool hwDecodingAllowed = true;
-        private Stream videoStream;
+        private Stream dataStream;
 
-        private double timeBaseInSeconds;
+        private double videoTimeBaseInSeconds;
+        private double audioTimeBaseInSeconds;
 
         // active decoder state
         private volatile float lastDecodedFrameTime;
@@ -125,6 +132,7 @@ namespace osu.Framework.Graphics.Video
                 loadVersionedLibraryGlobally("avcodec");
                 loadVersionedLibraryGlobally("avformat");
                 loadVersionedLibraryGlobally("swscale");
+                loadVersionedLibraryGlobally("swresample");
             }
         }
 
@@ -138,25 +146,32 @@ namespace osu.Framework.Graphics.Video
         {
         }
 
+        private VideoDecoder(Stream stream)
+        {
+            ffmpeg = CreateFuncs();
+            dataStream = stream;
+            if (!dataStream.CanRead)
+                throw new InvalidOperationException($"The given stream does not support reading. A stream used for a {nameof(VideoDecoder)} must support reading.");
+
+            State = DecoderState.Ready;
+            decoderCommands = new ConcurrentQueue<Action>();
+            handle = new ObjectHandle<VideoDecoder>(this, GCHandleType.Normal);
+        }
+
         /// <summary>
         /// Creates a new video decoder that decodes the given video stream.
         /// </summary>
         /// <param name="renderer">The renderer to display the video.</param>
         /// <param name="videoStream">The stream that should be decoded.</param>
         public VideoDecoder(IRenderer renderer, Stream videoStream)
+            : this(videoStream)
         {
-            ffmpeg = CreateFuncs();
-
             this.renderer = renderer;
-            this.videoStream = videoStream;
-            if (!videoStream.CanRead)
-                throw new InvalidOperationException($"The given stream does not support reading. A stream used for a {nameof(VideoDecoder)} must support reading.");
 
-            State = DecoderState.Ready;
             decodedFrames = new ConcurrentQueue<DecodedFrame>();
-            decoderCommands = new ConcurrentQueue<Action>();
             availableTextures = new ConcurrentQueue<Texture>(); // TODO: use "real" object pool when there's some public pool supporting disposables
-            handle = new ObjectHandle<VideoDecoder>(this, GCHandleType.Normal);
+            scalerFrames = new ConcurrentQueue<FFmpegFrame>();
+            hwTransferFrames = new ConcurrentQueue<FFmpegFrame>();
 
             TargetHardwareVideoDecoders.BindValueChanged(_ =>
             {
@@ -164,8 +179,52 @@ namespace osu.Framework.Graphics.Video
                 if (formatContext == null)
                     return;
 
-                decoderCommands.Enqueue(recreateCodecContext);
+                decoderCommands.Enqueue(RecreateCodecContext);
             });
+        }
+
+        private bool isAudioEnabled;
+        private readonly bool audioOnly;
+
+        private int audioRate;
+        private int audioChannels;
+        private int audioBits;
+        private long audioChannelLayout;
+        private AVSampleFormat audioFmt;
+
+        public long AudioBitrate => audioCodecContext->bit_rate;
+        public long AudioFrameCount => audioStream->nb_frames;
+
+        // Audio mode
+        public VideoDecoder(Stream audioStream, int rate, int channels, bool isFloat, int bits, bool signed)
+            : this(audioStream)
+        {
+            audioOnly = true;
+            hwDecodingAllowed = false;
+            EnableAudioDecoding(rate, channels, isFloat, bits, signed);
+        }
+
+        public void EnableAudioDecoding(int rate, int channels, bool isFloat, int bits, bool signed)
+        {
+            audioRate = rate;
+            audioChannels = channels;
+            audioBits = bits;
+
+            isAudioEnabled = true;
+            audioChannelLayout = ffmpeg.av_get_default_channel_layout(channels);
+
+            memoryStream = new MemoryStream();
+
+            if (isFloat)
+                audioFmt = AVSampleFormat.AV_SAMPLE_FMT_FLT;
+            else if (!signed && bits == 8)
+                audioFmt = AVSampleFormat.AV_SAMPLE_FMT_U8;
+            else if (signed && bits == 16)
+                audioFmt = AVSampleFormat.AV_SAMPLE_FMT_S16;
+            else if (signed && bits == 32)
+                audioFmt = AVSampleFormat.AV_SAMPLE_FMT_S32;
+            else
+                throw new InvalidOperationException("swresample doesn't support provided format!");
         }
 
         /// <summary>
@@ -179,8 +238,18 @@ namespace osu.Framework.Graphics.Video
 
             decoderCommands.Enqueue(() =>
             {
-                ffmpeg.avcodec_flush_buffers(codecContext);
-                ffmpeg.av_seek_frame(formatContext, stream->index, (long)(targetTimestamp / timeBaseInSeconds / 1000.0), FFmpegFuncs.AVSEEK_FLAG_BACKWARD);
+                if (!audioOnly)
+                {
+                    ffmpeg.avcodec_flush_buffers(videoCodecContext);
+                    ffmpeg.av_seek_frame(formatContext, videoStream->index, (long)(targetTimestamp / videoTimeBaseInSeconds / 1000.0), FFmpegFuncs.AVSEEK_FLAG_BACKWARD);
+                }
+
+                if (audioStream != null)
+                {
+                    ffmpeg.avcodec_flush_buffers(audioCodecContext);
+                    ffmpeg.av_seek_frame(formatContext, audioStream->index, (long)(targetTimestamp / audioTimeBaseInSeconds / 1000.0), FFmpegFuncs.AVSEEK_FLAG_BACKWARD);
+                }
+
                 skipOutputUntilTime = targetTimestamp;
                 State = DecoderState.Ready;
             });
@@ -212,8 +281,8 @@ namespace osu.Framework.Graphics.Video
             {
                 try
                 {
-                    prepareDecoding();
-                    recreateCodecContext();
+                    PrepareDecoding();
+                    RecreateCodecContext();
                 }
                 catch (Exception e)
                 {
@@ -265,17 +334,17 @@ namespace osu.Framework.Graphics.Video
         // https://en.wikipedia.org/wiki/YCbCr
         public Matrix3 GetConversionMatrix()
         {
-            if (codecContext == null)
+            if (videoCodecContext == null)
                 return Matrix3.Zero;
 
             // this matches QuickTime Player's choice of colour spaces:
             // - any video with width < 704 and height < 576 uses the SDTV colorspace.
             // - any video with width >= 704 and height >= 576 uses the HDTV colorspace.
             // (704x576 in particular has a special colour space, but we don't worry about it).
-            bool unspecifiedUsesHDTV = codecContext->width >= 704 || codecContext->height >= 576;
+            bool unspecifiedUsesHDTV = videoCodecContext->width >= 704 || videoCodecContext->height >= 576;
 
-            if (codecContext->colorspace == AVColorSpace.AVCOL_SPC_BT709
-                || (codecContext->colorspace == AVColorSpace.AVCOL_SPC_UNSPECIFIED && unspecifiedUsesHDTV))
+            if (videoCodecContext->colorspace == AVColorSpace.AVCOL_SPC_BT709
+                || (videoCodecContext->colorspace == AVColorSpace.AVCOL_SPC_UNSPECIFIED && unspecifiedUsesHDTV))
             {
                 // matrix coefficients for HDTV / Rec. 709 colorspace.
                 return new Matrix3(1.164f, 1.164f, 1.164f,
@@ -297,7 +366,7 @@ namespace osu.Framework.Graphics.Video
                 return 0;
 
             var span = new Span<byte>(bufferPtr, bufferSize);
-            int bytesRead = decoder.videoStream.Read(span);
+            int bytesRead = decoder.dataStream.Read(span);
 
             return bytesRead != 0 ? bytesRead : FFmpegFuncs.AVERROR_EOF;
         }
@@ -309,36 +378,38 @@ namespace osu.Framework.Graphics.Video
             if (!handle.GetTarget(out VideoDecoder decoder))
                 return -1;
 
-            if (!decoder.videoStream.CanSeek)
+            if (!decoder.dataStream.CanSeek)
                 throw new InvalidOperationException("Tried seeking on a video sourced by a non-seekable stream.");
 
             switch (whence)
             {
                 case StdIo.SEEK_CUR:
-                    decoder.videoStream.Seek(offset, SeekOrigin.Current);
+                    decoder.dataStream.Seek(offset, SeekOrigin.Current);
                     break;
 
                 case StdIo.SEEK_END:
-                    decoder.videoStream.Seek(offset, SeekOrigin.End);
+                    decoder.dataStream.Seek(offset, SeekOrigin.End);
                     break;
 
                 case StdIo.SEEK_SET:
-                    decoder.videoStream.Seek(offset, SeekOrigin.Begin);
+                    decoder.dataStream.Seek(offset, SeekOrigin.Begin);
                     break;
 
                 case FFmpegFuncs.AVSEEK_SIZE:
-                    return decoder.videoStream.Length;
+                    return decoder.dataStream.Length;
 
                 default:
                     return -1;
             }
 
-            return decoder.videoStream.Position;
+            return decoder.dataStream.Position;
         }
 
         // sets up libavformat state: creates the AVFormatContext, the frames, etc. to start decoding, but does not actually start the decodingLoop
-        private void prepareDecoding()
+        internal void PrepareDecoding()
         {
+            dataStream.Position = 0;
+
             const int context_buffer_size = 4096;
             readPacketCallback = readPacket;
             seekCallback = streamSeekCallbacks;
@@ -367,26 +438,61 @@ namespace osu.Framework.Graphics.Video
             if (findStreamInfoResult < 0)
                 throw new InvalidOperationException($"Error finding stream info: {getErrorMessage(findStreamInfoResult)}");
 
-            int streamIndex = ffmpeg.av_find_best_stream(formatContext, AVMediaType.AVMEDIA_TYPE_VIDEO, -1, -1, null, 0);
-            if (streamIndex < 0)
-                throw new InvalidOperationException($"Couldn't find video stream: {getErrorMessage(streamIndex)}");
+            packet = ffmpeg.av_packet_alloc();
+            receiveFrame = ffmpeg.av_frame_alloc();
 
-            stream = formatContext->streams[streamIndex];
-            timeBaseInSeconds = stream->time_base.GetValue();
+            int streamIndex = -1;
 
-            if (stream->duration > 0)
-                Duration = stream->duration * timeBaseInSeconds * 1000.0;
-            else
-                Duration = formatContext->duration / (double)FFmpegFuncs.AV_TIME_BASE * 1000.0;
+            if (!audioOnly)
+            {
+                streamIndex = ffmpeg.av_find_best_stream(formatContext, AVMediaType.AVMEDIA_TYPE_VIDEO, -1, -1, null, 0);
+                if (streamIndex < 0)
+                    throw new InvalidOperationException($"Couldn't find stream: {getErrorMessage(streamIndex)}");
+
+                videoStream = formatContext->streams[streamIndex];
+                videoTimeBaseInSeconds = videoStream->time_base.GetValue();
+
+                if (videoStream->duration > 0)
+                    Duration = videoStream->duration * videoTimeBaseInSeconds * 1000.0;
+                else
+                    Duration = formatContext->duration / (double)FFmpegFuncs.AV_TIME_BASE * 1000.0;
+            }
+
+            if (isAudioEnabled)
+            {
+                streamIndex = ffmpeg.av_find_best_stream(formatContext, AVMediaType.AVMEDIA_TYPE_AUDIO, -1, streamIndex, null, 0);
+                if (streamIndex < 0 && audioOnly)
+                    throw new InvalidOperationException($"Couldn't find stream: {getErrorMessage(streamIndex)}");
+
+                audioStream = formatContext->streams[streamIndex];
+                audioTimeBaseInSeconds = audioStream->time_base.GetValue();
+
+                if (audioOnly)
+                {
+                    if (audioStream->duration > 0)
+                        Duration = audioStream->duration * audioTimeBaseInSeconds * 1000.0;
+                    else
+                        Duration = formatContext->duration / (double)FFmpegFuncs.AV_TIME_BASE * 1000.0;
+                }
+            }
         }
 
-        private void recreateCodecContext()
+        internal void RecreateCodecContext()
+        {
+            RecreateCodecContext(ref videoStream, ref videoCodecContext, hwDecodingAllowed);
+            RecreateCodecContext(ref audioStream, ref audioCodecContext, false);
+
+            if (audioCodecContext != null && !prepareResampler())
+                throw new InvalidDataException("Error trying to prepare audio resampler");
+        }
+
+        internal void RecreateCodecContext(ref AVStream* stream, ref AVCodecContext* codecContext, bool allowHwDecoding)
         {
             if (stream == null)
                 return;
 
             var codecParams = *stream->codecpar;
-            var targetHwDecoders = hwDecodingAllowed ? TargetHardwareVideoDecoders.Value : HardwareVideoDecoder.None;
+            var targetHwDecoders = allowHwDecoding ? TargetHardwareVideoDecoders.Value : HardwareVideoDecoder.None;
             bool openSuccessful = false;
 
             foreach (var (decoder, hwDeviceType) in GetAvailableDecoders(formatContext->iformat, codecParams.codec_id, targetHwDecoders))
@@ -447,11 +553,37 @@ namespace osu.Framework.Graphics.Video
                 throw new InvalidOperationException($"No usable decoder found for codec ID {codecParams.codec_id}");
         }
 
+        private bool prepareResampler()
+        {
+            long srcChLayout = ffmpeg.av_get_default_channel_layout(audioCodecContext->channels);
+            AVSampleFormat srcAudioFmt = audioCodecContext->sample_fmt;
+            int srcRate = audioCodecContext->sample_rate;
+
+            if (audioChannelLayout == srcChLayout && audioFmt == srcAudioFmt && audioRate == srcRate)
+            {
+                swrContext = null;
+                return true;
+            }
+
+            swrContext = ffmpeg.swr_alloc_set_opts(null, audioChannelLayout, audioFmt, audioRate,
+                srcChLayout, srcAudioFmt, srcRate, 0, null);
+
+            if (swrContext == null)
+            {
+                Logger.Log("Failed allocating memory for swresampler", level: LogLevel.Error);
+                return false;
+            }
+
+            ffmpeg.swr_init(swrContext);
+
+            return ffmpeg.swr_is_initialized(swrContext) > 0;
+        }
+
+        private AVPacket* packet;
+        private AVFrame* receiveFrame;
+
         private void decodingLoop(CancellationToken cancellationToken)
         {
-            var packet = ffmpeg.av_packet_alloc();
-            var receiveFrame = ffmpeg.av_frame_alloc();
-
             const int max_pending_frames = 3;
 
             try
@@ -503,12 +635,44 @@ namespace osu.Framework.Graphics.Video
             }
             finally
             {
-                ffmpeg.av_packet_free(&packet);
-                ffmpeg.av_frame_free(&receiveFrame);
-
                 if (State != DecoderState.Faulted)
                     State = DecoderState.Stopped;
             }
+        }
+
+        private MemoryStream memoryStream;
+
+        internal int DecodeNextAudioFrame(out byte[] decodedAudio, bool decodeUntilEnd = false)
+        {
+            if (audioStream == null)
+            {
+                decodedAudio = Array.Empty<byte>();
+                return 0;
+            }
+
+            memoryStream.Position = 0;
+
+            try
+            {
+                do
+                {
+                    decodeNextFrame(packet, receiveFrame);
+
+                    if (State != DecoderState.Running)
+                        decodeUntilEnd = false;
+                } while (decodeUntilEnd);
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, "VideoDecoder faulted while decoding audio");
+                State = DecoderState.Faulted;
+                decodedAudio = Array.Empty<byte>();
+                return 0;
+            }
+
+            decodedAudio = memoryStream.GetBuffer();
+
+            return (int)memoryStream.Position;
         }
 
         private void decodeNextFrame(AVPacket* packet, AVFrame* receiveFrame)
@@ -525,9 +689,13 @@ namespace osu.Framework.Graphics.Video
 
                 bool unrefPacket = true;
 
-                if (packet->stream_index == stream->index)
+                AVCodecContext* codecContext =
+                    !audioOnly && packet->stream_index == videoStream->index ? videoCodecContext
+                    : audioStream != null && packet->stream_index == audioStream->index ? audioCodecContext : null;
+
+                if (codecContext != null)
                 {
-                    int sendPacketResult = sendPacket(receiveFrame, packet);
+                    int sendPacketResult = sendPacket(codecContext, receiveFrame, packet);
 
                     // keep the packet data for next frame if we didn't send it successfully.
                     if (sendPacketResult == -FFmpegFuncs.EAGAIN)
@@ -542,7 +710,14 @@ namespace osu.Framework.Graphics.Video
             else if (readFrameResult == FFmpegFuncs.AVERROR_EOF)
             {
                 // Flush decoder.
-                sendPacket(receiveFrame, null);
+                if (!audioOnly)
+                    sendPacket(videoCodecContext, receiveFrame, null);
+
+                if (audioStream != null)
+                {
+                    sendPacket(audioCodecContext, receiveFrame, null);
+                    resampleAndAppendToAudioStream(null); // flush audio resampler
+                }
 
                 if (Looping)
                 {
@@ -566,7 +741,7 @@ namespace osu.Framework.Graphics.Video
             }
         }
 
-        private int sendPacket(AVFrame* receiveFrame, AVPacket* packet)
+        private int sendPacket(AVCodecContext* codecContext, AVFrame* receiveFrame, AVPacket* packet)
         {
             // send the packet for decoding.
             int sendPacketResult = ffmpeg.avcodec_send_packet(codecContext, packet);
@@ -575,7 +750,7 @@ namespace osu.Framework.Graphics.Video
             // otherwise we would get stuck in an infinite loop.
             if (sendPacketResult == 0 || sendPacketResult == -FFmpegFuncs.EAGAIN)
             {
-                readDecodedFrames(receiveFrame);
+                readDecodedFrames(codecContext, receiveFrame);
             }
             else
             {
@@ -586,10 +761,10 @@ namespace osu.Framework.Graphics.Video
             return sendPacketResult;
         }
 
-        private readonly ConcurrentQueue<FFmpegFrame> hwTransferFrames = new ConcurrentQueue<FFmpegFrame>();
+        private readonly ConcurrentQueue<FFmpegFrame> hwTransferFrames;
         private void returnHwTransferFrame(FFmpegFrame frame) => hwTransferFrames.Enqueue(frame);
 
-        private void readDecodedFrames(AVFrame* receiveFrame)
+        private void readDecodedFrames(AVCodecContext* codecContext, AVFrame* receiveFrame)
         {
             while (true)
             {
@@ -610,61 +785,140 @@ namespace osu.Framework.Graphics.Video
                 // but some HW codecs don't set it in which case fallback to `pts`
                 long frameTimestamp = receiveFrame->best_effort_timestamp != FFmpegFuncs.AV_NOPTS_VALUE ? receiveFrame->best_effort_timestamp : receiveFrame->pts;
 
-                double frameTime = (frameTimestamp - stream->start_time) * timeBaseInSeconds * 1000;
+                double frameTime = 0.0;
 
-                if (skipOutputUntilTime > frameTime)
-                    continue;
-
-                // get final frame.
-                FFmpegFrame frame;
-
-                if (((AVPixelFormat)receiveFrame->format).IsHardwarePixelFormat())
+                if (audioStream != null && codecContext->codec_type == AVMediaType.AVMEDIA_TYPE_AUDIO)
                 {
-                    // transfer data from HW decoder to RAM.
-                    if (!hwTransferFrames.TryDequeue(out var hwTransferFrame))
-                        hwTransferFrame = new FFmpegFrame(ffmpeg, returnHwTransferFrame);
+                    frameTime = (frameTimestamp - audioStream->start_time) * audioTimeBaseInSeconds * 1000;
 
-                    // WARNING: frames from `av_hwframe_transfer_data` have their timestamps set to AV_NOPTS_VALUE instead of real values.
-                    // if you need to use them later, take them from `receiveFrame`.
-                    int transferResult = ffmpeg.av_hwframe_transfer_data(hwTransferFrame.Pointer, receiveFrame, 0);
-
-                    if (transferResult < 0)
-                    {
-                        Logger.Log($"Failed to transfer frame from HW decoder: {getErrorMessage(transferResult)}");
-                        tryDisableHwDecoding(transferResult);
-
-                        hwTransferFrame.Dispose();
+                    if (skipOutputUntilTime > frameTime)
                         continue;
+
+                    resampleAndAppendToAudioStream(receiveFrame);
+                }
+                else if (!audioOnly && codecContext->codec_type == AVMediaType.AVMEDIA_TYPE_VIDEO)
+                {
+                    frameTime = (frameTimestamp - videoStream->start_time) * videoTimeBaseInSeconds * 1000;
+
+                    if (skipOutputUntilTime > frameTime)
+                        continue;
+
+                    // get final frame.
+                    FFmpegFrame frame;
+
+                    if (((AVPixelFormat)receiveFrame->format).IsHardwarePixelFormat())
+                    {
+                        // transfer data from HW decoder to RAM.
+                        if (!hwTransferFrames.TryDequeue(out var hwTransferFrame))
+                            hwTransferFrame = new FFmpegFrame(ffmpeg, returnHwTransferFrame);
+
+                        // WARNING: frames from `av_hwframe_transfer_data` have their timestamps set to AV_NOPTS_VALUE instead of real values.
+                        // if you need to use them later, take them from `receiveFrame`.
+                        int transferResult = ffmpeg.av_hwframe_transfer_data(hwTransferFrame.Pointer, receiveFrame, 0);
+
+                        if (transferResult < 0)
+                        {
+                            Logger.Log($"Failed to transfer frame from HW decoder: {getErrorMessage(transferResult)}");
+                            tryDisableHwDecoding(transferResult);
+
+                            hwTransferFrame.Dispose();
+                            continue;
+                        }
+
+                        frame = hwTransferFrame;
+                    }
+                    else
+                    {
+                        // copy data to a new AVFrame so that `receiveFrame` can be reused.
+                        frame = new FFmpegFrame(ffmpeg);
+                        ffmpeg.av_frame_move_ref(frame.Pointer, receiveFrame);
                     }
 
-                    frame = hwTransferFrame;
-                }
-                else
-                {
-                    // copy data to a new AVFrame so that `receiveFrame` can be reused.
-                    frame = new FFmpegFrame(ffmpeg);
-                    ffmpeg.av_frame_move_ref(frame.Pointer, receiveFrame);
+                    // Note: this is the pixel format that `VideoTexture` expects internally
+                    frame = ensureFramePixelFormat(frame, AVPixelFormat.AV_PIX_FMT_YUV420P);
+                    if (frame == null)
+                        continue;
+
+                    if (!availableTextures.TryDequeue(out var tex))
+                        tex = renderer.CreateVideoTexture(frame.Pointer->width, frame.Pointer->height);
+
+                    var upload = new VideoTextureUpload(frame);
+
+                    // We do not support videos with transparency at this point, so the upload's opacity as well as the texture's opacity is always opaque.
+                    tex.SetData(upload, Opacity.Opaque);
+                    decodedFrames.Enqueue(new DecodedFrame { Time = frameTime, Texture = tex });
                 }
 
                 lastDecodedFrameTime = (float)frameTime;
-
-                // Note: this is the pixel format that `VideoTexture` expects internally
-                frame = ensureFramePixelFormat(frame, AVPixelFormat.AV_PIX_FMT_YUV420P);
-                if (frame == null)
-                    continue;
-
-                if (!availableTextures.TryDequeue(out var tex))
-                    tex = renderer.CreateVideoTexture(frame.Pointer->width, frame.Pointer->height);
-
-                var upload = new VideoTextureUpload(frame);
-
-                // We do not support videos with transparency at this point, so the upload's opacity as well as the texture's opacity is always opaque.
-                tex.SetData(upload, Opacity.Opaque);
-                decodedFrames.Enqueue(new DecodedFrame { Time = frameTime, Texture = tex });
             }
         }
 
-        private readonly ConcurrentQueue<FFmpegFrame> scalerFrames = new ConcurrentQueue<FFmpegFrame>();
+        private void resampleAndAppendToAudioStream(AVFrame* frame)
+        {
+            if (memoryStream == null || audioStream == null)
+                return;
+
+            int sampleCount;
+            byte*[] source;
+
+            if (swrContext != null)
+            {
+                sampleCount = (int)ffmpeg.swr_get_delay(swrContext, audioRate);
+                source = null;
+
+                if (frame != null)
+                {
+                    sampleCount = ffmpeg.swr_get_out_samples(swrContext, frame->nb_samples);
+                    source = frame->data.ToArray();
+                }
+
+                // no frame, no remaining samples in resampler
+                if (sampleCount <= 0)
+                    return;
+            }
+            else if (frame != null)
+            {
+                sampleCount = frame->nb_samples;
+                source = frame->data.ToArray();
+            }
+            else // no frame, no resampler
+            {
+                return;
+            }
+
+            int audioSize = sampleCount * audioChannels * (audioBits / 8);
+            byte[] audioDest = ArrayPool<byte>.Shared.Rent(audioSize);
+            int nbSamples = 0;
+
+            try
+            {
+                if (swrContext != null)
+                {
+                    fixed (byte** data = source)
+                    fixed (byte* dest = audioDest)
+                        nbSamples = ffmpeg.swr_convert(swrContext, &dest, sampleCount, data, frame != null ? frame->nb_samples : 0);
+                }
+                else if (source != null)
+                {
+                    // assuming that the destination and source are not planar as we never define planar in ctor
+                    nbSamples = sampleCount;
+
+                    for (int i = 0; i < audioSize; i++)
+                    {
+                        audioDest[i] = *(source[0] + i);
+                    }
+                }
+
+                if (nbSamples > 0)
+                    memoryStream.Write(audioDest, 0, nbSamples * (audioBits / 8) * audioChannels);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(audioDest);
+            }
+        }
+
+        private readonly ConcurrentQueue<FFmpegFrame> scalerFrames;
         private void returnScalerFrame(FFmpegFrame frame) => scalerFrames.Enqueue(frame);
 
         [CanBeNull]
@@ -728,7 +982,7 @@ namespace osu.Framework.Graphics.Video
 
         private void tryDisableHwDecoding(int errorCode)
         {
-            if (!hwDecodingAllowed || TargetHardwareVideoDecoders.Value == HardwareVideoDecoder.None || codecContext == null || codecContext->hw_device_ctx == null)
+            if (!hwDecodingAllowed || TargetHardwareVideoDecoders.Value == HardwareVideoDecoder.None || videoCodecContext == null || videoCodecContext->hw_device_ctx == null)
                 return;
 
             hwDecodingAllowed = false;
@@ -744,7 +998,7 @@ namespace osu.Framework.Graphics.Video
             {
                 Logger.Log("Disabling hardware decoding of the current video due to an unexpected error");
 
-                decoderCommands.Enqueue(recreateCodecContext);
+                decoderCommands.Enqueue(RecreateCodecContext);
             }
         }
 
@@ -888,7 +1142,16 @@ namespace osu.Framework.Graphics.Video
                 avio_context_free = FFmpeg.AutoGen.ffmpeg.avio_context_free,
                 sws_freeContext = FFmpeg.AutoGen.ffmpeg.sws_freeContext,
                 sws_getCachedContext = FFmpeg.AutoGen.ffmpeg.sws_getCachedContext,
-                sws_scale = FFmpeg.AutoGen.ffmpeg.sws_scale
+                sws_scale = FFmpeg.AutoGen.ffmpeg.sws_scale,
+                swr_alloc_set_opts = FFmpeg.AutoGen.ffmpeg.swr_alloc_set_opts,
+                swr_init = FFmpeg.AutoGen.ffmpeg.swr_init,
+                swr_is_initialized = FFmpeg.AutoGen.ffmpeg.swr_is_initialized,
+                swr_free = FFmpeg.AutoGen.ffmpeg.swr_free,
+                swr_close = FFmpeg.AutoGen.ffmpeg.swr_close,
+                swr_convert = FFmpeg.AutoGen.ffmpeg.swr_convert,
+                swr_get_delay = FFmpeg.AutoGen.ffmpeg.swr_get_delay,
+                av_get_default_channel_layout = FFmpeg.AutoGen.ffmpeg.av_get_default_channel_layout,
+                swr_get_out_samples = FFmpeg.AutoGen.ffmpeg.swr_get_out_samples,
             };
         }
 
@@ -914,8 +1177,20 @@ namespace osu.Framework.Graphics.Video
 
             decoderCommands.Clear();
 
-            StopDecodingAsync().ContinueWith(_ =>
+            void freeFFmpeg()
             {
+                if (packet != null)
+                {
+                    fixed (AVPacket** ptr = &packet)
+                        ffmpeg.av_packet_free(ptr);
+                }
+
+                if (receiveFrame != null)
+                {
+                    fixed (AVFrame** ptr = &receiveFrame)
+                        ffmpeg.av_frame_free(ptr);
+                }
+
                 if (formatContext != null && inputOpened)
                 {
                     fixed (AVFormatContext** ptr = &formatContext)
@@ -932,38 +1207,64 @@ namespace osu.Framework.Graphics.Video
                         ffmpeg.avio_context_free(ptr);
                 }
 
-                if (codecContext != null)
+                if (videoCodecContext != null)
                 {
-                    fixed (AVCodecContext** ptr = &codecContext)
+                    fixed (AVCodecContext** ptr = &videoCodecContext)
+                        ffmpeg.avcodec_free_context(ptr);
+                }
+
+                if (audioCodecContext != null)
+                {
+                    fixed (AVCodecContext** ptr = &audioCodecContext)
                         ffmpeg.avcodec_free_context(ptr);
                 }
 
                 seekCallback = null;
                 readPacketCallback = null;
 
-                videoStream.Dispose();
-                videoStream = null;
+                if (!audioOnly)
+                    dataStream.Dispose();
+
+                dataStream = null;
 
                 if (swsContext != null)
                     ffmpeg.sws_freeContext(swsContext);
 
-                while (decodedFrames.TryDequeue(out var f))
+                if (swrContext != null)
                 {
-                    f.Texture.FlushUploads();
-                    f.Texture.Dispose();
+                    fixed (SwrContext** ptr = &swrContext)
+                        ffmpeg.swr_free(ptr);
                 }
 
-                while (availableTextures.TryDequeue(out var t))
-                    t.Dispose();
+                memoryStream?.Dispose();
 
-                while (hwTransferFrames.TryDequeue(out var hwF))
-                    hwF.Dispose();
+                memoryStream = null;
 
-                while (scalerFrames.TryDequeue(out var sf))
-                    sf.Dispose();
+                if (!audioOnly)
+                {
+                    while (decodedFrames.TryDequeue(out var f))
+                    {
+                        f.Texture.FlushUploads();
+                        f.Texture.Dispose();
+                    }
+
+                    while (availableTextures.TryDequeue(out var t))
+                        t.Dispose();
+
+                    while (hwTransferFrames.TryDequeue(out var hwF))
+                        hwF.Dispose();
+
+                    while (scalerFrames.TryDequeue(out var sf))
+                        sf.Dispose();
+                }
 
                 handle.Dispose();
-            });
+            }
+
+            if (audioOnly)
+                freeFFmpeg();
+            else
+                StopDecodingAsync().ContinueWith(_ => freeFFmpeg());
         }
 
         #endregion
