@@ -300,7 +300,7 @@ namespace osu.Framework.Audio
 
             private void internalAudioCallback(SDL_AudioStream* stream, int additionalAmount)
             {
-                additionalAmount /= 4;
+                additionalAmount /= sizeof(float);
 
                 if (audioBuffer == null || audioBuffer.Length < additionalAmount)
                     audioBuffer = new float[additionalAmount];

@@ -25,6 +25,7 @@ namespace osu.Framework.Audio.Track
 
         private bool doneFilling;
         private bool donePlaying;
+        private bool first = true;
 
         public override bool Done => base.Done && (soundTouch == null || donePlaying);
 
@@ -51,16 +52,39 @@ namespace osu.Framework.Audio.Track
             if (soundTouch == null || tempo == 1.0f)
                 return;
 
-            while (!base.Done && soundTouch.AvailableSamples < samples)
+            int available = soundTouch.AvailableSamples;
+            int outcount = soundTouch.GetSetting(SettingId.NominalOutputSequence);
+            int incount = soundTouch.GetSetting(SettingId.NominalInputSequence);
+
+            if (outcount <= 0 || incount <= 0)
+                return;
+
+            while (!base.Done && available < samples)
             {
-                // process 10ms more to reduce overhead
-                int getSamples = (int)Math.Ceiling((samples + (int)(SrcRate * 0.01) - soundTouch.AvailableSamples) * Tempo) * SrcChannels;
-                float[] src = new float[getSamples];
-                getSamples = base.GetRemainingSamples(src);
-                if (getSamples <= 0)
+                int needed = samples - available;
+                int seqs = (int)Math.Ceiling((double)needed / outcount);
+                int res = 0;
+
+                if (first)
+                {
+                    first = false;
+                    seqs--;
+
+                    res = soundTouch.GetSetting(SettingId.InitialLatency);
+                    if (res <= 0)
+                        return;
+                }
+
+                res += incount * seqs;
+                float[] src = new float[res * SrcChannels];
+
+                res = base.GetRemainingSamples(src);
+                if (res <= 0)
                     break;
 
-                soundTouch.PutSamples(src, getSamples / SrcChannels);
+                soundTouch.PutSamples(src, res / SrcChannels);
+
+                available = soundTouch.AvailableSamples;
             }
 
             if (!doneFilling && base.Done)
@@ -148,6 +172,7 @@ namespace osu.Framework.Audio.Track
 
             doneFilling = false;
             donePlaying = false;
+            first = true;
         }
 
         protected int GetTempoLatencyInSamples()
