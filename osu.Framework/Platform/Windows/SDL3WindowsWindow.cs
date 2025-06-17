@@ -5,8 +5,10 @@ using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform.SDL3;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
@@ -57,6 +59,24 @@ namespace osu.Framework.Platform.Windows
             // disable all pen and touch feedback as this causes issues when running "optimised" fullscreen under Direct3D11.
             foreach (var feedbackType in Enum.GetValues<FeedbackType>())
                 Native.Input.SetWindowFeedbackSetting(WindowHandle, feedbackType, false);
+        }
+
+        protected override TabletPenDeviceType GetPenDeviceType(SDL_PenID id)
+        {
+            // query the global pen types, as we can't scope it to a specific SDL_PenID
+            var type = (DigitizerType)Native.Input.GetSystemMetrics(Native.Input.SM_DIGITIZER);
+
+            // some Wacom tablets report as both integrated and external, but are in fact external/indirect
+            if (type.HasFlagFast(DigitizerType.NID_INTEGRATED_PEN | DigitizerType.NID_EXTERNAL_PEN))
+                return TabletPenDeviceType.Indirect;
+
+            if (type.HasFlagFast(DigitizerType.NID_EXTERNAL_PEN))
+                return TabletPenDeviceType.Indirect;
+
+            if (type.HasFlagFast(DigitizerType.NID_INTEGRATED_PEN))
+                return TabletPenDeviceType.Direct;
+
+            return TabletPenDeviceType.Unknown;
         }
 
         protected override bool HandleEventFromFilter(SDL_Event e)
