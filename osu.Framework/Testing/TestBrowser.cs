@@ -430,7 +430,7 @@ namespace osu.Framework.Testing
                 {
                     string repeatSuffix = i > 0 ? $" ({i + 1})" : string.Empty;
 
-                    var methodWrapper = new MethodWrapper(m.GetType(), m);
+                    var methodWrapper = new MethodWrapper(m.DeclaringType, m);
 
                     if (methodWrapper.GetCustomAttributes<TestAttribute>(false).SingleOrDefault() != null)
                     {
