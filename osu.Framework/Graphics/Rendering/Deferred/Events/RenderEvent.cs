@@ -2,12 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace osu.Framework.Graphics.Rendering.Deferred.Events
 {
-    [SkipLocalsInit]
     [StructLayout(LayoutKind.Explicit)]
     internal struct RenderEvent
     {
