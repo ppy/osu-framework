@@ -75,8 +75,6 @@ namespace osu.Framework.Input.Handlers.Tablet
             OutputAreaOffset.BindValueChanged(_ => updateOutputArea(host.Window));
             OutputAreaSize.BindValueChanged(_ => updateOutputArea(host.Window));
 
-            updateOutputArea(host.Window);
-
             Enabled.BindValueChanged(enabled =>
             {
                 if (enabled.NewValue)
