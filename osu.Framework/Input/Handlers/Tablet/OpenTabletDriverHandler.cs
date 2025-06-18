@@ -40,7 +40,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public Bindable<Vector2> OutputAreaOffset { get; } = new Bindable<Vector2>();
 
-        public Bindable<Vector2> OutputAreaSize { get; } = new Bindable<Vector2>(new Vector2(1f, 1f));
+        public Bindable<Vector2> OutputAreaSize { get; } = new Bindable<Vector2>();
 
         public Bindable<float> Rotation { get; } = new Bindable<float>();
 
@@ -160,7 +160,8 @@ namespace osu.Framework.Input.Handlers.Tablet
                 {
                     Vector2 windowSize = new Vector2(window.ClientSize.Width, window.ClientSize.Height);
                     Vector2 scaledSize = windowSize * OutputAreaSize.Value;
-                    Vector2 position = (windowSize / 2) + windowSize * OutputAreaOffset.Value;
+                    Vector2 offsetFromCenter = (OutputAreaOffset.Value - new Vector2(0.5f, 0.5f)) * (windowSize - scaledSize);
+                    Vector2 position = (windowSize / 2) + offsetFromCenter;
 
                     absoluteOutputMode.Output = new Area
                     {

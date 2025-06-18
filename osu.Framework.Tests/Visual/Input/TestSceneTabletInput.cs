@@ -94,14 +94,6 @@ namespace osu.Framework.Tests.Visual.Input
                         tabletHandler.AreaSize.Value.X,
                         tabletHandler.AreaSize.Default.Y * height));
 
-                AddSliderStep("change output width", 0, 1, 0.5f,
-                    width => tabletHandler.OutputAreaSize.Value = new Vector2(
-                        width, tabletHandler.OutputAreaSize.Value.Y));
-
-                AddSliderStep("change output height", 0, 1, 0.5f,
-                    height => tabletHandler.OutputAreaSize.Value = new Vector2(
-                        tabletHandler.OutputAreaSize.Value.X, height));
-
                 AddSliderStep("change X offset", 0, 1, 0.5f,
                     xOffset => tabletHandler.AreaOffset.Value = new Vector2(
                         tabletHandler.AreaSize.Default.X * xOffset,
@@ -112,11 +104,27 @@ namespace osu.Framework.Tests.Visual.Input
                         tabletHandler.AreaOffset.Value.X,
                         tabletHandler.AreaSize.Default.Y * yOffset));
 
-                AddSliderStep("change pen pressure threshold for click", 0, 1, 0f,
-                    threshold => tabletHandler.PressureThreshold.Value = threshold);
+                AddSliderStep("change output width", 0, 1, 1f,
+                    width => tabletHandler.OutputAreaSize.Value = new Vector2(
+                        width, tabletHandler.OutputAreaSize.Value.Y));
+
+                AddSliderStep("change output height", 0, 1, 1f,
+                    height => tabletHandler.OutputAreaSize.Value = new Vector2(
+                        tabletHandler.OutputAreaSize.Value.X, height));
+
+                AddSliderStep("change output X offset", 0, 1, 0.5f,
+                    x => tabletHandler.OutputAreaOffset.Value = new Vector2(
+                        x, tabletHandler.OutputAreaOffset.Value.Y));
+
+                AddSliderStep("change output Y offset", 0, 1, 0.5f,
+                    y => tabletHandler.OutputAreaOffset.Value = new Vector2(
+                        tabletHandler.OutputAreaOffset.Value.X, y));
 
                 AddSliderStep("change rotation", 0, 360, 0f,
                     rotation => tabletHandler.Rotation.Value = rotation);
+
+                AddSliderStep("change pen pressure threshold for click", 0, 1, 0f,
+                    threshold => tabletHandler.PressureThreshold.Value = threshold);
             }
 
             AddToggleStep("toggle confine mode", enabled => frameworkConfigManager.SetValue(FrameworkSetting.ConfineMouseMode,
