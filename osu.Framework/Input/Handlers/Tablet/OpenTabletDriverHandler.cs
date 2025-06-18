@@ -38,9 +38,9 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
 
-        public Bindable<Vector2> OutputAreaOffset { get; } = new Bindable<Vector2>();
+        public Bindable<Vector2> OutputAreaOffset { get; } = new Bindable<Vector2>(new Vector2(0.5f, 0.5f));
 
-        public Bindable<Vector2> OutputAreaSize { get; } = new Bindable<Vector2>();
+        public Bindable<Vector2> OutputAreaSize { get; } = new Bindable<Vector2>(new Vector2(1f, 1f));
 
         public Bindable<float> Rotation { get; } = new Bindable<float>();
 
