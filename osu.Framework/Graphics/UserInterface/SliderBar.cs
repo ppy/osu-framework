@@ -119,6 +119,10 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
+            // Relative value at MouseDown shouldn't change until dragging ends.
+            if (IsDragged)
+                return base.OnMouseDown(e);
+
             if (ShouldHandleAsRelativeDrag(e))
             {
                 float min = float.CreateTruncating(currentNumberInstantaneous.MinValue);
@@ -171,7 +175,10 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected override void OnDragEnd(DragEndEvent e) => Commit();
+        protected override void OnDragEnd(DragEndEvent e)
+        {
+            Commit();
+        }
 
         public override bool AcceptsFocus => true;
 

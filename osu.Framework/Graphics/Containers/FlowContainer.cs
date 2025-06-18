@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Layout;
+using osu.Framework.Utils;
 using osuTK;
 
 namespace osu.Framework.Graphics.Containers
@@ -71,7 +72,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Invoked when layout should be invalidated.
         /// </summary>
-        protected virtual void InvalidateLayout() => layout.Invalidate();
+        protected internal void InvalidateLayout() => layout.Invalidate();
 
         private readonly Dictionary<Drawable, float> layoutChildren = new Dictionary<Drawable, float>();
 
@@ -200,7 +201,7 @@ namespace osu.Framework.Graphics.Containers
                     var existingTransform = drawable.TransformsForTargetMember(FlowTransform.TARGET_MEMBER).FirstOrDefault(x => x is FlowTransform) as FlowTransform;
                     Vector2 currentTargetPos = existingTransform?.EndValue ?? drawable.Position;
 
-                    if (currentTargetPos == pos) continue;
+                    if (Precision.AlmostEquals(currentTargetPos, pos)) continue;
 
                     if (LayoutDuration > 0)
                         drawable.TransformTo(drawable.PopulateTransform(new FlowTransform { Rewindable = false }, pos, LayoutDuration, LayoutEasing));

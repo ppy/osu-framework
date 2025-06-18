@@ -406,8 +406,8 @@ namespace osu.Framework.Audio
             // without this, if bass falls back to directsound legacy mode the audio playback offset will be way off.
             Bass.Configure(ManagedBass.Configuration.TruePlayPosition, 0);
 
-            // For iOS devices, set the default audio policy to one that obeys the mute switch.
-            Bass.Configure(ManagedBass.Configuration.IOSMixAudio, 5);
+            // Set BASS_IOS_SESSION_DISABLE here to leave session configuration in our hands (see iOS project).
+            Bass.Configure(ManagedBass.Configuration.IOSSession, 16);
 
             // Always provide a default device. This should be a no-op, but we have asserts for this behaviour.
             Bass.Configure(ManagedBass.Configuration.IncludeDefaultDevice, true);

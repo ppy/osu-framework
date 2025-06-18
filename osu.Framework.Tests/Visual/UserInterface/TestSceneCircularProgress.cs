@@ -32,9 +32,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private Texture gradientTextureHorizontal;
         private Texture gradientTextureVertical;
         private Texture gradientTextureBoth;
+        private Texture textureAtlasTexture;
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(TextureStore textures)
         {
             const int width = 128;
 
@@ -82,6 +83,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             gradientTextureBoth.SetData(new TextureUpload(image));
 
+            textureAtlasTexture = textures.Get("sample-texture");
+
             Box background;
             Container maskingContainer;
 
@@ -116,7 +119,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("Horizontal Gradient Texture", delegate { setTexture(1); });
             AddStep("Vertical Gradient Texture", delegate { setTexture(2); });
-            AddStep("2D Graident Texture", delegate { setTexture(3); });
+            AddStep("2D Gradient Texture", delegate { setTexture(3); });
+            AddStep("Texture Atlas Texture", delegate { setTexture(4); });
             AddStep("White Texture", delegate { setTexture(0); });
 
             AddStep("Red Colour", delegate { setColour(1); });
@@ -190,6 +194,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                 case 3:
                     clock.Texture = gradientTextureBoth;
+                    break;
+
+                case 4:
+                    clock.Texture = textureAtlasTexture;
                     break;
             }
         }

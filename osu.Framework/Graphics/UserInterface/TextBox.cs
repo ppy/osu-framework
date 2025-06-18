@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
@@ -29,12 +30,17 @@ using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract partial class TextBox : TabbableContainer, IHasCurrentValue<string>, IKeyBindingHandler<PlatformAction>
+    public abstract partial class TextBox : TabbableContainer, IHasCurrentValue<string>, IKeyBindingHandler<PlatformAction>, ICanSuppressKeyEventLogging
     {
         protected FillFlowContainer TextFlow { get; private set; }
         protected Container TextContainer { get; private set; }
 
         public override bool HandleNonPositionalInput => HasFocus;
+
+        /// <summary>
+        /// A character displayed whenever the type of text input set by <see cref="TextInputProperties.Type"/> is hidden.
+        /// </summary>
+        protected virtual char MaskCharacter => '*';
 
         /// <summary>
         /// Padding to be used within the TextContainer. Requires special handling due to the sideways scrolling of text content.
@@ -50,12 +56,14 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Whether clipboard copying functionality is allowed.
         /// </summary>
-        protected virtual bool AllowClipboardExport => true;
+        protected virtual bool AllowClipboardExport => !InputProperties.Type.IsPassword();
 
         /// <summary>
         /// Whether seeking to word boundaries is allowed.
         /// </summary>
-        protected virtual bool AllowWordNavigation => true;
+        protected virtual bool AllowWordNavigation => !InputProperties.Type.IsPassword();
+
+        bool ICanSuppressKeyEventLogging.SuppressKeyEventLogging => InputProperties.Type.IsPassword();
 
         /// <summary>
         /// Represents the left/right selection coordinates of the word double clicked on when dragging.
@@ -67,17 +75,13 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public virtual bool HandleLeftRightArrows => true;
 
-        /// <summary>
-        /// Whether to allow IME input when this text box has input focus.
-        /// </summary>
-        /// <remarks>
-        /// This is just a hint to the native implementation, some might respect this,
-        /// while others will ignore and always have the IME (dis)allowed.
-        /// </remarks>
-        /// <example>
-        /// Useful for situations where IME input is not wanted, such as for passwords, numbers, or romanised text.
-        /// </example>
+        [Obsolete($"Use {nameof(InputProperties)} instead.")] // can be removed 20250506
         protected virtual bool AllowIme => true;
+
+        /// <summary>
+        /// A set of properties to consider when interacting with this <see cref="TextBox"/>.
+        /// </summary>
+        public TextInputProperties InputProperties { get; init; }
 
         /// <summary>
         /// Check if a character can be added to this TextBox.
@@ -87,9 +91,33 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual bool CanAddCharacter(char character) => true;
 
         /// <summary>
-        /// Private helper for <see cref="CanAddCharacter"/>, additionally requiring that the character is not a control character.
+        /// Private helper for <see cref="CanAddCharacter"/>, additionally requiring that the character is not a control character and obeys <see cref="TextInputProperties.Type"/>.
         /// </summary>
-        private bool canAddCharacter(char character) => !char.IsControl(character) && CanAddCharacter(character);
+        private bool canAddCharacter(char character)
+        {
+            if (!CanAddCharacter(character))
+                // discard characters explicitly overriden by custom implementation.
+                return false;
+
+            if (char.IsControl(character))
+                // discard control/special characters.
+                return false;
+
+            var currentNumberFormat = CultureInfo.CurrentCulture.NumberFormat;
+
+            switch (InputProperties.Type)
+            {
+                case TextInputType.Decimal:
+                    return char.IsAsciiDigit(character) || currentNumberFormat.NumberDecimalSeparator.Contains(character);
+
+                case TextInputType.Number:
+                case TextInputType.NumericalPassword:
+                    return char.IsAsciiDigit(character);
+
+                default:
+                    return true;
+            }
+        }
 
         private bool readOnly;
 
@@ -158,6 +186,10 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected TextBox()
         {
+#pragma warning disable CS0618 // Type or member is obsolete
+            InputProperties = new TextInputProperties(TextInputType.Text, AllowIme);
+#pragma warning restore CS0618 // Type or member is obsolete
+
             Masking = true;
 
             Children = new Drawable[]
@@ -424,11 +456,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!AllowWordNavigation)
                 return -1;
 
-            int searchPrev = Math.Clamp(selectionEnd - 1, 0, Math.Max(0, Text.Length - 1));
-            while (searchPrev > 0 && text[searchPrev] == ' ')
-                searchPrev--;
-            int lastSpace = text.LastIndexOf(' ', searchPrev);
-            return lastSpace > 0 ? -(selectionEnd - lastSpace - 1) : -selectionEnd;
+            return findNextWord(text, selectionEnd, -1) - selectionEnd;
         }
 
         /// <summary>
@@ -439,11 +467,77 @@ namespace osu.Framework.Graphics.UserInterface
             if (!AllowWordNavigation)
                 return 1;
 
-            int searchNext = Math.Clamp(selectionEnd, 0, Math.Max(0, Text.Length - 1));
-            while (searchNext < Text.Length && text[searchNext] == ' ')
-                searchNext++;
-            int nextSpace = text.IndexOf(' ', searchNext);
-            return (nextSpace >= 0 ? nextSpace : text.Length) - selectionEnd;
+            return findNextWord(text, selectionEnd, 1) - selectionEnd;
+        }
+
+        /// <summary>
+        /// Finds the position of the next word from the current index in a given string.
+        /// </summary>
+        /// <param name="text">The text string.</param>
+        /// <param name="position">The current cursor position in <paramref name="text"/>.</param>
+        /// <param name="direction">The direction in which to find the next word.</param>
+        /// <returns>The index of the next word in <paramref name="text"/> in the range [0, text.Length].</returns>
+        private static int findNextWord(string text, int position, int direction)
+        {
+            Debug.Assert(direction == -1 || direction == 1);
+
+            // When going backwards, the initial position will always be the index of the first character in the next word,
+            // but it should be the index of the character in the last word.
+            if (direction == -1)
+                position -= 1;
+
+            WordTraversalStep currentStep = WordTraversalStep.Whitespace;
+
+            while (true)
+            {
+                if (position < 0)
+                    return 0;
+
+                if (position >= text.Length)
+                    return text.Length;
+
+                char character = text[position];
+
+                switch (currentStep)
+                {
+                    case WordTraversalStep.Whitespace:
+                        if (char.IsWhiteSpace(character))
+                            position += direction;
+                        else if (char.IsLetterOrDigit(character))
+                            currentStep = WordTraversalStep.LetterOrDigit;
+                        else
+                            currentStep = WordTraversalStep.Symbol;
+
+                        continue;
+
+                    case WordTraversalStep.Symbol:
+                        if (char.IsLetterOrDigit(character))
+                            currentStep = WordTraversalStep.LetterOrDigit;
+                        else if (char.IsWhiteSpace(character))
+                            break;
+
+                        position += direction;
+                        continue;
+
+                    case WordTraversalStep.LetterOrDigit:
+                        if (char.IsLetterOrDigit(character))
+                        {
+                            position += direction;
+                            continue;
+                        }
+
+                        break;
+                }
+
+                break;
+            }
+
+            // When going backwards, the final position will always be the the index of the last character of the previous word,
+            // but it should be the index of the first character in the next word.
+            if (direction == -1)
+                position += 1;
+
+            return position;
         }
 
         // Currently only single line is supported and line length and text length are the same.
@@ -773,6 +867,7 @@ namespace osu.Framework.Graphics.UserInterface
                 TextFlow.ChangeChildDepth(TextFlow[i], getDepthForCharacterIndex(i));
 
             selectionStart = selectionEnd = removeStart;
+            doubleClickWord = null;
 
             endTextChange(beganChange);
             cursorAndLayout.Invalidate();
@@ -789,6 +884,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected virtual Drawable AddCharacterToFlow(char c)
         {
+            if (InputProperties.Type.IsPassword())
+                c = MaskCharacter;
+
             // Remove all characters to the right and store them in a local list,
             // such that their depth can be updated.
             List<Drawable> charsRight = new List<Drawable>();
@@ -1339,7 +1437,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnClick(ClickEvent e)
         {
             if (!ReadOnly && textInputBound)
-                textInput.EnsureActivated(AllowIme);
+                textInput.EnsureActivated(InputProperties);
 
             return !ReadOnly;
         }
@@ -1366,7 +1464,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (textInputBound)
             {
-                textInput.EnsureActivated(AllowIme);
+                textInput.EnsureActivated(InputProperties);
                 return;
             }
 
@@ -1374,9 +1472,9 @@ namespace osu.Framework.Graphics.UserInterface
             // We don't deactivate and activate, but instead keep text input active during the focus handoff, so that virtual keyboards on phones don't flicker.
 
             if (previous?.textInput == textInput)
-                textInput.EnsureActivated(AllowIme, ScreenSpaceDrawQuad.AABBFloat);
+                textInput.EnsureActivated(InputProperties, ScreenSpaceDrawQuad.AABBFloat);
             else
-                textInput.Activate(AllowIme, ScreenSpaceDrawQuad.AABBFloat);
+                textInput.Activate(InputProperties, ScreenSpaceDrawQuad.AABBFloat);
 
             textInput.OnTextInput += handleTextInput;
             textInput.OnImeComposition += handleImeComposition;
@@ -1754,6 +1852,13 @@ namespace osu.Framework.Graphics.UserInterface
             /// All of the text was selected (i.e. via <see cref="PlatformAction.SelectAll"/>).
             /// </summary>
             All
+        }
+
+        private enum WordTraversalStep
+        {
+            Whitespace,
+            LetterOrDigit,
+            Symbol,
         }
     }
 }

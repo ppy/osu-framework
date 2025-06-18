@@ -9,7 +9,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
-using osu.Framework.Development;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Performance;
@@ -127,6 +126,20 @@ namespace osu.Framework
         }
 
         protected sealed override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(Add)} or {nameof(Content)} instead.");
+
+        /// <summary>
+        /// The earliest point of entry during <see cref="GameHost.Run"/> starting execution of a game.
+        /// This should be used to set up any low level tasks such as exception handling.
+        /// </summary>
+        /// <remarks>
+        /// At this point in execution, only <see cref="GameHost.Storage"/> and <see cref="GameHost.CacheStorage"/> are guaranteed to be valid for use.
+        /// They are provided as <paramref name="gameStorage"/> and <paramref name="cacheStorage"/> respectively for convenience.
+        /// </remarks>
+        /// <param name="gameStorage">The default game storage.</param>
+        /// <param name="cacheStorage">The default cache storage.</param>
+        public virtual void SetupLogging(Storage gameStorage, Storage cacheStorage)
+        {
+        }
 
         /// <summary>
         /// As Load is run post host creation, you can override this method to alter properties of the host before it makes itself visible to the user.
@@ -271,7 +284,7 @@ namespace osu.Framework
 
             FrameStatistics.BindValueChanged(e => performanceOverlay.State = e.NewValue, true);
 
-            if (FrameworkEnvironment.FrameStatisticsViaTouch && DebugUtils.IsDebugBuild)
+            if (FrameworkEnvironment.FrameStatisticsViaTouch)
             {
                 base.AddInternal(new FrameStatisticsTouchReceptor(this)
                 {
@@ -279,7 +292,7 @@ namespace osu.Framework
                     Anchor = Anchor.BottomRight,
                     Origin = Anchor.BottomRight,
                     RelativeSizeAxes = Axes.Both,
-                    Size = new Vector2(0.5f),
+                    Size = new Vector2(0.2f),
                 });
             }
         }

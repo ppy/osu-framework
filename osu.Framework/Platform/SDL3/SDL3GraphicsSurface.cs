@@ -156,14 +156,10 @@ namespace osu.Framework.Platform.SDL3
                 if (window.SDLWindowHandle == null)
                     return null;
 
-                // TODO: Migrate to SDL3 when https://github.com/libsdl-org/SDL/issues/9430 is resolved
-                // var wmInfo = window.GetWindowSystemInformation();
-                //
-                // switch (wmInfo.subsystem)
-                // {
-                //     case SDL_SYSWM_TYPE.SDL_SYSWM_UIKIT:
-                //         return (int)wmInfo.info.uikit.framebuffer;
-                // }
+                var props = SDL_GetWindowProperties(window.SDLWindowHandle);
+
+                if (SDL_HasProperty(props, SDL_PROP_WINDOW_UIKIT_OPENGL_FRAMEBUFFER_NUMBER))
+                    return (int)SDL_GetNumberProperty(props, SDL_PROP_WINDOW_UIKIT_OPENGL_FRAMEBUFFER_NUMBER, 0);
 
                 return null;
             }

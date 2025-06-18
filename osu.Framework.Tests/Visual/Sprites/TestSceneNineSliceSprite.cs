@@ -1,17 +1,20 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Globalization;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
@@ -26,90 +29,117 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         private NineSliceSprite sprite = null!;
 
+        private Texture sampleTexture = null!;
+
         [BackgroundDependencyLoader]
         private void load(TextureStore textures)
         {
-            AddRange(new Drawable[]
+            sampleTexture = textures.Get("sample-nine-slice-texture.png");
+        }
+
+        [Test]
+        public void TestPlain()
+        {
+            setupTestScene(() => new NineSliceSprite
             {
-                new FillFlowContainer
+                Texture = sampleTexture,
+                TextureInset = new MarginPadding(100),
+            });
+        }
+
+        [Test]
+        public void TestGradient()
+        {
+            setupTestScene(() => new NineSliceSprite
+            {
+                Texture = sampleTexture,
+                TextureInset = new MarginPadding(100),
+                Colour = ColourInfo.GradientVertical(Color4.White, Color4.Black)
+            });
+        }
+
+        private void setupTestScene(Func<NineSliceSprite> createComponent)
+        {
+            AddStep("setup scene", () =>
+            {
+                Children = new Drawable[]
                 {
-                    RelativeSizeAxes = Axes.Both,
-                    Width = 0.3f,
-                    Direction = FillDirection.Vertical,
-                    Spacing = new Vector2(10),
-                    Padding = new MarginPadding(10),
-                    Children = new Drawable[]
+                    new FillFlowContainer
                     {
-                        new LabelledContainer("Left")
+                        RelativeSizeAxes = Axes.Both,
+                        Width = 0.3f,
+                        Direction = FillDirection.Vertical,
+                        Spacing = new Vector2(10),
+                        Padding = new MarginPadding(10),
+                        Children = new Drawable[]
                         {
-                            Child = new InsetTextBox(leftInset) { TabbableContentContainer = this }
-                        },
-                        new LabelledContainer("Right")
-                        {
-                            Child = new InsetTextBox(rightInset) { TabbableContentContainer = this }
-                        },
-                        new LabelledContainer("Top")
-                        {
-                            Child = new InsetTextBox(topInset) { TabbableContentContainer = this }
-                        },
-                        new LabelledContainer("Bottom")
-                        {
-                            Child = new InsetTextBox(bottomInset) { TabbableContentContainer = this }
-                        },
-                        new LabelledContainer("RelativeInsetAxes")
-                        {
-                            Child = new Container
+                            new LabelledContainer("Left")
                             {
-                                RelativeSizeAxes = Axes.X,
-                                Height = 30,
-                                Child = new BasicDropdown<Axes>
+                                Child = new InsetTextBox(leftInset) { TabbableContentContainer = this }
+                            },
+                            new LabelledContainer("Right")
+                            {
+                                Child = new InsetTextBox(rightInset) { TabbableContentContainer = this }
+                            },
+                            new LabelledContainer("Top")
+                            {
+                                Child = new InsetTextBox(topInset) { TabbableContentContainer = this }
+                            },
+                            new LabelledContainer("Bottom")
+                            {
+                                Child = new InsetTextBox(bottomInset) { TabbableContentContainer = this }
+                            },
+                            new LabelledContainer("RelativeInsetAxes")
+                            {
+                                Child = new Container
                                 {
                                     RelativeSizeAxes = Axes.X,
-                                    Items = new[]
+                                    Height = 30,
+                                    Child = new BasicDropdown<Axes>
                                     {
-                                        Axes.None,
-                                        Axes.X,
-                                        Axes.Y,
-                                        Axes.Both,
-                                    },
-                                    Current = relativeInsetAxes,
+                                        RelativeSizeAxes = Axes.X,
+                                        Items = new[]
+                                        {
+                                            Axes.None,
+                                            Axes.X,
+                                            Axes.Y,
+                                            Axes.Both,
+                                        },
+                                        Current = relativeInsetAxes,
+                                    }
                                 }
                             }
                         }
-                    }
-                },
-                new Container
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Width = 0.7f,
-                    Anchor = Anchor.TopRight,
-                    Origin = Anchor.TopRight,
-                    Child = sprite = new NineSliceSprite
+                    },
+                    new Container
                     {
-                        Texture = textures.Get("sample-nine-slice-texture.png"),
-                        TextureInset = new MarginPadding(100),
+                        RelativeSizeAxes = Axes.Both,
+                        Width = 0.7f,
+                        Anchor = Anchor.TopRight,
+                        Origin = Anchor.TopRight,
+                        Child = sprite = createComponent()
                     }
-                }
-            });
+                };
 
-            sprite.ResizeTo(new Vector2(600, 400), 1000, Easing.InOutCubic)
-                  .Then()
-                  .ResizeTo(new Vector2(256, 256), 1000, Easing.InOutCubic)
-                  .Loop();
+                sprite.ResizeTo(new Vector2(600, 400), 1000, Easing.InOutCubic)
+                      .Then()
+                      .ResizeTo(new Vector2(256, 256), 1000, Easing.InOutCubic)
+                      .Loop();
 
-            leftInset.BindValueChanged(e => sprite.TextureInset = sprite.TextureInset with { Left = e.NewValue });
-            topInset.BindValueChanged(e => sprite.TextureInset = sprite.TextureInset with { Top = e.NewValue });
-            rightInset.BindValueChanged(e => sprite.TextureInset = sprite.TextureInset with { Right = e.NewValue });
-            bottomInset.BindValueChanged(e => sprite.TextureInset = sprite.TextureInset with { Bottom = e.NewValue });
+                leftInset.BindValueChanged(e => sprite.TextureInset = sprite.TextureInset with { Left = e.NewValue });
+                topInset.BindValueChanged(e => sprite.TextureInset = sprite.TextureInset with { Top = e.NewValue });
+                rightInset.BindValueChanged(e => sprite.TextureInset = sprite.TextureInset with { Right = e.NewValue });
+                bottomInset.BindValueChanged(e => sprite.TextureInset = sprite.TextureInset with { Bottom = e.NewValue });
 
-            relativeInsetAxes.BindValueChanged(e =>
-            {
-                sprite.TextureInsetRelativeAxes = e.NewValue;
+                relativeInsetAxes.BindValueChanged(e =>
+                {
+                    sprite.TextureInsetRelativeAxes = e.NewValue;
 
-                leftInset.Value = sprite.TextureInset.Left;
-                topInset.Value = sprite.TextureInset.Top;
-                rightInset.Value = sprite.TextureInset.Right;
-                bottomInset.Value = sprite.TextureInset.Bottom;
+                    leftInset.Value = sprite.TextureInset.Left;
+                    topInset.Value = sprite.TextureInset.Top;
+                    rightInset.Value = sprite.TextureInset.Right;
+                    bottomInset.Value = sprite.TextureInset.Bottom;
+                });
             });
         }
 

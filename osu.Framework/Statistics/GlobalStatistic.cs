@@ -3,6 +3,9 @@
 
 #nullable disable
 
+using System;
+using osu.Framework.Extensions.TypeExtensions;
+
 namespace osu.Framework.Statistics
 {
     public class GlobalStatistic<T> : IGlobalStatistic
@@ -23,6 +26,9 @@ namespace osu.Framework.Statistics
             {
                 switch (Value)
                 {
+                    case Type t:
+                        return t.ReadableName();
+
                     case double d:
                         return d.ToString("#,0.##");
 
