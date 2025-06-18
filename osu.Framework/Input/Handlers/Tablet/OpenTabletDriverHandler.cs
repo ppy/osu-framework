@@ -38,7 +38,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
 
-        public Bindable<Vector2> OutputAreaPosition { get; } = new Bindable<Vector2>();
+        public Bindable<Vector2> OutputAreaOffset { get; } = new Bindable<Vector2>();
 
         public Bindable<Vector2> OutputAreaSize { get; } = new Bindable<Vector2>(new Vector2(1f, 1f));
 
@@ -62,7 +62,7 @@ namespace osu.Framework.Input.Handlers.Tablet
             AreaSize.BindValueChanged(_ => updateTabletAndInputArea(device));
             Rotation.BindValueChanged(_ => updateTabletAndInputArea(device), true);
 
-            OutputAreaPosition.BindValueChanged(_ => updateOutputArea(host.Window));
+            OutputAreaOffset.BindValueChanged(_ => updateOutputArea(host.Window));
             OutputAreaSize.BindValueChanged(_ => updateOutputArea(host.Window));
 
             updateOutputArea(host.Window);
@@ -139,8 +139,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                 {
                     Vector2 windowSize = new Vector2(window.ClientSize.Width, window.ClientSize.Height);
                     Vector2 scaledSize = windowSize * OutputAreaSize.Value;
-                    Vector2 offset = windowSize * (OutputAreaPosition.Value - (new Vector2(0.5f))) * (Vector2.One - OutputAreaSize.Value);
-                    Vector2 position = (windowSize / 2) + offset;
+                    Vector2 position = (windowSize / 2) + windowSize * OutputAreaOffset.Value;
 
                     absoluteOutputMode.Output = new Area
                     {

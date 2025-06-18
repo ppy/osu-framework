@@ -27,7 +27,7 @@ namespace osu.Framework.Input.Handlers.Tablet
         /// Values range from (0,0) for top-left to (1,1) for bottom-right.
         /// Has no effect when <see cref="OutputAreaSize"/> is (1,1).
         /// </summary>
-        Bindable<Vector2> OutputAreaPosition { get; }
+        Bindable<Vector2> OutputAreaOffset { get; }
 
         /// <summary>
         /// Relative size of output area inside game window.
