@@ -38,6 +38,10 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
 
+        public Bindable<Vector2> OutputAreaPosition { get; } = new Bindable<Vector2>();
+
+        public Bindable<Vector2> OutputAreaSize { get; } = new Bindable<Vector2>(new Vector2(1f, 1f));
+
         public Bindable<float> Rotation { get; } = new Bindable<float>();
 
         public BindableFloat PressureThreshold { get; } = new BindableFloat(0.0f)
@@ -67,6 +71,11 @@ namespace osu.Framework.Input.Handlers.Tablet
             AreaOffset.BindValueChanged(_ => updateTabletAndInputArea(device));
             AreaSize.BindValueChanged(_ => updateTabletAndInputArea(device));
             Rotation.BindValueChanged(_ => updateTabletAndInputArea(device), true);
+
+            OutputAreaPosition.BindValueChanged(_ => updateOutputArea(host.Window));
+            OutputAreaSize.BindValueChanged(_ => updateOutputArea(host.Window));
+
+            updateOutputArea(host.Window);
 
             Enabled.BindValueChanged(enabled =>
             {
@@ -149,14 +158,26 @@ namespace osu.Framework.Input.Handlers.Tablet
             {
                 case AbsoluteOutputMode absoluteOutputMode:
                 {
-                    float outputWidth, outputHeight;
+                    // window size & pos
+                    float outputWidth = window.ClientSize.Width;
+                    float outputHeight = window.ClientSize.Height;
+                    float posX = outputWidth / 2;
+                    float posY = outputHeight / 2;
+
+                    // applying "output area"
+                    float areaOffsX = (1f - OutputAreaSize.Value.X) * (OutputAreaPosition.Value.X - 0.5f) * outputWidth;
+                    float areaOffsY = (1f - OutputAreaSize.Value.Y) * (OutputAreaPosition.Value.Y - 0.5f) * outputHeight;
+                    outputWidth *= OutputAreaSize.Value.X;
+                    outputHeight *= OutputAreaSize.Value.Y;
+                    posX += areaOffsX;
+                    posY += areaOffsY;
 
                     // Set output area in pixels
                     absoluteOutputMode.Output = new Area
                     {
-                        Width = outputWidth = window.ClientSize.Width,
-                        Height = outputHeight = window.ClientSize.Height,
-                        Position = new System.Numerics.Vector2(outputWidth / 2, outputHeight / 2)
+                        Width = outputWidth,
+                        Height = outputHeight,
+                        Position = new System.Numerics.Vector2(posX, posY)
                     };
                     break;
                 }
