@@ -21,7 +21,8 @@ namespace osu.Framework.Tests.Visual.Input
     public partial class TestSceneTabletInput : FrameworkTestScene
     {
         private readonly SpriteText tabletInfo;
-        private readonly TabletAreaVisualiser areaVisualizer;
+        private readonly TabletAreaVisualiser inputAreaVisualizer;
+        private readonly TabletAreaVisualiser outputAreaVisualizer;
         private readonly FillFlowContainer penButtonFlow;
         private readonly FillFlowContainer auxButtonFlow;
         private IBindable<TabletInfo?> tablet = new Bindable<TabletInfo?>();
@@ -40,7 +41,8 @@ namespace osu.Framework.Tests.Visual.Input
                 Children = new Drawable[]
                 {
                     tabletInfo = new SpriteText(),
-                    areaVisualizer = new TabletAreaVisualiser(),
+                    inputAreaVisualizer = new TabletAreaVisualiser(Vector2.One, "Input area", false),
+                    outputAreaVisualizer = new TabletAreaVisualiser(new Vector2(256, 144), "Output area", true),
                     penButtonFlow = new FillFlowContainer
                     {
                         RelativeSizeAxes = Axes.X,
@@ -73,8 +75,10 @@ namespace osu.Framework.Tests.Visual.Input
 
             if (tabletHandler != null)
             {
-                areaVisualizer.AreaSize.BindTo(tabletHandler.AreaSize);
-                areaVisualizer.AreaOffset.BindTo(tabletHandler.AreaOffset);
+                inputAreaVisualizer.AreaSize.BindTo(tabletHandler.AreaSize);
+                inputAreaVisualizer.AreaOffset.BindTo(tabletHandler.AreaOffset);
+                outputAreaVisualizer.AreaSize.BindTo(tabletHandler.OutputAreaSize);
+                outputAreaVisualizer.AreaOffset.BindTo(tabletHandler.OutputAreaOffset);
 
                 tablet = tabletHandler.Tablet.GetBoundCopy();
                 tablet.BindValueChanged(_ => updateState(), true);
@@ -138,11 +142,24 @@ namespace osu.Framework.Tests.Visual.Input
             else
                 tabletInfo.Text = "Tablet input is disabled.";
 
-            areaVisualizer.Alpha = penButtonFlow.Alpha = auxButtonFlow.Alpha = thresholdTester.Alpha = tablet.Value != null && tabletEnabled.Value ? 1 : 0;
+            float areaVisualizerAlpha = penButtonFlow.Alpha = auxButtonFlow.Alpha = thresholdTester.Alpha = tablet.Value != null && tabletEnabled.Value ? 1 : 0;
+            inputAreaVisualizer.Alpha = areaVisualizerAlpha;
+            outputAreaVisualizer.Alpha = areaVisualizerAlpha;
         }
 
         private partial class TabletAreaVisualiser : CompositeDrawable
         {
+            public TabletAreaVisualiser(Vector2 areaScale, string label, bool confineArea)
+            {
+                this.areaScale = areaScale;
+                this.label = label;
+                this.confineArea = confineArea;
+            }
+
+            private readonly Vector2 areaScale;
+            private readonly string label;
+            private readonly bool confineArea;
+
             public readonly Bindable<Vector2> AreaSize = new Bindable<Vector2>();
             public readonly Bindable<Vector2> AreaOffset = new Bindable<Vector2>();
 
@@ -192,15 +209,28 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 base.LoadComplete();
 
-                AreaSize.BindValueChanged(size =>
-                {
-                    activeArea.Size = size.NewValue;
-                    areaText.Text = $"Active area: {size.NewValue}";
-                }, true);
-                AreaSize.DefaultChanged += fullSize => fullArea.Size = fullSize.NewValue;
-                fullArea.Size = AreaSize.Default;
+                AreaSize.DefaultChanged += _ => updateVisualiser();
+                AreaSize.BindValueChanged(_ => updateVisualiser(), true);
+                AreaOffset.BindValueChanged(_ => updateVisualiser(), true);
+                updateVisualiser();
+            }
 
-                AreaOffset.BindValueChanged(offset => activeArea.Position = offset.NewValue, true);
+            private void updateVisualiser()
+            {
+                activeArea.Size = AreaSize.Value * areaScale;
+                areaText.Text = $"{label}: {activeArea.Size}";
+                fullArea.Size = AreaSize.Default * areaScale;
+
+                // Handles the difference in positioning behavior between Input Area and Output Area
+                if (confineArea)
+                {
+                    Vector2 offsetFromCenter = (AreaOffset.Value - new Vector2(0.5f, 0.5f)) * (AreaSize.Default - AreaSize.Value) * areaScale;
+                    activeArea.Position = (fullArea.Size / 2) + offsetFromCenter;
+                }
+                else
+                {
+                    activeArea.Position = AreaOffset.Value;
+                }
             }
         }
 
