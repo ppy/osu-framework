@@ -77,6 +77,7 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 inputAreaVisualizer.AreaSize.BindTo(tabletHandler.AreaSize);
                 inputAreaVisualizer.AreaOffset.BindTo(tabletHandler.AreaOffset);
+                inputAreaVisualizer.AreaRotation.BindTo(tabletHandler.Rotation);
                 outputAreaVisualizer.AreaSize.BindTo(tabletHandler.OutputAreaSize);
                 outputAreaVisualizer.AreaOffset.BindTo(tabletHandler.OutputAreaOffset);
 
@@ -162,9 +163,11 @@ namespace osu.Framework.Tests.Visual.Input
 
             public readonly Bindable<Vector2> AreaSize = new Bindable<Vector2>();
             public readonly Bindable<Vector2> AreaOffset = new Bindable<Vector2>();
+            public readonly Bindable<float> AreaRotation = new Bindable<float>();
 
             private Box fullArea = null!;
             private Container activeArea = null!;
+            private Box activeAreaBox = null!;
 
             private SpriteText areaText = null!;
 
@@ -189,10 +192,12 @@ namespace osu.Framework.Tests.Visual.Input
                             Origin = Anchor.Centre,
                             Children = new Drawable[]
                             {
-                                new Box
+                                activeAreaBox = new Box
                                 {
                                     RelativeSizeAxes = Axes.Both,
-                                    Colour = FrameworkColour.YellowGreen
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    Colour = FrameworkColour.YellowGreen,
                                 },
                                 areaText = new SpriteText
                                 {
@@ -212,6 +217,10 @@ namespace osu.Framework.Tests.Visual.Input
                 AreaSize.DefaultChanged += _ => updateVisualiser();
                 AreaSize.BindValueChanged(_ => updateVisualiser(), true);
                 AreaOffset.BindValueChanged(_ => updateVisualiser(), true);
+                AreaRotation.BindValueChanged(_ =>
+                {
+                    activeAreaBox.Rotation = AreaRotation.Value;
+                }, true);
                 updateVisualiser();
             }
 
