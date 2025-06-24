@@ -14,11 +14,14 @@ namespace osu.Framework.Text
         public float Baseline { get; }
         public char Character { get; }
 
-        private readonly IGlyphStore? containingStore;
+        /// <summary>
+        /// The glyph store that contains this character.
+        /// </summary>
+        public IGlyphStore? ContainingStore { get; }
 
         public CharacterGlyph(char character, float xOffset, float yOffset, float xAdvance, float baseline, IGlyphStore? containingStore)
         {
-            this.containingStore = containingStore;
+            ContainingStore = containingStore;
 
             Character = character;
             XOffset = xOffset;
@@ -30,6 +33,6 @@ namespace osu.Framework.Text
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float GetKerning<T>(T lastGlyph)
             where T : ICharacterGlyph
-            => containingStore?.GetKerning(lastGlyph.Character, Character) ?? 0;
+            => ContainingStore?.GetKerning(lastGlyph.Character, Character) ?? 0;
     }
 }

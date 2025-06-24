@@ -24,6 +24,13 @@ namespace osu.Framework.Text
         /// The height of the area that should be drawn.
         /// </summary>
         float Height { get; }
+
+        /// <summary>
+        /// Whether this character has a coloured texture, typically used for emoji.
+        /// When true, the character will be rendered using its original texture colours.
+        /// When false, rendered using the text colour.
+        /// </summary>
+        bool Coloured { get; }
     }
 
     public static class TexturedCharacterGlyphExtensions

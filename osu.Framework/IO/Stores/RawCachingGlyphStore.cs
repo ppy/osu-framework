@@ -37,8 +37,8 @@ namespace osu.Framework.IO.Stores
 
         private readonly Dictionary<int, PageInfo> pageLookup = new Dictionary<int, PageInfo>();
 
-        public RawCachingGlyphStore(ResourceStore<byte[]> store, string? assetName = null, IResourceStore<TextureUpload>? textureLoader = null)
-            : base(store, assetName, textureLoader)
+        public RawCachingGlyphStore(ResourceStore<byte[]> store, string? assetName = null, IResourceStore<TextureUpload>? textureLoader = null, bool coloured = false)
+            : base(store, assetName, textureLoader, coloured)
         {
         }
 
@@ -91,7 +91,7 @@ namespace osu.Framework.IO.Stores
                         // If we ever see corrupt files in the wild, this should be changed to a full md5 check. Hopefully it will never happen.
                         using (var testStream = CacheStorage.GetStream(existing))
                         {
-                            if (testStream.Length == width * height)
+                            if (testStream.Length == width * height * (Coloured ? 4 : 1)) // 4 bytes per pixel for RGBA
                             {
                                 return pageLookup[page] = new PageInfo
                                 {
@@ -104,13 +104,8 @@ namespace osu.Framework.IO.Stores
                 }
 
                 using (var convert = GetPageImage(page))
-                using (var buffer = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<byte>(convert.Width * convert.Height))
                 {
-                    var output = buffer.Memory.Span;
                     var source = convert.Data;
-
-                    for (int i = 0; i < output.Length; i++)
-                        output[i] = source[i].A;
 
                     // ensure any stale cached versions are deleted.
                     foreach (string f in CacheStorage.GetFiles(string.Empty, $"{filenameMd5}*"))
@@ -118,8 +113,37 @@ namespace osu.Framework.IO.Stores
 
                     accessFilename += FormattableString.Invariant($"#{convert.Width}#{convert.Height}");
 
-                    using (var outStream = CacheStorage.CreateFileSafely(accessFilename))
-                        outStream.Write(buffer.Memory.Span);
+                    if (Coloured)
+                    {
+                        // Handle coloured fonts - store full RGBA data
+                        using (var buffer = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<Rgba32>(convert.Width * convert.Height))
+                        {
+                            var rgbaOutput = buffer.Memory.Span;
+                            for (int i = 0; i < rgbaOutput.Length; i++)
+                                rgbaOutput[i] = source[i];
+
+                            using (var outStream = CacheStorage.CreateFileSafely(accessFilename))
+                            {
+                                var bytes = System.Runtime.InteropServices.MemoryMarshal.AsBytes(buffer.Memory.Span);
+                                outStream.Write(bytes);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Handle monochrome fonts - store only alpha channel
+                        using (var buffer = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<byte>(convert.Width * convert.Height))
+                        {
+                            var byteOutput = buffer.Memory.Span;
+                            for (int i = 0; i < byteOutput.Length; i++)
+                                byteOutput[i] = source[i].A;
+
+                            using (var outStream = CacheStorage.CreateFileSafely(accessFilename))
+                            {
+                                outStream.Write(buffer.Memory.Span);
+                            }
+                        }
+                    }
 
                     return pageLookup[page] = new PageInfo
                     {
@@ -136,7 +160,9 @@ namespace osu.Framework.IO.Stores
 
             int pageWidth = page.Size.Width;
 
-            int characterByteRegion = pageWidth * character.Height;
+            // Calculate bytes needed based on coloured mode
+            int bytesPerPixel = Coloured ? 4 : 1; // 4 bytes for RGBA, 1 byte for alpha only
+            int characterByteRegion = pageWidth * character.Height * bytesPerPixel;
             byte[] readBuffer = ArrayPool<byte>.Shared.Rent(characterByteRegion);
 
             try
@@ -147,7 +173,7 @@ namespace osu.Framework.IO.Stores
                     source = pageStreamHandles[page.Filename] = CacheStorage.GetStream(page.Filename);
 
                 // consider to use System.IO.RandomAccess in .NET 6
-                source.Seek(pageWidth * character.Y, SeekOrigin.Begin);
+                source.Seek(pageWidth * character.Y * bytesPerPixel, SeekOrigin.Begin);
                 source.ReadExactly(readBuffer.AsSpan(0, characterByteRegion));
 
                 // the spritesheet may have unused pixels trimmed
@@ -162,7 +188,26 @@ namespace osu.Framework.IO.Stores
 
                     for (int x = 0; x < character.Width; x++)
                     {
-                        span[x] = new Rgba32(255, 255, 255, x < readableWidth && y < readableHeight ? readBuffer[readOffset + x] : (byte)0);
+                        if (x < readableWidth && y < readableHeight)
+                        {
+                            if (Coloured)
+                            {
+                                // Use original RGBA data from cached color font texture
+                                var rgbaBuffer = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, Rgba32>(readBuffer.AsSpan(0, characterByteRegion));
+                                span[x] = rgbaBuffer[readOffset + x];
+                            }
+                            else
+                            {
+                                // Use alpha data and set to white for monochrome fonts
+                                byte alpha = readBuffer[readOffset + x];
+                                span[x] = new Rgba32(255, 255, 255, alpha);
+                            }
+                        }
+                        else
+                        {
+                            // Only use transparent pixels for areas outside the readable bounds
+                            span[x] = new Rgba32(255, 255, 255, 0);
+                        }
                     }
                 }
 

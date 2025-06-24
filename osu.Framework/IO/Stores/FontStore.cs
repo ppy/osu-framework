@@ -149,7 +149,7 @@ namespace osu.Framework.IO.Stores
             foreach (var store in glyphStores)
             {
                 if ((string.IsNullOrEmpty(fontName) || fontName == store.FontName) && store.HasGlyph(character))
-                    return namespacedGlyphCache[key] = new TexturedCharacterGlyph(store.Get(character).AsNonNull(), Get(textureName), 1 / ScaleAdjust);
+                    return namespacedGlyphCache[key] = new TexturedCharacterGlyph(store.Get(character).AsNonNull(), Get(textureName), 1 / ScaleAdjust, store.Coloured);
             }
 
             foreach (var store in nestedFontStores)

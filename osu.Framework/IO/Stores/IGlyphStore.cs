@@ -22,6 +22,11 @@ namespace osu.Framework.IO.Stores
         float? Baseline { get; }
 
         /// <summary>
+        /// Whether this font store preserves color information from the original font textures.
+        /// </summary>
+        bool Coloured { get; }
+
+        /// <summary>
         /// Loads glyph information for consumption asynchronously.
         /// </summary>
         Task LoadFontAsync();

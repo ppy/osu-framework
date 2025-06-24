@@ -261,8 +261,20 @@ namespace osu.Framework
         public void AddFont(ResourceStore<byte[]> store, string assetName = null, FontStore target = null)
             => addFont(target ?? Fonts, store, assetName);
 
+        /// <summary>
+        /// Add a color font (such as emoji fonts) to be globally accessible to the game.
+        /// </summary>
+        /// <param name="store">The backing store with font resources.</param>
+        /// <param name="assetName">The base name of the font.</param>
+        /// <param name="target">An optional target store to add the font to. If not specified, <see cref="Fonts"/> is used.</param>
+        public void AddColorFont(ResourceStore<byte[]> store, string assetName = null, FontStore target = null)
+            => addColorFont(target ?? Fonts, store, assetName);
+
         private void addFont(FontStore target, ResourceStore<byte[]> store, string assetName = null)
             => target.AddTextureSource(new RawCachingGlyphStore(store, assetName, Host.CreateTextureLoaderStore(store)));
+
+        private void addColorFont(FontStore target, ResourceStore<byte[]> store, string assetName = null)
+            => target.AddTextureSource(new RawCachingGlyphStore(store, assetName, Host.CreateTextureLoaderStore(store), coloured: true));
 
         protected override void LoadComplete()
         {

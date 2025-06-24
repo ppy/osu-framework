@@ -9,6 +9,7 @@ namespace osu.Framework.Text
     public sealed class TexturedCharacterGlyph : ITexturedCharacterGlyph
     {
         public Texture Texture { get; }
+        public bool Coloured { get; }
 
         public float XOffset => glyph.XOffset * Scale;
         public float YOffset => glyph.YOffset * Scale;
@@ -31,11 +32,13 @@ namespace osu.Framework.Text
         /// <param name="glyph">The glyph.</param>
         /// <param name="texture">The texture.</param>
         /// <param name="scale">A scale factor to apply to exposed glyph metrics.</param>
-        public TexturedCharacterGlyph(CharacterGlyph glyph, Texture texture, float scale = 1)
+        /// <param name="coloured">Whether this character has a coloured texture, typically used for emoji.</param>
+        public TexturedCharacterGlyph(CharacterGlyph glyph, Texture texture, float scale = 1, bool coloured = false)
         {
             this.glyph = glyph;
             Scale = scale;
             Texture = texture;
+            Coloured = coloured;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
