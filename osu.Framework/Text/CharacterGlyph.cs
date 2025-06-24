@@ -13,6 +13,7 @@ namespace osu.Framework.Text
         public float XAdvance { get; }
         public float Baseline { get; }
         public char Character { get; }
+        public string? FontName { get; }
 
         private readonly IGlyphStore? containingStore;
 
@@ -25,6 +26,7 @@ namespace osu.Framework.Text
             YOffset = yOffset;
             XAdvance = xAdvance;
             Baseline = baseline;
+            FontName = containingStore?.FontName;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -15,6 +15,7 @@ namespace osu.Framework.Text
         public float XAdvance => glyph.XAdvance * Scale;
         public float Baseline => glyph.Baseline * Scale;
         public char Character => glyph.Character;
+        public string? FontName => glyph.FontName;
         public float Width => Texture.Width * Scale;
         public float Height => Texture.Height * Scale;
 

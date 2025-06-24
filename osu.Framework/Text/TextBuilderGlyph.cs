@@ -17,6 +17,7 @@ namespace osu.Framework.Text
         public readonly float XAdvance => (fixedWidth ?? Glyph.XAdvance) * textSize;
         public readonly float Width => Glyph.Width * textSize;
         public readonly char Character => Glyph.Character;
+        public readonly string? FontName => Glyph.FontName;
 
         public readonly float YOffset
         {
