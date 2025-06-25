@@ -13,28 +13,43 @@ namespace osu.Framework.Tests.Audio
     [TestFixture]
     public class SampleBassTest
     {
-        private BassTestComponents bass;
+        private AudioTestComponents audio;
         private Sample sample;
+
         private SampleChannel channel;
-
-        [SetUp]
-        public void Setup()
-        {
-            bass = new BassTestComponents();
-            sample = bass.GetSample();
-
-            bass.Update();
-        }
 
         [TearDown]
         public void Teardown()
         {
-            bass?.Dispose();
+            audio?.Dispose();
         }
 
-        [Test]
-        public void TestGetChannelOnDisposed()
+        private void setupBackend(AudioTestComponents.Type id)
         {
+            if (id == AudioTestComponents.Type.BASS)
+            {
+                audio = new BassTestComponents();
+                sample = audio.GetSample();
+            }
+            else if (id == AudioTestComponents.Type.SDL3)
+            {
+                audio = new SDL3AudioTestComponents();
+                sample = audio.GetSample();
+            }
+            else
+            {
+                throw new InvalidOperationException("not a supported id");
+            }
+
+            audio.Update();
+        }
+
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestGetChannelOnDisposed(AudioTestComponents.Type id)
+        {
+            setupBackend(id);
+
             sample.Dispose();
 
             sample.Update();
@@ -43,50 +58,63 @@ namespace osu.Framework.Tests.Audio
             Assert.Throws<ObjectDisposedException>(() => sample.Play());
         }
 
-        [Test]
-        public void TestStart()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestStart(AudioTestComponents.Type id)
         {
+            setupBackend(id);
+
             channel = sample.Play();
-            bass.Update();
+
+            audio.Update();
 
             Thread.Sleep(50);
 
-            bass.Update();
+            audio.Update();
 
             Assert.IsTrue(channel.Playing);
         }
 
-        [Test]
-        public void TestStop()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestStop(AudioTestComponents.Type id)
         {
+            setupBackend(id);
+
             channel = sample.Play();
-            bass.Update();
+            audio.Update();
 
             channel.Stop();
-            bass.Update();
+            audio.Update();
 
             Assert.IsFalse(channel.Playing);
         }
 
-        [Test]
-        public void TestStopBeforeLoadFinished()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestStopBeforeLoadFinished(AudioTestComponents.Type id)
         {
+            setupBackend(id);
+
             channel = sample.Play();
             channel.Stop();
 
-            bass.Update();
+            audio.Update();
 
             Assert.IsFalse(channel.Playing);
         }
 
-        [Test]
-        public void TestStopsWhenFactoryDisposed()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestStopsWhenFactoryDisposed(AudioTestComponents.Type id)
         {
-            channel = sample.Play();
-            bass.Update();
+            setupBackend(id);
 
-            bass.SampleStore.Dispose();
-            bass.Update();
+            channel = sample.Play();
+            audio.Update();
+
+            audio.SampleStore.Dispose();
+            audio.Update();
 
             Assert.IsFalse(channel.Playing);
         }
@@ -95,10 +123,13 @@ namespace osu.Framework.Tests.Audio
         /// Tests the case where a play call can be run inline due to already being on the audio thread.
         /// Because it's immediately executed, a `Bass.Update()` call is not required before the channel's state is updated.
         /// </summary>
-        [Test]
-        public void TestPlayingUpdatedAfterInlinePlay()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestPlayingUpdatedAfterInlinePlay(AudioTestComponents.Type id)
         {
-            bass.RunOnAudioThread(() => channel = sample.Play());
+            setupBackend(id);
+
+            audio.RunOnAudioThread(() => channel = sample.Play());
             Assert.That(channel.Playing, Is.True);
         }
 
@@ -106,13 +137,16 @@ namespace osu.Framework.Tests.Audio
         /// Tests the case where a stop call can be run inline due to already being on the audio thread.
         /// Because it's immediately executed, a `Bass.Update()` call is not required before the channel's state is updated.
         /// </summary>
-        [Test]
-        public void TestPlayingUpdatedAfterInlineStop()
+        [TestCase(AudioTestComponents.Type.BASS)]
+        [TestCase(AudioTestComponents.Type.SDL3)]
+        public void TestPlayingUpdatedAfterInlineStop(AudioTestComponents.Type id)
         {
-            channel = sample.Play();
-            bass.Update();
+            setupBackend(id);
 
-            bass.RunOnAudioThread(() => channel.Stop());
+            channel = sample.Play();
+            audio.Update();
+
+            audio.RunOnAudioThread(() => channel.Stop());
             Assert.That(channel.Playing, Is.False);
         }
     }

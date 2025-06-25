@@ -14,6 +14,12 @@ namespace osu.Framework.Audio.Sample
 
         public string Name { get; }
 
+        internal Sample(SampleFactory factory)
+            : this(factory.Name)
+        {
+            PlaybackConcurrency.BindTo(factory.PlaybackConcurrency);
+        }
+
         protected Sample(string name)
         {
             Name = name;
