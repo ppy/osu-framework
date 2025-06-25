@@ -208,14 +208,7 @@ namespace osu.Framework.Graphics.Cursor
 
                 if (hasValidTooltip(target))
                     CurrentTooltip.Show();
-
-                RefreshTooltip(CurrentTooltip, target);
             }
-        }
-
-        protected override void UpdateAfterChildren()
-        {
-            base.UpdateAfterChildren();
 
             RefreshTooltip(CurrentTooltip, currentlyDisplayed);
 
