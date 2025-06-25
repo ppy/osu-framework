@@ -34,11 +34,6 @@ namespace osu.Framework.Text
         char Character { get; }
 
         /// <summary>
-        /// The name of the font providing this glyph.
-        /// </summary>
-        string? FontName { get; }
-
-        /// <summary>
         /// Retrieves the kerning between this <see cref="CharacterGlyph"/> and the one prior to it.
         /// </summary>
         /// <param name="lastGlyph">The <see cref="CharacterGlyph"/> prior to this one.</param>
