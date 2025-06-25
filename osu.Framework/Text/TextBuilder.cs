@@ -330,11 +330,11 @@ namespace osu.Framework.Text
 
         private readonly Cached<float> constantWidthCache = new Cached<float>();
 
-        private float getConstantWidth() => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getTexturedGlyphWithFallback(fixedWidthReferenceCharacter)?.Width ?? 0;
+        private float getConstantWidth() => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getTexturedGlyph(fixedWidthReferenceCharacter)?.Width ?? 0;
 
         private bool tryCreateGlyph(char character, out TextBuilderGlyph glyph)
         {
-            var fontStoreGlyph = getTexturedGlyphWithFallback(character);
+            var fontStoreGlyph = getTexturedGlyph(character);
 
             if (fontStoreGlyph == null)
             {
@@ -351,16 +351,17 @@ namespace osu.Framework.Text
             return true;
         }
 
-        private ITexturedCharacterGlyph? getTexturedGlyphWithFallback(char character)
-            => getTexturedGlyph(character) ?? getTexturedGlyph(fallbackCharacter);
-
         private ITexturedCharacterGlyph? getTexturedGlyph(char character)
         {
-            string weightItalicsSuffix = string.IsNullOrEmpty(font.Family) ? font.FontName : font.FontName.Replace(font.Family, string.Empty);
+            return tryGetGlyph(character, font, store) ??
+                   tryGetGlyph(fallbackCharacter, font, store);
 
-            return store.Get(font.FontName, character)
-                   ?? store.Get(weightItalicsSuffix, character)
-                   ?? store.Get(string.Empty, character);
+            static ITexturedCharacterGlyph? tryGetGlyph(char character, FontUsage font, ITexturedGlyphLookupStore store)
+            {
+                return store.Get(font.FontName, character)
+                       ?? store.Get(font.FontNameNoFamily, character)
+                       ?? store.Get(string.Empty, character);
+            }
         }
     }
 }
