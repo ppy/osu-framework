@@ -267,13 +267,13 @@ namespace osu.Framework
         /// <param name="store">The backing store with font resources.</param>
         /// <param name="assetName">The base name of the font.</param>
         /// <param name="target">An optional target store to add the font to. If not specified, <see cref="Fonts"/> is used.</param>
-        public void AddColorFont(ResourceStore<byte[]> store, string assetName = null, FontStore target = null)
-            => addColorFont(target ?? Fonts, store, assetName);
+        public void AddColourFont(ResourceStore<byte[]> store, string assetName = null, FontStore target = null)
+            => addColourFont(target ?? Fonts, store, assetName);
 
         private void addFont(FontStore target, ResourceStore<byte[]> store, string assetName = null)
             => target.AddTextureSource(new RawCachingGlyphStore(store, assetName, Host.CreateTextureLoaderStore(store)));
 
-        private void addColorFont(FontStore target, ResourceStore<byte[]> store, string assetName = null)
+        private void addColourFont(FontStore target, ResourceStore<byte[]> store, string assetName = null)
             => target.AddTextureSource(new RawCachingGlyphStore(store, assetName, Host.CreateTextureLoaderStore(store), coloured: true));
 
         protected override void LoadComplete()

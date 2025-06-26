@@ -706,6 +706,7 @@ namespace osu.Framework.Tests.Text
             public float Baseline { get; }
             public float Height { get; }
             public Rune Character { get; }
+            public bool Coloured => false;
 
             private readonly float glyphKerning;
 

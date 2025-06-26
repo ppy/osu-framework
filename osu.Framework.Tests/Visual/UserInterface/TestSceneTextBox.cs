@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Linq;
+using System.Text;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -1179,13 +1180,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private partial class CustomTextBox : BasicTextBox
         {
-            protected override Drawable GetDrawableCharacter(char c) => new ScalingText(c, FontSize);
+            protected override Drawable GetDrawableCharacter(Rune c) => new ScalingText(c, FontSize);
 
             private partial class ScalingText : CompositeDrawable
             {
                 private readonly SpriteText text;
 
-                public ScalingText(char c, float textSize)
+                public ScalingText(Rune c, float textSize)
                 {
                     AddInternal(text = new SpriteText
                     {
