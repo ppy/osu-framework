@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Text;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -93,7 +94,7 @@ namespace osu.Framework.Graphics.UserInterface
             background.FadeColour(BackgroundFocused, 200, Easing.Out);
         }
 
-        protected override Drawable GetDrawableCharacter(char c) => new FallingDownContainer
+        protected override Drawable GetDrawableCharacter(Rune c) => new FallingDownContainer
         {
             AutoSizeAxes = Axes.Both,
             Child = new SpriteText { Text = c.ToString(), Font = FrameworkFont.Condensed.With(size: FontSize) }

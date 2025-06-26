@@ -443,7 +443,7 @@ namespace osu.Framework.Graphics.UserInterface
                 return false;
 
             selectionStart = 0;
-            selectionEnd = text.Length;
+            selectionEnd = runes.Count;
             cursorAndLayout.Invalidate();
             return true;
         }
@@ -541,9 +541,9 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         // Currently only single line is supported and line length and text length are the same.
-        protected int GetBackwardLineAmount() => -text.Length;
+        protected int GetBackwardLineAmount() => -runes.Count;
 
-        protected int GetForwardLineAmount() => text.Length;
+        protected int GetForwardLineAmount() => runes.Count;
 
         /// <summary>
         /// Move the current cursor by the signed <paramref name="amount"/>.
@@ -573,7 +573,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected void DeleteBy(int amount)
         {
             if (selectionLength == 0)
-                selectionEnd = Math.Clamp(selectionStart + amount, 0, text.Length);
+                selectionEnd = Math.Clamp(selectionStart + amount, 0, runes.Count);
 
             if (hasSelection)
             {
@@ -646,7 +646,7 @@ namespace osu.Framework.Graphics.UserInterface
             Placeholder.Font = Placeholder.Font.With(size: FontSize);
 
             float cursorPos = 0;
-            if (text.Length > 0)
+            if (runes.Count > 0)
                 cursorPos = getPositionAt(selectionLeft);
 
             float cursorPosEnd = getPositionAt(selectionEnd);
@@ -713,7 +713,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (index > 0)
             {
-                if (index < text.Length)
+                if (index < runes.Count)
                     return TextFlow.Children[index].DrawPosition.X + TextFlow.DrawPosition.X;
 
                 var d = TextFlow.Children[index - 1];
@@ -751,6 +751,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly Cached cursorAndLayout = new Cached();
 
+        private int indexInText(int index)
+        {
+            return runes.Take(index).Aggregate(0, (sum, rune) => rune.Utf16SequenceLength + sum);
+        }
+
         private void moveSelection(int offset, bool expand)
         {
             if (textInput.ImeActive) return;
@@ -759,7 +764,7 @@ namespace osu.Framework.Graphics.UserInterface
             int oldEnd = selectionEnd;
 
             if (expand)
-                selectionEnd = Math.Clamp(selectionEnd + offset, 0, text.Length);
+                selectionEnd = Math.Clamp(selectionEnd + offset, 0, runes.Count);
             else
             {
                 if (hasSelection && Math.Abs(offset) <= 1)
@@ -771,7 +776,7 @@ namespace osu.Framework.Graphics.UserInterface
                         selectionEnd = selectionStart = selectionLeft;
                 }
                 else
-                    selectionEnd = selectionStart = Math.Clamp((offset > 0 ? selectionRight : selectionLeft) + offset, 0, text.Length);
+                    selectionEnd = selectionStart = Math.Clamp((offset > 0 ? selectionRight : selectionLeft) + offset, 0, runes.Count);
             }
 
             if (oldStart != selectionStart || oldEnd != selectionEnd)
@@ -836,6 +841,7 @@ namespace osu.Framework.Graphics.UserInterface
                 return string.Empty;
 
             int removeStart = Math.Clamp(selectionRight - number, 0, selectionRight);
+            int removeStartInText = indexInText(removeStart);
             int removeCount = selectionRight - removeStart;
 
             if (removeCount == 0)
@@ -858,9 +864,11 @@ namespace osu.Framework.Graphics.UserInterface
                 d.Expire();
             }
 
-            string removedText = text.Substring(removeStart, removeCount);
+            int removeCountInText = runes.Skip(removeStart).Take(removeCount).Aggregate(0, (sum, rune) => sum + rune.Utf16SequenceLength);
 
-            text = text.Remove(removeStart, removeCount);
+            runes.RemoveRange(removeStart, removeCount);
+            string removedText = text.Substring(removeStartInText, removeCountInText);
+            text = text.Remove(removeStartInText, removeCountInText);
 
             // Reorder characters depth after removal to avoid ordering issues with newly added characters.
             for (int i = removeStart; i < TextFlow.Count; i++)
@@ -880,12 +888,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="c">The character that this <see cref="Drawable"/> should represent.</param>
         /// <returns>A <see cref="Drawable"/> that represents the character <paramref name="c"/> </returns>
-        protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), Font = new FontUsage(size: FontSize) };
+        protected virtual Drawable GetDrawableCharacter(Rune c) => new SpriteText { Text = c.ToString(), Font = new FontUsage(size: FontSize) };
 
-        protected virtual Drawable AddCharacterToFlow(char c)
+        protected virtual Drawable AddCharacterToFlow(Rune c)
         {
             if (InputProperties.Type.IsPassword())
-                c = MaskCharacter;
+                c = new Rune(MaskCharacter);
 
             // Remove all characters to the right and store them in a local list,
             // such that their depth can be updated.
@@ -945,9 +953,9 @@ namespace osu.Framework.Graphics.UserInterface
 
             bool beganChange = beginTextChange();
 
-            foreach (char c in value)
+            foreach (var c in value.EnumerateRunes())
             {
-                if (!canAddCharacter(c))
+                if (!canAddCharacter((char)c.Value))
                 {
                     NotifyInputError();
                     continue;
@@ -956,7 +964,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (hasSelection)
                     removeSelection();
 
-                if (text.Length + 1 > LengthLimit)
+                if (text.Length + c.Utf16SequenceLength > LengthLimit)
                 {
                     NotifyInputError();
                     break;
@@ -967,7 +975,8 @@ namespace osu.Framework.Graphics.UserInterface
                 drawable.Show();
                 drawableCreationParameters?.Invoke(drawable);
 
-                text = text.Insert(selectionLeft, c.ToString());
+                text = text.Insert(indexInText(selectionLeft), c.ToString());
+                runes.Insert(selectionLeft, c);
 
                 selectionStart = selectionEnd = selectionLeft + 1;
                 ignoreOngoingDragSelection = true;
@@ -1125,6 +1134,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private string text = string.Empty;
+        private readonly List<Rune> runes = new List<Rune>();
 
         public virtual string Text
         {
@@ -1161,6 +1171,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             TextFlow?.Clear();
             text = string.Empty;
+            runes.Clear();
 
             // insert string and fast forward any transforms (generally when replacing the full content of a textbox we don't want any kind of fade etc.).
             insertString(value, d => d.FinishTransforms());
@@ -1319,13 +1330,13 @@ namespace osu.Framework.Graphics.UserInterface
                 if (getCharacterClosestTo(e.MousePosition) > doubleClickWord[1])
                 {
                     selectionStart = doubleClickWord[0];
-                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(e.MousePosition) - 1, 1);
-                    selectionEnd = selectionEnd >= 0 ? selectionEnd : text.Length;
+                    selectionEnd = findSeparatorIndex(runes, getCharacterClosestTo(e.MousePosition) - 1, 1);
+                    selectionEnd = selectionEnd >= 0 ? selectionEnd : runes.Count;
                 }
                 else if (getCharacterClosestTo(e.MousePosition) < doubleClickWord[0])
                 {
                     selectionStart = doubleClickWord[1];
-                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(e.MousePosition), -1);
+                    selectionEnd = findSeparatorIndex(runes, getCharacterClosestTo(e.MousePosition), -1);
                     selectionEnd = selectionEnd >= 0 ? selectionEnd + 1 : 0;
                 }
                 else
@@ -1337,7 +1348,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
             else
             {
-                if (text.Length == 0) return;
+                if (runes.Count == 0) return;
 
                 selectionEnd = getCharacterClosestTo(e.MousePosition);
                 if (hasSelection)
@@ -1355,22 +1366,22 @@ namespace osu.Framework.Graphics.UserInterface
 
             var lastSelectionBounds = getTextSelectionBounds();
 
-            if (text.Length == 0) return true;
+            if (runes.Count == 0) return true;
 
             if (AllowClipboardExport)
             {
-                int hover = Math.Min(text.Length - 1, getCharacterClosestTo(e.MousePosition));
+                int hover = Math.Min(runes.Count - 1, getCharacterClosestTo(e.MousePosition));
 
-                int lastSeparator = findSeparatorIndex(text, hover, -1);
-                int nextSeparator = findSeparatorIndex(text, hover, 1);
+                int lastSeparator = findSeparatorIndex(runes, hover, -1);
+                int nextSeparator = findSeparatorIndex(runes, hover, 1);
 
                 selectionStart = lastSeparator >= 0 ? lastSeparator + 1 : 0;
-                selectionEnd = nextSeparator >= 0 ? nextSeparator : text.Length;
+                selectionEnd = nextSeparator >= 0 ? nextSeparator : runes.Count;
             }
             else
             {
                 selectionStart = 0;
-                selectionEnd = text.Length;
+                selectionEnd = runes.Count;
             }
 
             //in order to keep the home word selected
@@ -1383,13 +1394,13 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        private static int findSeparatorIndex(string input, int searchPos, int direction)
+        private static int findSeparatorIndex(List<Rune> input, int searchPos, int direction)
         {
-            bool isLetterOrDigit = char.IsLetterOrDigit(input[searchPos]);
+            bool isLetterOrDigit = char.IsLetterOrDigit((char)input[searchPos].Value);
 
-            for (int i = searchPos; i >= 0 && i < input.Length; i += direction)
+            for (int i = searchPos; i >= 0 && i < input.Count; i += direction)
             {
-                if (char.IsLetterOrDigit(input[i]) != isLetterOrDigit)
+                if (char.IsLetterOrDigit((char)input[i].Value) != isLetterOrDigit)
                     return i;
             }
 
@@ -1533,7 +1544,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             imeCompositionScheduler.Add(() =>
             {
-                onImeComposition(result, result.Length, 0, false);
+                onImeComposition(result, result.EnumerateRunes().Count(), 0, false);
                 onImeResult(true, true);
             });
         }
@@ -1544,9 +1555,9 @@ namespace osu.Framework.Graphics.UserInterface
         /// <remarks>
         /// Characters matched from the beginning will not match from the end.
         /// </remarks>
-        private void matchBeginningEnd(string a, string b, out int matchBeginning, out int matchEnd)
+        private void matchBeginningEnd(List<Rune> a, List<Rune> b, out int matchBeginning, out int matchEnd)
         {
-            int minLength = Math.Min(a.Length, b.Length);
+            int minLength = Math.Min(a.Count, b.Count);
 
             matchBeginning = 0;
 
@@ -1580,13 +1591,13 @@ namespace osu.Framework.Graphics.UserInterface
 
             // remove characters that can't be added.
 
-            var builder = new StringBuilder(composition);
+            var compositionRunes = composition.EnumerateRunes().ToList();
 
-            for (int index = 0; index < builder.Length; index++)
+            for (int index = 0; index < compositionRunes.Count; index++)
             {
-                if (!canAddCharacter(builder[index]))
+                if (!canAddCharacter((char)compositionRunes[index].Value))
                 {
-                    builder.Remove(index, 1);
+                    compositionRunes.RemoveAt(index);
                     sanitized = true;
 
                     if (index < selectionStart)
@@ -1604,15 +1615,16 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             if (sanitized)
-                composition = builder.ToString();
+                composition = compositionRunes.Aggregate("", (current, rune) => current + rune.Value);
 
             // trim composition if goes beyond the LengthLimit.
 
-            int lengthWithoutComposition = text.Length - imeCompositionLength;
+            int lengthWithoutComposition = runes.Take(runes.Count - imeCompositionLength).Aggregate(0, (current, rune) => current + rune.Utf16SequenceLength);
 
             if (lengthWithoutComposition + composition.Length > LengthLimit)
             {
                 composition = composition.Substring(0, (int)LengthLimit - lengthWithoutComposition);
+                compositionRunes = composition.EnumerateRunes().ToList();
                 sanitized = true;
             }
 
@@ -1620,15 +1632,15 @@ namespace osu.Framework.Graphics.UserInterface
             // the selection could be out of bounds if it was trimmed by the above,
             // or if the platform-native composition event was ill-formed.
 
-            if (selectionStart > composition.Length)
+            if (selectionStart > compositionRunes.Count)
             {
-                selectionStart = composition.Length;
+                selectionStart = compositionRunes.Count;
                 sanitized = true;
             }
 
-            if (selectionStart + selectionLength > composition.Length)
+            if (selectionStart + selectionLength > compositionRunes.Count)
             {
-                selectionLength = composition.Length - selectionStart;
+                selectionLength = compositionRunes.Count - selectionStart;
                 sanitized = true;
             }
 
@@ -1711,12 +1723,13 @@ namespace osu.Framework.Graphics.UserInterface
                 NotifyInputError();
             }
 
-            string oldComposition = text.Substring(imeCompositionStart, imeCompositionLength);
+            List<Rune> newCompositionRunes = newComposition.EnumerateRunes().ToList();
+            List<Rune> oldCompositionRunes = runes.Skip(imeCompositionStart).Take(imeCompositionLength).ToList();
 
-            matchBeginningEnd(oldComposition, newComposition, out int matchBeginning, out int matchEnd);
+            matchBeginningEnd(oldCompositionRunes, newCompositionRunes, out int matchBeginning, out int matchEnd);
 
             // how many characters have been removed, starting from `matchBeginning`
-            int removeCount = oldComposition.Length - matchEnd - matchBeginning;
+            int removeCount = oldCompositionRunes.Count - matchEnd - matchBeginning;
 
             // remove the characters that don't match
             if (removeCount > 0)
@@ -1729,11 +1742,11 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             // how many characters have been added, starting from `matchBeginning`
-            int addCount = newComposition.Length - matchEnd - matchBeginning;
+            int addCount = newCompositionRunes.Count - matchEnd - matchBeginning;
 
             if (addCount > 0)
             {
-                string addedText = newComposition.Substring(matchBeginning, addCount);
+                string addedText = newCompositionRunes.Skip(matchBeginning).Take(addCount).Aggregate("", (current, next) => current + next);
 
                 // set up selection for `insertString`
                 selectionStart = selectionEnd = imeCompositionStart + matchBeginning;
@@ -1777,7 +1790,7 @@ namespace osu.Framework.Graphics.UserInterface
                 // move the cursor to end of finalized composition.
                 selectionStart = selectionEnd = imeCompositionStart + imeCompositionLength;
 
-                if (userEvent) OnImeResult(text.Substring(imeCompositionStart, imeCompositionLength), successful);
+                if (userEvent) OnImeResult(runes.Skip(imeCompositionStart).Take(imeCompositionLength).Aggregate("", (s, rune) => s + rune), successful);
             }
 
             imeCompositionDrawables.Clear();
