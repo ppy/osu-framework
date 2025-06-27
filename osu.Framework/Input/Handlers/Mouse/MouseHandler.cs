@@ -6,6 +6,7 @@
 using System.Diagnostics;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Input.Handlers.Pen;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -137,12 +138,16 @@ namespace osu.Framework.Input.Handlers.Mouse
             return true;
         }
 
-        public virtual void FeedbackMousePositionChange(Vector2 position, bool isSelfFeedback)
+        public virtual void FeedbackMousePositionChange(Vector2 position, InputHandler handler)
         {
             if (!Enabled.Value)
                 return;
 
-            if (!isSelfFeedback && isActive.Value)
+            // https://github.com/ppy/osu/issues/31948
+            // Pen malfunctions if MouseHandler tries to move the mouse cursor to pen position on Linux.
+            bool disableUpdatingMousePosition = handler is PenHandler && RuntimeInfo.OS == RuntimeInfo.Platform.Linux && FrameworkEnvironment.UseSDL3;
+
+            if (handler != this && isActive.Value && !disableUpdatingMousePosition)
                 // if another handler has updated the cursor position, handle updating the OS cursor so we can seamlessly revert
                 // to mouse control at any point.
                 window.UpdateMousePosition(position);
