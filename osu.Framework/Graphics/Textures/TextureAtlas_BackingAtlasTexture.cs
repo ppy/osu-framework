@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.Textures
                 IsAtlasTexture = parent.IsAtlasTexture = true;
             }
 
-            internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? opacity)
+            internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? opacity, Color4? averageColour)
             {
                 // Can only perform padding when the bounds are a sub-part of the texture
                 RectangleI middleBounds = upload.Bounds;
@@ -55,7 +55,8 @@ namespace osu.Framework.Graphics.Textures
                 {
                     // For a texture atlas, we don't care about opacity, so we avoid
                     // any computations related to it by assuming it to be mixed.
-                    base.SetData(upload, wrapModeS, wrapModeT, Opacity.Mixed);
+                    // Same goes for average colour.
+                    base.SetData(upload, wrapModeS, wrapModeT, Opacity.Mixed, Color4.Black);
                     return;
                 }
 
@@ -70,7 +71,8 @@ namespace osu.Framework.Graphics.Textures
                 // Upload the middle part of the texture
                 // For a texture atlas, we don't care about opacity, so we avoid
                 // any computations related to it by assuming it to be mixed.
-                base.SetData(upload, wrapModeS, wrapModeT, Opacity.Mixed);
+                // Same goes for average colour.
+                base.SetData(upload, wrapModeS, wrapModeT, Opacity.Mixed, Color4.Black);
             }
 
             private void uploadVerticalPadding(ReadOnlySpan<Rgba32> upload, RectangleI middleBounds, int actualPadding, bool fillOpaque)
@@ -115,7 +117,8 @@ namespace osu.Framework.Graphics.Textures
                         {
                             // For a texture atlas, we don't care about opacity, so we avoid
                             // any computations related to it by assuming it to be mixed.
-                            base.SetData(sideUpload, WrapMode.None, WrapMode.None, Opacity.Mixed);
+                            // Same goes for average colour.
+                            base.SetData(sideUpload, WrapMode.None, WrapMode.None, Opacity.Mixed, Color4.Black);
                         }
                     }
                 }
@@ -166,7 +169,8 @@ namespace osu.Framework.Graphics.Textures
                         {
                             // For a texture atlas, we don't care about opacity, so we avoid
                             // any computations related to it by assuming it to be mixed.
-                            base.SetData(sideUpload, WrapMode.None, WrapMode.None, Opacity.Mixed);
+                            // Same goes for average colour.
+                            base.SetData(sideUpload, WrapMode.None, WrapMode.None, Opacity.Mixed, Color4.Black);
                         }
                     }
                 }
@@ -207,7 +211,8 @@ namespace osu.Framework.Graphics.Textures
 
                         // For a texture atlas, we don't care about opacity, so we avoid
                         // any computations related to it by assuming it to be mixed.
-                        base.SetData(cornerUpload, WrapMode.None, WrapMode.None, Opacity.Mixed);
+                        // Same goes for average colour.
+                        base.SetData(cornerUpload, WrapMode.None, WrapMode.None, Opacity.Mixed, Color4.Black);
                     }
                 }
             }
