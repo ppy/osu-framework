@@ -63,12 +63,14 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly Container top = new Container
         {
+            Name = "Top",
             RelativeSizeAxes = Axes.X,
             AutoSizeAxes = Axes.Y,
         };
 
         private readonly Container bottom = new Container
         {
+            Name = "Bottom",
             RelativeSizeAxes = Axes.X,
             AutoSizeAxes = Axes.Y,
             Anchor = Anchor.BottomLeft,
@@ -77,12 +79,14 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly Container left = new Container
         {
+            Name = "Left",
             RelativeSizeAxes = Axes.Y,
             AutoSizeAxes = Axes.X,
         };
 
         private readonly Container right = new Container
         {
+            Name = "Right",
             RelativeSizeAxes = Axes.Y,
             AutoSizeAxes = Axes.X,
             Anchor = Anchor.TopRight,
@@ -91,6 +95,7 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly Container center = new Container
         {
+            Name = "Center",
             RelativeSizeAxes = Axes.Both,
         };
 
