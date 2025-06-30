@@ -198,8 +198,8 @@ namespace osu.Framework.Graphics.Containers
 
                 var padding = new MarginPadding
                 {
-                    Top = getPadding(top, top.DrawHeight + spacing.Top),
-                    Bottom = getPadding(bottom, bottom.DrawHeight + spacing.Bottom),
+                    Top = getPadding(top, Direction.Vertical, spacing.Top),
+                    Bottom = getPadding(bottom, Direction.Vertical, spacing.Bottom),
                 };
 
                 right.Padding = padding;
@@ -207,8 +207,8 @@ namespace osu.Framework.Graphics.Containers
 
                 center.Padding = padding with
                 {
-                    Left = getPadding(left, left.DrawWidth + spacing.Left),
-                    Right = getPadding(right, right.DrawWidth + spacing.Right),
+                    Left = getPadding(left, Direction.Horizontal, spacing.Left),
+                    Right = getPadding(right, Direction.Horizontal, spacing.Right),
                 };
             }
             else
@@ -218,8 +218,8 @@ namespace osu.Framework.Graphics.Containers
 
                 var padding = new MarginPadding
                 {
-                    Left = getPadding(left, left.DrawWidth + spacing.Left),
-                    Right = getPadding(right, right.DrawWidth + spacing.Right),
+                    Left = getPadding(left, Direction.Horizontal, spacing.Left),
+                    Right = getPadding(right, Direction.Horizontal, spacing.Right),
                 };
 
                 top.Padding = padding;
@@ -227,13 +227,36 @@ namespace osu.Framework.Graphics.Containers
 
                 center.Padding = padding with
                 {
-                    Top = getPadding(top, top.DrawHeight + spacing.Top),
-                    Bottom = getPadding(bottom, bottom.DrawHeight + spacing.Bottom),
+                    Top = getPadding(top, Direction.Vertical, spacing.Top),
+                    Bottom = getPadding(bottom, Direction.Vertical, spacing.Bottom),
                 };
             }
 
-            static float getPadding(Container container, float value) =>
-                container.Count > 0 && container.Children[0].IsPresent ? value : 0;
+            static float getPadding(Container container, Direction direction, float spacing)
+            {
+                if (container.Children.Count == 0 || !container.Children[0].IsPresent)
+                    return 0;
+
+                var drawable = container.Children[0];
+
+                switch (direction)
+                {
+                    case Direction.Horizontal:
+                        if ((drawable.RelativeSizeAxes & Axes.X) != 0)
+                            throw new InvalidOperationException($"Drawables positioned on the left/right edge of a {nameof(BorderLayoutContainer)} cannot be sized relatively along the X axis.");
+
+                        return drawable.LayoutSize.X + spacing;
+
+                    case Direction.Vertical:
+                        if ((drawable.RelativeSizeAxes & Axes.Y) != 0)
+                            throw new InvalidOperationException($"Drawables positioned on the top/bottom edge of a {nameof(BorderLayoutContainer)} cannot be sized relatively along the Y axis.");
+
+                        return drawable.LayoutSize.Y + spacing;
+
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
+                }
+            }
         }
     }
 }
