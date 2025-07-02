@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Text;
 using osu.Framework.Graphics.Sprites;
 using osuTK;
 
@@ -14,7 +15,7 @@ namespace osu.Framework.Text
         /// </summary>
         public bool IsTruncated { get; private set; }
 
-        private readonly char[]? neverFixedWidthCharacters;
+        private readonly Rune[]? neverFixedWidthCharacters;
         private readonly char fallbackCharacter;
         private readonly ITexturedGlyphLookupStore store;
         private readonly FontUsage font;
@@ -39,7 +40,7 @@ namespace osu.Framework.Text
         /// <param name="fallbackCharacter">The character to use if a glyph lookup fails.</param>
         /// <param name="fixedWidthReferenceCharacter">The character to use to calculate the fixed width width. Defaults to 'm'.</param>
         public TruncatingTextBuilder(ITexturedGlyphLookupStore store, FontUsage font, float maxWidth, string? ellipsisString = null, bool useFontSizeAsHeight = true, Vector2 startOffset = default,
-                                     Vector2 spacing = default, List<TextBuilderGlyph>? characterList = null, char[]? neverFixedWidthCharacters = null, char fallbackCharacter = '?', char fixedWidthReferenceCharacter = 'm')
+                                     Vector2 spacing = default, List<TextBuilderGlyph>? characterList = null, Rune[]? neverFixedWidthCharacters = null, char fallbackCharacter = '?', char fixedWidthReferenceCharacter = 'm')
             : base(store, font, maxWidth, useFontSizeAsHeight, startOffset, spacing, characterList, neverFixedWidthCharacters, fallbackCharacter, fixedWidthReferenceCharacter)
         {
             this.store = store;

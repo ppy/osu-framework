@@ -1119,6 +1119,24 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("first textbox focused", () => textBoxes[0].HasFocus);
         }
 
+        [Test]
+        [Ignore("TextBox doesn't yet properly work with surrogate Unicode characters")]
+        public void TestEmoji()
+        {
+            TestTextBox textBox = null;
+
+            AddStep("add text box", () =>
+            {
+                textBoxes.Add(textBox = new TestTextBox
+                {
+                    Size = new Vector2(300, 40),
+                    Text = "🙂",
+                });
+            });
+
+            AddAssert("only one sprite text", () => textBox.TextFlow.FlowingChildren, () => Has.Count.EqualTo(1));
+        }
+
         private void prependString(InsertableTextBox textBox, string text)
         {
             InputManager.Keys(PlatformAction.MoveBackwardLine);
@@ -1239,6 +1257,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public Quad TextContainerBounds => TextContainer.ToSpaceOfOtherDrawable(new RectangleF(Vector2.Zero, TextContainer.DrawSize), this);
 
             public bool TextContainerTransformsFinished => TextContainer.LatestTransformEndTime == TextContainer.TransformStartTime;
+        }
+
+        private partial class TestTextBox : BasicTextBox
+        {
+            public new FillFlowContainer TextFlow => base.TextFlow;
         }
     }
 }

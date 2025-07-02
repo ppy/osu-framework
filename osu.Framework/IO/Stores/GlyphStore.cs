@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -101,7 +102,7 @@ namespace osu.Framework.IO.Stores
             }
         }, TaskCreationOptions.PreferFairness);
 
-        public bool HasGlyph(char c) => Font?.Characters.ContainsKey(c) == true;
+        public bool HasGlyph(Rune c) => Font?.Characters.ContainsKey(c.Value) == true;
 
         protected virtual TextureUpload GetPageImage(int page)
         {
@@ -118,7 +119,7 @@ namespace osu.Framework.IO.Stores
             return $@"{AssetName}_{page.ToString().PadLeft((Font.Pages.Count - 1).ToString().Length, '0')}.png";
         }
 
-        public CharacterGlyph Get(char character)
+        public CharacterGlyph Get(Rune character)
         {
             if (Font == null)
                 return null;
@@ -127,36 +128,40 @@ namespace osu.Framework.IO.Stores
 
             var bmCharacter = Font.GetCharacter(character);
 
+            Debug.Assert(bmCharacter != null);
+
             return new CharacterGlyph(character, bmCharacter.XOffset, bmCharacter.YOffset, bmCharacter.XAdvance, Baseline.Value, this);
         }
 
-        public int GetKerning(char left, char right) => Font?.GetKerningAmount(left, right) ?? 0;
+        public int GetKerning(Rune left, Rune right) => Font?.GetKerningAmount(left, right) ?? 0;
 
         Task<CharacterGlyph> IResourceStore<CharacterGlyph>.GetAsync(string name, CancellationToken cancellationToken) =>
-            Task.Run(() => ((IGlyphStore)this).Get(name[0]), cancellationToken);
+            Task.Run(() => ((IGlyphStore)this).Get(Rune.GetRuneAt(name, 0)), cancellationToken);
 
-        CharacterGlyph IResourceStore<CharacterGlyph>.Get(string name) => Get(name[0]);
+        CharacterGlyph IResourceStore<CharacterGlyph>.Get(string name) => Get(Rune.GetRuneAt(name, 0));
 
         public TextureUpload Get(string name)
         {
             if (Font == null) return null;
 
-            if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
+            // name is expected to be in the format "{Rune}" or "{FontName}/{Rune}" where {Rune} is UTF-16 sequence of 1 or 2 `char`s.
+            // Length > 2 is just a shorthand to check if there is a font name in the lookup
+            if (name.Length > 2 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                 return null;
 
-            return Font.Characters.TryGetValue(name.Last(), out Character c) ? LoadCharacter(c) : null;
+            Rune.DecodeLastFromUtf16(name, out var rune, out int _);
+            return Font.Characters.TryGetValue(rune.Value, out Character c) ? LoadCharacter(c) : null;
         }
 
         public virtual async Task<TextureUpload> GetAsync(string name, CancellationToken cancellationToken = default)
         {
-            if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
+            if (name.Length > 2 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                 return null;
 
             var bmFont = await completionSource.Task.ConfigureAwait(false);
 
-            return bmFont.Characters.TryGetValue(name.Last(), out Character c)
-                ? LoadCharacter(c)
-                : null;
+            Rune.DecodeLastFromUtf16(name, out var rune, out int _);
+            return bmFont.Characters.TryGetValue(rune.Value, out Character c) ? LoadCharacter(c) : null;
         }
 
         protected int LoadedGlyphCount;

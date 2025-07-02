@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Runtime.CompilerServices;
+using System.Text;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
 
@@ -16,7 +17,7 @@ namespace osu.Framework.Text
         public readonly float XOffset => ((fixedWidth - Glyph.Width) / 2 ?? Glyph.XOffset) * textSize;
         public readonly float XAdvance => (fixedWidth ?? Glyph.XAdvance) * textSize;
         public readonly float Width => Glyph.Width * textSize;
-        public readonly char Character => Glyph.Character;
+        public readonly Rune Character => Glyph.Character;
 
         public readonly float YOffset
         {

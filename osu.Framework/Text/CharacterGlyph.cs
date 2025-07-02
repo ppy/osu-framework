@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Runtime.CompilerServices;
+using System.Text;
 using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Text
@@ -12,11 +13,11 @@ namespace osu.Framework.Text
         public float YOffset { get; }
         public float XAdvance { get; }
         public float Baseline { get; }
-        public char Character { get; }
+        public Rune Character { get; }
 
         private readonly IGlyphStore? containingStore;
 
-        public CharacterGlyph(char character, float xOffset, float yOffset, float xAdvance, float baseline, IGlyphStore? containingStore)
+        public CharacterGlyph(Rune character, float xOffset, float yOffset, float xAdvance, float baseline, IGlyphStore? containingStore)
         {
             this.containingStore = containingStore;
 
