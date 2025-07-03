@@ -102,7 +102,7 @@ namespace osu.Framework.IO.Stores
             }
         }, TaskCreationOptions.PreferFairness);
 
-        public bool HasGlyph(Rune c) => Font?.Characters.ContainsKey(c.Value) == true;
+        public bool HasGlyph(Grapheme c) => c.IsSingleScalarValue && Font?.Characters.ContainsKey(((Rune)c).Value) == true;
 
         protected virtual TextureUpload GetPageImage(int page)
         {
@@ -119,49 +119,68 @@ namespace osu.Framework.IO.Stores
             return $@"{AssetName}_{page.ToString().PadLeft((Font.Pages.Count - 1).ToString().Length, '0')}.png";
         }
 
-        public CharacterGlyph Get(Rune character)
+        public CharacterGlyph Get(Grapheme character)
         {
             if (Font == null)
                 return null;
 
             Debug.Assert(Baseline != null);
 
-            var bmCharacter = Font.GetCharacter(character);
+            var bmCharacter = Font.GetCharacter(character.CharValue);
 
             Debug.Assert(bmCharacter != null);
 
             return new CharacterGlyph(character, bmCharacter.XOffset, bmCharacter.YOffset, bmCharacter.XAdvance, Baseline.Value, this);
         }
 
-        public int GetKerning(Rune left, Rune right) => Font?.GetKerningAmount(left, right) ?? 0;
+        /// <summary>
+        /// This is a convenience method that converts the character to a <see cref="Grapheme"/> and calls <see cref="Get(Grapheme)"/>.
+        /// </summary>
+        /// <param name="character">The character to retrieve.</param>
+        public CharacterGlyph Get(char character)
+        {
+            return Get(new Grapheme(character));
+        }
+
+        public int GetKerning(Grapheme left, Grapheme right) => Font?.GetKerningAmount(left.CharValue, right.CharValue) ?? 0;
 
         Task<CharacterGlyph> IResourceStore<CharacterGlyph>.GetAsync(string name, CancellationToken cancellationToken) =>
-            Task.Run(() => ((IGlyphStore)this).Get(Rune.GetRuneAt(name, 0)), cancellationToken);
+            Task.Run(() => ((IGlyphStore)this).Get(new Grapheme(name)), cancellationToken);
 
-        CharacterGlyph IResourceStore<CharacterGlyph>.Get(string name) => Get(Rune.GetRuneAt(name, 0));
+        CharacterGlyph IResourceStore<CharacterGlyph>.Get(string name) => Get(new Grapheme(name));
 
         public TextureUpload Get(string name)
         {
             if (Font == null) return null;
 
-            // name is expected to be in the format "{Rune}" or "{FontName}/{Rune}" where {Rune} is UTF-16 sequence of 1 or 2 `char`s.
-            // Length > 2 is just a shorthand to check if there is a font name in the lookup
-            if (name.Length > 2 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
-                return null;
+            Grapheme grapheme;
 
-            Rune.DecodeLastFromUtf16(name, out var rune, out int _);
-            return Font.Characters.TryGetValue(rune.Value, out Character c) ? LoadCharacter(c) : null;
+            // name is expected to be in the format "{Grapheme}" or "Font:{FontName}/{Grapheme}"
+            // this is a shorthand to check if there is a font name in the lookup
+            if (name.Length > 1)
+            {
+                // if FontName does not match, return null.
+                if (!name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
+                    return null;
+
+                grapheme = new Grapheme(name.AsSpan(FontName.Length + 1));
+            }
+            else
+            {
+                grapheme = new Grapheme(name);
+            }
+
+            return Font.Characters.TryGetValue(grapheme.CharValue, out Character c) ? LoadCharacter(c) : null;
         }
 
         public virtual async Task<TextureUpload> GetAsync(string name, CancellationToken cancellationToken = default)
         {
-            if (name.Length > 2 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
+            if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                 return null;
 
-            var bmFont = await completionSource.Task.ConfigureAwait(false);
+            await completionSource.Task.ConfigureAwait(false);
 
-            Rune.DecodeLastFromUtf16(name, out var rune, out int _);
-            return bmFont.Characters.TryGetValue(rune.Value, out Character c) ? LoadCharacter(c) : null;
+            return Get(name);
         }
 
         protected int LoadedGlyphCount;

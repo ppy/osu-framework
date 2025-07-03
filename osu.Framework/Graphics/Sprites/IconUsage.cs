@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Text;
 using JetBrains.Annotations;
 
 namespace osu.Framework.Graphics.Sprites
@@ -41,7 +40,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// The icon character.
         /// </summary>
-        public Rune Icon { get; }
+        public char Icon { get; }
 
         /// <summary>
         /// Creates an instance of <see cref="IconUsage"/> using the specified font <paramref name="family"/>, font <paramref name="weight"/> and a value indicating whether the used font is italic or not.
@@ -49,7 +48,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <param name="icon">The icon.</param>
         /// <param name="family">The font family name.</param>
         /// <param name="weight">The font weight.</param>
-        public IconUsage(Rune icon, [CanBeNull] string family = null, [CanBeNull] string weight = null)
+        public IconUsage(char icon, [CanBeNull] string family = null, [CanBeNull] string weight = null)
         {
             Icon = icon;
             Family = family;

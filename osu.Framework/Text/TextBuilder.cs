@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
@@ -26,9 +25,9 @@ namespace osu.Framework.Text
         /// </summary>
         public readonly List<TextBuilderGlyph> Characters;
 
-        private readonly Rune[] neverFixedWidthCharacters;
-        private readonly Rune fallbackCharacter;
-        private readonly Rune fixedWidthReferenceCharacter;
+        private readonly char[] neverFixedWidthCharacters;
+        private readonly char fallbackCharacter;
+        private readonly char fixedWidthReferenceCharacter;
         private readonly ITexturedGlyphLookupStore store;
         private readonly FontUsage font;
         private readonly bool useFontSizeAsHeight;
@@ -72,7 +71,7 @@ namespace osu.Framework.Text
         /// <param name="fallbackCharacter">The character to use if a glyph lookup fails.</param>
         /// <param name="fixedWidthReferenceCharacter">The character to use to calculate the fixed width width. Defaults to 'm'.</param>
         public TextBuilder(ITexturedGlyphLookupStore store, FontUsage font, float maxWidth = float.MaxValue, bool useFontSizeAsHeight = true, Vector2 startOffset = default, Vector2 spacing = default,
-                           List<TextBuilderGlyph>? characterList = null, Rune[]? neverFixedWidthCharacters = null, char fallbackCharacter = '?', char fixedWidthReferenceCharacter = 'm')
+                           List<TextBuilderGlyph>? characterList = null, char[]? neverFixedWidthCharacters = null, char fallbackCharacter = '?', char fixedWidthReferenceCharacter = 'm')
         {
             this.store = store;
             this.font = font;
@@ -82,9 +81,9 @@ namespace osu.Framework.Text
             this.maxWidth = maxWidth;
 
             Characters = characterList ?? new List<TextBuilderGlyph>();
-            this.neverFixedWidthCharacters = neverFixedWidthCharacters ?? Array.Empty<Rune>();
-            this.fallbackCharacter = new Rune(fallbackCharacter);
-            this.fixedWidthReferenceCharacter = new Rune(fixedWidthReferenceCharacter);
+            this.neverFixedWidthCharacters = neverFixedWidthCharacters ?? Array.Empty<char>();
+            this.fallbackCharacter = fallbackCharacter;
+            this.fixedWidthReferenceCharacter = fixedWidthReferenceCharacter;
 
             currentPos = startOffset;
         }
@@ -114,7 +113,7 @@ namespace osu.Framework.Text
         /// <param name="text">The text to append.</param>
         public void AddText(string text)
         {
-            foreach (var c in text.EnumerateRunes())
+            foreach (var c in Grapheme.GetGraphemeEnumerator(text))
             {
                 if (!AddCharacter(c))
                     break;
@@ -126,7 +125,7 @@ namespace osu.Framework.Text
         /// </summary>
         /// <param name="character">The character to append.</param>
         /// <returns>Whether characters can still be added.</returns>
-        public bool AddCharacter(Rune character)
+        public bool AddCharacter(Grapheme character)
         {
             if (!CanAddCharacters)
                 return false;
@@ -331,9 +330,9 @@ namespace osu.Framework.Text
 
         private readonly Cached<float> constantWidthCache = new Cached<float>();
 
-        private float getConstantWidth() => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getTexturedGlyph(fixedWidthReferenceCharacter)?.Width ?? 0;
+        private float getConstantWidth() => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getTexturedGlyph((Grapheme)fixedWidthReferenceCharacter)?.Width ?? 0;
 
-        private bool tryCreateGlyph(Rune character, out TextBuilderGlyph glyph)
+        private bool tryCreateGlyph(Grapheme character, out TextBuilderGlyph glyph)
         {
             var fontStoreGlyph = getTexturedGlyph(character);
 
@@ -344,7 +343,7 @@ namespace osu.Framework.Text
             }
 
             // Array.IndexOf is used to avoid LINQ
-            if (font.FixedWidth && Array.IndexOf(neverFixedWidthCharacters, character) == -1)
+            if (font.FixedWidth && Array.IndexOf(neverFixedWidthCharacters, character.CharValue) == -1)
                 glyph = new TextBuilderGlyph(fontStoreGlyph, font.Size, getConstantWidth(), useFontSizeAsHeight);
             else
                 glyph = new TextBuilderGlyph(fontStoreGlyph, font.Size, useFontSizeAsHeight: useFontSizeAsHeight);
@@ -352,16 +351,39 @@ namespace osu.Framework.Text
             return true;
         }
 
-        private ITexturedCharacterGlyph? getTexturedGlyph(Rune character)
+        private ITexturedCharacterGlyph? getTexturedGlyph(Grapheme character)
         {
-            return tryGetGlyph(character, font, store) ??
-                   tryGetGlyph(fallbackCharacter, font, store);
+            var glyph = tryGetGlyph(character, font, store);
+            if (glyph != null)
+                return glyph;
 
-            static ITexturedCharacterGlyph? tryGetGlyph(Rune character, FontUsage font, ITexturedGlyphLookupStore store)
+            if (tryFallback(character, new Grapheme(fallbackCharacter)) is { } fallback)
+                return getTexturedGlyph(fallback);
+
+            return null;
+
+            static ITexturedCharacterGlyph? tryGetGlyph(Grapheme character, FontUsage font, ITexturedGlyphLookupStore store)
             {
                 return store.Get(font.FontName, character)
                        ?? store.Get(font.FontNameNoFamily, character)
                        ?? store.Get(string.Empty, character);
+            }
+
+            static Grapheme? tryFallback(Grapheme character, Grapheme fallbackCharacter)
+            {
+                if (character == fallbackCharacter)
+                {
+                    // If the character is the fallback character, don't try to fallback again
+                    return null;
+                }
+
+                if (character.RemoveLastModifier() is { } withoutModifier)
+                {
+                    // If the character has a modifier, remove it and try again
+                    return withoutModifier;
+                }
+
+                return fallbackCharacter;
             }
         }
     }

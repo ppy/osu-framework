@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Text;
-
 namespace osu.Framework.Text
 {
     /// <summary>
@@ -33,7 +31,7 @@ namespace osu.Framework.Text
         /// <summary>
         /// The character represented by this glyph.
         /// </summary>
-        Rune Character { get; }
+        Grapheme Character { get; }
 
         /// <summary>
         /// Retrieves the kerning between this <see cref="CharacterGlyph"/> and the one prior to it.

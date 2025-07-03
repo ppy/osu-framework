@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Rendering;
@@ -29,7 +28,7 @@ namespace osu.Framework.IO.Stores
         /// A local cache to avoid string allocation overhead. Can be changed to (string,char)=>string if this ever becomes an issue,
         /// but as long as we directly inherit <see cref="TextureStore"/> this is a slight optimisation.
         /// </summary>
-        private readonly ConcurrentDictionary<(string, Rune), ITexturedCharacterGlyph> namespacedGlyphCache = new ConcurrentDictionary<(string, Rune), ITexturedCharacterGlyph>();
+        private readonly ConcurrentDictionary<(string, Grapheme), ITexturedCharacterGlyph> namespacedGlyphCache = new ConcurrentDictionary<(string, Grapheme), ITexturedCharacterGlyph>();
 
         /// <summary>
         /// Construct a font store to be added to a parent font store via <see cref="AddStore"/>.
@@ -139,7 +138,7 @@ namespace osu.Framework.IO.Stores
             base.RemoveStore(store);
         }
 
-        public ITexturedCharacterGlyph Get(string fontName, Rune character)
+        public ITexturedCharacterGlyph Get(string fontName, Grapheme character)
         {
             var key = (fontName, character);
 
@@ -150,7 +149,7 @@ namespace osu.Framework.IO.Stores
             {
                 if (store.FontName.EndsWith(fontName ?? string.Empty, StringComparison.Ordinal) && store.HasGlyph(character))
                 {
-                    string textureName = $"{store.FontName}/{character}";
+                    string textureName = $"Font:{store.FontName}/{character}";
                     return namespacedGlyphCache[key] = new TexturedCharacterGlyph(store.Get(character).AsNonNull(), Get(textureName), 1 / ScaleAdjust);
                 }
             }
@@ -165,6 +164,13 @@ namespace osu.Framework.IO.Stores
             return namespacedGlyphCache[key] = null;
         }
 
-        public Task<ITexturedCharacterGlyph> GetAsync(string fontName, Rune character) => Task.Run(() => Get(fontName, character));
+        /// <summary>
+        /// Retrieves a glyph from the store.
+        /// This is a convenience method that converts the character to a <see cref="Grapheme"/> and calls <see cref="Get(string, Grapheme)"/>.
+        /// Useful for writing tests.
+        /// </summary>
+        public ITexturedCharacterGlyph Get(string fontName, char character) => Get(fontName, new Grapheme(character));
+
+        public Task<ITexturedCharacterGlyph> GetAsync(string fontName, Grapheme character) => Task.Run(() => Get(fontName, character));
     }
 }

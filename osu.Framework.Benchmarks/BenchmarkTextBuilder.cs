@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Text;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using osu.Framework.Graphics.Rendering.Dummy;
@@ -36,6 +35,14 @@ namespace osu.Framework.Benchmarks
             textBuilder.RemoveLastCharacter();
         }
 
+        [Benchmark]
+        public void AddText()
+        {
+            textBuilder = new TextBuilder(store, FontUsage.Default);
+            textBuilder.AddText(
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.");
+        }
+
         private void initialiseBuilder(bool withDifferentBaselines)
         {
             textBuilder = new TextBuilder(store, FontUsage.Default);
@@ -43,16 +50,16 @@ namespace osu.Framework.Benchmarks
             char different = 'B';
 
             for (int i = 0; i < 100; i++)
-                textBuilder.AddCharacter(new Rune(withDifferentBaselines && (i % 10 == 0) ? different++ : 'A'));
+                textBuilder.AddCharacter(new Grapheme(withDifferentBaselines && (i % 10 == 0) ? different++ : 'A'));
         }
 
         private class TestStore : ITexturedGlyphLookupStore
         {
-            public ITexturedCharacterGlyph Get(string? fontName, Rune character) => new TexturedCharacterGlyph(
-                new CharacterGlyph(character, character.Value, character.Value, character.Value, character.Value, null),
+            public ITexturedCharacterGlyph Get(string? fontName, Grapheme character) => new TexturedCharacterGlyph(
+                new CharacterGlyph(character, character.CharValue, character.CharValue, character.CharValue, character.CharValue, null),
                 new DummyRenderer().CreateTexture(1, 1));
 
-            public Task<ITexturedCharacterGlyph?> GetAsync(string fontName, Rune character) => Task.Run<ITexturedCharacterGlyph?>(() => Get(fontName, character));
+            public Task<ITexturedCharacterGlyph?> GetAsync(string fontName, Grapheme character) => Task.Run<ITexturedCharacterGlyph?>(() => Get(fontName, character));
         }
     }
 }

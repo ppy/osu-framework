@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Runtime.CompilerServices;
-using System.Text;
 using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Text
@@ -15,7 +14,7 @@ namespace osu.Framework.Text
         public float YOffset => glyph.YOffset * Scale;
         public float XAdvance => glyph.XAdvance * Scale;
         public float Baseline => glyph.Baseline * Scale;
-        public Rune Character => glyph.Character;
+        public Grapheme Character => glyph.Character;
         public float Width => Texture.Width * Scale;
         public float Height => Texture.Height * Scale;
 
