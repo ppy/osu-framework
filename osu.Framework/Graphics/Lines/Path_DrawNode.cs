@@ -266,6 +266,7 @@ namespace osu.Framework.Graphics.Lines
 
                 Line? segmentToDraw = null;
                 SegmentStartLocation location = SegmentStartLocation.Outside;
+                SegmentStartLocation modifiedLocation = SegmentStartLocation.Outside;
                 SegmentWithThickness? lastDrawnSegment = null;
 
                 for (int i = 0; i < segments.Count; i++)
@@ -291,7 +292,7 @@ namespace osu.Framework.Graphics.Lines
                             {
                                 // expand segment backwards
                                 segmentToDraw = new Line(closest, segmentToDraw.Value.EndPoint);
-                                location = SegmentStartLocation.Outside;
+                                modifiedLocation = SegmentStartLocation.Outside;
                             }
                             else if (progress > 1)
                             {
@@ -301,7 +302,7 @@ namespace osu.Framework.Graphics.Lines
                         }
                         else // Otherwise draw the expanded segment
                         {
-                            SegmentWithThickness s = new SegmentWithThickness(segmentToDraw.Value, radius, location);
+                            SegmentWithThickness s = new SegmentWithThickness(segmentToDraw.Value, radius, location, modifiedLocation);
                             addSegmentQuads(s, texRect);
                             connect(s, lastDrawnSegment, texRect);
 
@@ -310,7 +311,7 @@ namespace osu.Framework.Graphics.Lines
                             // Figure out at which point within currently drawn segment the new one starts
                             float p = progressFor(segmentToDraw.Value, segmentToDrawLength, segments[i].StartPoint);
                             segmentToDraw = segments[i];
-                            location = Precision.AlmostEquals(p, 1f) ? SegmentStartLocation.End : Precision.AlmostEquals(p, 0f) ? SegmentStartLocation.Start : SegmentStartLocation.Middle;
+                            location = modifiedLocation = Precision.AlmostEquals(p, 1f) ? SegmentStartLocation.End : Precision.AlmostEquals(p, 0f) ? SegmentStartLocation.Start : SegmentStartLocation.Middle;
                         }
                     }
                     else
@@ -321,7 +322,7 @@ namespace osu.Framework.Graphics.Lines
 
                 if (segmentToDraw.HasValue)
                 {
-                    SegmentWithThickness s = new SegmentWithThickness(segmentToDraw.Value, radius, location);
+                    SegmentWithThickness s = new SegmentWithThickness(segmentToDraw.Value, radius, location, modifiedLocation);
                     addSegmentQuads(s, texRect);
                     connect(s, lastDrawnSegment, texRect);
                     addEndCap(s, texRect);
@@ -340,7 +341,7 @@ namespace osu.Framework.Graphics.Lines
                     return;
                 }
 
-                switch (segment.StartLocation)
+                switch (segment.ModifiedStartLocation)
                 {
                     default:
                     case SegmentStartLocation.End:
@@ -355,8 +356,12 @@ namespace osu.Framework.Graphics.Lines
                         break;
 
                     case SegmentStartLocation.Outside:
-                        // Segment starts outside the previous one - add end cap to the previous segment and start cap to the current one
-                        addEndCap(prevSegment.Value, texRect);
+                        // Segment starts outside the previous one
+                        // Add end cap to the previous segment if this one does not pass through the end of it
+                        if (segment.StartLocation != SegmentStartLocation.End)
+                            addEndCap(prevSegment.Value, texRect);
+
+                        // add start cap to the current one
                         addStartCap(segment, texRect);
                         break;
                 }
@@ -422,10 +427,16 @@ namespace osu.Framework.Graphics.Lines
                 /// </summary>
                 public SegmentStartLocation StartLocation { get; }
 
-                public SegmentWithThickness(Line guide, float radius, SegmentStartLocation startLocation)
+                /// <summary>
+                /// Position of this modified <see cref="SegmentWithThickness"/> relative to the previous one.
+                /// </summary>
+                public SegmentStartLocation ModifiedStartLocation { get; }
+
+                public SegmentWithThickness(Line guide, float radius, SegmentStartLocation startLocation, SegmentStartLocation modifiedStartLocation)
                 {
                     Guide = guide;
                     StartLocation = startLocation;
+                    ModifiedStartLocation = modifiedStartLocation;
 
                     Vector2 ortho = Guide.OrthogonalDirection;
                     if (float.IsNaN(ortho.X) || float.IsNaN(ortho.Y))
