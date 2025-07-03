@@ -288,20 +288,23 @@ namespace osu.Framework.Graphics.Lines
                         {
                             if (progress < 0)
                             {
+                                // expand segment backwards
                                 segmentToDraw = new SegmentWithThickness(new Line(closest, segmentToDraw.Value.Guide.EndPoint), radius, SegmentStartLocation.Outside);
                             }
                             else if (progress > 1)
                             {
+                                // or forward
                                 segmentToDraw = new SegmentWithThickness(new Line(segmentToDraw.Value.Guide.StartPoint, closest), radius, segmentToDraw.Value.StartLocation);
                             }
                         }
-                        else // Otherwise finish segment elongation and draw saved one
+                        else // Otherwise draw the expanded segment
                         {
                             addSegmentQuads(segmentToDraw.Value, texRect);
                             connect(segmentToDraw.Value, lastDrawnSegment, texRect);
 
                             lastDrawnSegment = segmentToDraw;
 
+                            // Figure out at which point within currently drawn segment the new one starts
                             float p = progressFor(segmentToDraw.Value.Guide, segmentToDrawLength, segments[i].StartPoint);
                             segmentToDraw = new SegmentWithThickness(segments[i], radius, Precision.AlmostEquals(p, 1f) ? SegmentStartLocation.End : Precision.AlmostEquals(p, 0f) ? SegmentStartLocation.Start : SegmentStartLocation.Middle);
                         }
@@ -320,10 +323,14 @@ namespace osu.Framework.Graphics.Lines
                 }
             }
 
+            /// <summary>
+            /// Connects the start of the segment to the end of a previous one.
+            /// </summary>
             private void connect(SegmentWithThickness segment, SegmentWithThickness? prevSegment, RectangleF texRect)
             {
                 if (!prevSegment.HasValue)
                 {
+                    // Nothing to connect to - add start cap
                     addStartCap(segment, texRect);
                     return;
                 }
@@ -332,22 +339,25 @@ namespace osu.Framework.Graphics.Lines
                 {
                     default:
                     case SegmentStartLocation.End:
-                        addConnectionCaps(segment, prevSegment.Value, texRect);
+                        // Segment starts at the end of the previous one
+                        addConnectionBetween(segment, prevSegment.Value, texRect);
                         break;
 
                     case SegmentStartLocation.Start:
                     case SegmentStartLocation.Middle:
+                        // Segment starts at the start or the middle of the previous one - add end cap to the previous segment
                         addEndCap(prevSegment.Value, texRect);
                         break;
 
                     case SegmentStartLocation.Outside:
+                        // Segment starts outside the previous one - add end cap to the previous segment and start cap to the current one
                         addEndCap(prevSegment.Value, texRect);
                         addStartCap(segment, texRect);
                         break;
                 }
             }
 
-            private void addConnectionCaps(SegmentWithThickness segment, SegmentWithThickness prevSegment, RectangleF texRect)
+            private void addConnectionBetween(SegmentWithThickness segment, SegmentWithThickness prevSegment, RectangleF texRect)
             {
                 float thetaDiff = segment.Guide.Theta - prevSegment.Guide.Theta;
                 addSegmentCaps(thetaDiff, segment.EdgeLeft, segment.EdgeRight, prevSegment.EdgeLeft, prevSegment.EdgeRight, texRect);
