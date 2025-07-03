@@ -9,7 +9,7 @@ namespace osu.Framework.Text
     public sealed class TexturedCharacterGlyph : ITexturedCharacterGlyph
     {
         public Texture Texture { get; }
-
+        public bool Coloured => false;
         public float XOffset => glyph.XOffset * Scale;
         public float YOffset => glyph.YOffset * Scale;
         public float XAdvance => glyph.XAdvance * Scale;

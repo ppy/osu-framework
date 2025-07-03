@@ -736,6 +736,7 @@ namespace osu.Framework.Tests.Text
             public float Height { get; }
             public Grapheme Character { get; }
             public string? FontName { get; }
+            public bool Coloured => false;
 
             private readonly float glyphKerning;
 
