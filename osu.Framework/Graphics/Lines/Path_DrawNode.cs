@@ -264,24 +264,25 @@ namespace osu.Framework.Graphics.Lines
 
                 RectangleF texRect = texture.GetTextureRect(new RectangleF(0.5f, 0.5f, texture.Width - 1, texture.Height - 1));
 
-                SegmentWithThickness? segmentToDraw = null;
+                Line? segmentToDraw = null;
+                SegmentStartLocation location = SegmentStartLocation.Outside;
                 SegmentWithThickness? lastDrawnSegment = null;
 
                 for (int i = 0; i < segments.Count; i++)
                 {
                     if (segmentToDraw.HasValue)
                     {
-                        float segmentToDrawLength = segmentToDraw.Value.Guide.Rho;
+                        float segmentToDrawLength = segmentToDraw.Value.Rho;
 
                         // If segment is too short, make its end point equal start point of a new segment
-                        if (segmentToDrawLength < 0.1f)
+                        if (segmentToDrawLength < 1f)
                         {
-                            segmentToDraw = new SegmentWithThickness(new Line(segmentToDraw.Value.Guide.StartPoint, segments[i].EndPoint), radius, segmentToDraw.Value.StartLocation);
+                            segmentToDraw = new Line(segmentToDraw.Value.StartPoint, segments[i].EndPoint);
                             continue;
                         }
 
-                        float progress = progressFor(segmentToDraw.Value.Guide, segmentToDrawLength, segments[i].EndPoint);
-                        Vector2 closest = segmentToDraw.Value.Guide.At(progress);
+                        float progress = progressFor(segmentToDraw.Value, segmentToDrawLength, segments[i].EndPoint);
+                        Vector2 closest = segmentToDraw.Value.At(progress);
 
                         // Expand segment if new segment end is located within a line passing through it
                         if (Precision.AlmostEquals(closest, segments[i].EndPoint, 0.1f))
@@ -289,37 +290,41 @@ namespace osu.Framework.Graphics.Lines
                             if (progress < 0)
                             {
                                 // expand segment backwards
-                                segmentToDraw = new SegmentWithThickness(new Line(closest, segmentToDraw.Value.Guide.EndPoint), radius, SegmentStartLocation.Outside);
+                                segmentToDraw = new Line(closest, segmentToDraw.Value.EndPoint);
+                                location = SegmentStartLocation.Outside;
                             }
                             else if (progress > 1)
                             {
                                 // or forward
-                                segmentToDraw = new SegmentWithThickness(new Line(segmentToDraw.Value.Guide.StartPoint, closest), radius, segmentToDraw.Value.StartLocation);
+                                segmentToDraw = new Line(segmentToDraw.Value.StartPoint, closest);
                             }
                         }
                         else // Otherwise draw the expanded segment
                         {
-                            addSegmentQuads(segmentToDraw.Value, texRect);
-                            connect(segmentToDraw.Value, lastDrawnSegment, texRect);
+                            SegmentWithThickness s = new SegmentWithThickness(segmentToDraw.Value, radius, location);
+                            addSegmentQuads(s, texRect);
+                            connect(s, lastDrawnSegment, texRect);
 
-                            lastDrawnSegment = segmentToDraw;
+                            lastDrawnSegment = s;
 
                             // Figure out at which point within currently drawn segment the new one starts
-                            float p = progressFor(segmentToDraw.Value.Guide, segmentToDrawLength, segments[i].StartPoint);
-                            segmentToDraw = new SegmentWithThickness(segments[i], radius, Precision.AlmostEquals(p, 1f) ? SegmentStartLocation.End : Precision.AlmostEquals(p, 0f) ? SegmentStartLocation.Start : SegmentStartLocation.Middle);
+                            float p = progressFor(segmentToDraw.Value, segmentToDrawLength, segments[i].StartPoint);
+                            segmentToDraw = segments[i];
+                            location = Precision.AlmostEquals(p, 1f) ? SegmentStartLocation.End : Precision.AlmostEquals(p, 0f) ? SegmentStartLocation.Start : SegmentStartLocation.Middle;
                         }
                     }
                     else
                     {
-                        segmentToDraw = new SegmentWithThickness(segments[i], radius, SegmentStartLocation.Outside);
+                        segmentToDraw = segments[i];
                     }
                 }
 
                 if (segmentToDraw.HasValue)
                 {
-                    addSegmentQuads(segmentToDraw.Value, texRect);
-                    connect(segmentToDraw.Value, lastDrawnSegment, texRect);
-                    addEndCap(segmentToDraw.Value, texRect);
+                    SegmentWithThickness s = new SegmentWithThickness(segmentToDraw.Value, radius, location);
+                    addSegmentQuads(s, texRect);
+                    connect(s, lastDrawnSegment, texRect);
+                    addEndCap(s, texRect);
                 }
             }
 
