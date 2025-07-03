@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
+using osu.Framework.Text;
 using osuTK;
 using osuTK.Graphics;
 
@@ -93,7 +94,7 @@ namespace osu.Framework.Graphics.UserInterface
             background.FadeColour(BackgroundFocused, 200, Easing.Out);
         }
 
-        protected override Drawable GetDrawableCharacter(char c) => new FallingDownContainer
+        protected override Drawable GetDrawableCharacter(Grapheme c) => new FallingDownContainer
         {
             AutoSizeAxes = Axes.Both,
             Child = new SpriteText { Text = c.ToString(), Font = FrameworkFont.Condensed.With(size: FontSize) }
