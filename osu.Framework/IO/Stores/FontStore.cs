@@ -149,7 +149,7 @@ namespace osu.Framework.IO.Stores
             {
                 if (store.FontName.EndsWith(fontName ?? string.Empty, StringComparison.Ordinal) && store.HasGlyph(character))
                 {
-                    string textureName = $"Font:{store.FontName}/{character}";
+                    string textureName = $"{store.FontName}/{character}";
                     return namespacedGlyphCache[key] = new TexturedCharacterGlyph(store.Get(character).AsNonNull(), Get(textureName), 1 / ScaleAdjust);
                 }
             }
