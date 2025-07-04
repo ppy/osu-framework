@@ -192,6 +192,25 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
+        public void TestAsymmetricSync()
+        {
+            var source = new BindableInt();
+            var dest = new BindableInt();
+
+            dest.SyncWith(source, toDest: v => v * 2, toSource: v => v / 4);
+
+            source.Value = 10;
+
+            Assert.AreEqual(10, source.Value);
+            Assert.AreEqual(20, dest.Value);
+
+            // When the toSource mapping function returns a value that isn't the exact inverse of the toDest mapping, the dest value's final state should be based on the new source value
+            dest.Value = 80;
+            Assert.AreEqual(20, source.Value);
+            Assert.AreEqual(40, dest.Value);
+        }
+
+        [Test]
         public void TestSafeSyncedDisabledState()
         {
             var source = new Bindable<int>();

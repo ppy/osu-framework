@@ -42,10 +42,34 @@ namespace osu.Framework.Extensions
         /// </summary>
         public static void SyncWith<TSource, TDest>(this Bindable<TDest> dest, Bindable<TSource> source, Func<TSource, TDest> toDest, Func<TDest, TSource> toSource)
         {
-            dest.ComputeFrom(source, toDest);
+            // If the two mapping functions don't deterministically produce the exact inverse result, this could lead to endless recursive updates
+            // In that case the source value should take precedence
+            bool isWritingDestValue = false;
+
+            source.BindValueChanged(e =>
+            {
+                try
+                {
+                    isWritingDestValue = true;
+
+                    dest.Value = toDest(e.NewValue);
+                }
+                finally
+                {
+                    isWritingDestValue = false;
+                }
+            }, true);
+
+            source.BindDisabledChanged(disabled =>
+            {
+                dest.Disabled = disabled;
+            }, true);
 
             dest.BindValueChanged(e =>
             {
+                if (isWritingDestValue)
+                    return;
+
                 source.Value = toSource(e.NewValue);
             });
 
@@ -63,10 +87,34 @@ namespace osu.Framework.Extensions
         /// </summary>
         public static void SyncWith<TSource, TDest>(this Bindable<TDest> dest, Bindable<TSource> source, Func<TSource, TDest> toDest, SafeMappingFunction<TDest, TSource> tryParse)
         {
-            dest.ComputeFrom(source, toDest);
+            // If the two mapping functions don't deterministically produce the exact inverse result, this could lead to endless recursive updates
+            // In that case the source value should take precedence
+            bool isWritingDestValue = false;
+
+            source.BindValueChanged(e =>
+            {
+                try
+                {
+                    isWritingDestValue = true;
+
+                    dest.Value = toDest(e.NewValue);
+                }
+                finally
+                {
+                    isWritingDestValue = false;
+                }
+            }, true);
+
+            source.BindDisabledChanged(disabled =>
+            {
+                dest.Disabled = disabled;
+            }, true);
 
             dest.BindValueChanged(e =>
             {
+                if (isWritingDestValue)
+                    return;
+
                 if (tryParse(e.NewValue, out var result))
                     source.Value = result;
                 else
