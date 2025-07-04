@@ -7,6 +7,7 @@ using NUnit.Framework;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 
+// ReSharper disable AccessToModifiedClosure
 namespace osu.Framework.Tests.Bindables
 {
     [TestFixture]
