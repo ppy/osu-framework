@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using osu.Framework.Bindables;
 
 namespace osu.Framework.Extensions
@@ -125,6 +126,45 @@ namespace osu.Framework.Extensions
             {
                 source.Disabled = disabled;
             });
+        }
+
+        /// <summary>
+        /// Bidirectionally syncs the value of a <see cref="Bindable{String}"/> with a <see cref="Bindable{Int}"/>.
+        /// </summary>
+        public static void SyncWith(
+            this Bindable<string> dest, Bindable<int> source,
+            [StringSyntax("NumericFormat")] string? format = null,
+            NumberStyles style = NumberStyles.Integer,
+            IFormatProvider? formatProvider = null
+        )
+        {
+            dest.SyncWith(source, value => value.ToString(format, formatProvider), (string str, out int result) => int.TryParse(str, style, formatProvider, out result));
+        }
+
+        /// <summary>
+        /// Bidirectionally syncs the value of a <see cref="Bindable{String}"/> with a <see cref="Bindable{Float}"/>.
+        /// </summary>
+        public static void SyncWith(
+            this Bindable<string> dest, Bindable<float> source,
+            [StringSyntax("NumericFormat")] string? format = null,
+            NumberStyles style = NumberStyles.Float,
+            IFormatProvider? formatProvider = null
+        )
+        {
+            dest.SyncWith(source, value => value.ToString(format, formatProvider), (string str, out float result) => float.TryParse(str, style, formatProvider, out result));
+        }
+
+        /// <summary>
+        /// Bidirectionally syncs the value of a <see cref="Bindable{String}"/> with a <see cref="Bindable{Double}"/>.
+        /// </summary>
+        public static void SyncWith(
+            this Bindable<string> dest, Bindable<double> source,
+            [StringSyntax("NumericFormat")] string? format = null,
+            NumberStyles style = NumberStyles.Float,
+            IFormatProvider? formatProvider = null
+        )
+        {
+            dest.SyncWith(source, value => value.ToString(format, formatProvider), (string str, out double result) => double.TryParse(str, style, formatProvider, out result));
         }
     }
 }
