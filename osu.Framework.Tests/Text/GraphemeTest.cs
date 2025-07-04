@@ -284,7 +284,7 @@ namespace osu.Framework.Tests.Text
         [Test]
         public void TestExplicitCastFromChar()
         {
-            char c = 'a';
+            const char c = 'a';
             var grapheme = (Grapheme)c;
 
             Assert.That(grapheme.CharValue, Is.EqualTo('a'));
@@ -338,7 +338,7 @@ namespace osu.Framework.Tests.Text
         [Test]
         public void TestGetGraphemeEnumeratorWithSimpleText()
         {
-            var text = "Hello";
+            const string text = "Hello";
             var graphemes = Grapheme.GetGraphemeEnumerator(text).ToArray();
 
             Assert.That(graphemes.Length, Is.EqualTo(5));
@@ -355,7 +355,7 @@ namespace osu.Framework.Tests.Text
         [Test]
         public void TestGetGraphemeEnumeratorWithComplexText()
         {
-            var text = "Hello 👋🏽 World!";
+            const string text = "Hello 👋🏽 World!";
             var graphemes = Grapheme.GetGraphemeEnumerator(text).ToArray();
 
             Assert.That(graphemes.Length, Is.EqualTo(14));
@@ -384,7 +384,7 @@ namespace osu.Framework.Tests.Text
         public void TestGetGraphemeEnumeratorWithCombiningCharacters()
         {
             // "café" with combining acute accent (e + ´)
-            string text = "cafe\u0301";
+            const string text = "cafe\u0301";
             var graphemes = Grapheme.GetGraphemeEnumerator(text).ToArray();
 
             Assert.That(graphemes.Length, Is.EqualTo(4));
@@ -428,11 +428,11 @@ namespace osu.Framework.Tests.Text
         [Test]
         public void TestStringPreservation()
         {
-            var originalString = "👋🏽";
-            var grapheme = new Grapheme(originalString);
+            const string original_string = "👋🏽";
+            var grapheme = new Grapheme(original_string);
 
-            Assert.That(grapheme.ToString(), Is.EqualTo(originalString));
-            Assert.That(grapheme.StringValue, Is.EqualTo(originalString));
+            Assert.That(grapheme.ToString(), Is.EqualTo(original_string));
+            Assert.That(grapheme.StringValue, Is.EqualTo(original_string));
         }
 
         /// <summary>
@@ -442,7 +442,7 @@ namespace osu.Framework.Tests.Text
         public void TestRegionalIndicatorSequence()
         {
             // US flag (🇺🇸)
-            var flag = "🇺🇸";
+            const string flag = "🇺🇸";
             var grapheme = new Grapheme(flag);
 
             Assert.That(grapheme.ToString(), Is.EqualTo(flag));

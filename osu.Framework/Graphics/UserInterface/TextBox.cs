@@ -1653,7 +1653,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             // trim composition if goes beyond the LengthLimit.
 
-            int lengthWithoutComposition = graphemes[..(graphemes.Count - imeCompositionLength)].Sum(g => g.Utf16SequenceLength);
+            int lengthWithoutComposition = graphemes[..^imeCompositionLength].Sum(g => g.Utf16SequenceLength);
 
             if (lengthWithoutComposition + composition.Length > LengthLimit)
             {
