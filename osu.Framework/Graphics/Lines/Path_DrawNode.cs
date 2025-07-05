@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Lines
                 base.ApplyState();
 
                 segments.Clear();
-                segments.AddRange(Source.segments);
+                segments.AddRange(Source.bbh.Segments);
 
                 texture = Source.Texture;
                 drawSize = Source.DrawSize;
