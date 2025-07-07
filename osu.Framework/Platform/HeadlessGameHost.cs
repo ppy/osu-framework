@@ -79,7 +79,10 @@ namespace osu.Framework.Platform
 
             if (!realtime)
             {
-                customClock = new FramedClock(new FastClock(CLOCK_RATE, Threads.ToArray()));
+                FastClock fastRealtimeClock = new FastClock(CLOCK_RATE, Threads.ToArray());
+
+                customClock = new FramedClock(fastRealtimeClock);
+                DecouplingFramedClock.RealtimeReferenceClock = fastRealtimeClock;
 
                 // time is incremented per frame, rather than based on the real-world time.
                 // therefore our goal is to run frames as fast as possible.
