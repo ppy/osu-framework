@@ -11,7 +11,7 @@ namespace osu.Framework.Extensions
     public static class BindableExtensions
     {
         /// <summary>
-        /// Creates a readonly <see cref="IBindable{T}"/> with it's value automatically assigned from the source <see cref="IBindable{T}"/> and converted using the given transform function.
+        /// Creates a readonly <see cref="IBindable{T}"/> with its value automatically assigned from the source <see cref="IBindable{T}"/> and converted using the given transform function.
         /// </summary>
         public static IBindable<TDest> Map<TSource, TDest>(this IBindable<TSource> source, Func<TSource, TDest> transform)
         {
