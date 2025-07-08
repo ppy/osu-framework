@@ -87,12 +87,12 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
                     // Remove sources from previous phase that are not existing in the current phase
                     if (phase > 0)
                     {
-                        foreach (var (filename, _) in multiPhaseSources[phase - 1].Where(old => sources.All(@new => @new.filename != old.filename)))
+                        foreach ((string filename, string _) in multiPhaseSources[phase - 1].Where(old => sources.All(@new => @new.filename != old.filename)))
                             compilation.RemoveSource(filename);
                     }
 
                     // Add sources for the current phase
-                    foreach (var (filename, content) in sources)
+                    foreach ((string filename, string content) in sources)
                     {
                         compilation.AddOrUpdateSource(filename, content);
                     }

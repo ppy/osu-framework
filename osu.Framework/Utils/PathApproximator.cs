@@ -57,7 +57,7 @@ namespace osu.Framework.Utils
             // Spline fitting does not make sense when the input contains no points or just one point. In this case
             // the user likely wants this function to behave like a no-op.
             if (controlPoints.Length < 2)
-                return controlPoints.Length == 0 ? Array.Empty<Vector2>() : new[] { controlPoints[0] };
+                return controlPoints.Length == 0 ? [] : [controlPoints[0]];
 
             return bSplineToBezierInternal(controlPoints, ref degree).SelectMany(segment => segment).ToArray();
         }
@@ -86,14 +86,14 @@ namespace osu.Framework.Utils
             // Spline fitting does not make sense when the input contains no points or just one point. In this case
             // the user likely wants this function to behave like a no-op.
             if (controlPoints.Length < 2)
-                return controlPoints.Length == 0 ? new List<Vector2>() : new List<Vector2> { controlPoints[0] };
+                return controlPoints.Length == 0 ? [] : [controlPoints[0]];
 
             // With fewer control points than the degree, splines can not be unambiguously fitted. Rather than erroring
             // out, we set the degree to the minimal number that permits a unique fit to avoid special casing in
             // incremental spline building algorithms that call this function.
             degree = Math.Min(degree, controlPoints.Length - 1);
 
-            List<Vector2> output = new List<Vector2>();
+            List<Vector2> output = [];
             int pointCount = controlPoints.Length - 1;
 
             Stack<Vector2[]> toFlatten = bSplineToBezierInternal(controlPoints, ref degree);
@@ -211,11 +211,11 @@ namespace osu.Framework.Utils
 
             // We find the bounding box using the end-points, as well as
             // each 90 degree angle inside the range of the arc
-            List<Vector2> points = new List<Vector2>
-            {
+            List<Vector2> points =
+            [
                 controlPoints[0],
                 controlPoints[2]
-            };
+            ];
 
             const double right_angle = Math.PI / 2;
             double step = right_angle * pr.Direction;

@@ -10,7 +10,7 @@ namespace osu.Framework.Utils
     /// </summary>
     public static class NumberFormatter
     {
-        private static readonly string[] suffixes = { "y", "z", "a", "f", "p", "n", "µ", "m", "", "k", "M", "G", "T", "P", "E", "Z", "Y" };
+        private static readonly string[] suffixes = ["y", "z", "a", "f", "p", "n", "µ", "m", "", "k", "M", "G", "T", "P", "E", "Z", "Y"];
 
         /// <summary>
         /// Prints the number with at most two decimal digits, followed by a magnitude suffic (k, M, G, T, etc.) depending on the magnitude of the number. If the number is

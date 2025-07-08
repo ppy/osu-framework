@@ -297,7 +297,7 @@ namespace osu.Framework.Graphics.Audio
                 {
                     // Late initialise list to use a sane initial capacity.
                     if (points == null)
-                        points = new List<Waveform.Point>(Source.resampledPoints ?? Enumerable.Empty<Waveform.Point>());
+                        points = [..Source.resampledPoints ?? Enumerable.Empty<Waveform.Point>()];
                     else
                     {
                         points.Clear();

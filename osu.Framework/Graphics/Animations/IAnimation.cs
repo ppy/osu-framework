@@ -11,12 +11,12 @@ namespace osu.Framework.Graphics.Animations
         /// <summary>
         /// The duration of the animation.
         /// </summary>
-        public double Duration { get; }
+        double Duration { get; }
 
         /// <summary>
         /// True if the animation has finished playing, false otherwise.
         /// </summary>
-        public bool FinishedPlaying => !Loop && PlaybackPosition > Duration;
+        bool FinishedPlaying => !Loop && PlaybackPosition > Duration;
 
         /// <summary>
         /// True if the animation is playing, false otherwise. <c>true</c> by default.
@@ -37,6 +37,6 @@ namespace osu.Framework.Graphics.Animations
         /// <summary>
         /// The current position of playback.
         /// </summary>
-        public double PlaybackPosition { get; set; }
+        double PlaybackPosition { get; set; }
     }
 }

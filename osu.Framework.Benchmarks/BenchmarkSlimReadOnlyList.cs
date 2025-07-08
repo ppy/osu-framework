@@ -10,7 +10,7 @@ namespace osu.Framework.Benchmarks
     [MemoryDiagnoser]
     public class BenchmarkSlimReadOnlyList
     {
-        private readonly List<int> list = new List<int> { 0, 1, 2, 3, 4, 5, 3, 2, 3, 1, 4, 5, -1 };
+        private readonly List<int> list = [0, 1, 2, 3, 4, 5, 3, 2, 3, 1, 4, 5, -1];
 
         [Benchmark(Baseline = true)]
         public int List()

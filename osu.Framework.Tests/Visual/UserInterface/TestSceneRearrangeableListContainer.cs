@@ -84,7 +84,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             List<Drawable> items = null!;
 
-            AddStep("get item references", () => items = new List<Drawable>(list.ItemMap.Values.ToList()));
+            AddStep("get item references", () => items = [..list.ItemMap.Values.ToList()]);
 
             for (int i = 0; i < item_count; i++)
             {

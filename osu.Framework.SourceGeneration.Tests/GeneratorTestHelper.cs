@@ -49,7 +49,7 @@ namespace osu.Framework.SourceGeneration.Tests
 
             int matches = 0;
 
-            foreach (var (filename, content) in files)
+            foreach ((string filename, string content) in files)
             {
                 if (!generatedSources.TryGetValue(filename, out var source))
                     throw new Xunit.Sdk.XunitException($"Phase {phase}: Expected generated source {filename}, but it was not found");
