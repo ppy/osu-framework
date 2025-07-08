@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using osu.Framework.Development;
 
 namespace osu.Framework.Timing
 {
@@ -57,7 +58,7 @@ namespace osu.Framework.Timing
         private double currentTime;
 
         /// <summary>
-        /// Tracks the current time of <see cref="RealtimeReferenceClock"/> one <see cref="ProcessFrame"/> ago.
+        /// Tracks the current time of <see cref="realtimeReferenceClock"/> one <see cref="ProcessFrame"/> ago.
         /// </summary>
         private double? lastReferenceTime;
 
@@ -70,7 +71,7 @@ namespace osu.Framework.Timing
         /// <summary>
         /// This clock is used when we are decoupling from the source.
         /// </summary>
-        internal static IClock RealtimeReferenceClock = new StopwatchClock(true);
+        private readonly IClock realtimeReferenceClock = DebugUtils.RealtimeClock ?? new StopwatchClock(true);
 
         private IAdjustableClock adjustableSourceClock;
 
@@ -113,7 +114,7 @@ namespace osu.Framework.Timing
                 if (lastReferenceTime == null)
                     return;
 
-                double elapsedReferenceTime = (RealtimeReferenceClock.CurrentTime - lastReferenceTime.Value) * Rate;
+                double elapsedReferenceTime = (realtimeReferenceClock.CurrentTime - lastReferenceTime.Value) * Rate;
 
                 currentTime += elapsedReferenceTime;
 
@@ -135,7 +136,7 @@ namespace osu.Framework.Timing
             finally
             {
                 IsRunning = shouldBeRunning;
-                lastReferenceTime = RealtimeReferenceClock.CurrentTime;
+                lastReferenceTime = realtimeReferenceClock.CurrentTime;
                 CurrentTime = currentTime;
                 ElapsedFrameTime = CurrentTime - lastTime;
             }

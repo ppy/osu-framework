@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Configuration;
+using osu.Framework.Development;
 using osu.Framework.Graphics.Rendering.Dummy;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Logging;
@@ -79,13 +80,8 @@ namespace osu.Framework.Platform
 
             if (!realtime)
             {
-                FastClock fastRealtimeClock = new FastClock(CLOCK_RATE, Threads.ToArray());
-
-                customClock = new FramedClock(fastRealtimeClock);
-
-                // Decoupling clock sometimes uses a realtime stopwatch which can make tests run slow when
-                // in a decoupled state. Replace it during fast-run-testing to make sure it doesn't waste time.
-                DecouplingFramedClock.RealtimeReferenceClock = fastRealtimeClock;
+                DebugUtils.RealtimeClock = new FastClock(CLOCK_RATE, Threads.ToArray());
+                customClock = new FramedClock(DebugUtils.RealtimeClock);
 
                 // time is incremented per frame, rather than based on the real-world time.
                 // therefore our goal is to run frames as fast as possible.
@@ -111,6 +107,12 @@ namespace osu.Framework.Platform
         }
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() => Array.Empty<InputHandler>();
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            DebugUtils.RealtimeClock = null;
+        }
 
         private class FastClock : IClock
         {
