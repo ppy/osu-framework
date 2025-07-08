@@ -142,7 +142,7 @@ namespace osu.Framework.Platform
             {
                 get
                 {
-                    lock (gameThreads)
+                    lock (stopwatch)
                     {
                         double realElapsedTime = stopwatch.Elapsed.TotalMilliseconds;
                         stopwatch.Restart();
