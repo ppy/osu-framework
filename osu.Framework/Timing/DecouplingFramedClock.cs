@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using osu.Framework.Development;
 
 namespace osu.Framework.Timing
 {
@@ -70,7 +71,7 @@ namespace osu.Framework.Timing
         /// <summary>
         /// This clock is used when we are decoupling from the source.
         /// </summary>
-        private readonly StopwatchClock realtimeReferenceClock = new StopwatchClock(true);
+        private readonly IClock realtimeReferenceClock = DebugUtils.RealtimeClock ?? new StopwatchClock(true);
 
         private IAdjustableClock adjustableSourceClock;
 
