@@ -142,20 +142,23 @@ namespace osu.Framework.Platform
             {
                 get
                 {
-                    double realElapsedTime = stopwatch.Elapsed.TotalMilliseconds;
-                    stopwatch.Restart();
-
-                    if (allThreadsHaveProgressed)
+                    lock (gameThreads)
                     {
-                        for (int i = 0; i < gameThreads.Length; i++)
-                            gameThreadLastFrames[i] = gameThreads[i].FrameIndex;
+                        double realElapsedTime = stopwatch.Elapsed.TotalMilliseconds;
+                        stopwatch.Restart();
 
-                        // Increment time at the expedited rate.
-                        return time += increment;
+                        if (allThreadsHaveProgressed)
+                        {
+                            for (int i = 0; i < gameThreads.Length; i++)
+                                gameThreadLastFrames[i] = gameThreads[i].FrameIndex;
+
+                            // Increment time at the expedited rate.
+                            return time += increment;
+                        }
+
+                        // Fall back to real time to ensure we don't break random tests that expect threads to be running.
+                        return time += realElapsedTime;
                     }
-
-                    // Fall back to real time to ensure we don't break random tests that expect threads to be running.
-                    return time += realElapsedTime;
                 }
             }
 
