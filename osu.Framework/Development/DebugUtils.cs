@@ -8,6 +8,7 @@ using System.Reflection;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using osu.Framework.Extensions.ObjectExtensions;
+using osu.Framework.Platform;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Development
@@ -20,8 +21,15 @@ namespace osu.Framework.Development
         /// be used to track a realtime reference.
         /// </summary>
         /// <remarks>
-        /// Components such as <see cref="DecouplingFramedClock"/> use this to advance time at a faster
-        /// pace in order to not induce artificial delays from having to way on wall clock time to elapse.
+        /// <list type="bullet">
+        ///   <item>
+        ///     Components such as <see cref="DecouplingFramedClock"/> use this to advance time at a faster
+        ///     pace in order to not induce artificial delays from having to way on wall clock time to elapse.
+        ///   </item>
+        ///   <item>
+        ///     Note that this property is only populated after the <see cref="GameHost"/> is run.
+        ///   </item>
+        /// </list>
         /// </remarks>
         public static IClock? RealtimeClock { get; internal set; }
 
