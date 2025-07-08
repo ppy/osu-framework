@@ -31,7 +31,7 @@ namespace osu.Framework.Development
         ///   </item>
         /// </list>
         /// </remarks>
-        public static IClock? RealtimeClock { get; internal set; }
+        internal static IClock? RealtimeClock { get; set; }
 
         public static bool IsNUnitRunning => is_nunit_running.Value;
 
