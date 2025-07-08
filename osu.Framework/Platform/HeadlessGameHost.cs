@@ -82,6 +82,9 @@ namespace osu.Framework.Platform
                 FastClock fastRealtimeClock = new FastClock(CLOCK_RATE, Threads.ToArray());
 
                 customClock = new FramedClock(fastRealtimeClock);
+
+                // Decoupling clock sometimes uses a realtime stopwatch which can make tests run slow when
+                // in a decoupled state. Replace it during fast-run-testing to make sure it doesn't waste time.
                 DecouplingFramedClock.RealtimeReferenceClock = fastRealtimeClock;
 
                 // time is incremented per frame, rather than based on the real-world time.
