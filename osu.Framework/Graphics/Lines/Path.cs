@@ -166,6 +166,26 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
+        public float StartProgress
+        {
+            get => bbh.StartProgress;
+            set
+            {
+                bbh.StartProgress = value;
+                Invalidate(Invalidation.DrawSize);
+            }
+        }
+
+        public float EndProgress
+        {
+            get => bbh.EndProgress;
+            set
+            {
+                bbh.EndProgress = value;
+                Invalidate(Invalidation.DrawSize);
+            }
+        }
+
         private RectangleF vertexBounds => bbh.VertexBounds;
 
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)

@@ -87,6 +87,15 @@ namespace osu.Framework.Tests.Visual.Drawables
                 bSplineBuilder.CornerThreshold = v;
                 updateViz();
             });
+            AddSliderStep($"{nameof(approximatedDrawnPath.StartProgress)}", 0f, 1f, 0f, v =>
+            {
+                approximatedDrawnPath.StartProgress = v;
+            });
+
+            AddSliderStep($"{nameof(approximatedDrawnPath.EndProgress)}", 0f, 1f, 1f, v =>
+            {
+                approximatedDrawnPath.EndProgress = v;
+            });
         }
 
         [BackgroundDependencyLoader]
@@ -132,19 +141,18 @@ namespace osu.Framework.Tests.Visual.Drawables
             rawDrawnPath.Vertices = bSplineBuilder.GetInputPath();
             approximatedDrawnPath.Vertices = bSplineBuilder.OutputPath;
 
-            bbViz.Boxes = approximatedDrawnPath.BoundingBoxes();
-
             updateControlPointsViz();
-        }
-
-        protected override void OnDrag(DragEvent e)
-        {
-            bSplineBuilder.AddLinearPoint(rawDrawnPath.ToLocalSpace(ToScreenSpace(e.MousePosition)));
         }
 
         protected override void Update()
         {
             base.Update();
+            bbViz.Boxes = approximatedDrawnPath.BoundingBoxes();
+        }
+
+        protected override void OnDrag(DragEvent e)
+        {
+            bSplineBuilder.AddLinearPoint(rawDrawnPath.ToLocalSpace(ToScreenSpace(e.MousePosition)));
             updateViz();
         }
 
