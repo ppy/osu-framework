@@ -128,6 +128,8 @@ namespace osu.Framework.Timing
                 // Note that this carries the common assumption that the source clock *should* be able to run from zero.
                 if (pendingSourceRestartAfterNegativeSeek && currentTime >= 0)
                 {
+                    pendingSourceRestartAfterNegativeSeek = false;
+
                     // We still need to check the seek was successful, else we might have already exceeded valid length of the source.
                     lastSeekFailed = !adjustableSourceClock.Seek(currentTime);
                     if (!lastSeekFailed)
@@ -170,6 +172,7 @@ namespace osu.Framework.Timing
         public void Reset()
         {
             adjustableSourceClock.Reset();
+            pendingSourceRestartAfterNegativeSeek = false;
             shouldBeRunning = false;
             lastSeekFailed = false;
             currentTime = 0;
