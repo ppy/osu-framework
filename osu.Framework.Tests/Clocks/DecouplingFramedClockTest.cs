@@ -57,6 +57,36 @@ namespace osu.Framework.Tests.Clocks
             Assert.That(decouplingClock.IsRunning, Is.True);
         }
 
+        [Test]
+        public void TestSeekFromDecouplingWithoutProcessFrame()
+        {
+            decouplingClock.AllowDecoupling = true;
+
+            Assert.That(source.CurrentTime, Is.EqualTo(0));
+            Assert.That(decouplingClock.CurrentTime, Is.EqualTo(0));
+
+            decouplingClock.Start();
+
+            decouplingClock.Seek(1000);
+            decouplingClock.ProcessFrame();
+            Assert.That(source.IsRunning, Is.True);
+
+            decouplingClock.Seek(-1000);
+            // Intentionally no process frame.
+            Assert.That(source.IsRunning, Is.False);
+
+            decouplingClock.Seek(-1);
+
+            // intentionally make sure that reference time has increased to push time into positive before a process frame.
+            Thread.Sleep(500);
+            decouplingClock.ProcessFrame();
+
+            while (decouplingClock.CurrentTime < 0)
+                decouplingClock.ProcessFrame();
+
+            Assert.That(source.IsRunning, Is.True);
+        }
+
         [TestCase(true)]
         [TestCase(false)]
         public void TestSeekFromDecoupling(bool allowDecoupling)
