@@ -75,6 +75,12 @@ namespace osu.Framework.Timing
 
         private IAdjustableClock adjustableSourceClock;
 
+        /// <summary>
+        /// Denotes a state where a negative seek stopped the source clock and entered decoupled mode, meaning that
+        /// after crossing into positive time again we should attempt to start and use the source clock.
+        /// </summary>
+        private bool pendingSourceRestartAfterNegativeSeek;
+
         public DecouplingFramedClock(IClock? source = null)
         {
             ChangeSource(source);
@@ -118,11 +124,9 @@ namespace osu.Framework.Timing
 
                 currentTime += elapsedReferenceTime;
 
-                // When crossing the zero time boundary forwards, we should start and use the source clock.
-                // Note that this implicitly assumes the source starts at zero,
-                // and additionally the right-side boundary is not handled as we don't know where the source's max time is.
-                // This could be potentially handled if need be, if we had a notion of what the source's max allowable time is.
-                if (lastTime < 0 && currentTime >= 0)
+                // When crossing into positive time, we should attempt to start and use the source clock.
+                // Note that this carries the common assumption that the source clock *should* be able to run from zero.
+                if (pendingSourceRestartAfterNegativeSeek && currentTime >= 0)
                 {
                     // We still need to check the seek was successful, else we might have already exceeded valid length of the source.
                     lastSeekFailed = !adjustableSourceClock.Seek(currentTime);
@@ -212,6 +216,7 @@ namespace osu.Framework.Timing
 
                 // Ensure the underlying clock is stopped as we enter decoupled mode.
                 adjustableSourceClock.Stop();
+                pendingSourceRestartAfterNegativeSeek = position < 0;
             }
 
             currentTime = position;
