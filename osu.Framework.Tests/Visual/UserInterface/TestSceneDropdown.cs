@@ -769,8 +769,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         #endregion
 
-        [Test]
-        public void TestPaddedSearchBar()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestPaddedSearchBar(bool toggleOnMouseDown)
         {
             SearchBarPaddedDropdown dropdown = null!;
 
@@ -778,6 +779,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 Child = dropdown = new SearchBarPaddedDropdown
                 {
+                    ToggleOnMouseDown = toggleOnMouseDown,
                     Position = new Vector2(50f, 50f),
                     Width = 150f,
                     Items = new TestModel("test").Yield(),
