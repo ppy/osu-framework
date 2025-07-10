@@ -30,6 +30,12 @@ namespace osu.Framework.Graphics.Lines
             private Vector2 drawSize;
             private float radius;
             private IShader? pathShader;
+            private int treeVersion;
+            private int rangeStart;
+            private int rangeEnd;
+            private Vector2 offset;
+            private Line firstSegment;
+            private Line lastSegment;
 
             private IVertexBatch<TexturedVertex3D>? triangleBatch;
 
@@ -42,8 +48,26 @@ namespace osu.Framework.Graphics.Lines
             {
                 base.ApplyState();
 
-                segments.Clear();
-                segments.AddRange(Source.bbh.Segments);
+                int newTreeVersion = Source.bbh.TreeVersion;
+
+                if (newTreeVersion != treeVersion)
+                {
+                    segments.Clear();
+                    segments.AddRange(Source.bbh.Segments);
+
+                    treeVersion = newTreeVersion;
+                }
+
+                rangeStart = Source.bbh.RangeStart;
+                rangeEnd = Source.bbh.RangeEnd;
+
+                if (segments.Count > 0)
+                {
+                    firstSegment = Source.bbh.FirstSegment;
+                    lastSegment = Source.bbh.LastSegment;
+                }
+
+                offset = Source.bbh.VertexBounds.TopLeft;
 
                 texture = Source.Texture;
                 drawSize = Source.DrawSize;
@@ -269,8 +293,19 @@ namespace osu.Framework.Graphics.Lines
                 SegmentStartLocation modifiedLocation = SegmentStartLocation.Outside;
                 SegmentWithThickness? lastDrawnSegment = null;
 
-                for (int i = 0; i < segments.Count; i++)
+                for (int i = rangeStart; i <= rangeEnd; i++)
                 {
+                    Line line;
+
+                    if (i == rangeStart)
+                        line = firstSegment;
+                    else if (i == rangeEnd)
+                        line = lastSegment;
+                    else
+                        line = segments[i];
+
+                    line = new Line(line.StartPoint - offset, line.EndPoint - offset);
+
                     if (segmentToDraw.HasValue)
                     {
                         float segmentToDrawLength = segmentToDraw.Value.Rho;
@@ -278,15 +313,15 @@ namespace osu.Framework.Graphics.Lines
                         // If segment is too short, make its end point equal start point of a new segment
                         if (segmentToDrawLength < 1f)
                         {
-                            segmentToDraw = new Line(segmentToDraw.Value.StartPoint, segments[i].EndPoint);
+                            segmentToDraw = new Line(segmentToDraw.Value.StartPoint, line.EndPoint);
                             continue;
                         }
 
-                        float progress = progressFor(segmentToDraw.Value, segmentToDrawLength, segments[i].EndPoint);
+                        float progress = progressFor(segmentToDraw.Value, segmentToDrawLength, line.EndPoint);
                         Vector2 closest = segmentToDraw.Value.At(progress);
 
                         // Expand segment if new segment end is located within a line passing through it
-                        if (Precision.AlmostEquals(closest, segments[i].EndPoint, 0.1f))
+                        if (Precision.AlmostEquals(closest, line.EndPoint, 0.1f))
                         {
                             if (progress < 0)
                             {
@@ -309,14 +344,14 @@ namespace osu.Framework.Graphics.Lines
                             lastDrawnSegment = s;
 
                             // Figure out at which point within currently drawn segment the new one starts
-                            float p = progressFor(segmentToDraw.Value, segmentToDrawLength, segments[i].StartPoint);
-                            segmentToDraw = segments[i];
+                            float p = progressFor(segmentToDraw.Value, segmentToDrawLength, line.StartPoint);
+                            segmentToDraw = line;
                             location = modifiedLocation = Precision.AlmostEquals(p, 1f) ? SegmentStartLocation.End : Precision.AlmostEquals(p, 0f) ? SegmentStartLocation.Start : SegmentStartLocation.Middle;
                         }
                     }
                     else
                     {
-                        segmentToDraw = segments[i];
+                        segmentToDraw = line;
                     }
                 }
 

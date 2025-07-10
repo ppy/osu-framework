@@ -17,24 +17,26 @@ namespace osu.Framework.Graphics.Lines
             {
                 if (segmentCount > 0)
                 {
-                    Vector2 offset = VertexBounds.TopLeft;
-
-                    for (int i = firstLimitedLeafIndex; i <= lastLimitedLeafIndex; i++)
-                    {
-                        var n = nodes[i];
-                        yield return new Line((n.InterpolatedSegmentStart ?? n.StartPoint) - offset, (n.InterpolatedSegmentEnd ?? n.EndPoint) - offset);
-                    }
+                    for (int i = firstLeafIndex; i <= lastLeafIndex; i++)
+                        yield return new Line(nodes[i].StartPoint, nodes[i].EndPoint);
                 }
             }
         }
 
+        public Line FirstSegment => nodes[firstLimitedLeafIndex].InterpolatedSegment;
+        public Line LastSegment => nodes[lastLimitedLeafIndex].InterpolatedSegment;
+
+        public int RangeStart => firstLimitedLeafIndex - firstLeafIndex;
+        public int RangeEnd => segmentCount - (lastLeafIndex - lastLimitedLeafIndex) - 1;
+
         public RectangleF VertexBounds { get; private set; } = RectangleF.Empty;
+
+        public int TreeVersion { get; private set; }
 
         private float radius;
         private BBHNode[] nodes = [];
         private int firstLeafIndex;
         private int lastLeafIndex;
-        private int maxLeafCount;
         private int firstLimitedLeafIndex;
         private int lastLimitedLeafIndex;
         private int segmentCount;
@@ -48,6 +50,7 @@ namespace osu.Framework.Graphics.Lines
         public void Reuse(IReadOnlyList<Vector2> vertices, float radius)
         {
             this.radius = radius;
+            TreeVersion++;
 
             startProgress = 0;
             endProgress = 1;
@@ -58,7 +61,7 @@ namespace osu.Framework.Graphics.Lines
 
             segmentCount = Math.Max(vertices.Count - 1, 0);
             // Definition of a leaf here is a node containing a segment
-            maxLeafCount = Math.Max(smallestPowerOfTwo(segmentCount), 1);
+            int maxLeafCount = Math.Max(smallestPowerOfTwo(segmentCount), 1);
             firstLeafIndex = firstLimitedLeafIndex = maxLeafCount - 1;
             lastLeafIndex = lastLimitedLeafIndex = firstLeafIndex + (segmentCount - 1);
 
