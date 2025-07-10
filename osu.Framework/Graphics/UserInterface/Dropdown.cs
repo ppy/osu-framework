@@ -355,18 +355,14 @@ namespace osu.Framework.Graphics.UserInterface
             if (!ToggleOnMouseDown)
                 return;
 
-            // Close dropdown when cursor is released outside the menu
-            if (!Menu.IsHovered)
-            {
-                // Do not close the menu if we are releasing on the DropdownHeader
-                if (!Header.IsHovered)
-                    Menu.Close();
+            // Do not close the menu if we are releasing on DropdownHeader
+            if (Header.IsHovered)
                 return;
-            }
 
-            // Cursor is inside the menu and possibly selecting an item,
-            // commit that selection and close the menu
-            ((IDropdown)this).CommitPreselection();
+            // Cursor is inside the menu and possibly selecting an item
+            if (Menu.IsHovered)
+                ((IDropdown)this).CommitPreselection();
+
             Menu.Close();
         }
 
