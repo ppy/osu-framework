@@ -23,6 +23,7 @@ using osu.Framework.Input.StateChanges;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
+using osu.Framework.Platform.SDL3;
 using osuTK;
 
 namespace osu.Framework
@@ -188,8 +189,23 @@ namespace osu.Framework
             samples.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
             samples.AddStore(CreateOnlineStore());
 
-            Audio = new AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
-            dependencies.Cache(Audio);
+            switch (config.Get<AudioDriver>(FrameworkSetting.AudioDriver))
+            {
+                case AudioDriver.SDL3 when Host.Window is SDL3Window sdl3Window:
+                {
+                    SDL3AudioManager sdl3Audio = new SDL3AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
+                    sdl3Window.AudioDeviceAdded += sdl3Audio.OnNewDeviceEvent;
+                    sdl3Window.AudioDeviceRemoved += sdl3Audio.OnLostDeviceEvent;
+                    Audio = sdl3Audio;
+                    break;
+                }
+
+                default:
+                    Audio = new BassAudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
+                    break;
+            }
+
+            dependencies.CacheAs(typeof(AudioManager), Audio);
 
             dependencies.CacheAs(Audio.Tracks);
             dependencies.CacheAs(Audio.Samples);
