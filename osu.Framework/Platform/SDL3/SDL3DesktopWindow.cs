@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Input.StateChanges;
+using SDL;
 using static SDL.SDL3;
 
 namespace osu.Framework.Platform.SDL3
@@ -11,6 +13,8 @@ namespace osu.Framework.Platform.SDL3
             : base(surfaceType, appName)
         {
         }
+
+        protected override TabletPenDeviceType GetPenDeviceType(SDL_PenID id) => TabletPenDeviceType.Unknown;
 
         protected override unsafe void UpdateWindowStateAndSize(WindowState state, Display display, DisplayMode displayMode)
         {
