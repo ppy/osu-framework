@@ -169,13 +169,15 @@ namespace osu.Framework.Platform
 
         /// <summary>
         /// Gets the <see cref="Display"/> that has been set as "primary" or "default" in the operating system.
+        /// It can be null when all displays get disconnected, or when the system wakes up from sleep.
         /// </summary>
-        Display PrimaryDisplay { get; }
+        Display? PrimaryDisplay { get; }
 
         /// <summary>
         /// Exposes the <see cref="Display"/> that this window is currently on as a <see cref="Bindable{Display}"/>.
+        /// It can be null when all displays get disconnected, or when the system wakes up from sleep.
         /// </summary>
-        Bindable<Display> CurrentDisplayBindable { get; }
+        Bindable<Display?> CurrentDisplayBindable { get; }
 
         /// <summary>
         /// The <see cref="DisplayMode"/> for the display that this window is currently on.
