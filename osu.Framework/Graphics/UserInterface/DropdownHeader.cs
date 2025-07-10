@@ -169,11 +169,13 @@ namespace osu.Framework.Graphics.UserInterface
             // No need to handle dropdown as with this flag it has already been toggled by `onMouseDown` handler
             if (ToggleOnMouseDown)
             {
-                // Without this check, when dropdown is opened by clicking outside `SearchBar`,
-                // focus will be lost on `onClick` event -- therefore, closing dropdown.
-                // We need to prevent that by manually focusing on the `SearchBar.textBox`.
+                // UIEventHandler grows in the parent container, so there might be a situation
+                // when dropdown is opened by clicking outside `SearchBar.textBox`,
+                // which will lose focus and, therefore, close dropdown.
+                // To prevent that, restore focus manually.
                 if (dropdown.MenuState == MenuState.Open)
-                    dropdown.ChangeFocus(SearchBar.Child);
+                    SearchBar.ObtainFocus();
+
                 return false;
             }
 
