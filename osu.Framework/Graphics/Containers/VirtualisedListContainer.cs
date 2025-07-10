@@ -129,7 +129,7 @@ namespace osu.Framework.Graphics.Containers
                             allMoves.Add((items[i], i - 1));
                     }
 
-                    foreach (var (item, newPosition) in allMoves)
+                    foreach ((var item, int newPosition) in allMoves)
                         Items.Move(item, newPosition);
 
                     break;
