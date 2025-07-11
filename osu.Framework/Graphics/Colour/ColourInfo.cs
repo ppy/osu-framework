@@ -110,10 +110,10 @@ namespace osu.Framework.Graphics.Colour
 
             return new ColourInfo
             {
-                TopLeft = Interpolate(quad.TopLeft),
-                TopRight = Interpolate(quad.TopRight),
-                BottomLeft = Interpolate(quad.BottomLeft),
-                BottomRight = Interpolate(quad.BottomRight),
+                TopLeft = Interpolate(quad.TopLeft.Xy),
+                TopRight = Interpolate(quad.TopRight.Xy),
+                BottomLeft = Interpolate(quad.BottomLeft.Xy),
+                BottomRight = Interpolate(quad.BottomRight.Xy),
                 HasSingleColour = false
             };
         }
@@ -144,10 +144,10 @@ namespace osu.Framework.Graphics.Colour
         {
             Trace.Assert(!HasSingleColour);
 
-            SRGBColour newTopLeft = Interpolate(interp.TopLeft) * childColour.TopLeft;
-            SRGBColour newTopRight = Interpolate(interp.TopRight) * childColour.TopRight;
-            SRGBColour newBottomLeft = Interpolate(interp.BottomLeft) * childColour.BottomLeft;
-            SRGBColour newBottomRight = Interpolate(interp.BottomRight) * childColour.BottomRight;
+            SRGBColour newTopLeft = Interpolate(interp.TopLeft.Xy) * childColour.TopLeft;
+            SRGBColour newTopRight = Interpolate(interp.TopRight.Xy) * childColour.TopRight;
+            SRGBColour newBottomLeft = Interpolate(interp.BottomLeft.Xy) * childColour.BottomLeft;
+            SRGBColour newBottomRight = Interpolate(interp.BottomRight.Xy) * childColour.BottomRight;
 
             TopLeft = newTopLeft;
             TopRight = newTopRight;

@@ -40,7 +40,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("click outside", () =>
             {
-                InputManager.MoveMouseTo(overlayContainer.ScreenSpaceDrawQuad.TopLeft - new Vector2(20));
+                InputManager.MoveMouseTo(overlayContainer.ScreenSpaceDrawQuad.TopLeft.Xy - new Vector2(20));
                 InputManager.PressButton(MouseButton.Left);
                 InputManager.ReleaseButton(MouseButton.Left);
             });
@@ -85,7 +85,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     parentContainer.MouseMoveReceived == initialMoveCount &&
                     parentContainer.HoverReceived == initialHoverCount);
 
-                AddStep("move outside", () => InputManager.MoveMouseTo(overlayContainer.ScreenSpaceDrawQuad.TopLeft - new Vector2(20)));
+                AddStep("move outside", () => InputManager.MoveMouseTo(overlayContainer.ScreenSpaceDrawQuad.TopLeft.Xy - new Vector2(20)));
 
                 // we block positional input screen-wide, therefore parent should still not receive input outside overlay's bounds.
                 AddAssert("move not received by parent", () =>
@@ -98,7 +98,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     parentContainer.MouseMoveReceived == ++initialMoveCount &&
                     parentContainer.HoverReceived == ++initialHoverCount);
 
-                AddStep("move outside", () => InputManager.MoveMouseTo(overlayContainer.ScreenSpaceDrawQuad.TopLeft - new Vector2(20)));
+                AddStep("move outside", () => InputManager.MoveMouseTo(overlayContainer.ScreenSpaceDrawQuad.TopLeft.Xy - new Vector2(20)));
 
                 AddAssert("only move received by parent", () =>
                     parentContainer.MouseMoveReceived == ++initialMoveCount &&
@@ -142,7 +142,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("scroll outside", () =>
             {
-                InputManager.MoveMouseTo(overlayContainer.ScreenSpaceDrawQuad.TopLeft - new Vector2(20));
+                InputManager.MoveMouseTo(overlayContainer.ScreenSpaceDrawQuad.TopLeft.Xy - new Vector2(20));
                 InputManager.ScrollVerticalBy(1);
             });
 
