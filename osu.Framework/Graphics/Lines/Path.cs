@@ -188,6 +188,8 @@ namespace osu.Framework.Graphics.Lines
 
         private RectangleF vertexBounds => bbh.VertexBounds;
 
+        public Vector2 CurvePositionAt(float progress) => bbh.CurvePositionAt(progress)?.position ?? Vector2.Zero;
+
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
         {
             var localPos = ToLocalSpace(screenSpacePos);

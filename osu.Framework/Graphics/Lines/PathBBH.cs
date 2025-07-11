@@ -114,7 +114,7 @@ namespace osu.Framework.Graphics.Lines
             get => startProgress;
             set
             {
-                if (startProgress == value)
+                if (startProgress == value || segmentCount == 0)
                     return;
 
                 startProgress = Math.Clamp(value, 0, endProgress - float.Epsilon);
@@ -127,7 +127,7 @@ namespace osu.Framework.Graphics.Lines
             get => endProgress;
             set
             {
-                if (endProgress == value)
+                if (endProgress == value || segmentCount == 0)
                     return;
 
                 endProgress = Math.Clamp(value, startProgress + float.Epsilon, 1);
@@ -169,42 +169,19 @@ namespace osu.Framework.Graphics.Lines
                 return;
             }
 
-            float newStartLength = totalLength * newStart;
-            int i = 0;
+            var positionAt = CurvePositionAt(newStart);
 
-            while (true)
-            {
-                if (i > lastLeafIndex)
-                    break;
-
-                if (nodes[i].IsLeaf)
-                {
-                    float segmentLength = i == 0 ? nodes[i].CumulativeLength : nodes[i].CumulativeLength - (i > firstLeafIndex ? nodes[i - 1].CumulativeLength : 0);
-                    float newSegmentLength = nodes[i].CumulativeLength - newStartLength;
-                    nodes[i].InterpolatedSegmentStart = Precision.AlmostEquals(segmentLength, 0) ? nodes[i].EndPoint : Interpolation.ValueAt(newSegmentLength / segmentLength, nodes[i].EndPoint, nodes[i].StartPoint, 0, 1);
-                    nodes[i].Bounds = lineAABB(nodes[i].InterpolatedSegment, radius);
-                    firstLimitedLeafIndex = modifiedStartNodeIndex = i;
-                    break;
-                }
-
-                int right = 2 * i + 2;
-                int left = 2 * i + 1;
-
-                float leftLength = nodes[left].CumulativeLength;
-
-                if (newStartLength > leftLength)
-                    i = right;
-                else
-                    i = left;
-            }
-
-            if (modifiedStartNodeIndex == -1)
+            if (!positionAt.HasValue)
             {
                 VertexBounds = union(nodes[0].Bounds, RectangleF.Empty) ?? RectangleF.Empty;
                 return;
             }
 
-            i = modifiedStartNodeIndex;
+            nodes[positionAt.Value.index].InterpolatedSegmentStart = positionAt.Value.position;
+            nodes[positionAt.Value.index].Bounds = lineAABB(nodes[positionAt.Value.index].InterpolatedSegment, radius);
+            firstLimitedLeafIndex = modifiedStartNodeIndex = positionAt.Value.index;
+
+            int i = modifiedStartNodeIndex;
 
             if (i != 0)
             {
@@ -269,42 +246,19 @@ namespace osu.Framework.Graphics.Lines
                 return;
             }
 
-            float newEndLength = totalLength * newEnd;
-            int i = 0;
+            var positionAt = CurvePositionAt(newEnd);
 
-            while (true)
-            {
-                if (i > lastLeafIndex)
-                    break;
-
-                if (nodes[i].IsLeaf)
-                {
-                    float segmentLength = i == 0 ? nodes[i].CumulativeLength : nodes[i].CumulativeLength - ((i > firstLeafIndex) ? nodes[i - 1].CumulativeLength : 0);
-                    float newSegmentLength = nodes[i].CumulativeLength - newEndLength;
-                    nodes[i].InterpolatedSegmentEnd = Precision.AlmostEquals(segmentLength, 0) ? nodes[i].StartPoint : Interpolation.ValueAt(newSegmentLength / segmentLength, nodes[i].EndPoint, nodes[i].StartPoint, 0, 1);
-                    nodes[i].Bounds = lineAABB(nodes[i].InterpolatedSegment, radius);
-                    lastLimitedLeafIndex = modifiedEndNodeIndex = i;
-                    break;
-                }
-
-                int right = 2 * i + 2;
-                int left = 2 * i + 1;
-
-                float leftLength = nodes[left].CumulativeLength;
-
-                if (newEndLength < leftLength)
-                    i = left;
-                else
-                    i = right;
-            }
-
-            if (modifiedEndNodeIndex == -1)
+            if (!positionAt.HasValue)
             {
                 VertexBounds = union(nodes[0].Bounds, RectangleF.Empty) ?? RectangleF.Empty;
                 return;
             }
 
-            i = modifiedEndNodeIndex;
+            nodes[positionAt.Value.index].InterpolatedSegmentEnd = positionAt.Value.position;
+            nodes[positionAt.Value.index].Bounds = lineAABB(nodes[positionAt.Value.index].InterpolatedSegment, radius);
+            lastLimitedLeafIndex = modifiedEndNodeIndex = positionAt.Value.index;
+
+            int i = modifiedEndNodeIndex;
 
             if (i != 0)
             {
@@ -333,6 +287,44 @@ namespace osu.Framework.Graphics.Lines
             }
 
             VertexBounds = union(nodes[0].Bounds, RectangleF.Empty) ?? RectangleF.Empty;
+        }
+
+        public (int index, Vector2 position)? CurvePositionAt(float progress)
+        {
+            if (segmentCount == 0)
+                return null;
+
+            if (progress == 0)
+                return (firstLeafIndex, nodes[firstLeafIndex].StartPoint);
+
+            if (progress == 1)
+                return (lastLeafIndex, nodes[lastLeafIndex].EndPoint);
+
+            float lengthAtProgress = totalLength * progress;
+            int i = 0;
+
+            while (true)
+            {
+                if (i > lastLeafIndex)
+                    break;
+
+                if (nodes[i].IsLeaf)
+                {
+                    float segmentLength = i == 0 ? nodes[i].CumulativeLength : nodes[i].CumulativeLength - ((i > firstLeafIndex) ? nodes[i - 1].CumulativeLength : 0);
+                    float lengthFromEnd = nodes[i].CumulativeLength - lengthAtProgress;
+                    return (i, Precision.AlmostEquals(segmentLength, 0) ? nodes[i].EndPoint : Interpolation.ValueAt(lengthFromEnd / segmentLength, nodes[i].EndPoint, nodes[i].StartPoint, 0, 1));
+                }
+
+                int right = 2 * i + 2;
+                int left = 2 * i + 1;
+
+                if (lengthAtProgress > nodes[left].CumulativeLength)
+                    i = right;
+                else
+                    i = left;
+            }
+
+            return null;
         }
 
         public bool Contains(Vector2 pos)
