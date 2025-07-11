@@ -14,6 +14,12 @@ namespace osu.Framework.Graphics.Video
 {
     public unsafe class FFmpegFuncs
     {
+        static FFmpegFuncs()
+        {
+            if (RuntimeInfo.IsDesktop)
+                DynamicallyLoadedBindings.FunctionResolver = new FFmpegFunctionResolver();
+        }
+
         #region Delegates
 
         public delegate int AvDictSetDelegate(AVDictionary** pm, [MarshalAs(UnmanagedType.LPUTF8Str)] string key, [MarshalAs(UnmanagedType.LPUTF8Str)] string value, int flags);
