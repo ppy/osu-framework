@@ -23,8 +23,8 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        public Line FirstSegment => nodes[firstLimitedLeafIndex].InterpolatedSegment;
-        public Line LastSegment => nodes[lastLimitedLeafIndex].InterpolatedSegment;
+        public Line FirstSegment => nodes[firstLimitedLeafIndex].CurrentSegment;
+        public Line LastSegment => nodes[lastLimitedLeafIndex].CurrentSegment;
 
         public int RangeStart => firstLimitedLeafIndex - firstLeafIndex;
         public int RangeEnd => segmentCount - (lastLeafIndex - lastLimitedLeafIndex) - 1;
@@ -35,6 +35,7 @@ namespace osu.Framework.Graphics.Lines
 
         private float radius;
         private BBHNode[] nodes = [];
+        private int maxLeafCount;
         private int firstLeafIndex;
         private int lastLeafIndex;
         private int firstLimitedLeafIndex;
@@ -61,9 +62,20 @@ namespace osu.Framework.Graphics.Lines
 
             segmentCount = Math.Max(vertices.Count - 1, 0);
             // Definition of a leaf here is a node containing a segment
-            int maxLeafCount = Math.Max(smallestPowerOfTwo(segmentCount), 1);
-            firstLeafIndex = firstLimitedLeafIndex = maxLeafCount - 1;
-            lastLeafIndex = lastLimitedLeafIndex = firstLeafIndex + (segmentCount - 1);
+            maxLeafCount = Math.Max(smallestPowerOfTwo(segmentCount), 1);
+            int depth = (int)Math.Log2(maxLeafCount);
+            int arrayLength = segmentCount;
+
+            int nodesOnDepth = segmentCount;
+
+            for (int i = depth - 1; i >= 0; i--)
+            {
+                nodesOnDepth = (nodesOnDepth + 1) / 2;
+                arrayLength += nodesOnDepth;
+            }
+
+            firstLeafIndex = firstLimitedLeafIndex = arrayLength - segmentCount;
+            lastLeafIndex = lastLimitedLeafIndex = arrayLength - 1;
 
             if (nodes.Length != lastLeafIndex + 1)
                 nodes = new BBHNode[lastLeafIndex + 1];
@@ -141,22 +153,19 @@ namespace osu.Framework.Graphics.Lines
             {
                 int n = modifiedStartNodeIndex;
                 nodes[n].InterpolatedSegmentStart = null;
-                nodes[n].Bounds = lineAABB(nodes[n].InterpolatedSegment, radius);
+                nodes[n].Bounds = lineAABB(nodes[n].CurrentSegment, radius);
 
-                if (n != 0)
+                while (true)
                 {
-                    while (true)
-                    {
-                        n = (n - 1) / 2;
-                        int left = 2 * n + 1;
-                        int right = 2 * n + 2;
+                    if (nodes[n].Parent is not int parent)
+                        break;
 
-                        nodes[left].Disabled = false;
-                        nodes[n].Bounds = union(nodes[left].Bounds, right > lastLeafIndex || nodes[right].Disabled ? null : nodes[right].Bounds);
+                    n = parent;
+                    int left = nodes[n].Left;
+                    int? right = nodes[n].Right;
 
-                        if (n == 0)
-                            break;
-                    }
+                    nodes[left].Disabled = false;
+                    nodes[n].Bounds = union(nodes[left].Bounds, !right.HasValue || right > lastLeafIndex || nodes[right.Value].Disabled ? null : nodes[right.Value].Bounds);
                 }
 
                 firstLimitedLeafIndex = firstLeafIndex;
@@ -178,32 +187,29 @@ namespace osu.Framework.Graphics.Lines
             }
 
             nodes[positionAt.Value.index].InterpolatedSegmentStart = positionAt.Value.position;
-            nodes[positionAt.Value.index].Bounds = lineAABB(nodes[positionAt.Value.index].InterpolatedSegment, radius);
+            nodes[positionAt.Value.index].Bounds = lineAABB(nodes[positionAt.Value.index].CurrentSegment, radius);
             firstLimitedLeafIndex = modifiedStartNodeIndex = positionAt.Value.index;
 
             int i = modifiedStartNodeIndex;
 
-            if (i != 0)
+            while (true)
             {
-                while (true)
+                if (nodes[i].Parent is not int parent)
+                    break;
+
+                int modifiedChild = i;
+                i = parent;
+                int left = nodes[i].Left;
+                int? right = nodes[i].Right;
+
+                if (modifiedChild == left)
                 {
-                    int modifiedChild = i;
-                    i = (i - 1) / 2;
-                    int left = 2 * i + 1;
-                    int right = 2 * i + 2;
-
-                    if (modifiedChild == left)
-                    {
-                        nodes[i].Bounds = right > lastLeafIndex || nodes[right].Disabled ? nodes[left].Bounds : union(nodes[left].Bounds, nodes[right].Bounds);
-                    }
-                    else
-                    {
-                        nodes[left].Disabled = true;
-                        nodes[i].Bounds = nodes[right].Bounds;
-                    }
-
-                    if (i == 0)
-                        break;
+                    nodes[i].Bounds = !right.HasValue || right > lastLeafIndex || nodes[right.Value].Disabled ? nodes[left].Bounds : union(nodes[left].Bounds, nodes[right.Value].Bounds);
+                }
+                else
+                {
+                    nodes[left].Disabled = true;
+                    nodes[i].Bounds = right.HasValue ? nodes[right.Value].Bounds : null;
                 }
             }
 
@@ -216,24 +222,21 @@ namespace osu.Framework.Graphics.Lines
             {
                 int n = modifiedEndNodeIndex;
                 nodes[n].InterpolatedSegmentEnd = null;
-                nodes[n].Bounds = lineAABB(nodes[n].InterpolatedSegment, radius);
+                nodes[n].Bounds = lineAABB(nodes[n].CurrentSegment, radius);
 
-                if (n != 0)
+                while (true)
                 {
-                    while (true)
-                    {
-                        n = (n - 1) / 2;
-                        int left = 2 * n + 1;
-                        int right = 2 * n + 2;
+                    if (nodes[n].Parent is not int parent)
+                        break;
 
-                        if (right <= lastLeafIndex)
-                            nodes[right].Disabled = false;
+                    n = parent;
+                    int left = nodes[n].Left;
+                    int? right = nodes[n].Right;
 
-                        nodes[n].Bounds = union(nodes[left].Disabled ? null : nodes[left].Bounds, right > lastLeafIndex ? null : nodes[right].Bounds);
+                    if (right <= lastLeafIndex)
+                        nodes[right.Value].Disabled = false;
 
-                        if (n == 0)
-                            break;
-                    }
+                    nodes[n].Bounds = union(nodes[left].Disabled ? null : nodes[left].Bounds, !right.HasValue || right > lastLeafIndex ? null : nodes[right.Value].Bounds);
                 }
 
                 lastLimitedLeafIndex = lastLeafIndex;
@@ -255,34 +258,31 @@ namespace osu.Framework.Graphics.Lines
             }
 
             nodes[positionAt.Value.index].InterpolatedSegmentEnd = positionAt.Value.position;
-            nodes[positionAt.Value.index].Bounds = lineAABB(nodes[positionAt.Value.index].InterpolatedSegment, radius);
+            nodes[positionAt.Value.index].Bounds = lineAABB(nodes[positionAt.Value.index].CurrentSegment, radius);
             lastLimitedLeafIndex = modifiedEndNodeIndex = positionAt.Value.index;
 
             int i = modifiedEndNodeIndex;
 
-            if (i != 0)
+            while (true)
             {
-                while (true)
+                if (nodes[i].Parent is not int parent)
+                    break;
+
+                int modifiedChild = i;
+                i = parent;
+                int left = nodes[i].Left;
+                int? right = nodes[i].Right;
+
+                if (modifiedChild == right)
                 {
-                    int modifiedChild = i;
-                    i = (i - 1) / 2;
-                    int left = 2 * i + 1;
-                    int right = 2 * i + 2;
+                    nodes[i].Bounds = nodes[left].Disabled ? nodes[right.Value].Bounds : union(nodes[left].Bounds, nodes[right.Value].Bounds);
+                }
+                else
+                {
+                    if (right <= lastLeafIndex)
+                        nodes[right.Value].Disabled = true;
 
-                    if (modifiedChild == right)
-                    {
-                        nodes[i].Bounds = nodes[left].Disabled ? nodes[right].Bounds : union(nodes[left].Bounds, nodes[right].Bounds);
-                    }
-                    else
-                    {
-                        if (right <= lastLeafIndex)
-                            nodes[right].Disabled = true;
-
-                        nodes[i].Bounds = nodes[left].Bounds;
-                    }
-
-                    if (i == 0)
-                        break;
+                    nodes[i].Bounds = nodes[left].Bounds;
                 }
             }
 
@@ -315,11 +315,16 @@ namespace osu.Framework.Graphics.Lines
                     return (i, Precision.AlmostEquals(segmentLength, 0) ? nodes[i].EndPoint : Interpolation.ValueAt(lengthFromEnd / segmentLength, nodes[i].EndPoint, nodes[i].StartPoint, 0, 1));
                 }
 
-                int right = 2 * i + 2;
-                int left = 2 * i + 1;
+                int left = nodes[i].Left;
+                int? right = nodes[i].Right;
 
                 if (lengthAtProgress > nodes[left].CumulativeLength)
-                    i = right;
+                {
+                    if (right.HasValue)
+                        i = right.Value;
+                    else
+                        break;
+                }
                 else
                     i = left;
             }
@@ -332,30 +337,33 @@ namespace osu.Framework.Graphics.Lines
             if (segmentCount == 0)
                 return false;
 
-            Stack<int> stack = new Stack<int>();
+            Stack<int?> stack = new Stack<int?>();
             stack.Push(0);
 
             pos += VertexBounds.TopLeft;
 
             while (stack.Count > 0)
             {
-                int i = stack.Pop();
-                if (i > lastLeafIndex)
+                int? i = stack.Pop();
+
+                if (!i.HasValue || i.Value > lastLeafIndex)
                     continue;
 
-                var node = nodes[i];
+                var node = nodes[i.Value];
 
                 if (node.Disabled || !node.Bounds.HasValue || !node.Bounds.Value.Contains(pos))
                     continue;
 
-                if (node.IsLeaf && node.InterpolatedSegment.DistanceSquaredToPoint(pos) < radius * radius)
-                    return true;
+                if (node.IsLeaf)
+                {
+                    if (node.CurrentSegment.DistanceSquaredToPoint(pos) < radius * radius)
+                        return true;
 
-                if (node.Left.HasValue)
-                    stack.Push(node.Left.Value);
+                    continue;
+                }
 
-                if (node.Right.HasValue)
-                    stack.Push(node.Right.Value);
+                stack.Push(node.Left);
+                stack.Push(node.Right);
             }
 
             return false;
@@ -366,20 +374,40 @@ namespace osu.Framework.Graphics.Lines
             if (lastLeafIndex == 0) // bounds are already computed for a node containing a segment
                 return;
 
-            for (int i = (lastLeafIndex - 1) / 2; i >= 0; i--)
-            {
-                int left = 2 * i + 1;
-                int right = 2 * i + 2;
+            int nodesOnDepth = segmentCount;
+            int depth = (int)Math.Log2(maxLeafCount);
+            int currentNodeIndex = nodes.Length - segmentCount - 1;
 
-                nodes[i] = new BBHNode
+            for (int i = depth - 1; i >= 0; i--)
+            {
+                int nodesOnNextDepth = nodesOnDepth;
+                nodesOnDepth = Math.Max((nodesOnDepth + 1) / 2, 1);
+
+                for (int j = nodesOnDepth - 1; j >= 0; j--)
                 {
-                    Bounds = right > lastLeafIndex ? nodes[left].Bounds : union(nodes[left].Bounds, nodes[right].Bounds),
-                    Left = left,
-                    Right = right,
-                    CumulativeLength = Math.Max(nodes[left].CumulativeLength, right > lastLeafIndex ? totalLength : nodes[right].CumulativeLength),
-                    StartPoint = nodes[left].StartPoint,
-                    EndPoint = right > lastLeafIndex ? pathEndPoint : nodes[right].EndPoint
-                };
+                    int offset = (nodesOnDepth - j) + 2 * j;
+                    int left = currentNodeIndex + offset;
+                    int rightOffset = offset + 1;
+                    int? right = rightOffset > nodesOnNextDepth ? null : (currentNodeIndex + rightOffset);
+                    bool rightExists = right <= lastLeafIndex;
+
+                    nodes[currentNodeIndex] = new BBHNode
+                    {
+                        Bounds = rightExists ? union(nodes[left].Bounds, nodes[right!.Value].Bounds) : nodes[left].Bounds,
+                        Left = left,
+                        Right = right,
+                        CumulativeLength = Math.Max(nodes[left].CumulativeLength, rightExists ? nodes[right!.Value].CumulativeLength : totalLength),
+                        StartPoint = nodes[left].StartPoint,
+                        EndPoint = rightExists ? nodes[right!.Value].EndPoint : pathEndPoint
+                    };
+
+                    nodes[left].Parent = currentNodeIndex;
+
+                    if (right <= lastLeafIndex)
+                        nodes[right.Value].Parent = currentNodeIndex;
+
+                    currentNodeIndex--;
+                }
             }
         }
 
@@ -393,18 +421,18 @@ namespace osu.Framework.Graphics.Lines
 
         private void collectBoundingBoxes(int? index, List<RectangleF> boxes)
         {
-            if (index is not int i)
+            if (!index.HasValue || index.Value > lastLeafIndex)
                 return;
 
-            if (i > lastLeafIndex)
-                return;
-
-            BBHNode node = nodes[i];
+            BBHNode node = nodes[index.Value];
 
             if (node.Disabled || node.Bounds is not RectangleF bounds)
                 return;
 
             boxes.Add(new RectangleF(bounds.TopLeft - VertexBounds.TopLeft, bounds.Size));
+
+            if (node.IsLeaf)
+                return;
 
             collectBoundingBoxes(node.Left, boxes);
             collectBoundingBoxes(node.Right, boxes);
@@ -436,14 +464,15 @@ namespace osu.Framework.Graphics.Lines
 
         private struct BBHNode
         {
-            public int? Left { get; init; }
+            public int Left { get; init; }
             public int? Right { get; init; }
+            public int? Parent { get; set; }
 
             public bool Disabled { get; set; }
 
             public bool IsLeaf { get; init; }
 
-            public Line InterpolatedSegment => new Line(InterpolatedSegmentStart ?? StartPoint, InterpolatedSegmentEnd ?? EndPoint);
+            public Line CurrentSegment => new Line(InterpolatedSegmentStart ?? StartPoint, InterpolatedSegmentEnd ?? EndPoint);
 
             public Vector2 StartPoint { get; init; }
             public Vector2 EndPoint { get; init; }

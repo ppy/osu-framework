@@ -27,6 +27,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         private readonly Path approximatedDrawnPath;
         private readonly Path controlPointPath;
         private readonly Container controlPointViz;
+        private readonly Circle curveAtProgresVis;
         private readonly BoundingBoxVizualizer bbViz;
 
         private readonly IncrementalBSplineBuilder bSplineBuilder = new IncrementalBSplineBuilder();
@@ -62,6 +63,12 @@ namespace osu.Framework.Tests.Visual.Drawables
                     bbViz = new BoundingBoxVizualizer
                     {
                         RelativeSizeAxes = Axes.Both,
+                    },
+                    curveAtProgresVis = new Circle
+                    {
+                        Origin = Anchor.Centre,
+                        Size = new Vector2(10),
+                        Colour = Color4.Yellow
                     }
                 }
             };
@@ -95,6 +102,11 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddSliderStep($"{nameof(approximatedDrawnPath.EndProgress)}", 0f, 1f, 1f, v =>
             {
                 approximatedDrawnPath.EndProgress = v;
+            });
+
+            AddSliderStep($"{nameof(approximatedDrawnPath.CurvePositionAt)}", 0f, 1f, 0, v =>
+            {
+                curveAtProgresVis.Position = approximatedDrawnPath.CurvePositionAt(v);
             });
         }
 
