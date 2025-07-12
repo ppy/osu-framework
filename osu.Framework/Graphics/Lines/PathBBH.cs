@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics.Lines
             firstLeafIndex = firstLimitedLeafIndex = arrayLength - segmentCount;
             lastLeafIndex = lastLimitedLeafIndex = arrayLength - 1;
 
-            if (nodes.Length != lastLeafIndex + 1)
+            if (nodes.Length < lastLeafIndex + 1)
                 nodes = new BBHNode[lastLeafIndex + 1];
 
             switch (vertices.Count)
@@ -376,7 +376,7 @@ namespace osu.Framework.Graphics.Lines
 
             int nodesOnDepth = segmentCount;
             int depth = (int)Math.Log2(maxLeafCount);
-            int currentNodeIndex = nodes.Length - segmentCount - 1;
+            int currentNodeIndex = lastLeafIndex - segmentCount;
 
             for (int i = depth - 1; i >= 0; i--)
             {
