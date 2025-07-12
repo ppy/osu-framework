@@ -165,7 +165,7 @@ namespace osu.Framework.Graphics.Lines
                     int? right = nodes[n].Right;
 
                     nodes[left].Disabled = false;
-                    nodes[n].Bounds = union(nodes[left].Bounds, !right.HasValue || right > lastLeafIndex || nodes[right.Value].Disabled ? null : nodes[right.Value].Bounds);
+                    nodes[n].Bounds = union(nodes[left].Bounds, !right.HasValue || nodes[right.Value].Disabled ? null : nodes[right.Value].Bounds);
                 }
 
                 firstLimitedLeafIndex = firstLeafIndex;
@@ -204,12 +204,12 @@ namespace osu.Framework.Graphics.Lines
 
                 if (modifiedChild == left)
                 {
-                    nodes[i].Bounds = !right.HasValue || right > lastLeafIndex || nodes[right.Value].Disabled ? nodes[left].Bounds : union(nodes[left].Bounds, nodes[right.Value].Bounds);
+                    nodes[i].Bounds = union(nodes[left].Bounds, !right.HasValue || nodes[right.Value].Disabled ? null : nodes[right.Value].Bounds);
                 }
                 else
                 {
                     nodes[left].Disabled = true;
-                    nodes[i].Bounds = right.HasValue ? nodes[right.Value].Bounds : null;
+                    nodes[i].Bounds = nodes[right!.Value].Bounds;
                 }
             }
 
@@ -233,10 +233,10 @@ namespace osu.Framework.Graphics.Lines
                     int left = nodes[n].Left;
                     int? right = nodes[n].Right;
 
-                    if (right <= lastLeafIndex)
+                    if (right.HasValue)
                         nodes[right.Value].Disabled = false;
 
-                    nodes[n].Bounds = union(nodes[left].Disabled ? null : nodes[left].Bounds, !right.HasValue || right > lastLeafIndex ? null : nodes[right.Value].Bounds);
+                    nodes[n].Bounds = union(nodes[left].Disabled ? null : nodes[left].Bounds, !right.HasValue ? null : nodes[right.Value].Bounds);
                 }
 
                 lastLimitedLeafIndex = lastLeafIndex;
@@ -275,11 +275,11 @@ namespace osu.Framework.Graphics.Lines
 
                 if (modifiedChild == right)
                 {
-                    nodes[i].Bounds = nodes[left].Disabled ? nodes[right.Value].Bounds : union(nodes[left].Bounds, nodes[right.Value].Bounds);
+                    nodes[i].Bounds = union(nodes[left].Disabled ? null : nodes[left].Bounds, nodes[right.Value].Bounds);
                 }
                 else
                 {
-                    if (right <= lastLeafIndex)
+                    if (right.HasValue)
                         nodes[right.Value].Disabled = true;
 
                     nodes[i].Bounds = nodes[left].Bounds;
@@ -305,12 +305,9 @@ namespace osu.Framework.Graphics.Lines
 
             while (true)
             {
-                if (i > lastLeafIndex)
-                    break;
-
                 if (nodes[i].IsLeaf)
                 {
-                    float segmentLength = i == 0 ? nodes[i].CumulativeLength : nodes[i].CumulativeLength - ((i > firstLeafIndex) ? nodes[i - 1].CumulativeLength : 0);
+                    float segmentLength = nodes[i].CumulativeLength - (i > firstLeafIndex ? nodes[i - 1].CumulativeLength : 0);
                     float lengthFromEnd = nodes[i].CumulativeLength - lengthAtProgress;
                     return (i, Precision.AlmostEquals(segmentLength, 0) ? nodes[i].EndPoint : Interpolation.ValueAt(lengthFromEnd / segmentLength, nodes[i].EndPoint, nodes[i].StartPoint, 0, 1));
                 }
@@ -346,7 +343,7 @@ namespace osu.Framework.Graphics.Lines
             {
                 int? i = stack.Pop();
 
-                if (!i.HasValue || i.Value > lastLeafIndex)
+                if (!i.HasValue)
                     continue;
 
                 var node = nodes[i.Value];
@@ -389,21 +386,20 @@ namespace osu.Framework.Graphics.Lines
                     int left = currentNodeIndex + offset;
                     int rightOffset = offset + 1;
                     int? right = rightOffset > nodesOnNextDepth ? null : (currentNodeIndex + rightOffset);
-                    bool rightExists = right <= lastLeafIndex;
 
                     nodes[currentNodeIndex] = new BBHNode
                     {
-                        Bounds = rightExists ? union(nodes[left].Bounds, nodes[right!.Value].Bounds) : nodes[left].Bounds,
+                        Bounds = union(nodes[left].Bounds, right.HasValue ? nodes[right.Value].Bounds : null),
                         Left = left,
                         Right = right,
-                        CumulativeLength = Math.Max(nodes[left].CumulativeLength, rightExists ? nodes[right!.Value].CumulativeLength : totalLength),
+                        CumulativeLength = Math.Max(nodes[left].CumulativeLength, right.HasValue ? nodes[right.Value].CumulativeLength : totalLength),
                         StartPoint = nodes[left].StartPoint,
-                        EndPoint = rightExists ? nodes[right!.Value].EndPoint : pathEndPoint
+                        EndPoint = right.HasValue ? nodes[right.Value].EndPoint : pathEndPoint
                     };
 
                     nodes[left].Parent = currentNodeIndex;
 
-                    if (right <= lastLeafIndex)
+                    if (right.HasValue)
                         nodes[right.Value].Parent = currentNodeIndex;
 
                     currentNodeIndex--;
@@ -421,7 +417,7 @@ namespace osu.Framework.Graphics.Lines
 
         private void collectBoundingBoxes(int? index, List<RectangleF> boxes)
         {
-            if (!index.HasValue || index.Value > lastLeafIndex)
+            if (!index.HasValue)
                 return;
 
             BBHNode node = nodes[index.Value];
