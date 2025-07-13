@@ -115,7 +115,7 @@ namespace osu.Framework.Graphics.Lines
 
                     computeParentNodes();
 
-                    VertexBounds = union(nodes[0].Bounds, RectangleF.Empty) ?? RectangleF.Empty;
+                    VertexBounds = RectangleF.Union(nodes[0].Bounds, RectangleF.Empty);
                     break;
                 }
             }
@@ -165,7 +165,7 @@ namespace osu.Framework.Graphics.Lines
                     int? right = nodes[n].Right;
 
                     nodes[left].Disabled = false;
-                    nodes[n].Bounds = union(nodes[left].Bounds, !right.HasValue || nodes[right.Value].Disabled ? null : nodes[right.Value].Bounds);
+                    nodes[n].Bounds = !right.HasValue || nodes[right.Value].Disabled ? nodes[left].Bounds : RectangleF.Union(nodes[left].Bounds, nodes[right.Value].Bounds);
                 }
 
                 firstLimitedLeafIndex = firstLeafIndex;
@@ -174,7 +174,7 @@ namespace osu.Framework.Graphics.Lines
 
             if (newStart == 0)
             {
-                VertexBounds = union(nodes[0].Bounds, RectangleF.Empty) ?? RectangleF.Empty;
+                VertexBounds = RectangleF.Union(nodes[0].Bounds, RectangleF.Empty);
                 return;
             }
 
@@ -182,7 +182,7 @@ namespace osu.Framework.Graphics.Lines
 
             if (!positionAt.HasValue)
             {
-                VertexBounds = union(nodes[0].Bounds, RectangleF.Empty) ?? RectangleF.Empty;
+                VertexBounds = RectangleF.Union(nodes[0].Bounds, RectangleF.Empty);
                 return;
             }
 
@@ -204,7 +204,7 @@ namespace osu.Framework.Graphics.Lines
 
                 if (modifiedChild == left)
                 {
-                    nodes[i].Bounds = union(nodes[left].Bounds, !right.HasValue || nodes[right.Value].Disabled ? null : nodes[right.Value].Bounds);
+                    nodes[i].Bounds = !right.HasValue || nodes[right.Value].Disabled ? nodes[left].Bounds : RectangleF.Union(nodes[left].Bounds, nodes[right.Value].Bounds);
                 }
                 else
                 {
@@ -213,7 +213,7 @@ namespace osu.Framework.Graphics.Lines
                 }
             }
 
-            VertexBounds = union(nodes[0].Bounds, RectangleF.Empty) ?? RectangleF.Empty;
+            VertexBounds = RectangleF.Union(nodes[0].Bounds, RectangleF.Empty);
         }
 
         private void updateEndProgress(float newEnd)
@@ -236,7 +236,7 @@ namespace osu.Framework.Graphics.Lines
                     if (right.HasValue)
                         nodes[right.Value].Disabled = false;
 
-                    nodes[n].Bounds = union(nodes[left].Disabled ? null : nodes[left].Bounds, !right.HasValue ? null : nodes[right.Value].Bounds);
+                    nodes[n].Bounds = nodes[left].Disabled ? nodes[right!.Value].Bounds : (!right.HasValue ? nodes[left].Bounds : RectangleF.Union(nodes[left].Bounds, nodes[right.Value].Bounds));
                 }
 
                 lastLimitedLeafIndex = lastLeafIndex;
@@ -245,7 +245,7 @@ namespace osu.Framework.Graphics.Lines
 
             if (newEnd == 1)
             {
-                VertexBounds = union(nodes[0].Bounds, RectangleF.Empty) ?? RectangleF.Empty;
+                VertexBounds = RectangleF.Union(nodes[0].Bounds, RectangleF.Empty);
                 return;
             }
 
@@ -253,7 +253,7 @@ namespace osu.Framework.Graphics.Lines
 
             if (!positionAt.HasValue)
             {
-                VertexBounds = union(nodes[0].Bounds, RectangleF.Empty) ?? RectangleF.Empty;
+                VertexBounds = RectangleF.Union(nodes[0].Bounds, RectangleF.Empty);
                 return;
             }
 
@@ -275,7 +275,7 @@ namespace osu.Framework.Graphics.Lines
 
                 if (modifiedChild == right)
                 {
-                    nodes[i].Bounds = union(nodes[left].Disabled ? null : nodes[left].Bounds, nodes[right.Value].Bounds);
+                    nodes[i].Bounds = nodes[left].Disabled ? nodes[right.Value].Bounds : RectangleF.Union(nodes[left].Bounds, nodes[right.Value].Bounds);
                 }
                 else
                 {
@@ -286,7 +286,7 @@ namespace osu.Framework.Graphics.Lines
                 }
             }
 
-            VertexBounds = union(nodes[0].Bounds, RectangleF.Empty) ?? RectangleF.Empty;
+            VertexBounds = RectangleF.Union(nodes[0].Bounds, RectangleF.Empty);
         }
 
         public (int index, Vector2 position)? CurvePositionAt(float progress)
@@ -348,7 +348,7 @@ namespace osu.Framework.Graphics.Lines
 
                 var node = nodes[i.Value];
 
-                if (node.Disabled || !node.Bounds.HasValue || !node.Bounds.Value.Contains(pos))
+                if (node.Disabled || !node.Bounds.Contains(pos))
                     continue;
 
                 if (node.IsLeaf)
@@ -389,7 +389,7 @@ namespace osu.Framework.Graphics.Lines
 
                     nodes[currentNodeIndex] = new BBHNode
                     {
-                        Bounds = union(nodes[left].Bounds, right.HasValue ? nodes[right.Value].Bounds : null),
+                        Bounds = right.HasValue ? RectangleF.Union(nodes[left].Bounds, nodes[right.Value].Bounds) : nodes[left].Bounds,
                         Left = left,
                         Right = right,
                         CumulativeLength = Math.Max(nodes[left].CumulativeLength, right.HasValue ? nodes[right.Value].CumulativeLength : totalLength),
@@ -422,10 +422,10 @@ namespace osu.Framework.Graphics.Lines
 
             BBHNode node = nodes[index.Value];
 
-            if (node.Disabled || node.Bounds is not RectangleF bounds)
+            if (node.Disabled)
                 return;
 
-            boxes.Add(new RectangleF(bounds.TopLeft - VertexBounds.TopLeft, bounds.Size));
+            boxes.Add(new RectangleF(node.Bounds.TopLeft - VertexBounds.TopLeft, node.Bounds.Size));
 
             if (node.IsLeaf)
                 return;
@@ -476,17 +476,9 @@ namespace osu.Framework.Graphics.Lines
             public Vector2? InterpolatedSegmentStart { get; set; }
             public Vector2? InterpolatedSegmentEnd { get; set; }
 
-            public float CumulativeLength { get; init; }
+            public required float CumulativeLength { get; init; }
 
-            public RectangleF? Bounds { get; set; }
-        }
-
-        private static RectangleF? union(RectangleF? left, RectangleF? right)
-        {
-            if (left.HasValue && right.HasValue)
-                return RectangleF.Union(left.Value, right.Value);
-
-            return left ?? right;
+            public required RectangleF Bounds { get; set; }
         }
     }
 }
