@@ -12,7 +12,7 @@ namespace osu.Framework.Tests.Visual.Drawables
     {
         private Path path = null!;
 
-        private readonly Vector2[] vertices = new[]
+        private readonly Vector2[] vertices =
         {
             new Vector2(-137.85623f, -30.258106f),
             new Vector2(-138.19534f, -30.35677f),
