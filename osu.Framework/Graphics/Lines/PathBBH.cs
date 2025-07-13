@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Utils;
@@ -66,7 +67,7 @@ namespace osu.Framework.Graphics.Lines
         public RectangleF VertexBounds { get; private set; } = RectangleF.Empty;
 
         private float radius;
-        private BBHNode[] nodes = [];
+        private BBHNode[] nodes = null!;
         private int treeDepth;
         private int firstLeafIndex;
         private int lastLeafIndex;
@@ -74,6 +75,7 @@ namespace osu.Framework.Graphics.Lines
         private float totalLength;
         private int? modifiedStartNodeIndex;
         private int? modifiedEndNodeIndex;
+        private bool rented;
 
         public void SetVertices(IReadOnlyList<Vector2> vertices, float pathRadius)
         {
@@ -103,8 +105,19 @@ namespace osu.Framework.Graphics.Lines
             firstLeafIndex = arrayLength - segmentCount;
             lastLeafIndex = arrayLength - 1;
 
-            if (nodes.Length < lastLeafIndex + 1)
-                nodes = new BBHNode[lastLeafIndex + 1];
+            if (rented)
+            {
+                if (nodes.Length < lastLeafIndex + 1)
+                {
+                    ArrayPool<BBHNode>.Shared.Return(nodes);
+                    nodes = ArrayPool<BBHNode>.Shared.Rent(lastLeafIndex + 1);
+                }
+            }
+            else
+            {
+                nodes = ArrayPool<BBHNode>.Shared.Rent(lastLeafIndex + 1);
+                rented = true;
+            }
 
             switch (vertices.Count)
             {
@@ -420,6 +433,12 @@ namespace osu.Framework.Graphics.Lines
             n |= n >> 16;
 
             return n + 1;
+        }
+
+        public void FreeArray()
+        {
+            if (rented)
+                ArrayPool<BBHNode>.Shared.Return(nodes);
         }
 
         private struct BBHNode
