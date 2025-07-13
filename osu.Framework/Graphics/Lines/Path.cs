@@ -235,7 +235,7 @@ namespace osu.Framework.Graphics.Lines
 
         private PathBBH computeBBH()
         {
-            bbhBacking.Reuse(vertices, pathRadius);
+            bbhBacking.SetVertices(vertices, pathRadius);
             bbhCache.Validate();
             return bbhBacking;
         }
