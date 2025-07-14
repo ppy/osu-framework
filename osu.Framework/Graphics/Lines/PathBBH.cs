@@ -10,6 +10,9 @@ using osuTK;
 
 namespace osu.Framework.Graphics.Lines
 {
+    /// <summary>
+    /// A Bounding Box Hierarchy of a set of vertices which drawn consecutively represent a path.
+    /// </summary>
     public class PathBBH
     {
         public IEnumerable<Line> Segments
@@ -420,6 +423,9 @@ namespace osu.Framework.Graphics.Lines
             return new RectangleF(minX - radius, minY - radius, maxX - minX + radius * 2, maxY - minY + radius * 2);
         }
 
+        /// <summary>
+        /// Returns first smallest number of power of 2 that is bigger than input.
+        /// </summary>
         private static int smallestPowerOfTwo(int n)
         {
             if (n == 0)
@@ -443,24 +449,66 @@ namespace osu.Framework.Graphics.Lines
 
         private struct BBHNode
         {
+            /// <summary>
+            /// Index of a left child of this <see cref="BBHNode"/> in the tree array.
+            /// </summary>
             public int Left { get; init; }
+
+            /// <summary>
+            /// Index of a right child of this <see cref="BBHNode"/> in the tree array. Null if no right child exists.
+            /// </summary>
             public int? Right { get; init; }
+
+            /// <summary>
+            /// Index of a parent of this <see cref="BBHNode"/> in the tree array.
+            /// </summary>
             public int? Parent { get; set; }
 
+            /// <summary>
+            /// Whether this <see cref="BBHNode"/> should not be considered for bounding box calculations.
+            /// </summary>
             public bool Disabled { get; set; }
 
+            /// <summary>
+            /// Whether this <see cref="BBHNode"/> contains a path segment.
+            /// </summary>
             public bool IsLeaf { get; init; }
 
+            /// <summary>
+            /// The line which represents a (modified) path segment in case when this <see cref="BBHNode"/> is marked as a <see cref="IsLeaf"/>.
+            /// </summary>
             public Line CurrentSegment => new Line(InterpolatedSegmentStart ?? StartPoint, InterpolatedSegmentEnd ?? EndPoint);
 
+            /// <summary>
+            /// Start position of a segment of this <see cref="BBHNode"/>.
+            /// </summary>
             public Vector2 StartPoint { get; init; }
+
+            /// <summary>
+            /// End position of a segment of this <see cref="BBHNode"/>.
+            /// </summary>
             public Vector2 EndPoint { get; init; }
 
+            /// <summary>
+            /// Modified start point of a segment of this <see cref="BBHNode"/>. Returns null if no such modification has taken place.
+            /// </summary>
             public Vector2? InterpolatedSegmentStart { get; set; }
+
+            /// <summary>
+            /// Modified end point of a segment of this <see cref="BBHNode"/>. Returns null if no such modification has taken place.
+            /// </summary>
             public Vector2? InterpolatedSegmentEnd { get; set; }
 
+            /// <summary>
+            /// If <see cref="IsLeaf"/> - sum of lengths of all the <see cref="CurrentSegment"/>s (including the segment of this <see cref="BBHNode"/>) to the left of this <see cref="BBHNode"/>.
+            /// Otherwise - max <see cref="CumulativeLength"/> between <see cref="Left"/> and <see cref="Right"/> nodes.
+            /// </summary>
             public required float CumulativeLength { get; init; }
 
+            /// <summary>
+            /// If <see cref="IsLeaf"/> - bounding box of the <see cref="CurrentSegment"/>.
+            /// Otherwise - combined bounding box of <see cref="Left"/> and <see cref="Right"/> nodes.
+            /// </summary>
             public required RectangleF Bounds { get; set; }
         }
     }
