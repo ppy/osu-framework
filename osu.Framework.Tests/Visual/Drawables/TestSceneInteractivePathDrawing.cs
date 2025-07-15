@@ -27,13 +27,14 @@ namespace osu.Framework.Tests.Visual.Drawables
         private readonly Path approximatedDrawnPath;
         private readonly Path controlPointPath;
         private readonly Container controlPointViz;
-        private readonly Circle curveAtProgresVis;
         private readonly BoundingBoxVizualizer bbViz;
 
         private readonly IncrementalBSplineBuilder bSplineBuilder = new IncrementalBSplineBuilder();
 
         public TestSceneInteractivePathDrawing()
         {
+            Circle curveAtProgressVis;
+
             Child = new Container
             {
                 RelativeSizeAxes = Axes.Both,
@@ -64,7 +65,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     {
                         RelativeSizeAxes = Axes.Both,
                     },
-                    curveAtProgresVis = new Circle
+                    curveAtProgressVis = new Circle
                     {
                         Origin = Anchor.Centre,
                         Size = new Vector2(10),
@@ -106,7 +107,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddSliderStep($"{nameof(approximatedDrawnPath.CurvePositionAt)}", 0f, 1f, 0, v =>
             {
-                curveAtProgresVis.Position = approximatedDrawnPath.CurvePositionAt(v);
+                curveAtProgressVis.Position = approximatedDrawnPath.CurvePositionAt(v);
             });
         }
 

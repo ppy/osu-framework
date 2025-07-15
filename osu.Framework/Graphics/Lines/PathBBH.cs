@@ -11,7 +11,7 @@ using osuTK;
 namespace osu.Framework.Graphics.Lines
 {
     /// <summary>
-    /// A Bounding Box Hierarchy of a set of vertices which drawn consecutively represent a path.
+    /// A Bounding Box Hierarchy of a set of vertices which when drawn consecutively represent a path.
     /// </summary>
     public class PathBBH
     {
@@ -110,15 +110,15 @@ namespace osu.Framework.Graphics.Lines
 
             if (rented)
             {
-                if (nodes.Length < lastLeafIndex + 1)
+                if (nodes.Length < arrayLength)
                 {
                     ArrayPool<BBHNode>.Shared.Return(nodes);
-                    nodes = ArrayPool<BBHNode>.Shared.Rent(lastLeafIndex + 1);
+                    nodes = ArrayPool<BBHNode>.Shared.Rent(arrayLength);
                 }
             }
             else
             {
-                nodes = ArrayPool<BBHNode>.Shared.Rent(lastLeafIndex + 1);
+                nodes = ArrayPool<BBHNode>.Shared.Rent(arrayLength);
                 rented = true;
             }
 
@@ -166,17 +166,17 @@ namespace osu.Framework.Graphics.Lines
             if (lastLeafIndex == 0) // bounds are already computed for a node containing a segment
                 return;
 
-            int nodesOnDepth = segmentCount;
+            int nodesOnCurrentDepth = segmentCount;
             int currentNodeIndex = lastLeafIndex - segmentCount;
 
             for (int i = treeDepth - 1; i >= 0; i--)
             {
-                int nodesOnNextDepth = nodesOnDepth;
-                nodesOnDepth = Math.Max((nodesOnDepth + 1) / 2, 1);
+                int nodesOnNextDepth = nodesOnCurrentDepth;
+                nodesOnCurrentDepth = Math.Max((nodesOnCurrentDepth + 1) / 2, 1);
 
-                for (int j = nodesOnDepth - 1; j >= 0; j--)
+                for (int j = nodesOnCurrentDepth - 1; j >= 0; j--)
                 {
-                    int offset = (nodesOnDepth - j) + 2 * j;
+                    int offset = (nodesOnCurrentDepth - j) + 2 * j;
                     int left = currentNodeIndex + offset;
                     int rightOffset = offset + 1;
                     int? right = rightOffset > nodesOnNextDepth ? null : (currentNodeIndex + rightOffset);
@@ -354,13 +354,11 @@ namespace osu.Framework.Graphics.Lines
                     if (right.HasValue)
                         i = right.Value;
                     else
-                        break;
+                        return (lastLeafIndex, nodes[lastLeafIndex].EndPoint);
                 }
                 else
                     i = left;
             }
-
-            return null;
         }
 
         public bool Contains(Vector2 pos)
