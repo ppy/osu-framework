@@ -93,7 +93,7 @@ namespace osu.Framework.Graphics.Lines
 
             segmentCount = Math.Max(vertices.Count - 1, 0);
             // Definition of a leaf here is a node containing a segment
-            int maxLeafCount = Math.Max(smallestPowerOfTwo(segmentCount), 1);
+            int maxLeafCount = Math.Max((int)System.Numerics.BitOperations.RoundUpToPowerOf2((uint)segmentCount), 1);
             treeDepth = (int)Math.Log2(maxLeafCount);
             int arrayLength = segmentCount;
 
@@ -419,24 +419,6 @@ namespace osu.Framework.Graphics.Lines
             float maxX = Math.Max(line.StartPoint.X, line.EndPoint.X);
             float maxY = Math.Max(line.StartPoint.Y, line.EndPoint.Y);
             return new RectangleF(minX - radius, minY - radius, maxX - minX + radius * 2, maxY - minY + radius * 2);
-        }
-
-        /// <summary>
-        /// Returns first smallest number of power of 2 that is bigger than input.
-        /// </summary>
-        private static int smallestPowerOfTwo(int n)
-        {
-            if (n == 0)
-                return 1;
-
-            n -= 1;
-            n |= n >> 1;
-            n |= n >> 2;
-            n |= n >> 4;
-            n |= n >> 8;
-            n |= n >> 16;
-
-            return n + 1;
         }
 
         public void FreeArray()
