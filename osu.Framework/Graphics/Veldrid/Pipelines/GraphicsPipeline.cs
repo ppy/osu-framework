@@ -253,7 +253,7 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
             Array.Resize(ref pipelineDesc.ResourceLayouts, currentShader.LayoutCount);
 
             // Activate texture layouts.
-            foreach (var (unit, _) in attachedTextures)
+            foreach ((int unit, var _) in attachedTextures)
             {
                 var layout = currentShader.GetTextureLayout(unit);
                 if (layout == null)
@@ -263,7 +263,7 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
             }
 
             // Activate uniform buffer layouts.
-            foreach (var (name, _) in attachedUniformBuffers)
+            foreach ((string name, var _) in attachedUniformBuffers)
             {
                 var layout = currentShader.GetUniformBufferLayout(name);
                 if (layout == null)
@@ -276,7 +276,7 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
             Commands.SetPipeline(createPipeline());
 
             // Activate texture resources.
-            foreach (var (unit, texture) in attachedTextures)
+            foreach ((int unit, var texture) in attachedTextures)
             {
                 var layout = currentShader.GetTextureLayout(unit);
                 if (layout == null)
@@ -286,7 +286,7 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
             }
 
             // Activate uniform buffer resources.
-            foreach (var (name, buffer) in attachedUniformBuffers)
+            foreach ((string name, var buffer) in attachedUniformBuffers)
             {
                 var layout = currentShader.GetUniformBufferLayout(name);
                 if (layout == null)
