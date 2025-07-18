@@ -48,26 +48,28 @@ namespace osu.Framework.Graphics.Lines
             {
                 base.ApplyState();
 
-                int newTreeVersion = Source.bbh.TreeVersion;
+                var bbh = Source.BBH;
+
+                int newTreeVersion = bbh.TreeVersion;
 
                 if (newTreeVersion != treeVersion)
                 {
                     segments.Clear();
-                    segments.AddRange(Source.bbh.Segments);
+                    segments.AddRange(bbh.Segments);
 
                     treeVersion = newTreeVersion;
                 }
 
-                rangeStart = Source.bbh.RangeStart;
-                rangeEnd = Source.bbh.RangeEnd;
+                rangeStart = bbh.RangeStart;
+                rangeEnd = bbh.RangeEnd;
 
                 if (segments.Count > 0)
                 {
-                    firstSegment = Source.bbh.FirstSegment;
-                    lastSegment = Source.bbh.LastSegment;
+                    firstSegment = bbh.FirstSegment;
+                    lastSegment = bbh.LastSegment;
                 }
 
-                offset = Source.bbh.VertexBounds.TopLeft;
+                offset = bbh.VertexBounds.TopLeft;
 
                 texture = Source.Texture;
                 drawSize = Source.DrawSize;

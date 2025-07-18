@@ -168,32 +168,32 @@ namespace osu.Framework.Graphics.Lines
 
         public float StartProgress
         {
-            get => bbh.StartProgress;
+            get => BBH.StartProgress;
             set
             {
-                bbh.StartProgress = value;
+                BBH.StartProgress = value;
                 Invalidate(Invalidation.DrawSize);
             }
         }
 
         public float EndProgress
         {
-            get => bbh.EndProgress;
+            get => BBH.EndProgress;
             set
             {
-                bbh.EndProgress = value;
+                BBH.EndProgress = value;
                 Invalidate(Invalidation.DrawSize);
             }
         }
 
-        private RectangleF vertexBounds => bbh.VertexBounds;
+        private RectangleF vertexBounds => BBH.VertexBounds;
 
-        public Vector2 CurvePositionAt(float progress) => bbh.CurvePositionAt(progress)?.position ?? Vector2.Zero;
+        public Vector2 CurvePositionAt(float progress) => BBH.CurvePositionAt(progress)?.position ?? Vector2.Zero;
 
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
         {
             var localPos = ToLocalSpace(screenSpacePos);
-            return bbh.Contains(localPos);
+            return BBH.Contains(localPos);
         }
 
         public Vector2 PositionInBoundingBox(Vector2 pos) => pos - vertexBounds.TopLeft;
@@ -231,7 +231,7 @@ namespace osu.Framework.Graphics.Lines
         private readonly PathBBH bbhBacking = new PathBBH();
         private readonly Cached bbhCache = new Cached();
 
-        private PathBBH bbh => bbhCache.IsValid ? bbhBacking : computeBBH();
+        protected PathBBH BBH => bbhCache.IsValid ? bbhBacking : computeBBH();
 
         private PathBBH computeBBH()
         {
@@ -297,7 +297,7 @@ namespace osu.Framework.Graphics.Lines
         public List<RectangleF> BoundingBoxes()
         {
             List<RectangleF> boxes = new List<RectangleF>();
-            bbh.CollectBoundingBoxes(boxes);
+            BBH.CollectBoundingBoxes(boxes);
             return boxes;
         }
 
