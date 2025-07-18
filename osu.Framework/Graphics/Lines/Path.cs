@@ -333,7 +333,7 @@ namespace osu.Framework.Graphics.Lines
             texture = null;
 
             sharedData.Dispose();
-            bbhBacking?.FreeArray();
+            bbhBacking?.Dispose();
         }
     }
 }

@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Lines
     /// <summary>
     /// A Bounding Box Hierarchy of a set of vertices which when drawn consecutively represent a path.
     /// </summary>
-    public class PathBBH
+    public class PathBBH : IDisposable
     {
         public IEnumerable<Line> Segments
         {
@@ -134,14 +134,12 @@ namespace osu.Framework.Graphics.Lines
 
                 default:
                 {
-                    int leafOffset = 0;
-
                     for (int i = 0; i < vertices.Count - 1; i++)
                     {
                         var segment = new Line(vertices[i], vertices[i + 1]);
                         totalLength += segment.Rho;
 
-                        nodes[firstLeafIndex + leafOffset] = new BBHNode
+                        nodes[firstLeafIndex + i] = new BBHNode
                         {
                             Bounds = lineAABB(segment, radius),
                             StartPoint = segment.StartPoint,
@@ -149,8 +147,6 @@ namespace osu.Framework.Graphics.Lines
                             CumulativeLength = totalLength,
                             IsLeaf = true
                         };
-
-                        leafOffset++;
                     }
 
                     computeParentNodes();
@@ -421,10 +417,12 @@ namespace osu.Framework.Graphics.Lines
             return new RectangleF(minX - radius, minY - radius, maxX - minX + radius * 2, maxY - minY + radius * 2);
         }
 
-        public void FreeArray()
+        public void Dispose()
         {
             if (rented)
                 ArrayPool<BBHNode>.Shared.Return(nodes);
+
+            GC.SuppressFinalize(this);
         }
 
         private struct BBHNode
