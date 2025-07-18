@@ -55,11 +55,12 @@ namespace osu.Framework.Audio.Sample
         /// <returns>The <see cref="SampleChannel"/> for the playback.</returns>
         protected abstract SampleChannel CreateChannel();
 
-        // SampleChannel IsAlive can be false if Playing is not true, even if it is not disposed yet.
-        // Mixer removes the channel from itself after playing to the end, so if we don't dispose this item here, it's forever lost.
         protected override void ItemRemoved(SampleChannel item)
         {
             base.ItemRemoved(item);
+
+            // SampleChannels are removed when they're no longer playing (see SampleChannel.IsAlive).
+            // They need to be disposed at this point when automatic cleanup is requested (the default).
 
             if (!item.IsDisposed)
             {

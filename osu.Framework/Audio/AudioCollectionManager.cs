@@ -64,13 +64,8 @@ namespace osu.Framework.Audio
         }
 
         /// <summary>
-        /// An item has been removed from <see cref="Items"/>.
-        /// Importantly, dispose of the <paramref name="item"/> here if required.
+        /// An item has been removed from <see cref="Items"/>. Implementations should dispose the removed item if required.
         /// </summary>
-        /// <remarks>
-        /// Disposal is left up to the implementor because some cases of removal see items managed by a higher
-        /// level class, i.e. SampleBassFactory.
-        /// </remarks>
         /// <param name="item">The item which was removed.</param>
         protected virtual void ItemRemoved(T item)
         {
