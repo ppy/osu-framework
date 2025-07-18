@@ -12,10 +12,10 @@ namespace osu.Framework.Benchmarks
     public class BenchmarkPathBBHProgressUpdate : BenchmarkTest
     {
         private readonly PathBBH bbh100 = new PathBBH();
-        private readonly PathBBH bbh1000 = new PathBBH();
-        private readonly PathBBH bbh10000 = new PathBBH();
-        private readonly PathBBH bbh100000 = new PathBBH();
-        private readonly PathBBH bbh1000000 = new PathBBH();
+        private readonly PathBBH bbh1K = new PathBBH();
+        private readonly PathBBH bbh10K = new PathBBH();
+        private readonly PathBBH bbh100K = new PathBBH();
+        private readonly PathBBH bbh1M = new PathBBH();
 
         private readonly Random random = new Random(1);
 
@@ -24,31 +24,31 @@ namespace osu.Framework.Benchmarks
             base.SetUp();
 
             List<Vector2> vertices100 = new List<Vector2>(100);
-            List<Vector2> vertices1000 = new List<Vector2>(1000);
-            List<Vector2> vertices10000 = new List<Vector2>(10000);
-            List<Vector2> vertices100000 = new List<Vector2>(100000);
-            List<Vector2> vertices1000000 = new List<Vector2>(1000000);
+            List<Vector2> vertices1K = new List<Vector2>(1_000);
+            List<Vector2> vertices10K = new List<Vector2>(10_000);
+            List<Vector2> vertices100K = new List<Vector2>(100_000);
+            List<Vector2> vertices1M = new List<Vector2>(1_000_000);
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < vertices100.Capacity; i++)
                 vertices100.Add(new Vector2(random.NextSingle(), random.NextSingle()));
 
-            for (int i = 0; i < 1000; i++)
-                vertices1000.Add(new Vector2(random.NextSingle(), random.NextSingle()));
+            for (int i = 0; i < vertices1K.Capacity; i++)
+                vertices1K.Add(new Vector2(random.NextSingle(), random.NextSingle()));
 
-            for (int i = 0; i < 10000; i++)
-                vertices10000.Add(new Vector2(random.NextSingle(), random.NextSingle()));
+            for (int i = 0; i < vertices10K.Capacity; i++)
+                vertices10K.Add(new Vector2(random.NextSingle(), random.NextSingle()));
 
-            for (int i = 0; i < 100000; i++)
-                vertices100000.Add(new Vector2(random.NextSingle(), random.NextSingle()));
+            for (int i = 0; i < vertices100K.Capacity; i++)
+                vertices100K.Add(new Vector2(random.NextSingle(), random.NextSingle()));
 
-            for (int i = 0; i < 1000000; i++)
-                vertices1000000.Add(new Vector2(random.NextSingle(), random.NextSingle()));
+            for (int i = 0; i < vertices1M.Capacity; i++)
+                vertices1M.Add(new Vector2(random.NextSingle(), random.NextSingle()));
 
             bbh100.SetVertices(vertices100, 10);
-            bbh1000.SetVertices(vertices1000, 10);
-            bbh10000.SetVertices(vertices10000, 10);
-            bbh100000.SetVertices(vertices100000, 10);
-            bbh1000000.SetVertices(vertices1000000, 10);
+            bbh1K.SetVertices(vertices1K, 10);
+            bbh10K.SetVertices(vertices10K, 10);
+            bbh100K.SetVertices(vertices100K, 10);
+            bbh1M.SetVertices(vertices1M, 10);
         }
 
         [Benchmark]
@@ -58,27 +58,27 @@ namespace osu.Framework.Benchmarks
         }
 
         [Benchmark]
-        public void SetStartProgressBBH1000()
+        public void SetStartProgressBBH1K()
         {
-            bbh1000.StartProgress = random.NextSingle();
+            bbh1K.StartProgress = random.NextSingle();
         }
 
         [Benchmark]
-        public void SetStartProgressBBH10000()
+        public void SetStartProgressBBH10K()
         {
-            bbh10000.StartProgress = random.NextSingle();
+            bbh10K.StartProgress = random.NextSingle();
         }
 
         [Benchmark]
-        public void SetStartProgressBBH100000()
+        public void SetStartProgressBBH100K()
         {
-            bbh100000.StartProgress = random.NextSingle();
+            bbh100K.StartProgress = random.NextSingle();
         }
 
         [Benchmark]
-        public void SetStartProgressBBH1000000()
+        public void SetStartProgressBBH1M()
         {
-            bbh1000000.StartProgress = random.NextSingle();
+            bbh1M.StartProgress = random.NextSingle();
         }
     }
 }

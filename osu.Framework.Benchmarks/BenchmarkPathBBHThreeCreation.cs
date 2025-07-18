@@ -12,10 +12,10 @@ namespace osu.Framework.Benchmarks
     public class BenchmarkPathBBHThreeCreation : BenchmarkTest
     {
         private readonly List<Vector2> vertices100 = new List<Vector2>(100);
-        private readonly List<Vector2> vertices1000 = new List<Vector2>(1000);
-        private readonly List<Vector2> vertices10000 = new List<Vector2>(10000);
-        private readonly List<Vector2> vertices100000 = new List<Vector2>(100000);
-        private readonly List<Vector2> vertices1000000 = new List<Vector2>(1000000);
+        private readonly List<Vector2> vertices1K = new List<Vector2>(1_000);
+        private readonly List<Vector2> vertices10K = new List<Vector2>(10_000);
+        private readonly List<Vector2> vertices100K = new List<Vector2>(100_000);
+        private readonly List<Vector2> vertices1M = new List<Vector2>(1_000_000);
 
         private readonly PathBBH bbh = new PathBBH();
 
@@ -25,20 +25,20 @@ namespace osu.Framework.Benchmarks
 
             var rng = new Random(1);
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < vertices100.Capacity; i++)
                 vertices100.Add(new Vector2(rng.NextSingle(), rng.NextSingle()));
 
-            for (int i = 0; i < 1000; i++)
-                vertices1000.Add(new Vector2(rng.NextSingle(), rng.NextSingle()));
+            for (int i = 0; i < vertices1K.Capacity; i++)
+                vertices1K.Add(new Vector2(rng.NextSingle(), rng.NextSingle()));
 
-            for (int i = 0; i < 10000; i++)
-                vertices10000.Add(new Vector2(rng.NextSingle(), rng.NextSingle()));
+            for (int i = 0; i < vertices10K.Capacity; i++)
+                vertices10K.Add(new Vector2(rng.NextSingle(), rng.NextSingle()));
 
-            for (int i = 0; i < 100000; i++)
-                vertices100000.Add(new Vector2(rng.NextSingle(), rng.NextSingle()));
+            for (int i = 0; i < vertices100K.Capacity; i++)
+                vertices100K.Add(new Vector2(rng.NextSingle(), rng.NextSingle()));
 
-            for (int i = 0; i < 1000000; i++)
-                vertices1000000.Add(new Vector2(rng.NextSingle(), rng.NextSingle()));
+            for (int i = 0; i < vertices1M.Capacity; i++)
+                vertices1M.Add(new Vector2(rng.NextSingle(), rng.NextSingle()));
         }
 
         [Benchmark]
@@ -48,27 +48,27 @@ namespace osu.Framework.Benchmarks
         }
 
         [Benchmark]
-        public void CreateBBHWith1000Leafs()
+        public void CreateBBHWith1KLeafs()
         {
-            bbh.SetVertices(vertices1000, 10);
+            bbh.SetVertices(vertices1K, 10);
         }
 
         [Benchmark]
-        public void CreateBBHWith10000Leafs()
+        public void CreateBBHWith10KLeafs()
         {
-            bbh.SetVertices(vertices10000, 10);
+            bbh.SetVertices(vertices10K, 10);
         }
 
         [Benchmark]
-        public void CreateBBHWith100000Leafs()
+        public void CreateBBHWith100KLeafs()
         {
-            bbh.SetVertices(vertices100000, 10);
+            bbh.SetVertices(vertices100K, 10);
         }
 
         [Benchmark]
-        public void CreateBBHWith1000000Leafs()
+        public void CreateBBHWith1MLeafs()
         {
-            bbh.SetVertices(vertices1000000, 10);
+            bbh.SetVertices(vertices1M, 10);
         }
     }
 }
