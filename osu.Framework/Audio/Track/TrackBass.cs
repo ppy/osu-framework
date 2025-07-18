@@ -184,6 +184,9 @@ namespace osu.Framework.Audio.Track
                 Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.TempoUseQuickAlgorithm, 1);
                 Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.TempoOverlapMilliseconds, 4);
                 Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.TempoSequenceMilliseconds, 30);
+                // 0x10017 = BASS_ATTRIB_TEMPO_OPTION_OLDPOS, used for smoother time reporting when tempo adjustments are active
+                // see: https://www.un4seen.com/forum/?topic=20482.msg145282#msg145282
+                Bass.ChannelSetAttribute(tempoAdjustStream, (ChannelAttribute)0x10017, 1);
             }
 
             return stream;
