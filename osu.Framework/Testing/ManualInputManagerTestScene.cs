@@ -23,11 +23,6 @@ namespace osu.Framework.Testing
         protected override Container<Drawable> Content { get; } = new Container { RelativeSizeAxes = Axes.Both };
 
         /// <summary>
-        /// The position which is used to initialize the mouse position before at setup.
-        /// </summary>
-        protected virtual Vector2 InitialMousePosition => Vector2.Zero;
-
-        /// <summary>
         /// The <see cref="ManualInputManager"/>.
         /// </summary>
         protected ManualInputManager InputManager { get; }
@@ -127,7 +122,7 @@ namespace osu.Framework.Testing
             var currentState = InputManager.CurrentState;
 
             var mouse = currentState.Mouse;
-            InputManager.MoveMouseTo(InitialMousePosition);
+            InputManager.MoveMouseTo(Vector2.Zero);
             mouse.Buttons.ForEach(InputManager.ReleaseButton);
 
             var keyboard = currentState.Keyboard;

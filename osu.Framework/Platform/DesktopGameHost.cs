@@ -15,13 +15,13 @@ namespace osu.Framework.Platform
 {
     public abstract class DesktopGameHost : SDLGameHost
     {
-        private TcpIpcProvider ipcProvider;
-        private readonly int? ipcPort;
+        private NamedPipeIpcProvider ipcProvider;
+        private readonly string ipcPipeName;
 
         protected DesktopGameHost(string gameName, HostOptions options = null)
             : base(gameName, options)
         {
-            ipcPort = Options.IPCPort;
+            ipcPipeName = Options.IPCPipeName;
             IsPortableInstallation = Options.PortableInstallation;
         }
 
@@ -55,13 +55,13 @@ namespace osu.Framework.Platform
 
         private void ensureIPCReady()
         {
-            if (ipcPort == null)
+            if (ipcPipeName == null)
                 return;
 
             if (ipcProvider != null)
                 return;
 
-            ipcProvider = new TcpIpcProvider(ipcPort.Value);
+            ipcProvider = new NamedPipeIpcProvider(ipcPipeName);
             ipcProvider.MessageReceived += OnMessageReceived;
 
             IsPrimaryInstance = ipcProvider.Bind();
@@ -97,7 +97,7 @@ namespace osu.Framework.Platform
             return true;
         }
 
-        private void openUsingShellExecute(string path) => Process.Start(new ProcessStartInfo
+        private static void openUsingShellExecute(string path) => Process.Start(new ProcessStartInfo
         {
             FileName = path,
             UseShellExecute = true //see https://github.com/dotnet/corefx/issues/10361
@@ -108,6 +108,13 @@ namespace osu.Framework.Platform
             ensureIPCReady();
 
             return ipcProvider.SendMessageAsync(message);
+        }
+
+        public override Task<IpcMessage> SendMessageWithResponseAsync(IpcMessage message)
+        {
+            ensureIPCReady();
+
+            return ipcProvider.SendMessageWithResponseAsync(message);
         }
 
         protected override void Dispose(bool isDisposing)

@@ -492,8 +492,8 @@ namespace osu.Framework.Tests.Bindables
 
             bindable2.BindTo(bindable1);
 
-            ValueChangedEvent<int> event1 = null;
-            ValueChangedEvent<int> event2 = null;
+            ValueChangedEvent<int> event1 = default;
+            ValueChangedEvent<int> event2 = default;
 
             bindable1.BindValueChanged(e => event1 = e);
             bindable2.BindValueChanged(e => event2 = e);

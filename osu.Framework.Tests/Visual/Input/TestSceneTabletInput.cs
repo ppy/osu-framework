@@ -26,6 +26,7 @@ namespace osu.Framework.Tests.Visual.Input
         private readonly FillFlowContainer auxButtonFlow;
         private IBindable<TabletInfo?> tablet = new Bindable<TabletInfo?>();
         private IBindable<bool> tabletEnabled = new Bindable<bool>();
+        private readonly PenThresholdTester thresholdTester;
 
         [Resolved]
         private FrameworkConfigManager frameworkConfigManager { get; set; } = null!;
@@ -50,6 +51,7 @@ namespace osu.Framework.Tests.Visual.Input
                         RelativeSizeAxes = Axes.X,
                         AutoSizeAxes = Axes.Y
                     },
+                    thresholdTester = new PenThresholdTester(),
                 }
             };
 
@@ -101,6 +103,9 @@ namespace osu.Framework.Tests.Visual.Input
                     yOffset => tabletHandler.AreaOffset.Value = new Vector2(
                         tabletHandler.AreaOffset.Value.X,
                         tabletHandler.AreaSize.Default.Y * yOffset));
+
+                AddSliderStep("change pen pressure threshold for click", 0, 1, 0f,
+                    threshold => tabletHandler.PressureThreshold.Value = threshold);
             }
 
             AddToggleStep("toggle confine mode", enabled => frameworkConfigManager.SetValue(FrameworkSetting.ConfineMouseMode,
@@ -114,7 +119,7 @@ namespace osu.Framework.Tests.Visual.Input
             else
                 tabletInfo.Text = "Tablet input is disabled.";
 
-            areaVisualizer.Alpha = penButtonFlow.Alpha = auxButtonFlow.Alpha = tablet.Value != null && tabletEnabled.Value ? 1 : 0;
+            areaVisualizer.Alpha = penButtonFlow.Alpha = auxButtonFlow.Alpha = thresholdTester.Alpha = tablet.Value != null && tabletEnabled.Value ? 1 : 0;
         }
 
         private partial class TabletAreaVisualiser : CompositeDrawable
@@ -277,6 +282,49 @@ namespace osu.Framework.Tests.Visual.Input
                 }
 
                 background.FadeOut(100);
+            }
+        }
+
+        private partial class PenThresholdTester : CompositeDrawable
+        {
+            private Box background = null!;
+            private SpriteText text = null!;
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                Size = new Vector2(100, 50);
+                InternalChildren = new Drawable[]
+                {
+                    background = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                    text = new SpriteText
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                    }
+                };
+                setPressed(false);
+            }
+
+            protected override bool OnMouseDown(MouseDownEvent e)
+            {
+                setPressed(true);
+                return true;
+            }
+
+            protected override void OnMouseUp(MouseUpEvent e)
+            {
+                base.OnMouseUp(e);
+                setPressed(false);
+            }
+
+            private void setPressed(bool pressed)
+            {
+                background.Colour = pressed ? FrameworkColour.Green : FrameworkColour.GreenDark;
+                text.Text = pressed ? "I am pressed" : "press me";
             }
         }
     }

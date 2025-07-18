@@ -5,5 +5,6 @@
 partial class OnDoubleClickMethod : global::osu.Framework.Input.ISourceGeneratedHandleInputCache
 {
     global::System.Type global::osu.Framework.Input.ISourceGeneratedHandleInputCache.KnownType => typeof(global::OnDoubleClickMethod);
+
     bool global::osu.Framework.Input.ISourceGeneratedHandleInputCache.RequestsPositionalInput => true;
 }

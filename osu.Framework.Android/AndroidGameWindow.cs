@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Bindables;
 using osu.Framework.Platform;
 using osu.Framework.Platform.SDL3;
 
@@ -22,10 +21,6 @@ namespace osu.Framework.Android
             base.Create();
 
             SafeAreaPadding.BindTo(AndroidGameActivity.Surface.SafeAreaPadding);
-
-            // Android SDL doesn't receive these events at start, so it never receives focus until it comes back from background
-            ((BindableBool)CursorInWindow).Value = true;
-            Focused = true;
         }
     }
 }

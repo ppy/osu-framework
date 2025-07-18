@@ -19,7 +19,8 @@ namespace osu.Framework.Audio.Sample
             Name = name;
         }
 
-        public double Length { get; protected set; }
+        public abstract double Length { get; }
+
         public Bindable<int> PlaybackConcurrency { get; } = new Bindable<int>(DEFAULT_CONCURRENCY);
 
         internal Action<Sample> OnPlay;

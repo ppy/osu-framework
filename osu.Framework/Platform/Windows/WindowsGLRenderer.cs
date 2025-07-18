@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -100,6 +101,7 @@ namespace osu.Framework.Platform.Windows
         [DllImport("shell32.dll")]
         private static extern int SHQueryUserNotificationState(out QueryUserNotificationState state);
 
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
         private enum QueryUserNotificationState
         {
             QUNS_NOT_PRESENT = 1,

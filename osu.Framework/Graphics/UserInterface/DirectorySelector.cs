@@ -23,6 +23,8 @@ namespace osu.Framework.Graphics.UserInterface
     {
         private FillFlowContainer directoryFlow;
 
+        protected Container<Drawable> Content { get; private set; } = null!;
+
         protected readonly BindableBool ShowHiddenItems = new BindableBool();
 
         protected abstract ScrollContainer<Drawable> CreateScrollContainer();
@@ -52,6 +54,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private string initialPath;
 
+        protected Container TopLevelContent { get; private set; }
+
         protected DirectorySelector(string initialPath = null)
         {
             this.initialPath = initialPath;
@@ -69,51 +73,59 @@ namespace osu.Framework.Graphics.UserInterface
         {
             initialPath ??= gameHost.InitialFileSelectorPath;
 
-            InternalChild = new GridContainer
+            InternalChild = TopLevelContent = new Container
             {
                 RelativeSizeAxes = Axes.Both,
-                RowDimensions = new[]
+                Child = Content = new Container
                 {
-                    new Dimension(GridSizeMode.AutoSize),
-                    new Dimension(),
-                },
-                Content = new[]
-                {
-                    new Drawable[]
+                    RelativeSizeAxes = Axes.Both,
+                    Child = new GridContainer
                     {
-                        new GridContainer
+                        RelativeSizeAxes = Axes.Both,
+                        RowDimensions = new[]
                         {
-                            RelativeSizeAxes = Axes.X,
-                            AutoSizeAxes = Axes.Y,
-                            ColumnDimensions = new[]
+                            new Dimension(GridSizeMode.AutoSize),
+                            new Dimension(),
+                        },
+                        Content = new[]
+                        {
+                            new Drawable[]
                             {
-                                new Dimension(),
-                                new Dimension(GridSizeMode.AutoSize),
-                            },
-                            RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
-                            Content = new[]
-                            {
-                                new[]
+                                new GridContainer
                                 {
-                                    CreateBreadcrumb(),
-                                    CreateHiddenToggleButton()
+                                    RelativeSizeAxes = Axes.X,
+                                    AutoSizeAxes = Axes.Y,
+                                    ColumnDimensions = new[]
+                                    {
+                                        new Dimension(),
+                                        new Dimension(GridSizeMode.AutoSize),
+                                    },
+                                    RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
+                                    Content = new[]
+                                    {
+                                        new[]
+                                        {
+                                            CreateBreadcrumb(),
+                                            CreateHiddenToggleButton()
+                                        }
+                                    }
                                 }
+                            },
+                            new Drawable[]
+                            {
+                                CreateScrollContainer().With(d =>
+                                {
+                                    d.RelativeSizeAxes = Axes.Both;
+                                    d.Child = directoryFlow = new FillFlowContainer
+                                    {
+                                        AutoSizeAxes = Axes.Y,
+                                        RelativeSizeAxes = Axes.X,
+                                        Direction = FillDirection.Vertical,
+                                        Spacing = new Vector2(2),
+                                    };
+                                })
                             }
                         }
-                    },
-                    new Drawable[]
-                    {
-                        CreateScrollContainer().With(d =>
-                        {
-                            d.RelativeSizeAxes = Axes.Both;
-                            d.Child = directoryFlow = new FillFlowContainer
-                            {
-                                AutoSizeAxes = Axes.Y,
-                                RelativeSizeAxes = Axes.X,
-                                Direction = FillDirection.Vertical,
-                                Spacing = new Vector2(2),
-                            };
-                        })
                     }
                 }
             };

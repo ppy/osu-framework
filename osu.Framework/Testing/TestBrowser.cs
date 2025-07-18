@@ -430,7 +430,7 @@ namespace osu.Framework.Testing
                 {
                     string repeatSuffix = i > 0 ? $" ({i + 1})" : string.Empty;
 
-                    var methodWrapper = new MethodWrapper(m.GetType(), m);
+                    var methodWrapper = new MethodWrapper(m.DeclaringType, m);
 
                     if (methodWrapper.GetCustomAttributes<TestAttribute>(false).SingleOrDefault() != null)
                     {
@@ -479,30 +479,14 @@ namespace osu.Framework.Testing
 
                     foreach (var tcs in m.GetCustomAttributes(typeof(TestCaseSourceAttribute), false).OfType<TestCaseSourceAttribute>())
                     {
-                        IEnumerable sourceValue = getTestCaseSourceValue(m, tcs);
+                        var tcsTests = tcs.BuildFrom(methodWrapper, null);
 
-                        if (sourceValue == null)
-                        {
-                            Debug.Assert(tcs.SourceName != null);
-                            throw new InvalidOperationException($"The value of the source member {tcs.SourceName} must be non-null.");
-                        }
-
-                        foreach (object argument in sourceValue)
+                        foreach (var tcsTest in tcsTests)
                         {
                             hadTestAttributeTest = true;
+                            CurrentTest.AddLabel($"{name}({string.Join(", ", tcsTest.Arguments)}){repeatSuffix}");
 
-                            if (argument is IEnumerable argumentsEnumerable)
-                            {
-                                object[] arguments = argumentsEnumerable.Cast<object>().ToArray();
-
-                                CurrentTest.AddLabel($"{name}({string.Join(", ", arguments)}){repeatSuffix}");
-                                handleTestMethod(m, arguments);
-                            }
-                            else
-                            {
-                                CurrentTest.AddLabel($"{name}({argument}){repeatSuffix}");
-                                handleTestMethod(m, argument);
-                            }
+                            handleTestMethod(m, tcsTest.Arguments);
                         }
                     }
                 }

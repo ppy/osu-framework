@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -16,9 +15,11 @@ using UIKit;
 
 namespace osu.Framework.iOS
 {
-    internal class IOSWindow : SDL3MobileWindow
+    internal class IOSWindow : SDL3MobileWindow, IIOSWindow
     {
-        private UIWindow? window;
+        public UIWindow UIWindow { get; private set; } = null!;
+
+        public UIViewController ViewController => UIWindow.RootViewController!;
 
         public override Size Size
         {
@@ -26,9 +27,7 @@ namespace osu.Framework.iOS
             protected set
             {
                 base.Size = value;
-
-                if (window != null)
-                    updateSafeArea();
+                updateSafeArea();
             }
         }
 
@@ -43,8 +42,11 @@ namespace osu.Framework.iOS
 
             base.Create();
 
-            window = Runtime.GetNSObject<UIWindow>(WindowHandle);
+            UIWindow = Runtime.GetNSObject<UIWindow>(WindowHandle)!;
             updateSafeArea();
+
+            var appDelegate = (GameApplicationDelegate)UIApplication.SharedApplication.Delegate;
+            appDelegate.DragDrop += TriggerDragDrop;
         }
 
         protected override unsafe void RunMainLoop()
@@ -57,8 +59,6 @@ namespace osu.Framework.iOS
             // iOS may be a good forward direction if this ever comes up, as a user may see a potentially higher
             // frame rate with multi-threaded mode turned on, but it is going to give them worse input latency
             // and higher power usage.
-
-            SDL_SetiOSEventPump(false);
             SDL_SetiOSAnimationCallback(SDLWindowHandle, 1, &runFrame, ObjectHandle.Handle);
         }
 
@@ -73,14 +73,15 @@ namespace osu.Framework.iOS
 
         private void updateSafeArea()
         {
-            Debug.Assert(window != null);
+            if (!Exists)
+                return;
 
             SafeAreaPadding.Value = new MarginPadding
             {
-                Top = (float)window.SafeAreaInsets.Top * Scale,
-                Left = (float)window.SafeAreaInsets.Left * Scale,
-                Bottom = (float)window.SafeAreaInsets.Bottom * Scale,
-                Right = (float)window.SafeAreaInsets.Right * Scale,
+                Top = (float)UIWindow.SafeAreaInsets.Top * Scale,
+                Left = (float)UIWindow.SafeAreaInsets.Left * Scale,
+                Bottom = (float)UIWindow.SafeAreaInsets.Bottom * Scale,
+                Right = (float)UIWindow.SafeAreaInsets.Right * Scale,
             };
         }
     }

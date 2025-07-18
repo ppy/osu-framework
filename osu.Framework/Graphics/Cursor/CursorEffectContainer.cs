@@ -12,6 +12,11 @@ using osu.Framework.Lists;
 
 namespace osu.Framework.Graphics.Cursor
 {
+    /// <summary>
+    /// An abstract container type that handles positional input for many drawables of type <typeparamref name="TTarget"/>.
+    /// </summary>
+    /// <typeparam name="TSelf">The derived container type.</typeparam>
+    /// <typeparam name="TTarget">The target drawable type.</typeparam>
     public abstract partial class CursorEffectContainer<TSelf, TTarget> : Container
         where TSelf : CursorEffectContainer<TSelf, TTarget>
         where TTarget : class, IDrawable
@@ -27,14 +32,14 @@ namespace osu.Framework.Graphics.Cursor
         }
 
         private readonly HashSet<IDrawable> childDrawables = new HashSet<IDrawable>();
-        private readonly HashSet<IDrawable> nestedTtcChildDrawables = new HashSet<IDrawable>();
+        private readonly HashSet<IDrawable> nestedContainerChildDrawables = new HashSet<IDrawable>();
         private readonly List<IDrawable> newChildDrawables = new List<IDrawable>();
         private readonly List<TTarget> targetChildren = new List<TTarget>();
 
         private void findTargetChildren()
         {
             Debug.Assert(childDrawables.Count == 0, $"{nameof(childDrawables)} should be empty but has {childDrawables.Count} elements.");
-            Debug.Assert(nestedTtcChildDrawables.Count == 0, $"{nameof(nestedTtcChildDrawables)} should be empty but has {nestedTtcChildDrawables.Count} elements.");
+            Debug.Assert(nestedContainerChildDrawables.Count == 0, $"{nameof(nestedContainerChildDrawables)} should be empty but has {nestedContainerChildDrawables.Count} elements.");
             Debug.Assert(newChildDrawables.Count == 0, $"{nameof(newChildDrawables)} should be empty but has {newChildDrawables.Count} elements.");
             Debug.Assert(targetChildren.Count == 0, $"{nameof(targetChildren)} should be empty but has {targetChildren.Count} elements.");
 
@@ -95,14 +100,14 @@ namespace osu.Framework.Graphics.Cursor
                 {
                     var d = newChildDrawables[j];
 
-                    if (d.Parent == this || (!(d.Parent is TSelf) && !nestedTtcChildDrawables.Contains(d.Parent)))
+                    if (d.Parent == this || (!(d.Parent is TSelf) && !nestedContainerChildDrawables.Contains(d.Parent)))
                         continue;
 
-                    nestedTtcChildDrawables.Add(d);
+                    nestedContainerChildDrawables.Add(d);
                 }
 
                 // Ignore drawables whose effects are managed by a nested effect container.
-                if (nestedTtcChildDrawables.Contains(candidate))
+                if (nestedContainerChildDrawables.Contains(candidate))
                     continue;
 
                 // We found a valid candidate; keep track of it
@@ -112,13 +117,18 @@ namespace osu.Framework.Graphics.Cursor
 
         private static readonly SlimReadOnlyListWrapper<TTarget> empty_list = new SlimReadOnlyListWrapper<TTarget>(new List<TTarget>(0));
 
+        /// <summary>
+        /// Returns currently hovered child drawables of type <typeparamref name="TTarget"/>.
+        /// </summary>
+        /// <returns>The list of candidate drawables in top-down order (see <see cref="InputManager.PositionalInputQueue"/>).</returns>
+        /// <remarks>Only drawables where <see cref="Drawable.HandlePositionalInput"/> is true are considered. When multiple <typeparamref name="TSelf"/> are nested, only the closest parent container receives the candidate.</remarks>
         protected SlimReadOnlyListWrapper<TTarget> FindTargets()
         {
             findTargetChildren();
 
             // Clean up
             childDrawables.Clear();
-            nestedTtcChildDrawables.Clear();
+            nestedContainerChildDrawables.Clear();
             newChildDrawables.Clear();
 
             if (targetChildren.Count == 0)

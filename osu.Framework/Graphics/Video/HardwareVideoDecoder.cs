@@ -3,6 +3,7 @@
 
 using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -13,6 +14,8 @@ namespace osu.Framework.Graphics.Video
     /// Contains decoders for ALL platforms.
     /// </remarks>
     [Flags]
+    // todo: revisit when we have a way to exclude enum members from naming rules
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public enum HardwareVideoDecoder
     {
         /// <summary>

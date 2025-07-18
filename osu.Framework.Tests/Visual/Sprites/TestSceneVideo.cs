@@ -10,9 +10,12 @@ using osu.Framework.Configuration;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Stores;
 using osu.Framework.Timing;
+using osuTK;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
@@ -31,6 +34,9 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         [Resolved]
         private FrameworkConfigManager config { get; set; }
+
+        [Resolved]
+        private TextureStore textures { get; set; }
 
         private static readonly string[] file_formats =
         {
@@ -237,6 +243,57 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             AddStep("Set colour", () => video.Colour = Color4Extensions.FromHex("#ea7948").Opacity(0.75f));
             AddToggleStep("Toggle rounding", v => video.Rounded = v);
+        }
+
+        [Test]
+        public void TestUnspecifiedColorspace()
+        {
+            AddStep("Reset clock", () =>
+            {
+                clock.CurrentTime = 0;
+                didDecode = false;
+            });
+            AddStep("load videos", () =>
+            {
+                videoContainer.Child = new FillFlowContainer
+                {
+                    Scale = new Vector2(0.75f),
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    AutoSizeAxes = Axes.Both,
+                    Direction = FillDirection.Horizontal,
+                    Children = new[]
+                    {
+                        new FillFlowContainer
+                        {
+                            AutoSizeAxes = Axes.Both,
+                            Direction = FillDirection.Vertical,
+                            Children = new[]
+                            {
+                                new SpriteText { Text = "SDTV / Rec. 601" },
+                                new TestVideo(videoStore.GetStream("h264.mp4")),
+                                Empty().With(d => d.Height = 10),
+                                new Sprite { Texture = textures.Get("h264-screenshot.png", WrapMode.ClampToEdge, WrapMode.ClampToEdge), Scale = new Vector2(2f) },
+                                new SpriteText { Text = "Expected" },
+                            }
+                        },
+                        new FillFlowContainer
+                        {
+                            AutoSizeAxes = Axes.Both,
+                            Direction = FillDirection.Vertical,
+                            Children = new[]
+                            {
+                                new SpriteText { Text = "HDTV / Rec. 709" },
+                                new TestVideo(videoStore.GetStream("h264-hd.mp4")) { Scale = new Vector2(270f / 576f) },
+                                Empty().With(d => d.Height = 10),
+                                new Sprite { Texture = textures.Get("h264-hd-screenshot.png", WrapMode.ClampToEdge, WrapMode.ClampToEdge), Scale = new Vector2(270f / 576f * 2f) },
+                                new SpriteText { Text = "Expected" },
+                            }
+                        },
+                    },
+                };
+            });
+            AddStep("Reset clock", () => clock.CurrentTime = 0);
         }
 
         private int currentSecond;
