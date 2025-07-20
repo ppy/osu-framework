@@ -9,7 +9,7 @@ using osuTK;
 
 namespace osu.Framework.Benchmarks
 {
-    public class BenchmarkPathContains : BenchmarkTest
+    public class BenchmarkPathReceivePositionalInputAt : BenchmarkTest
     {
         // We deliberately set path radius to 0 to introduce worst-case scenario in which with any position given we won't land on a path.
         private readonly Path path100 = new Path { PathRadius = 0f };
