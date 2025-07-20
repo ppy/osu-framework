@@ -24,10 +24,10 @@ namespace osu.Framework.Tests.Visual.Drawables
     public partial class TestSceneInteractivePathDrawing : FrameworkTestScene
     {
         private readonly Path rawDrawnPath;
-        private readonly Path approximatedDrawnPath;
+        private readonly TestPath approximatedDrawnPath;
         private readonly Path controlPointPath;
         private readonly Container controlPointViz;
-        private readonly BoundingBoxVizualizer bbViz;
+        private readonly BoundingBoxVisualizer bbViz;
 
         private readonly IncrementalBSplineBuilder bSplineBuilder = new IncrementalBSplineBuilder();
 
@@ -45,7 +45,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         Colour = Color4.DeepPink,
                         PathRadius = 5,
                     },
-                    approximatedDrawnPath = new Path
+                    approximatedDrawnPath = new TestPath
                     {
                         Colour = Color4.Blue,
                         PathRadius = 3,
@@ -61,7 +61,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         RelativeSizeAxes = Axes.Both,
                         Alpha = 0.5f,
                     },
-                    bbViz = new BoundingBoxVizualizer
+                    bbViz = new BoundingBoxVisualizer
                     {
                         RelativeSizeAxes = Axes.Both,
                     },
@@ -160,7 +160,9 @@ namespace osu.Framework.Tests.Visual.Drawables
         protected override void Update()
         {
             base.Update();
-            bbViz.Boxes = approximatedDrawnPath.BoundingBoxes();
+
+            approximatedDrawnPath.CollectBoundingBoxes(bbViz.Boxes);
+            bbViz.Invalidate(Invalidation.DrawNode);
         }
 
         protected override void OnDrag(DragEvent e)
@@ -177,21 +179,16 @@ namespace osu.Framework.Tests.Visual.Drawables
             base.OnDragEnd(e);
         }
 
-        private partial class BoundingBoxVizualizer : Sprite
+        private partial class TestPath : Path
         {
-            private List<RectangleF> boxes = new List<RectangleF>();
+            public void CollectBoundingBoxes(List<RectangleF> list) => BBH.CollectBoundingBoxes(list);
+        }
 
-            public List<RectangleF> Boxes
-            {
-                get => boxes;
-                set
-                {
-                    boxes = value;
-                    Invalidate(Invalidation.DrawNode);
-                }
-            }
+        private partial class BoundingBoxVisualizer : Sprite
+        {
+            public readonly List<RectangleF> Boxes = [];
 
-            public BoundingBoxVizualizer()
+            public BoundingBoxVisualizer()
             {
                 RelativeSizeAxes = Axes.Both;
             }
@@ -200,9 +197,9 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             private class BoundingBoxDrawNode : SpriteDrawNode
             {
-                public new BoundingBoxVizualizer Source => (BoundingBoxVizualizer)base.Source;
+                public new BoundingBoxVisualizer Source => (BoundingBoxVisualizer)base.Source;
 
-                public BoundingBoxDrawNode(BoundingBoxVizualizer source)
+                public BoundingBoxDrawNode(BoundingBoxVisualizer source)
                     : base(source)
                 {
                 }
@@ -214,7 +211,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     base.ApplyState();
 
                     boxes.Clear();
-                    boxes.AddRange(Source.boxes);
+                    boxes.AddRange(Source.Boxes);
                 }
 
                 protected override void Blit(IRenderer renderer)

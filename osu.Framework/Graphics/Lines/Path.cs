@@ -294,13 +294,6 @@ namespace osu.Framework.Graphics.Lines
             return result;
         }
 
-        public List<RectangleF> BoundingBoxes()
-        {
-            List<RectangleF> boxes = new List<RectangleF>();
-            BBH.CollectBoundingBoxes(boxes);
-            return boxes;
-        }
-
         private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(new[] { RenderBufferFormat.D16 }, clipToRootNode: true);
 
         protected override DrawNode CreateDrawNode() => new PathBufferedDrawNode(this, new PathDrawNode(this), sharedData);

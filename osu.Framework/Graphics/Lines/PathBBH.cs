@@ -383,6 +383,8 @@ namespace osu.Framework.Graphics.Lines
 
         public void CollectBoundingBoxes(List<RectangleF> boxes)
         {
+            boxes.Clear();
+
             if (segmentCount == 0)
                 return;
 
