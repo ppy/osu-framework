@@ -313,6 +313,42 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestKeyboardSelectionOrder()
+        {
+            TestDropdown testDropdown = null!;
+            BindableList<TestModel?> bindableList = null!;
+
+            AddStep("setup dropdown", () => testDropdown = createDropdown());
+
+            AddStep("bind source", () => testDropdown.ItemSource = bindableList = new BindableList<TestModel?>());
+
+            AddStep("add items to bindable", () => bindableList.AddRange(new[] { "one", "two", "three" }.Select(s => new TestModel(s))));
+
+            AddStep("hover dropdown", () => InputManager.MoveMouseTo(testDropdown.Header));
+
+            AddStep("select first item", () => InputManager.Keys(PlatformAction.MoveToListStart));
+            AddAssert("'one' is selected", () => testDropdown.Current.Value?.Identifier == "one");
+
+            AddStep("select next item", () =>
+            {
+                InputManager.Key(Key.Down);
+            });
+            AddAssert("'two' is selected", () => testDropdown.Current.Value?.Identifier == "two");
+
+            AddStep("add 'three-halves'", () => bindableList.Add("three-halves"));
+            AddStep("move 'three-halves'", () => bindableList.Move(3, 1));
+
+            AddStep("select previous item", () =>
+            {
+                InputManager.Key(Key.Up);
+            });
+            AddAssert("'three-halves' is selected", () => testDropdown.Current.Value?.Identifier == "three-halves");
+
+            AddStep("select last item", () => InputManager.Keys(PlatformAction.MoveToListEnd));
+            AddAssert("'three' is selected", () => testDropdown.Current.Value?.Identifier == "three");
+        }
+
+        [Test]
         public void TestExternalManagement()
         {
             TestDropdown dropdown = null!;
