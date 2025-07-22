@@ -571,7 +571,7 @@ namespace osu.Framework.Testing
                     });
                 }
 
-                if (TestContext.CurrentContext.Test.MethodName != nameof(TestScene.TestConstructor))
+                if (TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
                     testScene.Schedule(() => testScene.StepsContainer.Clear());
 
                 testScene.RunSetUpSteps();
