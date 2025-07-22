@@ -147,7 +147,7 @@ jobs:
 
   pack-ios:
     name: Pack (iOS)
-    runs-on: macos-latest
+    runs-on: macos-15
     environment: production
     defaults:
       run:
@@ -166,7 +166,7 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Restore .NET Workloads
-        run: dotnet workload install ios --from-rollback-file workloads.json
+        run: dotnet workload install ios
 
       - name: Pack (iOS Framework)
         run: dotnet pack -c Release osu.Framework.iOS /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
