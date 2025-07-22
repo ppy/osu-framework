@@ -147,7 +147,7 @@ jobs:
 
   pack-ios:
     name: Pack (iOS)
-    runs-on: macos-latest
+    runs-on: macos-15
     environment: production
     defaults:
       run:
