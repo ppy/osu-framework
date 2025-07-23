@@ -413,6 +413,9 @@ namespace osu.Framework.Audio
             Bass.Configure(ManagedBass.Configuration.IncludeDefaultDevice, true);
 
             // Enable custom BASS_CONFIG_MP3_OLDGAPS flag for backwards compatibility.
+            // - This disables support for ItunSMPB tag parsing to match previous expectations.
+            // - This also disables a change which assumes a 529 sample (2116 byte in stereo 16-bit) delay if the MP3 file doesn't specify one.
+            //   (That was added in Bass for more consistent results across platforms and standard/mp3-free BASS versions, because OSX/iOS's MP3 decoder always removes 529 samples)
             Bass.Configure((ManagedBass.Configuration)68, 1);
 
             // Disable BASS_CONFIG_DEV_TIMEOUT flag to keep BASS audio output from pausing on device processing timeout.
