@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         /// <summary>
         /// The maximum value to display on the slider bar.
-        /// By default, the slider bar will display values between <see cref="BindableNumber{T}.MinValue"/> and <see cref="BindableNumber{T}.MaxValue"/> of <see cref="Current"/>.
+        /// By default, the slider bar will display values between <see cref="RangeConstrainedBindable{T}.MinValue"/> and <see cref="RangeConstrainedBindable{T}.MaxValue"/> of <see cref="Current"/>.
         /// To display a different range, you can set <see cref="MaxDisplayRange"/> and <see cref="MinDisplayRange"/>.
         /// </summary>
         public T MaxDisplayRange
