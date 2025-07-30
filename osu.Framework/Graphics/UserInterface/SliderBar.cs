@@ -154,10 +154,10 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Triggered when the <see cref="Current"/> value has changed. Used to update the displayed value.
         /// </summary>
-        /// <param name="value">
+        /// <param name="position">
         /// The normalized value representing the position between <see cref="MinDisplayRange"/> and <see cref="MaxDisplayRange"/>.
         /// </param>
-        protected abstract void UpdateValue(float value);
+        protected abstract void UpdateValue(float position);
 
         protected override void LoadComplete()
         {
