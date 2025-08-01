@@ -61,6 +61,12 @@ namespace osu.Framework.Graphics
 
             public override bool UpdateSubTreeMasking() => true;
 
+            protected override void Dispose(bool isDisposing)
+            {
+                base.Dispose(isDisposing);
+                Original.proxy = null;
+            }
+
             private class ProxyDrawNode : DrawNode
             {
                 /// <summary>
