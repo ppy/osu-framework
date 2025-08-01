@@ -335,6 +335,9 @@ namespace osu.Framework.Audio.Track
             Debug.Assert(CanPerformInline);
 
             long bytePosition = bassMixer.ChannelGetPosition(this);
+
+            // A mixer with the MixerNonStop flag may not have a valid position if the underlying track is not in a valid state.
+            // See https://www.un4seen.com/forum/?msg=142145.
             if (bytePosition != -1)
                 Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
         }
