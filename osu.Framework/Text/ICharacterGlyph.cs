@@ -31,7 +31,7 @@ namespace osu.Framework.Text
         /// <summary>
         /// The character represented by this glyph.
         /// </summary>
-        char Character { get; }
+        Grapheme Character { get; }
 
         /// <summary>
         /// Retrieves the kerning between this <see cref="CharacterGlyph"/> and the one prior to it.
