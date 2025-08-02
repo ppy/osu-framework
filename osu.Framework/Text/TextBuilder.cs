@@ -353,10 +353,15 @@ namespace osu.Framework.Text
 
         private ITexturedCharacterGlyph? getTexturedGlyph(char character)
         {
-            return store.Get(font.FontName, character)
-                   ?? store.Get(string.Empty, character)
-                   ?? store.Get(font.FontName, fallbackCharacter)
-                   ?? store.Get(string.Empty, fallbackCharacter);
+            return tryGetGlyph(character, font, store) ??
+                   tryGetGlyph(fallbackCharacter, font, store);
+
+            static ITexturedCharacterGlyph? tryGetGlyph(char character, FontUsage font, ITexturedGlyphLookupStore store)
+            {
+                return store.Get(font.FontName, character)
+                       ?? store.Get(font.FontNameNoFamily, character)
+                       ?? store.Get(string.Empty, character);
+            }
         }
     }
 }
