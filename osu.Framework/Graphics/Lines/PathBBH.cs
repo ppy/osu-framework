@@ -175,20 +175,33 @@ namespace osu.Framework.Graphics.Lines
                     int offset = (nodesOnCurrentDepth - j) + 2 * j;
                     int left = currentNodeIndex + offset;
                     int rightOffset = offset + 1;
-                    int? right = rightOffset > nodesOnNextDepth ? null : (currentNodeIndex + rightOffset);
 
-                    nodes[currentNodeIndex] = new BBHNode
+                    // Right child exists
+                    if (rightOffset <= nodesOnNextDepth)
                     {
-                        Bounds = right.HasValue ? RectangleF.Union(nodes[left].Bounds, nodes[right.Value].Bounds) : nodes[left].Bounds,
-                        Left = left,
-                        Right = right,
-                        CumulativeLength = Math.Max(nodes[left].CumulativeLength, right.HasValue ? nodes[right.Value].CumulativeLength : totalLength)
-                    };
+                        int right = currentNodeIndex + rightOffset;
+
+                        nodes[currentNodeIndex] = new BBHNode
+                        {
+                            Bounds = RectangleF.Union(nodes[left].Bounds, nodes[right].Bounds),
+                            Left = left,
+                            Right = right,
+                            CumulativeLength = nodes[right].CumulativeLength
+                        };
+
+                        nodes[right].Parent = currentNodeIndex;
+                    }
+                    else
+                    {
+                        nodes[currentNodeIndex] = new BBHNode
+                        {
+                            Bounds = nodes[left].Bounds,
+                            Left = left,
+                            CumulativeLength = nodes[left].CumulativeLength
+                        };
+                    }
 
                     nodes[left].Parent = currentNodeIndex;
-
-                    if (right.HasValue)
-                        nodes[right.Value].Parent = currentNodeIndex;
 
                     currentNodeIndex--;
                 }
@@ -412,10 +425,10 @@ namespace osu.Framework.Graphics.Lines
 
         private static RectangleF lineAABB(Line line, float radius)
         {
-            float minX = Math.Min(line.StartPoint.X, line.EndPoint.X);
-            float minY = Math.Min(line.StartPoint.Y, line.EndPoint.Y);
-            float maxX = Math.Max(line.StartPoint.X, line.EndPoint.X);
-            float maxY = Math.Max(line.StartPoint.Y, line.EndPoint.Y);
+            float minX = MathUtils.BranchlessMin(line.StartPoint.X, line.EndPoint.X);
+            float minY = MathUtils.BranchlessMin(line.StartPoint.Y, line.EndPoint.Y);
+            float maxX = line.StartPoint.X + line.EndPoint.X - minX;
+            float maxY = line.StartPoint.Y + line.EndPoint.Y - minY;
             return new RectangleF(minX - radius, minY - radius, maxX - minX + radius * 2, maxY - minY + radius * 2);
         }
 
