@@ -14,7 +14,7 @@ namespace osu.Framework.Tests.Audio
     /// <see cref="AudioManager"/> that can simulate the loss of a device.
     /// This will NOT work without a physical audio device!
     /// </summary>
-    internal class AudioManagerWithDeviceLoss : AudioManager
+    internal class AudioManagerWithDeviceLoss : BassAudioManager
     {
         public AudioManagerWithDeviceLoss(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
             : base(audioThread, trackStore, sampleStore)

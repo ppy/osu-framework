@@ -600,6 +600,28 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_EventType.SDL_EVENT_PEN_MOTION:
                     handlePenMotionEvent(e.pmotion);
                     break;
+
+                case SDL_EventType.SDL_EVENT_AUDIO_DEVICE_ADDED:
+                case SDL_EventType.SDL_EVENT_AUDIO_DEVICE_REMOVED:
+                    handleAudioDeviceEvent(e.adevice);
+                    break;
+            }
+        }
+
+        private void handleAudioDeviceEvent(SDL_AudioDeviceEvent evtAudioDevice)
+        {
+            if (evtAudioDevice.recording) // recording device
+                return;
+
+            switch (evtAudioDevice.type)
+            {
+                case SDL_EventType.SDL_EVENT_AUDIO_DEVICE_ADDED:
+                    AudioDeviceAdded?.Invoke(evtAudioDevice.which);
+                    break;
+
+                case SDL_EventType.SDL_EVENT_AUDIO_DEVICE_REMOVED:
+                    AudioDeviceRemoved?.Invoke(evtAudioDevice.which); // it is only uint if a device is removed
+                    break;
             }
         }
 
@@ -675,6 +697,16 @@ namespace osu.Framework.Platform.SDL3
         /// Invoked when the user drops a file into the window.
         /// </summary>
         public event Action<string>? DragDrop;
+
+        /// <summary>
+        /// Invoked when a new audio device is added, only when using SDL3 audio
+        /// </summary>
+        public event Action<SDL_AudioDeviceID>? AudioDeviceAdded;
+
+        /// <summary>
+        /// Invoked when a new audio device is removed, only when using SDL3 audio
+        /// </summary>
+        public event Action<SDL_AudioDeviceID>? AudioDeviceRemoved;
 
         protected void TriggerDragDrop(string filename) => DragDrop?.Invoke(filename);
 

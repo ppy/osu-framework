@@ -31,6 +31,7 @@ namespace osu.Framework.Configuration
             SetDefault(FrameworkSetting.WindowedPositionX, 0.5, -0.5, 1.5);
             SetDefault(FrameworkSetting.WindowedPositionY, 0.5, -0.5, 1.5);
             SetDefault(FrameworkSetting.LastDisplayDevice, DisplayIndex.Default);
+            SetDefault(FrameworkSetting.AudioDriver, AudioDriver.BASS);
             SetDefault(FrameworkSetting.AudioDevice, string.Empty);
             SetDefault(FrameworkSetting.VolumeUniversal, 1.0, 0.0, 1.0, 0.01);
             SetDefault(FrameworkSetting.VolumeMusic, 1.0, 0.0, 1.0, 0.01);
@@ -78,6 +79,7 @@ namespace osu.Framework.Configuration
     {
         ShowLogOverlay,
 
+        AudioDriver,
         AudioDevice,
         VolumeUniversal,
         VolumeEffect,

@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Audio.Mixing;
-using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.IO.Stores;
 using osu.Framework.Statistics;
 
@@ -20,15 +19,19 @@ namespace osu.Framework.Audio.Sample
     {
         private readonly ResourceStore<byte[]> store;
         private readonly AudioMixer mixer;
+        private readonly GetSampleFactoryDelegate getSampleFactoryDelegate;
 
-        private readonly Dictionary<string, SampleBassFactory> factories = new Dictionary<string, SampleBassFactory>();
+        private readonly Dictionary<string, SampleFactory> factories = new Dictionary<string, SampleFactory>();
+
+        public delegate SampleFactory GetSampleFactoryDelegate(Stream stream, string name, AudioMixer mixer, int playbackConcurrency);
 
         public int PlaybackConcurrency { get; set; } = Sample.DEFAULT_CONCURRENCY;
 
-        internal SampleStore([NotNull] IResourceStore<byte[]> store, [NotNull] AudioMixer mixer)
+        internal SampleStore([NotNull] IResourceStore<byte[]> store, [NotNull] AudioMixer mixer, [NotNull] GetSampleFactoryDelegate getSampleFactoryDelegate)
         {
             this.store = new ResourceStore<byte[]>(store);
             this.mixer = mixer;
+            this.getSampleFactoryDelegate = getSampleFactoryDelegate;
 
             AddExtension(@"wav");
             AddExtension(@"mp3");
@@ -44,12 +47,12 @@ namespace osu.Framework.Audio.Sample
 
             lock (factories)
             {
-                if (!factories.TryGetValue(name, out SampleBassFactory factory))
+                if (!factories.TryGetValue(name, out SampleFactory factory))
                 {
                     this.LogIfNonBackgroundThread(name);
 
-                    byte[] data = store.Get(name);
-                    factory = factories[name] = data == null ? null : new SampleBassFactory(data, name, (BassAudioMixer)mixer) { PlaybackConcurrency = { Value = PlaybackConcurrency } };
+                    Stream data = store.GetStream(name);
+                    factory = factories[name] = data == null ? null : getSampleFactoryDelegate(data, name, mixer, PlaybackConcurrency);
 
                     if (factory != null)
                         AddItem(factory);
