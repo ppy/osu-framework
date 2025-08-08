@@ -70,7 +70,13 @@ namespace osu.Framework.Audio
         /// The names of all available audio devices.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// This property does not contain the names of disabled audio devices.
+        /// </para>
+        /// <para>
+        /// This property may also not necessarily contain the name of the default audio device provided by the OS.
+        /// Consumers should provide a "Default" audio device entry which sets <see cref="AudioDevice"/> to an empty string.
+        /// </para>
         /// </remarks>
         public IEnumerable<string> AudioDeviceNames => audioDeviceNames;
 
@@ -334,7 +340,9 @@ namespace osu.Framework.Audio
                 return true;
 
             // try using the system default if there is any device present.
-            if (audioDeviceNames.Count > 0 && setAudioDevice(bass_default_device))
+            // mobiles are an exception as the built-in speakers may not be provided as an audio device name,
+            // but they are still provided by BASS under the internal device name "Default".
+            if ((audioDeviceNames.Count > 0 || RuntimeInfo.IsMobile) && setAudioDevice(bass_default_device))
                 return true;
 
             // no audio devices can be used, so try using Bass-provided "No sound" device as last resort.
