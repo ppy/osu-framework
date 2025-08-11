@@ -131,13 +131,7 @@ namespace osu.Framework.Graphics.Cursor
 
             // Clamp position to tooltip container
             tooltipPos.X = Math.Min(tooltipPos.X, DrawWidth - CurrentTooltip.DrawSize.X - 5);
-            float dX = Math.Max(0, tooltipPos.X - cursorCentre.X);
-            float dY = MathF.Sqrt(boundingRadius * boundingRadius - dX * dX);
-
-            if (tooltipPos.Y > DrawHeight - CurrentTooltip.DrawSize.Y - 5)
-                tooltipPos.Y = cursorCentre.Y - dY - CurrentTooltip.DrawSize.Y;
-            else
-                tooltipPos.Y = cursorCentre.Y + dY;
+            tooltipPos.Y = Math.Min(tooltipPos.Y, DrawHeight - CurrentTooltip.DrawSize.Y - 5);
 
             return tooltipPos;
         }
