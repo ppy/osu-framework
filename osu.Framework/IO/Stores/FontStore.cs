@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -144,12 +145,13 @@ namespace osu.Framework.IO.Stores
             if (namespacedGlyphCache.TryGetValue(key, out var existing))
                 return existing;
 
-            string textureName = string.IsNullOrEmpty(fontName) ? character.ToString() : $"{fontName}/{character}";
-
             foreach (var store in glyphStores)
             {
-                if ((string.IsNullOrEmpty(fontName) || fontName == store.FontName) && store.HasGlyph(character))
+                if (store.FontName.EndsWith(fontName ?? string.Empty, StringComparison.Ordinal) && store.HasGlyph(character))
+                {
+                    string textureName = $"{store.FontName}/{character}";
                     return namespacedGlyphCache[key] = new TexturedCharacterGlyph(store.Get(character).AsNonNull(), Get(textureName), 1 / ScaleAdjust);
+                }
             }
 
             foreach (var store in nestedFontStores)

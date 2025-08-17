@@ -54,5 +54,19 @@ namespace osu.Framework.Audio.Sample
         /// </summary>
         /// <returns>The <see cref="SampleChannel"/> for the playback.</returns>
         protected abstract SampleChannel CreateChannel();
+
+        protected override void ItemRemoved(SampleChannel item)
+        {
+            base.ItemRemoved(item);
+
+            // SampleChannels are removed when they're no longer playing (see SampleChannel.IsAlive).
+            // They need to be disposed at this point when automatic cleanup is requested (the default).
+
+            if (!item.IsDisposed && !item.ManualFree)
+            {
+                item.Dispose();
+                item.Update();
+            }
+        }
     }
 }
