@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.Transforms
 {
     public abstract class Transform
     {
-        internal ulong TransformID;
+        internal ulong? TransformID;
 
         /// <summary>
         /// Whether this <see cref="Transform"/> has been applied to an <see cref="ITransformable"/>.
@@ -28,10 +28,13 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         public bool Rewindable = true;
 
-        public abstract ITransformable TargetTransformable { get; }
+        public ITransformable Target { get; internal set; }
 
         public double StartTime { get; internal set; }
         public double EndTime { get; internal set; }
+
+        internal ulong SequenceID;
+        internal Transform PreviousInSequence;
 
         public bool IsLooping => LoopCount == -1 || LoopCount > 0;
         public double LoopDelay { get; internal set; }
@@ -61,10 +64,6 @@ namespace osu.Framework.Graphics.Transforms
 
         internal bool HasStartValue;
 
-        internal ITransformSequence CompletionTargetSequence;
-
-        internal ITransformSequence AbortTargetSequence;
-
         public Transform Clone() => (Transform)MemberwiseClone();
 
         public static readonly IComparer<Transform> COMPARER = new TransformTimeComparer();
@@ -77,17 +76,14 @@ namespace osu.Framework.Graphics.Transforms
                 ArgumentNullException.ThrowIfNull(y);
 
                 int compare = x.StartTime.CompareTo(y.StartTime);
-                if (compare != 0) return compare;
+                if (compare != 0)
+                    return compare;
 
-                compare = x.TransformID.CompareTo(y.TransformID);
-
-                return compare;
+                ulong xId = x.TransformID ?? 0;
+                ulong yId = y.TransformID ?? 0;
+                return xId.CompareTo(yId);
             }
         }
-
-        internal void TriggerComplete() => CompletionTargetSequence?.TransformCompleted();
-
-        internal void TriggerAbort() => AbortTargetSequence?.TransformAborted();
     }
 
     public abstract class Transform<TValue> : Transform
@@ -100,9 +96,11 @@ namespace osu.Framework.Graphics.Transforms
         where TEasing : IEasingFunction
         where T : class, ITransformable
     {
-        public override ITransformable TargetTransformable => Target;
-
-        public T Target { get; internal set; }
+        public new T Target
+        {
+            get => (T)base.Target;
+            internal set => base.Target = value;
+        }
 
         public TEasing Easing { get; internal set; }
 
