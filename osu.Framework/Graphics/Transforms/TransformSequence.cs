@@ -66,6 +66,7 @@ namespace osu.Framework.Graphics.Transforms
             hasCompleted = false;
         }
 
+        [Obsolete]
         public TransformSequence<T> TransformTo<TValue>(string propertyOrFieldName, TValue newValue, double duration = 0, Easing easing = Easing.None) =>
             Append(o => o.TransformTo(propertyOrFieldName, newValue, duration, easing));
 
