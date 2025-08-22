@@ -73,7 +73,7 @@ namespace osu.Framework.Input.Handlers.Tablet
             Rotation.BindValueChanged(_ => updateTabletAndInputArea(device), true);
 
             OutputAreaOffset.BindValueChanged(_ => updateOutputArea(host.Window));
-            OutputAreaSize.BindValueChanged(_ => updateOutputArea(host.Window));
+            OutputAreaSize.BindValueChanged(_ => updateOutputArea(host.Window), true);
 
             Enabled.BindValueChanged(enabled =>
             {

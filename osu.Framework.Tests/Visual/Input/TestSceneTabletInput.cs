@@ -215,8 +215,8 @@ namespace osu.Framework.Tests.Visual.Input
                 base.LoadComplete();
 
                 AreaSize.DefaultChanged += _ => updateVisualiser();
-                AreaSize.BindValueChanged(_ => updateVisualiser(), true);
-                AreaOffset.BindValueChanged(_ => updateVisualiser(), true);
+                AreaSize.BindValueChanged(_ => updateVisualiser());
+                AreaOffset.BindValueChanged(_ => updateVisualiser());
                 AreaRotation.BindValueChanged(_ =>
                 {
                     activeAreaBox.Rotation = AreaRotation.Value;
