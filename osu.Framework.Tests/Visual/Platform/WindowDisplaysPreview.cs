@@ -38,7 +38,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
         private IWindow? window;
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
-        private readonly Bindable<Display> currentDisplay = new Bindable<Display>();
+        private readonly Bindable<Display?> currentDisplay = new Bindable<Display?>();
 
         public WindowDisplaysPreview()
         {
@@ -116,7 +116,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             foreach (var display in displays)
             {
-                screenContainer.Add(createScreen(display, window.AsNonNull().CurrentDisplayBindable.Value.Index));
+                screenContainer.Add(createScreen(display, window.AsNonNull().CurrentDisplayBindable.Value!.Index));
                 bounds = RectangleI.Union(bounds, new RectangleI(display.Bounds.X, display.Bounds.Y, display.Bounds.Width, display.Bounds.Height));
             }
 
@@ -175,7 +175,7 @@ namespace osu.Framework.Tests.Visual.Platform
             if (window == null) return;
 
             bool fullscreen = window.WindowMode.Value == WindowMode.Fullscreen;
-            var currentBounds = window.CurrentDisplayBindable.Value.Bounds;
+            var currentBounds = window.CurrentDisplayBindable.Value!.Bounds;
 
             windowContainer.X = window.Position.X;
             windowContainer.Y = window.Position.Y;
