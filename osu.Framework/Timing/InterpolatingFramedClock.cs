@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Timing
 {
@@ -100,11 +101,15 @@ namespace osu.Framework.Timing
 
                 if (IsInterpolating)
                 {
-                    // apply time increase from interpolation.
+                    // Apply time increase from interpolation.
                     currentTime += realtimeClock.ElapsedFrameTime * Rate;
-                    // if we differ from the elapsed time of the source, let's adjust for the difference.
-                    // TODO: this is frame rate depending, and can result in unexpected results.
-                    currentTime += (framedSourceClock.CurrentTime - currentTime) / 8;
+
+                    // Then check the post-interpolated time.
+                    // If we differ from the current time of the source, gradually approach the ground truth.
+                    //
+                    // The remaining error halves every halfTime ms.
+                    // This may need further tweaking to be less discernible by users (upwards, likely?).
+                    currentTime = Interpolation.DampContinuously(currentTime, framedSourceClock.CurrentTime, 50, realtimeClock.ElapsedFrameTime);
 
                     bool withinAllowableError = Math.Abs(framedSourceClock.CurrentTime - currentTime) <= AllowableErrorMilliseconds * Rate;
 
