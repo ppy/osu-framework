@@ -432,6 +432,29 @@ namespace osu.Framework.Tests.Clocks
             }
         }
 
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(10)]
+        [TestCase(50)]
+        public void TestNoDecoupledDrift(int updateRate)
+        {
+            var stopwatch = new StopwatchClock();
+
+            decouplingClock.Start();
+            stopwatch.Start();
+
+            decouplingClock.Seek(-100);
+            stopwatch.Seek(-100);
+
+            while (decouplingClock.CurrentTime <= 0)
+            {
+                decouplingClock.ProcessFrame();
+                Assert.That(decouplingClock.CurrentTime, Is.EqualTo(stopwatch.CurrentTime).Within(1));
+
+                Thread.Sleep(updateRate);
+            }
+        }
+
         [Test]
         public void TestForwardPlaybackOverZeroBoundary()
         {
