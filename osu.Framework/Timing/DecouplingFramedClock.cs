@@ -94,6 +94,8 @@ namespace osu.Framework.Timing
 
             (Source as IFrameBasedClock)?.ProcessFrame();
 
+            double referenceTime = realtimeReferenceClock.CurrentTime;
+
             try
             {
                 // If the source is running, there is never a need for any decoupling logic.
@@ -120,7 +122,7 @@ namespace osu.Framework.Timing
                 if (lastReferenceTime == null)
                     return;
 
-                double elapsedReferenceTime = (realtimeReferenceClock.CurrentTime - lastReferenceTime.Value) * Rate;
+                double elapsedReferenceTime = (referenceTime - lastReferenceTime.Value) * Rate;
 
                 currentTime += elapsedReferenceTime;
 
@@ -142,7 +144,7 @@ namespace osu.Framework.Timing
             finally
             {
                 IsRunning = shouldBeRunning;
-                lastReferenceTime = realtimeReferenceClock.CurrentTime;
+                lastReferenceTime = referenceTime;
                 CurrentTime = currentTime;
                 ElapsedFrameTime = CurrentTime - lastTime;
             }
