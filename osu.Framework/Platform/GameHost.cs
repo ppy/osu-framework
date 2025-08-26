@@ -1089,6 +1089,7 @@ namespace osu.Framework.Platform
                     yield return AudioBackend.Bass;
 
                     bool wasapiSupported = false;
+
                     try
                     {
                         // Querying device info is the most reliable way to determine if WASAPI is supported.

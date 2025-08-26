@@ -69,7 +69,6 @@ namespace osu.Framework.Audio.Manager
         /// </summary>
         Scheduler? EventScheduler { get; }
 
-
         /// <summary>
         /// Creates a new <see cref="AudioMixer"/>.
         /// </summary>

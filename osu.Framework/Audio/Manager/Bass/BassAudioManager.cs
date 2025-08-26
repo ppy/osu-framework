@@ -17,7 +17,7 @@ namespace osu.Framework.Audio.Manager.Bass
     /// </remarks>
     public abstract class BassAudioManager : AudioManager
     {
-        public BassAudioManager(AudioThread audioThread)
+        protected BassAudioManager(AudioThread audioThread)
             : base(audioThread)
         {
             PreloadBass();

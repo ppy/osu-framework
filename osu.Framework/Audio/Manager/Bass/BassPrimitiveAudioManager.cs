@@ -299,11 +299,6 @@ namespace osu.Framework.Audio.Manager.Bass
             static bool canSelectDevice(int device) => Bass.GetDeviceInfo(device, out var deviceInfo) && deviceInfo.IsInitialized;
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-        }
-
         public override string ToString()
         {
             string deviceName = audioDevices.ElementAtOrDefault(Bass.CurrentDevice).Name;

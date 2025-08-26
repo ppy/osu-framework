@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using JetBrains.Annotations;
 using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
@@ -60,9 +61,8 @@ namespace osu.Framework.Audio.Manager.Bass
 
         // This is intentionally stored to a field despite being never read.
         // If we don't do this, it gets GC'd away.
-#pragma warning disable IDE0052
+        [UsedImplicitly]
         private WasapiNotifyProcedure? notifyProcedure;
-#pragma warning restore IDE0052
 
         public BassWasapiAudioManager(AudioThread audioThread, bool exclusive)
             : base(audioThread)
