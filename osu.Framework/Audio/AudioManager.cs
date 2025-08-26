@@ -183,13 +183,15 @@ namespace osu.Framework.Audio
             };
 
             AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
+            TrackMixer.Volume.BindTo(VolumeTrack);
+
             AddItem(SampleMixer = createAudioMixer(null, nameof(SampleMixer)));
+            SampleMixer.Volume.BindTo(VolumeSample);
 
             globalTrackStore = new Lazy<TrackStore>(() =>
             {
                 var store = new TrackStore(trackStore, TrackMixer);
                 AddItem(store);
-                store.AddAdjustment(AdjustableProperty.Volume, VolumeTrack);
                 return store;
             });
 
@@ -197,7 +199,6 @@ namespace osu.Framework.Audio
             {
                 var store = new SampleStore(sampleStore, SampleMixer);
                 AddItem(store);
-                store.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
                 return store;
             });
 
@@ -276,11 +277,9 @@ namespace osu.Framework.Audio
             return mixer;
         }
 
-        protected override void ItemAdded(AudioComponent item)
+        internal void AddActiveMixer(AudioMixer mixer)
         {
-            base.ItemAdded(item);
-            if (item is AudioMixer mixer)
-                activeMixers.Add(mixer);
+            activeMixers.Add(mixer);
         }
 
         protected override void ItemRemoved(AudioComponent item)
