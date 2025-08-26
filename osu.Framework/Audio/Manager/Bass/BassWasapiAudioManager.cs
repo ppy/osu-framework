@@ -62,7 +62,9 @@ namespace osu.Framework.Audio.Manager.Bass
         // This is intentionally stored to a field despite being never read.
         // If we don't do this, it gets GC'd away.
         [UsedImplicitly]
+#pragma warning disable IDE0052 // Unread private member
         private WasapiNotifyProcedure? notifyProcedure;
+#pragma warning restore IDE0052 // Unread private member
 
         public BassWasapiAudioManager(AudioThread audioThread, bool exclusive)
             : base(audioThread)
