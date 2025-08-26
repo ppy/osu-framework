@@ -6,7 +6,6 @@ using System.Linq;
 using ManagedBass;
 using osu.Framework.Audio.Manager;
 using osu.Framework.Audio.Manager.Bass;
-using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Audio
