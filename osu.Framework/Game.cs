@@ -6,7 +6,7 @@
 using System;
 using System.Collections.Generic;
 using osu.Framework.Allocation;
-using osu.Framework.Audio;
+using osu.Framework.Audio.Manager;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
@@ -49,7 +49,7 @@ namespace osu.Framework
         /// </summary>
         public IBindable<bool> IsActive => isActive;
 
-        public AudioManager Audio { get; private set; }
+        public AudioManager Audio => Host?.Audio;
 
         public ShaderManager Shaders { get; private set; }
 
@@ -188,8 +188,9 @@ namespace osu.Framework
             samples.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
             samples.AddStore(CreateOnlineStore());
 
-            Audio = new AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
-            dependencies.Cache(Audio);
+            Audio.SetStore(tracks, samples);
+            Audio.EventScheduler = Scheduler;
+            dependencies.CacheAs(Audio);
 
             dependencies.CacheAs(Audio.Tracks);
             dependencies.CacheAs(Audio.Samples);
@@ -514,9 +515,6 @@ namespace osu.Framework
 
             // call a second time to protect against anything being potentially async disposed in the base.Dispose call.
             AsyncDisposalQueue.WaitForEmpty();
-
-            Audio?.Dispose();
-            Audio = null;
 
             Fonts?.Dispose();
             Fonts = null;

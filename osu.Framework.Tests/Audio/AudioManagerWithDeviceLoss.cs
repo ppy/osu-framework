@@ -4,7 +4,8 @@
 using System.Collections.Immutable;
 using System.Linq;
 using ManagedBass;
-using osu.Framework.Audio;
+using osu.Framework.Audio.Manager;
+using osu.Framework.Audio.Manager.Bass;
 using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
 
@@ -14,10 +15,10 @@ namespace osu.Framework.Tests.Audio
     /// <see cref="AudioManager"/> that can simulate the loss of a device.
     /// This will NOT work without a physical audio device!
     /// </summary>
-    internal class AudioManagerWithDeviceLoss : AudioManager
+    internal class AudioManagerWithDeviceLoss : BassPrimitiveAudioManager
     {
-        public AudioManagerWithDeviceLoss(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
-            : base(audioThread, trackStore, sampleStore)
+        public AudioManagerWithDeviceLoss(AudioThread audioThread)
+            : base(audioThread)
         {
         }
 
@@ -40,7 +41,7 @@ namespace osu.Framework.Tests.Audio
             }
         }
 
-        protected override bool CheckForDeviceChanges(ImmutableArray<DeviceInfo> previousDevices)
+        protected override bool CheckForDeviceChanges(ImmutableList<DeviceInfo> previousDevices)
         {
             if (simulateLoss)
                 return true;
@@ -48,12 +49,12 @@ namespace osu.Framework.Tests.Audio
             return base.CheckForDeviceChanges(previousDevices);
         }
 
-        protected override ImmutableArray<DeviceInfo> GetAllDevices()
+        protected override ImmutableList<DeviceInfo> GetAllDevices()
         {
             var devices = base.GetAllDevices();
 
             if (simulateLoss)
-                devices = devices.Take(BASS_INTERNAL_DEVICE_COUNT).ToImmutableArray();
+                devices = [.. devices.Take(BASS_INTERNAL_DEVICE_COUNT)];
 
             return devices;
         }

@@ -16,6 +16,8 @@ namespace osu.Framework
         public static bool FrameStatisticsViaTouch { get; }
         public static GraphicsSurfaceType? PreferredGraphicsSurface { get; }
         public static string? PreferredGraphicsRenderer { get; }
+        public static AudioBackend? PreferredAudioBackend { get; }
+        public static string? PreferredAudioDevice { get; }
         public static int? StagingBufferType { get; }
         public static int? VertexBufferCount { get; }
         public static bool NoStructuredBuffers { get; }
@@ -39,6 +41,8 @@ namespace osu.Framework
             FrameStatisticsViaTouch = parseBool(Environment.GetEnvironmentVariable("OSU_FRAME_STATISTICS_VIA_TOUCH")) ?? false;
             PreferredGraphicsSurface = Enum.TryParse<GraphicsSurfaceType>(Environment.GetEnvironmentVariable("OSU_GRAPHICS_SURFACE"), true, out var surface) ? surface : null;
             PreferredGraphicsRenderer = Environment.GetEnvironmentVariable("OSU_GRAPHICS_RENDERER")?.ToLowerInvariant();
+            PreferredAudioBackend = Enum.TryParse<AudioBackend>(Environment.GetEnvironmentVariable("OSU_AUDIO_BACKEND"), true, out var backend) ? backend : null;
+            PreferredAudioDevice = Environment.GetEnvironmentVariable("OSU_AUDIO_DEVICE");
 
             if (int.TryParse(Environment.GetEnvironmentVariable("OSU_GRAPHICS_VBO_COUNT"), out int count))
                 VertexBufferCount = count;
