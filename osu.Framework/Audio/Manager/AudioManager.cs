@@ -192,7 +192,6 @@ namespace osu.Framework.Audio.Manager
         /// Frees the audio device.
         /// </summary>
         /// <param name="device">The index of the <see cref="IAudioManager.AudioDevices"/> to free.</param>
-        /// <returns>Whether the device was successfully freed.</returns>
         internal abstract void FreeDevice(int device);
     }
 }
