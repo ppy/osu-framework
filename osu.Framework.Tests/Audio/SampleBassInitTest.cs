@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using ManagedBass;
 using NUnit.Framework;
 using osu.Framework.Audio.Sample;
 
@@ -20,6 +21,7 @@ namespace osu.Framework.Tests.Audio
             bass = new BassTestComponents(false);
             sample = bass.GetSample();
 
+            bass.RunOnAudioThread(() => Bass.Free());
             bass.Update();
             bass.Init();
         }
