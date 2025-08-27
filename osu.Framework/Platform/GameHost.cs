@@ -1438,9 +1438,6 @@ namespace osu.Framework.Platform
             Config?.Dispose();
             DebugConfig?.Dispose();
 
-            Audio?.Dispose();
-            Audio = null;
-
             Window?.Dispose();
 
             LoadingComponentsLogger.LogAndFlush();

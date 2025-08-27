@@ -497,6 +497,9 @@ namespace osu.Framework
             // call a second time to protect against anything being potentially async disposed in the base.Dispose call.
             AsyncDisposalQueue.WaitForEmpty();
 
+            Audio?.Dispose();
+            Audio = null;
+
             Fonts?.Dispose();
             Fonts = null;
 
