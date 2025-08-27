@@ -18,7 +18,6 @@ using JetBrains.Annotations;
 using Newtonsoft.Json;
 using osuTK;
 using osu.Framework.Allocation;
-using osu.Framework.Audio.Manager;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
@@ -48,8 +47,6 @@ using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using Rectangle = System.Drawing.Rectangle;
 using Size = System.Drawing.Size;
-using osu.Framework.Audio.Manager.Bass;
-using ManagedBass.Wasapi;
 
 namespace osu.Framework.Platform
 {
@@ -65,8 +62,6 @@ namespace osu.Framework.Platform
         public IRenderer Renderer { get; private set; }
 
         public string RendererInfo { get; private set; }
-
-        public AudioManager Audio { get; private set; }
 
         /// <summary>
         /// Whether "unlimited" frame limiter should be allowed to exceed sane limits.
@@ -750,8 +745,6 @@ namespace osu.Framework.Platform
 
                 ChooseAndSetupRenderer();
 
-                ChooseAndSetupAudio();
-
                 // Window creation may fail in the case of a catastrophic failure (ie. graphics driver or SDL3 level).
                 // In such cases, we want to throw here to immediately mark this renderer setup as failed.
                 if (RequireWindowExists && Window == null)
@@ -1077,121 +1070,6 @@ namespace osu.Framework.Platform
                 else
                     Window.DisableScreenSuspension();
             }, true);
-        }
-
-        public IEnumerable<AudioBackend> GetPreferredAudioBackendsForCurrentPlatform()
-        {
-            yield return AudioBackend.Automatic;
-
-            switch (RuntimeInfo.OS)
-            {
-                case RuntimeInfo.Platform.Windows:
-                    yield return AudioBackend.Bass;
-
-                    bool wasapiSupported = false;
-
-                    try
-                    {
-                        // Querying device info is the most reliable way to determine if WASAPI is supported.
-                        if (BassWasapi.GetDeviceInfo(BassWasapi.DefaultDevice, out var _))
-                        {
-                            wasapiSupported = true;
-                        }
-                    }
-                    catch
-                    {
-                        // Ignore any errors in querying bass wasapi devices.
-                    }
-
-                    if (wasapiSupported)
-                    {
-                        // Give preference to WASAPI if available.
-                        yield return AudioBackend.BassWasapiSharedMode;
-                        yield return AudioBackend.BassWasapiExclusiveMode;
-                    }
-
-                    break;
-
-                default:
-                    yield return AudioBackend.Bass;
-
-                    break;
-            }
-        }
-
-        protected virtual void ChooseAndSetupAudio()
-        {
-            // Always give preference to environment variables.
-            if (FrameworkEnvironment.PreferredAudioBackend != null || FrameworkEnvironment.PreferredAudioDevice != null)
-            {
-                Logger.Log("🔈 Using environment variables for audio backend and device selection.", level: LogLevel.Important);
-
-                // And allow this to hard fail with no fallbacks.
-                SetupAudio(FrameworkEnvironment.PreferredAudioBackend ?? AudioBackend.Bass, FrameworkEnvironment.PreferredAudioDevice);
-                return;
-            }
-
-            var configAudioBackend = Config.GetBindable<AudioBackend>(FrameworkSetting.AudioBackend);
-            Logger.Log($"🔈 Configuration audio backend choice: {configAudioBackend}");
-
-            var audioBackendTypes = GetPreferredAudioBackendsForCurrentPlatform().Where(b => b != AudioBackend.Automatic).ToList();
-
-            // Move user's preference to the start of the attempts.
-            if (!configAudioBackend.IsDefault)
-            {
-                audioBackendTypes.Remove(configAudioBackend.Value);
-                audioBackendTypes.Insert(0, configAudioBackend.Value);
-            }
-
-            Logger.Log($"🔈 Audio backend fallback order: [ {string.Join(", ", audioBackendTypes)} ]");
-
-            foreach (AudioBackend backend in audioBackendTypes)
-            {
-                try
-                {
-                    SetupAudio(backend, Config.Get<string>(FrameworkSetting.AudioDevice));
-                    Logger.Log($"🔈 Using audio backend: {backend}");
-                    return;
-                }
-                catch
-                {
-                    if (configAudioBackend.Value != AudioBackend.Automatic)
-                    {
-                        // If we fail, assume the user may have had a custom setting and switch it back to automatic.
-                        Logger.Log($"The selected audio backend ({configAudioBackend.Value}) failed to initialise. Audio backend selection has been reverted to automatic.",
-                            level: LogLevel.Important);
-                        configAudioBackend.Value = AudioBackend.Automatic;
-                    }
-                }
-            }
-        }
-
-        protected void SetupAudio(AudioBackend backend, [CanBeNull] string device)
-        {
-            switch (backend)
-            {
-                case AudioBackend.BassWasapiExclusiveMode:
-                    var bassWasapiExclusiveMode = new BassWasapiAudioManager(AudioThread, true);
-                    bassWasapiExclusiveMode.AudioDevice.Value = device;
-                    Audio = bassWasapiExclusiveMode;
-
-                    break;
-
-                case AudioBackend.BassWasapiSharedMode:
-                    var bassWasapiSharedMode = new BassWasapiAudioManager(AudioThread, false);
-                    bassWasapiSharedMode.AudioDevice.Value = device;
-                    Audio = bassWasapiSharedMode;
-
-                    break;
-
-                default:
-                case AudioBackend.Bass:
-                    var bass = new BassPrimitiveAudioManager(AudioThread);
-                    bass.AudioDevice.Value = device;
-                    Audio = bass;
-
-                    break;
-            }
         }
 
         /// <summary>

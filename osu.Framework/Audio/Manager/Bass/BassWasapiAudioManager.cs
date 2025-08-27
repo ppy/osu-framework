@@ -13,6 +13,7 @@ using ManagedBass.Mix;
 using ManagedBass.Wasapi;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
+using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using osu.Framework.Threading;
 
@@ -66,8 +67,8 @@ namespace osu.Framework.Audio.Manager.Bass
         private WasapiNotifyProcedure? notifyProcedure;
 #pragma warning restore IDE0052 // Unread private member
 
-        public BassWasapiAudioManager(AudioThread audioThread, bool exclusive)
-            : base(audioThread)
+        public BassWasapiAudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore, bool exclusive)
+            : base(audioThread, trackStore, sampleStore)
         {
             Exclusive = exclusive;
 

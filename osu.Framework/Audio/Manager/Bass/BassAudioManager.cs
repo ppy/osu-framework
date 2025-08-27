@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.IO.Stores;
 using osu.Framework.Platform.Linux.Native;
 using osu.Framework.Threading;
 
@@ -17,8 +18,8 @@ namespace osu.Framework.Audio.Manager.Bass
     /// </remarks>
     public abstract class BassAudioManager : AudioManager
     {
-        protected BassAudioManager(AudioThread audioThread)
-            : base(audioThread)
+        protected BassAudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
+            : base(audioThread, trackStore, sampleStore)
         {
             PreloadBass();
         }

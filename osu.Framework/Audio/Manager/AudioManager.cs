@@ -79,14 +79,16 @@ namespace osu.Framework.Audio.Manager
         internal IBindableList<AudioMixer> ActiveMixers => activeMixers;
         private readonly BindableList<AudioMixer> activeMixers = new BindableList<AudioMixer>();
 
-        private Lazy<TrackStore>? globalTrackStore;
-        private Lazy<SampleStore>? globalSampleStore;
+        private Lazy<TrackStore> globalTrackStore;
+        private Lazy<SampleStore> globalSampleStore;
 
         /// <summary>
         /// Constructs an AudioStore.
         /// </summary>
         /// <param name="audioThread">The host's audio thread.</param>
-        protected AudioManager(AudioThread audioThread)
+        /// <param name="trackStore">The resource store containing all audio tracks to be used in the future.</param>
+        /// <param name="sampleStore">The sample store containing all audio samples to be used in the future.</param>
+        protected AudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
         {
             thread = audioThread;
 
@@ -94,6 +96,22 @@ namespace osu.Framework.Audio.Manager
 
             AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
             AddItem(SampleMixer = createAudioMixer(null, nameof(SampleMixer)));
+
+            globalTrackStore = new Lazy<TrackStore>(() =>
+            {
+                var store = new TrackStore(trackStore, TrackMixer);
+                AddItem(store);
+                store.AddAdjustment(AdjustableProperty.Volume, VolumeTrack);
+                return store;
+            });
+
+            globalSampleStore = new Lazy<SampleStore>(() =>
+            {
+                var store = new SampleStore(sampleStore, SampleMixer);
+                AddItem(store);
+                store.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
+                return store;
+            });
         }
 
         protected override void Dispose(bool disposing)
@@ -145,37 +163,9 @@ namespace osu.Framework.Audio.Manager
 
         protected void InvokeOnLostDevice(KeyValuePair<string, string> device) => OnLostDevice?.Invoke(device);
 
-        public void SetStore(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
-        {
-            if (globalTrackStore != null || globalSampleStore != null)
-            {
-                throw new InvalidOperationException($"{nameof(TrackStore)} and/or {nameof(SampleStore)} are already set.");
-            }
-
-            globalTrackStore = new Lazy<TrackStore>(() =>
-            {
-                var store = new TrackStore(trackStore, TrackMixer);
-                AddItem(store);
-                store.AddAdjustment(AdjustableProperty.Volume, VolumeTrack);
-                return store;
-            });
-
-            globalSampleStore = new Lazy<SampleStore>(() =>
-            {
-                var store = new SampleStore(sampleStore, SampleMixer);
-                AddItem(store);
-                store.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
-                return store;
-            });
-        }
 
         public ITrackStore GetTrackStore(IResourceStore<byte[]>? store = null, AudioMixer? mixer = null)
         {
-            if (globalTrackStore == null)
-            {
-                throw new InvalidOperationException($"{nameof(TrackStore)} is not yet set.");
-            }
-
             if (store == null) return globalTrackStore.Value;
 
             TrackStore tm = new TrackStore(store, mixer ?? TrackMixer);
@@ -185,11 +175,6 @@ namespace osu.Framework.Audio.Manager
 
         public ISampleStore GetSampleStore(IResourceStore<byte[]>? store = null, AudioMixer? mixer = null)
         {
-            if (globalSampleStore == null)
-            {
-                throw new InvalidOperationException($"{nameof(SampleStore)} is not yet set.");
-            }
-
             if (store == null) return globalSampleStore.Value;
 
             SampleStore sm = new SampleStore(store, mixer ?? SampleMixer);

@@ -79,13 +79,6 @@ namespace osu.Framework.Audio.Manager
         AudioMixer CreateAudioMixer(string? identifier = default);
 
         /// <summary>
-        /// Sets a track resource store, and a sample resource store.
-        /// </summary>
-        /// <param name="trackStore">The resource store containing all audio tracks to be used.</param>
-        /// <param name="sampleStore">The sample store containing all audio samples to be used.</param>
-        void SetStore(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore);
-
-        /// <summary>
         /// Obtains the <see cref="TrackStore"/> corresponding to a given resource store.
         /// Returns the global <see cref="TrackStore"/> if no resource store is passed.
         /// </summary>

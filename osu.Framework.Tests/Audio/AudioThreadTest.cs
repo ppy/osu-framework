@@ -27,8 +27,7 @@ namespace osu.Framework.Tests.Audio
 
             var store = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.Tests.dll"), @"Resources");
 
-            Manager = new AudioManagerWithDeviceLoss(thread);
-            Manager.SetStore(store, store);
+            Manager = new AudioManagerWithDeviceLoss(thread, store, store);
 
             thread.Start();
             WaitAudioFrame();

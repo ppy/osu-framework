@@ -12,6 +12,7 @@ using ManagedBass.Mix;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using osu.Framework.Threading;
 
@@ -69,8 +70,8 @@ namespace osu.Framework.Audio.Manager.Bass
         // Mutated by multiple threads, must be thread safe.
         private ImmutableList<DeviceInfo> audioDevices = [];
 
-        public BassPrimitiveAudioManager(AudioThread audioThread)
-            : base(audioThread)
+        public BassPrimitiveAudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
+            : base(audioThread, trackStore, sampleStore)
         {
             AudioDevice.ValueChanged += _ => OnDeviceChanged();
 

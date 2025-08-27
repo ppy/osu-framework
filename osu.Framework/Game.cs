@@ -49,7 +49,7 @@ namespace osu.Framework
         /// </summary>
         public IBindable<bool> IsActive => isActive;
 
-        public AudioManager Audio => Host?.Audio;
+        public AudioManager Audio { get; private set; }
 
         public ShaderManager Shaders { get; private set; }
 
@@ -180,26 +180,7 @@ namespace osu.Framework
             Textures.AddTextureSource(Host.CreateTextureLoaderStore(CreateOnlineStore()));
             dependencies.Cache(Textures);
 
-            var tracks = new ResourceStore<byte[]>();
-            tracks.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Tracks"));
-            tracks.AddStore(CreateOnlineStore());
-
-            var samples = new ResourceStore<byte[]>();
-            samples.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
-            samples.AddStore(CreateOnlineStore());
-
-            Audio.SetStore(tracks, samples);
-            Audio.EventScheduler = Scheduler;
-            dependencies.CacheAs(Audio);
-
-            dependencies.CacheAs(Audio.Tracks);
-            dependencies.CacheAs(Audio.Samples);
-
-            // attach our bindables to the audio subsystem.
-            config.BindWith(FrameworkSetting.AudioDevice, Audio.AudioDevice);
-            config.BindWith(FrameworkSetting.VolumeUniversal, Audio.Volume);
-            config.BindWith(FrameworkSetting.VolumeEffect, Audio.VolumeSample);
-            config.BindWith(FrameworkSetting.VolumeMusic, Audio.VolumeTrack);
+            ChooseAndSetupAudio(config);
 
             Shaders = new ShaderManager(Host.Renderer, new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             dependencies.Cache(Shaders);
