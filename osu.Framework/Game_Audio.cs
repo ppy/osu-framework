@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using ManagedBass;
 using ManagedBass.Wasapi;
 using osu.Framework.Audio.Manager.Bass;
 using osu.Framework.Configuration;
@@ -14,6 +15,8 @@ namespace osu.Framework
 {
     public abstract partial class Game
     {
+        public AudioBackend ResolvedAudioBackend { get; private set; }
+
         public IEnumerable<AudioBackend> GetPreferredAudioBackendsForCurrentPlatform()
         {
             yield return AudioBackend.Automatic;
@@ -28,7 +31,7 @@ namespace osu.Framework
                     try
                     {
                         // Querying device info is the most reliable way to determine if WASAPI is supported.
-                        if (BassWasapi.GetDeviceInfo(BassWasapi.DefaultDevice, out var _))
+                        if (BassWasapi.GetDeviceInfo(BassWasapi.DefaultDevice, out var _) || Bass.LastError != Errors.Wasapi)
                         {
                             wasapiSupported = true;
                         }
@@ -94,6 +97,7 @@ namespace osu.Framework
                 {
                     SetupAudio(backend, config.Get<string>(FrameworkSetting.AudioDevice), tracks, samples);
                     Logger.Log($"🔈 Using audio backend: {backend}");
+                    ResolvedAudioBackend = backend;
                     break;
                 }
                 catch
