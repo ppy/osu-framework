@@ -20,12 +20,12 @@ namespace osu.Framework.Audio.Manager
         /// <summary>
         /// The manager component responsible for audio tracks (e.g. songs).
         /// </summary>
-        public ITrackStore Tracks => globalTrackStore!.Value;
+        public ITrackStore Tracks => globalTrackStore.Value;
 
         /// <summary>
         /// The manager component responsible for audio samples (e.g. sound effects).
         /// </summary>
-        public ISampleStore Samples => globalSampleStore!.Value;
+        public ISampleStore Samples => globalSampleStore.Value;
 
         /// <summary>
         /// The thread audio operations (mainly Bass calls) are ran on.
@@ -79,8 +79,8 @@ namespace osu.Framework.Audio.Manager
         internal IBindableList<AudioMixer> ActiveMixers => activeMixers;
         private readonly BindableList<AudioMixer> activeMixers = new BindableList<AudioMixer>();
 
-        private Lazy<TrackStore> globalTrackStore;
-        private Lazy<SampleStore> globalSampleStore;
+        private readonly Lazy<TrackStore> globalTrackStore;
+        private readonly Lazy<SampleStore> globalSampleStore;
 
         /// <summary>
         /// Constructs an AudioStore.
@@ -162,7 +162,6 @@ namespace osu.Framework.Audio.Manager
         protected void InvokeOnNewDevice(KeyValuePair<string, string> device) => OnNewDevice?.Invoke(device);
 
         protected void InvokeOnLostDevice(KeyValuePair<string, string> device) => OnLostDevice?.Invoke(device);
-
 
         public ITrackStore GetTrackStore(IResourceStore<byte[]>? store = null, AudioMixer? mixer = null)
         {
