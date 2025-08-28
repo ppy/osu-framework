@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using ManagedBass;
 using ManagedBass.Fx;
+using ManagedBass.Loud;
 using ManagedBass.Mix;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.Bass;
@@ -380,6 +381,7 @@ namespace osu.Framework.Audio
                           BASS version:           {Bass.Version}
                           BASS FX version:        {BassFx.Version}
                           BASS MIX version:       {BassMix.Version}
+                          BASS LOUD version:      {BassLoud.Version}
                           Device:                 {device.Name}
                           Driver:                 {device.Driver}
                           Update period:          {Bass.UpdatePeriod} ms
