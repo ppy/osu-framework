@@ -43,7 +43,7 @@ namespace osu.Framework
 
                     if (wasapiSupported)
                     {
-                        // Give preference to WASAPI if available.
+                        // Candidate WASAPI if available.
                         yield return AudioBackend.BassWasapiSharedMode;
                         yield return AudioBackend.BassWasapiExclusiveMode;
                     }
