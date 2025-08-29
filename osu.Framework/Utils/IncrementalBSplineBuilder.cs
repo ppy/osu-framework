@@ -17,8 +17,8 @@ namespace osu.Framework.Utils
     /// </summary>
     public class IncrementalBSplineBuilder
     {
-        private readonly List<Vector2> inputPath = new List<Vector2>();
-        private readonly List<float> cumulativeInputPathLength = new List<float>();
+        private readonly List<Vector2> inputPath = [];
+        private readonly List<float> cumulativeInputPathLength = [];
 
         private static Vector2 getPathAt(List<Vector2> path, List<float> cumulativeDistances, float t)
         {
@@ -71,12 +71,12 @@ namespace osu.Framework.Utils
 
         private readonly Cached<List<Vector2>> outputCache = new Cached<List<Vector2>>
         {
-            Value = new List<Vector2>()
+            Value = []
         };
 
         private readonly Cached<List<List<Vector2>>> controlPoints = new Cached<List<List<Vector2>>>
         {
-            Value = new List<List<Vector2>>()
+            Value = []
         };
 
         private bool shouldOptimiseLastSegment;
@@ -334,7 +334,7 @@ namespace osu.Framework.Utils
             // Initialize control points for the last segment
             int i = segments.Count - 1;
             var lastSegment = segments[i];
-            var (cps, segmentPath, totalWinding) = initializeSegment(vertices, distances, cornerTs[i], cornerTs[i + 1]);
+            (var cps, var segmentPath, float totalWinding) = initializeSegment(vertices, distances, cornerTs[i], cornerTs[i + 1]);
 
             // Make sure the last segment has the correct end-points
             if (lastSegment.Count >= 1)
@@ -401,7 +401,7 @@ namespace osu.Framework.Utils
 
             if (vertices.Count < 2)
             {
-                controlPoints.Value = new List<List<Vector2>> { vertices };
+                controlPoints.Value = [vertices];
                 return;
             }
 
@@ -424,7 +424,7 @@ namespace osu.Framework.Utils
                 // The previous segment may have been shortened by the addition of a corner.
                 // We have to remove the extra control points and re-optimize the path.
                 updateLastSegment(vertices, distances, cornerTs, segments, 100, false);
-                segments.Add(new List<Vector2>());
+                segments.Add([]);
             }
 
             if (finishedDrawing)
@@ -450,11 +450,11 @@ namespace osu.Framework.Utils
 
             if (vertices.Count < 2)
             {
-                controlPoints.Value = new List<List<Vector2>> { vertices };
+                controlPoints.Value = [vertices];
                 return;
             }
 
-            controlPoints.Value = new List<List<Vector2>>();
+            controlPoints.Value = [];
 
             Debug.Assert(vertices.Count == distances.Count + 1);
             var cornerTs = detectCorners(vertices, distances);
@@ -463,7 +463,7 @@ namespace osu.Framework.Utils
 
             for (int i = 1; i < cornerTs.Count; ++i)
             {
-                var (cps, segmentPath, totalWinding) = initializeSegment(vertices, distances, cornerTs[i - 1], cornerTs[i]);
+                (var cps, var segmentPath, float totalWinding) = initializeSegment(vertices, distances, cornerTs[i - 1], cornerTs[i]);
 
                 if (cps.Count > 2 && cps.Count < 100)
                 {
@@ -480,7 +480,7 @@ namespace osu.Framework.Utils
 
         private void redrawApproximatedPath()
         {
-            outputCache.Value = new List<Vector2>();
+            outputCache.Value = [];
 
             foreach (var segment in ControlPoints)
             {
@@ -496,8 +496,8 @@ namespace osu.Framework.Utils
             inputPath.Clear();
             cumulativeInputPathLength.Clear();
 
-            controlPoints.Value = new List<List<Vector2>>();
-            outputCache.Value = new List<Vector2>();
+            controlPoints.Value = [];
+            outputCache.Value = [];
 
             shouldOptimiseLastSegment = false;
             finishedDrawing = false;
