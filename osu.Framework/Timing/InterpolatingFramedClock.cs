@@ -22,18 +22,18 @@ namespace osu.Framework.Timing
         public double AllowableErrorMilliseconds { get; set; } = 1000.0 / 60 * 2;
 
         /// <summary>
-        /// Drift recovery half-life in milliseconds. Defaults to 80 ms.
+        /// Drift recovery half-life in milliseconds. Defaults to 50 ms.
         /// </summary>
         /// <remarks>
         /// The time error decays exponentially toward the source.
         /// Every <see cref="DriftRecoveryHalfLife"/> ms, the remaining error halves.
         ///
-        /// An example, starting at 10 ms error with an 80 ms half-life:
+        /// An example, starting at 10 ms error with an 50 ms half-life:
         ///
         /// - at 0 ms, error is 10 ms.
-        /// - at 80 ms, error is 5 ms.
-        /// - at 160 ms, error is 2.5 ms.
-        /// - at 240 ms, error is 1.25 ms.
+        /// - at 50 ms, error is 5 ms.
+        /// - at 100 ms, error is 2.5 ms.
+        /// - at 150 ms, error is 1.25 ms.
         /// ...
         ///
         /// To an observer, it will look like time has a temporary ramp applied to it:
@@ -43,7 +43,7 @@ namespace osu.Framework.Timing
         ///
         /// Only applies when the error is within <see cref="AllowableErrorMilliseconds"/>.
         /// </remarks>
-        public double DriftRecoveryHalfLife { get; set; } = 80;
+        public double DriftRecoveryHalfLife { get; set; } = 50;
 
         /// <summary>
         /// Whether interpolation was applied at the last processed frame.
