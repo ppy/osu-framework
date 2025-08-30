@@ -166,29 +166,7 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        public float StartProgress
-        {
-            get => BBH.StartProgress;
-            set
-            {
-                BBH.StartProgress = value;
-                Invalidate(Invalidation.DrawSize);
-            }
-        }
-
-        public float EndProgress
-        {
-            get => BBH.EndProgress;
-            set
-            {
-                BBH.EndProgress = value;
-                Invalidate(Invalidation.DrawSize);
-            }
-        }
-
         private RectangleF vertexBounds => BBH.VertexBounds;
-
-        public Vector2 CurvePositionAt(float progress) => BBH.CurvePositionAt(progress)?.position ?? Vector2.Zero;
 
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
         {

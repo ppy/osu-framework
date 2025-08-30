@@ -33,8 +33,6 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         public TestSceneInteractivePathDrawing()
         {
-            Circle curveAtProgressVis;
-
             Child = new Container
             {
                 RelativeSizeAxes = Axes.Both,
@@ -64,12 +62,6 @@ namespace osu.Framework.Tests.Visual.Drawables
                     bbViz = new BoundingBoxVisualizer
                     {
                         RelativeSizeAxes = Axes.Both,
-                    },
-                    curveAtProgressVis = new Circle
-                    {
-                        Origin = Anchor.Centre,
-                        Size = new Vector2(10),
-                        Colour = Color4.Yellow
                     }
                 }
             };
@@ -94,20 +86,6 @@ namespace osu.Framework.Tests.Visual.Drawables
             {
                 bSplineBuilder.CornerThreshold = v;
                 updateViz();
-            });
-            AddSliderStep($"{nameof(approximatedDrawnPath.StartProgress)}", 0f, 1f, 0f, v =>
-            {
-                approximatedDrawnPath.StartProgress = v;
-            });
-
-            AddSliderStep($"{nameof(approximatedDrawnPath.EndProgress)}", 0f, 1f, 1f, v =>
-            {
-                approximatedDrawnPath.EndProgress = v;
-            });
-
-            AddSliderStep($"{nameof(approximatedDrawnPath.CurvePositionAt)}", 0f, 1f, 0, v =>
-            {
-                curveAtProgressVis.Position = approximatedDrawnPath.CurvePositionAt(v);
             });
         }
 

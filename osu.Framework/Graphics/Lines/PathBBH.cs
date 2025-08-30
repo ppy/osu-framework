@@ -22,50 +22,10 @@ namespace osu.Framework.Graphics.Lines
                 if (segmentCount > 0)
                 {
                     for (int i = firstLeafIndex; i <= lastLeafIndex; i++)
-                        yield return new Line(nodes[i].StartPoint, nodes[i].EndPoint);
+                        yield return nodes[i].Segment!.Value;
                 }
             }
         }
-
-        private float startProgress;
-
-        public float StartProgress
-        {
-            get => startProgress;
-            set
-            {
-                if (startProgress == value || segmentCount == 0)
-                    return;
-
-                startProgress = Math.Clamp(value, 0, endProgress - float.Epsilon);
-                updateStartProgress(startProgress);
-                VertexBounds = RectangleF.Union(nodes[0].Bounds, RectangleF.Empty);
-            }
-        }
-
-        private float endProgress;
-
-        public float EndProgress
-        {
-            get => endProgress;
-            set
-            {
-                if (endProgress == value || segmentCount == 0)
-                    return;
-
-                endProgress = Math.Clamp(value, startProgress + float.Epsilon, 1);
-                updateEndProgress(endProgress);
-                VertexBounds = RectangleF.Union(nodes[0].Bounds, RectangleF.Empty);
-            }
-        }
-
-        public int TreeVersion { get; private set; }
-
-        public Line FirstSegment => nodes[modifiedStartNodeIndex ?? firstLeafIndex].CurrentSegment;
-        public Line LastSegment => nodes[modifiedEndNodeIndex ?? lastLeafIndex].CurrentSegment;
-
-        public int RangeStart => (modifiedStartNodeIndex ?? firstLeafIndex) - firstLeafIndex;
-        public int RangeEnd => segmentCount - (lastLeafIndex - (modifiedEndNodeIndex ?? lastLeafIndex)) - 1;
 
         public RectangleF VertexBounds { get; private set; } = RectangleF.Empty;
 
@@ -75,21 +35,11 @@ namespace osu.Framework.Graphics.Lines
         private int firstLeafIndex;
         private int lastLeafIndex;
         private int segmentCount;
-        private float totalLength;
-        private int? modifiedStartNodeIndex;
-        private int? modifiedEndNodeIndex;
         private bool rented;
 
         public void SetVertices(IReadOnlyList<Vector2> vertices, float pathRadius)
         {
             radius = pathRadius;
-            TreeVersion++;
-
-            startProgress = 0;
-            endProgress = 1;
-            modifiedStartNodeIndex = null;
-            modifiedEndNodeIndex = null;
-            totalLength = 0;
 
             segmentCount = Math.Max(vertices.Count - 1, 0);
             // Definition of a leaf here is a node containing a segment
@@ -137,15 +87,11 @@ namespace osu.Framework.Graphics.Lines
                     for (int i = 0; i < vertices.Count - 1; i++)
                     {
                         var segment = new Line(vertices[i], vertices[i + 1]);
-                        totalLength += segment.Rho;
 
                         nodes[firstLeafIndex + i] = new BBHNode
                         {
                             Bounds = lineAABB(segment, radius),
-                            StartPoint = segment.StartPoint,
-                            EndPoint = segment.EndPoint,
-                            CumulativeLength = totalLength,
-                            IsLeaf = true
+                            Segment = segment
                         };
                     }
 
@@ -186,10 +132,7 @@ namespace osu.Framework.Graphics.Lines
                             Bounds = RectangleF.Union(nodes[left].Bounds, nodes[right].Bounds),
                             Left = left,
                             Right = right,
-                            CumulativeLength = nodes[right].CumulativeLength
                         };
-
-                        nodes[right].Parent = currentNodeIndex;
                     }
                     else
                     {
@@ -197,176 +140,11 @@ namespace osu.Framework.Graphics.Lines
                         {
                             Bounds = nodes[left].Bounds,
                             Left = left,
-                            CumulativeLength = nodes[left].CumulativeLength
                         };
                     }
 
-                    nodes[left].Parent = currentNodeIndex;
-
                     currentNodeIndex--;
                 }
-            }
-        }
-
-        private void updateStartProgress(float newStartProgress)
-        {
-            if (modifiedStartNodeIndex.HasValue)
-            {
-                int n = modifiedStartNodeIndex.Value;
-                nodes[n].InterpolatedSegmentStart = null;
-                nodes[n].Bounds = lineAABB(nodes[n].CurrentSegment, radius);
-
-                while (true)
-                {
-                    if (nodes[n].Parent is not int parent)
-                        break;
-
-                    n = parent;
-                    int left = nodes[n].Left;
-                    int? right = nodes[n].Right;
-
-                    nodes[left].Disabled = false;
-                    nodes[n].Bounds = !right.HasValue || nodes[right.Value].Disabled ? nodes[left].Bounds : RectangleF.Union(nodes[left].Bounds, nodes[right.Value].Bounds);
-                }
-
-                modifiedStartNodeIndex = null;
-            }
-
-            if (newStartProgress == 0)
-                return;
-
-            var positionAt = CurvePositionAt(newStartProgress);
-
-            if (!positionAt.HasValue)
-                return;
-
-            nodes[positionAt.Value.index].InterpolatedSegmentStart = positionAt.Value.position;
-            nodes[positionAt.Value.index].Bounds = lineAABB(nodes[positionAt.Value.index].CurrentSegment, radius);
-            modifiedStartNodeIndex = positionAt.Value.index;
-
-            int i = modifiedStartNodeIndex.Value;
-
-            while (true)
-            {
-                if (nodes[i].Parent is not int parent)
-                    break;
-
-                int modifiedChild = i;
-                i = parent;
-                int left = nodes[i].Left;
-                int? right = nodes[i].Right;
-
-                if (modifiedChild == left)
-                {
-                    nodes[i].Bounds = !right.HasValue || nodes[right.Value].Disabled ? nodes[left].Bounds : RectangleF.Union(nodes[left].Bounds, nodes[right.Value].Bounds);
-                }
-                else
-                {
-                    nodes[left].Disabled = true;
-                    nodes[i].Bounds = nodes[right!.Value].Bounds;
-                }
-            }
-        }
-
-        private void updateEndProgress(float newEndProgress)
-        {
-            if (modifiedEndNodeIndex.HasValue)
-            {
-                int n = modifiedEndNodeIndex.Value;
-                nodes[n].InterpolatedSegmentEnd = null;
-                nodes[n].Bounds = lineAABB(nodes[n].CurrentSegment, radius);
-
-                while (true)
-                {
-                    if (nodes[n].Parent is not int parent)
-                        break;
-
-                    n = parent;
-                    int left = nodes[n].Left;
-                    int? right = nodes[n].Right;
-
-                    if (right.HasValue)
-                        nodes[right.Value].Disabled = false;
-
-                    nodes[n].Bounds = nodes[left].Disabled ? nodes[right!.Value].Bounds : (!right.HasValue ? nodes[left].Bounds : RectangleF.Union(nodes[left].Bounds, nodes[right.Value].Bounds));
-                }
-
-                modifiedEndNodeIndex = null;
-            }
-
-            if (newEndProgress == 1)
-                return;
-
-            var positionAt = CurvePositionAt(newEndProgress);
-
-            if (!positionAt.HasValue)
-                return;
-
-            nodes[positionAt.Value.index].InterpolatedSegmentEnd = positionAt.Value.position;
-            nodes[positionAt.Value.index].Bounds = lineAABB(nodes[positionAt.Value.index].CurrentSegment, radius);
-            modifiedEndNodeIndex = positionAt.Value.index;
-
-            int i = modifiedEndNodeIndex.Value;
-
-            while (true)
-            {
-                if (nodes[i].Parent is not int parent)
-                    break;
-
-                int modifiedChild = i;
-                i = parent;
-                int left = nodes[i].Left;
-                int? right = nodes[i].Right;
-
-                if (modifiedChild == right)
-                {
-                    nodes[i].Bounds = nodes[left].Disabled ? nodes[right.Value].Bounds : RectangleF.Union(nodes[left].Bounds, nodes[right.Value].Bounds);
-                }
-                else
-                {
-                    if (right.HasValue)
-                        nodes[right.Value].Disabled = true;
-
-                    nodes[i].Bounds = nodes[left].Bounds;
-                }
-            }
-        }
-
-        public (int index, Vector2 position)? CurvePositionAt(float progress)
-        {
-            if (segmentCount == 0)
-                return null;
-
-            if (progress == 0)
-                return (firstLeafIndex, nodes[firstLeafIndex].StartPoint);
-
-            if (progress == 1)
-                return (lastLeafIndex, nodes[lastLeafIndex].EndPoint);
-
-            float lengthAtProgress = totalLength * progress;
-            int i = 0;
-
-            while (true)
-            {
-                if (nodes[i].IsLeaf)
-                {
-                    float segmentLength = nodes[i].CumulativeLength - (i > firstLeafIndex ? nodes[i - 1].CumulativeLength : 0);
-                    float lengthFromEnd = nodes[i].CumulativeLength - lengthAtProgress;
-                    return (i, Precision.AlmostEquals(segmentLength, 0) ? nodes[i].EndPoint : nodes[i].EndPoint + (nodes[i].StartPoint - nodes[i].EndPoint) * lengthFromEnd / segmentLength);
-                }
-
-                int left = nodes[i].Left;
-                int? right = nodes[i].Right;
-
-                if (lengthAtProgress > nodes[left].CumulativeLength)
-                {
-                    if (right.HasValue)
-                        i = right.Value;
-                    else
-                        return (lastLeafIndex, nodes[lastLeafIndex].EndPoint);
-                }
-                else
-                    i = left;
             }
         }
 
@@ -385,11 +163,11 @@ namespace osu.Framework.Graphics.Lines
 
             BBHNode node = nodes[index.Value];
 
-            if (node.Disabled || !node.Bounds.Contains(position))
+            if (!node.Bounds.Contains(position))
                 return false;
 
             if (node.IsLeaf)
-                return node.CurrentSegment.DistanceSquaredToPoint(position) < radius * radius;
+                return node.Segment!.Value.DistanceSquaredToPoint(position) < radius * radius;
 
             return contains(position, node.Left) || contains(position, node.Right);
         }
@@ -410,9 +188,6 @@ namespace osu.Framework.Graphics.Lines
                 return;
 
             BBHNode node = nodes[index.Value];
-
-            if (node.Disabled)
-                return;
 
             boxes.Add(new RectangleF(node.Bounds.TopLeft - VertexBounds.TopLeft, node.Bounds.Size));
 
@@ -440,7 +215,7 @@ namespace osu.Framework.Graphics.Lines
             GC.SuppressFinalize(this);
         }
 
-        private struct BBHNode
+        private readonly struct BBHNode
         {
             /// <summary>
             /// Index of a left child of this <see cref="BBHNode"/> in the tree array.
@@ -453,56 +228,20 @@ namespace osu.Framework.Graphics.Lines
             public int? Right { get; init; }
 
             /// <summary>
-            /// Index of a parent of this <see cref="BBHNode"/> in the tree array.
-            /// </summary>
-            public int? Parent { get; set; }
-
-            /// <summary>
-            /// Whether this <see cref="BBHNode"/> should not be considered for bounding box calculations.
-            /// </summary>
-            public bool Disabled { get; set; }
-
-            /// <summary>
             /// Whether this <see cref="BBHNode"/> contains a path segment.
             /// </summary>
-            public bool IsLeaf { get; init; }
+            public bool IsLeaf => Segment.HasValue;
 
             /// <summary>
-            /// The line which represents a (modified) path segment in case when this <see cref="BBHNode"/> is marked as a <see cref="IsLeaf"/>.
+            /// The line which represents a path segment in case when this <see cref="BBHNode"/> is marked as a <see cref="IsLeaf"/>.
             /// </summary>
-            public Line CurrentSegment => new Line(InterpolatedSegmentStart ?? StartPoint, InterpolatedSegmentEnd ?? EndPoint);
+            public Line? Segment { get; init; }
 
             /// <summary>
-            /// Start position of a segment of this <see cref="BBHNode"/>.
-            /// </summary>
-            public Vector2 StartPoint { get; init; }
-
-            /// <summary>
-            /// End position of a segment of this <see cref="BBHNode"/>.
-            /// </summary>
-            public Vector2 EndPoint { get; init; }
-
-            /// <summary>
-            /// Modified start point of a segment of this <see cref="BBHNode"/>. Returns null if no such modification has taken place.
-            /// </summary>
-            public Vector2? InterpolatedSegmentStart { get; set; }
-
-            /// <summary>
-            /// Modified end point of a segment of this <see cref="BBHNode"/>. Returns null if no such modification has taken place.
-            /// </summary>
-            public Vector2? InterpolatedSegmentEnd { get; set; }
-
-            /// <summary>
-            /// If <see cref="IsLeaf"/> - sum of lengths of all the <see cref="CurrentSegment"/>s (including the segment of this <see cref="BBHNode"/>) to the left of this <see cref="BBHNode"/>.
-            /// Otherwise - max <see cref="CumulativeLength"/> between <see cref="Left"/> and <see cref="Right"/> nodes.
-            /// </summary>
-            public required float CumulativeLength { get; init; }
-
-            /// <summary>
-            /// If <see cref="IsLeaf"/> - bounding box of the <see cref="CurrentSegment"/>.
+            /// If <see cref="IsLeaf"/> - bounding box of the <see cref="Segment"/>.
             /// Otherwise - combined bounding box of <see cref="Left"/> and <see cref="Right"/> nodes.
             /// </summary>
-            public required RectangleF Bounds { get; set; }
+            public required RectangleF Bounds { get; init; }
         }
     }
 }

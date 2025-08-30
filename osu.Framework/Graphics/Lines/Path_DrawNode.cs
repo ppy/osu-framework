@@ -30,12 +30,7 @@ namespace osu.Framework.Graphics.Lines
             private Vector2 drawSize;
             private float radius;
             private IShader? pathShader;
-            private int treeVersion;
-            private int rangeStart;
-            private int rangeEnd;
             private Vector2 offset;
-            private Line firstSegment;
-            private Line lastSegment;
 
             private IVertexBatch<TexturedVertex3D>? triangleBatch;
 
@@ -50,24 +45,8 @@ namespace osu.Framework.Graphics.Lines
 
                 var bbh = Source.BBH;
 
-                int newTreeVersion = bbh.TreeVersion;
-
-                if (newTreeVersion != treeVersion)
-                {
-                    segments.Clear();
-                    segments.AddRange(bbh.Segments);
-
-                    treeVersion = newTreeVersion;
-                }
-
-                rangeStart = bbh.RangeStart;
-                rangeEnd = bbh.RangeEnd;
-
-                if (segments.Count > 0)
-                {
-                    firstSegment = bbh.FirstSegment;
-                    lastSegment = bbh.LastSegment;
-                }
+                segments.Clear();
+                segments.AddRange(bbh.Segments);
 
                 offset = bbh.VertexBounds.TopLeft;
 
@@ -295,18 +274,9 @@ namespace osu.Framework.Graphics.Lines
                 SegmentStartLocation modifiedLocation = SegmentStartLocation.Outside;
                 SegmentWithThickness? lastDrawnSegment = null;
 
-                for (int i = rangeStart; i <= rangeEnd; i++)
+                for (int i = 0; i < segments.Count; i++)
                 {
-                    Line line;
-
-                    if (i == rangeStart)
-                        line = firstSegment;
-                    else if (i == rangeEnd)
-                        line = lastSegment;
-                    else
-                        line = segments[i];
-
-                    line = new Line(line.StartPoint - offset, line.EndPoint - offset);
+                    Line line = new Line(segments[i].StartPoint - offset, segments[i].EndPoint - offset);
 
                     if (segmentToDraw.HasValue)
                     {
