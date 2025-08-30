@@ -7,11 +7,15 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Mix;
+using osu.Framework.Audio.Manager;
+using osu.Framework.Audio.Manager.Bass;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Audio.Mixing.Bass
 {
+    using Bass = ManagedBass.Bass;
+
     /// <summary>
     /// Mixes together multiple <see cref="IAudioChannel"/> into one output via BASSmix.
     /// </summary>
@@ -51,8 +55,8 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (activeEffects.ContainsKey(effect))
                 return;
 
-            int handle = ManagedBass.Bass.ChannelSetFX(Handle, effect.FXType, priority);
-            ManagedBass.Bass.FXSetParameters(handle, effect);
+            int handle = Bass.ChannelSetFX(Handle, effect.FXType, priority);
+            Bass.FXSetParameters(handle, effect);
 
             activeEffects[effect] = handle;
         });
@@ -62,7 +66,7 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (!activeEffects.Remove(effect, out int handle))
                 return;
 
-            ManagedBass.Bass.ChannelRemoveFX(Handle, handle);
+            Bass.ChannelRemoveFX(Handle, handle);
         });
 
         public override void UpdateEffect(IEffectParameter effect) => EnqueueAction(() =>
@@ -70,14 +74,14 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (!activeEffects.TryGetValue(effect, out int handle))
                 return;
 
-            ManagedBass.Bass.FXSetParameters(handle, effect);
+            Bass.FXSetParameters(handle, effect);
         });
 
         protected override void AddInternal(IAudioChannel channel)
         {
             Debug.Assert(CanPerformInline);
 
-            if (!(channel is IBassAudioChannel bassChannel))
+            if (channel is not IBassAudioChannel bassChannel)
                 return;
 
             if (Handle == 0 || bassChannel.Handle == 0)
@@ -91,7 +95,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         {
             Debug.Assert(CanPerformInline);
 
-            if (!(channel is IBassAudioChannel bassChannel))
+            if (channel is not IBassAudioChannel bassChannel)
                 return;
 
             if (Handle == 0 || bassChannel.Handle == 0)
@@ -104,12 +108,12 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <summary>
         /// Plays a channel.
         /// </summary>
-        /// <remarks>See: <see cref="ManagedBass.Bass.ChannelPlay"/>.</remarks>
+        /// <remarks>See: <see cref="Bass.ChannelPlay"/>.</remarks>
         /// <param name="channel">The channel to play.</param>
         /// <param name="restart">Restart playback from the beginning?</param>
         /// <returns>
         /// If successful, <see langword="true"/> is returned, else <see langword="false"/> is returned.
-        /// Use <see cref="ManagedBass.Bass.LastError"/> to get the error code.
+        /// Use <see cref="Bass.LastError"/> to get the error code.
         /// </returns>
         public bool ChannelPlay(IBassAudioChannel channel, bool restart = false)
         {
@@ -125,7 +129,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <summary>
         /// Pauses a channel.
         /// </summary>
-        /// <remarks>See: <see cref="ManagedBass.Bass.ChannelPause"/>.</remarks>
+        /// <remarks>See: <see cref="Bass.ChannelPause"/>.</remarks>
         /// <param name="channel">The channel to pause.</param>
         /// <param name="flushMixer">Set to <c>true</c> to make the pause take effect immediately.
         /// <para>
@@ -134,7 +138,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// </param>
         /// <returns>
         /// If successful, <see langword="true"/> is returned, else <see langword="false"/> is returned.
-        /// Use <see cref="ManagedBass.Bass.LastError"/> to get the error code.
+        /// Use <see cref="Bass.LastError"/> to get the error code.
         /// </returns>
         public bool ChannelPause(IBassAudioChannel channel, bool flushMixer = false)
         {
@@ -149,13 +153,13 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <summary>
         /// Checks if a channel is active (playing) or stalled.
         /// </summary>
-        /// <remarks>See: <see cref="ManagedBass.Bass.ChannelIsActive"/>.</remarks>
+        /// <remarks>See: <see cref="Bass.ChannelIsActive"/>.</remarks>
         /// <param name="channel">The channel to get the state of.</param>
         /// <returns><see cref="PlaybackState"/> indicating the state of the channel.</returns>
         public PlaybackState ChannelIsActive(IBassAudioChannel channel)
         {
             // The audio channel's state tells us whether it's stalled or stopped.
-            var state = ManagedBass.Bass.ChannelIsActive(channel.Handle);
+            var state = Bass.ChannelIsActive(channel.Handle);
 
             // The channel is always in a playing state unless stopped or stalled as it's a decoding channel. Retrieve the true playing state from the mixer channel.
             if (state == PlaybackState.Playing)
@@ -167,11 +171,11 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <summary>
         /// Retrieves the playback position of a channel.
         /// </summary>
-        /// <remarks>See: <see cref="ManagedBass.Bass.ChannelGetPosition"/>.</remarks>
+        /// <remarks>See: <see cref="Bass.ChannelGetPosition"/>.</remarks>
         /// <param name="channel">The channel to retrieve the position of.</param>
         /// <param name="mode">How to retrieve the position.</param>
         /// <returns>
-        /// If an error occurs, -1 is returned, use <see cref="ManagedBass.Bass.LastError"/> to get the error code.
+        /// If an error occurs, -1 is returned, use <see cref="Bass.LastError"/> to get the error code.
         /// If successful, the position is returned.
         /// </returns>
         public long ChannelGetPosition(IBassAudioChannel channel, PositionFlags mode = PositionFlags.Bytes)
@@ -180,13 +184,13 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <summary>
         /// Sets the playback position of a channel.
         /// </summary>
-        /// <remarks>See: <see cref="ManagedBass.Bass.ChannelSetPosition"/>.</remarks>
+        /// <remarks>See: <see cref="Bass.ChannelSetPosition"/>.</remarks>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to set the position of.</param>
         /// <param name="position">The position, in units determined by the <paramref name="mode"/>.</param>
         /// <param name="mode">How to set the position.</param>
         /// <returns>
         /// If successful, then <see langword="true"/> is returned, else <see langword="false"/> is returned.
-        /// Use <see cref="ManagedBass.Bass.LastError"/> to get the error code.
+        /// Use <see cref="Bass.LastError"/> to get the error code.
         /// </returns>
         public bool ChannelSetPosition(IBassAudioChannel channel, long position, PositionFlags mode = PositionFlags.Bytes)
         {
@@ -202,7 +206,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <summary>
         /// Retrieves the level (peak amplitude) of a channel.
         /// </summary>
-        /// <remarks>See: <see cref="ManagedBass.Bass.ChannelGetLevel(int, float[], float, LevelRetrievalFlags)"/>.</remarks>
+        /// <remarks>See: <see cref="Bass.ChannelGetLevel(int, float[], float, LevelRetrievalFlags)"/>.</remarks>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to get the levels of.</param>
         /// <param name="levels">The array in which the levels are to be returned.</param>
         /// <param name="length">How much data (in seconds) to look at to get the level (limited to 1 second).</param>
@@ -214,11 +218,11 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <summary>
         /// Retrieves the immediate sample data (or an FFT representation of it) of a channel.
         /// </summary>
-        /// <remarks>See: <see cref="ManagedBass.Bass.ChannelGetData(int, float[], int)"/>.</remarks>
+        /// <remarks>See: <see cref="Bass.ChannelGetData(int, float[], int)"/>.</remarks>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to retrieve the data of.</param>
         /// <param name="buffer">float[] to write the data to.</param>
         /// <param name="length">Number of bytes wanted, and/or <see cref="DataFlags"/>.</param>
-        /// <returns>If an error occurs, -1 is returned, use <see cref="ManagedBass.Bass.LastError"/> to get the error code.
+        /// <returns>If an error occurs, -1 is returned, use <see cref="Bass.LastError"/> to get the error code.
         /// <para>When requesting FFT data, the number of bytes read from the channel (to perform the FFT) is returned.</para>
         /// <para>When requesting sample data, the number of bytes written to buffer will be returned (not necessarily the same as the number of bytes read when using the <see cref="DataFlags.Float"/> or DataFlags.Fixed flag).</para>
         /// <para>When using the <see cref="DataFlags.Available"/> flag, the number of bytes in the channel's buffer is returned.</para>
@@ -235,7 +239,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <param name="parameter">The sync parameters, depending on the sync type.</param>
         /// <param name="procedure">The callback function which should be invoked with the sync.</param>
         /// <param name="user">User instance data to pass to the callback function.</param>
-        /// <returns>If successful, then the new synchroniser's handle is returned, else 0 is returned. Use <see cref="ManagedBass.Bass.LastError" /> to get the error code.</returns>
+        /// <returns>If successful, then the new synchroniser's handle is returned, else 0 is returned. Use <see cref="Bass.LastError" /> to get the error code.</returns>
         public int ChannelSetSync(IBassAudioChannel channel, SyncFlags type, long parameter, SyncProcedure procedure, IntPtr user = default)
             => BassMix.ChannelSetSync(channel.Handle, type, parameter, procedure, user);
 
@@ -244,7 +248,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// </summary>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to remove the synchroniser for.</param>
         /// <param name="sync">Handle of the synchroniser to remove (return value of a previous <see cref="BassMix.ChannelSetSync(int,SyncFlags,long,SyncProcedure,IntPtr)" /> call).</param>
-        /// <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="ManagedBass.Bass.LastError" /> to get the error code.</returns>
+        /// <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="Bass.LastError" /> to get the error code.</returns>
         public bool ChannelRemoveSync(IBassAudioChannel channel, int sync)
             => BassMix.ChannelRemoveSync(channel.Handle, sync);
 
@@ -252,11 +256,11 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// Frees a channel's resources.
         /// </summary>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to free.</param>
-        /// <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="ManagedBass.Bass.LastError" /> to get the error code.</returns>
+        /// <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="Bass.LastError" /> to get the error code.</returns>
         public bool StreamFree(IBassAudioChannel channel)
         {
             Remove(channel, false);
-            return ManagedBass.Bass.StreamFree(channel.Handle);
+            return Bass.StreamFree(channel.Handle);
         }
 
         public void UpdateDevice(int deviceIndex)
@@ -265,10 +269,10 @@ namespace osu.Framework.Audio.Mixing.Bass
                 createMixer();
             else
             {
-                ManagedBass.Bass.ChannelSetDevice(Handle, deviceIndex);
+                Bass.ChannelSetDevice(Handle, deviceIndex);
 
-                if (manager?.GlobalMixerHandle.Value != null)
-                    BassMix.MixerAddChannel(manager.GlobalMixerHandle.Value.Value, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
+                if (manager is IGlobalMixerProvider provider)
+                    BassMix.MixerAddChannel(provider.GlobalMixerHandle.Value, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
             }
         }
 
@@ -295,10 +299,10 @@ namespace osu.Framework.Audio.Mixing.Bass
 
             // Make sure that bass is initialised before trying to create a mixer.
             // If not, this will be called again when the device is initialised via UpdateDevice().
-            if (!ManagedBass.Bass.GetDeviceInfo(ManagedBass.Bass.CurrentDevice, out var deviceInfo) || !deviceInfo.IsInitialized)
+            if (!Bass.GetDeviceInfo(Bass.CurrentDevice, out var deviceInfo) || !deviceInfo.IsInitialized)
                 return;
 
-            Handle = manager?.GlobalMixerHandle.Value != null
+            Handle = manager is IGlobalMixerProvider
                 ? BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Decode)
                 : BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop);
 
@@ -306,7 +310,7 @@ namespace osu.Framework.Audio.Mixing.Bass
                 return;
 
             // Lower latency is valued more for the time since we are not using complex DSP effects. Disable buffering on the mixer channel in order for data to be produced immediately.
-            ManagedBass.Bass.ChannelSetAttribute(Handle, ChannelAttribute.Buffer, 0);
+            Bass.ChannelSetAttribute(Handle, ChannelAttribute.Buffer, 0);
 
             // Register all channels that were previously played prior to the mixer being loaded.
             var toAdd = activeChannels.ToArray();
@@ -314,10 +318,10 @@ namespace osu.Framework.Audio.Mixing.Bass
             foreach (var channel in toAdd)
                 AddChannelToBassMix(channel);
 
-            if (manager?.GlobalMixerHandle.Value != null)
-                BassMix.MixerAddChannel(manager.GlobalMixerHandle.Value.Value, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
+            if (manager is IGlobalMixerProvider provider)
+                BassMix.MixerAddChannel(provider.GlobalMixerHandle.Value, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
 
-            ManagedBass.Bass.ChannelPlay(Handle);
+            Bass.ChannelPlay(Handle);
         }
 
         /// <summary>
@@ -361,7 +365,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         private void flush()
         {
             if (Handle != 0)
-                ManagedBass.Bass.ChannelSetPosition(Handle, 0);
+                Bass.ChannelSetPosition(Handle, 0);
         }
 
         protected override void Dispose(bool disposing)
@@ -374,7 +378,7 @@ namespace osu.Framework.Audio.Mixing.Bass
 
             if (Handle != 0)
             {
-                ManagedBass.Bass.StreamFree(Handle);
+                Bass.StreamFree(Handle);
                 Handle = 0;
             }
         }
