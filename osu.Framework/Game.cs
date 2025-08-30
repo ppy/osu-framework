@@ -149,8 +149,18 @@ namespace osu.Framework
         {
             Host = host;
             host.ExitRequested += RequestExit;
-            host.Activated += () => isActive.Value = true;
-            host.Deactivated += () => isActive.Value = false;
+            host.Activated += onHostActivated;
+            host.Deactivated += onHostDeactivated;
+        }
+
+        private void onHostActivated()
+        {
+            isActive.Value = true;
+        }
+
+        private void onHostDeactivated()
+        {
+            isActive.Value = false;
         }
 
         private DependencyContainer dependencies;
@@ -516,6 +526,13 @@ namespace osu.Framework
 
             Localisation?.Dispose();
             Localisation = null;
+
+            if (Host != null)
+            {
+                Host.ExitRequested -= RequestExit;
+                Host.Activated -= onHostActivated;
+                Host.Deactivated -= onHostDeactivated;
+            }
         }
 
         private partial class FrameStatisticsTouchReceptor : Drawable
