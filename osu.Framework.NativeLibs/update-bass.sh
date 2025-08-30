@@ -16,13 +16,13 @@ unzip -qjo bass-linux.zip x86_64/libbass.so -d runtimes/linux-x64/native/
 curl -Lso bass-osx.zip https://www.un4seen.com/stuff/bass-osx.zip
 unzip -qjo bass-osx.zip libbass.dylib -d runtimes/osx/native/
 
-curl -Lso bass24-ios.zip https://www.un4seen.com/files/bass24-ios.zip
+curl -Lso bass24-ios.zip https://www.un4seen.com/stuff/bass-ios.zip
 unzip -qo bass24-ios.zip bass.xcframework/* -d ../osu.Framework.iOS/runtimes/ios/native/
 
-curl -Lso bass24-android.zip https://www.un4seen.com/files/bass24-android.zip
-unzip -qjo bass24-android.zip libs/arm64-v8a/* -d ../osu.Framework.Android/arm64-v8a/
-unzip -qjo bass24-android.zip libs/armeabi-v7a/* -d ../osu.Framework.Android/armeabi-v7a/
-unzip -qjo bass24-android.zip libs/x86/* -d ../osu.Framework.Android/x86/
+curl -Lso bass24-android.zip https://www.un4seen.com/stuff/bass-android.zip
+unzip -qjo bass24-android.zip arm64-v8a/* -d ../osu.Framework.Android/arm64-v8a/
+unzip -qjo bass24-android.zip armeabi-v7a/* -d ../osu.Framework.Android/armeabi-v7a/
+unzip -qjo bass24-android.zip x86/* -d ../osu.Framework.Android/x86/
 
 # bassfx
 curl -Lso bass_fx.zip https://www.un4seen.com/stuff/bass_fx.zip

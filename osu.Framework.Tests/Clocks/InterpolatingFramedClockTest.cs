@@ -250,6 +250,28 @@ namespace osu.Framework.Tests.Clocks
             Assert.That(interpolating.ElapsedFrameTime, Is.EqualTo(0).Within(100));
         }
 
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(10)]
+        [TestCase(50)]
+        public void TestNoInterpolationDrift(int updateRate)
+        {
+            var stopwatch = new StopwatchClock();
+
+            interpolating.ChangeSource(stopwatch);
+
+            source.Start();
+            stopwatch.Start();
+
+            while (interpolating.CurrentTime <= 1000)
+            {
+                interpolating.ProcessFrame();
+                Assert.That(interpolating.CurrentTime, Is.EqualTo(stopwatch.CurrentTime).Within(1));
+
+                Thread.Sleep(updateRate);
+            }
+        }
+
         [Test]
         public void InterpolationStaysWithinBounds()
         {

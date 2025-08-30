@@ -357,6 +357,7 @@ namespace osu.Framework.Graphics.Lines
                     }
                 }
 
+                // Finish drawing last segment (if exists)
                 if (segmentToDraw.HasValue)
                 {
                     SegmentWithThickness s = new SegmentWithThickness(segmentToDraw.Value, radius, location, modifiedLocation);
@@ -393,8 +394,15 @@ namespace osu.Framework.Graphics.Lines
                         break;
 
                     case SegmentStartLocation.Outside:
-                        // Segment starts outside the previous one
-                        // Add end cap to the previous segment if this one does not pass through the end of it
+                        // Segment starts outside the previous one.
+
+                        // There's no need to add end cap in case when initial start location was at the end of the previous segment
+                        // since created overlap will make this cap invisible anyway.
+                        // Example: imagine letter "T" where vertical line is prev segment and horizontal is a segment started at the end
+                        // of it, went to the right and then to the left (expanded backwards). In this case start location will be "End" and
+                        // modified location will be "Outside". With that in mind we do not need to add the end cap at the top of the vertical
+                        // line since horizontal one will pass through it. However, that wouldn't be the case if horizontal line was located at
+                        // the middle and so end cap would be required.
                         if (segment.StartLocation != SegmentStartLocation.End)
                             addEndCap(prevSegment.Value, texRect);
 
@@ -453,10 +461,19 @@ namespace osu.Framework.Graphics.Lines
 
             private readonly struct SegmentWithThickness
             {
+                /// <summary>
+                /// The line defining this <see cref="SegmentWithThickness"/>.
+                /// </summary>
                 public Line Guide { get; }
 
+                /// <summary>
+                /// The line parallel to <see cref="Guide"/> and located on the left side of it.
+                /// </summary>
                 public Line EdgeLeft { get; }
 
+                /// <summary>
+                /// The line parallel to <see cref="Guide"/> and located on the right side of it.
+                /// </summary>
                 public Line EdgeRight { get; }
 
                 /// <summary>
@@ -469,7 +486,11 @@ namespace osu.Framework.Graphics.Lines
                 /// </summary>
                 public SegmentStartLocation ModifiedStartLocation { get; }
 
-                public SegmentWithThickness(Line guide, float radius, SegmentStartLocation startLocation, SegmentStartLocation modifiedStartLocation)
+                /// <param name="guide">The line defining this <see cref="SegmentWithThickness"/>.</param>
+                /// <param name="distance">The distance at which <see cref="EdgeLeft"/> and <see cref="EdgeRight"/> will be located from the <see cref="Guide"/>.</param>
+                /// <param name="startLocation">Position of this <see cref="SegmentWithThickness"/> relative to the previous one.</param>
+                /// <param name="modifiedStartLocation">Position of this modified <see cref="SegmentWithThickness"/> relative to the previous one.</param>
+                public SegmentWithThickness(Line guide, float distance, SegmentStartLocation startLocation, SegmentStartLocation modifiedStartLocation)
                 {
                     Guide = guide;
                     StartLocation = startLocation;
@@ -479,8 +500,8 @@ namespace osu.Framework.Graphics.Lines
                     if (float.IsNaN(ortho.X) || float.IsNaN(ortho.Y))
                         ortho = Vector2.UnitY;
 
-                    EdgeLeft = new Line(Guide.StartPoint + ortho * radius, Guide.EndPoint + ortho * radius);
-                    EdgeRight = new Line(Guide.StartPoint - ortho * radius, Guide.EndPoint - ortho * radius);
+                    EdgeLeft = new Line(Guide.StartPoint + ortho * distance, Guide.EndPoint + ortho * distance);
+                    EdgeRight = new Line(Guide.StartPoint - ortho * distance, Guide.EndPoint - ortho * distance);
                 }
             }
         }
