@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using System.Diagnostics;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.Lines
 {
@@ -88,30 +89,30 @@ namespace osu.Framework.Graphics.Lines
                 ? colour.SRGB
                 : DrawColourInfo.Colour.Interpolate(relativePosition(localPos)).SRGB;
 
-            private void addSegmentQuads(Line segment, Line segmentLeft, Line segmentRight, RectangleF texRect)
+            private void addSegmentQuads(SegmentWithThickness segment, RectangleF texRect)
             {
                 Debug.Assert(triangleBatch != null);
 
                 // Each segment of the path is actually rendered as 2 quads, being split in half along the approximating line.
                 // On this line the depth is 1 instead of 0, which is done in order to properly handle self-overlap using the depth buffer.
-                Vector3 firstMiddlePoint = new Vector3(segment.StartPoint.X, segment.StartPoint.Y, 1);
-                Vector3 secondMiddlePoint = new Vector3(segment.EndPoint.X, segment.EndPoint.Y, 1);
-                Color4 firstMiddleColour = colourAt(segment.StartPoint);
-                Color4 secondMiddleColour = colourAt(segment.EndPoint);
+                Vector3 firstMiddlePoint = new Vector3(segment.Guide.StartPoint.X, segment.Guide.StartPoint.Y, 1);
+                Vector3 secondMiddlePoint = new Vector3(segment.Guide.EndPoint.X, segment.Guide.EndPoint.Y, 1);
+                Color4 firstMiddleColour = colourAt(segment.Guide.StartPoint);
+                Color4 secondMiddleColour = colourAt(segment.Guide.EndPoint);
 
                 // Each of the quads (mentioned above) is rendered as 2 triangles:
                 // Outer quad, triangle 1
                 triangleBatch.Add(new TexturedVertex3D
                 {
-                    Position = new Vector3(segmentRight.EndPoint.X, segmentRight.EndPoint.Y, 0),
+                    Position = new Vector3(segment.EdgeRight.EndPoint.X, segment.EdgeRight.EndPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segmentRight.EndPoint)
+                    Colour = colourAt(segment.EdgeRight.EndPoint)
                 });
                 triangleBatch.Add(new TexturedVertex3D
                 {
-                    Position = new Vector3(segmentRight.StartPoint.X, segmentRight.StartPoint.Y, 0),
+                    Position = new Vector3(segment.EdgeRight.StartPoint.X, segment.EdgeRight.StartPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segmentRight.StartPoint)
+                    Colour = colourAt(segment.EdgeRight.StartPoint)
                 });
                 triangleBatch.Add(new TexturedVertex3D
                 {
@@ -135,9 +136,9 @@ namespace osu.Framework.Graphics.Lines
                 });
                 triangleBatch.Add(new TexturedVertex3D
                 {
-                    Position = new Vector3(segmentRight.EndPoint.X, segmentRight.EndPoint.Y, 0),
+                    Position = new Vector3(segment.EdgeRight.EndPoint.X, segment.EdgeRight.EndPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segmentRight.EndPoint)
+                    Colour = colourAt(segment.EdgeRight.EndPoint)
                 });
 
                 // Inner quad, triangle 1
@@ -155,23 +156,23 @@ namespace osu.Framework.Graphics.Lines
                 });
                 triangleBatch.Add(new TexturedVertex3D
                 {
-                    Position = new Vector3(segmentLeft.EndPoint.X, segmentLeft.EndPoint.Y, 0),
+                    Position = new Vector3(segment.EdgeLeft.EndPoint.X, segment.EdgeLeft.EndPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segmentLeft.EndPoint)
+                    Colour = colourAt(segment.EdgeLeft.EndPoint)
                 });
 
                 // Inner quad, triangle 2
                 triangleBatch.Add(new TexturedVertex3D
                 {
-                    Position = new Vector3(segmentLeft.EndPoint.X, segmentLeft.EndPoint.Y, 0),
+                    Position = new Vector3(segment.EdgeLeft.EndPoint.X, segment.EdgeLeft.EndPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segmentLeft.EndPoint)
+                    Colour = colourAt(segment.EdgeLeft.EndPoint)
                 });
                 triangleBatch.Add(new TexturedVertex3D
                 {
-                    Position = new Vector3(segmentLeft.StartPoint.X, segmentLeft.StartPoint.Y, 0),
+                    Position = new Vector3(segment.EdgeLeft.StartPoint.X, segment.EdgeLeft.StartPoint.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segmentLeft.StartPoint)
+                    Colour = colourAt(segment.EdgeLeft.StartPoint)
                 });
                 triangleBatch.Add(new TexturedVertex3D
                 {
@@ -263,58 +264,147 @@ namespace osu.Framework.Graphics.Lines
 
                 RectangleF texRect = texture.GetTextureRect(new RectangleF(0.5f, 0.5f, texture.Width - 1, texture.Height - 1));
 
-                Line? prevSegmentLeft = null;
-                Line? prevSegmentRight = null;
+                Line? segmentToDraw = null;
+                SegmentStartLocation location = SegmentStartLocation.Outside;
+                SegmentStartLocation modifiedLocation = SegmentStartLocation.Outside;
+                SegmentWithThickness? lastDrawnSegment = null;
 
                 for (int i = 0; i < segments.Count; i++)
                 {
-                    Line currSegment = segments[i];
-
-                    Vector2 ortho = currSegment.OrthogonalDirection;
-                    if (float.IsNaN(ortho.X) || float.IsNaN(ortho.Y))
-                        ortho = Vector2.UnitY;
-
-                    Line currSegmentLeft = new Line(currSegment.StartPoint + ortho * radius, currSegment.EndPoint + ortho * radius);
-                    Line currSegmentRight = new Line(currSegment.StartPoint - ortho * radius, currSegment.EndPoint - ortho * radius);
-
-                    addSegmentQuads(currSegment, currSegmentLeft, currSegmentRight, texRect);
-
-                    if (prevSegmentLeft is Line psLeft && prevSegmentRight is Line psRight)
+                    if (segmentToDraw.HasValue)
                     {
-                        Debug.Assert(i > 0);
+                        float segmentToDrawLength = segmentToDraw.Value.Rho;
 
-                        // Connection/filler caps between segment quads
-                        float thetaDiff = currSegment.Theta - segments[i - 1].Theta;
-                        addSegmentCaps(thetaDiff, currSegmentLeft, currSegmentRight, psLeft, psRight, texRect);
+                        // If segment is too short, make its end point equal start point of a new segment
+                        if (segmentToDrawLength < 1f)
+                        {
+                            segmentToDraw = new Line(segmentToDraw.Value.StartPoint, segments[i].EndPoint);
+                            continue;
+                        }
+
+                        float progress = progressFor(segmentToDraw.Value, segmentToDrawLength, segments[i].EndPoint);
+                        Vector2 closest = segmentToDraw.Value.At(progress);
+
+                        // Expand segment if next end point is located within a line passing through it
+                        if (Precision.AlmostEquals(closest, segments[i].EndPoint, 0.1f))
+                        {
+                            if (progress < 0)
+                            {
+                                // expand segment backwards
+                                segmentToDraw = new Line(closest, segmentToDraw.Value.EndPoint);
+                                modifiedLocation = SegmentStartLocation.Outside;
+                            }
+                            else if (progress > 1)
+                            {
+                                // or forward
+                                segmentToDraw = new Line(segmentToDraw.Value.StartPoint, closest);
+                            }
+                        }
+                        else // Otherwise draw the expanded segment
+                        {
+                            SegmentWithThickness s = new SegmentWithThickness(segmentToDraw.Value, radius, location, modifiedLocation);
+                            addSegmentQuads(s, texRect);
+                            connect(s, lastDrawnSegment, texRect);
+
+                            lastDrawnSegment = s;
+
+                            // Figure out at which point within currently drawn segment the new one starts
+                            float p = progressFor(segmentToDraw.Value, segmentToDrawLength, segments[i].StartPoint);
+                            segmentToDraw = segments[i];
+                            location = modifiedLocation = Precision.AlmostEquals(p, 1f) ? SegmentStartLocation.End : Precision.AlmostEquals(p, 0f) ? SegmentStartLocation.Start : SegmentStartLocation.Middle;
+                        }
                     }
-
-                    // Explanation of semi-circle caps:
-                    // Semi-circles are essentially 180 degree caps. So to create these caps, we
-                    // can simply "fake" a segment that's 180 degrees flipped. This works because
-                    // we are taking advantage of the fact that a path which makes a 180 degree
-                    // bend would have a semi-circle cap.
-
-                    if (i == 0)
+                    else
                     {
-                        // Path start cap (semi-circle);
-                        Line flippedLeft = new Line(currSegmentRight.EndPoint, currSegmentRight.StartPoint);
-                        Line flippedRight = new Line(currSegmentLeft.EndPoint, currSegmentLeft.StartPoint);
-
-                        addSegmentCaps(MathF.PI, currSegmentLeft, currSegmentRight, flippedLeft, flippedRight, texRect);
+                        segmentToDraw = segments[i];
                     }
-
-                    if (i == segments.Count - 1)
-                    {
-                        // Path end cap (semi-circle)
-                        Line flippedLeft = new Line(currSegmentRight.EndPoint, currSegmentRight.StartPoint);
-                        Line flippedRight = new Line(currSegmentLeft.EndPoint, currSegmentLeft.StartPoint);
-
-                        addSegmentCaps(MathF.PI, flippedLeft, flippedRight, currSegmentLeft, currSegmentRight, texRect);
-                    }
-
-                    prevSegmentLeft = currSegmentLeft;
-                    prevSegmentRight = currSegmentRight;
                 }
+
+                // Finish drawing last segment (if exists)
+                if (segmentToDraw.HasValue)
+                {
+                    SegmentWithThickness s = new SegmentWithThickness(segmentToDraw.Value, radius, location, modifiedLocation);
+                    addSegmentQuads(s, texRect);
+                    connect(s, lastDrawnSegment, texRect);
+                    addEndCap(s, texRect);
+                }
+            }
+
+            /// <summary>
+            /// Connects the start of the segment to the end of a previous one.
+            /// </summary>
+            private void connect(SegmentWithThickness segment, SegmentWithThickness? prevSegment, RectangleF texRect)
+            {
+                if (!prevSegment.HasValue)
+                {
+                    // Nothing to connect to - add start cap
+                    addStartCap(segment, texRect);
+                    return;
+                }
+
+                switch (segment.ModifiedStartLocation)
+                {
+                    default:
+                    case SegmentStartLocation.End:
+                        // Segment starts at the end of the previous one
+                        addConnectionBetween(segment, prevSegment.Value, texRect);
+                        break;
+
+                    case SegmentStartLocation.Start:
+                    case SegmentStartLocation.Middle:
+                        // Segment starts at the start or the middle of the previous one - add end cap to the previous segment
+                        addEndCap(prevSegment.Value, texRect);
+                        break;
+
+                    case SegmentStartLocation.Outside:
+                        // Segment starts outside the previous one.
+
+                        // There's no need to add end cap in case when initial start location was at the end of the previous segment
+                        // since created overlap will make this cap invisible anyway.
+                        // Example: imagine letter "T" where vertical line is prev segment and horizontal is a segment started at the end
+                        // of it, went to the right and then to the left (expanded backwards). In this case start location will be "End" and
+                        // modified location will be "Outside". With that in mind we do not need to add the end cap at the top of the vertical
+                        // line since horizontal one will pass through it. However, that wouldn't be the case if horizontal line was located at
+                        // the middle and so end cap would be required.
+                        if (segment.StartLocation != SegmentStartLocation.End)
+                            addEndCap(prevSegment.Value, texRect);
+
+                        // add start cap to the current one
+                        addStartCap(segment, texRect);
+                        break;
+                }
+            }
+
+            private void addConnectionBetween(SegmentWithThickness segment, SegmentWithThickness prevSegment, RectangleF texRect)
+            {
+                float thetaDiff = segment.Guide.Theta - prevSegment.Guide.Theta;
+                addSegmentCaps(thetaDiff, segment.EdgeLeft, segment.EdgeRight, prevSegment.EdgeLeft, prevSegment.EdgeRight, texRect);
+            }
+
+            private void addEndCap(SegmentWithThickness segment, RectangleF texRect)
+            {
+                // Explanation of semi-circle caps:
+                // Semi-circles are essentially 180 degree caps. So to create these caps, we
+                // can simply "fake" a segment that's 180 degrees flipped. This works because
+                // we are taking advantage of the fact that a path which makes a 180 degree
+                // bend would have a semi-circle cap.
+
+                Line flippedLeft = new Line(segment.EdgeRight.EndPoint, segment.EdgeRight.StartPoint);
+                Line flippedRight = new Line(segment.EdgeLeft.EndPoint, segment.EdgeLeft.StartPoint);
+                addSegmentCaps(MathF.PI, flippedLeft, flippedRight, segment.EdgeLeft, segment.EdgeRight, texRect);
+            }
+
+            private void addStartCap(SegmentWithThickness segment, RectangleF texRect)
+            {
+                Line flippedLeft = new Line(segment.EdgeRight.EndPoint, segment.EdgeRight.StartPoint);
+                Line flippedRight = new Line(segment.EdgeLeft.EndPoint, segment.EdgeLeft.StartPoint);
+                addSegmentCaps(MathF.PI, segment.EdgeLeft, segment.EdgeRight, flippedLeft, flippedRight, texRect);
+            }
+
+            private static float progressFor(Line line, float length, Vector2 point)
+            {
+                Vector2 a = (line.EndPoint - line.StartPoint) / length;
+                return Vector2.Dot(a, point - line.StartPoint) / length;
             }
 
             protected override void Dispose(bool isDisposing)
@@ -322,6 +412,60 @@ namespace osu.Framework.Graphics.Lines
                 base.Dispose(isDisposing);
 
                 triangleBatch?.Dispose();
+            }
+
+            private enum SegmentStartLocation
+            {
+                Start,
+                Middle,
+                End,
+                Outside
+            }
+
+            private readonly struct SegmentWithThickness
+            {
+                /// <summary>
+                /// The line defining this <see cref="SegmentWithThickness"/>.
+                /// </summary>
+                public Line Guide { get; }
+
+                /// <summary>
+                /// The line parallel to <see cref="Guide"/> and located on the left side of it.
+                /// </summary>
+                public Line EdgeLeft { get; }
+
+                /// <summary>
+                /// The line parallel to <see cref="Guide"/> and located on the right side of it.
+                /// </summary>
+                public Line EdgeRight { get; }
+
+                /// <summary>
+                /// Position of this <see cref="SegmentWithThickness"/> relative to the previous one.
+                /// </summary>
+                public SegmentStartLocation StartLocation { get; }
+
+                /// <summary>
+                /// Position of this modified <see cref="SegmentWithThickness"/> relative to the previous one.
+                /// </summary>
+                public SegmentStartLocation ModifiedStartLocation { get; }
+
+                /// <param name="guide">The line defining this <see cref="SegmentWithThickness"/>.</param>
+                /// <param name="distance">The distance at which <see cref="EdgeLeft"/> and <see cref="EdgeRight"/> will be located from the <see cref="Guide"/>.</param>
+                /// <param name="startLocation">Position of this <see cref="SegmentWithThickness"/> relative to the previous one.</param>
+                /// <param name="modifiedStartLocation">Position of this modified <see cref="SegmentWithThickness"/> relative to the previous one.</param>
+                public SegmentWithThickness(Line guide, float distance, SegmentStartLocation startLocation, SegmentStartLocation modifiedStartLocation)
+                {
+                    Guide = guide;
+                    StartLocation = startLocation;
+                    ModifiedStartLocation = modifiedStartLocation;
+
+                    Vector2 ortho = Guide.OrthogonalDirection;
+                    if (float.IsNaN(ortho.X) || float.IsNaN(ortho.Y))
+                        ortho = Vector2.UnitY;
+
+                    EdgeLeft = new Line(Guide.StartPoint + ortho * distance, Guide.EndPoint + ortho * distance);
+                    EdgeRight = new Line(Guide.StartPoint - ortho * distance, Guide.EndPoint - ortho * distance);
+                }
             }
         }
     }
