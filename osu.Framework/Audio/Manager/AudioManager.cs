@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using osu.Framework.Audio.Mixing;
-using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
@@ -94,8 +93,8 @@ namespace osu.Framework.Audio.Manager
 
             thread.RegisterManager(this);
 
-            AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
-            AddItem(SampleMixer = createAudioMixer(null, nameof(SampleMixer)));
+            AddItem(TrackMixer = CreateAudioMixer(null, nameof(TrackMixer)));
+            AddItem(SampleMixer = CreateAudioMixer(null, nameof(SampleMixer)));
 
             globalTrackStore = new Lazy<TrackStore>(() =>
             {
@@ -136,14 +135,9 @@ namespace osu.Framework.Audio.Manager
         /// </remarks>
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
         public AudioMixer CreateAudioMixer(string? identifier = default) =>
-            createAudioMixer(SampleMixer, !string.IsNullOrEmpty(identifier) ? identifier : $"user #{Interlocked.Increment(ref userMixerID)}");
+            CreateAudioMixer(SampleMixer, !string.IsNullOrEmpty(identifier) ? identifier : $"user #{Interlocked.Increment(ref userMixerID)}");
 
-        private AudioMixer createAudioMixer(AudioMixer? fallbackMixer, string identifier)
-        {
-            var mixer = new BassAudioMixer(this, fallbackMixer, identifier);
-            AddItem(mixer);
-            return mixer;
-        }
+        protected abstract AudioMixer CreateAudioMixer(AudioMixer? fallbackMixer, string identifier);
 
         protected override void ItemAdded(AudioComponent item)
         {
