@@ -166,7 +166,7 @@ namespace osu.Framework.Audio.Manager.Bass
                           Buffer length:       {BassWasapi.Info.BufferLength}");
 
             // We have successfully initialised a new device.
-            UpdateDevice(deviceIndex);
+            UpdateDevice(Bass.NoSoundDevice);
 
             return true;
         }
