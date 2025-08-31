@@ -265,14 +265,19 @@ namespace osu.Framework.Audio.Mixing.Bass
 
         public void UpdateDevice(int deviceIndex)
         {
-            if (Handle == 0)
-                createMixer();
-            else
+            if (Bass.ChannelSetDevice(Handle, deviceIndex))
             {
-                Bass.ChannelSetDevice(Handle, deviceIndex);
-
                 if (manager is IGlobalMixerProvider provider)
+                {
+                    BassMix.MixerRemoveChannel(Handle);
                     BassMix.MixerAddChannel(provider.GlobalMixerHandle.Value, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
+                }
+            }
+            else if (Bass.LastError == Errors.Handle)
+            {
+                // The mixer handle is no longer valid.
+                Handle = 0;
+                createMixer();
             }
         }
 
