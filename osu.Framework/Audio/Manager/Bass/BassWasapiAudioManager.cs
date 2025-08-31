@@ -60,6 +60,9 @@ namespace osu.Framework.Audio.Manager.Bass
         // Mutated by multiple threads, must be thread safe.
         private ImmutableList<WasapiDeviceInfo> audioDevices = [];
 
+        private readonly HashSet<string> initializedDevices = [];
+        private readonly HashSet<int> initializedGlobalMixers = [];
+
         // This is intentionally stored to a field despite being never read.
         // If we don't do this, it gets GC'd away.
         [UsedImplicitly]
@@ -230,7 +233,11 @@ namespace osu.Framework.Audio.Manager.Bass
             Debug.Assert(ThreadSafety.IsAudioThread);
 
             if (reinit)
-                FreeDevice(device);
+            {
+                BassWasapi.CurrentDevice = device;
+                BassWasapi.Free();
+                BassWasapi.Stop();
+            }
 
             if (!BassWasapi.GetDeviceInfo(device, out var deviceInfo))
             {
@@ -241,38 +248,42 @@ namespace osu.Framework.Audio.Manager.Bass
             }
 
             int frequency = Exclusive ? 44100 : deviceInfo.MixFrequency;
-            int channels = Exclusive ? 2 : deviceInfo.MixChannels;
             float buffer = Exclusive ? (float)deviceInfo.MinimumUpdatePeriod : 0;
 
-            globalMixerHandle.Value = BassMix.CreateMixerStream(frequency, channels, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
+            globalMixerHandle.Value = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
 
-            var flags = WasapiInitFlags.EventDriven;
+            var flags = WasapiInitFlags.AutoFormat | WasapiInitFlags.EventDriven;
             if (Exclusive)
                 flags |= WasapiInitFlags.Exclusive;
             else if (!uncategorized)
                 flags |= WasapiInitFlags.Raw;
 
-            if (!BassWasapi.InitEx(device, frequency, channels, flags, buffer, 0, BassWasapi.WasapiProc_Bass, globalMixerHandle.Value))
+            if (!BassWasapi.InitEx(device, frequency, 2, flags, buffer, 0, BassWasapi.WasapiProc_Bass, globalMixerHandle.Value))
             {
-                if (!uncategorized && Bass.LastError == (Errors)5002) // 5002 == BASS_ERROR_WASAPI_CATEGORY
+                Errors initError = Bass.LastError;
+                Bass.StreamFree(globalMixerHandle.Value);
+
+                if (!uncategorized && initError == (Errors)5002) // 5002 == BASS_ERROR_WASAPI_CATEGORY
                 {
                     // If the device not supports the requested category, we can try again without specifying it.
                     return InitDevice(device, true, reinit);
                 }
 
-                if (!reinit && Bass.LastError == Errors.Already)
+                if (!reinit && initError == Errors.Already)
                 {
                     // If the device is already initialised, we can try to free and reinitialise it.
                     return InitDevice(device, uncategorized, true);
                 }
 
-                Logger.Log($"Failed to initialize WASAPI device {device} ({Bass.LastError})", level: LogLevel.Error);
-                Bass.StreamFree(globalMixerHandle.Value);
+                Logger.Log($"Failed to initialize WASAPI device {deviceInfo.Name} ({initError})", level: LogLevel.Error);
                 Bass.Stop();
                 Bass.Free();
 
                 return false;
             }
+
+            initializedDevices.Add(deviceInfo.ID);
+            initializedGlobalMixers.Add(globalMixerHandle.Value);
 
             return BassWasapi.Start();
         }
@@ -302,6 +313,18 @@ namespace osu.Framework.Audio.Manager.Bass
 
         protected override void Dispose(bool disposing)
         {
+            if (disposing)
+            {
+                foreach (int mixer in initializedGlobalMixers)
+                    Bass.StreamFree(mixer);
+
+                foreach (string deviceId in initializedDevices)
+                {
+                    if (audioDevices?.FindIndex(d => d.ID == deviceId) is int device and >= 0)
+                        FreeDevice(device);
+                }
+            }
+
             BassWasapi.SetNotify(notifyProcedure = null);
 
             base.Dispose(disposing);

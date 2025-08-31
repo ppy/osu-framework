@@ -70,6 +70,8 @@ namespace osu.Framework.Audio.Manager.Bass
         // Mutated by multiple threads, must be thread safe.
         private ImmutableList<DeviceInfo> audioDevices = [];
 
+        private readonly HashSet<string> initializedDevices = [];
+
         public BassPrimitiveAudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
             : base(audioThread, trackStore, sampleStore)
         {
@@ -279,6 +281,8 @@ namespace osu.Framework.Audio.Manager.Bass
             if (!Bass.Init(device, Flags: DeviceInitFlags.Stereo | (DeviceInitFlags)128)) // 128 == BASS_DEVICE_REINIT
                 return false;
 
+            initializedDevices.Add(Bass.GetDeviceInfo(device).Driver);
+
             return true;
         }
 
@@ -298,6 +302,20 @@ namespace osu.Framework.Audio.Manager.Bass
                 Bass.CurrentDevice = selectedDevice;
 
             static bool canSelectDevice(int device) => Bass.GetDeviceInfo(device, out var deviceInfo) && deviceInfo.IsInitialized;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                foreach (string driver in initializedDevices)
+                {
+                    if (audioDevices?.FindIndex(d => d.Driver == driver) is int device and >= 0)
+                        FreeDevice(device);
+                }
+            }
+
+            base.Dispose(disposing);
         }
 
         public override string ToString()
