@@ -235,8 +235,8 @@ namespace osu.Framework.Audio.Manager.Bass
             if (reinit)
             {
                 BassWasapi.CurrentDevice = device;
-                BassWasapi.Free();
                 BassWasapi.Stop();
+                BassWasapi.Free();
             }
 
             if (!BassWasapi.GetDeviceInfo(device, out var deviceInfo))
