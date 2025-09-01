@@ -43,10 +43,15 @@ namespace osu.Framework.Graphics.Lines
 
             segmentCount = Math.Max(vertices.Count - 1, 0);
             // Definition of a leaf here is a node containing a segment
+            // Since we are building a binary tree, compute the max value that is bigger than segmentCount and the power of 2.
+            // That would be the bottom layer of a tree.
             int maxLeafCount = Math.Max((int)System.Numerics.BitOperations.RoundUpToPowerOf2((uint)segmentCount), 1);
             treeDepth = (int)Math.Log2(maxLeafCount);
-            int arrayLength = segmentCount;
 
+            // We can avoid storing empty nodes by computing amount of all the nodes within a tree,
+            // which have descendant with at least 1 leaf (or leaf itself).
+            // That would be the size of an array holding the tree
+            int arrayLength = segmentCount;
             int nodesOnDepth = segmentCount;
 
             for (int i = treeDepth - 1; i >= 0; i--)
@@ -84,38 +89,39 @@ namespace osu.Framework.Graphics.Lines
 
                 default:
                 {
-                    for (int i = 0; i < vertices.Count - 1; i++)
-                    {
-                        var segment = new Line(vertices[i], vertices[i + 1]);
-
-                        nodes[firstLeafIndex + i] = new BBHNode
-                        {
-                            Bounds = lineAABB(segment, radius),
-                            Segment = segment
-                        };
-                    }
-
-                    computeParentNodes();
-
+                    computeNodes(vertices);
                     VertexBounds = RectangleF.Union(nodes[0].Bounds, RectangleF.Empty);
                     break;
                 }
             }
         }
 
-        private void computeParentNodes()
+        private void computeNodes(IReadOnlyList<Vector2> vertices)
         {
-            if (lastLeafIndex == 0) // bounds are already computed for a node containing a segment
+            for (int i = 0; i < vertices.Count - 1; i++)
+            {
+                var segment = new Line(vertices[i], vertices[i + 1]);
+
+                nodes[firstLeafIndex + i] = new BBHNode
+                {
+                    Bounds = lineAABB(segment, radius),
+                    Segment = segment
+                };
+            }
+
+            if (segmentCount == 1) // At this point root must contain a segment, no parent nodes exist.
                 return;
 
             int nodesOnCurrentDepth = segmentCount;
             int currentNodeIndex = lastLeafIndex - segmentCount;
 
+            // iterate over the tree layers starting from the bottom
             for (int i = treeDepth - 1; i >= 0; i--)
             {
                 int nodesOnNextDepth = nodesOnCurrentDepth;
                 nodesOnCurrentDepth = Math.Max((nodesOnCurrentDepth + 1) / 2, 1);
 
+                // iterate over the tree nodes within a layer from right to left
                 for (int j = nodesOnCurrentDepth - 1; j >= 0; j--)
                 {
                     int offset = (nodesOnCurrentDepth - j) + 2 * j;
@@ -148,13 +154,11 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        public bool Contains(Vector2 pos)
-        {
-            if (segmentCount == 0)
-                return false;
-
-            return contains(pos + VertexBounds.TopLeft, 0);
-        }
+        /// <summary>
+        /// Whether any segment of a current path contains a given point.
+        /// </summary>
+        /// <param name="localPos">A point in local coordinates.</param>
+        public bool Contains(Vector2 localPos) => segmentCount > 0 && contains(localPos + VertexBounds.TopLeft, 0);
 
         private bool contains(Vector2 position, int? index)
         {

@@ -168,11 +168,7 @@ namespace osu.Framework.Graphics.Lines
 
         private RectangleF vertexBounds => BBH.VertexBounds;
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
-        {
-            var localPos = ToLocalSpace(screenSpacePos);
-            return BBH.Contains(localPos);
-        }
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => BBH.Contains(ToLocalSpace(screenSpacePos));
 
         public Vector2 PositionInBoundingBox(Vector2 pos) => pos - vertexBounds.TopLeft;
 
