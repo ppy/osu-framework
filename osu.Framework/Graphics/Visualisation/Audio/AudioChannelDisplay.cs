@@ -6,7 +6,8 @@ using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
-using osu.Framework.Bindables;
+using osu.Framework.Audio.Manager;
+using osu.Framework.Audio.Manager.Bass;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
@@ -30,7 +31,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
         private float maxPeak = float.MinValue;
         private double lastMaxPeakTime;
         private readonly bool isOutputChannel;
-        private IBindable<bool> usingGlobalMixer = null!;
+        private bool usingGlobalMixer;
 
         public AudioChannelDisplay(int channelHandle, bool isOutputChannel = false)
         {
@@ -106,7 +107,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
         [BackgroundDependencyLoader]
         private void load(AudioManager audioManager)
         {
-            usingGlobalMixer = audioManager.UsingGlobalMixer.GetBoundCopy();
+            usingGlobalMixer = audioManager is IGlobalMixerProvider;
         }
 
         protected override void Update()
@@ -115,7 +116,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
 
             float[] levels = new float[2];
 
-            if (isOutputChannel && !usingGlobalMixer.Value)
+            if (isOutputChannel && !usingGlobalMixer)
                 Bass.ChannelGetLevel(ChannelHandle, levels, 1 / 1000f * sample_window, LevelRetrievalFlags.Stereo);
             else
                 BassMix.ChannelGetLevel(ChannelHandle, levels, 1 / 1000f * sample_window, LevelRetrievalFlags.Stereo);
