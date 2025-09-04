@@ -252,7 +252,7 @@ namespace osu.Framework.Audio.Manager.Bass
 
             globalMixerHandle.Value = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
 
-            var flags = WasapiInitFlags.AutoFormat | WasapiInitFlags.EventDriven;
+            var flags = WasapiInitFlags.Async | WasapiInitFlags.AutoFormat | WasapiInitFlags.EventDriven;
             if (Exclusive)
                 flags |= WasapiInitFlags.Exclusive;
             else if (!uncategorized)
