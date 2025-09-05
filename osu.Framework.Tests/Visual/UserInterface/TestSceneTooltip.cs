@@ -265,6 +265,16 @@ namespace osu.Framework.Tests.Visual.UserInterface
                                 Text = "with real time updates!",
                                 Size = new Vector2(400, 30),
                             },
+                            new CustomTallTooltipSpriteTextAlt("this one doesn't overlap!")
+                            {
+                                Anchor = Anchor.TopRight,
+                                Origin = Anchor.TopRight,
+                            },
+                            new CustomTallTooltipSpriteText("this one is anchored down and overlaps!")
+                            {
+                                Anchor = Anchor.TopRight,
+                                Origin = Anchor.TopRight,
+                            },
                             new TooltipContainer
                             {
                                 AutoSizeAxes = Axes.Both,
@@ -353,6 +363,26 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public override ITooltip GetCustomTooltip() => new CustomTooltipAlt();
         }
 
+        private partial class CustomTallTooltipSpriteText : CustomTooltipSpriteText
+        {
+            public CustomTallTooltipSpriteText(string displayedContent, string tooltipContent = null)
+                : base(displayedContent, tooltipContent)
+            {
+            }
+
+            public override ITooltip GetCustomTooltip() => new CustomTallTooltip();
+        }
+
+        private partial class CustomTallTooltipSpriteTextAlt : CustomTooltipSpriteText
+        {
+            public CustomTallTooltipSpriteTextAlt(string displayedContent, string tooltipContent = null)
+                : base(displayedContent, tooltipContent)
+            {
+            }
+
+            public override ITooltip GetCustomTooltip() => new CustomTallTooltipAlt();
+        }
+
         private class CustomContent
         {
             public readonly LocalisableString Text;
@@ -367,7 +397,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             private static int i;
 
-            private readonly SpriteText text;
+            protected readonly SpriteText Text;
 
             public CustomTooltip()
             {
@@ -380,7 +410,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         RelativeSizeAxes = Axes.Both,
                         Colour = FrameworkColour.GreenDark,
                     },
-                    text = new SpriteText
+                    Text = new SpriteText
                     {
                         Font = FrameworkFont.Regular.With(size: 16),
                         Padding = new MarginPadding(5),
@@ -395,9 +425,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 };
             }
 
-            public void SetContent(CustomContent content) => text.Text = content.Text;
+            public void SetContent(CustomContent content) => Text.Text = content.Text;
 
             public void Move(Vector2 pos) => Position = pos;
+            public virtual bool AllowCursorOverlap => true;
         }
 
         private partial class CustomTooltipAlt : CustomTooltip
@@ -408,6 +439,21 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                 Colour = Color4.Red;
             }
+        }
+
+        private partial class CustomTallTooltip : CustomTooltip
+        {
+            public CustomTallTooltip()
+            {
+                AutoSizeAxes = Axes.Both;
+
+                Text.Width = 0;
+            }
+        }
+
+        private partial class CustomTallTooltipAlt : CustomTallTooltip
+        {
+            public override bool AllowCursorOverlap => false;
         }
 
         private partial class TooltipSpriteText : Container, IHasTooltip
