@@ -567,7 +567,7 @@ namespace osu.Framework.Tests.Text
 
             builder.AddText("a");
 
-            Assert.That(builder.Characters[0].Character, Is.EqualTo('a'));
+            Assert.That(builder.Characters[0].Character, Is.EqualTo(new Grapheme('a')));
         }
 
         /// <summary>
@@ -588,7 +588,7 @@ namespace osu.Framework.Tests.Text
 
             builder.AddText("a");
 
-            Assert.That(builder.Characters[0].Character, Is.EqualTo('a'));
+            Assert.That(builder.Characters[0].Character.CharValue, Is.EqualTo('a'));
             Assert.That(((TestGlyph)builder.Characters[0].Glyph).FontName, Is.EqualTo("test2-Bold"));
         }
 
@@ -610,7 +610,7 @@ namespace osu.Framework.Tests.Text
 
             builder.AddText("a");
 
-            Assert.That(builder.Characters[0].Character, Is.EqualTo('a'));
+            Assert.That(builder.Characters[0].Character.CharValue, Is.EqualTo('a'));
             Assert.That(((TestGlyph)builder.Characters[0].Glyph).FontName, Is.EqualTo("test2-Italic"));
         }
 
@@ -631,7 +631,7 @@ namespace osu.Framework.Tests.Text
 
             builder.AddText("a");
 
-            Assert.That(builder.Characters[0].Character, Is.EqualTo('?'));
+            Assert.That(builder.Characters[0].Character, Is.EqualTo(new Grapheme('?')));
             Assert.That(builder.Characters[0].XOffset, Is.EqualTo(0));
         }
 
@@ -652,7 +652,7 @@ namespace osu.Framework.Tests.Text
 
             builder.AddText("a");
 
-            Assert.That(builder.Characters[0].Character, Is.EqualTo('?'));
+            Assert.That(builder.Characters[0].Character, Is.EqualTo(new Grapheme('?')));
             Assert.That(builder.Characters[0].XOffset, Is.EqualTo(1));
         }
 
@@ -668,6 +668,16 @@ namespace osu.Framework.Tests.Text
             builder.AddText("a");
 
             Assert.That(builder.Bounds, Is.EqualTo(Vector2.Zero));
+        }
+
+        [Test]
+        public void TestSupplementaryCharactersAreOneCharacter()
+        {
+            var builder = new TextBuilder(fontStore, normal_font);
+
+            builder.AddText("🙂"); // 🙂 is U+1F642, which is greater than char.MaxValue (0xFFFF)
+
+            Assert.That(builder.Characters, Has.Count.EqualTo(1));
         }
 
         [TearDown]
@@ -692,7 +702,7 @@ namespace osu.Framework.Tests.Text
                 this.glyphs = glyphs;
             }
 
-            public ITexturedCharacterGlyph Get(string? fontName, char character)
+            public ITexturedCharacterGlyph Get(string? fontName, Grapheme character)
             {
                 if (string.IsNullOrEmpty(fontName))
                     return glyphs.FirstOrDefault(g => g.Glyph.Character == character).Glyph;
@@ -700,7 +710,7 @@ namespace osu.Framework.Tests.Text
                 return glyphs.FirstOrDefault(g => g.Font.FontName.EndsWith(fontName, StringComparison.Ordinal) && g.Glyph.Character == character).Glyph;
             }
 
-            public Task<ITexturedCharacterGlyph?> GetAsync(string fontName, char character) => throw new NotImplementedException();
+            public Task<ITexturedCharacterGlyph?> GetAsync(string fontName, Grapheme character) => throw new NotImplementedException();
         }
 
         private readonly struct GlyphEntry
@@ -724,15 +734,17 @@ namespace osu.Framework.Tests.Text
             public float Width { get; }
             public float Baseline { get; }
             public float Height { get; }
-            public char Character { get; }
+            public Grapheme Character { get; }
             public string? FontName { get; }
+            public bool Coloured => false;
 
             private readonly float glyphKerning;
 
-            public TestGlyph(char character, float xOffset = 0, float yOffset = 0, float xAdvance = 0, float width = 0, float baseline = 0, float height = 0, float kerning = 0, string? fontName = null)
+            public TestGlyph(char character, float xOffset = 0, float yOffset = 0, float xAdvance = 0, float width = 0, float baseline = 0, float height = 0, float kerning = 0,
+                             string? fontName = null)
             {
                 glyphKerning = kerning;
-                Character = character;
+                Character = new Grapheme(character);
                 XOffset = xOffset;
                 YOffset = yOffset;
                 XAdvance = xAdvance;
