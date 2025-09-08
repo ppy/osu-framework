@@ -15,6 +15,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
@@ -25,6 +26,7 @@ namespace osu.Framework.Graphics.Visualisation
     internal partial class VisualisedDrawable : Container, IContainVisualisedDrawables, IFilterable
     {
         private const int line_height = 12;
+        private const float text_x_pos = 30;
 
         public Drawable Target { get; }
 
@@ -72,7 +74,7 @@ namespace osu.Framework.Graphics.Visualisation
         public Action<VisualisedDrawable> HighlightTarget;
 
         private Box background;
-        private SpriteText text;
+        private TooltipSpriteText text;
         private SpriteText text2;
         private Drawable previewBox;
         private Drawable activityInvalidate;
@@ -112,11 +114,13 @@ namespace osu.Framework.Graphics.Visualisation
                     Direction = FillDirection.Vertical,
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Position = new Vector2(row_width, row_height)
+                    Position = new Vector2(0, row_height),
+                    Padding = new MarginPadding { Left = row_width },
                 },
                 new Container
                 {
-                    AutoSizeAxes = Axes.Both,
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
                     Children = new[]
                     {
                         background = new Box
@@ -195,13 +199,13 @@ namespace osu.Framework.Graphics.Visualisation
                             },
                         new FillFlowContainer
                         {
-                            AutoSizeAxes = Axes.Both,
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
                             Direction = FillDirection.Horizontal,
-                            Spacing = new Vector2(5),
-                            Position = new Vector2(30, 0),
+                            Position = new Vector2(text_x_pos, 0),
                             Children = new Drawable[]
                             {
-                                text = new SpriteText { Font = FrameworkFont.Regular },
+                                text = new TooltipSpriteText { Font = FrameworkFont.Regular },
                                 text2 = new SpriteText { Font = FrameworkFont.Regular },
                             }
                         },
@@ -465,7 +469,7 @@ namespace osu.Framework.Graphics.Visualisation
             int childCount = (Target as CompositeDrawable)?.InternalChildren.Count ?? 0;
 
             text.Text = Target.ToString();
-            text2.Text = $"({Target.DrawPosition.X:#,0},{Target.DrawPosition.Y:#,0}) {Target.DrawSize.X:#,0}x{Target.DrawSize.Y:#,0}"
+            text2.Text = $" ({Target.DrawPosition.X:#,0},{Target.DrawPosition.Y:#,0}) {Target.DrawSize.X:#,0}x{Target.DrawSize.Y:#,0}"
                          + (!isExpanded && childCount > 0 ? $@" ({childCount} children)" : string.Empty);
 
             Alpha = Target.IsPresent ? 1 : 0.3f;
@@ -474,6 +478,7 @@ namespace osu.Framework.Graphics.Visualisation
         protected override void Update()
         {
             updateSpecifics();
+            text.MaxWidth = DrawWidth - text_x_pos - text2.DrawWidth - 5;
             base.Update();
         }
 
@@ -503,6 +508,18 @@ namespace osu.Framework.Graphics.Visualisation
         private partial class VisualisedDrawableFlow : FillFlowContainer<VisualisedDrawable>
         {
             public override IEnumerable<Drawable> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent).OrderBy(d => -d.Depth).ThenBy(d => ((VisualisedDrawable)d).Target.ChildID);
+        }
+
+        private partial class TooltipSpriteText : SpriteText, IHasTooltip
+        {
+            public LocalisableString TooltipText => Text;
+
+            public override bool HandlePositionalInput => IsTruncated;
+
+            public TooltipSpriteText()
+            {
+                Truncate = true;
+            }
         }
     }
 }

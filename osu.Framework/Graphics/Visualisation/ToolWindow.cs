@@ -129,6 +129,7 @@ namespace osu.Framework.Graphics.Visualisation
                                                 ScrollContent = new BasicScrollContainer<Drawable>
                                                 {
                                                     RelativeSizeAxes = Axes.Both,
+                                                    ScrollbarOverlapsContent = false,
                                                     Child = SearchContainer = new SearchContainer
                                                     {
                                                         AutoSizeAxes = Axes.Y,
