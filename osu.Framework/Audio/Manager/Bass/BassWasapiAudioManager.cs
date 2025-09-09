@@ -77,6 +77,7 @@ namespace osu.Framework.Audio.Manager.Bass
             : base(audioThread, trackStore, sampleStore)
         {
             AudioDevice.ValueChanged += _ => OnDeviceChanged();
+            Exclusive.ValueChanged += _ => OnDeviceChanged();
             CancellationToken token = CancelSource.Token;
 
             syncAudioDevices();
