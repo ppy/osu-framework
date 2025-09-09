@@ -13,10 +13,7 @@ namespace osu.Framework.Platform
         [Description("BASS")]
         Bass,
 
-        [Description("BASSWASAPI Exclusive Mode (Experimental)")]
-        BassWasapiExclusiveMode,
-
-        [Description("BASSWASAPI Shared Mode (Experimental)")]
-        BassWasapiSharedMode,
+        [Description("BASSWASAPI")]
+        BassWasapi,
     }
 }

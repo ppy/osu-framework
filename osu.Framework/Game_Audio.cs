@@ -44,8 +44,7 @@ namespace osu.Framework
                     if (wasapiSupported)
                     {
                         // Candidate WASAPI if available.
-                        yield return AudioBackend.BassWasapiSharedMode;
-                        yield return AudioBackend.BassWasapiExclusiveMode;
+                        yield return AudioBackend.BassWasapi;
                     }
 
                     break;
@@ -119,16 +118,10 @@ namespace osu.Framework
         {
             switch (backend)
             {
-                case AudioBackend.BassWasapiExclusiveMode:
-                    var bassWasapiExclusiveMode = new BassWasapiAudioManager(Host.AudioThread, trackStore, sampleStore, true);
-                    bassWasapiExclusiveMode.AudioDevice.Value = device ?? bassWasapiExclusiveMode.DefaultDevice;
-                    Audio = bassWasapiExclusiveMode;
-                    break;
-
-                case AudioBackend.BassWasapiSharedMode:
-                    var bassWasapiSharedMode = new BassWasapiAudioManager(Host.AudioThread, trackStore, sampleStore, false);
-                    bassWasapiSharedMode.AudioDevice.Value = device ?? bassWasapiSharedMode.DefaultDevice;
-                    Audio = bassWasapiSharedMode;
+                case AudioBackend.BassWasapi:
+                    var bassWasapi = new BassWasapiAudioManager(Host.AudioThread, trackStore, sampleStore);
+                    bassWasapi.AudioDevice.Value = device ?? bassWasapi.DefaultDevice;
+                    Audio = bassWasapi;
                     break;
 
                 default:

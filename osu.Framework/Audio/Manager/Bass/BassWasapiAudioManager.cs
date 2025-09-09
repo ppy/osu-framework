@@ -55,7 +55,10 @@ namespace osu.Framework.Audio.Manager.Bass
 
         private Scheduler eventScheduler => EventScheduler ?? Scheduler;
 
-        public bool Exclusive { get; init; }
+        /// <summary>
+        /// Whether to use exclusive mode in WASAPI.
+        /// </summary>
+        public Bindable<bool> Exclusive { get; } = new BindableBool();
 
         // Mutated by multiple threads, must be thread safe.
         private ImmutableList<WasapiDeviceInfo> audioDevices = [];
@@ -70,11 +73,9 @@ namespace osu.Framework.Audio.Manager.Bass
         private WasapiNotifyProcedure? notifyProcedure;
 #pragma warning restore IDE0052 // Unread private member
 
-        public BassWasapiAudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore, bool exclusive)
+        public BassWasapiAudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
             : base(audioThread, trackStore, sampleStore)
         {
-            Exclusive = exclusive;
-
             AudioDevice.ValueChanged += _ => OnDeviceChanged();
             CancellationToken token = CancelSource.Token;
 
@@ -171,7 +172,7 @@ namespace osu.Framework.Audio.Manager.Bass
             return true;
         }
 
-        protected override bool IsDeviceChanged(int device) => BassWasapi.CurrentDevice != device;
+        protected override bool IsDeviceChanged(int device) => BassWasapi.CurrentDevice != device || BassWasapi.Info.IsExclusive != Exclusive.Value;
 
         private void syncAudioDevices()
         {
@@ -247,13 +248,13 @@ namespace osu.Framework.Audio.Manager.Bass
                 return false;
             }
 
-            int frequency = Exclusive ? 44100 : deviceInfo.MixFrequency;
-            float buffer = Exclusive ? (float)deviceInfo.MinimumUpdatePeriod : 0;
+            int frequency = Exclusive.Value ? 44100 : deviceInfo.MixFrequency;
+            float buffer = Exclusive.Value ? (float)deviceInfo.MinimumUpdatePeriod : 0;
 
             globalMixerHandle.Value = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
 
             var flags = WasapiInitFlags.Async | WasapiInitFlags.AutoFormat | WasapiInitFlags.EventDriven;
-            if (Exclusive)
+            if (Exclusive.Value)
                 flags |= WasapiInitFlags.Exclusive;
             else if (!uncategorized)
                 flags |= WasapiInitFlags.Raw;
