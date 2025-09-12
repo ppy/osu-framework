@@ -13,7 +13,6 @@ using NUnit.Framework;
 using NUnit.Framework.Internal;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
-using osu.Framework.Audio.Manager;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Development;

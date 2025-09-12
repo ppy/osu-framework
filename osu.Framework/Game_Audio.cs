@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ManagedBass;
 using ManagedBass.Wasapi;
-using osu.Framework.Audio.Manager.Bass;
+using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.IO.Stores;

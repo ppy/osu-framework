@@ -16,7 +16,7 @@ using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using osu.Framework.Threading;
 
-namespace osu.Framework.Audio.Manager.Bass
+namespace osu.Framework.Audio
 {
     using Bass = ManagedBass.Bass;
 

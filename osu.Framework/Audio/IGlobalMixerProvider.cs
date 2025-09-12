@@ -4,7 +4,7 @@
 using ManagedBass;
 using osu.Framework.Bindables;
 
-namespace osu.Framework.Audio.Manager.Bass
+namespace osu.Framework.Audio
 {
     /// <summary>
     /// An interface which allows querying of a global mixer handle, if one is being used.

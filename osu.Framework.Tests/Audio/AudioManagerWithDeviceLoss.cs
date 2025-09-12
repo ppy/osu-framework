@@ -4,8 +4,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using ManagedBass;
-using osu.Framework.Audio.Manager;
-using osu.Framework.Audio.Manager.Bass;
+using osu.Framework.Audio;
 using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
 

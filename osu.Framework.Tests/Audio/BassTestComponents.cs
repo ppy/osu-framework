@@ -4,7 +4,6 @@
 using System;
 using ManagedBass;
 using osu.Framework.Audio;
-using osu.Framework.Audio.Manager.Bass;
 using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;

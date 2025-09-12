@@ -12,7 +12,7 @@ using osu.Framework.Bindables;
 using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
 
-namespace osu.Framework.Audio.Manager
+namespace osu.Framework.Audio
 {
     public abstract class AudioManager : AudioCollectionManager<AudioComponent>, IAudioManager
     {

@@ -5,7 +5,7 @@ using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
 using ManagedBass;
-using osu.Framework.Audio.Manager;
+using osu.Framework.Audio;
 using osu.Framework.Development;
 
 namespace osu.Framework.Threading
