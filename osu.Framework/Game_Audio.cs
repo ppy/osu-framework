@@ -6,6 +6,7 @@ using System.Linq;
 using ManagedBass;
 using ManagedBass.Wasapi;
 using osu.Framework.Audio.Manager.Bass;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
@@ -16,6 +17,10 @@ namespace osu.Framework
     public abstract partial class Game
     {
         public AudioBackend ResolvedAudioBackend { get; private set; }
+
+        private Bindable<bool>? audioIsExclusive;
+
+        private IBindable<AudioExclusiveModeBehaviour>? audioExclusiveModeBehaviour;
 
         public IEnumerable<AudioBackend> GetPreferredAudioBackendsForCurrentPlatform()
         {
@@ -121,6 +126,7 @@ namespace osu.Framework
                 case AudioBackend.BassWasapi:
                     var bassWasapi = new BassWasapiAudioManager(Host.AudioThread, trackStore, sampleStore);
                     bassWasapi.AudioDevice.Value = device ?? bassWasapi.DefaultDevice;
+                    audioIsExclusive = bassWasapi.Exclusive.GetBoundCopy();
                     Audio = bassWasapi;
                     break;
 
@@ -146,6 +152,35 @@ namespace osu.Framework
             config.BindWith(FrameworkSetting.VolumeUniversal, Audio.Volume);
             config.BindWith(FrameworkSetting.VolumeEffect, Audio.VolumeSample);
             config.BindWith(FrameworkSetting.VolumeMusic, Audio.VolumeTrack);
+
+            if (audioIsExclusive != null)
+            {
+                audioExclusiveModeBehaviour = config.GetBindable<AudioExclusiveModeBehaviour>(FrameworkSetting.AudioExclusiveModeBehaviour);
+                audioExclusiveModeBehaviour.BindValueChanged(e =>
+                {
+                    switch (e.OldValue)
+                    {
+                        case AudioExclusiveModeBehaviour.DuringActive:
+                            audioIsExclusive.UnbindFrom(isActive);
+                            break;
+                    }
+
+                    switch (e.NewValue)
+                    {
+                        case AudioExclusiveModeBehaviour.Never:
+                            audioIsExclusive.Value = false;
+                            break;
+
+                        case AudioExclusiveModeBehaviour.Always:
+                            audioIsExclusive.Value = true;
+                            break;
+
+                        case AudioExclusiveModeBehaviour.DuringActive:
+                            audioIsExclusive.BindTo(isActive);
+                            break;
+                    }
+                }, true);
+            }
         }
     }
 }

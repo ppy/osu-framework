@@ -59,6 +59,12 @@ namespace osu.Framework.Audio.Manager.Bass
 
         public override string DefaultDevice => string.Empty;
 
+        /// <inheritdoc />
+        /// <remarks>
+        /// The value is always false as primitive BASS does not support exclusive mode.
+        /// </remarks>
+        public override IBindable<bool> IsExclusive => new BindableBool();
+
         protected bool IsDefaultDevice => string.IsNullOrEmpty(AudioDevice.Value);
 
         public override bool IsLoaded => base.IsLoaded &&

@@ -55,10 +55,9 @@ namespace osu.Framework.Audio.Manager.Bass
 
         private Scheduler eventScheduler => EventScheduler ?? Scheduler;
 
-        /// <summary>
-        /// Whether to use exclusive mode in WASAPI.
-        /// </summary>
-        public Bindable<bool> Exclusive { get; } = new BindableBool();
+        internal Bindable<bool> Exclusive { get; } = new BindableBool();
+
+        public override IBindable<bool> IsExclusive => Exclusive;
 
         // Mutated by multiple threads, must be thread safe.
         private ImmutableList<WasapiDeviceInfo> audioDevices = [];
@@ -233,13 +232,6 @@ namespace osu.Framework.Audio.Manager.Bass
         protected virtual bool InitDevice(int device, bool uncategorized, bool reinit)
         {
             Debug.Assert(ThreadSafety.IsAudioThread);
-
-            if (reinit)
-            {
-                BassWasapi.CurrentDevice = device;
-                BassWasapi.Stop();
-                BassWasapi.Free();
-            }
 
             if (!BassWasapi.GetDeviceInfo(device, out var deviceInfo))
             {

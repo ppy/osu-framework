@@ -33,6 +33,7 @@ namespace osu.Framework.Configuration
             SetDefault(FrameworkSetting.LastDisplayDevice, DisplayIndex.Default);
             SetDefault(FrameworkSetting.AudioBackend, AudioBackend.Automatic);
             SetDefault(FrameworkSetting.AudioDevice, string.Empty);
+            SetDefault(FrameworkSetting.AudioExclusiveModeBehaviour, AudioExclusiveModeBehaviour.Never);
             SetDefault(FrameworkSetting.VolumeUniversal, 1.0, 0.0, 1.0, 0.01);
             SetDefault(FrameworkSetting.VolumeMusic, 1.0, 0.0, 1.0, 0.01);
             SetDefault(FrameworkSetting.VolumeEffect, 1.0, 0.0, 1.0, 0.01);
@@ -81,6 +82,7 @@ namespace osu.Framework.Configuration
 
         AudioBackend,
         AudioDevice,
+        AudioExclusiveModeBehaviour,
         VolumeUniversal,
         VolumeEffect,
         VolumeMusic,

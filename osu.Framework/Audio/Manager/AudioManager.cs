@@ -57,6 +57,8 @@ namespace osu.Framework.Audio.Manager
 
         public abstract string DefaultDevice { get; }
 
+        public abstract IBindable<bool> IsExclusive { get; }
+
         public BindableDouble VolumeSample { get; } = new BindableDouble(1)
         {
             MinValue = 0,

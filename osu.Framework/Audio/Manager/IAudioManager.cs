@@ -55,6 +55,11 @@ namespace osu.Framework.Audio.Manager
         string DefaultDevice { get; }
 
         /// <summary>
+        /// Whether audio output is exclusive.
+        /// </summary>
+        IBindable<bool> IsExclusive { get; }
+
+        /// <summary>
         /// Volume of all samples played game-wide.
         /// </summary>
         BindableDouble VolumeSample { get; }
