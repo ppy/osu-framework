@@ -18,8 +18,6 @@ using osu.Framework.Threading;
 
 namespace osu.Framework.Audio
 {
-    using Bass = ManagedBass.Bass;
-
     /// <summary>
     /// An <see cref="AudioManager"/> implementation which uses BASS for audio playback without any additional add-ons (so we call it "primitive").
     /// </summary>

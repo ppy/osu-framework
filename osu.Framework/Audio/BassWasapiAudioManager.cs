@@ -19,8 +19,6 @@ using osu.Framework.Threading;
 
 namespace osu.Framework.Audio
 {
-    using Bass = ManagedBass.Bass;
-
     /// <summary>
     /// An <see cref="AudioManager"/> implementation which uses BASS and WASAPI for audio output.
     /// </summary>
