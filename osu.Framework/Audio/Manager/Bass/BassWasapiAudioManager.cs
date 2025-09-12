@@ -260,6 +260,13 @@ namespace osu.Framework.Audio.Manager.Bass
             else if (!uncategorized)
                 flags |= WasapiInitFlags.Raw;
 
+            if (reinit)
+            {
+                BassWasapi.CurrentDevice = device;
+                BassWasapi.Stop(false);
+                BassWasapi.Free();
+            }
+
             if (!BassWasapi.InitEx(device, frequency, 2, flags, buffer, 0, BassWasapi.WasapiProc_Bass, globalMixerHandle.Value))
             {
                 Errors initError = Bass.LastError;
