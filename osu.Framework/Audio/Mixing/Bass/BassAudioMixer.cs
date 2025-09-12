@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Mix;
-using osu.Framework.Audio;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Statistics;
 
