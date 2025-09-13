@@ -30,6 +30,7 @@ namespace osu.Framework.Graphics.Lines
             private Vector2 drawSize;
             private float radius;
             private IShader? pathShader;
+            private Vector2 offset;
 
             private IVertexBatch<TexturedVertex3D>? triangleBatch;
 
@@ -42,8 +43,12 @@ namespace osu.Framework.Graphics.Lines
             {
                 base.ApplyState();
 
+                var bbh = Source.BBH;
+
                 segments.Clear();
-                segments.AddRange(Source.segments);
+                segments.AddRange(bbh.Segments);
+
+                offset = bbh.VertexBounds.TopLeft;
 
                 texture = Source.Texture;
                 drawSize = Source.DrawSize;
@@ -271,6 +276,8 @@ namespace osu.Framework.Graphics.Lines
 
                 for (int i = 0; i < segments.Count; i++)
                 {
+                    Line line = new Line(segments[i].StartPoint - offset, segments[i].EndPoint - offset);
+
                     if (segmentToDraw.HasValue)
                     {
                         float segmentToDrawLength = segmentToDraw.Value.Rho;
@@ -278,15 +285,15 @@ namespace osu.Framework.Graphics.Lines
                         // If segment is too short, make its end point equal start point of a new segment
                         if (segmentToDrawLength < 1f)
                         {
-                            segmentToDraw = new Line(segmentToDraw.Value.StartPoint, segments[i].EndPoint);
+                            segmentToDraw = new Line(segmentToDraw.Value.StartPoint, line.EndPoint);
                             continue;
                         }
 
-                        float progress = progressFor(segmentToDraw.Value, segmentToDrawLength, segments[i].EndPoint);
+                        float progress = progressFor(segmentToDraw.Value, segmentToDrawLength, line.EndPoint);
                         Vector2 closest = segmentToDraw.Value.At(progress);
 
-                        // Expand segment if next end point is located within a line passing through it
-                        if (Precision.AlmostEquals(closest, segments[i].EndPoint, 0.1f))
+                        // Expand segment if new segment end is located within a line passing through it
+                        if (Precision.AlmostEquals(closest, line.EndPoint, 0.1f))
                         {
                             if (progress < 0)
                             {
@@ -309,14 +316,14 @@ namespace osu.Framework.Graphics.Lines
                             lastDrawnSegment = s;
 
                             // Figure out at which point within currently drawn segment the new one starts
-                            float p = progressFor(segmentToDraw.Value, segmentToDrawLength, segments[i].StartPoint);
-                            segmentToDraw = segments[i];
+                            float p = progressFor(segmentToDraw.Value, segmentToDrawLength, line.StartPoint);
+                            segmentToDraw = line;
                             location = modifiedLocation = Precision.AlmostEquals(p, 1f) ? SegmentStartLocation.End : Precision.AlmostEquals(p, 0f) ? SegmentStartLocation.Start : SegmentStartLocation.Middle;
                         }
                     }
                     else
                     {
-                        segmentToDraw = segments[i];
+                        segmentToDraw = line;
                     }
                 }
 
