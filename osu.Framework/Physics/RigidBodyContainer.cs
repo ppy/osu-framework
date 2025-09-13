@@ -86,16 +86,16 @@ namespace osu.Framework.Physics
         /// </summary>
         protected List<Vector2> Normals = new List<Vector2>();
 
-        protected Matrix3 ScreenToSimulationSpace => Simulation.DrawInfo.MatrixInverse;
+        protected Matrix4 ScreenToSimulationSpace => Simulation.DrawInfo.MatrixInverse;
 
-        protected Matrix3 SimulationToScreenSpace => Simulation.DrawInfo.Matrix;
+        protected Matrix4 SimulationToScreenSpace => Simulation.DrawInfo.Matrix;
 
         /// <summary>
         /// Computes the moment of inertia.
         /// </summary>
         protected float ComputeI()
         {
-            Matrix3 mat = DrawInfo.Matrix * Parent!.DrawInfo.MatrixInverse;
+            Matrix4 mat = DrawInfo.Matrix * Parent!.DrawInfo.MatrixInverse;
             Vector2 size = DrawSize;
 
             // Inertial moment for a linearly transformed rectangle with a given size around its center.
@@ -168,8 +168,8 @@ namespace osu.Framework.Physics
             }
 
             // To simulation space
-            Matrix3 mat = DrawInfo.Matrix * ScreenToSimulationSpace;
-            Matrix3 normMat = mat.Inverted();
+            Matrix4 mat = DrawInfo.Matrix * ScreenToSimulationSpace;
+            Matrix4 normMat = mat.Inverted();
             normMat.Transpose();
 
             // Remove translation
@@ -255,7 +255,7 @@ namespace osu.Framework.Physics
         /// </summary>
         public void ReadState()
         {
-            Matrix3 mat = Parent!.DrawInfo.Matrix * ScreenToSimulationSpace;
+            Matrix4 mat = Parent!.DrawInfo.Matrix * ScreenToSimulationSpace;
             Centre = Vector2Extensions.Transform(BoundingBox.Centre, mat);
             RotationRadians = float.DegreesToRadians(Rotation); // TODO: Fix rotations
 
@@ -268,7 +268,7 @@ namespace osu.Framework.Physics
         /// </summary>
         public virtual void ApplyState()
         {
-            Matrix3 mat = SimulationToScreenSpace * Parent!.DrawInfo.MatrixInverse;
+            Matrix4 mat = SimulationToScreenSpace * Parent!.DrawInfo.MatrixInverse;
             Position = Vector2Extensions.Transform(Centre, mat) + (Position - BoundingBox.Centre);
             Rotation = float.RadiansToDegrees(RotationRadians); // TODO: Fix rotations
         }
