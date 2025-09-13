@@ -298,13 +298,13 @@ namespace osu.Framework.Graphics.Lines
                             if (progress < 0)
                             {
                                 // expand segment backwards
-                                segmentToDraw = new Line(segments[i].EndPoint, segmentToDraw.Value.EndPoint);
+                                segmentToDraw = new Line(line.EndPoint, segmentToDraw.Value.EndPoint);
                                 modifiedLocation = SegmentStartLocation.Outside;
                             }
                             else if (progress > 1)
                             {
                                 // or forward
-                                segmentToDraw = new Line(segmentToDraw.Value.StartPoint, segments[i].EndPoint);
+                                segmentToDraw = new Line(segmentToDraw.Value.StartPoint, line.EndPoint);
                             }
                         }
                         else // Otherwise draw the expanded segment
