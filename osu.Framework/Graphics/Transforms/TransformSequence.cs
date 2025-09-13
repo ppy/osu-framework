@@ -1,320 +1,197 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
+using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using JetBrains.Annotations;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    /// <summary>
-    /// A sequence of <see cref="Transform"/>s all operating upon the same <see cref="ITransformable"/>
-    /// of type <typeparamref name="T"/>.
-    /// Exposes various operations to extend the sequence by additional <see cref="Transforms"/> such as
-    /// delays, loops, continuations, and events.
-    /// </summary>
-    /// <typeparam name="T">
-    /// The type of the <see cref="ITransformable"/> the <see cref="Transform"/>s in this sequence operate upon.
-    /// </typeparam>
-    public class TransformSequence<T> : ITransformSequence where T : class, ITransformable
+    public readonly ref struct TransformSequence<T>
+        where T : class, ITransformable
     {
         /// <summary>
-        /// A delegate that generates a new <see cref="TransformSequence{T}"/> on a given <paramref name="origin"/>.
+        /// A unique identifier for the sequence.
         /// </summary>
-        /// <param name="origin">The origin to generate a <see cref="TransformSequence{T}"/> for.</param>
-        /// <returns>The generated <see cref="TransformSequence{T}"/>.</returns>
-        public delegate TransformSequence<T> Generator(T origin);
-
-        private readonly T origin;
-
-        private readonly List<Transform> transforms = new List<Transform>(1); // the most common usage of transforms sees one transform being added.
-
-        private bool hasCompleted = true;
-
-        private readonly double startTime;
-        private double currentTime;
-        private double endTime => Math.Max(currentTime, lastEndTime);
-
-        private Transform last;
-        private double lastEndTime;
-
-        private bool hasEnd => lastEndTime != double.PositiveInfinity;
+        private ulong id { get; init; }
 
         /// <summary>
-        /// Creates a new empty <see cref="TransformSequence{T}"/> attached to a given <paramref name="origin"/>.
+        /// The target to be transformed.
         /// </summary>
-        /// <param name="origin">The <typeparamref name="T"/> to attach the new <see cref="TransformSequence{T}"/> to.</param>
-        public TransformSequence(T origin)
-        {
-            if (origin == null)
-                throw new ArgumentNullException(nameof(origin), $"May not create a {nameof(TransformSequence<T>)} with a null {nameof(origin)}.");
-
-            this.origin = origin;
-            startTime = currentTime = lastEndTime = origin.TransformStartTime;
-        }
-
-        private void onLoopingTransform()
-        {
-            // As soon as we have an infinitely looping transform,
-            // completion no longer makes sense.
-            if (last != null)
-                last.CompletionTargetSequence = null;
-
-            last = null;
-            lastEndTime = double.PositiveInfinity;
-            hasCompleted = false;
-        }
-
-        public TransformSequence<T> TransformTo<TValue>(string propertyOrFieldName, TValue newValue, double duration = 0, Easing easing = Easing.None) =>
-            Append(o => o.TransformTo(propertyOrFieldName, newValue, duration, easing));
+        private T target { get; init; }
 
         /// <summary>
-        /// Adds an existing <see cref="Transform"/> operating on <see cref="origin"/> to this <see cref="TransformSequence{T}"/>.
+        /// The time at which the sequence begins.
         /// </summary>
-        /// <param name="transform">The <see cref="Transform"/> to add.</param>
-        internal void Add(Transform transform)
+        private double startTime { get; init; }
+
+        /// <summary>
+        /// The time at which any transforms added to the sequence will start from.
+        /// </summary>
+        private double currentTime { get; init; }
+
+        /// <summary>
+        /// The time at which the sequence ends.
+        /// </summary>
+        private double endTime { get; init; }
+
+        /// <summary>
+        /// The number of transforms in the sequence and any of its continuations.
+        /// </summary>
+        private int length { get; init; }
+
+        /// <summary>
+        /// The transform last added to the sequence.
+        /// </summary>
+        private Transform? transform { get; init; }
+
+        /// <summary>
+        /// Whether any transforms have been added to the sequence.
+        /// </summary>
+        [MemberNotNullWhen(false, nameof(transform))]
+        public bool IsEmpty => length == 0;
+
+        /// <summary>
+        /// Creates a blank transform sequence.
+        /// </summary>
+        /// <param name="target">The transform target.</param>
+        public static TransformSequence<T> Create(T target)
         {
-            if (!ReferenceEquals(transform.TargetTransformable, origin))
+            // Consume the global context, if any.
+            if (TransformSequenceHelpers.ConsumeContext<T>() is Context context)
+                return context.Restore();
+
+            return new TransformSequence<T>
             {
-                throw new InvalidOperationException(
-                    $"{nameof(transform)} must operate upon {nameof(origin)}={origin}, but operates upon {transform.TargetTransformable}.");
-            }
+                id = TransformSequenceHelpers.GetNextId(),
+                target = target,
+                startTime = target.TransformStartTime,
+                currentTime = target.TransformStartTime,
+                endTime = target.TransformStartTime
+            };
+        }
 
-            transforms.Add(transform);
+        /// <summary>
+        /// Creates a transform sequence from an existing transform.
+        /// </summary>
+        /// <param name="transform">The transform.</param>
+        public static TransformSequence<T> Create(Transform transform)
+        {
+            if (transform.Target is null)
+                throwTargetIsNull();
 
-            transform.CompletionTargetSequence = null;
-            transform.AbortTargetSequence = this;
+            if (transform.Target is not T target)
+                throwTargetTypeMismatch(typeof(T), transform.Target.GetType());
 
-            if (transform.IsLooping)
-                onLoopingTransform();
+            TransformSequence<T> sequence = Create(target);
 
-            // Update last transform for completion callback
-            if (last == null || transform.EndTime > lastEndTime)
+            transform.SequenceID = sequence.id;
+            transform.PreviousInSequence = sequence.transform;
+            transform.EndTime = sequence.currentTime + transform.EndTime - transform.StartTime;
+            transform.StartTime = sequence.currentTime;
+
+            target.AddTransform(transform);
+
+            return sequence with
             {
-                if (last != null)
-                    last.CompletionTargetSequence = null;
+                endTime = Math.Max(sequence.endTime, transform.EndTime),
+                length = sequence.length + 1,
+                transform = transform
+            };
 
-                last = transform;
-                last.CompletionTargetSequence = this;
-                lastEndTime = last.EndTime;
-                hasCompleted = false;
-            }
+            [DoesNotReturn]
+            static void throwTargetIsNull()
+                => throw new ArgumentException("Transform target cannot be null.");
+
+            [DoesNotReturn]
+            static void throwTargetTypeMismatch(Type expected, Type actual)
+                => throw new ArgumentException($"Transform target was expected to be of type '{expected.ReadableName()}' but was '{actual.ReadableName()}'.");
         }
 
         /// <summary>
-        /// Appends multiple <see cref="Generator"/>s to this <see cref="TransformSequence{T}"/>.
+        /// Continues with an action on the target.
         /// </summary>
-        /// <param name="childGenerators">The <see cref="Generator"/>s to be appended.</param>
-        /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
-        public TransformSequence<T> Append(IEnumerable<Generator> childGenerators)
-        {
-            foreach (var p in childGenerators)
-                Append(p);
-
-            return this;
-        }
+        [MustUseReturnValue]
+        public TransformSequence<T> Next(Generator generator)
+            => generator(Next());
 
         /// <summary>
-        /// Appends a <see cref="Generator"/>s to this <see cref="TransformSequence{T}"/>.
-        /// The <see cref="Generator"/> is invoked within a <see cref="Transformable.BeginAbsoluteSequence(double, bool)"/>
-        /// such that the generated <see cref="TransformSequence{T}"/> starts at the correct point in time.
-        /// Its <see cref="Transform"/>s are then merged into this <see cref="TransformSequence{T}"/>.
+        /// Continues with an action on the target.
         /// </summary>
-        /// <param name="childGenerator">The <see cref="Generator"/> to be appended.</param>
-        /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
-        public TransformSequence<T> Append(Generator childGenerator)
-        {
-            TransformSequence<T> child;
-            using (origin.BeginAbsoluteSequence(currentTime, false))
-                child = childGenerator(origin);
-
-            if (!ReferenceEquals(child.origin, origin))
-                throw new InvalidOperationException($"May not append {nameof(TransformSequence<T>)} with different origin.");
-
-            var oldLast = last;
-            foreach (var t in child.transforms)
-                Add(t);
-
-            // If we flatten a child into ourselves that already completed, then
-            // we need to make sure to update the hasCompleted value, too, since
-            // the already completed final transform will no longer fire any events.
-            if (oldLast != last)
-                hasCompleted = child.hasCompleted;
-
-            return this;
-        }
+        [MustUseReturnValue]
+        public T Next()
+            => Next(out _);
 
         /// <summary>
-        /// Invokes <paramref name="originFunc"/> inside a <see cref="Transformable.BeginAbsoluteSequence(double, bool)"/>
-        /// such that <see cref="ITransformable.TransformStartTime"/> is the current time of this <see cref="TransformSequence{T}"/>.
-        /// It is the responsibility of <paramref name="originFunc"/> to make appropriate use of <see cref="ITransformable.TransformStartTime"/>.
+        /// Continues with an action on the target.
         /// </summary>
-        /// <typeparam name="TResult">The return type of <paramref name="originFunc"/>.</typeparam>
-        /// <param name="originFunc">The function to be invoked.</param>
-        /// <param name="result">The resulting value of the invocation of <paramref name="originFunc"/>.</param>
-        /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
-        public TransformSequence<T> Append<TResult>(Func<T, TResult> originFunc, out TResult result)
+        [MustUseReturnValue]
+        public T Next(out T continuationTarget)
         {
-            using (origin.BeginAbsoluteSequence(currentTime, false))
-                result = originFunc(origin);
-
-            return this;
+            TransformSequenceHelpers.SaveContext(new Context(this));
+            continuationTarget = target;
+            return continuationTarget;
         }
 
         /// <summary>
-        /// Invokes <paramref name="originAction"/> inside a <see cref="Transformable.BeginAbsoluteSequence(double, bool)"/>
-        /// such that <see cref="ITransformable.TransformStartTime"/> is the current time of this <see cref="TransformSequence{T}"/>.
-        /// It is the responsibility of <paramref name="originAction"/> to make appropriate use of <see cref="ITransformable.TransformStartTime"/>.
+        /// Continues from the current end time.
         /// </summary>
-        /// <param name="originAction">The function to be invoked.</param>
-        /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
-        public TransformSequence<T> Append(Action<T> originAction)
+        public TransformSequence<T> Then() => this with
         {
-            using (origin.BeginAbsoluteSequence(currentTime, false))
-                originAction(origin);
-
-            return this;
-        }
-
-        private void subscribeComplete(Action func)
-        {
-            if (onComplete != null)
-            {
-                throw new InvalidOperationException(
-                    "May not subscribe completion multiple times." +
-                    $"This exception is also caused by calling {nameof(Then)} or {nameof(Finally)} on an infinitely looping {nameof(TransformSequence<T>)}.");
-            }
-
-            onComplete = func;
-
-            // Completion can be immediately triggered by instant transforms,
-            // and therefore when subscribing we need to take into account
-            // potential previous completions.
-            if (hasCompleted)
-                func();
-        }
-
-        private void subscribeAbort(Action func)
-        {
-            if (onAbort != null)
-                throw new InvalidOperationException("May not subscribe abort multiple times.");
-
-            // No need to worry about new transforms immediately aborting, so
-            // we can just subscribe here and be sure abort couldn't have been
-            // triggered already.
-            onAbort = func;
-        }
-
-        private Action onComplete;
-        private Action onAbort;
+            currentTime = endTime
+        };
 
         /// <summary>
-        /// Append a looping <see cref="TransformSequence{T}"/> to this <see cref="TransformSequence{T}"/>.
-        /// All <see cref="Transform"/>s generated by <paramref name="childGenerators"/> are appended to
-        /// this <see cref="TransformSequence{T}"/> and then repeated <paramref name="numIters"/> times
-        /// with <paramref name="pause"/> milliseconds between iterations.
+        /// Continues with a delay from the current time.
+        /// </summary>
+        /// <param name="delay">The amount of time to delay.</param>
+        public TransformSequence<T> Delay(double delay) => this with
+        {
+            currentTime = currentTime + delay
+        };
+
+        /// <summary>
+        /// Repeats all added transforms indefinitely.
+        /// </summary>
+        /// <param name="pause">The pause between iterations in milliseconds.</param>
+        public TransformSequence<T> Loop(double pause = 0)
+            => Loop(pause, -1);
+
+        /// <summary>
+        /// Repeats all added transforms.
         /// </summary>
         /// <param name="pause">The pause between iterations in milliseconds.</param>
         /// <param name="numIters">The number of iterations.</param>
-        /// <param name="childGenerators">The functions to generate the <see cref="TransformSequence{T}"/>s to be looped.</param>
-        /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
-        public TransformSequence<T> Loop(double pause, int numIters, params Generator[] childGenerators)
-        {
-            Append(o =>
-            {
-                var childSequence = new TransformSequence<T>(o);
-                childSequence.Append(childGenerators);
-                childSequence.Loop(pause, numIters);
-                return childSequence;
-            });
-
-            return this;
-        }
-
-        /// <summary>
-        /// Repeats all <see cref="Transform"/>s within this <see cref="TransformSequence{T}"/>
-        /// <paramref name="numIters"/> times with <paramref name="pause"/> milliseconds between iterations.
-        /// </summary>
-        /// <param name="pause">The pause between iterations in milliseconds.</param>
-        /// <param name="numIters">The number of iterations.</param>
-        /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
         public TransformSequence<T> Loop(double pause, int numIters)
         {
-            if (numIters < 1)
-                throw new InvalidOperationException($"May not {nameof(Loop)} for fewer than 1 iteration ({numIters} attempted).");
+            if (IsEmpty)
+                return this;
 
-            if (!hasEnd)
-                throw new InvalidOperationException($"Can not perform {nameof(Loop)} on an endless {nameof(TransformSequence<T>)}.");
+            Transform[] transformPool = ArrayPool<Transform>.Shared.Rent(length);
+            Span<Transform> transforms = transformPool[..length];
 
-            makeTransformsLooping(pause, numIters);
+            Transform it = transform;
 
-            return this;
-        }
-
-        /// <summary>
-        /// Append a looping <see cref="TransformSequence{T}"/> to this <see cref="TransformSequence{T}"/>.
-        /// All <see cref="Transform"/>s generated by <paramref name="childGenerators"/> are appended to
-        /// this <see cref="TransformSequence{T}"/> and then repeated indefinitely.
-        /// </summary>
-        /// <param name="childGenerators">The functions to generate the <see cref="TransformSequence{T}"/>s to be looped.</param>
-        /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
-        public TransformSequence<T> Loop(params Generator[] childGenerators) => Loop(0, childGenerators);
-
-        /// <summary>
-        /// Append a looping <see cref="TransformSequence{T}"/> to this <see cref="TransformSequence{T}"/>.
-        /// All <see cref="Transform"/>s generated by <paramref name="childGenerators"/> are appended to
-        /// this <see cref="TransformSequence{T}"/> and then repeated indefinitely with <paramref name="pause"/>
-        /// milliseconds between iterations.
-        /// </summary>
-        /// <param name="pause">The pause between iterations in milliseconds.</param>
-        /// <param name="childGenerators">The functions to generate the <see cref="TransformSequence{T}"/>s to be looped.</param>
-        /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
-        public TransformSequence<T> Loop(double pause, params Generator[] childGenerators)
-        {
-            Append(o =>
+            for (int i = length - 1; i >= 0; i--)
             {
-                var childSequence = new TransformSequence<T>(o);
-                childSequence.Append(childGenerators);
-                childSequence.Loop(pause);
-                return childSequence;
-            });
+                transforms[i] = it;
+                it = it.PreviousInSequence;
+            }
 
-            return this;
-        }
-
-        /// <summary>
-        /// Repeats all <see cref="Transform"/>s within this <see cref="TransformSequence{T}"/> indefinitely.
-        /// </summary>
-        /// <param name="pause">The pause between iterations in milliseconds.</param>
-        /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
-        public TransformSequence<T> Loop(double pause = 0)
-        {
-            if (!hasEnd)
-                throw new InvalidOperationException($"Can not perform {nameof(Loop)} on an endless {nameof(TransformSequence<T>)}.");
-
-            makeTransformsLooping(pause);
-
-            onLoopingTransform();
-            return this;
-        }
-
-        private void makeTransformsLooping(double pause, int numIters = -1)
-        {
             double iterDuration = endTime - startTime + pause;
 
             foreach (var t in transforms)
             {
-                var tmpOnAbort = t.AbortTargetSequence;
-                t.AbortTargetSequence = null;
-                t.TargetTransformable.RemoveTransform(t);
-                t.AbortTargetSequence = tmpOnAbort;
+                target.RemoveTransformNoAbort(t);
 
                 // Update start and end times such that no transformations need to be instantly
                 // looped right after they're added. This is required so that transforms can be
                 // inserted in the correct order such that none of them trigger abortions on
                 // each other due to instant re-sorting upon adding.
-                double currentTransformTime = t.TargetTransformable.Time.Current;
+                double currentTransformTime = target.Time.Current;
 
                 int pushForwardCount = 0;
 
@@ -331,126 +208,148 @@ namespace osu.Framework.Graphics.Transforms
             }
 
             // This sort is required such that no abortions happen.
-            var sortedTransforms = new List<Transform>(transforms);
-            sortedTransforms.Sort(Transform.COMPARER);
+            transforms.Sort(Transform.COMPARER);
 
-            foreach (var t in sortedTransforms)
+            foreach (var t in transforms)
             {
                 t.LoopDelay = iterDuration;
 
                 t.Applied = false;
                 t.AppliedToEnd = false; // we want to force a reprocess of this transform. it may have been applied-to-end in the Add, but not correctly looped as a result.
 
-                t.TargetTransformable.AddTransform(t, t.TransformID);
+                target.AddTransform(t);
             }
+
+            ArrayPool<Transform>.Shared.Return(transformPool);
+            return this;
         }
 
         /// <summary>
-        /// Advances the start time of future appended <see cref="TransformSequence{T}"/>s to the latest end time of all
-        /// <see cref="Transform"/>s in this <see cref="TransformSequence{T}"/>.
-        /// Then, <paramref name="childGenerators"/> are appended via <see cref="Append(IEnumerable{Generator})"/>.
+        /// Creates an empty branch from the current time.
         /// </summary>
-        /// <param name="childGenerators">The optional <see cref="Generator"/>s for <see cref="TransformSequence{T}"/>s to be appended.</param>
-        /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
-        public TransformSequence<T> Then(params Generator[] childGenerators) => Then(0, childGenerators);
-
-        /// <summary>
-        /// Advances the start time of future appended <see cref="TransformSequence{T}"/>s to the latest end time of all
-        /// <see cref="Transform"/>s in this <see cref="TransformSequence{T}"/> plus <paramref name="delay"/> milliseconds.
-        /// Then, <paramref name="childGenerators"/> are appended via <see cref="Append(IEnumerable{Generator})"/>.
-        /// </summary>
-        /// <param name="delay">The delay after the latest end time of all <see cref="Transform"/>s.</param>
-        /// <param name="childGenerators">The optional <see cref="Generator"/>s for <see cref="TransformSequence{T}"/>s to be appended.</param>
-        /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
-        public TransformSequence<T> Then(double delay, params Generator[] childGenerators)
+        public Branch CreateBranch() => new Branch(this with
         {
-            if (!hasEnd)
-                throw new InvalidOperationException($"Can not perform {nameof(Then)} on an endless {nameof(TransformSequence<T>)}.");
+            startTime = currentTime,
+            currentTime = currentTime,
+            endTime = currentTime,
+            length = 0
+        });
 
-            // "Then" simply sets the currentTime to endTime to continue where the last transform left off,
-            // followed by a subsequent delay call.
-            currentTime = endTime;
-            return Delay(delay, childGenerators);
-        }
-
-        /// <summary>
-        /// Advances the start time of future appended <see cref="TransformSequence{T}"/>s by <paramref name="delay"/> milliseconds.
-        /// Then, <paramref name="childGenerators"/> are appended via <see cref="Append(IEnumerable{Generator})"/>.
-        /// </summary>
-        /// <param name="delay">The delay to advance the start time by.</param>
-        /// <param name="childGenerators">The optional <see cref="Generator"/>s for <see cref="TransformSequence{T}"/>s to be appended.</param>
-        /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
-        public TransformSequence<T> Delay(double delay, params Generator[] childGenerators)
-        {
-            // After a delay statement, future transforms are appended after a currentTime which got offset by a delay.
-            currentTime += delay;
-            return Append(childGenerators);
-        }
-
-        /// <summary>
-        /// Registers a callback <paramref name="function"/> which is triggered once all <see cref="Transform"/>s in this
-        /// <see cref="TransformSequence{T}"/> complete successfully.
-        /// If all <see cref="Transform"/>s already completed successfully at the point of this call, then
-        /// <paramref name="function"/> is triggered immediately.
-        /// Only a single callback function may be registered.
-        /// </summary>
-        /// <param name="function">The callback function.</param>
-        public void OnComplete(Action<T> function)
-        {
-            if (!hasEnd)
-                throw new InvalidOperationException($"Can not perform {nameof(Then)} on an endless {nameof(TransformSequence<T>)}.");
-
-            subscribeComplete(() => function(origin));
-        }
-
-        /// <summary>
-        /// Registers a callback <paramref name="function"/> which is triggered once any <see cref="Transform"/> in this
-        /// <see cref="TransformSequence{T}"/> is aborted (e.g. by another <see cref="Transform"/> overriding it).
-        /// Only a single callback function may be registered.
-        /// </summary>
-        /// <param name="function">The callback function.</param>
-        public void OnAbort(Action<T> function) => subscribeAbort(() => function(origin));
-
-        /// <summary>
-        /// Registers a callback <paramref name="function"/> which is triggered once any <see cref="Transform"/> in this
-        /// <see cref="TransformSequence{T}"/> is aborted or when all <see cref="Transform"/>s complete successfully.
-        /// This is equivalent with calling both <see cref="OnComplete(Action{T})"/> and <see cref="OnAbort(Action{T})"/>.
-        /// Only a single callback function may be registered.
-        /// </summary>
-        /// <param name="function">The callback function.</param>
         public void Finally(Action<T> function)
         {
-            if (hasEnd)
-                OnComplete(function);
+            OnComplete(function);
             OnAbort(function);
         }
 
-        void ITransformSequence.TransformAborted()
+        public void OnComplete(Action<T> function)
         {
-            if (transforms.Count == 0)
-                return;
-
-            // No need for OnAbort events to trigger anymore, since
-            // we are already aware of the abortion.
-            foreach (var t in transforms)
-            {
-                t.AbortTargetSequence = null;
-                t.CompletionTargetSequence = null;
-
-                if (!t.HasStartValue)
-                    t.TargetTransformable.RemoveTransform(t);
-            }
-
-            transforms.Clear();
-            last = null;
-
-            onAbort?.Invoke();
+            T t = target;
+            getOrCreateEventHandler().OnComplete += () => function(t);
         }
 
-        void ITransformSequence.TransformCompleted()
+        public void OnAbort(Action<T> function)
         {
-            hasCompleted = true;
-            onComplete?.Invoke();
+            T t = target;
+            getOrCreateEventHandler().OnAbort += () => function(t);
+        }
+
+        private TransformSequenceEventHandler getOrCreateEventHandler()
+        {
+            if (target.GetTransformEventHandler(id) is not TransformSequenceEventHandler handler)
+                target.AddTransform(handler = new TransformSequenceEventHandler(target, id));
+            return handler;
+        }
+
+        public ref struct Branch
+        {
+            /// <summary>
+            /// The current head.
+            /// </summary>
+            public TransformSequence<T> Head { get; private set; }
+
+            /// <summary>
+            /// The sequence which this branch is based off.
+            /// </summary>
+            private readonly TransformSequence<T> root;
+
+            internal Branch(TransformSequence<T> root)
+            {
+                this.root = root;
+                Head = root;
+            }
+
+            /// <summary>
+            /// Appends a commit.
+            /// </summary>
+            /// <param name="head">The new head.</param>
+            public void Commit(TransformSequence<T> head)
+                => Head = head;
+
+            /// <summary>
+            /// Continues with the result of merging this branch into the original sequence.
+            /// </summary>
+            public TransformSequence<T> Merge() => root with
+            {
+                endTime = Math.Max(root.endTime, Head.endTime),
+                length = root.length + Head.length,
+                transform = Head.transform
+            };
+        }
+
+        public readonly struct Context(TransformSequence<T> sequence)
+        {
+            private readonly ulong id = sequence.id;
+            private readonly T target = sequence.target;
+            private readonly double startTime = sequence.startTime;
+            private readonly double currentTime = sequence.currentTime;
+            private readonly double endTime = sequence.endTime;
+            private readonly int length = sequence.length;
+            private readonly Transform? transform = sequence.transform;
+
+            public TransformSequence<T> Restore() => new TransformSequence<T>
+            {
+                id = id,
+                target = target,
+                startTime = startTime,
+                currentTime = currentTime,
+                endTime = endTime,
+                length = length,
+                transform = transform
+            };
+        }
+
+        /// <summary>
+        /// A delegate that generates a new <see cref="TransformSequence{T}"/> on a given <paramref name="origin"/>.
+        /// </summary>
+        /// <param name="origin">The origin to generate a <see cref="TransformSequence{T}"/> for.</param>
+        /// <returns>The generated <see cref="TransformSequence{T}"/>.</returns>
+        public delegate TransformSequence<T> Generator(T origin);
+    }
+
+    internal static class TransformSequenceHelpers
+    {
+        private static ulong id = 1;
+
+        public static ulong GetNextId()
+            => Interlocked.Increment(ref id);
+
+        public static void SaveContext<T>(TransformSequence<T>.Context context)
+            where T : class, ITransformable
+            => Context<T>.Current = context;
+
+        public static TransformSequence<T>.Context? ConsumeContext<T>()
+            where T : class, ITransformable
+        {
+            TransformSequence<T>.Context? context = Context<T>.Current;
+            Context<T>.Current = null;
+            return context;
+        }
+
+        private static class Context<T>
+            where T : class, ITransformable
+        {
+            [ThreadStatic]
+            public static TransformSequence<T>.Context? Current;
         }
     }
 }
