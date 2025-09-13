@@ -32,8 +32,19 @@ namespace osu.Framework.Graphics.UserInterface
 
         /// <summary>
         /// Whether parent dropdown <see cref="Dropdown{T}"/> should open/close on OnMouseDown event.
+        ///
+        /// If not explicitly set, the value will be resolved to <c>true</c>
+        /// if <see cref="IScrollContainer"/> is <b>not</b> found in the parent tree.
         /// </summary>
-        public bool ToggleOnMouseDown { get; set; }
+        public bool ToggleOnMouseDown
+        {
+            get => toggleOnMouseDownOverride ?? resolvedToggleOnMouseDown;
+            set => toggleOnMouseDownOverride = value;
+        }
+
+        private bool? toggleOnMouseDownOverride;
+
+        private bool resolvedToggleOnMouseDown;
 
         protected internal DropdownSearchBar SearchBar { get; }
 
@@ -116,6 +127,10 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
+            // Make dropdown toggleable on MouseDown event when inside a non-scrollable container
+            if (toggleOnMouseDownOverride == null)
+                resolvedToggleOnMouseDown = this.FindClosestParent<IScrollContainer>() == null;
 
             Enabled.BindTo(dropdown.Enabled);
             Enabled.BindValueChanged(_ => updateState(), true);

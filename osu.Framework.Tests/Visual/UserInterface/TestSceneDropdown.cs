@@ -12,6 +12,7 @@ using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
@@ -21,6 +22,7 @@ using osu.Framework.Localisation;
 using osu.Framework.Testing;
 using osu.Framework.Testing.Input;
 using osuTK;
+using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
@@ -39,6 +41,20 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 dropdowns.ForEach(dropdown => dropdown.ToggleOnMouseDown = toggleOnMouseDown);
                 dropdowns[1].AlwaysShowSearchBar = true;
             });
+        }
+
+        [Test]
+        public void TestInsideScrollContainer()
+        {
+            TestDropdown[] dropdowns = [];
+
+            AddStep("setup dropdowns", () =>
+            {
+                dropdowns = createDropdownInScrollableParentScene<TestDropdown>();
+            });
+
+            AddAssert("dropdown in scrollable has ToggleOnMouseDown set to false", () => dropdowns.ElementAt(0).ToggleOnMouseDown == false);
+            AddAssert("dropdown in non-scrollable has ToggleOnMouseDown set to true", () => dropdowns.ElementAt(1).ToggleOnMouseDown);
         }
 
         [Test]
@@ -850,6 +866,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     Position = new Vector2(50f, 50f),
                     Width = 150,
                     Items = testItems,
+                    ToggleOnMouseDown = false,
                 };
             }
 
@@ -863,6 +880,62 @@ namespace osu.Framework.Tests.Visual.UserInterface
             };
 
             return dropdowns;
+        }
+
+        private TDropdown[] createDropdownInScrollableParentScene<TDropdown>()
+            where TDropdown : TestDropdown, new()
+        {
+            var dropdowns = new TDropdown[2];
+            var testItems = new TestModel[10];
+            for (int itemIndex = 0; itemIndex < items_to_add; itemIndex++)
+                testItems[itemIndex] = "test " + itemIndex;
+
+            for (int i = 0; i < dropdowns.Length; i++)
+            {
+                dropdowns[i] = new TDropdown
+                {
+                    Width = 150f,
+                    Position = new Vector2(50f, 50f),
+                    Items = testItems,
+                };
+            }
+
+            var scrollable = createPanel(Color4.DarkRed, new BasicScrollContainer
+            {
+                RelativeSizeAxes = Axes.Both,
+                Child = dropdowns[0],
+            });
+
+            var nonScrollable = createPanel(Color4.DarkBlue, dropdowns[1]);
+
+            Child = new FillFlowContainer
+            {
+                RelativeSizeAxes = Axes.Both,
+                Direction = FillDirection.Horizontal,
+                Children =
+                [
+                    scrollable,
+                    nonScrollable,
+                ]
+            };
+
+            return dropdowns;
+
+            Container createPanel(Color4 colour, Drawable child)
+                => new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Width = 0.5f,
+                    Children =
+                    [
+                        new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = colour,
+                        },
+                        child,
+                    ]
+                };
         }
 
         private void toggleDropdownViaClick(Func<TestDropdown> dropdown, string? dropdownName = null) => AddStep($"click {dropdownName ?? "dropdown"}", () =>
