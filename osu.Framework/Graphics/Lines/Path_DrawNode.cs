@@ -43,12 +43,10 @@ namespace osu.Framework.Graphics.Lines
             {
                 base.ApplyState();
 
-                var bbh = Source.BBH;
-
                 segments.Clear();
-                segments.AddRange(bbh.Segments);
+                segments.AddRange(Source.BBH.Segments);
 
-                offset = bbh.VertexBounds.TopLeft;
+                offset = Source.BBH.VertexBounds.TopLeft;
 
                 texture = Source.Texture;
                 drawSize = Source.DrawSize;
@@ -274,9 +272,9 @@ namespace osu.Framework.Graphics.Lines
                 SegmentStartLocation modifiedLocation = SegmentStartLocation.Outside;
                 SegmentWithThickness? lastDrawnSegment = null;
 
-                for (int i = 0; i < segments.Count; i++)
+                foreach (var segment in segments)
                 {
-                    Line line = new Line(segments[i].StartPoint - offset, segments[i].EndPoint - offset);
+                    Line currentSegment = new Line(segment.StartPoint - offset, segment.EndPoint - offset);
 
                     if (segmentToDraw.HasValue)
                     {
@@ -285,26 +283,26 @@ namespace osu.Framework.Graphics.Lines
                         // If segment is too short, make its end point equal start point of a new segment
                         if (segmentToDrawLength < 1f)
                         {
-                            segmentToDraw = new Line(segmentToDraw.Value.StartPoint, line.EndPoint);
+                            segmentToDraw = new Line(segmentToDraw.Value.StartPoint, currentSegment.EndPoint);
                             continue;
                         }
 
-                        float progress = progressFor(segmentToDraw.Value, segmentToDrawLength, line.EndPoint);
+                        float progress = progressFor(segmentToDraw.Value, segmentToDrawLength, currentSegment.EndPoint);
                         Vector2 closest = segmentToDraw.Value.At(progress);
 
-                        // Expand segment if new segment end is located within a line passing through it
-                        if (Precision.AlmostEquals(closest, line.EndPoint, 0.1f))
+                        // Expand segment if next end point is located within a line passing through it
+                        if (Precision.AlmostEquals(closest, currentSegment.EndPoint, 0.1f))
                         {
                             if (progress < 0)
                             {
                                 // expand segment backwards
-                                segmentToDraw = new Line(line.EndPoint, segmentToDraw.Value.EndPoint);
+                                segmentToDraw = new Line(currentSegment.EndPoint, segmentToDraw.Value.EndPoint);
                                 modifiedLocation = SegmentStartLocation.Outside;
                             }
                             else if (progress > 1)
                             {
                                 // or forward
-                                segmentToDraw = new Line(segmentToDraw.Value.StartPoint, line.EndPoint);
+                                segmentToDraw = new Line(segmentToDraw.Value.StartPoint, currentSegment.EndPoint);
                             }
                         }
                         else // Otherwise draw the expanded segment
@@ -316,14 +314,14 @@ namespace osu.Framework.Graphics.Lines
                             lastDrawnSegment = s;
 
                             // Figure out at which point within currently drawn segment the new one starts
-                            float p = progressFor(segmentToDraw.Value, segmentToDrawLength, line.StartPoint);
-                            segmentToDraw = line;
+                            float p = progressFor(segmentToDraw.Value, segmentToDrawLength, currentSegment.StartPoint);
+                            segmentToDraw = currentSegment;
                             location = modifiedLocation = Precision.AlmostEquals(p, 1f) ? SegmentStartLocation.End : Precision.AlmostEquals(p, 0f) ? SegmentStartLocation.Start : SegmentStartLocation.Middle;
                         }
                     }
                     else
                     {
-                        segmentToDraw = line;
+                        segmentToDraw = currentSegment;
                     }
                 }
 
