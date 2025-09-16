@@ -4,6 +4,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Utils;
 using osuTK;
@@ -19,7 +20,7 @@ namespace osu.Framework.Graphics.Lines
         {
             get
             {
-                if (segmentCount > 0)
+                if (segmentCount > 0 && nodes != null)
                 {
                     for (int i = firstLeafIndex; i <= lastLeafIndex; i++)
                         yield return nodes[i].Segment!.Value;
@@ -30,12 +31,11 @@ namespace osu.Framework.Graphics.Lines
         public RectangleF VertexBounds { get; private set; } = RectangleF.Empty;
 
         private float radius;
-        private BBHNode[] nodes = null!;
+        private BBHNode[]? nodes;
         private int treeDepth;
         private int firstLeafIndex;
         private int lastLeafIndex;
         private int segmentCount;
-        private bool rented;
 
         public void SetVertices(IReadOnlyList<Vector2> vertices, float pathRadius)
         {
@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics.Lines
             firstLeafIndex = arrayLength - segmentCount;
             lastLeafIndex = arrayLength - 1;
 
-            if (rented)
+            if (nodes != null)
             {
                 if (nodes.Length < arrayLength)
                 {
@@ -74,7 +74,6 @@ namespace osu.Framework.Graphics.Lines
             else
             {
                 nodes = ArrayPool<BBHNode>.Shared.Rent(arrayLength);
-                rented = true;
             }
 
             switch (vertices.Count)
@@ -98,6 +97,8 @@ namespace osu.Framework.Graphics.Lines
 
         private void computeNodes(IReadOnlyList<Vector2> vertices)
         {
+            Debug.Assert(nodes != null);
+
             for (int i = 0; i < vertices.Count - 1; i++)
             {
                 var segment = new Line(vertices[i], vertices[i + 1]);
@@ -158,14 +159,14 @@ namespace osu.Framework.Graphics.Lines
         /// Whether any segment of a current path contains a given point.
         /// </summary>
         /// <param name="localPos">A point in local coordinates.</param>
-        public bool Contains(Vector2 localPos) => segmentCount > 0 && contains(localPos + VertexBounds.TopLeft, 0);
+        public bool Contains(Vector2 localPos) => segmentCount > 0 && nodes != null && contains(localPos + VertexBounds.TopLeft, 0);
 
         private bool contains(Vector2 position, int? index)
         {
             if (!index.HasValue)
                 return false;
 
-            BBHNode node = nodes[index.Value];
+            BBHNode node = nodes![index.Value];
 
             if (!node.Bounds.Contains(position))
                 return false;
@@ -180,7 +181,7 @@ namespace osu.Framework.Graphics.Lines
         {
             boxes.Clear();
 
-            if (segmentCount == 0)
+            if (segmentCount == 0 || nodes?.Length == 0)
                 return;
 
             collectBoundingBoxes(0, boxes);
@@ -191,7 +192,7 @@ namespace osu.Framework.Graphics.Lines
             if (!index.HasValue)
                 return;
 
-            BBHNode node = nodes[index.Value];
+            BBHNode node = nodes![index.Value];
 
             boxes.Add(new RectangleF(node.Bounds.TopLeft - VertexBounds.TopLeft, node.Bounds.Size));
 
@@ -213,7 +214,7 @@ namespace osu.Framework.Graphics.Lines
 
         public void Dispose()
         {
-            if (rented)
+            if (nodes != null)
                 ArrayPool<BBHNode>.Shared.Return(nodes);
 
             GC.SuppressFinalize(this);
