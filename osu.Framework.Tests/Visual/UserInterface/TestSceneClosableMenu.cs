@@ -112,7 +112,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             bool itemClicked = false;
             bool actionReceived = false;
 
-            AddStep("set item action", () => Menus.GetSubMenu(0).Items[0].Items[0].Action.Value = () => itemClicked = true);
+            AddStep("set item action", () => Menus.GetSubMenu(0).Items.ElementAt(0).Items[0].Action.Value = () => itemClicked = true);
             AddStep("add mouse handler", () => Add(new MouseHandlingLayer
             {
                 Action = () => actionReceived = true,
