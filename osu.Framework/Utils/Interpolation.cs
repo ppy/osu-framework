@@ -33,6 +33,21 @@ namespace osu.Framework.Utils
         }
 
         /// <summary>
+        /// Interpolates between 2 vectors (start and final) using a given base and exponent.
+        /// </summary>
+        /// <param name="start">The start value.</param>
+        /// <param name="final">The end value.</param>
+        /// <param name="base">The base of the exponential. The valid range is [0, 1], where smaller values mean that the final value is achieved more quickly, and values closer to 1 results in slow convergence to the final value.</param>
+        /// <param name="exponent">The exponent of the exponential. An exponent of 0 results in the start values, whereas larger exponents make the result converge to the final value.</param>
+        public static Vector2 Damp(Vector2 start, Vector2 final, double @base, double exponent)
+        {
+            if (@base < 0 || @base > 1)
+                throw new ArgumentOutOfRangeException(nameof(@base), $"{nameof(@base)} has to lie in [0,1], but is {@base}.");
+
+            return Vector2.Lerp(start, final, (float)(1 - Math.Pow(@base, exponent)));
+        }
+
+        /// <summary>
         /// Interpolate the current value towards the target value based on the elapsed time.
         /// If the current value is updated every frame using this function, the result is approximately frame-rate independent.
         /// </summary>
@@ -45,6 +60,24 @@ namespace osu.Framework.Utils
         /// <param name="halfTime">The time it takes to reach the middle value of the current and the target value.</param>
         /// <param name="elapsedTime">The elapsed time of the current frame.</param>
         public static double DampContinuously(double current, double target, double halfTime, double elapsedTime)
+        {
+            double exponent = elapsedTime / halfTime;
+            return Damp(current, target, 0.5, exponent);
+        }
+
+        /// <summary>
+        /// Interpolate the current value towards the target value based on the elapsed time.
+        /// If the current value is updated every frame using this function, the result is approximately frame-rate independent.
+        /// </summary>
+        /// <remarks>
+        /// Because floating-point errors can accumulate over a long time, this function shouldn't be
+        /// used for things requiring accurate values.
+        /// </remarks>
+        /// <param name="current">The current value.</param>
+        /// <param name="target">The target value.</param>
+        /// <param name="halfTime">The time it takes to reach the middle value of the current and the target value.</param>
+        /// <param name="elapsedTime">The elapsed time of the current frame.</param>
+        public static Vector2 DampContinuously(Vector2 current, Vector2 target, double halfTime, double elapsedTime)
         {
             double exponent = elapsedTime / halfTime;
             return Damp(current, target, 0.5, exponent);
