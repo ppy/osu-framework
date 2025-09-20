@@ -45,10 +45,10 @@ namespace osu.Framework.Graphics.Primitives
 
         public override readonly bool Equals(object obj)
         {
-            if (!(obj is Vector2I))
+            if (!(obj is Vector2I i))
                 return false;
 
-            return Equals((Vector2I)obj);
+            return Equals(i);
         }
 
         [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
