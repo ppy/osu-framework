@@ -846,12 +846,14 @@ namespace osu.Framework.IO.Network
 
         private static async ValueTask<Stream> attemptConnection(AddressFamily addressFamily, SocketsHttpConnectionContext context, CancellationToken cancellationToken)
         {
-            // The following socket constructor will create a dual-mode socket on systems where IPV6 is available.
             var socket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp)
             {
                 // Turn off Nagle's algorithm since it degrades performance in most HttpClient scenarios.
-                NoDelay = true
+                NoDelay = true,
             };
+
+            if (addressFamily == AddressFamily.InterNetworkV6)
+                socket.DualMode = true;
 
             try
             {
