@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# ensure we're running from the correct directory (location of this file).
+cd "$(dirname "$0")"
+
 # bass
 curl -Lso bass.zip https://www.un4seen.com/stuff/bass.zip
 unzip -qjo bass.zip x64/bass.dll -d runtimes/win-x64/native/
