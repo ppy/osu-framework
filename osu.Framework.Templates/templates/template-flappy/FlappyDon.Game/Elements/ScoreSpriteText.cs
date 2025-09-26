@@ -45,7 +45,7 @@ namespace FlappyDon.Game.Elements
                 this.textures = textures;
             }
 
-            public ITexturedCharacterGlyph Get(string fontName, char character)
+            public ITexturedCharacterGlyph Get(string fontName, Grapheme character)
             {
                 var texture = textures.Get($"{character}");
 
@@ -56,7 +56,7 @@ namespace FlappyDon.Game.Elements
                     texture.Width, 0, null), texture, 0.09f);
             }
 
-            public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => Task.Run(() => Get(fontName, character));
+            public Task<ITexturedCharacterGlyph> GetAsync(string fontName, Grapheme character) => Task.Run(() => Get(fontName, character));
         }
     }
 }
