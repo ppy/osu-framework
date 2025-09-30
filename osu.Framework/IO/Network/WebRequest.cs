@@ -509,7 +509,7 @@ namespace osu.Framework.IO.Network
                 switch (e)
                 {
                     case WebException we:
-                        wasTimeout = we?.Status == WebExceptionStatus.Timeout;
+                        wasTimeout = we.Status == WebExceptionStatus.Timeout;
                         break;
 
                     case HttpRequestException hre:
