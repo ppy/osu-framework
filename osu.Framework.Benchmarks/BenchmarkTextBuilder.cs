@@ -35,6 +35,14 @@ namespace osu.Framework.Benchmarks
             textBuilder.RemoveLastCharacter();
         }
 
+        [Benchmark]
+        public void AddText()
+        {
+            textBuilder = new TextBuilder(store, FontUsage.Default);
+            textBuilder.AddText(
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.");
+        }
+
         private void initialiseBuilder(bool withDifferentBaselines)
         {
             textBuilder = new TextBuilder(store, FontUsage.Default);
@@ -42,16 +50,16 @@ namespace osu.Framework.Benchmarks
             char different = 'B';
 
             for (int i = 0; i < 100; i++)
-                textBuilder.AddCharacter(withDifferentBaselines && (i % 10 == 0) ? different++ : 'A');
+                textBuilder.AddCharacter(new Grapheme(withDifferentBaselines && (i % 10 == 0) ? different++ : 'A'));
         }
 
         private class TestStore : ITexturedGlyphLookupStore
         {
-            public ITexturedCharacterGlyph Get(string? fontName, char character) => new TexturedCharacterGlyph(
-                new CharacterGlyph(character, character, character, character, character, null),
+            public ITexturedCharacterGlyph Get(string? fontName, Grapheme character) => new TexturedCharacterGlyph(
+                new CharacterGlyph(character, character.CharValue, character.CharValue, character.CharValue, character.CharValue, null),
                 new DummyRenderer().CreateTexture(1, 1));
 
-            public Task<ITexturedCharacterGlyph?> GetAsync(string fontName, char character) => Task.Run<ITexturedCharacterGlyph?>(() => Get(fontName, character));
+            public Task<ITexturedCharacterGlyph?> GetAsync(string fontName, Grapheme character) => Task.Run<ITexturedCharacterGlyph?>(() => Get(fontName, character));
         }
     }
 }
