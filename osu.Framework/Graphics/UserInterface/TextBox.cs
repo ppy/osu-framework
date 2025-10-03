@@ -1354,7 +1354,7 @@ namespace osu.Framework.Graphics.UserInterface
             onTextSelectionChanged(doubleClickWord != null ? TextSelectionType.Word : TextSelectionType.Character, lastSelectionBounds);
         }
 
-        private double? lastDoubleClickTime = null;
+        private double? lastDoubleClickTime;
 
         protected override bool OnDoubleClick(DoubleClickEvent e)
         {
