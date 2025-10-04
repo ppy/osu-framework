@@ -6,11 +6,14 @@
 using System;
 using System.Runtime.InteropServices;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transforms;
+using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -101,6 +104,8 @@ namespace osu.Framework.Graphics.UserInterface
             protected float TexelSize { get; private set; }
             protected bool RoundedCaps { get; private set; }
 
+            private Vector2 drawSize;
+
             public override void ApplyState()
             {
                 base.ApplyState();
@@ -108,19 +113,126 @@ namespace osu.Framework.Graphics.UserInterface
                 InnerRadius = Source.innerRadius;
                 Progress = Math.Abs((float)Source.progress);
                 RoundedCaps = Source.roundedCaps;
+                drawSize = Source.DrawSize;
 
                 // smoothstep looks too sharp with 1px, let's give it a bit more
                 TexelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
             }
 
             private IUniformBuffer<CircularProgressParameters> parametersBuffer;
+            private IVertexBatch<TexturedVertex2D> vertexBatch;
 
             protected override void Blit(IRenderer renderer)
             {
                 if (InnerRadius == 0 || (!RoundedCaps && Progress == 0))
                     return;
 
-                base.Blit(renderer);
+                // Draw a simple box in case when circle is filled
+                if (InnerRadius == 1)
+                {
+                    base.Blit(renderer);
+                    return;
+                }
+
+                drawTriangulatedShape(renderer);
+            }
+
+            // Even though it's possible to adjust segment count based on thickness and/or progress value
+            // we are not doing so to avoid creating new vertex batches on said changes.
+            // Segment count has been chosen to increase fps and decrease gpu usage as much as possible
+            // by using results from TestSceneCircularProgressRingsPerformance.
+            private const int segment_count = 20;
+
+            private void drawTriangulatedShape(IRenderer renderer)
+            {
+                if (!renderer.BindTexture(Texture))
+                    return;
+
+                vertexBatch ??= renderer.CreateLinearBatch<TexturedVertex2D>(segment_count * 4 + 1, 1, PrimitiveTopology.TriangleStrip);
+
+                float angleDiff = float.DegreesToRadians(360f / (segment_count * 2));
+
+                Vector2 outer = new Vector2(0.5f, 0);
+                Vector2 inner = new Vector2(0.5f, InnerRadius * 0.5f + 1.5f / ScreenSpaceDrawQuad.Size.X);
+                Vector2 mid = new Vector2(0.5f, 0.5f - 0.5f / MathF.Cos(angleDiff));
+                Vector2 origin = new Vector2(0.5f);
+
+                float angle = 0f;
+                float sin = MathF.Sin(angle);
+                float cos = MathF.Cos(angle);
+
+                RectangleF texRect = Texture.GetTextureRect();
+                Vector2 relativePos = rotateAround(outer, origin, sin, cos);
+
+                vertexBatch?.AddAction(new TexturedVertex2D(renderer)
+                {
+                    Position = toScreenSpace(relativePos, drawSize, DrawInfo.Matrix),
+                    Colour = DrawColourInfo.Colour.Interpolate(relativePos).SRGB,
+                    TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                    TexturePosition = getTexturePosition(relativePos, texRect)
+                });
+
+                for (int i = 0; i < segment_count; i++)
+                {
+                    relativePos = rotateAround(inner, origin, sin, cos);
+
+                    vertexBatch?.AddAction(new TexturedVertex2D(renderer)
+                    {
+                        Position = toScreenSpace(relativePos, drawSize, DrawInfo.Matrix),
+                        Colour = DrawColourInfo.Colour.Interpolate(relativePos).SRGB,
+                        TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                        TexturePosition = getTexturePosition(relativePos, texRect)
+                    });
+
+                    angle += angleDiff;
+                    sin = MathF.Sin(angle);
+                    cos = MathF.Cos(angle);
+                    relativePos = rotateAround(mid, origin, sin, cos);
+
+                    vertexBatch?.AddAction(new TexturedVertex2D(renderer)
+                    {
+                        Position = toScreenSpace(relativePos, drawSize, DrawInfo.Matrix),
+                        Colour = DrawColourInfo.Colour.Interpolate(relativePos).SRGB,
+                        TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                        TexturePosition = getTexturePosition(relativePos, texRect)
+                    });
+
+                    angle += angleDiff;
+                    sin = MathF.Sin(angle);
+                    cos = MathF.Cos(angle);
+                    relativePos = rotateAround(inner, origin, sin, cos);
+
+                    vertexBatch?.AddAction(new TexturedVertex2D(renderer)
+                    {
+                        Position = toScreenSpace(relativePos, drawSize, DrawInfo.Matrix),
+                        Colour = DrawColourInfo.Colour.Interpolate(relativePos).SRGB,
+                        TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                        TexturePosition = getTexturePosition(relativePos, texRect)
+                    });
+
+                    relativePos = rotateAround(outer, origin, sin, cos);
+                    vertexBatch?.AddAction(new TexturedVertex2D(renderer)
+                    {
+                        Position = toScreenSpace(relativePos, drawSize, DrawInfo.Matrix),
+                        Colour = DrawColourInfo.Colour.Interpolate(relativePos).SRGB,
+                        TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                        TexturePosition = getTexturePosition(relativePos, texRect)
+                    });
+                }
+            }
+
+            private static Vector2 getTexturePosition(Vector2 relativePos, RectangleF textureRect)
+                => new Vector2(textureRect.Left + textureRect.Width * relativePos.X, textureRect.Top + textureRect.Height * relativePos.Y);
+
+            private static Vector2 toScreenSpace(Vector2 relativePos, Vector2 drawSize, Matrix3 matrix)
+                => Vector2Extensions.Transform(relativePos * drawSize, matrix);
+
+            private static Vector2 rotateAround(Vector2 input, Vector2 origin, float sin, float cos)
+            {
+                float xTranslated = input.X - origin.X;
+                float yTranslated = input.Y - origin.Y;
+
+                return new Vector2(xTranslated * cos - yTranslated * sin, xTranslated * sin + yTranslated * cos) + origin;
             }
 
             protected override void BindUniformResources(IShader shader, IRenderer renderer)
@@ -145,6 +257,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 base.Dispose(isDisposing);
                 parametersBuffer?.Dispose();
+                vertexBatch?.Dispose();
             }
 
             [StructLayout(LayoutKind.Sequential, Pack = 1)]
