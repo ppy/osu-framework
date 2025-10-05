@@ -104,7 +104,15 @@ namespace osu.Framework.Graphics.UserInterface
             protected float TexelSize { get; private set; }
             protected bool RoundedCaps { get; private set; }
 
+            // Even though it's possible to adjust segment count based on thickness and/or progress value
+            // we are not doing so to avoid creating new vertex batches on said changes.
+            // Segment count has been chosen to increase fps and decrease gpu usage as much as possible
+            // by using results from TestSceneCircularProgressRingsPerformance.
+            private const int segment_count = 20;
+            private const int vertex_count = (segment_count + 1) * 2;
+
             private Vector2 drawSize;
+            private RectangleF tRect;
 
             public override void ApplyState()
             {
@@ -117,6 +125,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 // smoothstep looks too sharp with 1px, let's give it a bit more
                 TexelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
+                tRect = Texture.GetTextureRect();
             }
 
             private IUniformBuffer<CircularProgressParameters> parametersBuffer;
@@ -127,8 +136,8 @@ namespace osu.Framework.Graphics.UserInterface
                 if (InnerRadius == 0 || (!RoundedCaps && Progress == 0))
                     return;
 
-                // Draw a simple box in case when circle is filled
-                if (InnerRadius == 1)
+                // Don't triangulate in case when circle is almost filled
+                if (InnerRadius > 0.95f)
                 {
                     base.Blit(renderer);
                     return;
@@ -137,70 +146,43 @@ namespace osu.Framework.Graphics.UserInterface
                 drawTriangulatedShape(renderer);
             }
 
-            // Even though it's possible to adjust segment count based on thickness and/or progress value
-            // we are not doing so to avoid creating new vertex batches on said changes.
-            // Segment count has been chosen to increase fps and decrease gpu usage as much as possible
-            // by using results from TestSceneCircularProgressRingsPerformance.
-            private const int segment_count = 20;
-
             private void drawTriangulatedShape(IRenderer renderer)
             {
                 if (!renderer.BindTexture(Texture))
                     return;
 
-                vertexBatch ??= renderer.CreateLinearBatch<TexturedVertex2D>((segment_count + 1) * 2, 1, PrimitiveTopology.TriangleStrip);
-
-                RectangleF texRect = Texture.GetTextureRect();
+                vertexBatch ??= renderer.CreateLinearBatch<TexturedVertex2D>(vertex_count, 1, PrimitiveTopology.TriangleStrip);
 
                 float angleDiff = float.DegreesToRadians(360f / (segment_count * 2));
-
                 Vector2 outer = new Vector2(0.5f, 0.5f - 0.5f / MathF.Cos(angleDiff));
-                Vector2 inner = new Vector2(0.5f, InnerRadius * 0.5f + 1.5f / ScreenSpaceDrawQuad.Size.X);
+                Vector2 inner = new Vector2(0.5f, Math.Min(Math.Max(InnerRadius * 0.5f + TexelSize, TexelSize * 2), 0.5f));
                 Vector2 origin = new Vector2(0.5f);
 
                 float angle = 0;
-                float sin = MathF.Sin(angle);
-                float cos = MathF.Cos(angle);
-                Vector2 relativePos = rotateAround(inner, origin, sin, cos);
+                bool isInnerVertex = true;
 
-                for (int i = 0; i <= segment_count; i++)
+                for (int i = 0; i < vertex_count; i++)
                 {
-                    vertexBatch?.AddAction(new TexturedVertex2D(renderer)
-                    {
-                        Position = toScreenSpace(relativePos, drawSize, DrawInfo.Matrix),
-                        Colour = DrawColourInfo.Colour.Interpolate(relativePos).SRGB,
-                        TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
-                        TexturePosition = getTexturePosition(relativePos, texRect)
-                    });
-
-                    angle += angleDiff;
-                    sin = MathF.Sin(angle);
-                    cos = MathF.Cos(angle);
-                    relativePos = rotateAround(outer, origin, sin, cos);
+                    Vector2 relativePos = rotateAround(isInnerVertex ? inner : outer, origin, angle);
 
                     vertexBatch?.AddAction(new TexturedVertex2D(renderer)
                     {
-                        Position = toScreenSpace(relativePos, drawSize, DrawInfo.Matrix),
+                        Position = Vector2Extensions.Transform(relativePos * drawSize, DrawInfo.Matrix),
                         Colour = DrawColourInfo.Colour.Interpolate(relativePos).SRGB,
-                        TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
-                        TexturePosition = getTexturePosition(relativePos, texRect)
+                        TextureRect = new Vector4(tRect.Left, tRect.Top, tRect.Right, tRect.Bottom),
+                        TexturePosition = new Vector2(tRect.Left + tRect.Width * relativePos.X, tRect.Top + tRect.Height * relativePos.Y)
                     });
 
                     angle += angleDiff;
-                    sin = MathF.Sin(angle);
-                    cos = MathF.Cos(angle);
-                    relativePos = rotateAround(inner, origin, sin, cos);
+                    isInnerVertex = !isInnerVertex;
                 }
             }
 
-            private static Vector2 getTexturePosition(Vector2 relativePos, RectangleF textureRect)
-                => new Vector2(textureRect.Left + textureRect.Width * relativePos.X, textureRect.Top + textureRect.Height * relativePos.Y);
-
-            private static Vector2 toScreenSpace(Vector2 relativePos, Vector2 drawSize, Matrix3 matrix)
-                => Vector2Extensions.Transform(relativePos * drawSize, matrix);
-
-            private static Vector2 rotateAround(Vector2 input, Vector2 origin, float sin, float cos)
+            private static Vector2 rotateAround(Vector2 input, Vector2 origin, float angle)
             {
+                float sin = MathF.Sin(angle);
+                float cos = MathF.Cos(angle);
+
                 float xTranslated = input.X - origin.X;
                 float yTranslated = input.Y - origin.Y;
 
