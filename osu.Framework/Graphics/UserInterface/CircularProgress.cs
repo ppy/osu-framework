@@ -148,34 +148,23 @@ namespace osu.Framework.Graphics.UserInterface
                 if (!renderer.BindTexture(Texture))
                     return;
 
-                vertexBatch ??= renderer.CreateLinearBatch<TexturedVertex2D>(segment_count * 4 + 1, 1, PrimitiveTopology.TriangleStrip);
+                vertexBatch ??= renderer.CreateLinearBatch<TexturedVertex2D>((segment_count + 1) * 2, 1, PrimitiveTopology.TriangleStrip);
+
+                RectangleF texRect = Texture.GetTextureRect();
 
                 float angleDiff = float.DegreesToRadians(360f / (segment_count * 2));
 
-                Vector2 outer = new Vector2(0.5f, 0);
+                Vector2 outer = new Vector2(0.5f, 0.5f - 0.5f / MathF.Cos(angleDiff));
                 Vector2 inner = new Vector2(0.5f, InnerRadius * 0.5f + 1.5f / ScreenSpaceDrawQuad.Size.X);
-                Vector2 mid = new Vector2(0.5f, 0.5f - 0.5f / MathF.Cos(angleDiff));
                 Vector2 origin = new Vector2(0.5f);
 
-                float angle = 0f;
+                float angle = 0;
                 float sin = MathF.Sin(angle);
                 float cos = MathF.Cos(angle);
+                Vector2 relativePos = rotateAround(inner, origin, sin, cos);
 
-                RectangleF texRect = Texture.GetTextureRect();
-                Vector2 relativePos = rotateAround(outer, origin, sin, cos);
-
-                vertexBatch?.AddAction(new TexturedVertex2D(renderer)
+                for (int i = 0; i <= segment_count; i++)
                 {
-                    Position = toScreenSpace(relativePos, drawSize, DrawInfo.Matrix),
-                    Colour = DrawColourInfo.Colour.Interpolate(relativePos).SRGB,
-                    TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
-                    TexturePosition = getTexturePosition(relativePos, texRect)
-                });
-
-                for (int i = 0; i < segment_count; i++)
-                {
-                    relativePos = rotateAround(inner, origin, sin, cos);
-
                     vertexBatch?.AddAction(new TexturedVertex2D(renderer)
                     {
                         Position = toScreenSpace(relativePos, drawSize, DrawInfo.Matrix),
@@ -187,30 +176,8 @@ namespace osu.Framework.Graphics.UserInterface
                     angle += angleDiff;
                     sin = MathF.Sin(angle);
                     cos = MathF.Cos(angle);
-                    relativePos = rotateAround(mid, origin, sin, cos);
-
-                    vertexBatch?.AddAction(new TexturedVertex2D(renderer)
-                    {
-                        Position = toScreenSpace(relativePos, drawSize, DrawInfo.Matrix),
-                        Colour = DrawColourInfo.Colour.Interpolate(relativePos).SRGB,
-                        TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
-                        TexturePosition = getTexturePosition(relativePos, texRect)
-                    });
-
-                    angle += angleDiff;
-                    sin = MathF.Sin(angle);
-                    cos = MathF.Cos(angle);
-                    relativePos = rotateAround(inner, origin, sin, cos);
-
-                    vertexBatch?.AddAction(new TexturedVertex2D(renderer)
-                    {
-                        Position = toScreenSpace(relativePos, drawSize, DrawInfo.Matrix),
-                        Colour = DrawColourInfo.Colour.Interpolate(relativePos).SRGB,
-                        TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
-                        TexturePosition = getTexturePosition(relativePos, texRect)
-                    });
-
                     relativePos = rotateAround(outer, origin, sin, cos);
+
                     vertexBatch?.AddAction(new TexturedVertex2D(renderer)
                     {
                         Position = toScreenSpace(relativePos, drawSize, DrawInfo.Matrix),
@@ -218,6 +185,11 @@ namespace osu.Framework.Graphics.UserInterface
                         TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                         TexturePosition = getTexturePosition(relativePos, texRect)
                     });
+
+                    angle += angleDiff;
+                    sin = MathF.Sin(angle);
+                    cos = MathF.Cos(angle);
+                    relativePos = rotateAround(inner, origin, sin, cos);
                 }
             }
 
