@@ -110,6 +110,7 @@ namespace osu.Framework.Graphics.UserInterface
             // by using results from TestSceneCircularProgressRingsPerformance.
             private const int segment_count = 20;
             private const int vertex_count = (segment_count + 1) * 2;
+            private static readonly float angle_delta = float.DegreesToRadians(360f / (segment_count * 2));
 
             private Vector2 drawSize;
             private RectangleF tRect;
@@ -153,8 +154,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 vertexBatch ??= renderer.CreateLinearBatch<TexturedVertex2D>(vertex_count, 1, PrimitiveTopology.TriangleStrip);
 
-                float angleDiff = float.DegreesToRadians(360f / (segment_count * 2));
-                Vector2 outer = new Vector2(0.5f, 0.5f - 0.5f / MathF.Cos(angleDiff));
+                Vector2 outer = new Vector2(0.5f, 0.5f - 0.5f / MathF.Cos(angle_delta));
                 Vector2 inner = new Vector2(0.5f, Math.Min(Math.Max(InnerRadius * 0.5f + TexelSize, TexelSize * 2), 0.5f));
                 Vector2 origin = new Vector2(0.5f);
 
@@ -173,7 +173,7 @@ namespace osu.Framework.Graphics.UserInterface
                         TexturePosition = new Vector2(tRect.Left + tRect.Width * relativePos.X, tRect.Top + tRect.Height * relativePos.Y)
                     });
 
-                    angle += angleDiff;
+                    angle += angle_delta;
                     isInnerVertex = !isInnerVertex;
                 }
             }
