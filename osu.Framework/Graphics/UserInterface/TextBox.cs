@@ -66,11 +66,6 @@ namespace osu.Framework.Graphics.UserInterface
         bool ICanSuppressKeyEventLogging.SuppressKeyEventLogging => InputProperties.Type.IsPassword();
 
         /// <summary>
-        /// The maximum time between a double-click and a subsequent click for a triple-click to be considered.
-        /// </summary>
-        public virtual float TripleClickTime => 250;
-
-        /// <summary>
         /// Represents the left/right selection coordinates of the word double clicked on when dragging.
         /// </summary>
         private int[] doubleClickWord;
@@ -1405,6 +1400,8 @@ namespace osu.Framework.Graphics.UserInterface
             return -1;
         }
 
+        private float tripleClickTime;
+
         protected override bool OnMouseDown(MouseDownEvent e)
         {
             if (ReadOnly)
@@ -1414,7 +1411,9 @@ namespace osu.Framework.Graphics.UserInterface
 
             var lastSelectionBounds = getTextSelectionBounds();
 
-            if (lastDoubleClickTime != null && Time.Current - lastDoubleClickTime < TripleClickTime)
+            tripleClickTime = GetContainingInputManager().AsNonNull().GetButtonEventManagerFor(e.Button).DoubleClickTime;
+
+            if (lastDoubleClickTime != null && Time.Current - lastDoubleClickTime < tripleClickTime)
             {
                 lastDoubleClickTime = null;
 
