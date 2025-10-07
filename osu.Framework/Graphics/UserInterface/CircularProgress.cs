@@ -161,13 +161,15 @@ namespace osu.Framework.Graphics.UserInterface
                 float angle = 0;
                 bool isInnerVertex = true;
 
+                renderer.PushLocalMatrix(DrawInfo.Matrix);
+
                 for (int i = 0; i < vertex_count; i++)
                 {
                     Vector2 relativePos = rotateAround(isInnerVertex ? inner : outer, origin, angle);
 
-                    vertexBatch?.AddAction(new TexturedVertex2D(renderer)
+                    vertexBatch?.Add(new TexturedVertex2D(renderer)
                     {
-                        Position = Vector2Extensions.Transform(relativePos * drawSize, DrawInfo.Matrix),
+                        Position = relativePos * drawSize,
                         Colour = DrawColourInfo.Colour.Interpolate(relativePos).SRGB,
                         TextureRect = new Vector4(tRect.Left, tRect.Top, tRect.Right, tRect.Bottom),
                         TexturePosition = new Vector2(tRect.Left + tRect.Width * relativePos.X, tRect.Top + tRect.Height * relativePos.Y)
@@ -176,6 +178,8 @@ namespace osu.Framework.Graphics.UserInterface
                     angle += angle_delta;
                     isInnerVertex = !isInnerVertex;
                 }
+
+                renderer.PopLocalMatrix();
             }
 
             private static Vector2 rotateAround(Vector2 input, Vector2 origin, float angle)
