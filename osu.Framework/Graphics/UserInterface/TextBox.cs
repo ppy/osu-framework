@@ -1421,7 +1421,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
 
-                return false;
+                return true;
             }
 
             selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
