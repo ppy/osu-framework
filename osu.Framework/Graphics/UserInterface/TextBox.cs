@@ -868,6 +868,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             selectionStart = selectionEnd = removeStart;
             doubleClickWord = null;
+            tripleClickOngoing = false;
 
             endTextChange(beganChange);
             cursorAndLayout.Invalidate();
@@ -1308,7 +1309,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             FinalizeImeComposition(true);
 
-            if (ignoreOngoingDragSelection)
+            if (ignoreOngoingDragSelection || tripleClickOngoing)
                 return;
 
             var lastSelectionBounds = getTextSelectionBounds();
@@ -1402,6 +1403,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private float tripleClickTime;
 
+        private bool tripleClickOngoing;
+
         protected override bool OnMouseDown(MouseDownEvent e)
         {
             if (ReadOnly)
@@ -1421,6 +1424,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                 onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
 
+                tripleClickOngoing = true;
+
                 return true;
             }
 
@@ -1436,6 +1441,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void OnMouseUp(MouseUpEvent e)
         {
             doubleClickWord = null;
+            tripleClickOngoing = false;
         }
 
         protected override void OnFocusLost(FocusLostEvent e)
