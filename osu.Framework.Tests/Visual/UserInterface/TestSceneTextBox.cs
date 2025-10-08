@@ -949,6 +949,16 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddWaitStep("wait to fail triple click", 2);
             AddStep("third click", () => InputManager.Click(MouseButton.Left));
             AddAssert("no text selected", () => textBox.SelectedText, () => Is.EqualTo(string.Empty));
+
+            AddStep("triple click drag", () =>
+            {
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+                InputManager.PressButton(MouseButton.Left);
+            });
+            AddStep("start drag", () => InputManager.MoveMouseTo(textBox.ScreenSpaceDrawQuad.TopLeft - new Vector2(200f, 0f)));
+            AddStep("end drag", () => InputManager.ReleaseButton(MouseButton.Left));
+            AddAssert("all text selected", () => textBox.SelectedText, () => Is.EqualTo(textBox.Text));
         }
 
         [Test]
