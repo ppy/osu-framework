@@ -26,7 +26,7 @@ namespace osu.Framework.Audio.Sample
         /// <summary>
         /// Whether this <see cref="ISample"/> is fully loaded.
         /// </summary>
-        public bool IsLoaded { get; }
+        bool IsLoaded { get; }
 
         /// <summary>
         /// The number of times this sample (as identified by name) can be played back concurrently.
