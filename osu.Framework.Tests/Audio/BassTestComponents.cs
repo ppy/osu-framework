@@ -8,7 +8,6 @@ using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 using osu.Framework.IO.Stores;
-using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Audio
 {
@@ -42,7 +41,7 @@ namespace osu.Framework.Tests.Audio
 
         public void Init()
         {
-            AudioThread.PreloadBass();
+            BassAudioManager.PreloadBass();
 
             // Initialize bass with no audio to make sure the test remains consistent even if there is no audio device.
             Bass.Configure(ManagedBass.Configuration.UpdatePeriod, 5);
