@@ -868,7 +868,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             selectionStart = selectionEnd = removeStart;
             doubleClickWord = null;
-            tripleClickOngoing = false;
 
             endTextChange(beganChange);
             cursorAndLayout.Invalidate();
