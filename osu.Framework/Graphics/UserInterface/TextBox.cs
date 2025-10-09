@@ -1401,8 +1401,6 @@ namespace osu.Framework.Graphics.UserInterface
             return -1;
         }
 
-        private float tripleClickTime;
-
         private bool tripleClickOngoing;
 
         protected override bool OnMouseDown(MouseDownEvent e)
@@ -1414,7 +1412,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             var lastSelectionBounds = getTextSelectionBounds();
 
-            tripleClickTime = GetContainingInputManager().AsNonNull().GetButtonEventManagerFor(e.Button).DoubleClickTime;
+            var tripleClickTime = GetContainingInputManager().AsNonNull().GetButtonEventManagerFor(e.Button).DoubleClickTime;
 
             if (lastDoubleClickTime != null && Time.Current - lastDoubleClickTime < tripleClickTime)
             {
