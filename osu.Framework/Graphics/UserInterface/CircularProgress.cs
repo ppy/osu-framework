@@ -6,11 +6,14 @@
 using System;
 using System.Runtime.InteropServices;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transforms;
+using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -101,6 +104,17 @@ namespace osu.Framework.Graphics.UserInterface
             protected float TexelSize { get; private set; }
             protected bool RoundedCaps { get; private set; }
 
+            // Even though it's possible to adjust segment count based on thickness and/or progress value
+            // we are not doing so to avoid creating new vertex batches on said changes.
+            // Segment count has been chosen to increase fps and decrease gpu usage as much as possible
+            // by using results from TestSceneCircularProgressRingsPerformance.
+            private const int segment_count = 20;
+            private const int vertex_count = (segment_count + 1) * 2;
+            private static readonly float angle_delta = float.DegreesToRadians(360f / (segment_count * 2));
+
+            private Vector2 drawSize;
+            private RectangleF tRect;
+
             public override void ApplyState()
             {
                 base.ApplyState();
@@ -108,19 +122,75 @@ namespace osu.Framework.Graphics.UserInterface
                 InnerRadius = Source.innerRadius;
                 Progress = Math.Abs((float)Source.progress);
                 RoundedCaps = Source.roundedCaps;
+                drawSize = Source.DrawSize;
 
                 // smoothstep looks too sharp with 1px, let's give it a bit more
                 TexelSize = 1.5f / ScreenSpaceDrawQuad.Size.X;
+                tRect = Texture.GetTextureRect();
             }
 
             private IUniformBuffer<CircularProgressParameters> parametersBuffer;
+            private IVertexBatch<TexturedVertex2D> vertexBatch;
 
             protected override void Blit(IRenderer renderer)
             {
                 if (InnerRadius == 0 || (!RoundedCaps && Progress == 0))
                     return;
 
-                base.Blit(renderer);
+                // Don't triangulate in case when circle is almost filled
+                if (InnerRadius > 0.95f)
+                {
+                    base.Blit(renderer);
+                    return;
+                }
+
+                drawTriangulatedShape(renderer);
+            }
+
+            private void drawTriangulatedShape(IRenderer renderer)
+            {
+                if (!renderer.BindTexture(Texture))
+                    return;
+
+                vertexBatch ??= renderer.CreateLinearBatch<TexturedVertex2D>(vertex_count, 1, PrimitiveTopology.TriangleStrip);
+
+                Vector2 outer = new Vector2(0.5f, 0.5f - 0.5f / MathF.Cos(angle_delta));
+                Vector2 inner = new Vector2(0.5f, Math.Min(Math.Max(InnerRadius * 0.5f + TexelSize, TexelSize * 2), 0.5f));
+                Vector2 origin = new Vector2(0.5f);
+
+                float angle = 0;
+                bool isInnerVertex = true;
+
+                renderer.PushLocalMatrix(DrawInfo.Matrix);
+
+                for (int i = 0; i < vertex_count; i++)
+                {
+                    Vector2 relativePos = rotateAround(isInnerVertex ? inner : outer, origin, angle);
+
+                    vertexBatch?.Add(new TexturedVertex2D(renderer)
+                    {
+                        Position = relativePos * drawSize,
+                        Colour = DrawColourInfo.Colour.Interpolate(relativePos).SRGB,
+                        TextureRect = new Vector4(tRect.Left, tRect.Top, tRect.Right, tRect.Bottom),
+                        TexturePosition = new Vector2(tRect.Left + tRect.Width * relativePos.X, tRect.Top + tRect.Height * relativePos.Y)
+                    });
+
+                    angle += angle_delta;
+                    isInnerVertex = !isInnerVertex;
+                }
+
+                renderer.PopLocalMatrix();
+            }
+
+            private static Vector2 rotateAround(Vector2 input, Vector2 origin, float angle)
+            {
+                float sin = MathF.Sin(angle);
+                float cos = MathF.Cos(angle);
+
+                float xTranslated = input.X - origin.X;
+                float yTranslated = input.Y - origin.Y;
+
+                return new Vector2(xTranslated * cos - yTranslated * sin, xTranslated * sin + yTranslated * cos) + origin;
             }
 
             protected override void BindUniformResources(IShader shader, IRenderer renderer)
@@ -145,6 +215,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 base.Dispose(isDisposing);
                 parametersBuffer?.Dispose();
+                vertexBatch?.Dispose();
             }
 
             [StructLayout(LayoutKind.Sequential, Pack = 1)]

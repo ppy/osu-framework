@@ -1,12 +1,15 @@
 #!/bin/bash
 
+# ensure we're running from the correct directory (location of this file).
+cd "$(dirname "$0")"
+
 # bass
 curl -Lso bass.zip https://www.un4seen.com/stuff/bass.zip
 unzip -qjo bass.zip x64/bass.dll -d runtimes/win-x64/native/
 unzip -qjo bass.zip bass.dll -d runtimes/win-x86/native/
 
-curl -Lso bass24-arm64.zip https://www.un4seen.com/files/bass24-arm64.zip
-unzip -qjo bass24-arm64.zip arm64/bass.dll -d runtimes/win-arm64/native/
+curl -Lso bass24-arm64.zip https://www.un4seen.com/stuff/bass-arm64.zip
+unzip -qjo bass24-arm64.zip bass.dll -d runtimes/win-arm64/native/
 
 curl -Lso bass-linux.zip https://www.un4seen.com/stuff/bass-linux.zip
 unzip -qjo bass-linux.zip aarch64/libbass.so -d runtimes/linux-arm64/native/
@@ -29,8 +32,7 @@ curl -Lso bass_fx.zip https://www.un4seen.com/stuff/bass_fx.zip
 unzip -qjo bass_fx.zip x64/bass_fx.dll -d runtimes/win-x64/native/
 unzip -qjo bass_fx.zip bass_fx.dll -d runtimes/win-x86/native/
 
-curl -Lso bass_fx-arm64.zip https://www.un4seen.com/stuff/bass_fx-arm64.zip
-unzip -qjo bass_fx-arm64.zip bass_fx.dll -d runtimes/win-arm64/native/
+unzip -qjo bass24-arm64.zip bass_fx.dll -d runtimes/win-arm64/native/
 
 curl -Lso bass_fx-linux.zip https://www.un4seen.com/stuff/bass_fx-linux.zip
 unzip -qjo bass_fx-linux.zip aarch64/libbass_fx.so -d runtimes/linux-arm64/native/
@@ -54,7 +56,7 @@ curl -Lso bassmix24.zip https://www.un4seen.com/stuff/bassmix.zip
 unzip -qjo bassmix24.zip x64/bassmix.dll -d runtimes/win-x64/native/
 unzip -qjo bassmix24.zip bassmix.dll -d runtimes/win-x86/native/
 
-unzip -qjo bass24-arm64.zip arm64/bassmix.dll -d runtimes/win-arm64/native/
+unzip -qjo bass24-arm64.zip bassmix.dll -d runtimes/win-arm64/native/
 
 curl -Lso bassmix24-linux.zip https://www.un4seen.com/stuff/bassmix-linux.zip
 unzip -qjo bassmix24-linux.zip aarch64/libbassmix.so -d runtimes/linux-arm64/native/

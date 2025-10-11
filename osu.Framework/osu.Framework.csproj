@@ -33,12 +33,12 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
     <PackageReference Include="NUnit" Version="3.13.3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="OpenTabletDriver" Version="0.6.5.1" />
+    <PackageReference Include="OpenTabletDriver" Version="0.6.6.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.211" />
     <PackageReference Include="StbiSharp" Version="1.1.0" />
     <PackageReference Include="ppy.SDL2-CS" Version="1.0.741-alpha" />
-    <PackageReference Include="ppy.SDL3-CS" Version="2025.828.0" />
+    <PackageReference Include="ppy.SDL3-CS" Version="2025.920.0" />
     <PackageReference Include="ppy.osu.Framework.SourceGeneration" Version="2024.1128.0" />
 
     <!-- DO NOT use ProjectReference for native packaging project.
