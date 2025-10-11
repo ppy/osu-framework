@@ -31,6 +31,7 @@ namespace osu.Framework.Graphics.Lines
             private float radius;
             private IShader? pathShader;
             private Vector2 offset;
+            private int treeVersion;
 
             private IVertexBatch<TexturedVertex3D>? triangleBatch;
 
@@ -43,10 +44,21 @@ namespace osu.Framework.Graphics.Lines
             {
                 base.ApplyState();
 
-                segments.Clear();
-                segments.AddRange(Source.BBH.Segments);
+                var bbh = Source.BBH;
 
-                offset = Source.BBH.VertexBounds.TopLeft;
+                int newTreeVersion = bbh.TreeVersion;
+
+                // BufferedDrawNode can trigger ApplyState for child draw node
+                // even in cases when path isn't being redrawn (for example with alpha change)
+                if (newTreeVersion != treeVersion)
+                {
+                    segments.Clear();
+                    segments.AddRange(bbh.Segments);
+
+                    treeVersion = newTreeVersion;
+                }
+
+                offset = bbh.VertexBounds.TopLeft;
 
                 texture = Source.Texture;
                 drawSize = Source.DrawSize;

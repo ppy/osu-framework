@@ -30,6 +30,8 @@ namespace osu.Framework.Graphics.Lines
 
         public RectangleF VertexBounds { get; private set; } = RectangleF.Empty;
 
+        public int TreeVersion { get; private set; }
+
         private float radius;
         private BBHNode[]? nodes;
         private int treeDepth;
@@ -39,6 +41,7 @@ namespace osu.Framework.Graphics.Lines
 
         public void SetVertices(IReadOnlyList<Vector2> vertices, float pathRadius)
         {
+            TreeVersion++;
             radius = pathRadius;
 
             segmentCount = Math.Max(vertices.Count - 1, 0);
