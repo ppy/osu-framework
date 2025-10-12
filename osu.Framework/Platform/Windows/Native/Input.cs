@@ -43,6 +43,7 @@ namespace osu.Framework.Platform.Windows.Native
         public const int SM_YVIRTUALSCREEN = 77;
         public const int SM_CXVIRTUALSCREEN = 78;
         public const int SM_CYVIRTUALSCREEN = 79;
+        public const int SM_DIGITIZER = 94;
 
         public const long MI_WP_SIGNATURE = 0xFF515700;
         public const long MI_WP_SIGNATURE_MASK = 0xFFFFFF00;
@@ -373,5 +374,17 @@ namespace osu.Framework.Platform.Windows.Native
         TouchPressAndHold = 9,
         TouchRightTap = 10,
         GesturePressAndTap = 11,
+    }
+
+    [Flags]
+    public enum DigitizerType
+    {
+        None,
+        NID_INTEGRATED_TOUCH = 0x01,
+        NID_EXTERNAL_TOUCH = 0x02,
+        NID_INTEGRATED_PEN = 0x04,
+        NID_EXTERNAL_PEN = 0x08,
+        NID_MULTI_INPUT = 0x40,
+        NID_READY = 0x80,
     }
 }
