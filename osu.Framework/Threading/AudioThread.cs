@@ -5,7 +5,12 @@ using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
+using Windows.Win32;
+using Windows.Win32.Media.Audio;
+using Windows.Win32.System.Com;
 using ManagedBass;
 using ManagedBass.Mix;
 using ManagedBass.Wasapi;
@@ -140,7 +145,7 @@ namespace osu.Framework.Threading
 
             // Need to do more testing. Users reporting buffer underruns even with a large (20ms) buffer.
             // Also playback latency improvements are not present across all users.
-            // attemptWasapiInitialisation();
+            attemptWasapiInitialisation();
 
             initialised_devices.Add(deviceId);
             return true;
@@ -245,7 +250,8 @@ namespace osu.Framework.Threading
 
             BassWasapi.GetInfo(out var wasapiInfo);
             globalMixerHandle.Value = BassMix.CreateMixerStream(wasapiInfo.Frequency, wasapiInfo.Channels, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
-            BassWasapi.Start();
+            // BassWasapi.Start();
+            new Thread(initWasapiNatively) { Priority = ThreadPriority.Highest }.Start();
 
             BassWasapi.SetNotify(wasapiNotifyProcedure);
         }
@@ -262,5 +268,44 @@ namespace osu.Framework.Threading
         }
 
         #endregion
+
+        [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
+        private void initWasapiNatively()
+        {
+            PInvoke.CoCreateInstance<IMMDeviceEnumerator>(typeof(MMDeviceEnumerator).GUID, null, CLSCTX.CLSCTX_ALL, out var deviceEnumerator).ThrowOnFailure();
+            deviceEnumerator.GetDefaultAudioEndpoint(EDataFlow.eRender, ERole.eConsole, out IMMDevice? device);
+
+            device.Activate(typeof(IAudioClient3).GUID, CLSCTX.CLSCTX_ALL, null, out object? audioClientObj);
+            var audioClient = (IAudioClient3)audioClientObj;
+
+            unsafe
+            {
+                audioClient.GetMixFormat(out var format);
+                audioClient.GetSharedModeEnginePeriod(format, out _, out _, out uint period, out _); // default,fundamental,minimum,maximum
+                audioClient.InitializeSharedAudioStream(PInvoke.AUDCLNT_STREAMFLAGS_EVENTCALLBACK, period, format);
+
+                var eventHandle = PInvoke.CreateEvent(null, false, false, (string?)null);
+                audioClient.SetEventHandle(eventHandle);
+
+                audioClient.GetService(typeof(IAudioRenderClient).GUID, out object? rendererObj);
+                var renderer = (IAudioRenderClient)rendererObj;
+
+                audioClient.Start();
+
+                while (true)
+                {
+                    PInvoke.WaitForSingleObject(eventHandle, uint.MaxValue);
+
+                    audioClient.GetCurrentPadding(out uint padding);
+                    if (padding >= period) continue; // the magic line that keeps the latency low
+
+                    uint framesRequired = period - padding;
+
+                    renderer.GetBuffer(framesRequired, out byte* bufferPointer);
+                    Bass.ChannelGetData(globalMixerHandle.Value!.Value, (IntPtr)bufferPointer, (int)framesRequired * 8);
+                    renderer.ReleaseBuffer(framesRequired, 0);
+                }
+            }
+        }
     }
 }
