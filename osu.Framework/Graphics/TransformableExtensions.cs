@@ -31,6 +31,7 @@ namespace osu.Framework.Graphics
         /// <param name="duration">The transform duration.</param>
         /// <param name="easing">The transform easing to be used for tweening.</param>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        [Obsolete]
         public static TransformSequence<TThis> TransformTo<TThis, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration = 0, Easing easing = Easing.None)
             where TThis : class, ITransformable
             => t.TransformTo(t.MakeTransform(propertyOrFieldName, newValue, duration, new DefaultEasingFunction(easing)));
@@ -49,6 +50,7 @@ namespace osu.Framework.Graphics
         /// <param name="easing">The transform easing to be used for tweening.</param>
         /// <param name="grouping">An optional grouping specification to be used when the same property may be touched by multiple transform types.</param>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        [Obsolete]
         public static TransformSequence<TThis> TransformTo<TThis, TValue, TEasing>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, in TEasing easing, string grouping = null)
             where TThis : class, ITransformable
             where TEasing : IEasingFunction
@@ -83,6 +85,7 @@ namespace osu.Framework.Graphics
         /// <param name="easing">The transform easing to be used for tweening.</param>
         /// <param name="grouping">An optional grouping specification to be used when the same property may be touched by multiple transform types.</param>
         /// <returns>The resulting <see cref="Transform{TValue, T}"/>.</returns>
+        [Obsolete]
         public static Transform<TValue, DefaultEasingFunction, TThis> MakeTransform<TThis, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration = 0,
                                                                                                    Easing easing = Easing.None, string grouping = null)
             where TThis : class, ITransformable
@@ -103,6 +106,7 @@ namespace osu.Framework.Graphics
         /// <param name="easing">The transform easing to be used for tweening.</param>
         /// <param name="grouping">An optional grouping specification to be used when the same property may be touched by multiple transform types.</param>
         /// <returns>The resulting <see cref="Transform{TValue, T}"/>.</returns>
+        [Obsolete]
         public static Transform<TValue, TEasing, TThis> MakeTransform<TThis, TEasing, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, in TEasing easing, string grouping = null)
             where TThis : class, ITransformable
             where TEasing : IEasingFunction
@@ -545,7 +549,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> FadeTo<T, TEasing>(this T drawable, float newAlpha, double duration, in TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => drawable.TransformTo(nameof(drawable.Alpha), newAlpha, duration, easing);
+            => drawable.TransformTo(drawable.PopulateTransform(Drawable.CreateAlphaTransform<TEasing>(), newAlpha, duration, easing));
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Colour"/> over time.
@@ -554,7 +558,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> FadeColour<T, TEasing>(this T drawable, ColourInfo newColour, double duration, in TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => drawable.TransformTo(nameof(drawable.Colour), newColour, duration, easing);
+            => drawable.TransformTo(drawable.PopulateTransform(Drawable.CreateColourTransform<TEasing>(), newColour, duration, easing));
 
         /// <summary>
         /// Instantaneously flashes <see cref="Drawable.Colour"/>, then smoothly changes it back over time.
@@ -575,7 +579,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> RotateTo<T, TEasing>(this T drawable, float newRotation, double duration, in TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => drawable.TransformTo(nameof(drawable.Rotation), newRotation, duration, easing);
+            => drawable.TransformTo(drawable.PopulateTransform(Drawable.CreateRotationTransform<TEasing>(), newRotation, duration, easing));
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Scale"/> over time.
@@ -593,7 +597,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> ScaleTo<T, TEasing>(this T drawable, Vector2 newScale, double duration, in TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => drawable.TransformTo(nameof(drawable.Scale), newScale, duration, easing);
+            => drawable.TransformTo(drawable.PopulateTransform(Drawable.CreateScaleTransform<TEasing>(), newScale, duration, easing));
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Size"/> over time.
@@ -611,7 +615,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> ResizeTo<T, TEasing>(this T drawable, Vector2 newSize, double duration, in TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => drawable.TransformTo(nameof(drawable.Size), newSize, duration, easing);
+            => drawable.TransformTo(drawable.PopulateTransform(Drawable.CreateSizeTransform<TEasing>(), newSize, duration, easing));
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Width"/> over time.
@@ -620,7 +624,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> ResizeWidthTo<T, TEasing>(this T drawable, float newWidth, double duration, in TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => drawable.TransformTo(nameof(drawable.Width), newWidth, duration, easing, nameof(drawable.Size));
+            => drawable.TransformTo(drawable.PopulateTransform(Drawable.CreateWidthTransform<TEasing>(), newWidth, duration, easing));
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Height"/> over time.
@@ -629,7 +633,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> ResizeHeightTo<T, TEasing>(this T drawable, float newHeight, double duration, in TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => drawable.TransformTo(nameof(drawable.Height), newHeight, duration, easing, nameof(drawable.Size));
+            => drawable.TransformTo(drawable.PopulateTransform(Drawable.CreateHeightTransform<TEasing>(), newHeight, duration, easing));
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Position"/> over time.
@@ -638,7 +642,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> MoveTo<T, TEasing>(this T drawable, Vector2 newPosition, double duration, in TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => drawable.TransformTo(nameof(drawable.Position), newPosition, duration, easing);
+            => drawable.TransformTo(drawable.PopulateTransform(Drawable.CreatePositionTransform<TEasing>(), newPosition, duration, easing));
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.X"/> or <see cref="Drawable.Y"/> over time.
@@ -667,7 +671,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> MoveToX<T, TEasing>(this T drawable, float destination, double duration, in TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => drawable.TransformTo(nameof(drawable.X), destination, duration, easing, nameof(drawable.Position));
+            => drawable.TransformTo(drawable.PopulateTransform(Drawable.CreateXTransform<TEasing>(), destination, duration, easing));
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Y"/> over time.
@@ -676,7 +680,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> MoveToY<T, TEasing>(this T drawable, float destination, double duration, in TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => drawable.TransformTo(nameof(drawable.Y), destination, duration, easing, nameof(drawable.Position));
+            => drawable.TransformTo(drawable.PopulateTransform(Drawable.CreateYTransform<TEasing>(), destination, duration, easing));
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Position"/> by an offset to its final value over time.

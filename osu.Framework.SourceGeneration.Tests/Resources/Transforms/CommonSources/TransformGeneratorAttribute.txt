@@ -1,0 +1,18 @@
+namespace osu.Framework.Graphics.Transforms
+{
+    [System.AttributeUsage(System.AttributeTargets.Field | System.AttributeTargets.Property)]
+    public class TransformGeneratorAttribute : System.Attribute
+    {
+        public readonly string? Name;
+        public string? Grouping { get; set; }
+
+        public TransformGeneratorAttribute()
+        {
+        }
+
+        public TransformGeneratorAttribute(string name)
+        {
+            Name = name;
+        }
+    }
+}
