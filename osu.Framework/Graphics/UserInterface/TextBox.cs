@@ -1308,7 +1308,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             FinalizeImeComposition(true);
 
-            if (ignoreOngoingDragSelection)
+            if (ignoreOngoingDragSelection || tripleClickOngoing)
                 return;
 
             var lastSelectionBounds = getTextSelectionBounds();
@@ -1349,8 +1349,12 @@ namespace osu.Framework.Graphics.UserInterface
             onTextSelectionChanged(doubleClickWord != null ? TextSelectionType.Word : TextSelectionType.Character, lastSelectionBounds);
         }
 
+        private double? lastDoubleClickTime;
+
         protected override bool OnDoubleClick(DoubleClickEvent e)
         {
+            lastDoubleClickTime = Time.Current;
+
             FinalizeImeComposition(true);
 
             var lastSelectionBounds = getTextSelectionBounds();
@@ -1396,6 +1400,8 @@ namespace osu.Framework.Graphics.UserInterface
             return -1;
         }
 
+        private bool tripleClickOngoing;
+
         protected override bool OnMouseDown(MouseDownEvent e)
         {
             if (ReadOnly)
@@ -1404,6 +1410,21 @@ namespace osu.Framework.Graphics.UserInterface
             FinalizeImeComposition(true);
 
             var lastSelectionBounds = getTextSelectionBounds();
+
+            float tripleClickTime = GetContainingInputManager().AsNonNull().GetButtonEventManagerFor(e.Button).DoubleClickTime;
+
+            if (lastDoubleClickTime != null && Time.Current - lastDoubleClickTime < tripleClickTime)
+            {
+                lastDoubleClickTime = null;
+
+                SelectAll();
+
+                onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
+
+                tripleClickOngoing = true;
+
+                return true;
+            }
 
             selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
 
@@ -1417,6 +1438,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void OnMouseUp(MouseUpEvent e)
         {
             doubleClickWord = null;
+            tripleClickOngoing = false;
         }
 
         protected override void OnFocusLost(FocusLostEvent e)
