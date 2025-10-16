@@ -1,0 +1,11 @@
+CoCreateInstance
+
+MMDeviceEnumerator
+IMMDeviceEnumerator
+
+IAudioClient3
+IAudioRenderClient
+AUDCLNT_STREAMFLAGS_EVENTCALLBACK
+
+CreateEventW
+WaitForSingleObject
