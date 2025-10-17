@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -24,6 +23,7 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
+using osu.Framework.Text;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Input;
@@ -48,7 +48,8 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual float LeftRightPadding => 5;
 
         /// <summary>
-        /// Maximum allowed length of text.
+        /// Maximum allowed length of text in UTF-16 code units (not grapheme clusters).
+        /// Note that complex Unicode characters like emoji with modifiers may count as multiple units.
         /// </summary>
         /// <remarks>Any input beyond this limit will be dropped and then <see cref="NotifyInputError"/> will be called.</remarks>
         public int? LengthLimit;
@@ -443,7 +444,7 @@ namespace osu.Framework.Graphics.UserInterface
                 return false;
 
             selectionStart = 0;
-            selectionEnd = text.Length;
+            selectionEnd = graphemes.Count;
             cursorAndLayout.Invalidate();
             return true;
         }
@@ -540,10 +541,19 @@ namespace osu.Framework.Graphics.UserInterface
             return position;
         }
 
-        // Currently only single line is supported and line length and text length are the same.
-        protected int GetBackwardLineAmount() => -text.Length;
+        /// <summary>
+        /// Gets the amount to move cursor backward to reach the beginning of the line.
+        /// Currently only single line is supported and line length equals grapheme count.
+        /// </summary>
+        /// <returns>Negative number representing backward movement in grapheme units.</returns>
+        protected int GetBackwardLineAmount() => -graphemes.Count;
 
-        protected int GetForwardLineAmount() => text.Length;
+        /// <summary>
+        /// Gets the amount to move cursor forward to reach the end of the line.
+        /// Currently only single line is supported and line length equals grapheme count.
+        /// </summary>
+        /// <returns>Positive number representing forward movement in grapheme units.</returns>
+        protected int GetForwardLineAmount() => graphemes.Count;
 
         /// <summary>
         /// Move the current cursor by the signed <paramref name="amount"/>.
@@ -573,7 +583,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected void DeleteBy(int amount)
         {
             if (selectionLength == 0)
-                selectionEnd = Math.Clamp(selectionStart + amount, 0, text.Length);
+                selectionEnd = Math.Clamp(selectionStart + amount, 0, graphemes.Count);
 
             if (hasSelection)
             {
@@ -646,7 +656,7 @@ namespace osu.Framework.Graphics.UserInterface
             Placeholder.Font = Placeholder.Font.With(size: FontSize);
 
             float cursorPos = 0;
-            if (text.Length > 0)
+            if (graphemes.Count > 0)
                 cursorPos = getPositionAt(selectionLeft);
 
             float cursorPosEnd = getPositionAt(selectionEnd);
@@ -713,7 +723,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (index > 0)
             {
-                if (index < text.Length)
+                if (index < graphemes.Count)
                     return TextFlow.Children[index].DrawPosition.X + TextFlow.DrawPosition.X;
 
                 var d = TextFlow.Children[index - 1];
@@ -740,13 +750,34 @@ namespace osu.Framework.Graphics.UserInterface
             return i;
         }
 
+        /// <summary>
+        /// Start position of the selection, measured in grapheme units (not UTF-16 code units).
+        /// </summary>
         private int selectionStart;
+
+        /// <summary>
+        /// End position of the selection, measured in grapheme units (not UTF-16 code units).
+        /// </summary>
         private int selectionEnd;
 
+        /// <summary>
+        /// Length of the current selection in grapheme units.
+        /// </summary>
         private int selectionLength => Math.Abs(selectionEnd - selectionStart);
+
+        /// <summary>
+        /// Whether there is currently an active text selection.
+        /// </summary>
         private bool hasSelection => selectionLength > 0;
 
+        /// <summary>
+        /// Left boundary of the selection (minimum of start and end) in grapheme units.
+        /// </summary>
         private int selectionLeft => Math.Min(selectionStart, selectionEnd);
+
+        /// <summary>
+        /// Right boundary of the selection (maximum of start and end) in grapheme units.
+        /// </summary>
         private int selectionRight => Math.Max(selectionStart, selectionEnd);
 
         private readonly Cached cursorAndLayout = new Cached();
@@ -759,7 +790,7 @@ namespace osu.Framework.Graphics.UserInterface
             int oldEnd = selectionEnd;
 
             if (expand)
-                selectionEnd = Math.Clamp(selectionEnd + offset, 0, text.Length);
+                selectionEnd = Math.Clamp(selectionEnd + offset, 0, graphemes.Count);
             else
             {
                 if (hasSelection && Math.Abs(offset) <= 1)
@@ -771,7 +802,7 @@ namespace osu.Framework.Graphics.UserInterface
                         selectionEnd = selectionStart = selectionLeft;
                 }
                 else
-                    selectionEnd = selectionStart = Math.Clamp((offset > 0 ? selectionRight : selectionLeft) + offset, 0, text.Length);
+                    selectionEnd = selectionStart = Math.Clamp((offset > 0 ? selectionRight : selectionLeft) + offset, 0, graphemes.Count);
             }
 
             if (oldStart != selectionStart || oldEnd != selectionEnd)
@@ -836,6 +867,7 @@ namespace osu.Framework.Graphics.UserInterface
                 return string.Empty;
 
             int removeStart = Math.Clamp(selectionRight - number, 0, selectionRight);
+            int removeStartInText = graphemes[..removeStart].Sum(g => g.Utf16SequenceLength);
             int removeCount = selectionRight - removeStart;
 
             if (removeCount == 0)
@@ -858,9 +890,11 @@ namespace osu.Framework.Graphics.UserInterface
                 d.Expire();
             }
 
-            string removedText = text.Substring(removeStart, removeCount);
+            int removeCountInText = graphemes[removeStart..(removeStart + removeCount)].Sum(g => g.Utf16SequenceLength);
 
-            text = text.Remove(removeStart, removeCount);
+            graphemes.RemoveRange(removeStart, removeCount);
+            string removedText = text.Substring(removeStartInText, removeCountInText);
+            text = text.Remove(removeStartInText, removeCountInText);
 
             // Reorder characters depth after removal to avoid ordering issues with newly added characters.
             for (int i = removeStart; i < TextFlow.Count; i++)
@@ -880,12 +914,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="c">The character that this <see cref="Drawable"/> should represent.</param>
         /// <returns>A <see cref="Drawable"/> that represents the character <paramref name="c"/> </returns>
-        protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), Font = new FontUsage(size: FontSize) };
+        protected virtual Drawable GetDrawableCharacter(Grapheme c) => new SpriteText { Text = c.ToString(), Font = new FontUsage(size: FontSize) };
 
-        protected virtual Drawable AddCharacterToFlow(char c)
+        protected virtual Drawable AddCharacterToFlow(Grapheme c)
         {
             if (InputProperties.Type.IsPassword())
-                c = MaskCharacter;
+                c = new Grapheme(MaskCharacter);
 
             // Remove all characters to the right and store them in a local list,
             // such that their depth can be updated.
@@ -945,9 +979,9 @@ namespace osu.Framework.Graphics.UserInterface
 
             bool beganChange = beginTextChange();
 
-            foreach (char c in value)
+            foreach (var c in Grapheme.GetGraphemeEnumerator(value))
             {
-                if (!canAddCharacter(c))
+                if (!canAddCharacter(c.CharValue))
                 {
                     NotifyInputError();
                     continue;
@@ -956,7 +990,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (hasSelection)
                     removeSelection();
 
-                if (text.Length + 1 > LengthLimit)
+                if (text.Length + c.Utf16SequenceLength > LengthLimit)
                 {
                     NotifyInputError();
                     break;
@@ -967,7 +1001,8 @@ namespace osu.Framework.Graphics.UserInterface
                 drawable.Show();
                 drawableCreationParameters?.Invoke(drawable);
 
-                text = text.Insert(selectionLeft, c.ToString());
+                text = text.Insert(graphemes[..selectionLeft].Sum(g => g.Utf16SequenceLength), c.ToString());
+                graphemes.Insert(selectionLeft, c);
 
                 selectionStart = selectionEnd = selectionLeft + 1;
                 ignoreOngoingDragSelection = true;
@@ -1056,8 +1091,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// Invoked whenever the IME composition has changed.
         /// </summary>
         /// <param name="newComposition">The current text of the composition.</param>
-        /// <param name="removedTextLength">The number of characters that have been replaced by new ones.</param>
-        /// <param name="addedTextLength">The number of characters that have replaced the old ones.</param>
+        /// <param name="removedTextLength">The number of graphemes that have been replaced by new ones.</param>
+        /// <param name="addedTextLength">The number of graphemes that have replaced the old ones.</param>
         /// <param name="selectionMoved">Whether the selection/caret has moved.</param>
         protected virtual void OnImeComposition(string newComposition, int removedTextLength, int addedTextLength, bool selectionMoved)
         {
@@ -1126,6 +1161,15 @@ namespace osu.Framework.Graphics.UserInterface
 
         private string text = string.Empty;
 
+        /// <summary>
+        /// The graphemes that make up the text. This list represents the logical characters as perceived by users,
+        /// and is used for cursor positioning, selection, and navigation. Each <see cref="Grapheme"/> may consist
+        /// of multiple UTF-16 code units in the <see cref="text"/> string (e.g., emoji with skin tone modifiers).
+        /// The count of this list represents the number of user-perceived characters, while <see cref="text"/>.Length
+        /// represents the number of UTF-16 code units.
+        /// </summary>
+        private readonly List<Grapheme> graphemes = new List<Grapheme>();
+
         public virtual string Text
         {
             get => text;
@@ -1161,6 +1205,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             TextFlow?.Clear();
             text = string.Empty;
+            graphemes.Clear();
 
             // insert string and fast forward any transforms (generally when replacing the full content of a textbox we don't want any kind of fade etc.).
             insertString(value, d => d.FinishTransforms());
@@ -1169,7 +1214,7 @@ namespace osu.Framework.Graphics.UserInterface
             cursorAndLayout.Invalidate();
         }
 
-        public string SelectedText => hasSelection ? Text.Substring(selectionLeft, selectionLength) : string.Empty;
+        public string SelectedText => hasSelection ? string.Concat(graphemes[selectionLeft..(selectionLeft + selectionLength)]) : string.Empty;
 
         /// <summary>
         /// Whether <see cref="KeyDownEvent"/>s should be blocked because of recent text input from a <see cref="TextInputSource"/>.
@@ -1319,13 +1364,13 @@ namespace osu.Framework.Graphics.UserInterface
                 if (getCharacterClosestTo(e.MousePosition) > doubleClickWord[1])
                 {
                     selectionStart = doubleClickWord[0];
-                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(e.MousePosition) - 1, 1);
-                    selectionEnd = selectionEnd >= 0 ? selectionEnd : text.Length;
+                    selectionEnd = findSeparatorIndex(graphemes, getCharacterClosestTo(e.MousePosition) - 1, 1);
+                    selectionEnd = selectionEnd >= 0 ? selectionEnd : graphemes.Count;
                 }
                 else if (getCharacterClosestTo(e.MousePosition) < doubleClickWord[0])
                 {
                     selectionStart = doubleClickWord[1];
-                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(e.MousePosition), -1);
+                    selectionEnd = findSeparatorIndex(graphemes, getCharacterClosestTo(e.MousePosition), -1);
                     selectionEnd = selectionEnd >= 0 ? selectionEnd + 1 : 0;
                 }
                 else
@@ -1337,7 +1382,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
             else
             {
-                if (text.Length == 0) return;
+                if (graphemes.Count == 0) return;
 
                 selectionEnd = getCharacterClosestTo(e.MousePosition);
                 if (hasSelection)
@@ -1359,22 +1404,22 @@ namespace osu.Framework.Graphics.UserInterface
 
             var lastSelectionBounds = getTextSelectionBounds();
 
-            if (text.Length == 0) return true;
+            if (graphemes.Count == 0) return true;
 
             if (AllowClipboardExport)
             {
-                int hover = Math.Min(text.Length - 1, getCharacterClosestTo(e.MousePosition));
+                int hover = Math.Min(graphemes.Count - 1, getCharacterClosestTo(e.MousePosition));
 
-                int lastSeparator = findSeparatorIndex(text, hover, -1);
-                int nextSeparator = findSeparatorIndex(text, hover, 1);
+                int lastSeparator = findSeparatorIndex(graphemes, hover, -1);
+                int nextSeparator = findSeparatorIndex(graphemes, hover, 1);
 
                 selectionStart = lastSeparator >= 0 ? lastSeparator + 1 : 0;
-                selectionEnd = nextSeparator >= 0 ? nextSeparator : text.Length;
+                selectionEnd = nextSeparator >= 0 ? nextSeparator : graphemes.Count;
             }
             else
             {
                 selectionStart = 0;
-                selectionEnd = text.Length;
+                selectionEnd = graphemes.Count;
             }
 
             //in order to keep the home word selected
@@ -1387,13 +1432,13 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        private static int findSeparatorIndex(string input, int searchPos, int direction)
+        private static int findSeparatorIndex(List<Grapheme> input, int searchPos, int direction)
         {
-            bool isLetterOrDigit = char.IsLetterOrDigit(input[searchPos]);
+            bool isLetterOrDigit = char.IsLetterOrDigit(input[searchPos].CharValue);
 
-            for (int i = searchPos; i >= 0 && i < input.Length; i += direction)
+            for (int i = searchPos; i >= 0 && i < input.Count; i += direction)
             {
-                if (char.IsLetterOrDigit(input[i]) != isLetterOrDigit)
+                if (char.IsLetterOrDigit(input[i].CharValue) != isLetterOrDigit)
                     return i;
             }
 
@@ -1555,7 +1600,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             imeCompositionScheduler.Add(() =>
             {
-                onImeComposition(result, result.Length, 0, false);
+                onImeComposition(result, Grapheme.GetGraphemeEnumerator(result).Count(), 0, false);
                 onImeResult(true, true);
             });
         }
@@ -1566,9 +1611,9 @@ namespace osu.Framework.Graphics.UserInterface
         /// <remarks>
         /// Characters matched from the beginning will not match from the end.
         /// </remarks>
-        private void matchBeginningEnd(string a, string b, out int matchBeginning, out int matchEnd)
+        private void matchBeginningEnd(List<Grapheme> a, List<Grapheme> b, out int matchBeginning, out int matchEnd)
         {
-            int minLength = Math.Min(a.Length, b.Length);
+            int minLength = Math.Min(a.Count, b.Count);
 
             matchBeginning = 0;
 
@@ -1602,13 +1647,13 @@ namespace osu.Framework.Graphics.UserInterface
 
             // remove characters that can't be added.
 
-            var builder = new StringBuilder(composition);
+            var compositionGraphemes = Grapheme.GetGraphemeEnumerator(composition).ToList();
 
-            for (int index = 0; index < builder.Length; index++)
+            for (int index = 0; index < compositionGraphemes.Count; index++)
             {
-                if (!canAddCharacter(builder[index]))
+                if (!canAddCharacter(compositionGraphemes[index].CharValue))
                 {
-                    builder.Remove(index, 1);
+                    compositionGraphemes.RemoveAt(index);
                     sanitized = true;
 
                     if (index < selectionStart)
@@ -1626,15 +1671,16 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             if (sanitized)
-                composition = builder.ToString();
+                composition = string.Concat(compositionGraphemes);
 
             // trim composition if goes beyond the LengthLimit.
 
-            int lengthWithoutComposition = text.Length - imeCompositionLength;
+            int lengthWithoutComposition = graphemes[..^imeCompositionLength].Sum(g => g.Utf16SequenceLength);
 
             if (lengthWithoutComposition + composition.Length > LengthLimit)
             {
-                composition = composition.Substring(0, (int)LengthLimit - lengthWithoutComposition);
+                composition = composition[..((int)LengthLimit - lengthWithoutComposition)];
+                compositionGraphemes = Grapheme.GetGraphemeEnumerator(composition).ToList();
                 sanitized = true;
             }
 
@@ -1642,15 +1688,15 @@ namespace osu.Framework.Graphics.UserInterface
             // the selection could be out of bounds if it was trimmed by the above,
             // or if the platform-native composition event was ill-formed.
 
-            if (selectionStart > composition.Length)
+            if (selectionStart > compositionGraphemes.Count)
             {
-                selectionStart = composition.Length;
+                selectionStart = compositionGraphemes.Count;
                 sanitized = true;
             }
 
-            if (selectionStart + selectionLength > composition.Length)
+            if (selectionStart + selectionLength > compositionGraphemes.Count)
             {
-                selectionLength = composition.Length - selectionStart;
+                selectionLength = compositionGraphemes.Count - selectionStart;
                 sanitized = true;
             }
 
@@ -1664,7 +1710,7 @@ namespace osu.Framework.Graphics.UserInterface
         private readonly List<Drawable> imeCompositionDrawables = new List<Drawable>();
 
         /// <summary>
-        /// Length of the current IME composition.
+        /// The number of graphemes in the current IME composition.
         /// </summary>
         /// <remarks>A length of <c>0</c> means that IME composition isn't active.</remarks>
         private int imeCompositionLength => imeCompositionDrawables.Count;
@@ -1733,12 +1779,13 @@ namespace osu.Framework.Graphics.UserInterface
                 NotifyInputError();
             }
 
-            string oldComposition = text.Substring(imeCompositionStart, imeCompositionLength);
+            List<Grapheme> newCompositionGraphemes = Grapheme.GetGraphemeEnumerator(newComposition).ToList();
+            List<Grapheme> oldCompositionGraphemes = graphemes[imeCompositionStart..(imeCompositionStart + imeCompositionLength)].ToList();
 
-            matchBeginningEnd(oldComposition, newComposition, out int matchBeginning, out int matchEnd);
+            matchBeginningEnd(oldCompositionGraphemes, newCompositionGraphemes, out int matchBeginning, out int matchEnd);
 
             // how many characters have been removed, starting from `matchBeginning`
-            int removeCount = oldComposition.Length - matchEnd - matchBeginning;
+            int removeCount = oldCompositionGraphemes.Count - matchEnd - matchBeginning;
 
             // remove the characters that don't match
             if (removeCount > 0)
@@ -1751,11 +1798,11 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             // how many characters have been added, starting from `matchBeginning`
-            int addCount = newComposition.Length - matchEnd - matchBeginning;
+            int addCount = newCompositionGraphemes.Count - matchEnd - matchBeginning;
 
             if (addCount > 0)
             {
-                string addedText = newComposition.Substring(matchBeginning, addCount);
+                string addedText = string.Concat(newCompositionGraphemes[matchBeginning..(matchBeginning + addCount)]);
 
                 // set up selection for `insertString`
                 selectionStart = selectionEnd = imeCompositionStart + matchBeginning;
@@ -1799,7 +1846,7 @@ namespace osu.Framework.Graphics.UserInterface
                 // move the cursor to end of finalized composition.
                 selectionStart = selectionEnd = imeCompositionStart + imeCompositionLength;
 
-                if (userEvent) OnImeResult(text.Substring(imeCompositionStart, imeCompositionLength), successful);
+                if (userEvent) OnImeResult(string.Concat(graphemes[imeCompositionStart..(imeCompositionStart + imeCompositionLength)]), successful);
             }
 
             imeCompositionDrawables.Clear();
