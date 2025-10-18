@@ -109,7 +109,8 @@ namespace osu.Framework.Graphics.UserInterface
             // Segment count has been chosen to increase fps and decrease gpu usage as much as possible
             // by using results from TestSceneCircularProgressRingsPerformance.
             private const int segment_count = 20;
-            private const int vertex_count = (segment_count + 1) * 2;
+            private const int triangle_count = segment_count * 2;
+            private const int vertex_count = triangle_count * 3;
             private static readonly float angle_delta = float.DegreesToRadians(360f / (segment_count * 2));
 
             private Vector2 drawSize;
@@ -152,34 +153,61 @@ namespace osu.Framework.Graphics.UserInterface
                 if (!renderer.BindTexture(Texture))
                     return;
 
-                vertexBatch ??= renderer.CreateLinearBatch<TexturedVertex2D>(vertex_count, 1, PrimitiveTopology.TriangleStrip);
+                vertexBatch ??= renderer.CreateLinearBatch<TexturedVertex2D>(vertex_count, 1, PrimitiveTopology.Triangles);
 
                 Vector2 outer = new Vector2(0.5f, 0.5f - 0.5f / MathF.Cos(angle_delta));
                 Vector2 inner = new Vector2(0.5f, Math.Min(Math.Max(InnerRadius * 0.5f + TexelSize, TexelSize * 2), 0.5f));
                 Vector2 origin = new Vector2(0.5f);
 
-                float angle = 0;
-                bool isInnerVertex = true;
+                float angle = -angle_delta;
+                Vector2 lastRelativePos = rotateAround(outer, origin, angle);
 
                 renderer.PushLocalMatrix(DrawInfo.Matrix);
 
-                for (int i = 0; i < vertex_count; i++)
+                // outer triangles
+                for (int i = 0; i < segment_count; i++)
                 {
-                    Vector2 relativePos = rotateAround(isInnerVertex ? inner : outer, origin, angle);
-
-                    vertexBatch?.Add(new TexturedVertex2D(renderer)
-                    {
-                        Position = relativePos * drawSize,
-                        Colour = DrawColourInfo.Colour.Interpolate(relativePos).SRGB,
-                        TextureRect = new Vector4(tRect.Left, tRect.Top, tRect.Right, tRect.Bottom),
-                        TexturePosition = new Vector2(tRect.Left + tRect.Width * relativePos.X, tRect.Top + tRect.Height * relativePos.Y)
-                    });
+                    addVertex(lastRelativePos);
 
                     angle += angle_delta;
-                    isInnerVertex = !isInnerVertex;
+                    lastRelativePos = rotateAround(inner, origin, angle);
+                    addVertex(lastRelativePos);
+
+                    angle += angle_delta;
+                    lastRelativePos = rotateAround(outer, origin, angle);
+                    addVertex(lastRelativePos);
+                }
+
+                // inner triangles
+                angle = 0;
+                lastRelativePos = rotateAround(inner, origin, angle);
+
+                for (int i = 0; i < segment_count; i++)
+                {
+                    addVertex(lastRelativePos);
+
+                    angle += angle_delta;
+                    lastRelativePos = rotateAround(outer, origin, angle);
+                    addVertex(lastRelativePos);
+
+                    angle += angle_delta;
+                    lastRelativePos = rotateAround(inner, origin, angle);
+                    addVertex(lastRelativePos);
                 }
 
                 renderer.PopLocalMatrix();
+                return;
+
+                void addVertex(Vector2 relativePosition)
+                {
+                    vertexBatch?.Add(new TexturedVertex2D(renderer)
+                    {
+                        Position = relativePosition * drawSize,
+                        Colour = DrawColourInfo.Colour.Interpolate(relativePosition).SRGB,
+                        TextureRect = new Vector4(tRect.Left, tRect.Top, tRect.Right, tRect.Bottom),
+                        TexturePosition = new Vector2(tRect.Left + tRect.Width * relativePosition.X, tRect.Top + tRect.Height * relativePosition.Y)
+                    });
+                }
             }
 
             private static Vector2 rotateAround(Vector2 input, Vector2 origin, float angle)
