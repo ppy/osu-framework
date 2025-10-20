@@ -109,8 +109,7 @@ namespace osu.Framework.Graphics.UserInterface
             // Segment count has been chosen to increase fps and decrease gpu usage as much as possible
             // by using results from TestSceneCircularProgressRingsPerformance.
             private const int segment_count = 20;
-            private const int triangle_count = segment_count * 2;
-            private const int vertex_count = triangle_count * 3;
+            private const int vertex_count = segment_count * 2 * 3;
             private static readonly float angle_delta = float.DegreesToRadians(360f / (segment_count * 2));
 
             private Vector2 drawSize;
@@ -159,55 +158,49 @@ namespace osu.Framework.Graphics.UserInterface
                 Vector2 inner = new Vector2(0.5f, Math.Min(Math.Max(InnerRadius * 0.5f + TexelSize, TexelSize * 2), 0.5f));
                 Vector2 origin = new Vector2(0.5f);
 
-                float angle = -angle_delta;
-                Vector2 lastRelativePos = rotateAround(outer, origin, angle);
+                float angle = angle_delta;
+                bool isInnerVertex = false;
+
+                // We are saving last 2 vertices to ensure same vertex position between neighboring triangles
+                TexturedVertex2D v1 = createVertex(rotateAround(outer, origin, -angle_delta));
+                TexturedVertex2D v2 = createVertex(rotateAround(inner, origin, 0));
+                TexturedVertex2D first = v1;
+                TexturedVertex2D second = v2;
 
                 renderer.PushLocalMatrix(DrawInfo.Matrix);
 
-                // outer triangles
-                for (int i = 0; i < segment_count; i++)
+                for (int i = 0; i < segment_count * 2; i++)
                 {
-                    addVertex(lastRelativePos);
+                    TexturedVertex2D newVertex;
+
+                    if (i == segment_count * 2 - 1)
+                        newVertex = second;
+                    else if (i == segment_count * 2 - 2)
+                        newVertex = first;
+                    else
+                        newVertex = createVertex(rotateAround(isInnerVertex ? inner : outer, origin, angle));
+
+                    vertexBatch?.Add(v1);
+                    vertexBatch?.Add(v2);
+                    vertexBatch?.Add(newVertex);
+
+                    v1 = v2;
+                    v2 = newVertex;
 
                     angle += angle_delta;
-                    lastRelativePos = rotateAround(inner, origin, angle);
-                    addVertex(lastRelativePos);
-
-                    angle += angle_delta;
-                    lastRelativePos = rotateAround(outer, origin, angle);
-                    addVertex(lastRelativePos);
-                }
-
-                // inner triangles
-                angle = 0;
-                lastRelativePos = rotateAround(inner, origin, angle);
-
-                for (int i = 0; i < segment_count; i++)
-                {
-                    addVertex(lastRelativePos);
-
-                    angle += angle_delta;
-                    lastRelativePos = rotateAround(outer, origin, angle);
-                    addVertex(lastRelativePos);
-
-                    angle += angle_delta;
-                    lastRelativePos = rotateAround(inner, origin, angle);
-                    addVertex(lastRelativePos);
+                    isInnerVertex = !isInnerVertex;
                 }
 
                 renderer.PopLocalMatrix();
                 return;
 
-                void addVertex(Vector2 relativePosition)
+                TexturedVertex2D createVertex(Vector2 pos) => new TexturedVertex2D(renderer)
                 {
-                    vertexBatch?.Add(new TexturedVertex2D(renderer)
-                    {
-                        Position = relativePosition * drawSize,
-                        Colour = DrawColourInfo.Colour.Interpolate(relativePosition).SRGB,
-                        TextureRect = new Vector4(tRect.Left, tRect.Top, tRect.Right, tRect.Bottom),
-                        TexturePosition = new Vector2(tRect.Left + tRect.Width * relativePosition.X, tRect.Top + tRect.Height * relativePosition.Y)
-                    });
-                }
+                    Position = pos * drawSize,
+                    Colour = DrawColourInfo.Colour.Interpolate(pos).SRGB,
+                    TextureRect = new Vector4(tRect.Left, tRect.Top, tRect.Right, tRect.Bottom),
+                    TexturePosition = new Vector2(tRect.Left + tRect.Width * pos.X, tRect.Top + tRect.Height * pos.Y)
+                };
             }
 
             private static Vector2 rotateAround(Vector2 input, Vector2 origin, float angle)
