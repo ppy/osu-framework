@@ -73,6 +73,7 @@ namespace osu.Framework.Audio.Sample
 
         protected override void UpdateState()
         {
+            // ReSharper disable once InconsistentlySynchronizedField (synchronisation not necessary for count check).
             FrameStatistics.Add(StatisticsCounterType.Samples, factories.Count);
             base.UpdateState();
         }
