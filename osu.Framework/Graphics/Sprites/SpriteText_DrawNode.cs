@@ -75,7 +75,12 @@ namespace osu.Framework.Graphics.Sprites
                             finalShadowColour, inflationPercentage: parts[i].InflationPercentage);
                     }
 
-                    renderer.DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, inflationPercentage: parts[i].InflationPercentage);
+                    renderer.DrawQuad(
+                        parts[i].Texture,
+                        parts[i].DrawQuad,
+                        // If the character has a coloured texture, use white colour to preserve the original texture colour.
+                        parts[i].Coloured ? Colour4.White : DrawColourInfo.Colour,
+                        inflationPercentage: parts[i].InflationPercentage);
                 }
 
                 UnbindTextureShader(renderer);
@@ -106,7 +111,8 @@ namespace osu.Framework.Graphics.Sprites
                         InflationPercentage = new Vector2(
                             character.DrawRectangle.Size.X == 0 ? 0 : inflationAmount.X / character.DrawRectangle.Size.X,
                             character.DrawRectangle.Size.Y == 0 ? 0 : inflationAmount.Y / character.DrawRectangle.Size.Y),
-                        Texture = character.Texture
+                        Texture = character.Texture,
+                        Coloured = character.Coloured
                     });
                 }
             }
@@ -131,6 +137,8 @@ namespace osu.Framework.Graphics.Sprites
             /// The texture to draw the character with.
             /// </summary>
             public Texture Texture;
+
+            public bool Coloured;
         }
     }
 }

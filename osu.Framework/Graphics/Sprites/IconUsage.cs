@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// Creates an instance of <see cref="IconUsage"/> using the specified font <paramref name="family"/>, font <paramref name="weight"/> and a value indicating whether the used font is italic or not.
         /// </summary>
-        /// /// <param name="icon">The icon.</param>
+        /// <param name="icon">The icon.</param>
         /// <param name="family">The font family name.</param>
         /// <param name="weight">The font weight.</param>
         public IconUsage(char icon, [CanBeNull] string family = null, [CanBeNull] string weight = null)

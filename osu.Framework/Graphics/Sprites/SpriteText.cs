@@ -72,7 +72,7 @@ namespace osu.Framework.Graphics.Sprites
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
 
             // Pre-cache the characters in the texture store
-            foreach (char character in localisedText.Value)
+            foreach (var character in Grapheme.GetGraphemeEnumerator(localisedText.Value))
             {
                 _ = store.Get(font.FontName, character) ?? store.Get(null, character);
             }

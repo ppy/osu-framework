@@ -231,6 +231,13 @@ namespace osu.Framework.Tests.Visual.Sprites
                 Child = new SpriteText { Current = boundString },
             };
 
+            Cell(3, 4).Child = new SpriteText
+            {
+                RelativeSizeAxes = Axes.Both,
+                Text = "🐢 ZWJ: 😶‍🌫️", // 🐢 is U+1F60E, the Zero Width Joiner sequence also has Variation Selector-16 after th emoji glyphs
+                Font = FrameworkFont.Condensed.With(size: 32),
+            };
+
             Scheduler.AddDelayed(() => boundString.Value = $"bindable: {++boundStringValue}", 200, true);
         }
 

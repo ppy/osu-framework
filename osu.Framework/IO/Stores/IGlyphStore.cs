@@ -29,14 +29,14 @@ namespace osu.Framework.IO.Stores
         /// <summary>
         /// Whether a glyph exists for the specified character in this store.
         /// </summary>
-        bool HasGlyph(char c);
+        bool HasGlyph(Grapheme c);
 
         /// <summary>
         /// Retrieves a <see cref="CharacterGlyph"/> that contains associated spacing information for a character.
         /// </summary>
         /// <param name="character">The character to retrieve the <see cref="CharacterGlyph"/> for.</param>
         /// <returns>The <see cref="CharacterGlyph"/> containing associated spacing information for <paramref name="character"/>.</returns>
-        CharacterGlyph? Get(char character);
+        CharacterGlyph? Get(Grapheme character);
 
         /// <summary>
         /// Retrieves the kerning for a pair of characters.
@@ -44,6 +44,6 @@ namespace osu.Framework.IO.Stores
         /// <param name="left">The character to the left.</param>
         /// <param name="right">The character to the right.</param>
         /// <returns>The kerning.</returns>
-        int GetKerning(char left, char right);
+        int GetKerning(Grapheme left, Grapheme right);
     }
 }

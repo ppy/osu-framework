@@ -13,6 +13,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Testing;
+using osu.Framework.Text;
 using osu.Framework.Utils;
 using osuTK;
 using osuTK.Input;
@@ -1163,6 +1164,30 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("first textbox focused", () => textBoxes[0].HasFocus);
         }
 
+        [Test]
+        public void TestEmoji()
+        {
+            TestTextBox textBox = null;
+
+            AddStep("add text box", () =>
+            {
+                textBoxes.Add(textBox = new TestTextBox
+                {
+                    Size = new Vector2(300, 40),
+                    Text = "🙂",
+                });
+            });
+
+            AddAssert("only one sprite text", () => textBox.TextFlow.FlowingChildren.ToList(), () => Has.Count.EqualTo(1));
+
+            AddStep("add text box with combined emoji", () =>
+            {
+                textBox.Text = "✋🏿🐻‍❄️"; // ✋🏿 = 270B(raised hand) + 1F3FF(dark skin tone) , 🐻‍❄️ = 1F43B(bear) + 200D(ZWJ) + 2744(snowflake) + FE0F(VS-16)
+            });
+
+            AddAssert("should have 2 sprite texts", () => textBox.TextFlow.FlowingChildren.ToList(), () => Has.Count.EqualTo(2));
+        }
+
         private void prependString(InsertableTextBox textBox, string text)
         {
             InputManager.Keys(PlatformAction.MoveBackwardLine);
@@ -1205,13 +1230,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private partial class CustomTextBox : BasicTextBox
         {
-            protected override Drawable GetDrawableCharacter(char c) => new ScalingText(c, FontSize);
+            protected override Drawable GetDrawableCharacter(Grapheme c) => new ScalingText(c, FontSize);
 
             private partial class ScalingText : CompositeDrawable
             {
                 private readonly SpriteText text;
 
-                public ScalingText(char c, float textSize)
+                public ScalingText(Grapheme c, float textSize)
                 {
                     AddInternal(text = new SpriteText
                     {
@@ -1283,6 +1308,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public Quad TextContainerBounds => TextContainer.ToSpaceOfOtherDrawable(new RectangleF(Vector2.Zero, TextContainer.DrawSize), this);
 
             public bool TextContainerTransformsFinished => TextContainer.LatestTransformEndTime == TextContainer.TransformStartTime;
+        }
+
+        private partial class TestTextBox : BasicTextBox
+        {
+            public new FillFlowContainer TextFlow => base.TextFlow;
         }
     }
 }
