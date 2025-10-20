@@ -180,25 +180,7 @@ namespace osu.Framework
             Textures.AddTextureSource(Host.CreateTextureLoaderStore(CreateOnlineStore()));
             dependencies.Cache(Textures);
 
-            var tracks = new ResourceStore<byte[]>();
-            tracks.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Tracks"));
-            tracks.AddStore(CreateOnlineStore());
-
-            var samples = new ResourceStore<byte[]>();
-            samples.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
-            samples.AddStore(CreateOnlineStore());
-
-            Audio = new AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
-            dependencies.Cache(Audio);
-
-            dependencies.CacheAs(Audio.Tracks);
-            dependencies.CacheAs(Audio.Samples);
-
-            // attach our bindables to the audio subsystem.
-            config.BindWith(FrameworkSetting.AudioDevice, Audio.AudioDevice);
-            config.BindWith(FrameworkSetting.VolumeUniversal, Audio.Volume);
-            config.BindWith(FrameworkSetting.VolumeEffect, Audio.VolumeSample);
-            config.BindWith(FrameworkSetting.VolumeMusic, Audio.VolumeTrack);
+            ChooseAndSetupAudio(config);
 
             Shaders = new ShaderManager(Host.Renderer, new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             dependencies.Cache(Shaders);
