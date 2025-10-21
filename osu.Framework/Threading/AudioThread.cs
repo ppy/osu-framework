@@ -140,8 +140,7 @@ namespace osu.Framework.Threading
 
             // That this has not been mass-tested since https://github.com/ppy/osu-framework/pull/6651 and probably needs to be.
             // Currently envvar gated for users to test at their own discretion.
-            bool useWasapiInit = Environment.GetEnvironmentVariable("OSU_AUDIO_WASAPI_EXPERIMENTAL") == "1";
-            if (useWasapiInit)
+            if (FrameworkEnvironment.UseWasapi)
                 attemptWasapiInitialisation();
 
             initialised_devices.Add(deviceId);
