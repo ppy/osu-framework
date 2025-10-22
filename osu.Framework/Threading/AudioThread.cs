@@ -12,6 +12,7 @@ using ManagedBass.Wasapi;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
+using osu.Framework.Logging;
 using osu.Framework.Platform.Linux.Native;
 
 namespace osu.Framework.Threading
@@ -186,6 +187,8 @@ namespace osu.Framework.Threading
             if (RuntimeInfo.OS != RuntimeInfo.Platform.Windows)
                 return;
 
+            Logger.Log("Attempting local BassWasapi initialisation");
+
             int wasapiDevice = -1;
 
             // WASAPI device indices don't match normal BASS devices.
@@ -240,6 +243,7 @@ namespace osu.Framework.Threading
             });
 
             bool initialised = BassWasapi.Init(wasapiDevice, Procedure: wasapiProcedure, Flags: WasapiInitFlags.EventDriven | WasapiInitFlags.AutoFormat, Buffer: 0f, Period: float.Epsilon);
+            Logger.Log($"Initialising BassWasapi for device {wasapiDevice}...{(initialised ? "success!" : "FAILED")}");
 
             if (!initialised)
                 return;
