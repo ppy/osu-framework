@@ -10,9 +10,11 @@ using osuTK;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Layout;
 using osuTK.Graphics;
 
@@ -34,8 +36,8 @@ namespace osu.Framework.Graphics.Lines
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            pathShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "Path");
+            pathShader = shaders.Load("PathPrepass", "PathPrepass");
         }
 
         private readonly List<Vector2> vertices = new List<Vector2>();
@@ -291,20 +293,12 @@ namespace osu.Framework.Graphics.Lines
         // The path should not receive the true colour to avoid colour doubling when the frame-buffer is rendered to the back-buffer.
         public override DrawColourInfo DrawColourInfo => new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
 
-        private Color4 backgroundColour = new Color4(0, 0, 0, 0);
+        private static readonly Color4 background_colour = new Color4(0, 0, 0, 0);
 
         /// <summary>
         /// The background colour to be used for the frame buffer this path is rendered to.
         /// </summary>
-        public virtual Color4 BackgroundColour
-        {
-            get => backgroundColour;
-            set
-            {
-                backgroundColour = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
+        public Color4 BackgroundColour => background_colour;
 
         public long PathInvalidationID { get; private set; }
 
@@ -321,7 +315,7 @@ namespace osu.Framework.Graphics.Lines
             return result;
         }
 
-        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(new[] { RenderBufferFormat.D16 }, clipToRootNode: true);
+        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(clipToRootNode: true);
 
         protected override DrawNode CreateDrawNode() => new PathBufferedDrawNode(this, new PathDrawNode(this), sharedData);
 
@@ -335,11 +329,38 @@ namespace osu.Framework.Graphics.Lines
             }
 
             private long pathInvalidationID = -1;
+            private Texture texture;
+            private Vector4 textureRect;
+            private IUniformBuffer<PathTextureParameters> parametersBuffer;
 
             public override void ApplyState()
             {
                 base.ApplyState();
                 pathInvalidationID = Source.PathInvalidationID;
+                texture = Source.Texture;
+
+                var rect = texture.GetTextureRect();
+                textureRect = new Vector4(rect.Left, rect.Top, rect.Width, rect.Height);
+            }
+
+            protected override void BindUniformResources(IShader shader, IRenderer renderer)
+            {
+                base.BindUniformResources(shader, renderer);
+
+                parametersBuffer ??= renderer.CreateUniformBuffer<PathTextureParameters>();
+                parametersBuffer.Data = new PathTextureParameters
+                {
+                    TexRect1 = textureRect,
+                };
+                shader.BindUniformBlock("m_PathTextureParameters", parametersBuffer);
+
+                texture?.Bind(1);
+            }
+
+            [StructLayout(LayoutKind.Sequential, Pack = 1)]
+            private record struct PathTextureParameters
+            {
+                public UniformVector4 TexRect1;
             }
 
             protected override long GetDrawVersion() => pathInvalidationID;

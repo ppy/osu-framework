@@ -2,17 +2,16 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Textures;
 using osuTK;
 using System;
 using System.Collections.Generic;
-using osuTK.Graphics;
-using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using osu.Framework.Utils;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Lines
 {
@@ -26,12 +25,10 @@ namespace osu.Framework.Graphics.Lines
 
             private readonly List<Line> segments = new List<Line>();
 
-            private Texture? texture;
-            private Vector2 drawSize;
             private float radius;
             private IShader? pathShader;
 
-            private IVertexBatch<TexturedVertex3D>? triangleBatch;
+            private IVertexBatch<PathVertex>? triangleBatch;
 
             public PathDrawNode(Path source)
                 : base(source)
@@ -45,8 +42,6 @@ namespace osu.Framework.Graphics.Lines
                 segments.Clear();
                 segments.AddRange(Source.segments);
 
-                texture = Source.Texture;
-                drawSize = Source.DrawSize;
                 radius = Source.PathRadius;
                 pathShader = Source.pathShader;
             }
@@ -55,136 +50,63 @@ namespace osu.Framework.Graphics.Lines
             {
                 base.Draw(renderer);
 
-                if (texture?.Available != true || segments.Count == 0 || pathShader == null)
+                if (segments.Count == 0 || pathShader == null)
                     return;
 
                 // We multiply the size args by 3 such that the amount of vertices is a multiple of the amount of vertices
                 // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
                 // grouping of vertices into primitives.
-                triangleBatch ??= renderer.CreateLinearBatch<TexturedVertex3D>(max_res * 200 * 3, 10, PrimitiveTopology.Triangles);
+                triangleBatch ??= renderer.CreateLinearBatch<PathVertex>(max_res * 200 * 3, 10, PrimitiveTopology.Triangles);
 
                 renderer.PushLocalMatrix(DrawInfo.Matrix);
-                renderer.PushDepthInfo(DepthInfo.Default);
 
-                // Blending is removed to allow for correct blending between the wedges of the path.
-                renderer.SetBlend(BlendingParameters.None);
+                renderer.SetBlend(new BlendingParameters
+                {
+                    Source = BlendingType.One,
+                    Destination = BlendingType.One,
+                    SourceAlpha = BlendingType.One,
+                    DestinationAlpha = BlendingType.One,
+                    RGBEquation = BlendingEquation.Max,
+                    AlphaEquation = BlendingEquation.Max,
+                });
 
                 pathShader.Bind();
-
-                texture.Bind();
 
                 updateVertexBuffer();
 
                 pathShader.Unbind();
 
-                renderer.PopDepthInfo();
                 renderer.PopLocalMatrix();
             }
 
-            private Vector2 pointOnCircle(float angle) => new Vector2(MathF.Cos(angle), MathF.Sin(angle));
-
-            private Vector2 relativePosition(Vector2 localPos) => Vector2.Divide(localPos, drawSize);
-
-            private Color4 colourAt(Vector2 localPos) => DrawColourInfo.Colour.TryExtractSingleColour(out SRGBColour colour)
-                ? colour.SRGB
-                : DrawColourInfo.Colour.Interpolate(relativePosition(localPos)).SRGB;
-
-            private void addSegmentQuads(SegmentWithThickness segment, RectangleF texRect)
+            private void addCap(Line cap)
             {
-                Debug.Assert(triangleBatch != null);
+                Vector2 ortho = cap.OrthogonalDirection;
+                if (float.IsNaN(ortho.X) || float.IsNaN(ortho.Y))
+                    ortho = Vector2.UnitY;
 
-                // Each segment of the path is actually rendered as 2 quads, being split in half along the approximating line.
-                // On this line the depth is 1 instead of 0, which is done in order to properly handle self-overlap using the depth buffer.
-                Vector3 firstMiddlePoint = new Vector3(segment.Guide.StartPoint.X, segment.Guide.StartPoint.Y, 1);
-                Vector3 secondMiddlePoint = new Vector3(segment.Guide.EndPoint.X, segment.Guide.EndPoint.Y, 1);
-                Color4 firstMiddleColour = colourAt(segment.Guide.StartPoint);
-                Color4 secondMiddleColour = colourAt(segment.Guide.EndPoint);
+                Vector2 v2 = cap.StartPoint + ortho * radius;
+                Vector2 v3 = cap.EndPoint + ortho * radius;
 
-                // Each of the quads (mentioned above) is rendered as 2 triangles:
-                // Outer quad, triangle 1
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = new Vector3(segment.EdgeRight.EndPoint.X, segment.EdgeRight.EndPoint.Y, 0),
-                    TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segment.EdgeRight.EndPoint)
-                });
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = new Vector3(segment.EdgeRight.StartPoint.X, segment.EdgeRight.StartPoint.Y, 0),
-                    TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segment.EdgeRight.StartPoint)
-                });
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = firstMiddlePoint,
-                    TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                    Colour = firstMiddleColour
-                });
-
-                // Outer quad, triangle 2
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = firstMiddlePoint,
-                    TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                    Colour = firstMiddleColour
-                });
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = secondMiddlePoint,
-                    TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                    Colour = secondMiddleColour
-                });
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = new Vector3(segment.EdgeRight.EndPoint.X, segment.EdgeRight.EndPoint.Y, 0),
-                    TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segment.EdgeRight.EndPoint)
-                });
-
-                // Inner quad, triangle 1
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = firstMiddlePoint,
-                    TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                    Colour = firstMiddleColour
-                });
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = secondMiddlePoint,
-                    TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                    Colour = secondMiddleColour
-                });
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = new Vector3(segment.EdgeLeft.EndPoint.X, segment.EdgeLeft.EndPoint.Y, 0),
-                    TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segment.EdgeLeft.EndPoint)
-                });
-
-                // Inner quad, triangle 2
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = new Vector3(segment.EdgeLeft.EndPoint.X, segment.EdgeLeft.EndPoint.Y, 0),
-                    TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segment.EdgeLeft.EndPoint)
-                });
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = new Vector3(segment.EdgeLeft.StartPoint.X, segment.EdgeLeft.StartPoint.Y, 0),
-                    TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segment.EdgeLeft.StartPoint)
-                });
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = firstMiddlePoint,
-                    TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                    Colour = firstMiddleColour
-                });
+                drawQuad
+                (
+                    new Quad(cap.StartPoint, v2, cap.EndPoint, v3),
+                    new Quad(new Vector2(0, -1), new Vector2(1f, -1), new Vector2(0, 1), Vector2.One)
+                );
             }
 
-            private void addSegmentCaps(float thetaDiff, Line segmentLeft, Line segmentRight, Line prevSegmentLeft, Line prevSegmentRight, RectangleF texRect)
+            private void addSegmentQuad(SegmentWithThickness segment)
             {
-                Debug.Assert(triangleBatch != null);
+                drawQuad
+                (
+                    new Quad(segment.EdgeLeft.StartPoint, segment.EdgeLeft.EndPoint, segment.EdgeRight.StartPoint, segment.EdgeRight.EndPoint),
+                    new Quad(new Vector2(0, -1), new Vector2(0, -1), new Vector2(0, 1), new Vector2(0, 1))
+                );
+            }
+
+            private void addConnectionBetween(SegmentWithThickness segment, SegmentWithThickness prevSegment)
+            {
+                float thetaDiff = segment.Guide.Theta - prevSegment.Guide.Theta;
 
                 if (Math.Abs(thetaDiff) > MathF.PI)
                     thetaDiff = -Math.Sign(thetaDiff) * 2 * MathF.PI + thetaDiff;
@@ -192,51 +114,97 @@ namespace osu.Framework.Graphics.Lines
                 if (thetaDiff == 0f)
                     return;
 
-                Vector2 origin = (segmentLeft.StartPoint + segmentRight.StartPoint) / 2;
+                Vector2 origin = segment.Guide.StartPoint;
+                Vector2 end = thetaDiff > 0f ? segment.EdgeRight.StartPoint : segment.EdgeLeft.StartPoint;
+                Line start = thetaDiff > 0f ? new Line(prevSegment.EdgeLeft.EndPoint, prevSegment.EdgeRight.EndPoint) : new Line(prevSegment.EdgeRight.EndPoint, prevSegment.EdgeLeft.EndPoint);
 
-                // Use segment end points instead of calculating start/end via theta to guarantee
-                // that the vertices have the exact same position as the quads, which prevents
-                // possible pixel gaps during rasterization.
-                Vector2 current = thetaDiff > 0f ? prevSegmentRight.EndPoint : prevSegmentLeft.EndPoint;
-                Vector2 end = thetaDiff > 0f ? segmentRight.StartPoint : segmentLeft.StartPoint;
-
-                Line start = thetaDiff > 0f ? new Line(prevSegmentLeft.EndPoint, prevSegmentRight.EndPoint) : new Line(prevSegmentRight.EndPoint, prevSegmentLeft.EndPoint);
-                float theta0 = start.Theta;
-                float thetaStep = Math.Sign(thetaDiff) * MathF.PI / max_res;
-                int stepCount = (int)MathF.Ceiling(thetaDiff / thetaStep);
-
-                Color4 originColour = colourAt(origin);
-                Color4 currentColour = colourAt(current);
-
-                for (int i = 1; i <= stepCount; i++)
+                // less than 90 degrees, single quad
+                if (Math.Abs(thetaDiff) < Math.PI * 0.5)
                 {
-                    // Center point
-                    triangleBatch.Add(new TexturedVertex3D
-                    {
-                        Position = new Vector3(origin.X, origin.Y, 1),
-                        TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                        Colour = originColour
-                    });
+                    Vector2 middle = Vector2.Lerp(start.EndPoint, end, 0.5f);
+                    Vector2 v3 = Vector2.Lerp(origin, middle, radius / (float)Math.Cos(Math.Abs(thetaDiff) * 0.5) / Vector2.Distance(origin, middle));
 
-                    // First outer point
-                    triangleBatch.Add(new TexturedVertex3D
-                    {
-                        Position = new Vector3(current.X, current.Y, 0),
-                        TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                        Colour = currentColour
-                    });
-
-                    current = i < stepCount ? origin + pointOnCircle(theta0 + i * thetaStep) * radius : end;
-                    currentColour = colourAt(current);
-
-                    // Second outer point
-                    triangleBatch.Add(new TexturedVertex3D
-                    {
-                        Position = new Vector3(current.X, current.Y, 0),
-                        TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                        Colour = currentColour
-                    });
+                    drawQuad(new Quad(start.EndPoint, v3, origin, end), origin);
                 }
+                else // more than 90 degrees - 2 quads
+                {
+                    Vector2 ortho = start.OrthogonalDirection;
+                    if (float.IsNaN(ortho.X) || float.IsNaN(ortho.Y))
+                        ortho = Vector2.UnitY;
+
+                    Vector2 v1 = start.StartPoint + Math.Sign(thetaDiff) * ortho * radius;
+                    Vector2 v2 = start.EndPoint + Math.Sign(thetaDiff) * ortho * radius;
+                    Vector2 middle = Vector2.Lerp(v1, v2, 0.5f);
+
+                    drawQuad
+                    (
+                        new Quad(start.EndPoint, v2, origin, middle),
+                        new Quad
+                        (
+                            new Vector2(0, -1),
+                            new Vector2(1, -1),
+                            Vector2.Zero,
+                            new Vector2(1, 0)
+                        )
+                    );
+
+                    Vector2 middle2 = Vector2.Lerp(middle, end, 0.5f);
+                    Vector2 v3 = Vector2.Lerp(origin, middle2, radius / (float)Math.Cos((Math.Abs(thetaDiff) - Math.PI * 0.5) * 0.5) / Vector2.Distance(origin, middle2));
+
+                    drawQuad(new Quad(middle, v3, origin, end), origin);
+                }
+            }
+
+            private void drawQuad(Quad quad, Vector2 origin)
+            {
+                drawQuad
+                (
+                    quad,
+                    new Quad
+                    (
+                        Vector2.Divide(quad.TopLeft - origin, radius),
+                        Vector2.Divide(quad.TopRight - origin, radius),
+                        Vector2.Divide(quad.BottomLeft - origin, radius),
+                        Vector2.Divide(quad.BottomRight - origin, radius)
+                    )
+                );
+            }
+
+            private void drawQuad(Quad quad, Quad relativeQuad)
+            {
+                Debug.Assert(triangleBatch != null);
+
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = quad.TopLeft,
+                    RelativePos = relativeQuad.TopLeft
+                });
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = quad.TopRight,
+                    RelativePos = relativeQuad.TopRight
+                });
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = quad.BottomLeft,
+                    RelativePos = relativeQuad.BottomLeft
+                });
+
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = quad.BottomLeft,
+                    RelativePos = relativeQuad.BottomLeft
+                });
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = quad.TopRight,
+                    RelativePos = relativeQuad.TopRight
+                });
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = quad.BottomRight,
+                    RelativePos = relativeQuad.BottomRight
+                });
             }
 
             private void updateVertexBuffer()
@@ -259,10 +227,7 @@ namespace osu.Framework.Graphics.Lines
                 // that make sense in the realm of OpenGL, rather than terms which  are technically
                 // accurate in the actually used "flipped" system.
 
-                Debug.Assert(texture != null);
                 Debug.Assert(segments.Count > 0);
-
-                RectangleF texRect = texture.GetTextureRect(new RectangleF(0.5f, 0.5f, texture.Width - 1, texture.Height - 1));
 
                 Line? segmentToDraw = null;
                 SegmentStartLocation location = SegmentStartLocation.Outside;
@@ -303,8 +268,8 @@ namespace osu.Framework.Graphics.Lines
                         else // Otherwise draw the expanded segment
                         {
                             SegmentWithThickness s = new SegmentWithThickness(segmentToDraw.Value, radius, location, modifiedLocation);
-                            addSegmentQuads(s, texRect);
-                            connect(s, lastDrawnSegment, texRect);
+                            addSegmentQuad(s);
+                            connect(s, lastDrawnSegment);
 
                             lastDrawnSegment = s;
 
@@ -324,21 +289,21 @@ namespace osu.Framework.Graphics.Lines
                 if (segmentToDraw.HasValue)
                 {
                     SegmentWithThickness s = new SegmentWithThickness(segmentToDraw.Value, radius, location, modifiedLocation);
-                    addSegmentQuads(s, texRect);
-                    connect(s, lastDrawnSegment, texRect);
-                    addEndCap(s, texRect);
+                    addSegmentQuad(s);
+                    connect(s, lastDrawnSegment);
+                    addEndCap(s);
                 }
             }
 
             /// <summary>
             /// Connects the start of the segment to the end of a previous one.
             /// </summary>
-            private void connect(SegmentWithThickness segment, SegmentWithThickness? prevSegment, RectangleF texRect)
+            private void connect(SegmentWithThickness segment, SegmentWithThickness? prevSegment)
             {
                 if (!prevSegment.HasValue)
                 {
                     // Nothing to connect to - add start cap
-                    addStartCap(segment, texRect);
+                    addStartCap(segment);
                     return;
                 }
 
@@ -347,13 +312,13 @@ namespace osu.Framework.Graphics.Lines
                     default:
                     case SegmentStartLocation.End:
                         // Segment starts at the end of the previous one
-                        addConnectionBetween(segment, prevSegment.Value, texRect);
+                        addConnectionBetween(segment, prevSegment.Value);
                         break;
 
                     case SegmentStartLocation.Start:
                     case SegmentStartLocation.Middle:
                         // Segment starts at the start or the middle of the previous one - add end cap to the previous segment
-                        addEndCap(prevSegment.Value, texRect);
+                        addEndCap(prevSegment.Value);
                         break;
 
                     case SegmentStartLocation.Outside:
@@ -367,39 +332,19 @@ namespace osu.Framework.Graphics.Lines
                         // line since horizontal one will pass through it. However, that wouldn't be the case if horizontal line was located at
                         // the middle and so end cap would be required.
                         if (segment.StartLocation != SegmentStartLocation.End)
-                            addEndCap(prevSegment.Value, texRect);
+                            addEndCap(prevSegment.Value);
 
                         // add start cap to the current one
-                        addStartCap(segment, texRect);
+                        addStartCap(segment);
                         break;
                 }
             }
 
-            private void addConnectionBetween(SegmentWithThickness segment, SegmentWithThickness prevSegment, RectangleF texRect)
-            {
-                float thetaDiff = segment.Guide.Theta - prevSegment.Guide.Theta;
-                addSegmentCaps(thetaDiff, segment.EdgeLeft, segment.EdgeRight, prevSegment.EdgeLeft, prevSegment.EdgeRight, texRect);
-            }
+            private void addEndCap(SegmentWithThickness segment) =>
+                addCap(new Line(segment.EdgeLeft.EndPoint, segment.EdgeRight.EndPoint));
 
-            private void addEndCap(SegmentWithThickness segment, RectangleF texRect)
-            {
-                // Explanation of semi-circle caps:
-                // Semi-circles are essentially 180 degree caps. So to create these caps, we
-                // can simply "fake" a segment that's 180 degrees flipped. This works because
-                // we are taking advantage of the fact that a path which makes a 180 degree
-                // bend would have a semi-circle cap.
-
-                Line flippedLeft = new Line(segment.EdgeRight.EndPoint, segment.EdgeRight.StartPoint);
-                Line flippedRight = new Line(segment.EdgeLeft.EndPoint, segment.EdgeLeft.StartPoint);
-                addSegmentCaps(MathF.PI, flippedLeft, flippedRight, segment.EdgeLeft, segment.EdgeRight, texRect);
-            }
-
-            private void addStartCap(SegmentWithThickness segment, RectangleF texRect)
-            {
-                Line flippedLeft = new Line(segment.EdgeRight.EndPoint, segment.EdgeRight.StartPoint);
-                Line flippedRight = new Line(segment.EdgeLeft.EndPoint, segment.EdgeLeft.StartPoint);
-                addSegmentCaps(MathF.PI, segment.EdgeLeft, segment.EdgeRight, flippedLeft, flippedRight, texRect);
-            }
+            private void addStartCap(SegmentWithThickness segment) =>
+                addCap(new Line(segment.EdgeRight.StartPoint, segment.EdgeLeft.StartPoint));
 
             private static float progressFor(Line line, float length, Vector2 point)
             {
@@ -466,6 +411,20 @@ namespace osu.Framework.Graphics.Lines
                     EdgeLeft = new Line(Guide.StartPoint + ortho * distance, Guide.EndPoint + ortho * distance);
                     EdgeRight = new Line(Guide.StartPoint - ortho * distance, Guide.EndPoint - ortho * distance);
                 }
+            }
+
+            [StructLayout(LayoutKind.Sequential)]
+            public struct PathVertex : IEquatable<PathVertex>, IVertex
+            {
+                [VertexMember(2, VertexAttribPointerType.Float)]
+                public Vector2 Position;
+
+                [VertexMember(2, VertexAttribPointerType.Float)]
+                public Vector2 RelativePos;
+
+                public readonly bool Equals(PathVertex other) =>
+                    Position.Equals(other.Position)
+                    && RelativePos.Equals(other.RelativePos);
             }
         }
     }
