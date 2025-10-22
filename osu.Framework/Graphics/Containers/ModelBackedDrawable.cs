@@ -138,7 +138,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="wrapper">The current <see cref="DelayedLoadWrapper"/>.</param>
         private void finishLoad(DelayedLoadWrapper? wrapper)
         {
-            TransformSequence<Drawable>? showTransforms = null;
+            TransformSequence<Drawable> showTransforms = default;
 
             if (wrapper != null)
             {
@@ -155,14 +155,20 @@ namespace osu.Framework.Graphics.Containers
             {
                 var lastWrapper = displayedWrapper;
 
+                TransformSequence<Drawable> hideTransforms = default;
+
                 // If the new wrapper is non-null, we need to wait for the show transformation to complete before hiding the old wrapper,
                 // otherwise, we can hide the old wrapper instantaneously and leave a blank display
-                var hideTransforms = wrapper == null
-                    ? ApplyHideTransforms(lastWrapper)
-                    : ((Drawable)lastWrapper)?.Delay(TransformDuration)?.Append(ApplyHideTransforms);
+                if (wrapper == null)
+                    hideTransforms = ApplyHideTransforms(lastWrapper);
+                else if (lastWrapper is Drawable last)
+                    hideTransforms = last.Delay(TransformDuration).Next(ApplyHideTransforms);
 
                 // Expire the last wrapper after the front-most transform has completed (the last wrapper is assumed to be invisible by that point)
-                (showTransforms ?? hideTransforms)?.OnComplete(_ => lastWrapper?.Expire());
+                if (!showTransforms.IsEmpty)
+                    showTransforms.OnComplete(_ => lastWrapper?.Expire());
+                else if (!hideTransforms.IsEmpty)
+                    hideTransforms.OnComplete(_ => lastWrapper?.Expire());
             }
 
             displayedWrapper = wrapper;

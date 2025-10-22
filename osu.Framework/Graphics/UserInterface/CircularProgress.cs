@@ -51,7 +51,7 @@ namespace osu.Framework.Graphics.UserInterface
         public TransformSequence<CircularProgress> ProgressTo(double newValue, double duration = 0, Easing easing = Easing.None)
             => ProgressTo(newValue, duration, new DefaultEasingFunction(easing));
 
-        public TransformSequence<CircularProgress> ProgressTo<TEasing>(double newValue, double duration, in TEasing easing)
+        public TransformSequence<CircularProgress> ProgressTo<TEasing>(double newValue, double duration, TEasing easing)
             where TEasing : IEasingFunction
             => this.TransformTo(nameof(Progress), newValue, duration, easing);
 
@@ -257,6 +257,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         public static TransformSequence<CircularProgress> ProgressTo<TEasing>(this TransformSequence<CircularProgress> t, double newValue, double duration, TEasing easing)
             where TEasing : IEasingFunction
-            => t.Append(cp => cp.ProgressTo(newValue, duration, easing));
+            => t.Next().ProgressTo(newValue, duration, easing);
     }
 }

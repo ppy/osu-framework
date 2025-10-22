@@ -163,11 +163,35 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="toRemove">The <see cref="Transform"/> to remove.</param>
         public void RemoveTransform(Transform toRemove)
         {
+            RemoveTransformNoAbort(toRemove);
+            GetTransformEventHandler(toRemove.SequenceID)?.TriggerAbort();
+        }
+
+        public void RemoveTransformNoAbort(Transform toRemove)
+        {
             EnsureTransformMutationAllowed();
-
             getTrackerForGrouping(toRemove.TargetGrouping, false)?.RemoveTransform(toRemove);
+        }
 
-            toRemove.TriggerAbort();
+        public IEnumerable<Transform> GetTransforms() => Transforms;
+
+        public TransformSequenceEventHandler GetTransformEventHandler(ulong sequenceId)
+        {
+            if (sequenceId == 0)
+                return null;
+
+            TargetGroupingTransformTracker tracker = getTrackerForGrouping(TransformSequenceEventHandler.GROUP, false);
+
+            if (tracker == null)
+                return null;
+
+            foreach (var transform in tracker.Transforms)
+            {
+                if (transform.SequenceID == sequenceId)
+                    return transform as TransformSequenceEventHandler;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -377,14 +401,13 @@ namespace osu.Framework.Graphics.Transforms
         /// If <see cref="Clock"/> is null, e.g. because this object has just been constructed, then the given transform will be finished instantaneously.
         /// </summary>
         /// <param name="transform">The <see cref="Transform"/> to be added.</param>
-        /// <param name="customTransformID">When not null, the <see cref="Transform.TransformID"/> to assign for ordering.</param>
-        public void AddTransform(Transform transform, ulong? customTransformID = null)
+        public void AddTransform(Transform transform)
         {
             EnsureTransformMutationAllowed();
 
             ArgumentNullException.ThrowIfNull(transform);
 
-            if (!ReferenceEquals(transform.TargetTransformable, this))
+            if (!ReferenceEquals(transform.Target, this))
             {
                 throw new InvalidOperationException(
                     $"{nameof(transform)} must have been populated via {nameof(TransformableExtensions)}.{nameof(TransformableExtensions.PopulateTransform)} " +
@@ -400,12 +423,12 @@ namespace osu.Framework.Graphics.Transforms
                 }
 
                 transform.Apply(transform.EndTime);
-                transform.TriggerComplete();
+                GetTransformEventHandler(transform.SequenceID)?.TriggerComplete();
 
                 return;
             }
 
-            getTrackerForGrouping(transform.TargetGrouping, true).AddTransform(transform, customTransformID);
+            getTrackerForGrouping(transform.TargetGrouping, true).AddTransform(transform);
 
             // If our newly added transform could have an immediate effect, then let's
             // make this effect happen immediately.
