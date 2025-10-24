@@ -106,6 +106,8 @@ namespace osu.Framework.Graphics.Lines
 
             private void addConnectionBetween(SegmentWithThickness segment, SegmentWithThickness prevSegment)
             {
+                Debug.Assert(triangleBatch != null);
+
                 float thetaDiff = segment.Guide.Theta - prevSegment.Guide.Theta;
 
                 if (Math.Abs(thetaDiff) > MathF.PI)
@@ -118,8 +120,25 @@ namespace osu.Framework.Graphics.Lines
                 Vector2 end = thetaDiff > 0f ? segment.EdgeRight.StartPoint : segment.EdgeLeft.StartPoint;
                 Line start = thetaDiff > 0f ? new Line(prevSegment.EdgeLeft.EndPoint, prevSegment.EdgeRight.EndPoint) : new Line(prevSegment.EdgeRight.EndPoint, prevSegment.EdgeLeft.EndPoint);
 
-                // less than 90 degrees, single quad
-                if (Math.Abs(thetaDiff) < Math.PI * 0.5)
+                if (Math.Abs(thetaDiff) < Math.PI / max_res) // small angle, 1 triangle is enough
+                {
+                    triangleBatch.Add(new PathVertex
+                    {
+                        Position = start.EndPoint,
+                        RelativePos = new Vector2(1, 0)
+                    });
+                    triangleBatch.Add(new PathVertex
+                    {
+                        Position = origin,
+                        RelativePos = Vector2.Zero
+                    });
+                    triangleBatch.Add(new PathVertex
+                    {
+                        Position = end,
+                        RelativePos = new Vector2(1, 0)
+                    });
+                }
+                else if (Math.Abs(thetaDiff) < Math.PI * 0.5) // less than 90 degrees, single quad
                 {
                     Vector2 middle = Vector2.Lerp(start.EndPoint, end, 0.5f);
                     Vector2 v3 = Vector2.Lerp(origin, middle, radius / (float)Math.Cos(Math.Abs(thetaDiff) * 0.5) / Vector2.Distance(origin, middle));
