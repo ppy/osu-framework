@@ -438,6 +438,11 @@ namespace osu.Framework.Graphics.Lines
                 [VertexMember(2, VertexAttribPointerType.Float)]
                 public Vector2 Position;
 
+                /// <summary>
+                /// A position of a vertex, where distance from that position to (0,0) defines it's colour.
+                /// Distance 0 means white and 1 means black.
+                /// This position is being interpolated between vertices and final colour is being applied in the fragment shader.
+                /// </summary>
                 [VertexMember(2, VertexAttribPointerType.Float)]
                 public Vector2 RelativePos;
 
