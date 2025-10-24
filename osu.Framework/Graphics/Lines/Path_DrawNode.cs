@@ -81,6 +81,8 @@ namespace osu.Framework.Graphics.Lines
 
             private void addCap(Line cap)
             {
+                // The provided line is perpendicular to the end/start of a segment.
+                // To get the remaining quad positions we are expanding said segment by the path radius.
                 Vector2 ortho = cap.OrthogonalDirection;
                 if (float.IsNaN(ortho.X) || float.IsNaN(ortho.Y))
                     ortho = Vector2.UnitY;
