@@ -97,6 +97,13 @@ namespace osu.Framework.Audio
         public readonly Bindable<string> AudioDevice = new Bindable<string>();
 
         /// <summary>
+        /// Whether to use experimental WASAPI initialisation on windows.
+        /// This generally results in lower audio latency, but also changes the audio synchronisation from
+        /// historical expectations, meaning users / application will have to account for different offsets.
+        /// </summary>
+        public readonly BindableBool UseExperimentalWasapi = new BindableBool();
+
+        /// <summary>
         /// Volume of all samples played game-wide.
         /// </summary>
         public readonly BindableDouble VolumeSample = new BindableDouble(1)
@@ -176,6 +183,7 @@ namespace osu.Framework.Audio
             thread.RegisterManager(this);
 
             AudioDevice.ValueChanged += _ => onDeviceChanged();
+            UseExperimentalWasapi.ValueChanged += _ => onDeviceChanged();
             GlobalMixerHandle.ValueChanged += handle =>
             {
                 onDeviceChanged();
@@ -430,10 +438,16 @@ namespace osu.Framework.Audio
             // See https://www.un4seen.com/forum/?topic=19601 for more information.
             Bass.Configure((ManagedBass.Configuration)70, false);
 
-            if (!thread.InitDevice(device))
-                return false;
+            if (UseExperimentalWasapi.Value)
+            {
+                if (thread.InitDevice(device, true))
+                    return true;
 
-            return true;
+                Logger.Log($"BASS device {device} failed to initialise with experimental WASAPI, disabling", level: LogLevel.Error);
+                UseExperimentalWasapi.Value = false;
+            }
+
+            return thread.InitDevice(device, false);
         }
 
         private void syncAudioDevices()
