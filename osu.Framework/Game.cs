@@ -196,6 +196,7 @@ namespace osu.Framework
 
             // attach our bindables to the audio subsystem.
             config.BindWith(FrameworkSetting.AudioDevice, Audio.AudioDevice);
+            config.BindWith(FrameworkSetting.AudioUseExperimentalWasapi, Audio.UseExperimentalWasapi);
             config.BindWith(FrameworkSetting.VolumeUniversal, Audio.Volume);
             config.BindWith(FrameworkSetting.VolumeEffect, Audio.VolumeSample);
             config.BindWith(FrameworkSetting.VolumeMusic, Audio.VolumeTrack);
