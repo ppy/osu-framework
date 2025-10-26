@@ -183,7 +183,7 @@ namespace osu.Framework.Audio
             thread.RegisterManager(this);
 
             AudioDevice.ValueChanged += _ => onDeviceChanged();
-            UseExperimentalWasapi.ValueChanged += _ => onDeviceChanged();
+            UseExperimentalWasapi.ValueChanged += _ => setSelectedAudioDevice(true);
             GlobalMixerHandle.ValueChanged += handle =>
             {
                 onDeviceChanged();
@@ -250,7 +250,7 @@ namespace osu.Framework.Audio
 
         private void onDeviceChanged()
         {
-            scheduler.Add(() => setAudioDevice(AudioDevice.Value));
+            setSelectedAudioDevice(false);
         }
 
         private void onDevicesChanged()
@@ -334,11 +334,21 @@ namespace osu.Framework.Audio
         }
 
         /// <summary>
+        /// Sets the output audio device from the <see cref="AudioDevice">currently configured</see> selection.
+        /// </summary>
+        /// <param name="reset">Whether to reset the device if it has already been initialised.</param>
+        private void setSelectedAudioDevice(bool reset)
+        {
+            scheduler.Add(() => setAudioDevice(AudioDevice.Value, reset));
+        }
+
+        /// <summary>
         /// Sets the output audio device by its name.
         /// This will automatically fall back to the system default device on failure.
         /// </summary>
         /// <param name="deviceName">Name of the audio device, or null to use the configured device preference <see cref="AudioDevice"/>.</param>
-        private bool setAudioDevice(string deviceName = null)
+        /// <param name="reset">Whether to reset the device if it has already been initialised.</param>
+        private bool setAudioDevice(string deviceName = null, bool reset = false)
         {
             deviceName ??= AudioDevice.Value;
 
@@ -373,7 +383,7 @@ namespace osu.Framework.Audio
                     return false;
 
                 // initialize new device
-                if (!InitBass(deviceId))
+                if (!InitBass(deviceId, reset))
                     return false;
 
                 //we have successfully initialised a new device.
@@ -387,9 +397,11 @@ namespace osu.Framework.Audio
         /// This method calls <see cref="Bass.Init(int, int, DeviceInitFlags, IntPtr, IntPtr)"/>.
         /// It can be overridden for unit testing.
         /// </summary>
-        protected virtual bool InitBass(int device)
+        /// <param name="device">The device to initialise.</param>
+        /// <param name="reset">Whether to reset the device if it has already been initialised.</param>
+        protected virtual bool InitBass(int device, bool reset)
         {
-            if (Bass.CurrentDevice == device)
+            if (Bass.CurrentDevice == device && !reset)
                 return true;
 
             // this likely doesn't help us but also doesn't seem to cause any issues or any cpu increase.
@@ -421,29 +433,33 @@ namespace osu.Framework.Audio
             // See https://www.un4seen.com/forum/?topic=19601 for more information.
             Bass.Configure((ManagedBass.Configuration)70, false);
 
+            if (attemptInit())
+                return true;
+
             if (UseExperimentalWasapi.Value)
             {
-                if (thread.InitDevice(device, true))
-                    return true;
-
                 Logger.Log($"BASS device {device} failed to initialise with experimental WASAPI, disabling", level: LogLevel.Error);
                 UseExperimentalWasapi.Value = false;
             }
 
-            bool success = thread.InitDevice(device, false);
+            return attemptInit();
 
-            if (Bass.LastError != Errors.Already && BassUtils.CheckFaulted(false))
-                return false;
-
-            if (!success)
+            bool attemptInit()
             {
-                Logger.Log("BASS failed to initialize but did not provide an error code", level: LogLevel.Error);
-                return false;
-            }
+                bool success = thread.InitDevice(device, UseExperimentalWasapi.Value);
 
-            var deviceInfo = audioDevices.ElementAtOrDefault(device);
+                if (Bass.LastError != Errors.Already && BassUtils.CheckFaulted(false))
+                    return false;
 
-            Logger.Log($@"🔈 BASS initialised
+                if (!success)
+                {
+                    Logger.Log("BASS failed to initialize but did not provide an error code", level: LogLevel.Error);
+                    return false;
+                }
+
+                var deviceInfo = audioDevices.ElementAtOrDefault(device);
+
+                Logger.Log($@"🔈 BASS initialised
                           BASS version:           {Bass.Version}
                           BASS FX version:        {BassFx.Version}
                           BASS MIX version:       {BassMix.Version}
@@ -453,7 +469,8 @@ namespace osu.Framework.Audio
                           Device buffer length:   {Bass.DeviceBufferLength} ms
                           Playback buffer length: {Bass.PlaybackBufferLength} ms");
 
-            return true;
+                return true;
+            }
         }
 
         private void syncAudioDevices()
