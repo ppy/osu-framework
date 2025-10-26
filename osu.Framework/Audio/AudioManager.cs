@@ -374,25 +374,8 @@ namespace osu.Framework.Audio
                 return false;
 
             // initialize new device
-            bool initSuccess = InitBass(deviceIndex);
-            if (Bass.LastError != Errors.Already && BassUtils.CheckFaulted(false))
+            if (!InitBass(deviceIndex))
                 return false;
-
-            if (!initSuccess)
-            {
-                Logger.Log("BASS failed to initialize but did not provide an error code", level: LogLevel.Error);
-                return false;
-            }
-
-            Logger.Log($@"🔈 BASS initialised
-                          BASS version:           {Bass.Version}
-                          BASS FX version:        {BassFx.Version}
-                          BASS MIX version:       {BassMix.Version}
-                          Device:                 {device.Name}
-                          Driver:                 {device.Driver}
-                          Update period:          {Bass.UpdatePeriod} ms
-                          Device buffer length:   {Bass.DeviceBufferLength} ms
-                          Playback buffer length: {Bass.PlaybackBufferLength} ms");
 
             //we have successfully initialised a new device.
             UpdateDevice(deviceIndex);
@@ -447,7 +430,30 @@ namespace osu.Framework.Audio
                 UseExperimentalWasapi.Value = false;
             }
 
-            return thread.InitDevice(device, false);
+            bool success = thread.InitDevice(device, false);
+
+            if (Bass.LastError != Errors.Already && BassUtils.CheckFaulted(false))
+                return false;
+
+            if (!success)
+            {
+                Logger.Log("BASS failed to initialize but did not provide an error code", level: LogLevel.Error);
+                return false;
+            }
+
+            var deviceInfo = audioDevices.ElementAtOrDefault(device);
+
+            Logger.Log($@"🔈 BASS initialised
+                          BASS version:           {Bass.Version}
+                          BASS FX version:        {BassFx.Version}
+                          BASS MIX version:       {BassMix.Version}
+                          Device:                 {deviceInfo.Name}
+                          Driver:                 {deviceInfo.Driver}
+                          Update period:          {Bass.UpdatePeriod} ms
+                          Device buffer length:   {Bass.DeviceBufferLength} ms
+                          Playback buffer length: {Bass.PlaybackBufferLength} ms");
+
+            return true;
         }
 
         private void syncAudioDevices()
