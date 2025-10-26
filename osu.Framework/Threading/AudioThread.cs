@@ -141,6 +141,8 @@ namespace osu.Framework.Threading
 
             if (useExperimentalWasapi)
                 attemptWasapiInitialisation();
+            else
+                freeWasapi();
 
             initialised_devices.Add(deviceId);
             return true;
