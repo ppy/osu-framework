@@ -344,43 +344,43 @@ namespace osu.Framework.Audio
 
             // try using the specified device
             int deviceIndex = audioDeviceNames.FindIndex(d => d == deviceName);
-            if (deviceIndex >= 0 && setAudioDevice(BASS_INTERNAL_DEVICE_COUNT + deviceIndex))
+            if (deviceIndex >= 0 && trySetDevice(BASS_INTERNAL_DEVICE_COUNT + deviceIndex))
                 return true;
 
             // try using the system default if there is any device present.
             // mobiles are an exception as the built-in speakers may not be provided as an audio device name,
             // but they are still provided by BASS under the internal device name "Default".
-            if ((audioDeviceNames.Count > 0 || RuntimeInfo.IsMobile) && setAudioDevice(bass_default_device))
+            if ((audioDeviceNames.Count > 0 || RuntimeInfo.IsMobile) && trySetDevice(bass_default_device))
                 return true;
 
             // no audio devices can be used, so try using Bass-provided "No sound" device as last resort.
-            if (setAudioDevice(Bass.NoSoundDevice))
+            if (trySetDevice(Bass.NoSoundDevice))
                 return true;
 
             // we're boned. even "No sound" device won't initialise.
             return false;
-        }
 
-        private bool setAudioDevice(int deviceIndex)
-        {
-            var device = audioDevices.ElementAtOrDefault(deviceIndex);
+            bool trySetDevice(int deviceId)
+            {
+                var device = audioDevices.ElementAtOrDefault(deviceId);
 
-            // device is invalid
-            if (!device.IsEnabled)
-                return false;
+                // device is invalid
+                if (!device.IsEnabled)
+                    return false;
 
-            // we don't want bass initializing with real audio device on headless test runs.
-            if (deviceIndex != Bass.NoSoundDevice && DebugUtils.IsNUnitRunning)
-                return false;
+                // we don't want bass initializing with real audio device on headless test runs.
+                if (deviceId != Bass.NoSoundDevice && DebugUtils.IsNUnitRunning)
+                    return false;
 
-            // initialize new device
-            if (!InitBass(deviceIndex))
-                return false;
+                // initialize new device
+                if (!InitBass(deviceId))
+                    return false;
 
-            //we have successfully initialised a new device.
-            UpdateDevice(deviceIndex);
+                //we have successfully initialised a new device.
+                UpdateDevice(deviceId);
 
-            return true;
+                return true;
+            }
         }
 
         /// <summary>
