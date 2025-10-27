@@ -408,20 +408,19 @@ namespace osu.Framework.Audio
             // See https://www.un4seen.com/forum/?topic=19601 for more information.
             Bass.Configure((ManagedBass.Configuration)70, false);
 
-            if (attemptInit())
-                return true;
+            bool success = attemptInit();
 
-            if (UseExperimentalWasapi.Value)
-            {
-                Logger.Log($"BASS device {device} failed to initialise with experimental WASAPI, disabling", level: LogLevel.Error);
-                UseExperimentalWasapi.Value = false;
-            }
+            if (success || !UseExperimentalWasapi.Value)
+                return success;
 
+            // in the case we're using experimental WASAPI, give a second chance of initialisation by forcefully disabling it.
+            Logger.Log($"BASS device {device} failed to initialise with experimental WASAPI, disabling", level: LogLevel.Error);
+            UseExperimentalWasapi.Value = false;
             return attemptInit();
 
             bool attemptInit()
             {
-                bool success = thread.InitDevice(device, UseExperimentalWasapi.Value);
+                bool innerSuccess = thread.InitDevice(device, UseExperimentalWasapi.Value);
                 bool alreadyInitialised = Bass.LastError == Errors.Already;
 
                 if (alreadyInitialised)
@@ -430,7 +429,7 @@ namespace osu.Framework.Audio
                 if (BassUtils.CheckFaulted(false))
                     return false;
 
-                if (!success)
+                if (!innerSuccess)
                 {
                     Logger.Log("BASS failed to initialize but did not provide an error code", level: LogLevel.Error);
                     return false;
