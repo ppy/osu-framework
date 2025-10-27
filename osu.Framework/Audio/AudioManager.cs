@@ -17,6 +17,7 @@ using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
+using osu.Framework.Configuration;
 using osu.Framework.Development;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.IO.Stores;
@@ -176,20 +177,22 @@ namespace osu.Framework.Audio
         /// <param name="audioThread">The host's audio thread.</param>
         /// <param name="trackStore">The resource store containing all audio tracks to be used in the future.</param>
         /// <param name="sampleStore">The sample store containing all audio samples to be used in the future.</param>
-        public AudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
+        /// <param name="config"></param>
+        public AudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore, FrameworkConfigManager config)
         {
             thread = audioThread;
 
             thread.RegisterManager(this);
 
-            AudioDevice.ValueChanged += _ =>
-            {
-                scheduler.AddOnce(initCurrentDevice);
-            };
-            UseExperimentalWasapi.ValueChanged += _ =>
-            {
-                scheduler.AddOnce(initCurrentDevice);
-            };
+            // attach config bindables
+            config.BindWith(FrameworkSetting.AudioDevice, AudioDevice);
+            config.BindWith(FrameworkSetting.AudioUseExperimentalWasapi, UseExperimentalWasapi);
+            config.BindWith(FrameworkSetting.VolumeUniversal, Volume);
+            config.BindWith(FrameworkSetting.VolumeEffect, VolumeSample);
+            config.BindWith(FrameworkSetting.VolumeMusic, VolumeTrack);
+
+            AudioDevice.ValueChanged += _ => scheduler.AddOnce(initCurrentDevice);
+            UseExperimentalWasapi.ValueChanged += _ => scheduler.AddOnce(initCurrentDevice);
             GlobalMixerHandle.ValueChanged += handle =>
             {
                 scheduler.AddOnce(initCurrentDevice);
@@ -215,12 +218,12 @@ namespace osu.Framework.Audio
                 return store;
             });
 
-            CancellationToken token = cancelSource.Token;
-
             syncAudioDevices();
+
+            // check for changes in any audio devices every 1000ms (slightly expensive operation)
+            CancellationToken token = cancelSource.Token;
             scheduler.AddDelayed(() =>
             {
-                // sync audioDevices every 1000ms
                 new Thread(() =>
                 {
                     while (!token.IsCancellationRequested)
@@ -252,18 +255,6 @@ namespace osu.Framework.Audio
             OnLostDevice = null;
 
             base.Dispose(disposing);
-        }
-
-        private void onDevicesChanged()
-        {
-            scheduler.Add(() =>
-            {
-                if (cancelSource.IsCancellationRequested)
-                    return;
-
-                if (!IsCurrentDeviceValid())
-                    initCurrentDevice();
-            }, false);
         }
 
         private static int userMixerID;
@@ -470,7 +461,14 @@ namespace osu.Framework.Audio
             var oldDeviceNames = audioDeviceNames;
             var newDeviceNames = audioDeviceNames = audioDevices.Skip(BASS_INTERNAL_DEVICE_COUNT).Where(d => d.IsEnabled).Select(d => d.Name).ToImmutableList();
 
-            onDevicesChanged();
+            scheduler.Add(() =>
+            {
+                if (cancelSource.IsCancellationRequested)
+                    return;
+
+                if (!IsCurrentDeviceValid())
+                    initCurrentDevice();
+            }, false);
 
             var newDevices = newDeviceNames.Except(oldDeviceNames).ToList();
             var lostDevices = oldDeviceNames.Except(newDeviceNames).ToList();
