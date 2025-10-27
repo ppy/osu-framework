@@ -160,6 +160,7 @@ namespace osu.Framework.Graphics.Shaders
         public const string TEXTURE = "Texture";
         public const string GLOW = "Glow";
         public const string BLUR = "Blur";
+        public const string GRAYSCALE = "Grayscale";
         public const string VIDEO = "Video";
     }
 }
