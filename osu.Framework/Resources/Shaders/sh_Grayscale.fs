@@ -3,7 +3,6 @@
 
 #include "sh_Utils.h"
 
-
 const mediump float p_r = 0.299f;
 const mediump float p_g = 0.587f;
 const mediump float p_b = 0.114f;
