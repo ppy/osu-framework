@@ -182,11 +182,17 @@ namespace osu.Framework.Audio
 
             thread.RegisterManager(this);
 
-            AudioDevice.ValueChanged += _ => onDeviceChanged();
-            UseExperimentalWasapi.ValueChanged += _ => setSelectedAudioDevice(true);
+            AudioDevice.ValueChanged += _ =>
+            {
+                scheduler.AddOnce(initCurrentDevice);
+            };
+            UseExperimentalWasapi.ValueChanged += _ =>
+            {
+                scheduler.AddOnce(initCurrentDevice);
+            };
             GlobalMixerHandle.ValueChanged += handle =>
             {
-                onDeviceChanged();
+                scheduler.AddOnce(initCurrentDevice);
                 usingGlobalMixer.Value = handle.NewValue.HasValue;
             };
 
@@ -248,11 +254,6 @@ namespace osu.Framework.Audio
             base.Dispose(disposing);
         }
 
-        private void onDeviceChanged()
-        {
-            setSelectedAudioDevice(false);
-        }
-
         private void onDevicesChanged()
         {
             scheduler.Add(() =>
@@ -261,8 +262,8 @@ namespace osu.Framework.Audio
                     return;
 
                 if (!IsCurrentDeviceValid())
-                    setAudioDevice();
-            });
+                    initCurrentDevice();
+            }, false);
         }
 
         private static int userMixerID;
@@ -334,41 +335,27 @@ namespace osu.Framework.Audio
         }
 
         /// <summary>
-        /// Sets the output audio device from the <see cref="AudioDevice">currently configured</see> selection.
-        /// </summary>
-        /// <param name="reset">Whether to reset the device if it has already been initialised.</param>
-        private void setSelectedAudioDevice(bool reset)
-        {
-            scheduler.Add(() => setAudioDevice(AudioDevice.Value, reset));
-        }
-
-        /// <summary>
-        /// Sets the output audio device by its name.
+        /// (Re-)Initialises BASS for the current <see cref="AudioDevice"/>.
         /// This will automatically fall back to the system default device on failure.
         /// </summary>
-        /// <param name="deviceName">Name of the audio device, or null to use the configured device preference <see cref="AudioDevice"/>.</param>
-        /// <param name="reset">Whether to reset the device if it has already been initialised.</param>
-        private bool setAudioDevice(string deviceName = null, bool reset = false)
+        private void initCurrentDevice()
         {
-            deviceName ??= AudioDevice.Value;
+            string deviceName = AudioDevice.Value;
 
             // try using the specified device
             int deviceIndex = audioDeviceNames.FindIndex(d => d == deviceName);
-            if (deviceIndex >= 0 && trySetDevice(BASS_INTERNAL_DEVICE_COUNT + deviceIndex))
-                return true;
+            if (deviceIndex >= 0 && trySetDevice(BASS_INTERNAL_DEVICE_COUNT + deviceIndex)) return;
 
             // try using the system default if there is any device present.
             // mobiles are an exception as the built-in speakers may not be provided as an audio device name,
             // but they are still provided by BASS under the internal device name "Default".
-            if ((audioDeviceNames.Count > 0 || RuntimeInfo.IsMobile) && trySetDevice(bass_default_device))
-                return true;
+            if ((audioDeviceNames.Count > 0 || RuntimeInfo.IsMobile) && trySetDevice(bass_default_device)) return;
 
             // no audio devices can be used, so try using Bass-provided "No sound" device as last resort.
-            if (trySetDevice(Bass.NoSoundDevice))
-                return true;
+            trySetDevice(Bass.NoSoundDevice);
 
             // we're boned. even "No sound" device won't initialise.
-            return false;
+            return;
 
             bool trySetDevice(int deviceId)
             {
@@ -383,7 +370,7 @@ namespace osu.Framework.Audio
                     return false;
 
                 // initialize new device
-                if (!InitBass(deviceId, reset))
+                if (!InitBass(deviceId))
                     return false;
 
                 //we have successfully initialised a new device.
@@ -398,12 +385,8 @@ namespace osu.Framework.Audio
         /// It can be overridden for unit testing.
         /// </summary>
         /// <param name="device">The device to initialise.</param>
-        /// <param name="reset">Whether to reset the device if it has already been initialised.</param>
-        protected virtual bool InitBass(int device, bool reset)
+        protected virtual bool InitBass(int device)
         {
-            if (Bass.CurrentDevice == device && !reset)
-                return true;
-
             // this likely doesn't help us but also doesn't seem to cause any issues or any cpu increase.
             Bass.UpdatePeriod = 5;
 
@@ -447,8 +430,12 @@ namespace osu.Framework.Audio
             bool attemptInit()
             {
                 bool success = thread.InitDevice(device, UseExperimentalWasapi.Value);
+                bool alreadyInitialised = Bass.LastError == Errors.Already;
 
-                if (Bass.LastError != Errors.Already && BassUtils.CheckFaulted(false))
+                if (alreadyInitialised)
+                    return true;
+
+                if (BassUtils.CheckFaulted(false))
                     return false;
 
                 if (!success)
