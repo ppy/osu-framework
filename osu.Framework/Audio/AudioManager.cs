@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using JetBrains.Annotations;
 using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
@@ -178,18 +179,21 @@ namespace osu.Framework.Audio
         /// <param name="trackStore">The resource store containing all audio tracks to be used in the future.</param>
         /// <param name="sampleStore">The sample store containing all audio samples to be used in the future.</param>
         /// <param name="config"></param>
-        public AudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore, FrameworkConfigManager config)
+        public AudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore, [CanBeNull] FrameworkConfigManager config)
         {
             thread = audioThread;
 
             thread.RegisterManager(this);
 
-            // attach config bindables
-            config.BindWith(FrameworkSetting.AudioDevice, AudioDevice);
-            config.BindWith(FrameworkSetting.AudioUseExperimentalWasapi, UseExperimentalWasapi);
-            config.BindWith(FrameworkSetting.VolumeUniversal, Volume);
-            config.BindWith(FrameworkSetting.VolumeEffect, VolumeSample);
-            config.BindWith(FrameworkSetting.VolumeMusic, VolumeTrack);
+            if (config != null)
+            {
+                // attach config bindables
+                config.BindWith(FrameworkSetting.AudioDevice, AudioDevice);
+                config.BindWith(FrameworkSetting.AudioUseExperimentalWasapi, UseExperimentalWasapi);
+                config.BindWith(FrameworkSetting.VolumeUniversal, Volume);
+                config.BindWith(FrameworkSetting.VolumeEffect, VolumeSample);
+                config.BindWith(FrameworkSetting.VolumeMusic, VolumeTrack);
+            }
 
             AudioDevice.ValueChanged += _ => scheduler.AddOnce(initCurrentDevice);
             UseExperimentalWasapi.ValueChanged += _ => scheduler.AddOnce(initCurrentDevice);
