@@ -31,7 +31,7 @@ void main(void)
         return;
     }
     lowp vec4 pathCol = texture(sampler2D(m_Texture1, m_Sampler1), TexRect1.xy + vec2(frameBuffer.r, 0.0) * TexRect1.zw, -0.9);
-    o_Colour = getRoundedColor(pathCol, v_TexCoord);
+    o_Colour = getRoundedColor(vec4(pathCol.rgb, pathCol.a * frameBuffer.a), v_TexCoord);
 }
 
 #endif
