@@ -49,7 +49,8 @@ namespace osu.Framework.Graphics
         /// <param name="easing">The transform easing to be used for tweening.</param>
         /// <param name="grouping">An optional grouping specification to be used when the same property may be touched by multiple transform types.</param>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<TThis> TransformTo<TThis, TValue, TEasing>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, in TEasing easing, string grouping = null)
+        public static TransformSequence<TThis> TransformTo<TThis, TValue, TEasing>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, in TEasing easing,
+                                                                                   string grouping = null)
             where TThis : class, ITransformable
             where TEasing : IEasingFunction
             => t.TransformTo(t.MakeTransform(propertyOrFieldName, newValue, duration, easing, grouping));
@@ -103,7 +104,8 @@ namespace osu.Framework.Graphics
         /// <param name="easing">The transform easing to be used for tweening.</param>
         /// <param name="grouping">An optional grouping specification to be used when the same property may be touched by multiple transform types.</param>
         /// <returns>The resulting <see cref="Transform{TValue, T}"/>.</returns>
-        public static Transform<TValue, TEasing, TThis> MakeTransform<TThis, TEasing, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, in TEasing easing, string grouping = null)
+        public static Transform<TValue, TEasing, TThis> MakeTransform<TThis, TEasing, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, in TEasing easing,
+                                                                                              string grouping = null)
             where TThis : class, ITransformable
             where TEasing : IEasingFunction
             => t.PopulateTransform(new TransformCustom<TValue, TEasing, TThis>(propertyOrFieldName, grouping), newValue, duration, easing);
@@ -459,6 +461,14 @@ namespace osu.Framework.Graphics
             => bufferedContainer.BlurTo(newBlurSigma, duration, new DefaultEasingFunction(easing));
 
         /// <summary>
+        /// Smoothly adjusts <see cref="IBufferedContainer.GrayscaleStrength"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<T> GrayscaleTo<T>(this T bufferedContainer, float newStrength, double duration = 0, Easing easing = Easing.None)
+            where T : class, IBufferedContainer
+            => bufferedContainer.GrayscaleTo(newStrength, duration, new DefaultEasingFunction(easing));
+
+        /// <summary>
         /// Smoothly adjusts <see cref="IFillFlowContainer.Spacing"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
@@ -718,6 +728,15 @@ namespace osu.Framework.Graphics
             where T : class, IBufferedContainer
             where TEasing : IEasingFunction
             => bufferedContainer.TransformTo(nameof(bufferedContainer.BlurSigma), newBlurSigma, duration, easing);
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="IBufferedContainer.GrayscaleStrength"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<T> GrayscaleTo<T, TEasing>(this T bufferedContainer, float newStrength, double duration, in TEasing easing)
+            where T : class, IBufferedContainer
+            where TEasing : IEasingFunction
+            => bufferedContainer.TransformTo(nameof(bufferedContainer.GrayscaleStrength), newStrength, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="IFillFlowContainer.Spacing"/> over time.
