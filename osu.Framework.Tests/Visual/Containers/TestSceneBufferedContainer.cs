@@ -34,6 +34,11 @@ namespace osu.Framework.Tests.Visual.Containers
             {
                 buffer.FrameBufferScale = new Vector2(buffer.FrameBufferScale.X, scale);
             });
+
+            AddSliderStep("grayscale", 0f, 1f, 0f, value =>
+            {
+                buffer.GrayscaleStrength = value;
+            });
         }
     }
 }
