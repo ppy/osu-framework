@@ -1,10 +1,8 @@
-#ifndef BLUR_FS
-#define BLUR_FS
+#ifndef GRAYSCALE_FS
+#define GRAYSCALE_FS
 
 #include "sh_Utils.h"
 
-#undef INV_SQRT_2PI
-#define INV_SQRT_2PI 0.39894
 
 const mediump float p_r = 0.299f;
 const mediump float p_g = 0.587f;
@@ -26,7 +24,7 @@ void main(void)
 {
 	vec4 colour = texture(sampler2D(m_Texture, m_Sampler), v_TexCoord);
 	float gray = dot(colour.rgb, vec3(p_r, p_g, p_b));
-	vec3 blend = colour.rgb * (1 - g_Strength) + vec3(gray) * g_Strength;
+	vec3 blend = mix(colour.rgb, vec3(gray), g_Strength);
 
 	o_Colour = vec4(blend, colour.a);
 }
