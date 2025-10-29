@@ -286,7 +286,7 @@ namespace osu.Framework.Graphics.Lines
                         Vector2 closest = segmentToDraw.Value.At(progress);
 
                         // Expand segment if next end point is located within a line passing through it
-                        if (Precision.AlmostEquals(closest, segments[i].EndPoint, 0.1f))
+                        if (Precision.AlmostEquals(closest, segments[i].EndPoint, 0.01f))
                         {
                             if (progress < 0)
                             {
