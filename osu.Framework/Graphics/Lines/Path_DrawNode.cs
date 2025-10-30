@@ -267,6 +267,7 @@ namespace osu.Framework.Graphics.Lines
                 Line? segmentToDraw = null;
                 SegmentStartLocation location = SegmentStartLocation.Outside;
                 SegmentStartLocation modifiedLocation = SegmentStartLocation.Outside;
+                SegmentStartLocation nextLocation = SegmentStartLocation.End;
                 SegmentWithThickness? lastDrawnSegment = null;
 
                 for (int i = 0; i < segments.Count; i++)
@@ -286,18 +287,24 @@ namespace osu.Framework.Graphics.Lines
                         Vector2 closest = segmentToDraw.Value.At(progress);
 
                         // Expand segment if next end point is located within a line passing through it
-                        if (Precision.AlmostEquals(closest, segments[i].EndPoint, 0.1f))
+                        if (Precision.AlmostEquals(closest, segments[i].EndPoint, 0.01f))
                         {
                             if (progress < 0)
                             {
                                 // expand segment backwards
                                 segmentToDraw = new Line(segments[i].EndPoint, segmentToDraw.Value.EndPoint);
                                 modifiedLocation = SegmentStartLocation.Outside;
+                                nextLocation = SegmentStartLocation.Start;
                             }
                             else if (progress > 1)
                             {
                                 // or forward
                                 segmentToDraw = new Line(segmentToDraw.Value.StartPoint, segments[i].EndPoint);
+                                nextLocation = SegmentStartLocation.End;
+                            }
+                            else
+                            {
+                                nextLocation = SegmentStartLocation.Middle;
                             }
                         }
                         else // Otherwise draw the expanded segment
@@ -307,11 +314,9 @@ namespace osu.Framework.Graphics.Lines
                             connect(s, lastDrawnSegment, texRect);
 
                             lastDrawnSegment = s;
-
-                            // Figure out at which point within currently drawn segment the new one starts
-                            float p = progressFor(segmentToDraw.Value, segmentToDrawLength, segments[i].StartPoint);
                             segmentToDraw = segments[i];
-                            location = modifiedLocation = Precision.AlmostEquals(p, 1f) ? SegmentStartLocation.End : Precision.AlmostEquals(p, 0f) ? SegmentStartLocation.Start : SegmentStartLocation.Middle;
+                            location = modifiedLocation = nextLocation;
+                            nextLocation = SegmentStartLocation.End;
                         }
                     }
                     else
