@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.Lines
                 renderer.PopLocalMatrix();
             }
 
-            private void addCap(Line cap)
+            private void addCap(Line cap, Vector2 origin)
             {
                 // The provided line is perpendicular to the end/start of a segment.
                 // To get the remaining quad positions we are expanding said segment by the path radius.
@@ -89,11 +89,17 @@ namespace osu.Framework.Graphics.Lines
 
                 Vector2 v2 = cap.StartPoint + ortho * radius;
                 Vector2 v3 = cap.EndPoint + ortho * radius;
+                Vector2 v4 = (v2 + v3) / 2;
 
                 drawQuad
                 (
-                    new Quad(cap.StartPoint, v2, cap.EndPoint, v3),
-                    new Quad(new Vector2(0, -1), new Vector2(1f, -1), new Vector2(0, 1), Vector2.One)
+                    new Quad(cap.StartPoint, v2, origin, v4),
+                    new Quad(new Vector2(0, -1), new Vector2(1f, -1), new Vector2(0, 0), new Vector2(1, 0))
+                );
+                drawQuad
+                (
+                    new Quad(origin, v4, cap.EndPoint, v3),
+                    new Quad(new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), Vector2.One)
                 );
             }
 
@@ -101,8 +107,13 @@ namespace osu.Framework.Graphics.Lines
             {
                 drawQuad
                 (
-                    new Quad(segment.EdgeLeft.StartPoint, segment.EdgeLeft.EndPoint, segment.EdgeRight.StartPoint, segment.EdgeRight.EndPoint),
-                    new Quad(new Vector2(0, -1), new Vector2(0, -1), new Vector2(0, 1), new Vector2(0, 1))
+                    new Quad(segment.EdgeLeft.StartPoint, segment.EdgeLeft.EndPoint, segment.Guide.StartPoint, segment.Guide.EndPoint),
+                    new Quad(new Vector2(0, -1), new Vector2(0, -1), new Vector2(0, 0), new Vector2(0, 0))
+                );
+                drawQuad
+                (
+                    new Quad(segment.Guide.StartPoint, segment.Guide.EndPoint, segment.EdgeRight.StartPoint, segment.EdgeRight.EndPoint),
+                    new Quad(new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 1), new Vector2(0, 1))
                 );
             }
 
@@ -362,10 +373,10 @@ namespace osu.Framework.Graphics.Lines
             }
 
             private void addEndCap(SegmentWithThickness segment) =>
-                addCap(new Line(segment.EdgeLeft.EndPoint, segment.EdgeRight.EndPoint));
+                addCap(new Line(segment.EdgeLeft.EndPoint, segment.EdgeRight.EndPoint), segment.Guide.EndPoint);
 
             private void addStartCap(SegmentWithThickness segment) =>
-                addCap(new Line(segment.EdgeRight.StartPoint, segment.EdgeLeft.StartPoint));
+                addCap(new Line(segment.EdgeRight.StartPoint, segment.EdgeLeft.StartPoint), segment.Guide.StartPoint);
 
             private static float progressFor(Line line, float length, Vector2 point)
             {
