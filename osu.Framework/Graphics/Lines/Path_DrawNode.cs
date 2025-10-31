@@ -98,8 +98,8 @@ namespace osu.Framework.Graphics.Lines
                 );
                 drawQuad
                 (
-                    new Quad(origin, v4, cap.EndPoint, v3),
-                    new Quad(new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), Vector2.One)
+                    new Quad(cap.EndPoint, v3, origin, v4),
+                    new Quad(new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 0), new Vector2(1, 0))
                 );
             }
 
@@ -112,8 +112,8 @@ namespace osu.Framework.Graphics.Lines
                 );
                 drawQuad
                 (
-                    new Quad(segment.Guide.StartPoint, segment.Guide.EndPoint, segment.EdgeRight.StartPoint, segment.EdgeRight.EndPoint),
-                    new Quad(new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 1), new Vector2(0, 1))
+                    new Quad(segment.EdgeRight.StartPoint, segment.EdgeRight.EndPoint, segment.Guide.StartPoint, segment.Guide.EndPoint),
+                    new Quad(new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 0), new Vector2(0, 0))
                 );
             }
 
