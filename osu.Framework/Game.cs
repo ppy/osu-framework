@@ -207,14 +207,16 @@ namespace osu.Framework
             Fonts.AddStore(localFonts = new FontStore(Host.Renderer, useAtlas: false));
 
             // Roboto (FrameworkFont.Regular)
-            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-Regular");
-            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-RegularItalic");
-            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-Bold");
-            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-BoldItalic");
+            var roboto = AddVariableFont(Resources, @"Fonts/Roboto/Roboto", localFonts);
+            roboto.AddInstance("Roboto-Regular");
+            roboto.AddInstance("Roboto-Bold");
+            var robotoItalic = AddVariableFont(Resources, @"Fonts/Roboto/RobotoItalic", localFonts);
+            robotoItalic.AddInstance("Roboto-Italic", "Roboto-RegularItalic");
+            robotoItalic.AddInstance("Roboto-BoldItalic");
 
             // RobotoCondensed (FrameworkFont.Condensed)
-            addFont(localFonts, Resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular");
-            addFont(localFonts, Resources, @"Fonts/RobotoCondensed/RobotoCondensed-Bold");
+            roboto.AddInstance("Roboto-CondensedRegular", "RobotoCondensed-Regular");
+            roboto.AddInstance("Roboto-CondensedBold", "RobotoCondensed-Bold");
 
             addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Solid");
             addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Regular");
