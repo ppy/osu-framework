@@ -18,7 +18,7 @@ namespace osu.Framework.Tests.IO
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            fontResourceStore = new TextureLoaderStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Drawable).Assembly), "Resources/Fonts"));
+            fontResourceStore = new TextureLoaderStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(TextureStoreTest).Assembly), "Resources/Fonts"));
         }
 
         [Test]
