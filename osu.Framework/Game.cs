@@ -265,6 +265,20 @@ namespace osu.Framework
         public void AddFont(ResourceStore<byte[]> store, string assetName = null, FontStore target = null)
             => addFont(target ?? Fonts, store, assetName);
 
+        /// <summary>
+        /// Add a variable font family to be globally accessible to the game.
+        /// </summary>
+        /// <param name="store">The backing store with font resources.</param>
+        /// <param name="assetName">The base name of the font.</param>
+        /// <param name="target">An optional target store to add the font to. If not specified, <see cref="Fonts"/> is used.</param>
+        /// <returns>The newly added font family from which fonts can be instantiated.</returns>
+        public OutlineFontStore AddVariableFont(ResourceStore<byte[]> store, string assetName = null, FontStore target = null)
+        {
+            var nestedStore = new OutlineFontStore(Host.Renderer, store, assetName);
+            target.AddStore(nestedStore);
+            return nestedStore;
+        }
+
         private void addFont(FontStore target, ResourceStore<byte[]> store, string assetName = null)
             => target.AddTextureSource(new RawCachingGlyphStore(store, assetName, Host.CreateTextureLoaderStore(store)));
 
