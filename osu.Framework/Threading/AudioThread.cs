@@ -130,7 +130,7 @@ namespace osu.Framework.Threading
         /// </summary>
         private readonly Bindable<int?> globalMixerHandle = new Bindable<int?>();
 
-        internal bool InitDevice(int deviceId)
+        internal bool InitDevice(int deviceId, bool useExperimentalWasapi)
         {
             Debug.Assert(ThreadSafety.IsAudioThread);
             Trace.Assert(deviceId != -1); // The real device ID should always be used, as the -1 device has special cases which are hard to work with.
@@ -139,10 +139,10 @@ namespace osu.Framework.Threading
             if (!Bass.Init(deviceId, Flags: (DeviceInitFlags)128)) // 128 == BASS_DEVICE_REINIT
                 return false;
 
-            // That this has not been mass-tested since https://github.com/ppy/osu-framework/pull/6651 and probably needs to be.
-            // Currently envvar gated for users to test at their own discretion.
-            if (FrameworkEnvironment.UseWasapi)
+            if (useExperimentalWasapi)
                 attemptWasapiInitialisation();
+            else
+                freeWasapi();
 
             initialised_devices.Add(deviceId);
             return true;
@@ -182,10 +182,10 @@ namespace osu.Framework.Threading
             }
         }
 
-        private void attemptWasapiInitialisation()
+        private bool attemptWasapiInitialisation()
         {
             if (RuntimeInfo.OS != RuntimeInfo.Platform.Windows)
-                return;
+                return false;
 
             Logger.Log("Attempting local BassWasapi initialisation");
 
@@ -219,10 +219,10 @@ namespace osu.Framework.Threading
 
             // To keep things in a sane state let's only keep one device initialised via wasapi.
             freeWasapi();
-            initWasapi(wasapiDevice);
+            return initWasapi(wasapiDevice);
         }
 
-        private void initWasapi(int wasapiDevice)
+        private bool initWasapi(int wasapiDevice)
         {
             // This is intentionally initialised inline and stored to a field.
             // If we don't do this, it gets GC'd away.
@@ -246,13 +246,14 @@ namespace osu.Framework.Threading
             Logger.Log($"Initialising BassWasapi for device {wasapiDevice}...{(initialised ? "success!" : "FAILED")}");
 
             if (!initialised)
-                return;
+                return false;
 
             BassWasapi.GetInfo(out var wasapiInfo);
             globalMixerHandle.Value = BassMix.CreateMixerStream(wasapiInfo.Frequency, wasapiInfo.Channels, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
             BassWasapi.Start();
 
             BassWasapi.SetNotify(wasapiNotifyProcedure);
+            return true;
         }
 
         private void freeWasapi()

@@ -21,7 +21,6 @@ namespace osu.Framework
         public static bool NoStructuredBuffers { get; }
         public static string? DeferredRendererEventsOutputPath { get; }
         public static bool UseSDL3 { get; }
-        public static bool UseWasapi { get; }
 
         /// <summary>
         /// Whether non-SSL requests should be allowed. Debug only. Defaults to disabled.
@@ -56,8 +55,6 @@ namespace osu.Framework
 
             // Desktop has many issues, see https://github.com/ppy/osu-framework/issues/6540.
             UseSDL3 = RuntimeInfo.IsMobile || (parseBool(Environment.GetEnvironmentVariable("OSU_SDL3")) ?? false);
-
-            UseWasapi = parseBool(Environment.GetEnvironmentVariable("OSU_AUDIO_WASAPI_EXPERIMENTAL")) ?? false;
         }
 
         private static bool? parseBool(string? value)

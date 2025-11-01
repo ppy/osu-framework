@@ -193,6 +193,21 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private float grayscaleStrength;
+
+        public float GrayscaleStrength
+        {
+            get => grayscaleStrength;
+            set
+            {
+                if (grayscaleStrength == value)
+                    return;
+
+                grayscaleStrength = value;
+                ForceRedraw();
+            }
+        }
+
         /// <summary>
         /// Whether the rendered framebuffer is being cached until <see cref="ForceRedraw"/> is called
         /// or the size of the container (i.e. framebuffer) changes.
@@ -237,6 +252,7 @@ namespace osu.Framework.Graphics.Containers
         public IShader TextureShader { get; private set; }
 
         private IShader blurShader;
+        private IShader grayscaleShader;
 
         private readonly BufferedContainerDrawNodeSharedData sharedData;
 
@@ -267,6 +283,7 @@ namespace osu.Framework.Graphics.Containers
         {
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             blurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
+            grayscaleShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.GRAYSCALE);
         }
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(this, sharedData);

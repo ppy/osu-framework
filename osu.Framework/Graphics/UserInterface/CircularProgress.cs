@@ -167,8 +167,6 @@ namespace osu.Framework.Graphics.UserInterface
                 TexturedVertex2D first = v1;
                 TexturedVertex2D second = v2;
 
-                renderer.PushLocalMatrix(DrawInfo.Matrix);
-
                 for (int i = 0; i < segment_count * 2; i++)
                 {
                     TexturedVertex2D newVertex;
@@ -191,12 +189,11 @@ namespace osu.Framework.Graphics.UserInterface
                     isInnerVertex = !isInnerVertex;
                 }
 
-                renderer.PopLocalMatrix();
                 return;
 
                 TexturedVertex2D createVertex(Vector2 pos) => new TexturedVertex2D(renderer)
                 {
-                    Position = pos * drawSize,
+                    Position = Vector2Extensions.Transform(pos * drawSize, DrawInfo.Matrix),
                     Colour = DrawColourInfo.Colour.Interpolate(pos).SRGB,
                     TextureRect = new Vector4(tRect.Left, tRect.Top, tRect.Right, tRect.Bottom),
                     TexturePosition = new Vector2(tRect.Left + tRect.Width * pos.X, tRect.Top + tRect.Height * pos.Y)
