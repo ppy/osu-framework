@@ -73,9 +73,7 @@ namespace osu.Framework.Text
         /// </summary>
         public uint Resolution { get; init; } = 100;
 
-        private float baseline;
-
-        public float Baseline => baseline;
+        public float Baseline { get; private set; }
 
         protected readonly ResourceStore<byte[]> Store;
 
@@ -154,7 +152,9 @@ namespace osu.Framework.Text
 
             try
             {
-                completionSource.SetResult(loadFont());
+                // check again to prevent race conditions
+                if (!completionSource.Task.IsCompleted)
+                    completionSource.SetResult(loadFont());
             }
             catch (Exception)
             {
@@ -214,7 +214,7 @@ namespace osu.Framework.Text
                 // Our resolution refers to pixels per line instead of pixels per em.
                 double lineHeight = (double)face->height / face->units_per_EM;
                 uint emResolution = (uint)Math.Round(Resolution / lineHeight);
-                baseline = emResolution * ((float)face->bbox.yMax.Value / face->height);
+                Baseline = emResolution * ((float)face->bbox.yMax.Value / face->height);
 
                 // set pixel size
                 error = FT_Set_Pixel_Sizes(face, 0, emResolution);
