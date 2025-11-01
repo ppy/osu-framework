@@ -81,8 +81,6 @@ namespace osu.Framework.Graphics.Lines
 
             private void addCap(Line cap, Vector2 origin)
             {
-                Debug.Assert(triangleBatch != null);
-
                 // The provided line is perpendicular to the end/start of a segment.
                 // To get the remaining quad positions we are expanding said segment by the path radius.
                 Vector2 ortho = cap.OrthogonalDirection;
@@ -95,24 +93,14 @@ namespace osu.Framework.Graphics.Lines
                 drawQuad
                 (
                     new Quad(cap.StartPoint, v2, origin, v3),
-                    new Quad(new Vector2(0, -1), new Vector2(1f, -1), new Vector2(0, 0), new Vector2(1, 1))
+                    new Quad(new Vector2(0, -1), new Vector2(1, -1), Vector2.Zero, Vector2.One)
                 );
 
-                triangleBatch.Add(new PathVertex
-                {
-                    Position = origin,
-                    RelativePos = Vector2.Zero
-                });
-                triangleBatch.Add(new PathVertex
-                {
-                    Position = v3,
-                    RelativePos = Vector2.One
-                });
-                triangleBatch.Add(new PathVertex
-                {
-                    Position = cap.EndPoint,
-                    RelativePos = new Vector2(0, 1)
-                });
+                drawTriangle
+                (
+                    new Triangle(origin, v3, cap.EndPoint),
+                    new Triangle(Vector2.Zero, Vector2.One, new Vector2(0, 1))
+                );
             }
 
             private void addSegmentQuad(SegmentWithThickness segment)
@@ -120,19 +108,17 @@ namespace osu.Framework.Graphics.Lines
                 drawQuad
                 (
                     new Quad(segment.EdgeLeft.StartPoint, segment.EdgeLeft.EndPoint, segment.Guide.StartPoint, segment.Guide.EndPoint),
-                    new Quad(new Vector2(0, -1), new Vector2(0, -1), new Vector2(0, 0), new Vector2(0, 0))
+                    new Quad(new Vector2(0, -1), new Vector2(0, -1), Vector2.Zero, Vector2.Zero)
                 );
                 drawQuad
                 (
                     new Quad(segment.EdgeRight.StartPoint, segment.EdgeRight.EndPoint, segment.Guide.StartPoint, segment.Guide.EndPoint),
-                    new Quad(new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 0), new Vector2(0, 0))
+                    new Quad(new Vector2(0, 1), new Vector2(0, 1), Vector2.Zero, Vector2.Zero)
                 );
             }
 
             private void addConnectionBetween(SegmentWithThickness segment, SegmentWithThickness prevSegment)
             {
-                Debug.Assert(triangleBatch != null);
-
                 float thetaDiff = segment.Guide.Theta - prevSegment.Guide.Theta;
 
                 if (Math.Abs(thetaDiff) > MathF.PI)
@@ -145,32 +131,22 @@ namespace osu.Framework.Graphics.Lines
                 Vector2 end = thetaDiff > 0f ? segment.EdgeRight.StartPoint : segment.EdgeLeft.StartPoint;
                 Line start = thetaDiff > 0f ? new Line(prevSegment.EdgeLeft.EndPoint, prevSegment.EdgeRight.EndPoint) : new Line(prevSegment.EdgeRight.EndPoint, prevSegment.EdgeLeft.EndPoint);
 
-                if (Math.Abs(thetaDiff) < Math.PI / max_res) // small angle, 1 triangle is enough
+                if (Math.Abs(thetaDiff) < Math.PI / max_res) // small angle, 1 triangle
                 {
-                    triangleBatch.Add(new PathVertex
-                    {
-                        Position = start.EndPoint,
-                        RelativePos = new Vector2(1, 0)
-                    });
-                    triangleBatch.Add(new PathVertex
-                    {
-                        Position = origin,
-                        RelativePos = Vector2.Zero
-                    });
-                    triangleBatch.Add(new PathVertex
-                    {
-                        Position = end,
-                        RelativePos = new Vector2(1, 0)
-                    });
+                    drawTriangle
+                    (
+                        new Triangle(start.EndPoint, origin, end),
+                        new Triangle(new Vector2(1, 0), Vector2.Zero, new Vector2(1, 0))
+                    );
                 }
-                else if (Math.Abs(thetaDiff) < Math.PI * 0.5) // less than 90 degrees, single quad
+                else if (Math.Abs(thetaDiff) < Math.PI * 0.5) // less than 90 degrees, 2 triangles
                 {
                     Vector2 middle = Vector2.Lerp(start.EndPoint, end, 0.5f);
                     Vector2 v3 = Vector2.Lerp(origin, middle, radius / (float)Math.Cos(Math.Abs(thetaDiff) * 0.5) / Vector2.Distance(origin, middle));
 
                     drawQuad(new Quad(start.EndPoint, v3, origin, end), origin);
                 }
-                else // more than 90 degrees - 2 quads
+                else // more than 90 degrees - 3 triangles
                 {
                     Vector2 ortho = start.OrthogonalDirection;
                     if (float.IsNaN(ortho.X) || float.IsNaN(ortho.Y))
@@ -180,23 +156,47 @@ namespace osu.Framework.Graphics.Lines
                     Vector2 v2 = start.EndPoint + Math.Sign(thetaDiff) * ortho * radius;
                     Vector2 middle = Vector2.Lerp(v1, v2, 0.5f);
 
-                    drawQuad
-                    (
-                        new Quad(start.EndPoint, v2, origin, middle),
-                        new Quad
-                        (
-                            new Vector2(0, -1),
-                            new Vector2(1, -1),
-                            Vector2.Zero,
-                            new Vector2(1, 0)
-                        )
-                    );
-
                     Vector2 middle2 = Vector2.Lerp(middle, end, 0.5f);
                     Vector2 v3 = Vector2.Lerp(origin, middle2, radius / (float)Math.Cos((Math.Abs(thetaDiff) - Math.PI * 0.5) * 0.5) / Vector2.Distance(origin, middle2));
 
-                    drawQuad(new Quad(middle, v3, origin, end), origin);
+                    drawQuad(new Quad(start.EndPoint, v2, origin, v3), origin);
+                    drawTriangle(new Triangle(origin, v3, end), origin);
                 }
+            }
+
+            private void drawTriangle(Triangle triangle, Vector2 origin)
+            {
+                drawTriangle
+                (
+                    triangle,
+                    new Triangle
+                    (
+                        Vector2.Divide(triangle.P0 - origin, radius),
+                        Vector2.Divide(triangle.P1 - origin, radius),
+                        Vector2.Divide(triangle.P2 - origin, radius)
+                    )
+                );
+            }
+
+            private void drawTriangle(Triangle triangle, Triangle relativePos)
+            {
+                Debug.Assert(triangleBatch != null);
+
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = triangle.P0,
+                    RelativePos = relativePos.P0
+                });
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = triangle.P1,
+                    RelativePos = relativePos.P1
+                });
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = triangle.P2,
+                    RelativePos = relativePos.P2
+                });
             }
 
             private void drawQuad(Quad quad, Vector2 origin)
@@ -214,40 +214,40 @@ namespace osu.Framework.Graphics.Lines
                 );
             }
 
-            private void drawQuad(Quad quad, Quad relativeQuad)
+            private void drawQuad(Quad quad, Quad relativePos)
             {
                 Debug.Assert(triangleBatch != null);
 
                 triangleBatch.Add(new PathVertex
                 {
                     Position = quad.TopLeft,
-                    RelativePos = relativeQuad.TopLeft
+                    RelativePos = relativePos.TopLeft
                 });
                 triangleBatch.Add(new PathVertex
                 {
                     Position = quad.TopRight,
-                    RelativePos = relativeQuad.TopRight
+                    RelativePos = relativePos.TopRight
                 });
                 triangleBatch.Add(new PathVertex
                 {
                     Position = quad.BottomLeft,
-                    RelativePos = relativeQuad.BottomLeft
+                    RelativePos = relativePos.BottomLeft
                 });
 
                 triangleBatch.Add(new PathVertex
                 {
                     Position = quad.BottomLeft,
-                    RelativePos = relativeQuad.BottomLeft
+                    RelativePos = relativePos.BottomLeft
                 });
                 triangleBatch.Add(new PathVertex
                 {
                     Position = quad.TopRight,
-                    RelativePos = relativeQuad.TopRight
+                    RelativePos = relativePos.TopRight
                 });
                 triangleBatch.Add(new PathVertex
                 {
                     Position = quad.BottomRight,
-                    RelativePos = relativeQuad.BottomRight
+                    RelativePos = relativePos.BottomRight
                 });
             }
 
