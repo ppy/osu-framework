@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.Lines
             {
                 base.Draw(renderer);
 
-                if (segments.Count == 0 || pathShader == null)
+                if (segments.Count == 0 || pathShader == null || radius == 0f)
                     return;
 
                 // We multiply the size args by 3 such that the amount of vertices is a multiple of the amount of vertices
