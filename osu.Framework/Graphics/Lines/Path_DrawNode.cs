@@ -81,6 +81,8 @@ namespace osu.Framework.Graphics.Lines
 
             private void addCap(Line cap, Vector2 origin)
             {
+                Debug.Assert(triangleBatch != null);
+
                 // The provided line is perpendicular to the end/start of a segment.
                 // To get the remaining quad positions we are expanding said segment by the path radius.
                 Vector2 ortho = cap.OrthogonalDirection;
@@ -89,18 +91,28 @@ namespace osu.Framework.Graphics.Lines
 
                 Vector2 v2 = cap.StartPoint + ortho * radius;
                 Vector2 v3 = cap.EndPoint + ortho * radius;
-                Vector2 v4 = (v2 + v3) / 2;
 
                 drawQuad
                 (
-                    new Quad(cap.StartPoint, v2, origin, v4),
-                    new Quad(new Vector2(0, -1), new Vector2(1f, -1), new Vector2(0, 0), new Vector2(1, 0))
+                    new Quad(cap.StartPoint, v2, origin, v3),
+                    new Quad(new Vector2(0, -1), new Vector2(1f, -1), new Vector2(0, 0), new Vector2(1, 1))
                 );
-                drawQuad
-                (
-                    new Quad(cap.EndPoint, v3, origin, v4),
-                    new Quad(new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 0), new Vector2(1, 0))
-                );
+
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = origin,
+                    RelativePos = Vector2.Zero
+                });
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = v3,
+                    RelativePos = Vector2.One
+                });
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = cap.EndPoint,
+                    RelativePos = new Vector2(0, 1)
+                });
             }
 
             private void addSegmentQuad(SegmentWithThickness segment)
