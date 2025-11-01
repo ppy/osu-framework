@@ -1,5 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
+
 using System;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Text;
@@ -11,7 +12,7 @@ namespace osu.Framework.IO.Stores
     /// </summary>
     public class OutlineFontStore : FontStore
     {
-        private OutlineFont font;
+        private readonly OutlineFont font;
 
         public OutlineFontStore(IRenderer renderer, IResourceStore<byte[]> store, string assetName, float scaleAdjust = 100)
             : base(renderer, null, scaleAdjust)

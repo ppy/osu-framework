@@ -1,5 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,7 +10,6 @@ using System.Threading.Tasks;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
 using osu.Framework.Text;
-using SixLabors.ImageSharp;
 
 namespace osu.Framework.IO.Stores
 {
@@ -19,11 +19,6 @@ namespace osu.Framework.IO.Stores
     public class OutlineGlyphStore : IGlyphStore, IResourceStore<TextureUpload>
     {
         protected OutlineFont Font { get; }
-
-        /// <summary>
-        /// The index of the face to use.
-        /// </summary>
-        public int FaceIndex { private get; init; } = 0;
 
         private RawFontVariation? rawVariation;
 

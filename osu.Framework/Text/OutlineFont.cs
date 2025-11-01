@@ -1,5 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -38,7 +39,7 @@ namespace osu.Framework.Text
         /// <summary>
         /// Locks <see cref="library"/> for opening and closing fonts.
         /// </summary>
-        private static readonly object library_lock = new();
+        private static readonly object library_lock = new object();
 
         /// <summary>
         /// The underlying unmanaged font handle.
@@ -48,13 +49,13 @@ namespace osu.Framework.Text
         /// <summary>
         /// Locks <see cref="face"/> and its glyph slot for exclusive access.
         /// </summary>
-        private readonly object faceLock = new();
+        private readonly object faceLock = new object();
 
         private readonly TaskCompletionSource<nint> completionSource = new TaskCompletionSource<nint>();
 
-        private readonly Dictionary<string, uint> axes = new();
+        private readonly Dictionary<string, uint> axes = new Dictionary<string, uint>();
 
-        private readonly Dictionary<string, uint> namedInstances = new();
+        private readonly Dictionary<string, uint> namedInstances = new Dictionary<string, uint>();
 
         /// <summary>
         /// The name of the underlying asset.
@@ -169,11 +170,11 @@ namespace osu.Framework.Text
 
         private unsafe nint loadFont()
         {
-            Stream? s = Store.GetStream(AssetPath) ?? throw new FileNotFoundException();
+            Stream s = Store.GetStream(AssetPath) ?? throw new FileNotFoundException();
             var handle = GCHandle.Alloc(s);
 
             FT_StreamRec_* ftStream;
-            FT_FaceRec_* face = null;
+            FT_FaceRec_* native = null;
 
             // set up unmanaged object to allow use of stream from FreeType
             try
@@ -182,7 +183,7 @@ namespace osu.Framework.Text
             }
             catch (Exception)
             {
-                s?.Dispose();
+                s.Dispose();
                 handle.Free();
                 throw;
             }
@@ -206,37 +207,39 @@ namespace osu.Framework.Text
 
                 lock (library_lock)
                 {
-                    error = FT_Open_Face(library, &openArgs, new CLong(FaceIndex), &face);
+                    error = FT_Open_Face(library, &openArgs, new CLong(FaceIndex), &native);
                 }
 
                 if (error != 0) throw new FreeTypeException(error);
 
+                // ReSharper disable CSharpWarnings::CS8603
                 // Our resolution refers to pixels per line instead of pixels per em.
-                double lineHeight = (double)face->height / face->units_per_EM;
+                double lineHeight = (double)native->height / native->units_per_EM;
                 uint emResolution = (uint)Math.Round(Resolution / lineHeight);
-                Baseline = emResolution * ((float)face->bbox.yMax.Value / face->height);
+                Baseline = emResolution * ((float)native->bbox.yMax.Value / native->height);
 
                 // set pixel size
-                error = FT_Set_Pixel_Sizes(face, 0, emResolution);
+                error = FT_Set_Pixel_Sizes(native, 0, emResolution);
 
                 if (error != 0) throw new FreeTypeException(error);
 
-                if (((FT_FACE_FLAG)face->face_flags.Value).HasFlagFast(FT_FACE_FLAG_MULTIPLE_MASTERS))
+                if (((FT_FACE_FLAG)native->face_flags.Value).HasFlagFast(FT_FACE_FLAG_MULTIPLE_MASTERS))
                 {
-                    loadVariableFontData(face);
+                    loadVariableFontData(native);
                 }
 
-                return (nint)face;
+                return (nint)native;
+                // ReSharper restore CSharpWarnings::CS8603
             }
             catch (Exception)
             {
                 // At this point FreeType owns all unmanaged resources allocated above, and
                 // FT_Done_Face should release them all.
-                if (face is not null)
+                if (native is not null)
                 {
                     lock (library_lock)
                     {
-                        FT_Done_Face(face);
+                        FT_Done_Face(native);
                     }
                 }
 
@@ -315,8 +318,8 @@ namespace osu.Framework.Text
             }
 
             // load SFNT names
-            Dictionary<uint, string> nameRecords = new();
-            FT_SfntName_ nameEntry = new();
+            var nameRecords = new Dictionary<uint, string>();
+            var nameEntry = new FT_SfntName_();
             uint nameCount = FT_Get_Sfnt_Name_Count(face);
 
             for (uint i = 0; i < nameCount; ++i)
@@ -362,7 +365,7 @@ namespace osu.Framework.Text
 
             static string alphanumerify(string s)
             {
-                StringBuilder result = new();
+                var result = new StringBuilder();
 
                 foreach (char c in s)
                 {
@@ -393,6 +396,7 @@ namespace osu.Framework.Text
                     // > Strings for the Unicode platform must be encoded
                     // > in UTF-16BE.
                     return Encoding.BigEndianUnicode.GetString(span);
+
                 case TT_PLATFORM_MICROSOFT:
                     // > If a font has records for encoding IDs 3, 4 or 5,
                     // > the corresponding string data should be encoded
@@ -405,15 +409,19 @@ namespace osu.Framework.Text
                     // supported.
                     switch (nameEntry->encoding_id)
                     {
-                        case 3: /* GBK */
+                        case 3: // GBK
                             return Encoding.GetEncoding(936).GetString(span);
-                        case 4: /* Big5 */
+
+                        case 4: // Big5
                             return Encoding.GetEncoding(950).GetString(span);
-                        case 5: /* Wansung */
+
+                        case 5: // Wansung
                             return Encoding.GetEncoding(949).GetString(span);
+
                         default:
                             return Encoding.BigEndianUnicode.GetString(span);
                     }
+
                 default:
                     // `name` records for Classic Mac OS and custom encodings
                     // are not supported.
@@ -492,13 +500,13 @@ namespace osu.Framework.Text
         /// </returns>
         public async Task<uint> GetGlyphIndexAsync(int c)
         {
-            nint face = await completionSource.Task.ConfigureAwait(false);
+            nint native = await completionSource.Task.ConfigureAwait(false);
 
             unsafe
             {
                 lock (faceLock)
                 {
-                    return FT_Get_Char_Index((FT_FaceRec_*)face, new CULong((nuint)c));
+                    return FT_Get_Char_Index((FT_FaceRec_*)native, new CULong((nuint)c));
                 }
             }
         }
@@ -587,6 +595,7 @@ namespace osu.Framework.Text
             lock (faceLock)
             {
                 setVariation(face, variation);
+                // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags
                 error = FT_Load_Glyph(face, glyphIndex, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING);
                 horiBearingX = face->glyph->metrics.horiBearingX.Value;
                 horiBearingY = face->glyph->metrics.horiBearingY.Value;
@@ -668,28 +677,29 @@ namespace osu.Framework.Text
         /// <exception cref="FreeTypeException">Rasterization of the texture failed.</exception>
         public async Task<TextureUpload> RasterizeGlyphAsync(uint glyphIndex, RawFontVariation? variation, CancellationToken cancellationToken = default)
         {
-            nint face = await completionSource.Task.ConfigureAwait(false);
+            nint native = await completionSource.Task.ConfigureAwait(false);
 
-            return await Task.Run(() => rasterizeGlyphInner(face, glyphIndex, variation), cancellationToken).ConfigureAwait(false);
+            return await Task.Run(() => rasterizeGlyphInner(native, glyphIndex, variation), cancellationToken).ConfigureAwait(false);
         }
 
-        private unsafe TextureUpload rasterizeGlyphInner(nint ptr, uint glyphIndex, RawFontVariation? variation)
+        private unsafe TextureUpload rasterizeGlyphInner(nint intPtr, uint glyphIndex, RawFontVariation? variation)
         {
             Image<Rgba32> image;
-            FT_Error error;
-            var face = (FT_FaceRec_*)ptr;
+            var native = (FT_FaceRec_*)intPtr;
 
             // rasterize
             lock (faceLock)
             {
-                setVariation(this.face, variation);
+                setVariation(face, variation);
 
-                error = FT_Load_Glyph(face, glyphIndex, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING | FT_LOAD_RENDER);
+                // ReSharper disable BitwiseOperatorOnEnumWithoutFlags
+                FT_Error error = FT_Load_Glyph(native, glyphIndex, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING | FT_LOAD_RENDER);
+                // ReSharper restore BitwiseOperatorOnEnumWithoutFlags
 
                 if (error != 0) throw new FreeTypeException(error);
 
                 // copy to TextureUpload
-                var ftBitmap = &face->glyph->bitmap;
+                var ftBitmap = &native->glyph->bitmap;
                 int width = ftBitmap->width != 0 ? (int)ftBitmap->width : 1;
                 int height = ftBitmap->rows != 0 ? (int)ftBitmap->rows : 1;
                 image = new Image<Rgba32>(width, height, new Rgba32(0, 0, 0, byte.MaxValue));
@@ -709,6 +719,32 @@ namespace osu.Framework.Text
             return new TextureUpload(image);
         }
 
+        private unsafe (uint codePoint, uint glyphIndex) getFirstChar()
+        {
+            if (face is null)
+                return (0, 0);
+
+            uint glyphIndex, codePoint;
+
+            lock (faceLock)
+                codePoint = (uint)FT_Get_First_Char(face, &glyphIndex).Value;
+
+            return (codePoint, glyphIndex);
+        }
+
+        private unsafe (uint codePoint, uint glyphIndex) getNextChar(uint prevCodePoint)
+        {
+            if (face is null)
+                return (0, 0);
+
+            uint glyphIndex, codePoint;
+
+            lock (faceLock)
+                codePoint = (uint)FT_Get_Next_Char(face, new CULong(prevCodePoint), &glyphIndex).Value;
+
+            return (codePoint, glyphIndex);
+        }
+
         /// <summary>
         /// Get the set of characters available in the font.
         /// </summary>
@@ -716,10 +752,7 @@ namespace osu.Framework.Text
         {
             if (completionSource.Task.GetResultSafely() == 0) yield break;
 
-            uint codePoint;
-            uint glyphIndex;
-
-            (codePoint, glyphIndex) = getFirstChar();
+            (uint codePoint, uint glyphIndex) = getFirstChar();
 
             while (glyphIndex != 0)
             {
@@ -728,32 +761,6 @@ namespace osu.Framework.Text
                     yield return (char)codePoint;
 
                 (codePoint, glyphIndex) = getNextChar(codePoint);
-            }
-
-            unsafe (uint codePoint, uint glyphIndex) getFirstChar()
-            {
-                if (face is null)
-                    return (0, 0);
-
-                uint glyphIndex, codePoint;
-
-                lock (faceLock)
-                    codePoint = (uint)FT_Get_First_Char(face, &glyphIndex).Value;
-
-                return (codePoint, glyphIndex);
-            }
-
-            unsafe (uint codePoint, uint glyphIndex) getNextChar(uint prevCodePoint)
-            {
-                if (face is null)
-                    return (0, 0);
-
-                uint glyphIndex, codePoint;
-
-                lock (faceLock)
-                    codePoint = (uint)FT_Get_Next_Char(face, new CULong(prevCodePoint), &glyphIndex).Value;
-
-                return (codePoint, glyphIndex);
             }
         }
     }

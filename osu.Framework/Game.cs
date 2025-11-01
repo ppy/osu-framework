@@ -267,6 +267,9 @@ namespace osu.Framework
         public void AddFont(ResourceStore<byte[]> store, string assetName = null, FontStore target = null)
             => addFont(target ?? Fonts, store, assetName);
 
+        private void addFont(FontStore target, ResourceStore<byte[]> store, string assetName = null)
+            => target.AddTextureSource(new RawCachingGlyphStore(store, assetName, Host.CreateTextureLoaderStore(store)));
+
         /// <summary>
         /// Add an outline font to be globally accessible to the game.
         /// </summary>
@@ -274,8 +277,8 @@ namespace osu.Framework
         /// <param name="assetName">The base name of the font.</param>
         /// <param name="target">An optional target store to add the font to. If not specified, <see cref="Fonts"/> is used.</param>
         /// <returns>The newly added font family from which fonts can be instantiated.</returns>
-        public void AddOutlineFont(ResourceStore<byte[]> store, string assetName = null, FontStore target = null)
-            => target.AddTextureSource(new SelfContainedOutlineGlyphStore(store, assetName));
+        public void AddOutlineFont(ResourceStore<byte[]> store, string assetName, FontStore target = null)
+            => (target ?? Fonts).AddTextureSource(new SelfContainedOutlineGlyphStore(store, assetName));
 
         /// <summary>
         /// Add a variable font to be globally accessible to the game.
@@ -289,15 +292,12 @@ namespace osu.Framework
         /// <param name="assetName">The base name of the font.</param>
         /// <param name="target">An optional target store to add the font to. If not specified, <see cref="Fonts"/> is used.</param>
         /// <returns>The newly added font family from which fonts can be instantiated.</returns>
-        public OutlineFontStore AddVariableFont(ResourceStore<byte[]> store, string assetName = null, FontStore target = null)
+        public OutlineFontStore AddVariableFont(ResourceStore<byte[]> store, string assetName, FontStore target = null)
         {
             var nestedStore = new OutlineFontStore(Host.Renderer, store, assetName);
-            target.AddStore(nestedStore);
+            (target ?? Fonts).AddStore(nestedStore);
             return nestedStore;
         }
-
-        private void addFont(FontStore target, ResourceStore<byte[]> store, string assetName = null)
-            => target.AddTextureSource(new RawCachingGlyphStore(store, assetName, Host.CreateTextureLoaderStore(store)));
 
         protected override void LoadComplete()
         {

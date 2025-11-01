@@ -1,5 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
+
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -49,13 +50,13 @@ namespace osu.Framework.Text
         {
             if (Axes is not null)
             {
-                StringBuilder instanceName = new(baseName);
-                List<HashedAxisParameter> hashedAxes = new();
+                var instanceName = new StringBuilder(baseName);
+                var hashedAxes = new List<HashedAxisParameter>();
 
                 foreach (var (axis, value) in Axes)
                 {
                     // add parameter for hashing
-                    HashedAxisParameter parameter = new();
+                    var parameter = new HashedAxisParameter();
 
                     unsafe
                     {
@@ -82,7 +83,6 @@ namespace osu.Framework.Text
                 }
 
                 return instanceName.ToString();
-
             }
             else if (NamedInstance is not null)
             {
