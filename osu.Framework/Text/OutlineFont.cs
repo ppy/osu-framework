@@ -190,8 +190,8 @@ namespace osu.Framework.Text
 
             ftStream->size = new CULong((nuint)s.Length);
             ftStream->descriptor.pointer = (void*)(nint)handle;
-            ftStream->read = (delegate* unmanaged<FT_StreamRec_*, CULong, byte*, CULong, CULong>)&streamReadCallback;
-            ftStream->close = (delegate* unmanaged<FT_StreamRec_*, void>)&streamCloseCallback;
+            ftStream->read = &streamReadCallback;
+            ftStream->close = &streamCloseCallback;
 
             // open the font
             var openArgs = new FT_Open_Args_
