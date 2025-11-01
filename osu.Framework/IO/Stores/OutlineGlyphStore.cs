@@ -16,9 +16,6 @@ namespace osu.Framework.IO.Stores
     /// <summary>
     /// A glyph store that rasterizes glyphs from outlines.
     /// </summary>
-    /// <remarks>
-    /// This class uses FreeType for glyph loading and rasterization.
-    /// </remarks>
     public class OutlineGlyphStore : IGlyphStore, IResourceStore<TextureUpload>
     {
         protected OutlineFont Font { get; }

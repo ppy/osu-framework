@@ -6,6 +6,9 @@ using osu.Framework.Text;
 
 namespace osu.Framework.IO.Stores
 {
+    /// <summary>
+    /// A resource store for instantiating multiple variations of a single font.
+    /// </summary>
     public class OutlineFontStore : FontStore
     {
         private OutlineFont font;
@@ -24,11 +27,21 @@ namespace osu.Framework.IO.Stores
             font.Dispose();
         }
 
-        public void AddInstance(FontVariation? variation)
+        /// <summary>
+        /// Instantiate a font variation and add it to the store.
+        /// </summary>
+        /// <param name="variation">The parameters of the font.</param>
+        /// <param name="nameOverride">If not null, overrides the name for the new instance.</param>
+        public void AddInstance(FontVariation? variation, string? nameOverride = null)
         {
-            AddTextureSource(new OutlineGlyphStore(font, variation));
+            AddTextureSource(new OutlineGlyphStore(font, variation, nameOverride));
         }
 
+        /// <summary>
+        /// Instantiate a font variation and add it to the store.
+        /// </summary>
+        /// <param name="namedInstance">A named instance of the font.</param>
+        /// <param name="nameOverride">If not null, overrides the name for the new instance.</param>
         public void AddInstance(string namedInstance, string? nameOverride = null)
         {
             AddTextureSource(new OutlineGlyphStore(font, namedInstance, nameOverride));
