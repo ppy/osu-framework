@@ -259,7 +259,7 @@ namespace osu.Framework
         protected virtual OnlineStore CreateOnlineStore() => new OnlineStore();
 
         /// <summary>
-        /// Add a font to be globally accessible to the game.
+        /// Add a bitmap font to be globally accessible to the game.
         /// </summary>
         /// <param name="store">The backing store with font resources.</param>
         /// <param name="assetName">The base name of the font.</param>
@@ -268,8 +268,23 @@ namespace osu.Framework
             => addFont(target ?? Fonts, store, assetName);
 
         /// <summary>
-        /// Add a variable font family to be globally accessible to the game.
+        /// Add an outline font to be globally accessible to the game.
         /// </summary>
+        /// <param name="store">The backing store with font resources.</param>
+        /// <param name="assetName">The base name of the font.</param>
+        /// <param name="target">An optional target store to add the font to. If not specified, <see cref="Fonts"/> is used.</param>
+        /// <returns>The newly added font family from which fonts can be instantiated.</returns>
+        public void AddOutlineFont(ResourceStore<byte[]> store, string assetName = null, FontStore target = null)
+            => target.AddTextureSource(new SelfContainedOutlineGlyphStore(store, assetName));
+
+        /// <summary>
+        /// Add a variable font to be globally accessible to the game.
+        /// </summary>
+        /// <remarks>
+        /// This does not instantiate any glyph stores. Use
+        /// <see cref="OutlineFontStore.AddInstance(string, string?)"/>
+        /// on the returned font store to make the font usable.
+        /// </remarks>
         /// <param name="store">The backing store with font resources.</param>
         /// <param name="assetName">The base name of the font.</param>
         /// <param name="target">An optional target store to add the font to. If not specified, <see cref="Fonts"/> is used.</param>
