@@ -73,7 +73,7 @@ namespace osu.Framework.Text
                     instanceName.Append($@"_{effectiveValue:0.#####}{axis}");
                 }
 
-                if (instanceName.Length > 128)
+                if (instanceName.Length > 127)
                 {
                     // The last resort string is constructed from a SHA-256 hash
                     // of the hashed parameters if the string form of the parameters
