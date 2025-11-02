@@ -41,12 +41,12 @@ namespace osu.Framework.Tests.Text
             {
                 Axes = new Dictionary<string, double>
                 {
-                    { "wght", 123 },
-                    { "wdth", 78.5 },
+                    { @"wght", 123 },
+                    { @"wdth", 78.5 },
                 },
             };
 
-            Assert.AreEqual(variation.GenerateInstanceName("Roboto"), "Roboto_123wght_78.5wdth");
+            Assert.AreEqual(variation.GenerateInstanceName(@"Roboto"), @"Roboto_123wght_78.5wdth");
 
             var rawVariation = outlineFont.DecodeFontVariation(variation);
             Assert.NotNull(rawVariation);
@@ -62,8 +62,8 @@ namespace osu.Framework.Tests.Text
                 NamedInstance = "Roboto-Regular",
             };
 
-            Assert.AreEqual(variation.GenerateInstanceName("Roboto"), "Roboto-Regular");
-            Assert.AreEqual(variation.GenerateInstanceName("some other font"), "Roboto-Regular");
+            Assert.AreEqual(variation.GenerateInstanceName(@"Roboto"), @"Roboto-Regular");
+            Assert.AreEqual(variation.GenerateInstanceName(@"some other font"), @"Roboto-Regular");
 
             var rawVariation = outlineFont.DecodeFontVariation(variation);
             Assert.NotNull(rawVariation);
@@ -76,11 +76,11 @@ namespace osu.Framework.Tests.Text
         {
             var variation = new FontVariation
             {
-                Axes = new Dictionary<string, double> { { "wght", 123 } },
+                Axes = new Dictionary<string, double> { { @"wght", 123 } },
                 NamedInstance = "Roboto-Regular",
             };
 
-            Assert.AreEqual(variation.GenerateInstanceName("Roboto"), "Roboto_123wght");
+            Assert.AreEqual(variation.GenerateInstanceName(@"Roboto"), @"Roboto_123wght");
 
             var rawVariation = outlineFont.DecodeFontVariation(variation);
             Assert.NotNull(rawVariation);
@@ -102,24 +102,24 @@ namespace osu.Framework.Tests.Text
             {
                 Axes = new Dictionary<string, double>
                 {
-                    { "wght", 1000 },
-                    { "wdth", 50.12345 },
-                    { "opsz", 12 },
-                    { "GRAD", -100 },
-                    { "slnt", -10 },
-                    { "XTRA", 456.78901 },
-                    { "XOPQ", 34.56789 },
-                    { "YOPQ", 56.78901 },
-                    { "YTLC", 500.12345 },
-                    { "YTUC", 600.12345 },
-                    { "YTAS", 700.12345 },
-                    { "YTDE", -555.55555 },
-                    { "YTFI", 600.12345 },
+                    { @"wght", 1000 },
+                    { @"wdth", 50.12345 },
+                    { @"opsz", 12 },
+                    { @"GRAD", -100 },
+                    { @"slnt", -10 },
+                    { @"XTRA", 456.78901 },
+                    { @"XOPQ", 34.56789 },
+                    { @"YOPQ", 56.78901 },
+                    { @"YTLC", 500.12345 },
+                    { @"YTUC", 600.12345 },
+                    { @"YTAS", 700.12345 },
+                    { @"YTDE", -555.55555 },
+                    { @"YTFI", 600.12345 },
                 },
             };
 
-            const string expected = "RobotoFlex-F8439096C93C09CF75D5DC6A16A20B99E7A65C932EC1E18731F74415AA77DCDB";
-            Assert.AreEqual(variation.GenerateInstanceName("RobotoFlex"), expected);
+            const string expected = @"RobotoFlex-F8439096C93C09CF75D5DC6A16A20B99E7A65C932EC1E18731F74415AA77DCDB";
+            Assert.AreEqual(variation.GenerateInstanceName(@"RobotoFlex"), expected);
         }
     }
 }

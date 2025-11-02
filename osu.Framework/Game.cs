@@ -208,15 +208,15 @@ namespace osu.Framework
 
             // Roboto (FrameworkFont.Regular)
             var roboto = AddVariableFont(Resources, @"Fonts/Roboto/Roboto", localFonts);
-            roboto.AddInstance("Roboto-Regular");
-            roboto.AddInstance("Roboto-Bold");
+            roboto.AddInstance(@"Roboto-Regular");
+            roboto.AddInstance(@"Roboto-Bold");
             var robotoItalic = AddVariableFont(Resources, @"Fonts/Roboto/RobotoItalic", localFonts);
-            robotoItalic.AddInstance("Roboto-Italic", "Roboto-RegularItalic");
-            robotoItalic.AddInstance("Roboto-BoldItalic");
+            robotoItalic.AddInstance(@"Roboto-Italic", @"Roboto-RegularItalic");
+            robotoItalic.AddInstance(@"Roboto-BoldItalic");
 
             // RobotoCondensed (FrameworkFont.Condensed)
-            roboto.AddInstance("Roboto-CondensedRegular", "RobotoCondensed-Regular");
-            roboto.AddInstance("Roboto-CondensedBold", "RobotoCondensed-Bold");
+            roboto.AddInstance(@"Roboto-CondensedRegular", @"RobotoCondensed-Regular");
+            roboto.AddInstance(@"Roboto-CondensedBold", @"RobotoCondensed-Bold");
 
             addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Solid");
             addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Regular");

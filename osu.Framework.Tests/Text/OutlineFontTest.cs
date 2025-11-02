@@ -22,13 +22,13 @@ namespace osu.Framework.Tests.Text
                 new NamespacedResourceStore<byte[]>(
                     new DllResourceStore(typeof(Game).Assembly), @"Resources"
                 ),
-                "Fonts/Roboto/Roboto"
+                @"Fonts/Roboto/Roboto"
             );
             outlineFont.LoadAsync().WaitSafely();
 
             variation = outlineFont.DecodeFontVariation(new FontVariation
             {
-                NamedInstance = "Roboto-Regular",
+                NamedInstance = @"Roboto-Regular",
             });
         }
 
@@ -60,8 +60,8 @@ namespace osu.Framework.Tests.Text
         [Test]
         public void TestGlyphStores()
         {
-            using (var regular = new OutlineGlyphStore(outlineFont, "Roboto-Regular"))
-            using (var bold = new OutlineGlyphStore(outlineFont, "Roboto-Bold"))
+            using (var regular = new OutlineGlyphStore(outlineFont, @"Roboto-Regular"))
+            using (var bold = new OutlineGlyphStore(outlineFont, @"Roboto-Bold"))
             {
                 var regularA = regular.Get('A');
                 var boldA = bold.Get('A');
