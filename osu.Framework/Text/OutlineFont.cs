@@ -597,7 +597,6 @@ namespace osu.Framework.Text
             if (face is null)
                 return null;
 
-            FT_Error error;
             nint horiBearingX;
             nint horiBearingY;
             nint horiAdvance;
@@ -606,7 +605,7 @@ namespace osu.Framework.Text
             {
                 setVariation(face, variation);
                 // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags
-                error = FT_Load_Glyph(face, glyphIndex, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING);
+                FT_Error error = FT_Load_Glyph(face, glyphIndex, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING);
 
                 if (error != 0)
                 {

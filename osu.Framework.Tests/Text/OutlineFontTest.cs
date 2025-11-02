@@ -13,7 +13,7 @@ namespace osu.Framework.Tests.Text
     public class OutlineFontTest
     {
         private OutlineFont outlineFont = null!;
-        private RawFontVariation? variation = null;
+        private RawFontVariation? variation;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -55,6 +55,33 @@ namespace osu.Framework.Tests.Text
             Assert.AreEqual(metrics!.Character, '\uffff');
 
             Assert.Null(outlineFont.GetMetrics(int.MaxValue, variation));
+        }
+
+        [Test]
+        public void TestGlyphStores()
+        {
+            using (var regular = new OutlineGlyphStore(outlineFont, "Roboto-Regular"))
+            using (var bold = new OutlineGlyphStore(outlineFont, "Roboto-Bold"))
+            {
+                var regularA = regular.Get('A');
+                var boldA = bold.Get('A');
+                Assert.NotNull(regularA);
+                Assert.NotNull(boldA);
+
+                Assert.AreNotEqual(regularA, boldA);
+
+                // the same OutlineGlyphStore should return identical
+                // metrics for the same character (required as a single
+                // OutlineFont can be shared by multiple OutlineGlyphStores)
+                var regularA2 = regular.Get('A');
+                Assert.NotNull(regularA2);
+
+                Assert.AreEqual(regularA!.Character, regularA2!.Character);
+                Assert.AreEqual(regularA.Baseline, regularA2.Baseline);
+                Assert.AreEqual(regularA.XOffset, regularA2.XOffset);
+                Assert.AreEqual(regularA.YOffset, regularA2.YOffset);
+                Assert.AreEqual(regularA.XAdvance, regularA2.XAdvance);
+            }
         }
     }
 }

@@ -39,7 +39,8 @@ namespace osu.Framework.Tests.Text
         {
             var variation = new FontVariation
             {
-                Axes = new Dictionary<string, double> {
+                Axes = new Dictionary<string, double>
+                {
                     { "wght", 123 },
                     { "wdth", 78.5 },
                 },
@@ -50,7 +51,7 @@ namespace osu.Framework.Tests.Text
             var rawVariation = outlineFont.DecodeFontVariation(variation);
             Assert.NotNull(rawVariation);
             Assert.NotZero(rawVariation!.Axes.Length);
-            Assert.Zero(rawVariation!.NamedInstance);
+            Assert.Zero(rawVariation.NamedInstance);
         }
 
         [Test]
@@ -67,7 +68,7 @@ namespace osu.Framework.Tests.Text
             var rawVariation = outlineFont.DecodeFontVariation(variation);
             Assert.NotNull(rawVariation);
             Assert.Zero(rawVariation!.Axes.Length);
-            Assert.NotZero(rawVariation!.NamedInstance);
+            Assert.NotZero(rawVariation.NamedInstance);
         }
 
         [Test]
@@ -84,7 +85,7 @@ namespace osu.Framework.Tests.Text
             var rawVariation = outlineFont.DecodeFontVariation(variation);
             Assert.NotNull(rawVariation);
             Assert.NotZero(rawVariation!.Axes.Length);
-            Assert.Zero(rawVariation!.NamedInstance);
+            Assert.Zero(rawVariation.NamedInstance);
         }
 
         [Test]
@@ -99,7 +100,8 @@ namespace osu.Framework.Tests.Text
         {
             var variation = new FontVariation
             {
-                Axes = new Dictionary<string, double> {
+                Axes = new Dictionary<string, double>
+                {
                     { "wght", 1000 },
                     { "wdth", 50.12345 },
                     { "opsz", 12 },
@@ -116,7 +118,7 @@ namespace osu.Framework.Tests.Text
                 },
             };
 
-            string expected = "RobotoFlex-F8439096C93C09CF75D5DC6A16A20B99E7A65C932EC1E18731F74415AA77DCDB";
+            const string expected = "RobotoFlex-F8439096C93C09CF75D5DC6A16A20B99E7A65C932EC1E18731F74415AA77DCDB";
             Assert.AreEqual(variation.GenerateInstanceName("RobotoFlex"), expected);
         }
     }
