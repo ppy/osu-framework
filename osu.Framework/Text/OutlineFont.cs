@@ -429,7 +429,7 @@ namespace osu.Framework.Text
             }
         }
 
-        internal RawFontVariation? DecodeFontVariation(FontVariation? variation)
+        public RawFontVariation? DecodeFontVariation(FontVariation? variation)
         {
             if (variation is null)
                 return null;
