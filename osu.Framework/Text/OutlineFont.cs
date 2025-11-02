@@ -580,8 +580,18 @@ namespace osu.Framework.Text
         /// The parameters of the font. If null, the default parameters will be
         /// used. This parameter must be null if the font is static.
         /// </param>
-        /// <returns>A new <see cref="CharacterGlyph"/> containing the glyph metrics.</returns>
-        /// <exception cref="FreeTypeException">The metrics fails to load.</exception>
+        /// <returns>
+        /// A new <see cref="CharacterGlyph"/> containing the glyph metrics.
+        /// </returns>
+        /// <remarks>
+        /// The Character property of returned <see cref="CharacterGlyph"/>
+        /// is always U+FFFF, as the codepoint for the corresponding character
+        /// is not available here. As such, callers with knowledge of the
+        /// original code point should construct a new
+        /// <see cref="CharacterGlyph"/> from the return value of this method,
+        /// with the appropriate character, to get meaningful results from
+        /// methods like <see cref="CharacterGlyph.GetKerning{T}(T)"/>.
+        /// </remarks>
         public unsafe CharacterGlyph? GetMetrics(uint glyphIndex, RawFontVariation? variation)
         {
             if (face is null)
@@ -597,14 +607,15 @@ namespace osu.Framework.Text
                 setVariation(face, variation);
                 // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags
                 error = FT_Load_Glyph(face, glyphIndex, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING);
+
+                if (error != 0)
+                {
+                    return null;
+                }
+
                 horiBearingX = face->glyph->metrics.horiBearingX.Value;
                 horiBearingY = face->glyph->metrics.horiBearingY.Value;
                 horiAdvance = face->glyph->metrics.horiAdvance.Value;
-            }
-
-            if (error != 0)
-            {
-                throw new FreeTypeException(error);
             }
 
             // FreeType outputs metric data in 26.6 fixed point. Convert to floating point accordingly.
