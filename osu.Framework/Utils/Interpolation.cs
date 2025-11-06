@@ -301,6 +301,45 @@ namespace osu.Framework.Utils
                     startLinear.A + t * (endLinear.A - startLinear.A)).ToSRGB();
             }
 
+            public static Quaternion ValueAt(double time, Quaternion start, Quaternion end, double startTime, double endTime, in TEasing easing)
+            {
+                if (start == end)
+                    return start;
+
+                double current = time - startTime;
+                double duration = endTime - startTime;
+
+                if (duration == 0 || current == 0)
+                    return start;
+
+                float t = Math.Max(0, Math.Min(1, (float)easing.ApplyEasing(current / duration)));
+
+                return Quaternion.Slerp(start, end, t);
+            }
+
+            // public static Matrix4 ValueAt(double time, Matrix4 startMatrix, Matrix4 endMatrix, double startTime, double endTime, in TEasing easing)
+            // {
+            //     if (startMatrix == endMatrix)
+            //         return startMatrix;
+            //
+            //     double current = time - startTime;
+            //     double duration = endTime - startTime;
+            //
+            //     if (duration == 0 || current == 0)
+            //         return startMatrix;
+            //
+            //     var startLinear = startColour.ToLinear();
+            //     var endLinear = endColour.ToLinear();
+            //
+            //     float t = Math.Max(0, Math.Min(1, (float)easing.ApplyEasing(current / duration)));
+            //
+            //     return new Colour4(
+            //         startLinear.R + t * (endLinear.R - startLinear.R),
+            //         startLinear.G + t * (endLinear.G - startLinear.G),
+            //         startLinear.B + t * (endLinear.B - startLinear.B),
+            //         startLinear.A + t * (endLinear.A - startLinear.A)).ToSRGB();
+            // }
+
             public static byte ValueAt(double time, byte val1, byte val2, double startTime, double endTime, in TEasing easing)
                 => (byte)Math.Round(ValueAt(time, (double)val1, val2, startTime, endTime, easing));
 
@@ -435,6 +474,8 @@ namespace osu.Framework.Utils
                     FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<Vector3, TEasing>)GenericInterpolation<TEasing>.ValueAt;
                 else if (typeof(TValue) == typeof(RectangleF))
                     FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<RectangleF, TEasing>)GenericInterpolation<TEasing>.ValueAt;
+                else if (typeof(TValue) == typeof(Quaternion))
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)(object)(InterpolationFunc<Quaternion, TEasing>)GenericInterpolation<TEasing>.ValueAt;
                 else
                     throw new NotSupportedException($"Type {typeof(TValue)} has no interpolation function. Implement the interface {typeof(IInterpolable<TValue>)} interface on the object.");
             }

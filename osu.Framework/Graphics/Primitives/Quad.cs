@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using osuTK;
 using osu.Framework.Utils;
@@ -14,12 +13,20 @@ namespace osu.Framework.Graphics.Primitives
     {
         // Note: Do not change the order of vertices. They are ordered in screen-space counter-clockwise fashion.
         // See: IPolygon.GetVertices()
-        public readonly Vector2 TopLeft;
-        public readonly Vector2 BottomLeft;
-        public readonly Vector2 BottomRight;
-        public readonly Vector2 TopRight;
+        public readonly Vector3 TopLeft;
+        public readonly Vector3 BottomLeft;
+        public readonly Vector3 BottomRight;
+        public readonly Vector3 TopRight;
 
         public Quad(Vector2 topLeft, Vector2 topRight, Vector2 bottomLeft, Vector2 bottomRight)
+        {
+            TopLeft = new Vector3(topLeft);
+            TopRight = new Vector3(topRight);
+            BottomLeft = new Vector3(bottomLeft);
+            BottomRight = new Vector3(bottomRight);
+        }
+
+        public Quad(Vector3 topLeft, Vector3 topRight, Vector3 bottomLeft, Vector3 bottomRight)
         {
             TopLeft = topLeft;
             TopRight = topRight;
@@ -30,10 +37,10 @@ namespace osu.Framework.Graphics.Primitives
         public Quad(float x, float y, float width, float height)
             : this()
         {
-            TopLeft = new Vector2(x, y);
-            TopRight = new Vector2(x + width, y);
-            BottomLeft = new Vector2(x, y + height);
-            BottomRight = new Vector2(x + width, y + height);
+            TopLeft = new Vector3(x, y, 0);
+            TopRight = new Vector3(x + width, y, 0);
+            BottomLeft = new Vector3(x, y + height, 0);
+            BottomRight = new Vector3(x + width, y + height, 0);
         }
 
         public static implicit operator Quad(RectangleI r) => FromRectangle(r);
@@ -45,7 +52,7 @@ namespace osu.Framework.Graphics.Primitives
                 new Vector2(rectangle.Left, rectangle.Bottom),
                 new Vector2(rectangle.Right, rectangle.Bottom));
 
-        public static Quad operator *(Quad r, Matrix3 m) =>
+        public static Quad operator *(Quad r, Matrix4 m) =>
             new Quad(
                 Vector2Extensions.Transform(r.TopLeft, m),
                 Vector2Extensions.Transform(r.TopRight, m),
@@ -56,8 +63,8 @@ namespace osu.Framework.Graphics.Primitives
         {
             get
             {
-                Vector2 row0 = TopRight - TopLeft;
-                Vector2 row1 = BottomLeft - TopLeft;
+                Vector2 row0 = TopRight.Xy - TopLeft.Xy;
+                Vector2 row1 = BottomLeft.Xy - TopLeft.Xy;
 
                 if (row0 != Vector2.Zero)
                     row0 /= row0.LengthSquared;
@@ -71,11 +78,11 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public Vector2 Centre => (TopLeft + TopRight + BottomLeft + BottomRight) / 4;
+        public Vector2 Centre => (TopLeft.Xy + TopRight.Xy + BottomLeft.Xy + BottomRight.Xy) / 4;
         public Vector2 Size => new Vector2(Width, Height);
 
-        public float Width => Vector2Extensions.Distance(TopLeft, TopRight);
-        public float Height => Vector2Extensions.Distance(TopLeft, BottomLeft);
+        public float Width => Vector2Extensions.Distance(TopLeft.Xy, TopRight.Xy);
+        public float Height => Vector2Extensions.Distance(TopLeft.Xy, BottomLeft.Xy);
 
         public RectangleI AABB
         {
@@ -105,7 +112,13 @@ namespace osu.Framework.Graphics.Primitives
 
         public ReadOnlySpan<Vector2> GetAxisVertices() => GetVertices();
 
-        public ReadOnlySpan<Vector2> GetVertices() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in TopLeft), 4);
+        public ReadOnlySpan<Vector2> GetVertices() => new[]
+        {
+            TopLeft.Xy,
+            BottomLeft.Xy,
+            BottomRight.Xy,
+            TopRight.Xy
+        };
 
         /// <summary>
         /// Checks whether <paramref name="pos"/> is inside of this quad.
@@ -125,7 +138,7 @@ namespace osu.Framework.Graphics.Primitives
         public bool Contains(Vector2 pos)
         {
             if (Width == 0 && Height == 0)
-                return pos == TopLeft;
+                return pos == TopLeft.Xy;
 
             // to check if the point is inside the quad, we will calculate on which side of each quad segment the tested point is using the sign of the perp dot product.
             // note that the order in which we walk the segments matters - it must be clockwise or counterclockwise.
@@ -142,19 +155,19 @@ namespace osu.Framework.Graphics.Primitives
             // however, NaN values may come from Infinity - Infinity subtractions in `Vector2.PerpDot`.
             // there's not much good left to be done in such cases, so we err on the side of caution and reject points that generate any NaNs on sight.
 
-            float perpDot1 = Vector2.PerpDot(BottomLeft - TopLeft, pos - TopLeft);
+            float perpDot1 = Vector2.PerpDot(BottomLeft.Xy - TopLeft.Xy, pos - TopLeft.Xy);
             if (float.IsNaN(perpDot1))
                 return false;
 
-            float perpDot2 = Vector2.PerpDot(BottomRight - BottomLeft, pos - BottomLeft);
+            float perpDot2 = Vector2.PerpDot(BottomRight.Xy - BottomLeft.Xy, pos - BottomLeft.Xy);
             if (float.IsNaN(perpDot2) || perpDot1 * perpDot2 < 0)
                 return false;
 
-            float perpDot3 = Vector2.PerpDot(TopRight - BottomRight, pos - BottomRight);
+            float perpDot3 = Vector2.PerpDot(TopRight.Xy - BottomRight.Xy, pos - BottomRight.Xy);
             if (float.IsNaN(perpDot3) || perpDot1 * perpDot3 < 0 || perpDot2 * perpDot3 < 0)
                 return false;
 
-            float perpDot4 = Vector2.PerpDot(TopLeft - TopRight, pos - TopRight);
+            float perpDot4 = Vector2.PerpDot(TopLeft.Xy - TopRight.Xy, pos - TopRight.Xy);
             if (float.IsNaN(perpDot4) || perpDot1 * perpDot4 < 0 || perpDot2 * perpDot4 < 0 || perpDot3 * perpDot4 < 0)
                 return false;
 
