@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.Lines
                 renderer.PopLocalMatrix();
             }
 
-            private void addCap(Line cap, Vector2 origin)
+            private void addCap(Line cap)
             {
                 // The provided line is perpendicular to the end/start of a segment.
                 // To get the remaining quad positions we are expanding said segment by the path radius.
@@ -92,14 +92,8 @@ namespace osu.Framework.Graphics.Lines
 
                 drawQuad
                 (
-                    new Quad(cap.StartPoint, v2, origin, v3),
-                    new Quad(new Vector2(0, -1), new Vector2(1, -1), Vector2.Zero, Vector2.One)
-                );
-
-                drawTriangle
-                (
-                    new Triangle(origin, v3, cap.EndPoint),
-                    new Triangle(Vector2.Zero, Vector2.One, new Vector2(0, 1))
+                    new Quad(cap.StartPoint, v2, cap.EndPoint, v3),
+                    new Quad(new Vector2(0, -1), new Vector2(1, -1), new Vector2(0, 1), Vector2.One)
                 );
             }
 
@@ -107,13 +101,8 @@ namespace osu.Framework.Graphics.Lines
             {
                 drawQuad
                 (
-                    new Quad(segment.EdgeLeft.StartPoint, segment.EdgeLeft.EndPoint, segment.Guide.StartPoint, segment.Guide.EndPoint),
-                    new Quad(new Vector2(0, -1), new Vector2(0, -1), Vector2.Zero, Vector2.Zero)
-                );
-                drawQuad
-                (
-                    new Quad(segment.EdgeRight.StartPoint, segment.EdgeRight.EndPoint, segment.Guide.StartPoint, segment.Guide.EndPoint),
-                    new Quad(new Vector2(0, 1), new Vector2(0, 1), Vector2.Zero, Vector2.Zero)
+                    new Quad(segment.EdgeLeft.StartPoint, segment.EdgeLeft.EndPoint, segment.EdgeRight.StartPoint, segment.EdgeRight.EndPoint),
+                    new Quad(new Vector2(0, -1), new Vector2(0, -1), new Vector2(0, 1), new Vector2(0, 1))
                 );
             }
 
@@ -128,39 +117,24 @@ namespace osu.Framework.Graphics.Lines
                     return;
 
                 Vector2 origin = segment.Guide.StartPoint;
-                Vector2 end = thetaDiff > 0f ? segment.EdgeRight.StartPoint : segment.EdgeLeft.StartPoint;
+                Line end = thetaDiff > 0f ? new Line(segment.EdgeRight.StartPoint, segment.EdgeLeft.StartPoint) : new Line(segment.EdgeLeft.StartPoint, segment.EdgeRight.StartPoint);
                 Line start = thetaDiff > 0f ? new Line(prevSegment.EdgeLeft.EndPoint, prevSegment.EdgeRight.EndPoint) : new Line(prevSegment.EdgeRight.EndPoint, prevSegment.EdgeLeft.EndPoint);
 
                 if (Math.Abs(thetaDiff) < Math.PI / max_res) // small angle, 1 triangle
                 {
-                    drawTriangle
-                    (
-                        new Triangle(start.EndPoint, origin, end),
-                        new Triangle(new Vector2(1, 0), Vector2.Zero, new Vector2(1, 0))
-                    );
+                    drawTriangle(new Triangle(start.EndPoint, Vector2.Lerp(start.StartPoint, end.EndPoint, 0.5f), end.StartPoint), origin);
                 }
                 else if (Math.Abs(thetaDiff) < Math.PI * 0.5) // less than 90 degrees, 2 triangles
                 {
-                    Vector2 middle = Vector2.Lerp(start.EndPoint, end, 0.5f);
-                    Vector2 v3 = Vector2.Lerp(origin, middle, radius / (float)Math.Cos(Math.Abs(thetaDiff) * 0.5) / Vector2.Distance(origin, middle));
+                    Vector2 middle1 = Vector2.Lerp(start.EndPoint, end.StartPoint, 0.5f);
+                    Vector2 v3 = Vector2.Lerp(origin, middle1, radius / (float)Math.Cos(Math.Abs(thetaDiff) * 0.5) / Vector2.Distance(origin, middle1));
 
-                    drawQuad(new Quad(start.EndPoint, v3, origin, end), origin);
+                    Vector2 middle2 = Vector2.Lerp(start.StartPoint, end.EndPoint, 0.5f);
+                    drawQuad(new Quad(start.EndPoint, v3, middle2, end.StartPoint), origin);
                 }
-                else // more than 90 degrees - 3 triangles
+                else // more than 90 degrees - cap
                 {
-                    Vector2 ortho = start.OrthogonalDirection;
-                    if (float.IsNaN(ortho.X) || float.IsNaN(ortho.Y))
-                        ortho = Vector2.UnitY;
-
-                    Vector2 v1 = start.StartPoint + Math.Sign(thetaDiff) * ortho * radius;
-                    Vector2 v2 = start.EndPoint + Math.Sign(thetaDiff) * ortho * radius;
-                    Vector2 middle = Vector2.Lerp(v1, v2, 0.5f);
-
-                    Vector2 middle2 = Vector2.Lerp(middle, end, 0.5f);
-                    Vector2 v3 = Vector2.Lerp(origin, middle2, radius / (float)Math.Cos((Math.Abs(thetaDiff) - Math.PI * 0.5) * 0.5) / Vector2.Distance(origin, middle2));
-
-                    drawQuad(new Quad(start.EndPoint, v2, origin, v3), origin);
-                    drawTriangle(new Triangle(origin, v3, end), origin);
+                    addEndCap(prevSegment);
                 }
             }
 
@@ -390,10 +364,10 @@ namespace osu.Framework.Graphics.Lines
             }
 
             private void addEndCap(SegmentWithThickness segment) =>
-                addCap(new Line(segment.EdgeLeft.EndPoint, segment.EdgeRight.EndPoint), segment.Guide.EndPoint);
+                addCap(new Line(segment.EdgeLeft.EndPoint, segment.EdgeRight.EndPoint));
 
             private void addStartCap(SegmentWithThickness segment) =>
-                addCap(new Line(segment.EdgeRight.StartPoint, segment.EdgeLeft.StartPoint), segment.Guide.StartPoint);
+                addCap(new Line(segment.EdgeRight.StartPoint, segment.EdgeLeft.StartPoint));
 
             private static float progressFor(Line line, float length, Vector2 point)
             {
