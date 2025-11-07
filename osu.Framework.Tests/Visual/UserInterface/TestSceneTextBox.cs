@@ -918,6 +918,50 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestTripleClickSelectAll()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(300, 40),
+                    Text = "multiple words so a double click cant select it all",
+                });
+            });
+
+            AddStep("move to textbox", () => InputManager.MoveMouseTo(textBox));
+
+            AddStep("triple click", () =>
+            {
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("all text selected", () => textBox.SelectedText, () => Is.EqualTo(textBox.Text));
+
+            AddStep("double click", () =>
+            {
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddWaitStep("wait to fail triple click", 2);
+            AddStep("third click", () => InputManager.Click(MouseButton.Left));
+            AddAssert("no text selected", () => textBox.SelectedText, () => Is.EqualTo(string.Empty));
+
+            AddStep("triple click drag", () =>
+            {
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+                InputManager.PressButton(MouseButton.Left);
+            });
+            AddStep("start drag", () => InputManager.MoveMouseTo(textBox.ScreenSpaceDrawQuad.TopLeft - new Vector2(200f, 0f)));
+            AddStep("end drag", () => InputManager.ReleaseButton(MouseButton.Left));
+            AddAssert("all text selected", () => textBox.SelectedText, () => Is.EqualTo(textBox.Text));
+        }
+
+        [Test]
         public void TestSelectAll()
         {
             TextBox textBox = null;

@@ -261,15 +261,9 @@ namespace osu.Framework.Audio.Mixing.Bass
 
         public void UpdateDevice(int deviceIndex)
         {
-            if (Handle == 0)
-                createMixer();
-            else
-            {
-                ManagedBass.Bass.ChannelSetDevice(Handle, deviceIndex);
-
-                if (manager?.GlobalMixerHandle.Value != null)
-                    BassMix.MixerAddChannel(manager.GlobalMixerHandle.Value.Value, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
-            }
+            // It's important that we re-create the mixer after a device change.
+            // The mixer may need to be initialised with different flags depending on the state of global mixer usage.
+            createMixer();
         }
 
         protected override void UpdateState()
@@ -291,7 +285,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         private void createMixer()
         {
             if (Handle != 0)
-                return;
+                ManagedBass.Bass.StreamFree(Handle);
 
             // Make sure that bass is initialised before trying to create a mixer.
             // If not, this will be called again when the device is initialised via UpdateDevice().
@@ -299,6 +293,7 @@ namespace osu.Framework.Audio.Mixing.Bass
                 return;
 
             Handle = manager?.GlobalMixerHandle.Value != null
+                // The decode flag here is super important to maintain the lowest latency audio output.
                 ? BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Decode)
                 : BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop);
 

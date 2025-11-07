@@ -16,7 +16,7 @@ namespace osu.Framework.Bindables
         /// If the value type is one supported by the <see cref="BindableNumber{T}"/>, an instance of <see cref="BindableNumberWithCurrent{T}"/> will be returned.
         /// Otherwise an instance of <see cref="BindableWithCurrent{T}"/> will be returned instead.
         /// </summary>
-        public static IBindableWithCurrent<T> Create()
+        static IBindableWithCurrent<T> Create()
         {
             if (Validation.IsSupportedBindableNumberType<T>())
                 return (IBindableWithCurrent<T>)Activator.CreateInstance(typeof(BindableNumberWithCurrent<>).MakeGenericType(typeof(T)), default(T));

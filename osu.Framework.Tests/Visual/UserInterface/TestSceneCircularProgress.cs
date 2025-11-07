@@ -102,11 +102,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     Origin = Anchor.Centre,
                     Size = new Vector2(250),
                     CornerRadius = 20,
-                    Child = clock = new CircularProgress
+                    Child = new Container
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Size = new Vector2(400)
+                        Masking = true,
+                        Size = new Vector2(500),
+                        Child = clock = new CircularProgress
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Size = new Vector2(400)
+                        }
                     }
                 }
             };

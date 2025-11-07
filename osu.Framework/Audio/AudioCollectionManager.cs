@@ -28,6 +28,20 @@ namespace osu.Framework.Audio
             });
         }
 
+        public void RemoveItem(T item)
+        {
+            EnqueueAction(() =>
+            {
+                if (!Items.Contains(item)) return;
+
+                if (item is IAdjustableAudioComponent adjustable)
+                    adjustable.UnbindAdjustments(this);
+
+                Items.Remove(item);
+                ItemRemoved(item);
+            });
+        }
+
         void IBassAudio.UpdateDevice(int deviceIndex) => UpdateDevice(deviceIndex);
 
         internal virtual void UpdateDevice(int deviceIndex)

@@ -33,10 +33,11 @@ namespace osu.Framework.Graphics.Containers
             private Vector2 blurSigma;
             private Vector2I blurRadius;
             private float blurRotation;
+            private float grayscaleStrength;
 
             private long updateVersion;
-
             private IShader blurShader;
+            private IShader grayscaleShader;
 
             public BufferedContainerDrawNode(BufferedContainer<T> source, BufferedContainerDrawNodeSharedData sharedData)
                 : base(source, new CompositeDrawableDrawNode(source), sharedData)
@@ -57,8 +58,10 @@ namespace osu.Framework.Graphics.Containers
                 blurSigma = Source.BlurSigma;
                 blurRadius = new Vector2I(Blur.KernelSize(blurSigma.X), Blur.KernelSize(blurSigma.Y));
                 blurRotation = Source.BlurRotation;
+                grayscaleStrength = Source.GrayscaleStrength;
 
                 blurShader = Source.blurShader;
+                grayscaleShader = Source.grayscaleShader;
             }
 
             protected override long GetDrawVersion() => updateVersion;
@@ -67,12 +70,13 @@ namespace osu.Framework.Graphics.Containers
             {
                 base.PopulateContents(renderer);
 
-                if (blurRadius.X > 0 || blurRadius.Y > 0)
+                if (blurRadius.X > 0 || blurRadius.Y > 0 || grayscaleStrength > 0)
                 {
                     renderer.PushScissorState(false);
 
                     if (blurRadius.X > 0) drawBlurredFrameBuffer(renderer, blurRadius.X, blurSigma.X, blurRotation);
                     if (blurRadius.Y > 0) drawBlurredFrameBuffer(renderer, blurRadius.Y, blurSigma.Y, blurRotation + 90);
+                    if (grayscaleStrength > 0) drawGrayscaleFrameBuffer(renderer, grayscaleStrength);
 
                     renderer.PopScissorState();
                 }
@@ -95,6 +99,7 @@ namespace osu.Framework.Graphics.Containers
             }
 
             private IUniformBuffer<BlurParameters> blurParametersBuffer;
+            private IUniformBuffer<GrayscaleParameters> grayscaleParametersBuffer;
 
             private void drawBlurredFrameBuffer(IRenderer renderer, int kernelRadius, float sigma, float blurRotation)
             {
@@ -124,6 +129,29 @@ namespace osu.Framework.Graphics.Containers
                 }
             }
 
+            private void drawGrayscaleFrameBuffer(IRenderer renderer, float strength)
+            {
+                grayscaleParametersBuffer ??= renderer.CreateUniformBuffer<GrayscaleParameters>();
+
+                IFrameBuffer current = SharedData.CurrentEffectBuffer;
+                IFrameBuffer target = SharedData.GetNextEffectBuffer();
+
+                renderer.SetBlend(BlendingParameters.None);
+
+                using (BindFrameBuffer(target))
+                {
+                    grayscaleParametersBuffer.Data = grayscaleParametersBuffer.Data with
+                    {
+                        Strength = strength
+                    };
+
+                    grayscaleShader.BindUniformBlock("m_GrayscaleParameters", grayscaleParametersBuffer);
+                    grayscaleShader.Bind();
+                    renderer.DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White));
+                    grayscaleShader.Unbind();
+                }
+            }
+
             public List<DrawNode> Children
             {
                 get => Child.Children;
@@ -146,6 +174,13 @@ namespace osu.Framework.Graphics.Containers
                 public UniformFloat Sigma;
                 public UniformVector2 Direction;
                 private readonly UniformPadding8 pad1;
+            }
+
+            [StructLayout(LayoutKind.Sequential, Pack = 1)]
+            private record struct GrayscaleParameters
+            {
+                public UniformFloat Strength;
+                private readonly UniformPadding12 pad1;
             }
         }
 

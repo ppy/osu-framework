@@ -24,25 +24,25 @@ namespace osu.Framework.Graphics.Rendering
         /// Maximum number of <see cref="DrawNode"/>s a <see cref="Drawable"/> can draw with.
         /// This is a carefully-chosen number to enable the update and draw threads to work concurrently without causing unnecessary load.
         /// </summary>
-        public const int MAX_DRAW_NODES = 3;
+        const int MAX_DRAW_NODES = 3;
 
-        public const int MAX_MIPMAP_LEVELS = 3;
+        const int MAX_MIPMAP_LEVELS = 3;
 
-        public const int VERTICES_PER_TRIANGLE = 4;
+        const int VERTICES_PER_TRIANGLE = 4;
 
-        public const int VERTICES_PER_QUAD = 4;
+        const int VERTICES_PER_QUAD = 4;
 
-        public const int INDICES_PER_QUAD = VERTICES_PER_QUAD + 2;
+        const int INDICES_PER_QUAD = VERTICES_PER_QUAD + 2;
 
         /// <summary>
         /// Maximum number of vertices in a linear vertex buffer.
         /// </summary>
-        public const int MAX_VERTICES = ushort.MaxValue;
+        const int MAX_VERTICES = ushort.MaxValue;
 
         /// <summary>
         /// Maximum number of quads in a quad vertex buffer.
         /// </summary>
-        public const int MAX_QUADS = ushort.MaxValue / INDICES_PER_QUAD;
+        const int MAX_QUADS = ushort.MaxValue / INDICES_PER_QUAD;
 
         /// <summary>
         /// Enables or disables vertical sync.
@@ -353,7 +353,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// Returns an image containing the content of a framebuffer.
         /// </summary>
-        public Image<Rgba32>? ExtractFrameBufferData(IFrameBuffer frameBuffer);
+        Image<Rgba32>? ExtractFrameBufferData(IFrameBuffer frameBuffer);
 
         /// <summary>
         /// Creates a new <see cref="IShaderPart"/>.
