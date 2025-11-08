@@ -116,26 +116,31 @@ namespace osu.Framework.Graphics.Lines
                 if (thetaDiff == 0f)
                     return;
 
+                // more than 90 degrees - add end cap to the previous segment
+                if (Math.Abs(thetaDiff) > Math.PI * 0.5)
+                {
+                    addEndCap(prevSegment);
+                    return;
+                }
+
                 Vector2 origin = segment.Guide.StartPoint;
                 Line end = thetaDiff > 0f ? new Line(segment.BottomLeft, segment.TopLeft) : new Line(segment.TopLeft, segment.BottomLeft);
                 Line start = thetaDiff > 0f ? new Line(prevSegment.TopRight, prevSegment.BottomRight) : new Line(prevSegment.BottomRight, prevSegment.TopRight);
 
-                if (Math.Abs(thetaDiff) < Math.PI / max_res) // small angle, 1 triangle
-                {
-                    drawTriangle(new Triangle(start.EndPoint, Vector2.Lerp(start.StartPoint, end.EndPoint, 0.5f), end.StartPoint), origin);
-                }
-                else if (Math.Abs(thetaDiff) < Math.PI * 0.5) // less than 90 degrees, 2 triangles
-                {
-                    Vector2 middle1 = Vector2.Lerp(start.EndPoint, end.StartPoint, 0.5f);
-                    Vector2 v3 = Vector2.Lerp(origin, middle1, radius / (float)Math.Cos(Math.Abs(thetaDiff) * 0.5) / Vector2.Distance(origin, middle1));
+                // position of a vertex which is located slightly below segments intersection
+                Vector2 innerVertex = Vector2.Lerp(start.StartPoint, end.EndPoint, 0.5f);
 
-                    Vector2 middle2 = Vector2.Lerp(start.StartPoint, end.EndPoint, 0.5f);
-                    drawQuad(new Quad(start.EndPoint, v3, middle2, end.StartPoint), origin);
-                }
-                else // more than 90 degrees - cap
+                // at this small angle curvature of the connection isn't noticeable, we can get away with a single triangle
+                if (Math.Abs(thetaDiff) < Math.PI / max_res)
                 {
-                    addEndCap(prevSegment);
+                    drawTriangle(new Triangle(start.EndPoint, innerVertex, end.StartPoint), origin);
+                    return;
                 }
+
+                // 2 triangles for the remaining cases
+                Vector2 middle1 = Vector2.Lerp(start.EndPoint, end.StartPoint, 0.5f);
+                Vector2 outerVertex = Vector2.Lerp(origin, middle1, radius / (float)Math.Cos(Math.Abs(thetaDiff) * 0.5) / Vector2.Distance(origin, middle1));
+                drawQuad(new Quad(start.EndPoint, outerVertex, innerVertex, end.StartPoint), origin);
             }
 
             private void drawTriangle(Triangle triangle, Vector2 origin)
@@ -227,24 +232,6 @@ namespace osu.Framework.Graphics.Lines
 
             private void updateVertexBuffer()
             {
-                // Explanation of the terms "left" and "right":
-                // "Left" and "right" are used here in terms of a typical (Cartesian) coordinate system.
-                // So "left" corresponds to positive angles (anti-clockwise), and "right" corresponds
-                // to negative angles (clockwise).
-                //
-                // Note that this is not the same as the actually used coordinate system, in which the
-                // y-axis is flipped. In this system, "left" corresponds to negative angles (clockwise)
-                // and "right" corresponds to positive angles (anti-clockwise).
-                //
-                // Using a Cartesian system makes the calculations more consistent with typical math,
-                // such as in angle<->coordinate conversions and ortho vectors. For example, the x-unit
-                // vector (1, 0) has the orthogonal y-unit vector (0, 1). This would be "left" in the
-                // Cartesian system. But in the actual system, it's "right" and clockwise. Where
-                // this becomes confusing is during debugging, because OpenGL uses a Cartesian system.
-                // So to make debugging a bit easier (i.e. w/ RenderDoc or Nsight), this code uses terms
-                // that make sense in the realm of OpenGL, rather than terms which  are technically
-                // accurate in the actually used "flipped" system.
-
                 Debug.Assert(segments.Count > 0);
 
                 Line? segmentToDraw = null;
