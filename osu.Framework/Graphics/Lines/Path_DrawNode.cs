@@ -97,16 +97,16 @@ namespace osu.Framework.Graphics.Lines
                 );
             }
 
-            private void addSegmentQuad(SegmentWithThickness segment)
+            private void addSegmentQuad(DrawableSegment segment)
             {
                 drawQuad
                 (
-                    new Quad(segment.EdgeLeft.StartPoint, segment.EdgeLeft.EndPoint, segment.EdgeRight.StartPoint, segment.EdgeRight.EndPoint),
+                    segment.DrawQuad,
                     new Quad(new Vector2(0, -1), new Vector2(0, -1), new Vector2(0, 1), new Vector2(0, 1))
                 );
             }
 
-            private void addConnectionBetween(SegmentWithThickness segment, SegmentWithThickness prevSegment)
+            private void addConnectionBetween(DrawableSegment segment, DrawableSegment prevSegment)
             {
                 float thetaDiff = segment.Guide.Theta - prevSegment.Guide.Theta;
 
@@ -117,8 +117,8 @@ namespace osu.Framework.Graphics.Lines
                     return;
 
                 Vector2 origin = segment.Guide.StartPoint;
-                Line end = thetaDiff > 0f ? new Line(segment.EdgeRight.StartPoint, segment.EdgeLeft.StartPoint) : new Line(segment.EdgeLeft.StartPoint, segment.EdgeRight.StartPoint);
-                Line start = thetaDiff > 0f ? new Line(prevSegment.EdgeLeft.EndPoint, prevSegment.EdgeRight.EndPoint) : new Line(prevSegment.EdgeRight.EndPoint, prevSegment.EdgeLeft.EndPoint);
+                Line end = thetaDiff > 0f ? new Line(segment.BottomLeft, segment.TopLeft) : new Line(segment.TopLeft, segment.BottomLeft);
+                Line start = thetaDiff > 0f ? new Line(prevSegment.TopRight, prevSegment.BottomRight) : new Line(prevSegment.BottomRight, prevSegment.TopRight);
 
                 if (Math.Abs(thetaDiff) < Math.PI / max_res) // small angle, 1 triangle
                 {
@@ -251,7 +251,7 @@ namespace osu.Framework.Graphics.Lines
                 SegmentStartLocation location = SegmentStartLocation.Outside;
                 SegmentStartLocation modifiedLocation = SegmentStartLocation.Outside;
                 SegmentStartLocation nextLocation = SegmentStartLocation.End;
-                SegmentWithThickness? lastDrawnSegment = null;
+                DrawableSegment? lastDrawnSegment = null;
 
                 for (int i = 0; i < segments.Count; i++)
                 {
@@ -292,7 +292,7 @@ namespace osu.Framework.Graphics.Lines
                         }
                         else // Otherwise draw the expanded segment
                         {
-                            SegmentWithThickness s = new SegmentWithThickness(segmentToDraw.Value, radius, location, modifiedLocation);
+                            DrawableSegment s = new DrawableSegment(segmentToDraw.Value, radius, location, modifiedLocation);
                             addSegmentQuad(s);
                             connect(s, lastDrawnSegment);
 
@@ -311,7 +311,7 @@ namespace osu.Framework.Graphics.Lines
                 // Finish drawing last segment (if exists)
                 if (segmentToDraw.HasValue)
                 {
-                    SegmentWithThickness s = new SegmentWithThickness(segmentToDraw.Value, radius, location, modifiedLocation);
+                    DrawableSegment s = new DrawableSegment(segmentToDraw.Value, radius, location, modifiedLocation);
                     addSegmentQuad(s);
                     connect(s, lastDrawnSegment);
                     addEndCap(s);
@@ -321,7 +321,7 @@ namespace osu.Framework.Graphics.Lines
             /// <summary>
             /// Connects the start of the segment to the end of a previous one.
             /// </summary>
-            private void connect(SegmentWithThickness segment, SegmentWithThickness? prevSegment)
+            private void connect(DrawableSegment segment, DrawableSegment? prevSegment)
             {
                 if (!prevSegment.HasValue)
                 {
@@ -363,11 +363,11 @@ namespace osu.Framework.Graphics.Lines
                 }
             }
 
-            private void addEndCap(SegmentWithThickness segment) =>
-                addCap(new Line(segment.EdgeLeft.EndPoint, segment.EdgeRight.EndPoint));
+            private void addEndCap(DrawableSegment segment) =>
+                addCap(new Line(segment.TopRight, segment.BottomRight));
 
-            private void addStartCap(SegmentWithThickness segment) =>
-                addCap(new Line(segment.EdgeRight.StartPoint, segment.EdgeLeft.StartPoint));
+            private void addStartCap(DrawableSegment segment) =>
+                addCap(new Line(segment.BottomLeft, segment.TopLeft));
 
             private static float progressFor(Line line, float length, Vector2 point)
             {
@@ -390,38 +390,53 @@ namespace osu.Framework.Graphics.Lines
                 Outside
             }
 
-            private readonly struct SegmentWithThickness
+            private readonly struct DrawableSegment
             {
                 /// <summary>
-                /// The line defining this <see cref="SegmentWithThickness"/>.
+                /// The line defining this <see cref="DrawableSegment"/>.
                 /// </summary>
                 public Line Guide { get; }
 
                 /// <summary>
-                /// The line parallel to <see cref="Guide"/> and located on the left side of it.
+                /// The draw quad of this <see cref="DrawableSegment"/>.
                 /// </summary>
-                public Line EdgeLeft { get; }
+                public Quad DrawQuad { get; }
 
                 /// <summary>
-                /// The line parallel to <see cref="Guide"/> and located on the right side of it.
+                /// The top-left position of the <see cref="DrawQuad"/> of this <see cref="DrawableSegment"/>.
                 /// </summary>
-                public Line EdgeRight { get; }
+                public Vector2 TopLeft => DrawQuad.TopLeft;
 
                 /// <summary>
-                /// Position of this <see cref="SegmentWithThickness"/> relative to the previous one.
+                /// The top-right position of the <see cref="DrawQuad"/> of this <see cref="DrawableSegment"/>.
+                /// </summary>
+                public Vector2 TopRight => DrawQuad.TopRight;
+
+                /// <summary>
+                /// The bottom-left position of the <see cref="DrawQuad"/> of this <see cref="DrawableSegment"/>.
+                /// </summary>
+                public Vector2 BottomLeft => DrawQuad.BottomLeft;
+
+                /// <summary>
+                /// The bottom-right position of the <see cref="DrawQuad"/> of this <see cref="DrawableSegment"/>.
+                /// </summary>
+                public Vector2 BottomRight => DrawQuad.BottomRight;
+
+                /// <summary>
+                /// Position of this <see cref="DrawableSegment"/> relative to the previous one.
                 /// </summary>
                 public SegmentStartLocation StartLocation { get; }
 
                 /// <summary>
-                /// Position of this modified <see cref="SegmentWithThickness"/> relative to the previous one.
+                /// Position of this modified <see cref="DrawableSegment"/> relative to the previous one.
                 /// </summary>
                 public SegmentStartLocation ModifiedStartLocation { get; }
 
-                /// <param name="guide">The line defining this <see cref="SegmentWithThickness"/>.</param>
-                /// <param name="distance">The distance at which <see cref="EdgeLeft"/> and <see cref="EdgeRight"/> will be located from the <see cref="Guide"/>.</param>
-                /// <param name="startLocation">Position of this <see cref="SegmentWithThickness"/> relative to the previous one.</param>
-                /// <param name="modifiedStartLocation">Position of this modified <see cref="SegmentWithThickness"/> relative to the previous one.</param>
-                public SegmentWithThickness(Line guide, float distance, SegmentStartLocation startLocation, SegmentStartLocation modifiedStartLocation)
+                /// <param name="guide">The line defining this <see cref="DrawableSegment"/>.</param>
+                /// <param name="radius">The path radius.</param>
+                /// <param name="startLocation">Position of this <see cref="DrawableSegment"/> relative to the previous one.</param>
+                /// <param name="modifiedStartLocation">Position of this modified <see cref="DrawableSegment"/> relative to the previous one.</param>
+                public DrawableSegment(Line guide, float radius, SegmentStartLocation startLocation, SegmentStartLocation modifiedStartLocation)
                 {
                     Guide = guide;
                     StartLocation = startLocation;
@@ -431,8 +446,13 @@ namespace osu.Framework.Graphics.Lines
                     if (float.IsNaN(ortho.X) || float.IsNaN(ortho.Y))
                         ortho = Vector2.UnitY;
 
-                    EdgeLeft = new Line(Guide.StartPoint + ortho * distance, Guide.EndPoint + ortho * distance);
-                    EdgeRight = new Line(Guide.StartPoint - ortho * distance, Guide.EndPoint - ortho * distance);
+                    DrawQuad = new Quad
+                    (
+                        Guide.StartPoint + ortho * radius,
+                        Guide.EndPoint + ortho * radius,
+                        Guide.StartPoint - ortho * radius,
+                        Guide.EndPoint - ortho * radius
+                    );
                 }
             }
 
