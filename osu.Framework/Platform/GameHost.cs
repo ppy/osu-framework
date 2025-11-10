@@ -1426,6 +1426,8 @@ namespace osu.Framework.Platform
                 if (deviceHandle == IntPtr.Zero) return;
 
                 lowLatency.Initialize(deviceHandle);
+                var currentLatencyMode = Config.GetBindable<LatencyMode>(FrameworkSetting.LatencyMode);
+                SetLowLatencyMode(currentLatencyMode.Value);
                 lowLatencyInitialized = true;
             }
             catch (Exception)
@@ -1438,6 +1440,7 @@ namespace osu.Framework.Platform
         {
             try
             {
+                Config.GetBindable<LatencyMode>(FrameworkSetting.LatencyMode).Value = mode;
                 lowLatency.SetMode(mode);
             }
             catch (Exception)
