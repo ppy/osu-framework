@@ -30,6 +30,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Deferred;
+using osu.Framework.Graphics.Rendering.LowLatency;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
@@ -466,6 +467,7 @@ namespace osu.Framework.Platform
 
         protected virtual void UpdateFrame()
         {
+            FrameSleep();
             if (Root == null) return;
 
             frameCount++;
@@ -483,11 +485,15 @@ namespace osu.Framework.Platform
 
             TypePerformanceMonitor.NewFrame();
 
+            LatencyMark(LatencyMarker.SimulationStart, frameCount);
+
             Root.UpdateSubTree();
             Root.UpdateSubTreeMasking();
 
             using (var buffer = drawRoots.GetForWrite())
                 buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
+
+            LatencyMark(LatencyMarker.SimulationEnd, frameCount);
         }
 
         private bool didRenderFrame;
@@ -528,6 +534,8 @@ namespace osu.Framework.Platform
 
             try
             {
+                LatencyMark(LatencyMarker.RenderSubmitStart, frameCount);
+
                 using (drawMonitor.BeginCollecting(PerformanceCollectionType.DrawReset))
                     Renderer.BeginFrame(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
 
@@ -560,6 +568,8 @@ namespace osu.Framework.Platform
 
                 Renderer.FinishFrame();
 
+                LatencyMark(LatencyMarker.RenderSubmitEnd, frameCount);
+
                 using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
                     Swap();
 
@@ -577,12 +587,16 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual void Swap()
         {
+            LatencyMark(LatencyMarker.PresentStart, frameCount);
+
             Renderer.SwapBuffers();
 
             if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL && Renderer.VerticalSync)
                 // without waiting (i.e. glFinish), vsync is basically unplayable due to the extra latency introduced.
                 // we will likely want to give the user control over this in the future as an advanced setting.
                 Renderer.WaitUntilIdle();
+
+            LatencyMark(LatencyMarker.PresentEnd, frameCount);
         }
 
         /// <summary>
@@ -1388,6 +1402,72 @@ namespace osu.Framework.Platform
             if (Window == null) return;
 
             DrawThread.Scheduler.Add(() => Renderer.VerticalSync = frameSyncMode.Value == FrameSync.VSync);
+        }
+
+        private ILowLatencyProvider lowLatency = NoOpLowLatencyProvider.INSTANCE;
+        private bool lowLatencyInitialized;
+
+        public void SetLowLatencyProvider(ILowLatencyProvider provider, IntPtr deviceHandle = 0)
+        {
+            lowLatency = provider ?? NoOpLowLatencyProvider.INSTANCE;
+            TryInitializeLowLatencyProvider();
+        }
+
+        internal void TryInitializeLowLatencyProvider()
+        {
+            if (lowLatencyInitialized || lowLatency is NoOpLowLatencyProvider) return;
+
+            if (Renderer is not IVeldridRenderer veldridRenderer) return;
+
+            try
+            {
+                IntPtr deviceHandle = veldridRenderer.Device.GetD3D11Info().Device;
+
+                if (deviceHandle == IntPtr.Zero) return;
+
+                lowLatency.Initialize(deviceHandle);
+                lowLatencyInitialized = true;
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        public void SetLowLatencyMode(LatencyMode mode)
+        {
+            try
+            {
+                lowLatency.SetMode(mode);
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        internal void LatencyMark(LatencyMarker marker, ulong frameId)
+        {
+            try
+            {
+                lowLatency.SetMarker(marker, frameId);
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        internal void FrameSleep()
+        {
+            try
+            {
+                lowLatency.FrameSleep();
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
         }
 
         /// <summary>
