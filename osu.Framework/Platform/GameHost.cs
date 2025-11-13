@@ -459,11 +459,17 @@ namespace osu.Framework.Platform
             Exited?.Invoke();
         }
 
-        private readonly TripleBuffer<DrawNode> drawRoots = new TripleBuffer<DrawNode>();
+        private readonly TripleBuffer<DrawBufferData> drawRoots = new TripleBuffer<DrawBufferData>();
 
         internal Container Root { get; private set; }
 
         private ulong frameCount;
+
+        private class DrawBufferData
+        {
+            public DrawNode Node;
+            public ulong FrameCount;
+        }
 
         protected virtual void UpdateFrame()
         {
@@ -491,7 +497,11 @@ namespace osu.Framework.Platform
             Root.UpdateSubTreeMasking();
 
             using (var buffer = drawRoots.GetForWrite())
-                buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
+            {
+                buffer.Object ??= new DrawBufferData();
+                buffer.Object.Node = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
+                buffer.Object.FrameCount = frameCount;
+            }
 
             LatencyMark(LatencyMarker.SimulationEnd, frameCount);
         }
@@ -513,7 +523,7 @@ namespace osu.Framework.Platform
 
             Renderer.AllowTearing = windowMode.Value == WindowMode.Fullscreen;
 
-            TripleBuffer<DrawNode>.Buffer buffer;
+            TripleBuffer<DrawBufferData>.Buffer buffer;
 
             using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
             {
@@ -524,17 +534,21 @@ namespace osu.Framework.Platform
                     Renderer.WaitUntilNextFrameReady();
 
                 didRenderFrame = false;
-                buffer = drawRoots.GetForRead(IsActive.Value ? TripleBuffer<DrawNode>.DEFAULT_READ_TIMEOUT : 0);
+                buffer = drawRoots.GetForRead(IsActive.Value ? TripleBuffer<DrawBufferData>.DEFAULT_READ_TIMEOUT : 0);
             }
 
             if (buffer == null)
                 return;
 
-            Debug.Assert(buffer.Object != null);
-
             try
             {
-                LatencyMark(LatencyMarker.RenderSubmitStart, frameCount);
+                if (buffer.Object is not DrawBufferData data)
+                    return;
+
+                DrawNode rootNode = data.Node;
+                ulong bufferFrameCount = data.FrameCount;
+
+                LatencyMark(LatencyMarker.RenderSubmitStart, bufferFrameCount);
 
                 using (drawMonitor.BeginCollecting(PerformanceCollectionType.DrawReset))
                     Renderer.BeginFrame(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
@@ -547,7 +561,7 @@ namespace osu.Framework.Platform
                     Renderer.PushDepthInfo(DepthInfo.Default);
 
                     // Front pass
-                    DrawNode.DrawOtherOpaqueInterior(buffer.Object, Renderer);
+                    DrawNode.DrawOtherOpaqueInterior(rootNode, Renderer);
 
                     Renderer.PopDepthInfo();
                     Renderer.SetBlendMask(BlendingMask.All);
@@ -562,13 +576,13 @@ namespace osu.Framework.Platform
                 }
 
                 // Back pass
-                DrawNode.DrawOther(buffer.Object, Renderer);
+                DrawNode.DrawOther(rootNode, Renderer);
 
                 Renderer.PopDepthInfo();
 
                 Renderer.FinishFrame();
 
-                LatencyMark(LatencyMarker.RenderSubmitEnd, frameCount);
+                LatencyMark(LatencyMarker.RenderSubmitEnd, bufferFrameCount);
 
                 using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
                     Swap();
