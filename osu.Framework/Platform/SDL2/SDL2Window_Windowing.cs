@@ -606,10 +606,11 @@ namespace osu.Framework.Platform.SDL2
                     Size = sizeWindowed.Value;
 
                     SDL_RestoreWindow(SDLWindowHandle);
-                    SDL_SetWindowSize(SDLWindowHandle, Size.Width, Size.Height);
                     SDL_SetWindowResizable(SDLWindowHandle, Resizable ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE);
 
                     readWindowPositionFromConfig(state, display);
+
+                    setSafeWindowSizing();
                     break;
 
                 case WindowState.Fullscreen:
@@ -863,6 +864,30 @@ namespace osu.Framework.Platform.SDL2
                 Logger.Log($"Failed to get window display mode. SDL error: {SDL2Extensions.GetAndClearError()}", level: LogLevel.Error);
 
             throw new InvalidOperationException("couldn't retrieve valid display mode");
+        }
+
+        private void setSafeWindowSizing()
+        {
+            if (SDL_GetWindowBordersSize(SDLWindowHandle, out int topDecor, out _, out _, out _) < 0
+                || SDL_GetDisplayUsableBounds(displayIndex, out SDL_Rect usableBounds) < 0)
+                return;
+
+            // Adjust height if window exceeds display bounds
+            int maxHeight = usableBounds.h - topDecor;
+
+            if (Size.Height > maxHeight)
+            {
+                Size = new Size(Size.Width, maxHeight);
+                storeWindowSizeToConfig();
+            }
+
+            ScheduleCommand(() => SDL_SetWindowSize(SDLWindowHandle, Size.Width, Size.Height));
+
+            // Adjust position to be flush with top, if needed
+            if (Position.Y - topDecor < usableBounds.y)
+            {
+                Position = new Point(position.X, usableBounds.y + topDecor);
+            }
         }
 
         #endregion
