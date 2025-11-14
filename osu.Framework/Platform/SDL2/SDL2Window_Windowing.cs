@@ -10,6 +10,7 @@ using System.Drawing;
 using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Graphics;
 using osu.Framework.Logging;
 using osuTK;
 using static SDL2.SDL;
@@ -600,6 +601,27 @@ namespace osu.Framework.Platform.SDL2
                 currentDisplay = Displays.ElementAtOrDefault(displayIndex) ?? PrimaryDisplay;
                 CurrentDisplayBindable.Value = currentDisplay;
             }
+
+            if (tryGetBorderSize(out var borderSize))
+                BorderSize.Value = borderSize;
+        }
+
+        private bool tryGetBorderSize(out MarginPadding borderSize)
+        {
+            if (SDL_GetWindowBordersSize(SDLWindowHandle, out int top, out int left, out int bottom, out int right) < 0)
+            {
+                borderSize = default;
+                return false;
+            }
+
+            borderSize = new MarginPadding
+            {
+                Top = top,
+                Left = left,
+                Bottom = bottom,
+                Right = right
+            };
+            return true;
         }
 
         /// <summary>

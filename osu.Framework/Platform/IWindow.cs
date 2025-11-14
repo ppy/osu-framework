@@ -8,6 +8,7 @@ using System.Drawing;
 using System.IO;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Graphics;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Platform
@@ -145,6 +146,15 @@ namespace osu.Framework.Platform
         /// The safe area insets are provided by the operating system and dynamically change as the user rotates the device.
         /// </summary>
         BindableSafeArea SafeAreaPadding { get; }
+
+        /// <summary>
+        /// The size of the window decoration and border, relative to <see cref="Size"/>.
+        /// </summary>
+        /// <remarks>
+        /// This may include the invisible resize border, even when maximised.
+        /// Usually 0 when in borderless or fullscreen.
+        /// </remarks>
+        IBindable<MarginPadding> BorderSize { get; }
 
         /// <summary>
         /// The <see cref="WindowMode"/>s supported by this <see cref="IWindow"/> implementation.

@@ -16,5 +16,23 @@ namespace osu.Framework.Tests.Visual.Platform
                 RelativeSizeAxes = Axes.Both,
             });
         }
+
+        [Test]
+        public void TestWindowBorder()
+        {
+            AddStep("Set up scene", () => Child = new WindowDisplaysPreview(false, true)
+            {
+                RelativeSizeAxes = Axes.Both,
+            });
+        }
+
+        [Test]
+        public void TestBoth()
+        {
+            AddStep("Set up scene", () => Child = new WindowDisplaysPreview(true, true)
+            {
+                RelativeSizeAxes = Axes.Both,
+            });
+        }
     }
 }

@@ -28,6 +28,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private readonly Container paddedContainer;
         private readonly Container screenContainer;
         private readonly Container windowContainer;
+        private readonly Container? borderContainer;
         private Vector2 screenContainerOffset;
 
         private static readonly Color4 active_fill = new Color4(255, 138, 104, 255);
@@ -36,6 +37,8 @@ namespace osu.Framework.Tests.Visual.Platform
         private static readonly Color4 screen_stroke = new Color4(244, 137, 25, 255);
         private static readonly Color4 window_fill = new Color4(95, 113, 197, 255);
         private static readonly Color4 window_stroke = new Color4(36, 59, 166, 255);
+        private static readonly Color4 window_border_fill = new Color4(85, 207, 89, 200);
+        private static readonly Color4 window_border_stroke = new Color4(50, 122, 53, 255);
 
         private IWindow? window;
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
@@ -43,7 +46,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
         private readonly bool showDisplayBounds;
 
-        public WindowDisplaysPreview(bool showDisplayBounds = false)
+        public WindowDisplaysPreview(bool showDisplayBounds = false, bool showWindowBorders = false)
         {
             this.showDisplayBounds = showDisplayBounds;
             Child = new Container
@@ -89,6 +92,22 @@ namespace osu.Framework.Tests.Visual.Platform
                     }
                 }
             };
+
+            if (showWindowBorders)
+            {
+                screenContainer.Add(borderContainer = new Container
+                {
+                    BorderColour = window_border_stroke,
+                    BorderThickness = 20,
+                    Masking = true,
+                    Depth = -5,
+                    Child = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = window_border_fill
+                    }
+                });
+            }
         }
 
         [BackgroundDependencyLoader]
@@ -114,7 +133,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
         private void refreshScreens(IEnumerable<Display> displays)
         {
-            screenContainer.RemoveAll(d => d != windowContainer, false);
+            screenContainer.RemoveAll(d => d != windowContainer && d != borderContainer, false);
 
             var bounds = new RectangleI();
 
@@ -211,6 +230,17 @@ namespace osu.Framework.Tests.Visual.Platform
             windowContainer.Height = fullscreen ? currentBounds.Height : window.Size.Height;
             windowContainer.Position -= screenContainerOffset;
             windowCaption.Text = $"{windowMode}\nSize: {window.Size.Width}x{window.Size.Height}\nClient: {window.ClientSize.Width}x{window.ClientSize.Height}";
+
+            if (borderContainer != null)
+            {
+                var borderSize = window.BorderSize.Value;
+
+                borderContainer.X = window.Position.X - borderSize.Left;
+                borderContainer.Y = window.Position.Y - borderSize.Top;
+                borderContainer.Width = windowContainer.Width + borderSize.TotalHorizontal;
+                borderContainer.Height = windowContainer.Height + borderSize.TotalVertical;
+                borderContainer.Position -= screenContainerOffset;
+            }
         }
 
         protected override void Update()
