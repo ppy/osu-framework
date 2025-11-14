@@ -585,7 +585,11 @@ namespace osu.Framework.Platform
                 LatencyMark(LatencyMarker.RenderSubmitEnd, bufferFrameCount);
 
                 using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
+                {
+                    LatencyMark(LatencyMarker.PresentStart, bufferFrameCount);
                     Swap();
+                    LatencyMark(LatencyMarker.PresentEnd, bufferFrameCount);
+                }
 
                 Window.OnDraw();
                 didRenderFrame = true;
@@ -601,16 +605,12 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual void Swap()
         {
-            LatencyMark(LatencyMarker.PresentStart, frameCount);
-
             Renderer.SwapBuffers();
 
             if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL && Renderer.VerticalSync)
                 // without waiting (i.e. glFinish), vsync is basically unplayable due to the extra latency introduced.
                 // we will likely want to give the user control over this in the future as an advanced setting.
                 Renderer.WaitUntilIdle();
-
-            LatencyMark(LatencyMarker.PresentEnd, frameCount);
         }
 
         /// <summary>
