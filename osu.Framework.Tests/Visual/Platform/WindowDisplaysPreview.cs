@@ -7,6 +7,7 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -40,8 +41,11 @@ namespace osu.Framework.Tests.Visual.Platform
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
         private readonly Bindable<Display> currentDisplay = new Bindable<Display>();
 
-        public WindowDisplaysPreview()
+        private readonly bool showDisplayBounds;
+
+        public WindowDisplaysPreview(bool showDisplayBounds = false)
         {
+            this.showDisplayBounds = showDisplayBounds;
             Child = new Container
             {
                 RelativeSizeAxes = Axes.Both,
@@ -116,7 +120,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             foreach (var display in displays)
             {
-                screenContainer.Add(createScreen(display, window.AsNonNull().CurrentDisplayBindable.Value.Index));
+                screenContainer.AddRange(createScreen(display, window.AsNonNull().CurrentDisplayBindable.Value.Index));
                 bounds = RectangleI.Union(bounds, new RectangleI(display.Bounds.X, display.Bounds.Y, display.Bounds.Width, display.Bounds.Height));
             }
 
@@ -130,11 +134,11 @@ namespace osu.Framework.Tests.Visual.Platform
             screenContainer.Size = bounds.Size;
         }
 
-        private Container createScreen(Display display, int activeDisplayIndex)
+        private IEnumerable<Container> createScreen(Display display, int activeDisplayIndex)
         {
             bool isActive = display.Index == activeDisplayIndex;
 
-            return new Container
+            yield return new Container
             {
                 X = display.Bounds.X,
                 Y = display.Bounds.Y,
@@ -166,6 +170,30 @@ namespace osu.Framework.Tests.Visual.Platform
                     }
                 }
             };
+
+            if (showDisplayBounds)
+            {
+                yield return new Container
+                {
+                    X = display.UsableBounds.X,
+                    Y = display.UsableBounds.Y,
+                    Width = display.UsableBounds.Width,
+                    Height = display.UsableBounds.Height,
+
+                    BorderColour = isActive ? Color4.MediumPurple : Color4.Green,
+                    BorderThickness = 20,
+                    Masking = true,
+
+                    Children = new Drawable[]
+                    {
+                        new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = (isActive ? Color4.MediumPurple : Color4.Green).Opacity(0.2f)
+                        },
+                    }
+                };
+            }
         }
 
         private string modeName(DisplayMode mode) => $"{mode.Size.Width}x{mode.Size.Height}@{mode.RefreshRate}";

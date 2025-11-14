@@ -360,6 +360,14 @@ namespace osu.Framework.Platform.SDL3
                 return false;
             }
 
+            SDL_Rect usableBounds;
+
+            if (!SDL_GetDisplayUsableBounds(displayID, &usableBounds))
+            {
+                Logger.Log($"Failed to get usable display bounds for display at index ({displayIndex}). Assuming whole display is usable. SDL Error: {SDL_GetError()}");
+                usableBounds = rect;
+            }
+
             DisplayMode[] displayModes = Array.Empty<DisplayMode>();
 
             if (RuntimeInfo.IsDesktop)
@@ -382,7 +390,11 @@ namespace osu.Framework.Platform.SDL3
                     displayModes[i] = modes[i].ToDisplayMode(displayIndex);
             }
 
-            display = new Display(displayIndex, SDL_GetDisplayName(displayID), new Rectangle(rect.x, rect.y, rect.w, rect.h), displayModes);
+            display = new Display(displayIndex,
+                SDL_GetDisplayName(displayID),
+                new Rectangle(rect.x, rect.y, rect.w, rect.h),
+                new Rectangle(usableBounds.x, usableBounds.y, usableBounds.w, usableBounds.h),
+                displayModes);
             return true;
         }
 
