@@ -44,11 +44,11 @@ namespace osu.Framework.Tests.Visual.Platform
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
         private readonly Bindable<Display> currentDisplay = new Bindable<Display>();
 
-        private readonly bool showDisplayBounds;
+        private readonly bool showDisplayUsableBounds;
 
-        public WindowDisplaysPreview(bool showDisplayBounds = false, bool showWindowBorders = false)
+        public WindowDisplaysPreview(bool showDisplayUsableBounds = false, bool showWindowBorder = false)
         {
-            this.showDisplayBounds = showDisplayBounds;
+            this.showDisplayUsableBounds = showDisplayUsableBounds;
             Child = new Container
             {
                 RelativeSizeAxes = Axes.Both,
@@ -93,7 +93,7 @@ namespace osu.Framework.Tests.Visual.Platform
                 }
             };
 
-            if (showWindowBorders)
+            if (showWindowBorder)
             {
                 screenContainer.Add(borderContainer = new Container
                 {
@@ -190,7 +190,7 @@ namespace osu.Framework.Tests.Visual.Platform
                 }
             };
 
-            if (showDisplayBounds)
+            if (showDisplayUsableBounds)
             {
                 yield return new Container
                 {
