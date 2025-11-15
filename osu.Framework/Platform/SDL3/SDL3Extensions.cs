@@ -6,6 +6,7 @@ using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.StateChanges;
 using osuTK.Input;
 using SDL;
 using static SDL.SDL3;
@@ -1046,6 +1047,21 @@ namespace osu.Framework.Platform.SDL3
             uint unused;
             SDL_GetMasksForPixelFormat(mode.format, &bpp, &unused, &unused, &unused, &unused);
             return new DisplayMode(SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, displayIndex);
+        }
+
+        public static TabletPenDeviceType ToTabletPenDeviceType(this SDL_PenDeviceType type)
+        {
+            switch (type)
+            {
+                case SDL_PenDeviceType.SDL_PEN_DEVICE_TYPE_DIRECT:
+                    return TabletPenDeviceType.Direct;
+
+                case SDL_PenDeviceType.SDL_PEN_DEVICE_TYPE_INDIRECT:
+                    return TabletPenDeviceType.Indirect;
+
+                default:
+                    return TabletPenDeviceType.Unknown;
+            }
         }
 
         public static string ReadableName(this SDL_LogCategory category)
