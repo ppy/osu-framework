@@ -28,17 +28,47 @@ namespace osu.Framework.IO.Stores
 
         public float? Baseline => Font.Baseline;
 
+        private readonly bool selfContained;
+
+        /// <summary>
+        /// Create a glyph store for a font using the specified OpenType named instance.
+        /// </summary>
+        /// <param name="font">The underlying font.</param>
+        /// <param name="namedInstance">The named instance to select.</param>
+        /// <param name="nameOverride">
+        /// The value of <see cref="FontName"/>. If null, <paramref name="namedInstance"/> will be used.
+        /// </param>
         public OutlineGlyphStore(OutlineFont font, string namedInstance, string? nameOverride = null)
             : this(font, new FontVariation { NamedInstance = namedInstance }, nameOverride)
         {
         }
 
+        /// <summary>
+        /// Create a glyph store for a font using the specified OpenType variation parameters.
+        /// </summary>
+        /// <param name="font">The underlying font.</param>
+        /// <param name="variation">The font variation parameters.</param>
+        /// <param name="nameOverride">
+        /// The value of <see cref="FontName"/>. If null, it will be computed using a naming scheme based on
+        /// <see href="https://download.macromedia.com/pub/developer/opentype/tech-notes/5902.AdobePSNameGeneration.html"/>.
+        /// </param>
         public OutlineGlyphStore(OutlineFont font, FontVariation? variation = null, string? nameOverride = null)
         {
             Font = font;
             Variation = variation;
 
             FontName = nameOverride ?? variation?.GenerateInstanceName(font.AssetName) ?? font.AssetName;
+        }
+
+        /// <summary>
+        /// Load a new font and create a glyph store for it.
+        /// </summary>
+        /// <param name="store">The font's resource store.</param>
+        /// <param name="assetName">The asset name of the font.</param>
+        public OutlineGlyphStore(IResourceStore<byte[]> store, string assetName)
+            : this(new OutlineFont(store, assetName, 0) { Resolution = 100 }, (FontVariation?)null, assetName)
+        {
+            selfContained = true;
         }
 
         ~OutlineGlyphStore()
@@ -54,6 +84,8 @@ namespace osu.Framework.IO.Stores
 
         protected virtual void Dispose(bool isDisposing)
         {
+            if (selfContained)
+                Font.Dispose();
         }
 
         public async Task LoadFontAsync()

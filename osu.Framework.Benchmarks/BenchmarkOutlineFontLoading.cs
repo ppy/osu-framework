@@ -30,7 +30,7 @@ namespace osu.Framework.Benchmarks
         [Benchmark(Baseline = true)]
         public void BenchmarkNoCache()
         {
-            using (var store = new SelfContainedOutlineGlyphStore(baseResources, font_name))
+            using (var store = new OutlineGlyphStore(baseResources, font_name))
                 runFor(store);
         }
 

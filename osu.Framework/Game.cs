@@ -278,7 +278,7 @@ namespace osu.Framework
         /// <param name="target">An optional target store to add the font to. If not specified, <see cref="Fonts"/> is used.</param>
         /// <returns>The newly added font family from which fonts can be instantiated.</returns>
         public void AddOutlineFont(ResourceStore<byte[]> store, string assetName, FontStore target = null)
-            => (target ?? Fonts).AddTextureSource(new SelfContainedOutlineGlyphStore(store, assetName));
+            => (target ?? Fonts).AddTextureSource(new OutlineGlyphStore(store, assetName));
 
         /// <summary>
         /// Add a variable font to be globally accessible to the game.
