@@ -213,10 +213,10 @@ namespace osu.Framework.Text
                 if (error != 0) throw new FreeTypeException(error);
 
                 // ReSharper disable CSharpWarnings::CS8603
-                // Our resolution refers to pixels per line instead of pixels per em.
+                // https://svn.code.sf.net/p/bmfont/code/trunk/source/fontgen.cpp
                 double lineHeight = (double)native->height / native->units_per_EM;
-                uint emResolution = (uint)Math.Round(Resolution / lineHeight);
-                Baseline = emResolution * ((float)native->bbox.yMax.Value / native->height);
+                uint emResolution = (uint)Math.Ceiling(Resolution / lineHeight);
+                Baseline = emResolution * ((float)native->ascender / native->units_per_EM);
 
                 // set pixel size
                 error = FT_Set_Pixel_Sizes(native, 0, emResolution);
