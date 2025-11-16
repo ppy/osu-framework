@@ -716,7 +716,7 @@ namespace osu.Framework.Text
 
                 for (int y = 0; y < ftBitmap->rows; ++y)
                 {
-                    var srcRow = new ReadOnlySpan<byte>(ftBitmap->buffer + y * ftBitmap->pitch, ftBitmap->pitch);
+                    var srcRow = new ReadOnlySpan<byte>(ftBitmap->buffer + (y * ftBitmap->pitch), ftBitmap->pitch);
                     var dstRow = image.DangerousGetPixelRowMemory(y).Span;
 
                     for (int x = 0; x < ftBitmap->width; ++x)
