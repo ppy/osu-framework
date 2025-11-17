@@ -34,6 +34,7 @@ namespace osu.Framework.Text
         private readonly Vector2 startOffset;
         private readonly Vector2 spacing;
         private readonly float maxWidth;
+        private readonly CombiningCharacter combiningCharConfig;
 
         private Vector2 currentPos;
         private float currentLineHeight;
@@ -70,8 +71,10 @@ namespace osu.Framework.Text
         /// <param name="neverFixedWidthCharacters">The characters for which fixed width should never be applied.</param>
         /// <param name="fallbackCharacter">The character to use if a glyph lookup fails.</param>
         /// <param name="fixedWidthReferenceCharacter">The character to use to calculate the fixed width width. Defaults to 'm'.</param>
+        /// <param name="combiningCharConfig">The configuration for handling combining characters. Defaults to None (no combining character handling).</param>
         public TextBuilder(ITexturedGlyphLookupStore store, FontUsage font, float maxWidth = float.MaxValue, bool useFontSizeAsHeight = true, Vector2 startOffset = default, Vector2 spacing = default,
-                           List<TextBuilderGlyph>? characterList = null, char[]? neverFixedWidthCharacters = null, char fallbackCharacter = '?', char fixedWidthReferenceCharacter = 'm')
+                           List<TextBuilderGlyph>? characterList = null, char[]? neverFixedWidthCharacters = null, char fallbackCharacter = '?', char fixedWidthReferenceCharacter = 'm',
+                           CombiningCharacter? combiningCharConfig = null)
         {
             this.store = store;
             this.font = font;
@@ -84,6 +87,7 @@ namespace osu.Framework.Text
             this.neverFixedWidthCharacters = neverFixedWidthCharacters ?? Array.Empty<char>();
             this.fallbackCharacter = fallbackCharacter;
             this.fixedWidthReferenceCharacter = fixedWidthReferenceCharacter;
+            this.combiningCharConfig = combiningCharConfig ?? CombiningCharacter.None;
 
             currentPos = startOffset;
         }
@@ -142,6 +146,11 @@ namespace osu.Framework.Text
 
             float kerning = 0;
 
+            // Check combining character configuration
+            bool isUpperCombining = combiningCharConfig.IsUpperCombining(character);
+            bool isLowerCombining = combiningCharConfig.IsLowerCombining(character);
+            bool isCombining = isUpperCombining || isLowerCombining;
+
             // Spacing + kerning are only applied if the current line is not empty
             if (!currentNewLine)
             {
@@ -162,30 +171,64 @@ namespace osu.Framework.Text
             // The kerning is only added after it is guaranteed that the character will be added, to not leave the current position in a bad state
             currentPos.X += kerning;
 
-            glyph.DrawRectangle = new RectangleF(new Vector2(currentPos.X + glyph.XOffset, currentPos.Y + glyph.YOffset), new Vector2(glyph.Width, glyph.Height));
+            // Calculate vertical offset for stacked combining marks
+            float yOffsetAdjustment = 0;
+
+            if (isUpperCombining && Characters.Count > 0)
+            {
+                // Count how many upper combining marks are already stacked in sequence
+                int stackCount = 0;
+                for (int i = Characters.Count - 1; i >= 0; i--)
+                {
+                    char prevChar = Characters[i].Character;
+
+                    if (combiningCharConfig.IsUpperCombining(prevChar))
+                        stackCount++;
+                    else
+                        break;
+                }
+
+                // If there are already upper marks, offset this one upward to prevent overlap
+                if (stackCount > 0)
+                {
+                    yOffsetAdjustment = -stackCount * (font.Size * combiningCharConfig.StackingOffset);
+                }
+            }
+
+            glyph.DrawRectangle = new RectangleF(new Vector2(currentPos.X + glyph.XOffset, currentPos.Y + glyph.YOffset + yOffsetAdjustment), new Vector2(glyph.Width, glyph.Height));
             glyph.LinePosition = currentPos.Y;
             glyph.OnNewLine = currentNewLine;
 
             if (!glyph.IsWhiteSpace())
             {
-                if (glyph.Baseline > currentLineBase)
+                // Don't adjust baseline for combining characters as they have custom positioning
+                if (!isCombining)
                 {
-                    for (int i = Characters.Count - 1; i >= 0; --i)
+                    if (glyph.Baseline > currentLineBase)
                     {
-                        var previous = Characters[i];
-                        previous.DrawRectangle = previous.DrawRectangle.Offset(0, glyph.Baseline - currentLineBase.Value);
-                        Characters[i] = previous;
+                        for (int i = Characters.Count - 1; i >= 0; --i)
+                        {
+                            var previous = Characters[i];
+                            char prevChar = previous.Character;
 
-                        currentLineHeight = Math.Max(currentLineHeight, previous.DrawRectangle.Bottom - previous.LinePosition);
+                            // Skip baseline adjustment for combining characters
+                            if (!combiningCharConfig.IsCombining(prevChar))
+                            {
+                                previous.DrawRectangle = previous.DrawRectangle.Offset(0, glyph.Baseline - currentLineBase.Value);
+                                Characters[i] = previous;
+                            }
 
-                        if (previous.OnNewLine)
-                            break;
+                            currentLineHeight = Math.Max(currentLineHeight, previous.DrawRectangle.Bottom - previous.LinePosition);
+
+                            if (previous.OnNewLine)
+                                break;
+                        }
                     }
-                }
-                else if (glyph.Baseline < currentLineBase)
-                {
-                    glyph.DrawRectangle = glyph.DrawRectangle.Offset(0, currentLineBase.Value - glyph.Baseline);
-                    currentLineHeight = Math.Max(currentLineHeight, glyph.DrawRectangle.Bottom - glyph.LinePosition);
+                    else if (glyph.Baseline < currentLineBase)
+                    {
+                        glyph.DrawRectangle = glyph.DrawRectangle.Offset(0, currentLineBase.Value - glyph.Baseline);
+                        currentLineHeight = Math.Max(currentLineHeight, glyph.DrawRectangle.Bottom - glyph.LinePosition);
+                    }
                 }
 
                 currentLineHeight = Math.Max(currentLineHeight, useFontSizeAsHeight ? font.Size : glyph.Height);
