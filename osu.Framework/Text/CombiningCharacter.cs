@@ -11,6 +11,24 @@ namespace osu.Framework.Text
     public class CombiningCharacter
     {
         /// <summary>
+        /// Gets the default configuration for Thai language combining characters.
+        /// </summary>
+        public static CombiningCharacter Thai { get; } = new CombiningCharacter
+        {
+            UpperCombiningRanges = new List<CharacterRange>
+            {
+                new CharacterRange('\u0E31', '\u0E31'),  // ไม้หันอากาศ ( ◌ั )
+                new CharacterRange('\u0E34', '\u0E37'),  // สระอิ อี อึ อื ( ◌ิ ◌ี ◌ึ ◌ื )
+                new CharacterRange('\u0E47', '\u0E4E'),  // ไม้ไต่คู้ วรรณยุกต์ และเครื่องหมายเหนือตัวอักษร ( ◌็ ◌่ ◌้ ◌๊ ◌๋ )
+            },
+            LowerCombiningRanges = new List<CharacterRange>
+            {
+                new CharacterRange('\u0E38', '\u0E3A'),  // สระอุ อู พินทุ ( ◌ุ ◌ู ◌ฺ )
+            },
+            StackingOffset = 0.20f
+        };
+
+        /// <summary>
         /// Gets an empty configuration with no combining character rules.
         /// </summary>
         public static CombiningCharacter None { get; } = new CombiningCharacter();
