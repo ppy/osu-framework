@@ -21,6 +21,7 @@ namespace osu.Framework.Text
         private readonly string? ellipsisString;
         private readonly bool useFontSizeAsHeight;
         private readonly Vector2 spacing;
+        private readonly CombiningCharacter combiningCharConfig;
 
         private bool addingEllipsis; // Only used temporarily during the addition of the ellipsis.
 
@@ -38,9 +39,11 @@ namespace osu.Framework.Text
         /// <param name="neverFixedWidthCharacters">The characters for which fixed width should never be applied.</param>
         /// <param name="fallbackCharacter">The character to use if a glyph lookup fails.</param>
         /// <param name="fixedWidthReferenceCharacter">The character to use to calculate the fixed width width. Defaults to 'm'.</param>
+        /// <param name="combiningCharConfig">The configuration for handling combining characters. Defaults to None (no combining character handling).</param>
         public TruncatingTextBuilder(ITexturedGlyphLookupStore store, FontUsage font, float maxWidth, string? ellipsisString = null, bool useFontSizeAsHeight = true, Vector2 startOffset = default,
-                                     Vector2 spacing = default, List<TextBuilderGlyph>? characterList = null, char[]? neverFixedWidthCharacters = null, char fallbackCharacter = '?', char fixedWidthReferenceCharacter = 'm')
-            : base(store, font, maxWidth, useFontSizeAsHeight, startOffset, spacing, characterList, neverFixedWidthCharacters, fallbackCharacter, fixedWidthReferenceCharacter)
+                                     Vector2 spacing = default, List<TextBuilderGlyph>? characterList = null, char[]? neverFixedWidthCharacters = null, char fallbackCharacter = '?', char fixedWidthReferenceCharacter = 'm',
+                                     CombiningCharacter? combiningCharConfig = null)
+            : base(store, font, maxWidth, useFontSizeAsHeight, startOffset, spacing, characterList, neverFixedWidthCharacters, fallbackCharacter, fixedWidthReferenceCharacter, combiningCharConfig)
         {
             this.store = store;
             this.font = font;
@@ -49,6 +52,7 @@ namespace osu.Framework.Text
             this.spacing = spacing;
             this.neverFixedWidthCharacters = neverFixedWidthCharacters;
             this.fallbackCharacter = fallbackCharacter;
+            this.combiningCharConfig = combiningCharConfig ?? CombiningCharacter.None;
         }
 
         public override void Reset()
@@ -78,7 +82,7 @@ namespace osu.Framework.Text
                 int startIndex = Characters.Count;
 
                 // Compute the ellipsis to find out the size required
-                var builder = new TextBuilder(store, font, float.MaxValue, useFontSizeAsHeight, Vector2.Zero, spacing, Characters, neverFixedWidthCharacters, fallbackCharacter);
+                var builder = new TextBuilder(store, font, float.MaxValue, useFontSizeAsHeight, Vector2.Zero, spacing, Characters, neverFixedWidthCharacters, fallbackCharacter, 'm', combiningCharConfig);
                 builder.AddText(ellipsisString);
 
                 float ellipsisWidth = builder.Bounds.X;

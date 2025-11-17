@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
@@ -81,6 +82,12 @@ namespace osu.Framework.Graphics.Sprites
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
+            localisation.CurrentParameters.BindValueChanged(parameters =>
+            {
+                // Update combining character based on locale
+                CombiningCharacter = getCombiningCharacterForLocale(parameters.NewValue.Store?.EffectiveCulture);
+            }, true);
 
             localisedText.BindValueChanged(str =>
             {
@@ -545,6 +552,28 @@ namespace osu.Framework.Graphics.Sprites
         /// The character to fallback to use if a character glyph lookup failed.
         /// </summary>
         protected virtual char FallbackCharacter => '?';
+        private CombiningCharacter combiningCharacter = CombiningCharacter.None;
+
+        /// <summary>
+        /// Gets or sets the configuration for handling combining characters in text rendering.
+        /// Defaults to <see cref="CombiningCharacter.None"/>.
+        /// </summary>
+        /// <remarks>
+        /// Use <see cref="CombiningCharacter.Thai"/> for Thai language text rendering.
+        /// This is automatically set based on the current locale when available.
+        /// </remarks>
+        public CombiningCharacter CombiningCharacter
+        {
+            get => combiningCharacter;
+            set
+            {
+                if (combiningCharacter == value)
+                    return;
+
+                combiningCharacter = value;
+                invalidate(true, true);
+            }
+        }
 
         private readonly LayoutValue<TextBuilder> textBuilderCache = new LayoutValue<TextBuilder>(Invalidation.DrawSize, InvalidationSource.Parent);
 
@@ -569,17 +598,34 @@ namespace osu.Framework.Graphics.Sprites
             if (AllowMultiline)
             {
                 return new MultilineTextBuilder(store, Font, builderMaxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
-                    excludeCharacters, FallbackCharacter, FixedWidthReferenceCharacter);
+                    excludeCharacters, FallbackCharacter, FixedWidthReferenceCharacter, CombiningCharacter);
             }
 
             if (Truncate)
             {
                 return new TruncatingTextBuilder(store, Font, builderMaxWidth, ellipsisString, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
-                    excludeCharacters, FallbackCharacter, FixedWidthReferenceCharacter);
+                    excludeCharacters, FallbackCharacter, FixedWidthReferenceCharacter, CombiningCharacter);
             }
 
             return new TextBuilder(store, Font, builderMaxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
-                excludeCharacters, FallbackCharacter, FixedWidthReferenceCharacter);
+                excludeCharacters, FallbackCharacter, FixedWidthReferenceCharacter, CombiningCharacter);
+        }
+
+        /// <summary>
+        /// Gets the appropriate combining character configuration based on the locale.
+        /// </summary>
+        /// <param name="culture">The culture info to check.</param>
+        /// <returns>The appropriate combining character configuration.</returns>
+        private static CombiningCharacter getCombiningCharacterForLocale(CultureInfo culture)
+        {
+            if (culture == null)
+                return CombiningCharacter.None;
+
+            // Check if the culture is Thai (th or th-TH)
+            if (culture.TwoLetterISOLanguageName.Equals("th", StringComparison.OrdinalIgnoreCase))
+                return CombiningCharacter.Thai;
+
+            return CombiningCharacter.None;
         }
 
         private TextBuilder getTextBuilder()
