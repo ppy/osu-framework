@@ -37,5 +37,11 @@ namespace osu.Framework.Audio.Sample
         /// Whether playback should repeat.
         /// </summary>
         bool Looping { get; set; }
+
+        /// <summary>
+        /// Controls whether this channel is resumable after playback ends or the channel is <see cref="Stop">stopped</see>.
+        /// Disposal is left up to the usage when this value is <c>true</c>.
+        /// </summary>
+        bool ManualFree { get; set; }
     }
 }

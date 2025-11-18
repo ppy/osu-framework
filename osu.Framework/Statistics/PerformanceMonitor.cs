@@ -52,6 +52,7 @@ namespace osu.Framework.Statistics
         }
 
         private double consumptionTime;
+        private double consumptionGCTotalPauseDuration;
 
         private readonly IBindable<bool> isActive;
 
@@ -106,14 +107,17 @@ namespace osu.Framework.Statistics
             // Consume time, regardless of whether we are using it at this point.
             // If not, an `EndCollecting` call may end up reporting more time than actually passed between
             // the Begin-End pair.
-            double time = consumeStopwatchElapsedTime();
+            (double workMs, double pauseMs) = consumeStopwatchElapsedTime();
 
             if (currentCollectionTypeStack.Count > 0)
             {
                 PerformanceCollectionType t = currentCollectionTypeStack.Peek();
 
                 currentFrame.CollectedTimes.TryAdd(t, 0);
-                currentFrame.CollectedTimes[t] += time;
+                currentFrame.CollectedTimes[t] += workMs;
+
+                currentFrame.CollectedTimes.TryAdd(PerformanceCollectionType.GC, 0);
+                currentFrame.CollectedTimes[PerformanceCollectionType.GC] += pauseMs;
             }
 
             currentCollectionTypeStack.Push(type);
@@ -129,8 +133,13 @@ namespace osu.Framework.Statistics
         {
             currentCollectionTypeStack.Pop();
 
+            (double workMs, double pauseMs) = consumeStopwatchElapsedTime();
+
             currentFrame.CollectedTimes.TryAdd(type, 0);
-            currentFrame.CollectedTimes[type] += consumeStopwatchElapsedTime();
+            currentFrame.CollectedTimes[type] += workMs;
+
+            currentFrame.CollectedTimes.TryAdd(PerformanceCollectionType.GC, 0);
+            currentFrame.CollectedTimes[PerformanceCollectionType.GC] += pauseMs;
         }
 
         private readonly int[] lastAmountGarbageCollects = new int[3];
@@ -208,15 +217,21 @@ namespace osu.Framework.Statistics
 
         private double averageFrameTime;
 
-        private double consumeStopwatchElapsedTime()
+        private (double workMs, double pauseMs) consumeStopwatchElapsedTime()
         {
-            double last = consumptionTime;
-
+            double lastConsumptionTime = consumptionTime;
             consumptionTime = ourClock.CurrentTime;
+
             if (traceCollector != null)
                 traceCollector.LastConsumptionTime = consumptionTime;
 
-            return consumptionTime - last;
+            double lastGCTotalPauseDuration = consumptionGCTotalPauseDuration;
+            consumptionGCTotalPauseDuration = GC.GetTotalPauseDuration().TotalMilliseconds;
+
+            double pauseMs = consumptionGCTotalPauseDuration - lastGCTotalPauseDuration;
+            double workMs = consumptionTime - lastConsumptionTime - pauseMs;
+
+            return (workMs, pauseMs);
         }
 
         internal double FramesPerSecond => Clock.FramesPerSecond;

@@ -70,7 +70,7 @@ namespace osu.Framework.Audio
 
         private bool invalidationPending;
 
-        internal void InvalidateState(ValueChangedEvent<double>? valueChangedEvent = null)
+        internal void InvalidateState(ValueChangedEvent<double> valueChangedEvent = default)
         {
             if (CanPerformInline)
                 OnStateChanged();

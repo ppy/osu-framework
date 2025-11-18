@@ -11,6 +11,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ImageExtensions;
+using osu.Framework.Graphics;
 using osu.Framework.Logging;
 using osu.Framework.Threading;
 using SDL;
@@ -39,6 +40,10 @@ namespace osu.Framework.Platform.SDL3
         public bool Exists { get; private set; }
 
         public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
+
+        protected readonly Bindable<MarginPadding> BorderSize = new Bindable<MarginPadding>();
+
+        IBindable<MarginPadding> IWindow.BorderSize => BorderSize;
 
         public virtual Point PointToClient(Point point) => point;
 
@@ -166,7 +171,8 @@ namespace osu.Framework.Platform.SDL3
             int version = SDL_GetVersion();
             Logger.Log($@"SDL3 Initialized
                           SDL3 Version: {SDL_VERSIONNUM_MAJOR(version)}.{SDL_VERSIONNUM_MINOR(version)}.{SDL_VERSIONNUM_MICRO(version)}
-                          SDL3 Revision: {SDL_GetRevision()}");
+                          SDL3 Revision: {SDL_GetRevision()}
+                          SDL3 Video driver: {SDL_GetCurrentVideoDriver()}");
 
             SDL_SetLogPriority(SDL_LogCategory.SDL_LOG_CATEGORY_ERROR, SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG);
             SDL_SetLogOutputFunction(&logOutput, IntPtr.Zero);
@@ -210,6 +216,8 @@ namespace osu.Framework.Platform.SDL3
             SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_CENTER, "0"u8);
             SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0"u8); // disable touch events generating synthetic mouse events on desktop platforms
             SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0"u8); // disable mouse events generating synthetic touch events on mobile platforms
+            SDL_SetHint(SDL_HINT_PEN_TOUCH_EVENTS, "0"u8);
+            SDL_SetHint(SDL_HINT_PEN_MOUSE_EVENTS, "0"u8);
             SDL_SetHint(SDL_HINT_IME_IMPLEMENTED_UI, "composition"u8);
 
             SDLWindowHandle = SDL_CreateWindow(title, Size.Width, Size.Height, flags);
@@ -342,7 +350,10 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_EventType.SDL_EVENT_WINDOW_RESIZED:
                     // polling via SDL_PollEvent blocks on resizes (https://stackoverflow.com/a/50858339)
                     if (!updatingWindowStateAndSize)
-                        fetchWindowSize(storeToConfig: false);
+                    {
+                        bool isUserResizing = SDL_GetGlobalMouseState(null, null).HasFlagFast(SDL_MouseButtonFlags.SDL_BUTTON_LMASK);
+                        fetchWindowSize(storeToConfig: isUserResizing);
+                    }
 
                     break;
             }
@@ -580,7 +591,8 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_EventType.SDL_EVENT_FINGER_DOWN:
                 case SDL_EventType.SDL_EVENT_FINGER_UP:
                 case SDL_EventType.SDL_EVENT_FINGER_MOTION:
-                    HandleTouchFingerEvent(e.tfinger);
+                case SDL_EventType.SDL_EVENT_FINGER_CANCELED:
+                    handleTouchFingerEvent(e.tfinger);
                     break;
 
                 case SDL_EventType.SDL_EVENT_DROP_FILE:

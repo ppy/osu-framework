@@ -41,17 +41,19 @@ namespace osu.Framework.Platform
                 ? new SDL3Clipboard(PngFormat.Instance) // PNG works well on linux
                 : new SDL2Clipboard();
 
-        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
-            new InputHandler[]
-            {
-                new KeyboardHandler(),
-                // tablet should get priority over mouse to correctly handle cases where tablet drivers report as mice as well.
-                new OpenTabletDriverHandler(),
-                new PenHandler(),
-                new MouseHandler(),
-                new TouchHandler(),
-                new JoystickHandler(),
-                new MidiHandler(),
-            };
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
+        {
+            yield return new KeyboardHandler();
+            // tablet should get priority over mouse to correctly handle cases where tablet drivers report as mice as well.
+            yield return new OpenTabletDriverHandler();
+
+            if (FrameworkEnvironment.UseSDL3)
+                yield return new PenHandler();
+
+            yield return new MouseHandler();
+            yield return new TouchHandler();
+            yield return new JoystickHandler();
+            yield return new MidiHandler();
+        }
     }
 }

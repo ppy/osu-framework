@@ -24,6 +24,12 @@ namespace osu.Framework.Graphics.Primitives
             P2 = p2;
         }
 
+        public static Triangle operator *(Triangle t, Matrix3 m) =>
+            new Triangle(
+                Vector2Extensions.Transform(t.P0, m),
+                Vector2Extensions.Transform(t.P1, m),
+                Vector2Extensions.Transform(t.P2, m));
+
         public ReadOnlySpan<Vector2> GetAxisVertices() => GetVertices();
 
         public ReadOnlySpan<Vector2> GetVertices() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in P0), 3);

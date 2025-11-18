@@ -43,10 +43,7 @@ namespace osu.Framework.Input
                 useParentInput = value;
 
                 if (UseParentInput)
-                {
-                    syncReleasedInputs();
-                    syncJoystickAxes();
-                }
+                    syncWithParent();
             }
         }
 
@@ -56,6 +53,7 @@ namespace osu.Framework.Input
         {
             base.LoadComplete();
             parentInputManager = GetContainingInputManager();
+            syncWithParent();
         }
 
         public override bool HandleHoverEvents => parentInputManager != null && UseParentInput ? parentInputManager.HandleHoverEvents : base.HandleHoverEvents;
@@ -208,6 +206,8 @@ namespace osu.Framework.Input
             base.Update();
 
             // There are scenarios wherein we cannot receive the release events of pressed inputs. For simplicity, sync every frame.
+            // This intentionally omits mouse position syncing because they don't apply to the above logic of "being unable to receive" such events
+            // (and also because there are game-side usages that stop working correctly if that is done, e.g. osu! touch input handling)
             if (UseParentInput)
             {
                 syncReleasedInputs();
@@ -216,8 +216,17 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Updates state of any buttons that have been released by parent while <see cref="UseParentInput"/> was disabled.
+        /// Synchronises <see cref="InputManager.CurrentState"/> with the parent input manager
+        /// to catch up with any changes that occurred since <see cref="UseParentInput"/> was disabled,
+        /// or to set our initial state such that it matches the parent input manager.
         /// </summary>
+        private void syncWithParent()
+        {
+            syncReleasedInputs();
+            syncJoystickAxes();
+            syncMousePosition();
+        }
+
         private void syncReleasedInputs()
         {
             if (parentInputManager == null)
@@ -248,9 +257,6 @@ namespace osu.Framework.Input
                 new TabletAuxiliaryButtonInput(button, false).Apply(CurrentState, this);
         }
 
-        /// <summary>
-        /// Updates state of joystick axes that have changed values while <see cref="UseParentInput"/> was disabled.
-        /// </summary>
         private void syncJoystickAxes()
         {
             if (parentInputManager == null)
@@ -268,6 +274,17 @@ namespace osu.Framework.Input
                     break;
                 }
             }
+        }
+
+        private void syncMousePosition()
+        {
+            if (parentInputManager == null)
+                return;
+
+            var parentMousePosition = parentInputManager.CurrentState.Mouse.Position;
+
+            if (parentMousePosition != CurrentState.Mouse.Position)
+                new MousePositionAbsoluteInput { Position = parentMousePosition }.Apply(CurrentState, this);
         }
     }
 }

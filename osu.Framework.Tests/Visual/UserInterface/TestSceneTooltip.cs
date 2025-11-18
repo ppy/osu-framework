@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input;
 using osu.Framework.Localisation;
 using osu.Framework.Testing;
 using osuTK;
@@ -31,6 +32,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private TooltipSpriteText emptyTooltipText;
         private TooltipSpriteText nullTooltipText;
         private TooltipTextBox tooltipTextBox;
+        private TooltipBox topLeftBox;
 
         [SetUpSteps]
         public void SetUpSteps()
@@ -122,12 +124,60 @@ namespace osu.Framework.Tests.Visual.UserInterface
             assertTooltipText(() => "updated!");
         }
 
+        [Test]
+        public void TestTooltipViaTouch()
+        {
+            AddStep("cursor-less", () => generateTest(true));
+
+            hoverTooltipProviderViaTouch(() => tooltipTextBox);
+            assertTooltipText(() => tooltipTextBox.Text);
+
+            AddStep("update text", () => tooltipTextBox.Text = "updated!");
+
+            assertTooltipText(() => "updated!");
+
+            AddStep("end touch", () => InputManager.EndTouch(new Touch(TouchSource.Touch1, Vector2.Zero)));
+            AddAssert("tooltip hidden", () => tooltipContainer.CurrentTooltip?.IsPresent != true);
+
+            AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, Vector2.Zero)));
+
+            int x = 0, y = 0;
+
+            AddSliderStep("touch x", -200, 200, 0, v =>
+            {
+                x = v;
+
+                if (topLeftBox != null)
+                    InputManager.MoveTouchTo(new Touch(TouchSource.Touch1, topLeftBox.ScreenSpaceDrawQuad.Centre + new Vector2(x, y)));
+            });
+            AddSliderStep("touch y", -200, 200, 0, v =>
+            {
+                y = v;
+
+                if (topLeftBox != null)
+                    InputManager.MoveTouchTo(new Touch(TouchSource.Touch1, topLeftBox.ScreenSpaceDrawQuad.Centre + new Vector2(x, y)));
+            });
+        }
+
         private void hoverTooltipProvider(Func<Drawable> getProvider, bool waitForDisplay = true)
         {
             AddStep("hover away from tooltips", () => InputManager.MoveMouseTo(Vector2.Zero));
             AddAssert("tooltip hidden", () => tooltipContainer.CurrentTooltip?.IsPresent != true);
 
             AddStep("hover tooltip", () => InputManager.MoveMouseTo(getProvider()));
+
+            if (waitForDisplay)
+                AddUntilStep("wait for tooltip", () => tooltipContainer.CurrentTooltip?.IsPresent == true);
+            else
+                AddAssert("tooltip instantly displayed", () => tooltipContainer.CurrentTooltip?.IsPresent == true);
+        }
+
+        private void hoverTooltipProviderViaTouch(Func<Drawable> getProvider, bool waitForDisplay = true, Vector2? offset = null)
+        {
+            AddStep("hover away from tooltips", () => InputManager.EndTouch(new Touch(TouchSource.Touch1, Vector2.Zero)));
+            AddAssert("tooltip hidden", () => tooltipContainer.CurrentTooltip?.IsPresent != true);
+
+            AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, getProvider().ScreenSpaceDrawQuad.Centre + (offset ?? Vector2.Zero))));
 
             if (waitForDisplay)
                 AddUntilStep("wait for tooltip", () => tooltipContainer.CurrentTooltip?.IsPresent == true);
@@ -200,6 +250,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         RelativeSizeAxes = Axes.Both,
                         Direction = FillDirection.Vertical,
                         Spacing = new Vector2(0, 10),
+                        Margin = new MarginPadding { Top = 150f },
                         Children = new Drawable[]
                         {
                             tooltipText = new TooltipSpriteText("this text has a tooltip!"),
@@ -256,6 +307,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             tooltipContainer.Add(makeBox(Anchor.BottomLeft));
+            tooltipContainer.Add(topLeftBox = makeBox(Anchor.TopLeft));
             tooltipContainer.Add(makeBox(Anchor.TopRight));
             tooltipContainer.Add(makeBox(Anchor.BottomRight));
         }

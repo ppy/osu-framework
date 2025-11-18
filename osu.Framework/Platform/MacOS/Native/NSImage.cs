@@ -28,21 +28,13 @@ namespace osu.Framework.Platform.MacOS.Native
         internal NSData TiffRepresentation => new NSData(Interop.SendIntPtr(Handle, sel_tiff_representation));
 
         [MustDisposeResource]
-        internal static NSImage LoadFromData(NSData data)
-        {
-            var image = alloc();
-            Interop.SendIntPtr(image.Handle, sel_init_with_data, data);
-            return image;
-        }
-
-        internal void Release() => Interop.SendVoid(Handle, sel_release);
-
-        private static NSImage alloc() => new NSImage(Interop.SendIntPtr(class_pointer, sel_alloc));
+        internal static NSImage InitWithData(NSData data)
+            => new NSImage(Interop.SendIntPtr(Interop.SendIntPtr(class_pointer, sel_alloc), sel_init_with_data, data));
 
         public void Dispose()
         {
             if (Handle != IntPtr.Zero)
-                Release();
+                Interop.SendVoid(Handle, sel_release);
         }
     }
 }

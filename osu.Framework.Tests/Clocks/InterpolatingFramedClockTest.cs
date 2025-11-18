@@ -13,14 +13,14 @@ namespace osu.Framework.Tests.Clocks
     public class InterpolatingFramedClockTest
     {
         private TestClock source = null!;
-        private TestInterpolatingFramedClock interpolating = null!;
+        private InterpolatingFramedClock interpolating = null!;
 
         [SetUp]
         public void SetUp()
         {
             source = new TestClock();
 
-            interpolating = new TestInterpolatingFramedClock();
+            interpolating = new InterpolatingFramedClock();
             interpolating.ChangeSource(source);
         }
 
@@ -147,7 +147,7 @@ namespace osu.Framework.Tests.Clocks
                     interpolatedCount++;
 
                 Assert.GreaterOrEqual(interpolating.CurrentTime, lastValue, "Interpolating should not jump against rate.");
-                Assert.LessOrEqual(Math.Abs(interpolating.CurrentTime - source.CurrentTime), interpolating.AllowableErrorMilliseconds, "Interpolating should be within allowance.");
+                Assert.LessOrEqual(Math.Abs(interpolating.CurrentTime - source.CurrentTime), interpolating.AllowableErrorMilliseconds * source.Rate, "Interpolating should be within allowance.");
 
                 Thread.Sleep(sleep_time);
                 lastValue = interpolating.CurrentTime;
@@ -179,7 +179,7 @@ namespace osu.Framework.Tests.Clocks
 
                 if (skipSourceForwards) // seek forward once at a random point.
                 {
-                    source.CurrentTime += interpolating.AllowableErrorMilliseconds * 10;
+                    source.CurrentTime += interpolating.AllowableErrorMilliseconds * 10 * source.Rate;
                     interpolating.ProcessFrame();
                     Assert.That(interpolating.IsInterpolating, Is.False);
                     Assert.That(interpolating.CurrentTime, Is.EqualTo(source.CurrentTime));
@@ -194,7 +194,7 @@ namespace osu.Framework.Tests.Clocks
                     interpolatedCount++;
 
                 Assert.GreaterOrEqual(interpolating.CurrentTime, lastValue, "Interpolating should not jump against rate.");
-                Assert.LessOrEqual(Math.Abs(interpolating.CurrentTime - source.CurrentTime), interpolating.AllowableErrorMilliseconds, "Interpolating should be within allowance.");
+                Assert.LessOrEqual(Math.Abs(interpolating.CurrentTime - source.CurrentTime), interpolating.AllowableErrorMilliseconds * source.Rate, "Interpolating should be within allowance.");
 
                 Thread.Sleep(sleep_time);
                 lastValue = interpolating.CurrentTime;
@@ -225,7 +225,7 @@ namespace osu.Framework.Tests.Clocks
         public void TestInterpolationAfterSourceStoppedThenSeeked()
         {
             // Just to make sure this works even when still in interpolation allowance.
-            interpolating.CustomErrorMilliseconds = 100000;
+            interpolating.AllowableErrorMilliseconds = 100000;
 
             source.Start();
 
@@ -248,6 +248,28 @@ namespace osu.Framework.Tests.Clocks
             interpolating.ProcessFrame();
             Assert.That(interpolating.CurrentTime, Is.EqualTo(-10000).Within(100));
             Assert.That(interpolating.ElapsedFrameTime, Is.EqualTo(0).Within(100));
+        }
+
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(10)]
+        [TestCase(50)]
+        public void TestNoInterpolationDrift(int updateRate)
+        {
+            var stopwatch = new StopwatchClock();
+
+            interpolating.ChangeSource(stopwatch);
+
+            source.Start();
+            stopwatch.Start();
+
+            while (interpolating.CurrentTime <= 1000)
+            {
+                interpolating.ProcessFrame();
+                Assert.That(interpolating.CurrentTime, Is.EqualTo(stopwatch.CurrentTime).Within(1));
+
+                Thread.Sleep(updateRate);
+            }
         }
 
         [Test]
@@ -276,13 +298,6 @@ namespace osu.Framework.Tests.Clocks
 
             Assert.IsFalse(interpolating.IsRunning);
             Assert.That(source.CurrentTime, Is.EqualTo(interpolating.CurrentTime).Within(interpolating.AllowableErrorMilliseconds));
-        }
-
-        public class TestInterpolatingFramedClock : InterpolatingFramedClock
-        {
-            public double? CustomErrorMilliseconds { get; set; }
-
-            public override double AllowableErrorMilliseconds => CustomErrorMilliseconds ?? base.AllowableErrorMilliseconds;
         }
     }
 }

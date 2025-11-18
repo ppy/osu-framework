@@ -380,6 +380,42 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestPreviousWordDeletionWithSymbols()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(200, 40),
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("insert text", () => textBox.InsertString("author=test123 $$$aaa 5.5..."));
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("some text remains", () => textBox.Text == "author=test123 $$$aaa 5.");
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("some text remains", () => textBox.Text == "author=test123 $$$aaa ");
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("some text remains", () => textBox.Text == "author=test123 $$$");
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("some text remains", () => textBox.Text == "author=test123 ");
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("some text remains", () => textBox.Text == "author=");
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+        }
+
+        [Test]
         public void TestNextWordDeletion()
         {
             InsertableTextBox textBox = null;
@@ -435,6 +471,43 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("two words remain", () => textBox.Text == " b c");
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
             AddAssert("one word remains", () => textBox.Text == " c");
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+        }
+
+        [Test]
+        public void TestNextWordDeletionWithSymbols()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(200, 40)
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("insert text", () => textBox.InsertString("author=test123 $$$aaa 5.5..."));
+            AddStep("move caret to start", () => InputManager.Keys(PlatformAction.MoveBackwardLine));
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("some text remains", () => textBox.Text == "=test123 $$$aaa 5.5...");
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("some text remains", () => textBox.Text == " $$$aaa 5.5...");
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("some text remains", () => textBox.Text == " 5.5...");
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("some text remains", () => textBox.Text == ".5...");
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("some text remains", () => textBox.Text == "...");
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
             AddAssert("text is empty", () => textBox.Text.Length == 0);
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
@@ -842,6 +915,50 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("text overwritten", () => textBox.Text == "a");
             AddStep("start drag", () => InputManager.MoveMouseTo(textBox, new Vector2(-50, 0)));
             AddStep("end drag", () => InputManager.ReleaseButton(MouseButton.Left));
+        }
+
+        [Test]
+        public void TestTripleClickSelectAll()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(300, 40),
+                    Text = "multiple words so a double click cant select it all",
+                });
+            });
+
+            AddStep("move to textbox", () => InputManager.MoveMouseTo(textBox));
+
+            AddStep("triple click", () =>
+            {
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("all text selected", () => textBox.SelectedText, () => Is.EqualTo(textBox.Text));
+
+            AddStep("double click", () =>
+            {
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddWaitStep("wait to fail triple click", 2);
+            AddStep("third click", () => InputManager.Click(MouseButton.Left));
+            AddAssert("no text selected", () => textBox.SelectedText, () => Is.EqualTo(string.Empty));
+
+            AddStep("triple click drag", () =>
+            {
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+                InputManager.PressButton(MouseButton.Left);
+            });
+            AddStep("start drag", () => InputManager.MoveMouseTo(textBox.ScreenSpaceDrawQuad.TopLeft - new Vector2(200f, 0f)));
+            AddStep("end drag", () => InputManager.ReleaseButton(MouseButton.Left));
+            AddAssert("all text selected", () => textBox.SelectedText, () => Is.EqualTo(textBox.Text));
         }
 
         [Test]

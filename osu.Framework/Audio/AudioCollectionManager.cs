@@ -28,6 +28,20 @@ namespace osu.Framework.Audio
             });
         }
 
+        public void RemoveItem(T item)
+        {
+            EnqueueAction(() =>
+            {
+                if (!Items.Contains(item)) return;
+
+                if (item is IAdjustableAudioComponent adjustable)
+                    adjustable.UnbindAdjustments(this);
+
+                Items.Remove(item);
+                ItemRemoved(item);
+            });
+        }
+
         void IBassAudio.UpdateDevice(int deviceIndex) => UpdateDevice(deviceIndex);
 
         internal virtual void UpdateDevice(int deviceIndex)
@@ -55,10 +69,18 @@ namespace osu.Framework.Audio
             }
         }
 
+        /// <summary>
+        /// An item has been added to <see cref="Items"/>.
+        /// </summary>
+        /// <param name="item">The item which was added.</param>
         protected virtual void ItemAdded(T item)
         {
         }
 
+        /// <summary>
+        /// An item has been removed from <see cref="Items"/>. Implementations should dispose the removed item if required.
+        /// </summary>
+        /// <param name="item">The item which was removed.</param>
         protected virtual void ItemRemoved(T item)
         {
         }

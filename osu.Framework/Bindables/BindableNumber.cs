@@ -74,12 +74,14 @@ namespace osu.Framework.Bindables
 
         private void setValue(T value)
         {
-            if (Precision > DefaultPrecision)
+            decimal decPrecision = decimal.CreateTruncating(Precision);
+
+            if (decPrecision > 0)
             {
                 // this rounding is purposefully performed on `decimal` to ensure that the resulting value is the closest possible floating-point
                 // number to actual real-world base-10 decimals, as that is the most common usage of precision.
                 decimal accurateResult = decimal.CreateTruncating(T.Clamp(value, MinValue, MaxValue));
-                accurateResult = Math.Round(accurateResult / decimal.CreateTruncating(Precision)) * decimal.CreateTruncating(Precision);
+                accurateResult = Math.Round(accurateResult / decPrecision) * decPrecision;
 
                 base.Value = T.CreateTruncating(accurateResult);
             }

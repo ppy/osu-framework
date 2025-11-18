@@ -38,13 +38,26 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
 
+        public Bindable<Vector2> OutputAreaOffset { get; } = new Bindable<Vector2>(new Vector2(0.5f, 0.5f));
+
+        public Bindable<Vector2> OutputAreaSize { get; } = new Bindable<Vector2>(new Vector2(1f, 1f));
+
         public Bindable<float> Rotation { get; } = new Bindable<float>();
+
+        public BindableFloat PressureThreshold { get; } = new BindableFloat(0.0f)
+        {
+            MinValue = 0f,
+            MaxValue = 1f,
+            Precision = 0.005f,
+        };
 
         public IBindable<TabletInfo?> Tablet => tablet;
 
         private readonly Bindable<TabletInfo?> tablet = new Bindable<TabletInfo?>();
 
         private Task? lastInitTask;
+
+        private IBindable<bool> windowActive = null!;
 
         public override bool Initialize(GameHost host)
         {
@@ -53,10 +66,14 @@ namespace osu.Framework.Input.Handlers.Tablet
             outputMode = new AbsoluteTabletMode(this);
 
             host.Window.Resized += () => updateOutputArea(host.Window);
+            windowActive = host.Window.IsActive.GetBoundCopy();
 
             AreaOffset.BindValueChanged(_ => updateTabletAndInputArea(device));
             AreaSize.BindValueChanged(_ => updateTabletAndInputArea(device));
             Rotation.BindValueChanged(_ => updateTabletAndInputArea(device), true);
+
+            OutputAreaOffset.BindValueChanged(_ => updateOutputArea(host.Window));
+            OutputAreaSize.BindValueChanged(_ => updateOutputArea(host.Window), true);
 
             Enabled.BindValueChanged(enabled =>
             {
@@ -102,7 +119,7 @@ namespace osu.Framework.Input.Handlers.Tablet
             enqueueInput(new MousePositionRelativeInputFromPen { Delta = new Vector2(delta.X, delta.Y), DeviceType = lastTabletDeviceType });
         }
 
-        void IPressureHandler.SetPressure(float percentage) => enqueueInput(new MouseButtonInputFromPen(percentage > 0) { DeviceType = lastTabletDeviceType });
+        void IPressureHandler.SetPressure(float percentage) => enqueueInput(new MouseButtonInputFromPen(percentage > PressureThreshold.Value) { DeviceType = lastTabletDeviceType });
 
         private void handleTabletsChanged(object? sender, IEnumerable<TabletReference> tablets)
         {
@@ -110,7 +127,8 @@ namespace osu.Framework.Input.Handlers.Tablet
 
             if (device != null)
             {
-                device.OutputMode = outputMode;
+                // Important to reinitialise outputMode here as the previous one is likely disposed.
+                device.OutputMode = outputMode = new AbsoluteTabletMode(this);
                 outputMode.Tablet = device.CreateReference();
 
                 updateTabletAndInputArea(device);
@@ -138,14 +156,16 @@ namespace osu.Framework.Input.Handlers.Tablet
             {
                 case AbsoluteOutputMode absoluteOutputMode:
                 {
-                    float outputWidth, outputHeight;
+                    Vector2 windowSize = new Vector2(window.ClientSize.Width, window.ClientSize.Height);
+                    Vector2 scaledSize = windowSize * OutputAreaSize.Value;
+                    Vector2 offsetFromCenter = (OutputAreaOffset.Value - new Vector2(0.5f, 0.5f)) * (windowSize - scaledSize);
+                    Vector2 position = (windowSize / 2) + offsetFromCenter;
 
-                    // Set output area in pixels
                     absoluteOutputMode.Output = new Area
                     {
-                        Width = outputWidth = window.ClientSize.Width,
-                        Height = outputHeight = window.ClientSize.Height,
-                        Position = new System.Numerics.Vector2(outputWidth / 2, outputHeight / 2)
+                        Width = scaledSize.X,
+                        Height = scaledSize.Y,
+                        Position = position.ToSystemNumerics()
                     };
                     break;
                 }
@@ -215,6 +235,9 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private void enqueueInput(IInput input)
         {
+            if (!windowActive.Value)
+                return;
+
             PendingInputs.Enqueue(input);
             FrameStatistics.Increment(StatisticsCounterType.TabletEvents);
             statistic_total_events.Value++;

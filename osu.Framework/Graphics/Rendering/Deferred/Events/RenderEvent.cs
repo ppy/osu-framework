@@ -1,14 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace osu.Framework.Graphics.Rendering.Deferred.Events
 {
-    [SkipLocalsInit]
     [StructLayout(LayoutKind.Explicit)]
     internal struct RenderEvent
     {
@@ -75,162 +72,119 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
         [FieldOffset(8)]
         private SetViewportEvent setViewport;
 
-        [Obsolete("RenderEvent must be initialised via Init().", true)]
-        public RenderEvent()
+        public static RenderEvent Create(in AddPrimitiveToBatchEvent @event) => new RenderEvent
         {
-        }
+            Type = RenderEventType.AddPrimitiveToBatch,
+            addPrimitiveToBatch = @event
+        };
 
-        public static RenderEvent Init(in AddPrimitiveToBatchEvent @event)
+        public static RenderEvent Create(in ClearEvent @event) => new RenderEvent
         {
-            Unsafe.SkipInit(out RenderEvent e);
-            e.Type = RenderEventType.AddPrimitiveToBatch;
-            e.addPrimitiveToBatch = @event;
-            return e;
-        }
+            Type = RenderEventType.Clear,
+            clear = @event
+        };
 
-        public static RenderEvent Init(in ClearEvent @event)
+        public static RenderEvent Create(in DrawNodeActionEvent @event) => new RenderEvent
         {
-            Unsafe.SkipInit(out RenderEvent e);
-            e.Type = RenderEventType.Clear;
-            e.clear = @event;
-            return e;
-        }
+            Type = RenderEventType.DrawNodeAction,
+            drawNodeAction = @event
+        };
 
-        public static RenderEvent Init(in DrawNodeActionEvent @event)
+        public static RenderEvent Create(in FlushEvent @event) => new RenderEvent
         {
-            Unsafe.SkipInit(out RenderEvent e);
-            e.Type = RenderEventType.DrawNodeAction;
-            e.drawNodeAction = @event;
-            return e;
-        }
+            Type = RenderEventType.Flush,
+            flush = @event
+        };
 
-        public static RenderEvent Init(in FlushEvent @event)
+        public static RenderEvent Create(in ResizeFrameBufferEvent @event) => new RenderEvent
         {
-            Unsafe.SkipInit(out RenderEvent e);
-            e.Type = RenderEventType.Flush;
-            e.flush = @event;
-            return e;
-        }
+            Type = RenderEventType.ResizeFrameBuffer,
+            resizeFrameBuffer = @event
+        };
 
-        public static RenderEvent Init(in ResizeFrameBufferEvent @event)
+        public static RenderEvent Create(in SetBlendEvent @event) => new RenderEvent
         {
-            Unsafe.SkipInit(out RenderEvent e);
-            e.Type = RenderEventType.ResizeFrameBuffer;
-            e.resizeFrameBuffer = @event;
-            return e;
-        }
+            Type = RenderEventType.SetBlend,
+            setBlend = @event
+        };
 
-        public static RenderEvent Init(in SetBlendEvent @event)
+        public static RenderEvent Create(in SetBlendMaskEvent @event) => new RenderEvent
         {
-            Unsafe.SkipInit(out RenderEvent e);
-            e.Type = RenderEventType.SetBlend;
-            e.setBlend = @event;
-            return e;
-        }
+            Type = RenderEventType.SetBlendMask,
+            setBlendMask = @event
+        };
 
-        public static RenderEvent Init(in SetBlendMaskEvent @event)
+        public static RenderEvent Create(in SetDepthInfoEvent @event) => new RenderEvent
         {
-            Unsafe.SkipInit(out RenderEvent e);
-            e.Type = RenderEventType.SetBlendMask;
-            e.setBlendMask = @event;
-            return e;
-        }
+            Type = RenderEventType.SetDepthInfo,
+            setDepthInfo = @event
+        };
 
-        public static RenderEvent Init(in SetDepthInfoEvent @event)
+        public static RenderEvent Create(in SetFrameBufferEvent @event) => new RenderEvent
         {
-            Unsafe.SkipInit(out RenderEvent e);
-            e.Type = RenderEventType.SetDepthInfo;
-            e.setDepthInfo = @event;
-            return e;
-        }
+            Type = RenderEventType.SetFrameBuffer,
+            setFrameBuffer = @event
+        };
 
-        public static RenderEvent Init(in SetFrameBufferEvent @event)
+        public static RenderEvent Create(in SetScissorEvent @event) => new RenderEvent
         {
-            Unsafe.SkipInit(out RenderEvent e);
-            e.Type = RenderEventType.SetFrameBuffer;
-            e.setFrameBuffer = @event;
-            return e;
-        }
+            Type = RenderEventType.SetScissor,
+            setScissor = @event
+        };
 
-        public static RenderEvent Init(in SetScissorEvent @event)
+        public static RenderEvent Create(in SetShaderEvent @event) => new RenderEvent
         {
-            Unsafe.SkipInit(out RenderEvent e);
-            e.Type = RenderEventType.SetScissor;
-            e.setScissor = @event;
-            return e;
-        }
+            Type = RenderEventType.SetShader,
+            setShader = @event
+        };
 
-        public static RenderEvent Init(in SetShaderEvent @event)
+        public static RenderEvent Create(in SetScissorStateEvent @event) => new RenderEvent
         {
-            Unsafe.SkipInit(out RenderEvent e);
-            e.Type = RenderEventType.SetShader;
-            e.setShader = @event;
-            return e;
-        }
+            Type = RenderEventType.SetScissorState,
+            setScissorState = @event
+        };
 
-        public static RenderEvent Init(in SetScissorStateEvent @event)
+        public static RenderEvent Create(in SetShaderStorageBufferObjectDataEvent @event) => new RenderEvent
         {
-            Unsafe.SkipInit(out RenderEvent e);
-            e.Type = RenderEventType.SetScissorState;
-            e.setScissorState = @event;
-            return e;
-        }
+            Type = RenderEventType.SetShaderStorageBufferObjectData,
+            setShaderStorageBufferObjectData = @event
+        };
 
-        public static RenderEvent Init(in SetShaderStorageBufferObjectDataEvent @event)
+        public static RenderEvent Create(in SetStencilInfoEvent @event) => new RenderEvent
         {
-            Unsafe.SkipInit(out RenderEvent e);
-            e.Type = RenderEventType.SetShaderStorageBufferObjectData;
-            e.setShaderStorageBufferObjectData = @event;
-            return e;
-        }
+            Type = RenderEventType.SetStencilInfo,
+            setStencilInfo = @event
+        };
 
-        public static RenderEvent Init(in SetStencilInfoEvent @event)
+        public static RenderEvent Create(in SetTextureEvent @event) => new RenderEvent
         {
-            Unsafe.SkipInit(out RenderEvent e);
-            e.Type = RenderEventType.SetStencilInfo;
-            e.setStencilInfo = @event;
-            return e;
-        }
+            Type = RenderEventType.SetTexture,
+            setTexture = @event
+        };
 
-        public static RenderEvent Init(in SetTextureEvent @event)
+        public static RenderEvent Create(in SetUniformBufferDataEvent @event) => new RenderEvent
         {
-            Unsafe.SkipInit(out RenderEvent e);
-            e.Type = RenderEventType.SetTexture;
-            e.setTexture = @event;
-            return e;
-        }
+            Type = RenderEventType.SetUniformBufferData,
+            setUniformBufferData = @event
+        };
 
-        public static RenderEvent Init(in SetUniformBufferDataEvent @event)
+        public static RenderEvent Create(in SetUniformBufferDataRangeEvent @event) => new RenderEvent
         {
-            Unsafe.SkipInit(out RenderEvent e);
-            e.Type = RenderEventType.SetUniformBufferData;
-            e.setUniformBufferData = @event;
-            return e;
-        }
+            Type = RenderEventType.SetUniformBufferDataRange,
+            setUniformBufferDataRange = @event
+        };
 
-        public static RenderEvent Init(in SetUniformBufferDataRangeEvent @event)
+        public static RenderEvent Create(in SetUniformBufferEvent @event) => new RenderEvent
         {
-            Unsafe.SkipInit(out RenderEvent e);
-            e.Type = RenderEventType.SetUniformBufferDataRange;
-            e.setUniformBufferDataRange = @event;
-            return e;
-        }
+            Type = RenderEventType.SetUniformBuffer,
+            setUniformBuffer = @event
+        };
 
-        public static RenderEvent Init(in SetUniformBufferEvent @event)
+        public static RenderEvent Create(in SetViewportEvent @event) => new RenderEvent
         {
-            Unsafe.SkipInit(out RenderEvent e);
-            e.Type = RenderEventType.SetUniformBuffer;
-            e.setUniformBuffer = @event;
-            return e;
-        }
-
-        public static RenderEvent Init(in SetViewportEvent @event)
-        {
-            Unsafe.SkipInit(out RenderEvent e);
-            e.Type = RenderEventType.SetViewport;
-            e.setViewport = @event;
-            return e;
-        }
+            Type = RenderEventType.SetViewport,
+            setViewport = @event
+        };
 
         public static explicit operator AddPrimitiveToBatchEvent(RenderEvent @event)
         {

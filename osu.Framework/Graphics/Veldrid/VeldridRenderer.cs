@@ -223,6 +223,18 @@ namespace osu.Framework.Graphics.Veldrid
         protected internal override Image<Rgba32> TakeScreenshot()
             => veldridDevice.TakeScreenshot();
 
+        protected internal override Image<Rgba32>? ExtractFrameBufferData(IFrameBuffer frameBuffer)
+            => ExtractTexture((VeldridTexture)frameBuffer.Texture.NativeTexture);
+
+        protected internal Image<Rgba32>? ExtractTexture(VeldridTexture texture)
+        {
+            var resource = texture.GetResourceList().FirstOrDefault();
+            if (resource == null)
+                return null;
+
+            return veldridDevice.ExtractTexture<Rgba32>(resource.Texture);
+        }
+
         /// <summary>
         /// Updates a <see cref="global::Veldrid.Texture"/> with a <paramref name="data"/> at the specified coordinates.
         /// </summary>

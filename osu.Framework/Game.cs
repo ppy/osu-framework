@@ -9,7 +9,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
-using osu.Framework.Development;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Performance;
@@ -150,8 +149,18 @@ namespace osu.Framework
         {
             Host = host;
             host.ExitRequested += RequestExit;
-            host.Activated += () => isActive.Value = true;
-            host.Deactivated += () => isActive.Value = false;
+            host.Activated += onHostActivated;
+            host.Deactivated += onHostDeactivated;
+        }
+
+        private void onHostActivated()
+        {
+            isActive.Value = true;
+        }
+
+        private void onHostDeactivated()
+        {
+            isActive.Value = false;
         }
 
         private DependencyContainer dependencies;
@@ -179,17 +188,11 @@ namespace osu.Framework
             samples.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
             samples.AddStore(CreateOnlineStore());
 
-            Audio = new AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
+            Audio = new AudioManager(Host.AudioThread, tracks, samples, config) { EventScheduler = Scheduler };
             dependencies.Cache(Audio);
 
             dependencies.CacheAs(Audio.Tracks);
             dependencies.CacheAs(Audio.Samples);
-
-            // attach our bindables to the audio subsystem.
-            config.BindWith(FrameworkSetting.AudioDevice, Audio.AudioDevice);
-            config.BindWith(FrameworkSetting.VolumeUniversal, Audio.Volume);
-            config.BindWith(FrameworkSetting.VolumeEffect, Audio.VolumeSample);
-            config.BindWith(FrameworkSetting.VolumeMusic, Audio.VolumeTrack);
 
             Shaders = new ShaderManager(Host.Renderer, new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             dependencies.Cache(Shaders);
@@ -285,7 +288,7 @@ namespace osu.Framework
 
             FrameStatistics.BindValueChanged(e => performanceOverlay.State = e.NewValue, true);
 
-            if (FrameworkEnvironment.FrameStatisticsViaTouch && DebugUtils.IsDebugBuild)
+            if (FrameworkEnvironment.FrameStatisticsViaTouch)
             {
                 base.AddInternal(new FrameStatisticsTouchReceptor(this)
                 {
@@ -293,7 +296,7 @@ namespace osu.Framework
                     Anchor = Anchor.BottomRight,
                     Origin = Anchor.BottomRight,
                     RelativeSizeAxes = Axes.Both,
-                    Size = new Vector2(0.5f),
+                    Size = new Vector2(0.2f),
                 });
             }
         }
@@ -517,6 +520,13 @@ namespace osu.Framework
 
             Localisation?.Dispose();
             Localisation = null;
+
+            if (Host != null)
+            {
+                Host.ExitRequested -= RequestExit;
+                Host.Activated -= onHostActivated;
+                Host.Deactivated -= onHostDeactivated;
+            }
         }
 
         private partial class FrameStatisticsTouchReceptor : Drawable

@@ -38,7 +38,7 @@ namespace osu.Framework.Platform.MacOS
             using (NSAutoreleasePool.Init())
             {
                 var nsData = NSData.FromBytes(stream.ToArray());
-                using var nsImage = NSImage.LoadFromData(nsData);
+                using var nsImage = NSImage.InitWithData(nsData);
                 return setToPasteboard(nsImage.Handle);
             }
         }

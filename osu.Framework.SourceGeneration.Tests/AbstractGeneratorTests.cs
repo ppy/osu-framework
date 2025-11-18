@@ -70,16 +70,16 @@ namespace osu.Framework.SourceGeneration.Tests
             var commonGeneratedFiles = new List<(string filename, string content)>();
             var generatedFiles = new List<(string filename, string content)>();
 
-            foreach (string? file in resourceNames.Where(n => n.StartsWith(commonSourcesNamespace, StringComparison.Ordinal)))
+            foreach (string file in resourceNames.Where(n => n.StartsWith(commonSourcesNamespace, StringComparison.Ordinal)))
                 commonSourceFiles.Add((getFileNameFromResourceName(commonSourcesNamespace, file), readResourceStream(assembly, file)));
 
-            foreach (string? file in resourceNames.Where(n => n.StartsWith(commonGeneratedNamespace, StringComparison.Ordinal)))
+            foreach (string file in resourceNames.Where(n => n.StartsWith(commonGeneratedNamespace, StringComparison.Ordinal)))
                 commonGeneratedFiles.Add((getFileNameFromResourceName(commonGeneratedNamespace, file), readResourceStream(assembly, file)));
 
-            foreach (string? file in resourceNames.Where(n => n.StartsWith(sourcesNamespace, StringComparison.Ordinal)))
+            foreach (string file in resourceNames.Where(n => n.StartsWith(sourcesNamespace, StringComparison.Ordinal)))
                 sourceFiles.Add((getFileNameFromResourceName(sourcesNamespace, file), readResourceStream(assembly, file)));
 
-            foreach (string? file in resourceNames.Where(n => n.StartsWith(generatedNamespace, StringComparison.Ordinal)))
+            foreach (string file in resourceNames.Where(n => n.StartsWith(generatedNamespace, StringComparison.Ordinal)))
                 generatedFiles.Add((getFileNameFromResourceName(generatedNamespace, file), readResourceStream(assembly, file)));
 
             removeNameIndices(commonSourceFiles);
