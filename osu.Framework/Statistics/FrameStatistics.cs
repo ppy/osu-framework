@@ -11,6 +11,7 @@ namespace osu.Framework.Statistics
         internal readonly Dictionary<PerformanceCollectionType, double> CollectedTimes = new Dictionary<PerformanceCollectionType, double>(NUM_STATISTICS_COUNTER_TYPES);
         internal readonly Dictionary<StatisticsCounterType, long> Counts = new Dictionary<StatisticsCounterType, long>(NUM_STATISTICS_COUNTER_TYPES);
         internal readonly List<int> GarbageCollections = new List<int>();
+
         public double FramesPerSecond { get; set; }
 
         internal static readonly int NUM_STATISTICS_COUNTER_TYPES = Enum.GetValues<StatisticsCounterType>().Length;
@@ -43,6 +44,7 @@ namespace osu.Framework.Statistics
     internal enum PerformanceCollectionType
     {
         Work = 0,
+        GC,
         SwapBuffer,
         WndProc,
         Debug,

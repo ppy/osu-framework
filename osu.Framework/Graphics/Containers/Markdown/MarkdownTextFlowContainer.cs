@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </summary>
     public partial class MarkdownTextFlowContainer : CustomizableTextContainer, IMarkdownTextComponent
     {
-        public float TotalTextWidth => Padding.TotalHorizontal + FlowingChildren.Sum(x => x.BoundingBox.Size.X);
+        public float TotalTextWidth => Padding.TotalHorizontal + Flow.FlowingChildren.Sum(x => x.BoundingBox.Size.X);
 
         [Resolved]
         private IMarkdownTextComponent parentTextComponent { get; set; }

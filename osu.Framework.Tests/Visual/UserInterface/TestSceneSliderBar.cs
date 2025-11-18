@@ -299,6 +299,36 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkValue(0);
         }
 
+        [Test]
+        public void TestClickSecondButtonWhileRelativeDragging()
+        {
+            checkValue(0);
+
+            AddStep("Move Cursor", () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.6f, 0.5f))); });
+            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+            AddStep("Drag", () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.25f, 0.5f))); });
+            AddStep("Second Button Click", () => { InputManager.Click(MouseButton.Right); });
+            AddStep("Drag", () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.3f, 0.5f))); });
+            AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
+
+            checkValue(-6);
+        }
+
+        [Test]
+        public void TestClickSecondButtonWhileAbsoluteDragging()
+        {
+            checkValue(0);
+
+            AddStep("Move Cursor", () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.8f, 0.5f))); });
+            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+            AddStep("Drag", () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.25f, 0.5f))); });
+            AddStep("Second Button Click", () => { InputManager.Click(MouseButton.Right); });
+            AddStep("Drag", () => { InputManager.MoveMouseTo(sliderBarWithNub.ToScreenSpace(sliderBarWithNub.DrawSize * new Vector2(0.3f, 0.5f))); });
+            AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
+
+            checkValue(-4);
+        }
+
         private void checkValue(int expected) =>
             AddAssert($"Value == {expected}", () => sliderBarValue.Value, () => Is.EqualTo(expected).Within(Precision.FLOAT_EPSILON));
 

@@ -8,6 +8,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
     internal readonly record struct SetScissorEvent(RectangleI Scissor)
     {
         public static RenderEvent Create(RectangleI scissor)
-            => RenderEvent.Init(new SetScissorEvent(scissor));
+            => RenderEvent.Create(new SetScissorEvent(scissor));
     }
 }

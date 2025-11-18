@@ -17,7 +17,7 @@ namespace osu.Framework.Allocation
     /// </summary>
     internal static class AsyncDisposalQueue
     {
-        private static readonly GlobalStatistic<string> last_disposal = GlobalStatistics.Get<string>("Drawable", "Last disposal");
+        private static readonly GlobalStatistic<Type> last_disposal = GlobalStatistics.Get<Type>("Drawable", "Last disposal");
 
         private static Task runTask;
 
@@ -62,7 +62,7 @@ namespace osu.Framework.Allocation
                     {
                         ref var item = ref itemsToDispose[i];
 
-                        last_disposal.Value = item.ToString();
+                        last_disposal.Value = item.GetType();
 
                         item.Dispose();
                         item = null;

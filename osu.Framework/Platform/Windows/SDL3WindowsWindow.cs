@@ -10,7 +10,6 @@ using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform.SDL3;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
-using osuTK.Input;
 using SDL;
 using Icon = osu.Framework.Platform.Windows.Native.Icon;
 using static SDL.SDL3;
@@ -100,33 +99,6 @@ namespace osu.Framework.Platform.Windows
         }
 
         public override void ResetIme() => ScheduleCommand(() => Imm.CancelComposition(WindowHandle));
-
-        protected override void HandleTouchFingerEvent(SDL_TouchFingerEvent evtTfinger)
-        {
-            if (evtTfinger.TryGetTouchName(out string? name) && name == "pen")
-            {
-                // Windows Ink tablet/pen handling
-                // InputManager expects to receive this as mouse events, to have proper `mouseSource` input priority (see InputManager.GetPendingInputs)
-                // osu! expects to get tablet events as mouse events, and touch events as touch events for touch device (TD mod) handling (see https://github.com/ppy/osu/issues/25590)
-
-                TriggerMouseMove(evtTfinger.x * ClientSize.Width, evtTfinger.y * ClientSize.Height);
-
-                switch (evtTfinger.type)
-                {
-                    case SDL_EventType.SDL_EVENT_FINGER_DOWN:
-                        TriggerMouseDown(MouseButton.Left);
-                        break;
-
-                    case SDL_EventType.SDL_EVENT_FINGER_UP:
-                        TriggerMouseUp(MouseButton.Left);
-                        break;
-                }
-
-                return;
-            }
-
-            base.HandleTouchFingerEvent(evtTfinger);
-        }
 
         public override Size Size
         {

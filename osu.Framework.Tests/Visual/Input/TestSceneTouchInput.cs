@@ -203,8 +203,8 @@ namespace osu.Framework.Tests.Visual.Input
 
             AddStep("retrieve receptors", () =>
             {
-                firstReceptor = receptors[(int)TouchSource.Touch1];
-                lastReceptor = receptors[(int)TouchSource.Touch10];
+                firstReceptor = receptors.First();
+                lastReceptor = receptors.Last();
             });
 
             AddStep("activate first", () =>

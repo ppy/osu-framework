@@ -4,7 +4,9 @@
 using osuTK;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -91,6 +93,71 @@ namespace osu.Framework.Graphics.Containers
             container.ChildrenEnumerable = children;
 
             return container;
+        }
+
+        /// <summary>
+        /// Searches the subtree for <see cref="ITabbableContainer"/>s and moves focus to the <see cref="ITabbableContainer"/> before/after the one currently focused.
+        /// </summary>
+        /// <param name="target">Container to search for valid focus targets in.</param>
+        /// <param name="reverse">Whether to traverse the container's children in reverse when looking for the next target.</param>
+        /// <param name="requireFocusedChild">
+        /// Determines the behaviour when the currently focused drawable isn't rooted at this container.
+        /// If true, then focus will not be moved.
+        /// If false, then focus will be moved to the first valid child.
+        /// </param>
+        /// <returns>Whether focus was moved to a new <see cref="ITabbableContainer"/>.</returns>
+        public static bool MoveFocusToNextTabStop(this CompositeDrawable target, bool reverse = false, bool requireFocusedChild = true)
+        {
+            var currentlyFocused = target.GetContainingInputManager()?.FocusedDrawable;
+
+            if (currentlyFocused == null && requireFocusedChild)
+                return false;
+
+            var focusManager = target.GetContainingFocusManager().AsNonNull();
+
+            Stack<Drawable> stack = new Stack<Drawable>();
+            stack.Push(target); // Extra push for circular tabbing
+            stack.Push(target);
+
+            // If we don't have a currently focused child we pretend we've already encountered our target child to move focus to the first valid target.
+            bool started = currentlyFocused == null;
+
+            while (stack.Count > 0)
+            {
+                var drawable = stack.Pop();
+
+                if (!started)
+                    started = ReferenceEquals(drawable, currentlyFocused);
+                else if (drawable is ITabbableContainer tabbable && tabbable.CanBeTabbedTo && focusManager.ChangeFocus(drawable))
+                    return true;
+
+                if (drawable is CompositeDrawable composite)
+                {
+                    var newChildren = composite.InternalChildren.ToList();
+                    int bound = reverse ? newChildren.Count : 0;
+
+                    if (!started)
+                    {
+                        // Find currently focused element, to know starting point
+                        int index = newChildren.IndexOf(currentlyFocused);
+                        if (index != -1)
+                            bound = reverse ? index + 1 : index;
+                    }
+
+                    if (reverse)
+                    {
+                        for (int i = 0; i < bound; i++)
+                            stack.Push(newChildren[i]);
+                    }
+                    else
+                    {
+                        for (int i = newChildren.Count - 1; i >= bound; i--)
+                            stack.Push(newChildren[i]);
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

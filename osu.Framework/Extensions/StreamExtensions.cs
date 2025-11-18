@@ -110,24 +110,5 @@ namespace osu.Framework.Extensions
                 return ms.ToArray();
             }
         }
-
-        /// <summary>
-        /// Reads bytes from a stream until the provided buffer is full.
-        /// </summary>
-        /// <param name="stream">The stream to read.</param>
-        /// <param name="buffer">The buffer to read into.</param>
-        /// <exception cref="EndOfStreamException">Throws if the stream didn't have enough content to fill the buffer.</exception>
-        [Obsolete("Use Stream.ReadExactly")] // can be removed 20240901
-        public static void ReadToFill(this Stream stream, Span<byte> buffer) => stream.ReadExactly(buffer);
-
-        /// <summary>
-        /// Reads bytes from a stream until the provided buffer is full.
-        /// </summary>
-        /// <param name="stream">The stream to read.</param>
-        /// <param name="buffer">The buffer to read into.</param>
-        /// <param name="cancellationToken">A cancellation token.</param>
-        /// <exception cref="EndOfStreamException">Throws if the stream didn't have enough content to fill the buffer.</exception>
-        [Obsolete("Use Stream.ReadExactlyAsync")] // can be removed 20240901
-        public static Task ReadToFillAsync(this Stream stream, Memory<byte> buffer, CancellationToken cancellationToken = default) => stream.ReadExactlyAsync(buffer, cancellationToken).AsTask();
     }
 }

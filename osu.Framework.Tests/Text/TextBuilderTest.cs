@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,11 +25,11 @@ namespace osu.Framework.Tests.Text
         private static readonly FontUsage normal_font = new FontUsage("Roboto", weight: "Regular", size: font_size);
         private static readonly FontUsage fixed_width_font = new FontUsage("Roboto", weight: "Regular", size: font_size, fixedWidth: true);
 
-        private FontStore fontStore;
-        private ITexturedCharacterGlyph glyphA;
-        private ITexturedCharacterGlyph glyphB;
-        private ITexturedCharacterGlyph glyphM;
-        private ITexturedCharacterGlyph glyphIcon;
+        private FontStore fontStore = null!;
+        private ITexturedCharacterGlyph glyphA = null!;
+        private ITexturedCharacterGlyph glyphB = null!;
+        private ITexturedCharacterGlyph glyphM = null!;
+        private ITexturedCharacterGlyph glyphIcon = null!;
 
         [SetUp]
         public void SetUp()
@@ -40,10 +38,10 @@ namespace osu.Framework.Tests.Text
             fontStore.AddTextureSource(new GlyphStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources"), "Fonts/Roboto/Roboto-Regular"));
             fontStore.AddTextureSource(new GlyphStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources"), "Fonts/FontAwesome5/FontAwesome-Solid"));
 
-            glyphA = fontStore.Get(null, 'a');
-            glyphB = fontStore.Get(null, 'b');
-            glyphM = fontStore.Get(null, 'm');
-            glyphIcon = fontStore.Get(null, FontAwesome.Solid.Smile.Icon);
+            glyphA = fontStore.Get(null, 'a').AsNonNull();
+            glyphB = fontStore.Get(null, 'b').AsNonNull();
+            glyphM = fontStore.Get(null, 'm').AsNonNull();
+            glyphIcon = fontStore.Get(null, FontAwesome.Solid.Smile.Icon).AsNonNull();
         }
 
         /// <summary>
@@ -561,15 +559,59 @@ namespace osu.Framework.Tests.Text
             var font = new FontUsage("test", size: font_size);
             var nullFont = new FontUsage(null);
             var builder = new TextBuilder(new TestStore(
-                new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(nullFont, new TestGlyph('a', 0, 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(font, new TestGlyph('?', 0, 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(nullFont, new TestGlyph('?', 0, 0, 0, 0, 0, 0, 0))
+                new GlyphEntry(font, new TestGlyph('b')),
+                new GlyphEntry(nullFont, new TestGlyph('a')),
+                new GlyphEntry(font, new TestGlyph('?')),
+                new GlyphEntry(nullFont, new TestGlyph('?'))
             ), font);
 
             builder.AddText("a");
 
             Assert.That(builder.Characters[0].Character, Is.EqualTo('a'));
+        }
+
+        /// <summary>
+        /// Tests that glyph lookup falls back to using the same character with a different font but same weight.
+        /// </summary>
+        [Test]
+        public void TestSameCharacterFallsBackToDifferentFontWithSameWeight()
+        {
+            var font1B = new FontUsage("test1", weight: "Bold", size: font_size);
+            var font2B = new FontUsage("test2", weight: "Bold", size: font_size);
+            var font2R = new FontUsage("test2", weight: "Regular", size: font_size);
+
+            var builder = new TextBuilder(new TestStore(
+                new GlyphEntry(font1B, new TestGlyph('b', fontName: font1B.FontName)),
+                new GlyphEntry(font2R, new TestGlyph('a', fontName: font2R.FontName)),
+                new GlyphEntry(font2B, new TestGlyph('a', fontName: font2B.FontName))
+            ), font1B);
+
+            builder.AddText("a");
+
+            Assert.That(builder.Characters[0].Character, Is.EqualTo('a'));
+            Assert.That(((TestGlyph)builder.Characters[0].Glyph).FontName, Is.EqualTo("test2-Bold"));
+        }
+
+        /// <summary>
+        /// Tests that glyph lookup falls back to using the same character with a different font but italics are preserved.
+        /// </summary>
+        [Test]
+        public void TestSameCharacterFallsBackToDifferentFontWithItalics()
+        {
+            var font1I = new FontUsage("test1", italics: true, size: font_size);
+            var font2I = new FontUsage("test2", italics: true, size: font_size);
+            var font2R = new FontUsage("test2", italics: false, size: font_size);
+
+            var builder = new TextBuilder(new TestStore(
+                new GlyphEntry(font1I, new TestGlyph('b', fontName: font1I.FontName)),
+                new GlyphEntry(font2R, new TestGlyph('a', fontName: font2R.FontName)),
+                new GlyphEntry(font2I, new TestGlyph('a', fontName: font2I.FontName))
+            ), font1I);
+
+            builder.AddText("a");
+
+            Assert.That(builder.Characters[0].Character, Is.EqualTo('a'));
+            Assert.That(((TestGlyph)builder.Characters[0].Glyph).FontName, Is.EqualTo("test2-Italic"));
         }
 
         /// <summary>
@@ -581,10 +623,10 @@ namespace osu.Framework.Tests.Text
             var font = new FontUsage("test", size: font_size);
             var nullFont = new FontUsage(null);
             var builder = new TextBuilder(new TestStore(
-                new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(nullFont, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(font, new TestGlyph('?', 0, 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(nullFont, new TestGlyph('?', 1, 0, 0, 0, 0, 0, 0))
+                new GlyphEntry(font, new TestGlyph('b')),
+                new GlyphEntry(nullFont, new TestGlyph('b')),
+                new GlyphEntry(font, new TestGlyph('?')),
+                new GlyphEntry(nullFont, new TestGlyph('?', 1))
             ), font);
 
             builder.AddText("a");
@@ -602,10 +644,10 @@ namespace osu.Framework.Tests.Text
             var font = new FontUsage("test", size: font_size);
             var nullFont = new FontUsage(null);
             var builder = new TextBuilder(new TestStore(
-                new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(nullFont, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(nullFont, new TestGlyph('?', 1, 0, 0, 0, 0, 0, 0))
+                new GlyphEntry(font, new TestGlyph('b')),
+                new GlyphEntry(nullFont, new TestGlyph('b')),
+                new GlyphEntry(font, new TestGlyph('b')),
+                new GlyphEntry(nullFont, new TestGlyph('?', 1))
             ), font);
 
             builder.AddText("a");
@@ -632,7 +674,7 @@ namespace osu.Framework.Tests.Text
         public void TearDown()
         {
             fontStore.Dispose();
-            fontStore = null;
+            fontStore = null!;
         }
 
         /// <summary>
@@ -650,15 +692,15 @@ namespace osu.Framework.Tests.Text
                 this.glyphs = glyphs;
             }
 
-            public ITexturedCharacterGlyph Get(string fontName, char character)
+            public ITexturedCharacterGlyph Get(string? fontName, char character)
             {
                 if (string.IsNullOrEmpty(fontName))
                     return glyphs.FirstOrDefault(g => g.Glyph.Character == character).Glyph;
 
-                return glyphs.FirstOrDefault(g => g.Font.FontName == fontName && g.Glyph.Character == character).Glyph;
+                return glyphs.FirstOrDefault(g => g.Font.FontName.EndsWith(fontName, StringComparison.Ordinal) && g.Glyph.Character == character).Glyph;
             }
 
-            public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => throw new NotImplementedException();
+            public Task<ITexturedCharacterGlyph?> GetAsync(string fontName, char character) => throw new NotImplementedException();
         }
 
         private readonly struct GlyphEntry
@@ -683,10 +725,11 @@ namespace osu.Framework.Tests.Text
             public float Baseline { get; }
             public float Height { get; }
             public char Character { get; }
+            public string? FontName { get; }
 
             private readonly float glyphKerning;
 
-            public TestGlyph(char character, float xOffset, float yOffset, float xAdvance, float width, float baseline, float height, float kerning)
+            public TestGlyph(char character, float xOffset = 0, float yOffset = 0, float xAdvance = 0, float width = 0, float baseline = 0, float height = 0, float kerning = 0, string? fontName = null)
             {
                 glyphKerning = kerning;
                 Character = character;
@@ -696,6 +739,7 @@ namespace osu.Framework.Tests.Text
                 Width = width;
                 Baseline = baseline;
                 Height = height;
+                FontName = fontName;
             }
 
             public float GetKerning<T>(T lastGlyph)

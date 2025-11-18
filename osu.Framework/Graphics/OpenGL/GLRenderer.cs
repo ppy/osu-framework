@@ -375,6 +375,22 @@ namespace osu.Framework.Graphics.OpenGL
             return image;
         }
 
+        protected internal override Image<Rgba32> ExtractFrameBufferData(IFrameBuffer frameBuffer)
+        {
+            int width = frameBuffer.Texture.Width;
+            int height = frameBuffer.Texture.Height;
+
+            var data = MemoryAllocator.Default.Allocate<Rgba32>(width * height);
+
+            frameBuffer.Bind();
+            GL.ReadPixels(0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(data.Memory.Span));
+            frameBuffer.Unbind();
+
+            var image = Image.LoadPixelData<Rgba32>(data.Memory.Span, width, height);
+
+            return image;
+        }
+
         protected override IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType)
         {
             ShaderType glType;

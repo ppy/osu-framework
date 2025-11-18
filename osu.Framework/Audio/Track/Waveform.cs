@@ -81,6 +81,8 @@ namespace osu.Framework.Audio.Track
         {
             this.data = data;
 
+            var token = cancelSource.Token;
+
             readTask = Task.Run(() =>
             {
                 if (data == null)
@@ -155,6 +157,8 @@ namespace osu.Framework.Audio.Track
                         // Each point is composed of multiple samples
                         for (int i = 0; i < samplesRead && pointIndex < pointCount; i += samplesPerPoint)
                         {
+                            token.ThrowIfCancellationRequested();
+
                             // We assume one or more channels.
                             // For non-stereo tracks, we'll use the single track for both amplitudes.
                             // For anything above two tracks we'll use the first and second track.
@@ -220,6 +224,8 @@ namespace osu.Framework.Audio.Track
                         // We know that each data point required sampleDataPerPoint amount of data
                         for (; currentPoint < points.Length && currentPoint * bytesPerPoint < currentByte; currentPoint++)
                         {
+                            token.ThrowIfCancellationRequested();
+
                             var point = points[currentPoint];
                             point.LowIntensity = lowIntensity;
                             point.MidIntensity = midIntensity;
@@ -243,7 +249,7 @@ namespace osu.Framework.Audio.Track
                     if (sampleBuffer != null)
                         ArrayPool<float>.Shared.Return(sampleBuffer);
                 }
-            }, cancelSource.Token);
+            }, token);
 
             void logBassError(string reason) => Logger.Log($"BASS failure while reading waveform: {reason} ({Bass.LastError})");
         }
@@ -404,7 +410,6 @@ namespace osu.Framework.Audio.Track
 
             cancelSource.Cancel();
             cancelSource.Dispose();
-            points = Array.Empty<Point>();
 
             // Try disposing the stream again in case the task was not started.
             data?.Dispose();

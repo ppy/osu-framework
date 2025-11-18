@@ -34,11 +34,11 @@ namespace osu.Framework.Benchmarks
 
             for (int i = 0; i < 10000; i++)
             {
-                staticItems[0].list.Add(RenderEvent.Init(new FlushEvent(new ResourceReference(1), 10)));
-                staticItems[1].list.Add(RenderEvent.Init(new AddPrimitiveToBatchEvent(new ResourceReference(0), staticItems[1].allocator.AllocateRegion(1024))));
+                staticItems[0].list.Add(RenderEvent.Create(new FlushEvent(new ResourceReference(1), 10)));
+                staticItems[1].list.Add(RenderEvent.Create(new AddPrimitiveToBatchEvent(new ResourceReference(0), staticItems[1].allocator.AllocateRegion(1024))));
                 staticItems[2].list.Add(i % 2 == 0
-                    ? RenderEvent.Init(new FlushEvent(new ResourceReference(1), 10))
-                    : RenderEvent.Init(new AddPrimitiveToBatchEvent(new ResourceReference(0), staticItems[2].allocator.AllocateRegion(1024))));
+                    ? RenderEvent.Create(new FlushEvent(new ResourceReference(1), 10))
+                    : RenderEvent.Create(new AddPrimitiveToBatchEvent(new ResourceReference(0), staticItems[2].allocator.AllocateRegion(1024))));
             }
         }
 
@@ -48,7 +48,7 @@ namespace osu.Framework.Benchmarks
             localAllocator.NewFrame();
 
             for (int i = 0; i < 10000; i++)
-                localEventList.Add(RenderEvent.Init(new FlushEvent()));
+                localEventList.Add(RenderEvent.Create(new FlushEvent()));
         }
 
         [Benchmark]
@@ -57,7 +57,7 @@ namespace osu.Framework.Benchmarks
             localAllocator.NewFrame();
 
             for (int i = 0; i < 10000; i++)
-                localEventList.Add(RenderEvent.Init(new AddPrimitiveToBatchEvent(new ResourceReference(0), localAllocator.AllocateRegion(1024))));
+                localEventList.Add(RenderEvent.Create(new AddPrimitiveToBatchEvent(new ResourceReference(0), localAllocator.AllocateRegion(1024))));
         }
 
         [Benchmark]

@@ -123,7 +123,6 @@ namespace osu.Framework.Platform
 
         /// <summary>
         /// Whether the on-screen keyboard covers a portion of the game window when presented to the user.
-        /// This is usually true on mobile platforms, but may change to false if a hardware keyboard is connected.
         /// </summary>
         public virtual bool OnScreenKeyboardOverlapsGameWindow => false;
 
@@ -184,9 +183,6 @@ namespace osu.Framework.Platform
         /// Creates the game window for the host.
         /// </summary>
         protected abstract IWindow CreateWindow(GraphicsSurfaceType preferredSurface);
-
-        [Obsolete($"Resolve {nameof(Clipboard)} via DI.")] // can be removed 20231010
-        public Clipboard GetClipboard() => Dependencies.Get<Clipboard>();
 
         protected abstract Clipboard CreateClipboard();
 

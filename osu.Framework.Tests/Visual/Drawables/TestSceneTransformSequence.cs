@@ -157,9 +157,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private void animate()
         {
-            boxes[0].Delay(500).Then(500).Then(500).Then(
-                b => b.Delay(500).Spin(1000, RotationDirection.Counterclockwise)
-            );
+            boxes[0].Delay(500).Then(500).Then(500).Then(b => b.Delay(500).Spin(1000, RotationDirection.Counterclockwise));
 
             boxes[1].Spin(1000, RotationDirection.Counterclockwise);
 
@@ -184,9 +182,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         b => b.RotateTo(0),
                         b => b.ScaleTo(2)
                     )
-                    .Then(
-                        b => b.Loop(500, 2, d => d.RotateTo(0).RotateTo(360, 1000)).Delay(500).ScaleTo(0.5f, 500)
-                    )
+                    .Then(b => b.Loop(500, 2, d => d.RotateTo(0).RotateTo(360, 1000)).Delay(500).ScaleTo(0.5f, 500))
                     .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500)
                     .Finally(_ => finalizeTriggered = true);
 
