@@ -8,6 +8,7 @@ using BenchmarkDotNet.Attributes;
 using NUnit.Framework;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Testing;
 using SixLabors.ImageSharp.Memory;
@@ -17,6 +18,7 @@ namespace osu.Framework.Benchmarks
     public class BenchmarkFontLoading : BenchmarkTest
     {
         private NamespacedResourceStore<byte[]> baseResources = null!;
+        private NamespacedResourceStore<byte[]> testResources = null!;
         private TemporaryNativeStorage sharedTemp = null!;
 
         public override void SetUp()
@@ -24,6 +26,7 @@ namespace osu.Framework.Benchmarks
             SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = MemoryAllocator.Default;
 
             baseResources = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources");
+            testResources = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.Benchmarks.dll"), @"Resources");
             sharedTemp = new TemporaryNativeStorage("fontstore-test-" + Guid.NewGuid());
         }
 
@@ -60,12 +63,9 @@ namespace osu.Framework.Benchmarks
         }
 
         [Benchmark]
-        public void BenchmarkNoCache()
+        public void BenchmarkOutline()
         {
-            if (FetchCount > 100) // gets too slow.
-                throw new NotImplementedException();
-
-            using (var store = new GlyphStore(baseResources, font_name))
+            using (var store = new OutlineGlyphStore(testResources, font_name))
                 runFor(store);
         }
 
@@ -85,7 +85,17 @@ namespace osu.Framework.Benchmarks
                 runFor(store);
         }
 
-        private void runFor(GlyphStore store)
+        [Benchmark]
+        public void BenchmarkNoCache()
+        {
+            if (FetchCount > 100) // gets too slow.
+                throw new NotImplementedException();
+
+            using (var store = new GlyphStore(baseResources, font_name))
+                runFor(store);
+        }
+
+        private void runFor(IGlyphStore store)
         {
             store.LoadFontAsync().WaitSafely();
 
@@ -101,7 +111,7 @@ namespace osu.Framework.Benchmarks
                     Debug.Assert(propValue != null);
 
                     var icon = (IconUsage)propValue;
-                    using (var upload = store.Get(icon.Icon.ToString()))
+                    using (var upload = (store as IResourceStore<TextureUpload>)!.Get(icon.Icon.ToString()))
                         Trace.Assert(upload.Data != null);
 
                     if (remainingCount-- == 0)
