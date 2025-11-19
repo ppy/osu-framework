@@ -74,7 +74,7 @@ namespace osu.Framework.Text
         /// </summary>
         public uint Resolution { get; init; } = 100;
 
-        public float Baseline { get; private set; }
+        public float Baseline => 84.0f;
 
         protected readonly ResourceStore<byte[]> Store;
 
@@ -213,12 +213,10 @@ namespace osu.Framework.Text
                 if (error != 0) throw new FreeTypeException(error);
 
                 // ReSharper disable CSharpWarnings::CS8603
-                // https://svn.code.sf.net/p/bmfont/code/trunk/source/fontgen.cpp
-                double lineHeight = (double)native->height / native->units_per_EM;
-                uint emResolution = (uint)Math.Ceiling(Resolution / lineHeight);
-                Baseline = emResolution * ((float)native->ascender / native->units_per_EM);
 
-                // set pixel size
+                // apply fixed scale relative to em box, as a compromise between
+                // CSS-compatible sizing and existing BMFont usage
+                uint emResolution = (uint)Math.Ceiling(Resolution / 1.2);
                 error = FT_Set_Pixel_Sizes(native, 0, emResolution);
 
                 if (error != 0) throw new FreeTypeException(error);
