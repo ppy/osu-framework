@@ -189,6 +189,26 @@ namespace osu.Framework.Graphics.Colour
             return result;
         }
 
+        public readonly ColourInfo MultiplyAlpha(ColourInfo other)
+        {
+            if (other.HasSingleColour && other.singleColour.Alpha == 1.0)
+                return this;
+
+            if (TryExtractSingleColour(out SRGBColour single) && other.TryExtractSingleColour(out SRGBColour alphaSingle))
+            {
+                single.MultiplyAlpha(alphaSingle.Alpha);
+                return single;
+            }
+
+            ColourInfo result = this;
+            result.TopLeft.MultiplyAlpha(other.TopLeft.Alpha);
+            result.BottomLeft.MultiplyAlpha(other.BottomLeft.Alpha);
+            result.TopRight.MultiplyAlpha(other.TopRight.Alpha);
+            result.BottomRight.MultiplyAlpha(other.BottomRight.Alpha);
+
+            return result;
+        }
+
         public readonly bool Equals(ColourInfo other)
         {
             if (!HasSingleColour)
