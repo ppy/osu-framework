@@ -1406,6 +1406,10 @@ namespace osu.Framework.Platform
                     break;
             }
 
+            // If low latency is enabled, we want to limit the draw thread to refresh rate as anything above is unnecessary.
+            if (lowLatencyInitialized && latencyMode.Value != LatencyMode.Off)
+                drawLimiter = refreshRate;
+
             if (!AllowBenchmarkUnlimitedFrames)
             {
                 drawLimiter = Math.Min(maximum_sane_fps, drawLimiter);
