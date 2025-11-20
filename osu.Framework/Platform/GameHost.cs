@@ -1407,8 +1407,12 @@ namespace osu.Framework.Platform
             }
 
             // If low latency is enabled, we want to limit the draw thread to refresh rate as anything above is unnecessary.
+            // Keep Update thread at 1000hz for input & audio responsiveness.
             if (lowLatencyInitialized && latencyMode.Value != LatencyMode.Off)
+            {
                 drawLimiter = refreshRate;
+                updateLimiter = int.MaxValue;
+            }
 
             if (!AllowBenchmarkUnlimitedFrames)
             {
