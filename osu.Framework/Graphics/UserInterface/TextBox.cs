@@ -103,20 +103,22 @@ namespace osu.Framework.Graphics.UserInterface
                 // discard control/special characters.
                 return false;
 
-            var currentNumberFormat = CultureInfo.CurrentCulture.NumberFormat;
-
-            switch (InputProperties.Type)
+            if (InputProperties.Type.IsNumerical())
             {
-                case TextInputType.Decimal:
-                    return char.IsAsciiDigit(character) || currentNumberFormat.NumberDecimalSeparator.Contains(character);
+                bool validNumericalCharacter = false;
 
-                case TextInputType.Number:
-                case TextInputType.NumericalPassword:
-                    return char.IsAsciiDigit(character);
+                var currentNumberFormat = CultureInfo.CurrentCulture.NumberFormat;
 
-                default:
-                    return true;
+                validNumericalCharacter |= char.IsAsciiDigit(character);
+                validNumericalCharacter |= selectionLeft == 0 && currentNumberFormat.NegativeSign.Contains(character);
+
+                if (InputProperties.Type == TextInputType.Decimal)
+                    validNumericalCharacter |= currentNumberFormat.NumberDecimalSeparator.Contains(character);
+
+                return validNumericalCharacter;
             }
+
+            return true;
         }
 
         private bool readOnly;
