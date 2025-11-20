@@ -1242,6 +1242,8 @@ namespace osu.Framework.Platform
 
         private Bindable<FrameSync> frameSyncMode;
 
+        private Bindable<LatencyMode> latencyMode;
+
         private IBindable<DisplayMode> currentDisplayMode;
 
         private Bindable<string> ignoredInputHandlers;
@@ -1279,6 +1281,9 @@ namespace osu.Framework.Platform
 
             frameSyncMode = Config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += _ => updateFrameSyncMode();
+
+            latencyMode = Config.GetBindable<LatencyMode>(FrameworkSetting.LatencyMode);
+            latencyMode.BindValueChanged(mode => setLowLatencyMode(mode.NewValue), true);
 
 #pragma warning disable 618
             // pragma region can be removed 20210911
@@ -1440,8 +1445,7 @@ namespace osu.Framework.Platform
                 if (deviceHandle == IntPtr.Zero) return;
 
                 lowLatency.Initialize(deviceHandle);
-                var currentLatencyMode = Config.GetBindable<LatencyMode>(FrameworkSetting.LatencyMode);
-                SetLowLatencyMode(currentLatencyMode.Value);
+                setLowLatencyMode(latencyMode.Value);
                 lowLatencyInitialized = true;
             }
             catch (Exception)
@@ -1450,7 +1454,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        public void SetLowLatencyMode(LatencyMode mode)
+        private void setLowLatencyMode(LatencyMode mode)
         {
             try
             {
