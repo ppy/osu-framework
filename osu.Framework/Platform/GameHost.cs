@@ -1426,7 +1426,11 @@ namespace osu.Framework.Platform
         private ILowLatencyProvider lowLatency = NoOpLowLatencyProvider.INSTANCE;
         private bool lowLatencyInitialized;
 
-        public void SetLowLatencyProvider(ILowLatencyProvider provider, IntPtr deviceHandle = 0)
+        /// <summary>
+        /// Set the low latency provider to be used by this host.
+        /// </summary>
+        /// <param name="provider">The <see cref="ILowLatencyProvider"/> to use.</param>
+        public void SetLowLatencyProvider(ILowLatencyProvider provider)
         {
             lowLatency = provider ?? NoOpLowLatencyProvider.INSTANCE;
             Logger.Log("Low latency provider set to: " + lowLatency.GetType().ReadableName());
