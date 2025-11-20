@@ -1429,28 +1429,37 @@ namespace osu.Framework.Platform
         public void SetLowLatencyProvider(ILowLatencyProvider provider, IntPtr deviceHandle = 0)
         {
             lowLatency = provider ?? NoOpLowLatencyProvider.INSTANCE;
+            Logger.Log("Low latency provider set to: " + lowLatency.GetType().ReadableName());
             TryInitializeLowLatencyProvider();
         }
 
+        /// <summary>
+        /// Attempts to initialize the low latency provider if it has not already been initialized.
+        /// </summary>
+        /// <remarks>
+        /// This is called automatically after setting a new low latency provider via <see cref="SetLowLatencyProvider(ILowLatencyProvider)"/>.
+        /// It should only be called manually if the provider was set before the renderer was initialized, or if the renderer has changed.
+        /// </remarks>
         internal void TryInitializeLowLatencyProvider()
         {
             if (lowLatencyInitialized || lowLatency is NoOpLowLatencyProvider) return;
-
-            if (Renderer is not IVeldridRenderer veldridRenderer) return;
+            if (Renderer is not IVeldridRenderer veldridRenderer || !Renderer.IsInitialised) return;
 
             try
             {
-                IntPtr deviceHandle = veldridRenderer.Device.GetD3D11Info().Device;
+                Logger.Log("Attempting to initialize low latency provider...");
 
+                IntPtr deviceHandle = veldridRenderer.Device.GetD3D11Info().Device;
                 if (deviceHandle == IntPtr.Zero) return;
 
                 lowLatency.Initialize(deviceHandle);
                 setLowLatencyMode(latencyMode.Value);
                 lowLatencyInitialized = true;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                // ignored
+                // Intentionally not logged as an error, as failure is expected (this method can be run before renderer initialization).
+                Logger.Log("Failed to initialize low latency provider: " + e, level: LogLevel.Important);
             }
         }
 
@@ -1458,12 +1467,11 @@ namespace osu.Framework.Platform
         {
             try
             {
-                Config.GetBindable<LatencyMode>(FrameworkSetting.LatencyMode).Value = mode;
                 lowLatency.SetMode(mode);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                // ignored
+                logException(e, "unobserved");
             }
         }
 
@@ -1475,7 +1483,8 @@ namespace osu.Framework.Platform
             }
             catch (Exception)
             {
-                // ignored
+                // WARNING: Do not log anything here or otherwise catch the error.
+                // This method is called extremely frequently (multiple times per frame) and doing so could cause massive performance degradation.
             }
         }
 
@@ -1485,9 +1494,9 @@ namespace osu.Framework.Platform
             {
                 lowLatency.FrameSleep();
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                // ignored
+                logException(e, "unobserved");
             }
         }
 
