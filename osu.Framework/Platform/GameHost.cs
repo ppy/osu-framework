@@ -1427,17 +1427,17 @@ namespace osu.Framework.Platform
             DrawThread.Scheduler.Add(() => Renderer.VerticalSync = frameSyncMode.Value == FrameSync.VSync);
         }
 
-        private ILowLatencyProvider lowLatency = NoOpLowLatencyProvider.INSTANCE;
+        private IDirect3D11LowLatencyProvider direct3D11LowLatency = NoOpDirect3D11LowLatencyProvider.INSTANCE;
         private bool lowLatencyInitialized;
 
         /// <summary>
         /// Set the low latency provider to be used by this host.
         /// </summary>
-        /// <param name="provider">The <see cref="ILowLatencyProvider"/> to use.</param>
-        public void SetLowLatencyProvider(ILowLatencyProvider provider)
+        /// <param name="provider">The <see cref="IDirect3D11LowLatencyProvider"/> to use.</param>
+        public void SetLowLatencyProvider(IDirect3D11LowLatencyProvider provider)
         {
-            lowLatency = provider ?? NoOpLowLatencyProvider.INSTANCE;
-            Logger.Log("Low latency provider set to: " + lowLatency.GetType().ReadableName());
+            direct3D11LowLatency = provider ?? NoOpDirect3D11LowLatencyProvider.INSTANCE;
+            Logger.Log("Low latency provider set to: " + direct3D11LowLatency.GetType().ReadableName());
             TryInitializeLowLatencyProvider();
         }
 
@@ -1445,12 +1445,12 @@ namespace osu.Framework.Platform
         /// Attempts to initialize the low latency provider if it has not already been initialized.
         /// </summary>
         /// <remarks>
-        /// This is called automatically after setting a new low latency provider via <see cref="SetLowLatencyProvider(ILowLatencyProvider)"/>.
+        /// This is called automatically after setting a new low latency provider via <see cref="SetLowLatencyProvider(IDirect3D11LowLatencyProvider)"/>.
         /// It should only be called manually if the provider was set before the renderer was initialized, or if the renderer has changed.
         /// </remarks>
         internal void TryInitializeLowLatencyProvider()
         {
-            if (lowLatencyInitialized || lowLatency is NoOpLowLatencyProvider) return;
+            if (lowLatencyInitialized || direct3D11LowLatency is NoOpDirect3D11LowLatencyProvider) return;
             if (Renderer is not IVeldridRenderer veldridRenderer || !Renderer.IsInitialised) return;
 
             try
@@ -1460,7 +1460,7 @@ namespace osu.Framework.Platform
                 IntPtr deviceHandle = veldridRenderer.Device.GetD3D11Info().Device;
                 if (deviceHandle == IntPtr.Zero) return;
 
-                lowLatency.Initialize(deviceHandle);
+                direct3D11LowLatency.Initialize(deviceHandle);
                 setLowLatencyMode(latencyMode.Value);
                 lowLatencyInitialized = true;
             }
@@ -1475,7 +1475,7 @@ namespace osu.Framework.Platform
         {
             try
             {
-                lowLatency.SetMode(mode);
+                direct3D11LowLatency.SetMode(mode);
             }
             catch (Exception e)
             {
@@ -1487,7 +1487,7 @@ namespace osu.Framework.Platform
         {
             try
             {
-                lowLatency.SetMarker(marker, frameId);
+                direct3D11LowLatency.SetMarker(marker, frameId);
             }
             catch (Exception)
             {
@@ -1500,7 +1500,7 @@ namespace osu.Framework.Platform
         {
             try
             {
-                lowLatency.FrameSleep();
+                direct3D11LowLatency.FrameSleep();
             }
             catch (Exception e)
             {

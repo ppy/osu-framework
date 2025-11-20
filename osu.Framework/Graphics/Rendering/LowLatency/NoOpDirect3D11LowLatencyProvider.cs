@@ -5,9 +5,9 @@ using System;
 
 namespace osu.Framework.Graphics.Rendering.LowLatency
 {
-    internal sealed class NoOpLowLatencyProvider : ILowLatencyProvider
+    internal sealed class NoOpDirect3D11LowLatencyProvider : IDirect3D11LowLatencyProvider
     {
-        public static readonly NoOpLowLatencyProvider INSTANCE = new NoOpLowLatencyProvider();
+        public static readonly NoOpDirect3D11LowLatencyProvider INSTANCE = new NoOpDirect3D11LowLatencyProvider();
 
         public bool IsAvailable => false;
 

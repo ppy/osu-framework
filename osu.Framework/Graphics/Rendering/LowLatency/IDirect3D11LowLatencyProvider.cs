@@ -5,7 +5,7 @@ using System;
 
 namespace osu.Framework.Graphics.Rendering.LowLatency
 {
-    public interface ILowLatencyProvider
+    public interface IDirect3D11LowLatencyProvider
     {
         bool IsAvailable { get; }
 
