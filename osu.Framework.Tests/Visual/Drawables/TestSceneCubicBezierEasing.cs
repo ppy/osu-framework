@@ -23,7 +23,6 @@ namespace osu.Framework.Tests.Visual.Drawables
     {
         private SpriteText easingText = null!;
         private EasingEditor easingEditor = null!;
-        private BasicButton copyButton = null!;
 
         [Resolved]
         private Clipboard clipboard { get; set; } = null!;
@@ -64,7 +63,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                                         Origin = Anchor.CentreLeft,
                                         Width = 420,
                                     },
-                                    copyButton = new BasicButton
+                                    new BasicButton
                                     {
                                         AutoSizeAxes = Axes.Y,
                                         Width = 50,
@@ -87,7 +86,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             {
                 var easing = e.NewValue;
 
-                easingText.Text = FormattableString.Invariant($"new CubicBezierEasingFunction({easing.X1:0.##}, {easing.Y1:0.##}, {easing.X2:0.##}, {easing.Y2:0.##})");
+                easingText.Text = FormattableString.Invariant($"new {nameof(CubicBezierEasingFunction)}({easing.X1:0.##}, {easing.Y1:0.##}, {easing.X2:0.##}, {easing.Y2:0.##})");
             });
         }
 
