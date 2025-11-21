@@ -39,7 +39,7 @@
     <PackageReference Include="StbiSharp" Version="1.1.0" />
     <PackageReference Include="ppy.SDL2-CS" Version="1.0.741-alpha" />
     <PackageReference Include="ppy.SDL3-CS" Version="2025.1118.0" />
-    <PackageReference Include="ppy.osu.Framework.SourceGeneration" Version="2024.1128.0" />
+    <PackageReference Include="ppy.osu.Framework.SourceGeneration" Version="2025.1121.1" />
 
     <!-- DO NOT use ProjectReference for native packaging project.
          See https://github.com/NuGet/Home/issues/4514 and https://github.com/dotnet/sdk/issues/765 . -->
