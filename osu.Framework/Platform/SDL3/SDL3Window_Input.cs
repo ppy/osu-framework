@@ -11,6 +11,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
+using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.States;
 using osu.Framework.Logging;
 using osuTK;
@@ -530,14 +531,16 @@ namespace osu.Framework.Platform.SDL3
 
         private void handleKeymapChangedEvent() => KeymapChanged?.Invoke();
 
+        private static TabletPenDeviceType getPenType(SDL_PenID instanceID) => SDL_GetPenDeviceType(instanceID).ToTabletPenDeviceType();
+
         private void handlePenMotionEvent(SDL_PenMotionEvent evtPenMotion)
         {
-            PenMove?.Invoke(new Vector2(evtPenMotion.x, evtPenMotion.y) * Scale, evtPenMotion.pen_state.HasFlagFast(SDL_PenInputFlags.SDL_PEN_INPUT_DOWN));
+            PenMove?.Invoke(getPenType(evtPenMotion.which), new Vector2(evtPenMotion.x, evtPenMotion.y) * Scale, evtPenMotion.pen_state.HasFlagFast(SDL_PenInputFlags.SDL_PEN_INPUT_DOWN));
         }
 
         private void handlePenTouchEvent(SDL_PenTouchEvent evtPenTouch)
         {
-            PenTouch?.Invoke(evtPenTouch.down, new Vector2(evtPenTouch.x, evtPenTouch.y) * Scale);
+            PenTouch?.Invoke(getPenType(evtPenTouch.which), evtPenTouch.down, new Vector2(evtPenTouch.x, evtPenTouch.y) * Scale);
         }
 
         /// <summary>
@@ -745,13 +748,13 @@ namespace osu.Framework.Platform.SDL3
         /// <summary>
         /// Invoked when a pen moves. Passes pen position and whether the pen is touching the tablet surface.
         /// </summary>
-        public event Action<Vector2, bool>? PenMove;
+        public event Action<TabletPenDeviceType, Vector2, bool>? PenMove;
 
         /// <summary>
         /// Invoked when a pen touches (<c>true</c>) or lifts (<c>false</c>) from the tablet surface.
         /// Also passes the current position of the pen.
         /// </summary>
-        public event Action<bool, Vector2>? PenTouch;
+        public event Action<TabletPenDeviceType, bool, Vector2>? PenTouch;
 
         /// <summary>
         /// Invoked when a <see cref="TabletPenButton">pen button</see> is pressed (<c>true</c>) or released (<c>false</c>).
