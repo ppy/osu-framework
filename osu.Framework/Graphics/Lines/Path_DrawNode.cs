@@ -2,17 +2,16 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Textures;
 using osuTK;
 using System;
 using System.Collections.Generic;
-using osuTK.Graphics;
-using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using osu.Framework.Utils;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Lines
 {
@@ -26,12 +25,10 @@ namespace osu.Framework.Graphics.Lines
 
             private readonly List<Line> segments = new List<Line>();
 
-            private Texture? texture;
-            private Vector2 drawSize;
             private float radius;
             private IShader? pathShader;
 
-            private IVertexBatch<TexturedVertex3D>? triangleBatch;
+            private IVertexBatch<PathVertex>? triangleBatch;
 
             public PathDrawNode(Path source)
                 : base(source)
@@ -45,8 +42,6 @@ namespace osu.Framework.Graphics.Lines
                 segments.Clear();
                 segments.AddRange(Source.segments);
 
-                texture = Source.Texture;
-                drawSize = Source.DrawSize;
                 radius = Source.PathRadius;
                 pathShader = Source.pathShader;
             }
@@ -55,136 +50,65 @@ namespace osu.Framework.Graphics.Lines
             {
                 base.Draw(renderer);
 
-                if (texture?.Available != true || segments.Count == 0 || pathShader == null)
+                if (segments.Count == 0 || pathShader == null || radius == 0f)
                     return;
 
                 // We multiply the size args by 3 such that the amount of vertices is a multiple of the amount of vertices
                 // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
                 // grouping of vertices into primitives.
-                triangleBatch ??= renderer.CreateLinearBatch<TexturedVertex3D>(max_res * 200 * 3, 10, PrimitiveTopology.Triangles);
+                triangleBatch ??= renderer.CreateLinearBatch<PathVertex>(max_res * 200 * 3, 10, PrimitiveTopology.Triangles);
 
                 renderer.PushLocalMatrix(DrawInfo.Matrix);
-                renderer.PushDepthInfo(DepthInfo.Default);
 
-                // Blending is removed to allow for correct blending between the wedges of the path.
-                renderer.SetBlend(BlendingParameters.None);
+                renderer.SetBlend(new BlendingParameters
+                {
+                    Source = BlendingType.One,
+                    Destination = BlendingType.One,
+                    SourceAlpha = BlendingType.One,
+                    DestinationAlpha = BlendingType.One,
+                    RGBEquation = BlendingEquation.Max,
+                    AlphaEquation = BlendingEquation.Max,
+                });
 
                 pathShader.Bind();
-
-                texture.Bind();
 
                 updateVertexBuffer();
 
                 pathShader.Unbind();
 
-                renderer.PopDepthInfo();
                 renderer.PopLocalMatrix();
             }
 
-            private Vector2 pointOnCircle(float angle) => new Vector2(MathF.Cos(angle), MathF.Sin(angle));
-
-            private Vector2 relativePosition(Vector2 localPos) => Vector2.Divide(localPos, drawSize);
-
-            private Color4 colourAt(Vector2 localPos) => DrawColourInfo.Colour.TryExtractSingleColour(out SRGBColour colour)
-                ? colour.SRGB
-                : DrawColourInfo.Colour.Interpolate(relativePosition(localPos)).SRGB;
-
-            private void addSegmentQuads(SegmentWithThickness segment, RectangleF texRect)
+            private void addCap(Line cap)
             {
-                Debug.Assert(triangleBatch != null);
+                // The provided line is perpendicular to the end/start of a segment.
+                // To get the remaining quad positions we are expanding said segment by the path radius.
+                Vector2 ortho = cap.OrthogonalDirection;
+                if (float.IsNaN(ortho.X) || float.IsNaN(ortho.Y))
+                    ortho = Vector2.UnitY;
 
-                // Each segment of the path is actually rendered as 2 quads, being split in half along the approximating line.
-                // On this line the depth is 1 instead of 0, which is done in order to properly handle self-overlap using the depth buffer.
-                Vector3 firstMiddlePoint = new Vector3(segment.Guide.StartPoint.X, segment.Guide.StartPoint.Y, 1);
-                Vector3 secondMiddlePoint = new Vector3(segment.Guide.EndPoint.X, segment.Guide.EndPoint.Y, 1);
-                Color4 firstMiddleColour = colourAt(segment.Guide.StartPoint);
-                Color4 secondMiddleColour = colourAt(segment.Guide.EndPoint);
+                Vector2 v2 = cap.StartPoint + ortho * radius;
+                Vector2 v3 = cap.EndPoint + ortho * radius;
 
-                // Each of the quads (mentioned above) is rendered as 2 triangles:
-                // Outer quad, triangle 1
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = new Vector3(segment.EdgeRight.EndPoint.X, segment.EdgeRight.EndPoint.Y, 0),
-                    TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segment.EdgeRight.EndPoint)
-                });
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = new Vector3(segment.EdgeRight.StartPoint.X, segment.EdgeRight.StartPoint.Y, 0),
-                    TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segment.EdgeRight.StartPoint)
-                });
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = firstMiddlePoint,
-                    TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                    Colour = firstMiddleColour
-                });
-
-                // Outer quad, triangle 2
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = firstMiddlePoint,
-                    TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                    Colour = firstMiddleColour
-                });
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = secondMiddlePoint,
-                    TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                    Colour = secondMiddleColour
-                });
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = new Vector3(segment.EdgeRight.EndPoint.X, segment.EdgeRight.EndPoint.Y, 0),
-                    TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segment.EdgeRight.EndPoint)
-                });
-
-                // Inner quad, triangle 1
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = firstMiddlePoint,
-                    TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                    Colour = firstMiddleColour
-                });
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = secondMiddlePoint,
-                    TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                    Colour = secondMiddleColour
-                });
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = new Vector3(segment.EdgeLeft.EndPoint.X, segment.EdgeLeft.EndPoint.Y, 0),
-                    TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segment.EdgeLeft.EndPoint)
-                });
-
-                // Inner quad, triangle 2
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = new Vector3(segment.EdgeLeft.EndPoint.X, segment.EdgeLeft.EndPoint.Y, 0),
-                    TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segment.EdgeLeft.EndPoint)
-                });
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = new Vector3(segment.EdgeLeft.StartPoint.X, segment.EdgeLeft.StartPoint.Y, 0),
-                    TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                    Colour = colourAt(segment.EdgeLeft.StartPoint)
-                });
-                triangleBatch.Add(new TexturedVertex3D
-                {
-                    Position = firstMiddlePoint,
-                    TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                    Colour = firstMiddleColour
-                });
+                drawQuad
+                (
+                    new Quad(cap.StartPoint, v2, cap.EndPoint, v3),
+                    new Quad(new Vector2(0, -1), new Vector2(1, -1), new Vector2(0, 1), Vector2.One)
+                );
             }
 
-            private void addSegmentCaps(float thetaDiff, Line segmentLeft, Line segmentRight, Line prevSegmentLeft, Line prevSegmentRight, RectangleF texRect)
+            private void addSegmentQuad(DrawableSegment segment)
             {
-                Debug.Assert(triangleBatch != null);
+                drawQuad
+                (
+                    segment.DrawQuad,
+                    new Quad(new Vector2(0, -1), new Vector2(0, -1), new Vector2(0, 1), new Vector2(0, 1))
+                );
+            }
+
+            private void addConnectionBetween(DrawableSegment segment, DrawableSegment prevSegment)
+            {
+                float thetaDiff = segment.Guide.Theta - prevSegment.Guide.Theta;
 
                 if (Math.Abs(thetaDiff) > MathF.PI)
                     thetaDiff = -Math.Sign(thetaDiff) * 2 * MathF.PI + thetaDiff;
@@ -192,83 +116,129 @@ namespace osu.Framework.Graphics.Lines
                 if (thetaDiff == 0f)
                     return;
 
-                Vector2 origin = (segmentLeft.StartPoint + segmentRight.StartPoint) / 2;
-
-                // Use segment end points instead of calculating start/end via theta to guarantee
-                // that the vertices have the exact same position as the quads, which prevents
-                // possible pixel gaps during rasterization.
-                Vector2 current = thetaDiff > 0f ? prevSegmentRight.EndPoint : prevSegmentLeft.EndPoint;
-                Vector2 end = thetaDiff > 0f ? segmentRight.StartPoint : segmentLeft.StartPoint;
-
-                Line start = thetaDiff > 0f ? new Line(prevSegmentLeft.EndPoint, prevSegmentRight.EndPoint) : new Line(prevSegmentRight.EndPoint, prevSegmentLeft.EndPoint);
-                float theta0 = start.Theta;
-                float thetaStep = Math.Sign(thetaDiff) * MathF.PI / max_res;
-                int stepCount = (int)MathF.Ceiling(thetaDiff / thetaStep);
-
-                Color4 originColour = colourAt(origin);
-                Color4 currentColour = colourAt(current);
-
-                for (int i = 1; i <= stepCount; i++)
+                // more than 90 degrees - add end cap to the previous segment
+                if (Math.Abs(thetaDiff) > Math.PI * 0.5)
                 {
-                    // Center point
-                    triangleBatch.Add(new TexturedVertex3D
-                    {
-                        Position = new Vector3(origin.X, origin.Y, 1),
-                        TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
-                        Colour = originColour
-                    });
-
-                    // First outer point
-                    triangleBatch.Add(new TexturedVertex3D
-                    {
-                        Position = new Vector3(current.X, current.Y, 0),
-                        TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                        Colour = currentColour
-                    });
-
-                    current = i < stepCount ? origin + pointOnCircle(theta0 + i * thetaStep) * radius : end;
-                    currentColour = colourAt(current);
-
-                    // Second outer point
-                    triangleBatch.Add(new TexturedVertex3D
-                    {
-                        Position = new Vector3(current.X, current.Y, 0),
-                        TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
-                        Colour = currentColour
-                    });
+                    addEndCap(prevSegment);
+                    return;
                 }
+
+                Vector2 origin = segment.Guide.StartPoint;
+                Line end = thetaDiff > 0f ? new Line(segment.BottomLeft, segment.TopLeft) : new Line(segment.TopLeft, segment.BottomLeft);
+                Line start = thetaDiff > 0f ? new Line(prevSegment.TopRight, prevSegment.BottomRight) : new Line(prevSegment.BottomRight, prevSegment.TopRight);
+
+                // position of a vertex which is located slightly below segments intersection
+                Vector2 innerVertex = Vector2.Lerp(start.StartPoint, end.EndPoint, 0.5f);
+
+                // at this small angle curvature of the connection isn't noticeable, we can get away with a single triangle
+                if (Math.Abs(thetaDiff) < Math.PI / max_res)
+                {
+                    drawTriangle(new Triangle(start.EndPoint, innerVertex, end.StartPoint), origin);
+                    return;
+                }
+
+                // 2 triangles for the remaining cases
+                Vector2 middle1 = Vector2.Lerp(start.EndPoint, end.StartPoint, 0.5f);
+                Vector2 outerVertex = Vector2.Lerp(origin, middle1, radius / (float)Math.Cos(Math.Abs(thetaDiff) * 0.5) / Vector2.Distance(origin, middle1));
+                drawQuad(new Quad(start.EndPoint, outerVertex, innerVertex, end.StartPoint), origin);
+            }
+
+            private void drawTriangle(Triangle triangle, Vector2 origin)
+            {
+                drawTriangle
+                (
+                    triangle,
+                    new Triangle
+                    (
+                        Vector2.Divide(triangle.P0 - origin, radius),
+                        Vector2.Divide(triangle.P1 - origin, radius),
+                        Vector2.Divide(triangle.P2 - origin, radius)
+                    )
+                );
+            }
+
+            private void drawTriangle(Triangle triangle, Triangle relativePos)
+            {
+                Debug.Assert(triangleBatch != null);
+
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = triangle.P0,
+                    RelativePos = relativePos.P0
+                });
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = triangle.P1,
+                    RelativePos = relativePos.P1
+                });
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = triangle.P2,
+                    RelativePos = relativePos.P2
+                });
+            }
+
+            private void drawQuad(Quad quad, Vector2 origin)
+            {
+                drawQuad
+                (
+                    quad,
+                    new Quad
+                    (
+                        Vector2.Divide(quad.TopLeft - origin, radius),
+                        Vector2.Divide(quad.TopRight - origin, radius),
+                        Vector2.Divide(quad.BottomLeft - origin, radius),
+                        Vector2.Divide(quad.BottomRight - origin, radius)
+                    )
+                );
+            }
+
+            private void drawQuad(Quad quad, Quad relativePos)
+            {
+                Debug.Assert(triangleBatch != null);
+
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = quad.TopLeft,
+                    RelativePos = relativePos.TopLeft
+                });
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = quad.TopRight,
+                    RelativePos = relativePos.TopRight
+                });
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = quad.BottomLeft,
+                    RelativePos = relativePos.BottomLeft
+                });
+
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = quad.BottomLeft,
+                    RelativePos = relativePos.BottomLeft
+                });
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = quad.TopRight,
+                    RelativePos = relativePos.TopRight
+                });
+                triangleBatch.Add(new PathVertex
+                {
+                    Position = quad.BottomRight,
+                    RelativePos = relativePos.BottomRight
+                });
             }
 
             private void updateVertexBuffer()
             {
-                // Explanation of the terms "left" and "right":
-                // "Left" and "right" are used here in terms of a typical (Cartesian) coordinate system.
-                // So "left" corresponds to positive angles (anti-clockwise), and "right" corresponds
-                // to negative angles (clockwise).
-                //
-                // Note that this is not the same as the actually used coordinate system, in which the
-                // y-axis is flipped. In this system, "left" corresponds to negative angles (clockwise)
-                // and "right" corresponds to positive angles (anti-clockwise).
-                //
-                // Using a Cartesian system makes the calculations more consistent with typical math,
-                // such as in angle<->coordinate conversions and ortho vectors. For example, the x-unit
-                // vector (1, 0) has the orthogonal y-unit vector (0, 1). This would be "left" in the
-                // Cartesian system. But in the actual system, it's "right" and clockwise. Where
-                // this becomes confusing is during debugging, because OpenGL uses a Cartesian system.
-                // So to make debugging a bit easier (i.e. w/ RenderDoc or Nsight), this code uses terms
-                // that make sense in the realm of OpenGL, rather than terms which  are technically
-                // accurate in the actually used "flipped" system.
-
-                Debug.Assert(texture != null);
                 Debug.Assert(segments.Count > 0);
-
-                RectangleF texRect = texture.GetTextureRect(new RectangleF(0.5f, 0.5f, texture.Width - 1, texture.Height - 1));
 
                 Line? segmentToDraw = null;
                 SegmentStartLocation location = SegmentStartLocation.Outside;
                 SegmentStartLocation modifiedLocation = SegmentStartLocation.Outside;
                 SegmentStartLocation nextLocation = SegmentStartLocation.End;
-                SegmentWithThickness? lastDrawnSegment = null;
+                DrawableSegment? lastDrawnSegment = null;
 
                 for (int i = 0; i < segments.Count; i++)
                 {
@@ -309,9 +279,9 @@ namespace osu.Framework.Graphics.Lines
                         }
                         else // Otherwise draw the expanded segment
                         {
-                            SegmentWithThickness s = new SegmentWithThickness(segmentToDraw.Value, radius, location, modifiedLocation);
-                            addSegmentQuads(s, texRect);
-                            connect(s, lastDrawnSegment, texRect);
+                            DrawableSegment s = new DrawableSegment(segmentToDraw.Value, radius, location, modifiedLocation);
+                            addSegmentQuad(s);
+                            connect(s, lastDrawnSegment);
 
                             lastDrawnSegment = s;
                             segmentToDraw = segments[i];
@@ -328,22 +298,22 @@ namespace osu.Framework.Graphics.Lines
                 // Finish drawing last segment (if exists)
                 if (segmentToDraw.HasValue)
                 {
-                    SegmentWithThickness s = new SegmentWithThickness(segmentToDraw.Value, radius, location, modifiedLocation);
-                    addSegmentQuads(s, texRect);
-                    connect(s, lastDrawnSegment, texRect);
-                    addEndCap(s, texRect);
+                    DrawableSegment s = new DrawableSegment(segmentToDraw.Value, radius, location, modifiedLocation);
+                    addSegmentQuad(s);
+                    connect(s, lastDrawnSegment);
+                    addEndCap(s);
                 }
             }
 
             /// <summary>
             /// Connects the start of the segment to the end of a previous one.
             /// </summary>
-            private void connect(SegmentWithThickness segment, SegmentWithThickness? prevSegment, RectangleF texRect)
+            private void connect(DrawableSegment segment, DrawableSegment? prevSegment)
             {
                 if (!prevSegment.HasValue)
                 {
                     // Nothing to connect to - add start cap
-                    addStartCap(segment, texRect);
+                    addStartCap(segment);
                     return;
                 }
 
@@ -352,13 +322,13 @@ namespace osu.Framework.Graphics.Lines
                     default:
                     case SegmentStartLocation.End:
                         // Segment starts at the end of the previous one
-                        addConnectionBetween(segment, prevSegment.Value, texRect);
+                        addConnectionBetween(segment, prevSegment.Value);
                         break;
 
                     case SegmentStartLocation.Start:
                     case SegmentStartLocation.Middle:
                         // Segment starts at the start or the middle of the previous one - add end cap to the previous segment
-                        addEndCap(prevSegment.Value, texRect);
+                        addEndCap(prevSegment.Value);
                         break;
 
                     case SegmentStartLocation.Outside:
@@ -372,39 +342,19 @@ namespace osu.Framework.Graphics.Lines
                         // line since horizontal one will pass through it. However, that wouldn't be the case if horizontal line was located at
                         // the middle and so end cap would be required.
                         if (segment.StartLocation != SegmentStartLocation.End)
-                            addEndCap(prevSegment.Value, texRect);
+                            addEndCap(prevSegment.Value);
 
                         // add start cap to the current one
-                        addStartCap(segment, texRect);
+                        addStartCap(segment);
                         break;
                 }
             }
 
-            private void addConnectionBetween(SegmentWithThickness segment, SegmentWithThickness prevSegment, RectangleF texRect)
-            {
-                float thetaDiff = segment.Guide.Theta - prevSegment.Guide.Theta;
-                addSegmentCaps(thetaDiff, segment.EdgeLeft, segment.EdgeRight, prevSegment.EdgeLeft, prevSegment.EdgeRight, texRect);
-            }
+            private void addEndCap(DrawableSegment segment) =>
+                addCap(new Line(segment.TopRight, segment.BottomRight));
 
-            private void addEndCap(SegmentWithThickness segment, RectangleF texRect)
-            {
-                // Explanation of semi-circle caps:
-                // Semi-circles are essentially 180 degree caps. So to create these caps, we
-                // can simply "fake" a segment that's 180 degrees flipped. This works because
-                // we are taking advantage of the fact that a path which makes a 180 degree
-                // bend would have a semi-circle cap.
-
-                Line flippedLeft = new Line(segment.EdgeRight.EndPoint, segment.EdgeRight.StartPoint);
-                Line flippedRight = new Line(segment.EdgeLeft.EndPoint, segment.EdgeLeft.StartPoint);
-                addSegmentCaps(MathF.PI, flippedLeft, flippedRight, segment.EdgeLeft, segment.EdgeRight, texRect);
-            }
-
-            private void addStartCap(SegmentWithThickness segment, RectangleF texRect)
-            {
-                Line flippedLeft = new Line(segment.EdgeRight.EndPoint, segment.EdgeRight.StartPoint);
-                Line flippedRight = new Line(segment.EdgeLeft.EndPoint, segment.EdgeLeft.StartPoint);
-                addSegmentCaps(MathF.PI, segment.EdgeLeft, segment.EdgeRight, flippedLeft, flippedRight, texRect);
-            }
+            private void addStartCap(DrawableSegment segment) =>
+                addCap(new Line(segment.BottomLeft, segment.TopLeft));
 
             private static float progressFor(Line line, float length, Vector2 point)
             {
@@ -427,38 +377,53 @@ namespace osu.Framework.Graphics.Lines
                 Outside
             }
 
-            private readonly struct SegmentWithThickness
+            private readonly struct DrawableSegment
             {
                 /// <summary>
-                /// The line defining this <see cref="SegmentWithThickness"/>.
+                /// The line defining this <see cref="DrawableSegment"/>.
                 /// </summary>
                 public Line Guide { get; }
 
                 /// <summary>
-                /// The line parallel to <see cref="Guide"/> and located on the left side of it.
+                /// The draw quad of this <see cref="DrawableSegment"/>.
                 /// </summary>
-                public Line EdgeLeft { get; }
+                public Quad DrawQuad { get; }
 
                 /// <summary>
-                /// The line parallel to <see cref="Guide"/> and located on the right side of it.
+                /// The top-left position of the <see cref="DrawQuad"/> of this <see cref="DrawableSegment"/>.
                 /// </summary>
-                public Line EdgeRight { get; }
+                public Vector2 TopLeft => DrawQuad.TopLeft;
 
                 /// <summary>
-                /// Position of this <see cref="SegmentWithThickness"/> relative to the previous one.
+                /// The top-right position of the <see cref="DrawQuad"/> of this <see cref="DrawableSegment"/>.
+                /// </summary>
+                public Vector2 TopRight => DrawQuad.TopRight;
+
+                /// <summary>
+                /// The bottom-left position of the <see cref="DrawQuad"/> of this <see cref="DrawableSegment"/>.
+                /// </summary>
+                public Vector2 BottomLeft => DrawQuad.BottomLeft;
+
+                /// <summary>
+                /// The bottom-right position of the <see cref="DrawQuad"/> of this <see cref="DrawableSegment"/>.
+                /// </summary>
+                public Vector2 BottomRight => DrawQuad.BottomRight;
+
+                /// <summary>
+                /// Position of this <see cref="DrawableSegment"/> relative to the previous one.
                 /// </summary>
                 public SegmentStartLocation StartLocation { get; }
 
                 /// <summary>
-                /// Position of this modified <see cref="SegmentWithThickness"/> relative to the previous one.
+                /// Position of this modified <see cref="DrawableSegment"/> relative to the previous one.
                 /// </summary>
                 public SegmentStartLocation ModifiedStartLocation { get; }
 
-                /// <param name="guide">The line defining this <see cref="SegmentWithThickness"/>.</param>
-                /// <param name="distance">The distance at which <see cref="EdgeLeft"/> and <see cref="EdgeRight"/> will be located from the <see cref="Guide"/>.</param>
-                /// <param name="startLocation">Position of this <see cref="SegmentWithThickness"/> relative to the previous one.</param>
-                /// <param name="modifiedStartLocation">Position of this modified <see cref="SegmentWithThickness"/> relative to the previous one.</param>
-                public SegmentWithThickness(Line guide, float distance, SegmentStartLocation startLocation, SegmentStartLocation modifiedStartLocation)
+                /// <param name="guide">The line defining this <see cref="DrawableSegment"/>.</param>
+                /// <param name="radius">The path radius.</param>
+                /// <param name="startLocation">Position of this <see cref="DrawableSegment"/> relative to the previous one.</param>
+                /// <param name="modifiedStartLocation">Position of this modified <see cref="DrawableSegment"/> relative to the previous one.</param>
+                public DrawableSegment(Line guide, float radius, SegmentStartLocation startLocation, SegmentStartLocation modifiedStartLocation)
                 {
                     Guide = guide;
                     StartLocation = startLocation;
@@ -468,9 +433,33 @@ namespace osu.Framework.Graphics.Lines
                     if (float.IsNaN(ortho.X) || float.IsNaN(ortho.Y))
                         ortho = Vector2.UnitY;
 
-                    EdgeLeft = new Line(Guide.StartPoint + ortho * distance, Guide.EndPoint + ortho * distance);
-                    EdgeRight = new Line(Guide.StartPoint - ortho * distance, Guide.EndPoint - ortho * distance);
+                    DrawQuad = new Quad
+                    (
+                        Guide.StartPoint + ortho * radius,
+                        Guide.EndPoint + ortho * radius,
+                        Guide.StartPoint - ortho * radius,
+                        Guide.EndPoint - ortho * radius
+                    );
                 }
+            }
+
+            [StructLayout(LayoutKind.Sequential)]
+            public struct PathVertex : IEquatable<PathVertex>, IVertex
+            {
+                [VertexMember(2, VertexAttribPointerType.Float)]
+                public Vector2 Position;
+
+                /// <summary>
+                /// A position of a vertex, where distance from that position to (0,0) defines it's colour.
+                /// Distance 0 means white and 1 means black.
+                /// This position is being interpolated between vertices and final colour is being applied in the fragment shader.
+                /// </summary>
+                [VertexMember(2, VertexAttribPointerType.Float)]
+                public Vector2 RelativePos;
+
+                public readonly bool Equals(PathVertex other) =>
+                    Position.Equals(other.Position)
+                    && RelativePos.Equals(other.RelativePos);
             }
         }
     }
