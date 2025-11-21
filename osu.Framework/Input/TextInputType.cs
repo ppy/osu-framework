@@ -66,6 +66,20 @@ namespace osu.Framework.Input
             }
         }
 
+        public static bool IsNumerical(this TextInputType type)
+        {
+            switch (type)
+            {
+                case TextInputType.Number:
+                case TextInputType.NumericalPassword:
+                case TextInputType.Decimal:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
         public static bool SupportsIme(this TextInputType type) => type == TextInputType.Name || type == TextInputType.Text;
     }
 }
