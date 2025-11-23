@@ -405,6 +405,8 @@ namespace osu.Framework.Text
                     // The special case where a `name` record with a special
                     // encoding ID (3, 4, 5) is encoded in UTF-16BE is not
                     // supported.
+                    try
+                    {
                     switch (nameEntry->encoding_id)
                     {
                         case 3: // GBK
@@ -418,6 +420,15 @@ namespace osu.Framework.Text
 
                         default:
                             return Encoding.BigEndianUnicode.GetString(span);
+                        }
+                    }
+                    catch (ArgumentException)
+                    {
+                        return null;
+                    }
+                    catch (NotSupportedException)
+                    {
+                        return null;
                     }
 
                 default:
