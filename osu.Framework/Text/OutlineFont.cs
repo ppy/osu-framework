@@ -65,7 +65,7 @@ namespace osu.Framework.Text
         public string AssetName => AssetPath.Split('/').Last();
 
         /// <summary>
-        /// The index of the face to use.
+        /// The font's index in a font collection.
         /// </summary>
         public int FaceIndex { get; }
 
@@ -99,7 +99,14 @@ namespace osu.Framework.Text
         /// </summary>
         /// <param name="store">The resource store to use.</param>
         /// <param name="assetName">The font to open.</param>
-        /// <param name="faceIndex">The index of the face to use.</param>
+        /// <param name="faceIndex">
+        /// The index of the font in the file. Set to 0 (the default) if
+        /// the file is not a collection (<c>.ttc</c>).
+        /// </param>
+        /// <remarks>
+        /// Calling the constructor alone does not load the font. To load it, call
+        /// <see cref="LoadAsync"/>.
+        /// </remarks>
         public OutlineFont(IResourceStore<byte[]> store, string assetName, int faceIndex = 0)
         {
             Store = new ResourceStore<byte[]>(store);
@@ -380,9 +387,6 @@ namespace osu.Framework.Text
         /// </summary>
         /// <param name="nameEntry">The name entry to decode.</param>
         /// <returns>The name entry in UTF-16.</returns>
-        /// <exception cref="InvalidDataException">
-        /// The name entry encoding cannot be recognized.
-        /// </exception>
         /// <seealso href="https://learn.microsoft.com/en-us/typography/opentype/spec/name"/>
         private static unsafe string? decodeNameEntry(FT_SfntName_* nameEntry)
         {
@@ -407,19 +411,19 @@ namespace osu.Framework.Text
                     // supported.
                     try
                     {
-                    switch (nameEntry->encoding_id)
-                    {
-                        case 3: // GBK
-                            return Encoding.GetEncoding(936).GetString(span);
+                        switch (nameEntry->encoding_id)
+                        {
+                            case 3: // GBK
+                                return Encoding.GetEncoding(936).GetString(span);
 
-                        case 4: // Big5
-                            return Encoding.GetEncoding(950).GetString(span);
+                            case 4: // Big5
+                                return Encoding.GetEncoding(950).GetString(span);
 
-                        case 5: // Wansung
-                            return Encoding.GetEncoding(949).GetString(span);
+                            case 5: // Wansung
+                                return Encoding.GetEncoding(949).GetString(span);
 
-                        default:
-                            return Encoding.BigEndianUnicode.GetString(span);
+                            default:
+                                return Encoding.BigEndianUnicode.GetString(span);
                         }
                     }
                     catch (ArgumentException)
@@ -438,6 +442,11 @@ namespace osu.Framework.Text
             }
         }
 
+        /// <summary>
+        /// Decode a font variation.
+        /// </summary>
+        /// <param name="variation">The font variation specified by the user.</param>
+        /// <returns>The decoded font variation that can be passed directly to FreeType.</returns>
         public RawFontVariation? DecodeFontVariation(FontVariation? variation)
         {
             if (variation is null)
