@@ -235,6 +235,8 @@ namespace osu.Framework.Graphics.Lines
                 Debug.Assert(segments.Count > 0);
 
                 Line segmentToDraw = segments[0];
+                float segmentToDrawLength = segmentToDraw.Rho;
+
                 SegmentStartLocation location = SegmentStartLocation.End;
                 SegmentStartLocation modifiedLocation = SegmentStartLocation.Outside;
                 SegmentStartLocation nextLocation = SegmentStartLocation.End;
@@ -242,12 +244,11 @@ namespace osu.Framework.Graphics.Lines
 
                 for (int i = 1; i < segments.Count; i++)
                 {
-                    float segmentToDrawLength = segmentToDraw.Rho;
-
                     // If segment is too short, make its end point equal start point of a new segment
                     if (segmentToDrawLength < 1f)
                     {
                         segmentToDraw = new Line(segmentToDraw.StartPoint, segments[i].EndPoint);
+                        segmentToDrawLength = segmentToDraw.Rho;
                         continue;
                     }
 
@@ -261,6 +262,7 @@ namespace osu.Framework.Graphics.Lines
                         {
                             // expand segment backwards
                             segmentToDraw = new Line(segments[i].EndPoint, segmentToDraw.EndPoint);
+                            segmentToDrawLength *= 1f - progress;
                             modifiedLocation = SegmentStartLocation.Outside;
                             nextLocation = SegmentStartLocation.Start;
                         }
@@ -268,6 +270,7 @@ namespace osu.Framework.Graphics.Lines
                         {
                             // or forward
                             segmentToDraw = new Line(segmentToDraw.StartPoint, segments[i].EndPoint);
+                            segmentToDrawLength *= progress;
                             nextLocation = SegmentStartLocation.End;
                         }
                         else
@@ -287,6 +290,7 @@ namespace osu.Framework.Graphics.Lines
 
                         lastDrawnSegment = s;
                         segmentToDraw = segments[i];
+                        segmentToDrawLength = segmentToDraw.Rho;
                         location = modifiedLocation = nextLocation;
                         nextLocation = SegmentStartLocation.End;
                     }
