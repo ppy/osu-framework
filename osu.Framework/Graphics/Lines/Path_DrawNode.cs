@@ -79,25 +79,7 @@ namespace osu.Framework.Graphics.Lines
                 renderer.PopLocalMatrix();
             }
 
-            private void addCap(Line cap)
-            {
-                // The provided line is perpendicular to the end/start of a segment.
-                // To get the remaining quad positions we are expanding said segment by the path radius.
-                Vector2 ortho = cap.OrthogonalDirection;
-                if (float.IsNaN(ortho.X) || float.IsNaN(ortho.Y))
-                    ortho = Vector2.UnitY;
-
-                Vector2 v2 = cap.StartPoint + ortho * radius;
-                Vector2 v3 = cap.EndPoint + ortho * radius;
-
-                drawQuad
-                (
-                    new Quad(cap.StartPoint, v2, cap.EndPoint, v3),
-                    new Quad(new Vector2(0, -1), new Vector2(1, -1), new Vector2(0, 1), Vector2.One)
-                );
-            }
-
-            private void addSegmentQuad(DrawableSegment segment)
+            private void drawSegment(DrawableSegment segment)
             {
                 drawQuad
                 (
@@ -106,7 +88,7 @@ namespace osu.Framework.Graphics.Lines
                 );
             }
 
-            private void addConnectionBetween(DrawableSegment segment, DrawableSegment prevSegment)
+            private void drawConnectionBetween(DrawableSegment segment, DrawableSegment prevSegment)
             {
                 float thetaDiff = segment.Guide.Theta - prevSegment.Guide.Theta;
 
@@ -116,10 +98,10 @@ namespace osu.Framework.Graphics.Lines
                 if (thetaDiff == 0f)
                     return;
 
-                // more than 90 degrees - add end cap to the previous segment
+                // more than 90 degrees - draw previous segment end cap
                 if (Math.Abs(thetaDiff) > Math.PI * 0.5)
                 {
-                    addEndCap(prevSegment);
+                    drawEndCap(prevSegment);
                     return;
                 }
 
@@ -234,127 +216,132 @@ namespace osu.Framework.Graphics.Lines
             {
                 Debug.Assert(segments.Count > 0);
 
-                Line? segmentToDraw = null;
-                SegmentStartLocation location = SegmentStartLocation.Outside;
+                Line segmentToDraw = segments[0];
+                float segmentToDrawLength = segmentToDraw.Rho;
+
+                SegmentStartLocation location = SegmentStartLocation.End;
                 SegmentStartLocation modifiedLocation = SegmentStartLocation.Outside;
                 SegmentStartLocation nextLocation = SegmentStartLocation.End;
-                DrawableSegment? lastDrawnSegment = null;
 
-                for (int i = 0; i < segments.Count; i++)
+                // We initialize "fake" initial segment before the 0'th one
+                // so that on first connect() call with current SegmentStartLocation parameters path start cap will be drawn.
+                DrawableSegment lastDrawnSegment = new DrawableSegment(segments[0], radius);
+
+                for (int i = 1; i < segments.Count; i++)
                 {
-                    if (segmentToDraw.HasValue)
+                    // If segment is too short, make its end point equal start point of a new segment
+                    if (segmentToDrawLength < 1f)
                     {
-                        float segmentToDrawLength = segmentToDraw.Value.Rho;
+                        segmentToDraw = new Line(segmentToDraw.StartPoint, segments[i].EndPoint);
+                        segmentToDrawLength = segmentToDraw.Rho;
+                        continue;
+                    }
 
-                        // If segment is too short, make its end point equal start point of a new segment
-                        if (segmentToDrawLength < 1f)
+                    float progress = progressFor(segmentToDraw, segmentToDrawLength, segments[i].EndPoint);
+                    Vector2 closest = segmentToDraw.At(progress);
+
+                    // Expand segment if next end point is located within a line passing through it
+                    if (Precision.AlmostEquals(closest, segments[i].EndPoint, 0.01f))
+                    {
+                        nextLocation = SegmentStartLocation.StartOrMiddle;
+
+                        if (progress < 0)
                         {
-                            segmentToDraw = new Line(segmentToDraw.Value.StartPoint, segments[i].EndPoint);
-                            continue;
+                            // expand segment backwards
+                            segmentToDraw = new Line(segments[i].EndPoint, segmentToDraw.EndPoint);
+                            segmentToDrawLength *= 1f - progress;
+                            modifiedLocation = SegmentStartLocation.Outside;
                         }
-
-                        float progress = progressFor(segmentToDraw.Value, segmentToDrawLength, segments[i].EndPoint);
-                        Vector2 closest = segmentToDraw.Value.At(progress);
-
-                        // Expand segment if next end point is located within a line passing through it
-                        if (Precision.AlmostEquals(closest, segments[i].EndPoint, 0.01f))
+                        else if (progress > 1)
                         {
-                            if (progress < 0)
-                            {
-                                // expand segment backwards
-                                segmentToDraw = new Line(segments[i].EndPoint, segmentToDraw.Value.EndPoint);
-                                modifiedLocation = SegmentStartLocation.Outside;
-                                nextLocation = SegmentStartLocation.Start;
-                            }
-                            else if (progress > 1)
-                            {
-                                // or forward
-                                segmentToDraw = new Line(segmentToDraw.Value.StartPoint, segments[i].EndPoint);
-                                nextLocation = SegmentStartLocation.End;
-                            }
-                            else
-                            {
-                                nextLocation = SegmentStartLocation.Middle;
-                            }
-                        }
-                        else // Otherwise draw the expanded segment
-                        {
-                            DrawableSegment s = new DrawableSegment(segmentToDraw.Value, radius, location, modifiedLocation);
-                            addSegmentQuad(s);
-                            connect(s, lastDrawnSegment);
-
-                            lastDrawnSegment = s;
-                            segmentToDraw = segments[i];
-                            location = modifiedLocation = nextLocation;
+                            // or forward
+                            segmentToDraw = new Line(segmentToDraw.StartPoint, segments[i].EndPoint);
+                            segmentToDrawLength *= progress;
                             nextLocation = SegmentStartLocation.End;
                         }
                     }
-                    else
+                    else // Otherwise draw the expanded segment
                     {
+                        DrawableSegment s = new DrawableSegment(segmentToDraw, radius);
+                        drawSegment(s);
+                        connect(s, lastDrawnSegment, location, modifiedLocation);
+
+                        lastDrawnSegment = s;
                         segmentToDraw = segments[i];
+                        segmentToDrawLength = segmentToDraw.Rho;
+                        location = modifiedLocation = nextLocation;
+                        nextLocation = SegmentStartLocation.End;
                     }
                 }
 
-                // Finish drawing last segment (if exists)
-                if (segmentToDraw.HasValue)
-                {
-                    DrawableSegment s = new DrawableSegment(segmentToDraw.Value, radius, location, modifiedLocation);
-                    addSegmentQuad(s);
-                    connect(s, lastDrawnSegment);
-                    addEndCap(s);
-                }
+                // Finish drawing last segment
+                DrawableSegment last = new DrawableSegment(segmentToDraw, radius);
+                connect(last, lastDrawnSegment, location, modifiedLocation);
+
+                drawSegment(last);
+                drawEndCap(last);
             }
 
             /// <summary>
             /// Connects the start of the segment to the end of a previous one.
             /// </summary>
-            private void connect(DrawableSegment segment, DrawableSegment? prevSegment)
+            private void connect(DrawableSegment segment, DrawableSegment prevSegment, SegmentStartLocation initialLocation, SegmentStartLocation modifiedLocation)
             {
-                if (!prevSegment.HasValue)
-                {
-                    // Nothing to connect to - add start cap
-                    addStartCap(segment);
-                    return;
-                }
-
-                switch (segment.ModifiedStartLocation)
+                switch (modifiedLocation)
                 {
                     default:
                     case SegmentStartLocation.End:
                         // Segment starts at the end of the previous one
-                        addConnectionBetween(segment, prevSegment.Value);
+                        drawConnectionBetween(segment, prevSegment);
                         break;
 
-                    case SegmentStartLocation.Start:
-                    case SegmentStartLocation.Middle:
-                        // Segment starts at the start or the middle of the previous one - add end cap to the previous segment
-                        addEndCap(prevSegment.Value);
+                    case SegmentStartLocation.StartOrMiddle:
+                        // Segment starts at the start or the middle of the previous one - draw previous segment end cap
+                        drawEndCap(prevSegment);
                         break;
 
                     case SegmentStartLocation.Outside:
                         // Segment starts outside the previous one.
 
-                        // There's no need to add end cap in case when initial start location was at the end of the previous segment
+                        // There's no need to draw end cap in case when initial start location was at the end of the previous segment
                         // since created overlap will make this cap invisible anyway.
                         // Example: imagine letter "T" where vertical line is prev segment and horizontal is a segment started at the end
                         // of it, went to the right and then to the left (expanded backwards). In this case start location will be "End" and
-                        // modified location will be "Outside". With that in mind we do not need to add the end cap at the top of the vertical
+                        // modified location will be "Outside". With that in mind we do not need to draw the end cap at the top of the vertical
                         // line since horizontal one will pass through it. However, that wouldn't be the case if horizontal line was located at
                         // the middle and so end cap would be required.
-                        if (segment.StartLocation != SegmentStartLocation.End)
-                            addEndCap(prevSegment.Value);
+                        if (initialLocation != SegmentStartLocation.End)
+                            drawEndCap(prevSegment);
 
-                        // add start cap to the current one
-                        addStartCap(segment);
+                        // draw current segment draw cap
+                        drawStartCap(segment);
                         break;
                 }
             }
 
-            private void addEndCap(DrawableSegment segment) =>
-                addCap(new Line(segment.TopRight, segment.BottomRight));
+            private void drawEndCap(DrawableSegment segment)
+            {
+                Vector2 topRight = segment.TopRight + segment.Direction * radius;
+                Vector2 bottomRight = segment.BottomRight + segment.Direction * radius;
 
-            private void addStartCap(DrawableSegment segment) =>
-                addCap(new Line(segment.BottomLeft, segment.TopLeft));
+                drawQuad
+                (
+                    new Quad(segment.TopRight, topRight, segment.BottomRight, bottomRight),
+                    new Quad(new Vector2(0, -1), new Vector2(1, -1), new Vector2(0, 1), new Vector2(1, 1))
+                );
+            }
+
+            private void drawStartCap(DrawableSegment segment)
+            {
+                Vector2 topLeft = segment.TopLeft - segment.Direction * radius;
+                Vector2 bottomLeft = segment.BottomLeft - segment.Direction * radius;
+
+                drawQuad
+                (
+                    new Quad(topLeft, segment.TopLeft, bottomLeft, segment.BottomLeft),
+                    new Quad(new Vector2(-1, -1), new Vector2(0, -1), new Vector2(-1, 1), new Vector2(0, 1))
+                );
+            }
 
             private static float progressFor(Line line, float length, Vector2 point)
             {
@@ -371,8 +358,7 @@ namespace osu.Framework.Graphics.Lines
 
             private enum SegmentStartLocation
             {
-                Start,
-                Middle,
+                StartOrMiddle,
                 End,
                 Outside
             }
@@ -383,6 +369,11 @@ namespace osu.Framework.Graphics.Lines
                 /// The line defining this <see cref="DrawableSegment"/>.
                 /// </summary>
                 public Line Guide { get; }
+
+                /// <summary>
+                /// The direction of the <see cref="Guide"/> of this <see cref="DrawableSegment"/>.
+                /// </summary>
+                public Vector2 Direction { get; }
 
                 /// <summary>
                 /// The draw quad of this <see cref="DrawableSegment"/>.
@@ -409,29 +400,20 @@ namespace osu.Framework.Graphics.Lines
                 /// </summary>
                 public Vector2 BottomRight => DrawQuad.BottomRight;
 
-                /// <summary>
-                /// Position of this <see cref="DrawableSegment"/> relative to the previous one.
-                /// </summary>
-                public SegmentStartLocation StartLocation { get; }
-
-                /// <summary>
-                /// Position of this modified <see cref="DrawableSegment"/> relative to the previous one.
-                /// </summary>
-                public SegmentStartLocation ModifiedStartLocation { get; }
-
                 /// <param name="guide">The line defining this <see cref="DrawableSegment"/>.</param>
                 /// <param name="radius">The path radius.</param>
-                /// <param name="startLocation">Position of this <see cref="DrawableSegment"/> relative to the previous one.</param>
-                /// <param name="modifiedStartLocation">Position of this modified <see cref="DrawableSegment"/> relative to the previous one.</param>
-                public DrawableSegment(Line guide, float radius, SegmentStartLocation startLocation, SegmentStartLocation modifiedStartLocation)
+                public DrawableSegment(Line guide, float radius)
                 {
                     Guide = guide;
-                    StartLocation = startLocation;
-                    ModifiedStartLocation = modifiedStartLocation;
 
-                    Vector2 ortho = Guide.OrthogonalDirection;
-                    if (float.IsNaN(ortho.X) || float.IsNaN(ortho.Y))
-                        ortho = Vector2.UnitY;
+                    Vector2 dir = guide.DirectionNormalized;
+
+                    if (float.IsNaN(dir.X) || float.IsNaN(dir.Y))
+                        dir = Vector2.UnitX;
+
+                    Direction = dir;
+
+                    Vector2 ortho = new Vector2(-dir.Y, dir.X);
 
                     DrawQuad = new Quad
                     (
