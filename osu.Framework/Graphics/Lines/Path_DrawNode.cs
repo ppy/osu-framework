@@ -259,11 +259,11 @@ namespace osu.Framework.Graphics.Lines
                     }
                     else // Otherwise draw the expanded segment
                     {
-                        DrawableSegment s = new DrawableSegment(segmentToDraw, radius, location, modifiedLocation);
+                        DrawableSegment s = new DrawableSegment(segmentToDraw, radius);
                         drawSegment(s);
 
                         if (lastDrawnSegment.HasValue)
-                            connect(s, lastDrawnSegment.Value);
+                            connect(s, lastDrawnSegment.Value, location, modifiedLocation);
                         else
                             drawStartCap(s);
 
@@ -276,10 +276,10 @@ namespace osu.Framework.Graphics.Lines
                 }
 
                 // Finish drawing last segment
-                DrawableSegment last = new DrawableSegment(segmentToDraw, radius, location, modifiedLocation);
+                DrawableSegment last = new DrawableSegment(segmentToDraw, radius);
 
                 if (lastDrawnSegment.HasValue)
-                    connect(last, lastDrawnSegment.Value);
+                    connect(last, lastDrawnSegment.Value, location, modifiedLocation);
                 else
                     drawStartCap(last);
 
@@ -290,9 +290,9 @@ namespace osu.Framework.Graphics.Lines
             /// <summary>
             /// Connects the start of the segment to the end of a previous one.
             /// </summary>
-            private void connect(DrawableSegment segment, DrawableSegment prevSegment)
+            private void connect(DrawableSegment segment, DrawableSegment prevSegment, SegmentStartLocation initialLocation, SegmentStartLocation modifiedLocation)
             {
-                switch (segment.ModifiedStartLocation)
+                switch (modifiedLocation)
                 {
                     default:
                     case SegmentStartLocation.End:
@@ -315,7 +315,7 @@ namespace osu.Framework.Graphics.Lines
                         // modified location will be "Outside". With that in mind we do not need to draw the end cap at the top of the vertical
                         // line since horizontal one will pass through it. However, that wouldn't be the case if horizontal line was located at
                         // the middle and so end cap would be required.
-                        if (segment.StartLocation != SegmentStartLocation.End)
+                        if (initialLocation != SegmentStartLocation.End)
                             drawEndCap(prevSegment);
 
                         // draw current segment draw cap
@@ -405,25 +405,11 @@ namespace osu.Framework.Graphics.Lines
                 /// </summary>
                 public Vector2 BottomRight => DrawQuad.BottomRight;
 
-                /// <summary>
-                /// Position of this <see cref="DrawableSegment"/> relative to the previous one.
-                /// </summary>
-                public SegmentStartLocation StartLocation { get; }
-
-                /// <summary>
-                /// Position of this modified <see cref="DrawableSegment"/> relative to the previous one.
-                /// </summary>
-                public SegmentStartLocation ModifiedStartLocation { get; }
-
                 /// <param name="guide">The line defining this <see cref="DrawableSegment"/>.</param>
                 /// <param name="radius">The path radius.</param>
-                /// <param name="startLocation">Position of this <see cref="DrawableSegment"/> relative to the previous one.</param>
-                /// <param name="modifiedStartLocation">Position of this modified <see cref="DrawableSegment"/> relative to the previous one.</param>
-                public DrawableSegment(Line guide, float radius, SegmentStartLocation startLocation, SegmentStartLocation modifiedStartLocation)
+                public DrawableSegment(Line guide, float radius)
                 {
                     Guide = guide;
-                    StartLocation = startLocation;
-                    ModifiedStartLocation = modifiedStartLocation;
 
                     Vector2 dir = guide.DirectionNormalized;
 
