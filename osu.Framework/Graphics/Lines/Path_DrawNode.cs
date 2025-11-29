@@ -258,13 +258,14 @@ namespace osu.Framework.Graphics.Lines
                     // Expand segment if next end point is located within a line passing through it
                     if (Precision.AlmostEquals(closest, segments[i].EndPoint, 0.01f))
                     {
+                        nextLocation = SegmentStartLocation.StartOrMiddle;
+
                         if (progress < 0)
                         {
                             // expand segment backwards
                             segmentToDraw = new Line(segments[i].EndPoint, segmentToDraw.EndPoint);
                             segmentToDrawLength *= 1f - progress;
                             modifiedLocation = SegmentStartLocation.Outside;
-                            nextLocation = SegmentStartLocation.Start;
                         }
                         else if (progress > 1)
                         {
@@ -272,10 +273,6 @@ namespace osu.Framework.Graphics.Lines
                             segmentToDraw = new Line(segmentToDraw.StartPoint, segments[i].EndPoint);
                             segmentToDrawLength *= progress;
                             nextLocation = SegmentStartLocation.End;
-                        }
-                        else
-                        {
-                            nextLocation = SegmentStartLocation.Middle;
                         }
                     }
                     else // Otherwise draw the expanded segment
@@ -321,8 +318,7 @@ namespace osu.Framework.Graphics.Lines
                         addConnectionBetween(segment, prevSegment);
                         break;
 
-                    case SegmentStartLocation.Start:
-                    case SegmentStartLocation.Middle:
+                    case SegmentStartLocation.StartOrMiddle:
                         // Segment starts at the start or the middle of the previous one - add end cap to the previous segment
                         addEndCap(prevSegment);
                         break;
@@ -367,8 +363,7 @@ namespace osu.Framework.Graphics.Lines
 
             private enum SegmentStartLocation
             {
-                Start,
-                Middle,
+                StartOrMiddle,
                 End,
                 Outside
             }
