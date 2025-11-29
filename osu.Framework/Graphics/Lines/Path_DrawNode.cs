@@ -222,7 +222,10 @@ namespace osu.Framework.Graphics.Lines
                 SegmentStartLocation location = SegmentStartLocation.End;
                 SegmentStartLocation modifiedLocation = SegmentStartLocation.Outside;
                 SegmentStartLocation nextLocation = SegmentStartLocation.End;
-                DrawableSegment? lastDrawnSegment = null;
+
+                // We initialize "fake" initial segment before the 0'th one
+                // so that on first connect() call with current SegmentStartLocation parameters path start cap will be drawn.
+                DrawableSegment lastDrawnSegment = new DrawableSegment(segments[0], radius);
 
                 for (int i = 1; i < segments.Count; i++)
                 {
@@ -261,11 +264,7 @@ namespace osu.Framework.Graphics.Lines
                     {
                         DrawableSegment s = new DrawableSegment(segmentToDraw, radius);
                         drawSegment(s);
-
-                        if (lastDrawnSegment.HasValue)
-                            connect(s, lastDrawnSegment.Value, location, modifiedLocation);
-                        else
-                            drawStartCap(s);
+                        connect(s, lastDrawnSegment, location, modifiedLocation);
 
                         lastDrawnSegment = s;
                         segmentToDraw = segments[i];
@@ -277,11 +276,7 @@ namespace osu.Framework.Graphics.Lines
 
                 // Finish drawing last segment
                 DrawableSegment last = new DrawableSegment(segmentToDraw, radius);
-
-                if (lastDrawnSegment.HasValue)
-                    connect(last, lastDrawnSegment.Value, location, modifiedLocation);
-                else
-                    drawStartCap(last);
+                connect(last, lastDrawnSegment, location, modifiedLocation);
 
                 drawSegment(last);
                 drawEndCap(last);
