@@ -277,7 +277,6 @@ namespace osu.Framework.Graphics.Lines
                 // Finish drawing last segment
                 DrawableSegment last = new DrawableSegment(segmentToDraw, radius);
                 connect(last, lastDrawnSegment, location, modifiedLocation);
-
                 drawSegment(last);
                 drawEndCap(last);
             }
@@ -287,36 +286,22 @@ namespace osu.Framework.Graphics.Lines
             /// </summary>
             private void connect(DrawableSegment segment, DrawableSegment prevSegment, SegmentStartLocation initialLocation, SegmentStartLocation modifiedLocation)
             {
-                switch (modifiedLocation)
+                // Segment starts at the end of the previous one
+                if (modifiedLocation == SegmentStartLocation.End)
                 {
-                    default:
-                    case SegmentStartLocation.End:
-                        // Segment starts at the end of the previous one
-                        drawConnectionBetween(segment, prevSegment);
-                        break;
-
-                    case SegmentStartLocation.StartOrMiddle:
-                        // Segment starts at the start or the middle of the previous one - draw previous segment end cap
-                        drawEndCap(prevSegment);
-                        break;
-
-                    case SegmentStartLocation.Outside:
-                        // Segment starts outside the previous one.
-
-                        // There's no need to draw end cap in case when initial start location was at the end of the previous segment
-                        // since created overlap will make this cap invisible anyway.
-                        // Example: imagine letter "T" where vertical line is prev segment and horizontal is a segment started at the end
-                        // of it, went to the right and then to the left (expanded backwards). In this case start location will be "End" and
-                        // modified location will be "Outside". With that in mind we do not need to draw the end cap at the top of the vertical
-                        // line since horizontal one will pass through it. However, that wouldn't be the case if horizontal line was located at
-                        // the middle and so end cap would be required.
-                        if (initialLocation != SegmentStartLocation.End)
-                            drawEndCap(prevSegment);
-
-                        // draw current segment draw cap
-                        drawStartCap(segment);
-                        break;
+                    drawConnectionBetween(segment, prevSegment);
+                    return; // when drawing connection, we are in the situation when caps aren't needed
                 }
+
+                // End cap of the previous segment required in 2 cases.
+                // 1. Current segment starts at the start or the middle of the previous one, making the tail of the previous segment disconnected from anything.
+                // 2. Current segment starts outside but not passing through the end of the previous one (in which case current segment will be drawn on top of the cap anyway).
+                if (modifiedLocation == SegmentStartLocation.StartOrMiddle || (modifiedLocation == SegmentStartLocation.Outside && initialLocation != SegmentStartLocation.End))
+                    drawEndCap(prevSegment);
+
+                // Segment starts outside the previous one, nothing is being connected to the start of the segment - start cap is required.
+                if (modifiedLocation == SegmentStartLocation.Outside)
+                    drawStartCap(segment);
             }
 
             private void drawEndCap(DrawableSegment segment)
