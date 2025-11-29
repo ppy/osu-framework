@@ -234,101 +234,93 @@ namespace osu.Framework.Graphics.Lines
             {
                 Debug.Assert(segments.Count > 0);
 
-                Line? segmentToDraw = null;
-                SegmentStartLocation location = SegmentStartLocation.Outside;
+                Line segmentToDraw = segments[0];
+                SegmentStartLocation location = SegmentStartLocation.End;
                 SegmentStartLocation modifiedLocation = SegmentStartLocation.Outside;
                 SegmentStartLocation nextLocation = SegmentStartLocation.End;
                 DrawableSegment? lastDrawnSegment = null;
 
-                for (int i = 0; i < segments.Count; i++)
+                for (int i = 1; i < segments.Count; i++)
                 {
-                    if (segmentToDraw.HasValue)
+                    float segmentToDrawLength = segmentToDraw.Rho;
+
+                    // If segment is too short, make its end point equal start point of a new segment
+                    if (segmentToDrawLength < 1f)
                     {
-                        float segmentToDrawLength = segmentToDraw.Value.Rho;
+                        segmentToDraw = new Line(segmentToDraw.StartPoint, segments[i].EndPoint);
+                        continue;
+                    }
 
-                        // If segment is too short, make its end point equal start point of a new segment
-                        if (segmentToDrawLength < 1f)
+                    float progress = progressFor(segmentToDraw, segmentToDrawLength, segments[i].EndPoint);
+                    Vector2 closest = segmentToDraw.At(progress);
+
+                    // Expand segment if next end point is located within a line passing through it
+                    if (Precision.AlmostEquals(closest, segments[i].EndPoint, 0.01f))
+                    {
+                        if (progress < 0)
                         {
-                            segmentToDraw = new Line(segmentToDraw.Value.StartPoint, segments[i].EndPoint);
-                            continue;
+                            // expand segment backwards
+                            segmentToDraw = new Line(segments[i].EndPoint, segmentToDraw.EndPoint);
+                            modifiedLocation = SegmentStartLocation.Outside;
+                            nextLocation = SegmentStartLocation.Start;
                         }
-
-                        float progress = progressFor(segmentToDraw.Value, segmentToDrawLength, segments[i].EndPoint);
-                        Vector2 closest = segmentToDraw.Value.At(progress);
-
-                        // Expand segment if next end point is located within a line passing through it
-                        if (Precision.AlmostEquals(closest, segments[i].EndPoint, 0.01f))
+                        else if (progress > 1)
                         {
-                            if (progress < 0)
-                            {
-                                // expand segment backwards
-                                segmentToDraw = new Line(segments[i].EndPoint, segmentToDraw.Value.EndPoint);
-                                modifiedLocation = SegmentStartLocation.Outside;
-                                nextLocation = SegmentStartLocation.Start;
-                            }
-                            else if (progress > 1)
-                            {
-                                // or forward
-                                segmentToDraw = new Line(segmentToDraw.Value.StartPoint, segments[i].EndPoint);
-                                nextLocation = SegmentStartLocation.End;
-                            }
-                            else
-                            {
-                                nextLocation = SegmentStartLocation.Middle;
-                            }
-                        }
-                        else // Otherwise draw the expanded segment
-                        {
-                            DrawableSegment s = new DrawableSegment(segmentToDraw.Value, radius, location, modifiedLocation);
-                            addSegmentQuad(s);
-                            connect(s, lastDrawnSegment);
-
-                            lastDrawnSegment = s;
-                            segmentToDraw = segments[i];
-                            location = modifiedLocation = nextLocation;
+                            // or forward
+                            segmentToDraw = new Line(segmentToDraw.StartPoint, segments[i].EndPoint);
                             nextLocation = SegmentStartLocation.End;
                         }
+                        else
+                        {
+                            nextLocation = SegmentStartLocation.Middle;
+                        }
                     }
-                    else
+                    else // Otherwise draw the expanded segment
                     {
+                        DrawableSegment s = new DrawableSegment(segmentToDraw, radius, location, modifiedLocation);
+                        addSegmentQuad(s);
+
+                        if (lastDrawnSegment.HasValue)
+                            connect(s, lastDrawnSegment.Value);
+                        else
+                            addStartCap(s);
+
+                        lastDrawnSegment = s;
                         segmentToDraw = segments[i];
+                        location = modifiedLocation = nextLocation;
+                        nextLocation = SegmentStartLocation.End;
                     }
                 }
 
-                // Finish drawing last segment (if exists)
-                if (segmentToDraw.HasValue)
-                {
-                    DrawableSegment s = new DrawableSegment(segmentToDraw.Value, radius, location, modifiedLocation);
-                    addSegmentQuad(s);
-                    connect(s, lastDrawnSegment);
-                    addEndCap(s);
-                }
+                // Finish drawing last segment
+                DrawableSegment last = new DrawableSegment(segmentToDraw, radius, location, modifiedLocation);
+
+                if (lastDrawnSegment.HasValue)
+                    connect(last, lastDrawnSegment.Value);
+                else
+                    addStartCap(last);
+
+                addSegmentQuad(last);
+                addEndCap(last);
             }
 
             /// <summary>
             /// Connects the start of the segment to the end of a previous one.
             /// </summary>
-            private void connect(DrawableSegment segment, DrawableSegment? prevSegment)
+            private void connect(DrawableSegment segment, DrawableSegment prevSegment)
             {
-                if (!prevSegment.HasValue)
-                {
-                    // Nothing to connect to - add start cap
-                    addStartCap(segment);
-                    return;
-                }
-
                 switch (segment.ModifiedStartLocation)
                 {
                     default:
                     case SegmentStartLocation.End:
                         // Segment starts at the end of the previous one
-                        addConnectionBetween(segment, prevSegment.Value);
+                        addConnectionBetween(segment, prevSegment);
                         break;
 
                     case SegmentStartLocation.Start:
                     case SegmentStartLocation.Middle:
                         // Segment starts at the start or the middle of the previous one - add end cap to the previous segment
-                        addEndCap(prevSegment.Value);
+                        addEndCap(prevSegment);
                         break;
 
                     case SegmentStartLocation.Outside:
@@ -342,7 +334,7 @@ namespace osu.Framework.Graphics.Lines
                         // line since horizontal one will pass through it. However, that wouldn't be the case if horizontal line was located at
                         // the middle and so end cap would be required.
                         if (segment.StartLocation != SegmentStartLocation.End)
-                            addEndCap(prevSegment.Value);
+                            addEndCap(prevSegment);
 
                         // add start cap to the current one
                         addStartCap(segment);
