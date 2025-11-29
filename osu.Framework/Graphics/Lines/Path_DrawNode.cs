@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.Lines
                 renderer.PopLocalMatrix();
             }
 
-            private void addSegmentQuad(DrawableSegment segment)
+            private void drawSegment(DrawableSegment segment)
             {
                 drawQuad
                 (
@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.Lines
                 );
             }
 
-            private void addConnectionBetween(DrawableSegment segment, DrawableSegment prevSegment)
+            private void drawConnectionBetween(DrawableSegment segment, DrawableSegment prevSegment)
             {
                 float thetaDiff = segment.Guide.Theta - prevSegment.Guide.Theta;
 
@@ -98,10 +98,10 @@ namespace osu.Framework.Graphics.Lines
                 if (thetaDiff == 0f)
                     return;
 
-                // more than 90 degrees - add end cap to the previous segment
+                // more than 90 degrees - draw previous segment end cap
                 if (Math.Abs(thetaDiff) > Math.PI * 0.5)
                 {
-                    addEndCap(prevSegment);
+                    drawEndCap(prevSegment);
                     return;
                 }
 
@@ -260,12 +260,12 @@ namespace osu.Framework.Graphics.Lines
                     else // Otherwise draw the expanded segment
                     {
                         DrawableSegment s = new DrawableSegment(segmentToDraw, radius, location, modifiedLocation);
-                        addSegmentQuad(s);
+                        drawSegment(s);
 
                         if (lastDrawnSegment.HasValue)
                             connect(s, lastDrawnSegment.Value);
                         else
-                            addStartCap(s);
+                            drawStartCap(s);
 
                         lastDrawnSegment = s;
                         segmentToDraw = segments[i];
@@ -281,10 +281,10 @@ namespace osu.Framework.Graphics.Lines
                 if (lastDrawnSegment.HasValue)
                     connect(last, lastDrawnSegment.Value);
                 else
-                    addStartCap(last);
+                    drawStartCap(last);
 
-                addSegmentQuad(last);
-                addEndCap(last);
+                drawSegment(last);
+                drawEndCap(last);
             }
 
             /// <summary>
@@ -297,34 +297,34 @@ namespace osu.Framework.Graphics.Lines
                     default:
                     case SegmentStartLocation.End:
                         // Segment starts at the end of the previous one
-                        addConnectionBetween(segment, prevSegment);
+                        drawConnectionBetween(segment, prevSegment);
                         break;
 
                     case SegmentStartLocation.StartOrMiddle:
-                        // Segment starts at the start or the middle of the previous one - add end cap to the previous segment
-                        addEndCap(prevSegment);
+                        // Segment starts at the start or the middle of the previous one - draw previous segment end cap
+                        drawEndCap(prevSegment);
                         break;
 
                     case SegmentStartLocation.Outside:
                         // Segment starts outside the previous one.
 
-                        // There's no need to add end cap in case when initial start location was at the end of the previous segment
+                        // There's no need to draw end cap in case when initial start location was at the end of the previous segment
                         // since created overlap will make this cap invisible anyway.
                         // Example: imagine letter "T" where vertical line is prev segment and horizontal is a segment started at the end
                         // of it, went to the right and then to the left (expanded backwards). In this case start location will be "End" and
-                        // modified location will be "Outside". With that in mind we do not need to add the end cap at the top of the vertical
+                        // modified location will be "Outside". With that in mind we do not need to draw the end cap at the top of the vertical
                         // line since horizontal one will pass through it. However, that wouldn't be the case if horizontal line was located at
                         // the middle and so end cap would be required.
                         if (segment.StartLocation != SegmentStartLocation.End)
-                            addEndCap(prevSegment);
+                            drawEndCap(prevSegment);
 
-                        // add start cap to the current one
-                        addStartCap(segment);
+                        // draw current segment draw cap
+                        drawStartCap(segment);
                         break;
                 }
             }
 
-            private void addEndCap(DrawableSegment segment)
+            private void drawEndCap(DrawableSegment segment)
             {
                 Vector2 topRight = segment.TopRight + segment.Direction * radius;
                 Vector2 bottomRight = segment.BottomRight + segment.Direction * radius;
@@ -336,7 +336,7 @@ namespace osu.Framework.Graphics.Lines
                 );
             }
 
-            private void addStartCap(DrawableSegment segment)
+            private void drawStartCap(DrawableSegment segment)
             {
                 Vector2 topLeft = segment.TopLeft - segment.Direction * radius;
                 Vector2 bottomLeft = segment.BottomLeft - segment.Direction * radius;
