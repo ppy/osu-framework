@@ -79,24 +79,6 @@ namespace osu.Framework.Graphics.Lines
                 renderer.PopLocalMatrix();
             }
 
-            private void addCap(Line cap)
-            {
-                // The provided line is perpendicular to the end/start of a segment.
-                // To get the remaining quad positions we are expanding said segment by the path radius.
-                Vector2 ortho = cap.OrthogonalDirection;
-                if (float.IsNaN(ortho.X) || float.IsNaN(ortho.Y))
-                    ortho = Vector2.UnitY;
-
-                Vector2 v2 = cap.StartPoint + ortho * radius;
-                Vector2 v3 = cap.EndPoint + ortho * radius;
-
-                drawQuad
-                (
-                    new Quad(cap.StartPoint, v2, cap.EndPoint, v3),
-                    new Quad(new Vector2(0, -1), new Vector2(1, -1), new Vector2(0, 1), Vector2.One)
-                );
-            }
-
             private void addSegmentQuad(DrawableSegment segment)
             {
                 drawQuad
@@ -342,11 +324,29 @@ namespace osu.Framework.Graphics.Lines
                 }
             }
 
-            private void addEndCap(DrawableSegment segment) =>
-                addCap(new Line(segment.TopRight, segment.BottomRight));
+            private void addEndCap(DrawableSegment segment)
+            {
+                Vector2 topRight = segment.TopRight + segment.Direction * radius;
+                Vector2 bottomRight = segment.BottomRight + segment.Direction * radius;
 
-            private void addStartCap(DrawableSegment segment) =>
-                addCap(new Line(segment.BottomLeft, segment.TopLeft));
+                drawQuad
+                (
+                    new Quad(segment.TopRight, topRight, segment.BottomRight, bottomRight),
+                    new Quad(new Vector2(0, -1), new Vector2(1, -1), new Vector2(0, 1), new Vector2(1, 1))
+                );
+            }
+
+            private void addStartCap(DrawableSegment segment)
+            {
+                Vector2 topLeft = segment.TopLeft - segment.Direction * radius;
+                Vector2 bottomLeft = segment.BottomLeft - segment.Direction * radius;
+
+                drawQuad
+                (
+                    new Quad(topLeft, segment.TopLeft, bottomLeft, segment.BottomLeft),
+                    new Quad(new Vector2(-1, -1), new Vector2(0, -1), new Vector2(-1, 1), new Vector2(0, 1))
+                );
+            }
 
             private static float progressFor(Line line, float length, Vector2 point)
             {
@@ -374,6 +374,11 @@ namespace osu.Framework.Graphics.Lines
                 /// The line defining this <see cref="DrawableSegment"/>.
                 /// </summary>
                 public Line Guide { get; }
+
+                /// <summary>
+                /// The direction of the <see cref="Guide"/> of this <see cref="DrawableSegment"/>.
+                /// </summary>
+                public Vector2 Direction { get; }
 
                 /// <summary>
                 /// The draw quad of this <see cref="DrawableSegment"/>.
@@ -420,9 +425,14 @@ namespace osu.Framework.Graphics.Lines
                     StartLocation = startLocation;
                     ModifiedStartLocation = modifiedStartLocation;
 
-                    Vector2 ortho = Guide.OrthogonalDirection;
-                    if (float.IsNaN(ortho.X) || float.IsNaN(ortho.Y))
-                        ortho = Vector2.UnitY;
+                    Vector2 dir = guide.DirectionNormalized;
+
+                    if (float.IsNaN(dir.X) || float.IsNaN(dir.Y))
+                        dir = Vector2.UnitX;
+
+                    Direction = dir;
+
+                    Vector2 ortho = new Vector2(-dir.Y, dir.X);
 
                     DrawQuad = new Quad
                     (
