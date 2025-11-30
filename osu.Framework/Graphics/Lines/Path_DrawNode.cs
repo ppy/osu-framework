@@ -10,7 +10,6 @@ using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using osu.Framework.Utils;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Lines
@@ -217,7 +216,6 @@ namespace osu.Framework.Graphics.Lines
                 Debug.Assert(segments.Count > 0);
 
                 Line segmentToDraw = segments[0];
-                float segmentToDrawLength = segmentToDraw.Rho;
 
                 SegmentStartLocation location = SegmentStartLocation.End;
                 SegmentStartLocation modifiedLocation = SegmentStartLocation.Outside;
@@ -229,34 +227,35 @@ namespace osu.Framework.Graphics.Lines
 
                 for (int i = 1; i < segments.Count; i++)
                 {
+                    float lengthSquared = Vector2Extensions.DistanceSquared(segmentToDraw.EndPoint, segmentToDraw.StartPoint);
+
                     // If segment is too short, make its end point equal start point of a new segment
-                    if (segmentToDrawLength < 1f)
+                    if (lengthSquared < 1f)
                     {
                         segmentToDraw = new Line(segmentToDraw.StartPoint, segments[i].EndPoint);
-                        segmentToDrawLength = segmentToDraw.Rho;
                         continue;
                     }
 
-                    float progress = progressFor(segmentToDraw, segmentToDrawLength, segments[i].EndPoint);
-                    Vector2 closest = segmentToDraw.At(progress);
+                    Vector2 dir = segmentToDraw.Direction;
+                    Vector2 dir2 = segments[i].EndPoint - segmentToDraw.StartPoint;
 
                     // Expand segment if next end point is located within a line passing through it
-                    if (Precision.AlmostEquals(closest, segments[i].EndPoint, 0.01f))
+                    if (dir.X * dir2.Y - dir.Y * dir2.X == 0)
                     {
+                        float t = (dir.X * dir2.X + dir.Y * dir2.Y) / lengthSquared;
+
                         nextLocation = SegmentStartLocation.StartOrMiddle;
 
-                        if (progress < 0)
+                        if (t < 0)
                         {
                             // expand segment backwards
                             segmentToDraw = new Line(segments[i].EndPoint, segmentToDraw.EndPoint);
-                            segmentToDrawLength *= 1f - progress;
                             modifiedLocation = SegmentStartLocation.Outside;
                         }
-                        else if (progress > 1)
+                        else if (t > 1)
                         {
                             // or forward
                             segmentToDraw = new Line(segmentToDraw.StartPoint, segments[i].EndPoint);
-                            segmentToDrawLength *= progress;
                             nextLocation = SegmentStartLocation.End;
                         }
                     }
@@ -268,7 +267,6 @@ namespace osu.Framework.Graphics.Lines
 
                         lastDrawnSegment = s;
                         segmentToDraw = segments[i];
-                        segmentToDrawLength = segmentToDraw.Rho;
                         location = modifiedLocation = nextLocation;
                         nextLocation = SegmentStartLocation.End;
                     }
@@ -326,12 +324,6 @@ namespace osu.Framework.Graphics.Lines
                     new Quad(topLeft, segment.TopLeft, bottomLeft, segment.BottomLeft),
                     new Quad(new Vector2(-1, -1), new Vector2(0, -1), new Vector2(-1, 1), new Vector2(0, 1))
                 );
-            }
-
-            private static float progressFor(Line line, float length, Vector2 point)
-            {
-                Vector2 a = (line.EndPoint - line.StartPoint) / length;
-                return Vector2.Dot(a, point - line.StartPoint) / length;
             }
 
             protected override void Dispose(bool isDisposing)
