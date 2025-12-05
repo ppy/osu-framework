@@ -17,7 +17,7 @@ namespace osu.Framework.iOS
     /// <summary>
     /// Base <see cref="UIApplicationDelegate"/> implementation for osu!framework applications.
     /// </summary>
-    public abstract class GameApplicationDelegate : UIApplicationDelegate
+    public abstract class GameApplicationDelegate : UIResponder, IUIApplicationDelegate
     {
         internal event Action<string>? DragDrop;
 
@@ -27,7 +27,7 @@ namespace osu.Framework.iOS
 
         public IOSGameHost Host { get; private set; } = null!;
 
-        public override bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
+        public virtual bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
         {
             mapLibraryNames();
 
@@ -46,13 +46,24 @@ namespace osu.Framework.iOS
             return true;
         }
 
-        public override bool OpenUrl(UIApplication app, NSUrl url, NSDictionary options)
+        public virtual bool OpenUrl(UIApplication app, NSUrl url, NSDictionary options)
         {
             // copied verbatim from SDL: https://github.com/libsdl-org/SDL/blob/d252a8fe126b998bd1b0f4e4cf52312cd11de378/src/video/uikit/SDL_uikitappdelegate.m#L508-L535
             // the hope is that the SDL app delegate class does not have such handling exist there, but Apple does not provide a corresponding notification to make that possible.
             NSUrl? fileUrl = url.FilePathUrl;
             DragDrop?.Invoke(fileUrl != null ? fileUrl.Path! : url.AbsoluteString!);
             return true;
+        }
+
+        public override void BuildMenu(IUIMenuBuilder builder)
+        {
+            base.BuildMenu(builder);
+
+            // Remove useless menus on iPadOS. This makes it almost match macOS, displaying only "Window" and "Help".
+            builder.RemoveMenu(UIMenuIdentifier.File.GetConstant());
+            builder.RemoveMenu(UIMenuIdentifier.Edit.GetConstant());
+            builder.RemoveMenu(UIMenuIdentifier.Format.GetConstant());
+            builder.RemoveMenu(UIMenuIdentifier.View.GetConstant());
         }
 
         /// <summary>
