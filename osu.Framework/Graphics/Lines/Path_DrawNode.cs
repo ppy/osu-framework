@@ -227,35 +227,35 @@ namespace osu.Framework.Graphics.Lines
 
                 for (int i = 1; i < segments.Count; i++)
                 {
-                    float lengthSquared = Vector2Extensions.DistanceSquared(segmentToDraw.EndPoint, segmentToDraw.StartPoint);
+                    Vector2 dir = segmentToDraw.Direction;
+                    float lengthSquared = dir.X * dir.X + dir.Y * dir.Y;
+                    Vector2 nextVertex = segments[i].EndPoint;
 
                     // If segment is too short, make its end point equal start point of a new segment
                     if (lengthSquared < 0.01f)
                     {
-                        segmentToDraw = new Line(segmentToDraw.StartPoint, segments[i].EndPoint);
+                        segmentToDraw = new Line(segmentToDraw.StartPoint, nextVertex);
                         continue;
                     }
 
-                    Vector2 dir = segmentToDraw.Direction;
-                    Vector2 dir2 = segments[i].EndPoint - segmentToDraw.StartPoint;
+                    Vector2 dir2 = nextVertex - segmentToDraw.StartPoint;
 
                     // Expand segment if next end point is located within a line passing through it
-                    if (dir.X * dir2.Y - dir.Y * dir2.X == 0)
+                    if (Vector2.PerpDot(dir, dir2) == 0)
                     {
-                        float t = (dir.X * dir2.X + dir.Y * dir2.Y) / lengthSquared;
-
                         nextLocation = SegmentStartLocation.StartOrMiddle;
 
-                        if (t < 0)
+                        Vector2.Dot(ref dir, ref dir2, out float dot);
+
+                        // new vertex is located behind the segment start point, expand segment backwards
+                        if (dot < 0)
                         {
-                            // expand segment backwards
-                            segmentToDraw = new Line(segments[i].EndPoint, segmentToDraw.EndPoint);
+                            segmentToDraw = new Line(nextVertex, segmentToDraw.EndPoint);
                             modifiedLocation = SegmentStartLocation.Outside;
                         }
-                        else if (t > 1)
+                        else if (dot > lengthSquared) // new vertex is located in front of the end point, expand segment forward
                         {
-                            // or forward
-                            segmentToDraw = new Line(segmentToDraw.StartPoint, segments[i].EndPoint);
+                            segmentToDraw = new Line(segmentToDraw.StartPoint, nextVertex);
                             nextLocation = SegmentStartLocation.End;
                         }
                     }
