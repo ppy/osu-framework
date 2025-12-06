@@ -230,7 +230,7 @@ namespace osu.Framework.Graphics.Lines
                     float lengthSquared = Vector2Extensions.DistanceSquared(segmentToDraw.EndPoint, segmentToDraw.StartPoint);
 
                     // If segment is too short, make its end point equal start point of a new segment
-                    if (lengthSquared < 1f)
+                    if (lengthSquared < 0.01f)
                     {
                         segmentToDraw = new Line(segmentToDraw.StartPoint, segments[i].EndPoint);
                         continue;
