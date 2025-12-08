@@ -79,13 +79,21 @@ namespace osu.Framework.Graphics.Lines
                 renderer.PopLocalMatrix();
             }
 
-            private void drawSegment(DrawableSegment segment)
+            /// <summary>
+            /// Draws the provided segment to the screen.
+            /// </summary>
+            /// <param name="segment">The segment to be drawn.</param>
+            /// <param name="endCap">Whether end cap of this segment must be drawn.</param>
+            private void drawSegment(DrawableSegment segment, bool endCap)
             {
                 drawQuad
                 (
                     segment.DrawQuad,
                     new Quad(new Vector2(0, -1), new Vector2(0, -1), new Vector2(0, 1), new Vector2(0, 1))
                 );
+
+                if (endCap)
+                    drawEndCap(segment);
             }
 
             private void drawConnectionBetween(DrawableSegment segment, DrawableSegment prevSegment)
@@ -218,12 +226,11 @@ namespace osu.Framework.Graphics.Lines
 
                 Line segmentToDraw = segments[0];
 
-                SegmentStartLocation location = SegmentStartLocation.End;
-                SegmentStartLocation modifiedLocation = SegmentStartLocation.Outside;
+                SegmentStartLocation location = SegmentStartLocation.Outside;
                 SegmentStartLocation nextLocation = SegmentStartLocation.End;
 
                 // We initialize "fake" initial segment before the 0'th one
-                // so that on first connect() call with current SegmentStartLocation parameters path start cap will be drawn.
+                // so that on first drawStartPart() call with current SegmentStartLocation parameters path start cap will be drawn.
                 DrawableSegment lastDrawnSegment = new DrawableSegment(segments[0], radius);
 
                 for (int i = 1; i < segments.Count; i++)
@@ -252,7 +259,7 @@ namespace osu.Framework.Graphics.Lines
                         if (dot < 0)
                         {
                             segmentToDraw = new Line(nextVertex, segmentToDraw.EndPoint);
-                            modifiedLocation = SegmentStartLocation.Outside;
+                            location = SegmentStartLocation.Outside;
                         }
                         else if (dot > lengthSquared) // new vertex is located in front of the end point, expand segment forward
                         {
@@ -263,42 +270,40 @@ namespace osu.Framework.Graphics.Lines
                     else // Otherwise draw the expanded segment
                     {
                         DrawableSegment s = new DrawableSegment(segmentToDraw, radius);
-                        drawSegment(s);
-                        connect(s, lastDrawnSegment, location, modifiedLocation);
+                        // if next segment starts at the start or the middle of the current one, nothing will be connected to the end of the current segment - end cap is required.
+                        drawSegment(s, nextLocation == SegmentStartLocation.StartOrMiddle);
+                        drawStartPart(s, lastDrawnSegment, location);
 
                         lastDrawnSegment = s;
                         segmentToDraw = segments[i];
-                        location = modifiedLocation = nextLocation;
+                        location = nextLocation;
                         nextLocation = SegmentStartLocation.End;
                     }
                 }
 
                 // Finish drawing last segment
                 DrawableSegment last = new DrawableSegment(segmentToDraw, radius);
-                connect(last, lastDrawnSegment, location, modifiedLocation);
-                drawSegment(last);
-                drawEndCap(last);
+                drawStartPart(last, lastDrawnSegment, location);
+                drawSegment(last, true);
             }
 
             /// <summary>
-            /// Connects the start of the segment to the end of a previous one.
+            /// Draws start cap or connection between segments when required.
             /// </summary>
-            private void connect(DrawableSegment segment, DrawableSegment prevSegment, SegmentStartLocation initialLocation, SegmentStartLocation modifiedLocation)
+            private void drawStartPart(DrawableSegment segment, DrawableSegment prevSegment, SegmentStartLocation location)
             {
-                // Segment starts at the end of the previous one
-                if (modifiedLocation == SegmentStartLocation.End)
+                switch (location)
                 {
-                    drawConnectionBetween(segment, prevSegment);
-                    return; // when drawing connection, we are in the situation when caps aren't needed
+                    // Segment starts at the end of the previous one
+                    case SegmentStartLocation.End:
+                        drawConnectionBetween(segment, prevSegment);
+                        return;
+
+                    // Segment starts outside the previous one, nothing is being connected to the start of the segment - start cap is required.
+                    case SegmentStartLocation.Outside:
+                        drawStartCap(segment);
+                        return;
                 }
-
-                // Segment initially starts at the start or the middle of the previous one, nothing is being connected to the end of the previous segment - end cap is required.
-                if (initialLocation == SegmentStartLocation.StartOrMiddle)
-                    drawEndCap(prevSegment);
-
-                // Segment starts outside the previous one, nothing is being connected to the start of the segment - start cap is required.
-                if (modifiedLocation == SegmentStartLocation.Outside)
-                    drawStartCap(segment);
             }
 
             private void drawEndCap(DrawableSegment segment)
