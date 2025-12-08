@@ -291,10 +291,8 @@ namespace osu.Framework.Graphics.Lines
                     return; // when drawing connection, we are in the situation when caps aren't needed
                 }
 
-                // End cap of the previous segment required in 2 cases.
-                // 1. Current segment starts at the start or the middle of the previous one, making the tail of the previous segment disconnected from anything.
-                // 2. Current segment starts outside but not passing through the end of the previous one (in which case current segment will be drawn on top of the cap anyway).
-                if (modifiedLocation == SegmentStartLocation.StartOrMiddle || (modifiedLocation == SegmentStartLocation.Outside && initialLocation != SegmentStartLocation.End))
+                // Segment initially starts at the start or the middle of the previous one, nothing is being connected to the end of the previous segment - end cap is required.
+                if (initialLocation == SegmentStartLocation.StartOrMiddle)
                     drawEndCap(prevSegment);
 
                 // Segment starts outside the previous one, nothing is being connected to the start of the segment - start cap is required.
