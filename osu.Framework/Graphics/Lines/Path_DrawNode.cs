@@ -83,9 +83,24 @@ namespace osu.Framework.Graphics.Lines
             /// Draws the provided segment to the screen.
             /// </summary>
             /// <param name="segment">The segment to be drawn.</param>
+            /// <param name="prevSegment">Previous segment.</param>
+            /// <param name="location">Position of the segment relative to the previous one.</param>
             /// <param name="endCap">Whether end cap of this segment must be drawn.</param>
-            private void drawSegment(DrawableSegment segment, bool endCap)
+            private void drawSegment(DrawableSegment segment, DrawableSegment prevSegment, SegmentStartLocation location, bool endCap)
             {
+                switch (location)
+                {
+                    // Segment starts at the end of the previous one
+                    case SegmentStartLocation.End:
+                        drawConnectionBetween(segment, prevSegment);
+                        break;
+
+                    // Segment starts outside the previous one, nothing is being connected to the start of the segment - start cap is required.
+                    case SegmentStartLocation.Outside:
+                        drawStartCap(segment);
+                        break;
+                }
+
                 drawQuad
                 (
                     segment.DrawQuad,
@@ -271,8 +286,7 @@ namespace osu.Framework.Graphics.Lines
                     {
                         DrawableSegment s = new DrawableSegment(segmentToDraw, radius);
                         // if next segment starts at the start or the middle of the current one, nothing will be connected to the end of the current segment - end cap is required.
-                        drawSegment(s, nextLocation == SegmentStartLocation.StartOrMiddle);
-                        drawStartPart(s, lastDrawnSegment, location);
+                        drawSegment(s, lastDrawnSegment, location, nextLocation == SegmentStartLocation.StartOrMiddle);
 
                         lastDrawnSegment = s;
                         segmentToDraw = segments[i];
@@ -282,28 +296,7 @@ namespace osu.Framework.Graphics.Lines
                 }
 
                 // Finish drawing last segment
-                DrawableSegment last = new DrawableSegment(segmentToDraw, radius);
-                drawStartPart(last, lastDrawnSegment, location);
-                drawSegment(last, true);
-            }
-
-            /// <summary>
-            /// Draws start cap or connection between segments when required.
-            /// </summary>
-            private void drawStartPart(DrawableSegment segment, DrawableSegment prevSegment, SegmentStartLocation location)
-            {
-                switch (location)
-                {
-                    // Segment starts at the end of the previous one
-                    case SegmentStartLocation.End:
-                        drawConnectionBetween(segment, prevSegment);
-                        return;
-
-                    // Segment starts outside the previous one, nothing is being connected to the start of the segment - start cap is required.
-                    case SegmentStartLocation.Outside:
-                        drawStartCap(segment);
-                        return;
-                }
+                drawSegment(new DrawableSegment(segmentToDraw, radius), lastDrawnSegment, location, true);
             }
 
             private void drawEndCap(DrawableSegment segment)
