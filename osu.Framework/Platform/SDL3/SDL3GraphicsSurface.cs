@@ -182,11 +182,8 @@ namespace osu.Framework.Platform.SDL3
             }
             set
             {
-                if (RuntimeInfo.IsDesktop)
-                {
-                    SDL_GL_SetSwapInterval(value ? 1 : 0);
-                    verticalSync = value;
-                }
+                SDL_GL_SetSwapInterval(value ? 1 : 0);
+                verticalSync = value;
             }
         }
 
