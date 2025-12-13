@@ -126,27 +126,11 @@ namespace osu.Framework.Platform.SDL3
                     string? str = Marshal.PtrToStringAnsi(new IntPtr(ptr));
 
                     Debug.Assert(str != null);
-                    entryPointsInstance[i] = getProcAddress(str);
+                    entryPointsInstance[i] = SDL_GL_GetProcAddress(str);
                 }
             }
 
             pointsInfo.SetValue(bindings, entryPointsInstance);
-        }
-
-        private IntPtr getProcAddress(string symbol)
-        {
-            const SDL_LogCategory error_category = SDL_LogCategory.SDL_LOG_CATEGORY_ERROR;
-            SDL_LogPriority oldPriority = SDL_GetLogPriority(error_category);
-
-            // Prevent logging calls to SDL_GL_GetProcAddress() that fail on systems which don't have the requested symbol (typically macOS).
-            SDL_SetLogPriority(error_category, SDL_LogPriority.SDL_LOG_PRIORITY_INFO);
-
-            IntPtr ret = SDL_GL_GetProcAddress(symbol);
-
-            // Reset the logging behaviour.
-            SDL_SetLogPriority(error_category, oldPriority);
-
-            return ret;
         }
 
         int? IOpenGLGraphicsSurface.BackbufferFramebuffer
@@ -195,7 +179,7 @@ namespace osu.Framework.Platform.SDL3
         void IOpenGLGraphicsSurface.DeleteContext(IntPtr context) => SDL_GL_DestroyContext((SDL_GLContextState*)context);
         void IOpenGLGraphicsSurface.MakeCurrent(IntPtr context) => SDL_GL_MakeCurrent(window.SDLWindowHandle, (SDL_GLContextState*)context);
         void IOpenGLGraphicsSurface.ClearCurrent() => SDL_GL_MakeCurrent(window.SDLWindowHandle, null);
-        IntPtr IOpenGLGraphicsSurface.GetProcAddress(string symbol) => getProcAddress(symbol);
+        IntPtr IOpenGLGraphicsSurface.GetProcAddress(string symbol) => SDL_GL_GetProcAddress(symbol);
 
         #endregion
 

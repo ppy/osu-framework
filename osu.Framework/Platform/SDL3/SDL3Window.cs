@@ -174,7 +174,6 @@ namespace osu.Framework.Platform.SDL3
                           SDL3 Revision: {SDL_GetRevision()}
                           SDL3 Video driver: {SDL_GetCurrentVideoDriver()}");
 
-            SDL_SetLogPriority(SDL_LogCategory.SDL_LOG_CATEGORY_ERROR, SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG);
             SDL_SetLogOutputFunction(&logOutput, IntPtr.Zero);
             SDL_SetEventFilter(&eventFilter, ObjectHandle.Handle);
 
