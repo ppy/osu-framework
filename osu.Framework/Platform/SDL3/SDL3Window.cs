@@ -219,6 +219,7 @@ namespace osu.Framework.Platform.SDL3
             SDL_SetHint(SDL_HINT_PEN_TOUCH_EVENTS, "0"u8);
             SDL_SetHint(SDL_HINT_PEN_MOUSE_EVENTS, "0"u8);
             SDL_SetHint(SDL_HINT_IME_IMPLEMENTED_UI, "composition"u8);
+            SDL_SetHint(SDL_HINT_WINDOWS_RAW_KEYBOARD, "1"u8);
 
             SDLWindowHandle = SDL_CreateWindow(title, Size.Width, Size.Height, flags);
 
