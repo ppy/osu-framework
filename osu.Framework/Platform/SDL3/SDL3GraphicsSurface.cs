@@ -33,12 +33,12 @@ namespace osu.Framework.Platform.SDL3
             switch (surfaceType)
             {
                 case GraphicsSurfaceType.OpenGL:
-                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_RED_SIZE, 8);
-                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_GREEN_SIZE, 8);
-                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_BLUE_SIZE, 8);
-                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_ACCUM_ALPHA_SIZE, 0);
-                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_DEPTH_SIZE, 16);
-                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_STENCIL_SIZE, 8);
+                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_RED_SIZE, 8).LogErrorIfFailed();
+                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_GREEN_SIZE, 8).LogErrorIfFailed();
+                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_BLUE_SIZE, 8).LogErrorIfFailed();
+                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_ACCUM_ALPHA_SIZE, 0).LogErrorIfFailed();
+                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_DEPTH_SIZE, 16).LogErrorIfFailed();
+                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_STENCIL_SIZE, 8).LogErrorIfFailed();
                     break;
 
                 case GraphicsSurfaceType.Vulkan:
@@ -60,7 +60,7 @@ namespace osu.Framework.Platform.SDL3
         public Size GetDrawableSize()
         {
             int width, height;
-            SDL_GetWindowSizeInPixels(window.SDLWindowHandle, &width, &height);
+            SDL_GetWindowSizeInPixels(window.SDLWindowHandle, &width, &height).LogErrorIfFailed();
             return new Size(width, height);
         }
 
@@ -70,19 +70,19 @@ namespace osu.Framework.Platform.SDL3
         {
             if (RuntimeInfo.IsMobile)
             {
-                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL_GLProfile.SDL_GL_CONTEXT_PROFILE_ES);
+                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL_GLProfile.SDL_GL_CONTEXT_PROFILE_ES).LogErrorIfFailed();
 
                 // Minimum OpenGL version for ES profile:
-                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_MINOR_VERSION, 0);
+                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_MAJOR_VERSION, 3).LogErrorIfFailed();
+                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_MINOR_VERSION, 0).LogErrorIfFailed();
             }
             else
             {
-                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL_GLProfile.SDL_GL_CONTEXT_PROFILE_CORE);
+                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL_GLProfile.SDL_GL_CONTEXT_PROFILE_CORE).LogErrorIfFailed();
 
                 // Minimum OpenGL version for core profile:
-                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_MINOR_VERSION, 2);
+                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_MAJOR_VERSION, 3).LogErrorIfFailed();
+                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_MINOR_VERSION, 2).LogErrorIfFailed();
             }
 
             context = SDL_GL_CreateContext(window.SDLWindowHandle);
@@ -90,7 +90,7 @@ namespace osu.Framework.Platform.SDL3
             if (context == null)
                 throw new InvalidOperationException($"Failed to create an SDL3 GL context ({SDL_GetError()})");
 
-            SDL_GL_MakeCurrent(window.SDLWindowHandle, context);
+            SDL_GL_MakeCurrent(window.SDLWindowHandle, context).LogErrorIfFailed();
 
             loadBindings();
         }
@@ -201,7 +201,7 @@ namespace osu.Framework.Platform.SDL3
         #region Android-specific implementation
 
         [SupportedOSPlatform("android")]
-        IntPtr IAndroidGraphicsSurface.JniEnvHandle => SDL_GetAndroidJNIEnv();
+        IntPtr IAndroidGraphicsSurface.JniEnvHandle => SDL_GetAndroidJNIEnv().LogErrorIfFailed();
 
         [SupportedOSPlatform("android")]
         IntPtr IAndroidGraphicsSurface.SurfaceHandle => window.SurfaceHandle;
