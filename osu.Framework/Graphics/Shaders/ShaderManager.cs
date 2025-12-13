@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.IO.Stores;
@@ -55,7 +56,7 @@ namespace osu.Framework.Graphics.Shaders
         /// <param name="fragment">The fragment shader name.</param>
         /// <returns>A cached <see cref="IShader"/> instance, if existing.</returns>
         public virtual IShader? GetCachedShader(string vertex, string fragment)
-            => shaderCache.TryGetValue((vertex, fragment), out IShader? shader) ? shader : null;
+            => shaderCache.GetValueOrDefault((vertex, fragment));
 
         /// <summary>
         /// Attempts to retrieve an already-cached shader part.
@@ -63,7 +64,7 @@ namespace osu.Framework.Graphics.Shaders
         /// <param name="name">The name of the shader part.</param>
         /// <returns>A cached <see cref="IShaderPart"/> instance, if existing.</returns>
         public virtual IShaderPart? GetCachedShaderPart(string name)
-            => partCache.TryGetValue(name, out IShaderPart? part) ? part : null;
+            => partCache.GetValueOrDefault(name);
 
         /// <summary>
         /// Attempts to retrieve the raw data for a shader file.
