@@ -10,7 +10,6 @@ using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using osu.Framework.Utils;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Lines
@@ -262,9 +261,10 @@ namespace osu.Framework.Graphics.Lines
                     }
 
                     Vector2 dir2 = nextVertex - segmentToDraw.StartPoint;
+                    Vector2.PerpDot(ref dir, ref dir2, out float pDot);
 
-                    // Expand segment if next end point is located within a line passing through it
-                    if (Precision.AlmostEquals(Vector2.PerpDot(dir, dir2), 0, 0.03f))
+                    // Expand segment if next end point is located within a line passing through it (distance from the next vertex to the segment is small)
+                    if (pDot * pDot / lengthSquared < 0.0001f)
                     {
                         nextLocation = SegmentStartLocation.StartOrMiddle;
 
