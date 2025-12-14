@@ -244,7 +244,7 @@ namespace osu.Framework.Graphics.Lines
                 SegmentStartLocation nextLocation = SegmentStartLocation.End;
 
                 // We initialize "fake" initial segment before the 0'th one
-                // so that on first drawStartPart() call with current SegmentStartLocation parameters path start cap will be drawn.
+                // so that on first drawSegment() call with current SegmentStartLocation parameters path start cap will be drawn.
                 DrawableSegment lastDrawnSegment = new DrawableSegment(segments[0], radius);
 
                 for (int i = 1; i < segments.Count; i++)
