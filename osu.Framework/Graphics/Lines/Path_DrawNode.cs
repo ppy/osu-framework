@@ -112,39 +112,40 @@ namespace osu.Framework.Graphics.Lines
 
             private void drawConnectionBetween(DrawableSegment segment, DrawableSegment prevSegment)
             {
-                float thetaDiff = segment.Guide.Theta - prevSegment.Guide.Theta;
+                Vector2 dir = segment.Direction;
+                Vector2 dir2 = -prevSegment.Direction;
 
-                if (Math.Abs(thetaDiff) > MathF.PI)
-                    thetaDiff = -Math.Sign(thetaDiff) * 2 * MathF.PI + thetaDiff;
+                Vector2.Dot(ref dir, ref dir2, out float dot);
 
-                if (thetaDiff == 0f)
-                    return;
-
-                // more than 90 degrees - draw previous segment end cap
-                if (Math.Abs(thetaDiff) > Math.PI * 0.5)
+                // Angle between segments is less than 90 degrees - draw previous segment end cap.
+                // Overdraw is inevitable anyway and this seems like a cheaper option than computing exact shape.
+                if (dot >= 0)
                 {
                     drawEndCap(prevSegment);
                     return;
                 }
 
+                Vector2.PerpDot(ref dir, ref dir2, out float pDot);
+
+                Line toConnect = pDot < 0f ? new Line(prevSegment.TopRight, segment.TopLeft) : new Line(prevSegment.BottomRight, segment.BottomLeft);
+
+                float thetaDiff = Math.Abs(MathF.Atan(pDot / dot));
+                Vector2 outerVertex = toConnect.StartPoint - dir2 * radius * (float)Math.Tan(thetaDiff * 0.5);
                 Vector2 origin = segment.Guide.StartPoint;
-                Line end = thetaDiff > 0f ? new Line(segment.BottomLeft, segment.TopLeft) : new Line(segment.TopLeft, segment.BottomLeft);
-                Line start = thetaDiff > 0f ? new Line(prevSegment.TopRight, prevSegment.BottomRight) : new Line(prevSegment.BottomRight, prevSegment.TopRight);
 
-                // position of a vertex which is located slightly below segments intersection
-                Vector2 innerVertex = Vector2.Lerp(start.StartPoint, end.EndPoint, 0.5f);
+                // position of a vertex which is located slightly below segments intersection to cover potentially missing pixels due to segments not having shared vertices
+                // Vector2.Lerp(outerVertex, origin, 1.1f)
+                Vector2 innerVertex = origin * 1.1f - outerVertex * 0.1f;
 
-                // at this small angle curvature of the connection isn't noticeable, we can get away with a single triangle
-                if (Math.Abs(thetaDiff) < Math.PI / max_res)
+                // at this small angle curvature isn't noticeable, we can get away with a single triangle
+                if (thetaDiff < Math.PI / max_res)
                 {
-                    drawTriangle(new Triangle(start.EndPoint, innerVertex, end.StartPoint), origin);
+                    drawTriangle(new Triangle(toConnect.StartPoint, innerVertex, toConnect.EndPoint), origin);
                     return;
                 }
 
                 // 2 triangles for the remaining cases
-                Vector2 middle1 = Vector2.Lerp(start.EndPoint, end.StartPoint, 0.5f);
-                Vector2 outerVertex = Vector2.Lerp(origin, middle1, radius / (float)Math.Cos(Math.Abs(thetaDiff) * 0.5) / Vector2.Distance(origin, middle1));
-                drawQuad(new Quad(start.EndPoint, outerVertex, innerVertex, end.StartPoint), origin);
+                drawQuad(new Quad(toConnect.StartPoint, outerVertex, innerVertex, toConnect.EndPoint), origin);
             }
 
             private void drawTriangle(Triangle triangle, Vector2 origin)
