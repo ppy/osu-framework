@@ -122,7 +122,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("click away", () =>
             {
-                InputManager.MoveMouseTo(textBox.ScreenSpaceDrawQuad.BottomRight + Vector2.One * 20);
+                InputManager.MoveMouseTo(textBox.ScreenSpaceDrawQuad.BottomRight.Xy + Vector2.One * 20);
                 InputManager.Click(MouseButton.Left);
             });
 

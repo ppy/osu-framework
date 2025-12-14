@@ -165,7 +165,7 @@ namespace osu.Framework.Graphics
             {
                 ScreenSpaceAABB = screenSpaceMaskingRect,
                 MaskingRect = screenSpaceDrawRectangle,
-                ToMaskingSpace = Matrix3.Identity,
+                ToMaskingSpace = Matrix4.Identity,
                 BlendRange = 1,
                 AlphaExponent = 1,
             }, true);
@@ -206,7 +206,7 @@ namespace osu.Framework.Graphics
                 return;
 
             // Clip the screen space draw rectangle to the bounds of the root node
-            RectangleF clipBounds = new RectangleF(rootNode.ScreenSpaceDrawQuad.TopLeft, rootNode.ScreenSpaceDrawQuad.Size);
+            RectangleF clipBounds = new RectangleF(rootNode.ScreenSpaceDrawQuad.TopLeft.Xy, rootNode.ScreenSpaceDrawQuad.Size);
             screenSpaceDrawRectangle.Intersect(clipBounds);
         }
 
