@@ -487,7 +487,7 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_EventType.SDL_EVENT_WINDOW_MOVED:
                     // explicitly requery as there are occasions where what SDL has provided us with is not up-to-date.
                     int x, y;
-                    SDL_GetWindowPosition(SDLWindowHandle, &x, &y).LogErrorIfFailed();
+                    SDL_GetWindowPosition(SDLWindowHandle, &x, &y).ThrowIfFailed();
                     var newPosition = new Point(x, y);
 
                     if (!newPosition.Equals(Position))
@@ -605,7 +605,7 @@ namespace osu.Framework.Platform.SDL3
                     windowMaximised = maximized;
             }
 
-            var newDisplayID = SDL_GetDisplayForWindow(SDLWindowHandle).LogErrorIfFailed();
+            var newDisplayID = SDL_GetDisplayForWindow(SDLWindowHandle).ThrowIfFailed();
 
             if (displayID != newDisplayID)
             {

@@ -192,7 +192,7 @@ namespace osu.Framework.Platform.SDL3
 
         public virtual void StartTextInput(TextInputProperties properties) => ScheduleCommand(() =>
         {
-            currentTextInputProperties ??= SDL_CreateProperties().LogErrorIfFailed();
+            currentTextInputProperties ??= SDL_CreateProperties().ThrowIfFailed();
 
             var props = currentTextInputProperties.Value;
             SDL_SetNumberProperty(props, SDL_PROP_TEXTINPUT_TYPE_NUMBER, (long)properties.Type.ToSDLTextInputType()).LogErrorIfFailed();

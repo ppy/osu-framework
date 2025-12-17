@@ -1048,7 +1048,7 @@ namespace osu.Framework.Platform.SDL3
         {
             int bpp;
             uint unused;
-            SDL_GetMasksForPixelFormat(mode.format, &bpp, &unused, &unused, &unused, &unused).LogErrorIfFailed();
+            SDL_GetMasksForPixelFormat(mode.format, &bpp, &unused, &unused, &unused, &unused).ThrowIfFailed();
             return new DisplayMode(SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, displayIndex);
         }
 
@@ -1163,10 +1163,16 @@ namespace osu.Framework.Platform.SDL3
             return returnValue;
         }
 
-        public static SDL_PropertiesID LogErrorIfFailed(this SDL_PropertiesID returnValue, [CallerArgumentExpression("returnValue")] string? expression = null)
+        public static void ThrowIfFailed(this SDLBool returnValue, [CallerArgumentExpression("returnValue")] string? expression = null)
+        {
+            if (!returnValue)
+                throw new SDL3Exception(expression);
+        }
+
+        public static SDL_PropertiesID ThrowIfFailed(this SDL_PropertiesID returnValue, [CallerArgumentExpression("returnValue")] string? expression = null)
         {
             if (returnValue == 0)
-                logError(expression);
+                throw new SDL3Exception(expression);
 
             return returnValue;
         }
@@ -1179,10 +1185,10 @@ namespace osu.Framework.Platform.SDL3
             return returnValue;
         }
 
-        public static IntPtr LogErrorIfFailed(this IntPtr returnValue, [CallerArgumentExpression("returnValue")] string? expression = null)
+        public static IntPtr ThrowIfFailed(this IntPtr returnValue, [CallerArgumentExpression("returnValue")] string? expression = null)
         {
             if (returnValue == IntPtr.Zero)
-                logError(expression);
+                throw new SDL3Exception(expression);
 
             return returnValue;
         }
@@ -1216,6 +1222,14 @@ namespace osu.Framework.Platform.SDL3
         {
             if (returnValue == 0)
                 logError(expression);
+
+            return returnValue;
+        }
+
+        public static SDL_DisplayID ThrowIfFailed(this SDL_DisplayID returnValue, [CallerArgumentExpression("returnValue")] string? expression = null)
+        {
+            if (returnValue == 0)
+                throw new SDL3Exception(expression);
 
             return returnValue;
         }

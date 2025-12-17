@@ -94,7 +94,9 @@ namespace osu.Framework.Platform.SDL3
                 if (SDLWindowHandle == null)
                     return IntPtr.Zero;
 
-                var props = SDL_GetWindowProperties(SDLWindowHandle).LogErrorIfFailed();
+                var props = SDL_GetWindowProperties(SDLWindowHandle);
+                if (props == 0)
+                    return IntPtr.Zero;
 
                 switch (RuntimeInfo.OS)
                 {
@@ -133,7 +135,9 @@ namespace osu.Framework.Platform.SDL3
                 if (SDLWindowHandle == null)
                     return IntPtr.Zero;
 
-                var props = SDL_GetWindowProperties(SDLWindowHandle).LogErrorIfFailed();
+                var props = SDL_GetWindowProperties(SDLWindowHandle);
+                if (props == 0)
+                    return IntPtr.Zero;
 
                 if (IsWayland)
                     return SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, IntPtr.Zero);
