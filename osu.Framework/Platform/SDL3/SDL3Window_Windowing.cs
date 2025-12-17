@@ -721,6 +721,7 @@ namespace osu.Framework.Platform.SDL3
                 return false;
             }
 
+            SDL_ClearError();
             var mode = windowState == WindowState.Fullscreen ? SDL_GetWindowFullscreenMode(windowHandle) : SDL3Extensions.LogErrorIfFailed(SDL_GetDesktopDisplayMode(displayID));
             string type = windowState == WindowState.Fullscreen ? "fullscreen" : "desktop";
 
