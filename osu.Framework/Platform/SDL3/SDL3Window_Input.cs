@@ -531,7 +531,7 @@ namespace osu.Framework.Platform.SDL3
 
         private void handleKeymapChangedEvent() => KeymapChanged?.Invoke();
 
-        private static TabletPenDeviceType getPenType(SDL_PenID instanceID) => SDL_GetPenDeviceType(instanceID).LogErrorIfFailed().ToTabletPenDeviceType();
+        private static TabletPenDeviceType getPenType(SDL_PenID instanceID) => SDL_GetPenDeviceType(instanceID).ThrowIfFailed().ToTabletPenDeviceType();
 
         private void handlePenMotionEvent(SDL_PenMotionEvent evtPenMotion)
         {

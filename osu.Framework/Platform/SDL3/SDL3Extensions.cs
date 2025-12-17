@@ -1202,10 +1202,10 @@ namespace osu.Framework.Platform.SDL3
             return returnValue;
         }
 
-        public static SDL_PenDeviceType LogErrorIfFailed(this SDL_PenDeviceType returnValue, [CallerArgumentExpression("returnValue")] string? expression = null)
+        public static SDL_PenDeviceType ThrowIfFailed(this SDL_PenDeviceType returnValue, [CallerArgumentExpression("returnValue")] string? expression = null)
         {
             if (returnValue == SDL_PenDeviceType.SDL_PEN_DEVICE_TYPE_INVALID)
-                logError(expression);
+                throw new SDL3Exception(expression);
 
             return returnValue;
         }
