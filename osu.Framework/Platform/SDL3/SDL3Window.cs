@@ -467,6 +467,8 @@ namespace osu.Framework.Platform.SDL3
                 {
                     var pixelFormat = SDL_GetPixelFormatForMasks(32, 0xff, 0xff00, 0xff0000, 0xff000000);
                     surface = SDL3Extensions.LogErrorIfFailed(SDL_CreateSurfaceFrom(imageSize.Width, imageSize.Height, pixelFormat, new IntPtr(ptr), imageSize.Width * 4));
+                    if (surface == null)
+                        return;
                 }
 
                 SDL_SetWindowIcon(SDLWindowHandle, surface).LogErrorIfFailed();
