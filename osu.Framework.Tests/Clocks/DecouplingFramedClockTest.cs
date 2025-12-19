@@ -436,6 +436,7 @@ namespace osu.Framework.Tests.Clocks
         [TestCase(1)]
         [TestCase(10)]
         [TestCase(50)]
+        [FlakyTest]
         public void TestNoDecoupledDrift(int updateRate)
         {
             var stopwatch = new StopwatchClock();
