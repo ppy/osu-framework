@@ -85,45 +85,60 @@ namespace osu.Framework.Graphics.Lines
             /// <param name="prevSegment">Previous segment.</param>
             /// <param name="location">Position of the segment relative to the previous one.</param>
             /// <param name="endCap">Whether end cap of this segment must be drawn.</param>
-            private void drawSegment(DrawableSegment segment, DrawableSegment prevSegment, SegmentStartLocation location, bool endCap)
+            private void drawSegment(ref DrawableSegment segment, ref DrawableSegment prevSegment, SegmentStartLocation location, bool endCap)
             {
-                switch (location)
-                {
-                    // Segment starts at the end of the previous one
-                    case SegmentStartLocation.End:
-                        drawConnectionBetween(segment, prevSegment);
-                        break;
+                // When segment starts outside the previous one, nothing is being connected to the start of the segment and start cap is required.
+                bool startCap = location == SegmentStartLocation.Outside;
 
-                    // Segment starts outside the previous one, nothing is being connected to the start of the segment - start cap is required.
-                    case SegmentStartLocation.Outside:
-                        drawStartCap(segment);
-                        break;
+                // Segment starts at the end of the previous one
+                if (location == SegmentStartLocation.End)
+                {
+                    // When drawConnectionBetween returns false - that means angle between segments is less than 90 degrees
+                    // and we can just draw connection as a start cap of a current segment.
+                    startCap |= !drawConnectionBetween(ref segment, ref prevSegment);
                 }
 
-                drawQuad
-                (
-                    segment.DrawQuad,
-                    new Quad(new Vector2(0, -1), new Vector2(0, -1), new Vector2(0, 1), new Vector2(0, 1))
-                );
+                Vector2 topLeft = segment.TopLeft;
+                Vector2 topRight = segment.TopRight;
+                Vector2 bottomLeft = segment.BottomLeft;
+                Vector2 bottomRight = segment.BottomRight;
+                Vector2 offset = segment.DirectionNormalized * radius;
+
+                if (startCap)
+                {
+                    topLeft -= offset;
+                    bottomLeft -= offset;
+                }
 
                 if (endCap)
-                    drawEndCap(segment);
+                {
+                    topRight += offset;
+                    bottomRight += offset;
+                }
+
+                drawQuad(topLeft, topRight, bottomLeft, bottomRight, segment.StartPoint, segment.EndPoint);
             }
 
-            private void drawConnectionBetween(DrawableSegment segment, DrawableSegment prevSegment)
+            /// <summary>
+            /// Draws connection between provided segments.
+            /// </summary>
+            /// <param name="segment">The current segment.</param>
+            /// <param name="prevSegment">The segment which ends at the start of the current one.</param>
+            /// <returns>Whether connection has been drawn.</returns>
+            private bool drawConnectionBetween(ref DrawableSegment segment, ref DrawableSegment prevSegment)
             {
-                Vector2 dir = segment.Direction;
-                Vector2 dir2 = -prevSegment.Direction;
+                Debug.Assert(prevSegment.EndPoint == segment.StartPoint);
+
+                Vector2 dir = segment.DirectionNormalized;
+                Vector2 dir2 = -prevSegment.DirectionNormalized;
 
                 Vector2.Dot(ref dir, ref dir2, out float dot);
 
-                // Angle between segments is less than 90 degrees - draw previous segment end cap.
+                // Angle between segments is less than 90 degrees - don't draw anything and use segment start cap instead.
                 // Overdraw is inevitable anyway and this seems like a cheaper option than computing exact shape.
+                // Also by doing this we can further reduce vertex count.
                 if (dot >= 0)
-                {
-                    drawEndCap(prevSegment);
-                    return;
-                }
+                    return false;
 
                 Vector2.PerpDot(ref dir, ref dir2, out float pDot);
 
@@ -131,7 +146,7 @@ namespace osu.Framework.Graphics.Lines
 
                 float thetaDiff = Math.Abs(MathF.Atan(pDot / dot));
                 Vector2 outerVertex = toConnect.StartPoint - dir2 * radius * (float)Math.Tan(thetaDiff * 0.5);
-                Vector2 origin = segment.Guide.StartPoint;
+                Vector2 origin = segment.StartPoint;
 
                 // position of a vertex which is located slightly below segments intersection to cover potentially missing pixels due to segments not having shared vertices
                 // Vector2.Lerp(outerVertex, origin, 1.1f)
@@ -139,99 +154,86 @@ namespace osu.Framework.Graphics.Lines
 
                 // at this small angle curvature isn't noticeable, we can get away with a single triangle
                 if (thetaDiff < Math.PI / max_res)
-                {
-                    drawTriangle(new Triangle(toConnect.StartPoint, innerVertex, toConnect.EndPoint), origin);
-                    return;
-                }
+                    drawTriangle(toConnect.StartPoint, innerVertex, toConnect.EndPoint, origin, origin);
+                else // 2 triangles for the remaining cases
+                    drawQuad(toConnect.StartPoint, outerVertex, innerVertex, toConnect.EndPoint, origin, origin);
 
-                // 2 triangles for the remaining cases
-                drawQuad(new Quad(toConnect.StartPoint, outerVertex, innerVertex, toConnect.EndPoint), origin);
+                return true;
             }
 
-            private void drawTriangle(Triangle triangle, Vector2 origin)
-            {
-                drawTriangle
-                (
-                    triangle,
-                    new Triangle
-                    (
-                        Vector2.Divide(triangle.P0 - origin, radius),
-                        Vector2.Divide(triangle.P1 - origin, radius),
-                        Vector2.Divide(triangle.P2 - origin, radius)
-                    )
-                );
-            }
-
-            private void drawTriangle(Triangle triangle, Triangle relativePos)
+            private void drawTriangle(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 start, Vector2 end)
             {
                 Debug.Assert(triangleBatch != null);
 
                 triangleBatch.Add(new PathVertex
                 {
-                    Position = triangle.P0,
-                    RelativePos = relativePos.P0
+                    Position = p0,
+                    StartPos = start,
+                    EndPos = end,
+                    Radius = radius
                 });
                 triangleBatch.Add(new PathVertex
                 {
-                    Position = triangle.P1,
-                    RelativePos = relativePos.P1
+                    Position = p1,
+                    StartPos = start,
+                    EndPos = end,
+                    Radius = radius
                 });
                 triangleBatch.Add(new PathVertex
                 {
-                    Position = triangle.P2,
-                    RelativePos = relativePos.P2
+                    Position = p2,
+                    StartPos = start,
+                    EndPos = end,
+                    Radius = radius
                 });
             }
 
-            private void drawQuad(Quad quad, Vector2 origin)
-            {
-                drawQuad
-                (
-                    quad,
-                    new Quad
-                    (
-                        Vector2.Divide(quad.TopLeft - origin, radius),
-                        Vector2.Divide(quad.TopRight - origin, radius),
-                        Vector2.Divide(quad.BottomLeft - origin, radius),
-                        Vector2.Divide(quad.BottomRight - origin, radius)
-                    )
-                );
-            }
-
-            private void drawQuad(Quad quad, Quad relativePos)
+            private void drawQuad(Vector2 topLeft, Vector2 topRight, Vector2 bottomLeft, Vector2 bottomRight, Vector2 start, Vector2 end)
             {
                 Debug.Assert(triangleBatch != null);
 
                 triangleBatch.Add(new PathVertex
                 {
-                    Position = quad.TopLeft,
-                    RelativePos = relativePos.TopLeft
+                    Position = topLeft,
+                    StartPos = start,
+                    EndPos = end,
+                    Radius = radius
                 });
                 triangleBatch.Add(new PathVertex
                 {
-                    Position = quad.TopRight,
-                    RelativePos = relativePos.TopRight
+                    Position = topRight,
+                    StartPos = start,
+                    EndPos = end,
+                    Radius = radius
                 });
                 triangleBatch.Add(new PathVertex
                 {
-                    Position = quad.BottomLeft,
-                    RelativePos = relativePos.BottomLeft
+                    Position = bottomLeft,
+                    StartPos = start,
+                    EndPos = end,
+                    Radius = radius
                 });
 
                 triangleBatch.Add(new PathVertex
                 {
-                    Position = quad.BottomLeft,
-                    RelativePos = relativePos.BottomLeft
+                    Position = bottomLeft,
+                    StartPos = start,
+                    EndPos = end,
+                    Radius = radius
                 });
                 triangleBatch.Add(new PathVertex
                 {
-                    Position = quad.TopRight,
-                    RelativePos = relativePos.TopRight
+                    Position = topRight,
+                    StartPos = start,
+                    EndPos = end,
+                    Radius = radius
                 });
                 triangleBatch.Add(new PathVertex
                 {
-                    Position = quad.BottomRight,
-                    RelativePos = relativePos.BottomRight
+                    Position = bottomRight,
+                    StartPos = start,
+                    EndPos = end,
+                    Radius = radius
                 });
             }
 
@@ -287,7 +289,7 @@ namespace osu.Framework.Graphics.Lines
                     {
                         DrawableSegment s = new DrawableSegment(segmentToDraw, radius);
                         // if next segment starts at the start or the middle of the current one, nothing will be connected to the end of the current segment - end cap is required.
-                        drawSegment(s, lastDrawnSegment, location, nextLocation == SegmentStartLocation.StartOrMiddle);
+                        drawSegment(ref s, ref lastDrawnSegment, location, nextLocation == SegmentStartLocation.StartOrMiddle);
 
                         lastDrawnSegment = s;
                         segmentToDraw = segments[i];
@@ -297,31 +299,8 @@ namespace osu.Framework.Graphics.Lines
                 }
 
                 // Finish drawing last segment
-                drawSegment(new DrawableSegment(segmentToDraw, radius), lastDrawnSegment, location, true);
-            }
-
-            private void drawEndCap(DrawableSegment segment)
-            {
-                Vector2 topRight = segment.TopRight + segment.Direction * radius;
-                Vector2 bottomRight = segment.BottomRight + segment.Direction * radius;
-
-                drawQuad
-                (
-                    new Quad(segment.TopRight, topRight, segment.BottomRight, bottomRight),
-                    new Quad(new Vector2(0, -1), new Vector2(1, -1), new Vector2(0, 1), new Vector2(1, 1))
-                );
-            }
-
-            private void drawStartCap(DrawableSegment segment)
-            {
-                Vector2 topLeft = segment.TopLeft - segment.Direction * radius;
-                Vector2 bottomLeft = segment.BottomLeft - segment.Direction * radius;
-
-                drawQuad
-                (
-                    new Quad(topLeft, segment.TopLeft, bottomLeft, segment.BottomLeft),
-                    new Quad(new Vector2(-1, -1), new Vector2(0, -1), new Vector2(-1, 1), new Vector2(0, 1))
-                );
+                var ds = new DrawableSegment(segmentToDraw, radius);
+                drawSegment(ref ds, ref lastDrawnSegment, location, true);
             }
 
             protected override void Dispose(bool isDisposing)
@@ -341,62 +320,60 @@ namespace osu.Framework.Graphics.Lines
             private readonly struct DrawableSegment
             {
                 /// <summary>
-                /// The line defining this <see cref="DrawableSegment"/>.
+                /// End point of this <see cref="DrawableSegment"/>.
                 /// </summary>
-                public Line Guide { get; }
+                public readonly Vector2 EndPoint;
 
                 /// <summary>
-                /// The direction of the <see cref="Guide"/> of this <see cref="DrawableSegment"/>.
+                /// Start point of this <see cref="DrawableSegment"/>.
                 /// </summary>
-                public Vector2 Direction { get; }
+                public readonly Vector2 StartPoint;
 
                 /// <summary>
-                /// The draw quad of this <see cref="DrawableSegment"/>.
+                /// The normalized direction of this <see cref="DrawableSegment"/>.
                 /// </summary>
-                public Quad DrawQuad { get; }
+                public readonly Vector2 DirectionNormalized;
 
                 /// <summary>
-                /// The top-left position of the <see cref="DrawQuad"/> of this <see cref="DrawableSegment"/>.
+                /// The top-left position of the draw quad of this <see cref="DrawableSegment"/>.
                 /// </summary>
-                public Vector2 TopLeft => DrawQuad.TopLeft;
+                public readonly Vector2 TopLeft;
 
                 /// <summary>
-                /// The top-right position of the <see cref="DrawQuad"/> of this <see cref="DrawableSegment"/>.
+                /// The top-right position of the draw quad of this <see cref="DrawableSegment"/>.
                 /// </summary>
-                public Vector2 TopRight => DrawQuad.TopRight;
+                public readonly Vector2 TopRight;
 
                 /// <summary>
-                /// The bottom-left position of the <see cref="DrawQuad"/> of this <see cref="DrawableSegment"/>.
+                /// The bottom-left position of the draw quad of this <see cref="DrawableSegment"/>.
                 /// </summary>
-                public Vector2 BottomLeft => DrawQuad.BottomLeft;
+                public readonly Vector2 BottomLeft;
 
                 /// <summary>
-                /// The bottom-right position of the <see cref="DrawQuad"/> of this <see cref="DrawableSegment"/>.
+                /// The bottom-right position of the draw quad of this <see cref="DrawableSegment"/>.
                 /// </summary>
-                public Vector2 BottomRight => DrawQuad.BottomRight;
+                public readonly Vector2 BottomRight;
 
                 /// <param name="guide">The line defining this <see cref="DrawableSegment"/>.</param>
                 /// <param name="radius">The path radius.</param>
                 public DrawableSegment(Line guide, float radius)
                 {
-                    Guide = guide;
+                    StartPoint = guide.StartPoint;
+                    EndPoint = guide.EndPoint;
 
                     Vector2 dir = guide.DirectionNormalized;
 
                     if (float.IsNaN(dir.X) || float.IsNaN(dir.Y))
                         dir = Vector2.UnitX;
 
-                    Direction = dir;
+                    DirectionNormalized = dir;
 
                     Vector2 ortho = new Vector2(-dir.Y, dir.X);
 
-                    DrawQuad = new Quad
-                    (
-                        Guide.StartPoint + ortho * radius,
-                        Guide.EndPoint + ortho * radius,
-                        Guide.StartPoint - ortho * radius,
-                        Guide.EndPoint - ortho * radius
-                    );
+                    TopLeft = StartPoint + ortho * radius;
+                    TopRight = EndPoint + ortho * radius;
+                    BottomLeft = StartPoint - ortho * radius;
+                    BottomRight = EndPoint - ortho * radius;
                 }
             }
 
@@ -406,17 +383,20 @@ namespace osu.Framework.Graphics.Lines
                 [VertexMember(2, VertexAttribPointerType.Float)]
                 public Vector2 Position;
 
-                /// <summary>
-                /// A position of a vertex, where distance from that position to (0,0) defines it's colour.
-                /// Distance 0 means white and 1 means black.
-                /// This position is being interpolated between vertices and final colour is being applied in the fragment shader.
-                /// </summary>
                 [VertexMember(2, VertexAttribPointerType.Float)]
-                public Vector2 RelativePos;
+                public Vector2 StartPos;
+
+                [VertexMember(2, VertexAttribPointerType.Float)]
+                public Vector2 EndPos;
+
+                [VertexMember(1, VertexAttribPointerType.Float)]
+                public float Radius;
 
                 public readonly bool Equals(PathVertex other) =>
                     Position.Equals(other.Position)
-                    && RelativePos.Equals(other.RelativePos);
+                    && StartPos.Equals(other.StartPos)
+                    && EndPos.Equals(other.EndPos)
+                    && Radius.Equals(other.Radius);
             }
         }
     }
