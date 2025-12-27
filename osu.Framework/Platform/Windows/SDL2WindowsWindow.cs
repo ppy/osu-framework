@@ -18,7 +18,7 @@ using static SDL2.SDL;
 namespace osu.Framework.Platform.Windows
 {
     [SupportedOSPlatform("windows")]
-    internal class SDL2WindowsWindow : SDL2DesktopWindow, IWindowsWindow
+    internal class SDL2WindowsWindow : SDL2DesktopWindow, IWindowsWindow, IHasTouchpadInput
     {
         private const int seticon_message = 0x0080;
         private const int icon_big = 1;
@@ -37,6 +37,13 @@ namespace osu.Framework.Platform.Windows
         /// </summary>
         private readonly bool applyBorderlessWindowHack;
 
+        // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable (this callback needs to be kept around)
+        private readonly SDL_WindowsMessageHook sdl2Callback;
+
+        public readonly WindowsRawInputManager RawInputManager;
+        private readonly WindowsTouchpadReader touchpadReader;
+        public event Action<TouchpadData>? TouchpadDataUpdate;
+
         public SDL2WindowsWindow(GraphicsSurfaceType surfaceType, string appName)
             : base(surfaceType, appName)
         {
@@ -54,6 +61,14 @@ namespace osu.Framework.Platform.Windows
 
             if (!declareDpiAwareV2())
                 declareDpiAware();
+
+            RawInputManager = new WindowsRawInputManager(WindowHandle);
+            touchpadReader = new WindowsTouchpadReader(RawInputManager);
+            touchpadReader.TouchpadDataUpdate += data => TouchpadDataUpdate?.Invoke(data);
+
+            // ReSharper disable once ConvertClosureToMethodGroup
+            sdl2Callback = (ptr, wnd, u, param, l) => windowsMessageHookSDL2(ptr, wnd, u, param, l);
+            SDL_SetWindowsMessageHook(sdl2Callback, WindowHandle);
         }
 
         private bool declareDpiAwareV2()
@@ -90,6 +105,18 @@ namespace osu.Framework.Platform.Windows
 
             // enable window message events to use with `OnSDLEvent` below.
             SDL_EventState(SDL_EventType.SDL_SYSWMEVENT, SDL_ENABLE);
+        }
+
+        private IntPtr windowsMessageHookSDL2(IntPtr userData, IntPtr hWnd, uint message, ulong wParam, long lParam)
+        {
+            if (message != Native.Input.WM_INPUT)
+                return IntPtr.Zero;
+
+#pragma warning disable CA2020 // Prevent behavioral change for IntPtr conversion
+            RawInputManager.ProcessWmInput((IntPtr)lParam);
+#pragma warning restore CA2020
+
+            return IntPtr.Zero;
         }
 
         protected override void HandleEventFromFilter(SDL_Event e)
