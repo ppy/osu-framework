@@ -192,6 +192,13 @@ namespace osu.Framework.Tests.Visual.Drawables
                     boxes.AddRange(Source.Boxes);
                 }
 
+                protected override void Draw(IRenderer renderer)
+                {
+                    renderer.PushLocalMatrix(DrawInfo.Matrix);
+                    base.Draw(renderer);
+                    renderer.PopLocalMatrix();
+                }
+
                 protected override void Blit(IRenderer renderer)
                 {
                     ColourInfo colourInfo = DrawColourInfo.Colour;
@@ -199,41 +206,10 @@ namespace osu.Framework.Tests.Visual.Drawables
 
                     foreach (var box in boxes)
                     {
-                        var drawQuad = new Quad(
-                            Vector2Extensions.Transform(box.TopLeft, DrawInfo.Matrix),
-                            Vector2Extensions.Transform(box.TopRight, DrawInfo.Matrix),
-                            Vector2Extensions.Transform(box.TopLeft + new Vector2(0, 1), DrawInfo.Matrix),
-                            Vector2Extensions.Transform(box.TopRight + new Vector2(0, 1), DrawInfo.Matrix)
-                        );
-
-                        renderer.DrawQuad(Texture, drawQuad, colourInfo);
-
-                        drawQuad = new Quad(
-                            Vector2Extensions.Transform(box.BottomLeft - new Vector2(0, 1), DrawInfo.Matrix),
-                            Vector2Extensions.Transform(box.BottomRight - new Vector2(0, 1), DrawInfo.Matrix),
-                            Vector2Extensions.Transform(box.BottomLeft, DrawInfo.Matrix),
-                            Vector2Extensions.Transform(box.BottomRight, DrawInfo.Matrix)
-                        );
-
-                        renderer.DrawQuad(Texture, drawQuad, colourInfo);
-
-                        drawQuad = new Quad(
-                            Vector2Extensions.Transform(box.TopLeft, DrawInfo.Matrix),
-                            Vector2Extensions.Transform(box.TopLeft + new Vector2(1, 0), DrawInfo.Matrix),
-                            Vector2Extensions.Transform(box.BottomLeft, DrawInfo.Matrix),
-                            Vector2Extensions.Transform(box.BottomLeft + new Vector2(1, 0), DrawInfo.Matrix)
-                        );
-
-                        renderer.DrawQuad(Texture, drawQuad, colourInfo);
-
-                        drawQuad = new Quad(
-                            Vector2Extensions.Transform(box.TopRight - new Vector2(1, 0), DrawInfo.Matrix),
-                            Vector2Extensions.Transform(box.TopRight, DrawInfo.Matrix),
-                            Vector2Extensions.Transform(box.BottomRight - new Vector2(1, 0), DrawInfo.Matrix),
-                            Vector2Extensions.Transform(box.BottomRight, DrawInfo.Matrix)
-                        );
-
-                        renderer.DrawQuad(Texture, drawQuad, colourInfo);
+                        renderer.DrawQuad(Texture, new Quad(box.TopLeft, box.TopRight, box.TopLeft + new Vector2(0, 1), box.TopRight + new Vector2(0, 1)), colourInfo);
+                        renderer.DrawQuad(Texture, new Quad(box.BottomLeft - new Vector2(0, 1), box.BottomRight - new Vector2(0, 1), box.BottomLeft, box.BottomRight), colourInfo);
+                        renderer.DrawQuad(Texture, new Quad(box.TopLeft, box.TopLeft + new Vector2(1, 0), box.BottomLeft, box.BottomLeft + new Vector2(1, 0)), colourInfo);
+                        renderer.DrawQuad(Texture, new Quad(box.TopRight - new Vector2(1, 0), box.TopRight, box.BottomRight - new Vector2(1, 0), box.BottomRight), colourInfo);
                     }
                 }
 
