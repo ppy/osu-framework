@@ -108,30 +108,6 @@ namespace osu.Framework.Input.Bindings
             return ContainsAll(Keys, pressedKeys.Keys, matchingMode);
         }
 
-        private static InputKey? getVirtualKey(InputKey key)
-        {
-            switch (key)
-            {
-                case InputKey.LShift:
-                case InputKey.RShift:
-                    return InputKey.Shift;
-
-                case InputKey.LControl:
-                case InputKey.RControl:
-                    return InputKey.Control;
-
-                case InputKey.LAlt:
-                case InputKey.RAlt:
-                    return InputKey.Alt;
-
-                case InputKey.LSuper:
-                case InputKey.RSuper:
-                    return InputKey.Super;
-            }
-
-            return null;
-        }
-
         /// <summary>
         /// Check whether the provided set of pressed keys matches the candidate binding.
         /// </summary>
@@ -192,7 +168,7 @@ namespace osu.Framework.Input.Bindings
         internal static bool KeyBindingContains(ImmutableArray<InputKey> candidateKeyBinding, InputKey physicalKey)
         {
             return candidateKeyBinding.Contains(physicalKey) ||
-                   (getVirtualKey(physicalKey) is InputKey vKey && candidateKeyBinding.Contains(vKey));
+                   (physicalKey.GetVirtualKey() is InputKey vKey && candidateKeyBinding.Contains(vKey));
         }
 
         /// <summary>
@@ -210,7 +186,7 @@ namespace osu.Framework.Input.Bindings
 
             foreach (var pk in pressedPhysicalKeys)
             {
-                if (getVirtualKey(pk) == candidateKey)
+                if (pk.GetVirtualKey() == candidateKey)
                     return true;
             }
 

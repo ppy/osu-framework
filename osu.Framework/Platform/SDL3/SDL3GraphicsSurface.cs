@@ -33,12 +33,12 @@ namespace osu.Framework.Platform.SDL3
             switch (surfaceType)
             {
                 case GraphicsSurfaceType.OpenGL:
-                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_RED_SIZE, 8);
-                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_GREEN_SIZE, 8);
-                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_BLUE_SIZE, 8);
-                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_ACCUM_ALPHA_SIZE, 0);
-                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_DEPTH_SIZE, 16);
-                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_STENCIL_SIZE, 8);
+                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_RED_SIZE, 8).ThrowIfFailed();
+                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_GREEN_SIZE, 8).ThrowIfFailed();
+                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_BLUE_SIZE, 8).ThrowIfFailed();
+                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_ACCUM_ALPHA_SIZE, 0).ThrowIfFailed();
+                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_DEPTH_SIZE, 16).ThrowIfFailed();
+                    SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_STENCIL_SIZE, 8).ThrowIfFailed();
                     break;
 
                 case GraphicsSurfaceType.Vulkan:
@@ -60,7 +60,7 @@ namespace osu.Framework.Platform.SDL3
         public Size GetDrawableSize()
         {
             int width, height;
-            SDL_GetWindowSizeInPixels(window.SDLWindowHandle, &width, &height);
+            SDL_GetWindowSizeInPixels(window.SDLWindowHandle, &width, &height).ThrowIfFailed();
             return new Size(width, height);
         }
 
@@ -70,19 +70,19 @@ namespace osu.Framework.Platform.SDL3
         {
             if (RuntimeInfo.IsMobile)
             {
-                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL_GLProfile.SDL_GL_CONTEXT_PROFILE_ES);
+                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL_GLProfile.SDL_GL_CONTEXT_PROFILE_ES).ThrowIfFailed();
 
                 // Minimum OpenGL version for ES profile:
-                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_MINOR_VERSION, 0);
+                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_MAJOR_VERSION, 3).ThrowIfFailed();
+                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_MINOR_VERSION, 0).ThrowIfFailed();
             }
             else
             {
-                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL_GLProfile.SDL_GL_CONTEXT_PROFILE_CORE);
+                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL_GLProfile.SDL_GL_CONTEXT_PROFILE_CORE).ThrowIfFailed();
 
                 // Minimum OpenGL version for core profile:
-                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_MINOR_VERSION, 2);
+                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_MAJOR_VERSION, 3).ThrowIfFailed();
+                SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_CONTEXT_MINOR_VERSION, 2).ThrowIfFailed();
             }
 
             context = SDL_GL_CreateContext(window.SDLWindowHandle);
@@ -90,7 +90,7 @@ namespace osu.Framework.Platform.SDL3
             if (context == null)
                 throw new InvalidOperationException($"Failed to create an SDL3 GL context ({SDL_GetError()})");
 
-            SDL_GL_MakeCurrent(window.SDLWindowHandle, context);
+            SDL_GL_MakeCurrent(window.SDLWindowHandle, context).ThrowIfFailed();
 
             loadBindings();
         }
@@ -126,27 +126,11 @@ namespace osu.Framework.Platform.SDL3
                     string? str = Marshal.PtrToStringAnsi(new IntPtr(ptr));
 
                     Debug.Assert(str != null);
-                    entryPointsInstance[i] = getProcAddress(str);
+                    entryPointsInstance[i] = SDL_GL_GetProcAddress(str);
                 }
             }
 
             pointsInfo.SetValue(bindings, entryPointsInstance);
-        }
-
-        private IntPtr getProcAddress(string symbol)
-        {
-            const SDL_LogCategory error_category = SDL_LogCategory.SDL_LOG_CATEGORY_ERROR;
-            SDL_LogPriority oldPriority = SDL_GetLogPriority(error_category);
-
-            // Prevent logging calls to SDL_GL_GetProcAddress() that fail on systems which don't have the requested symbol (typically macOS).
-            SDL_SetLogPriority(error_category, SDL_LogPriority.SDL_LOG_PRIORITY_INFO);
-
-            IntPtr ret = SDL_GL_GetProcAddress(symbol);
-
-            // Reset the logging behaviour.
-            SDL_SetLogPriority(error_category, oldPriority);
-
-            return ret;
         }
 
         int? IOpenGLGraphicsSurface.BackbufferFramebuffer
@@ -182,11 +166,8 @@ namespace osu.Framework.Platform.SDL3
             }
             set
             {
-                if (RuntimeInfo.IsDesktop)
-                {
-                    SDL_GL_SetSwapInterval(value ? 1 : 0);
-                    verticalSync = value;
-                }
+                SDL_GL_SetSwapInterval(value ? 1 : 0);
+                verticalSync = value;
             }
         }
 
@@ -198,7 +179,7 @@ namespace osu.Framework.Platform.SDL3
         void IOpenGLGraphicsSurface.DeleteContext(IntPtr context) => SDL_GL_DestroyContext((SDL_GLContextState*)context);
         void IOpenGLGraphicsSurface.MakeCurrent(IntPtr context) => SDL_GL_MakeCurrent(window.SDLWindowHandle, (SDL_GLContextState*)context);
         void IOpenGLGraphicsSurface.ClearCurrent() => SDL_GL_MakeCurrent(window.SDLWindowHandle, null);
-        IntPtr IOpenGLGraphicsSurface.GetProcAddress(string symbol) => getProcAddress(symbol);
+        IntPtr IOpenGLGraphicsSurface.GetProcAddress(string symbol) => SDL_GL_GetProcAddress(symbol);
 
         #endregion
 
@@ -220,7 +201,7 @@ namespace osu.Framework.Platform.SDL3
         #region Android-specific implementation
 
         [SupportedOSPlatform("android")]
-        IntPtr IAndroidGraphicsSurface.JniEnvHandle => SDL_GetAndroidJNIEnv();
+        IntPtr IAndroidGraphicsSurface.JniEnvHandle => SDL_GetAndroidJNIEnv().ThrowIfFailed();
 
         [SupportedOSPlatform("android")]
         IntPtr IAndroidGraphicsSurface.SurfaceHandle => window.SurfaceHandle;
