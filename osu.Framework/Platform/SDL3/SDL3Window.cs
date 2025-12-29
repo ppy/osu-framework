@@ -75,7 +75,7 @@ namespace osu.Framework.Platform.SDL3
             set
             {
                 title = value;
-                ScheduleCommand(() => SDL_SetWindowTitle(SDLWindowHandle, title));
+                ScheduleCommand(() => SDL_SetWindowTitle(SDLWindowHandle, title).LogErrorIfFailed());
             }
         }
 
@@ -95,6 +95,8 @@ namespace osu.Framework.Platform.SDL3
                     return IntPtr.Zero;
 
                 var props = SDL_GetWindowProperties(SDLWindowHandle);
+                if (props == 0)
+                    return IntPtr.Zero;
 
                 switch (RuntimeInfo.OS)
                 {
@@ -134,6 +136,8 @@ namespace osu.Framework.Platform.SDL3
                     return IntPtr.Zero;
 
                 var props = SDL_GetWindowProperties(SDLWindowHandle);
+                if (props == 0)
+                    return IntPtr.Zero;
 
                 if (IsWayland)
                     return SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, IntPtr.Zero);
@@ -161,7 +165,7 @@ namespace osu.Framework.Platform.SDL3
         {
             ObjectHandle = new ObjectHandle<SDL3Window>(this, GCHandleType.Normal);
 
-            SDL_SetHint(SDL_HINT_APP_NAME, appName);
+            SDL_SetHint(SDL_HINT_APP_NAME, appName).LogErrorIfFailed();
 
             if (!SDL_Init(SDL_InitFlags.SDL_INIT_VIDEO | SDL_InitFlags.SDL_INIT_GAMEPAD))
             {
@@ -174,7 +178,6 @@ namespace osu.Framework.Platform.SDL3
                           SDL3 Revision: {SDL_GetRevision()}
                           SDL3 Video driver: {SDL_GetCurrentVideoDriver()}");
 
-            SDL_SetLogPriority(SDL_LogCategory.SDL_LOG_CATEGORY_ERROR, SDL_LogPriority.SDL_LOG_PRIORITY_DEBUG);
             SDL_SetLogOutputFunction(&logOutput, IntPtr.Zero);
             SDL_SetEventFilter(&eventFilter, ObjectHandle.Handle);
 
@@ -212,13 +215,13 @@ namespace osu.Framework.Platform.SDL3
             flags |= WindowState.ToFlags();
             flags |= graphicsSurface.Type.ToFlags();
 
-            SDL_SetHint(SDL_HINT_WINDOWS_CLOSE_ON_ALT_F4, "0"u8);
-            SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_CENTER, "0"u8);
-            SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0"u8); // disable touch events generating synthetic mouse events on desktop platforms
-            SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0"u8); // disable mouse events generating synthetic touch events on mobile platforms
-            SDL_SetHint(SDL_HINT_PEN_TOUCH_EVENTS, "0"u8);
-            SDL_SetHint(SDL_HINT_PEN_MOUSE_EVENTS, "0"u8);
-            SDL_SetHint(SDL_HINT_IME_IMPLEMENTED_UI, "composition"u8);
+            SDL_SetHint(SDL_HINT_WINDOWS_CLOSE_ON_ALT_F4, "0"u8).LogErrorIfFailed();
+            SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_CENTER, "0"u8).LogErrorIfFailed();
+            SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0"u8).LogErrorIfFailed(); // disable touch events generating synthetic mouse events on desktop platforms
+            SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0"u8).LogErrorIfFailed(); // disable mouse events generating synthetic touch events on mobile platforms
+            SDL_SetHint(SDL_HINT_PEN_TOUCH_EVENTS, "0"u8).LogErrorIfFailed();
+            SDL_SetHint(SDL_HINT_PEN_MOUSE_EVENTS, "0"u8).LogErrorIfFailed();
+            SDL_SetHint(SDL_HINT_IME_IMPLEMENTED_UI, "composition"u8).LogErrorIfFailed();
 
             SDLWindowHandle = SDL_CreateWindow(title, Size.Width, Size.Height, flags);
 
@@ -228,7 +231,7 @@ namespace osu.Framework.Platform.SDL3
             // we want text input to only be active when SDL3DesktopWindowTextInput is active.
             // SDL activates it by default on some platforms: https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/video/SDL_video.c#L573-L582
             // so we deactivate it on startup.
-            SDL_StopTextInput(SDLWindowHandle);
+            SDL_StopTextInput(SDLWindowHandle).LogErrorIfFailed();
 
             graphicsSurface.Initialise();
 
@@ -241,7 +244,7 @@ namespace osu.Framework.Platform.SDL3
         /// </summary>
         public virtual void Run()
         {
-            SDL_AddEventWatch(&eventWatch, ObjectHandle.Handle);
+            SDL_AddEventWatch(&eventWatch, ObjectHandle.Handle).LogErrorIfFailed();
 
             RunMainLoop();
         }
@@ -405,14 +408,14 @@ namespace osu.Framework.Platform.SDL3
             var flags = SDL_GetWindowFlags(SDLWindowHandle);
 
             if (flags.HasFlagFast(SDL_WindowFlags.SDL_WINDOW_MINIMIZED))
-                SDL_RestoreWindow(SDLWindowHandle);
+                SDL_RestoreWindow(SDLWindowHandle).LogErrorIfFailed();
 
-            SDL_RaiseWindow(SDLWindowHandle);
+            SDL_RaiseWindow(SDLWindowHandle).LogErrorIfFailed();
         });
 
         public void Hide() => ScheduleCommand(() =>
         {
-            SDL_HideWindow(SDLWindowHandle);
+            SDL_HideWindow(SDLWindowHandle).LogErrorIfFailed();
         });
 
         public void Show() => ScheduleCommand(() =>
@@ -430,7 +433,7 @@ namespace osu.Framework.Platform.SDL3
 
             SDL_FlashWindow(SDLWindowHandle, flashUntilFocused
                 ? SDL_FlashOperation.SDL_FLASH_UNTIL_FOCUSED
-                : SDL_FlashOperation.SDL_FLASH_BRIEFLY);
+                : SDL_FlashOperation.SDL_FLASH_BRIEFLY).LogErrorIfFailed();
         });
 
         public void CancelFlash() => ScheduleCommand(() =>
@@ -438,12 +441,12 @@ namespace osu.Framework.Platform.SDL3
             if (!RuntimeInfo.IsDesktop)
                 return;
 
-            SDL_FlashWindow(SDLWindowHandle, SDL_FlashOperation.SDL_FLASH_CANCEL);
+            SDL_FlashWindow(SDLWindowHandle, SDL_FlashOperation.SDL_FLASH_CANCEL).LogErrorIfFailed();
         });
 
-        public void EnableScreenSuspension() => ScheduleCommand(() => SDL_EnableScreenSaver());
+        public void EnableScreenSuspension() => ScheduleCommand(() => SDL_EnableScreenSaver().LogErrorIfFailed());
 
-        public void DisableScreenSuspension() => ScheduleCommand(() => SDL_DisableScreenSaver());
+        public void DisableScreenSuspension() => ScheduleCommand(() => SDL_DisableScreenSaver().LogErrorIfFailed());
 
         /// <summary>
         /// Attempts to set the window's icon to the specified image.
@@ -463,10 +466,12 @@ namespace osu.Framework.Platform.SDL3
                 fixed (Rgba32* ptr = pixelSpan)
                 {
                     var pixelFormat = SDL_GetPixelFormatForMasks(32, 0xff, 0xff00, 0xff0000, 0xff000000);
-                    surface = SDL_CreateSurfaceFrom(imageSize.Width, imageSize.Height, pixelFormat, new IntPtr(ptr), imageSize.Width * 4);
+                    surface = SDL3Extensions.LogErrorIfFailed(SDL_CreateSurfaceFrom(imageSize.Width, imageSize.Height, pixelFormat, new IntPtr(ptr), imageSize.Width * 4));
+                    if (surface == null)
+                        return;
                 }
 
-                SDL_SetWindowIcon(SDLWindowHandle, surface);
+                SDL_SetWindowIcon(SDLWindowHandle, surface).LogErrorIfFailed();
                 SDL_DestroySurface(surface);
             });
         }
@@ -495,7 +500,7 @@ namespace osu.Framework.Platform.SDL3
 
             do
             {
-                eventsRead = SDL_PeepEvents(events, SDL_EventAction.SDL_GETEVENT, SDL_EventType.SDL_EVENT_FIRST, SDL_EventType.SDL_EVENT_LAST);
+                eventsRead = SDL_PeepEvents(events, SDL_EventAction.SDL_GETEVENT, SDL_EventType.SDL_EVENT_FIRST, SDL_EventType.SDL_EVENT_LAST).LogErrorIfFailed();
                 for (int i = 0; i < eventsRead; i++)
                     HandleEvent(events[i]);
             } while (eventsRead == events_per_peep);

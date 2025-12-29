@@ -42,7 +42,7 @@ namespace osu.Framework.Platform.SDL3
         // assume that empty text means no text.
         public override string? GetText() => SDL_HasClipboardText() ? SDL_GetClipboardText() : null;
 
-        public override void SetText(string text) => SDL_SetClipboardText(text);
+        public override void SetText(string text) => SDL_SetClipboardText(text).LogErrorIfFailed();
 
         public override Image<TPixel>? GetImage<TPixel>()
         {

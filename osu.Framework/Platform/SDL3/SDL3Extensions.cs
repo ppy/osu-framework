@@ -1,12 +1,15 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Drawing;
+using System.Runtime.CompilerServices;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.StateChanges;
+using osu.Framework.Logging;
 using osuTK.Input;
 using SDL;
 using static SDL.SDL3;
@@ -1045,7 +1048,7 @@ namespace osu.Framework.Platform.SDL3
         {
             int bpp;
             uint unused;
-            SDL_GetMasksForPixelFormat(mode.format, &bpp, &unused, &unused, &unused, &unused);
+            SDL_GetMasksForPixelFormat(mode.format, &bpp, &unused, &unused, &unused, &unused).ThrowIfFailed();
             return new DisplayMode(SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, displayIndex);
         }
 
@@ -1143,6 +1146,101 @@ namespace osu.Framework.Platform.SDL3
             string? error = SDL_GetError();
             SDL_ClearError();
             return error;
+        }
+
+        private static void logError(string? expression)
+        {
+            Logger.Log($"SDL error: {SDL_GetError()}");
+            if (!string.IsNullOrEmpty(expression))
+                Logger.Log($"at {expression}");
+        }
+
+        public static SDLBool LogErrorIfFailed(this SDLBool returnValue, [CallerArgumentExpression("returnValue")] string? expression = null)
+        {
+            if (!returnValue)
+                logError(expression);
+
+            return returnValue;
+        }
+
+        public static void ThrowIfFailed(this SDLBool returnValue, [CallerArgumentExpression("returnValue")] string? expression = null)
+        {
+            if (!returnValue)
+                throw new SDL3Exception(expression);
+        }
+
+        public static SDL_PropertiesID ThrowIfFailed(this SDL_PropertiesID returnValue, [CallerArgumentExpression("returnValue")] string? expression = null)
+        {
+            if (returnValue == 0)
+                throw new SDL3Exception(expression);
+
+            return returnValue;
+        }
+
+        public static int LogErrorIfFailed(this int returnValue, [CallerArgumentExpression("returnValue")] string? expression = null)
+        {
+            if (returnValue == -1)
+                logError(expression);
+
+            return returnValue;
+        }
+
+        public static IntPtr ThrowIfFailed(this IntPtr returnValue, [CallerArgumentExpression("returnValue")] string? expression = null)
+        {
+            if (returnValue == IntPtr.Zero)
+                throw new SDL3Exception(expression);
+
+            return returnValue;
+        }
+
+        public static SDLArray<T>? LogErrorIfFailed<T>(this SDLArray<T>? returnValue, [CallerArgumentExpression("returnValue")] string? expression = null)
+            where T : unmanaged
+        {
+            if (returnValue == null)
+                logError(expression);
+
+            return returnValue;
+        }
+
+        public static SDL_PenDeviceType ThrowIfFailed(this SDL_PenDeviceType returnValue, [CallerArgumentExpression("returnValue")] string? expression = null)
+        {
+            if (returnValue == SDL_PenDeviceType.SDL_PEN_DEVICE_TYPE_INVALID)
+                throw new SDL3Exception(expression);
+
+            return returnValue;
+        }
+
+        public static string? LogErrorIfFailed(this string? returnValue, [CallerArgumentExpression("returnValue")] string? expression = null)
+        {
+            if (returnValue == null)
+                logError(expression);
+
+            return returnValue;
+        }
+
+        public static SDL_DisplayID LogErrorIfFailed(this SDL_DisplayID returnValue, [CallerArgumentExpression("returnValue")] string? expression = null)
+        {
+            if (returnValue == 0)
+                logError(expression);
+
+            return returnValue;
+        }
+
+        public static SDL_DisplayID ThrowIfFailed(this SDL_DisplayID returnValue, [CallerArgumentExpression("returnValue")] string? expression = null)
+        {
+            if (returnValue == 0)
+                throw new SDL3Exception(expression);
+
+            return returnValue;
+        }
+
+        public static unsafe T* LogErrorIfFailed<T>(T* returnValue, [CallerArgumentExpression("returnValue")] string? expression = null)
+            where T : unmanaged
+        {
+            if (returnValue == null)
+                logError(expression);
+
+            return returnValue;
         }
     }
 }
