@@ -68,10 +68,10 @@ namespace osu.Framework.Graphics.Sprites
 
                         renderer.DrawQuad(parts[i].Texture,
                             new Quad(
-                                shadowQuad.TopLeft + shadowOffset,
-                                shadowQuad.TopRight + shadowOffset,
-                                shadowQuad.BottomLeft + shadowOffset,
-                                shadowQuad.BottomRight + shadowOffset),
+                                shadowQuad.TopLeft.Xy + shadowOffset,
+                                shadowQuad.TopRight.Xy + shadowOffset,
+                                shadowQuad.BottomLeft.Xy + shadowOffset,
+                                shadowQuad.BottomRight.Xy + shadowOffset),
                             finalShadowColour, inflationPercentage: parts[i].InflationPercentage);
                     }
 
