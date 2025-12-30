@@ -11,6 +11,7 @@ using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Input.Handlers.Pen;
 using osu.Framework.Input.Handlers.Tablet;
 using osu.Framework.Input.Handlers.Touch;
+using osu.Framework.Input.Handlers.Touchpad;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.SDL3;
 using SixLabors.ImageSharp.Formats.Png;
@@ -50,6 +51,8 @@ namespace osu.Framework.Platform
             if (FrameworkEnvironment.UseSDL3)
                 yield return new PenHandler();
 
+            // Touchpad should get priority over mouse, same reason as tablets.
+            yield return new TouchpadHandler();
             yield return new MouseHandler();
             yield return new TouchHandler();
             yield return new JoystickHandler();
