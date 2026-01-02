@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics
         private Color4 backgroundColour;
         private RectangleF screenSpaceDrawRectangle;
         private Vector2 frameBufferScale;
-        private Vector2 frameBufferSize;
+        private Vector2I frameBufferSize;
         private IDrawable rootNodeCached;
 
         public BufferedDrawNode(IBufferedDrawable source, DrawNode child, BufferedDrawNodeSharedData sharedData)
@@ -52,13 +52,16 @@ namespace osu.Framework.Graphics
             base.ApplyState();
 
             backgroundColour = Source.BackgroundColour;
-            screenSpaceDrawRectangle = Source.ScreenSpaceDrawQuad.AABBFloat;
             DrawColourInfo = Source.FrameBufferDrawColour ?? new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
+
+            var drawRect = Source.ScreenSpaceDrawQuad.AABBFloat;
+
             frameBufferScale = Source.FrameBufferScale;
+            frameBufferSize = new Vector2I((int)MathF.Ceiling(drawRect.Width * frameBufferScale.X), (int)MathF.Ceiling(drawRect.Height * frameBufferScale.Y));
+
+            screenSpaceDrawRectangle = new RectangleF((int)drawRect.X, (int)drawRect.Y, frameBufferSize.X / frameBufferScale.X, frameBufferSize.Y / frameBufferScale.Y);
 
             clipDrawRectangle();
-
-            frameBufferSize = new Vector2(MathF.Ceiling(screenSpaceDrawRectangle.Width * frameBufferScale.X), MathF.Ceiling(screenSpaceDrawRectangle.Height * frameBufferScale.Y));
 
             DrawRectangle = screenSpaceDrawRectangle;
 
@@ -158,8 +161,7 @@ namespace osu.Framework.Graphics
             // Disable masking for generating the frame buffer since masking will be re-applied
             // when actually drawing later on anyways. This allows more information to be captured
             // in the frame buffer and helps with cached buffers being re-used.
-            RectangleI screenSpaceMaskingRect = new RectangleI((int)Math.Floor(screenSpaceDrawRectangle.X), (int)Math.Floor(screenSpaceDrawRectangle.Y), (int)frameBufferSize.X + 1,
-                (int)frameBufferSize.Y + 1);
+            RectangleI screenSpaceMaskingRect = new RectangleI((int)Math.Floor(screenSpaceDrawRectangle.X), (int)Math.Floor(screenSpaceDrawRectangle.Y), frameBufferSize.X + 1, frameBufferSize.Y + 1);
 
             renderer.PushMaskingInfo(new MaskingInfo
             {
@@ -171,8 +173,8 @@ namespace osu.Framework.Graphics
             }, true);
 
             // Match viewport to FrameBuffer such that we don't draw unnecessary pixels.
-            renderer.PushViewport(new RectangleI(0, 0, (int)frameBufferSize.X, (int)frameBufferSize.Y));
-            renderer.PushScissor(new RectangleI(0, 0, (int)frameBufferSize.X, (int)frameBufferSize.Y));
+            renderer.PushViewport(new RectangleI(0, 0, frameBufferSize.X, frameBufferSize.Y));
+            renderer.PushScissor(new RectangleI(0, 0, frameBufferSize.X, frameBufferSize.Y));
             renderer.PushScissorOffset(screenSpaceMaskingRect.Location);
 
             return new ValueInvokeOnDisposal<(BufferedDrawNode node, IRenderer renderer)>((this, renderer), static tup => tup.node.returnViewport(tup.renderer));
