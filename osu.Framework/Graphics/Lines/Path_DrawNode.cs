@@ -122,8 +122,10 @@ namespace osu.Framework.Graphics.Lines
                         // at this small angle curvature isn't noticeable, we can get away with straight-up connecting segment to the previous one.
                         if (thetaDiff < Math.PI / max_res)
                         {
-                            topLeft = prevSegment.TopRight;
-                            bottomLeft = prevSegment.BottomRight;
+                            if (pDot < 0f)
+                                topLeft = prevSegment.TopRight;
+                            else
+                                bottomLeft = prevSegment.BottomRight;
                         }
                         else
                         {
