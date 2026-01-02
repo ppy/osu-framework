@@ -35,7 +35,7 @@ namespace osu.Framework.Tests.Text
         public void SetUp()
         {
             fontStore = new FontStore(new DummyRenderer(), useAtlas: false);
-            fontStore.AddTextureSource(new GlyphStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources"), "Fonts/Roboto/Roboto-Regular"));
+            fontStore.AddTextureSource(new GlyphStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(TextBuilderTest).Assembly), @"Resources"), "Fonts/Roboto/Roboto-Regular"));
             fontStore.AddTextureSource(new GlyphStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources"), "Fonts/FontAwesome5/FontAwesome-Solid"));
 
             glyphA = fontStore.Get(null, 'a').AsNonNull();
