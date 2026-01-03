@@ -302,8 +302,18 @@ namespace osu.Framework.Platform.SDL2
         /// </remarks>
         private void fetchDisplays()
         {
-            Displays = getSDLDisplays();
-            DisplaysChanged?.Invoke(Displays);
+            var newDisplays = getSDLDisplays();
+
+            if (newDisplays.Length > 0)
+            {
+                Displays = newDisplays;
+                DisplaysChanged?.Invoke(newDisplays);
+            }
+            else
+            {
+                // keep Displays stale if zero displays are currently detected
+                Logger.Log("Got zero displays from SDL, ignoring.");
+            }
         }
 
         /// <summary>
@@ -328,7 +338,7 @@ namespace osu.Framework.Platform.SDL2
         {
             int numDisplays = SDL_GetNumVideoDisplays();
 
-            if (numDisplays <= 0)
+            if (numDisplays < 0)
                 throw new InvalidOperationException($"Failed to get number of SDL displays. Return code: {numDisplays}. SDL Error: {SDL_GetError()}");
 
             var builder = ImmutableArray.CreateBuilder<Display>(numDisplays);
