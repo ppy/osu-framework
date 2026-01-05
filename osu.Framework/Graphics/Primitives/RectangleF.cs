@@ -8,7 +8,6 @@ using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using osu.Framework.Utils;
 using osuTK;
 
 namespace osu.Framework.Graphics.Primitives
@@ -315,10 +314,10 @@ namespace osu.Framework.Graphics.Primitives
         /// <filterpriority>1</filterpriority>
         public static RectangleF Union(RectangleF a, RectangleF b)
         {
-            float x = MathUtils.BranchlessMin(a.X, b.X);
-            float num2 = MathUtils.BranchlessMax(a.X + a.Width, b.X + b.Width);
-            float y = MathUtils.BranchlessMin(a.Y, b.Y);
-            float num4 = MathUtils.BranchlessMax(a.Y + a.Height, b.Y + b.Height);
+            float x = Math.Min(a.X, b.X);
+            float num2 = Math.Max(a.X + a.Width, b.X + b.Width);
+            float y = Math.Min(a.Y, b.Y);
+            float num4 = Math.Max(a.Y + a.Height, b.Y + b.Height);
             return new RectangleF(x, y, num2 - x, num4 - y);
         }
 

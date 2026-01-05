@@ -6,7 +6,6 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Utils;
 using osuTK;
 
 namespace osu.Framework.Graphics.Lines
@@ -208,8 +207,8 @@ namespace osu.Framework.Graphics.Lines
 
         private static RectangleF lineAABB(Line line, float radius)
         {
-            float minX = MathUtils.BranchlessMin(line.StartPoint.X, line.EndPoint.X);
-            float minY = MathUtils.BranchlessMin(line.StartPoint.Y, line.EndPoint.Y);
+            float minX = Math.Min(line.StartPoint.X, line.EndPoint.X);
+            float minY = Math.Min(line.StartPoint.Y, line.EndPoint.Y);
             float maxX = line.StartPoint.X + line.EndPoint.X - minX;
             float maxY = line.StartPoint.Y + line.EndPoint.Y - minY;
             return new RectangleF(minX - radius, minY - radius, maxX - minX + radius * 2, maxY - minY + radius * 2);
