@@ -606,14 +606,27 @@ namespace osu.Framework.Platform.SDL2
                 BorderSize.Value = borderSize;
         }
 
+        /// <summary>
+        /// Whether <see cref="SDL_GetWindowBordersSize"/> is supported on this platform.
+        /// </summary>
+        private bool? bordersSizeSupported;
+
         private bool tryGetBorderSize(out MarginPadding borderSize)
         {
-            if (SDL_GetWindowBordersSize(SDLWindowHandle, out int top, out int left, out int bottom, out int right) < 0)
+            if (bordersSizeSupported == false)
             {
                 borderSize = default;
                 return false;
             }
 
+            if (SDL_GetWindowBordersSize(SDLWindowHandle, out int top, out int left, out int bottom, out int right) < 0)
+            {
+                bordersSizeSupported ??= SDL_GetError() != "That operation is not supported";
+                borderSize = default;
+                return false;
+            }
+
+            bordersSizeSupported = true;
             borderSize = new MarginPadding
             {
                 Top = top,
