@@ -79,7 +79,7 @@ namespace osu.Framework.Tests.Visual.Localisation
             {
             }
 
-            public string? Get(string key) => translations.TryGetValue(key, out string? value) ? value : null;
+            public string? Get(string key) => translations.GetValueOrDefault(key);
 
             public Task<string?> GetAsync(string key, CancellationToken cancellationToken = default) => Task.FromResult(Get(key));
 

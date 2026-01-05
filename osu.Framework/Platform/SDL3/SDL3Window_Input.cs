@@ -51,7 +51,7 @@ namespace osu.Framework.Platform.SDL3
                     throw new InvalidOperationException($"Cannot set {nameof(RelativeMouseMode)} to true when the cursor is not hidden via {nameof(CursorState)}.");
 
                 relativeMouseMode = value;
-                ScheduleCommand(() => SDL_SetWindowRelativeMouseMode(SDLWindowHandle, value));
+                ScheduleCommand(() => SDL_SetWindowRelativeMouseMode(SDLWindowHandle, value).LogErrorIfFailed());
                 updateCursorConfinement();
             }
         }
@@ -69,7 +69,7 @@ namespace osu.Framework.Platform.SDL3
         /// </remarks>
         public bool MouseAutoCapture
         {
-            set => ScheduleCommand(() => SDL_SetHint(SDL_HINT_MOUSE_AUTO_CAPTURE, value ? "1"u8 : "0"u8));
+            set => ScheduleCommand(() => SDL_SetHint(SDL_HINT_MOUSE_AUTO_CAPTURE, value ? "1"u8 : "0"u8).LogErrorIfFailed());
         }
 
         /// <summary>
@@ -101,9 +101,9 @@ namespace osu.Framework.Platform.SDL3
             ScheduleCommand(() =>
             {
                 if (cursorVisible)
-                    SDL_ShowCursor();
+                    SDL_ShowCursor().LogErrorIfFailed();
                 else
-                    SDL_HideCursor();
+                    SDL_HideCursor().LogErrorIfFailed();
             });
 
         /// <summary>
@@ -113,7 +113,7 @@ namespace osu.Framework.Platform.SDL3
         {
             bool confined = CursorState.HasFlagFast(CursorState.Confined);
 
-            ScheduleCommand(() => SDL_SetWindowMouseGrab(SDLWindowHandle, confined));
+            ScheduleCommand(() => SDL_SetWindowMouseGrab(SDLWindowHandle, confined).LogErrorIfFailed());
 
             // Don't use SDL_SetWindowMouseRect when relative mode is enabled, as relative mode already confines the OS cursor to the window.
             // This is fine for our use case, as UserInputManager will clamp the mouse position.
@@ -122,12 +122,12 @@ namespace osu.Framework.Platform.SDL3
                 ScheduleCommand(() =>
                 {
                     var rect = ((RectangleI)(CursorConfineRect / Scale)).ToSDLRect();
-                    SDL_SetWindowMouseRect(SDLWindowHandle, &rect);
+                    SDL_SetWindowMouseRect(SDLWindowHandle, &rect).LogErrorIfFailed();
                 });
             }
             else
             {
-                ScheduleCommand(() => SDL_SetWindowMouseRect(SDLWindowHandle, null));
+                ScheduleCommand(() => SDL_SetWindowMouseRect(SDLWindowHandle, null).LogErrorIfFailed());
             }
         }
 
@@ -192,25 +192,25 @@ namespace osu.Framework.Platform.SDL3
 
         public virtual void StartTextInput(TextInputProperties properties) => ScheduleCommand(() =>
         {
-            currentTextInputProperties ??= SDL_CreateProperties();
+            currentTextInputProperties ??= SDL_CreateProperties().ThrowIfFailed();
 
             var props = currentTextInputProperties.Value;
-            SDL_SetNumberProperty(props, SDL_PROP_TEXTINPUT_TYPE_NUMBER, (long)properties.Type.ToSDLTextInputType());
+            SDL_SetNumberProperty(props, SDL_PROP_TEXTINPUT_TYPE_NUMBER, (long)properties.Type.ToSDLTextInputType()).LogErrorIfFailed();
 
             if (!properties.AutoCapitalisation)
-                SDL_SetNumberProperty(props, SDL_PROP_TEXTINPUT_CAPITALIZATION_NUMBER, (long)SDL_Capitalization.SDL_CAPITALIZE_NONE);
+                SDL_SetNumberProperty(props, SDL_PROP_TEXTINPUT_CAPITALIZATION_NUMBER, (long)SDL_Capitalization.SDL_CAPITALIZE_NONE).LogErrorIfFailed();
             else
-                SDL_ClearProperty(props, SDL_PROP_TEXTINPUT_CAPITALIZATION_NUMBER);
+                SDL_ClearProperty(props, SDL_PROP_TEXTINPUT_CAPITALIZATION_NUMBER).LogErrorIfFailed();
 
             if (properties.Type == TextInputType.Code)
-                SDL_SetBooleanProperty(props, SDL_PROP_TEXTINPUT_AUTOCORRECT_BOOLEAN, false);
+                SDL_SetBooleanProperty(props, SDL_PROP_TEXTINPUT_AUTOCORRECT_BOOLEAN, false).LogErrorIfFailed();
             else
-                SDL_ClearProperty(props, SDL_PROP_TEXTINPUT_AUTOCORRECT_BOOLEAN);
+                SDL_ClearProperty(props, SDL_PROP_TEXTINPUT_AUTOCORRECT_BOOLEAN).LogErrorIfFailed();
 
-            SDL_StartTextInputWithProperties(SDLWindowHandle, props);
+            SDL_StartTextInputWithProperties(SDLWindowHandle, props).LogErrorIfFailed();
         });
 
-        public void StopTextInput() => ScheduleCommand(() => SDL_StopTextInput(SDLWindowHandle));
+        public void StopTextInput() => ScheduleCommand(() => SDL_StopTextInput(SDLWindowHandle).LogErrorIfFailed());
 
         /// <summary>
         /// Resets internal state of the platform-native IME.
@@ -218,19 +218,19 @@ namespace osu.Framework.Platform.SDL3
         /// </summary>
         public virtual void ResetIme() => ScheduleCommand(() =>
         {
-            SDL_StopTextInput(SDLWindowHandle);
+            SDL_StopTextInput(SDLWindowHandle).LogErrorIfFailed();
 
             if (currentTextInputProperties is SDL_PropertiesID props)
-                SDL_StartTextInputWithProperties(SDLWindowHandle, props);
+                SDL_StartTextInputWithProperties(SDLWindowHandle, props).LogErrorIfFailed();
             else
-                SDL_StartTextInput(SDLWindowHandle);
+                SDL_StartTextInput(SDLWindowHandle).LogErrorIfFailed();
         });
 
         public void SetTextInputRect(RectangleF rect) => ScheduleCommand(() =>
         {
             // TODO: SDL3 allows apps to set cursor position through the third parameter of SDL_SetTextInputArea.
             var sdlRect = ((RectangleI)(rect / Scale)).ToSDLRect();
-            SDL_SetTextInputArea(SDLWindowHandle, &sdlRect, 0);
+            SDL_SetTextInputArea(SDLWindowHandle, &sdlRect, 0).LogErrorIfFailed();
         });
 
         #region SDL Event Handling
@@ -359,11 +359,11 @@ namespace osu.Framework.Platform.SDL3
             if (controllers.ContainsKey(instanceID))
                 return;
 
-            SDL_Joystick* joystick = SDL_OpenJoystick(instanceID);
+            SDL_Joystick* joystick = SDL3Extensions.LogErrorIfFailed(SDL_OpenJoystick(instanceID));
 
             SDL_Gamepad* controller = null;
             if (SDL_IsGamepad(instanceID))
-                controller = SDL_OpenGamepad(instanceID);
+                controller = SDL3Extensions.LogErrorIfFailed(SDL_OpenGamepad(instanceID));
 
             controllers[instanceID] = new SDL3ControllerBindings(joystick, controller);
         }
@@ -373,7 +373,7 @@ namespace osu.Framework.Platform.SDL3
         /// </summary>
         private void populateJoysticks()
         {
-            using var joysticks = SDL_GetJoysticks();
+            using var joysticks = SDL_GetJoysticks().LogErrorIfFailed();
 
             if (joysticks == null)
                 return;
@@ -531,7 +531,7 @@ namespace osu.Framework.Platform.SDL3
 
         private void handleKeymapChangedEvent() => KeymapChanged?.Invoke();
 
-        private static TabletPenDeviceType getPenType(SDL_PenID instanceID) => SDL_GetPenDeviceType(instanceID).ToTabletPenDeviceType();
+        private static TabletPenDeviceType getPenType(SDL_PenID instanceID) => SDL_GetPenDeviceType(instanceID).ThrowIfFailed().ToTabletPenDeviceType();
 
         private void handlePenMotionEvent(SDL_PenMotionEvent evtPenMotion)
         {
