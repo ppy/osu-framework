@@ -214,12 +214,17 @@ namespace osu.Framework.Graphics.Lines
             return new RectangleF(minX - radius, minY - radius, maxX - minX + radius * 2, maxY - minY + radius * 2);
         }
 
+        private bool isDisposed;
+
         public void Dispose()
         {
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
+
             if (nodes != null)
                 ArrayPool<BBHNode>.Shared.Return(nodes);
-
-            GC.SuppressFinalize(this);
         }
 
         private readonly struct BBHNode
