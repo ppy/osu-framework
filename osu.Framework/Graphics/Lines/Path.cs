@@ -321,7 +321,7 @@ namespace osu.Framework.Graphics.Lines
             texture = null;
 
             sharedData.Dispose();
-            bbhBacking?.Dispose();
+            bbhBacking.Dispose();
         }
     }
 }
