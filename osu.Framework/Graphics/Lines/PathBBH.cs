@@ -40,6 +40,8 @@ namespace osu.Framework.Graphics.Lines
 
         public void SetVertices(IReadOnlyList<Vector2> vertices, float pathRadius)
         {
+            ObjectDisposedException.ThrowIf(isDisposed, this);
+
             TreeVersion++;
             radius = pathRadius;
 
