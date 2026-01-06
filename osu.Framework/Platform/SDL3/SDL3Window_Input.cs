@@ -533,8 +533,6 @@ namespace osu.Framework.Platform.SDL3
 
         private void handleKeymapChangedEvent() => KeymapChanged?.Invoke();
 
-        private static TabletPenDeviceType getPenType(SDL_PenID instanceID) => SDL_GetPenDeviceType(instanceID).ThrowIfFailed().ToTabletPenDeviceType();
-
         private void handlePenProximityEvent(SDL_PenProximityEvent evtPenProximity)
         {
             if (evtPenProximity.type == SDL_EventType.SDL_EVENT_PEN_PROXIMITY_IN)
@@ -542,7 +540,7 @@ namespace osu.Framework.Platform.SDL3
                 if (penDeviceTypes.ContainsKey(evtPenProximity.which))
                     Logger.Log($"Unexpected SDL_EVENT_PEN_PROXIMITY_IN for pen id={evtPenProximity.which}. Pen already in proximity.", level: LogLevel.Important);
 
-                penDeviceTypes[evtPenProximity.which] = getPenType(evtPenProximity.which);
+                penDeviceTypes[evtPenProximity.which] = SDL_GetPenDeviceType(evtPenProximity.which).ThrowIfFailed().ToTabletPenDeviceType();
             }
             else
             {
