@@ -97,6 +97,8 @@ namespace osu.Framework.Platform.SDL3
 
         private readonly Dictionary<SDL_JoystickID, SDL3ControllerBindings> controllers = new Dictionary<SDL_JoystickID, SDL3ControllerBindings>();
 
+        private readonly Dictionary<SDL_PenID, TabletPenDeviceType> penDeviceTypes = new Dictionary<SDL_PenID, TabletPenDeviceType>();
+
         private void updateCursorVisibility(bool cursorVisible) =>
             ScheduleCommand(() =>
             {
@@ -531,16 +533,36 @@ namespace osu.Framework.Platform.SDL3
 
         private void handleKeymapChangedEvent() => KeymapChanged?.Invoke();
 
-        private static TabletPenDeviceType getPenType(SDL_PenID instanceID) => SDL_GetPenDeviceType(instanceID).ThrowIfFailed().ToTabletPenDeviceType();
+        private void handlePenProximityEvent(SDL_PenProximityEvent evtPenProximity)
+        {
+            if (evtPenProximity.type == SDL_EventType.SDL_EVENT_PEN_PROXIMITY_IN)
+            {
+                if (penDeviceTypes.ContainsKey(evtPenProximity.which))
+                    Logger.Log($"Unexpected SDL_EVENT_PEN_PROXIMITY_IN for pen id={evtPenProximity.which}. Pen already in proximity.", level: LogLevel.Important);
+
+                penDeviceTypes[evtPenProximity.which] = SDL_GetPenDeviceType(evtPenProximity.which).ThrowIfFailed().ToTabletPenDeviceType();
+            }
+            else
+            {
+                if (!penDeviceTypes.Remove(evtPenProximity.which))
+                    Logger.Log($"Unexpected SDL_EVENT_PEN_PROXIMITY_OUT for pen id={evtPenProximity.which}. Pen not in proximity.", level: LogLevel.Important);
+            }
+        }
 
         private void handlePenMotionEvent(SDL_PenMotionEvent evtPenMotion)
         {
-            PenMove?.Invoke(getPenType(evtPenMotion.which), new Vector2(evtPenMotion.x, evtPenMotion.y) * Scale, evtPenMotion.pen_state.HasFlagFast(SDL_PenInputFlags.SDL_PEN_INPUT_DOWN));
+            if (penDeviceTypes.TryGetValue(evtPenMotion.which, out var type))
+                PenMove?.Invoke(type, new Vector2(evtPenMotion.x, evtPenMotion.y) * Scale, evtPenMotion.pen_state.HasFlagFast(SDL_PenInputFlags.SDL_PEN_INPUT_DOWN));
+            else
+                Logger.Log($"Unexpected SDL_EVENT_PEN_MOTION for pen id={evtPenMotion.which}. Pen not in proximity.", level: LogLevel.Important);
         }
 
         private void handlePenTouchEvent(SDL_PenTouchEvent evtPenTouch)
         {
-            PenTouch?.Invoke(getPenType(evtPenTouch.which), evtPenTouch.down, new Vector2(evtPenTouch.x, evtPenTouch.y) * Scale);
+            if (penDeviceTypes.TryGetValue(evtPenTouch.which, out var type))
+                PenTouch?.Invoke(type, evtPenTouch.down, new Vector2(evtPenTouch.x, evtPenTouch.y) * Scale);
+            else
+                Logger.Log($"Unexpected {evtPenTouch.type} for pen id={evtPenTouch.which}. Pen not in proximity.", level: LogLevel.Important);
         }
 
         /// <summary>

@@ -597,6 +597,11 @@ namespace osu.Framework.Platform.SDL3
                     handleDropEvent(e.drop);
                     break;
 
+                case SDL_EventType.SDL_EVENT_PEN_PROXIMITY_IN:
+                case SDL_EventType.SDL_EVENT_PEN_PROXIMITY_OUT:
+                    handlePenProximityEvent(e.pproximity);
+                    break;
+
                 case SDL_EventType.SDL_EVENT_PEN_DOWN:
                 case SDL_EventType.SDL_EVENT_PEN_UP:
                     handlePenTouchEvent(e.ptouch);
