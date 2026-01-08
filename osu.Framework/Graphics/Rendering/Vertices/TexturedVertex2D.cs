@@ -12,8 +12,8 @@ namespace osu.Framework.Graphics.Rendering.Vertices
     [StructLayout(LayoutKind.Sequential)]
     public struct TexturedVertex2D : IEquatable<TexturedVertex2D>, IVertex
     {
-        [VertexMember(2, VertexAttribPointerType.Float)]
-        public Vector2 Position;
+        [VertexMember(3, VertexAttribPointerType.Float)]
+        public Vector3 Position;
 
         [VertexMember(4, VertexAttribPointerType.Float)]
         public Color4 Colour;
