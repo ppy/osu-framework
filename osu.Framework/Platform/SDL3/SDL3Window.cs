@@ -319,6 +319,16 @@ namespace osu.Framework.Platform.SDL3
                     LowOnMemory?.Invoke();
                     break;
 
+                case SDL_EventType.SDL_EVENT_KEY_DOWN:
+                case SDL_EventType.SDL_EVENT_KEY_UP:
+                    if (!SDL_TextInputActive(SDLWindowHandle))
+                    {
+                        handleKeyboardEvent(e.key);
+                        return false;
+                    }
+
+                    break;
+
                 case SDL_EventType.SDL_EVENT_MOUSE_MOTION:
                     handleMouseMotionEvent(e.motion);
                     return false;
