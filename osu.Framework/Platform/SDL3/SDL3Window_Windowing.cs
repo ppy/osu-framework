@@ -306,8 +306,18 @@ namespace osu.Framework.Platform.SDL3
         /// </remarks>
         private void fetchDisplays()
         {
-            Displays = getSDLDisplays();
-            DisplaysChanged?.Invoke(Displays);
+            var newDisplays = getSDLDisplays();
+
+            if (newDisplays.Length > 0)
+            {
+                Displays = newDisplays;
+                DisplaysChanged?.Invoke(newDisplays);
+            }
+            else
+            {
+                // keep Displays stale if zero displays are currently detected
+                Logger.Log("Got zero displays from SDL, ignoring.");
+            }
         }
 
         /// <summary>
