@@ -11,6 +11,8 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Statistics;
 using osu.Framework.Utils;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
+using Vector4 = System.Numerics.Vector4;
 
 namespace osu.Framework.Graphics.Rendering
 {

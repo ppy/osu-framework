@@ -3,9 +3,10 @@
 
 using System;
 using osu.Framework.Extensions.MatrixExtensions;
-using osuTK;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Utils;
+using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Graphics
 {

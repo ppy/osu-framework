@@ -2,8 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using osu.Framework.Graphics.Textures;
-using osuTK;
 
 namespace osu.Framework.Graphics.Rendering
 {
@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// The framebuffer's texture size.
         /// </summary>
-        Vector2 Size { get; set; }
+       Vector2 Size { get; set; }
 
         /// <summary>
         /// Binds the framebuffer.
