@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Framework.Utils
 {
@@ -51,9 +51,9 @@ namespace osu.Framework.Utils
 
             // See: https://en.wikipedia.org/wiki/Circumscribed_circle#Cartesian_coordinates_2
             float d = 2 * (a.X * (b - c).Y + b.X * (c - a).Y + c.X * (a - b).Y);
-            float aSq = a.LengthSquared;
-            float bSq = b.LengthSquared;
-            float cSq = c.LengthSquared;
+            float aSq = a.LengthSquared();
+            float bSq = b.LengthSquared();
+            float cSq = c.LengthSquared();
 
             Centre = new Vector2(
                 aSq * (b - c).Y + bSq * (c - a).Y + cSq * (a - b).Y,
@@ -62,7 +62,7 @@ namespace osu.Framework.Utils
             Vector2 dA = a - Centre;
             Vector2 dC = c - Centre;
 
-            Radius = dA.Length;
+            Radius = dA.Length();
 
             ThetaStart = Math.Atan2(dA.Y, dA.X);
             double thetaEnd = Math.Atan2(dC.Y, dC.X);

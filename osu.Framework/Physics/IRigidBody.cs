@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osuTK;
+using System.Numerics;
 using osu.Framework.Graphics;
 
 namespace osu.Framework.Physics
@@ -96,7 +96,7 @@ namespace osu.Framework.Physics
         public static float ImpulseDenominator(this IRigidBody body, Vector2 pos, Vector2 normal)
         {
             Vector2 diff = pos - body.Centre;
-            float perpDot = Vector2.Dot(normal, diff.PerpendicularRight);
+            float perpDot = Vector2.Dot(normal, diff.PerpendicularRight());
             return 1.0f / body.Mass + perpDot * perpDot / body.MomentOfInertia;
         }
 
@@ -123,7 +123,7 @@ namespace osu.Framework.Physics
 
             // Add "friction" to the impulse. We arbitrarily reduce the planar velocity relative to the impulse magnitude.
             Vector2 vrelPlanar = vrel + vrelOrtho * normal;
-            float vrelPlanarLength = vrelPlanar.Length;
+            float vrelPlanarLength = vrelPlanar.Length();
             if (vrelPlanarLength > 0)
                 impulse -= vrelPlanar * Math.Min(impulseMagnitude * 0.05f * body.FrictionCoefficient * other.FrictionCoefficient / vrelPlanarLength, body.Mass);
 

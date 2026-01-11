@@ -4,8 +4,9 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using osuTK;
 using osu.Framework.Utils;
+using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Graphics.Primitives
 {
@@ -60,10 +61,10 @@ namespace osu.Framework.Graphics.Primitives
                 Vector2 row1 = BottomLeft - TopLeft;
 
                 if (row0 != Vector2.Zero)
-                    row0 /= row0.LengthSquared;
+                    row0 /= row0.LengthSquared();
 
                 if (row1 != Vector2.Zero)
-                    row1 /= row1.LengthSquared;
+                    row1 /= row1.LengthSquared();
 
                 return new Matrix2(
                     row0.X, row0.Y,
@@ -139,22 +140,22 @@ namespace osu.Framework.Graphics.Primitives
             // if the result is negative, both perp dots were nonzero and had different signs => reject point.
 
             // note that we don't generally care about overflows there as long as the sign is right.
-            // however, NaN values may come from Infinity - Infinity subtractions in `Vector2.PerpDot`.
+            // however, NaN values may come from Infinity - Infinity subtractions in `Vector2Extensions.PerpDot`.
             // there's not much good left to be done in such cases, so we err on the side of caution and reject points that generate any NaNs on sight.
 
-            float perpDot1 = Vector2.PerpDot(BottomLeft - TopLeft, pos - TopLeft);
+            float perpDot1 = Vector2Extensions.PerpDot(BottomLeft - TopLeft, pos - TopLeft);
             if (float.IsNaN(perpDot1))
                 return false;
 
-            float perpDot2 = Vector2.PerpDot(BottomRight - BottomLeft, pos - BottomLeft);
+            float perpDot2 = Vector2Extensions.PerpDot(BottomRight - BottomLeft, pos - BottomLeft);
             if (float.IsNaN(perpDot2) || perpDot1 * perpDot2 < 0)
                 return false;
 
-            float perpDot3 = Vector2.PerpDot(TopRight - BottomRight, pos - BottomRight);
+            float perpDot3 = Vector2Extensions.PerpDot(TopRight - BottomRight, pos - BottomRight);
             if (float.IsNaN(perpDot3) || perpDot1 * perpDot3 < 0 || perpDot2 * perpDot3 < 0)
                 return false;
 
-            float perpDot4 = Vector2.PerpDot(TopLeft - TopRight, pos - TopRight);
+            float perpDot4 = Vector2Extensions.PerpDot(TopLeft - TopRight, pos - TopRight);
             if (float.IsNaN(perpDot4) || perpDot1 * perpDot4 < 0 || perpDot2 * perpDot4 < 0 || perpDot3 * perpDot4 < 0)
                 return false;
 

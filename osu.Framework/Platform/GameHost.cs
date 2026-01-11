@@ -10,13 +10,13 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using osuTK;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -479,7 +479,7 @@ namespace osu.Framework.Platform
                 Root.Size = new Vector2(Window.ClientSize.Width, Window.ClientSize.Height);
 
             // Ensure we maintain a valid size for any children immediately scaling by the window size
-            Root.Size = Vector2.ComponentMax(Vector2.One, Root.Size);
+            Root.Size = Vector2Extensions.ComponentMax(Vector2.One, Root.Size);
 
             TypePerformanceMonitor.NewFrame();
 

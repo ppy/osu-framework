@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.TypeExtensions;
@@ -24,6 +23,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using System.Threading;
 using JetBrains.Annotations;
@@ -1702,9 +1702,9 @@ namespace osu.Framework.Graphics
             Vector2 bottomRightSize2 = -bottomRightOffset * ratio2;
 
             // Expand bounds according to clipped offset
-            return Vector2.ComponentMax(
-                Vector2.ComponentMax(topLeftSize1, topLeftSize2),
-                Vector2.ComponentMax(bottomRightSize1, bottomRightSize2));
+            return Vector2Extensions.ComponentMax(
+                Vector2Extensions.ComponentMax(topLeftSize1, topLeftSize2),
+                Vector2Extensions.ComponentMax(bottomRightSize1, bottomRightSize2));
         }
 
         /// <summary>

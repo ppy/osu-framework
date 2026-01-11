@@ -3,12 +3,13 @@
 
 #nullable disable
 
-using osuTK;
 using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
+using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Physics
 {
@@ -72,7 +73,7 @@ namespace osu.Framework.Physics
 
             // Add orthogonal direction to rotation, scaled by distance from centre
             // to the velocity of our centre of mass.
-            return Velocity + diff.PerpendicularLeft * AngularVelocity;
+            return Velocity + diff.PerpendicularLeft() * AngularVelocity;
         }
 
         /// <summary>
@@ -123,12 +124,12 @@ namespace osu.Framework.Physics
                 Vector2 a = corners[i];
                 Vector2 b = corners[(i + 1) % 4];
                 Vector2 diff = b - a;
-                float length = diff.Length;
+                float length = diff.Length();
                 Vector2 dir = diff / length;
 
                 float usableLength = Math.Max(length - 2 * cornerRadius, 0);
 
-                Vector2 normal = (b - a).PerpendicularRight.Normalized();
+                Vector2 normal = (b - a).PerpendicularRight().Normalized();
 
                 for (int j = 0; j < amount_side_steps; ++j)
                 {
