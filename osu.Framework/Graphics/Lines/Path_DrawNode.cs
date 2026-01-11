@@ -2,13 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.Primitives;
-using osuTK;
 using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using osuTK.Graphics.ES30;
 
@@ -105,7 +105,7 @@ namespace osu.Framework.Graphics.Lines
 
                     Vector2 dir2 = -prevSegment.DirectionNormalized;
 
-                    Vector2.Dot(ref dir, ref dir2, out float dot);
+                    float dot = Vector2.Dot(dir, dir2);
 
                     // Angle between segments is less than 90 degrees - don't draw anything and use segment start cap instead.
                     // Overdraw is inevitable anyway and this seems like a cheaper option than computing exact shape.
@@ -116,7 +116,7 @@ namespace osu.Framework.Graphics.Lines
                     }
                     else
                     {
-                        Vector2.PerpDot(ref dir, ref dir2, out float pDot);
+                        Vector2Extensions.PerpDot(ref dir, ref dir2, out float pDot);
                         float thetaDiff = Math.Abs(MathF.Atan(pDot / dot));
 
                         // at this small angle curvature isn't noticeable, we can get away with straight-up connecting segment to the previous one.
@@ -191,14 +191,14 @@ namespace osu.Framework.Graphics.Lines
                     }
 
                     Vector2 dir2 = nextVertex - segmentToDraw.StartPoint;
-                    Vector2.PerpDot(ref dir, ref dir2, out float pDot);
+                    Vector2Extensions.PerpDot(ref dir, ref dir2, out float pDot);
 
                     // Expand segment if next end point is located within a line passing through it (distance from the next vertex to the segment is less than precision)
                     if (pDot * pDot / lengthSquared < precision * precision)
                     {
                         nextLocation = SegmentStartLocation.StartOrMiddle;
 
-                        Vector2.Dot(ref dir, ref dir2, out float dot);
+                        float dot = Vector2.Dot(dir, dir2);
 
                         // new vertex is located behind the segment start point, expand segment backwards
                         if (dot < 0)

@@ -2,7 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Runtime.InteropServices;
+using osu.Framework.Extensions;
 using osuTK;
+using Vector4 = System.Numerics.Vector4;
 
 namespace osu.Framework.Graphics.Shaders.Types
 {
@@ -19,18 +21,18 @@ namespace osu.Framework.Graphics.Shaders.Types
 
         public static implicit operator Matrix4(UniformMatrix4 matrix) => new Matrix4
         {
-            Row0 = matrix.Row0,
-            Row1 = matrix.Row1,
-            Row2 = matrix.Row2,
-            Row3 = matrix.Row3
+            Row0 = ((Vector4)matrix.Row0).ToOsuTK(),
+            Row1 = ((Vector4)matrix.Row1).ToOsuTK(),
+            Row2 = ((Vector4)matrix.Row2).ToOsuTK(),
+            Row3 = ((Vector4)matrix.Row3).ToOsuTK()
         };
 
         public static implicit operator UniformMatrix4(Matrix4 matrix) => new UniformMatrix4
         {
-            Row0 = matrix.Row0,
-            Row1 = matrix.Row1,
-            Row2 = matrix.Row2,
-            Row3 = matrix.Row3
+            Row0 = matrix.Row0.ToSystemNumerics(),
+            Row1 = matrix.Row1.ToSystemNumerics(),
+            Row2 = matrix.Row2.ToSystemNumerics(),
+            Row3 = matrix.Row3.ToSystemNumerics()
         };
     }
 }
