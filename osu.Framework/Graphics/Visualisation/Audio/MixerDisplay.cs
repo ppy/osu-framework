@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System.Numerics;
 using ManagedBass.Mix;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.Bass;
@@ -9,7 +10,6 @@ using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Visualisation.Audio

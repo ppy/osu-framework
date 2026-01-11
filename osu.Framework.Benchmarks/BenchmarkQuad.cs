@@ -2,9 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using BenchmarkDotNet.Attributes;
 using osu.Framework.Graphics.Primitives;
-using osuTK;
 
 namespace osu.Framework.Benchmarks
 {

@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Testing;
 using osu.Framework.Tests.Visual;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Framework.Tests.Layout
 {

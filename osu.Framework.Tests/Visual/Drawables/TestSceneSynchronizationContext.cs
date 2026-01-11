@@ -16,7 +16,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {

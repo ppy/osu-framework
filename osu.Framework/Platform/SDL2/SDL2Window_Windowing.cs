@@ -14,6 +14,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Logging;
 using osuTK;
 using static SDL2.SDL;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Platform.SDL2
 {

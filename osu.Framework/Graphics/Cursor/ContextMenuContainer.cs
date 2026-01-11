@@ -6,7 +6,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
-using osuTK;
+using System.Numerics;
 using osuTK.Input;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;

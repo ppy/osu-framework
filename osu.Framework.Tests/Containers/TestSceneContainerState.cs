@@ -14,7 +14,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
 using osu.Framework.Tests.Visual;
-using osuTK;
+using System.Numerics;
 
 #pragma warning disable CA1826 // Performance for test is not important
 

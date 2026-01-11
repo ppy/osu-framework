@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.Testing;
-using osuTK;
+using System.Numerics;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.Drawables

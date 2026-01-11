@@ -15,7 +15,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Stores;
 using osu.Framework.Timing;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {

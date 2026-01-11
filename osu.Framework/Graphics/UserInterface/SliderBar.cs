@@ -7,7 +7,6 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
 using osuTK.Input;
-using Vector2 = osuTK.Vector2;
 
 namespace osu.Framework.Graphics.UserInterface
 {

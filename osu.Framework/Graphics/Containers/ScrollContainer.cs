@@ -5,6 +5,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Numerics;
 using JetBrains.Annotations;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -13,7 +14,6 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Layout;
 using osu.Framework.Utils;
-using osuTK;
 using osuTK.Input;
 
 namespace osu.Framework.Graphics.Containers

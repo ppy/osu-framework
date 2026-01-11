@@ -4,11 +4,11 @@
 #nullable disable
 
 using System.Collections.Generic;
-using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using System;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Rendering;

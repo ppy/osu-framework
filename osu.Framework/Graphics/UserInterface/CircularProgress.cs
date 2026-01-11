@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Primitives;
@@ -13,7 +14,6 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transforms;
-using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {

@@ -6,7 +6,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Visualisation;
 using osu.Framework.Input;
 using osu.Framework.Tests.Visual.Containers;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Framework.Tests.Visual.Testing
 {

@@ -4,10 +4,10 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Numerics;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Veldrid.Textures;
-using osuTK;
 using Veldrid;
 using Texture = Veldrid.Texture;
 

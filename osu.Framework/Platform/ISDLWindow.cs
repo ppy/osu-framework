@@ -2,9 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using osu.Framework.Bindables;
 using osu.Framework.Input;
-using osuTK;
 using osuTK.Input;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 

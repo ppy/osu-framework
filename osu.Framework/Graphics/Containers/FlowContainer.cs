@@ -7,10 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Layout;
 using osu.Framework.Utils;
-using osuTK;
 
 namespace osu.Framework.Graphics.Containers
 {

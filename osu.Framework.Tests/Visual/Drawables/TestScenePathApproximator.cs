@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Utils;
 using osu.Framework.Testing;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables

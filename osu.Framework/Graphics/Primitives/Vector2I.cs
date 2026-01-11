@@ -3,9 +3,9 @@
 
 #nullable disable
 
-using osuTK;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace osu.Framework.Graphics.Primitives

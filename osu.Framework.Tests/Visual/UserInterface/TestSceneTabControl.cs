@@ -15,7 +15,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Localisation;
-using osuTK;
+using System.Numerics;
 
 #pragma warning disable CA1826 // Performance for test is not important
 

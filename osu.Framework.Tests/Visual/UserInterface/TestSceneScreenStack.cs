@@ -19,7 +19,7 @@ using osu.Framework.Screens;
 using osu.Framework.Testing;
 using osu.Framework.Testing.Input;
 using osu.Framework.Utils;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 using osuTK.Input;
 

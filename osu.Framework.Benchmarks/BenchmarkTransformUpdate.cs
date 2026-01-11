@@ -5,7 +5,7 @@ using BenchmarkDotNet.Attributes;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Timing;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Framework.Benchmarks
 {

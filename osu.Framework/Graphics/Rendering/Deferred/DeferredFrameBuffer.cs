@@ -3,12 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Deferred.Events;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Veldrid.Buffers;
 using osu.Framework.Graphics.Veldrid.Textures;
-using osuTK;
 using Veldrid;
 using Texture = osu.Framework.Graphics.Textures.Texture;
 

@@ -3,13 +3,13 @@
 
 #nullable disable
 
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
-using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {

@@ -13,7 +13,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Framework.Tests.Visual.Input
 {

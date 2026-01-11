@@ -5,9 +5,9 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Utils;
-using osuTK;
 
 namespace osu.Framework.Graphics.Containers
 {

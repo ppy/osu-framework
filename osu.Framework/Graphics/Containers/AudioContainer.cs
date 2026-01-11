@@ -4,11 +4,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Numerics;
 using osu.Framework.Audio;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Audio;
 using osu.Framework.Graphics.Effects;
-using osuTK;
 
 namespace osu.Framework.Graphics.Containers
 {

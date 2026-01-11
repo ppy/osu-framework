@@ -12,7 +12,7 @@ using osu.Framework.Input.Events;
 using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input

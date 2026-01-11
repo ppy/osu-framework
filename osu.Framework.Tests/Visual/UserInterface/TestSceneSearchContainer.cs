@@ -14,7 +14,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Tests.Visual.Localisation;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {

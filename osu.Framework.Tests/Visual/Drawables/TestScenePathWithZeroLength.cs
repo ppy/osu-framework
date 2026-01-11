@@ -6,7 +6,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Testing;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Lines;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {

@@ -20,7 +20,7 @@ using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Framework.Testing;
 using osu.Framework.Testing.Input;
-using osuTK;
+using System.Numerics;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface

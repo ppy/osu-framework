@@ -3,11 +3,11 @@
 
 #nullable disable
 
+using System.Numerics;
 using System.Threading;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Logging;
-using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Development;
 using osu.Framework.Timing;

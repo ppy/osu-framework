@@ -13,7 +13,7 @@ using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.Handlers.Tablet;
 using osu.Framework.Platform;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input

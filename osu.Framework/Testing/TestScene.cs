@@ -29,7 +29,6 @@ using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Threading;
 using osuTK.Graphics;
 using Logger = osu.Framework.Logging.Logger;
-using Vector2 = osuTK.Vector2;
 
 namespace osu.Framework.Testing
 {

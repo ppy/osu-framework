@@ -6,12 +6,12 @@
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
-using osuTK;
 
 namespace osu.Framework.Graphics.Visualisation.Audio
 {

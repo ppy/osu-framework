@@ -4,9 +4,9 @@
 using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using osu.Framework.Development;
 using osu.Framework.Platform;
-using osuTK;
 
 namespace osu.Framework.Threading
 {

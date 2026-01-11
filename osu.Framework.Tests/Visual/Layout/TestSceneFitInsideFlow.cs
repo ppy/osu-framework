@@ -7,7 +7,7 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Framework.Tests.Visual.Layout
 {

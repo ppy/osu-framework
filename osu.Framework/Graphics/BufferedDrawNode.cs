@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Rendering;
 using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Graphics
 {

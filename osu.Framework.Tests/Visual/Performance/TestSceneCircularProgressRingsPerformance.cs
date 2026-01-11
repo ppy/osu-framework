@@ -3,7 +3,7 @@
 
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Graphics;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Framework.Tests.Visual.Performance
 {

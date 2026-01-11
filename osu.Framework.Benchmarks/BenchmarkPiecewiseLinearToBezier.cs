@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using osu.Framework.Utils;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Framework.Benchmarks
 {
