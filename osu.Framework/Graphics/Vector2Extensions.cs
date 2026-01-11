@@ -5,6 +5,7 @@ using System;
 using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Graphics
 {
@@ -108,5 +109,120 @@ namespace osu.Framework.Graphics
         public static bool InRightHalfPlaneOf(this Vector2 point, in Line line)
             => (line.EndPoint.X - line.StartPoint.X) * (point.Y - line.StartPoint.Y)
                 - (line.EndPoint.Y - line.StartPoint.Y) * (point.X - line.StartPoint.X) < 0;
+
+        /// <summary>
+        /// Returns a copy of the Vector2 scaled to unit length.
+        /// </summary>
+        public static Vector2 Normalized(this Vector2 vector) => Vector2.Normalize(vector);
+
+        /// <summary>
+        /// Returns a vector created from the smallest of the corresponding components of the given vectors.
+        /// </summary>
+        /// <param name="a">First operand</param>
+        /// <param name="b">Second operand</param>
+        /// <returns>The component-wise minimum</returns>
+        public static Vector2 ComponentMin(Vector2 a, Vector2 b)
+        {
+            a.X = a.X < b.X ? a.X : b.X;
+            a.Y = a.Y < b.Y ? a.Y : b.Y;
+            return a;
+        }
+
+        /// <summary>
+        /// Returns a vector created from the smallest of the corresponding components of the given vectors.
+        /// </summary>
+        /// <param name="a">First operand</param>
+        /// <param name="b">Second operand</param>
+        /// <param name="result">The component-wise minimum</param>
+        public static void ComponentMin(ref Vector2 a, ref Vector2 b, out Vector2 result)
+        {
+            result.X = a.X < b.X ? a.X : b.X;
+            result.Y = a.Y < b.Y ? a.Y : b.Y;
+        }
+
+        /// <summary>
+        /// Returns a vector created from the largest of the corresponding components of the given vectors.
+        /// </summary>
+        /// <param name="a">First operand</param>
+        /// <param name="b">Second operand</param>
+        /// <returns>The component-wise maximum</returns>
+        public static Vector2 ComponentMax(Vector2 a, Vector2 b)
+        {
+            a.X = a.X > b.X ? a.X : b.X;
+            a.Y = a.Y > b.Y ? a.Y : b.Y;
+            return a;
+        }
+
+        /// <summary>
+        /// Returns a vector created from the largest of the corresponding components of the given vectors.
+        /// </summary>
+        /// <param name="a">First operand</param>
+        /// <param name="b">Second operand</param>
+        /// <param name="result">The component-wise maximum</param>
+        public static void ComponentMax(ref Vector2 a, ref Vector2 b, out Vector2 result)
+        {
+            result.X = a.X > b.X ? a.X : b.X;
+            result.Y = a.Y > b.Y ? a.Y : b.Y;
+        }
+
+        /// <summary>
+        /// Calculate the perpendicular dot (scalar) product of two vectors
+        /// </summary>
+        /// <param name="left">First operand</param>
+        /// <param name="right">Second operand</param>
+        /// <returns>The perpendicular dot product of the two inputs</returns>
+        public static float PerpDot(Vector2 left, Vector2 right)
+        {
+            return left.X * right.Y - left.Y * right.X;
+        }
+
+        /// <summary>
+        /// Calculate the perpendicular dot (scalar) product of two vectors
+        /// </summary>
+        /// <param name="left">First operand</param>
+        /// <param name="right">Second operand</param>
+        /// <param name="result">The perpendicular dot product of the two inputs</param>
+        public static void PerpDot(ref Vector2 left, ref Vector2 right, out float result)
+        {
+            result = left.X * right.Y - left.Y * right.X;
+        }
+
+        /// <summary>
+        /// Gets the perpendicular vector on the right side of this vector.
+        /// </summary>
+        public static Vector2 PerpendicularRight(this Vector2 vector)
+        {
+            return new Vector2(vector.Y, -vector.X);
+        }
+
+        /// <summary>
+        /// Gets the perpendicular vector on the left side of this vector.
+        /// </summary>
+        public static Vector2 PerpendicularLeft(this Vector2 vector)
+        {
+            return new Vector2(-vector.Y, vector.X);
+        }
+
+        /// <summary>
+        /// Gets an approximation of the vector length (magnitude).
+        /// </summary>
+        /// <remarks>
+        /// This property uses an approximation of the square root function to calculate vector magnitude, with
+        /// an upper error bound of 0.001.
+        /// </remarks>
+        public static float LengthFast(this Vector2 vector)
+        {
+            return 1.0f / MathHelper.InverseSqrtFast(vector.X * vector.X + vector.Y * vector.Y);
+        }
+
+        /// <summary>
+        /// Scales the Vector2 to approximately unit length.
+        /// </summary>
+        public static void NormalizeFast(this Vector2 vector)
+        {
+            float scale = MathHelper.InverseSqrtFast(vector.X * vector.X + vector.Y * vector.Y);
+            vector.X *= scale;
+            vector.Y *= scale;
+        }
     }
 }
