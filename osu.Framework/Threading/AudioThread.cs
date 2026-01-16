@@ -140,9 +140,15 @@ namespace osu.Framework.Threading
                 return false;
 
             if (useExperimentalWasapi)
+            {
+                Bass.Stop(); // halt the standard output (don't free, we still need it for DSP)
                 attemptWasapiInitialisation();
+            }
             else
+            {
                 freeWasapi();
+                resumeStandardOutput();
+            }
 
             initialised_devices.Add(deviceId);
             return true;
@@ -180,6 +186,17 @@ namespace osu.Framework.Threading
                 // required for the time being to address libbass_fx.so load failures (see https://github.com/ppy/osu/issues/2852)
                 Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
             }
+        }
+
+        private bool resumeStandardOutput()
+        {
+            if (!Bass.GetInfo(out var bassInfo))
+                return false;
+
+            globalMixerHandle.Value = BassMix.CreateMixerStream(bassInfo.SampleRate, bassInfo.SpeakerCount, BassFlags.MixerNonStop | BassFlags.Float);
+            Bass.ChannelPlay(globalMixerHandle.Value.Value);
+
+            return Bass.Start();
         }
 
         private bool attemptWasapiInitialisation()
