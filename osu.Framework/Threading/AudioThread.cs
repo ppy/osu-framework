@@ -258,12 +258,16 @@ namespace osu.Framework.Threading
 
         private void freeWasapi()
         {
-            if (globalMixerHandle.Value == null) return;
-
-            // The mixer probably doesn't need to be recycled. Just keeping things sane for now.
-            Bass.StreamFree(globalMixerHandle.Value.Value);
             BassWasapi.Stop();
             BassWasapi.Free();
+            freeGlobalMixer();
+        }
+
+        private void freeGlobalMixer()
+        {
+            if (globalMixerHandle.Value != null)
+                Bass.StreamFree(globalMixerHandle.Value.Value);
+
             globalMixerHandle.Value = null;
         }
 
