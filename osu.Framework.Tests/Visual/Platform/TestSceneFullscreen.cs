@@ -19,7 +19,7 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
-using osuTK;
+using System.Numerics;
 using WindowState = osu.Framework.Platform.WindowState;
 
 namespace osu.Framework.Tests.Visual.Platform

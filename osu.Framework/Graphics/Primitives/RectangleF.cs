@@ -7,8 +7,8 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Numerics;
 using System.Runtime.InteropServices;
-using osuTK;
 
 namespace osu.Framework.Graphics.Primitives
 {
@@ -341,7 +341,7 @@ namespace osu.Framework.Graphics.Primitives
                 Math.Max(0.0f, Math.Max(localSpacePos.Y - Bottom, Top - localSpacePos.Y))
             );
 
-            return dist.LengthSquared;
+            return dist.LengthSquared();
         }
 
         internal float DistanceExponentiated(Vector2 localSpacePos, float exponent)

@@ -7,6 +7,7 @@ using osu.Framework.Extensions.MatrixExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Utils;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Tests.Primitives
 {

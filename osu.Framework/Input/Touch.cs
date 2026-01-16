@@ -4,7 +4,7 @@
 #nullable disable
 
 using System;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Framework.Input
 {

@@ -5,7 +5,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Audio;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
-using osuTK;
+using System.Numerics;
 using osuTK.Input;
 
 namespace FlappyDon.Game

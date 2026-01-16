@@ -3,11 +3,11 @@
 
 using System;
 using System.IO;
+using System.Numerics;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Visualisation;
-using osuTK;
 
 namespace osu.Framework.Graphics.Textures
 {

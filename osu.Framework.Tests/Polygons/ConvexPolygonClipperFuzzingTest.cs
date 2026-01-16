@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Utils;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Framework.Tests.Polygons
 {

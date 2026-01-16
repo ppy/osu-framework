@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -27,6 +28,9 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using Image = SixLabors.ImageSharp.Image;
 using GL4 = osuTK.Graphics.OpenGL;
+using Vector2 = System.Numerics.Vector2;
+using Vector3 = System.Numerics.Vector3;
+using Vector4 = System.Numerics.Vector4;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -167,15 +171,15 @@ namespace osu.Framework.Graphics.OpenGL
                     break;
 
                 case IUniformWithValue<Vector2> v2:
-                    GL.Uniform2(uniform.Location, ref v2.GetValueByRef());
+                    GL.Uniform2(uniform.Location, v2.GetValueByRef().X, v2.GetValueByRef().Y);
                     break;
 
                 case IUniformWithValue<Vector3> v3:
-                    GL.Uniform3(uniform.Location, ref v3.GetValueByRef());
+                    GL.Uniform3(uniform.Location, v3.GetValueByRef().X, v3.GetValueByRef().Y, v3.GetValueByRef().Z);
                     break;
 
                 case IUniformWithValue<Vector4> v4:
-                    GL.Uniform4(uniform.Location, ref v4.GetValueByRef());
+                    GL.Uniform4(uniform.Location, v4.GetValueByRef().X, v4.GetValueByRef().Y, v4.GetValueByRef().Z, v4.GetValueByRef().W);
                     break;
 
                 case IUniformWithValue<Matrix2> m2:

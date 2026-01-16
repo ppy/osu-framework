@@ -8,6 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
@@ -32,7 +33,6 @@ using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables;
 using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Timing;
-using osuTK;
 using osuTK.Graphics;
 using Logger = osu.Framework.Logging.Logger;
 

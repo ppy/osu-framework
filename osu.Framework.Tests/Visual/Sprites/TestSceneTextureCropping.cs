@@ -10,7 +10,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Testing;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {

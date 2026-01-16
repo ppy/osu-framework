@@ -6,9 +6,10 @@ using osu.Framework.Graphics;
 using osu.Framework.Testing;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Lines;
-using osuTK;
 using System;
 using osu.Framework.Graphics.Containers;
+using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {

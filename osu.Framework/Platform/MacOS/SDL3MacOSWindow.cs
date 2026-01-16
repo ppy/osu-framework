@@ -4,9 +4,9 @@
 #nullable disable
 
 using System;
+using System.Numerics;
 using osu.Framework.Platform.Apple.Native;
 using osu.Framework.Platform.SDL3;
-using osuTK;
 using Selector = osu.Framework.Platform.Apple.Native.Selector;
 
 namespace osu.Framework.Platform.MacOS

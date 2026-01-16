@@ -4,8 +4,8 @@
 #nullable disable
 
 using System.IO;
+using System.Numerics;
 using osu.Framework.Graphics.Containers;
-using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {

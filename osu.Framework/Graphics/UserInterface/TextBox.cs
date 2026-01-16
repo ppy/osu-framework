@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
@@ -25,7 +26,6 @@ using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
-using osuTK;
 using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface

@@ -3,9 +3,9 @@
 
 #nullable disable
 
+using System.Numerics;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Input.StateChanges;
-using osuTK;
 using osuTK.Input;
 
 namespace osu.Framework.Input.States

@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using JetBrains.Annotations;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -19,7 +20,6 @@ using osu.Framework.Layout;
 using osu.Framework.Localisation;
 using osu.Framework.Utils;
 using osu.Framework.Threading;
-using osuTK;
 using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface

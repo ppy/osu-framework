@@ -5,6 +5,7 @@ using System;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Graphics.Rendering
 {

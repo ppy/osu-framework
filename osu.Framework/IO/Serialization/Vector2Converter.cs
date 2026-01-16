@@ -4,9 +4,9 @@
 #nullable disable
 
 using System;
+using System.Numerics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using osuTK;
 
 namespace osu.Framework.IO.Serialization
 {

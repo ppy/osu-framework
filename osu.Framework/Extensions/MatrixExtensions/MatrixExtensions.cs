@@ -3,6 +3,8 @@
 
 using System;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
+using Vector3 = System.Numerics.Vector3;
 
 namespace osu.Framework.Extensions.MatrixExtensions
 {
@@ -31,7 +33,7 @@ namespace osu.Framework.Extensions.MatrixExtensions
             float cos = MathF.Cos(radians);
             float sin = MathF.Sin(radians);
 
-            Vector3 row0 = m.Row0 * cos + m.Row1 * sin;
+            osuTK.Vector3 row0 = m.Row0 * cos + m.Row1 * sin;
             m.Row1 = m.Row1 * cos - m.Row0 * sin;
             m.Row0 = row0;
         }
@@ -85,7 +87,7 @@ namespace osu.Framework.Extensions.MatrixExtensions
         /// <param name="v">The X and Y amounts of shearing.</param>
         public static void ShearFromLeft(ref Matrix3 m, Vector2 v)
         {
-            Vector3 row0 = m.Row0 + m.Row1 * v.Y + m.Row0 * v.X * v.Y;
+            osuTK.Vector3 row0 = m.Row0 + m.Row1 * v.Y + m.Row0 * v.X * v.Y;
             m.Row1 += m.Row0 * v.X;
             m.Row0 = row0;
         }

@@ -4,9 +4,9 @@
 #nullable disable
 
 using System.IO;
+using System.Numerics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {

@@ -6,9 +6,9 @@
 using System.Collections.Generic;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
-using osuTK;
 using osu.Framework.Graphics.Colour;
 using System;
+using System.Numerics;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics.Containers
                 if (!Source.Masking && (Source.BorderThickness != 0.0f || Source.EdgeEffect.Type != EdgeEffectType.None))
                     throw new InvalidOperationException("Can not have border effects/edge effects if masking is disabled.");
 
-                Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
+                osuTK.Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
                 float blendRange = Source.MaskingSmoothness * (scale.X + scale.Y) / 2;
 
                 // Calculate a shrunk rectangle which is free from corner radius/smoothing/border effects

@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading.Tasks;
 using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
@@ -14,7 +15,6 @@ using osu.Framework.Extensions;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
-using osuTK;
 
 namespace osu.Framework.Input.Handlers.Tablet
 {
@@ -165,7 +165,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                     {
                         Width = scaledSize.X,
                         Height = scaledSize.Y,
-                        Position = position.ToSystemNumerics()
+                        Position = position
                     };
                     break;
                 }

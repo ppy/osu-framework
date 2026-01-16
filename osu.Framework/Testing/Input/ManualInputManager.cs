@@ -3,6 +3,7 @@
 
 using System.Linq;
 using System;
+using System.Numerics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
@@ -10,7 +11,6 @@ using osu.Framework.Input.Events;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
-using osuTK;
 using osuTK.Input;
 
 namespace osu.Framework.Testing.Input

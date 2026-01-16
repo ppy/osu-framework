@@ -3,10 +3,10 @@
 
 #nullable disable
 
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {

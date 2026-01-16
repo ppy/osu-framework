@@ -3,7 +3,7 @@
 
 using System;
 using System.Linq;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Framework.Graphics.Primitives
 {

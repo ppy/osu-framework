@@ -7,6 +7,7 @@ using System.Linq;
 using System.Numerics.Tensors;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Utils
 {
@@ -832,7 +833,7 @@ namespace osu.Framework.Utils
         {
             for (int i = 1; i < controlPoints.Length - 1; i++)
             {
-                if ((controlPoints[i - 1] - 2 * controlPoints[i] + controlPoints[i + 1]).LengthSquared > BEZIER_TOLERANCE * BEZIER_TOLERANCE * 4)
+                if ((controlPoints[i - 1] - 2 * controlPoints[i] + controlPoints[i + 1]).LengthSquared() > BEZIER_TOLERANCE * BEZIER_TOLERANCE * 4)
                     return false;
             }
 

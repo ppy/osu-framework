@@ -16,6 +16,7 @@ using osu.Framework.Input.Events;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
@@ -174,7 +175,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
                 path.OriginPosition = path.PositionInBoundingBox(new Vector2());
 
-                line1.Width = p1.Value.Length;
+                line1.Width = p1.Value.Length();
                 line1.Rotation = -MathHelper.RadiansToDegrees(MathF.Atan2(p1.Value.Y, p1.Value.X));
 
                 line2.Width = Vector2.Distance(p2.Value, Vector2.One);

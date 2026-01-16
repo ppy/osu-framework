@@ -5,7 +5,7 @@ using System.Diagnostics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing.Drawables.Steps;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Framework.Tests.Visual.Testing
 {

@@ -2,10 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
-using osuTK;
 
 namespace osu.Framework.Utils
 {
