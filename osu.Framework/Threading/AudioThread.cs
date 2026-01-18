@@ -275,6 +275,9 @@ namespace osu.Framework.Threading
 
         private void freeWasapi()
         {
+            if (RuntimeInfo.OS != RuntimeInfo.Platform.Windows)
+                return;
+
             BassWasapi.Stop();
             BassWasapi.Free();
             freeGlobalMixer();
