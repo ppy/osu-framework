@@ -139,6 +139,15 @@ namespace osu.Framework.Threading
             if (!Bass.Init(deviceId, Flags: (DeviceInitFlags)128)) // 128 == BASS_DEVICE_REINIT
                 return false;
 
+            // Whenever one sink is started, the other needs to be stopped, so we don't end up with double playback.
+            // We can technically get away with neglecting this (as we have in the past),
+            // because switching the output involves creating a new global mixer that the previous output doesn't know about,
+            // and when no audio data is provided, BASS internally pads the output with silence.
+            // But letting the standard output keep feeding a constant stream of silence to the OS in the background feels wrong,
+            // and it would become a problem if we ever wanted to reuse a global mixer,
+            // because then we'd have multiple outputs pulling data from the same stream.
+            // It is also inconsistent with the wasapi implementation, which does call Stop() explicitly,
+            // even though we could get away with omitting that one as well
             if (useExperimentalWasapi)
             {
                 Bass.Stop(); // halt the standard output (don't free, we still need it for DSP)
