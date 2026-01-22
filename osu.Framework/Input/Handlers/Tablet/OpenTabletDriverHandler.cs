@@ -137,7 +137,7 @@ namespace osu.Framework.Input.Handlers.Tablet
             // Symmetrical hysteresis ±0.5*h
             float half = 0.5f * h;
             float releaseT = t - half;
-            float pressT   = t + half;
+            float pressT = t + half;
 
             if (releaseT < 0f)
             {
@@ -147,15 +147,17 @@ namespace osu.Framework.Input.Handlers.Tablet
 
             if (pressT > 1f)
             {
-                releaseT -= (pressT - 1f); // shift down
+                releaseT -= pressT - 1f; // shift down
                 pressT = 1f;
             }
 
             bool wasPressed = Volatile.Read(ref penPressed) == 1;
 
-            bool pressedNow = wasPressed ? 
-                (releaseT <= 0f ? percentage >  0f : percentage >= releaseT) : 
-                (pressT   >= 1f ? percentage >= 1f : percentage >  pressT);
+            bool pressedNow;
+            if (wasPressed)
+                pressedNow = releaseT <= 0f ? percentage > 0f : percentage >= releaseT;
+            else
+                pressedNow = pressT >= 1f ? percentage >= 1f : percentage > pressT;
 
             int pressedNowInt = pressedNow ? 1 : 0;
 
