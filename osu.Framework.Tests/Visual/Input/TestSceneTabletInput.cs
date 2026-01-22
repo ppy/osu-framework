@@ -130,9 +130,6 @@ namespace osu.Framework.Tests.Visual.Input
 
                 AddSliderStep("change pen pressure threshold for click", 0, 1, 0f,
                     threshold => tabletHandler.PressureThreshold.Value = threshold);
-
-                AddSliderStep("change pen pressure hysteresis", 0, 0.2f, 0f,
-                    hysteresis => tabletHandler.PressureHysteresis.Value = hysteresis);
             }
 
             AddToggleStep("toggle confine mode", enabled => frameworkConfigManager.SetValue(FrameworkSetting.ConfineMouseMode,

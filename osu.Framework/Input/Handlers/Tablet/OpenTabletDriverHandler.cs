@@ -52,13 +52,6 @@ namespace osu.Framework.Input.Handlers.Tablet
             Precision = 0.005f,
         };
 
-        public BindableFloat PressureHysteresis { get; } = new BindableFloat(0.0f)
-        {
-            MinValue = 0f,
-            MaxValue = 0.2f,
-            Precision = 0.005f,
-        };
-
         public IBindable<TabletInfo?> Tablet => tablet;
 
         private readonly Bindable<TabletInfo?> tablet = new Bindable<TabletInfo?>();
@@ -131,14 +124,21 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         void IPressureHandler.SetPressure(float percentage)
         {
+            // Safety: ensure inputs are in-range.
+            if (percentage < 0f) percentage = 0f;
+            else if (percentage > 1f) percentage = 1f;
+
             float t = PressureThreshold.Value;
-            float h = PressureHysteresis.Value;
+
+            // Hard-coded symmetrical hysteresis band width.
+            const float h = 0.05f;
 
             // Symmetrical hysteresis ±0.5*h
             float half = 0.5f * h;
             float releaseT = t - half;
             float pressT = t + half;
 
+            // Keep band width constant at edges by shifting it into [0..1].
             if (releaseT < 0f)
             {
                 pressT -= releaseT; // shift up
