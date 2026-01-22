@@ -19,7 +19,7 @@ layout(std140, set = -1, binding = 0) uniform g_GlobalUniforms
     bool g_IsUvOriginTopLeft;
 
     mat4 g_ProjMatrix;
-    mat3 g_ToMaskingSpace;
+    mat4 g_ToMaskingSpace;
 
     bool g_IsMasking;
     highp float g_CornerRadius;
