@@ -49,6 +49,11 @@ namespace osu.Framework.Input.Handlers.Tablet
         /// </summary>
         BindableFloat PressureThreshold { get; }
 
+        /// <summary>
+        /// Hysteresis band around <see cref="PressureThreshold"/> to prevent toggling due to noise.
+        /// </summary>
+        BindableFloat PressureHysteresis { get; }
+
         BindableBool Enabled { get; }
     }
 }
