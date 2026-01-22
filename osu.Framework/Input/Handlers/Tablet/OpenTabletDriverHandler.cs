@@ -130,13 +130,11 @@ namespace osu.Framework.Input.Handlers.Tablet
 
             float t = PressureThreshold.Value;
 
-            // Hard-coded symmetrical hysteresis band width.
-            const float h = 0.05f;
+            // Half-width of hysteresis band (0.05 total).
+            const float hysteresisHalf = 0.025f;
 
-            // Symmetrical hysteresis ±0.5*h
-            float half = 0.5f * h;
-            float releaseT = t - half;
-            float pressT = t + half;
+            float releaseT = t - hysteresisHalf;
+            float pressT = t + hysteresisHalf;
 
             // Keep band width constant at edges by shifting it into [0..1].
             if (releaseT < 0f)
