@@ -1316,7 +1316,7 @@ namespace osu.Framework.Graphics.Rendering
                     || field.FieldType == typeof(UniformPadding8)
                     || field.FieldType == typeof(UniformPadding12)
                     || field.FieldType == typeof(UniformVector2)
-                    || field.FieldType == typeof(UniformVector4)
+                    || field.FieldType == typeof(UniformVector3)
                     || field.FieldType == typeof(UniformVector4))
                 {
                     return;
