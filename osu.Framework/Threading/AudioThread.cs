@@ -156,6 +156,7 @@ namespace osu.Framework.Threading
             else
             {
                 freeWasapi();
+                freeGlobalMixer();
                 resumeStandardOutput();
             }
 
@@ -176,6 +177,7 @@ namespace osu.Framework.Threading
             }
 
             freeWasapi();
+            freeGlobalMixer();
 
             if (selectedDevice != deviceId && canSelectDevice(selectedDevice))
                 Bass.CurrentDevice = selectedDevice;
@@ -245,6 +247,7 @@ namespace osu.Framework.Threading
 
             // To keep things in a sane state let's only keep one device initialised via wasapi.
             freeWasapi();
+            freeGlobalMixer();
             return initWasapi(wasapiDevice);
         }
 
@@ -264,6 +267,7 @@ namespace osu.Framework.Threading
                 if (notify == WasapiNotificationType.DefaultOutput)
                 {
                     freeWasapi();
+                    freeGlobalMixer();
                     initWasapi(device);
                 }
             });
@@ -289,7 +293,6 @@ namespace osu.Framework.Threading
 
             BassWasapi.Stop();
             BassWasapi.Free();
-            freeGlobalMixer();
         }
 
         private void freeGlobalMixer()
