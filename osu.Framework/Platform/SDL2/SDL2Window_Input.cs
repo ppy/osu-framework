@@ -275,8 +275,7 @@ namespace osu.Framework.Platform.SDL2
                     break;
 
                 case SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
-                    SDL_GameControllerClose(controllers[evtCdevice.which].ControllerHandle);
-                    controllers.Remove(evtCdevice.which);
+                    removeJoystick(evtCdevice.which);
                     break;
 
                 case SDL_EventType.SDL_CONTROLLERDEVICEREMAPPED:
@@ -323,6 +322,20 @@ namespace osu.Framework.Platform.SDL2
             controllers[instanceID] = new SDL2ControllerBindings(joystick, controller);
         }
 
+        private void removeJoystick(int which)
+        {
+            int instanceID = SDL_JoystickGetDeviceInstanceID(which);
+
+            if (controllers.Remove(instanceID, out var controller))
+            {
+                if (controller.ControllerHandle != IntPtr.Zero)
+                    SDL_GameControllerClose(controller.ControllerHandle);
+
+                if (controller.JoystickHandle != IntPtr.Zero)
+                    SDL_JoystickClose(controller.JoystickHandle);
+            }
+        }
+
         /// <summary>
         /// Populates <see cref="controllers"/> with joysticks that are already connected.
         /// </summary>
@@ -343,12 +356,7 @@ namespace osu.Framework.Platform.SDL2
                     break;
 
                 case SDL_EventType.SDL_JOYDEVICEREMOVED:
-                    // if the joystick is already closed, ignore it
-                    if (!controllers.ContainsKey(evtJdevice.which))
-                        break;
-
-                    SDL_JoystickClose(controllers[evtJdevice.which].JoystickHandle);
-                    controllers.Remove(evtJdevice.which);
+                    removeJoystick(evtJdevice.which);
                     break;
             }
         }
