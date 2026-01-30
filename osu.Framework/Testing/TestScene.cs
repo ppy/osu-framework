@@ -391,6 +391,17 @@ namespace osu.Framework.Testing
             });
         }
 
+        protected void AddColourPickerStep([NotNull] string description, Colour4 initial, Action<Colour4> valueChanged)
+        {
+            schedule(() =>
+            {
+                StepsContainer.Add(new StepColourPicker(description, initial)
+                {
+                    ValueChanged = valueChanged,
+                });
+            });
+        }
+
         protected void AddAssert([NotNull] string description, [NotNull] Func<bool> assert, [CanBeNull] string extendedDescription = null)
         {
             AddStep(new AssertButton
