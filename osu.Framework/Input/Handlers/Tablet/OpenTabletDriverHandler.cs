@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
@@ -119,7 +120,49 @@ namespace osu.Framework.Input.Handlers.Tablet
             enqueueInput(new MousePositionRelativeInputFromPen { Delta = new Vector2(delta.X, delta.Y), DeviceType = lastTabletDeviceType });
         }
 
-        void IPressureHandler.SetPressure(float percentage) => enqueueInput(new MouseButtonInputFromPen(percentage > PressureThreshold.Value) { DeviceType = lastTabletDeviceType });
+        private int penPressed;
+
+        void IPressureHandler.SetPressure(float percentage)
+        {
+            // Safety: ensure inputs are in-range.
+            if (percentage < 0f) percentage = 0f;
+            else if (percentage > 1f) percentage = 1f;
+
+            float t = PressureThreshold.Value;
+
+            // Half-width of hysteresis band (0.05 total).
+            const float hysteresis_half = 0.025f;
+
+            float releaseT = t - hysteresis_half;
+            float pressT = t + hysteresis_half;
+
+            // Keep band width constant at edges by shifting it into [0..1].
+            if (releaseT < 0f)
+            {
+                pressT -= releaseT; // shift up
+                releaseT = 0f;
+            }
+
+            if (pressT > 1f)
+            {
+                releaseT -= pressT - 1f; // shift down
+                pressT = 1f;
+            }
+
+            bool wasPressed = Volatile.Read(ref penPressed) == 1;
+
+            bool pressedNow;
+            if (wasPressed)
+                pressedNow = releaseT <= 0f ? percentage > 0f : percentage >= releaseT;
+            else
+                pressedNow = pressT >= 1f ? percentage >= 1f : percentage > pressT;
+
+            int pressedNowInt = pressedNow ? 1 : 0;
+
+            // Only propagate state changes (press/release).
+            if (Interlocked.Exchange(ref penPressed, pressedNowInt) != pressedNowInt)
+                enqueueInput(new MouseButtonInputFromPen(pressedNow) { DeviceType = lastTabletDeviceType });
+        }
 
         private void handleTabletsChanged(object? sender, IEnumerable<TabletReference> tablets)
         {
@@ -135,7 +178,13 @@ namespace osu.Framework.Input.Handlers.Tablet
                 updateOutputArea(host.Window);
             }
             else
+            {
+                // Ensure we don't leave the simulated mouse button pressed if the tablet disappears.
+                if (Interlocked.Exchange(ref penPressed, 0) == 1)
+                    enqueueInput(new MouseButtonInputFromPen(false) { DeviceType = lastTabletDeviceType });
+
                 tablet.Value = null;
+            }
         }
 
         private void handleDeviceReported(object? sender, IDeviceReport report)
