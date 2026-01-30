@@ -654,6 +654,13 @@ namespace osu.Framework.Platform.SDL3
 
         internal virtual void SetIconFromImage(Image<Rgba32> iconImage) => setSDLIcon(iconImage);
 
+        public IDisposable CreateTrayIcon(TrayIcon tray)
+        {
+            SDL3TrayIcon icon = new SDL3TrayIcon(tray);
+            ScheduleCommand(icon.Create);
+            return icon;
+        }
+
         #region Events
 
         /// <summary>
