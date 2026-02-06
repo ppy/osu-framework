@@ -122,6 +122,14 @@ namespace osu.Framework.Graphics.Transforms
             current += dt * velocity;
             velocity += (dt * (target + k3 * targetVelocity - current - k1 * velocity)) / k2Stable;
         }
+
+        protected void ComputeSingleValue(float dt, ref double current, ref double velocity, double target, double targetVelocity)
+        {
+            float k2Stable = MathF.Max(MathF.Max(k2, dt * dt / 2 + dt * k1 / 2), dt * k1);
+
+            current += dt * velocity;
+            velocity += (dt * (target + k3 * targetVelocity - current - k1 * velocity)) / k2Stable;
+        }
     }
 
     public class FloatSpring : Spring<float>
@@ -129,6 +137,18 @@ namespace osu.Framework.Graphics.Transforms
         protected override float GetTargetVelocity(float target, float previousTarget, float dt) => (target - previousTarget) / dt;
 
         protected override float ComputeNextValue(float dt, float target, float targetVelocity)
+        {
+            ComputeSingleValue(dt, ref Current, ref Velocity, target, targetVelocity);
+
+            return Current;
+        }
+    }
+
+    public class DoubleSpring : Spring<double>
+    {
+        protected override double GetTargetVelocity(double target, double previousTarget, float dt) => (target - previousTarget) / dt;
+
+        protected override double ComputeNextValue(float dt, double target, double targetVelocity)
         {
             ComputeSingleValue(dt, ref Current, ref Velocity, target, targetVelocity);
 
