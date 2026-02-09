@@ -1,9 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
@@ -45,7 +45,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public Bindable<float> Rotation { get; } = new Bindable<float>();
 
-        public BindableFloat PressureThreshold { get; } = new BindableFloat(0.0f)
+        public BindableFloat PressureThreshold { get; } = new BindableFloat
         {
             MinValue = 0f,
             MaxValue = 1f,
@@ -120,48 +120,33 @@ namespace osu.Framework.Input.Handlers.Tablet
             enqueueInput(new MousePositionRelativeInputFromPen { Delta = new Vector2(delta.X, delta.Y), DeviceType = lastTabletDeviceType });
         }
 
-        private int penPressed;
+        private bool penPressed;
 
-        void IPressureHandler.SetPressure(float percentage)
+        void IPressureHandler.SetPressure(float pressure)
         {
-            // Safety: ensure inputs are in-range.
-            if (percentage < 0f) percentage = 0f;
-            else if (percentage > 1f) percentage = 1f;
+            // Most important for edge cases where users have pressure set to 0 or 1 and tablets can report fuzzy data.
+            const float hysteresis_half = 0.02f;
 
-            float t = PressureThreshold.Value;
+            pressure = Math.Clamp(pressure, 0f, 1f);
 
-            // Half-width of hysteresis band (0.05 total).
-            const float hysteresis_half = 0.025f;
+            float releaseThreshold = PressureThreshold.Value - hysteresis_half;
+            float pressThreshold = PressureThreshold.Value + hysteresis_half;
 
-            float releaseT = t - hysteresis_half;
-            float pressT = t + hysteresis_half;
-
-            // Keep band width constant at edges by shifting it into [0..1].
-            if (releaseT < 0f)
+            // keep press..release threshold range constant for edge cases.
+            if (releaseThreshold < 0f)
             {
-                pressT -= releaseT; // shift up
-                releaseT = 0f;
+                pressThreshold = hysteresis_half * 2;
+                releaseThreshold = 0f;
+            }
+            else if (pressThreshold > 1f)
+            {
+                releaseThreshold = 1 - (hysteresis_half * 2);
+                pressThreshold = 1f;
             }
 
-            if (pressT > 1f)
-            {
-                releaseT -= pressT - 1f; // shift down
-                pressT = 1f;
-            }
-
-            bool wasPressed = Volatile.Read(ref penPressed) == 1;
-
-            bool pressedNow;
-            if (wasPressed)
-                pressedNow = releaseT <= 0f ? percentage > 0f : percentage >= releaseT;
-            else
-                pressedNow = pressT >= 1f ? percentage >= 1f : percentage > pressT;
-
-            int pressedNowInt = pressedNow ? 1 : 0;
-
-            // Only propagate state changes (press/release).
-            if (Interlocked.Exchange(ref penPressed, pressedNowInt) != pressedNowInt)
-                enqueueInput(new MouseButtonInputFromPen(pressedNow) { DeviceType = lastTabletDeviceType });
+            setPressed(penPressed
+                ? pressure > releaseThreshold
+                : pressure > pressThreshold);
         }
 
         private void handleTabletsChanged(object? sender, IEnumerable<TabletReference> tablets)
@@ -180,11 +165,20 @@ namespace osu.Framework.Input.Handlers.Tablet
             else
             {
                 // Ensure we don't leave the simulated mouse button pressed if the tablet disappears.
-                if (Interlocked.Exchange(ref penPressed, 0) == 1)
-                    enqueueInput(new MouseButtonInputFromPen(false) { DeviceType = lastTabletDeviceType });
-
+                setPressed(false);
                 tablet.Value = null;
             }
+        }
+
+        private void setPressed(bool pressed)
+        {
+            // Importantly, only fire input when the state changes.
+            // If we fire more often, this may intefere with users that click with mouse but use tablet for positional input (hovering).
+            if (pressed == penPressed)
+                return;
+
+            enqueueInput(new MouseButtonInputFromPen(pressed) { DeviceType = lastTabletDeviceType });
+            penPressed = pressed;
         }
 
         private void handleDeviceReported(object? sender, IDeviceReport report)
