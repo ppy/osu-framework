@@ -682,7 +682,7 @@ namespace osu.Framework.Platform.SDL3
                 }
             }
 
-            index = default;
+            index = 0;
             return false;
         }
 
@@ -770,7 +770,7 @@ namespace osu.Framework.Platform.SDL3
                 return true;
             }
 
-            maximized = default;
+            maximized = false;
             return false;
         }
 

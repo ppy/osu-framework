@@ -479,7 +479,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             var rgbaColour = new Rgba32(new Vector4(initialisationColour.Value.R, initialisationColour.Value.G, initialisationColour.Value.B, initialisationColour.Value.A));
 
             // it is faster to initialise without a background specification if transparent black is all that's required.
-            using var image = initialisationColour == default
+            using var image = initialisationColour == null
                 ? new Image<Rgba32>(width, height)
                 : new Image<Rgba32>(width, height, rgbaColour);
 

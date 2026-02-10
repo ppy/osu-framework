@@ -97,7 +97,7 @@ namespace osu.Framework.IO.Stores
                 }
             }
 
-            return default;
+            return null;
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace osu.Framework.IO.Stores
                 }
             }
 
-            return default;
+            return null;
         }
 
         public Stream GetStream(string name)

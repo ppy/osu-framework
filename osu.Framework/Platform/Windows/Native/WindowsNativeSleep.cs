@@ -39,7 +39,7 @@ namespace osu.Framework.Platform.Windows.Native
             if (waitableTimer == IntPtr.Zero) return false;
 
             // Not sure if we want to fall back to Thread.Sleep on failure here, needs further investigation.
-            if (Execution.SetWaitableTimerEx(waitableTimer, Execution.CreateFileTime(duration), 0, null, default, IntPtr.Zero, 0))
+            if (Execution.SetWaitableTimerEx(waitableTimer, Execution.CreateFileTime(duration), 0, null, 0, IntPtr.Zero, 0))
             {
                 Execution.WaitForSingleObject(waitableTimer, Execution.INFINITE);
                 return true;

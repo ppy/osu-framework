@@ -270,7 +270,7 @@ namespace osu.Framework.Tests.IO
 
             bool hasThrown = false;
             request.Failed += exception => hasThrown = exception != null;
-            request.Started += () => request.Abort();
+            request.Started += request.Abort;
 
             if (async)
                 Assert.DoesNotThrowAsync(() => request.PerformAsync());
@@ -388,7 +388,7 @@ namespace osu.Framework.Tests.IO
 
             bool hasThrown = false;
             request.Failed += exception => hasThrown = exception != null;
-            request.Started += () => cancellationSource.Cancel();
+            request.Started += cancellationSource.Cancel;
 
             Assert.DoesNotThrowAsync(() => request.PerformAsync(cancellationSource.Token));
 

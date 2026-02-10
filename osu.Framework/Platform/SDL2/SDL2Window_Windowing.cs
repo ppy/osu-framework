@@ -739,7 +739,7 @@ namespace osu.Framework.Platform.SDL2
                 return true;
             }
 
-            maximized = default;
+            maximized = false;
             return false;
         }
 

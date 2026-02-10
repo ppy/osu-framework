@@ -68,7 +68,7 @@ namespace osu.Framework.Tests.Platform
                 var task = Task.Factory.StartNew(() =>
                 {
                     var game = new TestGame();
-                    game.Scheduler.Add(() => host.Exit());
+                    game.Scheduler.Add(host.Exit);
 
                     host.Run(game);
 

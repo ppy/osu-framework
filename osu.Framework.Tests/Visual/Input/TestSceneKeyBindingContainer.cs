@@ -65,8 +65,8 @@ namespace osu.Framework.Tests.Visual.Input
                 {
                     Child = new TestKeyBindingReceptor
                     {
-                        Pressed = a => pressedActions.Add(a),
-                        Released = a => releasedActions.Add(a)
+                        Pressed = pressedActions.Add,
+                        Released = releasedActions.Add
                     }
                 };
             });
@@ -99,8 +99,8 @@ namespace osu.Framework.Tests.Visual.Input
                 {
                     Child = new TestKeyBindingReceptor
                     {
-                        Pressed = a => pressedActions.Add(a),
-                        Released = a => releasedActions.Add(a)
+                        Pressed = pressedActions.Add,
+                        Released = releasedActions.Add
                     }
                 };
             });
@@ -135,8 +135,8 @@ namespace osu.Framework.Tests.Visual.Input
                     {
                         Child = new TestKeyBindingReceptor
                         {
-                            Pressed = a => pressedActions.Add(a),
-                            Released = a => releasedActions.Add(a)
+                            Pressed = pressedActions.Add,
+                            Released = releasedActions.Add
                         },
                     }
                 };
@@ -178,8 +178,8 @@ namespace osu.Framework.Tests.Visual.Input
                         },
                         new TestKeyBindingReceptor
                         {
-                            Pressed = a => pressedActions.Add(a),
-                            Released = a => releasedActions.Add(a)
+                            Pressed = pressedActions.Add,
+                            Released = releasedActions.Add
                         }
                     }
                 };
@@ -438,8 +438,8 @@ namespace osu.Framework.Tests.Visual.Input
                 {
                     Child = receptor = new TestKeyBindingReceptor
                     {
-                        Pressed = a => pressedActions.Add(a),
-                        Released = a => releasedActions.Add(a)
+                        Pressed = pressedActions.Add,
+                        Released = releasedActions.Add
                     }
                 };
             });
