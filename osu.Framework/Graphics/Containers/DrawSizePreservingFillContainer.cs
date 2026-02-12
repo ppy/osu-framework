@@ -69,6 +69,98 @@ namespace osu.Framework.Graphics.Containers
                 content.Scale.X == 0 ? 0 : 1 / content.Scale.X,
                 content.Scale.Y == 0 ? 0 : 1 / content.Scale.Y);
         }
+
+        #region Size modification guards
+
+        public override Axes RelativeSizeAxes
+        {
+            get => base.RelativeSizeAxes;
+            set
+            {
+                if (RelativeSizeAxes == value) return;
+
+                // Allow filling-to-parent values.
+                if (value == Axes.Both)
+                {
+                    base.RelativeSizeAxes = value;
+                    return;
+                }
+
+                throw new MustFillToParentException();
+            }
+        }
+
+        public override Axes AutoSizeAxes
+        {
+            get => base.AutoSizeAxes;
+            set
+            {
+                if (AutoSizeAxes == value) return;
+
+                // Allow filling-to-parent values.
+                if (value == Axes.None)
+                {
+                    base.AutoSizeAxes = value;
+                    return;
+                }
+
+                throw new MustFillToParentException();
+            }
+        }
+
+        public override Vector2 Size
+        {
+            get => base.Size;
+            set
+            {
+                if (Size == value) return;
+
+                // Allow filling-to-parent values.
+                if (value == Vector2.One)
+                {
+                    base.Size = value;
+                    return;
+                }
+
+                throw new MustFillToParentException();
+            }
+        }
+
+        public override float Width
+        {
+            get => base.Width;
+            set
+            {
+                if (Width == value) return;
+
+                if (value == 1f)
+                {
+                    base.Width = value;
+                    return;
+                }
+
+                throw new MustFillToParentException();
+            }
+        }
+
+        public override float Height
+        {
+            get => base.Height;
+            set
+            {
+                if (Height == value) return;
+
+                if (value == 1f)
+                {
+                    base.Height = value;
+                    return;
+                }
+
+                throw new MustFillToParentException();
+            }
+        }
+
+        #endregion
     }
 
     /// <summary>
@@ -103,5 +195,14 @@ namespace osu.Framework.Graphics.Containers
         /// matched while aspect ratio of children is disregarded.
         /// </summary>
         Separate,
+    }
+
+    public class MustFillToParentException : NotSupportedException
+    {
+        public MustFillToParentException()
+            : base($"A {nameof(DrawSizePreservingFillContainer)} will automatically fill up to its parent's determined {nameof(CompositeDrawable.ChildSize)}). "
+                   + "Modifying its dimensions is not supported.")
+        {
+        }
     }
 }
