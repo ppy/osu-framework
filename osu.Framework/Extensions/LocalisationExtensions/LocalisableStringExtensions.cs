@@ -70,5 +70,22 @@ namespace osu.Framework.Extensions.LocalisationExtensions
         /// <param name="data">The string data.</param>
         /// <returns>A case transformable string with its string data transformed to sentence case.</returns>
         public static CaseTransformableString ToSentence(this ILocalisableStringData data) => new LocalisableString(data).ToSentence();
+
+        /// <summary>
+        /// Returns the <see cref="TranslatableString.Key"/> of the <see cref="TranslatableString"/> that is the underlying data of this <see cref="LocalisableString"/>.
+        /// </summary>
+        /// <param name="str">
+        /// The <see cref="LocalisableString"/> whose underlying data is the <see cref="TranslatableString"/>.
+        /// This is usually a static property of a "strings" class containing translation definitions.
+        /// </param>
+        /// <returns>The <see cref="TranslatableString.Key"/> of the underlying <see cref="TranslatableString"/>.</returns>
+        /// <exception cref="ArgumentException">Thrown if this <see cref="LocalisableString"/> doesn't have underlying <see cref="TranslatableString"/> data.</exception>
+        public static string GetTranslationKey(this LocalisableString str)
+        {
+            if (str.Data is not TranslatableString translatable)
+                throw new ArgumentException($"The {nameof(LocalisableString)} doesn't have underlying {nameof(TranslatableString)} data.", nameof(str));
+
+            return translatable.Key;
+        }
     }
 }
