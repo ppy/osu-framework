@@ -8,8 +8,9 @@ namespace osu.Framework.Graphics.Rendering
     /// <summary>
     /// A buffer which stores data for a uniform block.
     /// </summary>
-    public interface IUniformBuffer : IDisposable
+    public interface IUniformBuffer : IDisposable, IEquatable<IUniformBuffer>
     {
+        bool IEquatable<IUniformBuffer>.Equals(IUniformBuffer? other) => false;
     }
 
     /// <inheritdoc cref="IUniformBuffer"/>
@@ -21,5 +22,13 @@ namespace osu.Framework.Graphics.Rendering
         /// The data contained by this <see cref="IUniformBuffer{TData}"/>.
         /// </summary>
         TData Data { get; set; }
+
+        bool IEquatable<IUniformBuffer>.Equals(IUniformBuffer? otherBuffer)
+        {
+            if (otherBuffer is not IUniformBuffer<TData> tdataBuffer)
+                return false;
+
+            return tdataBuffer.Data.Equals(Data);
+        }
     }
 }
