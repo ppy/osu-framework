@@ -23,6 +23,7 @@ using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Platform.Linux.Native;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -659,7 +660,8 @@ namespace osu.Framework.Graphics.Video
                 var upload = new VideoTextureUpload(frame);
 
                 // We do not support videos with transparency at this point, so the upload's opacity as well as the texture's opacity is always opaque.
-                tex.SetData(upload, Opacity.Opaque);
+                // Average colour doesn't make sense for videos.
+                tex.SetData(upload, Opacity.Opaque, Color4.Black);
                 decodedFrames.Enqueue(new DecodedFrame { Time = frameTime, Texture = tex });
             }
         }
