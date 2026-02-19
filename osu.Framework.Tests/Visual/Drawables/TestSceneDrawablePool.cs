@@ -311,6 +311,20 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddAssert("child prepared", () => drawable.PreparedCount == 1);
         }
 
+        [Test]
+        public void TestUsePoolableDrawableWithProxy()
+        {
+            const int pool_size = 1;
+
+            resetWithNewPool(() => new TestPool(TimePerAction, pool_size));
+
+            AddRepeatStep("get new pooled drawable with proxy", () =>
+            {
+                var drawable = consumeDrawable();
+                Add(drawable.CreateProxy());
+            }, 50);
+        }
+
         protected override void Update()
         {
             base.Update();
