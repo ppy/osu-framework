@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Containers
 {
     public partial class BufferedContainer<T>
     {
-        private class BufferedContainerDrawNode : BufferedDrawNode, ICompositeDrawNode
+        protected class BufferedContainerDrawNode : BufferedDrawNode, ICompositeDrawNode
         {
             protected new BufferedContainer<T> Source => (BufferedContainer<T>)base.Source;
 
@@ -184,7 +184,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private class BufferedContainerDrawNodeSharedData : BufferedDrawNodeSharedData
+        protected class BufferedContainerDrawNodeSharedData : BufferedDrawNodeSharedData
         {
             public BufferedContainerDrawNodeSharedData(RenderBufferFormat[] mainBufferFormats, bool pixelSnapping, bool clipToRootNode)
                 : base(2, mainBufferFormats, pixelSnapping, clipToRootNode)

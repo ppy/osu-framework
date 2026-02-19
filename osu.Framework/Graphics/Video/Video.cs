@@ -93,7 +93,9 @@ namespace osu.Framework.Graphics.Video
         {
         }
 
-        public override Drawable CreateContent() => Sprite = new VideoSprite(this) { RelativeSizeAxes = Axes.Both };
+        protected virtual VideoSprite CreateSprite() => new VideoSprite(this) { RelativeSizeAxes = Axes.Both };
+
+        public override Drawable CreateContent() => Sprite = CreateSprite();
 
         /// <summary>
         /// Creates a new <see cref="Video"/>.

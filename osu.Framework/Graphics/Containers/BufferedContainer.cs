@@ -249,12 +249,12 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private long updateVersion;
 
-        public IShader TextureShader { get; private set; }
+        public IShader TextureShader { get; protected set; }
 
         private IShader blurShader;
         private IShader grayscaleShader;
 
-        private readonly BufferedContainerDrawNodeSharedData sharedData;
+        protected readonly BufferedContainerDrawNodeSharedData SharedData;
 
         /// <summary>
         /// Constructs an empty buffered container.
@@ -273,7 +273,7 @@ namespace osu.Framework.Graphics.Containers
         {
             UsingCachedFrameBuffer = cachedFrameBuffer;
 
-            sharedData = new BufferedContainerDrawNodeSharedData(formats, pixelSnapping, !cachedFrameBuffer);
+            SharedData = new BufferedContainerDrawNodeSharedData(formats, pixelSnapping, !cachedFrameBuffer);
 
             AddLayout(screenSpaceSizeBacking);
         }
@@ -286,7 +286,7 @@ namespace osu.Framework.Graphics.Containers
             grayscaleShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.GRAYSCALE);
         }
 
-        protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(this, sharedData);
+        protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(this, SharedData);
 
         public override bool UpdateSubTreeMasking()
         {
@@ -367,7 +367,7 @@ namespace osu.Framework.Graphics.Containers
         /// Creates a view which can be added to a container to display the content of this <see cref="BufferedContainer{T}"/>.
         /// </summary>
         /// <returns>The view.</returns>
-        public BufferedContainerView<T> CreateView() => new BufferedContainerView<T>(this, sharedData);
+        public BufferedContainerView<T> CreateView() => new BufferedContainerView<T>(this, SharedData);
 
         public DrawColourInfo? FrameBufferDrawColour => base.DrawColourInfo;
 
@@ -388,7 +388,7 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Dispose(isDisposing);
 
-            sharedData.Dispose();
+            SharedData.Dispose();
         }
     }
 
