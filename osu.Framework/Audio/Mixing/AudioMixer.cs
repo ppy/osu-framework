@@ -9,7 +9,7 @@ namespace osu.Framework.Audio.Mixing
     /// <summary>
     /// Mixes together multiple <see cref="IAudioChannel"/>s into one output.
     /// </summary>
-    public abstract class AudioMixer : AudioComponent, IAudioMixer
+    public abstract class AudioMixer : AdjustableAudioComponent, IAudioMixer
     {
         public readonly string Identifier;
 
@@ -36,6 +36,9 @@ namespace osu.Framework.Audio.Mixing
 
                 // Ensure the channel is removed from its current mixer.
                 channel.Mixer?.Remove(channel, false);
+
+                if (channel is IAdjustableAudioComponent adj)
+                    adj.BindAdjustments(this);
 
                 AddInternal(channel);
 
@@ -69,6 +72,9 @@ namespace osu.Framework.Audio.Mixing
 
                 RemoveInternal(channel);
                 channel.Mixer = null;
+
+                if (channel is IAdjustableAudioComponent adj)
+                    adj.UnbindAdjustments(this);
 
                 // Add the channel back to the default mixer so audio can always be played.
                 if (returnToDefault)
