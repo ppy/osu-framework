@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Rendering
         /// space of the container doing the masking).
         /// It is used by a shader to determine which pixels to discard.
         /// </summary>
-        public Matrix3 ToMaskingSpace;
+        public Matrix4 ToMaskingSpace;
 
         public float CornerRadius;
         public float CornerExponent;

@@ -128,25 +128,25 @@ namespace osu.Framework.Tests.Visual.Graphics
                 {
                     vertices.Add(new ColourIndexedVertex
                     {
-                        Position = areas[i].BottomLeft,
+                        Position = areas[i].BottomLeft.Xy, // TODO: WRONG
                         ColourIndex = i % colourBuffer.Size
                     });
 
                     vertices.Add(new ColourIndexedVertex
                     {
-                        Position = areas[i].BottomRight,
+                        Position = areas[i].BottomRight.Xy, // TODO: WRONG
                         ColourIndex = i % colourBuffer.Size
                     });
 
                     vertices.Add(new ColourIndexedVertex
                     {
-                        Position = areas[i].TopRight,
+                        Position = areas[i].TopRight.Xy, // TODO: WRONG
                         ColourIndex = i % colourBuffer.Size
                     });
 
                     vertices.Add(new ColourIndexedVertex
                     {
-                        Position = areas[i].TopLeft,
+                        Position = areas[i].TopLeft.Xy, // TODO: WRONG
                         ColourIndex = i % colourBuffer.Size
                     });
                 }
@@ -219,25 +219,25 @@ namespace osu.Framework.Tests.Visual.Graphics
 
                     vertices.Add(new ColourIndexedVertex
                     {
-                        Position = areas[i].BottomLeft,
+                        Position = areas[i].BottomLeft.Xy, // TODO: WRONG
                         ColourIndex = colourIndex
                     });
 
                     vertices.Add(new ColourIndexedVertex
                     {
-                        Position = areas[i].BottomRight,
+                        Position = areas[i].BottomRight.Xy, // TODO: WRONG
                         ColourIndex = colourIndex
                     });
 
                     vertices.Add(new ColourIndexedVertex
                     {
-                        Position = areas[i].TopRight,
+                        Position = areas[i].TopRight.Xy, // TODO: WRONG
                         ColourIndex = colourIndex
                     });
 
                     vertices.Add(new ColourIndexedVertex
                     {
-                        Position = areas[i].TopLeft,
+                        Position = areas[i].TopLeft.Xy, // TODO: WRONG
                         ColourIndex = colourIndex
                     });
 

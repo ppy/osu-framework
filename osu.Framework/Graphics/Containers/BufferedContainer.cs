@@ -333,7 +333,7 @@ namespace osu.Framework.Graphics.Containers
 
                 if (!RedrawOnScale)
                 {
-                    Matrix3 scaleMatrix = Matrix3.CreateScale(DrawInfo.MatrixInverse.ExtractScale());
+                    Matrix4 scaleMatrix = Matrix4.CreateScale(DrawInfo.MatrixInverse.ExtractScale());
                     Vector2Extensions.Transform(ref drawSize, ref scaleMatrix, out drawSize);
                 }
 

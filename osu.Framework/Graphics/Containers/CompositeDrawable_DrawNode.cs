@@ -48,6 +48,10 @@ namespace osu.Framework.Graphics.Containers
             /// </summary>
             private Quad? screenSpaceMaskingQuad;
 
+            private Camera camera;
+
+            private RectangleF screenSpaceDrawRectangle;
+
             /// <summary>
             /// Information about how the edge effect should be rendered.
             /// </summary>
@@ -86,6 +90,9 @@ namespace osu.Framework.Graphics.Containers
                 // Normalise to handle negative sizes, and clamp the shrinkage to prevent size from going negative.
                 RectangleF shrunkDrawRectangle = Source.DrawRectangle.Normalize();
                 shrunkDrawRectangle = shrunkDrawRectangle.Shrink(new Vector2(Math.Min(shrunkDrawRectangle.Width / 2, shrinkage), Math.Min(shrunkDrawRectangle.Height / 2, shrinkage)));
+
+                camera = Source.camera;
+                screenSpaceDrawRectangle = Source.ScreenSpaceDrawQuad.AABBFloat;
 
                 maskingInfo = !Source.Masking
                     ? null
@@ -187,6 +194,17 @@ namespace osu.Framework.Graphics.Containers
                 if (quadBatch != null)
                     renderer.PushQuadBatch(quadBatch);
 
+                if (camera != default)
+                {
+                    Vector2 offset = ((RectangleF)renderer.Viewport).Centre - screenSpaceDrawRectangle.Centre;
+                    Vector2 ndc = Vector2.Divide(offset, ((RectangleF)renderer.Viewport).Centre);
+
+                    renderer.PushProjectionMatrix(
+                        Matrix4.CreateTranslation(offset.X, offset.Y, 0)
+                        * camera.CreateMatrix(renderer.Viewport)
+                        * Matrix4.CreateTranslation(-ndc.X, ndc.Y, 0));
+                }
+
                 base.Draw(renderer);
 
                 drawEdgeEffect(renderer);
@@ -208,6 +226,9 @@ namespace osu.Framework.Graphics.Containers
 
                 if (maskingInfo != null)
                     renderer.PopMaskingInfo();
+
+                if (camera != default)
+                    renderer.PopProjectionMatrix();
 
                 if (quadBatch != null)
                     renderer.PopQuadBatch();

@@ -278,7 +278,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("click outside", () =>
             {
-                InputManager.MoveMouseTo(InputManager.ScreenSpaceDrawQuad.TopLeft);
+                InputManager.MoveMouseTo(InputManager.ScreenSpaceDrawQuad.TopLeft.Xy);
                 InputManager.Click(MouseButton.Right);
             });
         }
@@ -305,17 +305,17 @@ namespace osu.Framework.Tests.Visual.UserInterface
             => AddAssert($"menu {(opened ? "opened" : "closed")}", () => (contextMenuContainer.CurrentMenu?.State == MenuState.Open) == opened);
 
         private void assertMenuInCentre(Func<Drawable> getBoxFunc)
-            => AddAssert("menu in centre of box", () => Precision.AlmostEquals(contextMenuContainer.CurrentMenu.ScreenSpaceDrawQuad.TopLeft, getBoxFunc().ScreenSpaceDrawQuad.Centre));
+            => AddAssert("menu in centre of box", () => Precision.AlmostEquals(contextMenuContainer.CurrentMenu.ScreenSpaceDrawQuad.TopLeft.Xy, getBoxFunc().ScreenSpaceDrawQuad.Centre));
 
         private void assertMenuOnScreen(bool expected) => AddAssert($"menu {(expected ? "on" : "off")} screen", () =>
         {
             var inputQuad = InputManager.ScreenSpaceDrawQuad;
             var menuQuad = contextMenuContainer.CurrentMenu.ScreenSpaceDrawQuad;
 
-            bool result = inputQuad.Contains(menuQuad.TopLeft + new Vector2(1, 1))
-                          && inputQuad.Contains(menuQuad.TopRight + new Vector2(-1, 1))
-                          && inputQuad.Contains(menuQuad.BottomLeft + new Vector2(1, -1))
-                          && inputQuad.Contains(menuQuad.BottomRight + new Vector2(-1, -1));
+            bool result = inputQuad.Contains(menuQuad.TopLeft.Xy + new Vector2(1, 1))
+                          && inputQuad.Contains(menuQuad.TopRight.Xy + new Vector2(-1, 1))
+                          && inputQuad.Contains(menuQuad.BottomLeft.Xy + new Vector2(1, -1))
+                          && inputQuad.Contains(menuQuad.BottomRight.Xy + new Vector2(-1, -1));
 
             return result == expected;
         });
