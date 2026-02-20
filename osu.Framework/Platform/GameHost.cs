@@ -11,6 +11,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime;
+using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -341,6 +342,9 @@ namespace osu.Framework.Platform
 
         protected GameHost([NotNull] string gameName, [CanBeNull] HostOptions options = null)
         {
+            // ensure that SystemCulture and SystemUICulture values are fetched before something can change them.
+            RuntimeHelpers.RunClassConstructor(typeof(CultureInfoHelper).TypeHandle);
+
             Options = options ?? new HostOptions();
 
             if (string.IsNullOrEmpty(Options.FriendlyGameName))
@@ -1226,8 +1230,6 @@ namespace osu.Framework.Platform
 
         private Bindable<ExecutionMode> executionMode;
 
-        private Bindable<string> threadLocale;
-
         protected virtual void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {
             if (!defaultOverrides.ContainsKey(FrameworkSetting.WindowMode))
@@ -1294,24 +1296,20 @@ namespace osu.Framework.Platform
 
             bypassFrontToBackPass = DebugConfig.GetBindable<bool>(DebugSetting.BypassFrontToBackPass);
 
-            threadLocale = Config.GetBindable<string>(FrameworkSetting.Locale);
-            threadLocale.BindValueChanged(locale =>
-            {
-                // return value of TryGet ignored as the failure case gives expected results (CultureInfo.InvariantCulture)
-                CultureInfoHelper.TryGetCultureInfo(locale.NewValue, out var culture);
-
-                CultureInfo.DefaultThreadCurrentCulture = culture;
-                CultureInfo.DefaultThreadCurrentUICulture = culture;
-
-                threadRunner.SetCulture(culture);
-            }, true);
-
             inputConfig = new InputConfigManager(Storage, AvailableInputHandlers);
 
 #pragma warning disable CS0612 // Type or member is obsolete
             if (Config.Get<RendererType>(FrameworkSetting.Renderer) == RendererType.OpenGLLegacy)
                 Config.SetValue(FrameworkSetting.Renderer, RendererType.OpenGL);
 #pragma warning restore CS0612 // Type or member is obsolete
+        }
+
+        internal void SetThreadCulture(CultureInfo culture, CultureInfo uiCulture)
+        {
+            CultureInfo.DefaultThreadCurrentCulture = culture;
+            CultureInfo.DefaultThreadCurrentUICulture = uiCulture;
+
+            threadRunner.SetCulture(culture, uiCulture);
         }
 
         /// <summary>
