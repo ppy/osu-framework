@@ -45,7 +45,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                             Child = rateText = new SpriteText
                             {
                                 Padding = new MarginPadding(5),
-                                Width = 45,
+                                Width = 50,
                                 Colour = FrameworkColour.Yellow,
                                 Font = FrameworkFont.Condensed
                             },

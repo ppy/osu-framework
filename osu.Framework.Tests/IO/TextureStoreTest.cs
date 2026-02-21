@@ -3,7 +3,6 @@
 
 using System.Linq;
 using NUnit.Framework;
-using osu.Framework.Graphics;
 using osu.Framework.Graphics.Rendering.Dummy;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
@@ -18,7 +17,7 @@ namespace osu.Framework.Tests.IO
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            fontResourceStore = new TextureLoaderStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Drawable).Assembly), "Resources/Fonts"));
+            fontResourceStore = new TextureLoaderStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(TextureStoreTest).Assembly), "Resources/Fonts"));
         }
 
         [Test]
