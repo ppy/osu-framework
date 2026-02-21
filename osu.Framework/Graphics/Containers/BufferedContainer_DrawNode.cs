@@ -34,10 +34,12 @@ namespace osu.Framework.Graphics.Containers
             private Vector2I blurRadius;
             private float blurRotation;
             private float grayscaleStrength;
+            private float verticalPerspective;
 
             private long updateVersion;
             private IShader blurShader;
             private IShader grayscaleShader;
+            private IShader perspectiveShader;
 
             public BufferedContainerDrawNode(BufferedContainer<T> source, BufferedContainerDrawNodeSharedData sharedData)
                 : base(source, new CompositeDrawableDrawNode(source), sharedData)
@@ -59,9 +61,11 @@ namespace osu.Framework.Graphics.Containers
                 blurRadius = new Vector2I(Blur.KernelSize(blurSigma.X), Blur.KernelSize(blurSigma.Y));
                 blurRotation = Source.BlurRotation;
                 grayscaleStrength = Source.GrayscaleStrength;
+                verticalPerspective = Source.VerticalPerspective;
 
                 blurShader = Source.blurShader;
                 grayscaleShader = Source.grayscaleShader;
+                perspectiveShader = Source.perspectiveShader;
             }
 
             protected override long GetDrawVersion() => updateVersion;
@@ -92,7 +96,7 @@ namespace osu.Framework.Graphics.Containers
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(effectColour);
 
-                renderer.DrawFrameBuffer(SharedData.CurrentEffectBuffer, DrawRectangle, finalEffectColour);
+                drawPerspectiveFrameBuffer(renderer, SharedData.CurrentEffectBuffer, finalEffectColour);
 
                 if (drawOriginal && effectPlacement == EffectPlacement.Behind)
                     base.DrawContents(renderer);
@@ -100,6 +104,35 @@ namespace osu.Framework.Graphics.Containers
 
             private IUniformBuffer<BlurParameters> blurParametersBuffer;
             private IUniformBuffer<GrayscaleParameters> grayscaleParametersBuffer;
+            private IUniformBuffer<PerspectiveParameters> perspectiveParametersBuffer;
+
+            private void drawPerspectiveFrameBuffer(IRenderer renderer, IFrameBuffer frameBuffer, ColourInfo drawColour)
+            {
+                float strength = Math.Clamp(verticalPerspective, 0f, 0.95f);
+
+                if (strength <= 0 || perspectiveShader == null)
+                {
+                    renderer.DrawFrameBuffer(frameBuffer, DrawRectangle, drawColour);
+                    return;
+                }
+
+                perspectiveParametersBuffer ??= renderer.CreateUniformBuffer<PerspectiveParameters>();
+                perspectiveParametersBuffer.Data = perspectiveParametersBuffer.Data with
+                {
+                    Strength = strength
+                };
+
+                perspectiveShader.BindUniformBlock("m_PerspectiveParameters", perspectiveParametersBuffer);
+                perspectiveShader.Bind();
+                BindUniformResources(perspectiveShader, renderer);
+
+                renderer.DrawFrameBuffer(frameBuffer, DrawRectangle, drawColour);
+
+                perspectiveShader.Unbind();
+                Source.TextureShader?.Bind();
+                if (Source.TextureShader != null)
+                    BindUniformResources(Source.TextureShader, renderer);
+            }
 
             private void drawBlurredFrameBuffer(IRenderer renderer, int kernelRadius, float sigma, float blurRotation)
             {
@@ -164,6 +197,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 base.Dispose(isDisposing);
                 blurParametersBuffer?.Dispose();
+                perspectiveParametersBuffer?.Dispose();
             }
 
             [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -178,6 +212,13 @@ namespace osu.Framework.Graphics.Containers
 
             [StructLayout(LayoutKind.Sequential, Pack = 1)]
             private record struct GrayscaleParameters
+            {
+                public UniformFloat Strength;
+                private readonly UniformPadding12 pad1;
+            }
+
+            [StructLayout(LayoutKind.Sequential, Pack = 1)]
+            private record struct PerspectiveParameters
             {
                 public UniformFloat Strength;
                 private readonly UniformPadding12 pad1;

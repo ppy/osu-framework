@@ -159,6 +159,7 @@ namespace osu.Framework.Graphics.Shaders
     public static class FragmentShaderDescriptor
     {
         public const string TEXTURE = "Texture";
+        public const string PERSPECTIVE = "Perspective";
         public const string GLOW = "Glow";
         public const string BLUR = "Blur";
         public const string GRAYSCALE = "Grayscale";

@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Allocation;
@@ -13,6 +14,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Utils;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Layout;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -208,6 +210,25 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private float verticalPerspective;
+
+        /// <summary>
+        /// Applies a perspective remap when drawing the buffered content.
+        /// Value is interpreted as top edge inset strength in [0, 0.95].
+        /// </summary>
+        public float VerticalPerspective
+        {
+            get => verticalPerspective;
+            set
+            {
+                if (verticalPerspective == value)
+                    return;
+
+                verticalPerspective = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
         /// <summary>
         /// Whether the rendered framebuffer is being cached until <see cref="ForceRedraw"/> is called
         /// or the size of the container (i.e. framebuffer) changes.
@@ -253,6 +274,7 @@ namespace osu.Framework.Graphics.Containers
 
         private IShader blurShader;
         private IShader grayscaleShader;
+        private IShader perspectiveShader;
 
         private readonly BufferedContainerDrawNodeSharedData sharedData;
 
@@ -284,6 +306,16 @@ namespace osu.Framework.Graphics.Containers
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             blurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
             grayscaleShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.GRAYSCALE);
+
+            try
+            {
+                perspectiveShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.PERSPECTIVE);
+            }
+            catch (Exception e)
+            {
+                perspectiveShader = null;
+                Logger.Error(e, "Failed to load perspective shader; falling back to regular buffered rendering.");
+            }
         }
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(this, sharedData);
