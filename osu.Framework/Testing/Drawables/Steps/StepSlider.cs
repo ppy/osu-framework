@@ -88,13 +88,13 @@ namespace osu.Framework.Testing.Drawables.Steps
             base.OnDragEnd(e);
         }
 
-        protected override void UpdateValue(float normalizedValue)
+        protected override void UpdateValue(float position)
         {
             var value = Current.Value;
 
             ValueChanged?.Invoke(value);
             spriteText.Text = $"{text}: {Convert.ToDouble(value):#,0.##}";
-            selection.ResizeWidthTo(normalizedValue);
+            selection.ResizeWidthTo(position);
         }
 
         protected void Flash()

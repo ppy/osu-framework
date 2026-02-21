@@ -22,6 +22,44 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public float RangePadding;
 
+        private T maxDisplayRange = T.MaxValue;
+
+        private T minDisplayRange = T.MinValue;
+
+        /// <summary>
+        /// The maximum value to display on the slider bar.
+        /// By default, the slider bar will display values between <see cref="RangeConstrainedBindable{T}.MinValue"/> and <see cref="RangeConstrainedBindable{T}.MaxValue"/> of <see cref="Current"/>.
+        /// To display a different range, you can set <see cref="MaxDisplayRange"/> and <see cref="MinDisplayRange"/>.
+        /// </summary>
+        public T MaxDisplayRange
+        {
+            get
+            {
+                if (maxDisplayRange == T.MaxValue)
+                    return currentNumberInstantaneous.MaxValue;
+
+                return maxDisplayRange;
+            }
+            set => maxDisplayRange = value;
+        }
+
+        /// <summary>
+        /// The minimum value to display on the slider bar.
+        /// By default, the slider bar will display values between <see cref="RangeConstrainedBindable{T}.MinValue"/> and <see cref="RangeConstrainedBindable{T}.MaxValue"/> of <see cref="Current"/>.
+        /// To display a different range, you can set <see cref="MaxDisplayRange"/> and <see cref="MinDisplayRange"/>.
+        /// </summary>
+        public T MinDisplayRange
+        {
+            get
+            {
+                if (minDisplayRange == T.MinValue)
+                    return currentNumberInstantaneous.MinValue;
+
+                return minDisplayRange;
+            }
+            set => minDisplayRange = value;
+        }
+
         public float UsableWidth => DrawWidth - 2 * RangePadding;
 
         /// <summary>
@@ -96,10 +134,30 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
+        /// The normalized value representing the position between <see cref="MinDisplayRange"/> and <see cref="MaxDisplayRange"/>.
+        /// </summary>
+        protected float NormalizedPosition
+        {
+            get
+            {
+                float min = float.CreateTruncating(MinDisplayRange);
+                float max = float.CreateTruncating(MaxDisplayRange);
+
+                if (max - min == 0)
+                    return 1;
+
+                float val = float.CreateTruncating(currentNumberInstantaneous.Value);
+                return (val - min) / (max - min);
+            }
+        }
+
+        /// <summary>
         /// Triggered when the <see cref="Current"/> value has changed. Used to update the displayed value.
         /// </summary>
-        /// <param name="value">The normalized <see cref="Current"/> value.</param>
-        protected abstract void UpdateValue(float value);
+        /// <param name="position">
+        /// The normalized value representing the position between <see cref="MinDisplayRange"/> and <see cref="MaxDisplayRange"/>.
+        /// </param>
+        protected abstract void UpdateValue(float position);
 
         protected override void LoadComplete()
         {
@@ -112,10 +170,10 @@ namespace osu.Framework.Graphics.UserInterface
             Scheduler.AddOnce(updateValue);
         }
 
-        private void updateValue() => UpdateValue(NormalizedValue);
+        private void updateValue() => UpdateValue(NormalizedPosition);
 
         private bool handleClick;
-        private float? relativeValueAtMouseDown;
+        private float? normalizedPositionAtMouseDown;
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
@@ -125,11 +183,14 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (ShouldHandleAsRelativeDrag(e))
             {
-                float min = float.CreateTruncating(currentNumberInstantaneous.MinValue);
-                float max = float.CreateTruncating(currentNumberInstantaneous.MaxValue);
+                float min = float.CreateTruncating(MinDisplayRange);
+                float max = float.CreateTruncating(MaxDisplayRange);
                 float val = float.CreateTruncating(currentNumberInstantaneous.Value);
 
-                relativeValueAtMouseDown = (val - min) / (max - min);
+                if (max - min == 0)
+                    normalizedPositionAtMouseDown = 1;
+
+                normalizedPositionAtMouseDown = (val - min) / (max - min);
 
                 // Click shouldn't be handled if relative dragging is happening (i.e. while holding a nub).
                 // This is generally an expectation by most OSes and UIs.
@@ -138,7 +199,7 @@ namespace osu.Framework.Graphics.UserInterface
             else
             {
                 handleClick = true;
-                relativeValueAtMouseDown = null;
+                normalizedPositionAtMouseDown = null;
             }
 
             return base.OnMouseDown(e);
@@ -246,18 +307,24 @@ namespace osu.Framework.Graphics.UserInterface
 
             float localX = ToLocalSpace(e.ScreenSpaceMousePosition).X;
 
-            float newValue;
+            float normalizedPosition;
 
-            if (relativeValueAtMouseDown != null && e is DragEvent drag)
+            if (normalizedPositionAtMouseDown != null && e is DragEvent drag)
             {
-                newValue = relativeValueAtMouseDown.Value + (localX - ToLocalSpace(drag.ScreenSpaceMouseDownPosition).X) / UsableWidth;
+                normalizedPosition = normalizedPositionAtMouseDown.Value + (localX - ToLocalSpace(drag.ScreenSpaceMouseDownPosition).X) / UsableWidth;
             }
             else
             {
-                newValue = (localX - RangePadding) / UsableWidth;
+                normalizedPosition = (localX - RangePadding) / UsableWidth;
             }
 
-            currentNumberInstantaneous.SetProportional(newValue, e.ShiftPressed ? KeyboardStep : 0);
+            double min = double.CreateTruncating(MinDisplayRange);
+            double max = double.CreateTruncating(MaxDisplayRange);
+            double value = min + (max - min) * normalizedPosition;
+            if (e.ShiftPressed) // if shift is pressed, snap the final value to the closest multiple of KeyboardStep
+                value = Math.Round(value / KeyboardStep) * KeyboardStep;
+
+            currentNumberInstantaneous.Set(value);
             onUserChange(currentNumberInstantaneous.Value);
         }
 
