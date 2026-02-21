@@ -50,8 +50,7 @@ namespace osu.Framework.Graphics.Lines
                 vertices.Clear();
                 vertices.AddRange(value);
 
-                vertexBoundsCache.Invalidate();
-                segmentsCache.Invalidate();
+                bbhCache.Invalidate();
 
                 Invalidate(Invalidation.DrawSize);
             }
@@ -74,8 +73,7 @@ namespace osu.Framework.Graphics.Lines
 
                 pathRadius = value;
 
-                vertexBoundsCache.Invalidate();
-                segmentsCache.Invalidate();
+                bbhCache.Invalidate();
 
                 Invalidate(Invalidation.DrawSize);
             }
@@ -170,50 +168,9 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        private readonly Cached<RectangleF> vertexBoundsCache = new Cached<RectangleF>();
+        private RectangleF vertexBounds => BBH.VertexBounds;
 
-        private RectangleF vertexBounds
-        {
-            get
-            {
-                if (vertexBoundsCache.IsValid)
-                    return vertexBoundsCache.Value;
-
-                if (vertices.Count > 0)
-                {
-                    float minX = 0;
-                    float minY = 0;
-                    float maxX = 0;
-                    float maxY = 0;
-
-                    foreach (var v in vertices)
-                    {
-                        minX = Math.Min(minX, v.X - PathRadius);
-                        minY = Math.Min(minY, v.Y - PathRadius);
-                        maxX = Math.Max(maxX, v.X + PathRadius);
-                        maxY = Math.Max(maxY, v.Y + PathRadius);
-                    }
-
-                    return vertexBoundsCache.Value = new RectangleF(minX, minY, maxX - minX, maxY - minY);
-                }
-
-                return vertexBoundsCache.Value = new RectangleF(0, 0, 0, 0);
-            }
-        }
-
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
-        {
-            var localPos = ToLocalSpace(screenSpacePos);
-            float pathRadiusSquared = PathRadius * PathRadius;
-
-            foreach (var t in segments)
-            {
-                if (t.DistanceSquaredToPoint(localPos) <= pathRadiusSquared)
-                    return true;
-            }
-
-            return false;
-        }
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => BBH.Contains(ToLocalSpace(screenSpacePos));
 
         public Vector2 PositionInBoundingBox(Vector2 pos) => pos - vertexBounds.TopLeft;
 
@@ -224,8 +181,7 @@ namespace osu.Framework.Graphics.Lines
 
             vertices.Clear();
 
-            vertexBoundsCache.Invalidate();
-            segmentsCache.Invalidate();
+            bbhCache.Invalidate();
 
             Invalidate(Invalidation.DrawSize);
         }
@@ -234,8 +190,7 @@ namespace osu.Framework.Graphics.Lines
         {
             vertices.Add(pos);
 
-            vertexBoundsCache.Invalidate();
-            segmentsCache.Invalidate();
+            bbhCache.Invalidate();
 
             Invalidate(Invalidation.DrawSize);
         }
@@ -244,29 +199,21 @@ namespace osu.Framework.Graphics.Lines
         {
             vertices[index] = pos;
 
-            vertexBoundsCache.Invalidate();
-            segmentsCache.Invalidate();
+            bbhCache.Invalidate();
 
             Invalidate(Invalidation.DrawSize);
         }
 
-        private readonly List<Line> segmentsBacking = new List<Line>();
-        private readonly Cached segmentsCache = new Cached();
-        private List<Line> segments => segmentsCache.IsValid ? segmentsBacking : generateSegments();
+        private readonly PathBBH bbhBacking = new PathBBH();
+        private readonly Cached bbhCache = new Cached();
 
-        private List<Line> generateSegments()
+        protected PathBBH BBH => bbhCache.IsValid ? bbhBacking : computeBBH();
+
+        private PathBBH computeBBH()
         {
-            segmentsBacking.Clear();
-
-            if (vertices.Count > 1)
-            {
-                Vector2 offset = vertexBounds.TopLeft;
-                for (int i = 0; i < vertices.Count - 1; ++i)
-                    segmentsBacking.Add(new Line(vertices[i] - offset, vertices[i + 1] - offset));
-            }
-
-            segmentsCache.Validate();
-            return segmentsBacking;
+            bbhBacking.SetVertices(vertices, pathRadius);
+            bbhCache.Validate();
+            return bbhBacking;
         }
 
         private Texture texture;
@@ -374,6 +321,7 @@ namespace osu.Framework.Graphics.Lines
             texture = null;
 
             sharedData.Dispose();
+            bbhBacking.Dispose();
         }
     }
 }
