@@ -21,6 +21,7 @@ namespace osu.Framework.Audio.Asio
 
             try
             {
+                // ReSharper disable once SuspiciousTypeConversion.Global
                 enumerator = (IMmDeviceEnumerator)new MMDeviceEnumerator();
                 client = new ImmNotificationClientImpl();
 
