@@ -22,7 +22,6 @@ using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
-using osu.Framework.Platform.Linux.Native;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -108,25 +107,6 @@ namespace osu.Framework.Graphics.Video
         private readonly FFmpegFuncs ffmpeg;
 
         internal bool Looping;
-
-        static VideoDecoder()
-        {
-            if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
-            {
-                void loadVersionedLibraryGlobally(string name)
-                {
-                    int version = FFmpeg.AutoGen.ffmpeg.LibraryVersionMap[name];
-                    Library.Load($"lib{name}.so.{version}", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
-                }
-
-                // FFmpeg.AutoGen doesn't load libraries as RTLD_GLOBAL, so we must load them ourselves to fix inter-library dependencies
-                // otherwise they would fallback to the system-installed libraries that can differ in version installed.
-                loadVersionedLibraryGlobally("avutil");
-                loadVersionedLibraryGlobally("avcodec");
-                loadVersionedLibraryGlobally("avformat");
-                loadVersionedLibraryGlobally("swscale");
-            }
-        }
 
         /// <summary>
         /// Creates a new video decoder that decodes the given video file.
@@ -803,6 +783,15 @@ namespace osu.Framework.Graphics.Video
                     if (!hwVideoDecoder.HasValue || !targetHwDecoders.HasFlagFast(hwVideoDecoder.Value))
                         continue;
 
+                    // VP9 Hardware decoding hangs on macOS on x64 platforms: https://trac.ffmpeg.org/ticket/9599
+                    if (codec.Id == AVCodecID.AV_CODEC_ID_VP9
+                        && hwVideoDecoder == HardwareVideoDecoder.VideoToolbox
+                        && RuntimeInfo.OS == RuntimeInfo.Platform.macOS
+                        && RuntimeInformation.OSArchitecture == Architecture.X64)
+                    {
+                        continue;
+                    }
+
                     codecs.Add((codec, hwDeviceType));
                 }
             }
@@ -817,38 +806,6 @@ namespace osu.Framework.Graphics.Video
 
         protected virtual FFmpegFuncs CreateFuncs()
         {
-            // other frameworks should handle native libraries themselves
-            FFmpeg.AutoGen.ffmpeg.GetOrLoadLibrary = name =>
-            {
-                int version = FFmpeg.AutoGen.ffmpeg.LibraryVersionMap[name];
-
-                // "lib" prefix and extensions are resolved by .net core
-                string libraryName;
-
-                switch (RuntimeInfo.OS)
-                {
-                    case RuntimeInfo.Platform.macOS:
-                        libraryName = $"{name}.{version}";
-                        break;
-
-                    case RuntimeInfo.Platform.Windows:
-                        libraryName = $"{name}-{version}";
-                        break;
-
-                    // To handle versioning in Linux, we have to specify the entire file name
-                    // because Linux uses a version suffix after the file extension (e.g. libavutil.so.56)
-                    // More info: https://learn.microsoft.com/en-us/dotnet/standard/native-interop/native-library-loading?view=net-6.0
-                    case RuntimeInfo.Platform.Linux:
-                        libraryName = $"lib{name}.so.{version}";
-                        break;
-
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(RuntimeInfo.OS), RuntimeInfo.OS, null);
-                }
-
-                return NativeLibrary.Load(libraryName, RuntimeInfo.EntryAssembly, DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
-            };
-
             return new FFmpegFuncs
             {
                 av_dict_set = FFmpeg.AutoGen.ffmpeg.av_dict_set,
