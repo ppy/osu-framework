@@ -52,8 +52,8 @@ namespace osu.Framework.Graphics
             if (scale != Vector2.One)
             {
                 // Zero scale leads to unexpected input and autosize calculations, so it's clamped to a sane value.
-                if (scale.X == 0) scale.X = Precision.FLOAT_EPSILON;
-                if (scale.Y == 0) scale.Y = Precision.FLOAT_EPSILON;
+                if (Math.Abs(scale.X) < Precision.FLOAT_EPSILON) scale.X = Math.Sign(scale.X == 0 ? 1 : scale.X) * Precision.FLOAT_EPSILON;
+                if (Math.Abs(scale.Y) < Precision.FLOAT_EPSILON) scale.Y = Math.Sign(scale.Y == 0 ? 1 : scale.Y) * Precision.FLOAT_EPSILON;
 
                 MatrixExtensions.ScaleFromLeft(ref Matrix, scale);
                 MatrixExtensions.ScaleFromRight(ref MatrixInverse, Vector2.Divide(Vector2.One, scale));
