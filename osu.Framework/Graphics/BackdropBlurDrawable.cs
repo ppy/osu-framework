@@ -96,6 +96,18 @@ namespace osu.Framework.Graphics
         /// </summary>
         public List<Drawable> CaptureTargets { get; } = new List<Drawable>();
 
+        /// <summary>
+        /// 严格显式捕获模式。
+        /// 开启后，仅捕获 <see cref="CaptureTargets"/> 本体，且捕获失败时不回退到其它目标。
+        /// </summary>
+        public bool StrictCaptureTargetsMode { get; set; } = true;
+
+        /// <summary>
+        /// 穿透捕获模式（按绘制顺序）。
+        /// 开启后忽略显式目标配置，仅捕获当前可绘制项下方（先绘制）的图层内容。
+        /// </summary>
+        public bool PassthroughByDrawOrder { get; set; }
+
         private Vector2 blurSigma;
 
         /// <summary>
@@ -215,7 +227,14 @@ namespace osu.Framework.Graphics
 
             try
             {
-                if (CaptureTargets.Count > 0)
+                if (PassthroughByDrawOrder)
+                {
+                    targetDrawNode = generateLowerLayerCapture(frame, treeIndex);
+
+                    if (targetDrawNode == null)
+                        return null;
+                }
+                else if (CaptureTargets.Count > 0)
                 {
                     captureSources.Clear();
                     captureSourceSet.Clear();
@@ -258,11 +277,13 @@ namespace osu.Framework.Graphics
 
                     if (targetDrawNode == null)
                     {
-                        Drawable fallbackTarget = CaptureTarget ?? findRoot();
-                        if (fallbackTarget == null)
+                        if (StrictCaptureTargetsMode)
                             return null;
 
-                        targetDrawNode = fallbackTarget.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
+                        targetDrawNode = generateLowerLayerCapture(frame, treeIndex);
+
+                        if (targetDrawNode == null && CaptureTarget != null)
+                            targetDrawNode = CaptureTarget.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
 
                         if (targetDrawNode == null)
                             return null;
@@ -492,10 +513,91 @@ namespace osu.Framework.Graphics
             if (source != this && !isExcludedRoot(source) && captureSourceSet.Add(source))
                 captureSources.Add(source);
 
+            if (StrictCaptureTargetsMode)
+                return;
+
             Drawable canonical = canonicaliseCaptureSource(source);
 
             if (canonical != source && canonical != this && !isExcludedRoot(canonical) && captureSourceSet.Add(canonical))
                 captureSources.Add(canonical);
+        }
+
+        private DrawNode generateLowerLayerCapture(ulong frame, int treeIndex)
+        {
+            Container rootContainer = findTraversalRootContainer();
+
+            captureSources.Clear();
+            captureSourceSet.Clear();
+            captureTempContainer.Clear(false);
+
+            if (rootContainer != null)
+                collectBefore(rootContainer, this, captureSources);
+            else
+                collectBeforeInParentChain(this, captureSources);
+
+            if (captureSources.Count == 0)
+                return null;
+
+            for (int i = 0; i < captureSources.Count; i++)
+            {
+                ProxyCaptureDrawable proxy;
+
+                if (i < proxyPool.Count)
+                {
+                    proxy = proxyPool[i];
+                    proxy.SourceDrawable = captureSources[i];
+                }
+                else
+                {
+                    proxy = new ProxyCaptureDrawable(captureSources[i]);
+                    proxyPool.Add(proxy);
+                }
+
+                captureTempContainer.Add(proxy);
+            }
+
+            return captureTempContainer.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
+        }
+
+        private void collectBeforeInParentChain(Drawable start, List<Drawable> outList)
+        {
+            Drawable current = start;
+
+            while (current.Parent != null)
+            {
+                if (current.Parent is Container parentContainer)
+                {
+                    foreach (var sibling in parentContainer.Children)
+                    {
+                        if (sibling == current)
+                            break;
+
+                        if (isExcludedRoot(sibling))
+                            continue;
+
+                        appendFilteredCaptureSources(sibling, outList);
+                    }
+                }
+
+                current = current.Parent;
+            }
+        }
+
+        private Container findTraversalRootContainer()
+        {
+            Container highestContainer = null;
+
+            Drawable current = this;
+
+            while (current.Parent != null)
+            {
+                current = current.Parent;
+
+                if (current is Container container)
+                    highestContainer = container;
+            }
+
+            return highestContainer;
         }
 
         private bool containsExcludedDescendant(Drawable drawable)
@@ -551,9 +653,12 @@ namespace osu.Framework.Graphics
             if (!includeSelf)
                 return;
 
+            if (captureSourceSet.Add(drawable))
+                outList.Add(drawable);
+
             var source = canonicaliseCaptureSource(drawable);
 
-            if (captureSourceSet.Add(source))
+            if (source != drawable && captureSourceSet.Add(source))
                 outList.Add(source);
         }
 
