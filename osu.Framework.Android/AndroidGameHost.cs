@@ -53,13 +53,14 @@ namespace osu.Framework.Android
 
         public override bool OnScreenKeyboardOverlapsGameWindow => true;
 
-        public override string InitialFileSelectorPath => @"/sdcard";
-
         public override Storage GetStorage(string path) => new AndroidStorage(path, this);
 
         public override IEnumerable<string> UserStoragePaths
             // not null as internal "external storage" is always available.
             => Application.Context.GetExternalFilesDir(string.Empty).AsNonNull().ToString().Yield();
+
+        public override ISystemFileSelector CreateSystemFileSelector(string[] allowedExtensions)
+            => new AndroidFileSelector(activity, allowedExtensions);
 
         public override bool OpenFileExternally(string filename) => false;
 
