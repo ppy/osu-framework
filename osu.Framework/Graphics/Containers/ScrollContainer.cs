@@ -680,7 +680,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
+        public virtual bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
         {
             if (!IsHandlingKeyboardScrolling)
                 return false;
