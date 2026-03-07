@@ -527,15 +527,15 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             /// <summary>
-            /// Shows an item from this <see cref="DropdownMenu"/>.
+            /// Hides an item from this <see cref="DropdownMenu"/>.
             /// </summary>
-            /// <param name="item">The item to show.</param>
+            /// <param name="item">The item to hide.</param>
             public void HideItem(DropdownMenuItem<T> item) => Children.FirstOrDefault(c => compareItemEquality(item, c.Item))?.Hide();
 
             /// <summary>
-            /// Hides an item from this <see cref="DropdownMenu"/>
+            /// Shows an item from this <see cref="DropdownMenu"/>
             /// </summary>
-            /// <param name="item"></param>
+            /// <param name="item">The item to show.</param>
             public void ShowItem(DropdownMenuItem<T> item) => Children.FirstOrDefault(c => compareItemEquality(item, c.Item))?.Show();
 
             /// <summary>
