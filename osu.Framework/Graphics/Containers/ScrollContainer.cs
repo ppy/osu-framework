@@ -700,7 +700,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
+        public virtual void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
         {
         }
     }
