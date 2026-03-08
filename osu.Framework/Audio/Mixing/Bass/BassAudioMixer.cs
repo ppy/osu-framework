@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Logging;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Audio.Mixing.Bass
@@ -28,6 +29,12 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// The list of channels which are currently active in the BASS mix.
         /// </summary>
         private readonly List<IBassAudioChannel> activeChannels = new List<IBassAudioChannel>();
+
+        /// <summary>
+        /// The list of channels which are pending addition to the BASS mix.
+        /// These channels are waiting for either the mixer or the channel to be initialized.
+        /// </summary>
+        private readonly List<IBassAudioChannel> pendingChannels = new List<IBassAudioChannel>();
 
         private readonly Dictionary<IEffectParameter, int> activeEffects = new Dictionary<IEffectParameter, int>();
 
@@ -82,15 +89,14 @@ namespace osu.Framework.Audio.Mixing.Bass
 
             if (Handle == 0 || bassChannel.Handle == 0)
             {
-                // Channel will be added to the BASS mix when the mixer is created.
-                // See createMixer() which processes all channels in activeChannels.
-                if (!activeChannels.Contains(bassChannel))
-                    activeChannels.Add(bassChannel);
+                // Channel will be added to the BASS mix when both the mixer and channel are ready.
+                if (!pendingChannels.Contains(bassChannel))
+                    pendingChannels.Add(bassChannel);
                 return;
             }
 
             if (!bassChannel.MixerChannelPaused)
-                ChannelPlay(bassChannel);
+                AddToBassMixAndPlay(bassChannel);
         }
 
         protected override void RemoveInternal(IAudioChannel channel)
@@ -100,24 +106,24 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (channel is not IBassAudioChannel bassChannel)
                 return;
 
-            if (Handle == 0 || bassChannel.Handle == 0)
-                return;
+            // Remove from pending channels if it's there
+            pendingChannels.Remove(bassChannel);
 
-            if (activeChannels.Remove(bassChannel))
+            // Remove from active channels and BASS mix if mixer is valid
+            if (Handle != 0 && bassChannel.Handle != 0 && activeChannels.Remove(bassChannel))
                 removeChannelFromBassMix(bassChannel);
         }
 
         /// <summary>
-        /// Plays a channel.
+        /// Adds a channel to the BASS mix and plays it.
         /// </summary>
         /// <remarks>See: <see cref="ManagedBass.Bass.ChannelPlay"/>.</remarks>
-        /// <param name="channel">The channel to play.</param>
-        /// <param name="restart">Restart playback from the beginning?</param>
+        /// <param name="channel">The channel to add and play.</param>
         /// <returns>
         /// If successful, <see langword="true"/> is returned, else <see langword="false"/> is returned.
         /// Use <see cref="ManagedBass.Bass.LastError"/> to get the error code.
         /// </returns>
-        public bool ChannelPlay(IBassAudioChannel channel, bool restart = false)
+        public bool AddToBassMixAndPlay(IBassAudioChannel channel)
         {
             if (Handle == 0 || channel.Handle == 0)
                 return false;
@@ -274,6 +280,27 @@ namespace osu.Framework.Audio.Mixing.Bass
 
         protected override void UpdateState()
         {
+            // Process pending channels if mixer is ready
+            if (Handle != 0 && pendingChannels.Count > 0)
+            {
+                var toProcess = pendingChannels.ToArray();
+                pendingChannels.Clear();
+
+                foreach (var channel in toProcess)
+                {
+                    if (channel.Handle == 0)
+                    {
+                        // Channel still not ready, keep pending
+                        pendingChannels.Add(channel);
+                    }
+                    else
+                    {
+                        // Channel is ready, add to BASS mix and play
+                        AddToBassMixAndPlay(channel);
+                    }
+                }
+            }
+
             for (int i = 0; i < activeChannels.Count; i++)
             {
                 var channel = activeChannels[i];
@@ -310,11 +337,25 @@ namespace osu.Framework.Audio.Mixing.Bass
             ManagedBass.Bass.ChannelSetAttribute(Handle, ChannelAttribute.Buffer, 0);
 
             // Register all channels that were previously added prior to the mixer being loaded.
-            // These channels were queued in activeChannels but not yet added to the BASS mix.
-            var toAdd = activeChannels.ToArray();
-            activeChannels.Clear();
+            // These channels were queued in pendingChannels but not yet added to the BASS mix.
+            var toAdd = pendingChannels.ToArray();
+            pendingChannels.Clear();
+
             foreach (var channel in toAdd)
-                AddChannelToBassMix(channel);
+            {
+                if (channel.Handle == 0)
+                {
+                    // Channel is not yet initialized, keep it pending for later processing
+                    pendingChannels.Add(channel);
+                }
+                else
+                {
+                    AddToBassMixAndPlay(channel);
+                }
+            }
+
+            if (pendingChannels.Count > 0)
+                Logger.Log($"BassAudioMixer '{Identifier}' has {pendingChannels.Count} pending channels after mixer creation", LoggingTarget.Runtime, LogLevel.Important);
 
             if (manager?.GlobalMixerHandle.Value != null)
                 BassMix.MixerAddChannel(manager.GlobalMixerHandle.Value.Value, Handle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
