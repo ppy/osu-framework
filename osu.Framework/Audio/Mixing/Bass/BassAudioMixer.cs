@@ -77,11 +77,17 @@ namespace osu.Framework.Audio.Mixing.Bass
         {
             Debug.Assert(CanPerformInline);
 
-            if (!(channel is IBassAudioChannel bassChannel))
+            if (channel is not IBassAudioChannel bassChannel)
                 return;
 
             if (Handle == 0 || bassChannel.Handle == 0)
+            {
+                // Channel will be added to the BASS mix when the mixer is created.
+                // See createMixer() which processes all channels in activeChannels.
+                if (!activeChannels.Contains(bassChannel))
+                    activeChannels.Add(bassChannel);
                 return;
+            }
 
             if (!bassChannel.MixerChannelPaused)
                 ChannelPlay(bassChannel);
@@ -91,7 +97,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         {
             Debug.Assert(CanPerformInline);
 
-            if (!(channel is IBassAudioChannel bassChannel))
+            if (channel is not IBassAudioChannel bassChannel)
                 return;
 
             if (Handle == 0 || bassChannel.Handle == 0)
@@ -303,7 +309,8 @@ namespace osu.Framework.Audio.Mixing.Bass
             // Lower latency is valued more for the time since we are not using complex DSP effects. Disable buffering on the mixer channel in order for data to be produced immediately.
             ManagedBass.Bass.ChannelSetAttribute(Handle, ChannelAttribute.Buffer, 0);
 
-            // Register all channels that were previously played prior to the mixer being loaded.
+            // Register all channels that were previously added prior to the mixer being loaded.
+            // These channels were queued in activeChannels but not yet added to the BASS mix.
             var toAdd = activeChannels.ToArray();
             activeChannels.Clear();
             foreach (var channel in toAdd)
