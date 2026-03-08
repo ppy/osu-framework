@@ -295,7 +295,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// When <see cref="Truncate"/> is enabled, this indicates whether <see cref="Text"/> has been visually truncated.
         /// </summary>
-        protected bool IsTruncated { get; private set; }
+        public bool IsTruncated { get; private set; }
 
         private bool requiresAutoSizedWidth => explicitWidth == null && (RelativeSizeAxes & Axes.X) == 0;
 

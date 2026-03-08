@@ -22,6 +22,7 @@ using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
@@ -110,7 +111,10 @@ namespace osu.Framework.Testing
                     Padding = new MarginPadding { Left = test_list_width },
                     Children = new Drawable[]
                     {
-                        new SafeAreaContainer
+                        new TooltipContainer
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                        }.WithChild(new SafeAreaContainer
                         {
                             SafeAreaOverrideEdges = Edges.Right | Edges.Bottom,
                             RelativeSizeAxes = Axes.Both,
@@ -147,7 +151,7 @@ namespace osu.Framework.Testing
                                     },
                                 }
                             }
-                        },
+                        }),
                         new TestBrowserToolbar
                         {
                             RelativeSizeAxes = Axes.X,
