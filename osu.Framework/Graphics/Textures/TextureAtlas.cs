@@ -60,6 +60,21 @@ namespace osu.Framework.Graphics.Textures
             this.filteringMode = filteringMode;
         }
 
+        public void DisposeResources()
+        {
+            lock (textureRetrievalLock)
+            {
+                if (atlasTexture != null)
+                {
+                    new DisposableTexture(atlasTexture).Dispose();
+                    atlasTexture = null;
+                }
+
+                subTextureBounds.Clear();
+                currentPosition = Vector2I.Zero;
+            }
+        }
+
         private int exceedCount;
 
         /// <summary>

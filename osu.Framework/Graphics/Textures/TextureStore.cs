@@ -295,6 +295,23 @@ namespace osu.Framework.Graphics.Textures
                 return textureCache[lookupKey] = texture;
         }
 
+        public void ClearCache(bool disposeAtlas = false)
+        {
+            lock (textureCache)
+            {
+                foreach (var tex in textureCache.Values)
+                {
+                    if (tex != null)
+                        new DisposableTexture(tex).Dispose();
+                }
+
+                textureCache.Clear();
+            }
+
+            if (disposeAtlas && Atlas != null)
+                Atlas.DisposeResources();
+        }
+
         /// <summary>
         /// Disposes and removes a texture from the cache.
         /// </summary>
