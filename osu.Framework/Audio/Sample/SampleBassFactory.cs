@@ -49,6 +49,8 @@ namespace osu.Framework.Audio.Sample
             PlaybackConcurrency.BindValueChanged(updatePlaybackConcurrency);
         }
 
+        internal bool CanEvict => Items.Count == 0 && PendingActions.IsEmpty;
+
         private void updatePlaybackConcurrency(ValueChangedEvent<int> concurrency)
         {
             EnqueueAction(() =>

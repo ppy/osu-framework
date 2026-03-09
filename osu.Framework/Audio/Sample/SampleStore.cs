@@ -22,6 +22,12 @@ namespace osu.Framework.Audio.Sample
         private readonly AudioMixer mixer;
 
         private readonly Dictionary<string, SampleBassFactory> factories = new Dictionary<string, SampleBassFactory>();
+        private readonly LinkedList<string> lruOrder = new LinkedList<string>();
+        private readonly Dictionary<string, LinkedListNode<string>> lruNodes = new Dictionary<string, LinkedListNode<string>>();
+
+        private const int default_max_cached_samples = 2048;
+
+        public int MaxCachedSamples { get; set; } = default_max_cached_samples;
 
         public int PlaybackConcurrency { get; set; } = Sample.DEFAULT_CONCURRENCY;
 
@@ -55,6 +61,9 @@ namespace osu.Framework.Audio.Sample
                         AddItem(factory);
                 }
 
+                touchLRU(name);
+                evictIfNeeded();
+
                 return factory?.CreateSample();
             }
         }
@@ -67,6 +76,56 @@ namespace osu.Framework.Audio.Sample
             lock (factories)
             {
                 if (factories.Remove(name, out var factory))
+                    RemoveItem(factory);
+
+                if (lruNodes.Remove(name, out var node))
+                {
+                    lruOrder.Remove(node);
+                }
+            }
+        }
+
+        private void touchLRU(string name)
+        {
+            if (lruNodes.TryGetValue(name, out var existing))
+                lruOrder.Remove(existing);
+
+            lruNodes[name] = lruOrder.AddFirst(name);
+        }
+
+        private void evictIfNeeded()
+        {
+            if (MaxCachedSamples <= 0)
+                return;
+
+            int attempts = 0;
+
+            while (factories.Count > MaxCachedSamples && lruOrder.Last != null && attempts <= lruOrder.Count)
+            {
+                string key = lruOrder.Last.Value;
+
+                if (!factories.TryGetValue(key, out var factory))
+                {
+                    lruNodes.Remove(key);
+                    lruOrder.RemoveLast();
+                    attempts++;
+                    continue;
+                }
+
+                if (factory != null && !factory.CanEvict)
+                {
+                    // Keep active samples around and try the next entry.
+                    lruOrder.RemoveLast();
+                    lruNodes[key] = lruOrder.AddFirst(key);
+                    attempts++;
+                    continue;
+                }
+
+                factories.Remove(key);
+                lruNodes.Remove(key);
+                lruOrder.RemoveLast();
+
+                if (factory != null)
                     RemoveItem(factory);
             }
         }
