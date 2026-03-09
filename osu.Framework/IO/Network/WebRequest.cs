@@ -68,8 +68,6 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public Stream ResponseStream { get; private set; }
 
-        public HttpResponseHeaders ResponseHeaders => response.Headers;
-
         /// <summary>
         /// The URL of this request.
         /// </summary>
@@ -251,6 +249,13 @@ namespace osu.Framework.IO.Network
                 return null;
             }
         }
+
+        /// <summary>
+        /// The headers in the response received.
+        /// Can be <see langword="null"/> if the request hasn't yet <see cref="Completed"/>, or if it has been <see cref="Aborted"/>.
+        /// </summary>
+        [CanBeNull]
+        public HttpResponseHeaders ResponseHeaders => response?.Headers;
 
         protected virtual Stream CreateOutputStream() => new MemoryStream();
 
