@@ -257,6 +257,12 @@ namespace osu.Framework.IO.Network
         [CanBeNull]
         public HttpResponseHeaders ResponseHeaders => response?.Headers;
 
+        /// <summary>
+        /// The status code of the response.
+        /// Can be <see langword="null"/> if the request hasn't yet <see cref="Completed"/>, or if it has been <see cref="Aborted"/>.
+        /// </summary>
+        public HttpStatusCode? ResponseStatusCode => response?.StatusCode;
+
         protected virtual Stream CreateOutputStream() => new MemoryStream();
 
         /// <summary>
