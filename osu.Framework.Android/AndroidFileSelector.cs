@@ -20,12 +20,12 @@ namespace osu.Framework.Android
         {
             this.activity = activity;
             this.allowedExtensions = allowedExtensions;
+
+            activity.ActivityResultReceived += resultReceived;
         }
 
         public void Present()
         {
-            activity.ActivityResultReceived += resultReceived;
-
             // https://developer.android.com/reference/android/content/Intent#ACTION_OPEN_DOCUMENT
             var intent = new Intent(Intent.ActionOpenDocument);
             intent.AddCategory(Intent.CategoryOpenable);
