@@ -171,13 +171,16 @@ namespace osu.Framework.Threading
             if (thread == null)
                 return;
 
+            if (notify != WasapiNotificationType.DefaultOutput || !thread.shouldTrackDefaultWasapiChanges())
+                return;
+
             thread.Scheduler.Add(() =>
             {
-                if (notify == WasapiNotificationType.DefaultOutput)
-                {
-                    thread.freeWasapi();
-                    thread.initWasapi(device, thread.wasapiExclusiveActive);
-                }
+                if (!thread.shouldTrackDefaultWasapiChanges())
+                    return;
+
+                thread.freeWasapi();
+                thread.initWasapi(device, exclusive: false);
             });
         };
 
@@ -199,6 +202,9 @@ namespace osu.Framework.Threading
         private GCHandle wasapiUserHandle;
         private readonly IntPtr wasapiUserPtr;
         private bool wasapiExclusiveActive;
+
+        private bool shouldTrackDefaultWasapiChanges()
+            => !wasapiExclusiveActive && string.IsNullOrEmpty(Manager?.AudioDevice.Value);
 
         /// <summary>
         /// Reference to the AudioManager that owns this AudioThread.
@@ -222,6 +228,7 @@ namespace osu.Framework.Threading
             // If we can't initialise BASS, we also won't get a chance to clean up the previous output mode.
             freeAsio();
             freeWasapi();
+            releaseAllOutputsForSwitch(deviceId, outputMode);
 
             // 对于ASIO模式，在初始化前添加额外延迟以确保设备完全释放
             if (outputMode == AudioOutputMode.Asio)
@@ -277,12 +284,9 @@ namespace osu.Framework.Threading
 
                     if (!string.IsNullOrEmpty(selectedDeviceName))
                     {
-                        // 解析选择以获取设备名称
-                        var (mode, deviceName) = parseAudioSelection(selectedDeviceName);
-
-                        if (!string.IsNullOrEmpty(deviceName))
+                        if (EzAsioDeviceManager.TryParseDeviceSelection(selectedDeviceName, out string deviceName))
                         {
-                            int? asioDeviceIndex = AsioDeviceManager.FindAsioDeviceIndex(deviceName);
+                            int? asioDeviceIndex = EzAsioDeviceManager.FindAsioDeviceIndex(deviceName);
 
                             if (asioDeviceIndex.HasValue)
                             {
@@ -291,7 +295,7 @@ namespace osu.Framework.Threading
                             }
                             else
                             {
-                                Logger.Log($"无法找到ASIO设备: {deviceName}, Mode: {mode}", name: "audio", level: LogLevel.Error);
+                                Logger.Log($"无法找到ASIO设备: {deviceName}", name: "audio", level: LogLevel.Error);
                                 return false;
                             }
                         }
@@ -305,7 +309,7 @@ namespace osu.Framework.Threading
                     {
                         Logger.Log("没有选择ASIO设备名称", name: "audio");
                         // 默认使用第一个可用的ASIO设备
-                        var availableDevices = AsioDeviceManager.EnumerateAsioDevices().ToList();
+                        var availableDevices = EzAsioDeviceManager.EnumerateAsioDevices().ToList();
 
                         if (availableDevices.Count != 0)
                         {
@@ -324,6 +328,40 @@ namespace osu.Framework.Threading
 
             initialised_devices.Add(deviceId);
             return true;
+        }
+
+        private static void releaseAllOutputsForSwitch(int targetDeviceId, AudioOutputMode outputMode)
+        {
+            int currentDevice = Bass.CurrentDevice;
+
+            for (int deviceId = 0; deviceId < Bass.DeviceCount; deviceId++)
+            {
+                try
+                {
+                    if (!Bass.GetDeviceInfo(deviceId, out var deviceInfo) || !deviceInfo.IsInitialized)
+                        continue;
+
+                    Bass.CurrentDevice = deviceId;
+                    Logger.Log($"Releasing BASS output device {deviceId} before switching to {outputMode} (target device {targetDeviceId}).", name: "audio", level: LogLevel.Debug);
+                    Bass.Free();
+                    initialised_devices.Remove(deviceId);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"Failed to release BASS output device {deviceId} before switching to {outputMode}: {ex}", name: "audio", level: LogLevel.Error);
+                }
+            }
+
+            try
+            {
+                if (currentDevice >= 0)
+                    Bass.CurrentDevice = currentDevice;
+            }
+            catch
+            {
+            }
+
+            Thread.Sleep(50);
         }
 
         internal void FreeDevice(int deviceId)
@@ -377,9 +415,9 @@ namespace osu.Framework.Threading
                 && !libraryName.Equals("bassasio.dll", StringComparison.OrdinalIgnoreCase))
                 return IntPtr.Zero;
 
-            // 从架构特定的目录加载bassasio.dll
-            IntPtr result = NativeLibrary.Load(libraryName, assembly, searchPath ?? DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
-            if (result != IntPtr.Zero)
+            // 先尝试默认探测路径，但不要让解析器把异常直接抛回调用方，
+            // 否则任何一次 ASIO 探测都会污染非 ASIO 的切换路径。
+            if (NativeLibrary.TryLoad(libraryName, assembly, searchPath ?? DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories, out IntPtr result))
                 return result;
 
             // 如果是64位进程，尝试从x64目录加载
@@ -387,13 +425,13 @@ namespace osu.Framework.Threading
             {
                 string dllPath = Path.Combine(AppContext.BaseDirectory, "x64", "bassasio.dll");
                 if (File.Exists(dllPath))
-                    return NativeLibrary.Load(dllPath);
+                    return NativeLibrary.TryLoad(dllPath, out result) ? result : IntPtr.Zero;
             }
             else
             {
                 string dllPath = Path.Combine(AppContext.BaseDirectory, "x86", "bassasio.dll");
                 if (File.Exists(dllPath))
-                    return NativeLibrary.Load(dllPath);
+                    return NativeLibrary.TryLoad(dllPath, out result) ? result : IntPtr.Zero;
             }
 
             // 如果所有尝试都失败，让运行时使用默认解析
@@ -466,11 +504,7 @@ namespace osu.Framework.Threading
                     if (candidates.Count > 0)
                     {
                         // Prefer common stereo formats.
-                        var best = candidates
-                                   .OrderBy(c => c.chans == 2 ? 0 : 1)
-                                   .ThenBy(c => Math.Abs(c.freq - 48000))
-                                   .ThenBy(c => Math.Abs(c.freq - 44100))
-                                   .First();
+                        var best = orderWasapiCandidates(candidates).First();
 
                         wasapiDevice = best.index;
                         Logger.Log($"Mapped BASS device {bassDeviceId} (driver '{driver}') to WASAPI device {wasapiDevice} (mix: {best.freq}Hz/{best.chans}ch).", name: "audio",
@@ -480,10 +514,7 @@ namespace osu.Framework.Threading
                         // we will retry other candidates below.
                         if (exclusive)
                         {
-                            foreach (var candidate in candidates
-                                                      .OrderBy(c => c.chans == 2 ? 0 : 1)
-                                                      .ThenBy(c => Math.Abs(c.freq - 48000))
-                                                      .ThenBy(c => Math.Abs(c.freq - 44100)))
+                            foreach (var candidate in orderWasapiCandidates(candidates))
                             {
                                 freeWasapi();
 
@@ -555,8 +586,8 @@ namespace osu.Framework.Threading
                 // Important: in exclusive mode, the underlying implementation may not support event-driven callbacks
                 // and can fall back to polling. Using a near-zero period (float.Epsilon) can then cause a busy-loop,
                 // leading to time running far too fast (and eventual instability elsewhere).
-                float bufferSeconds = exclusive ? 0.05f : 0f;
-                float periodSeconds = exclusive ? 0.01f : float.Epsilon;
+                float bufferSeconds = exclusive ? AudioOutputDefaults.WASAPI_EXCLUSIVE_BUFFER_SECONDS : 0f;
+                float periodSeconds = exclusive ? AudioOutputDefaults.WASAPI_EXCLUSIVE_PERIOD_SECONDS : float.Epsilon;
 
                 bool initialised = BassWasapi.Init(wasapiDevice, Frequency: requestedFrequency, Channels: requestedChannels, Procedure: wasapi_procedure_static, Flags: flags, Buffer: bufferSeconds,
                     Period: periodSeconds, User: wasapiUserPtr);
@@ -570,9 +601,23 @@ namespace osu.Framework.Threading
                 BassWasapi.GetInfo(out var wasapiInfo);
                 Logger.Log($"WASAPI info: Freq={wasapiInfo.Frequency}, Chans={wasapiInfo.Channels}, Format={wasapiInfo.Format}", name: "audio", level: LogLevel.Verbose);
                 globalMixerHandle.Value = BassMix.CreateMixerStream(wasapiInfo.Frequency, wasapiInfo.Channels, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
-                BassWasapi.Start();
 
-                BassWasapi.SetNotify(wasapi_notify_procedure_static, wasapiUserPtr);
+                if (globalMixerHandle.Value == 0)
+                {
+                    Logger.Log($"Failed to create WASAPI mixer stream for device {wasapiDevice}: {Bass.LastError}", name: "audio", level: LogLevel.Error);
+                    freeWasapi();
+                    return false;
+                }
+
+                BassWasapi.SetNotify(shouldTrackDefaultWasapiChanges() ? wasapi_notify_procedure_static : null, shouldTrackDefaultWasapiChanges() ? wasapiUserPtr : IntPtr.Zero);
+
+                if (!BassWasapi.Start())
+                {
+                    Logger.Log($"BassWasapi.Start() failed for device {wasapiDevice}: {Bass.LastError}", name: "audio", level: LogLevel.Error);
+                    freeWasapi();
+                    return false;
+                }
+
                 return true;
             }
             catch (DllNotFoundException e)
@@ -624,7 +669,9 @@ namespace osu.Framework.Threading
             }
             finally
             {
+                wasapiExclusiveActive = false;
                 globalMixerHandle.Value = null;
+                Thread.Sleep(50);
             }
         }
 
@@ -636,7 +683,7 @@ namespace osu.Framework.Threading
             Logger.Log(message, name: "audio", level: LogLevel.Error);
         }
 
-        private bool initAsio(int asioDeviceIndex, double preferredSampleRate = 48000)
+        private bool initAsio(int asioDeviceIndex, double preferredSampleRate = AudioOutputDefaults.DEFAULT_SAMPLE_RATE)
         {
             // 首先确保之前的ASIO设备完全释放
             freeAsio();
@@ -644,27 +691,27 @@ namespace osu.Framework.Threading
             // 使用来自AudioManager的统一采样率和缓冲区大小
             if (Manager != null)
             {
-                preferredSampleRate = Manager.SampleRate.Value == 0 ? preferredSampleRate : Manager.SampleRate.Value;
+                preferredSampleRate = EzAsioDeviceManager.GetTargetSampleRate(Manager.SampleRate.Value == 0 ? preferredSampleRate : Manager.SampleRate.Value);
                 int bufferSize = Manager.AsioBufferSize.Value;
 
                 // 验证当前设备是否已在运行，如果是则先停止
-                if (AsioDeviceManager.IsDeviceRunning())
+                if (EzAsioDeviceManager.IsDeviceRunning())
                 {
                     Logger.Log("ASIO device already running, stopping before initialization", name: "audio", level: LogLevel.Debug);
-                    AsioDeviceManager.StopDevice();
+                    EzAsioDeviceManager.StopDevice();
                     Thread.Sleep(100);
                 }
 
-                if (!AsioDeviceManager.InitializeDevice(asioDeviceIndex, preferredSampleRate, bufferSize))
+                if (!EzAsioDeviceManager.InitializeDevice(asioDeviceIndex, preferredSampleRate, bufferSize))
                 {
-                    Logger.Log($"AsioDeviceManager.InitializeDevice({asioDeviceIndex}, {preferredSampleRate}, {bufferSize}) 失败", name: "audio", level: LogLevel.Error);
+                    Logger.Log($"EzAsioDeviceManager.InitializeDevice({asioDeviceIndex}, {preferredSampleRate}, {bufferSize}) 失败", name: "audio", level: LogLevel.Error);
                     // 不要自动释放BASS设备 - 让AudioManager处理回退决策
                     // 这可以防止过度激进的设备切换导致设备可用性降低
                     return false;
                 }
 
                 // 初始化后获取设备信息
-                var deviceInfo = AsioDeviceManager.GetCurrentDeviceInfo();
+                var deviceInfo = EzAsioDeviceManager.GetCurrentDeviceInfo();
 
                 if (deviceInfo == null)
                 {
@@ -692,8 +739,8 @@ namespace osu.Framework.Threading
                 // 验证采样率
                 if (sampleRate <= 0 || sampleRate > 1000000 || double.IsNaN(sampleRate) || double.IsInfinity(sampleRate))
                 {
-                    Logger.Log($"检测到无效采样率 ({sampleRate}Hz)，使用 {AsioDeviceManager.DEFAULT_SAMPLE_RATE}Hz 作为回退", name: "audio", level: LogLevel.Important);
-                    sampleRate = AsioDeviceManager.DEFAULT_SAMPLE_RATE;
+                    Logger.Log($"检测到无效采样率 ({sampleRate}Hz)，使用 {EzAsioDeviceManager.DEFAULT_SAMPLE_RATE}Hz 作为回退", name: "audio", level: LogLevel.Important);
+                    sampleRate = EzAsioDeviceManager.DEFAULT_SAMPLE_RATE;
                 }
 
                 // Logger.Log($"使用ASIO设备配置 - 输出: {outputChannels}, 输入: {inputChannels}, 采样率: {sampleRate}Hz", name: "audio", level: LogLevel.Verbose);
@@ -716,12 +763,12 @@ namespace osu.Framework.Threading
                 // Logger.Log($"创建了带有 {mixer_channels} 个通道的ASIO混音器流，采样率为 {sampleRate}Hz (句柄: {globalMixerHandle.Value})", name: "audio", level: LogLevel.Verbose);
 
                 // 为ASIO设备管理器设置全局混音器句柄
-                AsioDeviceManager.SetGlobalMixerHandle(globalMixerHandle.Value.Value);
+                EzAsioDeviceManager.SetGlobalMixerHandle(globalMixerHandle.Value.Value);
 
                 // 使用设备管理器启动ASIO设备
-                if (!AsioDeviceManager.StartDevice())
+                if (!EzAsioDeviceManager.StartDevice(bufferSize))
                 {
-                    Logger.Log("AsioDeviceManager.StartDevice() 失败", name: "audio", level: LogLevel.Error);
+                    Logger.Log("EzAsioDeviceManager.StartDevice() 失败", name: "audio", level: LogLevel.Error);
                     freeAsio();
                     // 不要自动释放BASS设备 - 让AudioManager处理回退决策
                     return false;
@@ -729,12 +776,21 @@ namespace osu.Framework.Threading
 
                 // Logger.Log($"ASIO设备初始化成功 - 采样率: {sampleRate}Hz, 输出: {outputChannels}, 输入: {inputChannels}", name: "audio", level: LogLevel.Important);
 
+                int activeBufferSize = EzAsioDeviceManager.ActiveBufferSize > 0 ? EzAsioDeviceManager.ActiveBufferSize : bufferSize;
+
+                Manager?.OnAsioDeviceConfigurationChanged?.Invoke(sampleRate, activeBufferSize);
+
                 // 通知ASIO设备已使用实际采样率初始化
                 Manager?.OnAsioDeviceInitialized?.Invoke(sampleRate);
             }
 
             return true;
         }
+
+        private static IOrderedEnumerable<(int index, int freq, int chans)> orderWasapiCandidates(IEnumerable<(int index, int freq, int chans)> candidates)
+            => candidates.OrderBy(c => c.chans == 2 ? 0 : 1)
+                         .ThenBy(c => Math.Abs(c.freq - AudioOutputDefaults.DEFAULT_SAMPLE_RATE))
+                         .ThenBy(c => Math.Abs(c.freq - AudioOutputDefaults.SECONDARY_SAMPLE_RATE));
 
         private void freeAsio()
         {
@@ -746,13 +802,13 @@ namespace osu.Framework.Threading
             try
             {
                 // 首先停止ASIO设备
-                AsioDeviceManager.StopDevice();
+                EzAsioDeviceManager.StopDevice();
 
                 // 停止后稍作延迟让设备稳定
                 Thread.Sleep(50);
 
                 // 释放ASIO设备
-                AsioDeviceManager.FreeDevice();
+                EzAsioDeviceManager.FreeDevice();
             }
             catch (Exception ex)
             {
@@ -760,7 +816,7 @@ namespace osu.Framework.Threading
 
                 try
                 {
-                    AsioDeviceManager.ForceReset();
+                    EzAsioDeviceManager.ForceReset();
                 }
                 catch (Exception resetEx)
                 {
@@ -788,101 +844,6 @@ namespace osu.Framework.Threading
             Thread.Sleep(300);
         }
 
-        /// <summary>
-        /// 获取ASIO驱动的输出延迟
-        /// </summary>
-        /// <returns>输出延迟（毫秒），失败返回-1</returns>
-        internal double GetAsioOutputLatency()
-        {
-            try
-            {
-                if (BassAsio.IsStarted)
-                {
-                    // 估算 ASIO 输出延迟
-                    return 2.0; // ASIO 通常延迟较低
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"获取ASIO输出延迟失败: {ex.Message}", name: "audio", level: LogLevel.Error);
-            }
-
-            return -1;
-        }
-
-        /// <summary>
-        /// 获取WASAPI流的延迟
-        /// </summary>
-        /// <returns>流延迟（毫秒），失败返回-1</returns>
-        internal double GetWasapiStreamLatency()
-        {
-            try
-            {
-                if (BassWasapi.IsStarted)
-                {
-                    // 使用 IAudioClient::GetStreamLatency
-                    // 注意：BassWasapi 可能不直接暴露这个，需要通过底层 API
-                    // 暂时返回估算值
-                    return 10.0; // 估算的 WASAPI 延迟
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"获取WASAPI流延迟失败: {ex.Message}", name: "audio", level: LogLevel.Error);
-            }
-
-            return -1;
-        }
-
-        /// <summary>
-        /// 获取当前音频驱动的缓冲区延迟
-        /// </summary>
-        /// <param name="outputMode">输出模式</param>
-        /// <returns>缓冲区延迟（毫秒），失败返回-1</returns>
-        internal double GetDriverBufferLatency(AudioOutputMode outputMode)
-        {
-            switch (outputMode)
-            {
-                case AudioOutputMode.Asio:
-                    return GetAsioOutputLatency();
-
-                case AudioOutputMode.WasapiExclusive:
-                case AudioOutputMode.WasapiShared:
-                    return GetWasapiStreamLatency();
-
-                default:
-                    return -1;
-            }
-        }
-
         #endregion
-
-        /// <summary>
-        /// 解析音频设备选择字符串以获取设备名称
-        /// </summary>
-        /// <param name="selection">选择字符串</param>
-        /// <returns>输出模式和设备名称的元组</returns>
-        private (AudioOutputMode mode, string deviceName) parseAudioSelection(string selection)
-        {
-            const string type_asio = "ASIO";
-
-            // 默认设备
-            if (string.IsNullOrEmpty(selection))
-            {
-                return (AudioOutputMode.Default, string.Empty);
-            }
-
-            // 检查是否为ASIO设备
-            const string suffix = $" ({type_asio})";
-
-            if (selection.EndsWith(suffix, StringComparison.Ordinal))
-            {
-                string deviceName = selection[..^suffix.Length];
-                return (AudioOutputMode.Asio, deviceName);
-            }
-
-            // 其他情况返回默认值
-            return (AudioOutputMode.Default, selection);
-        }
     }
 }

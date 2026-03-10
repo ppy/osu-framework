@@ -13,8 +13,8 @@ using JetBrains.Annotations;
 using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
+using osu.Framework.Audio.Asio;
 using osu.Framework.Audio.EzLatency;
-using AsioDeviceManager = osu.Framework.Audio.Asio.AsioDeviceManager;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Sample;
@@ -71,14 +71,14 @@ namespace osu.Framework.Audio
         public readonly AudioMixer SampleMixer;
 
         /// <summary>
-        /// 采样率，用于ASIO设备的初始化和运行时更改。
+        /// 采样率，用于 ASIO 设备的初始化和运行时更改。
         /// </summary>
-        public readonly Bindable<int> SampleRate = new Bindable<int>(48000);
+        public readonly Bindable<int> SampleRate = new Bindable<int>(AudioOutputDefaults.DEFAULT_SAMPLE_RATE);
 
         /// <summary>
-        /// ASIO缓冲区大小，默认为128，用于ASIO设备的初始化。
+        /// ASIO 缓冲区大小，默认为 128，用于 ASIO 设备的初始化。
         /// </summary>
-        public readonly Bindable<int> AsioBufferSize = new Bindable<int>(128);
+        public readonly Bindable<int> AsioBufferSize = new Bindable<int>(AudioOutputDefaults.DEFAULT_ASIO_BUFFER_SIZE);
 
         /// <summary>
         /// The names of all available audio devices.
@@ -109,6 +109,12 @@ namespace osu.Framework.Audio
         /// </summary>
         [CanBeNull]
         public Action<double> OnAsioDeviceInitialized;
+
+        /// <summary>
+        /// 在 ASIO 设备成功初始化后触发，提供实际使用的采样率和缓冲区大小。
+        /// </summary>
+        [CanBeNull]
+        public Action<double, int> OnAsioDeviceConfigurationChanged;
 
         /// <summary>
         /// The preferred audio device we should use. A value of
@@ -228,16 +234,13 @@ namespace osu.Framework.Audio
         private readonly Lazy<TrackStore> globalTrackStore;
         private readonly Lazy<SampleStore> globalSampleStore;
 
-        private bool isChangingAsioSettings;
-        // private object bufferSizeChangeLock;
-
         /// <summary>
         /// 设置ASIO采样率，对外接口。
         /// </summary>
         /// <param name="sampleRate">The preferred sample rate in Hz.</param>
         public void SetPreferredAsioSampleRate(int sampleRate)
         {
-            SampleRate.Value = sampleRate;
+            SampleRate.Value = sampleRate > 0 ? sampleRate : AudioOutputDefaults.DEFAULT_SAMPLE_RATE;
         }
 
         /// <summary>
@@ -246,7 +249,7 @@ namespace osu.Framework.Audio
         /// <param name="bufferSize">The preferred buffer size for ASIO device.</param>
         public void SetAsioBufferSize(int bufferSize)
         {
-            AsioBufferSize.Value = bufferSize;
+            AsioBufferSize.Value = bufferSize > 0 ? bufferSize : AudioOutputDefaults.DEFAULT_ASIO_BUFFER_SIZE;
         }
 
         /// <summary>
@@ -327,109 +330,16 @@ namespace osu.Framework.Audio
             // initCurrentDevice not required for changes to `GlobalMixerHandle` as it is only changed when experimental wasapi is toggled (handled above).
             GlobalMixerHandle.ValueChanged += handle => usingGlobalMixer.Value = handle.NewValue.HasValue;
 
-            // Listen for unified sample rate changes and reinitialize device if supported
+            // Listen for unified sample rate changes and reinitialize ASIO immediately.
             SampleRate.ValueChanged += e =>
             {
-                if (syncingSelection)
-                    return;
-
-                syncingSelection = true;
-
-                try
-                {
-                    // Only reinitialize if we're currently using an ASIO device (only ASIO supports runtime sample rate changes)
-                    if (hasTypeSuffix(AudioDevice.Value) && tryParseSuffixed(AudioDevice.Value, type_asio, out string _))
-                    {
-                        Logger.Log($"Sample rate changed to {SampleRate.Value}Hz, reinitializing ASIO device", name: "audio", level: LogLevel.Important);
-                        Logger.Log($"Current audio device before reinitialization: {AudioDevice.Value}", name: "audio", level: LogLevel.Debug);
-
-                        scheduler.AddOnce(() =>
-                        {
-                            initCurrentDevice();
-
-                            if (!IsCurrentDeviceValid())
-                            {
-                                Logger.Log("Sample rate setting failed, device invalid", name: "audio", level: LogLevel.Error);
-                            }
-
-                            syncingSelection = false;
-                            isChangingAsioSettings = false;
-                        });
-                    }
-                    else
-                    {
-                        Logger.Log($"Sample rate changed to {SampleRate.Value}Hz, but current device ({AudioDevice.Value}) does not support runtime sample rate changes", name: "audio",
-                            level: LogLevel.Debug);
-                        syncingSelection = false;
-                        isChangingAsioSettings = false;
-                    }
-                }
-                catch
-                {
-                    syncingSelection = false;
-                    isChangingAsioSettings = false;
-                }
+                requestAsioReinitialisation($"Sample rate changed to {e.NewValue}Hz");
             };
 
-            // Listen for ASIO buffer size changes and reinitialize device if supported
+            // Listen for ASIO buffer size changes and reinitialize ASIO immediately.
             AsioBufferSize.ValueChanged += e =>
             {
-                if (syncingSelection)
-                    return;
-
-                // 检查是否已经在更改ASIO设置，避免重复操作
-                if (isChangingAsioSettings)
-                {
-                    Logger.Log("ASIO settings change already in progress, skipping buffer size change", name: "audio", level: LogLevel.Debug);
-                    return;
-                }
-
-                // lock (bufferSizeChangeLock)
-                // {
-                    // 再次检查以避免竞态条件
-                    if (isChangingAsioSettings)
-                    {
-                        Logger.Log("ASIO settings change already in progress, skipping buffer size change", name: "audio", level: LogLevel.Debug);
-                        return;
-                    }
-
-                    isChangingAsioSettings = true;
-                    syncingSelection = true;
-
-                    try
-                    {
-                        // Only reinitialize if we're currently using an ASIO device (only ASIO supports runtime buffer size changes)
-                        if (hasTypeSuffix(AudioDevice.Value) && tryParseSuffixed(AudioDevice.Value, type_asio, out string _))
-                        {
-                            Logger.Log($"ASIO buffer size changed to {AsioBufferSize.Value}, reinitializing ASIO device", name: "audio", level: LogLevel.Important);
-                            Logger.Log($"Current audio device before reinitialization: {AudioDevice.Value}", name: "audio", level: LogLevel.Debug);
-
-                            scheduler.AddOnce(() =>
-                            {
-                                initCurrentDevice();
-
-                                if (!IsCurrentDeviceValid())
-                                {
-                                    Logger.Log("Buffer size setting failed, device invalid", name: "audio", level: LogLevel.Error);
-                                }
-
-                                syncingSelection = false;
-                                isChangingAsioSettings = false;
-                            });
-                        }
-                        else
-                        {
-                            Logger.Log($"ASIO buffer size changed to {AsioBufferSize.Value}, but current device ({AudioDevice.Value}) does not support runtime buffer size changes", name: "audio", level: LogLevel.Debug);
-                            syncingSelection = false;
-                            isChangingAsioSettings = false;
-                        }
-                    }
-                    catch
-                    {
-                        syncingSelection = false;
-                        isChangingAsioSettings = false;
-                    }
-                // }
+                requestAsioReinitialisation($"ASIO buffer size changed to {e.NewValue}");
             };
 
             AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
@@ -594,7 +504,7 @@ namespace osu.Framework.Audio
             if (mode == AudioOutputMode.Asio)
             {
                 // 对于 ASIO 模式，我们需要将设备名称转换为 ASIO 设备索引
-                int? asioDeviceIndex = AsioDeviceManager.FindAsioDeviceIndex(deviceName);
+                int? asioDeviceIndex = EzAsioDeviceManager.FindAsioDeviceIndex(deviceName);
 
                 if (asioDeviceIndex.HasValue)
                 {
@@ -611,21 +521,27 @@ namespace osu.Framework.Audio
                     }
                     else
                     {
-                        Logger.Log("ASIO device initialization failed after all retries", name: "audio", level: LogLevel.Important);
+                        Logger.Log($"ASIO device '{deviceName}' initialization failed.", name: "audio", level: LogLevel.Important);
                     }
                 }
                 else
                 {
-                    Logger.Log($"ASIO device '{deviceName}' not found, falling back to default device", name: "audio", level: LogLevel.Error);
+                    Logger.Log($"ASIO device '{deviceName}' not found.", name: "audio", level: LogLevel.Error);
                 }
 
-                return;
+                goto explicit_selection_failed;
             }
             else
             {
                 // try using the specified device
                 int deviceIndex = audioDeviceNames.FindIndex(d => d == deviceName);
                 if (deviceIndex >= 0 && trySetDevice(BASS_INTERNAL_DEVICE_COUNT + deviceIndex, mode)) return;
+
+                if (isExplicitSelection)
+                {
+                    Logger.Log($"Explicitly selected audio device '{AudioDevice.Value}' failed to initialise in mode {mode}.", name: "audio", level: LogLevel.Important);
+                    goto explicit_selection_failed;
+                }
             }
 
             // try using the system default if there is any device present.
@@ -633,24 +549,20 @@ namespace osu.Framework.Audio
             // but they are still provided by BASS under the internal device name "Default".
             if ((audioDeviceNames.Count > 0 || RuntimeInfo.IsMobile) && trySetDevice(bass_default_device, mode)) return;
 
-            // If an explicit selection failed, revert to Default and try again in default output mode.
-            // Keep checkbox state unless Exclusive/ASIO was chosen.
+            // If an explicit selection failed, do not silently fall back to the OS default.
+            // Preserve the user's selection and only use NoSound as a final safety net.
             if (isExplicitSelection)
-            {
-                if (trySetDevice(bass_default_device, AudioOutputMode.Default))
-                {
-                    revertSelectionToDefault();
-                    return;
-                }
-
-                // If even default failed, still revert selection (we'll fall through to NoSound).
-                revertSelectionToDefault();
-            }
+                goto explicit_selection_failed;
 
             // no audio devices can be used, so try using Bass-provided "No sound" device as last resort.
             trySetDevice(Bass.NoSoundDevice, AudioOutputMode.Default);
 
             // we're boned. even "No sound" device won't initialise.
+            return;
+
+        explicit_selection_failed:
+            Logger.Log($"Keeping explicit audio selection '{AudioDevice.Value}' after initialisation failure; skipping silent fallback to default device.", name: "audio", level: LogLevel.Important);
+            Logger.Log($"Audio output remains uninitialised after explicit device selection failure: '{AudioDevice.Value}'.", name: "audio", level: LogLevel.Important);
             return;
 
             bool trySetDevice(int deviceId, AudioOutputMode outputMode)
@@ -673,28 +585,6 @@ namespace osu.Framework.Audio
                 UpdateDevice(deviceId);
 
                 return true;
-            }
-
-            void revertSelectionToDefault()
-            {
-                if (syncingSelection)
-                    return;
-
-                syncingSelection = true;
-
-                try
-                {
-                    // Ensure "Default" means OS default device.
-                    // Preserve shared-WASAPI checkbox unless an exclusive/ASIO entry was explicitly selected.
-                    if (isTypedSelection || mode == AudioOutputMode.WasapiExclusive || mode == AudioOutputMode.Asio)
-                        setUserBindableValueLeaseSafe(UseExperimentalWasapi, false);
-
-                    setUserBindableValueLeaseSafe(AudioDevice, string.Empty);
-                }
-                finally
-                {
-                    syncingSelection = false;
-                }
             }
         }
 
@@ -898,7 +788,7 @@ namespace osu.Framework.Audio
                 // ASIO drivers.
                 int asioCount = 0;
 
-                foreach (var device in AsioDeviceManager.EnumerateAsioDevices())
+                foreach (var device in EzAsioDeviceManager.EnumerateAsioDevices())
                 {
                     entries.Add(formatEntry(device.Name, type_asio));
                     asioCount++;
@@ -960,6 +850,28 @@ namespace osu.Framework.Audio
 
             baseName = string.Empty;
             return false;
+        }
+
+        private void requestAsioReinitialisation(string reason)
+        {
+            if (syncingSelection)
+                return;
+
+            if (parseSelection(AudioDevice.Value).mode != AudioOutputMode.Asio)
+            {
+                Logger.Log($"{reason}, but current device ({AudioDevice.Value}) is not ASIO; skipping reinitialisation.", name: "audio", level: LogLevel.Debug);
+                return;
+            }
+
+            Logger.Log($"{reason}. Reinitialising ASIO output.", name: "audio", level: LogLevel.Important);
+
+            scheduler.AddOnce(() =>
+            {
+                initCurrentDevice();
+
+                if (!IsCurrentDeviceValid())
+                    Logger.Log($"ASIO reinitialisation failed after setting change. Device selection: {AudioDevice.Value}", name: "audio", level: LogLevel.Error);
+            });
         }
 
         private static void logAsioNativeUnavailableOnce(Exception e)
@@ -1032,8 +944,8 @@ namespace osu.Framework.Audio
                 // For ASIO mode, also verify that ASIO device is actually initialized and working
                 try
                 {
-                    var asioInfo = AsioDeviceManager.GetCurrentDeviceInfo();
-                    double currentRate = AsioDeviceManager.GetCurrentSampleRate();
+                    var asioInfo = EzAsioDeviceManager.GetCurrentDeviceInfo();
+                    double currentRate = EzAsioDeviceManager.GetCurrentSampleRate();
 
                     // Check if ASIO device info exists and sample rate is valid
                     return asioInfo != null && currentRate > 0 && !double.IsNaN(currentRate) && !double.IsInfinity(currentRate);
