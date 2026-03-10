@@ -1,7 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="osu.Framework.Tests.Android" android:installLocation="auto">
 	<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="34" />
-	<application android:label="osu!framework test" />
+	<application android:label="osu!framework test">
+        <!-- https://developer.android.com/reference/androidx/core/content/FileProvider -->
+        <provider android:name="androidx.core.content.FileProvider"
+                  android:authorities="osu.Framework.Tests.Android.fileprovider"
+                  android:grantUriPermissions="true"
+                  android:exported="false">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths" />
+        </provider>
+    </application>
 	<!-- permissions below are mostly requested for testing the file selector -->
 	<uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 	<uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
