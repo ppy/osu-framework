@@ -11,13 +11,13 @@ namespace osu.Framework.Graphics
 {
     public struct DrawInfo : IEquatable<DrawInfo>
     {
-        public Matrix3 Matrix;
-        public Matrix3 MatrixInverse;
+        public Matrix4 Matrix;
+        public Matrix4 MatrixInverse;
 
-        public DrawInfo(Matrix3? matrix = null, Matrix3? matrixInverse = null)
+        public DrawInfo(Matrix4? matrix = null, Matrix4? matrixInverse = null)
         {
-            Matrix = matrix ?? Matrix3.Identity;
-            MatrixInverse = matrixInverse ?? Matrix3.Identity;
+            Matrix = matrix ?? Matrix4.Identity;
+            MatrixInverse = matrixInverse ?? Matrix4.Identity;
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics
         /// <param name="rotation">The amount by which to rotate.</param>
         /// <param name="shear">The shear amounts for both directions.</param>
         /// <param name="origin">The center of rotation and scale.</param>
-        public void ApplyTransform(Vector2 translation, Vector2 scale, float rotation, Vector2 shear, Vector2 origin)
+        public void ApplyTransform(Vector2 translation, Vector2 scale, Matrix4 rotation, Vector2 shear, Vector2 origin)
         {
             if (translation != Vector2.Zero)
             {
@@ -36,11 +36,10 @@ namespace osu.Framework.Graphics
                 MatrixExtensions.TranslateFromRight(ref MatrixInverse, -translation);
             }
 
-            if (rotation != 0)
+            if (rotation != Matrix4.Identity)
             {
-                float radians = float.DegreesToRadians(rotation);
-                MatrixExtensions.RotateFromLeft(ref Matrix, radians);
-                MatrixExtensions.RotateFromRight(ref MatrixInverse, -radians);
+                Matrix = rotation * Matrix;
+                MatrixInverse *= Matrix4.Transpose(rotation);
             }
 
             if (shear != Vector2.Zero)
