@@ -153,16 +153,8 @@ namespace osu.Framework.Input
 
                     new KeyboardKeyInput(keyDown.Key, true).Apply(CurrentState, this);
 
-                    // Record raw input timestamp at the earliest point possible for latency measurement.
-                    try
-                    {
-                        // Use global manager to avoid needing to resolve instances here.
-                        EzLatencyManager.GLOBAL.RecordInputEvent(keyDown.Key);
-                    }
-                    catch
-                    {
-                        // Swallow any errors to avoid affecting input handling.
-                    }
+                    // 追踪按键按下事件以进行输入延迟测量
+                    EzLatencyManager.GLOBAL.RecordInputEvent(keyDown.Key);
 
                     break;
 

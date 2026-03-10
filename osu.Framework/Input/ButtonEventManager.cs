@@ -132,14 +132,14 @@ namespace osu.Framework.Input
                 }
             }
 
-#if DEBUG
-            if (handledBy != null)
-            {
-                Logger.Log(SuppressLoggingEventInformation(handledBy)
-                    ? $"{e.GetType().Name} handled by {handledBy}."
-                    : $"{e} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
-            }
-#endif
+// #if DEBUG
+//             if (handledBy != null)
+//             {
+//                 Logger.Log(SuppressLoggingEventInformation(handledBy)
+//                     ? $"{e.GetType().Name} handled by {handledBy}."
+//                     : $"{e} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+//             }
+// #endif
 
             return handledBy;
         }

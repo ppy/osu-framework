@@ -26,14 +26,8 @@ namespace osu.Framework.Audio.Sample
 
             Played = true;
 
-            try
-            {
-                // Best-effort: notify global latency manager that a sample playback was requested.
-                EzLatency.EzLatencyManager.GLOBAL.RecordPlaybackEvent();
-            }
-            catch
-            {
-            }
+            // 记录播放事件以供 EzLatency 进行统计和分析
+            EzLatency.EzLatencyManager.GLOBAL.RecordPlaybackEvent();
 
             OnPlay?.Invoke(this);
         }

@@ -271,15 +271,8 @@ namespace osu.Framework.Audio.Track
             {
                 isRunning = isPlayed = true;
 
-                // Record playback event for latency measurement (best-effort, non-blocking)
-                try
-                {
-                    EzLatencyManager.GLOBAL.RecordPlaybackEvent();
-                }
-                catch
-                {
-                    // swallow to avoid impacting playback
-                }
+                // 记录播放事件以供 EzLatency 进行统计和分析，与play()记录播放事件不同，此处记录播放事件的时机是在实际开始播放之后，确保统计数据的准确性。
+                EzLatencyManager.GLOBAL.RecordPlaybackEvent();
             }
         });
 

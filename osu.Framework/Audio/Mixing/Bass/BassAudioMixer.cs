@@ -334,24 +334,9 @@ namespace osu.Framework.Audio.Mixing.Bass
             {
                 activeChannels.Add(channel);
 
-                // Best-effort: ask the pluggable hardware timestamp provider for timestamps for this channel
-                try
-                {
-                    if (EzLatencyManager.HwProvider.TryGetHardwareTimestamps(channel.Handle, out double driverTimeMs, out double outputHardwareTimeMs, out double inputHardwareTimeMs, out double latencyDiff))
-                    {
-                        // Push the hardware data into the global manager (non-blocking and swallow any errors)
-                        try
-                        {
-                            EzLatencyManager.GLOBAL.RecordHardwareData(driverTimeMs, outputHardwareTimeMs, inputHardwareTimeMs, latencyDiff);
-                        }
-                        catch
-                        {
-                        }
-                    }
-                }
-                catch
-                {
-                }
+                // Best-effort: 如果获取硬件时间戳成功，则记录相关数据以供 EzLatencyManager 使用。
+                if (EzLatencyManager.HwProvider.TryGetHardwareTimestamps(channel.Handle, out double driverTimeMs, out double outputHardwareTimeMs, out double inputHardwareTimeMs, out double latencyDiff))
+                    EzLatencyManager.GLOBAL.RecordHardwareData(driverTimeMs, outputHardwareTimeMs, inputHardwareTimeMs, latencyDiff);
             }
         }
 

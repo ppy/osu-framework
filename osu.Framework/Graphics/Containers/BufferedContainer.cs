@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Allocation;
@@ -14,7 +13,6 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Utils;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Layout;
-using osu.Framework.Logging;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -213,8 +211,7 @@ namespace osu.Framework.Graphics.Containers
         private float verticalPerspective;
 
         /// <summary>
-        /// Applies a perspective remap when drawing the buffered content.
-        /// Value is interpreted as top edge inset strength in [0, 0.95].
+        /// 提供垂直透视效果，0为无透视，1为最大透视。需要配合透视着色器使用。
         /// </summary>
         public float VerticalPerspective
         {
@@ -306,16 +303,7 @@ namespace osu.Framework.Graphics.Containers
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             blurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
             grayscaleShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.GRAYSCALE);
-
-            try
-            {
-                perspectiveShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.PERSPECTIVE);
-            }
-            catch (Exception e)
-            {
-                perspectiveShader = null;
-                Logger.Error(e, "Failed to load perspective shader; falling back to regular buffered rendering.");
-            }
+            perspectiveShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.PERSPECTIVE);
         }
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(this, sharedData);

@@ -29,12 +29,7 @@ namespace osu.Framework.Threading
         private static int wasapiNativeUnavailableLogged;
         private static int asioResolverRegistered;
 
-        // EzLatency 模块
         internal readonly EzLatencyAnalyzer LatencyAnalyzer;
-
-        // EzLatency 数据结构体
-        // NOTE: Previously these were present as placeholders; we now pass local structs from the playback path.
-        // Keep no instance fields to avoid misleading shared mutable state.
 
         public AudioThread()
             : base(name: "Audio")
@@ -50,22 +45,10 @@ namespace osu.Framework.Threading
             LatencyAnalyzer = new EzLatencyAnalyzer();
 
             // Forward any analyzer records from this audio thread into the global EzLatencyService
-            try
+            LatencyAnalyzer.OnNewRecord += r =>
             {
-                LatencyAnalyzer.OnNewRecord += r =>
-                {
-                    try
-                    {
-                        EzLatencyService.Instance.PushRecord(r);
-                    }
-                    catch
-                    {
-                    }
-                };
-            }
-            catch
-            {
-            }
+                EzLatencyService.Instance.PushRecord(r);
+            };
         }
 
         public override bool IsCurrent => ThreadSafety.IsAudioThread;
@@ -108,9 +91,6 @@ namespace osu.Framework.Threading
                     m.Update();
                 }
             }
-
-            // EzLatency: 延迟分析器无需定期测试
-            // LatencyAnalyzer在需要时会自动处理延迟数据
         }
 
         internal void RegisterManager(AudioManager manager)
@@ -372,7 +352,7 @@ namespace osu.Framework.Threading
         }
 
         /// <summary>
-        /// 使BASS库可用以供使用。
+        /// Makes BASS available to be consumed.
         /// </summary>
         internal static void PreloadBass()
         {
@@ -386,7 +366,7 @@ namespace osu.Framework.Threading
 
             if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
             {
-                // 暂时需要此操作来解决libbass_fx.so加载失败问题 (see https://github.com/ppy/osu/issues/2852)
+                // required for the time being to address libbass_fx.so load failures (see https://github.com/ppy/osu/issues/2852)
                 Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
             }
         }
@@ -398,45 +378,22 @@ namespace osu.Framework.Threading
                 return IntPtr.Zero;
 
             // 从架构特定的目录加载bassasio.dll
-            try
-            {
-                // 首先尝试使用默认搜索路径加载
-                IntPtr result = NativeLibrary.Load(libraryName, assembly, searchPath ?? DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
-                if (result != IntPtr.Zero)
-                    return result;
-            }
-            catch
-            {
-                // 忽略并尝试其他加载方式
-            }
+            IntPtr result = NativeLibrary.Load(libraryName, assembly, searchPath ?? DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
+            if (result != IntPtr.Zero)
+                return result;
 
             // 如果是64位进程，尝试从x64目录加载
             if (Environment.Is64BitProcess)
             {
-                try
-                {
-                    string dllPath = Path.Combine(AppContext.BaseDirectory, "x64", "bassasio.dll");
-                    if (File.Exists(dllPath))
-                        return NativeLibrary.Load(dllPath);
-                }
-                catch
-                {
-                    // 忽略并继续
-                }
+                string dllPath = Path.Combine(AppContext.BaseDirectory, "x64", "bassasio.dll");
+                if (File.Exists(dllPath))
+                    return NativeLibrary.Load(dllPath);
             }
             else
             {
-                // 如果是32位进程，尝试从x86目录加载
-                try
-                {
-                    string dllPath = Path.Combine(AppContext.BaseDirectory, "x86", "bassasio.dll");
-                    if (File.Exists(dllPath))
-                        return NativeLibrary.Load(dllPath);
-                }
-                catch
-                {
-                    // 忽略并继续
-                }
+                string dllPath = Path.Combine(AppContext.BaseDirectory, "x86", "bassasio.dll");
+                if (File.Exists(dllPath))
+                    return NativeLibrary.Load(dllPath);
             }
 
             // 如果所有尝试都失败，让运行时使用默认解析
