@@ -53,9 +53,15 @@ namespace osu.Framework.Graphics
 
         // 临时复用容器与代理，用于按排除列表构建捕获子树，避免捕获上层元素导致残影。
         private readonly Container captureTempContainer = new Container();
-        private readonly List<ProxyCaptureDrawable> proxyPool = new List<ProxyCaptureDrawable>();
+
+        // 使用 WeakReference 避免阻止 Drawable 的 GC 回收
+        private readonly List<WeakReference<ProxyCaptureDrawable>> proxyPoolWeak = new List<WeakReference<ProxyCaptureDrawable>>();
         private readonly List<Drawable> captureSources = new List<Drawable>();
         private readonly HashSet<Drawable> captureSourceSet = new HashSet<Drawable>();
+
+        // 用于检测 stale 引用并定期清理
+        private double lastCleanupTime;
+        private const double cleanup_interval_ms = 5000; // 每 5 秒清理一次
 
         /// <summary>
         /// 模糊目标。如果为 null，则使用包含此可绘制项的根可绘制项。
@@ -183,6 +189,15 @@ namespace osu.Framework.Graphics
                 lastCaptureMs = now;
             }
 
+            // 定期清理 proxy pool 中的 stale 引用（基于时间，不受帧率影响）
+            double currentTime = Time.Current;
+
+            if (currentTime - lastCleanupTime >= cleanup_interval_ms)
+            {
+                cleanupProxyPool();
+                lastCleanupTime = currentTime;
+            }
+
             ++updateVersion;
             Invalidate(Invalidation.DrawNode);
         }
@@ -228,19 +243,7 @@ namespace osu.Framework.Graphics
                     {
                         for (int i = 0; i < captureSources.Count; i++)
                         {
-                            ProxyCaptureDrawable proxy;
-
-                            if (i < proxyPool.Count)
-                            {
-                                proxy = proxyPool[i];
-                                proxy.SourceDrawable = captureSources[i];
-                            }
-                            else
-                            {
-                                proxy = new ProxyCaptureDrawable(captureSources[i]);
-                                proxyPool.Add(proxy);
-                            }
-
+                            ProxyCaptureDrawable proxy = getOrCreateProxy(captureSources[i]);
                             captureTempContainer.Add(proxy);
                         }
 
@@ -289,19 +292,7 @@ namespace osu.Framework.Graphics
                         {
                             for (int i = 0; i < sourcesToUse.Count; i++)
                             {
-                                ProxyCaptureDrawable proxy;
-
-                                if (i < proxyPool.Count)
-                                {
-                                    proxy = proxyPool[i];
-                                    proxy.SourceDrawable = sourcesToUse[i];
-                                }
-                                else
-                                {
-                                    proxy = new ProxyCaptureDrawable(sourcesToUse[i]);
-                                    proxyPool.Add(proxy);
-                                }
-
+                                ProxyCaptureDrawable proxy = getOrCreateProxy(sourcesToUse[i]);
                                 captureTempContainer.Add(proxy);
                             }
 
@@ -331,6 +322,47 @@ namespace osu.Framework.Graphics
         }
 
         private bool isExcludedRoot(Drawable drawable) => drawable == this;
+
+        /// <summary>
+        /// 获取或创建 ProxyCaptureDrawable，使用 WeakReference 池化以提高性能并避免内存泄漏。
+        /// </summary>
+        private ProxyCaptureDrawable getOrCreateProxy(Drawable source)
+        {
+            // 优先从池中查找可用的 proxy
+            for (int i = proxyPoolWeak.Count - 1; i >= 0; i--)
+            {
+                if (proxyPoolWeak[i].TryGetTarget(out var existingProxy))
+                {
+                    // 找到存活的 proxy，复用
+                    existingProxy.SourceDrawable = source;
+                    return existingProxy;
+                }
+                else
+                {
+                    // 移除已死亡的 weak reference
+                    proxyPoolWeak.RemoveAt(i);
+                }
+            }
+
+            // 池中没有可用的，创建新的
+            var newProxy = new ProxyCaptureDrawable(source);
+            proxyPoolWeak.Add(new WeakReference<ProxyCaptureDrawable>(newProxy));
+            return newProxy;
+        }
+
+        /// <summary>
+        /// 清理 proxy 池中的死亡引用，释放内存。
+        /// </summary>
+        private void cleanupProxyPool()
+        {
+            for (int i = proxyPoolWeak.Count - 1; i >= 0; i--)
+            {
+                if (!proxyPoolWeak[i].TryGetTarget(out _))
+                {
+                    proxyPoolWeak.RemoveAt(i);
+                }
+            }
+        }
 
         private static bool isAncestorOf(Drawable node, Drawable descendant)
         {
@@ -434,24 +466,13 @@ namespace osu.Framework.Graphics
             else
                 collectBeforeInParentChain(this, captureSources);
 
+            // 快速路径：如果没有捕获源，直接返回
             if (captureSources.Count == 0)
                 return null;
 
             for (int i = 0; i < captureSources.Count; i++)
             {
-                ProxyCaptureDrawable proxy;
-
-                if (i < proxyPool.Count)
-                {
-                    proxy = proxyPool[i];
-                    proxy.SourceDrawable = captureSources[i];
-                }
-                else
-                {
-                    proxy = new ProxyCaptureDrawable(captureSources[i]);
-                    proxyPool.Add(proxy);
-                }
-
+                ProxyCaptureDrawable proxy = getOrCreateProxy(captureSources[i]);
                 captureTempContainer.Add(proxy);
             }
 
@@ -523,8 +544,7 @@ namespace osu.Framework.Graphics
                 RelativeSizeAxes = Axes.None;
             }
 
-            internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
-                => SourceDrawable?.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
+            internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode) => SourceDrawable?.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
         }
 
         private Drawable findRoot()
@@ -546,6 +566,12 @@ namespace osu.Framework.Graphics
         {
             base.Dispose(isDisposing);
             sharedData.Dispose();
+
+            // 清理所有资源
+            captureTempContainer.Clear(false);
+            proxyPoolWeak.Clear();
+            captureSources.Clear();
+            captureSourceSet.Clear();
         }
 
         private class BackdropBlurDrawNode : BufferedDrawNode
@@ -596,8 +622,7 @@ namespace osu.Framework.Graphics
                 renderer.PopScissorState();
             }
 
-            protected override void DrawContents(IRenderer renderer)
-                => renderer.DrawFrameBuffer(SharedData.CurrentEffectBuffer, DrawRectangle, DrawColourInfo.Colour);
+            protected override void DrawContents(IRenderer renderer) => renderer.DrawFrameBuffer(SharedData.CurrentEffectBuffer, DrawRectangle, DrawColourInfo.Colour);
 
             private void drawBlurredFrameBuffer(IRenderer renderer, int kernelRadius, float sigma, float rotation)
             {
