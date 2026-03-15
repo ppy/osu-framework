@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
@@ -57,35 +58,6 @@ namespace osu.Framework.Graphics
         private readonly HashSet<Drawable> captureSourceSet = new HashSet<Drawable>();
 
         /// <summary>
-        /// 捕获时需要排除的根节点（排除其整个子树）。
-        /// 常用于排除位于模糊层上方的前景（如 note 层）。
-        /// </summary>
-        public List<Drawable> CaptureExclusions { get; } = new List<Drawable>();
-
-        /// <summary>
-        /// 捕获名称白名单（包含匹配，忽略大小写）。
-        /// 当列表非空时，仅捕获名称或类型名匹配任一关键字的可绘制项（及其必要父容器展开后匹配的子项）。
-        /// 例如：Background、BeatmapBackground。
-        /// </summary>
-        public List<string> CaptureIncludeNameFilters { get; } = new List<string>();
-
-        /// <summary>
-        /// 名称白名单是否匹配 Drawable.Name。
-        /// </summary>
-        public bool MatchIncludeFilterAgainstDrawableName { get; set; } = true;
-
-        /// <summary>
-        /// 名称白名单是否匹配 Drawable 的类型名。
-        /// </summary>
-        public bool MatchIncludeFilterAgainstTypeName { get; set; } = true;
-
-        /// <summary>
-        /// 名称白名单匹配模式。
-        /// true: 包含匹配；false: 精确匹配。
-        /// </summary>
-        public bool IncludeNameFilterUseContainsMatch { get; set; } = true;
-
-        /// <summary>
         /// 模糊目标。如果为 null，则使用包含此可绘制项的根可绘制项。
         /// </summary>
         public Drawable CaptureTarget { get; set; }
@@ -131,6 +103,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// 顺时针旋转模糊核，单位为度。
         /// </summary>
+        [UsedImplicitly]
         public float BlurRotation
         {
             get => blurRotation;
@@ -150,6 +123,7 @@ namespace osu.Framework.Graphics
         /// 内部帧缓冲区相对于此可绘制项大小的缩放比例。
         /// 较低的值会降低开销但会牺牲画质。
         /// </summary>
+        [UsedImplicitly]
         public Vector2 FrameBufferScale
         {
             get => frameBufferScale;
@@ -303,19 +277,10 @@ namespace osu.Framework.Graphics
 
                         collectBefore(rootContainer, this, captureSources);
 
-                        if (captureSources.Count == 0 && hasIncludeNameFilters)
-                            collectFromWholeRoot(rootContainer, captureSources);
-
                         List<Drawable> sourcesToUse = captureSources;
 
                         if (sourcesToUse.Count == 0)
                         {
-                            if (hasIncludeNameFilters)
-                            {
-                                captureTempContainer.Clear(false);
-                                return null;
-                            }
-
                             targetDrawNode = target.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
                             if (targetDrawNode == null)
                                 return null;
@@ -365,73 +330,7 @@ namespace osu.Framework.Graphics
             return drawNode;
         }
 
-        private bool isExcludedRoot(Drawable drawable)
-        {
-            if (drawable == this)
-                return true;
-
-            for (int i = 0; i < CaptureExclusions.Count; i++)
-            {
-                if (CaptureExclusions[i] == drawable)
-                    return true;
-            }
-
-            return false;
-        }
-
-        private bool hasIncludeNameFilters => CaptureIncludeNameFilters.Count > 0;
-
-        private bool matchesIncludeFilter(Drawable drawable)
-        {
-            if (!hasIncludeNameFilters)
-                return true;
-
-            Drawable original = drawable.Original;
-
-            string drawableName = MatchIncludeFilterAgainstDrawableName ? drawable.Name : null;
-            string typeName = MatchIncludeFilterAgainstTypeName ? drawable.GetType().Name : null;
-
-            string originalDrawableName = MatchIncludeFilterAgainstDrawableName ? original.Name : null;
-            string originalTypeName = MatchIncludeFilterAgainstTypeName ? original.GetType().Name : null;
-
-            for (int i = 0; i < CaptureIncludeNameFilters.Count; i++)
-            {
-                string filter = CaptureIncludeNameFilters[i];
-                if (string.IsNullOrWhiteSpace(filter))
-                    continue;
-
-                if (IncludeNameFilterUseContainsMatch)
-                {
-                    if (drawableName?.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0)
-                        return true;
-
-                    if (typeName?.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0)
-                        return true;
-
-                    if (originalDrawableName?.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0)
-                        return true;
-
-                    if (originalTypeName?.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0)
-                        return true;
-                }
-                else
-                {
-                    if (drawableName != null && string.Equals(drawableName, filter, StringComparison.OrdinalIgnoreCase))
-                        return true;
-
-                    if (typeName != null && string.Equals(typeName, filter, StringComparison.OrdinalIgnoreCase))
-                        return true;
-
-                    if (originalDrawableName != null && string.Equals(originalDrawableName, filter, StringComparison.OrdinalIgnoreCase))
-                        return true;
-
-                    if (originalTypeName != null && string.Equals(originalTypeName, filter, StringComparison.OrdinalIgnoreCase))
-                        return true;
-                }
-            }
-
-            return false;
-        }
+        private bool isExcludedRoot(Drawable drawable) => drawable == this;
 
         private static bool isAncestorOf(Drawable node, Drawable descendant)
         {
@@ -493,7 +392,7 @@ namespace osu.Framework.Graphics
                 if (isExcludedRoot(child))
                     continue;
 
-                appendFilteredCaptureSources(child, outList);
+                outList.Add(child);
             }
         }
 
@@ -600,57 +499,9 @@ namespace osu.Framework.Graphics
             return highestContainer;
         }
 
-        private bool containsExcludedDescendant(Drawable drawable)
-        {
-            if (isExcludedRoot(drawable))
-                return true;
-
-            if (drawable is not Container container)
-                return false;
-
-            foreach (var child in container.Children)
-            {
-                if (containsExcludedDescendant(child))
-                    return true;
-            }
-
-            return false;
-        }
-
-        private bool containsIncludedDescendant(Drawable drawable)
-        {
-            if (matchesIncludeFilter(drawable))
-                return true;
-
-            if (drawable is not Container container)
-                return false;
-
-            foreach (var child in container.Children)
-            {
-                if (containsIncludedDescendant(child))
-                    return true;
-            }
-
-            return false;
-        }
-
         private void appendFilteredCaptureSources(Drawable drawable, List<Drawable> outList)
         {
             if (isExcludedRoot(drawable))
-                return;
-
-            bool includeSelf = matchesIncludeFilter(drawable);
-            bool includeByChildren = hasIncludeNameFilters && containsIncludedDescendant(drawable);
-
-            if (drawable is Container container && (containsExcludedDescendant(drawable) || (!includeSelf && includeByChildren)))
-            {
-                foreach (var child in container.Children)
-                    appendFilteredCaptureSources(child, outList);
-
-                return;
-            }
-
-            if (!includeSelf)
                 return;
 
             if (captureSourceSet.Add(drawable))
