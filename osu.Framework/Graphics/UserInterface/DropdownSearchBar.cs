@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
@@ -156,6 +157,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected abstract TextBox CreateTextBox();
 
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            inputSource?.Dispose();
+        }
+
         void IFocusManager.TriggerFocusContention(Drawable? triggerSource)
         {
             // Clear search text first without releasing focus.
@@ -174,7 +181,7 @@ namespace osu.Framework.Graphics.UserInterface
             return dropdown.ChangeFocus(potentialFocusTarget);
         }
 
-        private class DropdownTextInputSource : TextInputSource
+        private class DropdownTextInputSource : TextInputSource, IDisposable
         {
             private bool allowTextInput => !host.OnScreenKeyboardOverlapsGameWindow;
 
@@ -190,6 +197,13 @@ namespace osu.Framework.Graphics.UserInterface
                 platformSource.OnTextInput += TriggerTextInput;
                 platformSource.OnImeComposition += TriggerImeComposition;
                 platformSource.OnImeResult += TriggerImeResult;
+            }
+
+            public void Dispose()
+            {
+                platformSource.OnTextInput -= TriggerTextInput;
+                platformSource.OnImeComposition -= TriggerImeComposition;
+                platformSource.OnImeResult -= TriggerImeResult;
             }
 
             protected override void ActivateTextInput(TextInputProperties properties)

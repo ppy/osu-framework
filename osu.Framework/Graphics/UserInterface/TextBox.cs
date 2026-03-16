@@ -25,6 +25,7 @@ using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
+using osu.Framework.Logging;
 using osuTK;
 using osuTK.Input;
 
@@ -186,6 +187,13 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private readonly Scheduler imeCompositionScheduler = new Scheduler(() => ThreadSafety.IsUpdateThread, null);
 
+        /// <summary>
+        /// Whether <see cref="FinalizeImeComposition"/> is currently pending in <see cref="imeCompositionScheduler"/>.
+        /// While true, empty composition events are skipped to prevent them from clearing
+        /// the active composition before it can be committed.
+        /// </summary>
+        private bool imeFinalizationPending;
+
         protected TextBox()
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -274,7 +282,32 @@ namespace osu.Framework.Graphics.UserInterface
                 return false;
 
             if (e.Action.IsCommonTextEditingAction() && ImeCompositionActive)
-                return true;
+            {
+                // For cursor navigation and selection, finalize the active composition first
+                // and fall through to execute the action normally.
+                // Other editing actions (deletion, cut/copy/paste) remain blocked.
+                switch (e.Action)
+                {
+                    case PlatformAction.MoveBackwardChar:
+                    case PlatformAction.MoveForwardChar:
+                    case PlatformAction.MoveBackwardWord:
+                    case PlatformAction.MoveForwardWord:
+                    case PlatformAction.MoveBackwardLine:
+                    case PlatformAction.MoveForwardLine:
+                    case PlatformAction.SelectAll:
+                    case PlatformAction.SelectBackwardChar:
+                    case PlatformAction.SelectForwardChar:
+                    case PlatformAction.SelectBackwardWord:
+                    case PlatformAction.SelectForwardWord:
+                    case PlatformAction.SelectBackwardLine:
+                    case PlatformAction.SelectForwardLine:
+                        FinalizeImeComposition(true);
+                        break;
+
+                    default:
+                        return true;
+                }
+            }
 
             var lastSelectionBounds = getTextSelectionBounds();
 
@@ -602,7 +635,13 @@ namespace osu.Framework.Graphics.UserInterface
             if (!ImeCompositionActive && !imeCompositionScheduler.HasPendingTasks)
                 return;
 
-            imeCompositionScheduler.Add(() => onImeResult(userEvent, false));
+            Logger.Log($"[TextBox] FinalizeImeComposition: userEvent={userEvent} ImeCompositionActive={ImeCompositionActive} hasPendingTasks={imeCompositionScheduler.HasPendingTasks}", LoggingTarget.Runtime, LogLevel.Debug);
+            imeFinalizationPending = true;
+            imeCompositionScheduler.Add(() =>
+            {
+                imeFinalizationPending = false;
+                onImeResult(userEvent, false);
+            });
 
             if (textInputBound)
                 textInput.ResetIme();
@@ -621,6 +660,8 @@ namespace osu.Framework.Graphics.UserInterface
             // same rationale as above, in `FinalizeImeComposition()`
             if (!ImeCompositionActive && !imeCompositionScheduler.HasPendingTasks)
                 return;
+
+            Logger.Log($"[TextBox] CancelImeComposition: ImeCompositionActive={ImeCompositionActive} hasPendingTasks={imeCompositionScheduler.HasPendingTasks}", LoggingTarget.Runtime, LogLevel.Debug);
 
             if (textInputBound)
                 textInput.ResetIme();
@@ -1213,8 +1254,31 @@ namespace osu.Framework.Graphics.UserInterface
             if (readOnly)
                 return true;
 
+            // Drain pending IME events before checking ImeCompositionActive.
+            // Korean IME (and similar) sends TextEditing "" + TextInput before navigation key
+            // events, so draining here ensures ImeCompositionActive reflects the finalized state.
+            imeCompositionScheduler.Update();
+
             if (ImeCompositionActive)
+            {
+                // Let modifier-only keys (Ctrl, Shift, Alt) pass through so the platform action
+                // container can track their state. When the IME finalizes mid-composition (e.g.
+                // Korean IME commits on Ctrl press) and the subsequent directional key arrives,
+                // the container must already know Ctrl is held to fire MoveBackwardWord instead
+                // of MoveBackwardChar.
+                switch (e.Key)
+                {
+                    case Key.ControlLeft:
+                    case Key.ControlRight:
+                    case Key.ShiftLeft:
+                    case Key.ShiftRight:
+                    case Key.AltLeft:
+                    case Key.AltRight:
+                        return false;
+                }
+
                 return true;
+            }
 
             switch (e.Key)
             {
@@ -1550,11 +1614,13 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void handleImeComposition(string composition, int selectionStart, int selectionLength)
         {
+            Logger.Log($"[TextBox] handleImeComposition (input thread): composition=\"{composition}\" selStart={selectionStart} selLen={selectionLength}", LoggingTarget.Runtime, LogLevel.Debug);
             imeCompositionScheduler.Add(() => onImeComposition(composition, selectionStart, selectionLength, true));
         }
 
         private void handleImeResult(string result)
         {
+            Logger.Log($"[TextBox] handleImeResult (input thread): result=\"{result}\"", LoggingTarget.Runtime, LogLevel.Debug);
             imeCompositionScheduler.Add(() =>
             {
                 onImeComposition(result, result.Length, 0, false);
@@ -1682,6 +1748,17 @@ namespace osu.Framework.Graphics.UserInterface
         /// </remarks>
         private void onImeComposition(string newComposition, int newSelectionStart, int newSelectionLength, bool userEvent)
         {
+            Logger.Log($"[TextBox] onImeComposition (update thread): newComposition=\"{newComposition}\" selStart={newSelectionStart} selLen={newSelectionLength} userEvent={userEvent} currentImeLen={imeCompositionLength}", LoggingTarget.Runtime, LogLevel.Debug);
+
+            // If FinalizeImeComposition is pending in the scheduler, skip empty composition events.
+            // SDL sends an empty TextEditing event when a key is released, which would clear the
+            // active composition before onImeResult can commit it.
+            if (imeFinalizationPending && string.IsNullOrEmpty(newComposition))
+            {
+                Logger.Log("[TextBox] onImeComposition: skipping empty composition (finalization pending)", LoggingTarget.Runtime, LogLevel.Debug);
+                return;
+            }
+
             if (Current.Disabled)
             {
                 // don't raise error if composition text is empty, as the empty event could be generated indirectly,
@@ -1783,6 +1860,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void onImeResult(bool userEvent, bool successful)
         {
+            Logger.Log($"[TextBox] onImeResult (update thread): userEvent={userEvent} successful={successful} compositionStart={imeCompositionStart} compositionLen={imeCompositionLength}", LoggingTarget.Runtime, LogLevel.Debug);
             if (Current.Disabled)
             {
                 if (userEvent) NotifyInputError();

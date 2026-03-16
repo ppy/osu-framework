@@ -288,7 +288,7 @@ namespace osu.Framework.Logging
         public void Add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null, bool outputToListeners = true) =>
             add(message, level, exception, outputToListeners && OutputToListeners);
 
-        private readonly RollingTime debugOutputRollingTime = new RollingTime(50, 10000);
+        private readonly RollingTime debugOutputRollingTime = new RollingTime(10000, 10000);  //임시
 
         private readonly Queue<string> pendingFileOutput = new Queue<string>();
 

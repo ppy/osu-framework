@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Input
 {
@@ -95,6 +96,7 @@ namespace osu.Framework.Input
         /// </summary>
         public virtual void ResetIme()
         {
+            Logger.Log($"[{GetType().Name}] ResetIme() called (ImeActive was: {ImeActive})", LoggingTarget.Runtime, LogLevel.Debug);
             ImeActive = false;
         }
 
@@ -154,6 +156,8 @@ namespace osu.Framework.Input
             // empty text means that composition isn't active.
             ImeActive = !string.IsNullOrEmpty(text);
 
+            if (OnImeComposition != null)
+                Logger.Log($"[{GetType().Name}] TriggerImeComposition: text=\"{text}\" start={start} length={length} ImeActive={ImeActive}", LoggingTarget.Runtime, LogLevel.Debug);
             OnImeComposition?.Invoke(text, start, length);
         }
 
@@ -162,6 +166,8 @@ namespace osu.Framework.Input
             // IME is deactivated / not providing active composition once the current one is finalized.
             ImeActive = false;
 
+            if (OnImeResult != null)
+                Logger.Log($"[{GetType().Name}] TriggerImeResult: text=\"{text}\"", LoggingTarget.Runtime, LogLevel.Debug);
             OnImeResult?.Invoke(text);
         }
 
