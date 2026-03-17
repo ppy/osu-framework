@@ -1,6 +1,11 @@
 on: [push, pull_request]
 name: Continuous Integration
 
+permissions:
+  actions: read
+  contents: read
+  security-events: write # for reporting InspectCode issues
+
 jobs:
   inspect-code:
     name: Code Quality
@@ -43,10 +48,14 @@ jobs:
           exit $exit_code
 
       - name: InspectCode
-        run: dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --no-build --output="inspectcodereport.xml" --caches-home="inspectcode" --verbosity=WARN
-
-      - name: NVika
-        run: dotnet nvika parsereport "${{github.workspace}}/inspectcodereport.xml" --treatwarningsaserrors
+        uses: JetBrains/ReSharper-InspectCode@v0.11
+        with:
+          # this is WTF tier but if you don't specify *both* of these the defaults assume `build: true`
+          build: false
+          no-build: true
+          solution: ./osu-framework.Desktop.slnf
+          caches-home: inspectcode
+          verbosity: WARN
 
   test:
     name: Test
