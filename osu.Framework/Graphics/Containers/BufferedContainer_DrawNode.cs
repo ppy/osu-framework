@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 #nullable disable
@@ -40,6 +40,11 @@ namespace osu.Framework.Graphics.Containers
             private IShader blurShader;
             private IShader grayscaleShader;
             private IShader perspectiveShader;
+
+            // Reusable structs to avoid per-frame allocations
+            private BlurParameters blurParameters;
+            private GrayscaleParameters grayscaleParameters;
+            private PerspectiveParameters perspectiveParameters;
 
             public BufferedContainerDrawNode(BufferedContainer<T> source, BufferedContainerDrawNodeSharedData sharedData)
                 : base(source, new CompositeDrawableDrawNode(source), sharedData)
@@ -102,10 +107,6 @@ namespace osu.Framework.Graphics.Containers
                     base.DrawContents(renderer);
             }
 
-            private IUniformBuffer<BlurParameters> blurParametersBuffer;
-            private IUniformBuffer<GrayscaleParameters> grayscaleParametersBuffer;
-            private IUniformBuffer<PerspectiveParameters> perspectiveParametersBuffer;
-
             private void drawPerspectiveFrameBuffer(IRenderer renderer, IFrameBuffer frameBuffer, ColourInfo drawColour)
             {
                 float strength = Math.Clamp(verticalPerspective, 0f, 0.95f);
@@ -116,28 +117,27 @@ namespace osu.Framework.Graphics.Containers
                     return;
                 }
 
-                perspectiveParametersBuffer ??= renderer.CreateUniformBuffer<PerspectiveParameters>();
-                perspectiveParametersBuffer.Data = perspectiveParametersBuffer.Data with
+                using (var perspectiveParametersBuffer = renderer.CreateUniformBuffer<PerspectiveParameters>())
                 {
-                    Strength = strength
-                };
+                    // Update reusable struct instead of allocating new one
+                    perspectiveParameters.Strength = strength;
+                    perspectiveParametersBuffer.Data = perspectiveParameters;
 
-                perspectiveShader.BindUniformBlock("m_PerspectiveParameters", perspectiveParametersBuffer);
-                perspectiveShader.Bind();
-                BindUniformResources(perspectiveShader, renderer);
+                    perspectiveShader.BindUniformBlock("m_PerspectiveParameters", perspectiveParametersBuffer);
+                    perspectiveShader.Bind();
+                    BindUniformResources(perspectiveShader, renderer);
 
-                renderer.DrawFrameBuffer(frameBuffer, DrawRectangle, drawColour);
+                    renderer.DrawFrameBuffer(frameBuffer, DrawRectangle, drawColour);
 
-                perspectiveShader.Unbind();
-                Source.TextureShader?.Bind();
-                if (Source.TextureShader != null)
-                    BindUniformResources(Source.TextureShader, renderer);
+                    perspectiveShader.Unbind();
+                    Source.TextureShader?.Bind();
+                    if (Source.TextureShader != null)
+                        BindUniformResources(Source.TextureShader, renderer);
+                }
             }
 
             private void drawBlurredFrameBuffer(IRenderer renderer, int kernelRadius, float sigma, float blurRotation)
             {
-                blurParametersBuffer ??= renderer.CreateUniformBuffer<BlurParameters>();
-
                 IFrameBuffer current = SharedData.CurrentEffectBuffer;
                 IFrameBuffer target = SharedData.GetNextEffectBuffer();
 
@@ -147,25 +147,26 @@ namespace osu.Framework.Graphics.Containers
                 {
                     float radians = float.DegreesToRadians(blurRotation);
 
-                    blurParametersBuffer.Data = blurParametersBuffer.Data with
+                    using (var blurParametersBuffer = renderer.CreateUniformBuffer<BlurParameters>())
                     {
-                        Radius = kernelRadius,
-                        Sigma = sigma,
-                        TexSize = current.Size,
-                        Direction = new Vector2(MathF.Cos(radians), MathF.Sin(radians))
-                    };
+                        // Update reusable struct instead of allocating new one
+                        blurParameters.Radius = kernelRadius;
+                        blurParameters.Sigma = sigma;
+                        blurParameters.TexSize = current.Size;
+                        blurParameters.Direction = new Vector2(MathF.Cos(radians), MathF.Sin(radians));
 
-                    blurShader.BindUniformBlock("m_BlurParameters", blurParametersBuffer);
-                    blurShader.Bind();
-                    renderer.DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White));
-                    blurShader.Unbind();
+                        blurParametersBuffer.Data = blurParameters;
+
+                        blurShader.BindUniformBlock("m_BlurParameters", blurParametersBuffer);
+                        blurShader.Bind();
+                        renderer.DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White));
+                        blurShader.Unbind();
+                    }
                 }
             }
 
             private void drawGrayscaleFrameBuffer(IRenderer renderer, float strength)
             {
-                grayscaleParametersBuffer ??= renderer.CreateUniformBuffer<GrayscaleParameters>();
-
                 IFrameBuffer current = SharedData.CurrentEffectBuffer;
                 IFrameBuffer target = SharedData.GetNextEffectBuffer();
 
@@ -173,15 +174,17 @@ namespace osu.Framework.Graphics.Containers
 
                 using (BindFrameBuffer(target))
                 {
-                    grayscaleParametersBuffer.Data = grayscaleParametersBuffer.Data with
+                    using (var grayscaleParametersBuffer = renderer.CreateUniformBuffer<GrayscaleParameters>())
                     {
-                        Strength = strength
-                    };
+                        // Update reusable struct instead of allocating new one
+                        grayscaleParameters.Strength = strength;
+                        grayscaleParametersBuffer.Data = grayscaleParameters;
 
-                    grayscaleShader.BindUniformBlock("m_GrayscaleParameters", grayscaleParametersBuffer);
-                    grayscaleShader.Bind();
-                    renderer.DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White));
-                    grayscaleShader.Unbind();
+                        grayscaleShader.BindUniformBlock("m_GrayscaleParameters", grayscaleParametersBuffer);
+                        grayscaleShader.Bind();
+                        renderer.DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White));
+                        grayscaleShader.Unbind();
+                    }
                 }
             }
 
@@ -192,13 +195,6 @@ namespace osu.Framework.Graphics.Containers
             }
 
             public bool AddChildDrawNodes => RequiresRedraw;
-
-            protected override void Dispose(bool isDisposing)
-            {
-                base.Dispose(isDisposing);
-                blurParametersBuffer?.Dispose();
-                perspectiveParametersBuffer?.Dispose();
-            }
 
             [StructLayout(LayoutKind.Sequential, Pack = 1)]
             private record struct BlurParameters

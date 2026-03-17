@@ -584,7 +584,9 @@ namespace osu.Framework.Graphics
             private long updateVersion;
 
             private IShader blurShader;
-            private IUniformBuffer<BlurParameters> blurParametersBuffer;
+
+            // Reusable structs to avoid per-frame allocations
+            private BlurParameters blurParameters;
 
             public BackdropBlurDrawNode(BackdropBlurDrawable source, DrawNode child, BufferedDrawNodeSharedData sharedData)
                 : base(source, child, sharedData)
@@ -626,8 +628,6 @@ namespace osu.Framework.Graphics
 
             private void drawBlurredFrameBuffer(IRenderer renderer, int kernelRadius, float sigma, float rotation)
             {
-                blurParametersBuffer ??= renderer.CreateUniformBuffer<BlurParameters>();
-
                 IFrameBuffer current = SharedData.CurrentEffectBuffer;
                 IFrameBuffer target = SharedData.GetNextEffectBuffer();
 
@@ -637,25 +637,22 @@ namespace osu.Framework.Graphics
                 {
                     float radians = float.DegreesToRadians(rotation);
 
-                    blurParametersBuffer.Data = blurParametersBuffer.Data with
+                    using (var blurParametersBuffer = renderer.CreateUniformBuffer<BlurParameters>())
                     {
-                        Radius = kernelRadius,
-                        Sigma = sigma,
-                        TexSize = current.Size,
-                        Direction = new Vector2(MathF.Cos(radians), MathF.Sin(radians))
-                    };
+                        // Update reusable struct instead of allocating new one
+                        blurParameters.Radius = kernelRadius;
+                        blurParameters.Sigma = sigma;
+                        blurParameters.TexSize = current.Size;
+                        blurParameters.Direction = new Vector2(MathF.Cos(radians), MathF.Sin(radians));
 
-                    blurShader.BindUniformBlock("m_BlurParameters", blurParametersBuffer);
-                    blurShader.Bind();
-                    renderer.DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White));
-                    blurShader.Unbind();
+                        blurParametersBuffer.Data = blurParameters;
+
+                        blurShader.BindUniformBlock("m_BlurParameters", blurParametersBuffer);
+                        blurShader.Bind();
+                        renderer.DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White));
+                        blurShader.Unbind();
+                    }
                 }
-            }
-
-            protected override void Dispose(bool isDisposing)
-            {
-                base.Dispose(isDisposing);
-                blurParametersBuffer?.Dispose();
             }
 
             [StructLayout(LayoutKind.Sequential, Pack = 1)]
