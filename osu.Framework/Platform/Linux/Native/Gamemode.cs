@@ -24,7 +24,7 @@ namespace osu.Framework.Platform.Linux.Native
             {
                 if (gamemode_request_start() < 0)
                 {
-                    Logger.Log($"gamemode_rewust_start: failed.", LoggingTarget.Runtime, LogLevel.Debug);
+                    Logger.Log($"gamemode_request_start: failed.", LoggingTarget.Runtime, LogLevel.Debug);
                 }
             }
             catch (DllNotFoundException)
@@ -46,7 +46,7 @@ namespace osu.Framework.Platform.Linux.Native
             {
                 if (gamemode_request_end() < 0)
                 {
-                    Logger.Log($"gamemode_rewust_end: failed.", LoggingTarget.Runtime, LogLevel.Debug);
+                    Logger.Log($"gamemode_request_end: failed.", LoggingTarget.Runtime, LogLevel.Debug);
                 }
             }
             catch (DllNotFoundException)
