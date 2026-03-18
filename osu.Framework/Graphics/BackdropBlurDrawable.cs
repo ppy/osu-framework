@@ -35,6 +35,7 @@ namespace osu.Framework.Graphics
         private readonly List<Drawable> captureSources = new List<Drawable>();
         private readonly HashSet<Drawable> captureSourceSet = new HashSet<Drawable>();
         private int activeProxyCount;
+        private IBackdropCaptureSourceProvider captureSourceProvider;
 
         // 缓存穿透捕获的相关性，避免每帧重新遍历
         private List<Drawable> cachedPenetrationTargets;
@@ -135,6 +136,30 @@ namespace osu.Framework.Graphics
         public List<Drawable> CaptureTargets { get; } = new List<Drawable>();
 
         /// <summary>
+        /// 动态提供显式模糊来源。
+        /// 当存在且返回非空列表时，优先级高于 <see cref="CaptureTargets"/>。
+        /// </summary>
+        public IBackdropCaptureSourceProvider CaptureSourceProvider
+        {
+            get => captureSourceProvider;
+            set
+            {
+                if (ReferenceEquals(captureSourceProvider, value))
+                    return;
+
+                if (captureSourceProvider != null)
+                    captureSourceProvider.SourcesChanged -= onCaptureSourceProviderChanged;
+
+                captureSourceProvider = value;
+
+                if (captureSourceProvider != null)
+                    captureSourceProvider.SourcesChanged += onCaptureSourceProviderChanged;
+
+                invalidateCaptureSources();
+            }
+        }
+
+        /// <summary>
         /// 严格显式捕获模式。
         /// 开启后，仅捕获 <see cref="CaptureTargets"/> 本体，且捕获失败时不回退到其它目标。
         /// </summary>
@@ -175,7 +200,7 @@ namespace osu.Framework.Graphics
         {
             base.Update();
 
-            if (!EffectEnabled)
+            if (!EffectEnabled || !hasCaptureSourceConfiguration())
                 return;
 
             frameCounter++;
@@ -200,7 +225,7 @@ namespace osu.Framework.Graphics
 
         internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
         {
-            if (!EffectEnabled)
+            if (!EffectEnabled || !hasCaptureSourceConfiguration())
                 return null;
 
             if (captureInProgress)
@@ -219,15 +244,15 @@ namespace osu.Framework.Graphics
                     if (targetDrawNode == null)
                         return null;
                 }
-                else if (CaptureTargets.Count > 0)
+                else if (getExplicitCaptureSources() is IReadOnlyList<Drawable> explicitCaptureSources)
                 {
                     captureSources.Clear();
                     captureSourceSet.Clear();
                     resetCaptureTempContainer();
 
-                    for (int i = 0; i < CaptureTargets.Count; i++)
+                    for (int i = 0; i < explicitCaptureSources.Count; i++)
                     {
-                        Drawable source = CaptureTargets[i];
+                        Drawable source = explicitCaptureSources[i];
 
                         if (source == null)
                             continue;
@@ -310,6 +335,25 @@ namespace osu.Framework.Graphics
         }
 
         private bool isExcludedRoot(Drawable drawable) => drawable == this;
+
+        private IReadOnlyList<Drawable> getExplicitCaptureSources()
+        {
+            if (captureSourceProvider?.CaptureSources?.Count > 0)
+                return captureSourceProvider.CaptureSources;
+
+            return CaptureTargets.Count > 0 ? CaptureTargets : null;
+        }
+
+        private bool hasCaptureSourceConfiguration()
+            => PassthroughByDrawOrder || CaptureTarget != null || getExplicitCaptureSources() != null;
+
+        private void onCaptureSourceProviderChanged() => invalidateCaptureSources();
+
+        private void invalidateCaptureSources()
+        {
+            ++updateVersion;
+            Invalidate(Invalidation.DrawNode);
+        }
 
         private void populateCaptureTempContainer(List<Drawable> sources)
         {
@@ -570,6 +614,7 @@ namespace osu.Framework.Graphics
 
             // 清理捕获目标引用
             CaptureTarget = null;
+            CaptureSourceProvider = null;
 
             // 先禁用效果再清理，防止清理过程中触发捕获
             if (CaptureTargets.Count > 0)
