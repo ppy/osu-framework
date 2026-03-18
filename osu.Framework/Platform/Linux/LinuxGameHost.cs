@@ -6,6 +6,7 @@ using System.Linq;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Platform.Linux.Native;
 
 namespace osu.Framework.Platform.Linux
 {
@@ -45,6 +46,18 @@ namespace osu.Framework.Platform.Linux
             }
 
             return handlers;
+        }
+
+        protected override void SetupForRun()
+        {
+            Gamemode.RequestStart();
+            base.SetupForRun();
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            Gamemode.RequestEnd();
+            base.Dispose(isDisposing);
         }
     }
 }
