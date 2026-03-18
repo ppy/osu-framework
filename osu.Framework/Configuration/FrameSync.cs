@@ -12,6 +12,9 @@ namespace osu.Framework.Configuration
     {
         VSync,
 
+        [Description("VSync Unbuffered")]
+        UVSync,
+
         [Description("2x refresh rate")]
         Limit2x,
 
