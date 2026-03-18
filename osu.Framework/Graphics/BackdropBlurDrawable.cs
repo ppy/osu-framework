@@ -37,10 +37,6 @@ namespace osu.Framework.Graphics
         private int activeProxyCount;
         private IBackdropCaptureSourceProvider captureSourceProvider;
 
-        // 缓存穿透捕获的相关性，避免每帧重新遍历
-        private List<Drawable> cachedPenetrationTargets;
-        private long cachedPenetrationVersion = -1;
-
         private bool captureInProgress;
         private long updateVersion;
         private int frameCounter;
@@ -125,13 +121,14 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// 模糊目标。如果为 null，则使用包含此可绘制项的根可绘制项。
+        /// 单个模糊目标。
+        /// 当未提供 <see cref="CaptureSourceProvider"/> 或 <see cref="CaptureTargets"/> 时使用。
         /// </summary>
         public Drawable CaptureTarget { get; set; }
 
         /// <summary>
         /// 显式指定的多个模糊来源。
-        /// 当非空时优先使用该列表进行捕获，不再依赖根树推断。
+        /// 当非空时将按顺序捕获整组来源，优先级低于 <see cref="CaptureSourceProvider"/>，高于 <see cref="CaptureTarget"/>。
         /// </summary>
         public List<Drawable> CaptureTargets { get; } = new List<Drawable>();
 
@@ -158,18 +155,6 @@ namespace osu.Framework.Graphics
                 invalidateCaptureSources();
             }
         }
-
-        /// <summary>
-        /// 严格显式捕获模式。
-        /// 开启后，仅捕获 <see cref="CaptureTargets"/> 本体，且捕获失败时不回退到其它目标。
-        /// </summary>
-        public bool StrictCaptureTargetsMode { get; set; } = true;
-
-        /// <summary>
-        /// 穿透捕获模式（按绘制顺序）。
-        /// 开启后忽略显式目标配置，仅捕获当前可绘制项下方（先绘制）的图层内容。
-        /// </summary>
-        public bool PassthroughByDrawOrder { get; set; }
 
         /// <summary>
         /// 捕获间隔（以帧计）。默认每 4 帧捕获一次以减少开销并降低 GC 压力。
@@ -237,14 +222,7 @@ namespace osu.Framework.Graphics
 
             try
             {
-                if (PassthroughByDrawOrder)
-                {
-                    targetDrawNode = generateLowerLayerCapture(frame, treeIndex);
-
-                    if (targetDrawNode == null)
-                        return null;
-                }
-                else if (getExplicitCaptureSources() is IReadOnlyList<Drawable> explicitCaptureSources)
+                if (getExplicitCaptureSources() is IReadOnlyList<Drawable> explicitCaptureSources)
                 {
                     captureSources.Clear();
                     captureSourceSet.Clear();
@@ -270,58 +248,17 @@ namespace osu.Framework.Graphics
                         targetDrawNode = null;
 
                     if (targetDrawNode == null)
-                    {
-                        if (StrictCaptureTargetsMode)
-                            return null;
-
-                        targetDrawNode = generateLowerLayerCapture(frame, treeIndex);
-
-                        if (targetDrawNode == null && CaptureTarget != null)
-                            targetDrawNode = CaptureTarget.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
-
-                        if (targetDrawNode == null)
-                            return null;
-                    }
+                        return null;
                 }
                 else
                 {
-                    Drawable target = CaptureTarget ?? findRoot();
-                    if (target == null)
+                    if (CaptureTarget == null)
                         return null;
 
-                    if (CaptureTarget == null && target is Container rootContainer)
-                    {
-                        captureSources.Clear();
-                        captureSourceSet.Clear();
-                        resetCaptureTempContainer();
+                    targetDrawNode = CaptureTarget.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
 
-                        collectBefore(rootContainer, this, captureSources);
-
-                        List<Drawable> sourcesToUse = captureSources;
-
-                        if (sourcesToUse.Count == 0)
-                        {
-                            targetDrawNode = target.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
-                            if (targetDrawNode == null)
-                                return null;
-                        }
-                        else
-                        {
-                            populateCaptureTempContainer(sourcesToUse);
-
-                            targetDrawNode = captureTempContainer.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
-
-                            if (targetDrawNode == null)
-                                return null;
-                        }
-                    }
-                    else
-                    {
-                        targetDrawNode = target.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
-
-                        if (targetDrawNode == null)
-                            return null;
-                    }
+                    if (targetDrawNode == null)
+                        return null;
                 }
             }
             finally
@@ -345,7 +282,7 @@ namespace osu.Framework.Graphics
         }
 
         private bool hasCaptureSourceConfiguration()
-            => PassthroughByDrawOrder || CaptureTarget != null || getExplicitCaptureSources() != null;
+            => CaptureTarget != null || getExplicitCaptureSources() != null;
 
         private void onCaptureSourceProviderChanged() => invalidateCaptureSources();
 
@@ -388,70 +325,6 @@ namespace osu.Framework.Graphics
             return proxyPool[index];
         }
 
-        private static bool isAncestorOf(Drawable node, Drawable descendant)
-        {
-            while (descendant != null)
-            {
-                if (descendant == node)
-                    return true;
-
-                descendant = descendant.Parent;
-            }
-
-            return false;
-        }
-
-        private bool collectBefore(Container container, Drawable stopAt, List<Drawable> outList)
-        {
-            foreach (var child in container.Children)
-            {
-                if (child == stopAt)
-                    return true;
-
-                if (isAncestorOf(child, stopAt))
-                {
-                    if (child is Container c)
-                    {
-                        if (collectBefore(c, stopAt, outList))
-                            return true;
-
-                        continue;
-                    }
-
-                    return true;
-                }
-
-                if (isExcludedRoot(child))
-                    continue;
-
-                appendFilteredCaptureSources(child, outList);
-            }
-
-            return false;
-        }
-
-        private void collectFromWholeRoot(Container container, List<Drawable> outList)
-        {
-            foreach (var child in container.Children)
-            {
-                if (child == this)
-                    continue;
-
-                if (isAncestorOf(child, this))
-                {
-                    if (child is Container c)
-                        collectBefore(c, this, outList);
-
-                    continue;
-                }
-
-                if (isExcludedRoot(child))
-                    continue;
-
-                outList.Add(child);
-            }
-        }
-
         private Drawable canonicaliseCaptureSource(Drawable drawable)
         {
             // ProxyDrawable 在单独捕获树中可能拿不到已验证的原始 DrawNode，导致透明。
@@ -465,113 +338,10 @@ namespace osu.Framework.Graphics
             if (source == null)
                 return;
 
-            if (source != this && !isExcludedRoot(source) && captureSourceSet.Add(source))
-                captureSources.Add(source);
-
-            if (StrictCaptureTargetsMode)
-                return;
-
             Drawable canonical = canonicaliseCaptureSource(source);
 
-            if (canonical != source && canonical != this && !isExcludedRoot(canonical) && captureSourceSet.Add(canonical))
+            if (canonical != this && !isExcludedRoot(canonical) && captureSourceSet.Add(canonical))
                 captureSources.Add(canonical);
-        }
-
-        private DrawNode generateLowerLayerCapture(ulong frame, int treeIndex)
-        {
-            Container rootContainer = findTraversalRootContainer();
-
-            captureSources.Clear();
-            captureSourceSet.Clear();
-
-            // 检查是否需要重新计算穿透目标（仅当场景结构变化时）
-            bool shouldRecalculate = cachedPenetrationTargets == null || updateVersion != cachedPenetrationVersion;
-
-            if (shouldRecalculate)
-            {
-                if (rootContainer != null)
-                    collectBefore(rootContainer, this, captureSources);
-                else
-                    collectBeforeInParentChain(this, captureSources);
-
-                // 缓存结果供后续帧使用
-                cachedPenetrationTargets = new List<Drawable>(captureSources);
-                cachedPenetrationVersion = updateVersion;
-            }
-            else
-            {
-                // 使用缓存的穿透目标，但要验证有效性
-                for (int i = 0; i < cachedPenetrationTargets.Count; i++)
-                {
-                    var target = cachedPenetrationTargets[i];
-                    // 验证目标对象是否仍然有效：不为 null、未被处置、不是排除对象
-                    if (target != null && !target.IsDisposed && !isExcludedRoot(target))
-                        captureSources.Add(target);
-                }
-            }
-
-            // 快速路径：如果没有捕获源，直接返回
-            if (captureSources.Count == 0)
-                return null;
-
-            populateCaptureTempContainer(captureSources);
-
-            return captureTempContainer.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
-        }
-
-        private void collectBeforeInParentChain(Drawable start, List<Drawable> outList)
-        {
-            Drawable current = start;
-
-            while (current.Parent != null)
-            {
-                if (current.Parent is Container parentContainer)
-                {
-                    foreach (var sibling in parentContainer.Children)
-                    {
-                        if (sibling == current)
-                            break;
-
-                        if (isExcludedRoot(sibling))
-                            continue;
-
-                        appendFilteredCaptureSources(sibling, outList);
-                    }
-                }
-
-                current = current.Parent;
-            }
-        }
-
-        private Container findTraversalRootContainer()
-        {
-            Container highestContainer = null;
-
-            Drawable current = this;
-
-            while (current.Parent != null)
-            {
-                current = current.Parent;
-
-                if (current is Container container)
-                    highestContainer = container;
-            }
-
-            return highestContainer;
-        }
-
-        private void appendFilteredCaptureSources(Drawable drawable, List<Drawable> outList)
-        {
-            if (isExcludedRoot(drawable))
-                return;
-
-            if (captureSourceSet.Add(drawable))
-                outList.Add(drawable);
-
-            var source = canonicaliseCaptureSource(drawable);
-
-            if (source != drawable && captureSourceSet.Add(source))
-                outList.Add(source);
         }
 
         private sealed partial class ProxyCaptureDrawable : Drawable
@@ -584,16 +354,6 @@ namespace osu.Framework.Graphics
             }
 
             internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode) => SourceDrawable?.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
-        }
-
-        private Drawable findRoot()
-        {
-            Drawable target = this;
-
-            while (target.Parent != null)
-                target = target.Parent;
-
-            return target;
         }
 
         IShader ITexturedShaderDrawable.TextureShader => textureShader;
@@ -619,10 +379,6 @@ namespace osu.Framework.Graphics
             // 先禁用效果再清理，防止清理过程中触发捕获
             if (CaptureTargets.Count > 0)
                 CaptureTargets.Clear();
-
-            // 清除缓存
-            cachedPenetrationTargets = null;
-            cachedPenetrationVersion = -1;
 
             resetCaptureTempContainer();
 
