@@ -26,19 +26,15 @@ namespace osu.Framework.Graphics
     /// </summary>
     public partial class BackdropBlurDrawable : Drawable, IBufferedDrawable
     {
-        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(1, null, pixelSnapping: true, clipToRootNode: true);
+        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(2, null, pixelSnapping: true, clipToRootNode: true);
 
         // 临时复用容器与代理，用于按排除列表构建捕获子树，避免捕获上层元素导致残影。
         private readonly Container captureTempContainer = new Container();
 
-        // 使用 WeakReference 避免阻止 Drawable 的 GC 回收
-        private readonly List<WeakReference<ProxyCaptureDrawable>> proxyPoolWeak = new List<WeakReference<ProxyCaptureDrawable>>();
+        private readonly List<ProxyCaptureDrawable> proxyPool = new List<ProxyCaptureDrawable>();
         private readonly List<Drawable> captureSources = new List<Drawable>();
         private readonly HashSet<Drawable> captureSourceSet = new HashSet<Drawable>();
-
-        // 用于检测 stale 引用并定期清理
-        private double lastCleanupTime;
-        private const double cleanup_interval_ms = 1000; // 每 1 秒清理一次，更频繁以防止泄露
+        private int activeProxyCount;
 
         // 缓存穿透捕获的相关性，避免每帧重新遍历
         private List<Drawable> cachedPenetrationTargets;
@@ -198,17 +194,6 @@ namespace osu.Framework.Graphics
                 lastCaptureMs = now;
             }
 
-            // 定期清理 proxy pool 中的 stale 引用（基于时间，不受帧率影响）
-            // 注意：只在启用效果时进行清理，避免无效开销
-            double currentTime = Time.Current;
-
-            if (currentTime - lastCleanupTime >= cleanup_interval_ms)
-            {
-                cleanupProxyPool();
-                cleanupCaptureTempContainer();
-                lastCleanupTime = currentTime;
-            }
-
             ++updateVersion;
             Invalidate(Invalidation.DrawNode);
         }
@@ -238,7 +223,7 @@ namespace osu.Framework.Graphics
                 {
                     captureSources.Clear();
                     captureSourceSet.Clear();
-                    captureTempContainer.Clear(false);
+                    resetCaptureTempContainer();
 
                     for (int i = 0; i < CaptureTargets.Count; i++)
                     {
@@ -252,11 +237,7 @@ namespace osu.Framework.Graphics
 
                     if (captureSources.Count > 0)
                     {
-                        for (int i = 0; i < captureSources.Count; i++)
-                        {
-                            ProxyCaptureDrawable proxy = getOrCreateProxy(captureSources[i]);
-                            captureTempContainer.Add(proxy);
-                        }
+                        populateCaptureTempContainer(captureSources);
 
                         targetDrawNode = captureTempContainer.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
                     }
@@ -287,7 +268,7 @@ namespace osu.Framework.Graphics
                     {
                         captureSources.Clear();
                         captureSourceSet.Clear();
-                        captureTempContainer.Clear(false);
+                        resetCaptureTempContainer();
 
                         collectBefore(rootContainer, this, captureSources);
 
@@ -301,11 +282,7 @@ namespace osu.Framework.Graphics
                         }
                         else
                         {
-                            for (int i = 0; i < sourcesToUse.Count; i++)
-                            {
-                                ProxyCaptureDrawable proxy = getOrCreateProxy(sourcesToUse[i]);
-                                captureTempContainer.Add(proxy);
-                            }
+                            populateCaptureTempContainer(sourcesToUse);
 
                             targetDrawNode = captureTempContainer.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
 
@@ -334,82 +311,37 @@ namespace osu.Framework.Graphics
 
         private bool isExcludedRoot(Drawable drawable) => drawable == this;
 
-        /// <summary>
-        /// 获取或创建 ProxyCaptureDrawable，使用 WeakReference 池化以提高性能并避免内存泄漏。
-        /// </summary>
-        private ProxyCaptureDrawable getOrCreateProxy(Drawable source)
+        private void populateCaptureTempContainer(List<Drawable> sources)
         {
-            // 优先从池中查找可用的 proxy
-            for (int i = proxyPoolWeak.Count - 1; i >= 0; i--)
+            resetCaptureTempContainer();
+
+            activeProxyCount = sources.Count;
+
+            for (int i = 0; i < sources.Count; i++)
             {
-                if (proxyPoolWeak[i].TryGetTarget(out var existingProxy))
-                {
-                    // 检查 proxy 是否已被处置
-                    if (existingProxy.IsDisposed)
-                    {
-                        // 移除已死亡的 weak reference
-                        proxyPoolWeak.RemoveAt(i);
-                        continue;
-                    }
-
-                    // 找到存活的 proxy，复用
-                    existingProxy.SourceDrawable = source;
-                    return existingProxy;
-                }
-                else
-                {
-                    // 移除已死亡的 weak reference
-                    proxyPoolWeak.RemoveAt(i);
-                }
-            }
-
-            // 池中没有可用的，创建新的
-            var newProxy = new ProxyCaptureDrawable(source);
-            proxyPoolWeak.Add(new WeakReference<ProxyCaptureDrawable>(newProxy));
-            return newProxy;
-        }
-
-        /// <summary>
-        /// 清理 proxy 池中的死亡引用，释放内存。
-        /// </summary>
-        private void cleanupProxyPool()
-        {
-            for (int i = proxyPoolWeak.Count - 1; i >= 0; i--)
-            {
-                if (!proxyPoolWeak[i].TryGetTarget(out var proxy))
-                {
-                    // WeakReference 已失效，移除
-                    proxyPoolWeak.RemoveAt(i);
-                }
-                else if (proxy.IsDisposed)
-                {
-                    // Proxy 已被处置，移除 weak reference
-                    proxyPoolWeak.RemoveAt(i);
-                }
+                ProxyCaptureDrawable proxy = getOrCreateProxy(i);
+                proxy.SourceDrawable = sources[i];
+                captureTempContainer.Add(proxy);
             }
         }
 
-        /// <summary>
-        /// 清理 captureTempContainer 中的所有子项，防止内存泄漏。
-        /// 每次使用后都应该调用此方法。
-        /// </summary>
-        private void cleanupCaptureTempContainer()
+        private void resetCaptureTempContainer()
         {
+            for (int i = 0; i < activeProxyCount; i++)
+                proxyPool[i].SourceDrawable = null;
+
+            activeProxyCount = 0;
+
             if (captureTempContainer.Count > 0)
-            {
-                // 先禁用所有子项的效果，防止继续捕获
-                for (int i = captureTempContainer.Count - 1; i >= 0; i--)
-                {
-                    var child = captureTempContainer[i];
-                    if (child is BackdropBlurDrawable blurDrawable)
-                    {
-                        blurDrawable.EffectEnabled = false;
-                    }
-                }
-                
-                // 然后清空，但不处置子项（让它们自然死亡）
                 captureTempContainer.Clear(false);
-            }
+        }
+
+        private ProxyCaptureDrawable getOrCreateProxy(int index)
+        {
+            while (proxyPool.Count <= index)
+                proxyPool.Add(new ProxyCaptureDrawable());
+
+            return proxyPool[index];
         }
 
         private static bool isAncestorOf(Drawable node, Drawable descendant)
@@ -538,14 +470,7 @@ namespace osu.Framework.Graphics
             if (captureSources.Count == 0)
                 return null;
 
-            // 清理旧的 temp container，但不处置子项（让它们自然死亡）
-            captureTempContainer.Clear(false);
-
-            for (int i = 0; i < captureSources.Count; i++)
-            {
-                ProxyCaptureDrawable proxy = getOrCreateProxy(captureSources[i]);
-                captureTempContainer.Add(proxy);
-            }
+            populateCaptureTempContainer(captureSources);
 
             return captureTempContainer.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
         }
@@ -609,36 +534,12 @@ namespace osu.Framework.Graphics
         {
             public Drawable SourceDrawable { get; set; }
 
-            public ProxyCaptureDrawable(Drawable source)
+            public ProxyCaptureDrawable()
             {
-                SourceDrawable = source;
                 RelativeSizeAxes = Axes.None;
-
-                // 标记为需要手动管理生命周期
-                LifetimeEnd = double.MaxValue;
             }
 
             internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode) => SourceDrawable?.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
-
-            protected override void Dispose(bool isDisposing)
-            {
-                base.Dispose(isDisposing);
-
-                // 断开对源对象的引用，帮助 GC 回收
-                if (isDisposing)
-                {
-                    SourceDrawable = null;
-                }
-            }
-            
-            /// <summary>
-            /// 强制过期此 proxy，用于 Dispose 时的主动清理。
-            /// </summary>
-            public new void Expire()
-            {
-                base.Expire();
-                SourceDrawable = null;
-            }
         }
 
         private Drawable findRoot()
@@ -669,7 +570,7 @@ namespace osu.Framework.Graphics
 
             // 清理捕获目标引用
             CaptureTarget = null;
-            
+
             // 先禁用效果再清理，防止清理过程中触发捕获
             if (CaptureTargets.Count > 0)
                 CaptureTargets.Clear();
@@ -678,21 +579,12 @@ namespace osu.Framework.Graphics
             cachedPenetrationTargets = null;
             cachedPenetrationVersion = -1;
 
-            // 确保 temp container 中的子项被正确处理 - 使用 dispose: true 彻底释放
-            if (captureTempContainer.Count > 0)
-            {
-                captureTempContainer.Clear(true);
-            }
+            resetCaptureTempContainer();
 
-            // 显式处置 proxy pool 中的所有对象
-            for (int i = proxyPoolWeak.Count - 1; i >= 0; i--)
-            {
-                if (proxyPoolWeak[i].TryGetTarget(out var proxy))
-                {
-                    proxy.Expire();
-                }
-                proxyPoolWeak.RemoveAt(i);
-            }
+            if (captureTempContainer.Count > 0)
+                captureTempContainer.Clear(true);
+
+            proxyPool.Clear();
 
             // 清理集合
             captureSources.Clear();
