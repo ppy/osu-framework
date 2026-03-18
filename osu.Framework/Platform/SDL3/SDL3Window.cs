@@ -82,7 +82,7 @@ namespace osu.Framework.Platform.SDL3
         /// <summary>
         /// Whether the current display server is Wayland.
         /// </summary>
-        internal bool IsWayland => SDL_GetCurrentVideoDriver() == "wayland";
+        internal readonly bool IsWayland;
 
         /// <summary>
         /// Gets the native window handle as provided by the operating system.
@@ -177,6 +177,8 @@ namespace osu.Framework.Platform.SDL3
                           SDL3 Version: {SDL_VERSIONNUM_MAJOR(version)}.{SDL_VERSIONNUM_MINOR(version)}.{SDL_VERSIONNUM_MICRO(version)}
                           SDL3 Revision: {SDL_GetRevision()}
                           SDL3 Video driver: {SDL_GetCurrentVideoDriver()}");
+
+            IsWayland = SDL_GetCurrentVideoDriver() == "wayland";
 
             SDL_SetLogOutputFunction(&logOutput, IntPtr.Zero);
             SDL_SetEventFilter(&eventFilter, ObjectHandle.Handle);
