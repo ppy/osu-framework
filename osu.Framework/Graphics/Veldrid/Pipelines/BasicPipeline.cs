@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Veldrid.Textures;
 using Veldrid;
@@ -57,10 +58,12 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
         private readonly Queue<Fence> fencePool = new Queue<Fence>();
 
         private readonly VeldridDevice device;
+        private readonly VeldridPipelineKind pipelineKind;
 
-        public BasicPipeline(VeldridDevice device)
+        public BasicPipeline(VeldridDevice device, VeldridPipelineKind pipelineKind)
         {
             this.device = device;
+            this.pipelineKind = pipelineKind;
             Commands = device.Factory.CreateCommandList();
         }
 
@@ -86,7 +89,16 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
             pendingExecutions.Add(new ExecutionCompletionFence(fence, executionIndex));
 
             Commands.End();
+
+            if (!VeldridInstrumentation.Enabled)
+            {
+                device.Device.SubmitCommands(Commands, fence);
+                return;
+            }
+
+            long start = Stopwatch.GetTimestamp();
             device.Device.SubmitCommands(Commands, fence);
+            VeldridInstrumentation.RecordSubmit(pipelineKind, Stopwatch.GetTimestamp() - start);
         }
 
         private void updatePendingExecutions()

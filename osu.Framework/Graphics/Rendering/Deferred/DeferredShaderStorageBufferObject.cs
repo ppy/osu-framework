@@ -2,11 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Rendering.Deferred.Allocation;
 using osu.Framework.Graphics.Rendering.Deferred.Events;
+using osu.Framework.Graphics.Veldrid;
 using osu.Framework.Graphics.Veldrid.Buffers;
 using Veldrid;
 
@@ -21,6 +23,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         private readonly DeviceBuffer buffer;
         private readonly DeferredRenderer renderer;
         private readonly int elementSize;
+        private readonly Dictionary<ResourceLayout, ResourceSet> resourceSets = new Dictionary<ResourceLayout, ResourceSet>();
 
         public DeferredShaderStorageBufferObject(DeferredRenderer renderer, int ssboSize)
         {
@@ -53,13 +56,24 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             => memory.WriteTo(renderer.Context, buffer, index * elementSize);
 
         public ResourceSet GetResourceSet(ResourceLayout layout)
-            => renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, buffer));
+        {
+            if (resourceSets.TryGetValue(layout, out ResourceSet? existing))
+                return existing;
+
+            VeldridInstrumentation.RecordResourceSetCreated(VeldridResourceSetKind.ShaderStorage);
+            return resourceSets[layout] = renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, buffer));
+        }
 
         public void ResetCounters()
         {
         }
 
         public void Dispose()
-            => buffer.Dispose();
+        {
+            foreach ((_, ResourceSet resourceSet) in resourceSets)
+                resourceSet.Dispose();
+
+            buffer.Dispose();
+        }
     }
 }

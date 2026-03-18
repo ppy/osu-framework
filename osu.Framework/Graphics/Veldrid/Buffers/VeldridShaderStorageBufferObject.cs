@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
@@ -19,6 +20,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         private readonly DeviceBuffer buffer;
         private readonly VeldridRenderer renderer;
         private readonly uint elementSize;
+        private readonly Dictionary<ResourceLayout, ResourceSet> resourceSets = new Dictionary<ResourceLayout, ResourceSet>();
 
         public VeldridShaderStorageBufferObject(VeldridRenderer renderer, int uboSize, int ssboSize)
         {
@@ -89,7 +91,12 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         public ResourceSet GetResourceSet(ResourceLayout layout)
         {
             flushChanges();
-            return renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, buffer));
+
+            if (resourceSets.TryGetValue(layout, out ResourceSet? existing))
+                return existing;
+
+            VeldridInstrumentation.RecordResourceSetCreated(VeldridResourceSetKind.ShaderStorage);
+            return resourceSets[layout] = renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, buffer));
         }
 
         public void ResetCounters()
@@ -98,6 +105,9 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         public void Dispose()
         {
+            foreach ((_, ResourceSet resourceSet) in resourceSets)
+                resourceSet.Dispose();
+
             buffer.Dispose();
         }
     }

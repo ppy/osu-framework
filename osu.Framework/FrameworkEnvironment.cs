@@ -19,6 +19,8 @@ namespace osu.Framework
         public static int? StagingBufferType { get; }
         public static int? VertexBufferCount { get; }
         public static bool NoStructuredBuffers { get; }
+        public static bool LogVeldridFrameTimings { get; }
+        public static bool? ForceMacOSPreDrawTextureUploadFlush { get; }
         public static string? DeferredRendererEventsOutputPath { get; }
         public static bool UseSDL3 { get; }
 
@@ -47,6 +49,8 @@ namespace osu.Framework
                 StagingBufferType = stagingBufferImplementation;
 
             NoStructuredBuffers = parseBool(Environment.GetEnvironmentVariable("OSU_GRAPHICS_NO_SSBO")) ?? false;
+            LogVeldridFrameTimings = parseBool(Environment.GetEnvironmentVariable("OSU_GRAPHICS_LOG_VELDRID_FRAME_TIMINGS")) ?? false;
+            ForceMacOSPreDrawTextureUploadFlush = parseBool(Environment.GetEnvironmentVariable("OSU_GRAPHICS_MACOS_PREDRAW_TEXTURE_UPLOAD_FLUSH"));
 
             DeferredRendererEventsOutputPath = Environment.GetEnvironmentVariable("DEFERRED_RENDERER_EVENTS_OUTPUT");
 

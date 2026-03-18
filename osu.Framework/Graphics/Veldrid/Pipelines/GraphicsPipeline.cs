@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
         private VertexLayoutDescription currentVertexLayout;
 
         public GraphicsPipeline(VeldridDevice device)
-            : base(device)
+            : base(device, VeldridPipelineKind.Graphics)
         {
             pipelineDesc.Outputs = Device.SwapchainFramebuffer.OutputDescription;
         }
@@ -303,10 +303,19 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
 
         private Pipeline createPipeline()
         {
-            if (!pipelineCache.TryGetValue(pipelineDesc, out var instance))
+            if (pipelineCache.TryGetValue(pipelineDesc, out var instance))
+            {
+                VeldridInstrumentation.RecordPipelineCacheHit();
+                return instance;
+            }
+
+            VeldridInstrumentation.RecordPipelineCacheMiss();
+
+            if (!pipelineCache.TryGetValue(pipelineDesc, out instance))
             {
                 pipelineCache[pipelineDesc.Clone()] = instance = Factory.CreateGraphicsPipeline(ref pipelineDesc);
                 stat_graphics_pipeline_created.Value++;
+                VeldridInstrumentation.RecordPipelineCreated();
             }
 
             return instance;

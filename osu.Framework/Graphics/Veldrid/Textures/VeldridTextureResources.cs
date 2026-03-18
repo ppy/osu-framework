@@ -47,7 +47,11 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             if (Sampler == null)
                 throw new InvalidOperationException("Attempting to create resource set without a sampler attached to the resources.");
 
-            return Set ??= factory.CreateResourceSet(new ResourceSetDescription(layout, Texture, Sampler));
+            if (Set != null)
+                return Set;
+
+            VeldridInstrumentation.RecordResourceSetCreated(VeldridResourceSetKind.Texture);
+            return Set = factory.CreateResourceSet(new ResourceSetDescription(layout, Texture, Sampler));
         }
 
         public void Dispose()

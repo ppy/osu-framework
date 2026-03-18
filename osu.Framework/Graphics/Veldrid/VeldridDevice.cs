@@ -88,7 +88,15 @@ namespace osu.Framework.Graphics.Veldrid
         public int MaxTextureSize { get; }
 
         private readonly IGraphicsSurface graphicsSurface;
+        private readonly bool logFrameTimings = FrameworkEnvironment.LogVeldridFrameTimings;
         private Vector2I currentWindowSize;
+        private bool loggedNonVSyncWaitBypass;
+
+        private long swapTimingTicks;
+        private long waitTimingTicks;
+        private int swapTimingSamples;
+        private int waitTimingSamples;
+        private int skippedWaits;
 
         /// <summary>
         /// Creates a new <see cref="VeldridDevice"/>
@@ -236,7 +244,17 @@ namespace osu.Framework.Graphics.Veldrid
         /// Swaps the back buffer with the front buffer to display the new frame.
         /// </summary>
         public void SwapBuffers()
-            => Device.SwapBuffers();
+        {
+            if (!logFrameTimings)
+            {
+                Device.SwapBuffers();
+                return;
+            }
+
+            long start = Stopwatch.GetTimestamp();
+            Device.SwapBuffers();
+            recordSwapTiming(Stopwatch.GetTimestamp() - start);
+        }
 
         /// <summary>
         /// Waits until all renderer commands have been fully executed GPU-side, as signaled by the graphics backend.
@@ -251,7 +269,31 @@ namespace osu.Framework.Graphics.Veldrid
         /// Waits until the GPU signals that the next frame is ready to be rendered.
         /// </summary>
         public void WaitUntilNextFrameReady()
-            => Device.WaitForNextFrameReady();
+        {
+            if (shouldBypassFrameReadyWait())
+            {
+                skippedWaits++;
+
+                if (!loggedNonVSyncWaitBypass)
+                {
+                    Logger.Log("Metal frame-ready wait bypassed while vertical sync is disabled.", level: LogLevel.Important);
+                    loggedNonVSyncWaitBypass = true;
+                }
+
+                maybeLogTimingSummary();
+                return;
+            }
+
+            if (!logFrameTimings)
+            {
+                Device.WaitForNextFrameReady();
+                return;
+            }
+
+            long start = Stopwatch.GetTimestamp();
+            Device.WaitForNextFrameReady();
+            recordWaitTiming(Stopwatch.GetTimestamp() - start);
+        }
 
         /// <summary>
         /// Invoked when the rendering thread is active and commands will be enqueued.
@@ -375,5 +417,51 @@ namespace osu.Framework.Graphics.Veldrid
 
             return Device.WaitForFence(fence, (ulong)(millisecondsTimeout * 1_000_000));
         }
+
+        private bool shouldBypassFrameReadyWait()
+            => RuntimeInfo.OS == RuntimeInfo.Platform.macOS
+               && graphicsSurface.Type == GraphicsSurfaceType.Metal
+               && !VerticalSync;
+
+        private void recordSwapTiming(long elapsedTicks)
+        {
+            swapTimingTicks += elapsedTicks;
+            swapTimingSamples++;
+            maybeLogTimingSummary();
+        }
+
+        private void recordWaitTiming(long elapsedTicks)
+        {
+            waitTimingTicks += elapsedTicks;
+            waitTimingSamples++;
+            maybeLogTimingSummary();
+        }
+
+        private void maybeLogTimingSummary()
+        {
+            if (!logFrameTimings)
+                return;
+
+            int sampleCount = Math.Max(swapTimingSamples, waitTimingSamples + skippedWaits);
+
+            if (sampleCount == 0 || sampleCount % 240 != 0)
+                return;
+
+            double swapAverageMs = swapTimingSamples == 0 ? 0 : ticksToMilliseconds(swapTimingTicks / (double)swapTimingSamples);
+            double waitAverageMs = waitTimingSamples == 0 ? 0 : ticksToMilliseconds(waitTimingTicks / (double)waitTimingSamples);
+
+            Logger.Log(
+                $"Veldrid frame timing summary ({SurfaceType}): avg_swap={swapAverageMs:0.###}ms, avg_wait={waitAverageMs:0.###}ms, wait_samples={waitTimingSamples}, wait_skipped={skippedWaits}",
+                level: LogLevel.Important);
+
+            swapTimingTicks = 0;
+            waitTimingTicks = 0;
+            swapTimingSamples = 0;
+            waitTimingSamples = 0;
+            skippedWaits = 0;
+        }
+
+        private static double ticksToMilliseconds(double ticks)
+            => ticks * 1000 / Stopwatch.Frequency;
     }
 }

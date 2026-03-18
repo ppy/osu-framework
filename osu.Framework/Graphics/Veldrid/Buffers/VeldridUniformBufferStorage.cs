@@ -37,7 +37,14 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             }
         }
 
-        public ResourceSet GetResourceSet(ResourceLayout layout) => set ??= renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, buffer));
+        public ResourceSet GetResourceSet(ResourceLayout layout)
+        {
+            if (set != null)
+                return set;
+
+            VeldridInstrumentation.RecordResourceSetCreated(VeldridResourceSetKind.Uniform);
+            return set = renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, buffer));
+        }
 
         public void Dispose()
         {

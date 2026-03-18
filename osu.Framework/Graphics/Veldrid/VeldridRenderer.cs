@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Rendering.Vertices;
@@ -17,6 +18,7 @@ using osu.Framework.Graphics.Veldrid.Pipelines;
 using osu.Framework.Graphics.Veldrid.Shaders;
 using osu.Framework.Graphics.Veldrid.Textures;
 using osu.Framework.Graphics.Veldrid.Vertices;
+using osu.Framework.Logging;
 using osuTK;
 using osuTK.Graphics;
 using SixLabors.ImageSharp;
@@ -77,11 +79,20 @@ namespace osu.Framework.Graphics.Veldrid
         {
             veldridDevice = new VeldridDevice(graphicsSurface);
             graphicsPipeline = new GraphicsPipeline(veldridDevice);
-            bufferUpdatePipeline = new BasicPipeline(veldridDevice);
-            textureUploadPipeline = new BasicPipeline(veldridDevice);
+            bufferUpdatePipeline = new BasicPipeline(veldridDevice, VeldridPipelineKind.BufferUpdate);
+            textureUploadPipeline = new BasicPipeline(veldridDevice, VeldridPipelineKind.TextureUpload);
             stagingTexturePool = new VeldridStagingTexturePool(graphicsPipeline);
 
             MaxTextureSize = veldridDevice.MaxTextureSize;
+
+            if (FrameworkEnvironment.LogVeldridFrameTimings && RuntimeInfo.OS == RuntimeInfo.Platform.macOS && SurfaceType == GraphicsSurfaceType.Metal)
+            {
+                Logger.Log(
+                    shouldFlushTextureUploadBeforeDraw()
+                        ? "Using conservative pre-draw texture upload flushes on macOS Metal."
+                        : "Using batched texture upload flushes on native Apple Silicon Metal.",
+                    level: LogLevel.Important);
+            }
         }
 
         protected internal override void BeginFrame(Vector2 windowSize)
@@ -105,6 +116,7 @@ namespace osu.Framework.Graphics.Veldrid
 
             bufferUpdatePipeline.End();
             graphicsPipeline.End();
+            VeldridInstrumentation.EndFrame(SurfaceType);
         }
 
         protected internal override void SwapBuffers()
@@ -166,12 +178,12 @@ namespace osu.Framework.Graphics.Veldrid
 
         public override void DrawVerticesImplementation(PrimitiveTopology topology, int vertexStart, int verticesCount)
         {
-            // normally we would flush/submit all texture upload commands at the end of the frame, since no actual rendering by the GPU will happen until then,
-            // but turns out on macOS with non-apple GPU, this results in rendering corruption.
-            // flushing the texture upload commands here before a draw call fixes the corruption, and there's no explanation as to why that's the case,
-            // but there is nothing to be lost in flushing here except for a frame that contains many sprites with Texture.BypassTextureUploadQueue = true.
-            // until that appears to be problem, let's just flush here.
-            flushTextureUploadPipeline();
+            if (shouldFlushTextureUploadBeforeDraw())
+            {
+                // Keep the historical workaround on Intel/unknown macOS Metal devices where batched uploads have shown corruption.
+                // Native Apple Silicon Metal can batch uploads until the end of the frame.
+                flushTextureUploadPipeline();
+            }
 
             graphicsPipeline.DrawVertices(topology.ToPrimitiveTopology(), vertexStart, verticesCount);
         }
@@ -211,6 +223,17 @@ namespace osu.Framework.Graphics.Veldrid
 
             textureUploadPipeline.End();
             beganTextureUploadPipeline = false;
+            VeldridInstrumentation.RecordTextureUploadFlush();
+        }
+
+        private bool shouldFlushTextureUploadBeforeDraw()
+        {
+            if (FrameworkEnvironment.ForceMacOSPreDrawTextureUploadFlush.HasValue)
+                return FrameworkEnvironment.ForceMacOSPreDrawTextureUploadFlush.Value;
+
+            return RuntimeInfo.OS == RuntimeInfo.Platform.macOS
+                   && SurfaceType == GraphicsSurfaceType.Metal
+                   && RuntimeInformation.ProcessArchitecture != Architecture.Arm64;
         }
 
         /// <summary>
