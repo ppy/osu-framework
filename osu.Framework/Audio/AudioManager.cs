@@ -379,11 +379,18 @@ namespace osu.Framework.Audio
         /// <param name="device">The device to initialise.</param>
         protected virtual bool InitBass(int device)
         {
-            // this likely doesn't help us but also doesn't seem to cause any issues or any cpu increase.
-            Bass.UpdatePeriod = 5;
+            // Setting lower value here reduces audio latency, bit it might cause choppy playback, depending on hardware.
+            int devicePeriodSizeMs = int.TryParse(Environment.GetEnvironmentVariable("OSU_BASS_CONFIG_DEV_PERIOD"), out int x1) ? x1 : 10;
 
-            // reduce latency to a known sane minimum.
-            Bass.DeviceBufferLength = 10;
+            // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_PERIOD.html
+            Bass.Configure((ManagedBass.Configuration)53, devicePeriodSizeMs);
+
+            // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_BUFFER.html
+            // This has to be a multiple of device period, at least 2x.
+            Bass.DeviceBufferLength = devicePeriodSizeMs * 2;
+
+            // These two likely don't have any effect because we set StreamSystem.NoBuffer on audio streams.
+            Bass.UpdatePeriod = 5;
             Bass.PlaybackBufferLength = 100;
 
             // ensure there are no brief delays on audio operations (causing stream stalls etc.) after periods of silence.
@@ -443,8 +450,9 @@ namespace osu.Framework.Audio
                           BASS MIX version:       {BassMix.Version}
                           Device:                 {deviceInfo.Name}
                           Driver:                 {deviceInfo.Driver}
-                          Update period:          {Bass.UpdatePeriod} ms
+                          Device period length:   {devicePeriodSizeMs} ms
                           Device buffer length:   {Bass.DeviceBufferLength} ms
+                          Update period:          {Bass.UpdatePeriod} ms
                           Playback buffer length: {Bass.PlaybackBufferLength} ms");
 
                 return true;
