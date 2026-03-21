@@ -386,7 +386,7 @@ namespace osu.Framework.Audio
                 // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_PERIOD.html
                 Bass.Configure(ManagedBass.Configuration.DevicePeriod, devPeriod);
                 // 1ms is definitely too low, but we're setting such low number on purpose,
-                // in order for BASS to automatically set it to twice the length of OSU_BASS_CONFIG_DEV_PERIOD,
+                // in order for BASS to automatically set it to twice the length of BASS_CONFIG_DEV_PERIOD,
                 // This behaviour is documented.
                 // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_BUFFER.html
                 Bass.DeviceBufferLength = 1;
