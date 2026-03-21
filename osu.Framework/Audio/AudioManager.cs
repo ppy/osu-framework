@@ -379,15 +379,21 @@ namespace osu.Framework.Audio
         /// <param name="device">The device to initialise.</param>
         protected virtual bool InitBass(int device)
         {
-            // Setting lower value here reduces audio latency, bit it might cause choppy playback, depending on hardware.
-            int devicePeriodSizeMs = int.TryParse(Environment.GetEnvironmentVariable("OSU_BASS_CONFIG_DEV_PERIOD"), out int x1) ? x1 : 10;
-
-            // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_PERIOD.html
-            Bass.Configure((ManagedBass.Configuration)53, devicePeriodSizeMs);
-
-            // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_BUFFER.html
-            // This has to be a multiple of device period, at least 2x.
-            Bass.DeviceBufferLength = devicePeriodSizeMs * 2;
+            if (int.TryParse(Environment.GetEnvironmentVariable("OSU_BASS_CONFIG_DEV_PERIOD"), out int devPeriod)) {
+                Logger.Log($"Environment variable for audio detected, in case of audio issues unset it.", level: LogLevel.Important);
+                // Device period normally is in milliseconds, but it might be set to a negative
+                // value too for an exact sample size, e.g. -256 for 256 samples.
+                // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_PERIOD.html
+                Bass.Configure(ManagedBass.Configuration.DevicePeriod, devPeriod);
+                // 1ms is definitely too low, but we're setting such low number on purpose,
+                // in order for BASS to automatically set it to twice the length of OSU_BASS_CONFIG_DEV_PERIOD,
+                // This behaviour is documented.
+                // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_BUFFER.html
+                Bass.DeviceBufferLength = 1;
+            } else {
+                // reduce latency to a known sane minimum.
+                Bass.DeviceBufferLength = 10;
+            }
 
             // These two likely don't have any effect because we set StreamSystem.NoBuffer on audio streams.
             Bass.UpdatePeriod = 5;
@@ -450,7 +456,7 @@ namespace osu.Framework.Audio
                           BASS MIX version:       {BassMix.Version}
                           Device:                 {deviceInfo.Name}
                           Driver:                 {deviceInfo.Driver}
-                          Device period length:   {devicePeriodSizeMs} ms
+                          Device period length:   {devPeriod}
                           Device buffer length:   {Bass.DeviceBufferLength} ms
                           Update period:          {Bass.UpdatePeriod} ms
                           Playback buffer length: {Bass.PlaybackBufferLength} ms");
