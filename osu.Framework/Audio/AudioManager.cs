@@ -381,7 +381,7 @@ namespace osu.Framework.Audio
         {
             if (int.TryParse(Environment.GetEnvironmentVariable("OSU_BASS_CONFIG_DEV_PERIOD"), out int devPeriod))
             {
-                Logger.Log($"Environment variable for audio detected, in case of audio issues unset it.", level: LogLevel.Important);
+                Logger.Log("Environment variable for audio detected, in case of audio issues unset it.", level: LogLevel.Important);
                 // Device period normally is in milliseconds, but it might be set to a negative
                 // value too for an exact sample size, e.g. -256 for 256 samples.
                 // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_PERIOD.html
@@ -393,9 +393,10 @@ namespace osu.Framework.Audio
                 Bass.DeviceBufferLength = 1;
             }
             else
+            {
                 // reduce latency to a known sane minimum.
                 Bass.DeviceBufferLength = 10;
-
+            }
 
             // These two likely don't have any effect because we set StreamSystem.NoBuffer on audio streams.
             Bass.UpdatePeriod = 5;
