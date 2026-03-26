@@ -33,6 +33,13 @@ namespace osu.Framework.Input
     public abstract partial class InputManager : Container, IInputStateChangeHandler, IFocusManager
     {
         /// <summary>
+        /// [Ez] Wall-clock timestamp (from <see cref="System.Diagnostics.Stopwatch.GetTimestamp()"/>) of the most recently
+        /// processed keyboard input event. Used for sub-frame timing correction in judgment.
+        /// Set during input processing on the UpdateThread; read by judgment code synchronously within the same frame.
+        /// </summary>
+        public static long EzSubFrameTimestamp;
+
+        /// <summary>
         /// The initial delay before key repeat begins.
         /// </summary>
         private const int repeat_initial_delay = 250;
@@ -472,7 +479,15 @@ namespace osu.Framework.Input
                 lastMouseMove = null;
 
             foreach (var result in pendingInputs)
+            {
+                // [Ez] Extract wall-clock timestamp from input events for sub-frame timing correction.
+                if (result is KeyboardKeyInput kki && kki.WallTimestamp > 0)
+                    EzSubFrameTimestamp = kki.WallTimestamp;
+                else if (result is MouseButtonInput mbi && mbi.WallTimestamp > 0)
+                    EzSubFrameTimestamp = mbi.WallTimestamp;
+
                 result.Apply(CurrentState, this);
+            }
 
             if (CurrentState.Mouse.IsPositionValid)
             {

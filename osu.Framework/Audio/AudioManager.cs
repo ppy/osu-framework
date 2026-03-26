@@ -643,11 +643,11 @@ namespace osu.Framework.Audio
         protected virtual bool InitBass(int device, AudioOutputMode outputMode)
         {
             // this likely doesn't help us but also doesn't seem to cause any issues or any cpu increase.
-            Bass.UpdatePeriod = 5;
+            Bass.UpdatePeriod = 1;
 
             // reduce latency to a known sane minimum.
             Bass.DeviceBufferLength = 10;
-            Bass.PlaybackBufferLength = 100;
+            Bass.PlaybackBufferLength = 20;
 
             // ensure there are no brief delays on audio operations (causing stream stalls etc.) after periods of silence.
             Bass.DeviceNonStop = true;
