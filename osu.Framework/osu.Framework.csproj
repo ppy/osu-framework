@@ -19,6 +19,7 @@
     <PackageTags>osu game framework</PackageTags>
   </PropertyGroup>
   <ItemGroup Label="Package References">
+  <PackageReference Include="NAudio" Version="2.1.0" />
     <PackageReference Include="BASS.ASIO" Version="1.3.1.2" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.3.0.1" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.11" />

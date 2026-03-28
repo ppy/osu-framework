@@ -273,7 +273,8 @@ namespace osu.Framework.Audio
             {
                 try
                 {
-                    audioBackend = new WasapiAudioBackend();
+                    // Pass a provider to allow the backend to read the current global mixer handle when available.
+                    audioBackend = new WasapiAudioBackend(() => GlobalMixerHandle.Value);
                 }
                 catch
                 {
