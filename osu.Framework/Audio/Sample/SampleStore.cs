@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.Bass;
+using osu.Framework.Audio.Mixing.Wasapi;
+using osu.Framework.Audio.Sample.Wasapi;
 using osu.Framework.IO.Stores;
 using osu.Framework.Statistics;
 
@@ -21,7 +23,7 @@ namespace osu.Framework.Audio.Sample
         private readonly ResourceStore<byte[]> store;
         private readonly AudioMixer mixer;
 
-        private readonly Dictionary<string, SampleBassFactory> factories = new Dictionary<string, SampleBassFactory>();
+        private readonly Dictionary<string, AdjustableAudioComponent> factories = new Dictionary<string, AdjustableAudioComponent>();
         private readonly LinkedList<string> lruOrder = new LinkedList<string>();
         private readonly Dictionary<string, LinkedListNode<string>> lruNodes = new Dictionary<string, LinkedListNode<string>>();
 
@@ -50,26 +52,50 @@ namespace osu.Framework.Audio.Sample
 
             lock (factories)
             {
-                if (!factories.TryGetValue(name, out SampleBassFactory factory))
+                if (!factories.TryGetValue(name, out AdjustableAudioComponent factoryComponent))
                 {
                     this.LogIfNonBackgroundThread(name);
 
                     byte[] data = store.Get(name);
-                    factory = factories[name] = data == null ? null : new SampleBassFactory(data, name, (BassAudioMixer)mixer) { PlaybackConcurrency = { Value = PlaybackConcurrency } };
 
-                    if (factory != null)
-                        AddItem(factory);
+                    if (mixer is WasapiAudioMixer wasapiMixer)
+                    {
+                        var wasapiFactory = data == null ? null : new SampleWasapiFactory(data, name, wasapiMixer) { PlaybackConcurrency = { Value = PlaybackConcurrency } };
+
+                        factories[name] = wasapiFactory;
+
+                        if (wasapiFactory != null)
+                            AddItem(wasapiFactory);
+
+                        // return wasapi sample
+                        return wasapiFactory?.CreateSample();
+                    }
+
+                    var bassFactory = data == null ? null : new SampleBassFactory(data, name, (BassAudioMixer)mixer) { PlaybackConcurrency = { Value = PlaybackConcurrency } };
+
+                    factories[name] = bassFactory;
+
+                    if (bassFactory != null)
+                        AddItem(bassFactory);
                 }
 
                 touchLRU(name);
                 evictIfNeeded();
 
-                return factory?.CreateSample();
+                // create sample from whichever factory type was stored
+                if (factories.TryGetValue(name, out var storedFactory))
+                {
+                    if (storedFactory is SampleBassFactory sbf)
+                        return sbf.CreateSample();
+                    if (storedFactory is SampleWasapiFactory swf)
+                        return swf.CreateSample();
+                }
+
+                return null;
             }
         }
 
-        public Task<Sample> GetAsync(string name, CancellationToken cancellationToken = default) =>
-            Task.Run(() => Get(name), cancellationToken);
+        public Task<Sample> GetAsync(string name, CancellationToken cancellationToken = default) => Task.Run(() => Get(name), cancellationToken);
 
         public void Invalidate(string name)
         {
@@ -112,13 +138,23 @@ namespace osu.Framework.Audio.Sample
                     continue;
                 }
 
-                if (factory != null && !factory.CanEvict)
+                if (factory != null)
                 {
-                    // Keep active samples around and try the next entry.
-                    lruOrder.RemoveLast();
-                    lruNodes[key] = lruOrder.AddFirst(key);
-                    attempts++;
-                    continue;
+                    bool canEvict = true;
+
+                    if (factory is SampleBassFactory sbf)
+                        canEvict = sbf.CanEvict;
+                    else if (factory is SampleWasapiFactory swf)
+                        canEvict = swf.CanEvict;
+
+                    if (!canEvict)
+                    {
+                        // Keep active samples around and try the next entry.
+                        lruOrder.RemoveLast();
+                        lruNodes[key] = lruOrder.AddFirst(key);
+                        attempts++;
+                        continue;
+                    }
                 }
 
                 factories.Remove(key);

@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Audio.Mixing;
+using osu.Framework.Audio.Mixing.Wasapi;
 using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Audio.Track
@@ -47,6 +48,15 @@ namespace osu.Framework.Audio.Track
             if (dataStream == null)
                 return null;
 
+            // If the mixer is a WasapiAudioMixer, create a Wasapi-backed track implementation.
+            if (mixer is WasapiAudioMixer wasapiMixer)
+            {
+                var trackWasapi = new TrackWasapi(dataStream, name, wasapiMixer.Backend);
+                mixer.Add(trackWasapi);
+                AddItem(trackWasapi);
+                return trackWasapi;
+            }
+
             TrackBass trackBass = new TrackBass(dataStream, name);
 
             mixer.Add(trackBass);
@@ -55,8 +65,7 @@ namespace osu.Framework.Audio.Track
             return trackBass;
         }
 
-        public Task<Track> GetAsync(string name, CancellationToken cancellationToken = default) =>
-            Task.Run(() => Get(name), cancellationToken);
+        public Task<Track> GetAsync(string name, CancellationToken cancellationToken = default) => Task.Run(() => Get(name), cancellationToken);
 
         public Stream GetStream(string name) => store.GetStream(name);
 

@@ -17,8 +17,10 @@ using osu.Framework.Audio.Asio;
 using osu.Framework.Audio.EzLatency;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.Bass;
+using osu.Framework.Audio.Mixing.Wasapi;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
+using osu.Framework.Audio.Wasapi;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
@@ -59,6 +61,9 @@ namespace osu.Framework.Audio
         /// The thread audio operations (mainly Bass calls) are ran on.
         /// </summary>
         private readonly AudioThread thread;
+
+        // Optional audio backend (non-null when using the new Windows WASAPI backend prototype).
+        private readonly IAudioBackend? audioBackend;
 
         /// <summary>
         /// The global mixer which all tracks are routed into by default.
@@ -263,6 +268,19 @@ namespace osu.Framework.Audio
         {
             thread = audioThread;
 
+            // Initialise optional WASAPI backend on Windows (prototype).
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows)
+            {
+                try
+                {
+                    audioBackend = new WasapiAudioBackend();
+                }
+                catch
+                {
+                    audioBackend = null;
+                }
+            }
+
             thread.RegisterManager(this);
 
             if (config != null)
@@ -414,9 +432,18 @@ namespace osu.Framework.Audio
 
         private AudioMixer createAudioMixer(AudioMixer fallbackMixer, string identifier)
         {
-            var mixer = new BassAudioMixer(this, fallbackMixer, identifier);
-            AddItem(mixer);
-            return mixer;
+            // Only use the experimental WASAPI mixer when the prototype backend exists
+            // and the user has explicitly enabled experimental WASAPI.
+            if (audioBackend != null && UseExperimentalWasapi.Value)
+            {
+                var wasapiMixer = new WasapiAudioMixer(audioBackend, fallbackMixer, identifier);
+                AddItem(wasapiMixer);
+                return wasapiMixer;
+            }
+
+            var bassMixer = new BassAudioMixer(this, fallbackMixer, identifier);
+            AddItem(bassMixer);
+            return bassMixer;
         }
 
         protected override void ItemAdded(AudioComponent item)
@@ -582,6 +609,29 @@ namespace osu.Framework.Audio
                     return false;
 
                 //we have successfully initialised a new device.
+                // Initialise optional audio backend (WASAPI prototype) with the selected device.
+                if (audioBackend != null)
+                {
+                    try
+                    {
+                        audioBackend.Initialize(deviceId);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log($"Audio backend failed to initialize: {ex}", name: "audio", level: LogLevel.Important);
+                    }
+                }
+
+                // Notify backend of device change so it can reconfigure if required.
+                try
+                {
+                    audioBackend?.UpdateDevice(deviceId);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"Audio backend UpdateDevice failed: {ex}", name: "audio", level: LogLevel.Important);
+                }
+
                 UpdateDevice(deviceId);
 
                 return true;
@@ -880,7 +930,9 @@ namespace osu.Framework.Audio
                 return;
 
             // Keep message actionable but non-intrusive (no UI popups).
-            Logger.Log($"ASIO output is unavailable because the native bassasio library could not be loaded ({e.GetType().Name}: {e.Message}). Ensure bassasio.dll is present alongside other BASS native libraries (typically in the x64/x86 subdirectories; the BASS.ASIO NuGet package will copy it automatically when referenced).", name: "audio", level: LogLevel.Error);
+            Logger.Log(
+                $"ASIO output is unavailable because the native bassasio library could not be loaded ({e.GetType().Name}: {e.Message}). Ensure bassasio.dll is present alongside other BASS native libraries (typically in the x64/x86 subdirectories; the BASS.ASIO NuGet package will copy it automatically when referenced).",
+                name: "audio", level: LogLevel.Error);
         }
 
         /// <summary>
