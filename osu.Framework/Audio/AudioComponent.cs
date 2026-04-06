@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Runtime.ExceptionServices;
+using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Development;
 using osu.Framework.Platform;
@@ -40,6 +41,7 @@ namespace osu.Framework.Audio
         {
             if (CanPerformInline)
             {
+                flushEnqueuedActions();
                 action();
                 return Task.CompletedTask;
             }
@@ -79,18 +81,40 @@ namespace osu.Framework.Audio
             FrameStatistics.Add(StatisticsCounterType.TasksRun, PendingActions.Count);
             FrameStatistics.Increment(StatisticsCounterType.Components);
 
-            while (!IsDisposed && PendingActions.TryDequeue(out Task task))
+            flushEnqueuedActions();
+
+            if (!IsDisposed)
+                UpdateState();
+
+            UpdateChildren();
+        }
+
+        private void flushEnqueuedActions()
+        {
+            // this early guard is important for avoiding allocs lower down
+            if (PendingActions.IsEmpty)
+                return;
+
+            // some enqueued actions will call other enqueued actions inside of them and expect them to be executed inline.
+            // this requires careful handling during the flush because there is a possibility of call reordering.
+            // example:
+            // - enqueued operation A => calls enqueued operation B
+            // - enqueued operation C
+            // expected call order is A => B => C, but the naive implementation will:
+            // - call A
+            // - inside A call it will trigger enqueue of B
+            // - but because B is expected to be inlined, the naive implementation would attempt to flush first, therefore inadvertently executing C before itself
+            // ending in an incorrect call order of A => C => B.
+            // to avoid this, completely consume / substitute the task queue such that B no longer sees C as enqueued.
+            var actions = Interlocked.Exchange(ref PendingActions, new ConcurrentQueue<Task>());
+
+            while (!IsDisposed && actions.TryDequeue(out Task task))
             {
                 task.RunSynchronously();
 
                 if (task.Exception != null)
                     ExceptionDispatchInfo.Throw(task.Exception);
             }
-
-            if (!IsDisposed)
-                UpdateState();
-
-            UpdateChildren();
         }
 
         /// <summary>
