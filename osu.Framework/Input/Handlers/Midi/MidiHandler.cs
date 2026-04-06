@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Commons.Music.Midi;
 using osu.Framework.Extensions;
@@ -26,6 +27,7 @@ namespace osu.Framework.Input.Handlers.Midi
         public override string Description => "MIDI";
         public override bool IsActive => inGoodState;
 
+        private const int lock_acquire_timeout = 100;
         private const int milliseconds_between_device_refresh = 1000;
 
         private bool inGoodState = true;
@@ -33,6 +35,7 @@ namespace osu.Framework.Input.Handlers.Midi
         private ScheduledDelegate scheduledRefreshDevices;
 
         private readonly Dictionary<string, IMidiInput> openedDevices = new Dictionary<string, IMidiInput>();
+        private readonly SemaphoreSlim openedDevicesLock = new SemaphoreSlim(1);
 
         /// <summary>
         /// The last event for each midi device. This is required for Running Status (repeat messages sent without
@@ -51,16 +54,16 @@ namespace osu.Framework.Input.Handlers.Midi
             {
                 if (e.NewValue)
                 {
-                    lastInitTask = Task.Run(() =>
+                    lastInitTask = Task.Run(async () =>
                     {
                         inGoodState = true;
 
                         // First call to this can be expensive (macOS / coremidi) so let's run it on a separate thread.
-                        if (!refreshDevices())
+                        if (!await refreshDevices().ConfigureAwait(false))
                             return;
 
                         host.InputThread.Scheduler.Add(
-                            scheduledRefreshDevices = new ScheduledDelegate(() => refreshDevices(), milliseconds_between_device_refresh, milliseconds_between_device_refresh));
+                            scheduledRefreshDevices = new ScheduledDelegate(() => Task.Run(refreshDevices), milliseconds_between_device_refresh, milliseconds_between_device_refresh));
                     });
                 }
                 else
@@ -69,57 +72,69 @@ namespace osu.Framework.Input.Handlers.Midi
 
                     scheduledRefreshDevices?.Cancel();
 
-                    lock (openedDevices)
+                    if (openedDevicesLock.Wait(lock_acquire_timeout))
                     {
-                        foreach (var device in openedDevices.Values)
-                            closeDevice(device);
+                        try
+                        {
+                            foreach (var device in openedDevices.Values)
+                                closeDevice(device);
 
-                        openedDevices.Clear();
+                            openedDevices.Clear();
+                        }
+                        finally
+                        {
+                            openedDevicesLock.Release(1);
+                        }
                     }
+                    else
+                        Logger.Log($"Failed to acquire {nameof(openedDevicesLock)} on MIDI disable request", LoggingTarget.Input);
                 }
             }, true);
 
             return true;
         }
 
-        private bool refreshDevices()
+        private async Task<bool> refreshDevices()
         {
+            if (!await openedDevicesLock.WaitAsync(lock_acquire_timeout).ConfigureAwait(false))
+            {
+                Logger.Log($"Failed to acquire {nameof(openedDevicesLock)} on MIDI refresh");
+                return false;
+            }
+
             try
             {
-                lock (openedDevices)
+                int accountedDevices = 0;
+
+                foreach (var device in MidiAccessManager.Default.Inputs)
                 {
-                    int accountedDevices = 0;
+                    accountedDevices++;
 
-                    foreach (var device in MidiAccessManager.Default.Inputs)
+                    if (openedDevices.ContainsKey(device.Id))
+                        continue;
+
+                    var newInput = await MidiAccessManager.Default.OpenInputAsync(device.Id).ConfigureAwait(false);
+                    newInput.MessageReceived += onMidiMessageReceived;
+                    openedDevices[device.Id] = newInput;
+
+                    Log($"Connected MIDI device: {newInput.Details.Name}");
+                }
+
+                if (accountedDevices != openedDevices.Count)
+                {
+                    // A device must have gone missing.
+                    // This loop is a bit expensive so only run when we have to.
+                    var inputs = MidiAccessManager.Default.Inputs.ToArray();
+
+                    foreach (string key in openedDevices.Keys.ToArray())
                     {
-                        accountedDevices++;
+                        var device = openedDevices[key];
 
-                        if (openedDevices.ContainsKey(device.Id))
-                            continue;
-
-                        var newInput = MidiAccessManager.Default.OpenInputAsync(device.Id).GetResultSafely();
-                        newInput.MessageReceived += onMidiMessageReceived;
-                        openedDevices[device.Id] = newInput;
-
-                        Log($"Connected MIDI device: {newInput.Details.Name}");
-                    }
-
-                    if (accountedDevices != openedDevices.Count)
-                    {
-                        // A device must have gone missing.
-                        // This loop is a bit expensive so only run when we have to.
-                        var inputs = MidiAccessManager.Default.Inputs.ToArray();
-
-                        foreach (string key in openedDevices.Keys.ToArray())
+                        if (inputs.All(i => i.Id != key))
                         {
-                            var device = openedDevices[key];
-
-                            if (inputs.All(i => i.Id != key))
-                            {
-                                closeDevice(device);
-                                openedDevices.Remove(key);
-                                Log($"Disconnected MIDI device: {device.Details.Name}");
-                            }
+                            closeDevice(device);
+                            openedDevices.Remove(key);
+                            Log($"Disconnected MIDI device: {device.Details.Name}");
                         }
                     }
                 }
@@ -138,6 +153,10 @@ namespace osu.Framework.Input.Handlers.Midi
                 inGoodState = false;
                 scheduledRefreshDevices?.Cancel();
                 return false;
+            }
+            finally
+            {
+                openedDevicesLock.Release(1);
             }
         }
 
