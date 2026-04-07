@@ -113,6 +113,8 @@ namespace osu.Framework.Input.Handlers.Midi
                     if (openedDevices.ContainsKey(device.Id))
                         continue;
 
+                    Log($"Attempting to connect MIDI device: {device.Name}");
+
                     var newInput = await MidiAccessManager.Default.OpenInputAsync(device.Id).ConfigureAwait(false);
                     newInput.MessageReceived += onMidiMessageReceived;
                     openedDevices[device.Id] = newInput;
@@ -147,7 +149,7 @@ namespace osu.Framework.Input.Handlers.Midi
                     ? "Is libasound2-dev installed?"
                     : "There may be another application already using MIDI.";
 
-                Log($"MIDI devices could not be enumerated. {message} ({e.Message})");
+                Log($"MIDI devices could not be enumerated. {message}\nException: {e}");
 
                 // stop attempting to refresh devices until next startup.
                 inGoodState = false;
