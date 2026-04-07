@@ -216,9 +216,9 @@ namespace osu.Framework.Audio.Sample
             if (!hasChannel)
                 return;
 
-            setLoopFlag(Looping);
-
             relativeFrequencyHandler.SetChannel(channel);
+
+            setLoopFlag(Looping);
         });
 
         #region Mixing
