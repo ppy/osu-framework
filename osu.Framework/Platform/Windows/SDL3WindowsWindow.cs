@@ -3,8 +3,10 @@
 
 using System;
 using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using osu.Framework.Allocation;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform.SDL3;
@@ -17,7 +19,7 @@ using static SDL.SDL3;
 namespace osu.Framework.Platform.Windows
 {
     [SupportedOSPlatform("windows")]
-    internal class SDL3WindowsWindow : SDL3DesktopWindow, IWindowsWindow
+    internal class SDL3WindowsWindow : SDL3DesktopWindow, IWindowsWindow, IHasTouchpadInput
     {
         private const int seticon_message = 0x0080;
         private const int icon_big = 1;
@@ -34,6 +36,10 @@ namespace osu.Framework.Platform.Windows
         /// </summary>
         private readonly bool applyBorderlessWindowHack;
 
+        private readonly WindowsRawInputManager rawInputManager;
+        private readonly WindowsTouchpadReader? touchpadReader;
+        public event Action<TouchpadData>? TouchpadDataUpdate;
+
         public SDL3WindowsWindow(GraphicsSurfaceType surfaceType, string appName)
             : base(surfaceType, appName)
         {
@@ -47,6 +53,15 @@ namespace osu.Framework.Platform.Windows
                 case GraphicsSurfaceType.Direct3D11:
                     applyBorderlessWindowHack = false;
                     break;
+            }
+
+            rawInputManager = new WindowsRawInputManager(WindowHandle);
+            touchpadReader = new WindowsTouchpadReader(rawInputManager);
+            touchpadReader.TouchpadDataUpdate += TouchpadDataUpdate;
+
+            unsafe
+            {
+                SDL_SetWindowsMessageHook(&windowsMessageHook, ObjectHandle.Handle);
             }
         }
 
@@ -69,6 +84,21 @@ namespace osu.Framework.Platform.Windows
             }
 
             return base.HandleEventFromFilter(e);
+        }
+
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+        private static unsafe SDLBool windowsMessageHook(IntPtr userdata, MSG* msg)
+        {
+            if (msg->message != Native.Input.WM_INPUT)
+                return true;
+
+            var handle = new ObjectHandle<SDL3WindowsWindow>(userdata);
+            if (!handle.GetTarget(out SDL3WindowsWindow window))
+                return true;
+
+            window.rawInputManager.ProcessWmInput(msg->lParam);
+
+            return true;
         }
 
         public Vector2? LastMousePosition { get; set; }
