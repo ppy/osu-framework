@@ -63,7 +63,8 @@ namespace osu.Framework.Audio
         private readonly AudioThread thread;
 
         // Optional audio backend (non-null when using the new Windows WASAPI backend prototype).
-        private readonly IAudioBackend? audioBackend;
+        [CanBeNull]
+        private readonly IAudioBackend audioBackend;
 
         /// <summary>
         /// The global mixer which all tracks are routed into by default.
@@ -508,7 +509,7 @@ namespace osu.Framework.Audio
             var (mode, deviceName) = parseSelection(AudioDevice.Value);
 
             bool isExplicitSelection = !string.IsNullOrEmpty(AudioDevice.Value);
-            bool isTypedSelection = hasTypeSuffix(AudioDevice.Value);
+            // bool isTypedSelection = hasTypeSuffix(AudioDevice.Value);
 
             // keep legacy setting and dropdown selection in sync.
             if (!syncingSelection)

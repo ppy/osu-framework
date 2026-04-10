@@ -1,14 +1,11 @@
 using System;
 using System.Diagnostics;
-using System.IO;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using ManagedBass;
 
 namespace osu.Framework.Audio.Wasapi
 {
-    using osu.Framework.Audio;
-
     /// <summary>
     /// WASAPI backend implementation using NAudio for actual output while still leveraging
     /// the framework's global BASS mixer for its timebase when available.
@@ -23,10 +20,10 @@ namespace osu.Framework.Audio.Wasapi
         private bool initialized;
 
         // NAudio playback objects for a simple sine test tone during verification.
-        private WaveOutEvent waveOut;
-        private SignalGenerator signalGenerator;
+        private WaveOutEvent? waveOut;
+        private SignalGenerator? signalGenerator;
 
-        public WasapiAudioBackend(Func<int?> globalMixerHandleProvider = null)
+        public WasapiAudioBackend(Func<int?>? globalMixerHandleProvider = null)
         {
             this.globalMixerHandleProvider = globalMixerHandleProvider ?? (() => null);
         }
@@ -65,11 +62,12 @@ namespace osu.Framework.Audio.Wasapi
         {
             try
             {
-                var handle = globalMixerHandleProvider?.Invoke();
+                int? handle = globalMixerHandleProvider.Invoke();
 
                 if (handle.HasValue && handle.Value != 0)
                 {
                     long pos = Bass.ChannelGetPosition(handle.Value);
+
                     if (pos != -1)
                     {
                         double secs = Bass.ChannelBytes2Seconds(handle.Value, pos);
