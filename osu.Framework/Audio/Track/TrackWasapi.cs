@@ -1,8 +1,10 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
 using System;
 using System.IO;
 using System.Threading.Tasks;
 using osu.Framework.Audio.EzLatency;
-using osu.Framework.Audio.Mixing;
 using osu.Framework.Extensions;
 
 namespace osu.Framework.Audio.Track
@@ -20,6 +22,7 @@ namespace osu.Framework.Audio.Track
 
         // device time at which playback was started
         private double playbackStartDeviceTimeSec;
+
         // offset into track (ms) when playback started
         private double playbackStartOffsetMs;
 
@@ -29,7 +32,7 @@ namespace osu.Framework.Audio.Track
         {
             get
             {
-                if (isRunning && backend != null)
+                if (isRunning)
                 {
                     double deviceNow = backend.GetDeviceTimeSeconds();
                     return playbackStartOffsetMs + (deviceNow - playbackStartDeviceTimeSec) * 1000.0;
@@ -49,7 +52,6 @@ namespace osu.Framework.Audio.Track
             // Length detection / decoding is not implemented in this prototype.
             Length = 0;
         }
-
 
         public override Task StartAsync() => EnqueueAction(() =>
         {

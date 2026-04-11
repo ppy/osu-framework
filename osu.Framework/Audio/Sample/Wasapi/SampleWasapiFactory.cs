@@ -1,3 +1,6 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
 using osu.Framework.Audio.Mixing.Wasapi;
 using osu.Framework.Bindables;
 
@@ -36,11 +39,6 @@ namespace osu.Framework.Audio.Sample.Wasapi
         private void onPlay(Sample sample)
         {
             AddItem(sample);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
         }
     }
 }

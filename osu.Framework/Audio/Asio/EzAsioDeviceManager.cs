@@ -61,11 +61,9 @@ namespace osu.Framework.Audio.Asio
             }
         }
 
-        public static int GetTargetSampleRate(double? sampleRate)
-            => sampleRate is > 0 ? (int)Math.Round(sampleRate.Value) : DEFAULT_SAMPLE_RATE;
+        public static int GetTargetSampleRate(double? sampleRate) => sampleRate is > 0 ? (int)Math.Round(sampleRate.Value) : DEFAULT_SAMPLE_RATE;
 
-        public static int GetTargetBufferSize(int? bufferSize)
-            => bufferSize is > 0 ? bufferSize.Value : DEFAULT_BUFFER_SIZE;
+        public static int GetTargetBufferSize(int? bufferSize) => bufferSize is > 0 ? bufferSize.Value : DEFAULT_BUFFER_SIZE;
 
         public static bool TryParseDeviceSelection(string selection, out string deviceName)
         {

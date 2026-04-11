@@ -1,10 +1,10 @@
-// Minimal Wasapi-based AudioMixer prototype.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using ManagedBass;
-using osu.Framework.Audio.Mixing;
-using osu.Framework.Audio;
 
 namespace osu.Framework.Audio.Mixing.Wasapi
 {
@@ -24,13 +24,22 @@ namespace osu.Framework.Audio.Mixing.Wasapi
             Backend = backend ?? throw new ArgumentNullException(nameof(backend));
         }
 
-        public override void AddEffect(IEffectParameter effect, int priority = 0) => EnqueueAction(() => { /* TODO: implement FX support */ });
+        public override void AddEffect(IEffectParameter effect, int priority = 0) => EnqueueAction(() =>
+        {
+            /* TODO: implement FX support */
+        });
 
-        public override void RemoveEffect(IEffectParameter effect) => EnqueueAction(() => { /* TODO */ });
+        public override void RemoveEffect(IEffectParameter effect) => EnqueueAction(() =>
+        {
+            /* TODO */
+        });
 
-        public override void UpdateEffect(IEffectParameter effect) => EnqueueAction(() => { /* TODO */ });
+        public override void UpdateEffect(IEffectParameter effect) => EnqueueAction(() =>
+        {
+            /* TODO */
+        });
 
-        protected override void AddInternal(IAudioChannel channel)
+        protected override void AddInternal(IAudioChannel? channel)
         {
             Debug.Assert(CanPerformInline);
 
@@ -44,11 +53,6 @@ namespace osu.Framework.Audio.Mixing.Wasapi
         {
             Debug.Assert(CanPerformInline);
             activeChannels.Remove(channel);
-        }
-
-        protected override void UpdateState()
-        {
-            base.UpdateState();
         }
     }
 }
