@@ -88,7 +88,7 @@ namespace osu.Framework.Audio.Sample
 
         protected override void UpdateState()
         {
-            if (hasChannel)
+            if (hasChannel && Mixer != null)
             {
                 switch (bassMixer.ChannelIsActive(this))
                 {
@@ -107,7 +107,7 @@ namespace osu.Framework.Audio.Sample
             }
             else
             {
-                // Channel doesn't exist - a rare case occurring as a result of device updates.
+                // Channel doesn't exist or mixer not yet assigned - a rare case occurring as a result of device updates or enqueue ordering.
                 playing = false;
             }
 
@@ -177,18 +177,21 @@ namespace osu.Framework.Audio.Sample
             // Bass will restart the sample if it has reached its end. This behavior isn't desirable so block locally.
             // Unlike TrackBass, sample channels can't have sync callbacks attached, so the stopped state is used instead
             // to indicate the natural stoppage of a sample as a result of having reaching the end.
-            if (Played && bassMixer.ChannelIsActive(this) == PlaybackState.Stopped)
+            if (Played && (Mixer == null || bassMixer.ChannelIsActive(this) == PlaybackState.Stopped))
                 return false;
 
             if (relativeFrequencyHandler.IsFrequencyZero)
                 return true;
+
+            if (Mixer == null)
+                return false;
 
             return bassMixer.ChannelPlay(this);
         }
 
         private void stopInternal()
         {
-            if (hasChannel)
+            if (hasChannel && Mixer != null)
                 bassMixer.ChannelPause(this);
         }
 
@@ -242,7 +245,9 @@ namespace osu.Framework.Audio.Sample
 
             if (hasChannel)
             {
-                bassMixer.StreamFree(this);
+                if (Mixer != null)
+                    bassMixer.StreamFree(this);
+
                 channel = 0;
             }
 
