@@ -61,7 +61,7 @@ namespace osu.Framework.Timing
 
         /// <summary>
         /// The underlying source clock's <see cref="IFrameBasedClock.CurrentTime"/> at the last processed frame.
-        /// Exposed for diagnostics only; prefer <see cref="CurrentTime"/> for gameplay.
+        /// Exposed for diagnostics only; prefer CurrentTime for gameplay.
         /// </summary>
         public double SourceCurrentTime => framedSourceClock.CurrentTime;
 
