@@ -122,5 +122,13 @@ namespace osu.Framework.Graphics.Audio
             mixer.OldValue?.Remove(track);
             mixer.NewValue?.Add(track);
         }
+
+        internal override void UnbindAllBindables()
+        {
+            base.UnbindAllBindables();
+
+            // Relying on disposal for this can cause delays before audio stops playing.
+            StopAsync();
+        }
     }
 }

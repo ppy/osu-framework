@@ -144,6 +144,9 @@ namespace osu.Framework.Graphics.Audio
 
             if (!disposeUnderlyingComponentOnDispose)
                 component?.UnbindAdjustments(adjustments);
+
+            // Running this as early as we can seems beneficial for the case a mixer is present.
+            refreshLayoutFromParent();
         }
 
         protected override void Dispose(bool isDisposing)
