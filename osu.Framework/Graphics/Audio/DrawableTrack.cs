@@ -7,6 +7,7 @@ using osu.Framework.Audio;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Graphics.Audio
 {
@@ -128,7 +129,7 @@ namespace osu.Framework.Graphics.Audio
             base.UnbindAllBindables();
 
             // Relying on disposal for this can cause delays before audio stops playing.
-            StopAsync();
+            StopAsync().ContinueWith(t => Logger.Log($"Failed to stop audio track on losing parent: {t.Exception}"), TaskContinuationOptions.OnlyOnFaulted);
         }
     }
 }
