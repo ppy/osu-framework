@@ -39,13 +39,13 @@ namespace osu.Framework.Tests.Audio
             AddStep("queue slow disposal", () => AsyncDisposalQueue.Enqueue(slowDispose = new SlowDisposer()));
 
             AddStep("start playing", () => track.Start());
-            AddUntilStep("wait for runnning", () => track.IsRunning, () => Is.True);
+            AddUntilStep("track is running", () => track.IsRunning, () => Is.True);
             AddStep("stop via expire", () => track.Expire());
-            AddUntilStep("wait for not runnning", () => track.IsRunning, () => Is.False);
+            AddUntilStep("track is not running", () => track.IsRunning, () => Is.False);
 
             AddAssert("track not disposed", () => track.IsDisposed, () => Is.False);
-            AddStep("unblock disposal", () => slowDispose.AllowDisposal());
-            AddUntilStep("track not disposed", () => track.IsDisposed, () => Is.True);
+            AddStep("unblock slow disposal", () => slowDispose.AllowDisposal());
+            AddUntilStep("track disposed", () => track.IsDisposed, () => Is.True);
         }
 
         private partial class SlowDisposer : Drawable
