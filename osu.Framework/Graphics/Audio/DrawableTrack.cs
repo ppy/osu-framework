@@ -124,9 +124,9 @@ namespace osu.Framework.Graphics.Audio
             mixer.NewValue?.Add(track);
         }
 
-        internal override void UnbindAllBindables()
+        internal override void OnParentLost()
         {
-            base.UnbindAllBindables();
+            base.OnParentLost();
 
             // Relying on disposal for this can cause delays before audio stops playing.
             StopAsync().ContinueWith(t => Logger.Log($"Failed to stop audio track on losing parent: {t.Exception}"), TaskContinuationOptions.OnlyOnFaulted);
