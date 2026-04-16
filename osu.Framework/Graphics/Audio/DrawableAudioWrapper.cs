@@ -104,7 +104,7 @@ namespace osu.Framework.Graphics.Audio
             IAggregateAudioAdjustment newAdjustments = null;
             IAudioMixer newMixer = null;
 
-            bool hadParent = Parent != null;
+            bool hasParent = Parent != null;
 
             while ((cursor = cursor.Parent) != null)
             {
@@ -133,7 +133,7 @@ namespace osu.Framework.Graphics.Audio
             if (parentMixer != newMixer)
                 OnMixerChanged(new ValueChangedEvent<IAudioMixer>(parentMixer, newMixer));
 
-            if (!hadParent)
+            if (!hasParent)
                 OnParentLost();
 
             parentMixer = newMixer;
