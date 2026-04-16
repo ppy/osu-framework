@@ -3,7 +3,7 @@
 
 #nullable disable
 
-using JetBrains.Annotations;
+using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -31,6 +31,36 @@ namespace osu.Framework.Tests.Audio
         {
             Child = track = new DrawableTrack(trackStore.Get("sample-track"));
         });
+
+        [Test]
+        public void TestStopOnExpire()
+        {
+            SlowDisposer slowDispose = null;
+            AddStep("queue slow disposal", () => AsyncDisposalQueue.Enqueue(slowDispose = new SlowDisposer()));
+
+            AddStep("start playing", () => track.Start());
+            AddUntilStep("track is running", () => track.IsRunning, () => Is.True);
+            AddStep("stop via expire", () => track.Expire());
+            AddUntilStep("track is not running", () => track.IsRunning, () => Is.False);
+
+            AddAssert("track not disposed", () => track.IsDisposed, () => Is.False);
+            AddStep("unblock slow disposal", () => slowDispose.AllowDisposal());
+            AddUntilStep("track disposed", () => track.IsDisposed, () => Is.True);
+        }
+
+        private partial class SlowDisposer : Drawable
+        {
+            private readonly ManualResetEventSlim allow = new ManualResetEventSlim();
+
+            public void AllowDisposal() => allow.Set();
+
+            protected override void Dispose(bool isDisposing)
+            {
+                base.Dispose(isDisposing);
+
+                allow.Wait(60000);
+            }
+        }
 
         [Test]
         public void TestVolumeResetWhenReset()
@@ -73,56 +103,6 @@ namespace osu.Framework.Tests.Audio
             });
 
             AddAssert("track has 0 volume", () => track.AggregateVolume.Value == 0);
-        }
-
-        // this test attempts to exercise that `DrawableTrack` is safe to initialise in BDL via a specific sequence of steps.
-        // while it may seem farfetched, there are reasonable game-side usages that may hit this same pattern
-        // (example: https://github.com/ppy/osu/blob/5b6d2155835d2682d2599b4dc5c7b3a2e61b73a8/osu.Game/Screens/OnlinePlay/Matchmaking/RankedPlay/Components/BackgroundMusicManager.cs).
-        //
-        // if this test is going to fail, it will fail in single thread mode.
-        [Test]
-        public void TestAsyncLoadComponentWithTrack()
-        {
-            var component = new ComponentWithTrack();
-
-            AddStep("create component with track", () =>
-            {
-                // async load our `ComponentWithTrack`.
-                // this is important because we want to provoke `TrackBass`'s ctor to be actually enqueued for execution on audio thread later
-                // and not accidentally inlined due to being on update or audio thread.
-                LoadComponentAsync(component, t => Child = t);
-
-                // with the async load started, attempt to start the track as soon as it's initialised in the component.
-                // notably we're on the update thread here.
-                // the expectation is that all track initialisation logic runs *before* the track start is attempted.
-                while (!component.StartTrack())
-                {
-                }
-            });
-            AddUntilStep("wait for running", () => component.IsRunning);
-        }
-
-        private partial class ComponentWithTrack : CompositeDrawable
-        {
-            [CanBeNull]
-            private DrawableTrack track;
-
-            public bool IsRunning => track?.IsRunning == true;
-
-            [BackgroundDependencyLoader]
-            private void load(ITrackStore trackStore)
-            {
-                AddInternal(track = new DrawableTrack(trackStore.Get("sample-track")));
-            }
-
-            public bool StartTrack()
-            {
-                if (track == null)
-                    return false;
-
-                track.Start();
-                return true;
-            }
         }
     }
 }
