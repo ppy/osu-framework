@@ -104,6 +104,21 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         KeyboardStep = 1,
                         Current = sliderBarValue
                     },
+                    new SpriteText
+                    {
+                        Text = "w/ WithDisplayRange:",
+                    },
+                    new BasicSliderBar<double>
+                    {
+                        Size = new Vector2(200, 10),
+                        BackgroundColour = Color4.White,
+                        SelectionColour = Color4.Pink,
+                        FocusColour = Color4.OrangeRed,
+                        KeyboardStep = 1,
+                        Current = sliderBarValue,
+                        MaxDisplayRange = 20,
+                        MinDisplayRange = 0
+                    }
                 }
             });
         }
