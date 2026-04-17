@@ -1352,6 +1352,11 @@ namespace osu.Framework.Platform
                     updateLimiter *= 2;
                     break;
 
+                case FrameSync.UVSync:
+                    drawLimiter = refreshRate;
+                    updateLimiter = refreshRate;
+                    break;
+
                 case FrameSync.Limit2x:
                     drawLimiter *= 2;
                     updateLimiter *= 2;
