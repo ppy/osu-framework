@@ -238,6 +238,9 @@ namespace osu.Framework.Graphics
                     return BlendingFactorSrc.OneMinusDstColor;
 
                 case BlendingType.OneMinusSrcAlpha:
+                    return BlendingFactorSrc.OneMinusSrcAlpha;
+
+                case BlendingType.OneMinusSrcColor:
                     return BlendingFactorSrc.OneMinusSrcColor;
 
                 case BlendingType.SrcAlpha:

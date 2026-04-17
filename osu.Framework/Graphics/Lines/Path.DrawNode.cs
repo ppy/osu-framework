@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.Lines
             private Vector2 pathOffset;
             private int treeVersion;
 
-            private IVertexBatch<PathVertex>? triangleBatch;
+            private IVertexBatch<PathVertex>? quadBatch;
 
             public PathDrawNode(Path source)
                 : base(source)
@@ -68,10 +68,10 @@ namespace osu.Framework.Graphics.Lines
                 if (segments.Count == 0 || pathShader == null || radius == 0f)
                     return;
 
-                // We multiply the size args by 3 such that the amount of vertices is a multiple of the amount of vertices
-                // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
+                // Size must be divisible by 4 such that the amount of vertices is a multiple of the amount of vertices
+                // per primitive (quads in this case). Otherwise overflowing the batch will result in wrong
                 // grouping of vertices into primitives.
-                triangleBatch ??= renderer.CreateLinearBatch<PathVertex>(9000, 10, PrimitiveTopology.Triangles);
+                quadBatch ??= renderer.CreateQuadBatch<PathVertex>(9000, 10);
 
                 renderer.PushLocalMatrix(DrawInfo.Matrix);
 
@@ -137,8 +137,10 @@ namespace osu.Framework.Graphics.Lines
                         // at this small angle curvature isn't noticeable, we can get away with straight-up connecting segment to the previous one.
                         if (thetaDiff < Math.PI / max_res)
                         {
-                            topLeft = prevSegment.TopRight;
-                            bottomLeft = prevSegment.BottomRight;
+                            if (pDot < 0f)
+                                topLeft = prevSegment.TopRight;
+                            else
+                                bottomLeft = prevSegment.BottomRight;
                         }
                         else
                         {
@@ -169,15 +171,12 @@ namespace osu.Framework.Graphics.Lines
 
             private void drawQuad(Vector2 topLeft, Vector2 topRight, Vector2 bottomLeft, Vector2 bottomRight, Vector2 start, Vector2 end)
             {
-                Debug.Assert(triangleBatch != null);
+                Debug.Assert(quadBatch != null);
 
-                triangleBatch.Add(new PathVertex(topLeft, start, end, radius, pathOffset));
-                triangleBatch.Add(new PathVertex(topRight, start, end, radius, pathOffset));
-                triangleBatch.Add(new PathVertex(bottomLeft, start, end, radius, pathOffset));
-
-                triangleBatch.Add(new PathVertex(bottomLeft, start, end, radius, pathOffset));
-                triangleBatch.Add(new PathVertex(topRight, start, end, radius, pathOffset));
-                triangleBatch.Add(new PathVertex(bottomRight, start, end, radius, pathOffset));
+                quadBatch.Add(new PathVertex(topLeft, start, end, radius, pathOffset));
+                quadBatch.Add(new PathVertex(topRight, start, end, radius, pathOffset));
+                quadBatch.Add(new PathVertex(bottomRight, start, end, radius, pathOffset));
+                quadBatch.Add(new PathVertex(bottomLeft, start, end, radius, pathOffset));
             }
 
             private void updateVertexBuffer()
@@ -250,7 +249,7 @@ namespace osu.Framework.Graphics.Lines
             {
                 base.Dispose(isDisposing);
 
-                triangleBatch?.Dispose();
+                quadBatch?.Dispose();
             }
 
             private enum SegmentStartLocation

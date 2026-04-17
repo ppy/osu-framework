@@ -35,7 +35,6 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         private ShaderDescription vertexShaderDescription;
         private ShaderDescription fragmentShaderDescription;
 
-        IReadOnlyDictionary<string, IUniform> IShader.Uniforms => throw new NotSupportedException();
         public int LayoutCount => uniformLayouts.Count + textureLayouts.Count;
 
         private readonly Dictionary<string, VeldridUniformLayout> uniformLayouts = new Dictionary<string, VeldridUniformLayout>();
@@ -84,8 +83,6 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             renderer.UnbindShader(this);
             IsBound = false;
         }
-
-        public Uniform<T> GetUniform<T>(string name) where T : unmanaged, IEquatable<T> => throw new NotSupportedException();
 
         public void BindUniformBlock(string blockName, IUniformBuffer buffer)
         {

@@ -273,6 +273,11 @@ namespace osu.Framework.Platform
         Point Position { get; }
 
         /// <summary>
+        /// Whether the current <see cref="Position"/> is accurate.
+        /// </summary>
+        bool PositionAccurate { get; }
+
+        /// <summary>
         /// The size of the window in scaled pixels (excluding any window decoration/border).
         /// </summary>
         Size Size { get; }

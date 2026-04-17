@@ -25,7 +25,7 @@ namespace osu.Framework.Lists
                 this.weakList = weakList;
 
                 currentItemIndex = weakList.listStart - 1; // The first MoveNext() should bring the iterator to the start
-                Current = default!;
+                Current = null!;
             }
 
             public bool MoveNext()
@@ -55,7 +55,7 @@ namespace osu.Framework.Lists
             public void Reset()
             {
                 currentItemIndex = weakList.listStart - 1;
-                Current = default!;
+                Current = null!;
             }
 
             public T Current { get; private set; }
@@ -64,7 +64,7 @@ namespace osu.Framework.Lists
 
             public void Dispose()
             {
-                Current = default!;
+                Current = null!;
             }
         }
     }

@@ -19,9 +19,9 @@
     <PackageTags>osu game framework</PackageTags>
   </PropertyGroup>
   <ItemGroup Label="Package References">
-    <PackageReference Include="managed-midi" Version="1.10.1" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.3.0.1" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.11" />
+    <PackageReference Include="ppy.managed-midi" Version="1.10.2" />
     <PackageReference Include="ppy.ManagedBass" Version="2022.1216.0" />
     <PackageReference Include="ppy.ManagedBass.Fx" Version="2022.1216.0" />
     <PackageReference Include="ppy.ManagedBass.Mix" Version="2022.1216.0" />
@@ -38,7 +38,7 @@
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.211" />
     <PackageReference Include="StbiSharp" Version="1.1.0" />
     <PackageReference Include="ppy.SDL2-CS" Version="1.0.741-alpha" />
-    <PackageReference Include="ppy.SDL3-CS" Version="2025.1205.0" />
+    <PackageReference Include="ppy.SDL3-CS" Version="2026.302.0" />
     <PackageReference Include="ppy.osu.Framework.SourceGeneration" Version="2025.1121.1" />
 
     <!-- DO NOT use ProjectReference for native packaging project.

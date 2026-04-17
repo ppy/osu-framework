@@ -69,6 +69,10 @@ namespace osu.Framework.Graphics.Transforms
         public TransformSequence<T> TransformTo<TValue>(string propertyOrFieldName, TValue newValue, double duration = 0, Easing easing = Easing.None) =>
             Append(o => o.TransformTo(propertyOrFieldName, newValue, duration, easing));
 
+        public TransformSequence<T> TransformTo<TValue, TEasing>(string propertyOrFieldName, TValue newValue, double duration, TEasing easing)
+            where TEasing : IEasingFunction
+            => Append(o => o.TransformTo(propertyOrFieldName, newValue, duration, easing));
+
         /// <summary>
         /// Adds an existing <see cref="Transform"/> operating on <see cref="origin"/> to this <see cref="TransformSequence{T}"/>.
         /// </summary>

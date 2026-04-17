@@ -74,7 +74,7 @@ namespace osu.Framework.Allocation
         private TModel createChildShadowModel()
         {
             var result = new TModel();
-            updateShadowModel(result, default, shadowModel);
+            updateShadowModel(result, null, shadowModel);
             return result;
         }
 

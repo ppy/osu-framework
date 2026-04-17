@@ -1,12 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
 namespace osu.Framework.SourceGeneration.Generators.Dependencies.Data
 {
-    public readonly struct ResolvedAttributeData
+    public readonly struct ResolvedAttributeData : IEquatable<ResolvedAttributeData>
     {
         public readonly string GlobalPrefixedTypeName;
         public readonly string PropertyName;
@@ -50,6 +51,33 @@ namespace osu.Framework.SourceGeneration.Generators.Dependencies.Data
             canBeNull |= symbol.NullableAnnotation == NullableAnnotation.Annotated;
 
             return new ResolvedAttributeData(SyntaxHelpers.GetGlobalPrefixedTypeName(symbol.Type)!, symbol.Name, globalPrefixedParentTypeName, name, canBeNull);
+        }
+
+        public bool Equals(ResolvedAttributeData other)
+        {
+            return GlobalPrefixedTypeName == other.GlobalPrefixedTypeName
+                   && PropertyName == other.PropertyName
+                   && GlobalPrefixedParentTypeName == other.GlobalPrefixedParentTypeName
+                   && CachedName == other.CachedName
+                   && CanBeNull == other.CanBeNull;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is ResolvedAttributeData other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = GlobalPrefixedTypeName.GetHashCode();
+                hashCode = (hashCode * 397) ^ PropertyName.GetHashCode();
+                hashCode = (hashCode * 397) ^ (GlobalPrefixedParentTypeName != null ? GlobalPrefixedParentTypeName.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (CachedName != null ? CachedName.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ CanBeNull.GetHashCode();
+                return hashCode;
+            }
         }
     }
 }

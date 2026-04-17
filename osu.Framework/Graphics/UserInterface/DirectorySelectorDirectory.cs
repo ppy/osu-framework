@@ -9,6 +9,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Input.Events;
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -20,7 +21,7 @@ namespace osu.Framework.Graphics.UserInterface
         [Resolved]
         private Bindable<DirectoryInfo> currentDirectory { get; set; }
 
-        protected DirectorySelectorDirectory(DirectoryInfo directory, string displayName = null)
+        protected DirectorySelectorDirectory(DirectoryInfo directory, LocalisableString? displayName = null)
             : base(displayName)
         {
             Directory = directory;

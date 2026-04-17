@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
             => new DummyShaderPart();
 
         protected override IShader CreateShader(string name, IShaderPart[] parts, ShaderCompilationStore compilationStore)
-            => new DummyShader(this);
+            => new DummyShader();
 
         protected override IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology topology)
             => new DummyVertexBatch<TVertex>();

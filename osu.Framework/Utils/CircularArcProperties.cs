@@ -41,10 +41,10 @@ namespace osu.Framework.Utils
             if (Precision.AlmostEquals(0, (b.Y - a.Y) * (c.X - a.X) - (b.X - a.X) * (c.Y - a.Y)))
             {
                 IsValid = false;
-                ThetaStart = default;
-                ThetaRange = default;
-                Direction = default;
-                Radius = default;
+                ThetaStart = 0;
+                ThetaRange = 0;
+                Direction = 0;
+                Radius = 0;
                 Centre = default;
                 return;
             }
