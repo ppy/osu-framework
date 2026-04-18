@@ -19,10 +19,10 @@
     <PackageTags>osu game framework</PackageTags>
   </PropertyGroup>
   <ItemGroup Label="Package References">
-  <PackageReference Include="NAudio" Version="2.1.0" />
+  <PackageReference Include="NAudio" Version="2.3.0" />
     <PackageReference Include="BASS.ASIO" Version="1.3.1.2" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.3.0.1" />
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.11" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="10.0.6" />
     <PackageReference Include="ppy.managed-midi" Version="1.10.2" />
     <PackageReference Include="ManagedBass" Version="4.0.2" />
     <PackageReference Include="ManagedBass.Fx" Version="4.0.2" />
@@ -37,11 +37,11 @@
     <PackageReference Include="NUnit" Version="3.13.3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OpenTabletDriver" Version="0.6.6.2" />
-    <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.211" />
     <PackageReference Include="StbiSharp" Version="1.1.0" />
     <PackageReference Include="ppy.SDL2-CS" Version="1.0.741-alpha" />
-    <PackageReference Include="ppy.SDL3-CS" Version="2026.302.0" />
+    <PackageReference Include="ppy.SDL3-CS" Version="2026.320.0" />
     <PackageReference Include="ppy.osu.Framework.SourceGeneration" Version="2025.1121.1" />
 
     <!-- DO NOT use ProjectReference for native packaging project.
@@ -50,7 +50,7 @@
 
     <!-- Any version ahead of this will cause AOT issues with iOS
          See https://github.com/mono/mono/issues/21188 -->
-    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="2.0.161401" />
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="3.1.512801" />
 
     <!-- Any version ahead of this will cause runtime issues on iOS
          See https://github.com/xoofx/markdig/issues/564 -->
