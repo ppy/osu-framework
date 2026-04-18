@@ -59,10 +59,6 @@ namespace osu.Framework.Timing
         /// </summary>
         public double Drift => CurrentTime - framedSourceClock.CurrentTime;
 
-        /// <summary>
-        /// The underlying source clock's <see cref="IFrameBasedClock.CurrentTime"/> at the last processed frame.
-        /// Exposed for diagnostics only; prefer CurrentTime for gameplay.
-        /// </summary>
         public double SourceCurrentTime => framedSourceClock.CurrentTime;
 
         public double Rate => framedSourceClock.Rate;
