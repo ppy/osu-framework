@@ -289,7 +289,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!MenuItems.Any())
                 return;
 
-            var dropdownMenuItems = MenuItems.ToList();
+            var dropdownMenuItems = Menu.VisibleMenuItems.Select(item => (DropdownMenuItem<T>)item.Item).ToList();
 
             switch (action)
             {
@@ -505,7 +505,7 @@ namespace osu.Framework.Graphics.UserInterface
                     PreselectItem(null);
             }
 
-            protected internal IEnumerable<DrawableDropdownMenuItem> VisibleMenuItems => Children.OfType<DrawableDropdownMenuItem>().Where(i => i.MatchingFilter);
+            protected internal IEnumerable<DrawableDropdownMenuItem> VisibleMenuItems => Children.OrderBy(itemsFlow.GetLayoutPosition).OfType<DrawableDropdownMenuItem>().Where(i => i.MatchingFilter);
             protected internal IEnumerable<DrawableDropdownMenuItem> MenuItemsInView => VisibleMenuItems.Where(item => !item.IsMaskedAway);
 
             public DrawableDropdownMenuItem PreselectedItem => VisibleMenuItems.FirstOrDefault(c => c.IsPreSelected)
