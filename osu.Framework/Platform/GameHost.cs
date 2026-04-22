@@ -1371,6 +1371,11 @@ namespace osu.Framework.Platform
                     drawLimiter = int.MaxValue;
                     updateLimiter = int.MaxValue;
                     break;
+
+                case FrameSync.Custom:
+                    drawLimiter = Config.GetBindable<int>(FrameworkSetting.CustomDrawLimit).Value;
+                    updateLimiter = int.MaxValue;
+                    break;
             }
 
             if (!AllowBenchmarkUnlimitedFrames)
