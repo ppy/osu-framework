@@ -44,6 +44,8 @@ namespace osu.Framework.Input.Bindings
 
         private readonly List<T> pressedActions = new List<T>();
 
+        private readonly HashSet<InputKey> bindingInitiatingKeys = new HashSet<InputKey>();
+
         /// <summary>
         /// All actions in a currently pressed state.
         /// </summary>
@@ -265,6 +267,12 @@ namespace osu.Framework.Input.Bindings
 
                 if (handledBy != null)
                 {
+                    foreach (var key in newBinding.KeyCombination.Keys)
+                    {
+                        if (!KeyCombination.IsModifierKey(key))
+                            bindingInitiatingKeys.Add(key);
+                    }
+
                     // only drawables up to the one that handled the press should handle the release, so remove all subsequent drawables from the queue (for future use).
                     int count = inputQueue.IndexOf(handledBy) + 1;
                     inputQueue.RemoveRange(count, inputQueue.Count - count);
