@@ -359,6 +359,7 @@ namespace osu.Framework.Input.Bindings
         private void handleNewReleased(InputState state, InputKey releasedKey)
         {
             pressedInputKeys.Remove(releasedKey);
+            bindingInitiatingKeys.Remove(releasedKey);
 
             if (pressedBindings.Count == 0)
                 return;
