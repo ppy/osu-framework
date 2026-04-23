@@ -226,6 +226,11 @@ namespace osu.Framework.Input.Bindings
                     if (pressedBindings.Contains(binding))
                         continue;
 
+                    // Don't allow a binding to fire if any of its non-modifier keys were
+                    // already consumed by a previous binding that hasn't been fully released yet.
+                    if (binding.KeyCombination.Keys.Any(key => !KeyCombination.IsModifierKey(key) && bindingInitiatingKeys.Contains(key)))
+                        continue;
+
                     if (binding.KeyCombination.IsPressed(pressedCombination, state, matchingMode))
                         newlyPressed.Add(binding);
                 }
