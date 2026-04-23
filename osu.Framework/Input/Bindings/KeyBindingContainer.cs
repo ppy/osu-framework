@@ -272,10 +272,13 @@ namespace osu.Framework.Input.Bindings
 
                 if (handledBy != null)
                 {
-                    foreach (var key in newBinding.KeyCombination.Keys)
+                    if (newBinding.KeyCombination.Keys.Any(KeyCombination.IsModifierKey))
                     {
-                        if (!KeyCombination.IsModifierKey(key))
-                            bindingInitiatingKeys.Add(key);
+                        foreach (var key in newBinding.KeyCombination.Keys)
+                        {
+                            if (!KeyCombination.IsModifierKey(key))
+                                bindingInitiatingKeys.Add(key);
+                        }
                     }
 
                     // only drawables up to the one that handled the press should handle the release, so remove all subsequent drawables from the queue (for future use).
