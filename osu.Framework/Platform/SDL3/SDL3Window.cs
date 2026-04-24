@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -53,6 +54,8 @@ namespace osu.Framework.Platform.SDL3
         private const int default_height = 768;
 
         private const int default_icon_size = 256;
+
+        private static int sdl_quit_invoked;
 
         /// <summary>
         /// Scheduler for actions to run before the next event loop.
@@ -268,7 +271,40 @@ namespace osu.Framework.Platform.SDL3
 
             Exited?.Invoke();
             Close();
-            SDL_Quit();
+            quitSDL();
+        }
+
+        private static void quitSDL()
+        {
+            if (Interlocked.Exchange(ref sdl_quit_invoked, 1) != 0)
+                return;
+
+            if (!OperatingSystem.IsWindows())
+            {
+                SDL_Quit();
+                return;
+            }
+
+            var quitThread = new Thread(() =>
+            {
+                try
+                {
+                    SDL_Quit();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, "SDL_Quit failed during shutdown.");
+                }
+            })
+            {
+                Name = $"{nameof(SDL3Window)} SDL_Quit",
+                IsBackground = true,
+            };
+
+            quitThread.Start();
+
+            if (!quitThread.Join(2000))
+                Logger.Log("SDL_Quit did not complete within 2000ms; continuing shutdown.", LoggingTarget.Runtime, LogLevel.Important);
         }
 
         /// <summary>
@@ -700,7 +736,7 @@ namespace osu.Framework.Platform.SDL3
         public void Dispose()
         {
             Close();
-            SDL_Quit();
+            quitSDL();
 
             ObjectHandle.Dispose();
         }
