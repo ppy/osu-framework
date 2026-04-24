@@ -379,13 +379,14 @@ namespace osu.Framework.Audio
         /// <param name="device">The device to initialise.</param>
         protected virtual bool InitBass(int device)
         {
-            if (int.TryParse(Environment.GetEnvironmentVariable("OSU_BASS_CONFIG_DEV_PERIOD"), out int devPeriod))
+            int devicePeriod = 0;
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux && int.TryParse(Environment.GetEnvironmentVariable("OSU_TEMP_TESTING_BASS_CONFIG_DEV_PERIOD"), out devicePeriod))
             {
-                Logger.Log("Environment variable for audio detected, in case of audio issues unset it.", level: LogLevel.Important);
+                Logger.Log("Experimental environment variable for setting audio latency detected, in case of issues unset it.", level: LogLevel.Important);
                 // Device period normally is in milliseconds, but it might be set to a negative
                 // value too for an exact sample size, e.g. -256 for 256 samples.
                 // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_PERIOD.html
-                Bass.Configure(ManagedBass.Configuration.DevicePeriod, devPeriod);
+                Bass.Configure(ManagedBass.Configuration.DevicePeriod, devicePeriod);
                 // 1ms is definitely too low, but we're setting such low number on purpose,
                 // in order for BASS to automatically set it to twice the length of BASS_CONFIG_DEV_PERIOD,
                 // This behaviour is documented.
@@ -459,7 +460,7 @@ namespace osu.Framework.Audio
                           BASS MIX version:       {BassMix.Version}
                           Device:                 {deviceInfo.Name}
                           Driver:                 {deviceInfo.Driver}
-                          Device period length:   {devPeriod}
+                          Device period length:   {devicePeriod}
                           Device buffer length:   {Bass.DeviceBufferLength} ms
                           Update period:          {Bass.UpdatePeriod} ms
                           Playback buffer length: {Bass.PlaybackBufferLength} ms");
