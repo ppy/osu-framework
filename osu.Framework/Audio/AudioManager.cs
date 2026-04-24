@@ -69,7 +69,7 @@ namespace osu.Framework.Audio
         public readonly AudioMixer SampleMixer;
 
         /// <summary>
-        /// The names of all available audio devices.
+        /// All available audio device names along with their driver names.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -80,7 +80,7 @@ namespace osu.Framework.Audio
         /// Consumers should provide a "Default" audio device entry which sets <see cref="AudioDevice"/> to an empty string.
         /// </para>
         /// </remarks>
-        public IEnumerable<string> AudioDeviceNames => audioDeviceNames;
+        public IEnumerable<(string Name, string Driver)> AudioDeviceNames => audioDeviceNames;
 
         /// <summary>
         /// Is fired whenever a new audio device is discovered and provides its name.
@@ -153,7 +153,7 @@ namespace osu.Framework.Audio
 
         // Mutated by multiple threads, must be thread safe.
         private ImmutableArray<DeviceInfo> audioDevices = ImmutableArray<DeviceInfo>.Empty;
-        private ImmutableList<string> audioDeviceNames = ImmutableList<string>.Empty;
+        private ImmutableList<(string Name, string Driver)> audioDeviceNames = ImmutableList<(string Name, string Driver)>.Empty;
 
         private Scheduler scheduler => thread.Scheduler;
 
@@ -335,7 +335,7 @@ namespace osu.Framework.Audio
             string deviceName = AudioDevice.Value;
 
             // try using the specified device
-            int deviceIndex = audioDeviceNames.FindIndex(d => d == deviceName);
+            int deviceIndex = audioDeviceNames.FindIndex(d => d.Name == deviceName);
             if (deviceIndex >= 0 && trySetDevice(BASS_INTERNAL_DEVICE_COUNT + deviceIndex)) return;
 
             // try using the system default if there is any device present.
@@ -459,7 +459,10 @@ namespace osu.Framework.Audio
             Trace.Assert(audioDevices.Length >= BASS_INTERNAL_DEVICE_COUNT, "Bass did not provide any audio devices.");
 
             var oldDeviceNames = audioDeviceNames;
-            var newDeviceNames = audioDeviceNames = audioDevices.Skip(BASS_INTERNAL_DEVICE_COUNT).Where(d => d.IsEnabled).Select(d => d.Name).ToImmutableList();
+            var newDeviceNames = audioDeviceNames = audioDevices.Skip(BASS_INTERNAL_DEVICE_COUNT)
+                .Where(d => d.IsEnabled)
+                .Select(d => (d.Name, d.Driver))
+                .ToImmutableList();
 
             scheduler.Add(() =>
             {
@@ -477,9 +480,9 @@ namespace osu.Framework.Audio
             {
                 eventScheduler.Add(delegate
                 {
-                    foreach (string d in newDevices)
+                    foreach (string d in newDevices.Select(d => d.Name))
                         OnNewDevice?.Invoke(d);
-                    foreach (string d in lostDevices)
+                    foreach (string d in lostDevices.Select(d => d.Name))
                         OnLostDevice?.Invoke(d);
                 });
             }
