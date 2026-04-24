@@ -370,6 +370,38 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Test]
+        public void TestHeldNonModifierKeyDoesNotRetriggerAfterModifierRelease()
+        {
+            List<TestAction> pressedActions = new List<TestAction>();
+
+            AddStep("add container", () =>
+            {
+                pressedActions.Clear();
+                Child = new TestKeyBindingContainer(matchingMode: KeyCombinationMatchingMode.Modifiers)
+                {
+                    Child = new TestKeyBindingReceptor
+                    {
+                        Pressed = pressedActions.Add,
+                    }
+                };
+            });
+
+            AddStep("press ctrl+A", () =>
+            {
+                InputManager.PressKey(Key.LControl);
+                InputManager.PressKey(Key.A);
+            });
+
+            AddStep("release ctrl", () => InputManager.ReleaseKey(Key.LControl));
+            AddStep("press enter", () => InputManager.PressKey(Key.Enter));
+
+            AddAssert("ActionA never triggered", () => pressedActions.Contains(TestAction.ActionA), () => Is.False);
+
+            AddStep("release A", () => InputManager.ReleaseKey(Key.A));
+            AddStep("release enter", () => InputManager.ReleaseKey(Key.Enter));
+        }
+
+        [Test]
         public void TestPrioritisedNonPositionalInput([Values] bool prioritised)
         {
             bool containerReceivedInput = false;
@@ -491,8 +523,9 @@ namespace osu.Framework.Tests.Visual.Input
 
             public Func<TestAction, bool>? Pressed;
 
-            public TestKeyBindingContainer(bool prioritised = false, SimultaneousBindingMode mode = SimultaneousBindingMode.None)
-                : base(mode)
+            public TestKeyBindingContainer(bool prioritised = false, SimultaneousBindingMode mode = SimultaneousBindingMode.None,
+                               KeyCombinationMatchingMode matchingMode = KeyCombinationMatchingMode.Any)
+                : base(mode, matchingMode)
             {
                 Prioritised = prioritised;
             }
@@ -501,6 +534,7 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 new KeyBinding(InputKey.A, TestAction.ActionA),
                 new KeyBinding(new KeyCombination(InputKey.A, InputKey.B), TestAction.ActionAb),
+                new KeyBinding(new KeyCombination(InputKey.Control, InputKey.A), TestAction.ActionControlA),
                 new KeyBinding(InputKey.Enter, TestAction.ActionEnter),
                 new KeyBinding(InputKey.Control, TestAction.ActionControl),
                 new KeyBinding(InputKey.ExtraMouseButton4, TestAction.ActionMouse4),
@@ -530,6 +564,7 @@ namespace osu.Framework.Tests.Visual.Input
         {
             ActionA,
             ActionAb,
+            ActionControlA,
             ActionEnter,
             ActionControl,
             ActionMouse4,
