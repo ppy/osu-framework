@@ -379,11 +379,28 @@ namespace osu.Framework.Audio
         /// <param name="device">The device to initialise.</param>
         protected virtual bool InitBass(int device)
         {
-            // this likely doesn't help us but also doesn't seem to cause any issues or any cpu increase.
-            Bass.UpdatePeriod = 5;
+            int devicePeriod = 0;
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux && int.TryParse(Environment.GetEnvironmentVariable("OSU_TEMP_TESTING_BASS_CONFIG_DEV_PERIOD"), out devicePeriod))
+            {
+                Logger.Log("Experimental environment variable for setting audio latency detected, in case of issues unset it.", level: LogLevel.Important);
+                // Device period normally is in milliseconds, but it might be set to a negative
+                // value too for an exact sample size, e.g. -256 for 256 samples.
+                // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_PERIOD.html
+                Bass.Configure(ManagedBass.Configuration.DevicePeriod, devicePeriod);
+                // 1ms is definitely too low, but we're setting such low number on purpose,
+                // in order for BASS to automatically set it to twice the length of BASS_CONFIG_DEV_PERIOD,
+                // This behaviour is documented.
+                // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_BUFFER.html
+                Bass.DeviceBufferLength = 1;
+            }
+            else
+            {
+                // reduce latency to a known sane minimum.
+                Bass.DeviceBufferLength = 10;
+            }
 
-            // reduce latency to a known sane minimum.
-            Bass.DeviceBufferLength = 10;
+            // These two likely don't have any effect because we set StreamSystem.NoBuffer on audio streams.
+            Bass.UpdatePeriod = 5;
             Bass.PlaybackBufferLength = 100;
 
             // ensure there are no brief delays on audio operations (causing stream stalls etc.) after periods of silence.
@@ -443,8 +460,9 @@ namespace osu.Framework.Audio
                           BASS MIX version:       {BassMix.Version}
                           Device:                 {deviceInfo.Name}
                           Driver:                 {deviceInfo.Driver}
-                          Update period:          {Bass.UpdatePeriod} ms
+                          Device period length:   {devicePeriod}
                           Device buffer length:   {Bass.DeviceBufferLength} ms
+                          Update period:          {Bass.UpdatePeriod} ms
                           Playback buffer length: {Bass.PlaybackBufferLength} ms");
 
                 return true;
