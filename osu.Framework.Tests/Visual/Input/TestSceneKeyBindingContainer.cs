@@ -491,8 +491,9 @@ namespace osu.Framework.Tests.Visual.Input
 
             public Func<TestAction, bool>? Pressed;
 
-            public TestKeyBindingContainer(bool prioritised = false, SimultaneousBindingMode mode = SimultaneousBindingMode.None)
-                : base(mode)
+            public TestKeyBindingContainer(bool prioritised = false, SimultaneousBindingMode mode = SimultaneousBindingMode.None,
+                                            KeyCombinationMatchingMode matchingMode = KeyCombinationMatchingMode.Any)
+                : base(mode, matchingMode)
             {
                 Prioritised = prioritised;
             }
