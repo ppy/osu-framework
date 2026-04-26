@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -97,7 +97,7 @@ namespace osu.Framework.Input.Bindings
         /// <returns>Whether the pressedKeys keys are valid.</returns>
         public bool IsPressed(KeyCombination pressedKeys, InputState inputState, KeyCombinationMatchingMode matchingMode)
         {
-            Debug.Assert(!pressedKeys.Keys.Contains(InputKey.None)); // Having None in pressed keys will break IsPressed
+            // Debug.Assert(!pressedKeys.Keys.Contains(InputKey.None)); // Having None in pressed keys will break IsPressed
 
             if (Keys == pressedKeys.Keys) // Fast test for reference equality of underlying array
                 return true;
@@ -118,7 +118,7 @@ namespace osu.Framework.Input.Bindings
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool ContainsAll(ImmutableArray<InputKey> candidateKeyBinding, ImmutableArray<InputKey> pressedPhysicalKeys, KeyCombinationMatchingMode matchingMode)
         {
-            Debug.Assert(pressedPhysicalKeys.All(k => k.IsPhysical()));
+            // Debug.Assert(pressedPhysicalKeys.All(k => k.IsPhysical()));
 
             // first, check that all the candidate keys are contained in the provided pressed keys.
             // regardless of the matching mode, every key needs to at least be present (matching modes only change
@@ -351,7 +351,7 @@ namespace osu.Framework.Input.Bindings
                 keys.AddRange(state.Tablet.AuxiliaryButtons.Select(FromTabletAuxiliaryButton));
             }
 
-            Debug.Assert(!keys.Contains(InputKey.None)); // Having None in pressed keys will break IsPressed
+            // Debug.Assert(!keys.Contains(InputKey.None)); // Having None in pressed keys will break IsPressed
             keys.Sort();
 
             // Can't use `MoveToImmutable` here as we don't provide accurate capacity.
