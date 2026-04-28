@@ -379,10 +379,11 @@ namespace osu.Framework.Audio
         /// <param name="device">The device to initialise.</param>
         protected virtual bool InitBass(int device)
         {
-            int devicePeriod = 0;
-            if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux && int.TryParse(Environment.GetEnvironmentVariable("OSU_TEMP_TESTING_BASS_CONFIG_DEV_PERIOD"), out devicePeriod))
+            if (int.TryParse(Environment.GetEnvironmentVariable("OSU_TEMP_TESTING_BASS_CONFIG_DEV_PERIOD"), out int devicePeriod))
             {
-                Logger.Log($"Device period is set to \"{devicePeriod}\" via environment variable for testing purposes.\n\nThis is made available for testing so we can gather feedback on how to incorporate as a permanent game setting. Incorrect settings may lead to serious issues.", level: LogLevel.Important);
+                Logger.Log(
+                    $"Device period is set to \"{devicePeriod}\" via environment variable for testing purposes.\n\nThis is made available for testing so we can gather feedback on how to incorporate as a permanent game setting. Incorrect settings may lead to serious issues.",
+                    level: LogLevel.Important);
 
                 // Device period normally is in milliseconds, but it might be set to a negative
                 // value too for an exact sample size, e.g. -256 for 256 samples.
