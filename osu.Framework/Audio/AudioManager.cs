@@ -382,15 +382,17 @@ namespace osu.Framework.Audio
             int devicePeriod = 0;
             if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux && int.TryParse(Environment.GetEnvironmentVariable("OSU_TEMP_TESTING_BASS_CONFIG_DEV_PERIOD"), out devicePeriod))
             {
-                Logger.Log("Experimental environment variable for setting audio latency detected, in case of issues unset it.", level: LogLevel.Important);
+                Logger.Log($"Device period is set to \"{devicePeriod}\" via environment variable for testing purposes.\n\nThis is made available for testing so we can gather feedback on how to incorporate as a permanent game setting. Incorrect settings may lead to serious issues.", level: LogLevel.Important);
+
                 // Device period normally is in milliseconds, but it might be set to a negative
                 // value too for an exact sample size, e.g. -256 for 256 samples.
                 // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_PERIOD.html
                 Bass.Configure(ManagedBass.Configuration.DevicePeriod, devicePeriod);
+
                 // 1ms is definitely too low, but we're setting such low number on purpose,
-                // in order for BASS to automatically set it to twice the length of BASS_CONFIG_DEV_PERIOD,
-                // This behaviour is documented.
-                // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_BUFFER.html
+                // in order for BASS to automatically set it to twice the length of BASS_CONFIG_DEV_PERIOD.
+                //
+                // See https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_BUFFER.html
                 Bass.DeviceBufferLength = 1;
             }
             else
