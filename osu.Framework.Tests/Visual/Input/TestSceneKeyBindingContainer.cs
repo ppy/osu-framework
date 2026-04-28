@@ -392,9 +392,12 @@ namespace osu.Framework.Tests.Visual.Input
                 InputManager.PressKey(Key.A);
             });
 
-            AddStep("release ctrl", () => InputManager.ReleaseKey(Key.LControl));
-            AddStep("press enter", () => InputManager.PressKey(Key.Enter));
+            AddAssert("ActionControlA triggered", () => pressedActions.Contains(TestAction.ActionControlA), () => Is.True);
 
+            AddStep("release ctrl", () => InputManager.ReleaseKey(Key.LControl));
+            AddAssert("ActionA never triggered", () => pressedActions.Contains(TestAction.ActionA), () => Is.False);
+
+            AddStep("press enter", () => InputManager.PressKey(Key.Enter));
             AddAssert("ActionA never triggered", () => pressedActions.Contains(TestAction.ActionA), () => Is.False);
 
             AddStep("release A", () => InputManager.ReleaseKey(Key.A));
@@ -524,7 +527,7 @@ namespace osu.Framework.Tests.Visual.Input
             public Func<TestAction, bool>? Pressed;
 
             public TestKeyBindingContainer(bool prioritised = false, SimultaneousBindingMode mode = SimultaneousBindingMode.None,
-                               KeyCombinationMatchingMode matchingMode = KeyCombinationMatchingMode.Any)
+                                           KeyCombinationMatchingMode matchingMode = KeyCombinationMatchingMode.Any)
                 : base(mode, matchingMode)
             {
                 Prioritised = prioritised;
