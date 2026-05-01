@@ -93,6 +93,12 @@ namespace osu.Framework.Graphics.Veldrid
         void EnqueueTextureUpload(VeldridTexture texture);
 
         /// <summary>
+        /// Invalidates any cached binding for the given texture.
+        /// </summary>
+        /// <param name="texture">The texture.</param>
+        void InvalidateTextureBinding(VeldridTexture texture);
+
+        /// <summary>
         /// Generates mipmaps for the given texture.
         /// </summary>
         /// <param name="texture">The texture.</param>

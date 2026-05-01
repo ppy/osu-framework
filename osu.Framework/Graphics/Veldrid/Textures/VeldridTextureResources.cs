@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using Veldrid;
 
 namespace osu.Framework.Graphics.Veldrid.Textures
@@ -23,12 +24,11 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 sampler?.Dispose();
                 sampler = value;
 
-                Set?.Dispose();
-                Set = null;
+                disposeResourceSets();
             }
         }
 
-        public ResourceSet? Set { get; private set; }
+        private readonly Dictionary<ResourceLayout, ResourceSet> resourceSets = new Dictionary<ResourceLayout, ResourceSet>();
 
         public VeldridTextureResources(Texture texture, Sampler? sampler)
         {
@@ -47,18 +47,26 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             if (Sampler == null)
                 throw new InvalidOperationException("Attempting to create resource set without a sampler attached to the resources.");
 
-            if (Set != null)
-                return Set;
+            if (resourceSets.TryGetValue(layout, out ResourceSet? set))
+                return set;
 
             VeldridInstrumentation.RecordResourceSetCreated(VeldridResourceSetKind.Texture);
-            return Set = factory.CreateResourceSet(new ResourceSetDescription(layout, Texture, Sampler));
+            return resourceSets[layout] = factory.CreateResourceSet(new ResourceSetDescription(layout, Texture, Sampler));
         }
 
         public void Dispose()
         {
             Texture.Dispose();
             Sampler?.Dispose();
-            Set?.Dispose();
+            disposeResourceSets();
+        }
+
+        private void disposeResourceSets()
+        {
+            foreach ((_, ResourceSet set) in resourceSets)
+                set.Dispose();
+
+            resourceSets.Clear();
         }
     }
 }

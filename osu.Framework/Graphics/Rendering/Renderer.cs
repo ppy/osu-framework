@@ -105,6 +105,8 @@ namespace osu.Framework.Graphics.Rendering
 
         private readonly ConcurrentQueue<ScheduledDelegate> expensiveOperationQueue = new ConcurrentQueue<ScheduledDelegate>();
         private readonly ConcurrentQueue<INativeTexture> textureUploadQueue = new ConcurrentQueue<INativeTexture>();
+        private readonly HashSet<INativeTexture> queuedTextureUploads = new HashSet<INativeTexture>();
+        private readonly object textureUploadQueueSync = new object();
         private readonly RendererDisposalQueue disposalQueue = new RendererDisposalQueue();
 
         private readonly Scheduler resetScheduler = new Scheduler(() => ThreadSafety.IsDrawThread, new StopwatchClock(true)); // force no thread set until we are actually on the draw thread.
@@ -270,18 +272,26 @@ namespace osu.Framework.Graphics.Rendering
             freeUnusedVertexBuffers();
             vboInUse.Value = vertexBuffersInUse.Count;
 
-            statTextureUploadsQueued.Value = textureUploadQueue.Count;
+            int textureUploadsQueued;
+
+            lock (textureUploadQueueSync)
+                textureUploadsQueued = queuedTextureUploads.Count;
+
+            statTextureUploadsQueued.Value = textureUploadsQueued;
             statTextureUploadsDequeued.Value = 0;
             statTextureUploadsPerformed.Value = 0;
 
             // increase the number of items processed with the queue length to ensure it doesn't get out of hand.
-            int targetUploads = Math.Clamp(textureUploadQueue.Count / 2, 1, MaxTexturesUploadedPerFrame);
+            int targetUploads = Math.Clamp(textureUploadsQueued / 2, 1, MaxTexturesUploadedPerFrame);
             int uploads = 0;
             int uploadedPixels = 0;
 
             // continue attempting to upload textures until enough uploads have been performed.
             while (textureUploadQueue.TryDequeue(out INativeTexture? texture))
             {
+                lock (textureUploadQueueSync)
+                    queuedTextureUploads.Remove(texture);
+
                 statTextureUploadsDequeued.Value++;
 
                 if (!texture.Upload())
@@ -845,6 +855,26 @@ namespace osu.Framework.Graphics.Rendering
             return true;
         }
 
+        protected void InvalidateTextureBinding(INativeTexture texture)
+        {
+            bool flushed = false;
+
+            for (int i = 0; i < lastBoundTexture.Length; i++)
+            {
+                if (lastBoundTexture[i] != texture)
+                    continue;
+
+                if (!flushed)
+                {
+                    FlushCurrentBatch(FlushBatchSource.BindTexture);
+                    flushed = true;
+                }
+
+                lastBoundTexture[i] = null;
+                lastBoundTextureIsAtlas[i] = false;
+            }
+        }
+
         private void setWrapMode(WrapMode wrapModeS, WrapMode wrapModeT)
         {
             if (wrapModeS != CurrentWrapModeS)
@@ -886,10 +916,16 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="texture">The texture to be uploaded.</param>
         internal void EnqueueTextureUpload(INativeTexture texture)
         {
-            if (!IsInitialised || textureUploadQueue.Contains(texture))
+            if (!IsInitialised)
                 return;
 
-            textureUploadQueue.Enqueue(texture);
+            lock (textureUploadQueueSync)
+            {
+                if (!queuedTextureUploads.Add(texture))
+                    return;
+
+                textureUploadQueue.Enqueue(texture);
+            }
         }
 
         /// <summary>

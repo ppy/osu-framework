@@ -46,6 +46,7 @@ namespace osu.Framework.Graphics.Veldrid
         private static readonly Lazy<GlobalStatistic<double>> stat_texture_resource_set_creates = createDoubleStatistic("Texture resource sets/frame");
         private static readonly Lazy<GlobalStatistic<double>> stat_uniform_resource_set_creates = createDoubleStatistic("Uniform resource sets/frame");
         private static readonly Lazy<GlobalStatistic<double>> stat_shader_storage_resource_set_creates = createDoubleStatistic("Shader storage resource sets/frame");
+        private static readonly Lazy<GlobalStatistic<double>> stat_texture_resource_recreates = createDoubleStatistic("Texture resource recreates/frame");
 
         private static int framesInWindow;
         private static long graphicsSubmitCountWindow;
@@ -65,6 +66,7 @@ namespace osu.Framework.Graphics.Veldrid
         private static long textureResourceSetCreateWindow;
         private static long uniformResourceSetCreateWindow;
         private static long shaderStorageResourceSetCreateWindow;
+        private static long textureResourceRecreateWindow;
 
         public static void RecordSubmit(VeldridPipelineKind kind, long elapsedTicks)
         {
@@ -181,6 +183,15 @@ namespace osu.Framework.Graphics.Veldrid
             }
         }
 
+        public static void RecordTextureResourcesRecreated()
+        {
+            if (!Enabled)
+                return;
+
+            lock (sync)
+                textureResourceRecreateWindow++;
+        }
+
         public static void EndFrame(GraphicsSurfaceType surfaceType)
         {
             if (!Enabled)
@@ -207,6 +218,7 @@ namespace osu.Framework.Graphics.Veldrid
                 double textureResourceSetsPerFrame = textureResourceSetCreateWindow / (double)framesInWindow;
                 double uniformResourceSetsPerFrame = uniformResourceSetCreateWindow / (double)framesInWindow;
                 double shaderStorageResourceSetsPerFrame = shaderStorageResourceSetCreateWindow / (double)framesInWindow;
+                double textureResourceRecreatesPerFrame = textureResourceRecreateWindow / (double)framesInWindow;
 
                 double graphicsSubmitMs = ticksToMilliseconds(graphicsSubmitTicksWindow / (double)Math.Max(1, graphicsSubmitCountWindow));
                 double bufferUpdateSubmitMs = ticksToMilliseconds(bufferUpdateSubmitTicksWindow / (double)Math.Max(1, bufferUpdateSubmitCountWindow));
@@ -229,6 +241,7 @@ namespace osu.Framework.Graphics.Veldrid
                 stat_texture_resource_set_creates.Value.Value = textureResourceSetsPerFrame;
                 stat_uniform_resource_set_creates.Value.Value = uniformResourceSetsPerFrame;
                 stat_shader_storage_resource_set_creates.Value.Value = shaderStorageResourceSetsPerFrame;
+                stat_texture_resource_recreates.Value.Value = textureResourceRecreatesPerFrame;
 
                 Logger.Log(
                     $"Veldrid workload summary ({surfaceType}): graphics_submit={graphicsSubmitsPerFrame:0.###}/f@{graphicsSubmitMs:0.###}ms, " +
@@ -237,7 +250,8 @@ namespace osu.Framework.Graphics.Veldrid
                     $"texture_flush={textureUploadFlushesPerFrame:0.###}/f, " +
                     $"pipeline_cache={pipelineHitsPerFrame:0.###}h/{pipelineMissesPerFrame:0.###}m/{pipelineCreatesPerFrame:0.###}c, " +
                     $"binds pipeline={graphicsPipelineBindsPerFrame:0.###}/f({graphicsPipelineBindsSkippedPerFrame:0.###} skipped) resources={graphicsResourceSetBindsPerFrame:0.###}/f({graphicsResourceSetBindsSkippedPerFrame:0.###} skipped), " +
-                    $"resource_sets tex={textureResourceSetsPerFrame:0.###}/f uni={uniformResourceSetsPerFrame:0.###}/f ssbo={shaderStorageResourceSetsPerFrame:0.###}/f",
+                    $"resource_sets tex={textureResourceSetsPerFrame:0.###}/f uni={uniformResourceSetsPerFrame:0.###}/f ssbo={shaderStorageResourceSetsPerFrame:0.###}/f, " +
+                    $"texture_resources={textureResourceRecreatesPerFrame:0.###}/f",
                     level: LogLevel.Important);
 
                 resetWindow();
@@ -264,6 +278,7 @@ namespace osu.Framework.Graphics.Veldrid
             textureResourceSetCreateWindow = 0;
             uniformResourceSetCreateWindow = 0;
             shaderStorageResourceSetCreateWindow = 0;
+            textureResourceRecreateWindow = 0;
         }
 
         private static Lazy<GlobalStatistic<double>> createDoubleStatistic(string name)

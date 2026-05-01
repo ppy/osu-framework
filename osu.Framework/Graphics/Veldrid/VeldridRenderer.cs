@@ -149,6 +149,9 @@ namespace osu.Framework.Graphics.Veldrid
             return true;
         }
 
+        public void InvalidateTextureBinding(VeldridTexture texture)
+            => InvalidateTextureBinding((INativeTexture)texture);
+
         protected override void SetShaderImplementation(IShader shader)
             => graphicsPipeline.SetShader((VeldridShader)shader);
 
@@ -250,7 +253,9 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected internal Image<Rgba32>? ExtractTexture(VeldridTexture texture)
         {
-            var resource = texture.GetResourceList().FirstOrDefault();
+            var resources = texture.GetResourceList();
+            var resource = resources.Count > 0 ? resources[0] : null;
+
             if (resource == null)
                 return null;
 

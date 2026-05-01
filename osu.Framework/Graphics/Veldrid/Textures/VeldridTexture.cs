@@ -451,12 +451,13 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         protected virtual void DoUpload(ITextureUpload upload)
         {
-            Texture? texture = resources?.Texture;
-            Sampler? sampler = resources?.Sampler;
+            VeldridTextureResources? currentResources = resources;
+            Texture? texture = currentResources?.Texture;
 
             if (texture == null || texture.Width != Width || texture.Height != Height)
             {
-                texture?.Dispose();
+                Renderer.InvalidateTextureBinding(this);
+                currentResources?.Dispose();
 
                 var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)CalculateMipmapLevels(Width, Height), 1, PixelFormat.R8G8B8A8UNorm, Usages);
                 texture = Renderer.Factory.CreateTexture(ref textureDescription);
@@ -466,6 +467,9 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 initialiseLevel(texture, 0, Width, Height);
 
                 maximumUploadedLod = 0;
+
+                resources = currentResources = new VeldridTextureResources(texture, null);
+                VeldridInstrumentation.RecordTextureResourcesRecreated();
             }
 
             int lastMaximumUploadedLod = maximumUploadedLod;
@@ -486,13 +490,11 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                     upload.Level, upload.Data);
             }
 
-            if (sampler == null || maximumUploadedLod > lastMaximumUploadedLod)
+            if (currentResources!.Sampler == null || maximumUploadedLod > lastMaximumUploadedLod)
             {
-                sampler?.Dispose();
-                sampler = createSampler();
+                Renderer.InvalidateTextureBinding(this);
+                currentResources.Sampler = createSampler();
             }
-
-            resources = new VeldridTextureResources(texture, sampler);
         }
 
         private unsafe void initialiseLevel(Texture texture, int level, int width, int height)

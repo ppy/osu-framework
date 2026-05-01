@@ -134,6 +134,9 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         void IVeldridRenderer.EnqueueTextureUpload(VeldridTexture texture)
             => EnqueueTextureUpload(texture);
 
+        void IVeldridRenderer.InvalidateTextureBinding(VeldridTexture texture)
+            => InvalidateTextureBinding(texture);
+
         void IVeldridRenderer.GenerateMipmaps(VeldridTexture texture)
             => Graphics.Commands.GenerateMipmaps(texture.GetResourceList().Single().Texture);
 
