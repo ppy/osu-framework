@@ -89,6 +89,10 @@ namespace osu.Framework.Graphics.Veldrid
 
         private readonly IGraphicsSurface graphicsSurface;
         private Vector2I currentWindowSize;
+        private long swapTimingTicks;
+        private long waitTimingTicks;
+        private int swapTimingSamples;
+        private int waitTimingSamples;
 
         /// <summary>
         /// Creates a new <see cref="VeldridDevice"/>
@@ -236,7 +240,17 @@ namespace osu.Framework.Graphics.Veldrid
         /// Swaps the back buffer with the front buffer to display the new frame.
         /// </summary>
         public void SwapBuffers()
-            => Device.SwapBuffers();
+        {
+            if (!VeldridInstrumentation.Enabled)
+            {
+                Device.SwapBuffers();
+                return;
+            }
+
+            long start = Stopwatch.GetTimestamp();
+            Device.SwapBuffers();
+            recordSwapTiming(Stopwatch.GetTimestamp() - start);
+        }
 
         /// <summary>
         /// Waits until all renderer commands have been fully executed GPU-side, as signaled by the graphics backend.
@@ -251,7 +265,17 @@ namespace osu.Framework.Graphics.Veldrid
         /// Waits until the GPU signals that the next frame is ready to be rendered.
         /// </summary>
         public void WaitUntilNextFrameReady()
-            => Device.WaitForNextFrameReady();
+        {
+            if (!VeldridInstrumentation.Enabled)
+            {
+                Device.WaitForNextFrameReady();
+                return;
+            }
+
+            long start = Stopwatch.GetTimestamp();
+            Device.WaitForNextFrameReady();
+            recordWaitTiming(Stopwatch.GetTimestamp() - start);
+        }
 
         /// <summary>
         /// Invoked when the rendering thread is active and commands will be enqueued.
@@ -375,5 +399,39 @@ namespace osu.Framework.Graphics.Veldrid
 
             return Device.WaitForFence(fence, (ulong)(millisecondsTimeout * 1_000_000));
         }
+
+        private void recordSwapTiming(long elapsedTicks)
+        {
+            swapTimingTicks += elapsedTicks;
+            swapTimingSamples++;
+            maybeLogTimingSummary();
+        }
+
+        private void recordWaitTiming(long elapsedTicks)
+        {
+            waitTimingTicks += elapsedTicks;
+            waitTimingSamples++;
+        }
+
+        private void maybeLogTimingSummary()
+        {
+            if (swapTimingSamples == 0 || swapTimingSamples % 240 != 0)
+                return;
+
+            double swapAverageMs = ticksToMilliseconds(swapTimingTicks / (double)swapTimingSamples);
+            double waitAverageMs = waitTimingSamples == 0 ? 0 : ticksToMilliseconds(waitTimingTicks / (double)waitTimingSamples);
+
+            Logger.Log(
+                $"Veldrid frame timing summary ({SurfaceType}): avg_swap={swapAverageMs:0.###}ms, avg_wait={waitAverageMs:0.###}ms, wait_samples={waitTimingSamples}",
+                level: LogLevel.Important);
+
+            swapTimingTicks = 0;
+            waitTimingTicks = 0;
+            swapTimingSamples = 0;
+            waitTimingSamples = 0;
+        }
+
+        private static double ticksToMilliseconds(double ticks)
+            => ticks * 1000 / Stopwatch.Frequency;
     }
 }

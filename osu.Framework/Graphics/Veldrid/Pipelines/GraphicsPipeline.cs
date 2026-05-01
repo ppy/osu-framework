@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
         private VertexLayoutDescription currentVertexLayout;
 
         public GraphicsPipeline(VeldridDevice device)
-            : base(device)
+            : base(device, VeldridPipelineKind.Graphics)
         {
             pipelineDesc.Outputs = Device.SwapchainFramebuffer.OutputDescription;
         }
