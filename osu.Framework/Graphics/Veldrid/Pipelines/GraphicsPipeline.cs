@@ -24,6 +24,7 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
         private readonly Dictionary<int, VeldridTextureResources> attachedTextures = new Dictionary<int, VeldridTextureResources>();
         private readonly Dictionary<string, IVeldridUniformBuffer> attachedUniformBuffers = new Dictionary<string, IVeldridUniformBuffer>();
         private readonly Dictionary<IVeldridUniformBuffer, uint> uniformBufferOffsets = new Dictionary<IVeldridUniformBuffer, uint>();
+        private readonly GraphicsBindState bindState = new GraphicsBindState();
 
         private GraphicsPipelineDescription pipelineDesc = new GraphicsPipelineDescription
         {
@@ -55,6 +56,7 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
             currentShader = null;
             currentIndexBuffer = null;
             currentVertexBuffer = null;
+            bindState.Reset();
         }
 
         /// <summary>
@@ -163,6 +165,7 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
 
             Commands.SetFramebuffer(fb);
             pipelineDesc.Outputs = fb.OutputDescription;
+            bindState.Reset();
         }
 
         /// <summary>
@@ -273,7 +276,15 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
             }
 
             // Activate the pipeline.
-            Commands.SetPipeline(createPipeline());
+            var pipeline = createPipeline();
+
+            if (bindState.ShouldBindPipeline(pipeline))
+            {
+                Commands.SetPipeline(pipeline);
+                VeldridInstrumentation.RecordGraphicsPipelineBind(true);
+            }
+            else
+                VeldridInstrumentation.RecordGraphicsPipelineBind(false);
 
             // Activate texture resources.
             foreach (var (unit, texture) in attachedTextures)
@@ -282,7 +293,16 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
                 if (layout == null)
                     continue;
 
-                Commands.SetGraphicsResourceSet((uint)layout.Set, texture.GetResourceSet(Factory, layout.Layout));
+                uint set = (uint)layout.Set;
+                var resourceSet = texture.GetResourceSet(Factory, layout.Layout);
+
+                if (bindState.ShouldBindResourceSet(set, resourceSet))
+                {
+                    Commands.SetGraphicsResourceSet(set, resourceSet);
+                    VeldridInstrumentation.RecordGraphicsResourceSetBind(true);
+                }
+                else
+                    VeldridInstrumentation.RecordGraphicsResourceSetBind(false);
             }
 
             // Activate uniform buffer resources.
@@ -293,7 +313,16 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
                     continue;
 
                 uint bufferOffset = uniformBufferOffsets.GetValueOrDefault(buffer);
-                Commands.SetGraphicsResourceSet((uint)layout.Set, buffer.GetResourceSet(layout.Layout), 1, ref bufferOffset);
+                uint set = (uint)layout.Set;
+                var resourceSet = buffer.GetResourceSet(layout.Layout);
+
+                if (bindState.ShouldBindResourceSet(set, resourceSet, bufferOffset))
+                {
+                    Commands.SetGraphicsResourceSet(set, resourceSet, 1, ref bufferOffset);
+                    VeldridInstrumentation.RecordGraphicsResourceSetBind(true);
+                }
+                else
+                    VeldridInstrumentation.RecordGraphicsResourceSetBind(false);
             }
 
             int indexStart = currentIndexBuffer.TranslateToIndex(vertexStart);
@@ -303,11 +332,17 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
 
         private Pipeline createPipeline()
         {
-            if (!pipelineCache.TryGetValue(pipelineDesc, out var instance))
+            if (pipelineCache.TryGetValue(pipelineDesc, out var instance))
             {
-                pipelineCache[pipelineDesc.Clone()] = instance = Factory.CreateGraphicsPipeline(ref pipelineDesc);
-                stat_graphics_pipeline_created.Value++;
+                VeldridInstrumentation.RecordPipelineCacheHit();
+                return instance;
             }
+
+            VeldridInstrumentation.RecordPipelineCacheMiss();
+
+            pipelineCache[pipelineDesc.Clone()] = instance = Factory.CreateGraphicsPipeline(ref pipelineDesc);
+            stat_graphics_pipeline_created.Value++;
+            VeldridInstrumentation.RecordPipelineCreated();
 
             return instance;
         }

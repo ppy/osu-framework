@@ -7,6 +7,7 @@ using System.Diagnostics;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Rendering.Deferred.Allocation;
 using osu.Framework.Graphics.Rendering.Deferred.Events;
+using osu.Framework.Graphics.Veldrid;
 using osu.Framework.Graphics.Veldrid.Buffers;
 using osu.Framework.Statistics;
 using Veldrid;
@@ -56,6 +57,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             if (bufferChunks.TryGetValue((currentChunk, layout), out ResourceSet? existing))
                 return existing;
 
+            VeldridInstrumentation.RecordResourceSetCreated(VeldridResourceSetKind.Uniform);
             return bufferChunks[(currentChunk, layout)] = renderer.Factory.CreateResourceSet(
                 new ResourceSetDescription(
                     layout,
