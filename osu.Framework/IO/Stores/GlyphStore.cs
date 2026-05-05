@@ -7,10 +7,12 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text;
 using JetBrains.Annotations;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics.Textures;
@@ -101,7 +103,8 @@ namespace osu.Framework.IO.Stores
             }
         }, TaskCreationOptions.PreferFairness);
 
-        public bool HasGlyph(char c) => Font?.Characters.ContainsKey(c) == true;
+        public bool HasGlyph(char c) => HasGlyph((int)c);
+        public bool HasGlyph(int codepoint) => Font?.Characters.ContainsKey(codepoint) == true;
 
         protected virtual TextureUpload GetPageImage(int page)
         {
@@ -118,19 +121,33 @@ namespace osu.Framework.IO.Stores
             return $@"{AssetName}_{page.ToString().PadLeft((Font.Pages.Count - 1).ToString().Length, '0')}.png";
         }
 
-        public CharacterGlyph Get(char character)
+        public CharacterGlyph Get(char character) => Get((int)character);
+
+        public CharacterGlyph Get(int codepoint)
         {
             if (Font == null)
                 return null;
 
             Debug.Assert(Baseline != null);
 
-            var bmCharacter = Font.GetCharacter(character);
+            if (!Rune.IsValid(codepoint))
+                return null;
 
-            return new CharacterGlyph(character, bmCharacter.XOffset, bmCharacter.YOffset, bmCharacter.XAdvance, Baseline.Value, this);
+            Font.Characters.TryGetValue(codepoint, out Character bmCharacter);
+
+            return bmCharacter == null
+                ? null
+                : new CharacterGlyph(codepoint, bmCharacter.XOffset, bmCharacter.YOffset, bmCharacter.XAdvance, Baseline.Value, this);
         }
 
-        public int GetKerning(char left, char right) => Font?.GetKerningAmount(left, right) ?? 0;
+        public int GetKerning(char left, char right) => GetKerning((int)left, (int)right);
+        public int GetKerning(int leftCodepoint, int rightCodepoint)
+        {
+            if (leftCodepoint > char.MaxValue || rightCodepoint > char.MaxValue)
+                return 0;
+
+            return Font?.GetKerningAmount((char)leftCodepoint, (char)rightCodepoint) ?? 0;
+        }
 
         Task<CharacterGlyph> IResourceStore<CharacterGlyph>.GetAsync(string name, CancellationToken cancellationToken) =>
             Task.Run(() => ((IGlyphStore)this).Get(name[0]), cancellationToken);
@@ -144,7 +161,10 @@ namespace osu.Framework.IO.Stores
             if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                 return null;
 
-            return Font.Characters.TryGetValue(name.Last(), out Character c) ? LoadCharacter(c) : null;
+            if (!tryParseCodepointFromResourceName(name, out int codepoint))
+                return null;
+
+            return Font.Characters.TryGetValue(codepoint, out Character c) ? LoadCharacter(c) : null;
         }
 
         public virtual async Task<TextureUpload> GetAsync(string name, CancellationToken cancellationToken = default)
@@ -154,9 +174,35 @@ namespace osu.Framework.IO.Stores
 
             var bmFont = await completionSource.Task.ConfigureAwait(false);
 
-            return bmFont.Characters.TryGetValue(name.Last(), out Character c)
+            if (!tryParseCodepointFromResourceName(name, out int codepoint))
+                return null;
+
+            return bmFont.Characters.TryGetValue(codepoint, out Character c)
                 ? LoadCharacter(c)
                 : null;
+        }
+
+        private static bool tryParseCodepointFromResourceName(string name, out int codepoint)
+        {
+            codepoint = 0;
+
+            if (string.IsNullOrEmpty(name))
+                return false;
+
+            int slashIndex = name.LastIndexOf('/');
+            string suffix = slashIndex >= 0 ? name[(slashIndex + 1)..] : name;
+
+            if (suffix.Length == 0)
+                return false;
+
+            if (suffix.Length == 1)
+            {
+                codepoint = suffix[0];
+                return true;
+            }
+
+            return int.TryParse(suffix, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out codepoint)
+                   && Rune.IsValid(codepoint);
         }
 
         protected int LoadedGlyphCount;
@@ -187,7 +233,7 @@ namespace osu.Framework.IO.Stores
 
         public Stream GetStream(string name) => throw new NotSupportedException();
 
-        public IEnumerable<string> GetAvailableResources() => Font?.Characters.Keys.Select(k => $"{FontName}/{(char)k}") ?? Enumerable.Empty<string>();
+        public IEnumerable<string> GetAvailableResources() => Font?.Characters.Keys.Select(k => k <= char.MaxValue ? $"{FontName}/{(char)k}" : $"{FontName}/{k:x}") ?? Enumerable.Empty<string>();
 
         #region IDisposable Support
 

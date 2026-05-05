@@ -50,8 +50,10 @@ namespace osu.Framework.Benchmarks
             public ITexturedCharacterGlyph Get(string? fontName, char character) => new TexturedCharacterGlyph(
                 new CharacterGlyph(character, character, character, character, character, null),
                 new DummyRenderer().CreateTexture(1, 1));
+            public ITexturedCharacterGlyph Get(string? fontName, int codepoint) => Get(fontName, codepoint <= char.MaxValue ? (char)codepoint : 'A');
 
             public Task<ITexturedCharacterGlyph?> GetAsync(string fontName, char character) => Task.Run<ITexturedCharacterGlyph?>(() => Get(fontName, character));
+            public Task<ITexturedCharacterGlyph?> GetAsync(string fontName, int codepoint) => Task.Run<ITexturedCharacterGlyph?>(() => Get(fontName, codepoint));
         }
     }
 }

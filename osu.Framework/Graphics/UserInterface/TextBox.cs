@@ -296,15 +296,16 @@ namespace osu.Framework.Graphics.UserInterface
                     return true;
 
                 case PlatformAction.Paste:
-                    if (textInputBlocking)
-                        // TextInputSource received text while this action got activated.
-                        // This is an indicator that text has already been pasted at an OS level
-                        // and has been received here through the TextInputSource flow.
-                        //
-                        // This is currently only happening on iOS since it relies on a hidden UITextField for software keyboard.
-                        return true;
+                    // Delay the manual paste by one scheduler tick to give TextInputSource a chance
+                    // to deliver an OS-level paste event first. This prevents duplicate insertion
+                    // on platforms where both PlatformAction.Paste and text input events are fired.
+                    Scheduler.AddOnce(() =>
+                    {
+                        if (textInputBlocking)
+                            return;
 
-                    InsertString(clipboard.GetText());
+                        InsertString(clipboard.GetText());
+                    });
                     return true;
 
                 case PlatformAction.SelectAll:
@@ -884,6 +885,17 @@ namespace osu.Framework.Graphics.UserInterface
         /// <returns>A <see cref="Drawable"/> that represents the character <paramref name="c"/> </returns>
         protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), Font = new FontUsage(size: FontSize) };
 
+        /// <summary>
+        /// Creates a drawable for a text element, which may contain multiple UTF-16 code units.
+        /// </summary>
+        protected virtual Drawable GetDrawableText(string text)
+        {
+            if (text.Length == 1)
+                return GetDrawableCharacter(text[0]);
+
+            return new SpriteText { Text = text, Font = new FontUsage(size: FontSize) };
+        }
+
         protected virtual Drawable AddCharacterToFlow(char c)
         {
             if (InputProperties.Type.IsPassword())
@@ -906,6 +918,45 @@ namespace osu.Framework.Graphics.UserInterface
             ch.Depth = getDepthForCharacterIndex(selectionLeft);
 
             TextFlow.Add(ch);
+
+            // Add back all the previously removed characters
+            TextFlow.AddRange(charsRight);
+
+            return ch;
+        }
+
+        protected virtual Drawable AddTextToFlow(string textElement, int textElementLength)
+        {
+            if (InputProperties.Type.IsPassword())
+                textElement = new string(MaskCharacter, textElementLength);
+
+            // Remove all characters to the right and store them in a local list,
+            // such that their depth can be updated.
+            List<Drawable> charsRight = new List<Drawable>();
+            foreach (Drawable d in TextFlow.Children.Skip(selectionLeft))
+                charsRight.Add(d);
+            TextFlow.RemoveRange(charsRight, false);
+
+            // Update their depth to make room for the to-be inserted text element.
+            int i = selectionLeft;
+            foreach (Drawable d in charsRight)
+                d.Depth = getDepthForCharacterIndex(i++);
+
+            Drawable ch = GetDrawableText(textElement);
+            ch.Depth = getDepthForCharacterIndex(selectionLeft);
+            TextFlow.Add(ch);
+
+            // Keep one flow child per UTF-16 code unit so existing index-based logic
+            // (selection/caret/delete) can continue to operate unchanged.
+            for (int placeholderIndex = 1; placeholderIndex < textElementLength; placeholderIndex++)
+            {
+                var placeholder = new Container
+                {
+                    Size = Vector2.Zero,
+                    Depth = getDepthForCharacterIndex(selectionLeft + placeholderIndex),
+                };
+                TextFlow.Add(placeholder);
+            }
 
             // Add back all the previously removed characters
             TextFlow.AddRange(charsRight);
@@ -947,34 +998,52 @@ namespace osu.Framework.Graphics.UserInterface
 
             bool beganChange = beginTextChange();
 
-            foreach (char c in value)
+            for (int inputIndex = 0; inputIndex < value.Length;)
             {
-                if (!canAddCharacter(c))
+                int charCount = 1;
+                string textElement;
+                char canAddValidationCharacter;
+
+                if (Rune.TryGetRuneAt(value, inputIndex, out Rune rune))
+                {
+                    textElement = rune.ToString();
+                    charCount = rune.Utf16SequenceLength;
+                    canAddValidationCharacter = textElement[0];
+                }
+                else
+                {
+                    canAddValidationCharacter = value[inputIndex];
+                    textElement = canAddValidationCharacter.ToString();
+                }
+
+                if (!canAddCharacter(canAddValidationCharacter))
                 {
                     NotifyInputError();
+                    inputIndex += charCount;
                     continue;
                 }
 
                 if (hasSelection)
                     removeSelection();
 
-                if (text.Length + 1 > LengthLimit)
+                if (text.Length + charCount > LengthLimit)
                 {
                     NotifyInputError();
                     break;
                 }
 
-                Drawable drawable = AddCharacterToFlow(c);
+                Drawable drawable = AddTextToFlow(textElement, charCount);
 
                 drawable.Show();
                 drawableCreationParameters?.Invoke(drawable);
 
-                text = text.Insert(selectionLeft, c.ToString());
+                text = text.Insert(selectionLeft, textElement);
 
-                selectionStart = selectionEnd = selectionLeft + 1;
+                selectionStart = selectionEnd = selectionLeft + charCount;
                 ignoreOngoingDragSelection = true;
 
                 cursorAndLayout.Invalidate();
+                inputIndex += charCount;
             }
 
             endTextChange(beganChange);

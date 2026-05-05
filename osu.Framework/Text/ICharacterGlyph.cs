@@ -29,7 +29,13 @@ namespace osu.Framework.Text
         float Baseline { get; }
 
         /// <summary>
+        /// The Unicode scalar value represented by this glyph.
+        /// </summary>
+        int Codepoint { get; }
+
+        /// <summary>
         /// The character represented by this glyph.
+        /// For supplementary-plane codepoints this returns <c>'\0'</c>.
         /// </summary>
         char Character { get; }
 

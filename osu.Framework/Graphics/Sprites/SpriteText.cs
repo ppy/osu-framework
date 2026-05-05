@@ -72,9 +72,9 @@ namespace osu.Framework.Graphics.Sprites
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
 
             // Pre-cache the characters in the texture store
-            foreach (char character in localisedText.Value)
+            foreach (var rune in localisedText.Value.EnumerateRunes())
             {
-                _ = store.Get(font.FontName, character) ?? store.Get(null, character);
+                _ = store.Get(font.FontName, rune.Value) ?? store.Get(null, rune.Value);
             }
         }
 

@@ -113,9 +113,9 @@ namespace osu.Framework.Text
         /// <param name="text">The text to append.</param>
         public void AddText(string text)
         {
-            foreach (char c in text)
+            foreach (var rune in text.EnumerateRunes())
             {
-                if (!AddCharacter(c))
+                if (!AddCodepoint(rune.Value))
                     break;
             }
         }
@@ -126,11 +126,19 @@ namespace osu.Framework.Text
         /// <param name="character">The character to append.</param>
         /// <returns>Whether characters can still be added.</returns>
         public bool AddCharacter(char character)
+            => AddCodepoint(character);
+
+        /// <summary>
+        /// Appends a Unicode scalar value to this <see cref="TextBuilder"/>.
+        /// </summary>
+        /// <param name="codepoint">The Unicode scalar value to append.</param>
+        /// <returns>Whether characters can still be added.</returns>
+        public bool AddCodepoint(int codepoint)
         {
             if (!CanAddCharacters)
                 return false;
 
-            if (!tryCreateGlyph(character, out var glyph))
+            if (!tryCreateGlyph(codepoint, out var glyph))
                 return true;
 
             // For each character that is added:
@@ -332,9 +340,9 @@ namespace osu.Framework.Text
 
         private float getConstantWidth() => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getTexturedGlyph(fixedWidthReferenceCharacter)?.Width ?? 0;
 
-        private bool tryCreateGlyph(char character, out TextBuilderGlyph glyph)
+        private bool tryCreateGlyph(int codepoint, out TextBuilderGlyph glyph)
         {
-            var fontStoreGlyph = getTexturedGlyph(character);
+            var fontStoreGlyph = getTexturedGlyph(codepoint);
 
             if (fontStoreGlyph == null)
             {
@@ -343,7 +351,7 @@ namespace osu.Framework.Text
             }
 
             // Array.IndexOf is used to avoid LINQ
-            if (font.FixedWidth && Array.IndexOf(neverFixedWidthCharacters, character) == -1)
+            if (font.FixedWidth && (codepoint > char.MaxValue || Array.IndexOf(neverFixedWidthCharacters, (char)codepoint) == -1))
                 glyph = new TextBuilderGlyph(fontStoreGlyph, font.Size, getConstantWidth(), useFontSizeAsHeight);
             else
                 glyph = new TextBuilderGlyph(fontStoreGlyph, font.Size, useFontSizeAsHeight: useFontSizeAsHeight);
@@ -351,15 +359,15 @@ namespace osu.Framework.Text
             return true;
         }
 
-        private ITexturedCharacterGlyph? getTexturedGlyph(char character)
+        private ITexturedCharacterGlyph? getTexturedGlyph(int codepoint)
         {
-            return tryGetGlyph(character, font, store) ??
+            return tryGetGlyph(codepoint, font, store) ??
                    tryGetGlyph(fallbackCharacter, font, store);
 
-            static ITexturedCharacterGlyph? tryGetGlyph(char character, FontUsage font, ITexturedGlyphLookupStore store) =>
-                store.Get(font.FontName, character)
-                ?? store.Get(font.FontNameNoFamily, character)
-                ?? store.Get(string.Empty, character);
+            static ITexturedCharacterGlyph? tryGetGlyph(int codepoint, FontUsage font, ITexturedGlyphLookupStore store) =>
+                store.Get(font.FontName, codepoint)
+                ?? store.Get(font.FontNameNoFamily, codepoint)
+                ?? store.Get(string.Empty, codepoint);
         }
     }
 }

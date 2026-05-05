@@ -28,7 +28,7 @@ namespace osu.Framework.IO.Stores
         /// A local cache to avoid string allocation overhead. Can be changed to (string,char)=>string if this ever becomes an issue,
         /// but as long as we directly inherit <see cref="TextureStore"/> this is a slight optimisation.
         /// </summary>
-        private readonly ConcurrentDictionary<(string, char), ITexturedCharacterGlyph> namespacedGlyphCache = new ConcurrentDictionary<(string, char), ITexturedCharacterGlyph>();
+        private readonly ConcurrentDictionary<(string, int), ITexturedCharacterGlyph> namespacedGlyphCache = new ConcurrentDictionary<(string, int), ITexturedCharacterGlyph>();
 
         /// <summary>
         /// Construct a font store to be added to a parent font store via <see cref="AddStore"/>.
@@ -138,25 +138,38 @@ namespace osu.Framework.IO.Stores
             base.RemoveStore(store);
         }
 
-        public ITexturedCharacterGlyph Get(string fontName, char character)
+        public ITexturedCharacterGlyph Get(string fontName, char character) => Get(fontName, (int)character);
+
+        public ITexturedCharacterGlyph Get(string fontName, int codepoint)
         {
-            var key = (fontName, character);
+            var key = (fontName, codepoint);
 
             if (namespacedGlyphCache.TryGetValue(key, out var existing))
                 return existing;
 
             foreach (var store in glyphStores)
             {
-                if (store.FontName.EndsWith(fontName ?? string.Empty, StringComparison.Ordinal) && store.HasGlyph(character))
+                if (store.FontName.EndsWith(fontName ?? string.Empty, StringComparison.Ordinal) && store.HasGlyph(codepoint))
                 {
-                    string textureName = $"{store.FontName}/{character}";
-                    return namespacedGlyphCache[key] = new TexturedCharacterGlyph(store.Get(character).AsNonNull(), Get(textureName), 1 / ScaleAdjust);
+                    string textureName = codepoint <= char.MaxValue
+                        ? $"{store.FontName}/{(char)codepoint}"
+                        : $"{store.FontName}/{codepoint:x}";
+
+                    var glyphMetrics = store.Get(codepoint);
+                    if (glyphMetrics == null)
+                        continue;
+
+                    var texture = Get(textureName);
+                    if (texture == null)
+                        continue;
+
+                    return namespacedGlyphCache[key] = new TexturedCharacterGlyph(glyphMetrics, texture, 1 / ScaleAdjust);
                 }
             }
 
             foreach (var store in nestedFontStores)
             {
-                var glyph = store.Get(fontName, character);
+                var glyph = store.Get(fontName, codepoint);
                 if (glyph != null)
                     return namespacedGlyphCache[key] = glyph;
             }
@@ -165,5 +178,6 @@ namespace osu.Framework.IO.Stores
         }
 
         public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => Task.Run(() => Get(fontName, character));
+        public Task<ITexturedCharacterGlyph> GetAsync(string fontName, int codepoint) => Task.Run(() => Get(fontName, codepoint));
     }
 }

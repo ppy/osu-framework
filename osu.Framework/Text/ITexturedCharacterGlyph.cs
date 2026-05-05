@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.Textures;
+using System.Text;
 
 namespace osu.Framework.Text
 {
@@ -33,6 +34,6 @@ namespace osu.Framework.Text
         /// </summary>
         public static bool IsWhiteSpace<T>(this T glyph)
             where T : ITexturedCharacterGlyph
-            => char.IsWhiteSpace(glyph.Character);
+            => Rune.IsWhiteSpace(new Rune(glyph.Codepoint));
     }
 }

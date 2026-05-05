@@ -700,7 +700,16 @@ namespace osu.Framework.Tests.Text
                 return glyphs.FirstOrDefault(g => g.Font.FontName.EndsWith(fontName, StringComparison.Ordinal) && g.Glyph.Character == character).Glyph;
             }
 
+            public ITexturedCharacterGlyph Get(string? fontName, int codepoint)
+            {
+                if (string.IsNullOrEmpty(fontName))
+                    return glyphs.FirstOrDefault(g => g.Glyph.Codepoint == codepoint).Glyph;
+
+                return glyphs.FirstOrDefault(g => g.Font.FontName.EndsWith(fontName, StringComparison.Ordinal) && g.Glyph.Codepoint == codepoint).Glyph;
+            }
+
             public Task<ITexturedCharacterGlyph?> GetAsync(string fontName, char character) => throw new NotImplementedException();
+            public Task<ITexturedCharacterGlyph?> GetAsync(string fontName, int codepoint) => throw new NotImplementedException();
         }
 
         private readonly struct GlyphEntry
@@ -724,6 +733,7 @@ namespace osu.Framework.Tests.Text
             public float Width { get; }
             public float Baseline { get; }
             public float Height { get; }
+            public int Codepoint { get; }
             public char Character { get; }
             public string? FontName { get; }
 
@@ -733,6 +743,7 @@ namespace osu.Framework.Tests.Text
             {
                 glyphKerning = kerning;
                 Character = character;
+                Codepoint = character;
                 XOffset = xOffset;
                 YOffset = yOffset;
                 XAdvance = xAdvance;

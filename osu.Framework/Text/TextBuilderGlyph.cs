@@ -16,6 +16,7 @@ namespace osu.Framework.Text
         public readonly float XOffset => ((fixedWidth - Glyph.Width) / 2 ?? Glyph.XOffset) * textSize;
         public readonly float XAdvance => (fixedWidth ?? Glyph.XAdvance) * textSize;
         public readonly float Width => Glyph.Width * textSize;
+        public readonly int Codepoint => Glyph.Codepoint;
         public readonly char Character => Glyph.Character;
 
         public readonly float YOffset
