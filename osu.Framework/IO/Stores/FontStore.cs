@@ -151,9 +151,9 @@ namespace osu.Framework.IO.Stores
             {
                 if (store.FontName.EndsWith(fontName ?? string.Empty, StringComparison.Ordinal) && store.HasGlyph(codepoint))
                 {
-                    string textureName = codepoint <= char.MaxValue
+                    string textureName = codepoint <= char.MaxValue && shouldUseLiteralGlyphKey((char)codepoint)
                         ? $"{store.FontName}/{(char)codepoint}"
-                        : $"{store.FontName}/{codepoint:x}";
+                        : $"{store.FontName}/{codepoint:x4}";
 
                     var glyphMetrics = store.Get(codepoint);
                     if (glyphMetrics == null)
@@ -179,5 +179,8 @@ namespace osu.Framework.IO.Stores
 
         public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => Task.Run(() => Get(fontName, character));
         public Task<ITexturedCharacterGlyph> GetAsync(string fontName, int codepoint) => Task.Run(() => Get(fontName, codepoint));
+
+        private static bool shouldUseLiteralGlyphKey(char c)
+            => c != '/' && !char.IsControl(c);
     }
 }
