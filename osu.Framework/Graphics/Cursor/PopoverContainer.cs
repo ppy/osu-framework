@@ -19,6 +19,7 @@ namespace osu.Framework.Graphics.Cursor
         private readonly Container dismissOnMouseDownContainer;
 
         private IHasPopover? target;
+        public IHasPopover? CurrentTarget => target;
         private Popover? currentPopover;
 
         protected override Container<Drawable> Content => content;
