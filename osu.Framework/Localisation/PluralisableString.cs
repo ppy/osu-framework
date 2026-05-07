@@ -68,6 +68,10 @@ namespace osu.Framework.Localisation
 
         #region Mapping of plural variant indices according to locale
 
+        // Adapted from https://github.com/laravel/framework/blob/7e9ee4c5499af2259a3d202d45cea10aac8d90d7/src/Illuminate/Translation/MessageSelector.php#L99-L410
+        // The plural rules are derived from code of the Zend Framework (2010-09-25), which
+        // is subject to the new BSD license (https://framework.zend.com/license)
+        // Copyright (c) 2005-2010 - Zend Technologies USA Inc. (http://www.zend.com)
         private int getPluralIndex(LocalisationParameters parameters)
         {
             switch (parameters.Store?.EffectiveCulture?.Name ?? string.Empty)
