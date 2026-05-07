@@ -72,8 +72,12 @@ namespace osu.Framework.Extensions.LocalisationExtensions
         public static CaseTransformableString ToSentence(this ILocalisableStringData data) => new LocalisableString(data).ToSentence();
 
         /// <summary>
-        /// Returns a <see cref="LocalisableString"/> with the specified underlying localisable string transformed to the most relevant plural version for the given quantity.
+        /// Returns a <see cref="LocalisableString"/> with the specified underlying localisable string transformed to the most relevant plural version for the given <paramref name="quantity"/>.
         /// </summary>
+        /// <remarks>
+        /// This method on its own <b>DOES NOT</b> substitute any existing placeholder in the string with the given <paramref name="quantity"/>.
+        /// This is to facilitate pluralisation of strings that do not have placeholders in them, or strings wherein variable formatting of the <paramref name="quantity"/> is desired.
+        /// </remarks>
         /// <param name="str">The localisable string.</param>
         /// <param name="quantity">The quantity.</param>
         /// <param name="separator">The separator used within the string to denote different plural versions.</param>
@@ -81,8 +85,12 @@ namespace osu.Framework.Extensions.LocalisationExtensions
         public static PluralisableString ToQuantity(this LocalisableString str, int quantity, char separator = '|') => new PluralisableString(str, quantity, separator);
 
         /// <summary>
-        /// Returns a <see cref="LocalisableString"/> with the specified underlying localisable string transformed to the most relevant plural version for the given quantity.
+        /// Returns a <see cref="LocalisableString"/> with the specified underlying localisable string transformed to the most relevant plural version for the given <paramref name="quantity"/>.
         /// </summary>
+        /// <remarks>
+        /// This method on its own <b>DOES NOT</b> substitute any existing placeholder in the string with the given <paramref name="quantity"/>.
+        /// This is to facilitate pluralisation of strings that do not have placeholders in them, or strings wherein variable formatting of the <paramref name="quantity"/> is desired.
+        /// </remarks>
         /// <param name="data">The string data.</param>
         /// <param name="quantity">The quantity.</param>
         /// <param name="separator">The separator used within the string to denote different plural versions.</param>
