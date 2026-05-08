@@ -1310,11 +1310,6 @@ namespace osu.Framework.Platform
             }, true);
 
             inputConfig = new InputConfigManager(Storage, AvailableInputHandlers);
-
-#pragma warning disable CS0612 // Type or member is obsolete
-            if (Config.Get<RendererType>(FrameworkSetting.Renderer) == RendererType.OpenGLLegacy)
-                Config.SetValue(FrameworkSetting.Renderer, RendererType.OpenGL);
-#pragma warning restore CS0612 // Type or member is obsolete
         }
 
         /// <summary>
