@@ -69,9 +69,6 @@ namespace osu.Framework.Platform
         /// </summary>
         public bool AllowBenchmarkUnlimitedFrames { get; set; }
 
-        private int? originalMaxTexturesUploadedPerFrame;
-        private int? originalMaxPixelsUploadedPerFrame;
-
         protected FrameworkDebugConfigManager DebugConfig { get; private set; }
 
         protected FrameworkConfigManager Config { get; private set; }
@@ -1386,73 +1383,6 @@ namespace osu.Framework.Platform
             if (Window == null) return;
 
             DrawThread.Scheduler.Add(() => Renderer.VerticalSync = frameSyncMode.Value == FrameSync.VSync);
-        }
-
-        /// <summary>
-        /// 请求更改渲染器的 VSync 状态。
-        /// </summary>
-        /// <remarks>
-        /// 底层渲染器属性为 <c>protected internal</c>，只能在 osu!framework 程序集中修改。
-        /// 提供该方法是为了让宿主游戏可以应用“仅影响 draw 的策略”（例如：在非 gameplay 界面禁用 VSync），
-        /// 同时不影响 update 频率。
-        /// </remarks>
-        public void SetVerticalSync(bool enabled)
-        {
-            if (Window == null)
-                return;
-
-            DrawThread?.Scheduler.Add(() => Renderer.VerticalSync = enabled);
-        }
-
-        /// <summary>
-        /// 设置每帧允许上传到 GPU 的纹理数量与像素预算上限。
-        /// </summary>
-        /// <remarks>
-        /// 宿主游戏可用此在 UI 较重的界面中，用“更慢的纹理流式加载”换取“更平滑的帧时间”。
-        /// 设置会在 draw 线程上生效。
-        /// </remarks>
-        /// <param name="maxTexturesUploadedPerFrame">每帧最多上传的纹理数量。必须 &gt; 0。</param>
-        /// <param name="maxPixelsUploadedPerFrame">每帧最多上传的像素数量。必须 &gt; 0。</param>
-        /// <param name="rememberOriginal">
-        /// 是否记录原始限制（仅首次调用生效），以便后续可通过 <see cref="RestoreTextureUploadLimits"/> 还原。
-        /// </param>
-        public void SetTextureUploadLimits(int maxTexturesUploadedPerFrame, int maxPixelsUploadedPerFrame, bool rememberOriginal = true)
-        {
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxTexturesUploadedPerFrame);
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxPixelsUploadedPerFrame);
-
-            if (Renderer is not Renderer renderer)
-                return;
-
-            DrawThread?.Scheduler.Add(() =>
-            {
-                if (rememberOriginal)
-                {
-                    originalMaxTexturesUploadedPerFrame ??= renderer.MaxTexturesUploadedPerFrame;
-                    originalMaxPixelsUploadedPerFrame ??= renderer.MaxPixelsUploadedPerFrame;
-                }
-
-                renderer.MaxTexturesUploadedPerFrame = maxTexturesUploadedPerFrame;
-                renderer.MaxPixelsUploadedPerFrame = maxPixelsUploadedPerFrame;
-            });
-        }
-
-        /// <summary>
-        /// 还原先前由 <see cref="SetTextureUploadLimits"/> 捕获的纹理上传限制。
-        /// </summary>
-        public void RestoreTextureUploadLimits()
-        {
-            if (Renderer is not Renderer renderer)
-                return;
-
-            if (originalMaxTexturesUploadedPerFrame == null || originalMaxPixelsUploadedPerFrame == null)
-                return;
-
-            DrawThread?.Scheduler.Add(() =>
-            {
-                renderer.MaxTexturesUploadedPerFrame = originalMaxTexturesUploadedPerFrame.Value;
-                renderer.MaxPixelsUploadedPerFrame = originalMaxPixelsUploadedPerFrame.Value;
-            });
         }
 
         /// <summary>

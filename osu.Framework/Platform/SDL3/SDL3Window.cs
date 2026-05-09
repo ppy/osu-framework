@@ -55,7 +55,7 @@ namespace osu.Framework.Platform.SDL3
 
         private const int default_icon_size = 256;
 
-        private static int sdl_quit_invoked;
+        private static int sdlQuitInvoked;
 
         /// <summary>
         /// Scheduler for actions to run before the next event loop.
@@ -276,7 +276,7 @@ namespace osu.Framework.Platform.SDL3
 
         private static void quitSDL()
         {
-            if (Interlocked.Exchange(ref sdl_quit_invoked, 1) != 0)
+            if (Interlocked.Exchange(ref sdlQuitInvoked, 1) != 0)
                 return;
 
             if (!OperatingSystem.IsWindows())
