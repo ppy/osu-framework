@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -30,6 +31,36 @@ namespace osu.Framework.Tests.Audio
         {
             Child = track = new DrawableTrack(trackStore.Get("sample-track"));
         });
+
+        [Test]
+        public void TestStopOnExpire()
+        {
+            SlowDisposer slowDispose = null;
+            AddStep("queue slow disposal", () => AsyncDisposalQueue.Enqueue(slowDispose = new SlowDisposer()));
+
+            AddStep("start playing", () => track.Start());
+            AddUntilStep("track is running", () => track.IsRunning, () => Is.True);
+            AddStep("stop via expire", () => track.Expire());
+            AddUntilStep("track is not running", () => track.IsRunning, () => Is.False);
+
+            AddAssert("track not disposed", () => track.IsDisposed, () => Is.False);
+            AddStep("unblock slow disposal", () => slowDispose.AllowDisposal());
+            AddUntilStep("track disposed", () => track.IsDisposed, () => Is.True);
+        }
+
+        private partial class SlowDisposer : Drawable
+        {
+            private readonly ManualResetEventSlim allow = new ManualResetEventSlim();
+
+            public void AllowDisposal() => allow.Set();
+
+            protected override void Dispose(bool isDisposing)
+            {
+                base.Dispose(isDisposing);
+
+                allow.Wait(60000);
+            }
+        }
 
         [Test]
         public void TestVolumeResetWhenReset()

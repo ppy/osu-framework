@@ -25,10 +25,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private readonly ScheduledDelegate shaderCompileDelegate;
 
-        internal readonly Dictionary<string, IUniform> Uniforms = new Dictionary<string, IUniform>();
-
-        IReadOnlyDictionary<string, IUniform> IShader.Uniforms => Uniforms;
-
         private readonly Dictionary<string, int> uniformBlocks = new Dictionary<string, int>();
         private readonly List<Uniform<int>> textureUniforms = new List<Uniform<int>>();
 
@@ -121,16 +117,6 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
             renderer.UnbindShader(this);
 
             IsBound = false;
-        }
-
-        public Uniform<T> GetUniform<T>(string name)
-            where T : unmanaged, IEquatable<T>
-        {
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
-
-            EnsureShaderCompiled();
-
-            return (Uniform<T>)Uniforms[name];
         }
 
         public int? GetUniformBlockIndex(string name) => uniformBlocks.TryGetValue(name, out int index) ? index : null;

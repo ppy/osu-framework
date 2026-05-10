@@ -165,6 +165,8 @@ namespace osu.Framework.Platform.SDL2
             }
         }
 
+        public bool PositionAccurate => true;
+
         private bool resizable = true;
 
         /// <summary>

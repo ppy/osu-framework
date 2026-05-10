@@ -15,6 +15,7 @@ using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Platform;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Input.Handlers.Pen;
 using osuTK;
 using osuTK.Graphics;
 
@@ -201,6 +202,8 @@ namespace osu.Framework.Tests.Visual.Input
         {
             AddSliderStep("Cursor sensitivity", 0.5, 5, 1, setCursorSensitivityConfig);
             setCursorSensitivityConfig(1);
+            AddSliderStep("Pen sensitivity", 0.5, 5, 1, setPenSensitivityConfig);
+            setPenSensitivityConfig(1);
             AddToggleStep("Toggle relative mode", setRelativeMode);
             AddStep("Set confine to Never", () => setConfineMouseModeConfig(ConfineMouseMode.Never));
             AddStep("Set confine to Fullscreen", () => setConfineMouseModeConfig(ConfineMouseMode.Fullscreen));
@@ -218,6 +221,13 @@ namespace osu.Framework.Tests.Visual.Input
 
             foreach (var h in host.AvailableInputHandlers)
                 AddToggleStep($"{h.Description} enabled", v => h.Enabled.Value = v);
+        }
+
+        private void setPenSensitivityConfig(double sensitivity)
+        {
+            var penHandler = host.AvailableInputHandlers.OfType<PenHandler>().FirstOrDefault();
+            if (penHandler != null)
+                penHandler.Sensitivity.Value = sensitivity;
         }
 
         private void setCursorSensitivityConfig(double sensitivity)
