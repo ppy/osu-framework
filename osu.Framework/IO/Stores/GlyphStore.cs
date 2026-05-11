@@ -141,6 +141,7 @@ namespace osu.Framework.IO.Stores
         }
 
         public int GetKerning(char left, char right) => GetKerning((int)left, (int)right);
+
         public int GetKerning(int leftCodepoint, int rightCodepoint)
         {
             if (leftCodepoint > char.MaxValue || rightCodepoint > char.MaxValue)

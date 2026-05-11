@@ -243,7 +243,7 @@ namespace osu.Framework.Audio.EzLatency
             {
                 try
                 {
-                    fileWriter = new StreamWriter(File.Open(filePath, FileMode.Append, FileAccess.Write, FileShare.Read)) { AutoFlush = true };
+                    if (filePath != null) fileWriter = new StreamWriter(File.Open(filePath, FileMode.Append, FileAccess.Write, FileShare.Read)) { AutoFlush = true };
                 }
                 catch (Exception ex)
                 {

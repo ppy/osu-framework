@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 // using osu.Framework.Extensions.TypeExtensions;
+
 using osu.Framework.Input.States;
 using osuTK.Input;
 
