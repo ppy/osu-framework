@@ -36,6 +36,9 @@ namespace osu.Framework.Graphics.Containers
             private float grayscaleStrength;
             private float verticalPerspective;
 
+            private Vector2 perspectiveScale;
+            private float perspectiveVerticalOffset;
+
             private long updateVersion;
             private IShader blurShader;
             private IShader grayscaleShader;
@@ -67,6 +70,9 @@ namespace osu.Framework.Graphics.Containers
                 blurRotation = Source.BlurRotation;
                 grayscaleStrength = Source.GrayscaleStrength;
                 verticalPerspective = Source.VerticalPerspective;
+
+                perspectiveScale = Source.PerspectiveScale;
+                perspectiveVerticalOffset = Source.PerspectiveVerticalOffset;
 
                 blurShader = Source.blurShader;
                 grayscaleShader = Source.grayscaleShader;
@@ -119,8 +125,8 @@ namespace osu.Framework.Graphics.Containers
 
                 using (var perspectiveParametersBuffer = renderer.CreateUniformBuffer<PerspectiveParameters>())
                 {
-                    // Update reusable struct instead of allocating new one
-                    perspectiveParameters.Strength = strength;
+                    perspectiveParameters.Scale = perspectiveScale;
+                    perspectiveParameters.VerticalOffset = perspectiveVerticalOffset;
                     perspectiveParametersBuffer.Data = perspectiveParameters;
 
                     perspectiveShader.BindUniformBlock("m_PerspectiveParameters", perspectiveParametersBuffer);
@@ -216,8 +222,9 @@ namespace osu.Framework.Graphics.Containers
             [StructLayout(LayoutKind.Sequential, Pack = 1)]
             private record struct PerspectiveParameters
             {
-                public UniformFloat Strength;
-                private readonly UniformPadding12 pad1;
+                public UniformVector2 Scale;       // x = TopHeightScale, y = TopWidthScale
+                public UniformFloat VerticalOffset;
+                private readonly UniformFloat _pad;
             }
         }
 

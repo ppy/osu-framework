@@ -211,7 +211,7 @@ namespace osu.Framework.Graphics.Containers
         private float verticalPerspective;
 
         /// <summary>
-        /// 提供垂直透视效果，0为无透视，1为最大透视。需要配合透视着色器使用。
+        /// 透视效果强度，0为无效果，1为最大。当值为0时跳过着色器直接绘制。
         /// </summary>
         public float VerticalPerspective
         {
@@ -222,6 +222,43 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 verticalPerspective = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private Vector2 perspectiveScale = new Vector2(0.5f, 0.5f);
+
+        /// <summary>
+        /// 透视缩放向量。X = 纵向压缩比 (Speed, 越小顶部越慢)，Y = 顶部宽度缩放 (Trapezoid, 越小顶部越窄)。
+        /// 范围 0.05 ~ 1.0。
+        /// </summary>
+        public Vector2 PerspectiveScale
+        {
+            get => perspectiveScale;
+            set
+            {
+                if (perspectiveScale == value)
+                    return;
+
+                perspectiveScale = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private float perspectiveVerticalOffset;
+
+        /// <summary>
+        /// 垂直偏移。正值向下，负值向上。范围 -0.5 ~ 0.5。
+        /// </summary>
+        public float PerspectiveVerticalOffset
+        {
+            get => perspectiveVerticalOffset;
+            set
+            {
+                if (perspectiveVerticalOffset == value)
+                    return;
+
+                perspectiveVerticalOffset = value;
                 Invalidate(Invalidation.DrawNode);
             }
         }
