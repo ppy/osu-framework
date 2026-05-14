@@ -160,7 +160,6 @@ namespace osu.Framework.Graphics.Shaders
     {
         public const string TEXTURE = "Texture";
         public const string PERSPECTIVE = "Perspective";
-        public const string TRUE_PERSPECTIVE = "TruePerspective";
         public const string GLOW = "Glow";
         public const string BLUR = "Blur";
         public const string GRAYSCALE = "Grayscale";

@@ -36,23 +36,18 @@ namespace osu.Framework.Graphics.Containers
             private float grayscaleStrength;
             private float verticalPerspective;
 
-            private bool useTruePerspective;
-            private float truePerspectiveTopHeightScale;
-            private float truePerspectiveTopWidthScale;
-            private float truePerspectiveGlobalHorizontalScale;
-            private float truePerspectiveVerticalOffset;
+            private Vector2 perspectiveScale;
+            private float perspectiveVerticalOffset;
 
             private long updateVersion;
             private IShader blurShader;
             private IShader grayscaleShader;
             private IShader perspectiveShader;
-            private IShader truePerspectiveShader;
 
             // Reusable structs to avoid per-frame allocations
             private BlurParameters blurParameters;
             private GrayscaleParameters grayscaleParameters;
             private PerspectiveParameters perspectiveParameters;
-            private TruePerspectiveParameters truePerspectiveParameters;
 
             public BufferedContainerDrawNode(BufferedContainer<T> source, BufferedContainerDrawNodeSharedData sharedData)
                 : base(source, new CompositeDrawableDrawNode(source), sharedData)
@@ -76,16 +71,12 @@ namespace osu.Framework.Graphics.Containers
                 grayscaleStrength = Source.GrayscaleStrength;
                 verticalPerspective = Source.VerticalPerspective;
 
-                useTruePerspective = Source.UseTruePerspective;
-                truePerspectiveTopHeightScale = Source.TruePerspectiveTopHeightScale;
-                truePerspectiveTopWidthScale = Source.TruePerspectiveTopWidthScale;
-                truePerspectiveGlobalHorizontalScale = Source.TruePerspectiveGlobalHorizontalScale;
-                truePerspectiveVerticalOffset = Source.TruePerspectiveVerticalOffset;
+                perspectiveScale = Source.PerspectiveScale;
+                perspectiveVerticalOffset = Source.PerspectiveVerticalOffset;
 
                 blurShader = Source.blurShader;
                 grayscaleShader = Source.grayscaleShader;
                 perspectiveShader = Source.perspectiveShader;
-                truePerspectiveShader = Source.truePerspectiveShader;
             }
 
             protected override long GetDrawVersion() => updateVersion;
@@ -116,10 +107,7 @@ namespace osu.Framework.Graphics.Containers
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(effectColour);
 
-                if (useTruePerspective && truePerspectiveShader != null)
-                    drawTruePerspectiveFrameBuffer(renderer, SharedData.CurrentEffectBuffer, finalEffectColour);
-                else
-                    drawPerspectiveFrameBuffer(renderer, SharedData.CurrentEffectBuffer, finalEffectColour);
+                drawPerspectiveFrameBuffer(renderer, SharedData.CurrentEffectBuffer, finalEffectColour);
 
                 if (drawOriginal && effectPlacement == EffectPlacement.Behind)
                     base.DrawContents(renderer);
@@ -137,8 +125,8 @@ namespace osu.Framework.Graphics.Containers
 
                 using (var perspectiveParametersBuffer = renderer.CreateUniformBuffer<PerspectiveParameters>())
                 {
-                    // Update reusable struct instead of allocating new one
-                    perspectiveParameters.Strength = strength;
+                    perspectiveParameters.Scale = perspectiveScale;
+                    perspectiveParameters.VerticalOffset = perspectiveVerticalOffset;
                     perspectiveParametersBuffer.Data = perspectiveParameters;
 
                     perspectiveShader.BindUniformBlock("m_PerspectiveParameters", perspectiveParametersBuffer);
@@ -148,35 +136,6 @@ namespace osu.Framework.Graphics.Containers
                     renderer.DrawFrameBuffer(frameBuffer, DrawRectangle, drawColour);
 
                     perspectiveShader.Unbind();
-                    Source.TextureShader?.Bind();
-                    if (Source.TextureShader != null)
-                        BindUniformResources(Source.TextureShader, renderer);
-                }
-            }
-
-            private void drawTruePerspectiveFrameBuffer(IRenderer renderer, IFrameBuffer frameBuffer, ColourInfo drawColour)
-            {
-                if (truePerspectiveShader == null)
-                {
-                    renderer.DrawFrameBuffer(frameBuffer, DrawRectangle, drawColour);
-                    return;
-                }
-
-                using (var truePerspectiveParametersBuffer = renderer.CreateUniformBuffer<TruePerspectiveParameters>())
-                {
-                    truePerspectiveParameters.TopHeightScale = truePerspectiveTopHeightScale;
-                    truePerspectiveParameters.TopWidthScale = truePerspectiveTopWidthScale;
-                    truePerspectiveParameters.GlobalHorizontalScale = truePerspectiveGlobalHorizontalScale;
-                    truePerspectiveParameters.VerticalOffset = truePerspectiveVerticalOffset;
-                    truePerspectiveParametersBuffer.Data = truePerspectiveParameters;
-
-                    truePerspectiveShader.BindUniformBlock("m_TruePerspectiveParameters", truePerspectiveParametersBuffer);
-                    truePerspectiveShader.Bind();
-                    BindUniformResources(truePerspectiveShader, renderer);
-
-                    renderer.DrawFrameBuffer(frameBuffer, DrawRectangle, drawColour);
-
-                    truePerspectiveShader.Unbind();
                     Source.TextureShader?.Bind();
                     if (Source.TextureShader != null)
                         BindUniformResources(Source.TextureShader, renderer);
@@ -263,17 +222,9 @@ namespace osu.Framework.Graphics.Containers
             [StructLayout(LayoutKind.Sequential, Pack = 1)]
             private record struct PerspectiveParameters
             {
-                public UniformFloat Strength;
-                private readonly UniformPadding12 pad1;
-            }
-
-            [StructLayout(LayoutKind.Sequential, Pack = 1)]
-            private record struct TruePerspectiveParameters
-            {
-                public UniformFloat TopHeightScale;
-                public UniformFloat TopWidthScale;
-                public UniformFloat GlobalHorizontalScale;
+                public UniformVector2 Scale;       // x = TopHeightScale, y = TopWidthScale
                 public UniformFloat VerticalOffset;
+                private readonly UniformFloat _pad;
             }
         }
 

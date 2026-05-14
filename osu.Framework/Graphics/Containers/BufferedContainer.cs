@@ -211,7 +211,7 @@ namespace osu.Framework.Graphics.Containers
         private float verticalPerspective;
 
         /// <summary>
-        /// 提供垂直透视效果，0为无透视，1为最大透视。需要配合透视着色器使用。
+        /// 透视效果强度，0为无效果，1为最大。当值为0时跳过着色器直接绘制。
         /// </summary>
         public float VerticalPerspective
         {
@@ -226,97 +226,39 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private bool useTruePerspective;
+        private Vector2 perspectiveScale = new Vector2(0.5f, 0.5f);
 
         /// <summary>
-        /// 启用真透视模式（替代旧的 VerticalPerspective 伪 3D 效果）。
-        /// 当为 true 时，将使用 TruePerspectiveTopHeightScale 等参数进行真透视变换。
+        /// 透视缩放向量。X = 纵向压缩比 (Speed, 越小顶部越慢)，Y = 顶部宽度缩放 (Trapezoid, 越小顶部越窄)。
+        /// 范围 0.05 ~ 1.0。
         /// </summary>
-        public bool UseTruePerspective
+        public Vector2 PerspectiveScale
         {
-            get => useTruePerspective;
+            get => perspectiveScale;
             set
             {
-                if (useTruePerspective == value)
+                if (perspectiveScale == value)
                     return;
 
-                useTruePerspective = value;
+                perspectiveScale = value;
                 Invalidate(Invalidation.DrawNode);
             }
         }
 
-        private float truePerspectiveTopHeightScale = 0.5f;
+        private float perspectiveVerticalOffset;
 
         /// <summary>
-        /// 真透视模式下的纵向压缩比 (Speed/Perspective)。
-        /// 越小则顶部越慢、压缩越狠。范围 0.05 ~ 1.0。
+        /// 垂直偏移。正值向下，负值向上。范围 -0.5 ~ 0.5。
         /// </summary>
-        public float TruePerspectiveTopHeightScale
+        public float PerspectiveVerticalOffset
         {
-            get => truePerspectiveTopHeightScale;
+            get => perspectiveVerticalOffset;
             set
             {
-                if (truePerspectiveTopHeightScale == value)
+                if (perspectiveVerticalOffset == value)
                     return;
 
-                truePerspectiveTopHeightScale = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
-
-        private float truePerspectiveTopWidthScale = 0.5f;
-
-        /// <summary>
-        /// 真透视模式下的顶部透视宽度 (Trapezoid)。
-        /// 控制远端缩小的倍率。范围 0.1 ~ 1.0。
-        /// </summary>
-        public float TruePerspectiveTopWidthScale
-        {
-            get => truePerspectiveTopWidthScale;
-            set
-            {
-                if (truePerspectiveTopWidthScale == value)
-                    return;
-
-                truePerspectiveTopWidthScale = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
-
-        private float truePerspectiveGlobalHorizontalScale = 1.0f;
-
-        /// <summary>
-        /// 真透视模式下的全局横向缩放 (Global Scale)。
-        /// 增加此值可让 3D 轨道变宽。范围 0.1 ~ 5.0。
-        /// </summary>
-        public float TruePerspectiveGlobalHorizontalScale
-        {
-            get => truePerspectiveGlobalHorizontalScale;
-            set
-            {
-                if (truePerspectiveGlobalHorizontalScale == value)
-                    return;
-
-                truePerspectiveGlobalHorizontalScale = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
-
-        private float truePerspectiveVerticalOffset;
-
-        /// <summary>
-        /// 真透视模式下的垂直偏移 (Vertical Offset)。
-        /// 正值向下移动，负值向上移动。范围 -0.5 ~ 0.5。
-        /// </summary>
-        public float TruePerspectiveVerticalOffset
-        {
-            get => truePerspectiveVerticalOffset;
-            set
-            {
-                if (truePerspectiveVerticalOffset == value)
-                    return;
-
-                truePerspectiveVerticalOffset = value;
+                perspectiveVerticalOffset = value;
                 Invalidate(Invalidation.DrawNode);
             }
         }
@@ -366,8 +308,7 @@ namespace osu.Framework.Graphics.Containers
 
         private IShader blurShader;
         private IShader grayscaleShader;
-        internal IShader perspectiveShader;
-        internal IShader truePerspectiveShader;
+        private IShader perspectiveShader;
 
         private readonly BufferedContainerDrawNodeSharedData sharedData;
 
@@ -400,7 +341,6 @@ namespace osu.Framework.Graphics.Containers
             blurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
             grayscaleShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.GRAYSCALE);
             perspectiveShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.PERSPECTIVE);
-            truePerspectiveShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TRUE_PERSPECTIVE);
         }
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(this, sharedData);
