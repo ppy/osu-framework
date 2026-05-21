@@ -526,12 +526,10 @@ namespace osu.Framework.Platform.SDL3
 
                 case SDL_EventType.SDL_EVENT_WINDOW_MOUSE_ENTER:
                     cursorInWindow.Value = true;
-                    MouseEntered?.Invoke();
                     break;
 
                 case SDL_EventType.SDL_EVENT_WINDOW_MOUSE_LEAVE:
                     cursorInWindow.Value = false;
-                    MouseLeft?.Invoke();
                     break;
 
                 case SDL_EventType.SDL_EVENT_WINDOW_RESTORED:

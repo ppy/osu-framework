@@ -662,16 +662,6 @@ namespace osu.Framework.Platform.SDL3
         #region Events
 
         /// <summary>
-        /// Invoked when the mouse cursor enters the window.
-        /// </summary>
-        public event Action? MouseEntered;
-
-        /// <summary>
-        /// Invoked when the mouse cursor leaves the window.
-        /// </summary>
-        public event Action? MouseLeft;
-
-        /// <summary>
         /// Invoked when the user scrolls the mouse wheel over the window.
         /// </summary>
         /// <remarks>
