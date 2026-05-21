@@ -10,6 +10,15 @@ namespace osu.Framework.Benchmarks
     public class BenchmarkInterpolation : BenchmarkTest
     {
         [Benchmark]
+        public float LerpFloat()
+        {
+            const float first = 0;
+            const float second = 10;
+
+            return Interpolation.Lerp(0.5f, first, second);
+        }
+
+        [Benchmark]
         public MarginPadding InterpolateMarginPadding()
         {
             var first = new MarginPadding();
