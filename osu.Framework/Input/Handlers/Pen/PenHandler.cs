@@ -97,6 +97,12 @@ namespace osu.Framework.Input.Handlers.Pen
             return new Vector2(position.X, position.Y);
         }
 
+        private Vector2 windowClientSize()
+        {
+            var size = window.ClientSize;
+            return new Vector2(size.Width, size.Height);
+        }
+
         private Vector2 currentDisplayPosition()
         {
             var position = window.CurrentDisplayBindable.Value.Bounds.Location;
@@ -122,12 +128,13 @@ namespace osu.Framework.Input.Handlers.Pen
         /// <summary>
         /// Gets the delta needed to apply sensitivity.
         /// </summary>
-        /// <param name="positionInCurrentDisplay">A position relative to the top-left corner of the current display.</param>
+        /// <param name="position">A position relative to the top-left corner of the rectangle defined by size.</param>
+        /// <param name="size">The size of the rectangle.</param>
         /// <returns>A vector that can be added to a position to apply sensitivity.</returns>
-        private Vector2 getSensitivityDelta(Vector2 positionInCurrentDisplay)
+        private Vector2 getSensitivityDelta(Vector2 position, Vector2 size)
         {
-            var displayCentre = currentDisplaySize() * 0.5f;
-            var relativeToCentre = positionInCurrentDisplay - displayCentre;
+            var centre = size * 0.5f;
+            var relativeToCentre = position - centre;
             return relativeToCentre * (float)(Sensitivity.Value - 1);
         }
 
@@ -138,8 +145,18 @@ namespace osu.Framework.Input.Handlers.Pen
         /// <returns>A pixel position relative to the top-left corner of the window with sensitivity applied.</returns>
         private Vector2 applySensitivity(Vector2 position)
         {
-            var delta = getSensitivityDelta(windowToCurrentDisplay(position / window.Scale)) * window.Scale;
-            return position + delta;
+            if (window.PositionAccurate)
+            {
+                // apply relative to the centre of the current display
+                var delta = getSensitivityDelta(windowToCurrentDisplay(position / window.Scale), currentDisplaySize()) * window.Scale;
+                return position + delta;
+            }
+            else
+            {
+                // apply relative to the cetre of the window
+                var delta = getSensitivityDelta(position, windowClientSize());
+                return position + delta;
+            }
         }
     }
 }
