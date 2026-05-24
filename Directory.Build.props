@@ -43,14 +43,15 @@
     <AnalysisModeUsage>Default</AnalysisModeUsage>
   </PropertyGroup>
   <PropertyGroup Label="NuGet">
-    <Authors>ppy Pty Ltd</Authors>
-    <Company>ppy Pty Ltd</Company>
-    <Copyright>Copyright (c) 2024 ppy Pty Ltd</Copyright>
-    <Product>osu!framework</Product>
+    <Authors>SK-la</Authors>
+    <Copyright>Copyright (c) 2024 SK-la</Copyright>
+    <Product>Ez2Lazer Framework</Product>
+    <Description>Fork of osu!framework, adapted for Ez2Lazer with custom enhancements.</Description>
     <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageProjectUrl>https://github.com/ppy/osu-framework</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/ppy/osu-framework</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/SK-la/osu-framework</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/SK-la/osu-framework</RepositoryUrl>
+    <Tags>osu framework fork ez2lazer</Tags>
   </PropertyGroup>
 </Project>

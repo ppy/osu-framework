@@ -1,186 +1,84 @@
-name: Pack and nuget
+name: Pack and publish NuGet
 
 on:
   push:
     tags:
-      - '*'
+      - '*-ez2lazer'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'NuGet 包版本（与 tag 一致，例如 2026.524.4-ez2lazer）'
+        required: true
+        type: string
+
+permissions:
+  contents: read
 
 jobs:
-  notify_pending_production_deploy:
-    runs-on: ubuntu-latest
-    steps:
-      -
-        name: Submit pending deployment notification
-        run: |
-          export TITLE="Pending osu-framework Production Deployment: $GITHUB_REF_NAME"
-          export URL="https://github.com/ppy/osu-framework/actions/runs/$GITHUB_RUN_ID"
-          export DESCRIPTION="Awaiting approval for building NuGet packages for tag $GITHUB_REF_NAME:
-          [View Workflow Run]($URL)"
-          export ACTOR_ICON="https://avatars.githubusercontent.com/u/$GITHUB_ACTOR_ID"
-
-          BODY="$(jq --null-input '{
-            "embeds": [
-              {
-                "title": env.TITLE,
-                "color": 15098112,
-                "description": env.DESCRIPTION,
-                "url": env.URL,
-                "author": {
-                  "name": env.GITHUB_ACTOR,
-                  "icon_url": env.ACTOR_ICON
-                }
-              }
-            ]
-          }')"
-
-          curl \
-            -H "Content-Type: application/json" \
-            -d "$BODY" \
-            "${{ secrets.DISCORD_INFRA_WEBHOOK_URL }}"
-
   pack-framework:
-    name: Pack (Framework)
+    name: Pack (ez2lazer.Framework)
     runs-on: windows-latest
-    environment: production
     defaults:
       run:
         shell: powershell
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
 
-      - name: Set artifacts directory
-        id: artifactsPath
-        run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
-
-      - name: Install .NET 8.0.x
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: "8.0.x"
-
-      - name: Pack (Framework)
-        run: dotnet pack -c Release osu.Framework /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true /p:IncludeSymbols=true /p:SymbolPackageFormat=snupkg -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: osu-framework
-          path: |
-            ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
-            ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.snupkg
-
-      - name: Publish packages to nuget.org
-        run: dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
-
-  pack-template:
-    name: Pack (Templates)
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Set artifacts Directory
-        id: artifactsPath
-        run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}/artifacts"
-
-      - name: Install .NET 8.0.x
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: "8.0.x"
-
-      - name: Replace project references
-        run: osu.Framework.Templates/replace-references.sh ${{ github.ref_name }}
-
-      - name: Pack (Template)
-        run: dotnet pack -c Release osu.Framework.Templates /p:Configuration=Release /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true /p:NoDefaultExcludes=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: osu-framework-templates
-          path: ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg
-
-      - name: Publish packages to nuget.org
-        run: dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
-
-  pack-android:
-    name: Pack (Android)
-    runs-on: windows-latest
-    environment: production
-    defaults:
-      run:
-        shell: powershell
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Set artifacts directory
-        id: artifactsPath
-        run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
-
-      - name: Install .NET 8.0.x
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: "8.0.x"
-
-      - name: Setup JDK 11
-        uses: actions/setup-java@v5
-        with:
-          distribution: microsoft
-          java-version: 11
-
-      - name: Restore .NET workloads
-        run: dotnet workload install android
-
-      - name: Pack (Android Framework)
-        run: dotnet pack -c Release osu.Framework.Android /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true  -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: osu-framework-android
-          path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
-
-      - name: Publish packages to nuget.org
-        run: dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
-
-  pack-ios:
-    name: Pack (iOS)
-    runs-on: macos-15
-    environment: production
-    defaults:
-      run:
+      - name: Resolve package version
+        id: version
         shell: bash
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "value=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Set artifacts directory
-        id: artifactsPath
-        run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}/artifacts"
-
-      - name: Install .NET 8.0.x
-        uses: actions/setup-dotnet@v5
+      - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: '8.0.x'
 
-      - name: Restore .NET Workloads
-        run: dotnet workload install ios
+      - name: Pack
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          dotnet pack -c Release osu.Framework `
+            /p:Version=${{ steps.version.outputs.value }} `
+            /p:GenerateDocumentationFile=true `
+            /p:IncludeSymbols=true `
+            /p:SymbolPackageFormat=snupkg `
+            -o artifacts
 
-      # https://github.com/dotnet/macios/issues/19157
-      # https://github.com/actions/runner-images/issues/12758
-      - name: Use Xcode 16.4
-        run: sudo xcode-select -switch /Applications/Xcode_16.4.app
-
-      - name: Pack (iOS Framework)
-        run: dotnet pack -c Release osu.Framework.iOS /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v7
         with:
-          name: osu-framework-ios
-          path: ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg
+          name: ez2lazer-framework
+          path: |
+            artifacts/*.nupkg
+            artifacts/*.snupkg
+
+      - name: Require NUGET_API_KEY
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) {
+            Write-Error "Secret NUGET_API_KEY 未配置。请在仓库 Settings → Secrets and variables → Actions 中添加。"
+            exit 1
+          }
 
       - name: Publish packages to nuget.org
-        run: dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          $version = '${{ steps.version.outputs.value }}'
+          $log = Join-Path $env:RUNNER_TEMP 'nuget-push.log'
+          dotnet nuget push artifacts/*.nupkg `
+            --api-key $env:NUGET_API_KEY `
+            --source https://api.nuget.org/v3/index.json `
+            2>&1 | Tee-Object -FilePath $log
+          if ($LASTEXITCODE -ne 0) {
+            $content = Get-Content $log -Raw
+            if ($content -match 'already exists|package ID is reserved') {
+              Write-Error "推送失败。若 reserved：包 ID 被 nuget 保留；若 already exists：版本 $version 已存在。`nhttps://www.nuget.org/packages/ez2lazer.Framework/$version"
+            }
+            exit $LASTEXITCODE
+          }
+          Write-Host "Published: https://www.nuget.org/packages/ez2lazer.Framework/$version"
