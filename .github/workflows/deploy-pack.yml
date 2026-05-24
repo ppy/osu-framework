@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   pack-framework:
@@ -55,30 +56,31 @@ jobs:
             artifacts/*.nupkg
             artifacts/*.snupkg
 
-      - name: Require NUGET_API_KEY
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: |
-          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) {
-            Write-Error "Secret NUGET_API_KEY 未配置。请在仓库 Settings → Secrets and variables → Actions 中添加。"
-            exit 1
-          }
+      # NuGet 可信发布：SK-la/osu-framework + deploy-pack.yml（无需长期 NUGET_API_KEY）
+      - name: NuGet login (Trusted Publishing / OIDC)
+        uses: NuGet/login@v1
+        id: nuget_login
+        with:
+          user: SK_LA
 
       - name: Publish packages to nuget.org
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
           $version = '${{ steps.version.outputs.value }}'
+          $apiKey = '${{ steps.nuget_login.outputs.NUGET_API_KEY }}'
           $log = Join-Path $env:RUNNER_TEMP 'nuget-push.log'
-          dotnet nuget push artifacts/*.nupkg `
-            --api-key $env:NUGET_API_KEY `
-            --source https://api.nuget.org/v3/index.json `
-            2>&1 | Tee-Object -FilePath $log
-          if ($LASTEXITCODE -ne 0) {
+          $failed = $false
+          Get-ChildItem artifacts -Filter *.nupkg | ForEach-Object {
+            dotnet nuget push $_.FullName `
+              --api-key $apiKey `
+              --source https://api.nuget.org/v3/index.json `
+              2>&1 | Tee-Object -FilePath $log -Append
+            if ($LASTEXITCODE -ne 0) { $failed = $true }
+          }
+          if ($failed) {
             $content = Get-Content $log -Raw
             if ($content -match 'already exists|package ID is reserved') {
-              Write-Error "推送失败。若 reserved：包 ID 被 nuget 保留；若 already exists：版本 $version 已存在。`nhttps://www.nuget.org/packages/ez2lazer.Framework/$version"
+              Write-Error "推送失败。若 reserved：包 ID 被保留；若 already exists：版本 $version 已存在。`nhttps://www.nuget.org/packages/ez2lazer.Framework/$version"
             }
-            exit $LASTEXITCODE
+            exit 1
           }
-          Write-Host "Published: https://www.nuget.org/packages/ez2lazer.Framework/$version"
+          Write-Host "Published (Trusted Publishing): https://www.nuget.org/packages/ez2lazer.Framework/$version"
