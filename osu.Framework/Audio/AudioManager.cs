@@ -87,6 +87,11 @@ namespace osu.Framework.Audio
         public readonly Bindable<int> AsioBufferSize = new Bindable<int>(AudioOutputDefaults.DEFAULT_ASIO_BUFFER_SIZE);
 
         /// <summary>
+        /// ASIO 输出位深（16 或 24），默认为 24。
+        /// </summary>
+        public readonly Bindable<int> AsioBitDepth = new Bindable<int>(24);
+
+        /// <summary>
         /// The names of all available audio devices.
         /// </summary>
         /// <remarks>
@@ -117,10 +122,10 @@ namespace osu.Framework.Audio
         public Action<double> OnAsioDeviceInitialized;
 
         /// <summary>
-        /// 在 ASIO 设备成功初始化后触发，提供实际使用的采样率和缓冲区大小。
+        /// 在 ASIO 设备成功初始化后触发，提供实际使用的采样率、缓冲区大小和位深。
         /// </summary>
         [CanBeNull]
-        public Action<double, int> OnAsioDeviceConfigurationChanged;
+        public Action<double, int, int> OnAsioDeviceConfigurationChanged;
 
         /// <summary>
         /// The preferred audio device we should use. A value of
@@ -184,6 +189,7 @@ namespace osu.Framework.Audio
         // Mutated by multiple threads, must be thread safe.
         private ImmutableArray<DeviceInfo> audioDevices = ImmutableArray<DeviceInfo>.Empty;
         private ImmutableList<string> audioDeviceNames = ImmutableList<string>.Empty;
+        private ImmutableList<string> previousAsioDeviceNames = ImmutableList<string>.Empty;
 
         private static int asioNativeUnavailableLogged;
 
@@ -259,6 +265,43 @@ namespace osu.Framework.Audio
         }
 
         /// <summary>
+        /// 设置 ASIO 采样率与位深。
+        /// </summary>
+        public void SetAsioFormat(int sampleRate, int bitDepth)
+        {
+            SampleRate.Value = sampleRate > 0 ? sampleRate : AudioOutputDefaults.DEFAULT_SAMPLE_RATE;
+            AsioBitDepth.Value = bitDepth is 16 or 24 ? bitDepth : 24;
+        }
+
+        /// <summary>
+        /// 获取指定 ASIO 设备支持的采样率/位深组合。
+        /// </summary>
+        public IReadOnlyList<EzAsioFormatOption> GetAsioSupportedFormats(string asioDeviceName)
+        {
+            int? index = EzAsioDeviceManager.FindAsioDeviceIndex(asioDeviceName);
+
+            if (!index.HasValue)
+                return Array.Empty<EzAsioFormatOption>();
+
+            var bassNames = audioDeviceNames;
+
+            return EzAsioDeviceManager.GetSupportedFormats(index.Value, asioDeviceName, bassNames);
+        }
+
+        /// <summary>
+        /// 获取指定 ASIO 设备支持的缓冲区大小列表（来自驱动报告的 min/max/granularity）。
+        /// </summary>
+        public IReadOnlyList<int> GetAsioSupportedBufferSizes(string asioDeviceName)
+        {
+            int? index = EzAsioDeviceManager.FindAsioDeviceIndex(asioDeviceName);
+
+            if (!index.HasValue)
+                return Array.Empty<int>();
+
+            return EzAsioDeviceManager.GetSupportedBufferSizes(index.Value);
+        }
+
+        /// <summary>
         /// Constructs an AudioStore given a track resource store, and a sample resource store.
         /// </summary>
         /// <param name="audioThread">The host's audio thread.</param>
@@ -307,9 +350,8 @@ namespace osu.Framework.Audio
                 if (syncingSelection)
                     return;
 
-                // Option (1): when experimental audio is enabled, the dropdown should not expose ASIO/Exclusive entries.
-                // Coerce any typed selection back to an allowed value.
-                if (UseExperimentalWasapi.Value && RuntimeInfo.OS == RuntimeInfo.Platform.Windows)
+                // When enabling experimental(shared) mode, ASIO/Exclusive selections are incompatible — coerce to a safe value.
+                if (e.NewValue && RuntimeInfo.OS == RuntimeInfo.Platform.Windows)
                 {
                     string selection = AudioDevice.Value;
 
@@ -332,8 +374,6 @@ namespace osu.Framework.Audio
 
                         try
                         {
-                            // An ASIO selection is incompatible with experimental(shared) mode.
-                            // Fall back to OS default.
                             setBindableValueLeaseSafe(AudioDevice, string.Empty);
                         }
                         finally
@@ -360,6 +400,11 @@ namespace osu.Framework.Audio
             AsioBufferSize.ValueChanged += e =>
             {
                 requestAsioReinitialisation($"ASIO buffer size changed to {e.NewValue}");
+            };
+
+            AsioBitDepth.ValueChanged += e =>
+            {
+                requestAsioReinitialisation($"ASIO bit depth changed to {e.NewValue}");
             };
 
             AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
@@ -541,17 +586,10 @@ namespace osu.Framework.Audio
                     // Use the OS default BASS device as a fallback initialisation target.
                     // For ASIO mode, add retry logic since device initialization can be flaky
 
-                    bool asioInitSuccess = trySetDevice(bass_default_device, mode);
+                    if (trySetDevice(bass_default_device, mode))
+                        return;
 
-                    if (asioInitSuccess)
-                    {
-                        // 如果BASS初始化成功，接下来需要确保ASIO设备也初始化成功
-                        // 在AudioThread中会使用具体的ASIO设备索引进行初始化
-                    }
-                    else
-                    {
-                        Logger.Log($"ASIO device '{deviceName}' initialization failed.", name: "audio", level: LogLevel.Important);
-                    }
+                    Logger.Log($"ASIO device '{deviceName}' initialization failed.", name: "audio", level: LogLevel.Important);
                 }
                 else
                 {
@@ -761,7 +799,7 @@ namespace osu.Framework.Audio
 
                 try
                 {
-                    innerSuccess = thread.InitDevice(device, outputMode, SampleRate.Value);
+                    innerSuccess = thread.InitDevice(device, outputMode, SampleRate.Value, AsioBitDepth.Value);
                 }
                 catch (Exception e)
                 {
@@ -852,6 +890,41 @@ namespace osu.Framework.Audio
                         OnLostDevice?.Invoke(d);
                 });
             }
+
+            syncAsioDeviceChanges();
+        }
+
+        private void syncAsioDeviceChanges()
+        {
+            if (RuntimeInfo.OS != RuntimeInfo.Platform.Windows)
+                return;
+
+            ImmutableList<string> current;
+
+            try
+            {
+                current = EzAsioDeviceManager.EnumerateAsioDevices().Select(d => d.Name).ToImmutableList();
+            }
+            catch (Exception ex)
+            {
+                logAsioNativeUnavailableOnce(ex);
+                return;
+            }
+
+            var newAsioDevices = current.Except(previousAsioDeviceNames).ToList();
+            var lostAsioDevices = previousAsioDeviceNames.Except(current).ToList();
+            previousAsioDeviceNames = current;
+
+            if (newAsioDevices.Count == 0 && lostAsioDevices.Count == 0)
+                return;
+
+            eventScheduler.Add(delegate
+            {
+                foreach (string d in newAsioDevices)
+                    OnNewDevice?.Invoke(formatEntry(d, type_asio));
+                foreach (string d in lostAsioDevices)
+                    OnLostDevice?.Invoke(formatEntry(d, type_asio));
+            });
         }
 
         private IEnumerable<string> getAudioDeviceEntries()
@@ -863,11 +936,7 @@ namespace osu.Framework.Audio
 
             if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows)
             {
-                // Option (1): when experimental(shared) audio is enabled, do not expose Exclusive/ASIO entries.
-                if (UseExperimentalWasapi.Value)
-                    return entries;
-
-                // Only append extra entries; shared WASAPI remains controlled by the checkbox.
+                // Always expose Exclusive/ASIO entries; experimental WASAPI only affects unsuffixed BASS device names.
                 entries.AddRange(audioDeviceNames.Select(d => formatEntry(d, type_wasapi_exclusive)));
 
                 // ASIO drivers.
@@ -895,17 +964,6 @@ namespace osu.Framework.Audio
                 return (UseExperimentalWasapi.Value && RuntimeInfo.OS == RuntimeInfo.Platform.Windows
                     ? AudioOutputMode.WasapiShared
                     : AudioOutputMode.Default, string.Empty);
-            }
-
-            // Option (1): if experimental(shared) is enabled, typed entries should be treated as legacy/config leftovers.
-            // Coerce them back to shared mode.
-            if (UseExperimentalWasapi.Value && RuntimeInfo.OS == RuntimeInfo.Platform.Windows)
-            {
-                if (tryParseSuffixed(selection, type_wasapi_exclusive, out string baseName))
-                    return (AudioOutputMode.WasapiShared, baseName);
-
-                if (tryParseSuffixed(selection, type_asio, out _))
-                    return (AudioOutputMode.WasapiShared, string.Empty);
             }
 
             if (tryParseSuffixed(selection, type_wasapi_exclusive, out string name))
@@ -950,11 +1008,29 @@ namespace osu.Framework.Audio
 
             Logger.Log($"{reason}. Reinitialising ASIO output.", name: "audio", level: LogLevel.Important);
 
+            var (_, deviceName) = parseSelection(AudioDevice.Value);
+            int? asioIndex = EzAsioDeviceManager.FindAsioDeviceIndex(deviceName);
+
             scheduler.AddOnce(() =>
             {
-                initCurrentDevice();
+                bool reconfigured = false;
 
-                if (!IsCurrentDeviceValid())
+                if (asioIndex.HasValue)
+                {
+                    try
+                    {
+                        reconfigured = thread.TryReconfigureAsio(asioIndex.Value, SampleRate.Value, AsioBitDepth.Value, AsioBufferSize.Value);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log($"ASIO short-path reconfiguration failed: {ex}", name: "audio", level: LogLevel.Error);
+                    }
+                }
+
+                if (!reconfigured)
+                    initCurrentDevice();
+
+                if (!reconfigured && !IsCurrentDeviceValid())
                     Logger.Log($"ASIO reinitialisation failed after setting change. Device selection: {AudioDevice.Value}", name: "audio", level: LogLevel.Error);
             });
         }
@@ -1002,7 +1078,24 @@ namespace osu.Framework.Audio
                     return true;
             }
 
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows && checkAsioDeviceListChanged())
+                return true;
+
             return false;
+        }
+
+        private bool checkAsioDeviceListChanged()
+        {
+            try
+            {
+                var current = EzAsioDeviceManager.EnumerateAsioDevices().Select(d => d.Name).ToImmutableList();
+                return !current.SequenceEqual(previousAsioDeviceNames);
+            }
+            catch (Exception ex)
+            {
+                logAsioNativeUnavailableOnce(ex);
+                return false;
+            }
         }
 
         protected virtual ImmutableArray<DeviceInfo> GetAllDevices()
@@ -1025,16 +1118,14 @@ namespace osu.Framework.Audio
             // ASIO output selection does not map to a BASS device name; ensure we're initialised and ASIO is working.
             if (mode == AudioOutputMode.Asio)
             {
-                if (!device.IsEnabled || !device.IsInitialized)
-                    return false;
-
-                // For ASIO mode, also verify that ASIO device is actually initialized and working
                 try
                 {
+                    if (!EzAsioDeviceManager.IsDeviceRunning())
+                        return false;
+
                     var asioInfo = EzAsioDeviceManager.GetCurrentDeviceInfo();
                     double currentRate = EzAsioDeviceManager.GetCurrentSampleRate();
 
-                    // Check if ASIO device info exists and sample rate is valid
                     return asioInfo != null && currentRate > 0 && !double.IsNaN(currentRate) && !double.IsInfinity(currentRate);
                 }
                 catch

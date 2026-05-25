@@ -1336,7 +1336,6 @@ namespace osu.Framework.Platform
                 refreshRate = 60;
 
             int drawLimiter = refreshRate;
-            int updateLimiter = drawLimiter * 2;
 
             setVSyncMode();
 
@@ -1344,38 +1343,29 @@ namespace osu.Framework.Platform
             {
                 case FrameSync.VSync:
                     drawLimiter = int.MaxValue;
-                    updateLimiter *= 2;
                     break;
 
                 case FrameSync.Limit2x:
                     drawLimiter *= 2;
-                    updateLimiter *= 2;
                     break;
 
                 case FrameSync.Limit4x:
                     drawLimiter *= 4;
-                    updateLimiter *= 4;
                     break;
 
                 case FrameSync.Limit8x:
                     drawLimiter *= 8;
-                    updateLimiter *= 8;
                     break;
 
                 case FrameSync.Unlimited:
                     drawLimiter = int.MaxValue;
-                    updateLimiter = int.MaxValue;
                     break;
             }
 
             if (!AllowBenchmarkUnlimitedFrames)
-            {
                 drawLimiter = Math.Min(maximum_sane_fps, drawLimiter);
-                updateLimiter = Math.Min(maximum_sane_fps, updateLimiter);
-            }
 
             MaximumDrawHz = drawLimiter;
-            MaximumUpdateHz = updateLimiter;
         }
 
         private void setVSyncMode()

@@ -17,6 +17,7 @@ using ManagedBass.Wasapi;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Asio;
 using osu.Framework.Audio.EzLatency;
+using osu.Framework.Audio.Host;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Logging;
@@ -218,7 +219,7 @@ namespace osu.Framework.Threading
         /// </summary>
         private readonly Bindable<int?> globalMixerHandle = new Bindable<int?>();
 
-        internal bool InitDevice(int deviceId, AudioOutputMode outputMode, double preferredSampleRate)
+        internal bool InitDevice(int deviceId, AudioOutputMode outputMode, double preferredSampleRate, int asioBitDepth = 24)
         {
             Debug.Assert(ThreadSafety.IsAudioThread);
             Trace.Assert(deviceId != -1); // The real device ID should always be used, as the -1 device has special cases which are hard to work with.
@@ -290,7 +291,7 @@ namespace osu.Framework.Threading
 
                             if (asioDeviceIndex.HasValue)
                             {
-                                if (!initAsio(asioDeviceIndex.Value, preferredSampleRate))
+                                if (!initAsio(asioDeviceIndex.Value, preferredSampleRate, asioBitDepth, deviceName))
                                     return false;
                             }
                             else
@@ -313,7 +314,7 @@ namespace osu.Framework.Threading
 
                         if (availableDevices.Count != 0)
                         {
-                            if (!initAsio(availableDevices.First().Index, preferredSampleRate))
+                            if (!initAsio(availableDevices.First().Index, preferredSampleRate, asioBitDepth, availableDevices.First().Name))
                                 return false;
                         }
                         else
@@ -576,6 +577,21 @@ namespace osu.Framework.Threading
                     {
                         requestedFrequency = selectedInfo.MixFrequency;
                         requestedChannels = selectedInfo.MixChannels;
+
+                        int currentBassDevice = Bass.CurrentDevice;
+
+                        if ((requestedFrequency <= 0 || requestedChannels <= 0) && currentBassDevice > 0)
+                        {
+                            string driver = Bass.GetDeviceInfo(currentBassDevice).Driver;
+                            string deviceName = Bass.GetDeviceInfo(currentBassDevice).Name;
+                            var mixFormat = HostAudioFormatQuery.TryGetMixFormat(driver, deviceName);
+
+                            if (mixFormat != null)
+                            {
+                                requestedFrequency = mixFormat.Value.sampleRate;
+                                requestedChannels = mixFormat.Value.channels;
+                            }
+                        }
                     }
                 }
                 else
@@ -683,108 +699,241 @@ namespace osu.Framework.Threading
             Logger.Log(message, name: "audio", level: LogLevel.Error);
         }
 
-        private bool initAsio(int asioDeviceIndex, double preferredSampleRate = AudioOutputDefaults.DEFAULT_SAMPLE_RATE)
+        /// <summary>
+        /// Reconfigures the active ASIO device without releasing all BASS output devices.
+        /// </summary>
+        internal bool TryReconfigureAsio(int asioDeviceIndex, double preferredSampleRate, int bitDepth, int bufferSize)
         {
-            // 首先确保之前的ASIO设备完全释放
-            freeAsio();
+            Debug.Assert(ThreadSafety.IsAudioThread);
 
-            // 使用来自AudioManager的统一采样率和缓冲区大小
-            if (Manager != null)
+            if (Manager == null)
+                return false;
+
+            if (EzAsioDeviceManager.ActiveDeviceIndex != asioDeviceIndex)
+                return false;
+
+            preferredSampleRate = EzAsioDeviceManager.GetTargetSampleRate(Manager.SampleRate.Value == 0 ? preferredSampleRate : Manager.SampleRate.Value);
+            bitDepth = EzAsioDeviceManager.GetTargetBitDepth(bitDepth);
+            bufferSize = EzAsioDeviceManager.GetTargetBufferSize(bufferSize);
+
+            releaseAsioMixerOnly();
+
+            bool formatChangeRequired = requiresAsioFormatChange(preferredSampleRate, bitDepth);
+
+            if (!formatChangeRequired)
             {
-                preferredSampleRate = EzAsioDeviceManager.GetTargetSampleRate(Manager.SampleRate.Value == 0 ? preferredSampleRate : Manager.SampleRate.Value);
-                int bufferSize = Manager.AsioBufferSize.Value;
-
-                // 验证当前设备是否已在运行，如果是则先停止
-                if (EzAsioDeviceManager.IsDeviceRunning())
-                {
-                    Logger.Log("ASIO device already running, stopping before initialization", name: "audio", level: LogLevel.Debug);
-                    EzAsioDeviceManager.StopDevice();
-                    Thread.Sleep(100);
-                }
-
-                if (!EzAsioDeviceManager.InitializeDevice(asioDeviceIndex, preferredSampleRate, bufferSize))
-                {
-                    Logger.Log($"EzAsioDeviceManager.InitializeDevice({asioDeviceIndex}, {preferredSampleRate}, {bufferSize}) 失败", name: "audio", level: LogLevel.Error);
-                    // 不要自动释放BASS设备 - 让AudioManager处理回退决策
-                    // 这可以防止过度激进的设备切换导致设备可用性降低
+                if (!EzAsioDeviceManager.TryRestartWithBuffer(bufferSize))
                     return false;
-                }
 
-                // 初始化后获取设备信息
-                var deviceInfo = EzAsioDeviceManager.GetCurrentDeviceInfo();
-
-                if (deviceInfo == null)
-                {
-                    Logger.Log("初始化后无法获取ASIO设备信息", name: "audio", level: LogLevel.Error);
-                    freeAsio();
-                    // 不要自动释放BASS设备 - 让AudioManager处理回退决策
-                    return false;
-                }
-
-                int outputChannels = Math.Max(1, deviceInfo.Value.Outputs);
-                // int inputChannels = Math.Max(0, deviceInfo.Value.Inputs);
-
-                // 验证设备信息
-                if (outputChannels < 2)
-                {
-                    Logger.Log($"ASIO设备输出通道不足 ({outputChannels})，立体声至少需要2个通道", name: "audio", level: LogLevel.Important);
-                    freeAsio();
-                    FreeDevice(Bass.CurrentDevice);
-                    return false;
-                }
-
-                double sampleRate = BassAsio.Rate;
-                Logger.Log($"ASIO设备采样率: {sampleRate}Hz", name: "audio", level: LogLevel.Verbose);
-
-                // 验证采样率
-                if (sampleRate <= 0 || sampleRate > 1000000 || double.IsNaN(sampleRate) || double.IsInfinity(sampleRate))
-                {
-                    Logger.Log($"检测到无效采样率 ({sampleRate}Hz)，使用 {EzAsioDeviceManager.DEFAULT_SAMPLE_RATE}Hz 作为回退", name: "audio", level: LogLevel.Important);
-                    sampleRate = EzAsioDeviceManager.DEFAULT_SAMPLE_RATE;
-                }
-
-                // Logger.Log($"使用ASIO设备配置 - 输出: {outputChannels}, 输入: {inputChannels}, 采样率: {sampleRate}Hz", name: "audio", level: LogLevel.Verbose);
-
-                // 创建立体声混音器（游戏音频始终是立体声）
-                const int mixer_channels = 2;
-                // Logger.Log($"创建ASIO混音器流: 采样率={sampleRate}, 混音器通道={mixer_channels} (立体声)", name: "audio", level: LogLevel.Verbose);
-                globalMixerHandle.Value = BassMix.CreateMixerStream((int)sampleRate, mixer_channels, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
-
-                if (globalMixerHandle.Value == 0)
-                {
-                    var mixerError = Bass.LastError;
-                    Logger.Log($"创建ASIO混音器流失败: {(int)mixerError} ({mixerError}), 采样率={sampleRate}, 通道={mixer_channels}", name: "audio", level: LogLevel.Error);
-                    freeAsio();
-                    // 释放BASS设备以便AudioManager可以使用不同的设备重试
-                    FreeDevice(Bass.CurrentDevice);
-                    return false;
-                }
-
-                // Logger.Log($"创建了带有 {mixer_channels} 个通道的ASIO混音器流，采样率为 {sampleRate}Hz (句柄: {globalMixerHandle.Value})", name: "audio", level: LogLevel.Verbose);
-
-                // 为ASIO设备管理器设置全局混音器句柄
-                EzAsioDeviceManager.SetGlobalMixerHandle(globalMixerHandle.Value.Value);
-
-                // 使用设备管理器启动ASIO设备
-                if (!EzAsioDeviceManager.StartDevice(bufferSize))
-                {
-                    Logger.Log("EzAsioDeviceManager.StartDevice() 失败", name: "audio", level: LogLevel.Error);
-                    freeAsio();
-                    // 不要自动释放BASS设备 - 让AudioManager处理回退决策
-                    return false;
-                }
-
-                // Logger.Log($"ASIO设备初始化成功 - 采样率: {sampleRate}Hz, 输出: {outputChannels}, 输入: {inputChannels}", name: "audio", level: LogLevel.Important);
-
-                int activeBufferSize = EzAsioDeviceManager.ActiveBufferSize > 0 ? EzAsioDeviceManager.ActiveBufferSize : bufferSize;
-
-                Manager?.OnAsioDeviceConfigurationChanged?.Invoke(sampleRate, activeBufferSize);
-
-                // 通知ASIO设备已使用实际采样率初始化
-                Manager?.OnAsioDeviceInitialized?.Invoke(sampleRate);
+                return completeAsioMixerAndStart(bufferSize);
             }
 
+            if (!EzAsioDeviceManager.ReconfigureDevice(asioDeviceIndex, preferredSampleRate, bitDepth, bufferSize))
+                return false;
+
+            return completeAsioMixerAndStart(bufferSize);
+        }
+
+        private static bool requiresAsioFormatChange(double preferredSampleRate, int bitDepth)
+        {
+            if (EzAsioDeviceManager.GetCurrentDeviceInfo() == null)
+                return true;
+
+            double currentRate = EzAsioDeviceManager.GetCurrentSampleRate();
+
+            if (currentRate <= 0 || Math.Abs(currentRate - preferredSampleRate) >= 1.0)
+                return true;
+
+            return EzAsioDeviceManager.TargetBitDepth != bitDepth;
+        }
+
+        private bool initAsio(int asioDeviceIndex, double preferredSampleRate, int bitDepth, string asioDeviceName)
+        {
+            freeAsio();
+
+            if (Manager == null)
+                return false;
+
+            preferredSampleRate = EzAsioDeviceManager.GetTargetSampleRate(Manager.SampleRate.Value == 0 ? preferredSampleRate : Manager.SampleRate.Value);
+            bitDepth = EzAsioDeviceManager.GetTargetBitDepth(bitDepth);
+            int bufferSize = Manager.AsioBufferSize.Value;
+
+            if (EzAsioDeviceManager.IsDeviceRunning())
+            {
+                Logger.Log("ASIO device already running, stopping before initialization", name: "audio", level: LogLevel.Debug);
+                EzAsioDeviceManager.StopDevice();
+                Thread.Sleep(100);
+            }
+
+            warmUpHostAudioForVirtualAsio(asioDeviceName);
+
+            if (!EzAsioDeviceManager.InitializeDevice(asioDeviceIndex, preferredSampleRate, bufferSize, bitDepth))
+            {
+                Logger.Log($"EzAsioDeviceManager.InitializeDevice({asioDeviceIndex}, {preferredSampleRate}, {bufferSize}, {bitDepth}) failed", name: "audio", level: LogLevel.Error);
+                return false;
+            }
+
+            return completeAsioMixerAndStart(bufferSize);
+        }
+
+        private bool completeAsioMixerAndStart(int bufferSize)
+        {
+            if (Manager == null)
+                return false;
+
+            var deviceInfo = EzAsioDeviceManager.GetCurrentDeviceInfo();
+
+            if (deviceInfo == null)
+            {
+                Logger.Log("Unable to get ASIO device info after initialisation", name: "audio", level: LogLevel.Error);
+                freeAsio();
+                return false;
+            }
+
+            int outputChannels = Math.Max(1, deviceInfo.Value.Outputs);
+
+            if (outputChannels < 2)
+            {
+                Logger.Log($"ASIO device has insufficient output channels ({outputChannels}); stereo requires at least 2", name: "audio", level: LogLevel.Important);
+                freeAsio();
+                FreeDevice(Bass.CurrentDevice);
+                return false;
+            }
+
+            double sampleRate = BassAsio.Rate;
+
+            if (sampleRate <= 0 || sampleRate > 1000000 || double.IsNaN(sampleRate) || double.IsInfinity(sampleRate))
+            {
+                Logger.Log($"Invalid ASIO sample rate ({sampleRate}Hz); falling back to {EzAsioDeviceManager.DEFAULT_SAMPLE_RATE}Hz", name: "audio", level: LogLevel.Important);
+                sampleRate = EzAsioDeviceManager.DEFAULT_SAMPLE_RATE;
+            }
+
+            const int mixer_channels = 2;
+            globalMixerHandle.Value = BassMix.CreateMixerStream((int)sampleRate, mixer_channels, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
+
+            if (globalMixerHandle.Value == 0)
+            {
+                var mixerError = Bass.LastError;
+                Logger.Log($"Failed to create ASIO mixer stream: {(int)mixerError} ({mixerError}), sampleRate={sampleRate}", name: "audio", level: LogLevel.Error);
+                freeAsio();
+                FreeDevice(Bass.CurrentDevice);
+                return false;
+            }
+
+            EzAsioDeviceManager.SetGlobalMixerHandle(globalMixerHandle.Value.Value);
+
+            if (!EzAsioDeviceManager.StartDevice(bufferSize))
+            {
+                Logger.Log("EzAsioDeviceManager.StartDevice() failed", name: "audio", level: LogLevel.Error);
+                freeAsio();
+                return false;
+            }
+
+            int activeBufferSize = EzAsioDeviceManager.ActiveBufferSize > 0 ? EzAsioDeviceManager.ActiveBufferSize : bufferSize;
+            int activeBitDepth = EzAsioDeviceManager.TargetBitDepth;
+
+            Manager.OnAsioDeviceConfigurationChanged?.Invoke(sampleRate, activeBufferSize, activeBitDepth);
+            Manager.OnAsioDeviceInitialized?.Invoke(sampleRate);
             return true;
+        }
+
+        private void releaseAsioMixerOnly()
+        {
+            if (globalMixerHandle.Value != null)
+            {
+                try
+                {
+                    Bass.StreamFree(globalMixerHandle.Value.Value);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"Exception freeing ASIO mixer: {ex.Message}", name: "audio", level: LogLevel.Error);
+                }
+
+                globalMixerHandle.Value = null;
+            }
+
+            EzAsioDeviceManager.StopDevice();
+        }
+
+        private void warmUpHostAudioForVirtualAsio(string asioDeviceName)
+        {
+            if (RuntimeInfo.OS != RuntimeInfo.Platform.Windows)
+                return;
+
+            int targetDevice = 1;
+            string normalisedAsio = normaliseDeviceNameForMatch(asioDeviceName);
+
+            for (int deviceId = 2; deviceId < Bass.DeviceCount; deviceId++)
+            {
+                if (!Bass.GetDeviceInfo(deviceId, out DeviceInfo info) || !info.IsEnabled)
+                    continue;
+
+                if (deviceNamesMatch(normalisedAsio, normaliseDeviceNameForMatch(info.Name)))
+                {
+                    targetDevice = deviceId;
+                    break;
+                }
+            }
+
+            int previousDevice = Bass.CurrentDevice;
+
+            try
+            {
+                Logger.Log($"Warming up host audio on BASS device {targetDevice} before ASIO initialisation", name: "audio", level: LogLevel.Debug);
+
+                if (!Bass.Init(targetDevice))
+                {
+                    if (Bass.LastError != Errors.Already)
+                        return;
+                }
+
+                if (attemptWasapiInitialisation(targetDevice, exclusive: false))
+                    Thread.Sleep(100);
+
+                freeWasapi();
+                Bass.Free();
+                Thread.Sleep(50);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Host audio warm-up before ASIO failed: {ex.Message}", name: "audio", level: LogLevel.Debug);
+            }
+            finally
+            {
+                try
+                {
+                    if (previousDevice >= 0)
+                        Bass.CurrentDevice = previousDevice;
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        private static string normaliseDeviceNameForMatch(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return string.Empty;
+
+            return name.Replace("(ASIO)", string.Empty, StringComparison.OrdinalIgnoreCase)
+                       .Replace("(WASAPI Exclusive)", string.Empty, StringComparison.OrdinalIgnoreCase)
+                       .Trim();
+        }
+
+        private static bool deviceNamesMatch(string asioName, string bassName)
+        {
+            if (string.IsNullOrEmpty(asioName) || string.IsNullOrEmpty(bassName))
+                return false;
+
+            if (asioName.Contains(bassName, StringComparison.OrdinalIgnoreCase) || bassName.Contains(asioName, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            // Virtual ASIO drivers often share a prefix with the underlying device (Voicemeeter, ASIO4ALL, etc.).
+            static string firstToken(string value) => value.Split(new[] { ' ', '(', ')' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? value;
+
+            return string.Equals(firstToken(asioName), firstToken(bassName), StringComparison.OrdinalIgnoreCase);
         }
 
         private static IOrderedEnumerable<(int index, int freq, int chans)> orderWasapiCandidates(IEnumerable<(int index, int freq, int chans)> candidates)
