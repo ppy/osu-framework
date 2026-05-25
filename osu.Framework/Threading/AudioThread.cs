@@ -767,7 +767,13 @@ namespace osu.Framework.Threading
 
             warmUpHostAudioForVirtualAsio(asioDeviceName);
 
-            if (!EzAsioDeviceManager.InitializeDevice(asioDeviceIndex, preferredSampleRate, bufferSize, bitDepth))
+            if (!ensureBassOutputDeviceReady(Bass.CurrentDevice))
+            {
+                Logger.Log($"BASS output device {Bass.CurrentDevice} is not initialised after ASIO warm-up; cannot create mixer.", name: "audio", level: LogLevel.Error);
+                return false;
+            }
+
+            if (!EzAsioDeviceManager.InitializeDevice(asioDeviceIndex, preferredSampleRate, bufferSize, bitDepth, waitForDevice: true, waitTimeoutMs: 10_000))
             {
                 Logger.Log($"EzAsioDeviceManager.InitializeDevice({asioDeviceIndex}, {preferredSampleRate}, {bufferSize}, {bitDepth}) failed", name: "audio", level: LogLevel.Error);
                 return false;
@@ -804,8 +810,9 @@ namespace osu.Framework.Threading
 
             if (sampleRate <= 0 || sampleRate > 1000000 || double.IsNaN(sampleRate) || double.IsInfinity(sampleRate))
             {
-                Logger.Log($"Invalid ASIO sample rate ({sampleRate}Hz); falling back to {EzAsioDeviceManager.DEFAULT_SAMPLE_RATE}Hz", name: "audio", level: LogLevel.Important);
-                sampleRate = EzAsioDeviceManager.DEFAULT_SAMPLE_RATE;
+                Logger.Log($"Invalid ASIO sample rate ({sampleRate}Hz); cannot start output.", name: "audio", level: LogLevel.Error);
+                freeAsio();
+                return false;
             }
 
             const int mixer_channels = 2;
@@ -816,7 +823,13 @@ namespace osu.Framework.Threading
                 var mixerError = Bass.LastError;
                 Logger.Log($"Failed to create ASIO mixer stream: {(int)mixerError} ({mixerError}), sampleRate={sampleRate}", name: "audio", level: LogLevel.Error);
                 freeAsio();
-                FreeDevice(Bass.CurrentDevice);
+                return false;
+            }
+
+            if (!Bass.ChannelPlay(globalMixerHandle.Value.Value))
+            {
+                Logger.Log($"Failed to start ASIO global mixer: {Bass.LastError}", name: "audio", level: LogLevel.Error);
+                freeAsio();
                 return false;
             }
 
@@ -861,35 +874,36 @@ namespace osu.Framework.Threading
             if (RuntimeInfo.OS != RuntimeInfo.Platform.Windows)
                 return;
 
-            int targetDevice = 1;
-            string normalisedAsio = normaliseDeviceNameForMatch(asioDeviceName);
+            int targetDevice = findMatchingBassDeviceId(asioDeviceName) ?? Bass.CurrentDevice;
 
-            for (int deviceId = 2; deviceId < Bass.DeviceCount; deviceId++)
-            {
-                if (!Bass.GetDeviceInfo(deviceId, out DeviceInfo info) || !info.IsEnabled)
-                    continue;
-
-                if (deviceNamesMatch(normalisedAsio, normaliseDeviceNameForMatch(info.Name)))
-                {
-                    targetDevice = deviceId;
-                    break;
-                }
-            }
-
+            if (targetDevice < 0)
+                return;
             int previousDevice = Bass.CurrentDevice;
 
             try
             {
-                Logger.Log($"Warming up host audio on BASS device {targetDevice} before ASIO initialisation", name: "audio", level: LogLevel.Debug);
-
-                if (!Bass.Init(targetDevice))
+                // Waking the matching host endpoint can help virtual ASIO drivers (ASIO4ALL, Voicemeeter, etc.).
+                // Never Bass.Free() the device we are already using for mixer creation — that leaves BASS uninitialised and produces silent output.
+                if (targetDevice == previousDevice)
                 {
-                    if (Bass.LastError != Errors.Already)
-                        return;
+                    Logger.Log($"Warming up active BASS device {targetDevice} before ASIO initialisation", name: "audio", level: LogLevel.Debug);
+
+                    if (attemptWasapiInitialisation(targetDevice, exclusive: false))
+                        Thread.Sleep(50);
+
+                    freeWasapi();
+                    return;
                 }
 
+                Logger.Log($"Warming up host BASS device {targetDevice} (active device {previousDevice}) before ASIO initialisation", name: "audio", level: LogLevel.Debug);
+
+                Bass.CurrentDevice = targetDevice;
+
+                if (!Bass.Init(targetDevice) && Bass.LastError != Errors.Already)
+                    return;
+
                 if (attemptWasapiInitialisation(targetDevice, exclusive: false))
-                    Thread.Sleep(100);
+                    Thread.Sleep(50);
 
                 freeWasapi();
                 Bass.Free();
@@ -901,14 +915,51 @@ namespace osu.Framework.Threading
             }
             finally
             {
-                try
-                {
-                    if (previousDevice >= 0)
-                        Bass.CurrentDevice = previousDevice;
-                }
-                catch
-                {
-                }
+                ensureBassOutputDeviceReady(previousDevice);
+            }
+        }
+
+        private static int? findMatchingBassDeviceId(string asioDeviceName)
+        {
+            string normalisedAsio = normaliseDeviceNameForMatch(asioDeviceName);
+
+            for (int deviceId = 2; deviceId < Bass.DeviceCount; deviceId++)
+            {
+                if (!Bass.GetDeviceInfo(deviceId, out DeviceInfo info) || !info.IsEnabled)
+                    continue;
+
+                if (deviceNamesMatch(normalisedAsio, normaliseDeviceNameForMatch(info.Name)))
+                    return deviceId;
+            }
+
+            return null;
+        }
+
+        private static bool ensureBassOutputDeviceReady(int deviceId)
+        {
+            if (deviceId < 0)
+                return false;
+
+            try
+            {
+                Bass.CurrentDevice = deviceId;
+
+                if (Bass.GetDeviceInfo(deviceId, out DeviceInfo info) && info.IsInitialized)
+                    return true;
+
+                if (Bass.Init(deviceId))
+                    return true;
+
+                if (Bass.LastError == Errors.Already && Bass.GetDeviceInfo(deviceId, out info))
+                    return info.IsInitialized;
+
+                Logger.Log($"Failed to ensure BASS device {deviceId} is initialised: {Bass.LastError}", name: "audio", level: LogLevel.Error);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Exception ensuring BASS device {deviceId}: {ex}", name: "audio", level: LogLevel.Error);
+                return false;
             }
         }
 

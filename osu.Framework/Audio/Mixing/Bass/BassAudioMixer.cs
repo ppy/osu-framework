@@ -293,10 +293,15 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (!ManagedBass.Bass.GetDeviceInfo(ManagedBass.Bass.CurrentDevice, out var deviceInfo) || !deviceInfo.IsInitialized)
                 return;
 
+            int mixerFrequency = frequency;
+
+            if (manager?.GlobalMixerHandle.Value is int globalHandle && globalHandle != 0 && ManagedBass.Bass.ChannelGetInfo(globalHandle, out var globalInfo))
+                mixerFrequency = globalInfo.Frequency;
+
             Handle = manager?.GlobalMixerHandle.Value != null
                 // The decode flag here is super important to maintain the lowest latency audio output.
-                ? BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Decode)
-                : BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop);
+                ? BassMix.CreateMixerStream(mixerFrequency, 2, BassFlags.MixerNonStop | BassFlags.Decode)
+                : BassMix.CreateMixerStream(mixerFrequency, 2, BassFlags.MixerNonStop);
 
             if (Handle == 0)
                 return;
