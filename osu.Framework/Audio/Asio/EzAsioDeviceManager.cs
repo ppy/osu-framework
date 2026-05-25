@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using ManagedBass;
 using ManagedBass.Asio;
+using osu.Framework.Audio.Host;
 using osu.Framework.Logging;
 
 namespace osu.Framework.Audio.Asio
@@ -216,49 +217,192 @@ namespace osu.Framework.Audio.Asio
         }
 
         /// <summary>
-        /// Returns supported sample-rate / bit-depth combinations for the given ASIO device.
-        /// May briefly initialise the driver to probe rates when the device is not already active.
+        /// Returns sample-rate / bit-depth combinations reported by the driver or host endpoint.
+        /// Does not iterate candidate rates; uses ASIO channel info when active, otherwise host OS device format properties.
         /// </summary>
-        public static IReadOnlyList<EzAsioFormatOption> GetSupportedFormats(int deviceIndex)
+        public static IReadOnlyList<EzAsioFormatOption> GetSupportedFormats(int deviceIndex, string asioDeviceName, IEnumerable<string> bassPlaybackDeviceNames)
         {
             if (!IsAvailable)
                 return Array.Empty<EzAsioFormatOption>();
 
             lock (sync_root)
             {
-                bool probeOnly = ActiveDeviceIndex != deviceIndex || !BassAsio.GetInfo(out _);
-
                 try
                 {
-                    if (probeOnly)
-                    {
-                        freeDeviceInternal(resetMixerHandle: false);
+                    if (ActiveDeviceIndex == deviceIndex && BassAsio.GetInfo(out _))
+                        return getActiveDriverReportedFormats();
 
-                        if (!tryInitialiseDevice(deviceIndex, waitForDevice: false, waitTimeoutMs: 0, aggressive: true))
-                            return Array.Empty<EzAsioFormatOption>();
-                    }
+                    var hostFormats = HostAudioFormatQuery.GetReportedFormatsForMatchedDevice(asioDeviceName, bassPlaybackDeviceNames);
 
-                    var formats = new List<EzAsioFormatOption>();
+                    if (hostFormats.Count > 0)
+                        return hostFormats;
 
-                    foreach (int rate in EzAsioFormatOption.COMMON_SAMPLE_RATES)
-                    {
-                        if (!BassAsio.CheckRate(rate))
-                            continue;
-
-                        foreach (int bits in EzAsioFormatOption.SUPPORTED_BIT_DEPTHS)
-                            formats.Add(new EzAsioFormatOption(rate, bits));
-                    }
-
-                    if (probeOnly)
-                        freeDeviceInternal(resetMixerHandle: false);
-
-                    return formats;
+                    return Array.Empty<EzAsioFormatOption>();
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log($"Exception probing ASIO formats: {ex}", LoggingTarget.Runtime, LogLevel.Error);
+                    Logger.Log($"Exception querying ASIO formats: {ex}", LoggingTarget.Runtime, LogLevel.Error);
                     return Array.Empty<EzAsioFormatOption>();
                 }
+            }
+        }
+
+        private static IReadOnlyList<EzAsioFormatOption> getActiveDriverReportedFormats()
+        {
+            var formats = new List<EzAsioFormatOption>();
+
+            double rate = BassAsio.Rate;
+
+            if (rate <= 0 || double.IsNaN(rate) || double.IsInfinity(rate))
+                rate = TargetSampleRate;
+
+            var bitDepths = new HashSet<int>();
+
+            if (BassAsio.GetInfo(out AsioInfo info))
+            {
+                int channelsToInspect = Math.Min(info.Outputs, 8);
+
+                for (int channel = 0; channel < channelsToInspect; channel++)
+                {
+                    if (!BassAsio.ChannelGetInfo(false, channel, out AsioChannelInfo channelInfo))
+                        continue;
+
+                    int bits = mapAsioSampleFormatToBitDepth(channelInfo.Format);
+
+                    if (bits > 0)
+                        bitDepths.Add(bits);
+                }
+            }
+
+            if (bitDepths.Count == 0)
+                bitDepths.Add(TargetBitDepth);
+
+            foreach (int bits in bitDepths.OrderBy(b => b))
+                formats.Add(new EzAsioFormatOption((int)Math.Round(rate), bits));
+
+            return formats;
+        }
+
+        /// <summary>
+        /// Returns buffer sizes allowed by the ASIO driver (min/max/granularity from <see cref="AsioInfo"/>).
+        /// </summary>
+        public static IReadOnlyList<int> GetSupportedBufferSizes(int deviceIndex)
+        {
+            if (!IsAvailable)
+                return Array.Empty<int>();
+
+            lock (sync_root)
+            {
+                try
+                {
+                    if (!tryGetAsioInfoForDevice(deviceIndex, out AsioInfo info))
+                        return Array.Empty<int>();
+
+                    return buildBufferSizeList(info);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"Exception querying ASIO buffer sizes: {ex}", LoggingTarget.Runtime, LogLevel.Error);
+                    return Array.Empty<int>();
+                }
+            }
+        }
+
+        private static bool tryGetAsioInfoForDevice(int deviceIndex, out AsioInfo info)
+        {
+            info = default;
+
+            if (ActiveDeviceIndex == deviceIndex && BassAsio.GetInfo(out info))
+                return true;
+
+            bool probeOnly = ActiveDeviceIndex != deviceIndex || !BassAsio.GetInfo(out _);
+
+            if (probeOnly)
+            {
+                freeDeviceInternal(resetMixerHandle: false);
+
+                if (!tryInitialiseDevice(deviceIndex, waitForDevice: false, waitTimeoutMs: 0, aggressive: true))
+                    return false;
+            }
+
+            bool success = BassAsio.GetInfo(out info);
+
+            if (probeOnly)
+                freeDeviceInternal(resetMixerHandle: false);
+
+            return success;
+        }
+
+        private static List<int> buildBufferSizeList(AsioInfo info)
+        {
+            const int max_entries = 64;
+
+            int min = info.MinBufferLength > 0 ? info.MinBufferLength : DEFAULT_BUFFER_SIZE;
+            int max = info.MaxBufferLength > 0 ? info.MaxBufferLength : Math.Max(min, DEFAULT_BUFFER_SIZE);
+
+            if (min > max)
+                (min, max) = (max, min);
+
+            var sizes = new List<int>();
+
+            if (info.BufferLengthGranularity == 0)
+            {
+                addDistinct(sizes, min);
+
+                if (info.PreferredBufferLength > 0)
+                    addDistinct(sizes, clamp(info.PreferredBufferLength, min, max));
+
+                addDistinct(sizes, max);
+            }
+            else if (info.BufferLengthGranularity < 0)
+            {
+                int candidate = 1;
+
+                while (candidate < min && candidate > 0)
+                    candidate <<= 1;
+
+                while (candidate <= max && sizes.Count < max_entries)
+                {
+                    if (candidate >= min)
+                        addDistinct(sizes, candidate);
+
+                    if (candidate > int.MaxValue / 2)
+                        break;
+
+                    candidate <<= 1;
+                }
+            }
+            else
+            {
+                for (int value = min; value <= max && sizes.Count < max_entries; value += info.BufferLengthGranularity)
+                    addDistinct(sizes, value);
+            }
+
+            return sizes.OrderBy(v => v).ToList();
+        }
+
+        private static void addDistinct(List<int> sizes, int value)
+        {
+            if (value > 0 && !sizes.Contains(value))
+                sizes.Add(value);
+        }
+
+        private static int mapAsioSampleFormatToBitDepth(AsioSampleFormat format)
+        {
+            switch (format)
+            {
+                case AsioSampleFormat.Bit16:
+                    return 16;
+
+                case AsioSampleFormat.Bit24:
+                    return 24;
+
+                case AsioSampleFormat.Bit32:
+                case AsioSampleFormat.Float:
+                    return 24;
+
+                default:
+                    return 0;
             }
         }
 

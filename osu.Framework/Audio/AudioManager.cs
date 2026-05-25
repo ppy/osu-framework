@@ -283,7 +283,22 @@ namespace osu.Framework.Audio
             if (!index.HasValue)
                 return Array.Empty<EzAsioFormatOption>();
 
-            return EzAsioDeviceManager.GetSupportedFormats(index.Value);
+            var bassNames = audioDeviceNames;
+
+            return EzAsioDeviceManager.GetSupportedFormats(index.Value, asioDeviceName, bassNames);
+        }
+
+        /// <summary>
+        /// 获取指定 ASIO 设备支持的缓冲区大小列表（来自驱动报告的 min/max/granularity）。
+        /// </summary>
+        public IReadOnlyList<int> GetAsioSupportedBufferSizes(string asioDeviceName)
+        {
+            int? index = EzAsioDeviceManager.FindAsioDeviceIndex(asioDeviceName);
+
+            if (!index.HasValue)
+                return Array.Empty<int>();
+
+            return EzAsioDeviceManager.GetSupportedBufferSizes(index.Value);
         }
 
         /// <summary>

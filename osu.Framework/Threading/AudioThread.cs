@@ -17,7 +17,7 @@ using ManagedBass.Wasapi;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Asio;
 using osu.Framework.Audio.EzLatency;
-using osu.Framework.Audio.Windows;
+using osu.Framework.Audio.Host;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Logging;
@@ -583,12 +583,13 @@ namespace osu.Framework.Threading
                         if ((requestedFrequency <= 0 || requestedChannels <= 0) && currentBassDevice > 0)
                         {
                             string driver = Bass.GetDeviceInfo(currentBassDevice).Driver;
-                            var mixFormat = WindowsAudioFormatQuery.TryGetMixFormatForDriver(driver);
+                            string deviceName = Bass.GetDeviceInfo(currentBassDevice).Name;
+                            var mixFormat = HostAudioFormatQuery.TryGetMixFormat(driver, deviceName);
 
                             if (mixFormat != null)
                             {
-                                requestedFrequency = mixFormat.SampleRate;
-                                requestedChannels = mixFormat.Channels;
+                                requestedFrequency = mixFormat.Value.sampleRate;
+                                requestedChannels = mixFormat.Value.channels;
                             }
                         }
                     }
