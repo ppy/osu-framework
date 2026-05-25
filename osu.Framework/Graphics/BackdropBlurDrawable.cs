@@ -167,7 +167,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public int MaxCapturesPerSecond { get; set; } = 4;
 
-#endregion
+        #endregion
 
         private long lastCaptureMs;
 

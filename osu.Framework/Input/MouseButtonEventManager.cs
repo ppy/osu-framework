@@ -10,7 +10,6 @@ using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
-using osu.Framework.Logging;
 using osuTK;
 using osuTK.Input;
 
@@ -168,9 +167,6 @@ namespace osu.Framework.Input
             }
 
             InputManager.FocusedDrawableThisClick = null;
-
-//             if (clicked != null)
-//                 Logger.Log($"MouseClick handled by {clicked}.", LoggingTarget.Runtime, LogLevel.Debug);
         }
 
         private bool handleDoubleClick(InputState state, List<Drawable> targets)

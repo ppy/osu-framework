@@ -52,7 +52,7 @@ namespace osu.Framework.Audio.Sample
 
             lock (factories)
             {
-                if (!factories.TryGetValue(name, out AdjustableAudioComponent factoryComponent))
+                if (!factories.TryGetValue(name, out _))
                 {
                     this.LogIfNonBackgroundThread(name);
 
