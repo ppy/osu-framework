@@ -224,7 +224,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 public UniformVector2 Scale;       // x = TopHeightScale, y = TopWidthScale
                 public UniformFloat VerticalOffset;
-                private readonly UniformFloat _pad;
+                private readonly UniformFloat pad;
             }
         }
 

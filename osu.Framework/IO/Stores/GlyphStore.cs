@@ -140,7 +140,12 @@ namespace osu.Framework.IO.Stores
                 : new CharacterGlyph(codepoint, bmCharacter.XOffset, bmCharacter.YOffset, bmCharacter.XAdvance, Baseline.Value, this);
         }
 
-        public int GetKerning(char left, char right) => GetKerning((int)left, (int)right);
+        public int GetKerning(char left, char right)
+        {
+            int leftCodepoint = left;
+            int rightCodepoint = right;
+            return GetKerning(leftCodepoint, rightCodepoint);
+        }
 
         public int GetKerning(int leftCodepoint, int rightCodepoint)
         {
