@@ -562,6 +562,19 @@ namespace osu.Framework.Audio
             }
             else
             {
+                // BASS internal devices (eg. "No sound") are not listed in audioDeviceNames.
+                for (int i = 0; i < BASS_INTERNAL_DEVICE_COUNT; i++)
+                {
+                    if (!string.Equals(audioDevices[i].Name, deviceName, StringComparison.Ordinal))
+                        continue;
+
+                    var internalMode = i == Bass.NoSoundDevice ? AudioOutputMode.Default : mode;
+                    if (trySetDevice(i, internalMode))
+                        return;
+
+                    break;
+                }
+
                 // try using the specified device
                 int deviceIndex = audioDeviceNames.FindIndex(d => d == deviceName);
                 if (deviceIndex >= 0 && trySetDevice(BASS_INTERNAL_DEVICE_COUNT + deviceIndex, mode)) return;
@@ -585,6 +598,10 @@ namespace osu.Framework.Audio
             return;
 
         explicit_selection_failed:
+            // Headless tests explicitly select "No sound", which is a BASS internal device.
+            if (DebugUtils.IsNUnitRunning && trySetDevice(Bass.NoSoundDevice, AudioOutputMode.Default))
+                return;
+
             Logger.Log($"Keeping explicit audio selection '{AudioDevice.Value}' after initialisation failure; skipping silent fallback to default device.", name: "audio", level: LogLevel.Important);
             Logger.Log($"Audio output remains uninitialised after explicit device selection failure: '{AudioDevice.Value}'.", name: "audio", level: LogLevel.Important);
             return;

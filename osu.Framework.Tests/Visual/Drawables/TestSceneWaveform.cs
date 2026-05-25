@@ -33,6 +33,9 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private ITrackStore store;
 
+        [Resolved]
+        private AudioManager audioManager { get; set; }
+
         [BackgroundDependencyLoader]
         private void load(Game game, AudioManager audio)
         {
@@ -107,6 +110,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         [SetUpSteps]
         public void SetUpSteps()
         {
+            AddUntilStep("audio device ready", () => audioManager.IsLoaded);
             AddStep("Load stereo track", () => loadTrack(true));
         }
 
