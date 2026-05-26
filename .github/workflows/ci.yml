@@ -1,11 +1,6 @@
 on: [push, pull_request, workflow_dispatch]
 name: Continuous Integration
 
-# Avoid hours-long queue buildup when pushing frequently to the same branch.
-concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 permissions:
   actions: read
   contents: read
@@ -115,6 +110,33 @@ jobs:
         with:
           name: osu-framework-test-results-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.os.configuration}}
           path: ${{github.workspace}}/TestResults/TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.os.configuration}}.trx
+
+  report-tests:
+    name: Report test results
+    runs-on: ubuntu-latest
+    needs: test
+    if: ${{ always() }}
+    permissions:
+      actions: read
+      checks: write
+    steps:
+      - name: Download test results
+        uses: actions/download-artifact@v8
+        with:
+          pattern: osu-framework-test-results-*
+          merge-multiple: true
+
+      - name: Annotate test results
+        uses: dorny/test-reporter@v2.6.0
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        with:
+          name: Results
+          path: "*.trx"
+          reporter: dotnet-trx
+          list-suites: 'failed'
+          list-tests: 'failed'
+          fail-on-error: false
 
   build-only-android:
     name: Build only (Android)
