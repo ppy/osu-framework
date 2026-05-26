@@ -706,10 +706,14 @@ namespace osu.Framework.Platform
             if (ExecutionState != ExecutionState.Idle)
                 throw new InvalidOperationException("A game that has already been run cannot be restarted.");
 
+            bool hostRunningMutexAcquired = false;
+
             try
             {
                 if (!host_running_mutex.Wait(10000))
                     throw new TimeoutException($"This {nameof(GameHost)} could not start {game} because another {nameof(GameHost)} was already running.");
+
+                hostRunningMutexAcquired = true;
 
                 threadRunner = CreateThreadRunner(InputThread = new InputThread());
 
@@ -818,12 +822,18 @@ namespace osu.Framework.Platform
             }
             finally
             {
-                if (CanExit)
+                try
                 {
-                    // Close the window and stop all threads
-                    performExit(true);
-
-                    host_running_mutex.Release();
+                    if (CanExit)
+                    {
+                        // Close the window and stop all threads
+                        performExit(true);
+                    }
+                }
+                finally
+                {
+                    if (hostRunningMutexAcquired)
+                        host_running_mutex.Release();
                 }
             }
         }

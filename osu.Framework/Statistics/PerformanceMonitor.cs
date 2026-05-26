@@ -94,6 +94,11 @@ namespace osu.Framework.Statistics
 
             thread = Thread.CurrentThread;
 
+            // 主要解决跨线程调用时，无法正确获取当前线程的调用堆栈信息的问题。
+            // A thread switch can occur when a GameThread is driven from another native thread (e.g. during Stop()).
+            // Discard any in-progress collection state from the previous thread to avoid stack imbalance.
+            currentCollectionTypeStack.Clear();
+
             traceCollector?.Dispose();
             traceCollector = new BackgroundStackTraceCollector(thread, ourClock, threadName);
             updateEnabledState();
@@ -131,6 +136,9 @@ namespace osu.Framework.Statistics
         /// <param name="type"></param>
         private void endCollecting(PerformanceCollectionType type)
         {
+            if (currentCollectionTypeStack.Count == 0)
+                return;
+
             currentCollectionTypeStack.Pop();
 
             (double workMs, double pauseMs) = consumeStopwatchElapsedTime();
