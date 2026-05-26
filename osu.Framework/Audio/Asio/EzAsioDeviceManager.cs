@@ -8,12 +8,13 @@ using System.Threading;
 using ManagedBass;
 using ManagedBass.Asio;
 using osu.Framework.Audio.Host;
+using osu.Framework.Development;
 using osu.Framework.Logging;
 
 namespace osu.Framework.Audio.Asio
 {
     /// <summary>
-    /// 管理 ASIO 设备的初始化、启动与释放。
+    /// Manages ASIO device initialisation, start, and release.
     /// </summary>
     public static class EzAsioDeviceManager
     {
@@ -30,6 +31,10 @@ namespace osu.Framework.Audio.Asio
 
         private static readonly object sync_root = new object();
 
+        private static readonly Dictionary<int, CachedDeviceCapabilities> capabilities_cache = new Dictionary<int, CachedDeviceCapabilities>();
+
+        private static string[] virtualHostWarmupNamePatterns = Array.Empty<string>();
+
         private static int globalMixerHandle;
         private static double? requestedSampleRate;
         private static int? requestedBufferSize;
@@ -42,6 +47,55 @@ namespace osu.Framework.Audio.Asio
         public static int ActiveBufferSize => appliedBufferSize ?? 0;
 
         public static int? ActiveDeviceIndex { get; private set; }
+
+        /// <summary>
+        /// Substrings matched case-insensitively against ASIO device names to decide whether host audio warm-up runs before ASIO init.
+        /// Configure from the game host (framework ships no defaults).
+        /// </summary>
+        public static IReadOnlyList<string> VirtualHostWarmUpNamePatterns
+        {
+            get
+            {
+                lock (sync_root)
+                    return virtualHostWarmupNamePatterns;
+            }
+        }
+
+        /// <summary>
+        /// Replaces <see cref="VirtualHostWarmUpNamePatterns"/> (e.g. "asio4all", "voicemeeter").
+        /// </summary>
+        public static void SetVirtualHostWarmUpNamePatterns(IEnumerable<string>? patterns)
+        {
+            lock (sync_root)
+            {
+                virtualHostWarmupNamePatterns = patterns == null
+                    ? Array.Empty<string>()
+                    : patterns.Where(p => !string.IsNullOrWhiteSpace(p))
+                              .Select(p => p.Trim())
+                              .Distinct(StringComparer.OrdinalIgnoreCase)
+                              .ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Returns whether the given ASIO device name matches any configured warm-up pattern.
+        /// </summary>
+        public static bool RequiresVirtualHostWarmUp(string asioDeviceName)
+        {
+            if (string.IsNullOrWhiteSpace(asioDeviceName))
+                return false;
+
+            lock (sync_root)
+            {
+                foreach (string pattern in virtualHostWarmupNamePatterns)
+                {
+                    if (asioDeviceName.Contains(pattern, StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
+            }
+
+            return false;
+        }
 
         public static bool IsAvailable
         {
@@ -112,7 +166,7 @@ namespace osu.Framework.Audio.Asio
             }
         }
 
-        public static bool InitializeDevice(int deviceIndex, double? sampleRateToTry = null, int? bufferSize = null, int? bitDepth = null, bool waitForDevice = false,
+        public static bool InitializeDevice(int deviceIndex, double? sampleRateToTry = null, int? bufferSize = null, int? bitDepth = null, bool nativePassThrough = false, bool waitForDevice = false,
                                             int waitTimeoutMs = 30000, bool aggressive = false)
         {
             lock (sync_root)
@@ -132,9 +186,18 @@ namespace osu.Framework.Audio.Asio
                     if (!tryInitialiseDevice(deviceIndex, waitForDevice, waitTimeoutMs, aggressive))
                         return false;
 
-                    TargetBitDepth = GetTargetBitDepth(bitDepth);
+                    double successfulRate;
 
-                    double successfulRate = tryApplySampleRate(sampleRateToTry ?? DEFAULT_SAMPLE_RATE);
+                    if (nativePassThrough)
+                    {
+                        successfulRate = tryGetUsableDeviceRate();
+                        TargetBitDepth = tryGetCurrentOutputBitDepth() ?? GetTargetBitDepth(bitDepth);
+                    }
+                    else
+                    {
+                        TargetBitDepth = GetTargetBitDepth(bitDepth);
+                        successfulRate = tryApplySampleRate(sampleRateToTry ?? DEFAULT_SAMPLE_RATE);
+                    }
 
                     if (successfulRate <= 0)
                     {
@@ -149,6 +212,7 @@ namespace osu.Framework.Audio.Asio
 
                     if (BassAsio.GetInfo(out AsioInfo info))
                     {
+                        cacheDeviceCapabilities(deviceIndex, info);
                         Logger.Log(
                             $"ASIO device ready: rate={successfulRate}Hz, bitDepth={TargetBitDepth}, outputs={info.Outputs}, buffer(min={info.MinBufferLength}, preferred={info.PreferredBufferLength}, max={info.MaxBufferLength}, granularity={info.BufferLengthGranularity})",
                             LoggingTarget.Runtime,
@@ -169,7 +233,7 @@ namespace osu.Framework.Audio.Asio
         /// Re-initialises the current ASIO device with new format settings without releasing all BASS outputs.
         /// Call <see cref="StartDevice"/> afterwards when the global mixer handle is assigned.
         /// </summary>
-        public static bool ReconfigureDevice(int deviceIndex, double? sampleRateToTry, int? bitDepth, int? bufferSize)
+        public static bool ReconfigureDevice(int deviceIndex, double? sampleRateToTry, int? bitDepth, int? bufferSize, bool nativePassThrough = false)
         {
             lock (sync_root)
             {
@@ -192,9 +256,18 @@ namespace osu.Framework.Audio.Asio
                     if (!tryInitialiseDevice(deviceIndex, waitForDevice: false, waitTimeoutMs: 0, aggressive: true))
                         return false;
 
-                    TargetBitDepth = GetTargetBitDepth(bitDepth);
+                    double successfulRate;
 
-                    double successfulRate = tryApplySampleRate(sampleRateToTry ?? requestedSampleRate ?? DEFAULT_SAMPLE_RATE);
+                    if (nativePassThrough)
+                    {
+                        successfulRate = tryGetUsableDeviceRate();
+                        TargetBitDepth = tryGetCurrentOutputBitDepth() ?? GetTargetBitDepth(bitDepth);
+                    }
+                    else
+                    {
+                        TargetBitDepth = GetTargetBitDepth(bitDepth);
+                        successfulRate = tryApplySampleRate(sampleRateToTry ?? requestedSampleRate ?? DEFAULT_SAMPLE_RATE);
+                    }
 
                     if (successfulRate <= 0)
                     {
@@ -206,6 +279,10 @@ namespace osu.Framework.Audio.Asio
                     requestedBufferSize = normaliseRequestedBufferSize(bufferSize);
                     appliedBufferSize = null;
                     ActiveDeviceIndex = deviceIndex;
+
+                    if (BassAsio.GetInfo(out AsioInfo reconfiguredInfo))
+                        cacheDeviceCapabilities(deviceIndex, reconfiguredInfo);
+
                     return true;
                 }
                 catch (Exception ex)
@@ -229,13 +306,26 @@ namespace osu.Framework.Audio.Asio
             {
                 try
                 {
-                    if (ActiveDeviceIndex == deviceIndex && BassAsio.GetInfo(out _))
-                        return getActiveDriverReportedFormats();
+                    if (capabilities_cache.TryGetValue(deviceIndex, out var cachedFormats) && cachedFormats.Formats.Count > 0)
+                        return cachedFormats.Formats;
+
+                    if (ActiveDeviceIndex == deviceIndex && ThreadSafety.IsAudioThread && BassAsio.GetInfo(out _))
+                    {
+                        var activeFormats = getActiveDriverReportedFormats();
+                        cacheFormats(deviceIndex, activeFormats);
+                        return activeFormats;
+                    }
 
                     var hostFormats = HostAudioFormatQuery.GetReportedFormatsForMatchedDevice(asioDeviceName, bassPlaybackDeviceNames);
 
                     if (hostFormats.Count > 0)
+                    {
+                        cacheFormats(deviceIndex, hostFormats);
                         return hostFormats;
+                    }
+
+                    if (capabilities_cache.TryGetValue(deviceIndex, out var cachedAfterHost) && cachedAfterHost.Formats.Count > 0)
+                        return cachedAfterHost.Formats;
 
                     return Array.Empty<EzAsioFormatOption>();
                 }
@@ -284,7 +374,57 @@ namespace osu.Framework.Audio.Asio
         }
 
         /// <summary>
-        /// Returns buffer sizes allowed by the ASIO driver (min/max/granularity from <see cref="AsioInfo"/>).
+        /// Refreshes cached format/buffer lists from the ASIO driver. Must run on the audio thread.
+        /// Uses a brief Init/GetInfo/Free only when the device is not already loaded for output.
+        /// </summary>
+        public static bool TryPopulateCapabilitiesCache(int deviceIndex)
+        {
+            if (!IsAvailable)
+                return false;
+
+            if (!ThreadSafety.IsAudioThread)
+            {
+                Logger.Log("ASIO capability cache refresh must run on the audio thread.", LoggingTarget.Runtime, LogLevel.Error);
+                return false;
+            }
+
+            lock (sync_root)
+            {
+                try
+                {
+                    if (ActiveDeviceIndex == deviceIndex && BassAsio.GetInfo(out AsioInfo activeInfo))
+                    {
+                        cacheDeviceCapabilities(deviceIndex, activeInfo);
+                        return true;
+                    }
+
+                    // Do not tear down a different active ASIO device.
+                    if (ActiveDeviceIndex != null)
+                        return capabilities_cache.TryGetValue(deviceIndex, out var existing) && existing.BufferSizes.Count > 0;
+
+                    freeDeviceInternal(resetMixerHandle: false);
+
+                    if (!tryInitialiseDevice(deviceIndex, waitForDevice: false, waitTimeoutMs: 0, aggressive: true))
+                        return false;
+
+                    bool success = BassAsio.GetInfo(out AsioInfo probedInfo);
+
+                    if (success)
+                        cacheDeviceCapabilities(deviceIndex, probedInfo);
+
+                    freeDeviceInternal(resetMixerHandle: false);
+                    return success;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"Exception populating ASIO capability cache: {ex}", LoggingTarget.Runtime, LogLevel.Error);
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns buffer sizes allowed by the ASIO driver (from cache populated during audio-thread initialisation or <see cref="TryPopulateCapabilitiesCache"/>).
         /// </summary>
         public static IReadOnlyList<int> GetSupportedBufferSizes(int deviceIndex)
         {
@@ -293,44 +433,111 @@ namespace osu.Framework.Audio.Asio
 
             lock (sync_root)
             {
+                if (capabilities_cache.TryGetValue(deviceIndex, out var cached) && cached.BufferSizes.Count > 0)
+                    return cached.BufferSizes;
+
+                if (ActiveDeviceIndex == deviceIndex && ThreadSafety.IsAudioThread && BassAsio.GetInfo(out AsioInfo activeInfo))
+                {
+                    var sizes = buildBufferSizeList(activeInfo);
+                    cacheBufferSizes(deviceIndex, sizes, activeInfo);
+                    return sizes;
+                }
+
+                return Array.Empty<int>();
+            }
+        }
+
+        /// <summary>
+        /// Returns true when at least one ASIO output channel pair is enabled for processing.
+        /// </summary>
+        public static bool IsOutputRoutingActive()
+        {
+            if (!IsAvailable)
+                return false;
+
+            lock (sync_root)
+            {
                 try
                 {
-                    if (!tryGetAsioInfoForDevice(deviceIndex, out AsioInfo info))
-                        return Array.Empty<int>();
+                    if (!BassAsio.IsStarted || !BassAsio.GetInfo(out AsioInfo info))
+                        return false;
 
-                    return buildBufferSizeList(info);
+                    for (int channel = 0; channel < Math.Min(info.Outputs, 8); channel++)
+                    {
+                        if (BassAsio.ChannelIsActive(false, channel) != AsioChannelActive.Disabled)
+                            return true;
+                    }
+
+                    return false;
                 }
-                catch (Exception ex)
+                catch
                 {
-                    Logger.Log($"Exception querying ASIO buffer sizes: {ex}", LoggingTarget.Runtime, LogLevel.Error);
-                    return Array.Empty<int>();
+                    return false;
                 }
             }
         }
 
-        private static bool tryGetAsioInfoForDevice(int deviceIndex, out AsioInfo info)
+        private static void cacheDeviceCapabilities(int deviceIndex, AsioInfo info)
         {
-            info = default;
+            cacheBufferSizes(deviceIndex, buildBufferSizeList(info), info);
+            cacheFormats(deviceIndex, getActiveDriverReportedFormats());
+        }
 
-            if (ActiveDeviceIndex == deviceIndex && BassAsio.GetInfo(out info))
-                return true;
+        private static void cacheBufferSizes(int deviceIndex, IReadOnlyList<int> bufferSizes, AsioInfo? sourceInfo = null)
+        {
+            if (!capabilities_cache.TryGetValue(deviceIndex, out var cached))
+                cached = new CachedDeviceCapabilities();
 
-            bool probeOnly = ActiveDeviceIndex != deviceIndex || !BassAsio.GetInfo(out _);
+            cached.BufferSizes = bufferSizes.ToList();
 
-            if (probeOnly)
+            if (sourceInfo != null)
             {
-                freeDeviceInternal(resetMixerHandle: false);
-
-                if (!tryInitialiseDevice(deviceIndex, waitForDevice: false, waitTimeoutMs: 0, aggressive: true))
-                    return false;
+                cached.MinBufferLength = sourceInfo.Value.MinBufferLength;
+                cached.PreferredBufferLength = sourceInfo.Value.PreferredBufferLength;
+                cached.MaxBufferLength = sourceInfo.Value.MaxBufferLength;
+                cached.BufferLengthGranularity = sourceInfo.Value.BufferLengthGranularity;
             }
 
-            bool success = BassAsio.GetInfo(out info);
+            capabilities_cache[deviceIndex] = cached;
+        }
 
-            if (probeOnly)
-                freeDeviceInternal(resetMixerHandle: false);
+        /// <summary>
+        /// Returns buffer parameters from the last capability probe for this device index.
+        /// </summary>
+        public static bool TryGetCachedBufferParameters(int deviceIndex, out int min, out int preferred, out int max, out int granularity)
+        {
+            min = preferred = max = granularity = 0;
 
-            return success;
+            lock (sync_root)
+            {
+                if (!capabilities_cache.TryGetValue(deviceIndex, out var cached))
+                    return false;
+
+                min = cached.MinBufferLength;
+                preferred = cached.PreferredBufferLength;
+                max = cached.MaxBufferLength;
+                granularity = cached.BufferLengthGranularity;
+                return min > 0 || max > 0;
+            }
+        }
+
+        private static void cacheFormats(int deviceIndex, IReadOnlyList<EzAsioFormatOption> formats)
+        {
+            if (!capabilities_cache.TryGetValue(deviceIndex, out var cached))
+                cached = new CachedDeviceCapabilities();
+
+            cached.Formats = formats.ToList();
+            capabilities_cache[deviceIndex] = cached;
+        }
+
+        private sealed class CachedDeviceCapabilities
+        {
+            public List<int> BufferSizes { get; set; } = new List<int>();
+            public List<EzAsioFormatOption> Formats { get; set; } = new List<EzAsioFormatOption>();
+            public int MinBufferLength;
+            public int PreferredBufferLength;
+            public int MaxBufferLength;
+            public int BufferLengthGranularity;
         }
 
         private static List<int> buildBufferSizeList(AsioInfo info)
@@ -756,6 +963,34 @@ namespace osu.Framework.Audio.Asio
             return 0;
         }
 
+        private static int? tryGetCurrentOutputBitDepth()
+        {
+            try
+            {
+                if (!BassAsio.GetInfo(out AsioInfo info))
+                    return null;
+
+                int channelsToInspect = Math.Min(info.Outputs, 8);
+
+                for (int channel = 0; channel < channelsToInspect; channel++)
+                {
+                    if (!BassAsio.ChannelGetInfo(false, channel, out AsioChannelInfo channelInfo))
+                        continue;
+
+                    int bits = mapAsioSampleFormatToBitDepth(channelInfo.Format);
+
+                    if (bits > 0)
+                        return bits;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Could not read ASIO output bit-depth: {ex}", LoggingTarget.Runtime, LogLevel.Debug);
+            }
+
+            return null;
+        }
+
         private static bool configureOutputRouting(int mixerHandle)
         {
             resetOutputRouting();
@@ -946,6 +1181,9 @@ namespace osu.Framework.Audio.Asio
 
             try
             {
+                if (ActiveDeviceIndex is int cachedIndex)
+                    capabilities_cache.Remove(cachedIndex);
+
                 BassAsio.Free();
             }
             catch (Exception ex)
@@ -966,13 +1204,13 @@ namespace osu.Framework.Audio.Asio
         {
             return errorCode switch
             {
-                1 => "ASIO 驱动不存在或无效。",
-                2 => "ASIO 驱动没有输入或输出通道。",
-                3 => "ASIO 驱动繁忙、不可用或打开失败。",
-                6 => "ASIO 驱动不支持请求的采样格式。",
-                8 => "ASIO 驱动已经初始化，通常说明上一次释放不完整。",
-                23 => "ASIO 设备不存在，可能已断开连接。",
-                _ => $"未知 ASIO 错误（代码 {errorCode}）。"
+                1 => "ASIO driver is missing or invalid.",
+                2 => "ASIO driver has no input or output channels.",
+                3 => "ASIO driver is busy, unavailable, or failed to open.",
+                6 => "ASIO driver does not support the requested sample format.",
+                8 => "ASIO driver is already initialised (previous release may be incomplete).",
+                23 => "ASIO device is not present (may have been disconnected).",
+                _ => $"Unknown ASIO error (code {errorCode})."
             };
         }
 

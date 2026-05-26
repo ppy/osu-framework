@@ -53,7 +53,14 @@ namespace osu.Framework.Development
                 // to eliminate such false positives.
                 bool nullEntryWithActualTestContext = entry == null && TestContext.CurrentContext.Test.ClassName != typeof(TestExecutionContext.AdhocContext).FullName;
 
-                return entryIsKnownTestAssembly || nullEntryWithActualTestContext;
+                // Benchmark executables (osu.Framework.Benchmarks) host NUnit [Test] methods via GameBenchmark.
+                // Treat them like other automated hosts: no real audio device init and no background ASIO polling.
+                bool entryIsBenchmarkAssembly = assemblyName != null && assemblyName.Contains("Benchmark", StringComparison.OrdinalIgnoreCase);
+
+                bool benchmarkWithActiveNUnitTest = entryIsBenchmarkAssembly
+                                                    && TestContext.CurrentContext.Test.ClassName != typeof(TestExecutionContext.AdhocContext).FullName;
+
+                return entryIsKnownTestAssembly || nullEntryWithActualTestContext || entryIsBenchmarkAssembly || benchmarkWithActiveNUnitTest;
             }
         );
 

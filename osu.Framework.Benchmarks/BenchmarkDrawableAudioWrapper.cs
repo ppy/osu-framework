@@ -43,11 +43,8 @@ namespace osu.Framework.Benchmarks
             {
                 base.LoadComplete();
 
-                InternalChildren = new Drawable[]
-                {
-                    Container1,
-                    Container2,
-                };
+                Content.Add(Container1);
+                Content.Add(Container2);
 
                 transferTo(Container1);
             }
