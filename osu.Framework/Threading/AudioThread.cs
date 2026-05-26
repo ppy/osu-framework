@@ -42,7 +42,7 @@ namespace osu.Framework.Threading
             OnNewFrame += onNewFrame;
             PreloadBass();
 
-            // 初始化EzLatency模块
+            // Initialise EzLatency on the audio thread.
             LatencyAnalyzer = new EzLatencyAnalyzer();
 
             // Forward any analyzer records from this audio thread into the global EzLatencyService
@@ -231,10 +231,9 @@ namespace osu.Framework.Threading
             freeWasapi();
             releaseAllOutputsForSwitch(deviceId, outputMode);
 
-            // 对于ASIO模式，在初始化前添加额外延迟以确保设备完全释放
+            // ASIO: allow the previous driver time to fully release before re-init.
             if (outputMode == AudioOutputMode.Asio)
             {
-                // 增加延迟以确保设备完全释放
                 Thread.Sleep(100);
             }
 
@@ -279,8 +278,7 @@ namespace osu.Framework.Threading
                     break;
 
                 case AudioOutputMode.Asio:
-                    // 对于ASIO模式，我们需要获取实际的ASIO设备索引，而不是使用BASS设备ID
-                    // 从AudioManager获取当前选择的设备名称
+                    // ASIO uses a BassAsio device index, not the BASS playback device id.
                     string selectedDeviceName = Manager?.AudioDevice.Value ?? string.Empty;
 
                     if (!string.IsNullOrEmpty(selectedDeviceName))
@@ -296,20 +294,19 @@ namespace osu.Framework.Threading
                             }
                             else
                             {
-                                Logger.Log($"无法找到ASIO设备: {deviceName}", name: "audio", level: LogLevel.Error);
+                                Logger.Log($"Could not find ASIO device: {deviceName}", name: "audio", level: LogLevel.Error);
                                 return false;
                             }
                         }
                         else
                         {
-                            Logger.Log("无法从选择中提取ASIO设备名称", name: "audio", level: LogLevel.Error);
+                            Logger.Log("Could not parse ASIO device name from selection", name: "audio", level: LogLevel.Error);
                             return false;
                         }
                     }
                     else
                     {
-                        Logger.Log("没有选择ASIO设备名称", name: "audio");
-                        // 默认使用第一个可用的ASIO设备
+                        Logger.Log("No ASIO device name in selection; falling back to first available device", name: "audio");
                         var availableDevices = EzAsioDeviceManager.EnumerateAsioDevices().ToList();
 
                         if (availableDevices.Count != 0)
@@ -319,7 +316,7 @@ namespace osu.Framework.Threading
                         }
                         else
                         {
-                            Logger.Log("没有可用的ASIO设备", name: "audio", level: LogLevel.Error);
+                            Logger.Log("No ASIO devices are available", name: "audio", level: LogLevel.Error);
                             return false;
                         }
                     }
@@ -371,7 +368,7 @@ namespace osu.Framework.Threading
 
             int selectedDevice = Bass.CurrentDevice;
 
-            // 对于ASIO设备，先释放ASIO再释放BASS以确保正确的清理顺序
+            // Tear down ASIO before BASS so driver handles are released in order.
             freeAsio();
 
             if (canSelectDevice(deviceId))
@@ -416,12 +413,11 @@ namespace osu.Framework.Threading
                 && !libraryName.Equals("bassasio.dll", StringComparison.OrdinalIgnoreCase))
                 return IntPtr.Zero;
 
-            // 先尝试默认探测路径，但不要让解析器把异常直接抛回调用方，
-            // 否则任何一次 ASIO 探测都会污染非 ASIO 的切换路径。
+            // Try the default resolver first without throwing — a failed ASIO probe must not break non-ASIO paths.
             if (NativeLibrary.TryLoad(libraryName, assembly, searchPath ?? DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories, out IntPtr result))
                 return result;
 
-            // 如果是64位进程，尝试从x64目录加载
+            // On 64-bit builds, fall back to the x64 native folder.
             if (Environment.Is64BitProcess)
             {
                 string dllPath = Path.Combine(AppContext.BaseDirectory, "x64", "bassasio.dll");
@@ -435,7 +431,7 @@ namespace osu.Framework.Threading
                     return NativeLibrary.TryLoad(dllPath, out result) ? result : IntPtr.Zero;
             }
 
-            // 如果所有尝试都失败，让运行时使用默认解析
+            // Let the runtime use its default resolver if we could not load bassasio.
             return IntPtr.Zero;
         }
 
@@ -1006,18 +1002,15 @@ namespace osu.Framework.Threading
 
             try
             {
-                // 首先停止ASIO设备
                 EzAsioDeviceManager.StopDevice();
 
-                // 停止后稍作延迟让设备稳定
                 Thread.Sleep(50);
 
-                // 释放ASIO设备
                 EzAsioDeviceManager.FreeDevice();
             }
             catch (Exception ex)
             {
-                Logger.Log($"ASIO设备清理过程中出现异常: {ex.Message}，尝试强制重置", name: "audio", level: LogLevel.Error);
+                Logger.Log($"Exception while cleaning up ASIO device: {ex.Message}; attempting force reset", name: "audio", level: LogLevel.Error);
 
                 try
                 {
@@ -1025,11 +1018,10 @@ namespace osu.Framework.Threading
                 }
                 catch (Exception resetEx)
                 {
-                    Logger.Log($"强制重置也失败: {resetEx.Message}", name: "audio", level: LogLevel.Error);
+                    Logger.Log($"Force reset also failed: {resetEx.Message}", name: "audio", level: LogLevel.Error);
                 }
             }
 
-            // 清理混音器句柄
             if (globalMixerHandle.Value != null)
             {
                 try
@@ -1038,14 +1030,13 @@ namespace osu.Framework.Threading
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log($"释放ASIO混音器时出现异常: {ex.Message}", name: "audio", level: LogLevel.Error);
+                    Logger.Log($"Exception while freeing ASIO mixer: {ex.Message}", name: "audio", level: LogLevel.Error);
                 }
 
                 globalMixerHandle.Value = null;
             }
 
-            // 释放ASIO设备后添加较长延迟
-            // 这可以防止设备繁忙错误，当在ASIO设备之间切换时
+            // Extra delay after ASIO teardown to avoid busy-driver errors when switching devices.
             Thread.Sleep(300);
         }
 

@@ -14,7 +14,7 @@ using osu.Framework.Logging;
 namespace osu.Framework.Audio.Asio
 {
     /// <summary>
-    /// 管理 ASIO 设备的初始化、启动与释放。
+    /// Manages ASIO device initialisation, start, and release.
     /// </summary>
     public static class EzAsioDeviceManager
     {
@@ -439,7 +439,7 @@ namespace osu.Framework.Audio.Asio
                 if (ActiveDeviceIndex == deviceIndex && ThreadSafety.IsAudioThread && BassAsio.GetInfo(out AsioInfo activeInfo))
                 {
                     var sizes = buildBufferSizeList(activeInfo);
-                    cacheBufferSizes(deviceIndex, sizes);
+                    cacheBufferSizes(deviceIndex, sizes, activeInfo);
                     return sizes;
                 }
 
@@ -479,17 +479,46 @@ namespace osu.Framework.Audio.Asio
 
         private static void cacheDeviceCapabilities(int deviceIndex, AsioInfo info)
         {
-            cacheBufferSizes(deviceIndex, buildBufferSizeList(info));
+            cacheBufferSizes(deviceIndex, buildBufferSizeList(info), info);
             cacheFormats(deviceIndex, getActiveDriverReportedFormats());
         }
 
-        private static void cacheBufferSizes(int deviceIndex, IReadOnlyList<int> bufferSizes)
+        private static void cacheBufferSizes(int deviceIndex, IReadOnlyList<int> bufferSizes, AsioInfo? sourceInfo = null)
         {
             if (!capabilities_cache.TryGetValue(deviceIndex, out var cached))
                 cached = new CachedDeviceCapabilities();
 
             cached.BufferSizes = bufferSizes.ToList();
+
+            if (sourceInfo != null)
+            {
+                cached.MinBufferLength = sourceInfo.Value.MinBufferLength;
+                cached.PreferredBufferLength = sourceInfo.Value.PreferredBufferLength;
+                cached.MaxBufferLength = sourceInfo.Value.MaxBufferLength;
+                cached.BufferLengthGranularity = sourceInfo.Value.BufferLengthGranularity;
+            }
+
             capabilities_cache[deviceIndex] = cached;
+        }
+
+        /// <summary>
+        /// Returns buffer parameters from the last capability probe for this device index.
+        /// </summary>
+        public static bool TryGetCachedBufferParameters(int deviceIndex, out int min, out int preferred, out int max, out int granularity)
+        {
+            min = preferred = max = granularity = 0;
+
+            lock (sync_root)
+            {
+                if (!capabilities_cache.TryGetValue(deviceIndex, out var cached))
+                    return false;
+
+                min = cached.MinBufferLength;
+                preferred = cached.PreferredBufferLength;
+                max = cached.MaxBufferLength;
+                granularity = cached.BufferLengthGranularity;
+                return min > 0 || max > 0;
+            }
         }
 
         private static void cacheFormats(int deviceIndex, IReadOnlyList<EzAsioFormatOption> formats)
@@ -505,6 +534,10 @@ namespace osu.Framework.Audio.Asio
         {
             public List<int> BufferSizes { get; set; } = new List<int>();
             public List<EzAsioFormatOption> Formats { get; set; } = new List<EzAsioFormatOption>();
+            public int MinBufferLength;
+            public int PreferredBufferLength;
+            public int MaxBufferLength;
+            public int BufferLengthGranularity;
         }
 
         private static List<int> buildBufferSizeList(AsioInfo info)
@@ -1171,13 +1204,13 @@ namespace osu.Framework.Audio.Asio
         {
             return errorCode switch
             {
-                1 => "ASIO 驱动不存在或无效。",
-                2 => "ASIO 驱动没有输入或输出通道。",
-                3 => "ASIO 驱动繁忙、不可用或打开失败。",
-                6 => "ASIO 驱动不支持请求的采样格式。",
-                8 => "ASIO 驱动已经初始化，通常说明上一次释放不完整。",
-                23 => "ASIO 设备不存在，可能已断开连接。",
-                _ => $"未知 ASIO 错误（代码 {errorCode}）。"
+                1 => "ASIO driver is missing or invalid.",
+                2 => "ASIO driver has no input or output channels.",
+                3 => "ASIO driver is busy, unavailable, or failed to open.",
+                6 => "ASIO driver does not support the requested sample format.",
+                8 => "ASIO driver is already initialised (previous release may be incomplete).",
+                23 => "ASIO device is not present (may have been disconnected).",
+                _ => $"Unknown ASIO error (code {errorCode})."
             };
         }
 

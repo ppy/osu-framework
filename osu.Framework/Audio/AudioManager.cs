@@ -78,22 +78,22 @@ namespace osu.Framework.Audio
         public readonly AudioMixer SampleMixer;
 
         /// <summary>
-        /// 采样率，用于 ASIO 设备的初始化和运行时更改。
+        /// Sample rate used for ASIO device initialisation and runtime changes.
         /// </summary>
         public readonly Bindable<int> SampleRate = new Bindable<int>(AudioOutputDefaults.DEFAULT_SAMPLE_RATE);
 
         /// <summary>
-        /// ASIO 缓冲区大小，默认为 128，用于 ASIO 设备的初始化。
+        /// ASIO buffer size (default 128) used during device initialisation.
         /// </summary>
         public readonly Bindable<int> AsioBufferSize = new Bindable<int>(AudioOutputDefaults.DEFAULT_ASIO_BUFFER_SIZE);
 
         /// <summary>
-        /// ASIO 输出位深（16 或 24），默认为 24。
+        /// ASIO output bit depth (16 or 24). Default is 24.
         /// </summary>
         public readonly Bindable<int> AsioBitDepth = new Bindable<int>(24);
 
         /// <summary>
-        /// ASIO 直通模式：绕过手动输出格式设置，使用驱动当前原生格式。
+        /// When enabled, ASIO pass-through bypasses manual format settings and uses the driver's native format.
         /// </summary>
         public readonly BindableBool AsioPassThrough = new BindableBool(false);
 
@@ -122,13 +122,13 @@ namespace osu.Framework.Audio
         public event Action<string> OnLostDevice;
 
         /// <summary>
-        /// 在ASIO设备成功初始化后触发，提供实际使用的采样率。
+        /// Invoked after an ASIO device is initialised successfully, with the effective sample rate.
         /// </summary>
         [CanBeNull]
         public Action<double> OnAsioDeviceInitialized;
 
         /// <summary>
-        /// 在 ASIO 设备成功初始化后触发，提供实际使用的采样率、缓冲区大小和位深。
+        /// Invoked after an ASIO device is initialised successfully, with sample rate, buffer size, and bit depth.
         /// </summary>
         [CanBeNull]
         public Action<double, int, int> OnAsioDeviceConfigurationChanged;
@@ -253,7 +253,7 @@ namespace osu.Framework.Audio
         private readonly Lazy<SampleStore> globalSampleStore;
 
         /// <summary>
-        /// 设置ASIO采样率，对外接口。
+        /// Sets the preferred ASIO sample rate.
         /// </summary>
         /// <param name="sampleRate">The preferred sample rate in Hz.</param>
         public void SetPreferredAsioSampleRate(int sampleRate)
@@ -262,7 +262,7 @@ namespace osu.Framework.Audio
         }
 
         /// <summary>
-        /// 设置ASIO缓冲区大小，对外接口。
+        /// Sets the preferred ASIO buffer size.
         /// </summary>
         /// <param name="bufferSize">The preferred buffer size for ASIO device.</param>
         public void SetAsioBufferSize(int bufferSize)
@@ -271,7 +271,7 @@ namespace osu.Framework.Audio
         }
 
         /// <summary>
-        /// 设置 ASIO 采样率与位深。
+        /// Sets the preferred ASIO sample rate and bit depth.
         /// </summary>
         public void SetAsioFormat(int sampleRate, int bitDepth)
         {
@@ -280,12 +280,12 @@ namespace osu.Framework.Audio
         }
 
         /// <summary>
-        /// 设置 ASIO 直通模式开关。
+        /// Sets whether ASIO pass-through mode is enabled.
         /// </summary>
         public void SetAsioPassThrough(bool enabled) => AsioPassThrough.Value = enabled;
 
         /// <summary>
-        /// 获取指定 ASIO 设备支持的采样率/位深组合。
+        /// Returns supported sample-rate/bit-depth combinations for the given ASIO device.
         /// </summary>
         public IReadOnlyList<EzAsioFormatOption> GetAsioSupportedFormats(string asioDeviceName)
         {
@@ -300,7 +300,7 @@ namespace osu.Framework.Audio
         }
 
         /// <summary>
-        /// 获取指定 ASIO 设备支持的缓冲区大小列表（来自驱动报告的 min/max/granularity）。
+        /// Returns supported buffer sizes for the given ASIO device (from driver min/max/granularity).
         /// </summary>
         public IReadOnlyList<int> GetAsioSupportedBufferSizes(string asioDeviceName)
         {
@@ -361,14 +361,27 @@ namespace osu.Framework.Audio
         }
 
         /// <summary>
-        /// Returns a user-facing status line for an ASIO device: running state, reported formats and buffer range.
+        /// User-facing ASIO status for settings UI: summary (output state) and capabilities (driver probe).
         /// </summary>
-        public string GetAsioStatusText(string asioDeviceName)
+        public readonly record struct AsioStatusNote(string SummaryLine, string CapabilitiesLine)
+        {
+            /// <summary>
+            /// Formats the note for display (one or two lines).
+            /// </summary>
+            public string ToDisplayText() => string.IsNullOrEmpty(CapabilitiesLine)
+                ? SummaryLine
+                : $"{SummaryLine}\n{CapabilitiesLine}";
+        }
+
+        /// <summary>
+        /// Returns two-line ASIO status for settings UI.
+        /// </summary>
+        public AsioStatusNote GetAsioStatusNote(string asioDeviceName)
         {
             int? index = EzAsioDeviceManager.FindAsioDeviceIndex(asioDeviceName);
 
             if (!index.HasValue)
-                return $"ASIO 设备 \"{asioDeviceName}\" 未找到。";
+                return new AsioStatusNote($"ASIO device \"{asioDeviceName}\" was not found.", string.Empty);
 
             var formats = EzAsioDeviceManager.GetSupportedFormats(index.Value, asioDeviceName, audioDeviceNames);
             var buffers = EzAsioDeviceManager.GetSupportedBufferSizes(index.Value);
@@ -376,21 +389,106 @@ namespace osu.Framework.Audio
             bool isCurrentSelectedAsio = parseSelection(AudioDevice.Value).mode == AudioOutputMode.Asio
                                          && string.Equals(parseSelection(AudioDevice.Value).deviceName, asioDeviceName, StringComparison.Ordinal);
             bool running = isCurrentSelectedAsio && EzAsioDeviceManager.IsDeviceRunning();
-            double currentRate = running ? EzAsioDeviceManager.GetCurrentSampleRate() : 0;
-            var info = running ? EzAsioDeviceManager.GetCurrentDeviceInfo() : null;
+            bool passThrough = AsioPassThrough.Value;
 
-            string runningText = running
-                ? $"运行中 ({(int)Math.Round(currentRate)}Hz, out={info?.Outputs ?? 0})"
-                : "未运行";
-            string formatText = formats.Count > 0
-                ? string.Join(" / ", formats.Select(f => $"{f.SampleRate}Hz {f.BitDepth}bit").Take(4))
-                : "无可用格式信息";
-            string bufferText = buffers.Count > 0
-                ? (buffers.Count == 1 ? $"{buffers[0]}" : $"{buffers.First()}..{buffers.Last()} ({buffers.Count}项)")
-                : "无可用缓冲信息";
+            string summaryLine = buildAsioSummaryLine(running, passThrough);
+            string capabilitiesLine = buildAsioCapabilitiesLine(index.Value, formats, buffers);
 
-            return $"状态: {runningText} | 直通: {(AsioPassThrough.Value ? "开" : "关")} | 格式: {formatText} | 缓冲: {bufferText}";
+            return new AsioStatusNote(summaryLine, capabilitiesLine);
         }
+
+        // 设置页状态 Note：第一行描述当前输出状态
+        private string buildAsioSummaryLine(bool running, bool passThrough)
+        {
+            string passThroughText = passThrough ? "pass-through on" : "pass-through off";
+
+            if (!running)
+            {
+                if (passThrough)
+                    return $"Output: not running · {passThroughText} · will use driver native format";
+
+                return $"Output: not running · {passThroughText} · configured {SampleRate.Value} Hz / {AsioBitDepth.Value} bit / buffer {AsioBufferSize.Value}";
+            }
+
+            double currentRate = EzAsioDeviceManager.GetCurrentSampleRate();
+            int bitDepth = EzAsioDeviceManager.TargetBitDepth;
+            int buffer = EzAsioDeviceManager.ActiveBufferSize;
+            var info = EzAsioDeviceManager.GetCurrentDeviceInfo();
+            int outputs = info?.Outputs ?? 0;
+            bool routingActive = EzAsioDeviceManager.IsOutputRoutingActive();
+
+            string rateText = currentRate > 0 ? $"{(int)Math.Round(currentRate)} Hz" : "sample rate unknown";
+            string bufferText = buffer > 0 ? $"buffer {buffer}" : "buffer unknown";
+            string routingText = routingActive ? "routing active" : "routing inactive";
+
+            return $"Output: running · {rateText} / {bitDepth} bit · {bufferText} · {outputs} ch · {routingText} · {passThroughText}";
+        }
+
+        // 设置页状态 Note：第二行描述驱动探测到的格式与缓冲能力
+        private static string buildAsioCapabilitiesLine(int deviceIndex, IReadOnlyList<EzAsioFormatOption> formats, IReadOnlyList<int> buffers)
+        {
+            const int max_formats_shown = 6;
+
+            string formatSegment;
+
+            if (formats.Count == 0)
+            {
+                formatSegment = "Formats: no probe data yet";
+            }
+            else
+            {
+                var shown = formats.Take(max_formats_shown).Select(f => $"{f.SampleRate}/{f.BitDepth}");
+                string formatList = string.Join(", ", shown);
+
+                formatSegment = formats.Count > max_formats_shown ? $"Formats: {formatList}… ({formats.Count} total)" : $"Formats: {formatList} ({formats.Count} total)";
+            }
+
+            string bufferSegment = buildBufferCapabilitiesSegment(deviceIndex, buffers);
+
+            if (string.IsNullOrEmpty(bufferSegment))
+                return $"Driver probe · {formatSegment}";
+
+            return $"Driver probe · {formatSegment} · {bufferSegment}";
+        }
+
+        private static string buildBufferCapabilitiesSegment(int deviceIndex, IReadOnlyList<int> buffers)
+        {
+            if (EzAsioDeviceManager.TryGetCachedBufferParameters(deviceIndex, out int min, out int preferred, out int max, out int granularity))
+            {
+                string rangeText = min > 0 && max > 0 ? $"{min}–{max}" : buffers.Count > 0 ? $"{buffers.First()}–{buffers.Last()}" : "unknown range";
+                string preferredText = preferred > 0 ? $"preferred {preferred}" : string.Empty;
+                string granularityText = describeBufferGranularity(granularity);
+                string countText = buffers.Count > 0 ? $"{buffers.Count} values" : string.Empty;
+
+                var parts = new List<string> { $"Buffer {rangeText}" };
+
+                if (!string.IsNullOrEmpty(preferredText))
+                    parts.Add(preferredText);
+
+                if (!string.IsNullOrEmpty(granularityText))
+                    parts.Add(granularityText);
+
+                if (!string.IsNullOrEmpty(countText))
+                    parts.Add(countText);
+
+                return string.Join(", ", parts);
+            }
+
+            if (buffers.Count == 0)
+                return "Buffer: no probe data yet";
+
+            if (buffers.Count == 1)
+                return $"Buffer {buffers[0]} (1 value)";
+
+            return $"Buffer {buffers.First()}–{buffers.Last()} ({buffers.Count} values)";
+        }
+
+        private static string describeBufferGranularity(int granularity) => granularity switch
+        {
+            0 => "granularity: min/pref/max only",
+            < 0 => "granularity: powers of 2",
+            _ => $"granularity: +{granularity}",
+        };
 
         /// <summary>
         /// Constructs an AudioStore given a track resource store, and a sample resource store.
@@ -673,7 +771,7 @@ namespace osu.Framework.Audio
             // try using the specified device
             if (mode == AudioOutputMode.Asio)
             {
-                // 对于 ASIO 模式，我们需要将设备名称转换为 ASIO 设备索引
+                // Resolve the display name to a BassAsio device index.
                 int? asioDeviceIndex = EzAsioDeviceManager.FindAsioDeviceIndex(deviceName);
 
                 if (asioDeviceIndex.HasValue)
@@ -923,8 +1021,7 @@ namespace osu.Framework.Audio
 
                 if (alreadyInitialised)
                 {
-                    // 对于ASIO模式，如果InitDevice失败，则应将其视为失败
-                    // 因为即使BASS已经初始化，ASIO设备也可能无法正确初始化
+                    // For ASIO, a failed device init must fail even if BASS was already initialised.
                     if (outputMode == AudioOutputMode.Asio && !innerSuccess)
                     {
                         Logger.Log("ASIO device initialization failed even though BASS was already initialized", name: "audio", level: LogLevel.Error);
