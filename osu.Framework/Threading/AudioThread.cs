@@ -232,7 +232,7 @@ namespace osu.Framework.Threading
             releaseAllOutputsForSwitch(deviceId, outputMode);
 
             // ASIO: allow the previous driver time to fully release before re-init.
-            if (outputMode == AudioOutputMode.Asio)
+            if (outputMode == AudioOutputMode.Asio && !DebugUtils.IsNUnitRunning)
             {
                 Thread.Sleep(100);
             }
@@ -1037,7 +1037,8 @@ namespace osu.Framework.Threading
             }
 
             // Extra delay after ASIO teardown to avoid busy-driver errors when switching devices.
-            Thread.Sleep(300);
+            if (!DebugUtils.IsNUnitRunning)
+                Thread.Sleep(300);
         }
 
         #endregion

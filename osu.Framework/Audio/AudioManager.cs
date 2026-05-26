@@ -787,7 +787,7 @@ namespace osu.Framework.Audio
 
                     if (trySetDevice(bassDeviceId, mode))
                     {
-                        EzAsioDeviceManager.TryPopulateCapabilitiesCache(asioDeviceIndex.Value);
+                        RequestAsioCapabilitiesRefresh(deviceName);
                         return;
                     }
 
@@ -1095,10 +1095,22 @@ namespace osu.Framework.Audio
             syncAsioDeviceChanges();
         }
 
+        private static bool shouldPollAsioDeviceListChanges()
+        {
+            // BassAsio enumeration from the device-monitor background thread can block indefinitely on some drivers.
+            // Automated test/benchmark hosts never need hot-plug ASIO notifications.
+            return RuntimeInfo.OS == RuntimeInfo.Platform.Windows
+                   && !DebugUtils.IsNUnitRunning
+                   && EzAsioDeviceManager.IsAvailable;
+        }
+
         private void syncAsioDeviceChanges()
         {
-            if (RuntimeInfo.OS != RuntimeInfo.Platform.Windows)
+            if (!shouldPollAsioDeviceListChanges())
+            {
+                previousAsioDeviceNames = ImmutableList<string>.Empty;
                 return;
+            }
 
             ImmutableList<string> current;
 
@@ -1279,7 +1291,7 @@ namespace osu.Framework.Audio
                     return true;
             }
 
-            if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows && checkAsioDeviceListChanged())
+            if (shouldPollAsioDeviceListChanges() && checkAsioDeviceListChanged())
                 return true;
 
             return false;
