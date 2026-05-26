@@ -1,5 +1,10 @@
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 name: Continuous Integration
+
+# Avoid hours-long queue buildup when pushing frequently to the same branch.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   actions: read

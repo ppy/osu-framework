@@ -21,12 +21,8 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion != 'cancelled' }}
     timeout-minutes: 5
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          repository: ${{ github.event.workflow_run.repository.full_name }}
-          ref: ${{ github.event.workflow_run.head_sha }}
-
+      # No checkout required: workflow_run GITHUB_TOKEN often cannot fetch the repo (HTTP 403 on forks).
+      # Artifacts + test-reporter only need the downloaded TRX files.
       - name: Download results
         uses: actions/download-artifact@v8
         with:
