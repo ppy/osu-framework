@@ -50,7 +50,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestClassAggregate()
         {
-            var aggregate = new AggregateBindable<BoxedInt>((a, b) => new BoxedInt(a.Value + b.Value));
+            var aggregate = new AggregateBindable<BoxedInt>((a, b) => new BoxedInt((a?.Value ?? 0) + (b?.Value ?? 0)));
 
             Assert.AreEqual(null, aggregate.Result.Value);
 
