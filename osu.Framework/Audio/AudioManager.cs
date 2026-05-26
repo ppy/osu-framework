@@ -14,6 +14,7 @@ using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
 using osu.Framework.Audio.Asio;
+using osu.Framework.Audio.Host;
 using osu.Framework.Audio.EzLatency;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.Bass;
@@ -90,6 +91,11 @@ namespace osu.Framework.Audio
         /// ASIO 输出位深（16 或 24），默认为 24。
         /// </summary>
         public readonly Bindable<int> AsioBitDepth = new Bindable<int>(24);
+
+        /// <summary>
+        /// ASIO 直通模式：绕过手动输出格式设置，使用驱动当前原生格式。
+        /// </summary>
+        public readonly BindableBool AsioPassThrough = new BindableBool(false);
 
         /// <summary>
         /// The names of all available audio devices.
@@ -274,6 +280,11 @@ namespace osu.Framework.Audio
         }
 
         /// <summary>
+        /// 设置 ASIO 直通模式开关。
+        /// </summary>
+        public void SetAsioPassThrough(bool enabled) => AsioPassThrough.Value = enabled;
+
+        /// <summary>
         /// 获取指定 ASIO 设备支持的采样率/位深组合。
         /// </summary>
         public IReadOnlyList<EzAsioFormatOption> GetAsioSupportedFormats(string asioDeviceName)
@@ -299,6 +310,86 @@ namespace osu.Framework.Audio
                 return Array.Empty<int>();
 
             return EzAsioDeviceManager.GetSupportedBufferSizes(index.Value);
+        }
+
+        /// <summary>
+        /// Configures ASIO device name substrings that trigger host audio warm-up before ASIO initialisation (virtual bridge drivers).
+        /// </summary>
+        public void ConfigureAsioVirtualHostWarmUpNamePatterns(IEnumerable<string> patterns)
+            => EzAsioDeviceManager.SetVirtualHostWarmUpNamePatterns(patterns);
+
+        /// <summary>
+        /// Refreshes cached ASIO format/buffer lists on the audio thread (safe driver metadata read).
+        /// </summary>
+        public void RequestAsioCapabilitiesRefresh(string asioDeviceName, Action onComplete = null)
+        {
+            int? index = EzAsioDeviceManager.FindAsioDeviceIndex(asioDeviceName);
+
+            if (!index.HasValue)
+            {
+                onComplete?.Invoke();
+                return;
+            }
+
+            int deviceIndex = index.Value;
+
+            scheduler.Add(() =>
+            {
+                EzAsioDeviceManager.TryPopulateCapabilitiesCache(deviceIndex);
+
+                if (onComplete != null)
+                    eventScheduler.Add(onComplete);
+            });
+        }
+
+        /// <summary>
+        /// Whether the current selection is ASIO and the driver is started.
+        /// </summary>
+        public bool IsAsioOutputActive()
+        {
+            if (parseSelection(AudioDevice.Value).mode != AudioOutputMode.Asio)
+                return false;
+
+            try
+            {
+                return EzAsioDeviceManager.IsDeviceRunning();
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Returns a user-facing status line for an ASIO device: running state, reported formats and buffer range.
+        /// </summary>
+        public string GetAsioStatusText(string asioDeviceName)
+        {
+            int? index = EzAsioDeviceManager.FindAsioDeviceIndex(asioDeviceName);
+
+            if (!index.HasValue)
+                return $"ASIO 设备 \"{asioDeviceName}\" 未找到。";
+
+            var formats = EzAsioDeviceManager.GetSupportedFormats(index.Value, asioDeviceName, audioDeviceNames);
+            var buffers = EzAsioDeviceManager.GetSupportedBufferSizes(index.Value);
+
+            bool isCurrentSelectedAsio = parseSelection(AudioDevice.Value).mode == AudioOutputMode.Asio
+                                         && string.Equals(parseSelection(AudioDevice.Value).deviceName, asioDeviceName, StringComparison.Ordinal);
+            bool running = isCurrentSelectedAsio && EzAsioDeviceManager.IsDeviceRunning();
+            double currentRate = running ? EzAsioDeviceManager.GetCurrentSampleRate() : 0;
+            var info = running ? EzAsioDeviceManager.GetCurrentDeviceInfo() : null;
+
+            string runningText = running
+                ? $"运行中 ({(int)Math.Round(currentRate)}Hz, out={info?.Outputs ?? 0})"
+                : "未运行";
+            string formatText = formats.Count > 0
+                ? string.Join(" / ", formats.Select(f => $"{f.SampleRate}Hz {f.BitDepth}bit").Take(4))
+                : "无可用格式信息";
+            string bufferText = buffers.Count > 0
+                ? (buffers.Count == 1 ? $"{buffers[0]}" : $"{buffers.First()}..{buffers.Last()} ({buffers.Count}项)")
+                : "无可用缓冲信息";
+
+            return $"状态: {runningText} | 直通: {(AsioPassThrough.Value ? "开" : "关")} | 格式: {formatText} | 缓冲: {bufferText}";
         }
 
         /// <summary>
@@ -405,6 +496,11 @@ namespace osu.Framework.Audio
             AsioBitDepth.ValueChanged += e =>
             {
                 requestAsioReinitialisation($"ASIO bit depth changed to {e.NewValue}");
+            };
+
+            AsioPassThrough.ValueChanged += e =>
+            {
+                requestAsioReinitialisation($"ASIO pass-through changed to {e.NewValue}");
             };
 
             AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
@@ -582,12 +678,20 @@ namespace osu.Framework.Audio
 
                 if (asioDeviceIndex.HasValue)
                 {
-                    // ASIO output still requires BASS to be initialised, but output is performed by BassAsio.
-                    // Use the OS default BASS device as a fallback initialisation target.
-                    // For ASIO mode, add retry logic since device initialization can be flaky
+                    // ASIO output still requires BASS to be initialised (mixer source), but playback is via BassAsio.
+                    // Prefer the host playback device that matches this ASIO driver name.
+                    int bassDeviceId = bass_default_device;
 
-                    if (trySetDevice(bass_default_device, mode))
+                    int? matchedListIndex = HostDeviceMatcher.FindBassPlaybackDeviceListIndex(deviceName, audioDeviceNames);
+
+                    if (matchedListIndex.HasValue)
+                        bassDeviceId = BASS_INTERNAL_DEVICE_COUNT + matchedListIndex.Value;
+
+                    if (trySetDevice(bassDeviceId, mode))
+                    {
+                        EzAsioDeviceManager.TryPopulateCapabilitiesCache(asioDeviceIndex.Value);
                         return;
+                    }
 
                     Logger.Log($"ASIO device '{deviceName}' initialization failed.", name: "audio", level: LogLevel.Important);
                 }

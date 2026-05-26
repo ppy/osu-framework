@@ -715,10 +715,11 @@ namespace osu.Framework.Threading
             preferredSampleRate = EzAsioDeviceManager.GetTargetSampleRate(Manager.SampleRate.Value == 0 ? preferredSampleRate : Manager.SampleRate.Value);
             bitDepth = EzAsioDeviceManager.GetTargetBitDepth(bitDepth);
             bufferSize = EzAsioDeviceManager.GetTargetBufferSize(bufferSize);
+            bool nativePassThrough = Manager.AsioPassThrough.Value;
 
             releaseAsioMixerOnly();
 
-            bool formatChangeRequired = requiresAsioFormatChange(preferredSampleRate, bitDepth);
+            bool formatChangeRequired = !nativePassThrough && requiresAsioFormatChange(preferredSampleRate, bitDepth);
 
             if (!formatChangeRequired)
             {
@@ -728,7 +729,7 @@ namespace osu.Framework.Threading
                 return completeAsioMixerAndStart(bufferSize);
             }
 
-            if (!EzAsioDeviceManager.ReconfigureDevice(asioDeviceIndex, preferredSampleRate, bitDepth, bufferSize))
+            if (!EzAsioDeviceManager.ReconfigureDevice(asioDeviceIndex, preferredSampleRate, bitDepth, bufferSize, nativePassThrough))
                 return false;
 
             return completeAsioMixerAndStart(bufferSize);
@@ -765,7 +766,8 @@ namespace osu.Framework.Threading
                 Thread.Sleep(100);
             }
 
-            warmUpHostAudioForVirtualAsio(asioDeviceName);
+            if (EzAsioDeviceManager.RequiresVirtualHostWarmUp(asioDeviceName))
+                warmUpHostAudioForVirtualAsio(asioDeviceName);
 
             if (!ensureBassOutputDeviceReady(Bass.CurrentDevice))
             {
@@ -773,9 +775,11 @@ namespace osu.Framework.Threading
                 return false;
             }
 
-            if (!EzAsioDeviceManager.InitializeDevice(asioDeviceIndex, preferredSampleRate, bufferSize, bitDepth, waitForDevice: true, waitTimeoutMs: 10_000))
+            bool nativePassThrough = Manager.AsioPassThrough.Value;
+
+            if (!EzAsioDeviceManager.InitializeDevice(asioDeviceIndex, preferredSampleRate, bufferSize, bitDepth, nativePassThrough, waitForDevice: true, waitTimeoutMs: 10_000))
             {
-                Logger.Log($"EzAsioDeviceManager.InitializeDevice({asioDeviceIndex}, {preferredSampleRate}, {bufferSize}, {bitDepth}) failed", name: "audio", level: LogLevel.Error);
+                Logger.Log($"EzAsioDeviceManager.InitializeDevice({asioDeviceIndex}, {preferredSampleRate}, {bufferSize}, {bitDepth}, native={nativePassThrough}) failed", name: "audio", level: LogLevel.Error);
                 return false;
             }
 
@@ -878,6 +882,7 @@ namespace osu.Framework.Threading
 
             if (targetDevice < 0)
                 return;
+
             int previousDevice = Bass.CurrentDevice;
 
             try

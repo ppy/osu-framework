@@ -10,7 +10,7 @@ namespace osu.Framework.Audio.Host
     /// <summary>
     /// Maps a logical device name (e.g. ASIO) to a host (BASS) playback device name.
     /// </summary>
-    internal static class HostDeviceMatcher
+    public static class HostDeviceMatcher
     {
         public static string? FindBestBassDeviceName(string logicalDeviceName, IEnumerable<string> bassPlaybackDeviceNames)
         {
@@ -30,6 +30,25 @@ namespace osu.Framework.Audio.Host
             }
 
             return bestMatch;
+        }
+
+        /// <summary>
+        /// Returns the index into a BASS playback device name list for the best match to a logical device (e.g. ASIO).
+        /// </summary>
+        public static int? FindBassPlaybackDeviceListIndex(string logicalDeviceName, IReadOnlyList<string> bassPlaybackDeviceNames)
+        {
+            string? bassName = FindBestBassDeviceName(logicalDeviceName, bassPlaybackDeviceNames);
+
+            if (bassName == null)
+                return null;
+
+            for (int i = 0; i < bassPlaybackDeviceNames.Count; i++)
+            {
+                if (string.Equals(bassPlaybackDeviceNames[i], bassName, StringComparison.OrdinalIgnoreCase))
+                    return i;
+            }
+
+            return null;
         }
 
         private static int scoreMatch(string logicalName, string bassName)
