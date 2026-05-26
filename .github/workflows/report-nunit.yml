@@ -1,13 +1,9 @@
-# This is a workaround to allow PRs to report their coverage. This will run inside the base repository.
-# See:
-#   * https://github.com/dorny/test-reporter#recommended-setup-for-public-repositories
-#   * https://docs.github.com/en/actions/reference/authentication-in-a-workflow#permissions-for-the-github_token
+# Deprecated: test reporting now runs in ci.yml (report-tests job) to avoid workflow_run token/403 issues
+# and concurrency deadlocks with stuck queued runs.
 name: Annotate CI run with test results
+
 on:
-  workflow_run:
-    workflows: [ "Continuous Integration" ]
-    types:
-      - completed
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -18,24 +14,6 @@ jobs:
   annotate:
     name: Annotate CI run with test results
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion != 'cancelled' }}
-    timeout-minutes: 5
+    if: false
     steps:
-      # No checkout required: workflow_run GITHUB_TOKEN often cannot fetch the repo (HTTP 403 on forks).
-      # Artifacts + test-reporter only need the downloaded TRX files.
-      - name: Download results
-        uses: actions/download-artifact@v8
-        with:
-          pattern: osu-framework-test-results-*
-          merge-multiple: true
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ github.token }}
-
-      - name: Annotate CI run with test results
-        uses: dorny/test-reporter@v2.6.0
-        with:
-          name: Results
-          path: "*.trx"
-          reporter: dotnet-trx
-          list-suites: 'failed'
-          list-tests: 'failed'
+      - run: echo "Disabled - use Continuous Integration workflow instead."
