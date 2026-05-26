@@ -826,13 +826,7 @@ namespace osu.Framework.Threading
                 return false;
             }
 
-            if (!Bass.ChannelPlay(globalMixerHandle.Value.Value))
-            {
-                Logger.Log($"Failed to start ASIO global mixer: {Bass.LastError}", name: "audio", level: LogLevel.Error);
-                freeAsio();
-                return false;
-            }
-
+            // Decode mixers cannot be started with ChannelPlay (BASS returns Decode). ASIO output pulls from the mixer via BassAsio, same as WASAPI.
             EzAsioDeviceManager.SetGlobalMixerHandle(globalMixerHandle.Value.Value);
 
             if (!EzAsioDeviceManager.StartDevice(bufferSize))

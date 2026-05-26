@@ -134,6 +134,13 @@ namespace osu.Framework.Audio
         public Action<double, int, int> OnAsioDeviceConfigurationChanged;
 
         /// <summary>
+        /// Invoked on the game update thread when ASIO output could not be started after an explicit device selection or ASIO setting change.
+        /// The host may show a notification; a full application restart may be required if the failure persists.
+        /// </summary>
+        [CanBeNull]
+        public Action OnAsioOutputUnavailable;
+
+        /// <summary>
         /// The preferred audio device we should use. A value of
         /// <see cref="string.Empty"/> denotes the OS default.
         /// </summary>
@@ -844,6 +851,10 @@ namespace osu.Framework.Audio
 
             Logger.Log($"Keeping explicit audio selection '{AudioDevice.Value}' after initialisation failure; skipping silent fallback to default device.", name: "audio", level: LogLevel.Important);
             Logger.Log($"Audio output remains uninitialised after explicit device selection failure: '{AudioDevice.Value}'.", name: "audio", level: LogLevel.Important);
+
+            if (parseSelection(AudioDevice.Value).mode == AudioOutputMode.Asio)
+                notifyAsioOutputUnavailable();
+
             return;
 
             bool trySetDevice(int deviceId, AudioOutputMode outputMode)
@@ -1244,8 +1255,21 @@ namespace osu.Framework.Audio
                     initCurrentDevice();
 
                 if (!reconfigured && !IsCurrentDeviceValid())
+                {
                     Logger.Log($"ASIO reinitialisation failed after setting change. Device selection: {AudioDevice.Value}", name: "audio", level: LogLevel.Error);
+                    notifyAsioOutputUnavailable();
+                }
             });
+        }
+
+        private void notifyAsioOutputUnavailable()
+        {
+            var callback = OnAsioOutputUnavailable;
+
+            if (callback == null)
+                return;
+
+            scheduler.AddOnce(callback);
         }
 
         private static void logAsioNativeUnavailableOnce(Exception e)
