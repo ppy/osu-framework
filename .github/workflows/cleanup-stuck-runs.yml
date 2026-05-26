@@ -1,0 +1,56 @@
+# 用于清掉卡在 Queued 的僵尸 CI。用法见仓库 Actions 页 → “Cleanup stuck CI runs” → Run workflow。
+# 清理完成后可删除本文件。
+name: Cleanup stuck CI runs
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  force-cancel-zombie:
+    name: Force cancel stuck runs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Force cancel known zombie run #31
+        continue-on-error: true
+        run: |
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/26430788791/force-cancel" \
+            && echo "Cancelled run 26430788791 (#31)" \
+            || echo "Run 26430788791 may already be gone (OK)"
+
+      - name: Force cancel other queued runs older than 30 minutes
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          REPO="${{ github.repository }}"
+          CUTOFF=$(date -u -d '30 minutes ago' +%s 2>/dev/null || date -u -v-30M +%s)
+          page=1
+          while true; do
+            json=$(curl -fsSL \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/$REPO/actions/runs?status=queued&per_page=100&page=$page")
+            count=$(echo "$json" | jq '.workflow_runs | length')
+            [ "$count" = "0" ] && break
+            echo "$json" | jq -r --argjson cutoff "$CUTOFF" \
+              '.workflow_runs[] | select((.created_at | fromdateiso8601) < $cutoff) | .id' | while read -r id; do
+              [ -z "$id" ] && continue
+              echo "Force cancelling queued run $id ..."
+              curl -fsSL -X POST \
+                -H "Authorization: Bearer $GH_TOKEN" \
+                -H "Accept: application/vnd.github+json" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                "https://api.github.com/repos/$REPO/actions/runs/$id/force-cancel" || true
+            done
+            page=$((page + 1))
+          done
+          echo "Done. Refresh the Actions page."
