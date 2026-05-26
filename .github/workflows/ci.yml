@@ -1,5 +1,19 @@
-on: [push, pull_request, workflow_dispatch]
+on:
+  # 仅分支 push 触发；打 tag 推送不会重复跑 CI（tag 由 deploy-pack.yml 处理）
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - '**'
+  pull_request:
+  workflow_dispatch:
 name: Continuous Integration
+
+# 同一分支上：新 push 会取消尚未跑完的旧 CI，省额度；不同分支/PR 互不影响。
+# group 必须带 github.ref，不要用全仓库共用一个 group，否则容易和卡死的 Queued run 缠在一起。
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   actions: read
@@ -87,12 +101,23 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version: 1.26.1
+          cache: false
 
       - name: Install httpbin
         run: go install github.com/mccutchen/go-httpbin/v2/cmd/go-httpbin@latest
 
       - name: Run httpbin
-        run: $HOME/go/bin/go-httpbin &
+        run: |
+          $HOME/go/bin/go-httpbin &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/status/200 >/dev/null; then
+              echo "httpbin ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::httpbin did not become ready"
+          exit 1
         shell: bash
 
       - name: Compile
