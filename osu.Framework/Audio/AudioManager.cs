@@ -481,9 +481,9 @@ namespace osu.Framework.Audio
 
             var oldDeviceNames = audioDeviceNames;
             var newDeviceNames = audioDeviceNames = audioDevices.Skip(BASS_INTERNAL_DEVICE_COUNT)
-                .Where(d => d.IsEnabled)
-                .Select(d => (d.Name, d.Driver))
-                .ToImmutableList();
+                                                                .Where(d => d.IsEnabled)
+                                                                .Select(d => (d.Name, d.Driver))
+                                                                .ToImmutableList();
 
             scheduler.Add(() =>
             {
