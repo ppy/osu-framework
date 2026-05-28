@@ -93,9 +93,10 @@ namespace osu.Framework.Audio
         public readonly Bindable<int> AsioBitDepth = new Bindable<int>(24);
 
         /// <summary>
-        /// When enabled, ASIO pass-through bypasses manual format settings and uses the driver's native format.
+        /// When enabled, ASIO uses external PCM: output format follows the driver control panel.
+        /// When disabled, ASIO uses internal PCM: output format follows <see cref="SampleRate"/>, <see cref="AsioBitDepth"/>, and <see cref="AsioBufferSize"/>.
         /// </summary>
-        public readonly BindableBool AsioPassThrough = new BindableBool(false);
+        public readonly BindableBool AsioUseExternalPCM = new BindableBool(false);
 
         /// <summary>
         /// The names of all available audio devices.
@@ -287,9 +288,44 @@ namespace osu.Framework.Audio
         }
 
         /// <summary>
-        /// Sets whether ASIO pass-through mode is enabled.
+        /// Sets external PCM (driver panel) vs internal PCM (in-game format settings).
         /// </summary>
-        public void SetAsioPassThrough(bool enabled) => AsioPassThrough.Value = enabled;
+        public void SetAsioUseExternalPCM(bool enabled) => AsioUseExternalPCM.Value = enabled;
+
+        /// <summary>
+        /// Releases the current audio output and re-initialises from <see cref="AudioDevice"/>.
+        /// For ASIO, capability metadata is re-read from the driver after re-init.
+        /// </summary>
+        public void ReloadCurrentAudioDevice(Action<bool> onComplete = null)
+        {
+            scheduler.AddOnce(() =>
+            {
+                var (mode, deviceName) = parseSelection(AudioDevice.Value);
+
+                if (mode == AudioOutputMode.Asio)
+                {
+                    int? index = EzAsioDeviceManager.FindAsioDeviceIndex(deviceName);
+
+                    if (index.HasValue)
+                        EzAsioDeviceManager.InvalidateCapabilitiesCache(index.Value);
+                }
+
+                Logger.Log("Reloading current audio output device.", name: "audio", level: LogLevel.Important);
+                initCurrentDevice();
+
+                bool success = IsCurrentDeviceValid();
+
+                void notifyComplete() => onComplete?.Invoke(success);
+
+                if (mode == AudioOutputMode.Asio && success)
+                {
+                    RequestAsioCapabilitiesRefresh(deviceName, notifyComplete);
+                    return;
+                }
+
+                eventScheduler.Add(notifyComplete);
+            });
+        }
 
         /// <summary>
         /// Returns supported sample-rate/bit-depth combinations for the given ASIO device.
@@ -334,7 +370,7 @@ namespace osu.Framework.Audio
 
             if (!index.HasValue)
             {
-                onComplete?.Invoke();
+                eventScheduler.Add(() => onComplete?.Invoke());
                 return;
             }
 
@@ -343,9 +379,7 @@ namespace osu.Framework.Audio
             scheduler.Add(() =>
             {
                 EzAsioDeviceManager.TryPopulateCapabilitiesCache(deviceIndex);
-
-                if (onComplete != null)
-                    eventScheduler.Add(onComplete);
+                onComplete?.Invoke();
             });
         }
 
@@ -396,25 +430,25 @@ namespace osu.Framework.Audio
             bool isCurrentSelectedAsio = parseSelection(AudioDevice.Value).mode == AudioOutputMode.Asio
                                          && string.Equals(parseSelection(AudioDevice.Value).deviceName, asioDeviceName, StringComparison.Ordinal);
             bool running = isCurrentSelectedAsio && EzAsioDeviceManager.IsDeviceRunning();
-            bool passThrough = AsioPassThrough.Value;
+            bool useExternalPCM = AsioUseExternalPCM.Value;
 
-            string summaryLine = buildAsioSummaryLine(running, passThrough);
+            string summaryLine = buildAsioSummaryLine(running, useExternalPCM);
             string capabilitiesLine = buildAsioCapabilitiesLine(index.Value, formats, buffers);
 
             return new AsioStatusNote(summaryLine, capabilitiesLine);
         }
 
         // 设置页状态 Note：第一行描述当前输出状态
-        private string buildAsioSummaryLine(bool running, bool passThrough)
+        private string buildAsioSummaryLine(bool running, bool useExternalPCM)
         {
-            string passThroughText = passThrough ? "pass-through on" : "pass-through off";
+            string pcmModeText = useExternalPCM ? "external PCM" : "internal PCM";
 
             if (!running)
             {
-                if (passThrough)
-                    return $"Output: not running · {passThroughText} · will use driver native format";
+                if (useExternalPCM)
+                    return $"Output: not running · {pcmModeText} · will follow driver control panel";
 
-                return $"Output: not running · {passThroughText} · configured {SampleRate.Value} Hz / {AsioBitDepth.Value} bit / buffer {AsioBufferSize.Value}";
+                return $"Output: not running · {pcmModeText} · target {SampleRate.Value} Hz / {AsioBitDepth.Value} bit / buffer {AsioBufferSize.Value}";
             }
 
             double currentRate = EzAsioDeviceManager.GetCurrentSampleRate();
@@ -428,7 +462,7 @@ namespace osu.Framework.Audio
             string bufferText = buffer > 0 ? $"buffer {buffer}" : "buffer unknown";
             string routingText = routingActive ? "routing active" : "routing inactive";
 
-            return $"Output: running · {rateText} / {bitDepth} bit · {bufferText} · {outputs} ch · {routingText} · {passThroughText}";
+            return $"Output: running · {rateText} / {bitDepth} bit · {bufferText} · {outputs} ch · {routingText} · {pcmModeText}";
         }
 
         // 设置页状态 Note：第二行描述驱动探测到的格式与缓冲能力
@@ -529,6 +563,7 @@ namespace osu.Framework.Audio
                 // attach config bindables
                 config.BindWith(FrameworkSetting.AudioDevice, AudioDevice);
                 config.BindWith(FrameworkSetting.AudioUseExperimentalWasapi, UseExperimentalWasapi);
+                config.BindWith(FrameworkSetting.AsioUseExternalPCM, AsioUseExternalPCM);
                 config.BindWith(FrameworkSetting.VolumeUniversal, Volume);
                 config.BindWith(FrameworkSetting.VolumeEffect, VolumeSample);
                 config.BindWith(FrameworkSetting.VolumeMusic, VolumeTrack);
@@ -586,26 +621,28 @@ namespace osu.Framework.Audio
             // initCurrentDevice not required for changes to `GlobalMixerHandle` as it is only changed when experimental wasapi is toggled (handled above).
             GlobalMixerHandle.ValueChanged += handle => usingGlobalMixer.Value = handle.NewValue.HasValue;
 
-            // Listen for unified sample rate changes and reinitialize ASIO immediately.
+            // When using driver-panel settings, do not push game bindables onto the ASIO driver.
             SampleRate.ValueChanged += e =>
             {
-                requestAsioReinitialisation($"Sample rate changed to {e.NewValue}Hz");
+                if (shouldApplyAsioOverrideSettings())
+                    requestAsioReinitialisation($"Sample rate changed to {e.NewValue}Hz");
             };
 
-            // Listen for ASIO buffer size changes and reinitialize ASIO immediately.
             AsioBufferSize.ValueChanged += e =>
             {
-                requestAsioReinitialisation($"ASIO buffer size changed to {e.NewValue}");
+                if (shouldApplyAsioOverrideSettings())
+                    requestAsioReinitialisation($"ASIO buffer size changed to {e.NewValue}");
             };
 
             AsioBitDepth.ValueChanged += e =>
             {
-                requestAsioReinitialisation($"ASIO bit depth changed to {e.NewValue}");
+                if (shouldApplyAsioOverrideSettings())
+                    requestAsioReinitialisation($"ASIO bit depth changed to {e.NewValue}");
             };
 
-            AsioPassThrough.ValueChanged += e =>
+            AsioUseExternalPCM.ValueChanged += e =>
             {
-                requestAsioReinitialisation($"ASIO pass-through changed to {e.NewValue}");
+                requestAsioReinitialisation($"ASIO PCM mode changed to {(e.NewValue ? "external" : "internal")}");
             };
 
             AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
@@ -1217,6 +1254,14 @@ namespace osu.Framework.Audio
 
             baseName = string.Empty;
             return false;
+        }
+
+        private bool shouldApplyAsioOverrideSettings()
+        {
+            if (parseSelection(AudioDevice.Value).mode != AudioOutputMode.Asio)
+                return false;
+
+            return !AsioUseExternalPCM.Value;
         }
 
         private void requestAsioReinitialisation(string reason)

@@ -27,6 +27,16 @@ namespace osu.Framework.Threading
 {
     public class AudioThread : GameThread
     {
+        internal enum AsioReconfigurePath
+        {
+            BufferRestart,
+            FullReconfigure,
+        }
+
+        internal AsioReconfigurePath? LastAsioReconfigurePath { get; private set; }
+
+        internal void ResetLastAsioReconfigurePath() => LastAsioReconfigurePath = null;
+
         private static int wasapiNativeUnavailableLogged;
         private static int asioResolverRegistered;
 
@@ -710,25 +720,30 @@ namespace osu.Framework.Threading
 
             preferredSampleRate = EzAsioDeviceManager.GetTargetSampleRate(Manager.SampleRate.Value == 0 ? preferredSampleRate : Manager.SampleRate.Value);
             bitDepth = EzAsioDeviceManager.GetTargetBitDepth(bitDepth);
-            bufferSize = EzAsioDeviceManager.GetTargetBufferSize(bufferSize);
-            bool nativePassThrough = Manager.AsioPassThrough.Value;
+            bool useExternalPCM = Manager.AsioUseExternalPCM.Value;
+            int? resolvedBufferSize = useExternalPCM ? null : EzAsioDeviceManager.GetTargetBufferSize(bufferSize);
 
             releaseAsioMixerOnly();
 
-            bool formatChangeRequired = !nativePassThrough && requiresAsioFormatChange(preferredSampleRate, bitDepth);
+            // External PCM must re-probe the driver (rate/bit depth/buffer caps); the buffer-only short path cannot refresh driver metadata.
+            bool formatChangeRequired = useExternalPCM || requiresAsioFormatChange(preferredSampleRate, bitDepth);
 
             if (!formatChangeRequired)
             {
-                if (!EzAsioDeviceManager.TryRestartWithBuffer(bufferSize))
+                LastAsioReconfigurePath = AsioReconfigurePath.BufferRestart;
+
+                if (!EzAsioDeviceManager.TryRestartWithBuffer(resolvedBufferSize))
                     return false;
 
-                return completeAsioMixerAndStart(bufferSize);
+                return completeAsioMixerAndStart(resolvedBufferSize);
             }
 
-            if (!EzAsioDeviceManager.ReconfigureDevice(asioDeviceIndex, preferredSampleRate, bitDepth, bufferSize, nativePassThrough))
+            LastAsioReconfigurePath = AsioReconfigurePath.FullReconfigure;
+
+            if (!EzAsioDeviceManager.ReconfigureDevice(asioDeviceIndex, preferredSampleRate, bitDepth, resolvedBufferSize, useExternalPCM))
                 return false;
 
-            return completeAsioMixerAndStart(bufferSize);
+            return completeAsioMixerAndStart(resolvedBufferSize);
         }
 
         private static bool requiresAsioFormatChange(double preferredSampleRate, int bitDepth)
@@ -753,7 +768,8 @@ namespace osu.Framework.Threading
 
             preferredSampleRate = EzAsioDeviceManager.GetTargetSampleRate(Manager.SampleRate.Value == 0 ? preferredSampleRate : Manager.SampleRate.Value);
             bitDepth = EzAsioDeviceManager.GetTargetBitDepth(bitDepth);
-            int bufferSize = Manager.AsioBufferSize.Value;
+            bool useExternalPCM = Manager.AsioUseExternalPCM.Value;
+            int? bufferSize = useExternalPCM ? null : EzAsioDeviceManager.GetTargetBufferSize(Manager.AsioBufferSize.Value);
 
             if (EzAsioDeviceManager.IsDeviceRunning())
             {
@@ -771,18 +787,16 @@ namespace osu.Framework.Threading
                 return false;
             }
 
-            bool nativePassThrough = Manager.AsioPassThrough.Value;
-
-            if (!EzAsioDeviceManager.InitializeDevice(asioDeviceIndex, preferredSampleRate, bufferSize, bitDepth, nativePassThrough, waitForDevice: true, waitTimeoutMs: 10_000))
+            if (!EzAsioDeviceManager.InitializeDevice(asioDeviceIndex, preferredSampleRate, bufferSize, bitDepth, useExternalPCM, waitForDevice: true, waitTimeoutMs: 10_000))
             {
-                Logger.Log($"EzAsioDeviceManager.InitializeDevice({asioDeviceIndex}, {preferredSampleRate}, {bufferSize}, {bitDepth}, native={nativePassThrough}) failed", name: "audio", level: LogLevel.Error);
+                Logger.Log($"EzAsioDeviceManager.InitializeDevice({asioDeviceIndex}, {preferredSampleRate}, {bufferSize}, {bitDepth}, externalPCM={useExternalPCM}) failed", name: "audio", level: LogLevel.Error);
                 return false;
             }
 
             return completeAsioMixerAndStart(bufferSize);
         }
 
-        private bool completeAsioMixerAndStart(int bufferSize)
+        private bool completeAsioMixerAndStart(int? bufferSize)
         {
             if (Manager == null)
                 return false;
@@ -836,7 +850,7 @@ namespace osu.Framework.Threading
                 return false;
             }
 
-            int activeBufferSize = EzAsioDeviceManager.ActiveBufferSize > 0 ? EzAsioDeviceManager.ActiveBufferSize : bufferSize;
+            int activeBufferSize = EzAsioDeviceManager.ActiveBufferSize > 0 ? EzAsioDeviceManager.ActiveBufferSize : bufferSize ?? 0;
             int activeBitDepth = EzAsioDeviceManager.TargetBitDepth;
 
             Manager.OnAsioDeviceConfigurationChanged?.Invoke(sampleRate, activeBufferSize, activeBitDepth);
