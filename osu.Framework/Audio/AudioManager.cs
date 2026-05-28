@@ -379,7 +379,7 @@ namespace osu.Framework.Audio
             scheduler.Add(() =>
             {
                 EzAsioDeviceManager.TryPopulateCapabilitiesCache(deviceIndex);
-                onComplete?.Invoke();
+                eventScheduler.Add(() => onComplete?.Invoke());
             });
         }
 
