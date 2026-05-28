@@ -166,7 +166,7 @@ namespace osu.Framework.Audio.Asio
             }
         }
 
-        public static bool InitializeDevice(int deviceIndex, double? sampleRateToTry = null, int? bufferSize = null, int? bitDepth = null, bool nativePassThrough = false, bool waitForDevice = false,
+        public static bool InitializeDevice(int deviceIndex, double? sampleRateToTry = null, int? bufferSize = null, int? bitDepth = null, bool useExternalPCM = false, bool waitForDevice = false,
                                             int waitTimeoutMs = 30000, bool aggressive = false)
         {
             lock (sync_root)
@@ -188,7 +188,7 @@ namespace osu.Framework.Audio.Asio
 
                     double successfulRate;
 
-                    if (nativePassThrough)
+                    if (useExternalPCM)
                     {
                         successfulRate = tryGetUsableDeviceRate();
                         TargetBitDepth = tryGetCurrentOutputBitDepth() ?? GetTargetBitDepth(bitDepth);
@@ -233,7 +233,7 @@ namespace osu.Framework.Audio.Asio
         /// Re-initialises the current ASIO device with new format settings without releasing all BASS outputs.
         /// Call <see cref="StartDevice"/> afterwards when the global mixer handle is assigned.
         /// </summary>
-        public static bool ReconfigureDevice(int deviceIndex, double? sampleRateToTry, int? bitDepth, int? bufferSize, bool nativePassThrough = false)
+        public static bool ReconfigureDevice(int deviceIndex, double? sampleRateToTry, int? bitDepth, int? bufferSize, bool useExternalPCM = false)
         {
             lock (sync_root)
             {
@@ -258,7 +258,7 @@ namespace osu.Framework.Audio.Asio
 
                     double successfulRate;
 
-                    if (nativePassThrough)
+                    if (useExternalPCM)
                     {
                         successfulRate = tryGetUsableDeviceRate();
                         TargetBitDepth = tryGetCurrentOutputBitDepth() ?? GetTargetBitDepth(bitDepth);
@@ -371,6 +371,15 @@ namespace osu.Framework.Audio.Asio
                 formats.Add(new EzAsioFormatOption((int)Math.Round(rate), bits));
 
             return formats;
+        }
+
+        /// <summary>
+        /// Clears cached format/buffer metadata so the next probe reads fresh driver state.
+        /// </summary>
+        public static void InvalidateCapabilitiesCache(int deviceIndex)
+        {
+            lock (sync_root)
+                capabilities_cache.Remove(deviceIndex);
         }
 
         /// <summary>
@@ -1095,7 +1104,8 @@ namespace osu.Framework.Audio.Asio
             if (!BassAsio.GetInfo(out AsioInfo info))
                 return normaliseRequestedBufferSize(requested) ?? DEFAULT_BUFFER_SIZE;
 
-            int desired = normaliseRequestedBufferSize(requested) ?? DEFAULT_BUFFER_SIZE;
+            int desired = normaliseRequestedBufferSize(requested)
+                          ?? (info.PreferredBufferLength > 0 ? info.PreferredBufferLength : DEFAULT_BUFFER_SIZE);
             int min = info.MinBufferLength > 0 ? info.MinBufferLength : desired;
             int max = info.MaxBufferLength > 0 ? info.MaxBufferLength : Math.Max(min, desired);
             int preferred = info.PreferredBufferLength > 0 ? info.PreferredBufferLength : desired;
