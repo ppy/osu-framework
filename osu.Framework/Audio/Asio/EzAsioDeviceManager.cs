@@ -179,7 +179,7 @@ namespace osu.Framework.Audio.Asio
                     if (!tryGetDeviceInfo(deviceIndex, out AsioDeviceInfo deviceInfo))
                         return false;
 
-                    Logger.Log($"Initializing ASIO device: {deviceInfo.Name} (Driver: {deviceInfo.Driver})", LoggingTarget.Runtime, LogLevel.Important);
+                    Logger.Log($"Initializing ASIO device: {deviceInfo.Name} (Driver: {deviceInfo.Driver})");
 
                     freeDeviceInternal(resetMixerHandle: false);
 
@@ -688,7 +688,7 @@ namespace osu.Framework.Audio.Asio
 
                     appliedBufferSize = resolvedBufferSize;
 
-                    Logger.Log($"ASIO device started successfully with buffer size {resolvedBufferSize} samples", LoggingTarget.Runtime, LogLevel.Important);
+                    Logger.Log($"ASIO device started successfully with buffer size {resolvedBufferSize} samples");
                     return true;
                 }
                 catch (Exception ex)
