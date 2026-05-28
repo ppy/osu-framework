@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Primitives
     {
         /// <summary>Represents an instance of the <see cref="RectangleF"/> class with its members uninitialized.</summary>
         /// <filterpriority>1</filterpriority>
-        public static RectangleF Empty { get; } = new RectangleF();
+        public static RectangleF Empty { get; }
 
         public float X;
         public float Y;

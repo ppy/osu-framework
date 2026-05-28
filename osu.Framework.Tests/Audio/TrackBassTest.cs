@@ -302,6 +302,24 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
+        public void TestHasCompletedFiresAfterDeviceChange()
+        {
+            // start playback and wait for completion.
+            startPlaybackAt(track.Length - 1);
+
+            Assert.IsTrue(track.IsRunning);
+
+            bass.UpdateDevice();
+
+            Assert.IsTrue(track.IsRunning);
+
+            takeEffectsAndUpdateAfter(50);
+
+            Assert.IsFalse(track.IsRunning);
+            Assert.IsTrue(track.HasCompleted);
+        }
+
+        [Test]
         public void TestHasCompletedResetsOnSeekBack()
         {
             // start playback and wait for completion.

@@ -208,6 +208,11 @@ namespace osu.Framework.Audio.Track
                 // While on windows, changing to "No sound" changes the playback state correctly,
                 // on macOS it is left in a playing-but-stalled state. Forcefully stopping first fixes this.
                 stopInternal();
+
+                // this is required otherwise the "Completed" event won't fire after a device change
+                cleanUpSyncs();
+                initializeSyncs();
+
                 startInternal();
             }
         }
