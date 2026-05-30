@@ -175,6 +175,24 @@ namespace osu.Framework.Graphics.Transforms
 
                         if (t.IsLooping)
                         {
+                            int loopAdvanceCount = 1;
+
+                            if (!tCanRewind && t.LoopDelay > 0)
+                            {
+                                int additionalLoopsToSkip = (int)Math.Floor((time - t.EndTime) / t.LoopDelay);
+
+                                if (additionalLoopsToSkip > 0)
+                                {
+                                    if (t.LoopCount > 0)
+                                    {
+                                        additionalLoopsToSkip = Math.Min(additionalLoopsToSkip, t.LoopCount);
+                                        t.LoopCount -= additionalLoopsToSkip;
+                                    }
+
+                                    loopAdvanceCount += additionalLoopsToSkip;
+                                }
+                            }
+
                             int oldLoopCount = t.LoopCount;
 
                             if (tCanRewind)
@@ -190,13 +208,19 @@ namespace osu.Framework.Graphics.Transforms
                             if (tCanRewind)
                                 t.LoopCount = oldLoopCount;
 
-                            t.StartTime += t.LoopDelay;
-                            t.EndTime += t.LoopDelay;
+                            t.StartTime += t.LoopDelay * loopAdvanceCount;
+                            t.EndTime += t.LoopDelay * loopAdvanceCount;
 
-                            // this could be added back at a lower index than where we are currently iterating, but
-                            // running the same transform twice isn't a huge deal.
-                            transforms.Add(t);
-                            flushAppliedCache = true;
+                            // When the story version uses a large amount of looping animation in a short period, it can experience a serious performance drop.
+                            // For example: https://osu.ppy.sh/beatmapsets/974689#mania/2220863
+                            // By resolving the cycle and releasing it early, problems can be effectively improved
+                            if (t.IsLooping)
+                            {
+                                transforms.Add(t);
+                                flushAppliedCache = true;
+                            }
+                            else if (t.CompletionTargetSequence != null)
+                                removalActions.Enqueue((t.CompletionTargetSequence, s => s.TransformCompleted()));
                         }
                         else if (t.CompletionTargetSequence != null)
                             removalActions.Enqueue((t.CompletionTargetSequence, s => s.TransformCompleted()));
