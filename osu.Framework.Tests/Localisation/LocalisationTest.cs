@@ -585,14 +585,14 @@ namespace osu.Framework.Tests.Localisation
             public const string LOCALISABLE_PLURALISABLE_INCOMPLETE_EN = "{0} circle";
             public const string LOCALISABLE_PLURALISABLE_INCOMPLETE_FR = "{0} cercle";
 
-            public CultureInfo EffectiveCulture { get; }
+            public CultureInfo UICulture { get; }
 
             private readonly string locale;
 
             public FakeStorage(string locale)
             {
                 this.locale = locale;
-                EffectiveCulture = new CultureInfo(locale);
+                UICulture = new CultureInfo(locale);
             }
 
             public async Task<string> GetAsync(string name, CancellationToken cancellationToken = default) =>

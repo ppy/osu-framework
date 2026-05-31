@@ -288,14 +288,14 @@ namespace osu.Framework.Tests.Visual.Sprites
             public const string LOCALISABLE_STRING_EN = "localised EN";
             public const string LOCALISABLE_STRING_JA = "localised JA";
 
-            public CultureInfo EffectiveCulture { get; }
+            public CultureInfo UICulture { get; }
 
             private readonly string locale;
 
             public FakeStorage(string locale)
             {
                 this.locale = locale;
-                EffectiveCulture = new CultureInfo(locale);
+                UICulture = new CultureInfo(locale);
             }
 
             public async Task<string> GetAsync(string name, CancellationToken cancellationToken = default) =>
