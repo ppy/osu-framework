@@ -247,22 +247,21 @@ namespace osu.Framework.Tests.Exceptions
             {
                 using (var host = new TestRunHeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", new HostOptions()))
                 {
-                    using (var game = new TestGame())
+                    var game = new TestGame();
+
+                    game.Schedule(() =>
                     {
-                        game.Schedule(() =>
+                        storage = host.Storage;
+                        host.UpdateThread.Scheduler.AddDelayed(() =>
                         {
-                            storage = host.Storage;
-                            host.UpdateThread.Scheduler.AddDelayed(() =>
-                            {
-                                if (exitCondition?.Invoke(game) == true)
-                                    host.Exit();
-                            }, 0, true);
+                            if (exitCondition?.Invoke(game) == true)
+                                host.Exit();
+                        }, 0, true);
 
-                            logic(game);
-                        });
+                        logic(game);
+                    });
 
-                        host.Run(game);
-                    }
+                    host.Run(game);
                 }
             }
             finally
