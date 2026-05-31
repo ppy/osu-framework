@@ -117,7 +117,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 effectColour = value;
-                Invalidate(Invalidation.DrawNode);
+                ForceRedraw();
             }
         }
 
@@ -137,7 +137,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 effectBlending = value;
-                Invalidate(Invalidation.DrawNode);
+                ForceRedraw();
             }
         }
 
@@ -156,7 +156,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 effectPlacement = value;
-                Invalidate(Invalidation.DrawNode);
+                ForceRedraw();
             }
         }
 
@@ -238,7 +238,11 @@ namespace osu.Framework.Graphics.Containers
         /// Forces a redraw of the framebuffer before it is blitted the next time.
         /// Only relevant if <see cref="UsingCachedFrameBuffer"/> is true.
         /// </summary>
-        public void ForceRedraw() => Invalidate(Invalidation.DrawNode);
+        public void ForceRedraw()
+        {
+            ++updateVersion;
+            Invalidate(Invalidation.DrawNode);
+        }
 
         /// <summary>
         /// In order to signal the draw thread to re-draw the buffered container we version it.
@@ -310,7 +314,11 @@ namespace osu.Framework.Graphics.Containers
 
             if ((invalidation & Invalidation.DrawNode) > 0)
             {
-                ++updateVersion;
+                if (source == InvalidationSource.Child)
+                {
+                    ++updateVersion;
+                }
+
                 result = true;
             }
 
