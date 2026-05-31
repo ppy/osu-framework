@@ -11,9 +11,8 @@ namespace osu.Framework.Localisation
     public interface ILocalisationStore : IResourceStore<string>
     {
         /// <summary>
-        /// The <see cref="CultureInfo"/> corresponding to the content of this <see cref="ILocalisationStore"/>
-        /// and can be used for formatting numbers etc.
+        /// The <see cref="CultureInfo"/> corresponding to the content of this <see cref="ILocalisationStore"/>.
         /// </summary>
-        CultureInfo EffectiveCulture { get; }
+        CultureInfo UICulture { get; }
     }
 }
