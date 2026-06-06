@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
@@ -21,33 +20,33 @@ using osuTK.Graphics;
 namespace osu.Framework.Graphics
 {
     /// <summary>
-    /// 一个可绘制项，将目标可绘制子树渲染到内部帧缓冲区，
-    /// 应用模糊，并在此可绘制项的绘制矩形内显示结果。
+    /// 局部毛玻璃容器：把指定的"捕获源"子树渲染进内部帧缓冲区，模糊后在自身绘制矩形内显示。
+    /// 用于实现任意局部区域虚化（毛玻璃卡片透出下层模糊内容）。
     /// </summary>
+    /// <remarks>
+    /// 关键设计：捕获源在它们各自的正常位置仍照常渲染（本类不会接管/禁用其渲染），本类只是
+    /// 通过 <see cref="Drawable.GenerateDrawNodeSubtree"/> 取得它们"当帧已生成"的 draw node 并
+    /// 复用绘制（<c>forceNewDrawNode: false</c>），因此不会重复分配整棵子树的 draw node，也支持
+    /// 同一源被多个 <see cref="BackdropBlurDrawable"/> 同时捕获（如 mania 双 stage）。
+    /// </remarks>
     public partial class BackdropBlurDrawable : Drawable, IBufferedDrawable
     {
         private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(2, null, pixelSnapping: true, clipToRootNode: true);
 
-        // 临时复用容器与代理，用于按排除列表构建捕获子树，避免捕获上层元素导致残影。
-        private readonly Container captureTempContainer = new Container();
-
-        private readonly List<ProxyCaptureDrawable> proxyPool = new List<ProxyCaptureDrawable>();
-        private readonly List<Drawable> captureSources = new List<Drawable>();
-        private readonly HashSet<Drawable> captureSourceSet = new HashSet<Drawable>();
-        private int activeProxyCount;
-        private IBackdropCaptureSourceProvider captureSourceProvider;
+        // 复用的源 draw node 列表，避免每帧分配。
+        private readonly List<Drawable> resolvedSources = new List<Drawable>();
+        private readonly HashSet<Drawable> resolvedSourceSet = new HashSet<Drawable>();
 
         private bool captureInProgress;
         private long updateVersion;
-        private int frameCounter;
+        private IBackdropCaptureSourceProvider captureSourceProvider;
 
         #region 属性
 
         private bool effectEnabled;
 
         /// <summary>
-        /// 是否启用背景捕获与模糊处理。
-        /// 关闭后将不再生成捕获节点，可显著降低开销。
+        /// 是否启用背景捕获与模糊处理。关闭后不再生成捕获节点，开销接近零。
         /// </summary>
         public bool EffectEnabled
         {
@@ -103,8 +102,7 @@ namespace osu.Framework.Graphics
         private Vector2 frameBufferScale = new Vector2(0.75f);
 
         /// <summary>
-        /// 内部帧缓冲区相对于此可绘制项大小的缩放比例。
-        /// 较低的值会降低开销但会牺牲画质。
+        /// 内部帧缓冲区相对于此可绘制项大小的缩放比例。较低的值降低开销但牺牲画质。
         /// </summary>
         [UsedImplicitly]
         public Vector2 FrameBufferScale
@@ -121,20 +119,17 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// 单个模糊目标。
-        /// 当未提供 <see cref="CaptureSourceProvider"/> 或 <see cref="CaptureTargets"/> 时使用。
+        /// 单个模糊目标。当未提供 <see cref="CaptureSourceProvider"/> 或 <see cref="CaptureTargets"/> 时使用。
         /// </summary>
         public Drawable CaptureTarget { get; set; }
 
         /// <summary>
-        /// 显式指定的多个模糊来源。
-        /// 当非空时将按顺序捕获整组来源，优先级低于 <see cref="CaptureSourceProvider"/>，高于 <see cref="CaptureTarget"/>。
+        /// 显式指定的多个模糊来源（从后到前）。优先级低于 <see cref="CaptureSourceProvider"/>，高于 <see cref="CaptureTarget"/>。
         /// </summary>
         public List<Drawable> CaptureTargets { get; } = new List<Drawable>();
 
         /// <summary>
-        /// 动态提供显式模糊来源。
-        /// 当存在且返回非空列表时，优先级高于 <see cref="CaptureTargets"/>。
+        /// 动态提供显式模糊来源（从后到前）。存在且返回非空列表时优先级最高。
         /// </summary>
         public IBackdropCaptureSourceProvider CaptureSourceProvider
         {
@@ -156,20 +151,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        /// <summary>
-        /// 捕获间隔（以帧计）。默认每 4 帧捕获一次以减少开销并降低 GC 压力。
-        /// 设置为 1 表示每帧捕获（最高开销），设置为 0 则会被视为 1。
-        /// </summary>
-        public int CaptureFrameInterval { get; set; } = 4;
-
-        /// <summary>
-        /// 最大捕获频率（每秒），用于基于时间的节流。设置为 0 表示不基于时间限制。
-        /// </summary>
-        public int MaxCapturesPerSecond { get; set; } = 4;
-
         #endregion
-
-        private long lastCaptureMs;
 
         private IShader textureShader;
         private IShader blurShader;
@@ -188,22 +170,7 @@ namespace osu.Framework.Graphics
             if (!EffectEnabled || !hasCaptureSourceConfiguration())
                 return;
 
-            frameCounter++;
-            int interval = Math.Max(1, CaptureFrameInterval);
-            if (frameCounter % interval != 0)
-                return;
-
-            // 基于时间的节流：限制每秒最大的捕获次数以避免瞬时高开销。
-            if (MaxCapturesPerSecond > 0)
-            {
-                long now = Environment.TickCount64;
-                int minIntervalMs = 1000 / Math.Max(1, MaxCapturesPerSecond);
-                if (now - lastCaptureMs < minIntervalMs)
-                    return;
-
-                lastCaptureMs = now;
-            }
-
+            // 每帧推进版本号 → 每帧重绘 FBO，确保与下层移动内容（视频/故事板）逐帧一致，无节流抖动。
             ++updateVersion;
             Invalidate(Invalidation.DrawNode);
         }
@@ -213,65 +180,81 @@ namespace osu.Framework.Graphics
             if (!EffectEnabled || !hasCaptureSourceConfiguration())
                 return null;
 
+            // 防止源子树意外包含本节点导致的递归。
             if (captureInProgress)
                 return null;
 
-            DrawNode targetDrawNode;
-
             captureInProgress = true;
+
+            List<DrawNode> sourceNodes;
 
             try
             {
-                if (getExplicitCaptureSources() is IReadOnlyList<Drawable> explicitCaptureSources)
-                {
-                    captureSources.Clear();
-                    captureSourceSet.Clear();
-                    resetCaptureTempContainer();
-
-                    for (int i = 0; i < explicitCaptureSources.Count; i++)
-                    {
-                        Drawable source = explicitCaptureSources[i];
-
-                        if (source == null)
-                            continue;
-
-                        appendExplicitCaptureSource(source);
-                    }
-
-                    if (captureSources.Count > 0)
-                    {
-                        populateCaptureTempContainer(captureSources);
-
-                        targetDrawNode = captureTempContainer.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
-                    }
-                    else
-                        targetDrawNode = null;
-
-                    if (targetDrawNode == null)
-                        return null;
-                }
-                else
-                {
-                    if (CaptureTarget == null)
-                        return null;
-
-                    targetDrawNode = CaptureTarget.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
-
-                    if (targetDrawNode == null)
-                        return null;
-                }
+                sourceNodes = resolveSourceNodes(frame, treeIndex);
             }
             finally
             {
                 captureInProgress = false;
             }
 
-            var drawNode = new BackdropBlurDrawNode(this, targetDrawNode, sharedData);
+            if (sourceNodes == null || sourceNodes.Count == 0)
+                return null;
+
+            var captureRoot = new CaptureRootDrawNode(this, sourceNodes);
+            var drawNode = new BackdropBlurDrawNode(this, captureRoot, sharedData);
             drawNode.ApplyState();
             return drawNode;
         }
 
-        private bool isExcludedRoot(Drawable drawable) => drawable == this;
+        /// <summary>
+        /// 解析当前捕获源，按"复用已生成 draw node"的方式取得各源当帧的 draw node。
+        /// </summary>
+        private List<DrawNode> resolveSourceNodes(ulong frame, int treeIndex)
+        {
+            resolvedSources.Clear();
+            resolvedSourceSet.Clear();
+
+            if (getExplicitCaptureSources() is IReadOnlyList<Drawable> explicitSources)
+            {
+                for (int i = 0; i < explicitSources.Count; i++)
+                    appendSource(explicitSources[i]);
+            }
+            else
+                appendSource(CaptureTarget);
+
+            if (resolvedSources.Count == 0)
+                return null;
+
+            var nodes = new List<DrawNode>(resolvedSources.Count);
+
+            for (int i = 0; i < resolvedSources.Count; i++)
+            {
+                Drawable source = resolvedSources[i];
+
+                if (!source.IsLoaded)
+                    continue;
+
+                // forceNewDrawNode: false → 复用源在本帧正常渲染时已生成的 draw node，不重复分配整棵子树。
+                DrawNode node = source.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: false);
+
+                if (node != null)
+                    nodes.Add(node);
+            }
+
+            return nodes.Count > 0 ? nodes : null;
+        }
+
+        private void appendSource(Drawable source)
+        {
+            if (source == null)
+                return;
+
+            // 解到 Original 以兼容传入 proxy 的情形，并去重。
+            Drawable canonical = source.Original ?? source;
+
+            if (canonical != this && resolvedSourceSet.Add(canonical))
+                resolvedSources.Add(canonical);
+        }
 
         private IReadOnlyList<Drawable> getExplicitCaptureSources()
         {
@@ -292,70 +275,6 @@ namespace osu.Framework.Graphics
             Invalidate(Invalidation.DrawNode);
         }
 
-        private void populateCaptureTempContainer(List<Drawable> sources)
-        {
-            resetCaptureTempContainer();
-
-            activeProxyCount = sources.Count;
-
-            for (int i = 0; i < sources.Count; i++)
-            {
-                ProxyCaptureDrawable proxy = getOrCreateProxy(i);
-                proxy.SourceDrawable = sources[i];
-                captureTempContainer.Add(proxy);
-            }
-        }
-
-        private void resetCaptureTempContainer()
-        {
-            for (int i = 0; i < activeProxyCount; i++)
-                proxyPool[i].SourceDrawable = null;
-
-            activeProxyCount = 0;
-
-            if (captureTempContainer.Count > 0)
-                captureTempContainer.Clear(false);
-        }
-
-        private ProxyCaptureDrawable getOrCreateProxy(int index)
-        {
-            while (proxyPool.Count <= index)
-                proxyPool.Add(new ProxyCaptureDrawable());
-
-            return proxyPool[index];
-        }
-
-        private Drawable canonicaliseCaptureSource(Drawable drawable)
-        {
-            // ProxyDrawable 在单独捕获树中可能拿不到已验证的原始 DrawNode，导致透明。
-            // 这里统一解到 Original 以提升稳定性。
-            Drawable source = drawable.Original;
-            return source ?? drawable;
-        }
-
-        private void appendExplicitCaptureSource(Drawable source)
-        {
-            if (source == null)
-                return;
-
-            Drawable canonical = canonicaliseCaptureSource(source);
-
-            if (canonical != this && !isExcludedRoot(canonical) && captureSourceSet.Add(canonical))
-                captureSources.Add(canonical);
-        }
-
-        private sealed partial class ProxyCaptureDrawable : Drawable
-        {
-            public Drawable SourceDrawable { get; set; }
-
-            public ProxyCaptureDrawable()
-            {
-                RelativeSizeAxes = Axes.None;
-            }
-
-            internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode) => SourceDrawable?.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode: true);
-        }
-
         IShader ITexturedShaderDrawable.TextureShader => textureShader;
         Color4 IBufferedDrawable.BackgroundColour => new Color4(0, 0, 0, 0);
         DrawColourInfo? IBufferedDrawable.FrameBufferDrawColour => new DrawColourInfo(Color4.White);
@@ -365,34 +284,55 @@ namespace osu.Framework.Graphics
         {
             base.Dispose(isDisposing);
 
-            // 禁用效果防止后续捕获
+            // 禁用效果防止后续捕获。
             effectEnabled = false;
 
-            // 清理 shader 引用
             textureShader = null;
             blurShader = null;
 
-            // 清理捕获目标引用
             CaptureTarget = null;
             CaptureSourceProvider = null;
+            CaptureTargets.Clear();
 
-            // 先禁用效果再清理，防止清理过程中触发捕获
-            if (CaptureTargets.Count > 0)
-                CaptureTargets.Clear();
+            resolvedSources.Clear();
+            resolvedSourceSet.Clear();
 
-            resetCaptureTempContainer();
+            // 仅在已初始化（曾被绘制过）时释放，避免在从未启用过效果时触发 Debug 断言。
+            if (sharedData.IsInitialised)
+                sharedData.Dispose();
+        }
 
-            if (captureTempContainer.Count > 0)
-                captureTempContainer.Clear(true);
+        /// <summary>
+        /// 承载多个捕获源 draw node 的合成节点，作为 <see cref="BufferedDrawNode"/> 的单一 Child 喂入。
+        /// </summary>
+        /// <remarks>
+        /// 子节点是各源"当帧已生成"的 draw node（drawNodes[treeIndex]），由三重缓冲保证跨线程绘制安全
+        /// （与 <c>ProxyDrawNode</c> 的复用方式一致）。它们由各自的源拥有，本节点既不持有引用计数、
+        /// 也不负责释放，仅在绘制阶段按从后到前的顺序复用绘制。
+        /// </remarks>
+        private sealed class CaptureRootDrawNode : DrawNode
+        {
+            private readonly List<DrawNode> children;
 
-            proxyPool.Clear();
+            public CaptureRootDrawNode(IDrawable source, List<DrawNode> children)
+                : base(source)
+            {
+                this.children = children;
+            }
 
-            // 清理集合
-            captureSources.Clear();
-            captureSourceSet.Clear();
+            // 仅应用本合成节点自身状态（blend/depth 用），子节点状态由各源在生成阶段各自应用。
+            // public override void ApplyState()
+            // {
+            //     base.ApplyState();
+            // }
 
-            // 处置 sharedData
-            sharedData.Dispose();
+            protected override void Draw(IRenderer renderer)
+            {
+                base.Draw(renderer);
+
+                for (int i = 0; i < children.Count; i++)
+                    DrawOther(children[i], renderer);
+            }
         }
 
         private class BackdropBlurDrawNode : BufferedDrawNode
@@ -406,7 +346,6 @@ namespace osu.Framework.Graphics
 
             private IShader blurShader;
 
-            // Reusable structs to avoid per-frame allocations
             private BlurParameters blurParameters;
 
             public BackdropBlurDrawNode(BackdropBlurDrawable source, DrawNode child, BufferedDrawNodeSharedData sharedData)
@@ -460,7 +399,6 @@ namespace osu.Framework.Graphics
 
                     using (var blurParametersBuffer = renderer.CreateUniformBuffer<BlurParameters>())
                     {
-                        // Update reusable struct instead of allocating new one
                         blurParameters.Radius = kernelRadius;
                         blurParameters.Sigma = sigma;
                         blurParameters.TexSize = current.Size;
