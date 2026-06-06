@@ -149,6 +149,16 @@ namespace osu.Framework.Graphics.Rendering
         bool UsingBackbuffer { get; }
 
         /// <summary>
+        /// The currently bound <see cref="IFrameBuffer"/>, or <c>null</c> when rendering directly to the backbuffer.
+        /// </summary>
+        /// <remarks>
+        /// Exposed to allow effects (e.g. backdrop/acrylic blur) to sample the content rendered so far in the
+        /// currently active offscreen render target, without prior knowledge of what is underneath.
+        /// The backbuffer is not sampleable, so this returns <c>null</c> in that case.
+        /// </remarks>
+        IFrameBuffer? CurrentFrameBuffer { get; }
+
+        /// <summary>
         /// The texture for a white pixel.
         /// </summary>
         Texture WhitePixel { get; }
