@@ -17,8 +17,8 @@ namespace osu.Framework.Tests.Visual.Drawables
     [System.ComponentModel.Description("内容无关的全局毛玻璃：可拖动卡片透出下层完整图片的模糊")]
     public partial class TestSceneAcrylicBackdrop : FrameworkTestScene
     {
-        private AcrylicBackdropDrawable acrylic;
-        private DraggableCard card;
+        private AcrylicBackdropDrawable acrylic = null!;
+        private DraggableCard card = null!;
 
         [BackgroundDependencyLoader]
         private void load(TextureStore textures)
