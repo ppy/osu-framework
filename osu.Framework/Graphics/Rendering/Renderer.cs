@@ -71,6 +71,7 @@ namespace osu.Framework.Graphics.Rendering
         public WrapMode CurrentWrapModeT { get; private set; }
         public bool IsMaskingActive { get; private set; }
         public bool UsingBackbuffer { get; private set; }
+        IFrameBuffer? IRenderer.CurrentFrameBuffer => FrameBuffer;
         public Texture WhitePixel => whitePixel.Value;
         DepthValue IRenderer.BackbufferDepth => backBufferDepth;
 
