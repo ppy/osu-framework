@@ -203,11 +203,16 @@ namespace osu.Framework.Graphics
                 if (!SharedData.IsInitialised)
                     SharedData.Initialise(renderer);
 
+                // 当前投影即"承载缓冲"渲染下层内容时使用的正交矩阵；反推出它对应的屏幕矩形，
+                // 这样无需依赖纹理像素尺寸（会受 FrameBufferScale / DPI 影响而错位），即可把
+                // scene 纹理精确地按它的真实屏幕位置绘制。
+                RectangleF sceneScreenRectangle = screenRectangleFromProjection(renderer.ProjectionMatrix);
+
                 SharedData.ResetCurrentEffectBuffer();
 
                 using (establishFrameBufferViewport(renderer))
                 {
-                    // 1) 取下层切片：把 scene 纹理按其全屏矩形绘制到本卡片的效果缓冲，
+                    // 1) 取下层切片：把 scene 纹理按其真实屏幕矩形绘制到本卡片的效果缓冲，
                     //    当前视口/正交只覆盖本卡片屏幕矩形，于是只保留卡片正下方那一块。
                     using (bindFrameBuffer(SharedData.MainBuffer))
                     {
@@ -216,7 +221,7 @@ namespace osu.Framework.Graphics
                         renderer.SetBlend(BlendingParameters.None);
 
                         BindTextureShader(renderer);
-                        renderer.DrawFrameBuffer(scene, new RectangleF(0, 0, scene.Texture.Width, scene.Texture.Height), ColourInfo.SingleColour(Color4.White));
+                        renderer.DrawFrameBuffer(scene, sceneScreenRectangle, ColourInfo.SingleColour(Color4.White));
                         UnbindTextureShader(renderer);
 
                         renderer.PopOrtho();
@@ -275,6 +280,25 @@ namespace osu.Framework.Graphics
                         blurShader.Unbind();
                     }
                 }
+            }
+
+            /// <summary>
+            /// 反推 <see cref="RendererExtensions.PushOrtho"/> 所用的屏幕矩形。
+            /// 投影由 <c>Matrix4.CreateOrthographicOffCenter</c> 生成，这里把裁剪空间四角变换回屏幕空间。
+            /// </summary>
+            private static RectangleF screenRectangleFromProjection(Matrix4 projection)
+            {
+                Matrix4 inverse = projection.Inverted();
+
+                Vector3 corner0 = Vector3.TransformPosition(new Vector3(-1, -1, 0), inverse);
+                Vector3 corner1 = Vector3.TransformPosition(new Vector3(1, 1, 0), inverse);
+
+                float left = MathF.Min(corner0.X, corner1.X);
+                float right = MathF.Max(corner0.X, corner1.X);
+                float top = MathF.Min(corner0.Y, corner1.Y);
+                float bottom = MathF.Max(corner0.Y, corner1.Y);
+
+                return new RectangleF(left, top, right - left, bottom - top);
             }
 
             private ValueInvokeOnDisposal<IFrameBuffer> bindFrameBuffer(IFrameBuffer frameBuffer)
