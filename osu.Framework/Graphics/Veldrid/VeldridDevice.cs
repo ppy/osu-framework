@@ -411,6 +411,31 @@ namespace osu.Framework.Graphics.Veldrid
         }
 
         /// <summary>
+        /// Copies a screen-space region from the swapchain backbuffer into a sampleable framebuffer using a dedicated command list.
+        /// Intended for use after flushing the main graphics pipeline so the swapchain contains up-to-date pixels.
+        /// </summary>
+        public void CopyBackbufferRegionToFrameBufferSynchronously(IVeldridFrameBuffer destination, RectangleI screenRect)
+        {
+            if (graphicsSurface.Type != GraphicsSurfaceType.Direct3D11)
+                return;
+
+            if (!ClampBackbufferCopyRegion(screenRect, out screenRect))
+                return;
+
+            using var commands = Factory.CreateCommandList();
+            using var fence = Factory.CreateFence(false);
+
+            commands.Begin();
+            copyBackbufferRegionToFrameBuffer(commands, destination, screenRect);
+            commands.End();
+
+            Device.SubmitCommands(commands, fence);
+
+            if (!waitForFence(fence, 5000))
+                Logger.Log("Failed to copy backbuffer region within reasonable time.", level: LogLevel.Important);
+        }
+
+        /// <summary>
         /// Copies a screen-space region from the swapchain backbuffer into a sampleable framebuffer.
         /// Only supported on Direct3D 11. <paramref name="screenRect"/> must already be clamped via <see cref="ClampBackbufferCopyRegion"/>.
         /// </summary>
@@ -422,6 +447,11 @@ namespace osu.Framework.Graphics.Veldrid
             if (!ClampBackbufferCopyRegion(screenRect, out screenRect))
                 return;
 
+            copyBackbufferRegionToFrameBuffer(commands, destination, screenRect);
+        }
+
+        private void copyBackbufferRegionToFrameBuffer(CommandList commands, IVeldridFrameBuffer destination, RectangleI screenRect)
+        {
             var source = Device.SwapchainFramebuffer.ColorTargets[0].Target;
             var dest = destination.Framebuffer.ColorTargets[0].Target;
 

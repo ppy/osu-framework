@@ -97,7 +97,10 @@ namespace osu.Framework.Graphics.Veldrid
                 backbufferRegionSnapshotSize = size;
             }
 
-            veldridDevice.CopyBackbufferRegionToFrameBuffer(graphicsPipeline.Commands, (VeldridFrameBuffer)backbufferRegionSnapshot, screenRect);
+            graphicsPipeline.End();
+            veldridDevice.CopyBackbufferRegionToFrameBufferSynchronously((VeldridFrameBuffer)backbufferRegionSnapshot, screenRect);
+            graphicsPipeline.Begin();
+
             return backbufferRegionSnapshot;
         }
 
