@@ -73,6 +73,31 @@ namespace osu.Framework.Graphics.Veldrid
         private VeldridIndexBuffer? linearIndexBuffer;
         private VeldridIndexBuffer? quadIndexBuffer;
 
+        private IFrameBuffer? backbufferRegionSnapshot;
+        private Vector2I backbufferRegionSnapshotSize = Vector2I.One;
+
+        public override bool SupportsBackbufferRegionCopy
+            => SurfaceType == GraphicsSurfaceType.Direct3D11;
+
+        protected internal override IFrameBuffer? PrepareBackbufferRegionSnapshot(RectangleI screenRect)
+        {
+            if (!SupportsBackbufferRegionCopy)
+                return null;
+
+            var size = new Vector2I(Math.Max(1, screenRect.Width), Math.Max(1, screenRect.Height));
+
+            backbufferRegionSnapshot ??= CreateFrameBuffer();
+
+            if (backbufferRegionSnapshotSize != size)
+            {
+                backbufferRegionSnapshot.Size = size;
+                backbufferRegionSnapshotSize = size;
+            }
+
+            veldridDevice.CopyBackbufferRegionToFrameBuffer(graphicsPipeline.Commands, (VeldridFrameBuffer)backbufferRegionSnapshot, screenRect);
+            return backbufferRegionSnapshot;
+        }
+
         protected override void Initialise(IGraphicsSurface graphicsSurface)
         {
             veldridDevice = new VeldridDevice(graphicsSurface);
