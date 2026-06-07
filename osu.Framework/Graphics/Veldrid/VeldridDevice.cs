@@ -378,24 +378,66 @@ namespace osu.Framework.Graphics.Veldrid
         }
 
         /// <summary>
+        /// Clamps a screen-space rectangle to the current swapchain backbuffer bounds.
+        /// </summary>
+        /// <returns><c>false</c> if the rectangle does not intersect the backbuffer.</returns>
+        public bool ClampBackbufferCopyRegion(RectangleI screenRect, out RectangleI clampedRegion)
+        {
+            clampedRegion = default;
+
+            if (graphicsSurface.Type != GraphicsSurfaceType.Direct3D11)
+                return false;
+
+            var source = Device.SwapchainFramebuffer.ColorTargets[0].Target;
+            int texWidth = (int)source.Width;
+            int texHeight = (int)source.Height;
+
+            if (texWidth <= 0 || texHeight <= 0)
+                return false;
+
+            int left = Math.Clamp(screenRect.X, 0, texWidth);
+            int top = Math.Clamp(screenRect.Y, 0, texHeight);
+            int right = Math.Clamp(screenRect.Right, 0, texWidth);
+            int bottom = Math.Clamp(screenRect.Bottom, 0, texHeight);
+
+            int width = right - left;
+            int height = bottom - top;
+
+            if (width <= 0 || height <= 0)
+                return false;
+
+            clampedRegion = new RectangleI(left, top, width, height);
+            return true;
+        }
+
+        /// <summary>
         /// Copies a screen-space region from the swapchain backbuffer into a sampleable framebuffer.
-        /// Only supported on Direct3D 11.
+        /// Only supported on Direct3D 11. <paramref name="screenRect"/> must already be clamped via <see cref="ClampBackbufferCopyRegion"/>.
         /// </summary>
         public void CopyBackbufferRegionToFrameBuffer(CommandList commands, IVeldridFrameBuffer destination, RectangleI screenRect)
         {
             if (graphicsSurface.Type != GraphicsSurfaceType.Direct3D11)
                 return;
 
+            if (!ClampBackbufferCopyRegion(screenRect, out screenRect))
+                return;
+
             var source = Device.SwapchainFramebuffer.ColorTargets[0].Target;
             var dest = destination.Framebuffer.ColorTargets[0].Target;
 
-            uint width = (uint)Math.Max(1, screenRect.Width);
-            uint height = (uint)Math.Max(1, screenRect.Height);
-            uint srcX = (uint)Math.Max(0, screenRect.X);
-            uint srcY = (uint)Math.Max(0, screenRect.Y);
+            uint width = (uint)screenRect.Width;
+            uint height = (uint)screenRect.Height;
+            uint srcX = (uint)screenRect.X;
+            uint srcY = (uint)screenRect.Y;
 
             if (!IsUvOriginTopLeft)
                 srcY = source.Height - srcY - height;
+
+            if (srcX + width > source.Width || srcY + height > source.Height)
+                return;
+
+            if (width > dest.Width || height > dest.Height)
+                return;
 
             commands.CopyTexture(
                 source, srcX, srcY, 0, 0, 0,

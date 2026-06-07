@@ -84,7 +84,10 @@ namespace osu.Framework.Graphics.Veldrid
             if (!SupportsBackbufferRegionCopy)
                 return null;
 
-            var size = new Vector2I(Math.Max(1, screenRect.Width), Math.Max(1, screenRect.Height));
+            if (!veldridDevice.ClampBackbufferCopyRegion(screenRect, out screenRect))
+                return null;
+
+            var size = new Vector2I(screenRect.Width, screenRect.Height);
 
             backbufferRegionSnapshot ??= CreateFrameBuffer();
 
