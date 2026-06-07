@@ -333,6 +333,12 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         protected internal virtual Image<Rgba32>? ExtractFrameBufferData(IFrameBuffer frameBuffer) => null;
 
+        /// <inheritdoc cref="IRenderer.SupportsBackbufferRegionCopy"/>
+        public virtual bool SupportsBackbufferRegionCopy => false;
+
+        /// <inheritdoc cref="IRenderer.PrepareBackbufferRegionSnapshot"/>
+        protected internal virtual IFrameBuffer? PrepareBackbufferRegionSnapshot(RectangleI screenRect) => null;
+
         /// <summary>
         /// Performs a once-off initialisation of this <see cref="Renderer"/>.
         /// </summary>
@@ -1226,6 +1232,8 @@ namespace osu.Framework.Graphics.Rendering
         void IRenderer.PopQuadBatch() => PopQuadBatch();
         Image<Rgba32> IRenderer.TakeScreenshot() => TakeScreenshot();
         Image<Rgba32>? IRenderer.ExtractFrameBufferData(IFrameBuffer frameBuffer) => ExtractFrameBufferData(frameBuffer);
+        bool IRenderer.SupportsBackbufferRegionCopy => SupportsBackbufferRegionCopy;
+        IFrameBuffer? IRenderer.PrepareBackbufferRegionSnapshot(RectangleI screenRect) => PrepareBackbufferRegionSnapshot(screenRect);
         IShaderPart IRenderer.CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType) => CreateShaderPart(store, name, rawData, partType);
         IShader IRenderer.CreateShader(string name, IShaderPart[] parts) => CreateShader(name, parts, shaderCompilationStore);
 
