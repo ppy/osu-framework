@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Statistics;
@@ -9,6 +9,8 @@ using System.Linq;
 using ManagedBass;
 using ManagedBass.Mix;
 using ManagedBass.Wasapi;
+using System.Runtime.InteropServices;
+using System.Threading;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
@@ -27,6 +29,12 @@ namespace osu.Framework.Threading
         }
 
         public override bool IsCurrent => ThreadSafety.IsAudioThread;
+
+        /// <summary>
+        /// The audio thread must run in Single Threaded Apartment (STA) state on Windows
+        /// so that COM-based ASIO drivers can be initialized correctly.
+        /// </summary>
+        protected override ApartmentState ApartmentState => ApartmentState.STA;
 
         internal sealed override void MakeCurrent()
         {
@@ -115,6 +123,8 @@ namespace osu.Framework.Threading
             // See https://github.com/ppy/osu-framework/pull/3378 for further discussion.
             foreach (int d in initialised_devices.ToArray())
                 FreeDevice(d);
+
+            freeAsio();
         }
 
         #region BASS Initialisation
@@ -123,6 +133,25 @@ namespace osu.Framework.Threading
 
         private WasapiProcedure? wasapiProcedure;
         private WasapiNotifyProcedure? wasapiNotifyProcedure;
+
+        private AsioProcedure? asioProcedure;
+        private IntPtr avrtHandle = IntPtr.Zero;
+        private bool mmcssRegistered;
+        private long lastCallbackTimestamp;
+
+        public long LastCallbackTimestamp => Volatile.Read(ref lastCallbackTimestamp);
+
+        [DllImport("avrt.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr AvSetMmThreadCharacteristics(string taskName, ref int taskIndex);
+
+        [DllImport("avrt.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool AvRevertMmThreadCharacteristics(IntPtr avrtHandle);
+
+        private static unsafe void zeroMemory(IntPtr destination, int length)
+        {
+            new Span<byte>((void*)destination, length).Clear();
+        }
 
         /// <summary>
         /// If a global mixer is being used, this will be the BASS handle for it.
@@ -134,6 +163,8 @@ namespace osu.Framework.Threading
         {
             Debug.Assert(ThreadSafety.IsAudioThread);
             Trace.Assert(deviceId != -1); // The real device ID should always be used, as the -1 device has special cases which are hard to work with.
+
+            freeAsio();
 
             // Try to initialise the device, or request a re-initialise.
             if (!Bass.Init(deviceId, Flags: (DeviceInitFlags)128)) // 128 == BASS_DEVICE_REINIT
@@ -161,6 +192,7 @@ namespace osu.Framework.Threading
             }
 
             freeWasapi();
+            freeAsio();
 
             if (selectedDevice != deviceId && canSelectDevice(selectedDevice))
                 Bass.CurrentDevice = selectedDevice;
@@ -267,6 +299,152 @@ namespace osu.Framework.Threading
             globalMixerHandle.Value = null;
         }
 
+        internal bool InitAsioDevice(string asioDeviceName)
+        {
+            Debug.Assert(ThreadSafety.IsAudioThread);
+
+            freeAsio();
+            freeWasapi();
+
+            // Free all other active BASS devices to release exclusive hardware locks
+            foreach (int d in initialised_devices.ToArray())
+            {
+                if (d != Bass.NoSoundDevice)
+                    FreeDevice(d);
+            }
+
+            if (!BassAsio.IsAvailable)
+                return false;
+
+            if (!Bass.Init(Bass.NoSoundDevice) && Bass.LastError != Errors.Already)
+                return false;
+
+            Bass.CurrentDevice = Bass.NoSoundDevice;
+
+            int asioDeviceIndex = -1;
+            int currentAsioIndex = 0;
+            AsioDeviceInfo asioInfo;
+
+            while (BassAsio.GetDeviceInfo(currentAsioIndex, out asioInfo))
+            {
+                string? name = Marshal.PtrToStringAnsi(asioInfo.Name);
+
+                if ($"ASIO: {name}" == asioDeviceName)
+                {
+                    asioDeviceIndex = currentAsioIndex;
+                    break;
+                }
+
+                currentAsioIndex++;
+            }
+
+            if (asioDeviceIndex == -1)
+            {
+                Logger.Log($"ASIO device {asioDeviceName} was not found during initialization.");
+                return false;
+            }
+
+            if (!BassAsio.Init(asioDeviceIndex, 0))
+            {
+                int errorCode = BassAsio.ErrorGetCode();
+                Logger.Log($"ASIO Initialization failed with code: {errorCode}");
+                return false;
+            }
+
+            double nativeRate = BassAsio.GetRate();
+
+            int masterMixer = BassMix.CreateMixerStream(
+                (int)nativeRate,
+                2,
+                BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float
+            );
+
+            if (masterMixer == 0)
+            {
+                BassAsio.Free();
+                Logger.Log("Unified master decoding mixer stream generation failed.");
+                return false;
+            }
+
+            asioProcedure = (input, channel, buffer, length, user) =>
+            {
+                if (input) return 0;
+
+                int bytesProcessed = Bass.ChannelGetData(masterMixer, buffer, length);
+
+                if (bytesProcessed < 0)
+                {
+                    zeroMemory(buffer, length);
+                    return 0;
+                }
+
+                long callbackTime = Stopwatch.GetTimestamp();
+                Volatile.Write(ref lastCallbackTimestamp, callbackTime);
+
+                if (!mmcssRegistered)
+                {
+                    int taskIndex = 0;
+                    avrtHandle = AvSetMmThreadCharacteristics("Pro Audio", ref taskIndex);
+                    mmcssRegistered = true;
+                }
+
+                return bytesProcessed;
+            };
+
+            if (!BassAsio.ChannelEnable(false, 0, asioProcedure, IntPtr.Zero))
+            {
+                Bass.StreamFree(masterMixer);
+                BassAsio.Free();
+                Logger.Log($"Failed to bind playback callback to ASIO hardware. Error: {Bass.LastError}");
+                return false;
+            }
+
+            BassAsio.ChannelJoin(false, 1, 0);
+
+            bool isFloatSupported = BassAsio.ChannelSetFormat(false, 0, 19); // 19 = BASS_ASIO_FORMAT_FLOAT
+            Logger.Log($"ASIO: ChannelSetFormat Float support status: {isFloatSupported}");
+
+            globalMixerHandle.Value = masterMixer;
+
+            if (!BassAsio.Start(0))
+            {
+                globalMixerHandle.Value = null;
+                Bass.StreamFree(masterMixer);
+                BassAsio.Free();
+                Logger.Log("ASIO engine failed to start.");
+                return false;
+            }
+
+            initialised_devices.Add(Bass.NoSoundDevice);
+            return true;
+        }
+
+        private void freeAsio()
+        {
+            if (BassAsio.IsAvailable && BassAsio.GetDevice() >= 0)
+            {
+                BassAsio.Stop();
+                BassAsio.Free();
+            }
+
+            if (globalMixerHandle.Value != null && asioProcedure != null)
+            {
+                Bass.StreamFree(globalMixerHandle.Value.Value);
+                globalMixerHandle.Value = null;
+            }
+
+            asioProcedure = null;
+
+            if (avrtHandle != IntPtr.Zero)
+            {
+                AvRevertMmThreadCharacteristics(avrtHandle);
+                avrtHandle = IntPtr.Zero;
+            }
+
+            mmcssRegistered = false;
+        }
+
         #endregion
     }
 }
+

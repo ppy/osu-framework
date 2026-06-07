@@ -143,6 +143,11 @@ namespace osu.Framework.Threading
         internal virtual IEnumerable<StatisticsCounterType> StatisticsCounters => Array.Empty<StatisticsCounterType>();
 
         /// <summary>
+        /// The apartment state of the backing thread.
+        /// </summary>
+        protected virtual ApartmentState ApartmentState => ApartmentState.MTA;
+
+        /// <summary>
         /// The amount of times this thread has run.
         /// </summary>
         internal ulong FrameIndex { get; private set; }
@@ -408,6 +413,18 @@ namespace osu.Framework.Threading
                 Name = SuffixedThreadNameFor(Name),
                 IsBackground = true,
             };
+
+            if (OperatingSystem.IsWindows())
+            {
+                try
+                {
+                    Thread.SetApartmentState(ApartmentState);
+                }
+                catch (InvalidOperationException)
+                {
+                    // The apartment state can only be set once. Under certain test runner environments, this may fail if already configured.
+                }
+            }
 
             void runWork()
             {

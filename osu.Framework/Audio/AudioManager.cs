@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 #nullable disable
@@ -334,11 +334,21 @@ namespace osu.Framework.Audio
         {
             string deviceName = AudioDevice.Value;
 
-            // try using the specified device
-            int deviceIndex = audioDeviceNames.FindIndex(d => d == deviceName);
-            if (deviceIndex >= 0 && trySetDevice(BASS_INTERNAL_DEVICE_COUNT + deviceIndex)) return;
+            if (deviceName != null && deviceName.StartsWith("ASIO: ", StringComparison.Ordinal))
+            {
+                if (trySetAsioDevice(deviceName)) return;
 
-            // try using the system default if there is any device present.
+                // On failure, fall back to default by setting setting value back to empty
+                AudioDevice.Value = string.Empty;
+            }
+            else
+            {
+                // try using the specified device
+                int deviceIndex = audioDeviceNames.FindIndex(d => d == deviceName);
+                if (deviceIndex >= 0 && trySetDevice(BASS_INTERNAL_DEVICE_COUNT + deviceIndex)) return;
+            }
+
+            // fallback: try using the system default if there is any device present.
             // mobiles are an exception as the built-in speakers may not be provided as an audio device name,
             // but they are still provided by BASS under the internal device name "Default".
             if ((audioDeviceNames.Count > 0 || RuntimeInfo.IsMobile) && trySetDevice(bass_default_device)) return;
@@ -368,6 +378,18 @@ namespace osu.Framework.Audio
                 //we have successfully initialised a new device.
                 UpdateDevice(deviceId);
 
+                return true;
+            }
+
+            bool trySetAsioDevice(string asioDeviceName)
+            {
+                if (DebugUtils.IsNUnitRunning)
+                    return false;
+
+                if (!InitAsio(asioDeviceName))
+                    return false;
+
+                UpdateDevice(Bass.NoSoundDevice);
                 return true;
             }
         }
@@ -472,6 +494,26 @@ namespace osu.Framework.Audio
             }
         }
 
+        protected virtual bool InitAsio(string asioDeviceName)
+        {
+            bool success = thread.InitAsioDevice(asioDeviceName);
+
+            if (!success)
+            {
+                Logger.Log($"ASIO device {asioDeviceName} failed to initialise", level: LogLevel.Error);
+                return false;
+            }
+
+            int version = BassAsio.GetVersion();
+            string versionStr = $"{version >> 24}.{(version >> 16) & 0xFF}.{(version >> 8) & 0xFF}.{version & 0xFF}";
+
+            Logger.Log($@"🔈 BASS ASIO initialised
+                      BASS ASIO version:      {versionStr}
+                      Device:                 {asioDeviceName}");
+
+            return true;
+        }
+
         private void syncAudioDevices()
         {
             audioDevices = GetAllDevices();
@@ -480,7 +522,23 @@ namespace osu.Framework.Audio
             Trace.Assert(audioDevices.Length >= BASS_INTERNAL_DEVICE_COUNT, "Bass did not provide any audio devices.");
 
             var oldDeviceNames = audioDeviceNames;
-            var newDeviceNames = audioDeviceNames = audioDevices.Skip(BASS_INTERNAL_DEVICE_COUNT).Where(d => d.IsEnabled).Select(d => d.Name).ToImmutableList();
+            var newDeviceNamesList = audioDevices.Skip(BASS_INTERNAL_DEVICE_COUNT).Where(d => d.IsEnabled).Select(d => d.Name).ToList();
+
+            if (BassAsio.IsAvailable)
+            {
+                int asioDeviceCount = 0;
+                AsioDeviceInfo asioInfo;
+
+                while (BassAsio.GetDeviceInfo(asioDeviceCount, out asioInfo))
+                {
+                    string name = System.Runtime.InteropServices.Marshal.PtrToStringAnsi(asioInfo.Name);
+                    if (name != null)
+                        newDeviceNamesList.Add($"ASIO: {name}");
+                    asioDeviceCount++;
+                }
+            }
+
+            var newDeviceNames = audioDeviceNames = newDeviceNamesList.ToImmutableList();
 
             scheduler.Add(() =>
             {
@@ -555,6 +613,11 @@ namespace osu.Framework.Audio
         // The current device is considered valid if it is enabled, initialized, and not a fallback device.
         protected virtual bool IsCurrentDeviceValid()
         {
+            if (AudioDevice.Value?.StartsWith("ASIO: ", StringComparison.Ordinal) == true)
+            {
+                return Bass.CurrentDevice == Bass.NoSoundDevice && BassAsio.IsAvailable && BassAsio.GetDevice() >= 0;
+            }
+
             var device = audioDevices.ElementAtOrDefault(Bass.CurrentDevice);
             bool isFallback = string.IsNullOrEmpty(AudioDevice.Value) ? !device.IsDefault : device.Name != AudioDevice.Value;
             return device.IsEnabled && device.IsInitialized && !isFallback;
@@ -562,7 +625,7 @@ namespace osu.Framework.Audio
 
         public override string ToString()
         {
-            string deviceName = audioDevices.ElementAtOrDefault(Bass.CurrentDevice).Name;
+            string deviceName = AudioDevice.Value?.StartsWith("ASIO: ", StringComparison.Ordinal) == true ? AudioDevice.Value : audioDevices.ElementAtOrDefault(Bass.CurrentDevice).Name;
             return $@"{GetType().ReadableName()} ({deviceName ?? "Unknown"})";
         }
     }
