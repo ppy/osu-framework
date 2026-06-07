@@ -231,8 +231,10 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         private IFrameBuffer? backbufferRegionSnapshot;
         private Vector2I backbufferRegionSnapshotSize = Vector2I.One;
 
-        public override bool SupportsBackbufferRegionCopy
-            => VeldridDevice.SurfaceType == GraphicsSurfaceType.Direct3D11;
+        // Deferred rendering records the full frame before executing GPU commands; mid-frame
+        // backbuffer snapshots cannot reliably read swapchain pixels that correspond to the
+        // acrylic source region. Use AcrylicCaptureScope (CurrentFrameBuffer) instead.
+        public override bool SupportsBackbufferRegionCopy => false;
 
         protected internal override IFrameBuffer? PrepareBackbufferRegionSnapshot(RectangleI screenRect)
         {

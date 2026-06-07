@@ -37,6 +37,93 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
         private VeldridIndexBuffer? currentIndexBuffer;
         private DeviceBuffer? currentVertexBuffer;
         private VertexLayoutDescription currentVertexLayout;
+        private RectangleI currentViewport;
+        private RectangleI currentScissor;
+        private bool viewportDefined;
+        private bool scissorDefined;
+
+        /// <summary>
+        /// Submits the current command list and starts a new one while preserving CPU-side pipeline bindings.
+        /// Used when a mid-frame operation (e.g. backbuffer copy) must flush the swapchain without losing shader state.
+        /// </summary>
+        public void EndAndBeginPreservingState()
+        {
+            var snapshot = CreateSnapshot();
+            End();
+            Begin();
+            RestoreSnapshot(snapshot);
+        }
+
+        public GraphicsPipelineState CreateSnapshot()
+        {
+            return new GraphicsPipelineState
+            {
+                PipelineDescription = pipelineDesc.Clone(),
+                CurrentFrameBuffer = currentFrameBuffer,
+                CurrentShader = currentShader,
+                CurrentIndexBuffer = currentIndexBuffer,
+                CurrentVertexBuffer = currentVertexBuffer,
+                CurrentVertexLayout = currentVertexLayout,
+                Viewport = currentViewport,
+                Scissor = currentScissor,
+                ViewportDefined = viewportDefined,
+                ScissorDefined = scissorDefined,
+                AttachedTextures = new Dictionary<int, VeldridTextureResources>(attachedTextures),
+                AttachedUniformBuffers = new Dictionary<string, IVeldridUniformBuffer>(attachedUniformBuffers),
+                UniformBufferOffsets = new Dictionary<IVeldridUniformBuffer, uint>(uniformBufferOffsets),
+            };
+        }
+
+        public void RestoreSnapshot(GraphicsPipelineState state)
+        {
+            pipelineDesc = state.PipelineDescription.Clone();
+            attachedTextures.Clear();
+            attachedUniformBuffers.Clear();
+            uniformBufferOffsets.Clear();
+
+            foreach (var (unit, texture) in state.AttachedTextures)
+                attachedTextures[unit] = texture;
+
+            foreach (var (name, buffer) in state.AttachedUniformBuffers)
+                attachedUniformBuffers[name] = buffer;
+
+            foreach (var (buffer, offset) in state.UniformBufferOffsets)
+                uniformBufferOffsets[buffer] = offset;
+
+            currentFrameBuffer = state.CurrentFrameBuffer;
+            currentShader = state.CurrentShader;
+            currentIndexBuffer = state.CurrentIndexBuffer;
+            currentVertexBuffer = state.CurrentVertexBuffer;
+            currentVertexLayout = state.CurrentVertexLayout;
+            currentViewport = state.Viewport;
+            currentScissor = state.Scissor;
+            viewportDefined = state.ViewportDefined;
+            scissorDefined = state.ScissorDefined;
+
+            SetFrameBuffer(currentFrameBuffer);
+
+            if (currentShader != null)
+                pipelineDesc.ShaderSet.Shaders = currentShader.Shaders;
+
+            if (currentIndexBuffer != null)
+                Commands.SetIndexBuffer(currentIndexBuffer.Buffer, VeldridIndexBuffer.FORMAT);
+
+            if (currentVertexBuffer != null)
+            {
+                Commands.SetVertexBuffer(0, currentVertexBuffer);
+                pipelineDesc.ShaderSet.VertexLayouts[0] = currentVertexLayout;
+            }
+
+            if (viewportDefined)
+            {
+                Commands.SetViewport(0, new Viewport(currentViewport.Left, currentViewport.Top, currentViewport.Width, currentViewport.Height, 0, 1));
+            }
+
+            if (scissorDefined)
+            {
+                Commands.SetScissorRect(0, (uint)currentScissor.X, (uint)currentScissor.Y, (uint)currentScissor.Width, (uint)currentScissor.Height);
+            }
+        }
 
         public GraphicsPipeline(VeldridDevice device)
             : base(device)
@@ -55,6 +142,8 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
             currentShader = null;
             currentIndexBuffer = null;
             currentVertexBuffer = null;
+            viewportDefined = false;
+            scissorDefined = false;
         }
 
         /// <summary>
@@ -116,14 +205,22 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
         /// </summary>
         /// <param name="viewport">The viewport rectangle.</param>
         public void SetViewport(RectangleI viewport)
-            => Commands.SetViewport(0, new Viewport(viewport.Left, viewport.Top, viewport.Width, viewport.Height, 0, 1));
+        {
+            viewportDefined = true;
+            currentViewport = viewport;
+            Commands.SetViewport(0, new Viewport(viewport.Left, viewport.Top, viewport.Width, viewport.Height, 0, 1));
+        }
 
         /// <summary>
         /// Sets the active scissor rectangle.
         /// </summary>
         /// <param name="scissor">The scissor rectangle.</param>
         public void SetScissor(RectangleI scissor)
-            => Commands.SetScissorRect(0, (uint)scissor.X, (uint)scissor.Y, (uint)scissor.Width, (uint)scissor.Height);
+        {
+            scissorDefined = true;
+            currentScissor = scissor;
+            Commands.SetScissorRect(0, (uint)scissor.X, (uint)scissor.Y, (uint)scissor.Width, (uint)scissor.Height);
+        }
 
         /// <summary>
         /// Sets the active depth parameters.

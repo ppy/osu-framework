@@ -278,9 +278,8 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             var frameBuffer = context.Dereference<DeferredFrameBuffer>(e.FrameBuffer);
 
             // Submit draws targeting the swapchain so far before copying from it.
-            graphics.End();
+            graphics.EndAndBeginPreservingState();
             context.Renderer.VeldridDevice.CopyBackbufferRegionToFrameBufferSynchronously(frameBuffer, e.ScreenRect);
-            graphics.Begin();
         }
 
         private void processEvent(in FlushEvent e)
