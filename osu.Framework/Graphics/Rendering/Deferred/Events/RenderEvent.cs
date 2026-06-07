@@ -70,6 +70,9 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
         private SetUniformBufferEvent setUniformBuffer;
 
         [FieldOffset(8)]
+        private CopyBackbufferRegionEvent copyBackbufferRegion;
+
+        [FieldOffset(8)]
         private SetViewportEvent setViewport;
 
         public static RenderEvent Create(in AddPrimitiveToBatchEvent @event) => new RenderEvent
@@ -178,6 +181,12 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
         {
             Type = RenderEventType.SetUniformBuffer,
             setUniformBuffer = @event
+        };
+
+        public static RenderEvent Create(in CopyBackbufferRegionEvent @event) => new RenderEvent
+        {
+            Type = RenderEventType.CopyBackbufferRegion,
+            copyBackbufferRegion = @event
         };
 
         public static RenderEvent Create(in SetViewportEvent @event) => new RenderEvent
@@ -292,6 +301,12 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
         {
             Debug.Assert(@event.Type == RenderEventType.SetUniformBuffer);
             return @event.setUniformBuffer;
+        }
+
+        public static explicit operator CopyBackbufferRegionEvent(RenderEvent @event)
+        {
+            Debug.Assert(@event.Type == RenderEventType.CopyBackbufferRegion);
+            return @event.copyBackbufferRegion;
         }
 
         public static explicit operator SetViewportEvent(RenderEvent @event)

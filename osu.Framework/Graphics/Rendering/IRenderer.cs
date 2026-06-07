@@ -159,6 +159,21 @@ namespace osu.Framework.Graphics.Rendering
         IFrameBuffer? CurrentFrameBuffer { get; }
 
         /// <summary>
+        /// Whether <see cref="PrepareBackbufferRegionSnapshot"/> can copy a screen-space region from the backbuffer into a sampleable framebuffer.
+        /// </summary>
+        bool SupportsBackbufferRegionCopy { get; }
+
+        /// <summary>
+        /// Copies a screen-space region from the current backbuffer into a reusable sampleable framebuffer for effects such as acrylic blur.
+        /// </summary>
+        /// <param name="screenRect">The screen-space region to copy.</param>
+        /// <returns>A framebuffer containing the copied region, or <c>null</c> if unsupported.</returns>
+        /// <remarks>
+        /// On deferred renderers the copy is enqueued and executes before subsequent draw events from the same draw node.
+        /// </remarks>
+        IFrameBuffer? PrepareBackbufferRegionSnapshot(RectangleI screenRect);
+
+        /// <summary>
         /// The texture for a white pixel.
         /// </summary>
         Texture WhitePixel { get; }

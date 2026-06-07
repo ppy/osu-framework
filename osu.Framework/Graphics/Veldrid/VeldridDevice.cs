@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Veldrid.Buffers;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using SixLabors.ImageSharp;
@@ -374,6 +375,32 @@ namespace osu.Framework.Graphics.Veldrid
             }
 
             return Device.WaitForFence(fence, (ulong)(millisecondsTimeout * 1_000_000));
+        }
+
+        /// <summary>
+        /// Copies a screen-space region from the swapchain backbuffer into a sampleable framebuffer.
+        /// Only supported on Direct3D 11.
+        /// </summary>
+        public void CopyBackbufferRegionToFrameBuffer(CommandList commands, IVeldridFrameBuffer destination, RectangleI screenRect)
+        {
+            if (graphicsSurface.Type != GraphicsSurfaceType.Direct3D11)
+                return;
+
+            var source = Device.SwapchainFramebuffer.ColorTargets[0].Target;
+            var dest = destination.Framebuffer.ColorTargets[0].Target;
+
+            uint width = (uint)Math.Max(1, screenRect.Width);
+            uint height = (uint)Math.Max(1, screenRect.Height);
+            uint srcX = (uint)Math.Max(0, screenRect.X);
+            uint srcY = (uint)Math.Max(0, screenRect.Y);
+
+            if (!IsUvOriginTopLeft)
+                srcY = source.Height - srcY - height;
+
+            commands.CopyTexture(
+                source, srcX, srcY, 0, 0, 0,
+                dest, 0, 0, 0, 0, 0,
+                width, height, 1, 1);
         }
     }
 }

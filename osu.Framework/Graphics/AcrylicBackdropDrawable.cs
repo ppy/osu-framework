@@ -194,19 +194,39 @@ namespace osu.Framework.Graphics
                 if (!effectEnabled || frameBufferSize.X < 1 || frameBufferSize.Y < 1)
                     return;
 
-                // 当前绑定的离屏帧缓冲即"下层已渲染内容"。若直接渲染到 backbuffer（不可采样）则无法实现，跳过。
+                // 当前绑定的离屏帧缓冲即"下层已渲染内容"。若直接渲染到 backbuffer（不可采样）则尝试从 backbuffer 拷贝区域。
                 IFrameBuffer scene = renderer.CurrentFrameBuffer;
+                RectangleF sceneScreenRectangle;
 
-                if (scene == null)
+                if (scene == null && renderer.SupportsBackbufferRegionCopy)
+                {
+                    var screenRect = new RectangleI(
+                        (int)MathF.Floor(screenSpaceDrawRectangle.X),
+                        (int)MathF.Floor(screenSpaceDrawRectangle.Y),
+                        (int)MathF.Ceiling(screenSpaceDrawRectangle.Width),
+                        (int)MathF.Ceiling(screenSpaceDrawRectangle.Height));
+
+                    scene = renderer.PrepareBackbufferRegionSnapshot(screenRect);
+
+                    if (scene != null)
+                        sceneScreenRectangle = new RectangleF(0, 0, scene.Size.X, scene.Size.Y);
+                    else
+                        return;
+                }
+                else if (scene == null)
+                {
                     return;
+                }
+                else
+                {
+                    // 当前投影即"承载缓冲"渲染下层内容时使用的正交矩阵；反推出它对应的屏幕矩形，
+                    // 这样无需依赖纹理像素尺寸（会受 FrameBufferScale / DPI 影响而错位），即可把
+                    // scene 纹理精确地按它的真实屏幕位置绘制。
+                    sceneScreenRectangle = screenRectangleFromProjection(renderer.ProjectionMatrix);
+                }
 
                 if (!SharedData.IsInitialised)
                     SharedData.Initialise(renderer);
-
-                // 当前投影即"承载缓冲"渲染下层内容时使用的正交矩阵；反推出它对应的屏幕矩形，
-                // 这样无需依赖纹理像素尺寸（会受 FrameBufferScale / DPI 影响而错位），即可把
-                // scene 纹理精确地按它的真实屏幕位置绘制。
-                RectangleF sceneScreenRectangle = screenRectangleFromProjection(renderer.ProjectionMatrix);
 
                 SharedData.ResetCurrentEffectBuffer();
 
