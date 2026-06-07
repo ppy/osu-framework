@@ -227,5 +227,30 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
         protected override IShaderStorageBufferObject<TData> CreateShaderStorageBufferObject<TData>(int uboSize, int ssboSize)
             => new DeferredShaderStorageBufferObject<TData>(this, ssboSize);
+
+        private IFrameBuffer? backbufferRegionSnapshot;
+        private Vector2I backbufferRegionSnapshotSize = Vector2I.One;
+
+        public override bool SupportsBackbufferRegionCopy
+            => VeldridDevice.SurfaceType == GraphicsSurfaceType.Direct3D11;
+
+        protected internal override IFrameBuffer? PrepareBackbufferRegionSnapshot(RectangleI screenRect)
+        {
+            if (!SupportsBackbufferRegionCopy)
+                return null;
+
+            var size = new Vector2I(Math.Max(1, screenRect.Width), Math.Max(1, screenRect.Height));
+
+            backbufferRegionSnapshot ??= CreateFrameBuffer();
+
+            if (backbufferRegionSnapshotSize != size)
+            {
+                backbufferRegionSnapshot.Size = size;
+                backbufferRegionSnapshotSize = size;
+            }
+
+            Context.EnqueueEvent(CopyBackbufferRegionEvent.Create(this, (DeferredFrameBuffer)backbufferRegionSnapshot, screenRect));
+            return backbufferRegionSnapshot;
+        }
     }
 }

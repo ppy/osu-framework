@@ -207,6 +207,12 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                         break;
                     }
 
+                    case RenderEventType.CopyBackbufferRegion:
+                    {
+                        processEvent((CopyBackbufferRegionEvent)renderEvent);
+                        break;
+                    }
+
                     case RenderEventType.Flush:
                     {
                         processEvent((FlushEvent)renderEvent);
@@ -266,6 +272,12 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
         private void processEvent(in SetBlendMaskEvent e)
             => graphics.SetBlendMask(e.Mask);
+
+        private void processEvent(in CopyBackbufferRegionEvent e)
+        {
+            var frameBuffer = context.Dereference<DeferredFrameBuffer>(e.FrameBuffer);
+            context.Renderer.VeldridDevice.CopyBackbufferRegionToFrameBuffer(graphics.Commands, frameBuffer, e.ScreenRect);
+        }
 
         private void processEvent(in FlushEvent e)
             => context.Dereference<IDeferredVertexBatch>(e.VertexBatch).Draw(e.VertexCount);
