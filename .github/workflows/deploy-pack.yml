@@ -147,7 +147,7 @@ jobs:
 
   pack-ios:
     name: Pack (iOS)
-    runs-on: macos-15
+    runs-on: macos-26
     environment: production
     defaults:
       run:
@@ -168,10 +168,8 @@ jobs:
       - name: Restore .NET Workloads
         run: dotnet workload install ios
 
-      # https://github.com/dotnet/macios/issues/19157
-      # https://github.com/actions/runner-images/issues/12758
-      - name: Use Xcode 16.4
-        run: sudo xcode-select -switch /Applications/Xcode_16.4.app
+      - name: Use Xcode 26.5
+        run: sudo xcode-select -switch /Applications/Xcode_26.5.app
 
       - name: Pack (iOS Framework)
         run: dotnet pack -c Release osu.Framework.iOS /p:Version=${{ github.ref_name }} /p:GenerateDocumentationFile=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
