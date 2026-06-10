@@ -6,7 +6,6 @@
 using System;
 using osu.Framework.IO.Stores;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -28,6 +27,8 @@ namespace osu.Framework.Graphics.Textures
         private readonly ResourceStore<TextureUpload> uploadStore = new ResourceStore<TextureUpload>();
         private readonly List<ITextureStore> nestedStores = new List<ITextureStore>();
 
+        private readonly Dictionary<string, Task> retrievalTasks = new Dictionary<string, Task>();
+
         private readonly IRenderer renderer;
         private readonly TextureFilteringMode filteringMode;
         private readonly bool manualMipmaps;
@@ -48,7 +49,8 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public readonly float ScaleAdjust;
 
-        public TextureStore(IRenderer renderer, IResourceStore<TextureUpload> store = null, bool useAtlas = true, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, bool manualMipmaps = false, float scaleAdjust = 2)
+        public TextureStore(IRenderer renderer, IResourceStore<TextureUpload> store = null, bool useAtlas = true, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
+                            bool manualMipmaps = false, float scaleAdjust = 2)
         {
             if (store != null)
                 AddTextureSource(store);
@@ -104,29 +106,6 @@ namespace osu.Framework.Graphics.Textures
                 nestedStores.Remove(store);
         }
 
-        private Texture loadRaw(TextureUpload upload, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
-        {
-            if (upload == null) return null;
-
-            Texture tex = null;
-
-            if (Atlas != null)
-            {
-                if ((tex = Atlas.Add(upload.Width, upload.Height, wrapModeS, wrapModeT)) == null)
-                {
-                    Logger.Log(
-                        $"Texture requested ({upload.Width}x{upload.Height}) which exceeds {nameof(TextureStore)}'s atlas size ({max_atlas_size}x{max_atlas_size}) - bypassing atlasing. Consider using {nameof(LargeTextureStore)}.",
-                        LoggingTarget.Performance);
-                }
-            }
-
-            tex ??= renderer.CreateTexture(upload.Width, upload.Height, manualMipmaps, filteringMode, wrapModeS, wrapModeT);
-            tex.ScaleAdjust = ScaleAdjust;
-            tex.SetData(upload);
-
-            return tex;
-        }
-
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
         /// </summary>
@@ -143,8 +122,23 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The texture.</returns>
-        public Task<Texture> GetAsync(string name, WrapMode wrapModeT, WrapMode wrapModeS, CancellationToken cancellationToken = default) =>
-            Task.Run(() => Get(name, wrapModeS, wrapModeT), cancellationToken); // TODO: best effort. need to re-think textureCache data structure to fix this.
+        public virtual async Task<Texture> GetAsync(string name, WrapMode wrapModeT, WrapMode wrapModeS, CancellationToken cancellationToken = default)
+        {
+            var texture = await getAsync(name, wrapModeS, wrapModeT, cancellationToken).ConfigureAwait(false);
+
+            ITextureStore[] stores;
+
+            lock (nestedStores)
+                stores = nestedStores.ToArray();
+
+            foreach (var nested in stores)
+            {
+                if ((texture = await nested.GetAsync(name, wrapModeS, wrapModeT, cancellationToken).ConfigureAwait(false)) != null)
+                    break;
+            }
+
+            return texture;
+        }
 
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
@@ -152,8 +146,6 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="name">The name of the texture.</param>
         /// <returns>The texture.</returns>
         public Texture Get(string name) => Get(name, default, default);
-
-        private readonly Dictionary<string, Task> retrievalCompletionSources = new Dictionary<string, Task>();
 
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
@@ -206,70 +198,6 @@ namespace osu.Framework.Graphics.Textures
                 return uploadStore.GetAvailableResources().Concat(nestedStores.SelectMany(s => s.GetAvailableResources()).ExcludeSystemFileNames()).ToArray();
         }
 
-        private Texture get(string name, WrapMode wrapModeS, WrapMode wrapModeT)
-        {
-            if (string.IsNullOrEmpty(name)) return null;
-
-            string key = $"{name}:wrap-{(int)wrapModeS}-{(int)wrapModeT}";
-
-            TaskCompletionSource<Texture> tcs = null;
-            Task task;
-
-            lock (retrievalCompletionSources)
-            {
-                // Check if the texture exists in the cache.
-                if (TryGetCached(key, out var cached))
-                    return cached;
-
-                // check if an existing lookup was already started for this key.
-                if (!retrievalCompletionSources.TryGetValue(key, out task))
-                    // if not, take responsibility for the lookup.
-                    retrievalCompletionSources[key] = (tcs = new TaskCompletionSource<Texture>()).Task;
-            }
-
-            // handle the case where a lookup is already in progress.
-            if (task != null)
-            {
-                task.WaitSafely();
-
-                // always perform re-lookups through TryGetCached (see LargeTextureStore which has a custom implementation of this where it matters).
-                if (TryGetCached(key, out var cached))
-                    return cached;
-
-                return null;
-            }
-
-            this.LogIfNonBackgroundThread(key);
-
-            Texture tex = null;
-
-            try
-            {
-                tex = loadRaw(uploadStore.Get(name), wrapModeS, wrapModeT);
-                if (tex != null)
-                    tex.LookupKey = key;
-
-                return CacheAndReturnTexture(key, tex);
-            }
-            catch (TextureTooLargeForGLException)
-            {
-                Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({renderer.MaxTextureSize}px).", level: LogLevel.Error);
-            }
-            finally
-            {
-                // notify other lookups waiting on the same name lookup.
-                lock (retrievalCompletionSources)
-                {
-                    Debug.Assert(tcs != null);
-
-                    tcs.SetResult(tex);
-                    retrievalCompletionSources.Remove(key);
-                }
-            }
-
-            return null;
-        }
-
         /// <summary>
         /// Attempts to retrieve an existing cached texture.
         /// </summary>
@@ -313,6 +241,107 @@ namespace osu.Framework.Graphics.Textures
 
                 textureCache.Remove(texture.LookupKey);
             }
+        }
+
+        private Texture get(string name, WrapMode wrapModeS, WrapMode wrapModeT)
+        {
+            if (string.IsNullOrEmpty(name)) return null;
+
+            retrieveLookupTask(name, wrapModeS, wrapModeT).WaitSafely();
+
+            string key = $"{name}:wrap-{(int)wrapModeS}-{(int)wrapModeT}";
+
+            // always perform re-lookups through TryGetCached (see LargeTextureStore which has a custom implementation of this where it matters).
+            if (TryGetCached(key, out var cached))
+                return cached;
+
+            return null;
+        }
+
+        private async Task<Texture> getAsync(string name, WrapMode wrapModeS, WrapMode wrapModeT, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrEmpty(name)) return null;
+
+            await retrieveLookupTask(name, wrapModeS, wrapModeT, cancellationToken).ConfigureAwait(false);
+
+            string key = $"{name}:wrap-{(int)wrapModeS}-{(int)wrapModeT}";
+
+            // always perform re-lookups through TryGetCached (see LargeTextureStore which has a custom implementation of this where it matters).
+            if (TryGetCached(key, out var cached))
+                return cached;
+
+            return null;
+        }
+
+        private Task retrieveLookupTask(string name, WrapMode wrapModeS, WrapMode wrapModeT, CancellationToken cancellationToken = default)
+        {
+            string key = $"{name}:wrap-{(int)wrapModeS}-{(int)wrapModeT}";
+
+            // Check if the texture exists in the cache.
+            if (TryGetCached(key, out Texture cached))
+                return Task.FromResult(cached);
+
+            this.LogIfNonBackgroundThread(key);
+
+            Task task;
+
+            lock (retrievalTasks)
+            {
+                // check if an existing lookup was already started for this key.
+                if (!retrievalTasks.TryGetValue(key, out task))
+                {
+                    // if not, start the lookup.
+                    task = retrievalTasks[key] = Task.Factory.StartNew(() =>
+                    {
+                        try
+                        {
+                            var tex = loadRaw(uploadStore.Get(name), wrapModeS, wrapModeT);
+
+                            if (tex != null)
+                                tex.LookupKey = key;
+
+                            CacheAndReturnTexture(key, tex);
+                        }
+                        catch (TextureTooLargeForGLException)
+                        {
+                            Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({renderer.MaxTextureSize}px).", level: LogLevel.Error);
+                            CacheAndReturnTexture(key, null);
+                        }
+                        finally
+                        {
+                            lock (retrievalTasks)
+                                retrievalTasks.Remove(key);
+                        }
+                    }, TaskCreationOptions.LongRunning);
+                    // Texture lookups could result in slow running web requests.
+                    // So let's avoid using the TPL thread pool for now.
+                }
+            }
+
+            return task.WaitAsync(cancellationToken);
+        }
+
+        private Texture loadRaw(TextureUpload upload, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+        {
+            if (upload == null) return null;
+
+            Texture tex = null;
+
+            if (Atlas != null)
+            {
+                if ((tex = Atlas.Add(upload.Width, upload.Height, wrapModeS, wrapModeT)) == null)
+                {
+                    Logger.Log(
+                        $"Texture requested ({upload.Width}x{upload.Height}) which exceeds {nameof(TextureStore)}'s atlas size ({max_atlas_size}x{max_atlas_size}) - bypassing atlasing. Consider using {nameof(LargeTextureStore)}.",
+                        LoggingTarget.Performance);
+                }
+            }
+
+            tex ??= renderer.CreateTexture(upload.Width, upload.Height, manualMipmaps, filteringMode, wrapModeS, wrapModeT);
+            tex.ScaleAdjust = ScaleAdjust;
+            tex.SetData(upload);
+
+            return tex;
         }
 
         #region IDisposable Support
