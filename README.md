@@ -74,6 +74,8 @@ The BASS audio library (a dependency of this framework) is a commercial product.
 
 [fluXis](https://github.com/TeamFluXis/fluXis) - A community-driven rhythm game with a focus on creativity and expression
 
+[arenji](https://github.com/Kuina-chan/arenji) - A MIDI visualizer and renderer, focus on transcribers and piano writers
+
 <!--
 We love to see people using our framework! Add your project here via a PR!
 
