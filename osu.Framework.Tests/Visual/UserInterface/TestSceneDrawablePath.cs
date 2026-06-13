@@ -83,7 +83,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("create path", () =>
             {
-                Child = new TexturedPath
+                Child = new OverlapTestPath
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
@@ -94,8 +94,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         new Vector2(150, 150),
                         new Vector2(150, 100),
                         new Vector2(20, 100),
-                    },
-                    Texture = gradientTexture,
+                    }
                 };
             });
         }
@@ -214,6 +213,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddAssert("size = (100, 100)", () => Precision.AlmostEquals(new Vector2(100), path.DrawSize));
+        }
+
+        private partial class OverlapTestPath : SmoothPath
+        {
+            protected override Color4 ColourAt(float position)
+            {
+                return Interpolation.ValueAt(position, Color4.Red, Color4.Blue, 0f, 1f);
+            }
         }
     }
 }
