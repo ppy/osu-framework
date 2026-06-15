@@ -13,8 +13,15 @@ layout(location = 0) out vec4 o_Colour;
 
 void main(void) 
 {    
-    highp float dst = clamp(dstToLine(v_StartPos, v_EndPos, v_Position) / v_Radius, 0.0, 1.0);
-    highp float dstFromEdge = clamp(1.0 - dst, 0.0, 0.9999999);
+    highp float dstFromEdge = clamp(1.0 - dstToLine(v_StartPos, v_EndPos, v_Position) / v_Radius, 0.0, 1.0);
+
+    // special handling for 1.0 since it can't be encoded properly
+    if (dstFromEdge == 1.0)
+    {
+        o_Colour = vec4(1.0);
+        return;
+    }
+
     o_Colour = encodeFloat(dstFromEdge);
 }
 
