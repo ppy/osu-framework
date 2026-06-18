@@ -30,6 +30,8 @@ namespace osu.Framework.Threading
             {
                 host.Renderer.BeginFrame(new Vector2(window.ClientSize.Width, window.ClientSize.Height));
                 host.Renderer.FinishFrame();
+
+                host.TryInitializeLowLatencyProvider();
             }
         }
 
