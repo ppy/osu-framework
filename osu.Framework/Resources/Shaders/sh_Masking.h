@@ -61,13 +61,13 @@ lowp vec4 getBorderColour()
     return mix(top, bottom, relativeTexCoord.y);
 }
 
-lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
+lowp vec4 multiplyByVColour(lowp vec4 colour)
 {
-	if (!g_IsMasking && v_BlendRange == vec2(0.0))
-	{
-		return v_Colour * texel;
-	}
+	return colour * v_Colour;
+}
 
+lowp vec4 applyRounding(lowp vec4 texel, mediump vec2 texCoord)
+{
 	highp float dist = distanceFromRoundedRect(vec2(0.0), g_CornerRadius);
 	lowp float alphaFactor = 1.0;
 
@@ -113,7 +113,7 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 	highp float borderStart = 1.0 + fadeStart - g_BorderThickness;
 	lowp float colourWeight = min(borderStart - dist, 1.0);
 
-	lowp vec4 contentColour = v_Colour * texel;
+	lowp vec4 contentColour = texel;
 
 	if (colourWeight == 1.0)
 		return vec4(contentColour.rgb, contentColour.a * alphaFactor);
@@ -126,6 +126,13 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 	contentColour.a *= alphaFactor;
 	borderColour.a *= 1.0 - colourWeight;
 	return blend(borderColour, contentColour);
+}
+
+lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
+{
+	texel = multiplyByVColour(texel);
+
+	return applyRounding(texel, texCoord);
 }
 
 #endif
