@@ -117,6 +117,33 @@ namespace osu.Framework.Tests.Visual.Sprites
         }
 
         /// <summary>
+        /// Tests the case where multiple lookups occur which overlap each other, for the same texture.
+        /// Then one of the lookups is cancelled.
+        /// The underlying lookup should continue to completion.
+        /// </summary>
+        [Test]
+        public void TestFetchContentionSameLookupCancellation()
+        {
+            Avatar avatar1 = null;
+            Avatar avatar2 = null;
+
+            AddStep("begin blocking load", () => spriteContainer.BlockingOnlineStore.StartBlocking());
+            AddStep("get first", () => avatar1 = addSprite("1"));
+            AddStep("get second", () => avatar2 = addSprite("1"));
+
+            AddAssert("neither are loaded", () => avatar1.Texture == null && avatar2.Texture == null);
+
+            AddStep("Cancel first load", () => spriteContainer.OfType<DelayedLoadWrapper>().First().RemoveAndDisposeImmediately());
+            AddUntilStep("wait for disposed", () => avatar1.IsDisposed);
+
+            AddStep("unblock load", () => spriteContainer.BlockingOnlineStore.AllowLoad());
+            AddUntilStep("wait for texture load", () => avatar2.Texture != null);
+            AddAssert("first texture assignment never occurred", () => avatar1.Texture == null);
+
+            AddAssert("only one lookup occurred", () => spriteContainer.BlockingOnlineStore.TotalInitiatedLookups == 1);
+        }
+
+        /// <summary>
         /// Tests that a ref-counted texture gets put in a non-available state when disposed.
         /// </summary>
         [Test]
@@ -215,17 +242,17 @@ namespace osu.Framework.Tests.Visual.Sprites
             public byte[] Get(string name) => getWithBlocking(name, baseStore.Get);
 
             public Task<byte[]> GetAsync(string name, CancellationToken cancellationToken = default) =>
-                getWithBlocking(name, name1 => baseStore.GetAsync(name1, cancellationToken));
+                getWithBlocking(name, name1 => baseStore.GetAsync(name1, cancellationToken), cancellationToken);
 
             public Stream GetStream(string name) => getWithBlocking(name, baseStore.GetStream);
 
-            private T getWithBlocking<T>(string name, Func<string, T> getFunc)
+            private T getWithBlocking<T>(string name, Func<string, T> getFunc, CancellationToken cancellationToken = default)
             {
                 TotalInitiatedLookups++;
 
                 if (blocking && name == blockingName)
                 {
-                    if (!resetEvent.Wait(10000))
+                    if (!resetEvent.Wait(10000, cancellationToken))
                         throw new TimeoutException("Load was not allowed in a timely fashion.");
                 }
 
