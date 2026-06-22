@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using osu.Framework.Graphics.Sprites;
@@ -11,6 +9,7 @@ using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using osu.Framework.Utils.RectanglePacking;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -21,9 +20,9 @@ namespace osu.Framework.Graphics.Textures
         // inflating texture rectangles.
         internal const int PADDING = (1 << IRenderer.MAX_MIPMAP_LEVELS) * Sprite.MAX_EDGE_SMOOTHNESS;
         internal const int WHITE_PIXEL_SIZE = 1;
-
-        private readonly List<RectangleI> subTextureBounds = new List<RectangleI>();
         private Texture? atlasTexture;
+
+        private readonly IRectanglePacker rectanglePacker;
 
         private readonly IRenderer renderer;
         private readonly int atlasWidth;
@@ -31,8 +30,6 @@ namespace osu.Framework.Graphics.Textures
 
         private int maxFittableWidth => atlasWidth - PADDING * 2;
         private int maxFittableHeight => atlasHeight - PADDING * 2;
-
-        private Vector2I currentPosition;
 
         internal TextureWhitePixel WhitePixel
         {
@@ -56,6 +53,7 @@ namespace osu.Framework.Graphics.Textures
             this.renderer = renderer;
             atlasWidth = width;
             atlasHeight = height;
+            rectanglePacker = new ShelfRectanglePacker(new Vector2I(width - PADDING, height - PADDING));
             this.manualMipmaps = manualMipmaps;
             this.filteringMode = filteringMode;
         }
@@ -72,21 +70,17 @@ namespace osu.Framework.Graphics.Textures
         {
             lock (textureRetrievalLock)
             {
-                subTextureBounds.Clear();
-                currentPosition = Vector2I.Zero;
+                rectanglePacker.Reset();
 
                 // We pass PADDING/2 as opposed to PADDING such that the padded region of each individual texture
                 // occupies half of the padded space.
                 atlasTexture = new BackingAtlasTexture(renderer, atlasWidth, atlasHeight, manualMipmaps, filteringMode, PADDING / 2);
 
-                RectangleI bounds = new RectangleI(0, 0, WHITE_PIXEL_SIZE, WHITE_PIXEL_SIZE);
-                subTextureBounds.Add(bounds);
+                rectanglePacker.TryAdd(WHITE_PIXEL_SIZE, WHITE_PIXEL_SIZE);
 
-                using (var whiteTex = new TextureRegion(atlasTexture, bounds, WrapMode.Repeat, WrapMode.Repeat))
+                using (var whiteTex = new TextureRegion(atlasTexture, new RectangleI(0, 0, WHITE_PIXEL_SIZE, WHITE_PIXEL_SIZE), WrapMode.Repeat, WrapMode.Repeat))
                     // Generate white padding as if the white texture was wrapped, even though it isn't
                     whiteTex.SetData(new TextureUpload(new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, whiteTex.Width, whiteTex.Height, new Rgba32(Vector4.One))));
-
-                currentPosition = new Vector2I(PADDING + WHITE_PIXEL_SIZE, PADDING);
             }
         }
 
@@ -108,10 +102,7 @@ namespace osu.Framework.Graphics.Textures
                 Vector2I position = findPosition(width, height);
                 Debug.Assert(atlasTexture != null, "Atlas texture should not be null after findPosition().");
 
-                RectangleI bounds = new RectangleI(position.X, position.Y, width, height);
-                subTextureBounds.Add(bounds);
-
-                return new TextureRegion(atlasTexture, bounds, wrapModeS, wrapModeT);
+                return new TextureRegion(atlasTexture, new RectangleI(position.X, position.Y, width, height), wrapModeS, wrapModeT);
             }
         }
 
@@ -149,29 +140,14 @@ namespace osu.Framework.Graphics.Textures
                 Reset();
             }
 
-            if (currentPosition.Y + height + PADDING > atlasHeight)
-            {
-                Logger.Log($"TextureAtlas size exceeded {++exceedCount} time(s); generating new texture ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
-                Reset();
-            }
+            Vector2I? result = rectanglePacker.TryAdd(width + PADDING, height + PADDING);
 
-            if (currentPosition.X + width + PADDING > atlasWidth)
-            {
-                int maxY = 0;
+            if (result.HasValue)
+                return new Vector2I(result.Value.X + PADDING, result.Value.Y + PADDING);
 
-                foreach (RectangleI bounds in subTextureBounds)
-                    maxY = Math.Max(maxY, bounds.Bottom + PADDING);
-
-                subTextureBounds.Clear();
-                currentPosition = new Vector2I(PADDING, maxY);
-
-                return findPosition(width, height);
-            }
-
-            var result = currentPosition;
-            currentPosition.X += width + PADDING;
-
-            return result;
+            Logger.Log($"TextureAtlas size exceeded {++exceedCount} time(s); generating new texture ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
+            Reset();
+            return findPosition(width, height);
         }
     }
 }
