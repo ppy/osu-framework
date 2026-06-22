@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Runtime.Versioning;
+using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
 using osuTK;
 
@@ -31,10 +32,10 @@ namespace osu.Framework.Platform.Windows
             return base.Initialize(host);
         }
 
-        public override void FeedbackMousePositionChange(Vector2 position, bool isSelfFeedback)
+        public override void FeedbackMousePositionChange(Vector2 position, InputHandler handler)
         {
             window.LastMousePosition = position;
-            base.FeedbackMousePositionChange(position, isSelfFeedback);
+            base.FeedbackMousePositionChange(position, handler);
         }
     }
 }
