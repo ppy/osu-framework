@@ -1,9 +1,10 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Performance;
 
@@ -21,13 +22,13 @@ namespace osu.Framework.Graphics.Containers
     /// </remarks>
     public partial class LifetimeManagementContainer : CompositeDrawable
     {
-        private readonly LifetimeEntryManager manager = new LifetimeEntryManager();
-        private readonly Dictionary<Drawable, DrawableLifetimeEntry> drawableMap = new Dictionary<Drawable, DrawableLifetimeEntry>();
+        private readonly LifetimeEntryManager<DrawableLifetimeEntry> manager = new();
+        private readonly Dictionary<Drawable, DrawableLifetimeEntry> drawableMap = [];
 
         /// <summary>
         /// List of drawables that do not have their lifetime managed by us, but still need to have their aliveness processed once.
         /// </summary>
-        private readonly List<Drawable> unmanagedDrawablesToProcess = new List<Drawable>();
+        private readonly List<Drawable> unmanagedDrawablesToProcess = [];
 
         public LifetimeManagementContainer()
         {
@@ -97,16 +98,16 @@ namespace osu.Framework.Graphics.Containers
             return aliveChanged;
         }
 
-        private void entryBecameAlive(LifetimeEntry entry) => MakeChildAlive(((DrawableLifetimeEntry)entry).Drawable);
+        private void entryBecameAlive(DrawableLifetimeEntry entry) => MakeChildAlive(entry.Drawable);
 
-        private void entryBecameDead(LifetimeEntry entry)
+        private void entryBecameDead(DrawableLifetimeEntry entry)
         {
-            bool removed = MakeChildDead(((DrawableLifetimeEntry)entry).Drawable);
+            bool removed = MakeChildDead(entry.Drawable);
             Trace.Assert(!removed, $"{nameof(RemoveWhenNotAlive)} is not supported for children of {nameof(LifetimeManagementContainer)}");
         }
 
-        private void entryCrossedBoundary(LifetimeEntry entry, LifetimeBoundaryKind kind, LifetimeBoundaryCrossingDirection direction)
-            => OnChildLifetimeBoundaryCrossed(new LifetimeBoundaryCrossedEvent(((DrawableLifetimeEntry)entry).Drawable, kind, direction));
+        private void entryCrossedBoundary(DrawableLifetimeEntry entry, LifetimeBoundaryKind kind, LifetimeBoundaryCrossingDirection direction)
+            => OnChildLifetimeBoundaryCrossed(new LifetimeBoundaryCrossedEvent(entry.Drawable, kind, direction));
 
         /// <summary>
         /// Called when the clock is crossed child lifetime boundary.
@@ -117,7 +118,7 @@ namespace osu.Framework.Graphics.Containers
         {
         }
 
-        private class DrawableLifetimeEntry : LifetimeEntry, IDisposable
+        private class DrawableLifetimeEntry : LifetimeEntryBase<DrawableLifetimeEntry>, IDisposable
         {
             public readonly Drawable Drawable;
 
