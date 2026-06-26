@@ -1,11 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
-using System.Linq;
-using System.Reflection;
+using NUnit.Framework;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -13,7 +11,6 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Localisation;
 using osu.Framework.Utils;
-using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
 
@@ -21,168 +18,150 @@ namespace osu.Framework.Tests.Visual.Layout
 {
     public partial class TestSceneFillFlowContainer : FrameworkTestScene
     {
-        private FillDirectionDropdown selectionDropdown;
-
-        private Anchor childAnchor = Anchor.TopLeft;
-        private AnchorDropdown anchorDropdown;
-
-        private Anchor childOrigin = Anchor.TopLeft;
-        private AnchorDropdown originDropdown;
-
-        private FillFlowContainer fillContainer;
-        private ScheduledDelegate scheduledAdder;
-        private bool doNotAddChildren;
-
-        public TestSceneFillFlowContainer()
+        [Test]
+        public void TestDemo()
         {
-            reset();
-        }
+            FillFlowContainer fillContainer = null!;
+            AnchorDropdown originDropdown = null!;
+            AutomatedBoxSpawner spawner = null!;
 
-        private void reset()
-        {
-            doNotAddChildren = false;
-            scheduledAdder?.Cancel();
-
-            Child = new Container
+            AddStep("Setup", () =>
             {
-                RelativeSizeAxes = Axes.Both,
-                Width = 0.2f,
-                Anchor = Anchor.TopRight,
-                Origin = Anchor.TopRight,
-                Depth = float.MinValue,
-                Children = new[]
-                {
-                    new FillFlowContainer
-                    {
-                        Direction = FillDirection.Vertical,
-                        RelativeSizeAxes = Axes.X,
-                        AutoSizeAxes = Axes.Y,
-                        Children = new Drawable[]
-                        {
-                            new SpriteText { Text = @"Fill mode" },
-                            selectionDropdown = new FillDirectionDropdown
-                            {
-                                RelativeSizeAxes = Axes.X,
-                                Items = (FlowTestType[])Enum.GetValues(typeof(FlowTestType)),
-                            },
-                            new SpriteText { Text = @"Child anchor" },
-                            anchorDropdown = new AnchorDropdown
-                            {
-                                RelativeSizeAxes = Axes.X,
-                                Items = new[]
-                                {
-                                    Anchor.TopLeft,
-                                    Anchor.TopCentre,
-                                    Anchor.TopRight,
-                                    Anchor.CentreLeft,
-                                    Anchor.Centre,
-                                    Anchor.CentreRight,
-                                    Anchor.BottomLeft,
-                                    Anchor.BottomCentre,
-                                    Anchor.BottomRight,
-                                },
-                            },
-                            new SpriteText { Text = @"Child origin" },
-                            originDropdown = new AnchorDropdown
-                            {
-                                RelativeSizeAxes = Axes.X,
-                                Items = new[]
-                                {
-                                    Anchor.TopLeft,
-                                    Anchor.TopCentre,
-                                    Anchor.TopRight,
-                                    Anchor.CentreLeft,
-                                    Anchor.Centre,
-                                    Anchor.CentreRight,
-                                    Anchor.BottomLeft,
-                                    Anchor.BottomCentre,
-                                    Anchor.BottomRight,
-                                },
-                            },
-                        }
-                    }
-                }
-            };
+                FillDirectionDropdown selectionDropdown;
+                AnchorDropdown anchorDropdown;
 
-            selectionDropdown.Current.ValueChanged += e => changeTest(e.NewValue);
-            buildTest();
-            selectionDropdown.Current.Value = FlowTestType.Full;
-            changeTest(FlowTestType.Full);
-        }
-
-        protected override void Update()
-        {
-            base.Update();
-
-            if (childAnchor != anchorDropdown.Current.Value)
-            {
-                childAnchor = anchorDropdown.Current.Value;
-                foreach (var child in fillContainer.Children)
-                    child.Anchor = childAnchor;
-            }
-
-            if (childOrigin != originDropdown.Current.Value)
-            {
-                childOrigin = originDropdown.Current.Value;
-                foreach (var child in fillContainer.Children)
-                    child.Origin = childOrigin;
-            }
-        }
-
-        private void changeTest(FlowTestType testType)
-        {
-            var method =
-                GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).SingleOrDefault(m => m.GetCustomAttribute<FlowTestCaseAttribute>()?.TestType == testType);
-            if (method != null)
-                method.Invoke(this, Array.Empty<object>());
-        }
-
-        private void buildTest()
-        {
-            Add(new Container
-            {
-                Padding = new MarginPadding(25f),
-                RelativeSizeAxes = Axes.Both,
                 Children = new Drawable[]
                 {
-                    fillContainer = new FillFlowContainer
+                    new Container
                     {
                         RelativeSizeAxes = Axes.Both,
-                        AutoSizeAxes = Axes.None,
+                        Width = 0.2f,
+                        Anchor = Anchor.TopRight,
+                        Origin = Anchor.TopRight,
+                        Depth = float.MinValue,
+                        Children = new[]
+                        {
+                            new FillFlowContainer
+                            {
+                                Direction = FillDirection.Vertical,
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
+                                Children = new Drawable[]
+                                {
+                                    new SpriteText { Text = "Fill direction" },
+                                    selectionDropdown = new FillDirectionDropdown
+                                    {
+                                        RelativeSizeAxes = Axes.X,
+                                        Items = Enum.GetValues<FillDirection>(),
+                                        Current = { Value = FillDirection.Full }
+                                    },
+                                    new SpriteText { Text = "Child anchor" },
+                                    anchorDropdown = new AnchorDropdown
+                                    {
+                                        RelativeSizeAxes = Axes.X,
+                                        Items = new[]
+                                        {
+                                            Anchor.TopLeft,
+                                            Anchor.TopCentre,
+                                            Anchor.TopRight,
+                                            Anchor.CentreLeft,
+                                            Anchor.Centre,
+                                            Anchor.CentreRight,
+                                            Anchor.BottomLeft,
+                                            Anchor.BottomCentre,
+                                            Anchor.BottomRight,
+                                        },
+                                    },
+                                    new SpriteText { Text = "Child origin" },
+                                    originDropdown = new AnchorDropdown
+                                    {
+                                        RelativeSizeAxes = Axes.X,
+                                        Items = new[]
+                                        {
+                                            Anchor.TopLeft,
+                                            Anchor.TopCentre,
+                                            Anchor.TopRight,
+                                            Anchor.CentreLeft,
+                                            Anchor.Centre,
+                                            Anchor.CentreRight,
+                                            Anchor.BottomLeft,
+                                            Anchor.BottomCentre,
+                                            Anchor.BottomRight,
+                                        },
+                                    },
+                                }
+                            }
+                        }
                     },
-                    new Box
+                    new Container
                     {
-                        Anchor = Anchor.CentreLeft,
-                        Origin = Anchor.Centre,
-                        RelativeSizeAxes = Axes.Y,
-                        Size = new Vector2(3, 1),
-                        Colour = Color4.HotPink,
+                        Padding = new MarginPadding(25f),
+                        RelativeSizeAxes = Axes.Both,
+                        Children = new Drawable[]
+                        {
+                            fillContainer = new FillFlowContainer
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                AutoSizeAxes = Axes.None,
+                                Spacing = new Vector2(5)
+                            },
+                            new Box
+                            {
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.Centre,
+                                RelativeSizeAxes = Axes.Y,
+                                Size = new Vector2(3, 1),
+                                Colour = Color4.HotPink,
+                            },
+                            new Box
+                            {
+                                Anchor = Anchor.CentreRight,
+                                Origin = Anchor.Centre,
+                                RelativeSizeAxes = Axes.Y,
+                                Size = new Vector2(3, 1),
+                                Colour = Color4.HotPink,
+                            },
+                            new Box
+                            {
+                                Anchor = Anchor.TopCentre,
+                                Origin = Anchor.Centre,
+                                RelativeSizeAxes = Axes.X,
+                                Size = new Vector2(1, 3),
+                                Colour = Color4.HotPink,
+                            },
+                            new Box
+                            {
+                                Anchor = Anchor.BottomCentre,
+                                Origin = Anchor.Centre,
+                                RelativeSizeAxes = Axes.X,
+                                Size = new Vector2(1, 3),
+                                Colour = Color4.HotPink,
+                            }
+                        }
                     },
-                    new Box
+                    spawner = new AutomatedBoxSpawner(fillContainer)
                     {
-                        Anchor = Anchor.CentreRight,
-                        Origin = Anchor.Centre,
-                        RelativeSizeAxes = Axes.Y,
-                        Size = new Vector2(3, 1),
-                        Colour = Color4.HotPink,
-                    },
-                    new Box
-                    {
-                        Anchor = Anchor.TopCentre,
-                        Origin = Anchor.Centre,
-                        RelativeSizeAxes = Axes.X,
-                        Size = new Vector2(1, 3),
-                        Colour = Color4.HotPink,
-                    },
-                    new Box
-                    {
-                        Anchor = Anchor.BottomCentre,
-                        Origin = Anchor.Centre,
-                        RelativeSizeAxes = Axes.X,
-                        Size = new Vector2(1, 3),
-                        Colour = Color4.HotPink,
+                        ChildAnchor = { BindTarget = anchorDropdown.Current },
+                        ChildOrigin = { BindTarget = originDropdown.Current }
                     }
-                }
+                };
+
+                anchorDropdown.Current.BindValueChanged(v =>
+                {
+                    foreach (var child in fillContainer.Children)
+                        child.Anchor = v.NewValue;
+                });
+
+                originDropdown.Current.BindValueChanged(v =>
+                {
+                    foreach (var child in fillContainer.Children)
+                        child.Origin = v.NewValue;
+                });
+
+                selectionDropdown.Current.BindValueChanged(v =>
+                {
+                    fillContainer.Direction = v.NewValue;
+                });
             });
 
             AddToggleStep("Rotate Container", state => { fillContainer.RotateTo(state ? 45f : 0, 1000); });
@@ -205,6 +184,7 @@ namespace osu.Framework.Tests.Visual.Layout
                     fillContainer.Height = 1;
                 }
             });
+
             AddToggleStep("Rotate children", state =>
             {
                 if (state)
@@ -218,6 +198,7 @@ namespace osu.Framework.Tests.Visual.Layout
                         child.RotateTo(0f, 1000);
                 }
             });
+
             AddToggleStep("Shear children", state =>
             {
                 if (state)
@@ -231,6 +212,7 @@ namespace osu.Framework.Tests.Visual.Layout
                         child.Shear = Vector2.Zero;
                 }
             });
+
             AddToggleStep("Scale children", state =>
             {
                 if (state)
@@ -244,6 +226,7 @@ namespace osu.Framework.Tests.Visual.Layout
                         child.ScaleTo(1f, 1000);
                 }
             });
+
             AddToggleStep("Randomly scale children", state =>
             {
                 if (state)
@@ -257,6 +240,7 @@ namespace osu.Framework.Tests.Visual.Layout
                         child.ScaleTo(1f, 1000);
                 }
             });
+
             AddToggleStep("Randomly set child origins", state =>
             {
                 if (state)
@@ -310,71 +294,7 @@ namespace osu.Framework.Tests.Visual.Layout
                 }
             });
 
-            AddToggleStep("Stop adding children", state => { doNotAddChildren = state; });
-
-            scheduledAdder?.Cancel();
-            scheduledAdder = Scheduler.AddDelayed(
-                () =>
-                {
-                    if (fillContainer.Parent == null)
-                        scheduledAdder.Cancel();
-
-                    if (doNotAddChildren)
-                    {
-                        fillContainer.Invalidate();
-                    }
-
-                    if (fillContainer.Children.Count < 1000 && !doNotAddChildren)
-                    {
-                        fillContainer.Add(new Container
-                        {
-                            Anchor = childAnchor,
-                            Origin = childOrigin,
-                            AutoSizeAxes = Axes.Both,
-                            Children = new Drawable[]
-                            {
-                                new Box
-                                {
-                                    Width = 50,
-                                    Height = 50,
-                                    Colour = Color4.White
-                                },
-                                new SpriteText
-                                {
-                                    Colour = Color4.Black,
-                                    RelativePositionAxes = Axes.Both,
-                                    Position = new Vector2(0.5f, 0.5f),
-                                    Origin = Anchor.Centre,
-                                    Text = fillContainer.Children.Count.ToString()
-                                }
-                            }
-                        });
-                    }
-                },
-                100,
-                true
-            );
-        }
-
-        [FlowTestCase(FlowTestType.Full)]
-        private void test1()
-        {
-            fillContainer.Direction = FillDirection.Full;
-            fillContainer.Spacing = new Vector2(5, 5);
-        }
-
-        [FlowTestCase(FlowTestType.Horizontal)]
-        private void test2()
-        {
-            fillContainer.Direction = FillDirection.Horizontal;
-            fillContainer.Spacing = new Vector2(5, 5);
-        }
-
-        [FlowTestCase(FlowTestType.Vertical)]
-        private void test3()
-        {
-            fillContainer.Direction = FillDirection.Vertical;
-            fillContainer.Spacing = new Vector2(5, 5);
+            AddToggleStep("Stop adding children", v => spawner.AddChildren = !v);
         }
 
         private partial class TestSceneDropdownHeader : DropdownHeader
@@ -410,32 +330,64 @@ namespace osu.Framework.Tests.Visual.Layout
             }
         }
 
+        private partial class AutomatedBoxSpawner : Component
+        {
+            public bool AddChildren { get; set; } = true;
+
+            public readonly IBindable<Anchor> ChildAnchor = new Bindable<Anchor>();
+            public readonly IBindable<Anchor> ChildOrigin = new Bindable<Anchor>();
+
+            private readonly FillFlowContainer target;
+
+            public AutomatedBoxSpawner(FillFlowContainer target)
+            {
+                this.target = target;
+            }
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+
+                Scheduler.AddDelayed(() =>
+                {
+                    if (AddChildren)
+                    {
+                        target.Add(new Container
+                        {
+                            Anchor = ChildAnchor.Value,
+                            Origin = ChildOrigin.Value,
+                            AutoSizeAxes = Axes.Both,
+                            Children = new Drawable[]
+                            {
+                                new Box
+                                {
+                                    Width = 50,
+                                    Height = 50,
+                                    Colour = Color4.White
+                                },
+                                new SpriteText
+                                {
+                                    Colour = Color4.Black,
+                                    RelativePositionAxes = Axes.Both,
+                                    Position = new Vector2(0.5f, 0.5f),
+                                    Origin = Anchor.Centre,
+                                    Text = target.Children.Count.ToString()
+                                }
+                            }
+                        });
+                    }
+                }, 100, true);
+            }
+        }
+
         private partial class AnchorDropdown : BasicDropdown<Anchor>
         {
             protected override DropdownHeader CreateHeader() => new TestSceneDropdownHeader();
         }
 
-        private partial class FillDirectionDropdown : BasicDropdown<FlowTestType>
+        private partial class FillDirectionDropdown : BasicDropdown<FillDirection>
         {
             protected override DropdownHeader CreateHeader() => new TestSceneDropdownHeader();
-        }
-
-        [AttributeUsage(AttributeTargets.Method)]
-        private class FlowTestCaseAttribute : Attribute
-        {
-            public FlowTestType TestType { get; }
-
-            public FlowTestCaseAttribute(FlowTestType testType)
-            {
-                TestType = testType;
-            }
-        }
-
-        private enum FlowTestType
-        {
-            Full,
-            Horizontal,
-            Vertical,
         }
     }
 }
