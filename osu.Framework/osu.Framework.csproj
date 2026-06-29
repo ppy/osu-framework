@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup Label="Project">
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyTitle>osu!framework</AssemblyTitle>
@@ -27,7 +27,7 @@
     <PackageReference Include="ppy.ManagedBass.Mix" Version="2022.1216.0" />
     <PackageReference Include="ppy.ManagedBass.Wasapi" Version="2022.1216.0" />
     <PackageReference Include="ppy.Veldrid" Version="4.9.69-ga405fe8484" />
-    <PackageReference Include="ppy.Veldrid.SPIRV" Version="1.0.15-g5911265ec3" />
+    <PackageReference Include="ppy.Veldrid.SPIRV" Version="1.0.15-g85a0a20a7c" />
     <PackageReference Include="SharpFNT" Version="2.0.0" />
     <!-- Preview version of ImageSharp causes NU5104. -->
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />

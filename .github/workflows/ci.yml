@@ -14,10 +14,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Install .NET 8.0.x
+      - name: Install .NET 10.0.x
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: "10.0.x"
 
       - name: Restore Tools
         run: dotnet tool restore
@@ -78,10 +78,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Install .NET 8.0.x
+      - name: Install .NET 10.0.x
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: "10.0.x"
 
       - name: Setup Go
         uses: actions/setup-go@v6
@@ -125,10 +125,10 @@ jobs:
           distribution: microsoft
           java-version: 11
 
-      - name: Install .NET 8.0.x
+      - name: Install .NET 10.0.x
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: "10.0.x"
 
       - name: Restore .NET workloads
         run: dotnet workload install android
@@ -138,24 +138,22 @@ jobs:
 
   build-only-ios:
     name: Build only (iOS)
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Install .NET 8.0.x
+      - name: Install .NET 10.0.x
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: "10.0.x"
 
       - name: Restore .NET workloads
         run: dotnet workload install ios
 
-      # https://github.com/dotnet/macios/issues/19157
-      # https://github.com/actions/runner-images/issues/12758
-      - name: Use Xcode 16.4
-        run: sudo xcode-select -switch /Applications/Xcode_16.4.app
+      - name: Use Xcode 26.5
+        run: sudo xcode-select -switch /Applications/Xcode_26.5.app
 
       - name: Compile
         run: dotnet build -c Debug osu-framework.iOS.slnf
