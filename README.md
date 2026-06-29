@@ -62,6 +62,8 @@ The BASS audio library (a dependency of this framework) is a commercial product.
 
 ## Projects that use osu!framework
 
+Here are some early examples of projects powered by osu!framework:
+
 [osu!](https://github.com/ppy/osu) – rhythm is just a *click* away!
 
 [GDEdit](https://github.com/gd-edit/GDE) - A third-party Geometry Dash editor.
@@ -74,10 +76,4 @@ The BASS audio library (a dependency of this framework) is a commercial product.
 
 [fluXis](https://github.com/TeamFluXis/fluXis) - A community-driven rhythm game with a focus on creativity and expression
 
-<!--
-We love to see people using our framework! Add your project here via a PR!
-
-Conditions:
- - Must be a GitHub link (i.e. your project is open source)
- - Must be actively developed (and have executable releases)
--->
+See more (or post your own work) in [this discussion thread](https://github.com/ppy/osu-framework/discussions/6771)!
