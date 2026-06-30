@@ -102,6 +102,25 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
+        /// Focuses the textbox and opens parent <see cref="Dropdown{T}"/> as a result.
+        /// </summary>
+        public bool ObtainFocus()
+        {
+            return dropdown.ChangeFocus(textBox);
+        }
+
+        /// <summary>
+        /// Clears current search and removes focus from the textbox,
+        /// closing parent <see cref="Dropdown{T}"/> as a result.
+        /// </summary>
+        public bool ReleaseFocus()
+        {
+            // Reset states when the menu is closed by any means.
+            SearchTerm.Value = string.Empty;
+            return textBox.HasFocus && dropdown.ChangeFocus(null);
+        }
+
+        /// <summary>
         /// Opens or closes the menu depending on whether the textbox is focused.
         /// </summary>
         private void updateMenuState()
@@ -136,17 +155,9 @@ namespace osu.Framework.Graphics.UserInterface
         private void onMenuStateChanged(MenuState state)
         {
             if (state == MenuState.Closed)
-            {
-                // Reset states when the menu is closed by any means.
-                SearchTerm.Value = string.Empty;
-
-                if (textBox.HasFocus)
-                    dropdown.ChangeFocus(null);
-
-                dropdown.CloseMenu();
-            }
+                ReleaseFocus();
             else
-                dropdown.ChangeFocus(textBox);
+                ObtainFocus();
 
             updateTextBoxVisibility();
         }
