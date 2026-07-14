@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Rendering;
-using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
@@ -204,7 +203,7 @@ namespace osu.Framework.Graphics.Visualisation
             private readonly IBindable<int> visualisedMipLevel;
 
             private ulong lastBindCount;
-            private IShader checkerboardShader;
+            private Texture checkerboard;
 
             public float AverageUsagesPerFrame { get; private set; }
 
@@ -215,9 +214,9 @@ namespace osu.Framework.Graphics.Visualisation
             }
 
             [BackgroundDependencyLoader]
-            private void load(ShaderManager shaders)
+            private void load(TextureStore textures)
             {
-                checkerboardShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "CheckerBoard");
+                checkerboard = textures.Get("Checkerboard");
             }
 
             protected override DrawNode CreateDrawNode() => new UsageBackgroundDrawNode(this);
@@ -237,7 +236,7 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                 }
 
-                private IShader checkerboardShader;
+                private Texture checkerboard;
 
                 public override void ApplyState()
                 {
@@ -245,7 +244,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                     textureReference = Source.textureReference;
                     visualisedMipLevel = Source.visualisedMipLevel.Value;
-                    checkerboardShader = Source.checkerboardShader;
+                    checkerboard = Source.checkerboard;
                 }
 
                 protected override void Draw(IRenderer renderer)
@@ -285,9 +284,7 @@ namespace osu.Framework.Graphics.Visualisation
                     var shrunkenQuad = ScreenSpaceDrawQuad.AABBFloat.Shrink(border_width);
 
                     // checkerboard background
-                    checkerboardShader.Bind();
-                    renderer.DrawQuad(renderer.WhitePixel, shrunkenQuad, Color4.White);
-                    checkerboardShader.Unbind();
+                    renderer.DrawQuad(checkerboard, shrunkenQuad, Color4.White);
 
                     float aspect = (float)texture.Width / texture.Height;
 
