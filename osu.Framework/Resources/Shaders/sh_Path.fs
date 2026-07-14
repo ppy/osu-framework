@@ -24,14 +24,11 @@ layout(location = 0) out vec4 o_Colour;
 
 void main(void) 
 {
-    lowp vec4 frameBuffer = texture(sampler2D(m_Texture, m_Sampler), v_TexCoord, -0.9);
-    if (frameBuffer.r == 0.0)
-    {
-        o_Colour = vec4(0.0);
-        return;
-    }
-    lowp vec4 pathCol = texture(sampler2D(m_Texture1, m_Sampler1), TexRect1.xy + vec2(frameBuffer.r, 0.0) * TexRect1.zw, -0.9);
-    o_Colour = getRoundedColor(vec4(pathCol.rgb, pathCol.a * frameBuffer.a), v_TexCoord);
+    lowp vec4 framebuffer = texture(sampler2D(m_Texture, m_Sampler), v_TexCoord, -0.9);
+    // in sh_PathPrepass.fs we were encoding [0, 1) 24-bit float as 4 8-bit floats. Decoding to get original value
+    highp float dstFromEdge = framebuffer == vec4(1.0) ? 1.0 : decodeFloat(framebuffer);
+    lowp vec4 pathCol = texture(sampler2D(m_Texture1, m_Sampler1), TexRect1.xy + vec2(dstFromEdge, 0.0) * TexRect1.zw, -0.9);
+    o_Colour = getRoundedColor(vec4(pathCol.rgb, pathCol.a * float(dstFromEdge > 0.0)), v_TexCoord);
 }
 
 #endif

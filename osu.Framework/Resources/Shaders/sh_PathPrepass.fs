@@ -2,6 +2,7 @@
 #define PATH_PREPASS_FS
 
 #include "sh_CircularProgressUtils.h"
+#include "sh_Utils.h"
 
 layout(location = 0) in highp vec2 v_Position;
 layout(location = 1) in highp vec2 v_StartPos;
@@ -12,8 +13,16 @@ layout(location = 0) out vec4 o_Colour;
 
 void main(void) 
 {    
-    highp float dst = clamp(dstToLine(v_StartPos, v_EndPos, v_Position), 0.0, v_Radius);
-    o_Colour = vec4(vec3(1.0 - dst / v_Radius), float(dst < v_Radius));
+    highp float dstFromEdge = clamp(1.0 - dstToLine(v_StartPos, v_EndPos, v_Position) / v_Radius, 0.0, 1.0);
+
+    // special handling for 1.0 since it can't be encoded properly
+    if (dstFromEdge == 1.0)
+    {
+        o_Colour = vec4(1.0);
+        return;
+    }
+
+    o_Colour = encodeFloat(dstFromEdge);
 }
 
 #endif
