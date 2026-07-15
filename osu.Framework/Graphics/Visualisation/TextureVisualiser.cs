@@ -203,6 +203,7 @@ namespace osu.Framework.Graphics.Visualisation
             private readonly IBindable<int> visualisedMipLevel;
 
             private ulong lastBindCount;
+            private Texture checkerboard;
 
             public float AverageUsagesPerFrame { get; private set; }
 
@@ -210,6 +211,12 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 this.textureReference = textureReference;
                 this.visualisedMipLevel = visualisedMipLevel.GetBoundCopy();
+            }
+
+            [BackgroundDependencyLoader]
+            private void load(TextureStore textures)
+            {
+                checkerboard = textures.Get("Checkerboard");
             }
 
             protected override DrawNode CreateDrawNode() => new UsageBackgroundDrawNode(this);
@@ -229,12 +236,15 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                 }
 
+                private Texture checkerboard;
+
                 public override void ApplyState()
                 {
                     base.ApplyState();
 
                     textureReference = Source.textureReference;
                     visualisedMipLevel = Source.visualisedMipLevel.Value;
+                    checkerboard = Source.checkerboard;
                 }
 
                 protected override void Draw(IRenderer renderer)
@@ -273,8 +283,8 @@ namespace osu.Framework.Graphics.Visualisation
 
                     var shrunkenQuad = ScreenSpaceDrawQuad.AABBFloat.Shrink(border_width);
 
-                    // background
-                    renderer.DrawQuad(Texture, shrunkenQuad, Color4.Black);
+                    // checkerboard background
+                    renderer.DrawQuad(checkerboard, shrunkenQuad, Color4.White);
 
                     float aspect = (float)texture.Width / texture.Height;
 
