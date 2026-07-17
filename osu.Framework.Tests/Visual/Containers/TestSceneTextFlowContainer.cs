@@ -145,7 +145,6 @@ namespace osu.Framework.Tests.Visual.Containers
             });
             assertSpriteTextCount(overflowText.Length + 3);
 
-
             AddStep("set relative width", () =>
             {
                 topLevelContainer.AutoSizeAxes = textContainer.AutoSizeAxes = Axes.Y;
