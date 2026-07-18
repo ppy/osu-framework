@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.Audio
         {
             base.Prepare();
 
-            SDL3AudioManager.PrepareLibrary();
+            SDL3AudioManager.PrepareLibrary(true);
             SDL_SetHint(SDL_HINT_AUDIO_DRIVER, "dummy"u8);
             manager = MySoundLibrary.mslCreateAudioManager();
         }

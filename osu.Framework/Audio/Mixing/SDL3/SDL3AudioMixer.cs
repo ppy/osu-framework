@@ -36,10 +36,14 @@ namespace osu.Framework.Audio.Mixing.SDL3
         {
             if (!IsDisposed && channel is ISDL3AudioChannel sdl3Channel && activeChannels.Add(sdl3Channel))
             {
+                IntPtr channelHandle = sdl3Channel.Handle;
+                if (channelHandle == IntPtr.Zero)
+                    return;
+
                 if (sdl3Channel is TrackSDL3)
-                    MySoundLibrary.mslMixerAddTrack(Handle, sdl3Channel.Handle.ThrowIfNull(), 0);
+                    MySoundLibrary.mslMixerAddTrack(Handle, channelHandle, 0);
                 else if (sdl3Channel is SampleChannelSDL3)
-                    MySoundLibrary.mslMixerAddSample(Handle, sdl3Channel.Handle.ThrowIfNull(), 0);
+                    MySoundLibrary.mslMixerAddSample(Handle, channelHandle, 0);
             }
         }
 

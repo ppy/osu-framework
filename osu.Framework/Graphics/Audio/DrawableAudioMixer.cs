@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -47,11 +46,60 @@ namespace osu.Framework.Graphics.Audio
         public AudioEffect GetNewEffect(int priority = 0)
         {
             if (LoadState < LoadState.Ready)
-                throw new InvalidOperationException("Mixer needs to get loaded before calling this.");
+                return new LazyAudioEffect(this, priority);
             else
             {
                 Debug.Assert(mixer != null);
                 return mixer.GetNewEffect(priority);
+            }
+        }
+
+        public class LazyAudioEffect : AudioEffect
+        {
+            private readonly DrawableAudioMixer parent;
+            private readonly int priority;
+            private AudioEffect effect;
+            private volatile bool applied;
+
+            public LazyAudioEffect(DrawableAudioMixer parent, int priority)
+            {
+                this.parent = parent;
+                this.priority = priority;
+            }
+
+            private void update()
+            {
+                if (effect == null)
+                {
+                    if (parent.LoadState >= LoadState.Ready)
+                    {
+                        effect = parent.mixer.GetNewEffect(priority);
+                    }
+                    else
+                    {
+                        parent.Scheduler.Add(update, true);
+                        return;
+                    }
+                }
+
+                effect.EffectParameter = EffectParameter;
+
+                if (applied)
+                    effect.Apply();
+                else
+                    effect.Remove();
+            }
+
+            public override void Apply()
+            {
+                applied = true;
+                parent.Schedule(update);
+            }
+
+            public override void Remove()
+            {
+                applied = false;
+                parent.Schedule(update);
             }
         }
 

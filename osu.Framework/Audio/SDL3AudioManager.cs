@@ -31,20 +31,21 @@ namespace osu.Framework.Audio
 
         private static volatile bool libraryPrepared;
 
-        private static readonly object syncLock = new object();
+        private static readonly object sync_lock = new object();
 
-        internal static unsafe void PrepareLibrary()
+        internal static unsafe void PrepareLibrary(bool forceBass = false)
         {
-            if (libraryPrepared)
-                return;
-
-            lock (syncLock)
+            lock (sync_lock)
             {
+                if (!libraryPrepared || forceBass)
+                {
+                    AudioThread.PreloadBass();
+                    if (ManagedBass.Bass.CurrentDevice < 0)
+                        ManagedBass.Bass.Init(ManagedBass.Bass.NoSoundDevice);
+                }
+
                 if (libraryPrepared)
                     return;
-
-                if (ManagedBass.Bass.CurrentDevice < 0)
-                    ManagedBass.Bass.Init(ManagedBass.Bass.NoSoundDevice);
 
                 if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
                 {
