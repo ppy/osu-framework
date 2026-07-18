@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using ManagedBass;
 using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.Audio.Mixing
@@ -13,7 +12,7 @@ namespace osu.Framework.Audio.Mixing
     {
         public readonly string Identifier;
 
-        private readonly AudioMixer? fallbackMixer;
+        protected readonly AudioMixer? FallbackMixer;
 
         /// <summary>
         /// Creates a new <see cref="AudioMixer"/>.
@@ -23,7 +22,7 @@ namespace osu.Framework.Audio.Mixing
         /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
         protected AudioMixer(AudioMixer? fallbackMixer, string identifier)
         {
-            this.fallbackMixer = fallbackMixer;
+            FallbackMixer = fallbackMixer;
             Identifier = identifier;
         }
 
@@ -45,11 +44,7 @@ namespace osu.Framework.Audio.Mixing
 
         public void Remove(IAudioChannel channel) => Remove(channel, true);
 
-        public abstract void AddEffect(IEffectParameter effect, int priority = 0);
-
-        public abstract void RemoveEffect(IEffectParameter effect);
-
-        public abstract void UpdateEffect(IEffectParameter effect);
+        public abstract AudioEffect GetNewEffect(int priority = 0);
 
         /// <summary>
         /// Removes an <see cref="IAudioChannel"/> from the mix.
@@ -59,7 +54,7 @@ namespace osu.Framework.Audio.Mixing
         protected void Remove(IAudioChannel channel, bool returnToDefault)
         {
             // If this is the default mixer, prevent removal.
-            if (returnToDefault && fallbackMixer == null)
+            if (returnToDefault && FallbackMixer == null)
                 return;
 
             channel.EnqueueAction(() =>
@@ -72,7 +67,7 @@ namespace osu.Framework.Audio.Mixing
 
                 // Add the channel back to the default mixer so audio can always be played.
                 if (returnToDefault)
-                    fallbackMixer.AsNonNull().Add(channel);
+                    FallbackMixer.AsNonNull().Add(channel);
             });
         }
 

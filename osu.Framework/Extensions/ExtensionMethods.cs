@@ -323,5 +323,19 @@ namespace osu.Framework.Extensions
                    || url.StartsWith("http://", StringComparison.Ordinal)
                    || url.StartsWith("mailto:", StringComparison.Ordinal);
         }
+
+        /// <summary>
+        /// Throws if a given <see cref="IntPtr"/> is null.
+        /// </summary>
+        /// <param name="ptr">A pointer to check</param>
+        /// <returns>ptr</returns>
+        /// <exception cref="ArgumentNullException">If the pointer is null</exception>
+        public static IntPtr ThrowIfNull(this IntPtr ptr)
+        {
+            if (ptr == IntPtr.Zero)
+                throw new ArgumentNullException(nameof(ptr));
+            else
+                return ptr;
+        }
     }
 }
