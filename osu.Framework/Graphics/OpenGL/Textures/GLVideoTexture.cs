@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public int[]? TextureIds { get; private set; }
 
         public GLVideoTexture(GLRenderer renderer, int width, int height)
-            : base(renderer, width, height, true)
+            : base(renderer, width, height, manualMipmaps: true)
         {
         }
 
