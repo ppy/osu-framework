@@ -21,14 +21,16 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         private readonly DeferredFrameBufferTexture nativeTexture;
         private readonly DeferredRenderer renderer;
         private readonly PixelFormat[]? formats;
+        private readonly PixelFormat textureFormat;
         private readonly SamplerFilter filteringMode;
 
         private Vector2I size = Vector2I.One;
 
-        public DeferredFrameBuffer(DeferredRenderer renderer, PixelFormat[]? formats, SamplerFilter filteringMode)
+        public DeferredFrameBuffer(DeferredRenderer renderer, PixelFormat textureFormat, PixelFormat[]? formats, SamplerFilter filteringMode)
         {
             this.renderer = renderer;
             this.formats = formats;
+            this.textureFormat = textureFormat;
             this.filteringMode = filteringMode;
 
             nativeTexture = new DeferredFrameBufferTexture(this);
@@ -145,7 +147,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                             (uint)resourceSize.Y,
                             1,
                             1,
-                            PixelFormat.R8G8B8A8UNorm,
+                            deferredFrameBuffer.textureFormat,
                             TextureUsage.Sampled | TextureUsage.RenderTarget)),
                     deferredFrameBuffer.renderer.Factory.CreateSampler(
                         new SamplerDescription(

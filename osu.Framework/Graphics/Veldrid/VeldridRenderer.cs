@@ -298,8 +298,8 @@ namespace osu.Framework.Graphics.Veldrid
         protected override IShader CreateShader(string name, IShaderPart[] parts, ShaderCompilationStore compilationStore)
             => new VeldridShader(this, name, parts.Cast<VeldridShaderPart>().ToArray(), compilationStore);
 
-        public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
-            => new VeldridFrameBuffer(this, renderBufferFormats?.ToPixelFormats(), filteringMode.ToSamplerFilter());
+        public override IFrameBuffer CreateFrameBuffer(TexturePixelFormat textureFormat = TexturePixelFormat.R8G8B8A8Float, RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
+            => new VeldridFrameBuffer(this, textureFormat.ToPixelFormat(), renderBufferFormats?.ToPixelFormats(), filteringMode.ToSamplerFilter());
 
         protected override IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology primitiveType)
             // maxBuffers is ignored because batches are not allowed to wrap around in Veldrid.
@@ -317,7 +317,7 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
                                                               Color4? initialisationColour = null)
-            => new VeldridTexture(this, width, height, manualMipmaps, filteringMode.ToSamplerFilter(), initialisationColour);
+            => new VeldridTexture(this, width, height, PixelFormat.R8G8B8A8UNorm, manualMipmaps, filteringMode.ToSamplerFilter(), initialisationColour);
 
         protected override INativeTexture CreateNativeVideoTexture(int width, int height)
             => new VeldridVideoTexture(this, width, height);

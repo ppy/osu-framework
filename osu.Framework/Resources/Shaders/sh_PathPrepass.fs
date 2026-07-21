@@ -9,20 +9,11 @@ layout(location = 1) in highp vec2 v_StartPos;
 layout(location = 2) in highp vec2 v_EndPos;
 layout(location = 3) in highp float v_Radius;
 
-layout(location = 0) out vec4 o_Colour;
+layout(location = 0) out highp float o_Colour;
 
 void main(void) 
-{    
-    highp float dstFromEdge = clamp(1.0 - dstToLine(v_StartPos, v_EndPos, v_Position) / v_Radius, 0.0, 1.0);
-
-    // special handling for 1.0 since it can't be encoded properly
-    if (dstFromEdge == 1.0)
-    {
-        o_Colour = vec4(1.0);
-        return;
-    }
-
-    o_Colour = encodeFloat(dstFromEdge);
+{
+    o_Colour = clamp(1.0 - dstToLine(v_StartPos, v_EndPos, v_Position) / v_Radius, 0.0, 1.0);
 }
 
 #endif

@@ -55,6 +55,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         private readonly List<RectangleI> uploadedRegions = new List<RectangleI>();
 
         private readonly SamplerFilter filteringMode;
+        private readonly PixelFormat textureFormat;
         private readonly Color4? initialisationColour;
 
         public ulong BindCount { get; protected set; }
@@ -82,15 +83,17 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         /// <param name="renderer">The renderer.</param>
         /// <param name="width">The width of the texture.</param>
         /// <param name="height">The height of the texture.</param>
+        /// <param name="textureFormat">The pixel format of the texture.</param>
         /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
         /// <param name="filteringMode">The filtering mode.</param>
         /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads). If null, no initialisation is provided out-of-the-box.</param>
-        public VeldridTexture(IVeldridRenderer renderer, int width, int height, bool manualMipmaps = false, SamplerFilter filteringMode = SamplerFilter.MinLinearMagLinearMipLinear,
+        public VeldridTexture(IVeldridRenderer renderer, int width, int height, PixelFormat textureFormat = PixelFormat.R8G8B8A8UNorm, bool manualMipmaps = false, SamplerFilter filteringMode = SamplerFilter.MinLinearMagLinearMipLinear,
                               Color4? initialisationColour = null)
         {
             this.manualMipmaps = manualMipmaps;
             this.filteringMode = filteringMode;
             this.initialisationColour = initialisationColour;
+            this.textureFormat = textureFormat;
 
             Renderer = renderer;
             Width = width;
@@ -458,7 +461,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             {
                 texture?.Dispose();
 
-                var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)CalculateMipmapLevels(Width, Height), 1, PixelFormat.R8G8B8A8UNorm, Usages);
+                var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)CalculateMipmapLevels(Width, Height), 1, textureFormat, Usages);
                 texture = Renderer.Factory.CreateTexture(ref textureDescription);
 
                 // todo: we may want to look into not having to allocate chunks of zero byte region for initialising textures
