@@ -921,7 +921,7 @@ namespace osu.Framework.Platform
                         case RendererType.OpenGL:
                             // Use the legacy GL renderer. This is basically guaranteed to support all platforms
                             // and performs better than the Veldrid-GL renderer due to reduction in allocs.
-                            SetupRendererAndWindow(new GLRenderer(), GraphicsSurfaceType.OpenGL);
+                            SetupRendererAndWindow(CreateGLRenderer(), GraphicsSurfaceType.OpenGL);
                             break;
 
                         case RendererType.Deferred_Metal:
