@@ -74,7 +74,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                                         parent = parent.Parent;
                                     }
 
-                                    addEmphasis(text, emphases);
+                                    AddEmphasis(text, emphases);
 
                                     break;
 
@@ -165,7 +165,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         protected virtual void AddNotImplementedInlineText(Inline inline)
             => AddText(inline.GetType() + " not implemented.", t => t.Colour = Color4.Red);
 
-        private void addEmphasis(string text, List<string> emphases)
+        protected virtual void AddEmphasis(string text, List<string> emphases)
         {
             bool hasItalic = false;
             bool hasBold = false;
