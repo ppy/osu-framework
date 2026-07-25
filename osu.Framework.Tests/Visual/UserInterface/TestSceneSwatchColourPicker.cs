@@ -115,7 +115,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Colour4.Green,
                 Colour4.Blue
             }));
-            AddAssert("current is default", () => colourPicker.Current.Value == default(Colour4));
+            AddAssert("current is default", () => colourPicker.Current.Value == default);
 
             AddStep("click first swatch", () =>
             {
