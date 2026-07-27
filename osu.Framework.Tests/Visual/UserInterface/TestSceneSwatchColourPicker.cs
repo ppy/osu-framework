@@ -94,16 +94,41 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Colour4.Red,
                 Colour4.Green
             }));
-            AddAssert("two swatches", () => colourPicker.Swatches.Count() == 2);
+            assertSwatchCount(2);
 
-            AddStep("add another colour", () => colourPicker.Colours.Add(Colour4.Blue));
-            AddAssert("three swatches", () => colourPicker.Swatches.Count() == 3);
+            AddStep("insert yellow at start", () => colourPicker.Colours.Insert(0, Colour4.Yellow));
+            assertSwatchSetsCurrent(0, Colour4.Yellow);
+
+            AddStep("move yellow to end", () => colourPicker.Colours.Move(0, 2));
+            assertSwatchSetsCurrent(2, Colour4.Yellow);
+
+            AddStep("replace green with blue", () => colourPicker.Colours.ReplaceRange(1, 1, new[] { Colour4.Blue }));
+            assertSwatchSetsCurrent(1, Colour4.Blue);
+            assertSwatchCount(3);
+
+            AddStep("add another yellow", () => colourPicker.Colours.Add(Colour4.Yellow));
+            assertSwatchCount(4);
+
+            AddStep("remove all yellow", () => colourPicker.Colours.RemoveAll(c => c == Colour4.Yellow));
+            assertSwatchCount(2);
+            assertSwatchSetsCurrent(0, Colour4.Red);
+            assertSwatchSetsCurrent(1, Colour4.Blue);
 
             AddStep("remove first colour", () => colourPicker.Colours.RemoveAt(0));
-            AddAssert("two swatches again", () => colourPicker.Swatches.Count() == 2);
+            assertSwatchCount(1);
+            assertSwatchSetsCurrent(0, Colour4.Blue);
 
             AddStep("clear colours", () => colourPicker.Colours.Clear());
             AddAssert("no swatches again", () => !colourPicker.Swatches.Any());
+        }
+
+        private void assertSwatchCount(int count)
+            => AddAssert($"{count} swatches", () => colourPicker.Swatches.Count() == count);
+
+        private void assertSwatchSetsCurrent(int index, Colour4 expected)
+        {
+            AddStep($"click swatch {index}", () => colourPicker.GetSwatch(index).TriggerClick());
+            AddAssert($"current is {expected.ToHex()}", () => colourPicker.Current.Value == expected);
         }
 
         [Test]
@@ -134,7 +159,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private partial class TestSwatchColourPicker : BasicSwatchColourPicker
         {
-            public IEnumerable<ClickableContainer> Swatches => Content.Children.OfType<ClickableContainer>();
+            public IEnumerable<ClickableContainer> Swatches => Content.FlowingChildren.OfType<ClickableContainer>();
 
             public ClickableContainer GetSwatch(int index) => Swatches.ElementAt(index);
         }
