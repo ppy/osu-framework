@@ -52,8 +52,9 @@ namespace osu.Framework.Graphics.UserInterface
                 },
                 Content = new FillFlowContainer
                 {
-                    AutoSizeAxes = Axes.Both,
-                    Direction = FillDirection.Horizontal,
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
+                    Direction = FillDirection.Full,
                     Spacing = new Vector2(5),
                     Anchor = Anchor.TopCentre,
                     Origin = Anchor.TopCentre,
@@ -75,7 +76,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             foreach (var colour in Colours)
             {
-                var swatch = CreateSwatch(colour);
+                var swatch = CreateSwatch(colour).With(s => s.Anchor = s.Origin = Anchor.TopCentre);
                 swatch.Action = () => Current.Value = colour;
                 Content.Add(swatch);
             }
