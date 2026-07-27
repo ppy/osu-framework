@@ -1,7 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Collections.Specialized;
+using System.Linq;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osuTK;
@@ -67,19 +71,99 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            Colours.BindCollectionChanged((_, _) => updateSwatches(), true);
+            Colours.BindCollectionChanged(collectionChanged, true);
         }
 
-        private void updateSwatches()
+        private void collectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
-            Content.Clear(true);
-
-            foreach (var colour in Colours)
+            switch (e.Action)
             {
-                var swatch = CreateSwatch(colour).With(s => s.Anchor = s.Origin = Anchor.TopCentre);
-                swatch.Action = () => Current.Value = colour;
-                Content.Add(swatch);
+                case NotifyCollectionChangedAction.Add:
+                {
+                    var newItems = e.NewItems.AsNonNull().Cast<Colour4>().ToArray();
+                    int startIndex = Math.Max(e.NewStartingIndex, 0);
+
+                    for (int i = 0; i < newItems.Length; i++)
+                        insertSwatch(newItems[i], startIndex + i);
+
+                    break;
+                }
+
+                case NotifyCollectionChangedAction.Remove:
+                {
+                    if (e.OldStartingIndex < 0)
+                    {
+                        // No index available (e.g. RemoveAll), so rebuild.
+                        Content.Clear(true);
+
+                        for (int i = 0; i < Colours.Count; i++)
+                            insertSwatch(Colours[i], i);
+
+                        break;
+                    }
+
+                    for (int i = 0; i < e.OldItems.AsNonNull().Count; i++)
+                        removeSwatchAt(e.OldStartingIndex);
+
+                    break;
+                }
+
+                case NotifyCollectionChangedAction.Replace:
+                {
+                    int count = e.OldItems.AsNonNull().Count;
+
+                    for (int i = 0; i < count; i++)
+                        removeSwatchAt(e.OldStartingIndex);
+
+                    var newItems = e.NewItems.AsNonNull().Cast<Colour4>().ToArray();
+
+                    for (int i = 0; i < newItems.Length; i++)
+                        insertSwatch(newItems[i], e.NewStartingIndex + i);
+
+                    break;
+                }
+
+                case NotifyCollectionChangedAction.Move:
+                {
+                    var flowing = Content.FlowingChildren.ToList();
+                    var drawable = flowing[e.OldStartingIndex];
+
+                    flowing.RemoveAt(e.OldStartingIndex);
+                    flowing.Insert(e.NewStartingIndex, drawable);
+
+                    for (int i = 0; i < flowing.Count; i++)
+                        Content.SetLayoutPosition(flowing[i], i);
+
+                    break;
+                }
+
+                case NotifyCollectionChangedAction.Reset:
+                    Content.Clear(true);
+                    break;
             }
+        }
+
+        private void insertSwatch(Colour4 colour, int index)
+        {
+            var flowing = Content.FlowingChildren.ToList();
+
+            for (int i = index; i < flowing.Count; i++)
+                Content.SetLayoutPosition(flowing[i], i + 1);
+
+            var swatch = CreateSwatch(colour).With(s => s.Anchor = s.Origin = Anchor.TopCentre);
+            swatch.Action = () => Current.Value = colour;
+            Content.Insert(index, swatch);
+        }
+
+        private void removeSwatchAt(int index)
+        {
+            var flowing = Content.FlowingChildren.ToList();
+            var drawable = flowing[index];
+
+            for (int i = index + 1; i < flowing.Count; i++)
+                Content.SetLayoutPosition(flowing[i], i - 1);
+
+            Content.Remove(drawable, true);
         }
 
         /// <summary>
