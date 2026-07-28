@@ -6,7 +6,6 @@
 using System;
 using System.Buffers;
 using osu.Framework.Graphics.Primitives;
-using osuTK.Graphics.ES30;
 using SixLabors.ImageSharp.Memory;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -21,8 +20,6 @@ namespace osu.Framework.Graphics.Textures
         private readonly IMemoryOwner<Rgba32> memoryOwner;
 
         public int Level { get; set; }
-
-        public virtual PixelFormat Format => PixelFormat.Rgba;
 
         public RectangleI Bounds { get; set; }
 
