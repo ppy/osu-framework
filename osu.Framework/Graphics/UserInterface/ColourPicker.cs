@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 
@@ -22,16 +23,20 @@ namespace osu.Framework.Graphics.UserInterface
             set => current.Current = value;
         }
 
-        private readonly HSVColourPicker hsvColourPicker;
-        private readonly SwatchColourPicker? swatchColourPicker;
-        private readonly HexColourPicker hexColourPicker;
+        private HSVColourPicker hsvColourPicker = null!;
+        private HexColourPicker hexColourPicker = null!;
+        private SwatchColourPicker? swatchColourPicker;
 
         protected ColourPicker()
         {
             Current.Value = Colour4.White;
             AutoSizeAxes = Axes.Y;
             Width = 300;
+        }
 
+        [BackgroundDependencyLoader]
+        private void load()
+        {
             hsvColourPicker = CreateHSVColourPicker().With(d =>
             {
                 d.RelativeSizeAxes = Axes.X;
@@ -72,7 +77,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected abstract HSVColourPicker CreateHSVColourPicker();
 
         /// <summary>
-        /// Creates an optional control that shows clickable colour presets.
+        /// Creates the optional control that shows clickable colour presets.
         /// </summary>
         protected virtual SwatchColourPicker? CreateSwatchColourPicker() => null;
 
