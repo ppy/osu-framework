@@ -2,17 +2,21 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shaders.Types;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -20,11 +24,7 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private const float width = 600;
 
-        private readonly BasicCheckbox rCheckbox;
-        private readonly BasicCheckbox gCheckbox;
-        private readonly BasicCheckbox bCheckbox;
-        private readonly BasicCheckbox aCheckbox;
-
+        private readonly ChannelTabControl channelSelector;
         private readonly TexturePreview preview;
         private readonly Checkerboard checkerboard;
         private readonly Container previewContainer;
@@ -33,14 +33,15 @@ namespace osu.Framework.Graphics.Visualisation
         public TextureInspector()
         {
             RelativeSizeAxes = Axes.Y;
+            Padding = new MarginPadding(10);
             Child = new GridContainer
             {
                 RelativeSizeAxes = Axes.Y,
                 Width = width,
                 RowDimensions = new[]
                 {
-                    new Dimension(),
                     new Dimension(GridSizeMode.AutoSize),
+                    new Dimension(),
                 },
                 ColumnDimensions = new[]
                 {
@@ -48,6 +49,44 @@ namespace osu.Framework.Graphics.Visualisation
                 },
                 Content = new[]
                 {
+                    new Drawable[]
+                    {
+                        new GridContainer
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            Height = 25,
+                            Margin = new MarginPadding { Bottom = 10 },
+                            RowDimensions = new[]
+                            {
+                                new Dimension(GridSizeMode.Relative, size: 1),
+                            },
+                            ColumnDimensions = new[]
+                            {
+                                new Dimension(GridSizeMode.AutoSize),
+                                new Dimension()
+                            },
+                            Content = new[]
+                            {
+                                new Drawable[]
+                                {
+                                    new SpriteText
+                                    {
+                                        Anchor = Anchor.CentreLeft,
+                                        Origin = Anchor.CentreLeft,
+                                        Text = "Channels: ",
+                                        Font = FrameworkFont.Regular,
+                                        Colour = FrameworkColour.Yellow
+                                    },
+                                    channelSelector = new ChannelTabControl
+                                    {
+                                        Anchor = Anchor.Centre,
+                                        Origin = Anchor.Centre,
+                                        RelativeSizeAxes = Axes.Both
+                                    }
+                                }
+                            }
+                        }
+                    },
                     new Drawable[]
                     {
                         new Container
@@ -67,66 +106,24 @@ namespace osu.Framework.Graphics.Visualisation
                                 }
                             }
                         }
-                    },
-                    new Drawable[]
-                    {
-                        new FillFlowContainer
-                        {
-                            Anchor = Anchor.Centre,
-                            Origin = Anchor.Centre,
-                            AutoSizeAxes = Axes.Both,
-                            Direction = FillDirection.Horizontal,
-                            Spacing = new Vector2(10, 0),
-                            Margin = new MarginPadding { Vertical = 10 },
-                            Children = new Drawable[]
-                            {
-                                rCheckbox = new BasicCheckbox
-                                {
-                                    LabelText = "R",
-                                    AutoSizeAxes = Axes.Both,
-                                    Anchor = Anchor.Centre,
-                                    Origin = Anchor.Centre,
-                                    Current = { Value = true }
-                                },
-                                gCheckbox = new BasicCheckbox
-                                {
-                                    LabelText = "G",
-                                    AutoSizeAxes = Axes.Both,
-                                    Anchor = Anchor.Centre,
-                                    Origin = Anchor.Centre,
-                                    Current = { Value = true }
-                                },
-                                bCheckbox = new BasicCheckbox
-                                {
-                                    LabelText = "B",
-                                    AutoSizeAxes = Axes.Both,
-                                    Anchor = Anchor.Centre,
-                                    Origin = Anchor.Centre,
-                                    Current = { Value = true }
-                                },
-                                aCheckbox = new BasicCheckbox
-                                {
-                                    LabelText = "A",
-                                    AutoSizeAxes = Axes.Both,
-                                    Anchor = Anchor.Centre,
-                                    Origin = Anchor.Centre,
-                                    Current = { Value = true }
-                                }
-                            }
-                        }
                     }
                 }
             };
         }
 
+        private enum Channel
+        {
+            All,
+            R,
+            G,
+            B,
+            A
+        }
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
-
-            rCheckbox.Current.BindValueChanged(_ => updatePreview());
-            gCheckbox.Current.BindValueChanged(_ => updatePreview());
-            bCheckbox.Current.BindValueChanged(_ => updatePreview());
-            aCheckbox.Current.BindValueChanged(_ => updatePreview(), true);
+            channelSelector.Current.BindValueChanged(c => preview.UpdateChannels(c.NewValue), true);
         }
 
         public void Inspect(Texture texture)
@@ -138,11 +135,90 @@ namespace osu.Framework.Graphics.Visualisation
             interactiveContainer.Fit();
         }
 
-        private void updatePreview() => preview.UpdateComponents(rCheckbox.Current.Value, gCheckbox.Current.Value, bCheckbox.Current.Value, aCheckbox.Current.Value);
-
         protected override void PopIn() => this.ResizeWidthTo(width, 500, Easing.OutQuint);
 
         protected override void PopOut() => this.ResizeWidthTo(0, 500, Easing.OutQuint);
+
+        private partial class ChannelTabControl : BasicTabControl<Channel>
+        {
+            public ChannelTabControl()
+            {
+                Items = Enum.GetValues<Channel>().ToList();
+            }
+
+            protected override TabFillFlowContainer CreateTabFlow() => new TabFillFlowContainer
+            {
+                Direction = FillDirection.Horizontal,
+                AutoSizeAxes = Axes.X,
+                RelativeSizeAxes = Axes.Y,
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                Depth = -1,
+                Masking = true
+            };
+
+            protected override TabItem<Channel> CreateTabItem(Channel value)
+                => new ChannelTabItem(value);
+
+            public partial class ChannelTabItem : TabItem<Channel>
+            {
+                private readonly Box highlight;
+
+                public ChannelTabItem(Channel value)
+                    : base(value)
+                {
+                    AutoSizeAxes = Axes.None;
+                    Width = 100;
+                    RelativeSizeAxes = Axes.Y;
+                    Padding = new MarginPadding { Horizontal = 5 };
+
+                    AddRange(new Drawable[]
+                    {
+                        new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = FrameworkColour.BlueGreen,
+                        },
+                        highlight = new Box
+                        {
+                            Alpha = 0,
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = Color4.White.Opacity(.2f),
+                            Blending = BlendingParameters.Additive
+                        },
+                        new SpriteText
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Text = value.ToString(),
+                            Font = FrameworkFont.Regular,
+                            Colour = FrameworkColour.Yellow
+                        }
+                    });
+                }
+
+                protected override void OnActivated() => updateState();
+
+                protected override void OnDeactivated() => updateState();
+
+                protected override bool OnHover(HoverEvent e)
+                {
+                    base.OnHover(e);
+                    updateState();
+                    return true;
+                }
+
+                protected override void OnHoverLost(HoverLostEvent e)
+                {
+                    updateState();
+                    base.OnHoverLost(e);
+                }
+
+                private void updateState() => highlight.FadeTo(IsHovered ? 1 : Active.Value ? 0.5f : 0f, 200);
+            }
+        }
 
         private partial class TexturePreview : Sprite
         {
@@ -157,12 +233,45 @@ namespace osu.Framework.Graphics.Visualisation
             private bool b;
             private bool a;
 
-            public void UpdateComponents(bool r, bool g, bool b, bool a)
+            public void UpdateChannels(Channel channel)
             {
-                this.r = r;
-                this.g = g;
-                this.b = b;
-                this.a = a;
+                switch (channel)
+                {
+                    case Channel.All:
+                        r = true;
+                        g = true;
+                        b = true;
+                        a = true;
+                        break;
+
+                    case Channel.R:
+                        r = true;
+                        g = false;
+                        b = false;
+                        a = false;
+                        break;
+
+                    case Channel.G:
+                        r = false;
+                        g = true;
+                        b = false;
+                        a = false;
+                        break;
+
+                    case Channel.B:
+                        r = false;
+                        g = false;
+                        b = true;
+                        a = false;
+                        break;
+
+                    case Channel.A:
+                        r = false;
+                        g = false;
+                        b = false;
+                        a = true;
+                        break;
+                }
 
                 Invalidate(Invalidation.DrawNode);
             }
