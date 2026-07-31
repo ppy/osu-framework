@@ -1,0 +1,38 @@
+#ifndef TEXTURE_CHANNELS_FS
+#define TEXTURE_CHANNELS_FS
+
+#include "sh_Utils.h"
+#include "sh_Masking.h"
+#include "sh_TextureWrapping.h"
+
+layout(location = 2) in mediump vec2 v_TexCoord;
+
+layout(std140, set = 0, binding = 0) uniform m_TextureChannelParameters
+{
+    bool R;
+    bool G;
+    bool B;
+    bool A;
+};
+
+layout(set = 1, binding = 0) uniform lowp texture2D m_Texture;
+layout(set = 1, binding = 1) uniform lowp sampler m_Sampler;
+
+layout(location = 0) out vec4 o_Colour;
+
+void main(void) 
+{
+    vec2 wrappedCoord = wrap(v_TexCoord, v_TexRect);
+    lowp vec4 col = wrappedSampler(wrappedCoord, v_TexRect, m_Texture, m_Sampler, -0.9);
+    if (A && !R && !G && !B)
+    {
+        col = vec4(col.a, col.a, col.a, 1.0);
+    }
+    else
+    {
+        col *= vec4(float(R), float(G), float(B), 1.0);
+    }
+    o_Colour = getRoundedColor(col, wrappedCoord);
+}
+
+#endif
