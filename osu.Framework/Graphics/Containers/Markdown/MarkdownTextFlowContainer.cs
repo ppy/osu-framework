@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Markdig.Extensions.CustomContainers;
 using Markdig.Extensions.Footnotes;
@@ -66,15 +65,30 @@ namespace osu.Framework.Graphics.Containers.Markdown
                                 case EmphasisInline:
                                     var parent = literal.Parent;
 
-                                    var emphases = new List<string>();
+                                    bool hasBold = false;
+                                    bool hasItalic = false;
 
                                     while (parent is EmphasisInline e)
                                     {
-                                        emphases.Add(e.DelimiterCount == 2 ? new string(e.DelimiterChar, 2) : e.DelimiterChar.ToString());
+                                        string emphasis = e.DelimiterCount == 2 ? new string(e.DelimiterChar, 2) : e.DelimiterChar.ToString();
+
+                                        switch (emphasis)
+                                        {
+                                            case "*":
+                                            case "_":
+                                                hasItalic = true;
+                                                break;
+
+                                            case "**":
+                                            case "__":
+                                                hasBold = true;
+                                                break;
+                                        }
+
                                         parent = parent.Parent;
                                     }
 
-                                    addEmphasis(text, emphases);
+                                    AddEmphasis(text, hasBold, hasItalic);
 
                                     break;
 
@@ -165,29 +179,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
         protected virtual void AddNotImplementedInlineText(Inline inline)
             => AddText(inline.GetType() + " not implemented.", t => t.Colour = Color4.Red);
 
-        private void addEmphasis(string text, List<string> emphases)
-        {
-            bool hasItalic = false;
-            bool hasBold = false;
-
-            foreach (string e in emphases)
-            {
-                switch (e)
-                {
-                    case "*":
-                    case "_":
-                        hasItalic = true;
-                        break;
-
-                    case "**":
-                    case "__":
-                        hasBold = true;
-                        break;
-                }
-            }
-
-            AddText(text, t => ApplyEmphasisedCreationParameters(t, hasBold, hasItalic));
-        }
+        protected virtual void AddEmphasis(string text, bool hasBold, bool hasItalic)
+            => AddText(text, t => ApplyEmphasisedCreationParameters(t, hasBold, hasItalic));
 
         protected internal override SpriteText CreateSpriteText() => parentTextComponent.CreateSpriteText();
 

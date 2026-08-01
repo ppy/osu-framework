@@ -63,6 +63,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public bool BypassTextureUploadQueueing { get; set; }
 
+        protected TextureComponentCount InternalFormat { get; private set; }
+        protected PixelFormat PixelFormat { get; private set; }
+        protected PixelType PixelType { get; private set; }
+
         private int internalWidth;
         private int internalHeight;
         private bool manualMipmaps;
@@ -70,7 +74,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private readonly List<RectangleI> uploadedRegions = new List<RectangleI>();
 
         private readonly All filteringMode;
-        private readonly TextureComponentCount textureFormat;
         private readonly Color4? initialisationColour;
 
         /// <summary>
@@ -89,10 +92,39 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Width = width;
             Height = height;
 
+            setFormat(textureFormat);
+
             this.manualMipmaps = manualMipmaps;
-            this.textureFormat = textureFormat;
             this.filteringMode = filteringMode;
             this.initialisationColour = initialisationColour;
+        }
+
+        private void setFormat(TextureComponentCount internalFormat)
+        {
+            InternalFormat = internalFormat;
+
+            // reference: https://registry.khronos.org/OpenGL-Refpages/gl4/html/glTexImage2D.xhtml
+            // add more formats as desired
+            switch (internalFormat)
+            {
+                case TextureComponentCount.Rgba8:
+                    PixelFormat = PixelFormat.Rgba;
+                    PixelType = PixelType.UnsignedByte;
+                    break;
+
+                case TextureComponentCount.R8:
+                    PixelFormat = PixelFormat.Red;
+                    PixelType = PixelType.UnsignedByte;
+                    break;
+
+                case TextureComponentCount.R32f:
+                    PixelFormat = PixelFormat.Red;
+                    PixelType = PixelType.Float;
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(internalFormat), internalFormat, null);
+            }
         }
 
         #region Disposal
@@ -436,14 +468,14 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 if ((Width == upload.Bounds.Width && Height == upload.Bounds.Height) || dataPointer == IntPtr.Zero)
                 {
                     updateMemoryUsage(upload.Level, (long)Width * Height * 4);
-                    GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, textureFormat, Width, Height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);
+                    GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, InternalFormat, Width, Height, 0, PixelFormat, PixelType, dataPointer);
                 }
                 else
                 {
                     initializeLevel(upload.Level, Width, Height);
 
-                    GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format,
-                        PixelType.UnsignedByte, dataPointer);
+                    GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, PixelFormat,
+                        PixelType, dataPointer);
                 }
             }
             // Just update content of the current texture
@@ -470,7 +502,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 int div = (int)Math.Pow(2, upload.Level);
 
                 GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X / div, upload.Bounds.Y / div, upload.Bounds.Width / div, upload.Bounds.Height / div,
-                    upload.Format, PixelType.UnsignedByte, dataPointer);
+                    PixelFormat, PixelType, dataPointer);
             }
         }
 
@@ -489,7 +521,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             using (var pixels = image.CreateReadOnlyPixelSpan())
             {
                 updateMemoryUsage(level, (long)width * height * 4);
-                GL.TexImage2D(TextureTarget2d.Texture2D, level, textureFormat, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte,
+                GL.TexImage2D(TextureTarget2d.Texture2D, level, InternalFormat, width, height, 0, PixelFormat, PixelType,
                     ref MemoryMarshal.GetReference(pixels.Span));
             }
         }

@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Graphics.Primitives;
-using osuTK.Graphics.ES30;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Textures
@@ -24,10 +23,5 @@ namespace osu.Framework.Graphics.Textures
         /// The target bounds for this upload. If not specified, will assume to be (0, 0, width, height).
         /// </summary>
         RectangleI Bounds { get; set; }
-
-        /// <summary>
-        /// The texture format for this upload.
-        /// </summary>
-        PixelFormat Format { get; }
     }
 }

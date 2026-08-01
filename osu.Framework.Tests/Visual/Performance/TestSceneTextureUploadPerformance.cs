@@ -12,7 +12,6 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 using osuTK.Graphics;
-using osuTK.Graphics.ES30;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.Performance
@@ -102,8 +101,6 @@ namespace osu.Framework.Tests.Visual.Performance
                 get => upload.Bounds;
                 set => upload.Bounds = value;
             }
-
-            public PixelFormat Format => upload.Format;
 
             public ReusableTextureUpload(ITextureUpload upload)
             {
