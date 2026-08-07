@@ -6,6 +6,6 @@ namespace osu.Framework.Graphics.Rendering
     public enum TexturePixelFormat
     {
         R8G8B8A8Float,
-        R32Float
+        R16Float
     }
 }
