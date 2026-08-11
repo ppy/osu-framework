@@ -117,9 +117,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     PixelType = PixelType.UnsignedByte;
                     break;
 
-                case TextureComponentCount.R32f:
+                case TextureComponentCount.R16f:
                     PixelFormat = PixelFormat.Red;
-                    PixelType = PixelType.Float;
+                    PixelType = PixelType.HalfFloat;
                     break;
 
                 default:

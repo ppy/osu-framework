@@ -441,8 +441,8 @@ namespace osu.Framework.Graphics.OpenGL
                     glTextureFormat = TextureComponentCount.Rgba8;
                     break;
 
-                case TexturePixelFormat.R32Float:
-                    glTextureFormat = TextureComponentCount.R32f;
+                case TexturePixelFormat.R16Float:
+                    glTextureFormat = TextureComponentCount.R16f;
                     break;
 
                 default:

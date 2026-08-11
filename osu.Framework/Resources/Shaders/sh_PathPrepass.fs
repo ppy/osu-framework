@@ -9,7 +9,7 @@ layout(location = 1) in highp vec2 v_StartPos;
 layout(location = 2) in highp vec2 v_EndPos;
 layout(location = 3) in highp float v_Radius;
 
-layout(location = 0) out highp float o_Colour;
+layout(location = 0) out mediump float o_Colour;
 
 void main(void) 
 {
