@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using osu.Framework.Graphics.Shaders.Types;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Lines
@@ -27,6 +28,8 @@ namespace osu.Framework.Graphics.Lines
 
             private float radius;
             private IShader? pathShader;
+            private long segmentsVersion;
+            private IUniformBuffer<PathParameters>? parametersBuffer;
 
             private IVertexBatch<PathVertex>? quadBatch;
 
@@ -71,6 +74,13 @@ namespace osu.Framework.Graphics.Lines
                 });
 
                 pathShader.Bind();
+
+                parametersBuffer ??= renderer.CreateUniformBuffer<PathParameters>();
+                parametersBuffer.Data = new PathParameters
+                {
+                    Radius = radius,
+                };
+                pathShader.BindUniformBlock("m_PathParameters", parametersBuffer);
 
                 updateVertexBuffer();
 
@@ -158,10 +168,10 @@ namespace osu.Framework.Graphics.Lines
             {
                 Debug.Assert(quadBatch != null);
 
-                quadBatch.Add(new PathVertex(topLeft, start, end, radius));
-                quadBatch.Add(new PathVertex(topRight, start, end, radius));
-                quadBatch.Add(new PathVertex(bottomRight, start, end, radius));
-                quadBatch.Add(new PathVertex(bottomLeft, start, end, radius));
+                quadBatch.Add(new PathVertex(topLeft, start, end));
+                quadBatch.Add(new PathVertex(topRight, start, end));
+                quadBatch.Add(new PathVertex(bottomRight, start, end));
+                quadBatch.Add(new PathVertex(bottomLeft, start, end));
             }
 
             private void updateVertexBuffer()
@@ -307,6 +317,13 @@ namespace osu.Framework.Graphics.Lines
                 }
             }
 
+            [StructLayout(LayoutKind.Sequential, Pack = 1)]
+            private record struct PathParameters
+            {
+                public UniformFloat Radius;
+                private UniformPadding12 pad;
+            }
+
             [StructLayout(LayoutKind.Sequential)]
             public readonly struct PathVertex : IEquatable<PathVertex>, IVertex
             {
@@ -319,22 +336,17 @@ namespace osu.Framework.Graphics.Lines
                 [VertexMember(2, VertexAttribPointerType.Float)]
                 public readonly Vector2 EndPos;
 
-                [VertexMember(1, VertexAttribPointerType.Float)]
-                public readonly float Radius;
-
-                public PathVertex(Vector2 position, Vector2 startPos, Vector2 endPos, float radius)
+                public PathVertex(Vector2 position, Vector2 startPos, Vector2 endPos)
                 {
                     Position = position;
                     StartPos = startPos;
                     EndPos = endPos;
-                    Radius = radius;
                 }
 
                 public bool Equals(PathVertex other) =>
                     Position.Equals(other.Position)
                     && StartPos.Equals(other.StartPos)
-                    && EndPos.Equals(other.EndPos)
-                    && Radius.Equals(other.Radius);
+                    && EndPos.Equals(other.EndPos);
             }
         }
     }
