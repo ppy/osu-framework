@@ -8,7 +8,7 @@
     <ProjectReference Include="..\FlappyDon.Game\FlappyDon.Game.csproj" />
   </ItemGroup>
   <ItemGroup Label="Package References">
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.4.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="6.2.0" />
   </ItemGroup>
 </Project>
