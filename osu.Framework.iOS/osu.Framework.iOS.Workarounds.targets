@@ -1,13 +1,22 @@
 <Project>
-  <!-- Veldrid references libraries which cannot be AOT'd on iOS, replace them with stub assemblies.
-       See: https://github.com/mellinoe/veldrid/issues/472#issuecomment-1356461410 -->
-  <Target Name="OsuFrameworkIOSCopyStubAssemblies" BeforeTargets="_AOTCompile">
+  <!-- Some transitive assemblies don't behave well with AOT, so we strip them.
+       Importantly, this is done in such a way that the assembly's MVID is preserved to satisfy runtime requirements. -->
+  <Target Name="OsuFrameworkIOSStripAssemblies" AfterTargets="ILLink" BeforeTargets="_AOTCompile">
+    <PropertyGroup>
+      <AssemblyStripper>$(MSBuildThisFileDirectory)tools\AssemblyStripper.cs</AssemblyStripper>
+      <LinkedOutputFolder>$(IntermediateOutputPath)linked\</LinkedOutputFolder>
+    </PropertyGroup>
     <ItemGroup>
-      <StubFiles Include="$(MSBuildThisFileDirectory)..\stubs\*" />
+      <AssembliesToStrip Include="SharpGen.Runtime.dll"/>
+      <AssembliesToStrip Include="SharpGen.Runtime.COM.dll"/>
+      <AssembliesToStrip Include="Vortice.D3DCompiler.dll"/>
+      <AssembliesToStrip Include="Vortice.Direct3D11.dll"/>
+      <AssembliesToStrip Include="Vortice.DirectX.dll"/>
+      <AssembliesToStrip Include="Vortice.DXGI.dll"/>
     </ItemGroup>
-    <Copy Condition="'$(Platform)' == 'AnyCPU'" SourceFiles="@(StubFiles)" DestinationFolder="obj\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\linked\" />
-    <Copy Condition="'$(Platform)' != 'AnyCPU'" SourceFiles="@(StubFiles)" DestinationFolder="obj\$(Platform)\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\linked\" />
+    <Exec WorkingDirectory="$(LinkedOutputFolder)" Command="dotnet &quot;$(AssemblyStripper)&quot; -- @(AssembliesToStrip, ' ')"/>
   </Target>
+
   <!-- OpenTabletDriver contains P/Invokes to the "Quartz" framework for native macOS code.
        This leads iOS linker into attempting to include that framework, despite not existing on such platform.
        See: https://github.com/OpenTabletDriver/OpenTabletDriver/issues/2524 / https://github.com/xamarin/xamarin-macios/issues/15118#issuecomment-1141893683 -->

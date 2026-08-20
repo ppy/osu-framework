@@ -19,7 +19,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="runtimes\**\*" Pack="true" PackagePath="runtimes" />
-    <None Include="stubs\**\*" Pack="true" PackagePath="stubs" />
-    <Content Include="osu.Framework.iOS.Workarounds.targets" Pack="true" PackagePath="build\$(PackageId).targets" />
+    <None Include="$(MSBuildThisFileDirectory)..\tools\AssemblyStripper.cs" Pack="true" PackagePath="build\tools\AssemblyStripper.cs" />
+    <None Include="osu.Framework.iOS.Workarounds.targets" Pack="true" PackagePath="build\$(PackageId).targets" />
   </ItemGroup>
 </Project>
