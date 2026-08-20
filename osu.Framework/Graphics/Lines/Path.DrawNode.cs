@@ -90,51 +90,49 @@ namespace osu.Framework.Graphics.Lines
             /// <summary>
             /// Modifies provided segment to create visually continuous path and draws it to the screen.
             /// </summary>
-            /// <param name="segment">The segment to be drawn.</param>
-            /// <param name="prevSegment">Previous segment.</param>
+            /// <param name="segmentToDraw">The segment to be drawn.</param>
+            /// <param name="prevSegmentDirection">Direction of a previous segment. Used to compute angle between segments.</param>
             /// <param name="location">Position of the segment's start point relative to the previous segment.</param>
             /// <param name="endCap">Whether end cap of this segment must be drawn.</param>
-            private void drawSegment(ref DrawableSegment segment, ref DrawableSegment prevSegment, SegmentStartLocation location, bool endCap)
+            private void drawSegment(Line segmentToDraw, Vector2 prevSegmentDirection, SegmentStartLocation location, bool endCap)
             {
-                Vector2 dir = segment.DirectionNormalized;
+                Vector2 dir = segmentToDraw.Direction;
+                float lengthSquared = dir.X * dir.X + dir.Y * dir.Y;
+                Vector2 dirNorm = lengthSquared < precision * precision ? Vector2.UnitX : (dir / MathF.Sqrt(lengthSquared));
+                Vector2 thicknessOffset = new Vector2(-dirNorm.Y, dirNorm.X) * radius;
 
-                Vector2 capOffset = dir * radius;
-                Vector2 startOffset = Vector2.Zero;
+                Vector2 capOffset = dirNorm * radius;
                 Vector2 endOffset = endCap ? capOffset : Vector2.Zero;
 
-                switch (location)
+                // Always assume start cap to act as a form of connection between segments.
+                // The code below will manipulate its length to be as low as possible for each case to reduce overdraw.
+                Vector2 startOffset = capOffset;
+
+                // Segment starts from "inside" the previous one, the cap will be covered by the previous segment anyway.
+                if (location == SegmentStartLocation.Inside)
                 {
-                    // When segment starts outside the previous one, nothing is being connected to the start of the segment and start cap is required.
-                    case SegmentStartLocation.Outside:
-                        startOffset = capOffset;
-                        break;
+                    startOffset = Vector2.Zero;
+                }
+                else if (location == SegmentStartLocation.End) // Segment starts at the end of the previous one
+                {
+                    Vector2 dir2 = -prevSegmentDirection;
+                    Vector2.Dot(ref dir, ref dir2, out float dot);
 
-                    // Segment starts at the end of the previous one - figure out the connection type
-                    case SegmentStartLocation.End:
-                        Debug.Assert(prevSegment.EndPoint == segment.StartPoint);
-
-                        Vector2 dir2 = -prevSegment.DirectionNormalized;
-                        Vector2.Dot(ref dir, ref dir2, out float dot);
-
-                        // Angle between segments is less than 90 degrees - use segment start cap.
-                        if (dot >= 0)
-                        {
-                            startOffset = capOffset;
-                            break;
-                        }
-
-                        // angle is more than 90 degrees - expand segment just enough to cover the hole
+                    // if angle is more than 90 degrees we can reduce start cap length just enough for hole to be covered
+                    if (dot < 0)
+                    {
                         Vector2.PerpDot(ref dir, ref dir2, out float pDot);
                         float thetaDiff = Math.Abs(MathF.Atan(pDot / dot));
-                        startOffset = dir * radius * (float)Math.Sin(thetaDiff);
-                        break;
+                        startOffset *= (float)Math.Sin(thetaDiff);
+                    }
                 }
 
                 Debug.Assert(quadBatch != null);
-                quadBatch.Add(new PathVertex(segment.TopLeft - startOffset, segment.StartPoint, segment.EndPoint));
-                quadBatch.Add(new PathVertex(segment.TopRight + endOffset, segment.StartPoint, segment.EndPoint));
-                quadBatch.Add(new PathVertex(segment.BottomRight + endOffset, segment.StartPoint, segment.EndPoint));
-                quadBatch.Add(new PathVertex(segment.BottomLeft - startOffset, segment.StartPoint, segment.EndPoint));
+                // Clockwise order: topLeft, topRight, bottomRight, bottomLeft.
+                quadBatch.Add(new PathVertex(segmentToDraw.StartPoint + thicknessOffset - startOffset, segmentToDraw.StartPoint, segmentToDraw.EndPoint));
+                quadBatch.Add(new PathVertex(segmentToDraw.EndPoint + thicknessOffset + endOffset, segmentToDraw.StartPoint, segmentToDraw.EndPoint));
+                quadBatch.Add(new PathVertex(segmentToDraw.EndPoint - thicknessOffset + endOffset, segmentToDraw.StartPoint, segmentToDraw.EndPoint));
+                quadBatch.Add(new PathVertex(segmentToDraw.StartPoint - thicknessOffset - startOffset, segmentToDraw.StartPoint, segmentToDraw.EndPoint));
             }
 
             private void updateVertexBuffer()
@@ -149,7 +147,7 @@ namespace osu.Framework.Graphics.Lines
 
                 // We initialize "fake" initial segment before the 0'th one
                 // so that on first drawSegment() call with current SegmentStartLocation parameters path start cap will be added.
-                DrawableSegment lastDrawnSegment = new DrawableSegment(segments[0], radius);
+                Vector2 lastSegmentDirection = segmentToDraw.Direction;
 
                 // This loop tries to merge consecutive path segments which are located within the same line.
                 for (int i = 1; i < segments.Count; i++)
@@ -189,11 +187,10 @@ namespace osu.Framework.Graphics.Lines
                     }
                     else // Otherwise draw the expanded segment
                     {
-                        DrawableSegment s = new DrawableSegment(segmentToDraw, radius);
                         // if next segment starts inside the current one, nothing will be connected to the end of the current segment - end cap is required.
-                        drawSegment(ref s, ref lastDrawnSegment, location, nextLocation == SegmentStartLocation.Inside);
+                        drawSegment(segmentToDraw, lastSegmentDirection, location, nextLocation == SegmentStartLocation.Inside);
 
-                        lastDrawnSegment = s;
+                        lastSegmentDirection = dir;
                         segmentToDraw = segments[i];
                         location = nextLocation;
                         nextLocation = SegmentStartLocation.End;
@@ -201,8 +198,7 @@ namespace osu.Framework.Graphics.Lines
                 }
 
                 // Finish drawing last segment
-                var ds = new DrawableSegment(segmentToDraw, radius);
-                drawSegment(ref ds, ref lastDrawnSegment, location, true);
+                drawSegment(segmentToDraw, lastSegmentDirection, location, true);
             }
 
             protected override void Dispose(bool isDisposing)
@@ -217,69 +213,6 @@ namespace osu.Framework.Graphics.Lines
                 Inside,
                 End,
                 Outside
-            }
-
-            private readonly struct DrawableSegment
-            {
-                /// <summary>
-                /// End point of this <see cref="DrawableSegment"/>.
-                /// </summary>
-                public readonly Vector2 EndPoint;
-
-                /// <summary>
-                /// Start point of this <see cref="DrawableSegment"/>.
-                /// </summary>
-                public readonly Vector2 StartPoint;
-
-                /// <summary>
-                /// The normalized direction of this <see cref="DrawableSegment"/>.
-                /// </summary>
-                public readonly Vector2 DirectionNormalized;
-
-                /// <summary>
-                /// The top-left position of the draw quad of this <see cref="DrawableSegment"/>.
-                /// </summary>
-                public readonly Vector2 TopLeft;
-
-                /// <summary>
-                /// The top-right position of the draw quad of this <see cref="DrawableSegment"/>.
-                /// </summary>
-                public readonly Vector2 TopRight;
-
-                /// <summary>
-                /// The bottom-left position of the draw quad of this <see cref="DrawableSegment"/>.
-                /// </summary>
-                public readonly Vector2 BottomLeft;
-
-                /// <summary>
-                /// The bottom-right position of the draw quad of this <see cref="DrawableSegment"/>.
-                /// </summary>
-                public readonly Vector2 BottomRight;
-
-                /// <param name="guide">The line defining this <see cref="DrawableSegment"/>.</param>
-                /// <param name="radius">The path radius.</param>
-                public DrawableSegment(Line guide, float radius)
-                {
-                    StartPoint = guide.StartPoint;
-                    EndPoint = guide.EndPoint;
-
-                    Vector2 dir = guide.Direction;
-                    float lengthSquared = dir.X * dir.X + dir.Y * dir.Y;
-
-                    if (lengthSquared < precision * precision)
-                        dir = Vector2.UnitX;
-                    else
-                        dir /= MathF.Sqrt(lengthSquared);
-
-                    DirectionNormalized = dir;
-
-                    Vector2 ortho = new Vector2(-dir.Y, dir.X);
-
-                    TopLeft = StartPoint + ortho * radius;
-                    TopRight = EndPoint + ortho * radius;
-                    BottomLeft = StartPoint - ortho * radius;
-                    BottomRight = EndPoint - ortho * radius;
-                }
             }
 
             [StructLayout(LayoutKind.Sequential, Pack = 1)]
