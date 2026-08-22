@@ -143,14 +143,12 @@ namespace osu.Framework.IO.Network
             RuntimeInfo.OS == RuntimeInfo.Platform.Android
                 ? new HttpClientHandler
                 {
-                    Credentials = CredentialCache.DefaultCredentials,
                     AutomaticDecompression = DecompressionMethods.All
                 }
                 : new SocketsHttpHandler
                 {
                     AutomaticDecompression = DecompressionMethods.All,
-                    // Can be replaced by a static HttpClient.DefaultCredentials after net60 everywhere.
-                    Credentials = CredentialCache.DefaultCredentials,
+                    DefaultProxyCredentials = RuntimeInfo.OS == RuntimeInfo.Platform.Windows ? CredentialCache.DefaultCredentials : null,
                     ConnectCallback = onConnect,
                 }
         )
