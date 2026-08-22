@@ -138,19 +138,12 @@ namespace osu.Framework.IO.Network
         private bool completed;
 
         private static readonly HttpClient client = new HttpClient(
-            // SocketsHttpHandler causes crash in Android Debug, and seems to have compatibility issue on SSL
-            // Use platform HTTP handler which is invoked by HttpClientHandler for better compatibility and app size
-            RuntimeInfo.OS == RuntimeInfo.Platform.Android
-                ? new HttpClientHandler
-                {
-                    AutomaticDecompression = DecompressionMethods.All
-                }
-                : new SocketsHttpHandler
-                {
-                    AutomaticDecompression = DecompressionMethods.All,
-                    DefaultProxyCredentials = RuntimeInfo.OS == RuntimeInfo.Platform.Windows ? CredentialCache.DefaultCredentials : null,
-                    ConnectCallback = onConnect,
-                }
+            new SocketsHttpHandler
+            {
+                AutomaticDecompression = DecompressionMethods.All,
+                DefaultProxyCredentials = RuntimeInfo.OS == RuntimeInfo.Platform.Windows ? CredentialCache.DefaultCredentials : null,
+                ConnectCallback = onConnect,
+            }
         )
         {
             // Timeout is controlled manually through cancellation tokens because
