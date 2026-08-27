@@ -27,6 +27,8 @@ namespace osu.Framework.Android
     {
         private readonly AndroidGameActivity activity;
 
+        private ChoreographerVsyncWaiter vsyncWaiter = new ChoreographerVsyncWaiter();
+
         public AndroidGameHost(AndroidGameActivity activity)
             : base(string.Empty)
         {
@@ -59,6 +61,9 @@ namespace osu.Framework.Android
                 androidGraphics.SetPresentationTime(nowNanoTime);
 
                 base.Swap();
+
+                if (Renderer.VerticalSync)
+                    vsyncWaiter.WaitForNextVsync();
             }
             else
             {
@@ -190,6 +195,15 @@ namespace osu.Framework.Android
         public override bool SuspendToBackground()
         {
             return activity.MoveTaskToBack(true);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                vsyncWaiter.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }
