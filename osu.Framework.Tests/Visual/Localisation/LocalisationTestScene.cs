@@ -64,13 +64,13 @@ namespace osu.Framework.Tests.Visual.Localisation
 
         protected class TestLocalisationStore : ILocalisationStore
         {
-            public CultureInfo EffectiveCulture { get; }
+            public CultureInfo UICulture { get; }
 
             private readonly IReadOnlyDictionary<string, string> translations;
 
             public TestLocalisationStore(CultureInfo culture, IReadOnlyDictionary<string, string> translations)
             {
-                EffectiveCulture = culture;
+                UICulture = culture;
                 this.translations = translations;
             }
 
