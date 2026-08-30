@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -77,6 +78,71 @@ namespace osu.Framework.Tests.IO
 
             Assert.IsNotNull(resolvedException, "exception wasn't forwarded by logger");
             Logger.NewEntry -= logTest;
+        }
+
+        [Test]
+        public void TestClassNameLogging()
+        {
+            void logTest(LogEntry entry)
+            {
+                Assert.That(entry.Message, Does.StartWith(nameof(TestLogging)));
+            }
+
+            using (var storage = new TemporaryNativeStorage(nameof(TestExceptionLogging)))
+            {
+                Logger.Storage = storage;
+                Logger.Enabled = true;
+
+                Logger.NewEntry += logTest;
+                Logger.Error(new TestException(), "message");
+                Logger.Error(new TestException(), "message", "test");
+                Logger.Log("message");
+                Logger.Log("message", "test");
+                Logger.LogPrint("message");
+                Logger.LogPrint("message", "test");
+                Logger.NewEntry -= logTest;
+
+                Logger.Enabled = false;
+                Logger.Flush();
+            }
+        }
+
+        [Test]
+        public void TestValueLogging()
+        {
+            Dictionary<object, object> valueChanges = new Dictionary<object, object>() { [""] = "osu!", ["EnteringMode"] = "TopLevel" };
+            Dictionary<string, object> values = new Dictionary<string, object>() { ["beatmap"] = 186, ["ruleset"] = 0, };
+
+            void logTest(LogEntry entry)
+            {
+                foreach (var valueChange in valueChanges)
+                {
+                    Assert.That(entry.Message, Contains.Substring($"from: \"{valueChange.Key}\" to: \"{valueChange.Value}\""));
+                }
+
+                foreach (var value in values)
+                {
+                    Assert.That(entry.Message, Contains.Substring($"{value.Key}:\"{value.Value}\""));
+                }
+            }
+
+            using (var storage = new TemporaryNativeStorage(nameof(TestExceptionLogging)))
+            {
+                Logger.Storage = storage;
+                Logger.Enabled = true;
+
+                Logger.NewEntry += logTest;
+                Logger.Error(new TestException(), "message", valueChanges: valueChanges, values: values);
+                Logger.Error(new TestException(), "message", "test", valueChanges: valueChanges, values: values);
+                Logger.Log("message", valueChanges: valueChanges, values: values);
+                Logger.Log("message", "test", valueChanges: valueChanges, values: values);
+                Logger.LogPrint("message", valueChanges: valueChanges, values: values);
+                Logger.LogPrint("message", "test", valueChanges: valueChanges, values: values);
+                Logger.NewEntry -= logTest;
+
+                Logger.Enabled = false;
+                Logger.Flush();
+            }
         }
 
         [Test]
