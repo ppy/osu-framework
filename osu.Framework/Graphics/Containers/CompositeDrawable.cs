@@ -1967,11 +1967,15 @@ namespace osu.Framework.Graphics.Containers
             finally
             {
                 isComputingChildrenSizeDependencies = false;
+                didComputeInitialChildrenSizeDependencies = true;
             }
         }
 
         private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
         {
+            if (!didComputeInitialChildrenSizeDependencies)
+                duration = 0;
+
             var currentTransform = TransformsForTargetMember(nameof(baseSize)).FirstOrDefault() as AutoSizeTransform;
 
             if ((currentTransform?.EndValue ?? Size) != newSize)
@@ -1986,6 +1990,8 @@ namespace osu.Framework.Graphics.Containers
                     this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, duration, easing));
             }
         }
+
+        private bool didComputeInitialChildrenSizeDependencies;
 
         /// <summary>
         /// A helper property for <see cref="autoSizeResizeTo(Vector2, double, Easing)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
