@@ -129,15 +129,23 @@ namespace osu.Framework.Graphics.Cursor
             Vector2 southEast = new Vector2(1).Normalized();
             Vector2 tooltipPos = cursorCentre + southEast * boundingRadius;
 
-            // Clamp position to tooltip container
-            tooltipPos.X = Math.Min(tooltipPos.X, DrawWidth - CurrentTooltip.DrawSize.X - 5);
-            float dX = Math.Max(0, tooltipPos.X - cursorCentre.X);
-            float dY = MathF.Sqrt(boundingRadius * boundingRadius - dX * dX);
+            const float edge_padding = 5;
 
-            if (tooltipPos.Y > DrawHeight - CurrentTooltip.DrawSize.Y - 5)
-                tooltipPos.Y = cursorCentre.Y - dY - CurrentTooltip.DrawSize.Y;
+            // Clamp position to tooltip container
+            tooltipPos.X = Math.Min(tooltipPos.X, DrawWidth - CurrentTooltip.DrawSize.X - edge_padding);
+
+            if (CurrentTooltip.AllowCursorOverlap)
+                tooltipPos.Y = Math.Min(tooltipPos.Y, DrawHeight - CurrentTooltip.DrawSize.Y - edge_padding);
             else
-                tooltipPos.Y = cursorCentre.Y + dY;
+            {
+                float dX = Math.Max(0, tooltipPos.X - cursorCentre.X);
+                float dY = MathF.Sqrt(boundingRadius * boundingRadius - dX * dX);
+
+                if (tooltipPos.Y > DrawHeight - CurrentTooltip.DrawSize.Y - edge_padding)
+                    tooltipPos.Y = Math.Max(cursorCentre.Y - dY - CurrentTooltip.DrawSize.Y, edge_padding);
+                else
+                    tooltipPos.Y = cursorCentre.Y + dY;
+            }
 
             return tooltipPos;
         }
@@ -418,6 +426,8 @@ namespace osu.Framework.Graphics.Cursor
             /// </summary>
             /// <param name="pos">The new position of the tooltip.</param>
             public virtual void Move(Vector2 pos) => Position = pos;
+
+            public bool AllowCursorOverlap => false;
         }
     }
 }
