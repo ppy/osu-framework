@@ -8,13 +8,14 @@ using System.Threading;
 
 namespace osu.Framework.Android
 {
-    public sealed class ChoreographerVsyncWaiter : Java.Lang.Object, Choreographer.IFrameCallback
+    public sealed class ChoreographerVsyncWaiter : IDisposable
     {
         private readonly HandlerThread thread;
         private readonly Handler handler;
         private readonly ManualResetEventSlim vsyncEvent = new ManualResetEventSlim(false);
 
         private Choreographer choreographer = null!;
+        private readonly VsyncWaiterFrameCallback callback;
         private bool disposed;
 
         public ChoreographerVsyncWaiter()
@@ -34,6 +35,8 @@ namespace osu.Framework.Android
 
             ready.Wait(30000);
             ready.Dispose();
+
+            callback = new VsyncWaiterFrameCallback(vsyncEvent);
         }
 
         public void WaitForNextVsync()
@@ -44,15 +47,13 @@ namespace osu.Framework.Android
 
             handler.Post(() =>
             {
-                choreographer.PostFrameCallback(this);
+                choreographer.PostFrameCallback(callback);
             });
 
             vsyncEvent.Wait(30000);
         }
 
-        public void DoFrame(long _) => vsyncEvent.Set();
-
-        public new void Dispose()
+        public void Dispose()
         {
             if (disposed)
                 return;
@@ -62,9 +63,20 @@ namespace osu.Framework.Android
             thread.QuitSafely();
             thread.Join();
 
+            callback.Dispose();
             vsyncEvent.Dispose();
+        }
 
-            base.Dispose();
+        private sealed class VsyncWaiterFrameCallback : Java.Lang.Object, Choreographer.IFrameCallback
+        {
+            private readonly ManualResetEventSlim vsyncEvent;
+
+            public VsyncWaiterFrameCallback(ManualResetEventSlim vsyncEvent)
+            {
+                this.vsyncEvent = vsyncEvent;
+            }
+
+            public void DoFrame(long _) => vsyncEvent.Set();
         }
     }
 }
