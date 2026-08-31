@@ -14,7 +14,7 @@ namespace osu.Framework.Input.Handlers
         /// Receives the final mouse position from an <see cref="InputManager"/>.
         /// </summary>
         /// <param name="position">The final mouse position.</param>
-        /// <param name="isSelfFeedback">Whether the feedback was triggered from this handler.</param>
-        void FeedbackMousePositionChange(Vector2 position, bool isSelfFeedback);
+        /// <param name="handler">A handler that reported the final mouse position.</param>
+        void FeedbackMousePositionChange(Vector2 position, InputHandler handler);
     }
 }
