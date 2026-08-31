@@ -58,6 +58,8 @@ Our team believes in **human contributions**. Any contribution – be it an issu
 
 This framework is licensed under the [MIT licence](https://opensource.org/licenses/MIT). Please see [the licence file](LICENCE) for more information. [tl;dr](https://tldrlegal.com/license/mit-license) you can do whatever you want as long as you include the original copyright and license notice in any copy of the software/source.
 
+Portions of this software are copyright © 2025 The FreeType Project (https://freetype.org). All rights reserved.
+
 The BASS audio library (a dependency of this framework) is a commercial product. While it is free for non-commercial use, please ensure to [obtain a valid licence](http://www.un4seen.com/bass.html#license) if you plan on distributing any application using it commercially.
 
 ## Projects that use osu!framework

@@ -4,7 +4,6 @@
 #nullable disable
 
 using NUnit.Framework;
-using osu.Framework.Graphics;
 using osu.Framework.Graphics.Rendering.Dummy;
 using osu.Framework.IO.Stores;
 using osu.Framework.Testing;
@@ -22,7 +21,7 @@ namespace osu.Framework.Tests.IO
         public void OneTimeSetUp()
         {
             storage = new TemporaryNativeStorage("fontstore-test");
-            fontResourceStore = new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Drawable).Assembly), "Resources.Fonts.Roboto");
+            fontResourceStore = new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(FontStoreTest).Assembly), "Resources.Fonts.Roboto");
         }
 
         [Test]
