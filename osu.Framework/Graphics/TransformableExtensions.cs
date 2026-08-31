@@ -267,7 +267,7 @@ namespace osu.Framework.Graphics
             transformable.Delay(0).Loop(pause);
 
         /// <summary>
-        /// Rotate over one full rotation with provided parameters.
+        /// Rotate indefinitely with provided parameters.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
         public static TransformSequence<T> Spin<T>(this T drawable, double revolutionDuration, RotationDirection direction, float startRotation = 0)
