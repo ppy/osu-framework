@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup Label="Project">
-    <TargetFramework>net8.0-ios</TargetFramework>
+    <TargetFramework>net10.0-ios</TargetFramework>
     <SupportedOSPlatformVersion>13.4</SupportedOSPlatformVersion>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -19,7 +19,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="runtimes\**\*" Pack="true" PackagePath="runtimes" />
-    <None Include="stubs\**\*" Pack="true" PackagePath="stubs" />
-    <Content Include="osu.Framework.iOS.Workarounds.targets" Pack="true" PackagePath="build\$(PackageId).targets" />
+    <None Include="$(MSBuildThisFileDirectory)..\tools\AssemblyStripper.cs" Pack="true" PackagePath="build\tools\AssemblyStripper.cs" />
+    <None Include="osu.Framework.iOS.Workarounds.targets" Pack="true" PackagePath="build\$(PackageId).targets" />
   </ItemGroup>
 </Project>
