@@ -18,6 +18,7 @@ namespace osu.Framework.Android
         private readonly VsyncWaiterFrameCallback callback;
         private readonly PostFrameCallbackRunnable runnable;
 
+        private bool hasVsyncCallback;
         private bool disposed;
 
         public ChoreographerVsyncWaiter()
@@ -42,15 +43,23 @@ namespace osu.Framework.Android
             runnable = new PostFrameCallbackRunnable(choreographer, callback);
         }
 
-        public void WaitForNextVsync()
+        /// <remarks>
+        /// Wait for the VSync callback posted during the previous frame.
+        /// This allows waiting for VSync to overlap with frame processing.
+        /// </remarks>
+        public void WaitForVsync()
         {
             ObjectDisposedException.ThrowIf(disposed, this);
+
+            // On the first run, the callback has not yet been set, so waiting is not possible.
+            if (hasVsyncCallback)
+                vsyncEvent.Wait(30000);
 
             vsyncEvent.Reset();
 
             handler.Post(runnable);
 
-            vsyncEvent.Wait(30000);
+            hasVsyncCallback = true;
         }
 
         public void Dispose()

@@ -63,7 +63,7 @@ namespace osu.Framework.Android
                 base.Swap();
 
                 if (Renderer.VerticalSync)
-                    vsyncWaiter.WaitForNextVsync();
+                    vsyncWaiter.WaitForVsync();
             }
             else
             {
