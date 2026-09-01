@@ -16,6 +16,8 @@ namespace osu.Framework.Android
 
         private Choreographer choreographer = null!;
         private readonly VsyncWaiterFrameCallback callback;
+        private readonly PostFrameCallbackRunnable runnable;
+
         private bool disposed;
 
         public ChoreographerVsyncWaiter()
@@ -37,6 +39,7 @@ namespace osu.Framework.Android
             ready.Dispose();
 
             callback = new VsyncWaiterFrameCallback(vsyncEvent);
+            runnable = new PostFrameCallbackRunnable(choreographer, callback);
         }
 
         public void WaitForNextVsync()
@@ -45,10 +48,7 @@ namespace osu.Framework.Android
 
             vsyncEvent.Reset();
 
-            handler.Post(() =>
-            {
-                choreographer.PostFrameCallback(callback);
-            });
+            handler.Post(runnable);
 
             vsyncEvent.Wait(30000);
         }
@@ -64,6 +64,7 @@ namespace osu.Framework.Android
             thread.Join();
 
             callback.Dispose();
+            runnable.Dispose();
             vsyncEvent.Dispose();
         }
 
@@ -77,6 +78,20 @@ namespace osu.Framework.Android
             }
 
             public void DoFrame(long _) => vsyncEvent.Set();
+        }
+
+        private sealed class PostFrameCallbackRunnable : Java.Lang.Object, Java.Lang.IRunnable
+        {
+            private readonly Choreographer choreographer;
+            private readonly Choreographer.IFrameCallback callback;
+
+            public PostFrameCallbackRunnable(Choreographer choreographer, Choreographer.IFrameCallback callback)
+            {
+                this.choreographer = choreographer;
+                this.callback = callback;
+            }
+
+            public void Run() => choreographer.PostFrameCallback(callback);
         }
     }
 }
