@@ -27,6 +27,8 @@ namespace osu.Framework.Graphics.Lines
 
             private float radius;
             private IShader? pathShader;
+            private Vector2 pathOffset;
+            private int treeVersion;
 
             private IVertexBatch<PathVertex>? quadBatch;
 
@@ -39,8 +41,21 @@ namespace osu.Framework.Graphics.Lines
             {
                 base.ApplyState();
 
-                segments.Clear();
-                segments.AddRange(Source.segments);
+                var bbh = Source.BBH;
+
+                int newTreeVersion = bbh.TreeVersion;
+
+                // BufferedDrawNode can trigger ApplyState for child draw node
+                // even in cases when path isn't being redrawn (for example with alpha change)
+                if (newTreeVersion != treeVersion)
+                {
+                    segments.Clear();
+                    segments.AddRange(bbh.Segments);
+
+                    treeVersion = newTreeVersion;
+                }
+
+                pathOffset = bbh.VertexBounds.TopLeft;
 
                 radius = Source.PathRadius;
                 pathShader = Source.pathShader;
@@ -158,10 +173,10 @@ namespace osu.Framework.Graphics.Lines
             {
                 Debug.Assert(quadBatch != null);
 
-                quadBatch.Add(new PathVertex(topLeft, start, end, radius));
-                quadBatch.Add(new PathVertex(topRight, start, end, radius));
-                quadBatch.Add(new PathVertex(bottomRight, start, end, radius));
-                quadBatch.Add(new PathVertex(bottomLeft, start, end, radius));
+                quadBatch.Add(new PathVertex(topLeft, start, end, radius, pathOffset));
+                quadBatch.Add(new PathVertex(topRight, start, end, radius, pathOffset));
+                quadBatch.Add(new PathVertex(bottomRight, start, end, radius, pathOffset));
+                quadBatch.Add(new PathVertex(bottomLeft, start, end, radius, pathOffset));
             }
 
             private void updateVertexBuffer()
@@ -322,11 +337,11 @@ namespace osu.Framework.Graphics.Lines
                 [VertexMember(1, VertexAttribPointerType.Float)]
                 public readonly float Radius;
 
-                public PathVertex(Vector2 position, Vector2 startPos, Vector2 endPos, float radius)
+                public PathVertex(Vector2 position, Vector2 startPos, Vector2 endPos, float radius, Vector2 pathOffset)
                 {
-                    Position = position;
-                    StartPos = startPos;
-                    EndPos = endPos;
+                    Position = position - pathOffset;
+                    StartPos = startPos - pathOffset;
+                    EndPos = endPos - pathOffset;
                     Radius = radius;
                 }
 
