@@ -31,11 +31,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The easing that should be used when children are moved to their position in the layout.
         /// </summary>
-        public Easing LayoutEasing
-        {
-            get => AutoSizeEasing;
-            set => AutoSizeEasing = value;
-        }
+        public Easing LayoutEasing { get; set; }
 
         /// <summary>
         /// The time it should take to move a child from its current position to its new layout position.
