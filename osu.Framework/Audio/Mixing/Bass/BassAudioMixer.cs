@@ -17,7 +17,7 @@ namespace osu.Framework.Audio.Mixing.Bass
     /// </summary>
     internal class BassAudioMixer : AudioMixer, IBassAudio
     {
-        private readonly AudioManager? manager;
+        private readonly BassAudioManager? manager;
 
         /// <summary>
         /// The handle for this mixer.
@@ -28,8 +28,6 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// The list of channels which are currently active in the BASS mix.
         /// </summary>
         private readonly List<IBassAudioChannel> activeChannels = new List<IBassAudioChannel>();
-
-        private readonly Dictionary<IEffectParameter, int> activeEffects = new Dictionary<IEffectParameter, int>();
 
         private const int frequency = 44100;
 
@@ -42,36 +40,11 @@ namespace osu.Framework.Audio.Mixing.Bass
         public BassAudioMixer(AudioManager? manager, AudioMixer? fallbackMixer, string identifier)
             : base(fallbackMixer, identifier)
         {
-            this.manager = manager;
+            this.manager = (BassAudioManager?)manager;
             EnqueueAction(createMixer);
         }
 
-        public override void AddEffect(IEffectParameter effect, int priority = 0) => EnqueueAction(() =>
-        {
-            if (activeEffects.ContainsKey(effect))
-                return;
-
-            int handle = ManagedBass.Bass.ChannelSetFX(Handle, effect.FXType, priority);
-            ManagedBass.Bass.FXSetParameters(handle, effect);
-
-            activeEffects[effect] = handle;
-        });
-
-        public override void RemoveEffect(IEffectParameter effect) => EnqueueAction(() =>
-        {
-            if (!activeEffects.Remove(effect, out int handle))
-                return;
-
-            ManagedBass.Bass.ChannelRemoveFX(Handle, handle);
-        });
-
-        public override void UpdateEffect(IEffectParameter effect) => EnqueueAction(() =>
-        {
-            if (!activeEffects.TryGetValue(effect, out int handle))
-                return;
-
-            ManagedBass.Bass.FXSetParameters(handle, effect);
-        });
+        public override AudioEffect GetNewEffect(int priority = 0) => new BassAudioEffect(act => EnqueueAction(act), this, priority);
 
         protected override void AddInternal(IAudioChannel channel)
         {

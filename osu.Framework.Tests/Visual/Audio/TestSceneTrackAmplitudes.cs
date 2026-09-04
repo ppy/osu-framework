@@ -15,24 +15,24 @@ namespace osu.Framework.Tests.Visual.Audio
 {
     public partial class TestSceneTrackAmplitudes : FrameworkTestScene
     {
-        private DrawableTrack track;
+        private DrawableTrack drawableTrack;
 
         private Box leftChannel;
         private Box rightChannel;
 
-        private TrackBass bassTrack;
+        private Track track;
 
         private Container amplitudeBoxes;
 
         [BackgroundDependencyLoader]
         private void load(ITrackStore tracks)
         {
-            bassTrack = (TrackBass)tracks.Get("sample-track.mp3");
-            int length = bassTrack.CurrentAmplitudes.FrequencyAmplitudes.Length;
+            track = tracks.Get("sample-track.mp3");
+            int length = track.CurrentAmplitudes.FrequencyAmplitudes.Length;
 
             Children = new Drawable[]
             {
-                track = new DrawableTrack(bassTrack),
+                drawableTrack = new DrawableTrack(track),
                 new GridContainer
                 {
                     RelativeSizeAxes = Axes.Both,
@@ -87,16 +87,16 @@ namespace osu.Framework.Tests.Visual.Audio
         {
             base.LoadComplete();
 
-            track.Looping = true;
-            AddStep("start track", () => track.Start());
-            AddStep("stop track", () => track.Stop());
+            drawableTrack.Looping = true;
+            AddStep("start track", () => drawableTrack.Start());
+            AddStep("stop track", () => drawableTrack.Stop());
         }
 
         protected override void Update()
         {
             base.Update();
 
-            var amplitudes = bassTrack.CurrentAmplitudes;
+            var amplitudes = track.CurrentAmplitudes;
 
             rightChannel.Width = amplitudes.RightChannel * 0.5f;
             leftChannel.Width = amplitudes.LeftChannel * 0.5f;

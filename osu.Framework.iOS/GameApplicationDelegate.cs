@@ -9,6 +9,7 @@ using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
 using SDL;
+using mysoundlib_cs;
 using UIKit;
 using static SDL.SDL3;
 
@@ -77,6 +78,7 @@ namespace osu.Framework.iOS
             NativeLibrary.SetDllImportResolver(typeof(BassFx).Assembly, (_, assembly, path) => NativeLibrary.Load("@rpath/bass_fx.framework/bass_fx", assembly, path));
             NativeLibrary.SetDllImportResolver(typeof(BassMix).Assembly, (_, assembly, path) => NativeLibrary.Load("@rpath/bassmix.framework/bassmix", assembly, path));
             NativeLibrary.SetDllImportResolver(typeof(SDL3).Assembly, (_, assembly, path) => NativeLibrary.Load("@rpath/SDL3.framework/SDL3", assembly, path));
+            NativeLibrary.SetDllImportResolver(typeof(MySoundLibrary).Assembly, (_, assembly, path) => NativeLibrary.Load("@rpath/mysoundlib.framework/mysoundlib", assembly, path));
         }
 
         private class OutputVolumeObserver : NSObject
