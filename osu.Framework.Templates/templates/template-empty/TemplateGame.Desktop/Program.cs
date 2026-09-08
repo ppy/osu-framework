@@ -9,8 +9,7 @@ namespace TemplateGame.Desktop
         public static void Main()
         {
             using (GameHost host = Host.GetSuitableDesktopHost(@"TemplateGame"))
-            using (osu.Framework.Game game = new TemplateGameGame())
-                host.Run(game);
+                host.Run(new TemplateGameGame());
         }
     }
 }

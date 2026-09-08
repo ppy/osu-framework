@@ -60,8 +60,6 @@ namespace osu.Framework.Tests.Platform
 
             Assert.IsTrue(task.Wait(timeout));
 
-            game.Dispose();
-
             Assert.IsTrue(container.DisposedSuccessfully.Wait(timeout));
         }
 
