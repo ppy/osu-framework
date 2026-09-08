@@ -29,6 +29,9 @@ namespace osu.Framework.Tests.MathUtils
             Assert.AreEqual(5, Interpolation.Lerp(0, 10, 0.5f));
             Assert.AreEqual(0, Interpolation.Lerp(0, 10, 0));
             Assert.AreEqual(10, Interpolation.Lerp(0, 10, 1));
+
+            Assert.AreEqual(-10, Interpolation.Lerp(0, 10, -1));
+            Assert.AreEqual(20, Interpolation.Lerp(0, 10, 2));
         }
 
         [Test]
