@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
@@ -54,8 +53,6 @@ namespace osu.Framework.Tests.Visual.Sprites
             "vp8.webm",
             "vp9.webm",
         };
-
-        private static string[][] videoFormatTestCaseSource => video_formats.Select(format => new[] { format }).ToArray();
 
         [BackgroundDependencyLoader]
         private void load(Game game)
@@ -179,7 +176,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("decoding ran", () => didDecode);
         }
 
-        [TestCaseSource(nameof(videoFormatTestCaseSource))]
+        [TestCaseSource(nameof(video_formats))]
         public void TestJumpForward(string videoFile)
         {
             loadNewVideo(videoFile);
@@ -188,7 +185,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("Video seeked", () => video.CurrentFrameTime >= 10000);
         }
 
-        [TestCaseSource(nameof(videoFormatTestCaseSource))]
+        [TestCaseSource(nameof(video_formats))]
         public void TestJumpBack(string videoFile)
         {
             loadNewVideo(videoFile);
@@ -199,7 +196,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("Video seeked", () => video.CurrentFrameTime < 30000);
         }
 
-        [TestCaseSource(nameof(videoFormatTestCaseSource))]
+        [TestCaseSource(nameof(video_formats))]
         public void TestJumpBackAfterEndOfPlayback(string videoFile)
         {
             loadNewVideo(videoFile);
