@@ -151,7 +151,7 @@ namespace osu.Framework.Graphics
             ArgumentOutOfRangeException.ThrowIfNegative(duration);
 
             if (transform.Target != null)
-                throw new InvalidOperationException($"May not {nameof(PopulateTransform)} the same {nameof(Transform<TValue, TThis>)} more than once.");
+                throw new InvalidOperationException($"May not {nameof(PopulateTransform)} the same {nameof(Transform<,>)} more than once.");
 
             transform.Target = t;
 

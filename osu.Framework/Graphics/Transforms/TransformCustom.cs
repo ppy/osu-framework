@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.Transforms
                 if (property.PropertyType != typeof(TValue))
                 {
                     throw new InvalidOperationException(
-                        $"Cannot create {nameof(TransformCustom<TValue, T>)} for property {type.ReadableName()}.{propertyOrFieldName} " +
+                        $"Cannot create {nameof(TransformCustom<,>)} for property {type.ReadableName()}.{propertyOrFieldName} " +
                         $"since its type should be {typeof(TValue).ReadableName()}, but is {property.PropertyType.ReadableName()}.");
                 }
 
@@ -100,14 +100,14 @@ namespace osu.Framework.Graphics.Transforms
                 if (getter == null || setter == null)
                 {
                     throw new InvalidOperationException(
-                        $"Cannot create {nameof(TransformCustom<TValue, T>)} for property {type.ReadableName()}.{propertyOrFieldName} " +
+                        $"Cannot create {nameof(TransformCustom<,>)} for property {type.ReadableName()}.{propertyOrFieldName} " +
                         "since it needs to have both a getter and a setter.");
                 }
 
                 if (getter.IsStatic || setter.IsStatic)
                 {
                     throw new NotSupportedException(
-                        $"Cannot create {nameof(TransformCustom<TValue, T>)} for property {type.ReadableName()}.{propertyOrFieldName} because static fields are not supported.");
+                        $"Cannot create {nameof(TransformCustom<,>)} for property {type.ReadableName()}.{propertyOrFieldName} because static fields are not supported.");
                 }
 
                 return new Accessor
@@ -124,14 +124,14 @@ namespace osu.Framework.Graphics.Transforms
                 if (field.FieldType != typeof(TValue))
                 {
                     throw new InvalidOperationException(
-                        $"Cannot create {nameof(TransformCustom<TValue, T>)} for field {type.ReadableName()}.{propertyOrFieldName} " +
+                        $"Cannot create {nameof(TransformCustom<,>)} for field {type.ReadableName()}.{propertyOrFieldName} " +
                         $"since its type should be {typeof(TValue).ReadableName()}, but is {field.FieldType.ReadableName()}.");
                 }
 
                 if (field.IsStatic)
                 {
                     throw new NotSupportedException(
-                        $"Cannot create {nameof(TransformCustom<TValue, T>)} for field {type.ReadableName()}.{propertyOrFieldName} because static fields are not supported.");
+                        $"Cannot create {nameof(TransformCustom<,>)} for field {type.ReadableName()}.{propertyOrFieldName} because static fields are not supported.");
                 }
 
                 return new Accessor
@@ -142,7 +142,7 @@ namespace osu.Framework.Graphics.Transforms
             }
 
             if (type.BaseType == null)
-                throw new InvalidOperationException($"Cannot create {nameof(TransformCustom<TValue, T>)} for non-existent property or field {typeof(T).ReadableName()}.{propertyOrFieldName}.");
+                throw new InvalidOperationException($"Cannot create {nameof(TransformCustom<,>)} for non-existent property or field {typeof(T).ReadableName()}.{propertyOrFieldName}.");
 
             // Private members aren't visible unless we check the base type explicitly, so let's try our luck.
             return findAccessor(type.BaseType, propertyOrFieldName);
