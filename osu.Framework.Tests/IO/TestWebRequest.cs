@@ -121,7 +121,7 @@ namespace osu.Framework.Tests.IO
 
             var responseObject = request.ResponseObject;
 
-            Assert.IsTrue(responseObject != null);
+            Assert.That(responseObject, Is.Not.Null);
             Assert.IsTrue(responseObject.Headers.UserAgent == expectedUserAgent);
 
             // disabled due to hosted version returning incorrect response (https://github.com/postmanlabs/httpbin/issues/545)
@@ -500,7 +500,7 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(request.Completed);
             Assert.IsTrue(request.Aborted);
 
-            Assert.IsTrue(thrownException != null);
+            Assert.That(thrownException, Is.Not.Null);
             Assert.AreEqual(WebRequest.MAX_RETRIES, request.RetryCount);
             Assert.AreEqual(typeof(WebException), thrownException.GetType());
         }
@@ -616,7 +616,7 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(request.Completed);
             Assert.IsFalse(request.Aborted);
 
-            Assert.IsTrue(responseObject.Form != null);
+            Assert.That(responseObject.Form, Is.Not.Null);
             Assert.IsTrue(responseObject.Form.Count == 2);
 
             Assert.IsTrue(responseObject.Headers.ContentLength > 0);
@@ -653,7 +653,7 @@ namespace osu.Framework.Tests.IO
             Assert.IsFalse(request.Aborted);
 
             Assert.IsTrue(responseObject.Headers.ContentLength > 0);
-            Assert.IsTrue(responseObject.Json != null);
+            Assert.That(responseObject.Json, Is.Not.Null);
             Assert.AreEqual(testObject.TestString, responseObject.Json.TestString);
         }
 
