@@ -246,8 +246,7 @@ namespace osu.Framework.Platform
             thread.IsActive.BindTo(IsActive);
             thread.UnhandledException = unhandledExceptionHandler;
 
-            if (thread.Monitor != null)
-                thread.Monitor.EnablePerformanceProfiling = PerformanceLogging.Value;
+            thread.Monitor?.EnablePerformanceProfiling = PerformanceLogging.Value;
         }
 
         /// <summary>
@@ -295,8 +294,7 @@ namespace osu.Framework.Platform
             set
             {
                 maximumDrawHz = value;
-                if (DrawThread != null)
-                    DrawThread.ActiveHz = maximumDrawHz;
+                DrawThread?.ActiveHz = maximumDrawHz;
             }
         }
 
@@ -315,8 +313,7 @@ namespace osu.Framework.Platform
             set
             {
                 threadRunner.MaximumInactiveHz = UpdateThread.InactiveHz = maximumInactiveHz = value;
-                if (DrawThread != null)
-                    DrawThread.InactiveHz = maximumInactiveHz;
+                DrawThread?.InactiveHz = maximumInactiveHz;
             }
         }
 
@@ -1285,8 +1282,7 @@ namespace osu.Framework.Platform
             {
                 Threads.ForEach(t =>
                 {
-                    if (t.Monitor != null)
-                        t.Monitor.EnablePerformanceProfiling = logging.NewValue;
+                    t.Monitor?.EnablePerformanceProfiling = logging.NewValue;
                 });
                 DebugUtils.LogPerformanceIssues = logging.NewValue;
                 TypePerformanceMonitor.Active = logging.NewValue;

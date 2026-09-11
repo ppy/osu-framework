@@ -114,10 +114,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 text = value;
 
-                if (localisedText != null)
-                {
-                    localisedText.Text = value;
-                }
+                localisedText?.Text = value;
             }
         }
 

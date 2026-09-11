@@ -222,8 +222,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 SelectedTab = tab;
 
-                if (SelectedTab != null)
-                    SelectedTab.Active.Value = true;
+                SelectedTab?.Active.Value = true;
             }, true);
 
             // TabContainer doesn't have valid layout yet, so TabItems all have y=0 and selectTab() didn't call performTabSort() so we call it here instead

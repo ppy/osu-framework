@@ -305,8 +305,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             realtimeClock.ProcessFrame();
 
-            if (clock != null)
-                clock.CurrentTime += realtimeClock.ElapsedFrameTime;
+            clock?.CurrentTime += realtimeClock.ElapsedFrameTime;
 
             if (video != null)
             {
@@ -319,15 +318,12 @@ namespace osu.Framework.Tests.Visual.Sprites
                     lastFramesProcessed = video.FramesProcessed;
                 }
 
-                if (timeText != null)
-                {
-                    timeText.Text = $"aim time: {video.PlaybackPosition:N2}\n"
-                                    + $"video time: {video.CurrentFrameTime:N2}\n"
-                                    + $"duration: {video.Duration:N2}\n"
-                                    + $"buffered {video.AvailableFrames}\n"
-                                    + $"FPS: {fps}\n"
-                                    + $"State: {video.State}";
-                }
+                timeText?.Text = $"aim time: {video.PlaybackPosition:N2}\n"
+                                 + $"video time: {video.CurrentFrameTime:N2}\n"
+                                 + $"duration: {video.Duration:N2}\n"
+                                 + $"buffered {video.AvailableFrames}\n"
+                                 + $"FPS: {fps}\n"
+                                 + $"State: {video.State}";
 
                 didDecode |= video.State == VideoDecoder.DecoderState.Running;
             }

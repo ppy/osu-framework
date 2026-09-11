@@ -58,8 +58,7 @@ namespace osu.Framework.Graphics.Transforms
         {
             // As soon as we have an infinitely looping transform,
             // completion no longer makes sense.
-            if (last != null)
-                last.CompletionTargetSequence = null;
+            last?.CompletionTargetSequence = null;
 
             last = null;
             lastEndTime = double.PositiveInfinity;
@@ -96,8 +95,7 @@ namespace osu.Framework.Graphics.Transforms
             // Update last transform for completion callback
             if (last == null || transform.EndTime > lastEndTime)
             {
-                if (last != null)
-                    last.CompletionTargetSequence = null;
+                last?.CompletionTargetSequence = null;
 
                 last = transform;
                 last.CompletionTargetSequence = this;
