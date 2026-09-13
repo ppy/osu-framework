@@ -58,7 +58,7 @@ namespace osu.Framework.Tests.Visual.Testing
                         Assertion = () => true,
                         CallStack = new StackTrace()
                     },
-                    new StepSlider<int>(nameof(StepSlider<int>), 0, 10, 5),
+                    new StepSlider<int>(nameof(StepSlider<>), 0, 10, 5),
                     new StepColourPicker(nameof(StepColourPicker), Colour4.AliceBlue),
                 }
             };

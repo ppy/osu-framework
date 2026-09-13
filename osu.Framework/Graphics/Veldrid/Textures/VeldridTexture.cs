@@ -420,8 +420,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
                 mipLevel = value;
 
-                if (resources != null)
-                    resources.Sampler = createSampler();
+                resources?.Sampler = createSampler();
             }
         }
 

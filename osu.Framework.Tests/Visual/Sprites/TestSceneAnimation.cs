@@ -290,8 +290,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             base.Update();
 
-            if (clock != null)
-                clock.CurrentTime += Clock.ElapsedFrameTime;
+            clock?.CurrentTime += Clock.ElapsedFrameTime;
 
             if (animation != null)
             {

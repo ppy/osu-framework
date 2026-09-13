@@ -88,7 +88,7 @@ namespace osu.Framework.Physics
         public override float Mass
         {
             get => float.MaxValue;
-            set => throw new InvalidOperationException($"May not set the {nameof(Mass)} of a {nameof(RigidBodySimulation<T>)}.");
+            set => throw new InvalidOperationException($"May not set the {nameof(Mass)} of a {nameof(RigidBodySimulation<>)}.");
         }
 
         protected override void UpdateVertices()

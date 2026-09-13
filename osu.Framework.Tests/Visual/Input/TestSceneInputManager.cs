@@ -226,28 +226,21 @@ namespace osu.Framework.Tests.Visual.Input
         private void setPenSensitivityConfig(double sensitivity)
         {
             var penHandler = host.AvailableInputHandlers.OfType<PenHandler>().FirstOrDefault();
-            if (penHandler != null)
-                penHandler.Sensitivity.Value = sensitivity;
+            penHandler?.Sensitivity.Value = sensitivity;
         }
 
         private void setCursorSensitivityConfig(double sensitivity)
         {
             var mouseHandler = getMouseHandler();
 
-            if (mouseHandler == null)
-                return;
-
-            mouseHandler.Sensitivity.Value = sensitivity;
+            mouseHandler?.Sensitivity.Value = sensitivity;
         }
 
         private void setRelativeMode(bool enabled)
         {
             var mouseHandler = getMouseHandler();
 
-            if (mouseHandler == null)
-                return;
-
-            mouseHandler.UseRelativeMode.Value = enabled;
+            mouseHandler?.UseRelativeMode.Value = enabled;
         }
 
         private MouseHandler getMouseHandler()
@@ -273,10 +266,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void setCursorConfineRect(bool enabled)
         {
-            if (host.Window == null)
-                return;
-
-            host.Window.CursorConfineRect = enabled
+            host.Window?.CursorConfineRect = enabled
                 ? new RectangleF
                 {
                     X = host.Window.ClientSize.Width / 6f,

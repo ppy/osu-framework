@@ -344,7 +344,7 @@ namespace osu.Framework.Testing
             });
         }
 
-        protected void AddUntilStep<T>([CanBeNull] string description, [NotNull] ActualValueDelegate<T> actualValue, [NotNull] Func<IResolveConstraint> constraint)
+        protected void AddUntilStep<T>([CanBeNull] string description, [NotNull] Func<T> actualValue, [NotNull] Func<IResolveConstraint> constraint)
         {
             ConstraintResult lastResult = null;
 
@@ -414,7 +414,7 @@ namespace osu.Framework.Testing
             });
         }
 
-        protected void AddAssert<T>([NotNull] string description, [NotNull] ActualValueDelegate<T> actualValue, [NotNull] Func<IResolveConstraint> constraint,
+        protected void AddAssert<T>([NotNull] string description, [NotNull] Func<T> actualValue, [NotNull] Func<IResolveConstraint> constraint,
                                     [CanBeNull] string extendedDescription = null)
         {
             ConstraintResult lastResult = null;

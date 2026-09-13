@@ -94,8 +94,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             hsvColourPicker.Current = Current;
 
-            if (swatchColourPicker != null)
-                swatchColourPicker.Current = Current;
+            swatchColourPicker?.Current = Current;
 
             hexColourPicker.Current = Current;
         }

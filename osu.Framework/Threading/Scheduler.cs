@@ -27,7 +27,7 @@ namespace osu.Framework.Threading
 
         private double currentTime => clock?.CurrentTime ?? 0;
 
-        private readonly object queueLock = new object();
+        private readonly Lock queueLock = new Lock();
 
         internal const int LOG_EXCESSSIVE_QUEUE_LENGTH_INTERVAL = 1000;
 

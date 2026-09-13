@@ -87,8 +87,8 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (!currentNumberInstantaneous.HasDefinedRange)
                 {
-                    throw new InvalidOperationException($"A {nameof(SliderBar<T>)}'s {nameof(Current)} must have user-defined {nameof(BindableNumber<T>.MinValue)}"
-                                                        + $" and {nameof(BindableNumber<T>.MaxValue)} to produce a valid {nameof(NormalizedValue)}.");
+                    throw new InvalidOperationException($"A {nameof(SliderBar<>)}'s {nameof(Current)} must have user-defined {nameof(BindableNumber<>.MinValue)}"
+                                                        + $" and {nameof(BindableNumber<>.MaxValue)} to produce a valid {nameof(NormalizedValue)}.");
                 }
 
                 return currentNumberInstantaneous.NormalizedValue;

@@ -16,6 +16,7 @@ using osu.Framework.Testing;
 namespace osu.Framework.Tests.Platform
 {
     [TestFixture]
+    [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
     public partial class HeadlessGameHostTest
     {
         [Test]

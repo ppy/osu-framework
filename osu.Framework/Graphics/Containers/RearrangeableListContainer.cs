@@ -147,7 +147,7 @@ namespace osu.Framework.Graphics.Containers
                 if (itemMap.ContainsKey(item))
                 {
                     throw new InvalidOperationException(
-                        $"Duplicate items cannot be added to a {nameof(BindableList<TModel>)} that is currently bound with a {nameof(RearrangeableListContainer<TModel>)}.");
+                        $"Duplicate items cannot be added to a {nameof(BindableList<>)} that is currently bound with a {nameof(RearrangeableListContainer<>)}.");
                 }
 
                 var drawable = CreateDrawable(item).With(d =>

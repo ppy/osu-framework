@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Input.StateChanges;
@@ -58,7 +59,7 @@ namespace osu.Framework.Input.Handlers
 
         protected ConcurrentQueue<IInput> PendingInputs = new ConcurrentQueue<IInput>();
 
-        private readonly object pendingInputsRetrievalLock = new object();
+        private readonly Lock pendingInputsRetrievalLock = new Lock();
 
         /// <summary>
         /// Add all pending states since the last call to this method to a provided list.

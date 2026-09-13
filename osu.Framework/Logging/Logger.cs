@@ -21,14 +21,14 @@ namespace osu.Framework.Logging
     /// </summary>
     public class Logger
     {
-        private static readonly object static_sync_lock = new object();
+        private static readonly Lock static_sync_lock = new Lock();
 
         /// <summary>
         /// Separate locking object for flushing so that we don't lock too long on the staticSyncLock object, since we have to
         /// hold this lock for the entire duration of the flush (waiting for I/O etc) before we can resume scheduling logs
         /// but other operations like GetLogger(), ApplyFilters() etc. can still be executed while a flush is happening.
         /// </summary>
-        private static readonly object flush_sync_lock = new object();
+        private static readonly Lock flush_sync_lock = new Lock();
 
         /// <summary>
         /// Logs are stored with a consistent unix timestamp prefix per session (across all loggers) for logical grouping of

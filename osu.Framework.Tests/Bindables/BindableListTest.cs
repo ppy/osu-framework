@@ -973,7 +973,7 @@ namespace osu.Framework.Tests.Bindables
             for (int i = startIndex + removeCount; i < totalCount; i++)
                 remainingItems.Add("test" + i);
 
-            CollectionAssert.AreEqual(remainingItems, bindableStringList);
+            Assert.That(remainingItems, Is.EquivalentTo(bindableStringList));
         }
 
         [Test]
@@ -1393,7 +1393,7 @@ namespace osu.Framework.Tests.Bindables
 
             bindableStringList.CopyTo(array, 0);
 
-            CollectionAssert.AreEquivalent(bindableStringList, array);
+            Assert.That(bindableStringList, Is.EquivalentTo(array));
         }
 
         #endregion
@@ -1526,7 +1526,7 @@ namespace osu.Framework.Tests.Bindables
 
             bindableStringList.Parse(strings, CultureInfo.InvariantCulture);
 
-            CollectionAssert.AreEquivalent(strings, bindableStringList);
+            Assert.That(strings, Is.EquivalentTo(bindableStringList));
         }
 
         [Test]

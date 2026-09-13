@@ -434,7 +434,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// A lock exclusively used for initial acquisition/construction of the <see cref="Scheduler"/>.
         /// </summary>
-        private static readonly object scheduler_acquisition_lock = new object();
+        private static readonly Lock scheduler_acquisition_lock = new Lock();
 
         private volatile Scheduler scheduler;
 

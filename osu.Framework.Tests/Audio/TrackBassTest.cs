@@ -488,6 +488,7 @@ namespace osu.Framework.Tests.Audio
         {
             setupBackend(id, true);
 
+            Assert.That(track.Bitrate, Is.Not.Null);
             Assert.Greater(track.Bitrate, 0);
         }
 
