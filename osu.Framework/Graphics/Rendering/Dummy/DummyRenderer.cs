@@ -136,7 +136,7 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         {
         }
 
-        public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
+        public override IFrameBuffer CreateFrameBuffer(TexturePixelFormat textureFormat = TexturePixelFormat.R8G8B8A8Float, RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
             => new DummyFrameBuffer(this);
     }
 }

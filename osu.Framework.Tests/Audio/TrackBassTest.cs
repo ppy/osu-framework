@@ -408,6 +408,7 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestBitrate()
         {
+            Assert.That(track.Bitrate, Is.Not.Null);
             Assert.Greater(track.Bitrate, 0);
         }
 
