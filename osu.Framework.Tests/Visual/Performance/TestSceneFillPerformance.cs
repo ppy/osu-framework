@@ -8,7 +8,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Utils;
-using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Performance
