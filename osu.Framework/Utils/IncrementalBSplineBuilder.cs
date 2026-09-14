@@ -83,29 +83,25 @@ namespace osu.Framework.Utils
 
         private bool finishedDrawing;
 
-        private int degree;
-
         /// <summary>
         /// Gets or sets the degree of the B-Spline. Must not be negative. Default is 3.
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when the value is negative.</exception>
         public int Degree
         {
-            get => degree;
+            get;
             set
             {
                 ArgumentOutOfRangeException.ThrowIfNegative(value);
 
-                if (value == degree)
+                if (value == field)
                     return;
 
-                degree = value;
+                field = value;
                 outputCache.Invalidate();
                 controlPoints.Invalidate();
             }
         }
-
-        private float tolerance;
 
         /// <summary>
         /// Gets or sets the tolerance for determining when to add a new control point. Must not be negative. Default is 1.5.
@@ -113,21 +109,19 @@ namespace osu.Framework.Utils
         /// <exception cref="ArgumentOutOfRangeException">Thrown when the value is negative.</exception>
         public float Tolerance
         {
-            get => tolerance;
+            get;
             set
             {
                 ArgumentOutOfRangeException.ThrowIfNegative(value);
 
-                if (value == tolerance)
+                if (value == field)
                     return;
 
-                tolerance = value;
+                field = value;
                 outputCache.Invalidate();
                 controlPoints.Invalidate();
             }
         }
-
-        private float cornerThreshold;
 
         /// <summary>
         /// Gets or sets the corner threshold for determining when to add a new control point. Must not be negative. Default is 0.4.
@@ -135,15 +129,15 @@ namespace osu.Framework.Utils
         /// <exception cref="ArgumentOutOfRangeException">Thrown when the value is negative.</exception>
         public float CornerThreshold
         {
-            get => cornerThreshold;
+            get;
             set
             {
                 ArgumentOutOfRangeException.ThrowIfNegative(value);
 
-                if (value == cornerThreshold)
+                if (value == field)
                     return;
 
-                cornerThreshold = value;
+                field = value;
                 outputCache.Invalidate();
                 controlPoints.Invalidate();
             }
@@ -236,7 +230,7 @@ namespace osu.Framework.Utils
         {
             var cornerT = new List<float> { 0f };
 
-            float threshold = cornerThreshold / FD_EPSILON;
+            float threshold = CornerThreshold / FD_EPSILON;
 
             const float step_size = FD_EPSILON;
             int nSteps = (int)(distances[^1] / step_size);
@@ -377,7 +371,7 @@ namespace osu.Framework.Utils
                 // Only the 2 * degree last control points are not fixed in place.
                 // This number was chosen because manual testing showed that control points outside this range barely get moved
                 // by the optimization when the end of the segment gets extended.
-                for (int j = Math.Max(1, lastSegment.Count - degree * 2); j < lastSegment.Count - 1; j++)
+                for (int j = Math.Max(1, lastSegment.Count - Degree * 2); j < lastSegment.Count - 1; j++)
                 {
                     learnableMask[0, j] = 1;
                     learnableMask[1, j] = 1;
@@ -385,7 +379,7 @@ namespace osu.Framework.Utils
             }
 
             int res = (int)(totalWinding * 10);
-            segments[^1] = PathApproximator.PiecewiseLinearToBSpline(segmentPath.ToArray(), lastSegment.Count, degree,
+            segments[^1] = PathApproximator.PiecewiseLinearToBSpline(segmentPath.ToArray(), lastSegment.Count, Degree,
                 res, iterations, 4f, initialControlPoints: lastSegment, learnableMask: learnableMask);
         }
 
@@ -468,7 +462,7 @@ namespace osu.Framework.Utils
                 if (cps.Count > 2 && cps.Count < 100)
                 {
                     int res = (int)(totalWinding * 10);
-                    cps = PathApproximator.PiecewiseLinearToBSpline(segmentPath.ToArray(), cps.Count, degree,
+                    cps = PathApproximator.PiecewiseLinearToBSpline(segmentPath.ToArray(), cps.Count, Degree,
                         res, 200, 5, initialControlPoints: cps);
                 }
 
@@ -484,7 +478,7 @@ namespace osu.Framework.Utils
 
             foreach (var segment in ControlPoints)
             {
-                outputCache.Value.AddRange(PathApproximator.BSplineToPiecewiseLinear(segment.ToArray(), degree));
+                outputCache.Value.AddRange(PathApproximator.BSplineToPiecewiseLinear(segment.ToArray(), Degree));
             }
         }
 

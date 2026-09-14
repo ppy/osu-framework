@@ -88,15 +88,13 @@ namespace osu.Framework.Tests.Visual.Input
             public override bool AcceptsFocus => Enabled;
             public override bool RequestsFocus => Enabled;
 
-            private bool enabled;
-
             public bool Enabled
             {
-                protected get => enabled;
+                protected get;
                 set
                 {
-                    enabled = value;
-                    DisabledOverlay.Alpha = enabled ? 0 : 1;
+                    field = value;
+                    DisabledOverlay.Alpha = field ? 0 : 1;
                 }
             }
         }

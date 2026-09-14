@@ -11,7 +11,6 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         public override int RequiredRepetitions => Count;
 
-        private readonly string text = string.Empty;
         private int invocations;
 
         public RepeatStepButton()
@@ -21,9 +20,9 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         public new string Text
         {
-            get => text;
-            init => base.Text = text = value;
-        }
+            get;
+            init => base.Text = field = value;
+        } = string.Empty;
 
         public override void PerformStep(bool userTriggered = false)
         {

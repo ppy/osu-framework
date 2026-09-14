@@ -30,8 +30,6 @@ namespace osu.Framework.Graphics.Performance
         [Resolved]
         private FrameworkConfigManager config { get; set; } = null!;
 
-        private FrameStatisticsMode state;
-
         private TextFlowContainer? infoText;
 
         private Bindable<FrameSync> configFrameSync = null!;
@@ -46,12 +44,12 @@ namespace osu.Framework.Graphics.Performance
 
         public FrameStatisticsMode State
         {
-            get => state;
+            get;
             set
             {
-                if (state == value) return;
+                if (field == value) return;
 
-                state = value;
+                field = value;
 
                 if (IsLoaded)
                     updateState();
@@ -159,7 +157,7 @@ namespace osu.Framework.Graphics.Performance
 
         private void updateState()
         {
-            switch (state)
+            switch (State)
             {
                 case FrameStatisticsMode.None:
                     this.FadeOut(100);
@@ -190,7 +188,7 @@ namespace osu.Framework.Graphics.Performance
                             {
                                 Anchor = Anchor.TopRight,
                                 Origin = Anchor.TopRight,
-                                State = state
+                                State = State
                             };
 
                             Add(display);
@@ -203,7 +201,7 @@ namespace osu.Framework.Graphics.Performance
             }
 
             foreach (var display in frameDisplays)
-                display.State = state;
+                display.State = State;
 
             StateChanged?.Invoke(State);
         }

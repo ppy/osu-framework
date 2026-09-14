@@ -50,8 +50,6 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private Axes textureInsetRelativeAxes;
-
         /// <summary>
         /// Controls which <see cref="Axes"/> of <see cref="TextureInset"/> are relative w.r.t.
         /// <see cref="Sprite.Texture"/>'s <see cref="Texture.DisplaySize"/> (from 0 to 1) rather than absolute.
@@ -62,10 +60,10 @@ namespace osu.Framework.Graphics.Sprites
         /// </remarks>
         public Axes TextureInsetRelativeAxes
         {
-            get => textureInsetRelativeAxes;
+            get;
             set
             {
-                if (textureInsetRelativeAxes == value)
+                if (field == value)
                     return;
 
                 if (Texture != null)
@@ -74,20 +72,20 @@ namespace osu.Framework.Graphics.Sprites
 
                     Vector2 conversion = Vector2.One;
 
-                    if ((value & Axes.X) > 0 && (textureInsetRelativeAxes & Axes.X) == 0)
+                    if ((value & Axes.X) > 0 && (field & Axes.X) == 0)
                         conversion.X = Precision.AlmostEquals(textureSize.X, 0) ? 0 : 1 / textureSize.X;
-                    else if ((value & Axes.X) == 0 && (textureInsetRelativeAxes & Axes.X) > 0)
+                    else if ((value & Axes.X) == 0 && (field & Axes.X) > 0)
                         conversion.X = textureSize.X;
 
-                    if ((value & Axes.Y) > 0 && (textureInsetRelativeAxes & Axes.Y) == 0)
+                    if ((value & Axes.Y) > 0 && (field & Axes.Y) == 0)
                         conversion.Y = Precision.AlmostEquals(textureSize.Y, 0) ? 0 : 1 / textureSize.Y;
-                    else if ((value & Axes.Y) == 0 && (textureInsetRelativeAxes & Axes.Y) > 0)
+                    else if ((value & Axes.Y) == 0 && (field & Axes.Y) > 0)
                         conversion.Y = textureSize.Y;
 
                     textureInset *= conversion;
                 }
 
-                textureInsetRelativeAxes = value;
+                field = value;
 
                 Invalidate(Invalidation.DrawNode);
             }

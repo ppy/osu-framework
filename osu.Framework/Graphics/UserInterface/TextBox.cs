@@ -121,16 +121,14 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        private bool readOnly;
-
         public bool ReadOnly
         {
-            get => readOnly;
+            get;
             set
             {
-                readOnly = value;
+                field = value;
 
-                if (readOnly)
+                if (field)
                     KillFocus();
             }
         }
@@ -1204,7 +1202,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (readOnly)
+            if (ReadOnly)
                 return true;
 
             if (ImeCompositionActive)

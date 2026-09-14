@@ -47,8 +47,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private TableColumn[] columns = Array.Empty<TableColumn>();
-
         /// <summary>
         /// Describes the columns of this <see cref="TableContainer"/>.
         /// Each index of this array applies to the respective column index inside <see cref="Content"/>.
@@ -56,22 +54,20 @@ namespace osu.Framework.Graphics.Containers
         public TableColumn[] Columns
         {
             [NotNull]
-            get => columns;
+            get;
             [CanBeNull]
             set
             {
                 value ??= Array.Empty<TableColumn>();
 
-                if (columns == value)
+                if (field == value)
                     return;
 
-                columns = value;
+                field = value;
 
                 updateContent();
             }
-        }
-
-        private Dimension rowSize = new Dimension();
+        } = Array.Empty<TableColumn>();
 
         /// <summary>
         /// Explicit dimensions for rows. The dimension is applied to every row of this <see cref="TableContainer"/>
@@ -79,39 +75,37 @@ namespace osu.Framework.Graphics.Containers
         public Dimension RowSize
         {
             [NotNull]
-            get => rowSize;
+            get;
             [CanBeNull]
             set
             {
                 value ??= new Dimension();
 
-                if (rowSize == value)
+                if (field == value)
                     return;
 
-                rowSize = value;
+                field = value;
 
                 updateContent();
             }
-        }
-
-        private bool showHeaders = true;
+        } = new Dimension();
 
         /// <summary>
         /// Whether to display a row with column headers at the top of the table.
         /// </summary>
         public bool ShowHeaders
         {
-            get => showHeaders;
+            get;
             set
             {
-                if (showHeaders == value)
+                if (field == value)
                     return;
 
-                showHeaders = value;
+                field = value;
 
                 updateContent();
             }
-        }
+        } = true;
 
         public override Axes RelativeSizeAxes
         {
@@ -153,10 +147,10 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (columns == null || !showHeaders)
+                if (Columns == null || !ShowHeaders)
                     return content?.GetLength(1) ?? 0;
 
-                return Math.Max(columns.Length, content?.GetLength(1) ?? 0);
+                return Math.Max(Columns.Length, content?.GetLength(1) ?? 0);
             }
         }
 
@@ -167,7 +161,7 @@ namespace osu.Framework.Graphics.Containers
         {
             grid.Content = getContentWithHeaders().ToJagged();
 
-            grid.ColumnDimensions = columns.Select(c => c.Dimension).ToArray();
+            grid.ColumnDimensions = Columns.Select(c => c.Dimension).ToArray();
             grid.RowDimensions = Enumerable.Repeat(RowSize, totalRows).ToArray();
 
             updateAnchors();
@@ -216,7 +210,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 for (int col = 0; col < columnCount; col++)
                 {
-                    if (col >= columns.Length)
+                    if (col >= Columns.Length)
                         break;
 
                     Drawable child = grid.Content[row][col];
@@ -224,8 +218,8 @@ namespace osu.Framework.Graphics.Containers
                     if (child == null)
                         continue;
 
-                    child.Origin = columns[col].Anchor;
-                    child.Anchor = columns[col].Anchor;
+                    child.Origin = Columns[col].Anchor;
+                    child.Anchor = Columns[col].Anchor;
                 }
             }
         }

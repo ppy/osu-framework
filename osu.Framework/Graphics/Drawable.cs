@@ -3,20 +3,6 @@
 
 #nullable disable
 
-using osuTK;
-using osuTK.Graphics;
-using osu.Framework.Allocation;
-using osu.Framework.Extensions.TypeExtensions;
-using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Effects;
-using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Transforms;
-using osu.Framework.Input;
-using osu.Framework.Logging;
-using osu.Framework.Statistics;
-using osu.Framework.Threading;
-using osu.Framework.Timing;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -27,14 +13,28 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using JetBrains.Annotations;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Effects;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Transforms;
+using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Layout;
+using osu.Framework.Logging;
+using osu.Framework.Statistics;
+using osu.Framework.Threading;
+using osu.Framework.Timing;
 using osu.Framework.Utils;
+using osuTK;
+using osuTK.Graphics;
 using osuTK.Input;
 using Container = osu.Framework.Graphics.Containers.Container;
 
@@ -373,8 +373,6 @@ namespace osu.Framework.Graphics
         /// </summary>
         public bool IsAlive { get; internal set; }
 
-        private float depth;
-
         /// <summary>
         /// Controls which Drawables are behind or in front of other Drawables.
         /// This amounts to sorting Drawables by their <see cref="Depth"/>.
@@ -383,7 +381,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public float Depth
         {
-            get => depth;
+            get;
             set
             {
                 if (IsPartOfComposite)
@@ -393,7 +391,7 @@ namespace osu.Framework.Graphics
                         $"Use the parent's {nameof(CompositeDrawable.ChangeInternalChildDepth)} or {nameof(Container.ChangeChildDepth)} instead.");
                 }
 
-                depth = value;
+                field = value;
             }
         }
 
@@ -632,8 +630,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Axes relativePositionAxes;
-
         /// <summary>
         /// Controls which <see cref="Axes"/> of <see cref="Position"/> are relative w.r.t.
         /// <see cref="Parent"/>'s size (from 0 to 1) rather than absolute.
@@ -646,25 +642,25 @@ namespace osu.Framework.Graphics
         /// </remarks>
         public Axes RelativePositionAxes
         {
-            get => relativePositionAxes;
+            get;
             set
             {
-                if (value == relativePositionAxes)
+                if (value == field)
                     return;
 
                 // Convert coordinates from relative to absolute or vice versa
                 Vector2 conversion = relativeToAbsoluteFactor;
-                if ((value & Axes.X) > (relativePositionAxes & Axes.X))
+                if ((value & Axes.X) > (field & Axes.X))
                     X = Precision.AlmostEquals(conversion.X, 0) ? 0 : X / conversion.X;
-                else if ((relativePositionAxes & Axes.X) > (value & Axes.X))
+                else if ((field & Axes.X) > (value & Axes.X))
                     X *= conversion.X;
 
-                if ((value & Axes.Y) > (relativePositionAxes & Axes.Y))
+                if ((value & Axes.Y) > (field & Axes.Y))
                     Y = Precision.AlmostEquals(conversion.Y, 0) ? 0 : Y / conversion.Y;
-                else if ((relativePositionAxes & Axes.Y) > (value & Axes.Y))
+                else if ((field & Axes.Y) > (value & Axes.Y))
                     Y *= conversion.Y;
 
-                relativePositionAxes = value;
+                field = value;
 
                 updateBypassAutoSizeAxes();
             }
@@ -771,8 +767,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Axes relativeSizeAxes;
-
         /// <summary>
         /// Controls which <see cref="Axes"/> are relative sizes w.r.t. <see cref="Parent"/>'s size
         /// (from 0 to 1) in the <see cref="Parent"/>'s coordinate system, rather than absolute sizes.
@@ -786,35 +780,35 @@ namespace osu.Framework.Graphics
         /// </remarks>
         public virtual Axes RelativeSizeAxes
         {
-            get => relativeSizeAxes;
+            get;
             set
             {
-                if (value == relativeSizeAxes)
+                if (value == field)
                     return;
 
                 // In some cases we cannot easily preserve our size, and so we simply invalidate and
                 // leave correct sizing to the user.
-                if (fillMode != FillMode.Stretch && (value == Axes.Both || relativeSizeAxes == Axes.Both))
+                if (FillMode != FillMode.Stretch && (value == Axes.Both || field == Axes.Both))
                     Invalidate(Invalidation.DrawSize);
                 else
                 {
                     // Convert coordinates from relative to absolute or vice versa
                     Vector2 conversion = relativeToAbsoluteFactor;
-                    if ((value & Axes.X) > (relativeSizeAxes & Axes.X))
+                    if ((value & Axes.X) > (field & Axes.X))
                         Width = Precision.AlmostEquals(conversion.X, 0) ? 0 : Width / conversion.X;
-                    else if ((relativeSizeAxes & Axes.X) > (value & Axes.X))
+                    else if ((field & Axes.X) > (value & Axes.X))
                         Width *= conversion.X;
 
-                    if ((value & Axes.Y) > (relativeSizeAxes & Axes.Y))
+                    if ((value & Axes.Y) > (field & Axes.Y))
                         Height = Precision.AlmostEquals(conversion.Y, 0) ? 0 : Height / conversion.Y;
-                    else if ((relativeSizeAxes & Axes.Y) > (value & Axes.Y))
+                    else if ((field & Axes.Y) > (value & Axes.Y))
                         Height *= conversion.Y;
                 }
 
-                relativeSizeAxes = value;
+                field = value;
 
-                if (relativeSizeAxes.HasFlagFast(Axes.X) && Width == 0) Width = 1;
-                if (relativeSizeAxes.HasFlagFast(Axes.Y) && Height == 0) Height = 1;
+                if (field.HasFlagFast(Axes.X) && Width == 0) Width = 1;
+                if (field.HasFlagFast(Axes.Y) && Height == 0) Height = 1;
 
                 updateBypassAutoSizeAxes();
 
@@ -839,8 +833,6 @@ namespace osu.Framework.Graphics
         /// </summary>
         public float DrawHeight => DrawSize.Y;
 
-        private MarginPadding margin;
-
         /// <summary>
         /// Size of an empty region around this Drawable used to manipulate
         /// layout. Does not affect <see cref="DrawSize"/> or the region of accepted input,
@@ -848,14 +840,14 @@ namespace osu.Framework.Graphics
         /// </summary>
         public MarginPadding Margin
         {
-            get => margin;
+            get;
             set
             {
-                if (margin.Equals(value)) return;
+                if (field.Equals(value)) return;
 
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Margin)} must be finite, but is {value}.");
 
-                margin = value;
+                field = value;
 
                 Invalidate(Invalidation.MiscGeometry);
             }
@@ -865,7 +857,7 @@ namespace osu.Framework.Graphics
         /// Absolute size of this Drawable's layout rectangle in the <see cref="Parent"/>'s
         /// coordinate system; i.e. <see cref="DrawSize"/> with the addition of <see cref="Margin"/>.
         /// </summary>
-        public Vector2 LayoutSize => DrawSize + new Vector2(margin.TotalHorizontal, margin.TotalVertical);
+        public Vector2 LayoutSize => DrawSize + new Vector2(Margin.TotalHorizontal, Margin.TotalVertical);
 
         /// <summary>
         /// Absolutely sized rectangle for drawing in the <see cref="Parent"/>'s coordinate system.
@@ -882,14 +874,14 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Absolutely sized rectangle for layout in the <see cref="Parent"/>'s coordinate system.
-        /// Based on <see cref="LayoutSize"/> and <see cref="margin"/>.
+        /// Based on <see cref="LayoutSize"/> and <see cref="Margin"/>.
         /// </summary>
         public RectangleF LayoutRectangle
         {
             get
             {
                 Vector2 s = LayoutSize;
-                return new RectangleF(-margin.Left, -margin.Top, s.X, s.Y);
+                return new RectangleF(-Margin.Left, -Margin.Top, s.X, s.Y);
             }
         }
 
@@ -920,10 +912,10 @@ namespace osu.Framework.Graphics
                 if (relativeAxes == Axes.Both && fillMode != FillMode.Stretch)
                 {
                     if (fillMode == FillMode.Fill)
-                        v = new Vector2(Math.Max(v.X, v.Y * fillAspectRatio));
+                        v = new Vector2(Math.Max(v.X, v.Y * FillAspectRatio));
                     else if (fillMode == FillMode.Fit)
-                        v = new Vector2(Math.Min(v.X, v.Y * fillAspectRatio));
-                    v.Y /= fillAspectRatio;
+                        v = new Vector2(Math.Min(v.X, v.Y * FillAspectRatio));
+                    v.Y /= FillAspectRatio;
                 }
             }
 
@@ -983,33 +975,29 @@ namespace osu.Framework.Graphics
 
         #region Scale / Shear / Rotation
 
-        private Vector2 scale = Vector2.One;
-
         /// <summary>
         /// Base relative scaling factor around <see cref="OriginPosition"/>.
         /// </summary>
         public Vector2 Scale
         {
-            get => scale;
+            get;
             set
             {
-                if (scale == value)
+                if (field == value)
                     return;
 
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Scale)} must be finite, but is {value}.");
 
                 bool wasPresent = IsPresent;
 
-                scale = value;
+                field = value;
 
                 if (IsPresent != wasPresent)
                     Invalidate(Invalidation.MiscGeometry | Invalidation.Presence);
                 else
                     Invalidate(Invalidation.MiscGeometry);
             }
-        }
-
-        private float fillAspectRatio = 1;
+        } = Vector2.One;
 
         /// <summary>
         /// The desired ratio of width to height when under the effect of a non-stretching <see cref="FillMode"/>
@@ -1017,22 +1005,20 @@ namespace osu.Framework.Graphics
         /// </summary>
         public float FillAspectRatio
         {
-            get => fillAspectRatio;
+            get;
             set
             {
-                if (fillAspectRatio == value) return;
+                if (field == value) return;
 
                 if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(FillAspectRatio)} must be finite, but is {value}.");
                 if (value == 0) throw new ArgumentException($@"{nameof(FillAspectRatio)} must be non-zero.");
 
-                fillAspectRatio = value;
+                field = value;
 
-                if (fillMode != FillMode.Stretch && RelativeSizeAxes == Axes.Both)
+                if (FillMode != FillMode.Stretch && RelativeSizeAxes == Axes.Both)
                     Invalidate(Invalidation.DrawSize);
             }
-        }
-
-        private FillMode fillMode;
+        } = 1;
 
         /// <summary>
         /// Controls the behavior of <see cref="RelativeSizeAxes"/> when it is set to <see cref="Axes.Both"/>.
@@ -1042,12 +1028,12 @@ namespace osu.Framework.Graphics
         /// </summary>
         public FillMode FillMode
         {
-            get => fillMode;
+            get;
             set
             {
-                if (fillMode == value) return;
+                if (field == value) return;
 
-                fillMode = value;
+                field = value;
 
                 Invalidate(Invalidation.DrawSize);
             }
@@ -1079,21 +1065,19 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private float rotation;
-
         /// <summary>
         /// Rotation in degrees around <see cref="OriginPosition"/>.
         /// </summary>
         public float Rotation
         {
-            get => rotation;
+            get;
             set
             {
-                if (value == rotation) return;
+                if (value == field) return;
 
                 if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(Rotation)} must be finite, but is {value}.");
 
-                rotation = value;
+                field = value;
 
                 Invalidate(Invalidation.MiscGeometry);
             }
@@ -1103,33 +1087,31 @@ namespace osu.Framework.Graphics
 
         #region Origin / Anchor
 
-        private Anchor origin = Anchor.TopLeft;
-
         /// <summary>
         /// The origin of this <see cref="Drawable"/>.
         /// </summary>
         /// <exception cref="ArgumentException">If the provided value does not exist in the <see cref="Graphics.Anchor"/> enumeration.</exception>
         public virtual Anchor Origin
         {
-            get => origin;
+            get;
             set
             {
-                if (origin == value) return;
+                if (field == value) return;
 
                 if (value == 0)
                     throw new ArgumentException("Cannot set origin to 0.", nameof(value));
 
-                origin = value;
+                field = value;
                 Invalidate(Invalidation.MiscGeometry);
             }
-        }
+        } = Anchor.TopLeft;
 
         private Vector2 customOrigin;
 
         /// <summary>
         /// The origin of this <see cref="Drawable"/> expressed in relative coordinates from the top-left corner of <see cref="DrawRectangle"/>.
         /// </summary>
-        /// <exception cref="InvalidOperationException">If <see cref="Origin"/> is <see cref="osu.Framework.Graphics.Anchor.Custom"/>.</exception>
+        /// <exception cref="InvalidOperationException">If <see cref="Origin"/> is <see cref="Anchor.Custom"/>.</exception>
         public Vector2 RelativeOriginPosition
         {
             get
@@ -1138,14 +1120,14 @@ namespace osu.Framework.Graphics
                     throw new InvalidOperationException(@"Can not obtain relative origin position for custom origins.");
 
                 Vector2 result = Vector2.Zero;
-                if (origin.HasFlagFast(Anchor.x1))
+                if (Origin.HasFlagFast(Anchor.x1))
                     result.X = 0.5f;
-                else if (origin.HasFlagFast(Anchor.x2))
+                else if (Origin.HasFlagFast(Anchor.x2))
                     result.X = 1;
 
-                if (origin.HasFlagFast(Anchor.y1))
+                if (Origin.HasFlagFast(Anchor.y1))
                     result.Y = 0.5f;
-                else if (origin.HasFlagFast(Anchor.y2))
+                else if (Origin.HasFlagFast(Anchor.y2))
                     result.Y = 1;
 
                 return result;
@@ -1168,7 +1150,7 @@ namespace osu.Framework.Graphics
                 else
                     result = computeAnchorPosition(LayoutSize, Origin);
 
-                return result - new Vector2(margin.Left, margin.Top);
+                return result - new Vector2(Margin.Left, Margin.Top);
             }
 
             set
@@ -1185,8 +1167,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Anchor anchor = Anchor.TopLeft;
-
         /// <summary>
         /// Specifies where <see cref="Origin"/> is attached to the <see cref="Parent"/>
         /// in the coordinate system with origin at the top left corner of the
@@ -1196,18 +1176,18 @@ namespace osu.Framework.Graphics
         /// </summary>
         public Anchor Anchor
         {
-            get => anchor;
+            get;
             set
             {
-                if (anchor == value) return;
+                if (field == value) return;
 
                 if (value == 0)
                     throw new ArgumentException("Cannot set anchor to 0.", nameof(value));
 
-                anchor = value;
+                field = value;
                 Invalidate(Invalidation.MiscGeometry);
             }
-        }
+        } = Anchor.TopLeft;
 
         private Vector2 customRelativeAnchorPosition;
 
@@ -1226,14 +1206,14 @@ namespace osu.Framework.Graphics
                     return customRelativeAnchorPosition;
 
                 Vector2 result = Vector2.Zero;
-                if (anchor.HasFlagFast(Anchor.x1))
+                if (Anchor.HasFlagFast(Anchor.x1))
                     result.X = 0.5f;
-                else if (anchor.HasFlagFast(Anchor.x2))
+                else if (Anchor.HasFlagFast(Anchor.x2))
                     result.X = 1;
 
-                if (anchor.HasFlagFast(Anchor.y1))
+                if (Anchor.HasFlagFast(Anchor.y1))
                     result.Y = 0.5f;
-                else if (anchor.HasFlagFast(Anchor.y2))
+                else if (Anchor.HasFlagFast(Anchor.y2))
                     result.Y = 1;
 
                 return result;
@@ -1288,8 +1268,6 @@ namespace osu.Framework.Graphics
 
         #region Colour / Alpha / Blending
 
-        private ColourInfo colour = Color4.White;
-
         /// <summary>
         /// Colour of this <see cref="Drawable"/> in sRGB space. Can contain individual colours for all four
         /// corners of this <see cref="Drawable"/>, which are then interpolated, but can also be assigned
@@ -1297,18 +1275,16 @@ namespace osu.Framework.Graphics
         /// </summary>
         public ColourInfo Colour
         {
-            get => colour;
+            get;
             set
             {
-                if (colour.Equals(value)) return;
+                if (field.Equals(value)) return;
 
-                colour = value;
+                field = value;
 
                 Invalidate(Invalidation.Colour);
             }
-        }
-
-        private float alpha = 1.0f;
+        } = Color4.White;
 
         /// <summary>
         /// Multiplicative alpha factor applied on top of <see cref="ColourInfo"/> and its existing
@@ -1316,22 +1292,22 @@ namespace osu.Framework.Graphics
         /// </summary>
         public float Alpha
         {
-            get => alpha;
+            get;
             set
             {
-                if (alpha == value)
+                if (field == value)
                     return;
 
                 bool wasPresent = IsPresent;
 
-                alpha = value;
+                field = value;
 
                 if (IsPresent != wasPresent)
                     Invalidate(Invalidation.Colour | Invalidation.Presence);
                 else
                     Invalidate(Invalidation.Colour);
             }
-        }
+        } = 1.0f;
 
         private const float visibility_cutoff = 0.0001f;
 
@@ -1341,8 +1317,6 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual bool IsPresent => AlwaysPresent || (Alpha > visibility_cutoff && DrawScale.X != 0 && DrawScale.Y != 0);
 
-        private bool alwaysPresent;
-
         /// <summary>
         /// If true, forces <see cref="IsPresent"/> to always be true. In other words,
         /// this drawable is always considered for layout, input, and drawing, regardless
@@ -1350,15 +1324,15 @@ namespace osu.Framework.Graphics
         /// </summary>
         public bool AlwaysPresent
         {
-            get => alwaysPresent;
+            get;
             set
             {
-                if (alwaysPresent == value)
+                if (field == value)
                     return;
 
                 bool wasPresent = IsPresent;
 
-                alwaysPresent = value;
+                field = value;
 
                 if (IsPresent != wasPresent)
                     Invalidate(Invalidation.Presence);
@@ -1648,7 +1622,7 @@ namespace osu.Framework.Graphics
 
             ci.Blending = localBlending;
 
-            ColourInfo ourColour = alpha != 1 ? colour.MultiplyAlpha(alpha) : colour;
+            ColourInfo ourColour = Alpha != 1 ? Colour.MultiplyAlpha(Alpha) : Colour;
 
             if (ci.Colour.HasSingleColour)
                 ci.Colour.ApplyChild(ourColour);

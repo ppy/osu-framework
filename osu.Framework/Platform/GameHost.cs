@@ -266,8 +266,6 @@ namespace osu.Framework.Platform
         public InputThread InputThread { get; private set; }
         public AudioThread AudioThread { get; private set; }
 
-        private double maximumUpdateHz = GameThread.DEFAULT_ACTIVE_HZ;
-
         /// <summary>
         /// The target number of update frames per second when the game window is active.
         /// </summary>
@@ -276,11 +274,9 @@ namespace osu.Framework.Platform
         /// </remarks>
         public double MaximumUpdateHz
         {
-            get => maximumUpdateHz;
-            set => threadRunner.MaximumUpdateHz = UpdateThread.ActiveHz = maximumUpdateHz = value;
-        }
-
-        private double maximumDrawHz = GameThread.DEFAULT_ACTIVE_HZ;
+            get;
+            set => threadRunner.MaximumUpdateHz = UpdateThread.ActiveHz = field = value;
+        } = GameThread.DEFAULT_ACTIVE_HZ;
 
         /// <summary>
         /// The target number of draw frames per second when the game window is active.
@@ -290,15 +286,13 @@ namespace osu.Framework.Platform
         /// </remarks>
         public double MaximumDrawHz
         {
-            get => maximumDrawHz;
+            get;
             set
             {
-                maximumDrawHz = value;
-                DrawThread?.ActiveHz = maximumDrawHz;
+                field = value;
+                DrawThread?.ActiveHz = field;
             }
-        }
-
-        private double maximumInactiveHz = GameThread.DEFAULT_INACTIVE_HZ;
+        } = GameThread.DEFAULT_ACTIVE_HZ;
 
         /// <summary>
         /// The target number of updates per second when the game window is inactive.
@@ -309,13 +303,13 @@ namespace osu.Framework.Platform
         /// </remarks>
         public double MaximumInactiveHz
         {
-            get => maximumInactiveHz;
+            get;
             set
             {
-                threadRunner.MaximumInactiveHz = UpdateThread.InactiveHz = maximumInactiveHz = value;
-                DrawThread?.InactiveHz = maximumInactiveHz;
+                threadRunner.MaximumInactiveHz = UpdateThread.InactiveHz = field = value;
+                DrawThread?.InactiveHz = field;
             }
-        }
+        } = GameThread.DEFAULT_INACTIVE_HZ;
 
         private PerformanceMonitor inputMonitor => InputThread.Monitor;
         private PerformanceMonitor drawMonitor => DrawThread.Monitor;
@@ -613,18 +607,16 @@ namespace osu.Framework.Platform
 
         public ExecutionState ExecutionState
         {
-            get => executionState;
+            get;
             private set
             {
-                if (executionState == value)
+                if (field == value)
                     return;
 
-                executionState = value;
+                field = value;
                 Logger.Log($"Host execution state changed to {value}");
             }
         }
-
-        private ExecutionState executionState;
 
         /// <summary>
         /// Schedules the game to exit in the next frame.
@@ -660,7 +652,7 @@ namespace osu.Framework.Platform
 
         private void performExit(bool immediately)
         {
-            if (executionState == ExecutionState.Stopped || executionState == ExecutionState.Idle)
+            if (ExecutionState == ExecutionState.Stopped || ExecutionState == ExecutionState.Idle)
                 return;
 
             ExecutionState = ExecutionState.Stopping;

@@ -183,43 +183,39 @@ namespace osu.Framework.Graphics.UserInterface
             set => ContentContainer.ScrollbarVisible = value;
         }
 
-        private float maxWidth = float.MaxValue;
-
         /// <summary>
         /// Gets or sets the maximum allowable width by this <see cref="Menu"/>.
         /// </summary>
         public float MaxWidth
         {
-            get => maxWidth;
+            get;
             set
             {
-                if (Precision.AlmostEquals(maxWidth, value))
+                if (Precision.AlmostEquals(field, value))
                     return;
 
-                maxWidth = value;
+                field = value;
 
                 ((IItemsFlow)itemsFlow).SizeCache.Invalidate();
             }
-        }
-
-        private float maxHeight = float.PositiveInfinity;
+        } = float.MaxValue;
 
         /// <summary>
         /// Gets or sets the maximum allowable height by this <see cref="Menu"/>.
         /// </summary>
         public float MaxHeight
         {
-            get => maxHeight;
+            get;
             set
             {
-                if (Precision.AlmostEquals(maxHeight, value))
+                if (Precision.AlmostEquals(field, value))
                     return;
 
-                maxHeight = value;
+                field = value;
 
                 ((IItemsFlow)itemsFlow).SizeCache.Invalidate();
             }
-        }
+        } = float.PositiveInfinity;
 
         private MenuState state = MenuState.Closed;
 
@@ -857,19 +853,17 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             }
 
-            private MenuItemState state;
-
             public MenuItemState State
             {
-                get => state;
+                get;
                 set
                 {
-                    state = value;
+                    field = value;
 
                     Scheduler.AddOnce(UpdateBackgroundColour);
                     Scheduler.AddOnce(UpdateForegroundColour);
 
-                    StateChanged?.Invoke(state);
+                    StateChanged?.Invoke(field);
                 }
             }
 

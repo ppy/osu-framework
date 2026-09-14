@@ -18,22 +18,20 @@ namespace osu.Framework.Graphics.Shapes
     /// </summary>
     public partial class FastCircle : Drawable
     {
-        private float edgeSmoothness = 1f;
-
         public float EdgeSmoothness
         {
-            get => edgeSmoothness;
+            get;
             set
             {
-                if (edgeSmoothness == value)
+                if (field == value)
                     return;
 
-                edgeSmoothness = value;
+                field = value;
 
                 if (IsLoaded)
                     Invalidate(Invalidation.DrawNode);
             }
-        }
+        } = 1f;
 
         private IShader shader = null!;
 
@@ -77,7 +75,7 @@ namespace osu.Framework.Graphics.Shapes
                 screenSpaceDrawQuad = Source.ScreenSpaceDrawQuad;
                 drawRectangle = new Vector4(0, 0, Source.DrawWidth, Source.DrawHeight);
                 shader = Source.shader;
-                blend = new Vector2(Source.edgeSmoothness * Math.Min(Source.DrawWidth, Source.DrawHeight) / Math.Min(screenSpaceDrawQuad.Width, screenSpaceDrawQuad.Height));
+                blend = new Vector2(Source.EdgeSmoothness * Math.Min(Source.DrawWidth, Source.DrawHeight) / Math.Min(screenSpaceDrawQuad.Width, screenSpaceDrawQuad.Height));
             }
 
             protected override void Draw(IRenderer renderer)

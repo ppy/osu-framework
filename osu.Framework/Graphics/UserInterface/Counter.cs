@@ -11,22 +11,20 @@ namespace osu.Framework.Graphics.UserInterface
     /// </summary>
     public partial class Counter : CompositeDrawable
     {
-        private double count;
-
         /// <summary>
         /// The current count.
         /// </summary>
         protected double Count
         {
-            get => count;
+            get;
             private set
             {
-                if (count == value)
+                if (field == value)
                     return;
 
-                count = value;
+                field = value;
 
-                OnCountChanged(count);
+                OnCountChanged(field);
             }
         }
 

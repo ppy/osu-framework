@@ -16,7 +16,6 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         private readonly NativeMemoryTracker.NativeMemoryLease memoryLease;
 
         private ResourceSet? set;
-        private TData data;
 
         public VeldridUniformBufferStorage(VeldridRenderer renderer)
         {
@@ -28,12 +27,12 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         public TData Data
         {
-            get => data;
+            get;
             set
             {
-                data = value;
+                field = value;
 
-                renderer.BufferUpdateCommands.UpdateBuffer(buffer, 0, ref data);
+                renderer.BufferUpdateCommands.UpdateBuffer(buffer, 0, ref field);
             }
         }
 

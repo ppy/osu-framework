@@ -43,8 +43,6 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public partial class FillFlowContainer<T> : FlowContainer<T>, IFillFlowContainer where T : Drawable
     {
-        private FillDirection direction = FillDirection.Full;
-
         /// <summary>
         /// If <see cref="FillDirection.Full"/> or <see cref="FillDirection.Horizontal"/>,
         /// <see cref="Container{T}.Children"/> are arranged from left-to-right if their
@@ -57,16 +55,16 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public FillDirection Direction
         {
-            get => direction;
+            get;
             set
             {
-                if (direction == value)
+                if (field == value)
                     return;
 
-                direction = value;
+                field = value;
                 InvalidateLayout();
             }
-        }
+        } = FillDirection.Full;
 
         private Vector2 spacing;
 
@@ -183,7 +181,7 @@ namespace osu.Framework.Graphics.Containers
                     float rowWidth = rowBeginOffset + current.X + (1 - spacingFactor(c).X) * size.X;
 
                     //We've exceeded our allowed width, move to a new row
-                    if (direction != FillDirection.Horizontal && (Precision.DefinitelyBigger(rowWidth, max.X) || direction == FillDirection.Vertical))
+                    if (Direction != FillDirection.Horizontal && (Precision.DefinitelyBigger(rowWidth, max.X) || Direction == FillDirection.Vertical))
                     {
                         current.X = 0;
                         current.Y += rowHeight;

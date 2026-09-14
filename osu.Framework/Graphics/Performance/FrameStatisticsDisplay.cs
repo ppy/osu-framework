@@ -69,21 +69,19 @@ namespace osu.Framework.Graphics.Performance
 
         private readonly FrameTimeDisplay frameTimeDisplay;
 
-        private FrameStatisticsMode state;
-
         [CanBeNull]
         public event Action<FrameStatisticsMode> StateChanged;
 
         public FrameStatisticsMode State
         {
-            get => state;
+            get;
             set
             {
-                if (state == value) return;
+                if (field == value) return;
 
-                state = value;
+                field = value;
 
-                switch (state)
+                switch (field)
                 {
                     case FrameStatisticsMode.Minimal:
                         mainContainer.AutoSizeAxes = Axes.Both;
@@ -107,7 +105,7 @@ namespace osu.Framework.Graphics.Performance
                         break;
                 }
 
-                Running = state != FrameStatisticsMode.None;
+                Running = field != FrameStatisticsMode.None;
                 Expanded = false;
 
                 StateChanged?.Invoke(State);
@@ -312,42 +310,38 @@ namespace osu.Framework.Graphics.Performance
             timeBars[timeBarIndex].Add(box);
         }
 
-        private bool running = true;
-
         public bool Running
         {
-            get => running;
+            get;
             set
             {
-                if (running == value) return;
+                if (field == value) return;
 
-                running = value;
+                field = value;
 
-                frameTimeDisplay.Counting = running;
+                frameTimeDisplay.Counting = field;
 
                 // clear all pending frames on state change.
                 monitor.PendingFrames.Clear();
             }
-        }
-
-        private bool expanded;
+        } = true;
 
         public bool Expanded
         {
-            get => expanded;
+            get;
             set
             {
-                value &= state == FrameStatisticsMode.Full;
+                value &= State == FrameStatisticsMode.Full;
 
-                if (expanded == value) return;
+                if (field == value) return;
 
-                expanded = value;
+                field = value;
 
-                overlayContainer.FadeTo(expanded ? 1 : 0, 100);
-                this.FadeTo(expanded ? 1 : alpha_when_active, 100);
+                overlayContainer.FadeTo(field ? 1 : 0, 100);
+                this.FadeTo(field ? 1 : alpha_when_active, 100);
 
                 foreach (CounterBar bar in counterBars.Values)
-                    bar.Expanded = expanded;
+                    bar.Expanded = field;
             }
         }
 
@@ -355,7 +349,7 @@ namespace osu.Framework.Graphics.Performance
         {
             base.Update();
 
-            if (running)
+            if (Running)
             {
                 while (monitor.PendingFrames.TryDequeue(out FrameStatistics frame))
                 {
@@ -408,7 +402,7 @@ namespace osu.Framework.Graphics.Performance
             // from the graph displays will get out of hand.
             bool isMinimised = host.Window.WindowState == WindowState.Minimised;
 
-            if (state == FrameStatisticsMode.Full && !isMinimised)
+            if (State == FrameStatisticsMode.Full && !isMinimised)
             {
                 applyFrameGC(frame);
                 applyFrameTime(frame);
@@ -542,18 +536,16 @@ namespace osu.Framework.Graphics.Performance
 
             public string Label;
 
-            private bool expanded;
-
             public bool Expanded
             {
-                get => expanded;
+                get;
                 set
                 {
-                    if (expanded == value) return;
+                    if (field == value) return;
 
-                    expanded = value;
+                    field = value;
 
-                    if (expanded)
+                    if (field)
                     {
                         this.ResizeTo(new Vector2(bar_width + text.Font.Size + 2, 1), 100);
                         text.FadeIn(100);
@@ -626,7 +618,7 @@ namespace osu.Framework.Graphics.Performance
                 else
                     velocity += elapsedTime * acceleration;
 
-                if (expanded)
+                if (Expanded)
                     text.Text = $@"{Label}: {NumberFormatter.PrintWithSiSuffix(value)}";
             }
         }

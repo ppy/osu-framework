@@ -13,15 +13,13 @@ namespace osu.Framework.Graphics.Veldrid.Textures
     {
         public readonly Texture Texture;
 
-        private Sampler? sampler;
-
         public Sampler? Sampler
         {
-            get => sampler;
+            get;
             set
             {
-                sampler?.Dispose();
-                sampler = value;
+                field?.Dispose();
+                field = value;
 
                 Set?.Dispose();
                 Set = null;

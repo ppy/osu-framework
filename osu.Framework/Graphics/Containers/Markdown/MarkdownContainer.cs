@@ -48,24 +48,22 @@ namespace osu.Framework.Graphics.Containers.Markdown
             }
         }
 
-        private string text = string.Empty;
-
         /// <summary>
         /// The text to visualise.
         /// </summary>
         public string Text
         {
-            get => text;
+            get;
             set
             {
-                if (text == value)
+                if (field == value)
                     return;
 
-                text = value;
+                field = value;
 
                 contentCache.Invalidate();
             }
-        }
+        } = string.Empty;
 
         /// <summary>
         /// The vertical spacing between lines.

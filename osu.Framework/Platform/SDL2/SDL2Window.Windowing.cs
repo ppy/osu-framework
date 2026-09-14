@@ -119,20 +119,18 @@ namespace osu.Framework.Platform.SDL2
             WindowMode.TriggerChange();
         }
 
-        private bool focused;
-
         /// <summary>
         /// Whether the window currently has focus.
         /// </summary>
         public bool Focused
         {
-            get => focused;
+            get;
             private set
             {
-                if (value == focused)
+                if (value == field)
                     return;
 
-                isActive.Value = focused = value;
+                isActive.Value = field = value;
             }
         }
 
@@ -167,23 +165,21 @@ namespace osu.Framework.Platform.SDL2
 
         public bool PositionAccurate => true;
 
-        private bool resizable = true;
-
         /// <summary>
         /// Returns or sets whether the window is resizable or not. Only valid when in <see cref="osu.Framework.Platform.WindowState.Normal"/>.
         /// </summary>
         public bool Resizable
         {
-            get => resizable;
+            get;
             set
             {
-                if (resizable == value)
+                if (field == value)
                     return;
 
-                resizable = value;
+                field = value;
                 ScheduleCommand(() => SDL_SetWindowResizable(SDLWindowHandle, value ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE));
             }
-        }
+        } = true;
 
         private Size size = new Size(default_width, default_height);
 
@@ -229,17 +225,15 @@ namespace osu.Framework.Platform.SDL2
 
         public IBindable<bool> CursorInWindow => cursorInWindow;
 
-        private bool visible;
-
         /// <summary>
         /// Enables or disables the window visibility.
         /// </summary>
         public bool Visible
         {
-            get => visible;
+            get;
             set
             {
-                visible = value;
+                field = value;
                 ScheduleCommand(() =>
                 {
                     if (value)

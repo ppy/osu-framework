@@ -58,26 +58,24 @@ namespace osu.Framework.Graphics.Containers
             AddLayout(isIntersectingCache);
         }
 
-        private Drawable content;
-
         public Drawable Content
         {
-            get => content;
+            get;
             protected set
             {
-                if (content == value)
+                if (field == value)
                     return;
 
-                content = value;
+                field = value;
 
-                if (content == null)
+                if (field == null)
                     return;
 
                 AutoSizeAxes = Axes.None;
                 RelativeSizeAxes = Axes.None;
 
-                RelativeSizeAxes = content.RelativeSizeAxes;
-                AutoSizeAxes = (content as CompositeDrawable)?.AutoSizeAxes ?? AutoSizeAxes;
+                RelativeSizeAxes = field.RelativeSizeAxes;
+                AutoSizeAxes = (field as CompositeDrawable)?.AutoSizeAxes ?? AutoSizeAxes;
             }
         }
 

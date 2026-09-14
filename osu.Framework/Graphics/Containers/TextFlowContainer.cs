@@ -347,43 +347,37 @@ namespace osu.Framework.Graphics.Containers
 
         protected partial class InnerFlow : FillFlowContainer
         {
-            private float firstLineIndent;
-
             /// <summary>
             /// An indent value for the first (header) line of a paragraph.
             /// </summary>
             public float FirstLineIndent
             {
-                get => firstLineIndent;
+                get;
                 set
                 {
-                    if (value == firstLineIndent) return;
+                    if (value == field) return;
 
-                    firstLineIndent = value;
+                    field = value;
 
                     InvalidateLayout();
                 }
             }
-
-            private float contentIndent;
 
             /// <summary>
             /// An indent value for all lines proceeding the first line in a paragraph.
             /// </summary>
             public float ContentIndent
             {
-                get => contentIndent;
+                get;
                 set
                 {
-                    if (value == contentIndent) return;
+                    if (value == field) return;
 
-                    contentIndent = value;
+                    field = value;
 
                     InvalidateLayout();
                 }
             }
-
-            private float paragraphSpacing = 0.5f;
 
             /// <summary>
             /// Vertical space between paragraphs (i.e. text separated by '\n') in multiples of the text size.
@@ -391,18 +385,16 @@ namespace osu.Framework.Graphics.Containers
             /// </summary>
             public float ParagraphSpacing
             {
-                get => paragraphSpacing;
+                get;
                 set
                 {
-                    if (value == paragraphSpacing) return;
+                    if (value == field) return;
 
-                    paragraphSpacing = value;
+                    field = value;
 
                     InvalidateLayout();
                 }
-            }
-
-            private float lineSpacing;
+            } = 0.5f;
 
             /// <summary>
             /// Vertical space between lines both when a new paragraph begins and when line wrapping occurs.
@@ -410,38 +402,36 @@ namespace osu.Framework.Graphics.Containers
             /// </summary>
             public float LineSpacing
             {
-                get => lineSpacing;
+                get;
                 set
                 {
-                    if (value == lineSpacing) return;
+                    if (value == field) return;
 
-                    lineSpacing = value;
+                    field = value;
 
                     InvalidateLayout();
                 }
             }
-
-            private Anchor textAnchor = Anchor.TopLeft;
 
             /// <summary>
             /// The <see cref="Anchor"/> which text should flow from.
             /// </summary>
             public Anchor TextAnchor
             {
-                get => textAnchor;
+                get;
                 set
                 {
-                    if (textAnchor == value)
+                    if (field == value)
                         return;
 
-                    textAnchor = value;
+                    field = value;
 
                     Anchor = value;
                     Origin = value;
 
                     InvalidateLayout();
                 }
-            }
+            } = Anchor.TopLeft;
 
             protected override IEnumerable<Vector2> ComputeLayoutPositions()
             {

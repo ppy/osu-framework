@@ -89,16 +89,14 @@ namespace osu.Framework.Threading
         /// </summary>
         public CultureInfo? CurrentCulture
         {
-            get => culture;
+            get;
             set
             {
-                culture = value;
+                field = value;
 
                 updateCulture();
             }
         }
-
-        private CultureInfo? culture;
 
         /// <summary>
         /// The target number of updates per second when the game window is active.
@@ -108,15 +106,13 @@ namespace osu.Framework.Threading
         /// </remarks>
         public double ActiveHz
         {
-            get => activeHz;
+            get;
             set
             {
-                activeHz = value;
+                field = value;
                 updateMaximumHz();
             }
-        }
-
-        private double activeHz = DEFAULT_ACTIVE_HZ;
+        } = DEFAULT_ACTIVE_HZ;
 
         /// <summary>
         /// The target number of updates per second when the game window is inactive.
@@ -126,15 +122,13 @@ namespace osu.Framework.Threading
         /// </remarks>
         public double InactiveHz
         {
-            get => inactiveHz;
+            get;
             set
             {
-                inactiveHz = value;
+                field = value;
                 updateMaximumHz();
             }
-        }
-
-        private double inactiveHz = DEFAULT_INACTIVE_HZ;
+        } = DEFAULT_INACTIVE_HZ;
 
         private readonly GameThreadSynchronizationContext synchronizationContext;
 
@@ -389,7 +383,7 @@ namespace osu.Framework.Threading
 
         private void updateMaximumHz()
         {
-            Scheduler.Add(() => Clock.MaximumUpdateHz = IsActive.Value ? activeHz : inactiveHz);
+            Scheduler.Add(() => Clock.MaximumUpdateHz = IsActive.Value ? ActiveHz : InactiveHz);
         }
 
         /// <summary>
@@ -476,12 +470,12 @@ namespace osu.Framework.Threading
 
         private void updateCulture()
         {
-            if (culture == null) return;
+            if (CurrentCulture == null) return;
 
             Debug.Assert(IsCurrent);
 
-            CultureInfo.CurrentCulture = culture;
-            CultureInfo.CurrentUICulture = culture;
+            CultureInfo.CurrentCulture = CurrentCulture;
+            CultureInfo.CurrentUICulture = CurrentCulture;
         }
 
         private void setExitState(GameThreadState exitState)

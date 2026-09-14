@@ -49,16 +49,14 @@ namespace osu.Framework.Graphics.UserInterface
             };
         }
 
-        private bool pinned;
-
         public bool Pinned
         {
-            get => pinned;
+            get;
             set
             {
-                if (pinned == value) return;
+                if (field == value) return;
 
-                pinned = value;
+                field = value;
                 PinnedChanged?.Invoke(this);
             }
         }

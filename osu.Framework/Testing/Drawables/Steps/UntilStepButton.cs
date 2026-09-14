@@ -22,7 +22,6 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         public override int RequiredRepetitions => success ? 0 : int.MaxValue;
 
-        private readonly string text = string.Empty;
         private bool success;
         private int invocations;
         private Stopwatch? elapsedTime;
@@ -36,9 +35,9 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         public new string Text
         {
-            get => text;
-            init => base.Text = text = value;
-        }
+            get;
+            init => base.Text = field = value;
+        } = string.Empty;
 
         private void checkAssert()
         {

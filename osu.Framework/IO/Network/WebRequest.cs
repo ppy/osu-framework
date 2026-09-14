@@ -135,8 +135,6 @@ namespace osu.Framework.IO.Network
         private int responseBytesRead;
         private byte[] buffer;
         private bool? allowInsecureRequests;
-        private bool completed;
-
         private static readonly HttpClient client = new HttpClient(
             new SocketsHttpHandler
             {
@@ -175,11 +173,11 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public bool Completed
         {
-            get => completed;
+            get;
             private set
             {
-                completed = value;
-                if (!completed) return;
+                field = value;
+                if (!field) return;
 
                 // WebRequests can only be used once - no need to keep events bound
                 // This helps with disposal in PerformAsync usages
@@ -786,13 +784,11 @@ namespace osu.Framework.IO.Network
 
         #region Timeout Handling
 
-        private long lastAction;
-
-        private long timeSinceLastAction => (DateTime.Now.Ticks - lastAction) / TimeSpan.TicksPerMillisecond;
+        private long timeSinceLastAction { get => (DateTime.Now.Ticks - field) / TimeSpan.TicksPerMillisecond; set; }
 
         private void reportForwardProgress()
         {
-            lastAction = DateTime.Now.Ticks;
+            timeSinceLastAction = DateTime.Now.Ticks;
             timeoutToken.CancelAfter(Timeout);
         }
 

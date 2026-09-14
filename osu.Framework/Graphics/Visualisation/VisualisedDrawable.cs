@@ -30,14 +30,12 @@ namespace osu.Framework.Graphics.Visualisation
 
         public Drawable Target { get; }
 
-        private bool isHighlighted;
-
         public bool IsHighlighted
         {
-            get => isHighlighted;
+            get;
             set
             {
-                isHighlighted = value;
+                field = value;
 
                 updateColours();
                 if (value)
@@ -52,21 +50,19 @@ namespace osu.Framework.Graphics.Visualisation
 
         public bool FilteringActive { get; set; }
 
-        private bool matchingFilter = true;
-
         public bool MatchingFilter
         {
-            get => matchingFilter;
+            get;
             set
             {
                 bool wasPresent = IsPresent;
 
-                matchingFilter = value;
+                field = value;
 
                 if (IsPresent != wasPresent)
                     Invalidate(Invalidation.Presence);
             }
-        }
+        } = true;
 
         public override bool IsPresent => base.IsPresent && MatchingFilter;
 
@@ -365,7 +361,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void updateColours()
         {
-            if (isHighlighted)
+            if (IsHighlighted)
             {
                 background.Colour = FrameworkColour.YellowGreen;
                 text.Colour = FrameworkColour.Blue;

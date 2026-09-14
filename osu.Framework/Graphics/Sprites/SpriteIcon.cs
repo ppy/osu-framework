@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Sprites
 
         private void updateTexture()
         {
-            var loadableIcon = icon;
+            var loadableIcon = Icon;
 
             if (loadableIcon.Equals(loadedIcon)) return;
 
@@ -55,17 +55,15 @@ namespace osu.Framework.Graphics.Sprites
             Invalidate(Invalidation.DrawNode);
         }
 
-        private bool shadow;
-
         public bool Shadow
         {
-            get => shadow;
+            get;
             set
             {
-                if (shadow == value)
+                if (field == value)
                     return;
 
-                shadow = value;
+                field = value;
                 Invalidate(Invalidation.DrawNode);
             }
         }
@@ -106,16 +104,14 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private IconUsage icon;
-
         public IconUsage Icon
         {
-            get => icon;
+            get;
             set
             {
-                if (icon.Equals(value)) return;
+                if (field.Equals(value)) return;
 
-                icon = value;
+                field = value;
                 if (LoadState > LoadState.NotLoaded)
                     updateTexture();
             }
@@ -146,7 +142,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (texture == null)
                     return;
 
-                shadow = Source.shadow;
+                shadow = Source.Shadow;
 
                 RectangleF drawRect = Source.DrawRectangle;
 

@@ -58,24 +58,22 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private Axes textureRelativeSizeAxes = Axes.Both;
-
         /// <summary>
         /// Whether or not the <see cref="TextureRectangle"/> is in relative coordinates
         /// (0 to 1) or in absolute coordinates.
         /// </summary>
         public Axes TextureRelativeSizeAxes
         {
-            get => textureRelativeSizeAxes;
+            get;
             set
             {
-                if (textureRelativeSizeAxes == value)
+                if (field == value)
                     return;
 
-                textureRelativeSizeAxes = value;
+                field = value;
                 Invalidate(Invalidation.DrawNode);
             }
-        }
+        } = Axes.Both;
 
         /// <summary>
         /// Absolutely sized sub-rectangle in which the texture is positioned in the coordinate space of this <see cref="Sprite"/>.

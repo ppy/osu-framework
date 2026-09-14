@@ -134,9 +134,7 @@ namespace osu.Framework.Bindables
             TriggerDefaultChange(previousValue, source ?? this, true, bypassChecks);
         }
 
-        private WeakReference<Bindable<T>> weakReferenceInstance;
-
-        private WeakReference<Bindable<T>> weakReference => weakReferenceInstance ??= new WeakReference<Bindable<T>>(this);
+        private WeakReference<Bindable<T>> weakReference => field ??= new WeakReference<Bindable<T>>(this);
 
         /// <summary>
         /// Creates a new bindable instance. This is used for deserialization of bindables.

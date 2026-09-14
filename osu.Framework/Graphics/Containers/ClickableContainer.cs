@@ -11,15 +11,13 @@ namespace osu.Framework.Graphics.Containers
 {
     public partial class ClickableContainer : Container
     {
-        private Action action;
-
         public Action Action
         {
-            get => action;
+            get;
             set
             {
-                action = value;
-                Enabled.Value = action != null;
+                field = value;
+                Enabled.Value = field != null;
             }
         }
 

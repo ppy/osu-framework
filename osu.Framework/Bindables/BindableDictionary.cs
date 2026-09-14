@@ -329,7 +329,6 @@ namespace osu.Framework.Bindables
 
         #region ICanBeDisabled
 
-        private bool disabled;
 
         /// <summary>
         /// Whether this <see cref="BindableDictionary{TKey, TValue}"/> has been disabled.
@@ -337,13 +336,13 @@ namespace osu.Framework.Bindables
         /// </summary>
         public bool Disabled
         {
-            get => disabled;
+            get;
             set
             {
-                if (value == disabled)
+                if (value == field)
                     return;
 
-                disabled = value;
+                field = value;
 
                 triggerDisabledChange();
             }
@@ -359,16 +358,16 @@ namespace osu.Framework.Bindables
         private void triggerDisabledChange(bool propagateToBindings = true)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
-            bool beforePropagation = disabled;
+            bool beforePropagation = Disabled;
 
             if (propagateToBindings && bindings != null)
             {
                 foreach (var b in bindings)
-                    b.Disabled = disabled;
+                    b.Disabled = Disabled;
             }
 
-            if (beforePropagation == disabled)
-                DisabledChanged?.Invoke(disabled);
+            if (beforePropagation == Disabled)
+                DisabledChanged?.Invoke(Disabled);
         }
 
         #endregion ICanBeDisabled

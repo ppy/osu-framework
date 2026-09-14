@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.Pooling
             {
                 drawable = create();
 
-                if (maximumSize == null || currentPoolSize < maximumSize)
+                if (maximumSize == null || CurrentPoolSize < maximumSize)
                 {
                     CurrentPoolSize++;
                     Debug.Assert(maximumSize == null || CurrentPoolSize <= maximumSize);
@@ -172,51 +172,45 @@ namespace osu.Framework.Graphics.Pooling
             statistic = null;
         }
 
-        private int currentPoolSize;
-
         /// <summary>
         /// The current size of the pool.
         /// </summary>
         public int CurrentPoolSize
         {
-            get => currentPoolSize;
+            get;
             private set
             {
                 Debug.Assert(statistic != null);
 
-                statistic.Value.CurrentPoolSize = currentPoolSize = value;
+                statistic.Value.CurrentPoolSize = field = value;
             }
         }
-
-        private int countInUse;
 
         /// <summary>
         /// The number of drawables currently in use.
         /// </summary>
         public int CountInUse
         {
-            get => countInUse;
+            get;
             private set
             {
                 Debug.Assert(statistic != null);
 
-                statistic.Value.CountInUse = countInUse = value;
+                statistic.Value.CountInUse = field = value;
             }
         }
-
-        private int countExcessConstructed;
 
         /// <summary>
         /// The total number of drawables constructed that were not pooled.
         /// </summary>
         public int CountExcessConstructed
         {
-            get => countExcessConstructed;
+            get;
             private set
             {
                 Debug.Assert(statistic != null);
 
-                statistic.Value.CountExcessConstructed = countExcessConstructed = value;
+                statistic.Value.CountExcessConstructed = field = value;
             }
         }
 

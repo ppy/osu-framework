@@ -8,8 +8,6 @@ namespace osu.Framework.Caching
 {
     public class Cached<T>
     {
-        private T value = default!;
-
         public T Value
         {
             get
@@ -17,16 +15,16 @@ namespace osu.Framework.Caching
                 if (!IsValid)
                     throw new InvalidOperationException($"May not query {nameof(Value)} of an invalid {nameof(Cached<>)}.");
 
-                return value;
+                return field;
             }
 
             set
             {
-                this.value = value;
+                field = value;
                 IsValid = true;
                 FrameStatistics.Increment(StatisticsCounterType.Refreshes);
             }
-        }
+        } = default!;
 
         public bool IsValid { get; private set; }
 

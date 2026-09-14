@@ -56,17 +56,15 @@ namespace osu.Framework.Logging
         /// </summary>
         public static string VersionIdentifier = @"unknown";
 
-        private static Storage storage;
-
         /// <summary>
         /// The storage to place logs inside.
         /// </summary>
         public static Storage Storage
         {
-            get => storage;
+            get;
             set
             {
-                storage = value ?? throw new ArgumentNullException(nameof(value));
+                field = value ?? throw new ArgumentNullException(nameof(value));
 
                 cycleLogs();
             }
@@ -424,11 +422,11 @@ namespace osu.Framework.Logging
         {
             try
             {
-                if (!storage.ExistsDirectory(string.Empty))
+                if (!Storage.ExistsDirectory(string.Empty))
                     return;
 
                 DateTime logCycleCutoff = DateTime.UtcNow.AddDays(-7);
-                var logFiles = new DirectoryInfo(storage.GetFullPath(string.Empty)).GetFiles("*.log");
+                var logFiles = new DirectoryInfo(Storage.GetFullPath(string.Empty)).GetFiles("*.log");
 
                 foreach (var fileInfo in logFiles)
                 {

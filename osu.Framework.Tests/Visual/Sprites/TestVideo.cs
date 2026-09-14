@@ -14,14 +14,12 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
         }
 
-        private bool? rounded;
-
         public bool? Rounded
         {
-            get => rounded;
+            get;
             set
             {
-                rounded = value;
+                field = value;
 
                 if (value == true)
                 {

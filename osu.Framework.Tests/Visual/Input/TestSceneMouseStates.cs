@@ -568,7 +568,6 @@ namespace osu.Framework.Tests.Visual.Input
 
             public partial class EventCounter : CompositeDrawable
             {
-                private int count;
                 private readonly SpriteText text;
 
                 public EventCounter(Type eventType)
@@ -583,10 +582,10 @@ namespace osu.Framework.Tests.Visual.Input
 
                 public int Count
                 {
-                    get => count;
+                    get;
                     set
                     {
-                        count = value;
+                        field = value;
                         text.Text = $"{Name}: {Count}";
                     }
                 }

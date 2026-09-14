@@ -453,20 +453,19 @@ namespace osu.Framework.Bindables
 
         #region ICanBeDisabled
 
-        private bool disabled;
 
         /// <summary>
         /// Whether this <see cref="BindableList{T}"/> has been disabled. When disabled, attempting to change the contents of this <see cref="BindableList{T}"/> will result in an <see cref="InvalidOperationException"/>.
         /// </summary>
         public bool Disabled
         {
-            get => disabled;
+            get;
             set
             {
-                if (value == disabled)
+                if (value == field)
                     return;
 
-                disabled = value;
+                field = value;
 
                 triggerDisabledChange();
             }
@@ -482,16 +481,16 @@ namespace osu.Framework.Bindables
         private void triggerDisabledChange(bool propagateToBindings = true)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
-            bool beforePropagation = disabled;
+            bool beforePropagation = Disabled;
 
             if (propagateToBindings && bindings != null)
             {
                 foreach (var b in bindings)
-                    b.Disabled = disabled;
+                    b.Disabled = Disabled;
             }
 
-            if (beforePropagation == disabled)
-                DisabledChanged?.Invoke(disabled);
+            if (beforePropagation == Disabled)
+                DisabledChanged?.Invoke(Disabled);
         }
 
         #endregion ICanBeDisabled

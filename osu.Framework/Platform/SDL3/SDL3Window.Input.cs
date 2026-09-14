@@ -32,8 +32,6 @@ namespace osu.Framework.Platform.SDL3
             ConfineMouseMode.BindValueChanged(_ => updateConfineMode());
         }
 
-        private bool relativeMouseMode;
-
         /// <summary>
         /// Set the state of SDL3's RelativeMouseMode (https://wiki.libsdl.org/SDL_SetRelativeMouseMode).
         /// On all platforms, this will lock the mouse to the window (although escaping by setting <see cref="ConfineMouseMode"/> is still possible via a local implementation).
@@ -41,16 +39,16 @@ namespace osu.Framework.Platform.SDL3
         /// </summary>
         public bool RelativeMouseMode
         {
-            get => relativeMouseMode;
+            get;
             set
             {
-                if (relativeMouseMode == value)
+                if (field == value)
                     return;
 
                 if (value && !CursorState.HasFlagFast(CursorState.Hidden))
                     throw new InvalidOperationException($"Cannot set {nameof(RelativeMouseMode)} to true when the cursor is not hidden via {nameof(CursorState)}.");
 
-                relativeMouseMode = value;
+                field = value;
                 ScheduleCommand(() => SDL_SetWindowRelativeMouseMode(SDLWindowHandle, value).LogErrorIfFailed());
                 updateCursorConfinement();
             }

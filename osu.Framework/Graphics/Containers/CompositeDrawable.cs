@@ -1112,20 +1112,18 @@ namespace osu.Framework.Graphics.Containers
 
         protected override DrawNode CreateDrawNode() => new CompositeDrawableDrawNode(this);
 
-        private bool forceLocalVertexBatch;
-
         /// <summary>
         /// Whether to use a local vertex batch for rendering. If false, a parenting vertex batch will be used.
         /// </summary>
         public bool ForceLocalVertexBatch
         {
-            get => forceLocalVertexBatch;
+            get;
             protected set
             {
-                if (forceLocalVertexBatch == value)
+                if (field == value)
                     return;
 
-                forceLocalVertexBatch = value;
+                field = value;
 
                 Invalidate(Invalidation.DrawNode);
             }
@@ -1466,7 +1464,6 @@ namespace osu.Framework.Graphics.Containers
 
         #region Masking and related effects (e.g. round corners)
 
-        private bool masking;
 
         /// <summary>
         /// If enabled, only the portion of children that falls within this <see cref="CompositeDrawable"/>'s
@@ -1474,13 +1471,13 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public bool Masking
         {
-            get => masking;
+            get;
             protected set
             {
-                if (masking == value)
+                if (field == value)
                     return;
 
-                masking = value;
+                field = value;
                 // DrawInfo invalidation will propagate masking bounds changes in the sub-tree.
                 // While this can invalidate other layouts, there are rarely any use cases of enabling/disabling masking "on the fly"
                 // so this won't hurt performance under normal circumstances.
@@ -1488,29 +1485,25 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private float maskingSmoothness = 1;
-
         /// <summary>
         /// Determines over how many pixels the alpha component smoothly fades out.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
         public float MaskingSmoothness
         {
-            get => maskingSmoothness;
+            get;
             protected set
             {
                 //must be above zero to avoid a div-by-zero in the shader logic.
                 value = Math.Max(0.01f, value);
 
-                if (maskingSmoothness == value)
+                if (field == value)
                     return;
 
-                maskingSmoothness = value;
+                field = value;
                 Invalidate(Invalidation.DrawNode);
             }
-        }
-
-        private float cornerRadius;
+        } = 1;
 
         /// <summary>
         /// Determines how large of a radius is masked away around the corners.
@@ -1518,18 +1511,16 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float CornerRadius
         {
-            get => cornerRadius;
+            get;
             protected set
             {
-                if (cornerRadius == value)
+                if (field == value)
                     return;
 
-                cornerRadius = value;
+                field = value;
                 Invalidate(Invalidation.DrawNode);
             }
         }
-
-        private float cornerExponent = 2f;
 
         /// <summary>
         /// Determines how gentle the curve of the corner straightens. A value of 2 (default) results in
@@ -1542,25 +1533,23 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float CornerExponent
         {
-            get => cornerExponent;
+            get;
             protected set
             {
                 if (!Precision.DefinitelyBigger(value, 0) || value > 10)
                     throw new ArgumentOutOfRangeException(nameof(CornerExponent), $"{nameof(CornerExponent)} may not be <=0 or >10 for numerical correctness.");
 
-                if (cornerExponent == value)
+                if (field == value)
                     return;
 
-                cornerExponent = value;
+                field = value;
                 Invalidate(Invalidation.DrawNode);
             }
-        }
+        } = 2f;
 
         // This _hacky_ modification of the corner radius (obtained from playing around) ensures that the corner remains at roughly
         // equal size (perceptually) compared to the circular arc as the CornerExponent is adjusted within the range ~2-5.
         private float effectiveCornerRadius => CornerRadius * 0.8f * CornerExponent / 2 + 0.2f * CornerRadius;
-
-        private float borderThickness;
 
         /// <summary>
         /// Determines how thick of a border to draw around the inside of the masked region.
@@ -1574,13 +1563,13 @@ namespace osu.Framework.Graphics.Containers
         /// </remarks>
         public float BorderThickness
         {
-            get => borderThickness;
+            get;
             protected set
             {
-                if (borderThickness == value)
+                if (field == value)
                     return;
 
-                borderThickness = value;
+                field = value;
                 Invalidate(Invalidation.DrawNode);
             }
         }

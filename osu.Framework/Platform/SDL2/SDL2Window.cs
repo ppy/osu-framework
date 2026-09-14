@@ -62,20 +62,18 @@ namespace osu.Framework.Platform.SDL2
         /// </summary>
         protected readonly Scheduler EventScheduler = new Scheduler();
 
-        private string title = string.Empty;
-
         /// <summary>
         /// Gets and sets the window title.
         /// </summary>
         public string Title
         {
-            get => title;
+            get;
             set
             {
-                title = value;
-                ScheduleCommand(() => SDL_SetWindowTitle(SDLWindowHandle, title));
+                field = value;
+                ScheduleCommand(() => SDL_SetWindowTitle(SDLWindowHandle, field));
             }
-        }
+        } = string.Empty;
 
         /// <summary>
         /// Whether the current display server is Wayland.
@@ -254,7 +252,7 @@ namespace osu.Framework.Platform.SDL2
             // so we deactivate it on startup.
             SDL_StopTextInput();
 
-            SDLWindowHandle = SDL_CreateWindow(title, Position.X, Position.Y, Size.Width, Size.Height, flags);
+            SDLWindowHandle = SDL_CreateWindow(Title, Position.X, Position.Y, Size.Width, Size.Height, flags);
 
             if (SDLWindowHandle == IntPtr.Zero)
                 throw new InvalidOperationException($"Failed to create SDL window. SDL Error: {SDL_GetError()}");

@@ -23,8 +23,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override DrawNode CreateDrawNode() => new CircularBlobDrawNode(this);
 
-        private float innerRadius = 0.2f;
-
         /// <summary>
         /// The inner fill radius, relative to the <see cref="Drawable.DrawSize"/> of the <see cref="CircularBlob"/>.
         /// The value range is 0 to 1 where 0 is invisible and 1 is completely filled.
@@ -32,58 +30,52 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public float InnerRadius
         {
-            get => innerRadius;
+            get;
             set
             {
                 if (!float.IsFinite(value))
                     throw new ArgumentException($"{nameof(InnerRadius)} must be finite, but is {value}.");
 
-                innerRadius = Math.Clamp(value, 0, 1);
+                field = Math.Clamp(value, 0, 1);
                 Invalidate(Invalidation.DrawNode);
             }
-        }
-
-        private float amplitude = 0.3f;
+        } = 0.2f;
 
         public float Amplitude
         {
-            get => amplitude;
+            get;
             set
             {
                 if (!float.IsFinite(value))
                     throw new ArgumentException($"{nameof(Amplitude)} must be finite, but is {value}.");
 
-                amplitude = Math.Clamp(value, 0, 1);
+                field = Math.Clamp(value, 0, 1);
                 Invalidate(Invalidation.DrawNode);
             }
-        }
-
-        private float frequency = 1.5f;
+        } = 0.3f;
 
         public float Frequency
         {
-            get => frequency;
+            get;
             set
             {
                 if (!float.IsFinite(value))
                     throw new ArgumentException($"{nameof(Frequency)} must be finite, but is {value}.");
 
-                frequency = value;
+                field = value;
                 Invalidate(Invalidation.DrawNode);
             }
-        }
-
-        private int seed = 1;
+        } = 1.5f;
 
         public int Seed
         {
-            get => seed;
+            get;
             set
             {
-                seed = value;
+                field = value;
                 Invalidate(Invalidation.DrawNode);
             }
-        }
+        } = 1;
 
         private class CircularBlobDrawNode : SpriteDrawNode
         {
@@ -105,11 +97,11 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 base.ApplyState();
 
-                innerRadius = Source.innerRadius;
-                frequency = Source.frequency;
-                amplitude = Source.amplitude;
+                innerRadius = Source.InnerRadius;
+                frequency = Source.Frequency;
+                amplitude = Source.Amplitude;
 
-                int newSeed = Source.seed;
+                int newSeed = Source.Seed;
 
                 if (seed != newSeed)
                 {

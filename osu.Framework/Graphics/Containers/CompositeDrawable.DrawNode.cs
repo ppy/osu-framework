@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.Containers
                 float blendRange = Source.MaskingSmoothness * (scale.X + scale.Y) / 2;
 
                 // Calculate a shrunk rectangle which is free from corner radius/smoothing/border effects
-                float shrinkage = Source.CornerRadius - Source.CornerRadius * cos_45 + blendRange + Source.borderThickness;
+                float shrinkage = Source.CornerRadius - Source.CornerRadius * cos_45 + blendRange + Source.BorderThickness;
 
                 // Normalise to handle negative sizes, and clamp the shrinkage to prevent size from going negative.
                 RectangleF shrunkDrawRectangle = Source.DrawRectangle.Normalize();

@@ -38,39 +38,35 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public event Action FilterCompleted;
 
-        private bool allowNonContiguousMatching;
-
         /// <summary>
         /// Whether the matching algorithm should consider cases where other characters exist between consecutive characters in the search term.
         /// If <c>true</c>, searching for "BSI" will match "BeatmapSetInfo".
         /// </summary>
         public bool AllowNonContiguousMatching
         {
-            get => allowNonContiguousMatching;
+            get;
             set
             {
-                if (value == allowNonContiguousMatching)
+                if (value == field)
                     return;
 
-                allowNonContiguousMatching = value;
+                field = value;
                 filterValid.Invalidate();
             }
         }
-
-        private string searchTerm;
 
         /// <summary>
         /// A string that should match the <see cref="IFilterable"/> children
         /// </summary>
         public string SearchTerm
         {
-            get => searchTerm;
+            get;
             set
             {
-                if (value == searchTerm)
+                if (value == field)
                     return;
 
-                searchTerm = value;
+                field = value;
                 filterValid.Invalidate();
             }
         }
@@ -120,8 +116,8 @@ namespace osu.Framework.Graphics.Containers
 
         private void performFilter()
         {
-            string[] terms = (searchTerm ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            matchSubTree(this, terms, terms.Length > 0, allowNonContiguousMatching);
+            string[] terms = (SearchTerm ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            matchSubTree(this, terms, terms.Length > 0, AllowNonContiguousMatching);
         }
 
         private bool matchSubTree(Drawable drawable, IReadOnlyList<string> searchTerms, bool searchActive, bool nonContiguousMatching)

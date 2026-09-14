@@ -66,20 +66,18 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public abstract double CurrentTime { get; }
 
-        private double length;
-
         /// <summary>
         /// Length of the track in milliseconds.
         /// </summary>
         public double Length
         {
-            get => length;
+            get;
             set
             {
                 if (value < 0)
                     throw new ArgumentException("Track length must be >= 0.", nameof(value));
 
-                length = value;
+                field = value;
             }
         }
 

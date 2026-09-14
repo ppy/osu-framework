@@ -24,24 +24,22 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected readonly IEqualityComparer<T> Comparer;
 
-        private T? model;
-
         /// <summary>
         /// Gets or sets the model, potentially triggering the current <see cref="Drawable"/> to update.
         /// Subclasses should expose this via a nicer property name to better represent the data being set.
         /// </summary>
         protected T? Model
         {
-            get => model;
+            get;
             set
             {
-                if (model == null && value == null)
+                if (field == null && value == null)
                     return;
 
-                if (Comparer.Equals(model, value))
+                if (Comparer.Equals(field, value))
                     return;
 
-                model = value;
+                field = value;
 
                 Scheduler.AddOnce(updateDrawable);
             }
@@ -97,7 +95,7 @@ namespace osu.Framework.Graphics.Containers
                 loadDrawable(null);
             }
 
-            loadDrawable(() => CreateDrawable(model) ?? Empty());
+            loadDrawable(() => CreateDrawable(Model) ?? Empty());
         }
 
         private void loadDrawable(Func<Drawable?>? createDrawableFunc)

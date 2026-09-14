@@ -35,37 +35,33 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private bool scrollbarVisible = true;
-
         /// <summary>
         /// Whether the scrollbar is visible.
         /// </summary>
         public bool ScrollbarVisible
         {
-            get => scrollbarVisible;
+            get;
             set
             {
-                scrollbarVisible = value;
+                field = value;
                 scrollbarCache.Invalidate();
             }
-        }
+        } = true;
 
         protected readonly ScrollbarContainer Scrollbar;
-
-        private bool scrollbarOverlapsContent = true;
 
         /// <summary>
         /// Whether the scrollbar overlaps the content or resides in its own padded space.
         /// </summary>
         public bool ScrollbarOverlapsContent
         {
-            get => scrollbarOverlapsContent;
+            get;
             set
             {
-                scrollbarOverlapsContent = value;
+                field = value;
                 updatePadding();
             }
-        }
+        } = true;
 
         /// <summary>
         /// Size of available content (i.e. everything that can be scrolled to) in the scroll direction.
@@ -242,7 +238,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void updatePadding()
         {
-            if (scrollbarOverlapsContent || !Precision.DefinitelyBigger(AvailableContent, DisplayableContent, 1f))
+            if (ScrollbarOverlapsContent || !Precision.DefinitelyBigger(AvailableContent, DisplayableContent, 1f))
                 ScrollContent.Padding = new MarginPadding();
             else
             {

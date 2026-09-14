@@ -67,14 +67,14 @@ namespace osu.Framework.Graphics.Sprites
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            localisedText = localisation.GetLocalisedBindableString(text);
+            localisedText = localisation.GetLocalisedBindableString(Text);
 
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
 
             // Pre-cache the characters in the texture store
             foreach (char character in localisedText.Value)
             {
-                _ = store.Get(font.FontName, character) ?? store.Get(null, character);
+                _ = store.Get(Font.FontName, character) ?? store.Get(null, character);
             }
         }
 
@@ -99,24 +99,22 @@ namespace osu.Framework.Graphics.Sprites
             }, true);
         }
 
-        private LocalisableString text = string.Empty;
-
         /// <summary>
         /// Gets or sets the text to be displayed.
         /// </summary>
         public LocalisableString Text
         {
-            get => text;
+            get;
             set
             {
-                if (text.Equals(value))
+                if (field.Equals(value))
                     return;
 
-                text = value;
+                field = value;
 
                 localisedText?.Text = value;
             }
-        }
+        } = string.Empty;
 
         private readonly BindableWithCurrent<string> current = new BindableWithCurrent<string>();
 
@@ -126,26 +124,22 @@ namespace osu.Framework.Graphics.Sprites
             set => current.Current = value;
         }
 
-        private string displayedText => localisedText?.Value ?? text.ToString();
-
-        private FontUsage font = FontUsage.Default;
+        private string displayedText => localisedText?.Value ?? Text.ToString();
 
         /// <summary>
         /// Contains information on the font used to display the text.
         /// </summary>
         public FontUsage Font
         {
-            get => font;
+            get;
             set
             {
-                font = value;
+                field = value;
 
                 invalidate(true, true);
                 shadowOffsetCache.Invalidate();
             }
-        }
-
-        private bool allowMultiline = true;
+        } = FontUsage.Default;
 
         /// <summary>
         /// True if the text should be wrapped if it gets too wide. Note that \n does NOT cause a line break. If you need explicit line breaks, use <see cref="TextFlowContainer"/> instead.
@@ -155,34 +149,32 @@ namespace osu.Framework.Graphics.Sprites
         /// </remarks>
         public bool AllowMultiline
         {
-            get => allowMultiline;
+            get;
             set
             {
-                if (allowMultiline == value)
+                if (field == value)
                     return;
 
                 if (value)
                     Truncate = false;
 
-                allowMultiline = value;
+                field = value;
                 invalidate(true, true);
             }
-        }
-
-        private bool shadow;
+        } = true;
 
         /// <summary>
         /// True if a shadow should be displayed around the text.
         /// </summary>
         public bool Shadow
         {
-            get => shadow;
+            get;
             set
             {
-                if (shadow == value)
+                if (field == value)
                     return;
 
-                shadow = value;
+                field = value;
 
                 Invalidate(Invalidation.DrawNode);
             }
@@ -227,27 +219,23 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private bool useFullGlyphHeight = true;
-
         /// <summary>
         /// True if the <see cref="SpriteText"/>'s vertical size should be equal to <see cref="FontUsage.Size"/>  (the full height) or precisely the size of used characters.
         /// Set to false to allow better centering of individual characters/numerals/etc.
         /// </summary>
         public bool UseFullGlyphHeight
         {
-            get => useFullGlyphHeight;
+            get;
             set
             {
-                if (useFullGlyphHeight == value)
+                if (field == value)
                     return;
 
-                useFullGlyphHeight = value;
+                field = value;
 
                 invalidate(true, true);
             }
-        }
-
-        private bool truncate;
+        } = true;
 
         /// <summary>
         /// If true, text should be truncated when it exceeds the <see cref="Drawable.DrawWidth"/> of this <see cref="SpriteText"/>.
@@ -258,20 +246,18 @@ namespace osu.Framework.Graphics.Sprites
         /// </remarks>
         public bool Truncate
         {
-            get => truncate;
+            get;
             set
             {
-                if (truncate == value) return;
+                if (field == value) return;
 
                 if (value)
                     AllowMultiline = false;
 
-                truncate = value;
+                field = value;
                 invalidate(true, true);
             }
         }
-
-        private string ellipsisString = "…";
 
         /// <summary>
         /// When <see cref="Truncate"/> is enabled, this decides what string is used to signify that truncation has occured.
@@ -279,15 +265,15 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public string EllipsisString
         {
-            get => ellipsisString;
+            get;
             set
             {
-                if (ellipsisString == value) return;
+                if (field == value) return;
 
-                ellipsisString = value;
+                field = value;
                 invalidate(true, true);
             }
-        }
+        } = "…";
 
         /// <summary>
         /// When <see cref="Truncate"/> is enabled, this indicates whether <see cref="Text"/> has been visually truncated.
@@ -323,8 +309,6 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private float maxWidth = float.PositiveInfinity;
-
         /// <summary>
         /// The maximum width of this <see cref="SpriteText"/>. Affects both auto and fixed sizing modes.
         /// </summary>
@@ -333,16 +317,16 @@ namespace osu.Framework.Graphics.Sprites
         /// </remarks>
         public float MaxWidth
         {
-            get => maxWidth;
+            get;
             set
             {
-                if (maxWidth == value)
+                if (field == value)
                     return;
 
-                maxWidth = value;
+                field = value;
                 invalidate(true, true);
             }
-        }
+        } = float.PositiveInfinity;
 
         private float? explicitHeight;
 
@@ -571,7 +555,7 @@ namespace osu.Framework.Graphics.Sprites
 
             if (Truncate)
             {
-                return new TruncatingTextBuilder(store, Font, builderMaxWidth, ellipsisString, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
+                return new TruncatingTextBuilder(store, Font, builderMaxWidth, EllipsisString, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
                     excludeCharacters, FallbackCharacter, FixedWidthReferenceCharacter);
             }
 

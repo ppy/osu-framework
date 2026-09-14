@@ -36,41 +36,37 @@ namespace osu.Framework.Graphics.Audio
             texture = renderer.WhitePixel;
         }
 
-        private float resolution = 1;
-
         /// <summary>
         /// Gets or sets the amount of <see cref="Framework.Audio.Track.Waveform.Point"/>'s displayed relative to <see cref="Drawable.DrawWidth">DrawWidth</see>.
         /// </summary>
         public float Resolution
         {
-            get => resolution;
+            get;
             set
             {
                 ArgumentOutOfRangeException.ThrowIfNegative(value);
 
-                if (resolution == value)
+                if (field == value)
                     return;
 
-                resolution = value;
+                field = value;
                 resampledPointCount = null;
                 queueRegeneration();
             }
-        }
-
-        private Waveform? waveform;
+        } = 1;
 
         /// <summary>
         /// The <see cref="Framework.Audio.Track.Waveform"/> to display.
         /// </summary>
         public Waveform? Waveform
         {
-            get => waveform;
+            get;
             set
             {
-                if (waveform == value)
+                if (field == value)
                     return;
 
-                waveform = value;
+                field = value;
                 resampledPointCount = null;
                 queueRegeneration();
             }
