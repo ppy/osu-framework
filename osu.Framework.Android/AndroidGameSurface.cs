@@ -72,21 +72,25 @@ namespace osu.Framework.Android
             var window = activity.Window;
             var display = window?.DecorView?.Display;
 
-            if (window == null || display == null)
+            if (!OperatingSystem.IsAndroidVersionAtLeast(23) || window == null || display == null)
                 return;
 
-            var preferredMode = display.GetSupportedModes()
-                                       .OrderByDescending(mode => mode.RefreshRate)
-                                       .FirstOrDefault();
+            var supportedModes = display.GetSupportedModes();
 
-            if (preferredMode == null)
+            if (supportedModes == null || supportedModes.Length == 0)
                 return;
+
+            var preferredMode = supportedModes.OrderByDescending(mode => mode.RefreshRate)
+                                              .First();
 
             var attributes = window.Attributes;
+
+            if (attributes == null)
+                return;
+
             attributes.PreferredRefreshRate = enable ? preferredMode.RefreshRate : 0f;
 
-            if (OperatingSystem.IsAndroidVersionAtLeast(23))
-                attributes.PreferredDisplayModeId = enable ? preferredMode.ModeId : 0;
+            attributes.PreferredDisplayModeId = enable ? preferredMode.ModeId : 0;
 
             if (OperatingSystem.IsAndroidVersionAtLeast(30))
                 window.SetPreferMinimalPostProcessing(enable);
