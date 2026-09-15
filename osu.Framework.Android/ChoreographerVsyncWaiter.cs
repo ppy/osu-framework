@@ -36,8 +36,8 @@ namespace osu.Framework.Android
                 ready.Set();
             });
 
-            ready.Wait(30000);
-            ready.Dispose();
+            if (!ready.Wait(30000))
+                throw new TimeoutException("Timed out while waiting for handler to run.");
 
             callback = new VsyncWaiterFrameCallback(vsyncEvent);
             runnable = new PostFrameCallbackRunnable(choreographer, callback);

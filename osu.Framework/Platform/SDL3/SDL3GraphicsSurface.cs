@@ -217,10 +217,7 @@ namespace osu.Framework.Platform.SDL3
             setPresentationTime(sdlEglDisplay, sdlEglSurface, presentationTimeNanos);
         }
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate IntPtr EglGetCurrentSurfaceDelegate(int readdraw);
-
-        private static EglGetCurrentSurfaceDelegate? eglGetCurrentSurface;
+        private static delegate* unmanaged[Cdecl]<int, IntPtr> eglGetCurrentSurface;
 
         private static IntPtr getCurrentDrawSurface()
         {
@@ -232,17 +229,17 @@ namespace osu.Framework.Platform.SDL3
 
                 if (proc != IntPtr.Zero)
                 {
-                    eglGetCurrentSurface = Marshal.GetDelegateForFunctionPointer<EglGetCurrentSurfaceDelegate>(proc);
+                    eglGetCurrentSurface = (delegate* unmanaged[Cdecl]<int, IntPtr>)proc;
                 }
             }
 
-            return eglGetCurrentSurface?.Invoke(egl_draw) ?? IntPtr.Zero;
+            if (eglGetCurrentSurface == null)
+                return IntPtr.Zero;
+
+            return eglGetCurrentSurface(egl_draw);
         }
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate bool EglPresentationTimeAndroidDelegate(IntPtr dpy, IntPtr surface, long time);
-
-        private static EglPresentationTimeAndroidDelegate? eglPresentationTimeAndroid;
+        private static delegate* unmanaged[Cdecl]<IntPtr, IntPtr, long, bool> eglPresentationTimeAndroid;
 
         private static bool setPresentationTime(IntPtr eglDisplay, IntPtr eglSurface, long presentationTimeNanos)
         {
@@ -252,11 +249,14 @@ namespace osu.Framework.Platform.SDL3
 
                 if (proc != IntPtr.Zero)
                 {
-                    eglPresentationTimeAndroid = Marshal.GetDelegateForFunctionPointer<EglPresentationTimeAndroidDelegate>(proc);
+                    eglPresentationTimeAndroid = (delegate* unmanaged[Cdecl]<IntPtr, IntPtr, long, bool>)proc;
                 }
             }
 
-            return eglPresentationTimeAndroid?.Invoke(eglDisplay, eglSurface, presentationTimeNanos) ?? false;
+            if (eglPresentationTimeAndroid == null)
+                return false;
+
+            return eglPresentationTimeAndroid(eglDisplay, eglSurface, presentationTimeNanos);
         }
 
         #endregion
