@@ -15,6 +15,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Framework.Utils;
 using osuTK;
@@ -29,12 +30,15 @@ namespace osu.Framework.Graphics.Visualisation
 
         private readonly BindableInt visualisedMipLevel = new BindableInt(-1) { MinValue = -1, MaxValue = IRenderer.MAX_MIPMAP_LEVELS };
 
+        private readonly TextureInspector textureInspector;
+
         [Resolved]
         private IRenderer renderer { get; set; }
 
         public TextureVisualiser()
             : base("Textures", "(Ctrl+F3 to toggle)")
         {
+            MainHorizontalContent.Add(textureInspector = new TextureInspector());
             ScrollContent.Child = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.X,
@@ -119,11 +123,22 @@ namespace osu.Framework.Graphics.Visualisation
             if (target.Any(p => p.Texture == texture))
                 return;
 
-            target.Add(new TexturePanel(texture, visualisedMipLevel));
+            target.Add(new TexturePanel(texture, visualisedMipLevel)
+            {
+                Clicked = () => inspectTexture(texture)
+            });
         });
+
+        private void inspectTexture(Texture texture)
+        {
+            textureInspector.Inspect(texture);
+            textureInspector.Show();
+        }
 
         private partial class TexturePanel : CompositeDrawable
         {
+            public Action Clicked;
+
             private readonly WeakReference<Texture> textureReference;
 
             public Texture Texture => textureReference.TryGetTarget(out var tex) ? tex : null;
@@ -174,6 +189,13 @@ namespace osu.Framework.Graphics.Visualisation
                         },
                     }
                 };
+            }
+
+            protected override bool OnClick(ClickEvent e)
+            {
+                base.OnClick(e);
+                Clicked?.Invoke();
+                return true;
             }
 
             protected override void Update()
