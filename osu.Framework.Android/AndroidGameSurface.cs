@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 using Android.Content;
 using Android.Runtime;
 using Org.Libsdl.App;
@@ -48,6 +49,7 @@ namespace osu.Framework.Android
 
         protected override void HandlePause()
         {
+            setPreferredDisplayMode(false);
             base.HandlePause();
             isSurfaceReady = false;
         }
@@ -55,6 +57,7 @@ namespace osu.Framework.Android
         protected override void HandleResume()
         {
             base.HandleResume();
+            setPreferredDisplayMode(true);
             isSurfaceReady = true;
         }
 
@@ -62,6 +65,37 @@ namespace osu.Framework.Android
         {
             updateSafeArea(insets);
             return base.OnApplyWindowInsets(view, insets);
+        }
+
+        private void setPreferredDisplayMode(bool enable)
+        {
+            var window = activity.Window;
+            var display = window?.DecorView?.Display;
+
+            if (!OperatingSystem.IsAndroidVersionAtLeast(23) || window == null || display == null)
+                return;
+
+            var supportedModes = display.GetSupportedModes();
+
+            if (supportedModes == null || supportedModes.Length == 0)
+                return;
+
+            var preferredMode = supportedModes.OrderByDescending(mode => mode.RefreshRate)
+                                              .First();
+
+            var attributes = window.Attributes;
+
+            if (attributes == null)
+                return;
+
+            attributes.PreferredRefreshRate = enable ? preferredMode.RefreshRate : 0f;
+
+            attributes.PreferredDisplayModeId = enable ? preferredMode.ModeId : 0;
+
+            if (OperatingSystem.IsAndroidVersionAtLeast(30))
+                window.SetPreferMinimalPostProcessing(enable);
+
+            window.Attributes = attributes;
         }
 
         /// <summary>
