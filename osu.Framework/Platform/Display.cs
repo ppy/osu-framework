@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 
@@ -26,8 +25,12 @@ namespace osu.Framework.Platform
         public Rectangle Bounds { get; }
 
         /// <summary>
-        /// The current usable bounds of the display in screen space.
-        /// This is smaller and contained within <see cref="Bounds"/>.
+        /// The current usable bounds of the display in screen space. The meaning of "usable" varies by platform. For example, on Windows
+        /// and macOS, it represents the area of the display not covered by the taskbar or menu bar / notch. On macOS with a notched display,
+        /// it is the area occupied by borderless fullscreen windows. On other displays, and on Windows and Linux, borderless fullscreen
+        /// windows cover the entire display instead. On Linux, <see cref="UsableBounds"/> is usually the same as <see cref="Bounds"/> but
+        /// may vary depending on the compositor (Wayland) or window manager (X11).
+        /// <see cref="UsableBounds"/> is usually smaller and contained within <see cref="Bounds"/>, but not always (e.g. in macOS non-native fullscreen).
         /// </summary>
         public Rectangle UsableBounds { get; }
 
@@ -43,7 +46,6 @@ namespace osu.Framework.Platform
 
         public Display(int index, string? name, Rectangle bounds, Rectangle usableBounds, DisplayMode[] displayModes)
         {
-            Debug.Assert(bounds.Contains(usableBounds));
             Index = index;
             Name = name;
             Bounds = bounds;
