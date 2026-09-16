@@ -128,7 +128,7 @@ namespace osu.Framework.Android
 
         public FileInfo CreateTemporaryFileFromContentUri(Uri contentUri)
         {
-            // while content URIs are not real paths, in practice they appear to at least contain filenames at the end.
+            // while content URIs are not real paths, in practice they *appear* to at least *sometimes* contain real filenames at the end.
             // try using that first, since it's the least likely thing to fail later.
             // the reason why this is important is that downstream consumers may depend on the *extension* of the file in particular,
             // and there's no guarantee that we can recover it safely from anywhere else.
@@ -136,8 +136,15 @@ namespace osu.Framework.Android
 
             // if the content URI fails generate something else.
             if (string.IsNullOrEmpty(filename))
-            {
                 filename = Path.GetRandomFileName();
+
+            // check if we have an extension to use.
+            // there are two cases where we might not:
+            // - the content-providing app gave something resembling a filename but not an extension (known to happen in the wild)
+            // - there was no actual filename to use at any point, and we just generated our own above
+            // in both cases, attempt to synthesise an extension ourselves since there's nothing left to use anyway.
+            if (string.IsNullOrEmpty(Path.GetExtension(filename)))
+            {
                 string? mimeType = ContentResolver?.GetType(contentUri);
                 string? extension = MimeTypeMap.Singleton?.GetExtensionFromMimeType(mimeType);
 

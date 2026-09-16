@@ -10,7 +10,6 @@ using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Logging;
-using osuTK.Graphics.ES30;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using StbiSharp;
@@ -27,11 +26,6 @@ namespace osu.Framework.Graphics.Textures
         /// The target mipmap level to upload into.
         /// </summary>
         public int Level { get; set; }
-
-        /// <summary>
-        /// The texture format for this upload.
-        /// </summary>
-        public PixelFormat Format => PixelFormat.Rgba;
 
         /// <summary>
         /// The target bounds for this upload. If not specified, will assume to be (0, 0, width, height).

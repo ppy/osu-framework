@@ -18,8 +18,15 @@ namespace osu.Framework.Graphics.Cursor
         private readonly Container content;
         private readonly Container dismissOnMouseDownContainer;
 
-        private IHasPopover? target;
-        private Popover? currentPopover;
+        /// <summary>
+        /// The target drawable which is providing the popover for display. <c>null</c> if no popover is displayed.
+        /// </summary>
+        public IHasPopover? CurrentTarget { get; private set; }
+
+        /// <summary>
+        /// The current popover being displayed. <c>null</c> if no popover is displayed.
+        /// </summary>
+        public Popover? CurrentPopover { get; private set; }
 
         protected override Container<Drawable> Content => content;
 
@@ -48,17 +55,17 @@ namespace osu.Framework.Graphics.Cursor
         /// <returns><see langword="true"/> if a new popover was shown, <see langword="false"/> otherwise.</returns>
         internal bool SetTarget(IHasPopover? newTarget)
         {
-            currentPopover?.Hide();
-            currentPopover?.Expire();
+            CurrentPopover?.Hide();
+            CurrentPopover?.Expire();
 
-            target = newTarget;
+            CurrentTarget = newTarget;
 
-            var newPopover = target?.GetPopover();
+            var newPopover = CurrentTarget?.GetPopover();
             if (newPopover == null)
                 return false;
 
-            dismissOnMouseDownContainer.Add(currentPopover = newPopover);
-            currentPopover.Show();
+            dismissOnMouseDownContainer.Add(CurrentPopover = newPopover);
+            CurrentPopover.Show();
             return true;
         }
 
@@ -66,7 +73,7 @@ namespace osu.Framework.Graphics.Cursor
         {
             base.UpdateAfterChildren();
 
-            if ((target as Drawable)?.FindClosestParent<PopoverContainer>() != this || target?.IsPresent != true)
+            if ((CurrentTarget as Drawable)?.FindClosestParent<PopoverContainer>() != this || CurrentTarget?.IsPresent != true)
             {
                 SetTarget(null);
                 return;
@@ -90,24 +97,24 @@ namespace osu.Framework.Graphics.Cursor
 
         private void updatePopoverPositioning()
         {
-            if (target == null || currentPopover == null)
+            if (CurrentTarget == null || CurrentPopover == null)
                 return;
 
-            var targetLocalQuad = ToLocalSpace(target.ScreenSpaceDrawQuad);
+            var targetLocalQuad = ToLocalSpace(CurrentTarget.ScreenSpaceDrawQuad);
 
             Anchor bestAnchor = Anchor.Centre;
             float biggestArea = 0;
 
             float totalSize = Math.Max(DrawSize.X * DrawSize.Y, 1);
 
-            foreach (var anchor in currentPopover.AllowableAnchors)
+            foreach (var anchor in CurrentPopover.AllowableAnchors)
             {
                 // Compute how much free space is available on this side of the target.
                 var availableSize = availableSizeAroundTargetForAnchor(targetLocalQuad, anchor);
                 float area = availableSize.X * availableSize.Y / totalSize;
 
                 // If the free space is insufficient for the popover to fit in, do not consider this anchor further.
-                if (availableSize.X < currentPopover.BoundingBoxContainer.DrawWidth || availableSize.Y < currentPopover.BoundingBoxContainer.DrawHeight)
+                if (availableSize.X < CurrentPopover.BoundingBoxContainer.DrawWidth || availableSize.Y < CurrentPopover.BoundingBoxContainer.DrawHeight)
                     continue;
 
                 // The heuristic used to find the "best" anchor is the biggest area of free space available in the popover container
@@ -119,17 +126,17 @@ namespace osu.Framework.Graphics.Cursor
                 }
             }
 
-            currentPopover.PopoverAnchor = bestAnchor.Opposite();
+            CurrentPopover.PopoverAnchor = bestAnchor.Opposite();
 
             var positionOnQuad = bestAnchor.PositionOnQuad(targetLocalQuad);
-            currentPopover.Position = new Vector2(positionOnQuad.X - Padding.Left, positionOnQuad.Y - Padding.Top);
+            CurrentPopover.Position = new Vector2(positionOnQuad.X - Padding.Left, positionOnQuad.Y - Padding.Top);
 
             // While the side has been chosen to maximise the area of free space available, that doesn't mean that the popover's body
             // will still fit in its entirety in the default configuration.
             // To avoid this, offset the popover so that it fits in the bounds of this container.
             var adjustment = new Vector2();
 
-            var popoverContentLocalQuad = ToLocalSpace(currentPopover.Body.ScreenSpaceDrawQuad);
+            var popoverContentLocalQuad = ToLocalSpace(CurrentPopover.Body.ScreenSpaceDrawQuad);
             if (popoverContentLocalQuad.TopLeft.X < 0)
                 adjustment.X = -popoverContentLocalQuad.TopLeft.X;
             else if (popoverContentLocalQuad.BottomRight.X > DrawWidth)
@@ -139,13 +146,13 @@ namespace osu.Framework.Graphics.Cursor
             else if (popoverContentLocalQuad.BottomRight.Y > DrawHeight)
                 adjustment.Y = DrawHeight - popoverContentLocalQuad.BottomRight.Y;
 
-            currentPopover.Position += adjustment;
+            CurrentPopover.Position += adjustment;
 
             // Even if the popover was moved, the arrow should stay fixed in place and point at the target's centre.
             // In such a case, apply a counter-adjustment to the arrow position.
             // The reason why just the body isn't moved is that the popover's autosize does not play well with that
             // (setting X/Y on the body can lead BoundingBox to be larger than it actually needs to be, causing 1-frame-errors)
-            currentPopover.Arrow.Position = -adjustment;
+            CurrentPopover.Arrow.Position = -adjustment;
         }
 
         /// <summary>

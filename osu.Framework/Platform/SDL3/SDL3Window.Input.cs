@@ -571,7 +571,13 @@ namespace osu.Framework.Platform.SDL3
                 if (!penProximityWorkaround && penDeviceTypes.ContainsKey(evtPenProximity.which))
                     Logger.Log($"Unexpected SDL_EVENT_PEN_PROXIMITY_IN for pen id={evtPenProximity.which}. Pen already in proximity.", level: LogLevel.Important);
 
-                penDeviceTypes[evtPenProximity.which] = SDL_GetPenDeviceType(evtPenProximity.which).ThrowIfFailed().ToTabletPenDeviceType();
+                // On windows, the call to SDL_GetPenDeviceType() can infrequently error out with "Invalid pen instance ID".
+                // This doesn't make sense, as we got the pen ID from an event, so it should be valid.
+                // Hard-code to `Unknown` pen type to avoid the crash. Currently, on windows, all pens are already reported as Unknown.
+                // See https://github.com/ppy/osu-framework/issues/6747 for more information.
+                penDeviceTypes[evtPenProximity.which] = RuntimeInfo.OS == RuntimeInfo.Platform.Windows
+                    ? TabletPenDeviceType.Unknown
+                    : SDL_GetPenDeviceType(evtPenProximity.which).ThrowIfFailed().ToTabletPenDeviceType();
             }
             else
             {

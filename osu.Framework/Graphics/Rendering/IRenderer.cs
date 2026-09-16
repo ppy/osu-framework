@@ -376,10 +376,11 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// Creates a new <see cref="IFrameBuffer"/>.
         /// </summary>
+        /// <param name="textureFormat">The texture pixel format.</param>
         /// <param name="renderBufferFormats">Any render buffer formats.</param>
         /// <param name="filteringMode">The texture filtering mode.</param>
         /// <returns>The <see cref="IFrameBuffer"/>.</returns>
-        IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear);
+        IFrameBuffer CreateFrameBuffer(TexturePixelFormat textureFormat = TexturePixelFormat.R8G8B8A8Float, RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear);
 
         /// <summary>
         /// Creates a new <see cref="Texture"/>.

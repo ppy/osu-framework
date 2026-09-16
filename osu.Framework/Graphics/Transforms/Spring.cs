@@ -134,7 +134,7 @@ namespace osu.Framework.Graphics.Transforms
 
     public class FloatSpring : Spring<float>
     {
-        protected override float GetTargetVelocity(float target, float previousTarget, float dt) => (target - previousTarget) / dt;
+        protected override float GetTargetVelocity(float target, float previousTarget, float dt) => dt == 0f ? 0f : (target - previousTarget) / dt;
 
         protected override float ComputeNextValue(float dt, float target, float targetVelocity)
         {
@@ -146,7 +146,7 @@ namespace osu.Framework.Graphics.Transforms
 
     public class DoubleSpring : Spring<double>
     {
-        protected override double GetTargetVelocity(double target, double previousTarget, float dt) => (target - previousTarget) / dt;
+        protected override double GetTargetVelocity(double target, double previousTarget, float dt) => dt == 0f ? 0d : (target - previousTarget) / dt;
 
         protected override double ComputeNextValue(float dt, double target, double targetVelocity)
         {
@@ -158,7 +158,7 @@ namespace osu.Framework.Graphics.Transforms
 
     public class Vector2Spring : Spring<Vector2>
     {
-        protected override Vector2 GetTargetVelocity(Vector2 target, Vector2 previousTarget, float dt) => (target - previousTarget) / dt;
+        protected override Vector2 GetTargetVelocity(Vector2 target, Vector2 previousTarget, float dt) => dt == 0f ? Vector2.Zero : (target - previousTarget) / dt;
 
         protected override Vector2 ComputeNextValue(float dt, Vector2 target, Vector2 targetVelocity)
         {

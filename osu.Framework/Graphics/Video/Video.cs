@@ -34,8 +34,7 @@ namespace osu.Framework.Graphics.Video
             get => base.Loop;
             set
             {
-                if (decoder != null)
-                    decoder.Looping = value;
+                decoder?.Looping = value;
 
                 base.Loop = value;
             }

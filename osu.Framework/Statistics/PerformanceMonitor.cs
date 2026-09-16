@@ -211,8 +211,7 @@ namespace osu.Framework.Statistics
 
         private void updateEnabledState()
         {
-            if (traceCollector != null)
-                traceCollector.Enabled = enablePerformanceProfiling && isActive.Value;
+            traceCollector?.Enabled = enablePerformanceProfiling && isActive.Value;
         }
 
         private double averageFrameTime;
@@ -222,8 +221,7 @@ namespace osu.Framework.Statistics
             double lastConsumptionTime = consumptionTime;
             consumptionTime = ourClock.CurrentTime;
 
-            if (traceCollector != null)
-                traceCollector.LastConsumptionTime = consumptionTime;
+            traceCollector?.LastConsumptionTime = consumptionTime;
 
             double lastGCTotalPauseDuration = consumptionGCTotalPauseDuration;
             consumptionGCTotalPauseDuration = GC.GetTotalPauseDuration().TotalMilliseconds;

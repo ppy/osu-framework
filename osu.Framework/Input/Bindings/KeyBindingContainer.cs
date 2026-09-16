@@ -44,6 +44,8 @@ namespace osu.Framework.Input.Bindings
 
         private readonly List<T> pressedActions = new List<T>();
 
+        private readonly HashSet<InputKey> bindingInitiatingKeys = new HashSet<InputKey>();
+
         /// <summary>
         /// All actions in a currently pressed state.
         /// </summary>
@@ -224,6 +226,11 @@ namespace osu.Framework.Input.Bindings
                     if (pressedBindings.Contains(binding))
                         continue;
 
+                    // Don't allow a binding to fire if any of its non-modifier keys were
+                    // already consumed by a previous binding that hasn't been fully released yet.
+                    if (binding.KeyCombination.Keys.Any(key => !KeyCombination.IsModifierKey(key) && bindingInitiatingKeys.Contains(key)))
+                        continue;
+
                     if (binding.KeyCombination.IsPressed(pressedCombination, state, matchingMode))
                         newlyPressed.Add(binding);
                 }
@@ -265,6 +272,15 @@ namespace osu.Framework.Input.Bindings
 
                 if (handledBy != null)
                 {
+                    if (newBinding.KeyCombination.Keys.Any(KeyCombination.IsModifierKey))
+                    {
+                        foreach (var key in newBinding.KeyCombination.Keys)
+                        {
+                            if (!KeyCombination.IsModifierKey(key))
+                                bindingInitiatingKeys.Add(key);
+                        }
+                    }
+
                     // only drawables up to the one that handled the press should handle the release, so remove all subsequent drawables from the queue (for future use).
                     int count = inputQueue.IndexOf(handledBy) + 1;
                     inputQueue.RemoveRange(count, inputQueue.Count - count);
@@ -351,6 +367,7 @@ namespace osu.Framework.Input.Bindings
         private void handleNewReleased(InputState state, InputKey releasedKey)
         {
             pressedInputKeys.Remove(releasedKey);
+            bindingInitiatingKeys.Remove(releasedKey);
 
             if (pressedBindings.Count == 0)
                 return;

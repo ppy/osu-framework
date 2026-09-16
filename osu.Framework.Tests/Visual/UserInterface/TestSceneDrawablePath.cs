@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Input.Events;
 using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
@@ -25,6 +26,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private const int texture_width = 20;
 
         private Texture gradientTexture;
+        private InteractiveContainer content;
 
         [BackgroundDependencyLoader]
         private void load(IRenderer renderer)
@@ -39,6 +41,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             gradientTexture = renderer.CreateTexture(texture_width, 1, true);
             gradientTexture.SetData(new TextureUpload(image));
+
+            Child = content = new InteractiveContainer();
         }
 
         [Test]
@@ -46,7 +50,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("create path", () =>
             {
-                Child = new TexturedPath
+                content.Child = new TexturedPath
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
@@ -61,7 +65,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("create path", () =>
             {
-                Child = new TexturedPath
+                content.Child = new TexturedPath
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
@@ -83,7 +87,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("create path", () =>
             {
-                Child = new TexturedPath
+                content.Child = new OverlapTestPath
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
@@ -94,8 +98,29 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         new Vector2(150, 150),
                         new Vector2(150, 100),
                         new Vector2(20, 100),
-                    },
-                    Texture = gradientTexture,
+                    }
+                };
+            });
+        }
+
+        [Test]
+        public void TestThinStripesPath()
+        {
+            AddStep("create path", () =>
+            {
+                content.Child = new ThinStripesPath
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    PathRadius = 20,
+                    Vertices = new List<Vector2>
+                    {
+                        new Vector2(50, 50),
+                        new Vector2(50, 150),
+                        new Vector2(150, 150),
+                        new Vector2(150, 100),
+                        new Vector2(20, 100),
+                    }
                 };
             });
         }
@@ -105,7 +130,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("create path", () =>
             {
-                Child = new SmoothPath
+                content.Child = new SmoothPath
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
@@ -124,7 +149,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("create path", () =>
             {
-                Child = new Path
+                content.Child = new Path
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
@@ -143,7 +168,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("create path", () =>
             {
-                Children = new Drawable[]
+                content.Children = new Drawable[]
                 {
                     new Box
                     {
@@ -177,7 +202,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("create autosize path", () =>
             {
-                Child = new Container
+                content.Child = new Container
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
@@ -214,6 +239,85 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddAssert("size = (100, 100)", () => Precision.AlmostEquals(new Vector2(100), path.DrawSize));
+        }
+
+        private partial class OverlapTestPath : SmoothPath
+        {
+            protected override Color4 ColourAt(float position)
+            {
+                return Interpolation.ValueAt(position, Color4.Red, Color4.Blue, 0f, 1f);
+            }
+        }
+
+        private partial class ThinStripesPath : SmoothPath
+        {
+            protected override Color4 ColourAt(float position)
+            {
+                return position % 0.1f < 0.05f ? Color4.Red : Color4.Blue;
+            }
+        }
+
+        private partial class InteractiveContainer : Container
+        {
+            protected override Container<Drawable> Content => ScalableContent;
+
+            protected readonly Container ScalableContent;
+            private readonly bool smooth;
+
+            public InteractiveContainer(bool smooth = true)
+            {
+                this.smooth = smooth;
+
+                RelativeSizeAxes = Axes.Both;
+                AddInternal(ScalableContent = new Container
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    AutoSizeAxes = Axes.Both
+                });
+            }
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+                Reset();
+            }
+
+            private float zoom = 1f;
+
+            public void Reset()
+            {
+                ResetPosition();
+            }
+
+            public void ResetPosition()
+            {
+                ScalableContent.Anchor = Anchor.Centre;
+                ScalableContent.Origin = Anchor.Centre;
+                ScalableContent.Position = Vector2.Zero;
+            }
+
+            protected override bool OnDragStart(DragStartEvent e) => true;
+
+            protected override void OnDrag(DragEvent e)
+            {
+                base.OnDrag(e);
+                ScalableContent.Position += e.Delta;
+            }
+
+            protected override bool OnScroll(ScrollEvent e)
+            {
+                base.OnScroll(e);
+
+                ScalableContent.OriginPosition = ToSpaceOfOtherDrawable(e.MousePosition, ScalableContent);
+                ScalableContent.Anchor = Anchor.TopLeft;
+                ScalableContent.Position = e.MousePosition;
+
+                zoom += (e.ScrollDelta.Y > 0 ? 1 : -1) * zoom * 0.1f;
+                ScalableContent.ScaleTo(zoom, smooth ? 150 : 0, Easing.OutQuint);
+
+                return true;
+            }
         }
     }
 }

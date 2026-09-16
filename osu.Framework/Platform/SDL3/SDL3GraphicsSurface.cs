@@ -206,6 +206,59 @@ namespace osu.Framework.Platform.SDL3
         [SupportedOSPlatform("android")]
         IntPtr IAndroidGraphicsSurface.SurfaceHandle => window.SurfaceHandle;
 
+        [SupportedOSPlatform("android")]
+        void IAndroidGraphicsSurface.SetPresentationTime(long presentationTimeNanos)
+        {
+            IntPtr sdlEglDisplay = SDL_EGL_GetCurrentDisplay();
+            IntPtr sdlEglSurface = getCurrentDrawSurface();
+
+            if (sdlEglDisplay == IntPtr.Zero || sdlEglSurface == IntPtr.Zero) return;
+
+            setPresentationTime(sdlEglDisplay, sdlEglSurface, presentationTimeNanos);
+        }
+
+        private static delegate* unmanaged[Cdecl]<int, IntPtr> eglGetCurrentSurface;
+
+        private static IntPtr getCurrentDrawSurface()
+        {
+            const int egl_draw = 0x3059;
+
+            if (eglGetCurrentSurface == null)
+            {
+                IntPtr proc = SDL_EGL_GetProcAddress("eglGetCurrentSurface");
+
+                if (proc != IntPtr.Zero)
+                {
+                    eglGetCurrentSurface = (delegate* unmanaged[Cdecl]<int, IntPtr>)proc;
+                }
+            }
+
+            if (eglGetCurrentSurface == null)
+                return IntPtr.Zero;
+
+            return eglGetCurrentSurface(egl_draw);
+        }
+
+        private static delegate* unmanaged[Cdecl]<IntPtr, IntPtr, long, bool> eglPresentationTimeAndroid;
+
+        private static bool setPresentationTime(IntPtr eglDisplay, IntPtr eglSurface, long presentationTimeNanos)
+        {
+            if (eglPresentationTimeAndroid == null)
+            {
+                IntPtr proc = SDL_EGL_GetProcAddress("eglPresentationTimeANDROID");
+
+                if (proc != IntPtr.Zero)
+                {
+                    eglPresentationTimeAndroid = (delegate* unmanaged[Cdecl]<IntPtr, IntPtr, long, bool>)proc;
+                }
+            }
+
+            if (eglPresentationTimeAndroid == null)
+                return false;
+
+            return eglPresentationTimeAndroid(eglDisplay, eglSurface, presentationTimeNanos);
+        }
+
         #endregion
     }
 }
