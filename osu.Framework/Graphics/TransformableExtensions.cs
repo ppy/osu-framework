@@ -151,7 +151,7 @@ namespace osu.Framework.Graphics
             ArgumentOutOfRangeException.ThrowIfNegative(duration);
 
             if (transform.Target != null)
-                throw new InvalidOperationException($"May not {nameof(PopulateTransform)} the same {nameof(Transform<TValue, TThis>)} more than once.");
+                throw new InvalidOperationException($"May not {nameof(PopulateTransform)} the same {nameof(Transform<,>)} more than once.");
 
             transform.Target = t;
 
@@ -267,7 +267,7 @@ namespace osu.Framework.Graphics
             transformable.Delay(0).Loop(pause);
 
         /// <summary>
-        /// Rotate over one full rotation with provided parameters.
+        /// Rotate indefinitely with provided parameters.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
         public static TransformSequence<T> Spin<T>(this T drawable, double revolutionDuration, RotationDirection direction, float startRotation = 0)

@@ -44,8 +44,7 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 var midiHandler = host.AvailableInputHandlers.OfType<MidiHandler>().FirstOrDefault();
 
-                if (midiHandler != null)
-                    midiHandler.Enabled.Value = enabled;
+                midiHandler?.Enabled.Value = enabled;
             });
         }
 

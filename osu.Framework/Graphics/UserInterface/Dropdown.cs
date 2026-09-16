@@ -128,7 +128,7 @@ namespace osu.Framework.Graphics.UserInterface
         private void addDropdownItem(T value, int? position = null)
         {
             if (itemMap.ContainsKey(value))
-                throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<T>)}.");
+                throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<>)}.");
 
             var item = new DropdownMenuItem<T>(value, () =>
             {

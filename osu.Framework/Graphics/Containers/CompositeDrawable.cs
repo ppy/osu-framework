@@ -617,7 +617,7 @@ namespace osu.Framework.Graphics.Containers
             if (range is IContainerEnumerable<Drawable>)
             {
                 throw new InvalidOperationException($"Attempting to add a {nameof(IContainer)} as a range of children to {this}."
-                                                    + $"If intentional, consider using the {nameof(IContainerEnumerable<Drawable>.Children)} property instead.");
+                                                    + $"If intentional, consider using the {nameof(IContainerEnumerable<>.Children)} property instead.");
             }
 
             foreach (Drawable d in range)

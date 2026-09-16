@@ -107,8 +107,7 @@ namespace osu.Framework.Tests.Visual.Localisation
 
             AddSliderStep("change text flow width", 0, 1f, 1f, width =>
             {
-                if (textFlowParent != null)
-                    textFlowParent.Width = width;
+                textFlowParent?.Width = width;
             });
         }
 
