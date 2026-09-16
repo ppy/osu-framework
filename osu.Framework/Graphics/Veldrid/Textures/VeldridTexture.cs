@@ -458,7 +458,8 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
             if (texture == null || texture.Width != Width || texture.Height != Height)
             {
-                texture?.Dispose();
+                if (texture != null)
+                    Renderer.ScheduleDisposal(t => t.Dispose(), texture);
 
                 var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)CalculateMipmapLevels(Width, Height), 1, textureFormat, Usages);
                 texture = Renderer.Factory.CreateTexture(ref textureDescription);
@@ -490,11 +491,13 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
             if (sampler == null || maximumUploadedLod > lastMaximumUploadedLod)
             {
-                sampler?.Dispose();
+                if (sampler != null)
+                    Renderer.ScheduleDisposal(s => s.Dispose(), sampler);
+
                 sampler = createSampler();
             }
 
-            resources = new VeldridTextureResources(texture, sampler);
+            resources = new VeldridTextureResources(Renderer, texture, sampler);
         }
 
         private unsafe void initialiseLevel(Texture texture, int level, int width, int height)

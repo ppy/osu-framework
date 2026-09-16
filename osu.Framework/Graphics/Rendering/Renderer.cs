@@ -948,7 +948,7 @@ namespace osu.Framework.Graphics.Rendering
             while (FrameBuffer == frameBuffer)
                 UnbindFrameBuffer(frameBuffer);
 
-            ScheduleDisposal(DeleteFrameBufferImplementation, frameBuffer);
+            DeleteFrameBufferImplementation(frameBuffer);
         }
 
         protected abstract void DeleteFrameBufferImplementation(IFrameBuffer frameBuffer);

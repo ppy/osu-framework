@@ -4,13 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Runtime.InteropServices;
+using System.Text;
 using osu.Framework.Extensions.EnumExtensions;
-using osu.Framework.Graphics.OpenGL.Buffers;
-using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Batches;
+using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Shaders;
+using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
@@ -19,14 +19,14 @@ using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osuTK;
-using osuTK.Graphics.ES30;
 using osuTK.Graphics;
+using osuTK.Graphics.ES30;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Memory;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using Image = SixLabors.ImageSharp.Image;
 using GL4 = osuTK.Graphics.OpenGL;
+using Image = SixLabors.ImageSharp.Image;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -234,7 +234,7 @@ namespace osu.Framework.Graphics.OpenGL
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLFrameBuffer?)frameBuffer)?.FrameBuffer ?? backbufferFramebuffer);
 
         protected override void DeleteFrameBufferImplementation(IFrameBuffer frameBuffer)
-            => GL.DeleteFramebuffer(((GLFrameBuffer)frameBuffer).FrameBuffer);
+            => ScheduleDisposal(f => GL.DeleteFramebuffer(f.FrameBuffer), (GLFrameBuffer)frameBuffer);
 
         protected override void ClearImplementation(ClearInfo clearInfo)
         {

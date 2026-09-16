@@ -104,12 +104,12 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         ~VeldridUniformBuffer()
         {
-            renderer.ScheduleDisposal(v => v.Dispose(false), this);
+            Dispose(false);
         }
 
         public void Dispose()
         {
-            renderer.ScheduleDisposal(v => v.Dispose(true), this);
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 

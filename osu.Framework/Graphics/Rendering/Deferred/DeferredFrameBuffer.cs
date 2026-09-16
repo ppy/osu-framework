@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             => nativeTexture.Resize(size);
 
         public void DeleteResources()
-            => nativeTexture.Dispose();
+            => renderer.ScheduleDisposal(b => b.Dispose(), nativeTexture);
 
         Framebuffer IVeldridFrameBuffer.Framebuffer
             => nativeTexture.Framebuffer;
@@ -67,7 +67,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
         ~DeferredFrameBuffer()
         {
-            renderer.ScheduleDisposal(b => b.Dispose(false), this);
+            Dispose(false);
         }
 
         public void Dispose()
@@ -142,6 +142,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                     return;
 
                 resources = new VeldridTextureResources(
+                    deferredFrameBuffer.renderer,
                     deferredFrameBuffer.renderer.Factory.CreateTexture(
                         TextureDescription.Texture2D((uint)resourceSize.X,
                             (uint)resourceSize.Y,

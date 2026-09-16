@@ -13,6 +13,8 @@ namespace osu.Framework.Graphics.Veldrid.Textures
     {
         public readonly Texture Texture;
 
+        private readonly IVeldridRenderer renderer;
+
         private Sampler? sampler;
 
         public Sampler? Sampler
@@ -20,21 +22,57 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             get => sampler;
             set
             {
-                sampler?.Dispose();
+                if (sampler != null)
+                    renderer.ScheduleDisposal(sampler => sampler.Dispose(), sampler);
+
                 sampler = value;
 
-                Set?.Dispose();
+                if (Set != null)
+                    renderer.ScheduleDisposal(set => set.Dispose(), Set);
+
                 Set = null;
             }
         }
 
         public ResourceSet? Set { get; private set; }
 
-        public VeldridTextureResources(Texture texture, Sampler? sampler)
+        public VeldridTextureResources(IVeldridRenderer renderer, Texture texture, Sampler? sampler)
         {
+            this.renderer = renderer;
             Texture = texture;
             Sampler = sampler;
         }
+
+        #region Disposal
+
+        // TODO: Found during refactoring: adding a finalizer that calls Dispose(false) causes issues. The class already lacked
+        //       a finalizer beforehand, which was potentially intentional. Worth investigating further in the future, but orthogonal
+        //       to the goals of other changes being made currently.
+
+        private bool isDisposed;
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool isDisposing)
+        {
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
+
+            renderer.ScheduleDisposal(t =>
+            {
+                t.Texture.Dispose();
+                t.Sampler?.Dispose();
+                t.Set?.Dispose();
+            }, this);
+        }
+
+        #endregion
 
         /// <summary>
         /// Creates a <see cref="ResourceSet"/> from the <see cref="global::Veldrid.Texture"/> and <see cref="global::Veldrid.Sampler"/>.
@@ -48,13 +86,6 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 throw new InvalidOperationException("Attempting to create resource set without a sampler attached to the resources.");
 
             return Set ??= factory.CreateResourceSet(new ResourceSetDescription(layout, Texture, Sampler));
-        }
-
-        public void Dispose()
-        {
-            Texture.Dispose();
-            Sampler?.Dispose();
-            Set?.Dispose();
         }
     }
 }

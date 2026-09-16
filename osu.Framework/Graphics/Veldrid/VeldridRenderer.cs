@@ -189,7 +189,7 @@ namespace osu.Framework.Graphics.Veldrid
             if (indexBuffer == null || indexBuffer.VertexCapacity < verticesCount)
             {
                 indexBuffer?.Dispose();
-                indexBuffer = new VeldridIndexBuffer(bufferUpdatePipeline, layout, verticesCount);
+                indexBuffer = new VeldridIndexBuffer(this, bufferUpdatePipeline, layout, verticesCount);
             }
 
             graphicsPipeline.SetIndexBuffer(indexBuffer);
