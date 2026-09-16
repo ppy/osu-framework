@@ -412,6 +412,10 @@ namespace osu.Framework.Audio
             // without this, if bass falls back to directsound legacy mode the audio playback offset will be way off.
             Bass.Configure(ManagedBass.Configuration.TruePlayPosition, 0);
 
+            // Unicode device information allows correct display of devices with UTF-8 content in the device list.
+            // See https://www.radio42.com/bass/help/html/3490e2bc-7f3a-9135-3d24-ee519029f737.htm (value 42).
+            Bass.Configure(ManagedBass.Configuration.UnicodeDeviceInformation, true);
+
             // Set BASS_IOS_SESSION_DISABLE here to leave session configuration in our hands (see iOS project).
             Bass.Configure(ManagedBass.Configuration.IOSSession, 16);
 

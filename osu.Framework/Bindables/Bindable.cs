@@ -513,7 +513,7 @@ namespace osu.Framework.Bindables
         private void throwIfLeased()
         {
             if (isLeased)
-                throw new InvalidOperationException($"Cannot perform this operation on a {nameof(Bindable<T>)} that is currently in a leased state.");
+                throw new InvalidOperationException($"Cannot perform this operation on a {nameof(Bindable<>)} that is currently in a leased state.");
         }
     }
 }

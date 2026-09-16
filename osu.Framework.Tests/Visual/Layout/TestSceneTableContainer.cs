@@ -146,8 +146,7 @@ namespace osu.Framework.Tests.Visual.Layout
             AddStep("attempt to change anchor", () =>
             {
                 var cell = table?.Content?[0, 0];
-                if (cell != null)
-                    cell.Anchor = Anchor.Centre;
+                cell?.Anchor = Anchor.Centre;
             });
 
             // This currently fails, but should probably pass, but is particularly hard to fix.

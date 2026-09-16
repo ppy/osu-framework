@@ -79,8 +79,8 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        /// <summary>Gets the y-coordinate of the top edge of this <see cref="RectangleF"/> structure.</summary>
-        /// <returns>The y-coordinate of the top edge of this <see cref="RectangleF"/> structure.</returns>
+        /// <summary>Gets the x-coordinate of the left edge of this <see cref="RectangleF"/> structure.</summary>
+        /// <returns>The x-coordinate of the left edge of this <see cref="RectangleF"/> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
         public float Left => X;

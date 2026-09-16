@@ -370,7 +370,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             GL.ReadPixels(0, 0, size.Width, size.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(data.Memory.Span));
 
-            var image = Image.LoadPixelData<Rgba32>(data.Memory.Span, size.Width, size.Height);
+            var image = Image.LoadPixelData(data.Memory.Span, size.Width, size.Height);
             image.Mutate(i => i.Flip(FlipMode.Vertical));
             return image;
         }
@@ -386,7 +386,7 @@ namespace osu.Framework.Graphics.OpenGL
             GL.ReadPixels(0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(data.Memory.Span));
             frameBuffer.Unbind();
 
-            var image = Image.LoadPixelData<Rgba32>(data.Memory.Span, width, height);
+            var image = Image.LoadPixelData(data.Memory.Span, width, height);
 
             return image;
         }
@@ -441,8 +441,8 @@ namespace osu.Framework.Graphics.OpenGL
                     glTextureFormat = TextureComponentCount.Rgba8;
                     break;
 
-                case TexturePixelFormat.R32Float:
-                    glTextureFormat = TextureComponentCount.R32f;
+                case TexturePixelFormat.R16Float:
+                    glTextureFormat = TextureComponentCount.R16f;
                     break;
 
                 default:

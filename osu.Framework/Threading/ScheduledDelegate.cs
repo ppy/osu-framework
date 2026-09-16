@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading;
 
 namespace osu.Framework.Threading
 {
@@ -54,7 +55,7 @@ namespace osu.Framework.Threading
             RepeatInterval = repeatInterval;
         }
 
-        private readonly object runLock = new object();
+        private readonly Lock runLock = new Lock();
 
         /// <summary>
         /// Invokes the scheduled task.

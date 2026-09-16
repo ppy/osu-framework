@@ -555,7 +555,11 @@ namespace osu.Framework.Platform.SDL3
                 case SDL_EventType.SDL_EVENT_WINDOW_SHOWN:
                 case SDL_EventType.SDL_EVENT_WINDOW_HIDDEN:
 
-                // See https://github.com/libsdl-org/SDL/issues/9585
+                // Transitioning to fullscreen on Wayland changes the display when non-1 content scaling is involved.
+                case SDL_EventType.SDL_EVENT_WINDOW_ENTER_FULLSCREEN when IsWayland:
+                case SDL_EventType.SDL_EVENT_WINDOW_LEAVE_FULLSCREEN when IsWayland:
+
+                // See https://github.com/libsdl-org/SDL/issues/9585.
                 case SDL_EventType.SDL_EVENT_WINDOW_RESIZED when RuntimeInfo.OS == RuntimeInfo.Platform.Android:
                     fetchDisplays();
                     break;
@@ -711,7 +715,7 @@ namespace osu.Framework.Platform.SDL3
                     break;
 
                 case WindowState.Fullscreen:
-                    var closestMode = getClosestDisplayMode(SDLWindowHandle, sizeFullscreen.Value, display, displayMode);
+                    var closestMode = getBestFullscreenDisplayMode(display, displayMode);
 
                     Size = new Size(closestMode.w, closestMode.h);
 
@@ -932,41 +936,73 @@ namespace osu.Framework.Platform.SDL3
             return true;
         }
 
-        private static unsafe SDL_DisplayMode getClosestDisplayMode(SDL_Window* windowHandle, Size size, Display display, DisplayMode requestedMode)
+        private unsafe SDL_DisplayMode getBestFullscreenDisplayMode(Display display, DisplayMode requestedMode)
         {
             SDL_ClearError(); // clear any stale error.
 
-            if (!tryGetDisplayAtIndex(display.Index, out var displayID))
+            if (!tryGetDisplayAtIndex(display.Index, out var id))
                 throw new ArgumentException($"Requested display index ({display}) is invalid.", nameof(display));
 
+            Size targetSize = sizeFullscreen.Value;
+
             // default size means to use the display's native size.
-            if (size.Width == 9999 && size.Height == 9999)
-                size = display.Bounds.Size;
+            if (targetSize.Width == 9999 && targetSize.Height == 9999)
+            {
+                targetSize = display.Bounds.Size;
+
+                // On Wayland compositors, fullscreen windows are expected to be in pixel units while windowed/borderless windows are expected to be in logical units.
+                // SDL3 explicitly expects its users to adjust to such sizing quirks rather than inserting a compatibility layer, so we need to handle it explicitly
+                // here. See https://github.com/libsdl-org/SDL/issues/15879 for details and (lots of) discussion on the topic.
+                if (IsWayland)
+                {
+                    using var modes = SDL_GetFullscreenDisplayModes(id);
+
+                    if (modes != null && modes.Count > 0)
+                    {
+                        for (int i = 0; i < modes.Count; i++)
+                        {
+                            if (modes[i].pixel_density != 1f)
+                                continue;
+
+                            // Since there is no unique ordering on display size, we pick the one with most pixels for simplicity
+                            if (modes[i].w * modes[i].h > targetSize.Width * targetSize.Height)
+                            {
+                                targetSize = new Size(modes[i].w, modes[i].h);
+
+                                // Things like bits per pixel and refresh rate are not guaranteed to be the same across different display modes, so update.
+                                // In practice, this is unlikely to actually be the case, though. TODO for the future is to allow users to specify a preferred
+                                // refresh rate and bits per pixel.
+                                requestedMode = modes[i].ToDisplayMode(display.Index);
+                            }
+                        }
+                    }
+                }
+            }
 
             SDL_DisplayMode mode;
 
-            if (SDL_GetClosestFullscreenDisplayMode(displayID, size.Width, size.Height, requestedMode.RefreshRate, true, &mode))
+            if (SDL_GetClosestFullscreenDisplayMode(id, targetSize.Width, targetSize.Height, requestedMode.RefreshRate, true, &mode))
                 return mode;
 
             Logger.Log(
-                $"Unable to get preferred display mode (try #1/2). Target display: {display.Index}, mode: {size.Width}x{size.Height}@{requestedMode.RefreshRate}. SDL error: {SDL3Extensions.GetAndClearError()}");
+                $"Unable to get preferred display mode (try #1/2). Target display: {display.Index}, mode: {targetSize.Width}x{targetSize.Height}@{requestedMode.RefreshRate}. SDL error: {SDL3Extensions.GetAndClearError()}");
 
-            // fallback to current display's native bounds
-            if (SDL_GetClosestFullscreenDisplayMode(displayID, display.Bounds.Width, display.Bounds.Height, 0f, true, &mode))
+            // fallback to current display's native bounds disregarding `pixel_density`
+            if (SDL_GetClosestFullscreenDisplayMode(id, display.Bounds.Width, display.Bounds.Height, 0f, true, &mode))
                 return mode;
 
             Logger.Log(
                 $"Unable to get preferred display mode (try #2/2). Target display: {display.Index}, mode: {display.Bounds.Width}x{display.Bounds.Height}@default. SDL error: {SDL3Extensions.GetAndClearError()}");
 
             // try the display's native display mode.
-            var modePtr = SDL_GetDesktopDisplayMode(displayID);
+            var modePtr = SDL_GetDesktopDisplayMode(id);
             if (modePtr != null)
                 return *modePtr;
 
             Logger.Log($"Failed to get desktop display mode (try #1/1). Target display: {display.Index}. SDL error: {SDL3Extensions.GetAndClearError()}", level: LogLevel.Error);
 
             // finally return the current mode if everything else fails.
-            modePtr = SDL_GetWindowFullscreenMode(windowHandle);
+            modePtr = SDL_GetWindowFullscreenMode(SDLWindowHandle);
             if (modePtr != null)
                 return *modePtr;
 

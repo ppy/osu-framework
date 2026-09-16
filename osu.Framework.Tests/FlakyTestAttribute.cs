@@ -54,7 +54,6 @@ namespace osu.Framework.Tests
                     }
                     catch (Exception ex)
                     {
-                        context.CurrentResult ??= context.CurrentTest.MakeTestResult();
                         context.CurrentResult.RecordException(ex);
                     }
 

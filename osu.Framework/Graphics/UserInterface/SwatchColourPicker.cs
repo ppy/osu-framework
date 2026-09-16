@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The preset colours to display as swatches.
         /// </summary>
-        public BindableList<Colour4> Colours { get; }
+        public BindableList<Colour4> Colours { get; } = new BindableList<Colour4>();
 
         /// <summary>
         /// The background of the control.
@@ -41,10 +41,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected FillFlowContainer Content { get; }
 
-        protected SwatchColourPicker(BindableList<Colour4>? colours = null)
+        protected SwatchColourPicker()
         {
-            Colours = colours ?? new BindableList<Colour4>();
-
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
 
