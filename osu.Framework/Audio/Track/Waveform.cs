@@ -117,9 +117,9 @@ namespace osu.Framework.Audio.Track
                         return;
                     }
 
-                    long length = Bass.ChannelGetLength(decodeStream);
+                    long trackLength = Bass.ChannelGetLength(decodeStream);
 
-                    if (length < 0)
+                    if (trackLength < 0)
                     {
                         logBassError("could not retrieve channel length");
                         return;
@@ -130,7 +130,7 @@ namespace osu.Framework.Audio.Track
 
                     int bytesPerPoint = samplesPerPoint * bytes_per_sample;
 
-                    int pointCount = (int)(length / bytesPerPoint);
+                    int pointCount = (int)(trackLength / bytesPerPoint);
 
                     points = new Point[pointCount];
 
@@ -186,14 +186,6 @@ namespace osu.Framework.Audio.Track
                     if (!Bass.ChannelSetPosition(decodeStream, 0))
                     {
                         logBassError("could not reset channel position");
-                        return;
-                    }
-
-                    length = Bass.ChannelGetLength(decodeStream);
-
-                    if (length < 0)
-                    {
-                        logBassError("could not retrieve channel length");
                         return;
                     }
 
