@@ -140,19 +140,12 @@ namespace osu.Framework.Audio.Track
                     sampleBuffer = ArrayPool<float>.Shared.Rent(bytesPerIteration / bytes_per_sample);
 
                     int pointIndex = 0;
+                    int readLength;
 
                     // Read sample data
-                    while (length > 0)
+                    while ((readLength = Bass.ChannelGetData(decodeStream, sampleBuffer, bytesPerIteration)) >= 0)
                     {
-                        length = Bass.ChannelGetData(decodeStream, sampleBuffer, bytesPerIteration);
-
-                        if (length < 0 && Bass.LastError != Errors.Ended)
-                        {
-                            logBassError("could not retrieve sample data");
-                            return;
-                        }
-
-                        int samplesRead = (int)(length / bytes_per_sample);
+                        int samplesRead = readLength / bytes_per_sample;
 
                         // Each point is composed of multiple samples
                         for (int i = 0; i < samplesRead && pointIndex < pointCount; i += samplesPerPoint)
@@ -184,6 +177,12 @@ namespace osu.Framework.Audio.Track
                         }
                     }
 
+                    if (Bass.LastError != Errors.Ended)
+                    {
+                        logBassError("could not retrieve sample data");
+                        return;
+                    }
+
                     if (!Bass.ChannelSetPosition(decodeStream, 0))
                     {
                         logBassError("could not reset channel position");
@@ -203,17 +202,9 @@ namespace osu.Framework.Audio.Track
                     int currentPoint = 0;
                     long currentByte = 0;
 
-                    while (length > 0)
+                    while ((readLength = Bass.ChannelGetData(decodeStream, bins, (int)fft_samples)) >= 0)
                     {
-                        length = Bass.ChannelGetData(decodeStream, bins, (int)fft_samples);
-
-                        if (length < 0 && Bass.LastError != Errors.Ended)
-                        {
-                            logBassError("could not retrieve FFT data");
-                            return;
-                        }
-
-                        currentByte += length;
+                        currentByte += readLength;
 
                         float lowIntensity = computeIntensity(info, bins, low_min, mid_min);
                         float midIntensity = computeIntensity(info, bins, mid_min, high_min);
@@ -232,6 +223,12 @@ namespace osu.Framework.Audio.Track
                             point.HighIntensity = highIntensity;
                             points[currentPoint] = point;
                         }
+                    }
+
+                    if (Bass.LastError != Errors.Ended)
+                    {
+                        logBassError("could not retrieve FFT data");
+                        return;
                     }
 
                     channels = info.Channels;
