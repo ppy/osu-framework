@@ -356,6 +356,11 @@ namespace osu.Framework.Graphics.Rendering
         Image<Rgba32>? ExtractFrameBufferData(IFrameBuffer frameBuffer);
 
         /// <summary>
+        /// Returns an image containing the content of a texture.
+        /// </summary>
+        Image<Rgba32>? ExtractTextureData(Texture texture);
+
+        /// <summary>
         /// Creates a new <see cref="IShaderPart"/>.
         /// </summary>
         /// <param name="store">The shader store to load headers with.</param>

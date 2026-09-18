@@ -15,6 +15,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
+using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics;
 
@@ -29,6 +30,12 @@ namespace osu.Framework.Graphics.Visualisation
         private readonly Checkerboard checkerboard;
         private readonly Container previewContainer;
         private readonly InteractiveContainer interactiveContainer;
+
+        [Resolved]
+        private IRenderer renderer { get; set; } = null!;
+
+        [Resolved]
+        private GameHost host { get; set; } = null!;
 
         public TextureInspector()
         {
@@ -130,9 +137,13 @@ namespace osu.Framework.Graphics.Visualisation
         {
             previewContainer.Size = texture.Size;
             checkerboard.Size = texture.Size;
-            preview.Texture = texture;
             preview.Size = texture.Size;
             interactiveContainer.Fit();
+
+            var image = renderer.ExtractTextureData(texture);
+            var pixelatedTexture = new DisposableTexture(renderer.CreateTexture(texture.Width, texture.Height, filteringMode: TextureFilteringMode.Nearest));
+            pixelatedTexture.SetData(new TextureUpload(image));
+            preview.Texture = pixelatedTexture;
         }
 
         protected override void PopIn() => this.ResizeWidthTo(width, 500, Easing.OutQuint);
