@@ -17,7 +17,6 @@ using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
-using osu.Framework.Platform.SDL3;
 using Stream = System.IO.Stream;
 using Uri = Android.Net.Uri;
 
@@ -27,7 +26,7 @@ namespace osu.Framework.Android
     {
         private readonly AndroidGameActivity activity;
 
-        private ChoreographerVsyncWaiter vsyncWaiter = new ChoreographerVsyncWaiter();
+        private readonly ChoreographerVsyncWaiter vsyncWaiter = new ChoreographerVsyncWaiter();
 
         public AndroidGameHost(AndroidGameActivity activity)
             : base(string.Empty)
@@ -203,6 +202,7 @@ namespace osu.Framework.Android
             {
                 vsyncWaiter.Dispose();
             }
+
             base.Dispose(disposing);
         }
     }
