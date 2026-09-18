@@ -17,17 +17,21 @@ namespace osu.Framework.Graphics.Visualisation.Audio
     public partial class AudioChannelDisplay : CompositeDrawable
     {
         private const int sample_window = 30;
-        private const int peak_hold_time = 3000;
+        private const int peak_hold_time = 1000;
 
         public readonly int ChannelHandle;
 
         private readonly Drawable volBarL;
         private readonly Drawable volBarR;
+        private readonly Drawable peakBarL;
+        private readonly Drawable peakBarR;
         private readonly SpriteText peakText;
         private readonly SpriteText maxPeakText;
         private readonly SpriteText mixerLabel;
 
-        private float maxPeak = float.MinValue;
+        private float peakLevelLR = float.MinValue;
+        private float peakLevelL = float.MinValue;
+        private float peakLevelR = float.MinValue;
         private double lastMaxPeakTime;
         private readonly bool isOutputChannel;
         private IBindable<bool> usingGlobalMixer = null!;
@@ -55,35 +59,72 @@ namespace osu.Framework.Graphics.Visualisation.Audio
                 },
                 Content = new[]
                 {
-                    new Drawable[]
-                    {
+                    [
                         new FillFlowContainer
                         {
                             RelativeSizeAxes = Axes.Y,
                             AutoSizeAxes = Axes.X,
                             Direction = FillDirection.Horizontal,
-                            Spacing = new Vector2(5),
-                            Children = new[]
-                            {
-                                volBarL = new Box
+                            Spacing = new Vector2(3),
+                            Children =
+                            [
+                                new Container
                                 {
-                                    Anchor = Anchor.BottomLeft,
-                                    Origin = Anchor.BottomLeft,
                                     RelativeSizeAxes = Axes.Y,
-                                    Width = 30,
-                                    Colour = isOutputChannel ? FrameworkColour.YellowGreen : FrameworkColour.Green
+                                    AutoSizeAxes = Axes.X,
+                                    Height = 1,
+                                    Children =
+                                    [
+                                        volBarL = new Box
+                                        {
+                                            Anchor = Anchor.BottomLeft,
+                                            Origin = Anchor.BottomLeft,
+                                            RelativeSizeAxes = Axes.Y,
+                                            Width = 31,
+                                            Height = 0,
+                                            Colour = isOutputChannel ? FrameworkColour.YellowGreen : FrameworkColour.Green,
+                                        },
+                                        peakBarL = new Box
+                                        {
+                                            Anchor = Anchor.BottomLeft,
+                                            Origin = Anchor.TopLeft,
+                                            RelativePositionAxes = Axes.Y,
+                                            Width = 31,
+                                            Height = 5f,
+                                            Colour = isOutputChannel ? FrameworkColour.YellowGreen : FrameworkColour.Green,
+                                        },
+                                    ]
                                 },
-                                volBarR = new Box
+                                new Container
                                 {
-                                    Anchor = Anchor.BottomLeft,
-                                    Origin = Anchor.BottomLeft,
                                     RelativeSizeAxes = Axes.Y,
-                                    Width = 30,
-                                    Colour = isOutputChannel ? FrameworkColour.YellowGreen : FrameworkColour.Green
+                                    AutoSizeAxes = Axes.X,
+                                    Height = 1,
+                                    Children =
+                                    [
+                                        volBarR = new Box
+                                        {
+                                            Anchor = Anchor.BottomLeft,
+                                            Origin = Anchor.BottomLeft,
+                                            RelativeSizeAxes = Axes.Y,
+                                            Width = 31,
+                                            Height = 0,
+                                            Colour = isOutputChannel ? FrameworkColour.YellowGreen : FrameworkColour.Green,
+                                        },
+                                        peakBarR = new Box
+                                        {
+                                            Anchor = Anchor.BottomLeft,
+                                            Origin = Anchor.TopLeft,
+                                            RelativePositionAxes = Axes.Y,
+                                            Width = 31,
+                                            Height = 5f,
+                                            Colour = isOutputChannel ? FrameworkColour.YellowGreen : FrameworkColour.Green,
+                                        },
+                                    ]
                                 }
-                            }
+                            ]
                         }
-                    },
+                    ],
                     new Drawable[]
                     {
                         new FillFlowContainer
@@ -120,27 +161,34 @@ namespace osu.Framework.Graphics.Visualisation.Audio
             else
                 BassMix.ChannelGetLevel(ChannelHandle, levels, 1 / 1000f * sample_window, LevelRetrievalFlags.Stereo);
 
-            float curPeakL = levels[0];
-            float curPeakR = levels[1];
-            float curPeak = (curPeakL + curPeakR) / 2f;
+            float curLevelL = levels[0];
+            float curLevelR = levels[1];
+            float curLevelLR = (curLevelL + curLevelR) / 2f;
 
-            if (curPeak > maxPeak || Clock.CurrentTime - lastMaxPeakTime > peak_hold_time)
+            if (Clock.CurrentTime - lastMaxPeakTime > peak_hold_time)
             {
                 lastMaxPeakTime = Clock.CurrentTime;
-                maxPeak = float.MinValue;
+                peakLevelL = 0;
+                peakLevelR = 0;
+                peakLevelLR = 0;
             }
 
-            maxPeak = Math.Max(maxPeak, curPeak);
+            peakLevelL = Math.Max(peakLevelL, curLevelL);
+            peakLevelR = Math.Max(peakLevelR, curLevelR);
+            peakLevelLR = Math.Max(peakLevelL, peakLevelR);
 
-            volBarL.ResizeHeightTo(curPeakL, sample_window * 4);
-            volBarR.ResizeHeightTo(curPeakR, sample_window * 4);
+            peakBarL.MoveToY(-peakLevelL, peakBarL.Y >= -peakLevelL ? 0 : sample_window * 4);
+            peakBarR.MoveToY(-peakLevelR, peakBarR.Y >= -peakLevelR ? 0 : sample_window * 4);
 
-            string peakDisplay = curPeak == 0 ? "-∞ " : $"{BassUtils.LevelToDb(curPeak):F}";
-            string maxPeakDisplay = maxPeak == 0 ? "-∞ " : $"{BassUtils.LevelToDb(maxPeak):F}";
-            peakText.Text = $"curr: {peakDisplay}dB";
-            maxPeakText.Text = $"peak: {maxPeakDisplay}dB";
-            peakText.Colour = BassUtils.LevelToDb(curPeak) > 0 ? Colour4.Red : Colour4.White;
-            maxPeakText.Colour = BassUtils.LevelToDb(maxPeak) > 0 ? Colour4.Red : Colour4.White;
+            volBarL.ResizeHeightTo(curLevelL, volBarL.Height <= curLevelL ? 0 : sample_window * 4);
+            volBarR.ResizeHeightTo(curLevelR, volBarR.Height <= curLevelR ? 0 : sample_window * 4);
+
+            string curDisplay = curLevelLR == 0 ? "-∞ " : $"{BassUtils.LevelToDb(curLevelLR):F}";
+            string peakDisplay = peakLevelLR == 0 ? "-∞ " : $"{BassUtils.LevelToDb(peakLevelLR):F}";
+            peakText.Text = $"curr: {curDisplay}dB";
+            maxPeakText.Text = $"peak: {peakDisplay}dB";
+            peakText.Colour = BassUtils.LevelToDb(Math.Max(curLevelL, curLevelR)) > 0 ? Colour4.Red : Colour4.White;
+            maxPeakText.Colour = BassUtils.LevelToDb(peakLevelLR) > 0 ? Colour4.Red : Colour4.White;
             mixerLabel.Text = isOutputChannel ? "MIXER OUT" : " ";
         }
     }
