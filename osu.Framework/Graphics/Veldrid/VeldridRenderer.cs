@@ -23,6 +23,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Veldrid;
 using PrimitiveTopology = osu.Framework.Graphics.Rendering.PrimitiveTopology;
+using Texture = osu.Framework.Graphics.Textures.Texture;
 
 namespace osu.Framework.Graphics.Veldrid
 {
@@ -225,6 +226,9 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected internal override Image<Rgba32>? ExtractFrameBufferData(IFrameBuffer frameBuffer)
             => ExtractTexture((VeldridTexture)frameBuffer.Texture.NativeTexture);
+
+        protected internal override Image<Rgba32>? ExtractTextureData(Texture texture)
+            => ExtractTexture((VeldridTexture)texture.NativeTexture);
 
         protected internal Image<Rgba32>? ExtractTexture(VeldridTexture texture)
         {
