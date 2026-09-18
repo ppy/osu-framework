@@ -8,7 +8,7 @@ using Veldrid;
 
 namespace osu.Framework.Graphics.Veldrid.Buffers
 {
-    internal class VeldridUniformBufferStorage<TData>
+    internal class VeldridUniformBufferStorage<TData> : IDisposable
         where TData : unmanaged, IEquatable<TData>
     {
         private readonly VeldridRenderer renderer;
@@ -39,11 +39,32 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         public ResourceSet GetResourceSet(ResourceLayout layout) => set ??= renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, buffer));
 
+        ~VeldridUniformBufferStorage()
+        {
+            Dispose(false);
+        }
+
         public void Dispose()
         {
-            buffer.Dispose();
-            memoryLease.Dispose();
-            set?.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected bool IsDisposed { get; private set; }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (IsDisposed)
+                return;
+
+            renderer.ScheduleDisposal(s =>
+            {
+                buffer.Dispose();
+                memoryLease.Dispose();
+                set?.Dispose();
+            }, this);
+
+            IsDisposed = true;
         }
     }
 }
