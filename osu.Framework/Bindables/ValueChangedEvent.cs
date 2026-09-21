@@ -7,7 +7,7 @@ namespace osu.Framework.Bindables
     /// An event fired when a value changes, providing the old and new value for reference.
     /// </summary>
     /// <typeparam name="T">The type of bindable.</typeparam>
-    public class ValueChangedEvent<T>
+    public readonly struct ValueChangedEvent<T>
     {
         /// <summary>
         /// The old value.

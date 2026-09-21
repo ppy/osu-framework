@@ -31,6 +31,8 @@ namespace osu.Framework.Tests.Visual.Testing
 
         protected static object[] SingleParameterSource = { 1, 2, 3, 4 };
 
+        protected static string[] SingleParameterStringsSource = { "1", "2", "3", "4" };
+
         protected static object[][] DifferentTypesSource =
         {
             new object[] { Visibility.Visible, FillDirection.Horizontal, false },
@@ -74,6 +76,11 @@ namespace osu.Framework.Tests.Visual.Testing
 
         [TestCaseSource(nameof(SingleParameterSource))]
         public void TestSingleParameterSource(int x)
+        {
+        }
+
+        [TestCaseSource(nameof(SingleParameterStringsSource))]
+        public void TestSingleParameterStringsSource(string x)
         {
         }
 

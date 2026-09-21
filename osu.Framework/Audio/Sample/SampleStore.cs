@@ -62,8 +62,18 @@ namespace osu.Framework.Audio.Sample
         public Task<Sample> GetAsync(string name, CancellationToken cancellationToken = default) =>
             Task.Run(() => Get(name), cancellationToken);
 
+        public void Invalidate(string name)
+        {
+            lock (factories)
+            {
+                if (factories.Remove(name, out var factory))
+                    RemoveItem(factory);
+            }
+        }
+
         protected override void UpdateState()
         {
+            // ReSharper disable once InconsistentlySynchronizedField (synchronisation not necessary for count check).
             FrameStatistics.Add(StatisticsCounterType.Samples, factories.Count);
             base.UpdateState();
         }

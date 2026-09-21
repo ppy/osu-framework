@@ -40,7 +40,7 @@ namespace osu.Framework.Tests.Visual.Graphics
                         RelativeSizeAxes = Axes.Both
                     }
                 },
-                new BufferedContainer(new[] { RenderBufferFormat.D32S8 })
+                new BufferedContainer(formats: new[] { RenderBufferFormat.D32S8 })
                 {
                     RelativeSizeAxes = Axes.Both,
                     Anchor = Anchor.TopRight,

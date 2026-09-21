@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Graphics.Textures;
-using osuTK.Graphics.ES30;
 using FFmpeg.AutoGen;
 using osu.Framework.Graphics.Primitives;
 using SixLabors.ImageSharp.PixelFormats;
@@ -29,8 +28,6 @@ namespace osu.Framework.Graphics.Video
         public int Level => 0;
 
         public RectangleI Bounds { get; set; }
-
-        public PixelFormat Format => PixelFormat.Red;
 
         private readonly FFmpegFrame ffmpegFrame;
 

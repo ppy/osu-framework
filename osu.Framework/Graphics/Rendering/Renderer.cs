@@ -328,6 +328,11 @@ namespace osu.Framework.Graphics.Rendering
         protected internal abstract Image<Rgba32> TakeScreenshot();
 
         /// <summary>
+        /// Returns an image containing the content of a framebuffer.
+        /// </summary>
+        protected internal virtual Image<Rgba32>? ExtractFrameBufferData(IFrameBuffer frameBuffer) => null;
+
+        /// <summary>
         /// Performs a once-off initialisation of this <see cref="Renderer"/>.
         /// </summary>
         protected abstract void Initialise(IGraphicsSurface graphicsSurface);
@@ -1100,7 +1105,7 @@ namespace osu.Framework.Graphics.Rendering
 
         #region Factory
 
-        public abstract IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear);
+        public abstract IFrameBuffer CreateFrameBuffer(TexturePixelFormat textureFormat = TexturePixelFormat.R8G8B8A8Float, RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear);
 
         /// <inheritdoc cref="IRenderer.CreateShaderPart"/>
         protected abstract IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType);
@@ -1219,6 +1224,7 @@ namespace osu.Framework.Graphics.Rendering
         void IRenderer.PushQuadBatch(IVertexBatch<TexturedVertex2D> quadBatch) => PushQuadBatch(quadBatch);
         void IRenderer.PopQuadBatch() => PopQuadBatch();
         Image<Rgba32> IRenderer.TakeScreenshot() => TakeScreenshot();
+        Image<Rgba32>? IRenderer.ExtractFrameBufferData(IFrameBuffer frameBuffer) => ExtractFrameBufferData(frameBuffer);
         IShaderPart IRenderer.CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType) => CreateShaderPart(store, name, rawData, partType);
         IShader IRenderer.CreateShader(string name, IShaderPart[] parts) => CreateShader(name, parts, shaderCompilationStore);
 
@@ -1310,7 +1316,7 @@ namespace osu.Framework.Graphics.Rendering
                     || field.FieldType == typeof(UniformPadding8)
                     || field.FieldType == typeof(UniformPadding12)
                     || field.FieldType == typeof(UniformVector2)
-                    || field.FieldType == typeof(UniformVector4)
+                    || field.FieldType == typeof(UniformVector3)
                     || field.FieldType == typeof(UniformVector4))
                 {
                     return;

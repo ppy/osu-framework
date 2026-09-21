@@ -71,7 +71,7 @@ namespace osu.Framework.Tests.Platform
 
             // check that scheduler doesn't process while suspended..
             completed.Reset();
-            game.Schedule(() => completed.Set());
+            game.Schedule(completed.Set);
             Assert.IsFalse(completed.Wait(timeout / 10));
 
             // ..and does after resume.

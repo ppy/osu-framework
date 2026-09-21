@@ -105,7 +105,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                         SetUniformBufferDataEvent e = (SetUniformBufferDataEvent)renderEvent;
                         IDeferredUniformBuffer buffer = context.Dereference<IDeferredUniformBuffer>(e.Buffer);
                         UniformBufferReference range = buffer.Write(e.Data);
-                        context.RenderEvents[i] = RenderEvent.Init(new SetUniformBufferDataRangeEvent(e.Buffer, range));
+                        context.RenderEvents[i] = RenderEvent.Create(new SetUniformBufferDataRangeEvent(e.Buffer, range));
                         break;
                     }
 

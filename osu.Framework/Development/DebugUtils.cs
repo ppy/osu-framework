@@ -8,11 +8,31 @@ using System.Reflection;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using osu.Framework.Extensions.ObjectExtensions;
+using osu.Framework.Platform;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Development
 {
     public static class DebugUtils
     {
+        /// <summary>
+        /// This represents a clock that runs at a faster-than-realtime pace during unit testing,
+        /// and is intended to substitute for a <see cref="StopwatchClock"/> that would normally
+        /// be used to track a realtime reference.
+        /// </summary>
+        /// <remarks>
+        /// <list type="bullet">
+        ///   <item>
+        ///     Components such as <see cref="DecouplingFramedClock"/> use this to advance time at a faster
+        ///     pace in order to not induce artificial delays from having to way on wall clock time to elapse.
+        ///   </item>
+        ///   <item>
+        ///     Note that this property is only populated after the <see cref="GameHost"/> is run.
+        ///   </item>
+        /// </list>
+        /// </remarks>
+        internal static IClock? RealtimeClock { get; set; }
+
         public static bool IsNUnitRunning => is_nunit_running.Value;
 
         private static readonly Lazy<bool> is_nunit_running = new Lazy<bool>(() =>

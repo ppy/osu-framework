@@ -68,8 +68,6 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public Stream ResponseStream { get; private set; }
 
-        public HttpResponseHeaders ResponseHeaders => response.Headers;
-
         /// <summary>
         /// The URL of this request.
         /// </summary>
@@ -109,12 +107,12 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// Query string parameters.
         /// </summary>
-        private readonly Dictionary<string, string> queryParameters = new Dictionary<string, string>();
+        private readonly List<(string key, string value)> queryParameters = new List<(string key, string value)>();
 
         /// <summary>
         /// Form parameters.
         /// </summary>
-        private readonly Dictionary<string, string> formParameters = new Dictionary<string, string>();
+        private readonly List<(string key, string value)> formParameters = new List<(string key, string value)>();
 
         /// <summary>
         /// FILE parameters.
@@ -140,21 +138,12 @@ namespace osu.Framework.IO.Network
         private bool completed;
 
         private static readonly HttpClient client = new HttpClient(
-            // SocketsHttpHandler causes crash in Android Debug, and seems to have compatibility issue on SSL
-            // Use platform HTTP handler which is invoked by HttpClientHandler for better compatibility and app size
-            RuntimeInfo.OS == RuntimeInfo.Platform.Android
-                ? new HttpClientHandler
-                {
-                    Credentials = CredentialCache.DefaultCredentials,
-                    AutomaticDecompression = DecompressionMethods.All
-                }
-                : new SocketsHttpHandler
-                {
-                    AutomaticDecompression = DecompressionMethods.All,
-                    // Can be replaced by a static HttpClient.DefaultCredentials after net60 everywhere.
-                    Credentials = CredentialCache.DefaultCredentials,
-                    ConnectCallback = onConnect,
-                }
+            new SocketsHttpHandler
+            {
+                AutomaticDecompression = DecompressionMethods.All,
+                DefaultProxyCredentials = RuntimeInfo.OS == RuntimeInfo.Platform.Windows ? CredentialCache.DefaultCredentials : null,
+                ConnectCallback = onConnect,
+            }
         )
         {
             // Timeout is controlled manually through cancellation tokens because
@@ -252,6 +241,19 @@ namespace osu.Framework.IO.Network
             }
         }
 
+        /// <summary>
+        /// The headers in the response received.
+        /// Can be <see langword="null"/> if the request hasn't yet <see cref="Completed"/>, or if it has been <see cref="Aborted"/>.
+        /// </summary>
+        [CanBeNull]
+        public HttpResponseHeaders ResponseHeaders => response?.Headers;
+
+        /// <summary>
+        /// The status code of the response.
+        /// Can be <see langword="null"/> if the request hasn't yet <see cref="Completed"/>, or if it has been <see cref="Aborted"/>.
+        /// </summary>
+        public HttpStatusCode? ResponseStatusCode => response?.StatusCode;
+
         protected virtual Stream CreateOutputStream() => new MemoryStream();
 
         /// <summary>
@@ -304,7 +306,7 @@ namespace osu.Framework.IO.Network
 
                     StringBuilder requestParameters = new StringBuilder();
                     foreach (var p in queryParameters)
-                        requestParameters.Append($@"{p.Key}={Uri.EscapeDataString(p.Value)}&");
+                        requestParameters.Append($"{p.key}={Uri.EscapeDataString(p.value)}&");
                     string requestString = requestParameters.ToString().TrimEnd('&');
                     url = string.IsNullOrEmpty(requestString) ? url : $"{url}?{requestString}";
 
@@ -345,7 +347,7 @@ namespace osu.Framework.IO.Network
                             var formData = new MultipartFormDataContent(form_boundary);
 
                             foreach (var p in formParameters)
-                                formData.Add(new StringContent(p.Value), p.Key);
+                                formData.Add(new StringContent(p.value), p.key);
 
                             foreach (var p in files)
                             {
@@ -501,13 +503,46 @@ namespace osu.Framework.IO.Network
             if (Aborted)
                 return Task.CompletedTask;
 
-            var we = e as WebException;
-
-            bool allowRetry = AllowRetryOnTimeout;
             bool wasTimeout = false;
+            bool wasMacOSNetworkBlock = false;
 
             if (e != null)
-                wasTimeout = we?.Status == WebExceptionStatus.Timeout;
+            {
+                switch (e)
+                {
+                    case WebException we:
+                        wasTimeout = we.Status == WebExceptionStatus.Timeout;
+                        break;
+
+                    case HttpRequestException hre:
+                    {
+                        // this is an extremely specific code path covering an obfuscated, but common enough failure mode on macOS.
+                        // the prerequisites for the failure mode in question appear to be:
+                        // - user is on macOS
+                        // - user is on a network that does not support IPv6
+                        // - user has a Screen Time filter enabled
+                        // in these circumstances, all outgoing IPv6 requests will be dropped with socket error 56 ("Connection reset by peer") near instantly.
+                        // it is nigh impossible to understand *why* this behaviour takes place, but it is reproducible across many domains and many HTTP clients
+                        // (for one instance, this same behaviour was observed when attempting to access google.com through its IPv6 address via curl).
+                        // the specificity of this failure mode is not that high, this could very well trigger in other circumstances, too -
+                        // but there is no more signal to use to distinguish this failure mode any further.
+                        // the hopes are that when IPv6 fallback gets implemented upstream in dotnet itself much of this can hopefully go away.
+                        if (useIPv6
+                            && RuntimeInfo.OS == RuntimeInfo.Platform.macOS
+                            && hre.HttpRequestError == HttpRequestError.SecureConnectionError
+                            && hre.InnerException is IOException ioe
+                            && ioe.InnerException is SocketException se
+                            && se.SocketErrorCode == SocketError.ConnectionReset)
+                        {
+                            logger.Add("Disabling IPv6 support due to suspicion of active Screen Time network filter dropping all IPv6 requests.");
+                            useIPv6 = false;
+                            wasMacOSNetworkBlock = true;
+                        }
+
+                        break;
+                    }
+                }
+            }
             else if (!response.IsSuccessStatusCode)
             {
                 e = new WebException(response.StatusCode.ToString());
@@ -521,7 +556,7 @@ namespace osu.Framework.IO.Network
                 }
             }
 
-            allowRetry &= wasTimeout;
+            bool allowRetry = (wasTimeout && AllowRetryOnTimeout) || wasMacOSNetworkBlock;
 
             if (e != null)
             {
@@ -681,7 +716,7 @@ namespace osu.Framework.IO.Network
 
         /// <summary>
         /// <para>
-        /// Add a new parameter to this request. Replaces any existing parameter with the same name.
+        /// Add a new parameter to this request.
         /// </para>
         /// <para>
         /// If this request's <see cref="Method"/> supports a request body (<c>POST, PUT, DELETE, PATCH</c>), a <see cref="RequestParameterType.Form"/> parameter will be added;
@@ -701,7 +736,7 @@ namespace osu.Framework.IO.Network
             => AddParameter(name, value, supportsRequestBody(Method) ? RequestParameterType.Form : RequestParameterType.Query);
 
         /// <summary>
-        /// Add a new parameter to this request. Replaces any existing parameter with the same name.
+        /// Add a new parameter to this request.
         /// <see cref="RequestParameterType.Form"/> parameters may not be used in conjunction with <see cref="AddRaw(Stream)"/>.
         /// </summary>
         /// <remarks>
@@ -718,14 +753,14 @@ namespace osu.Framework.IO.Network
             switch (type)
             {
                 case RequestParameterType.Query:
-                    queryParameters[name] = value;
+                    queryParameters.Add((name, value));
                     break;
 
                 case RequestParameterType.Form:
                     if (!supportsRequestBody(Method))
                         throw new ArgumentException("Cannot add form parameter to a request type which has no body.", nameof(type));
 
-                    formParameters[name] = value;
+                    formParameters.Add((name, value));
                     break;
             }
         }

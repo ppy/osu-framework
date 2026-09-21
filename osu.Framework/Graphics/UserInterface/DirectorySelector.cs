@@ -11,6 +11,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Localisation;
 using osu.Framework.Platform;
 using osuTK;
 
@@ -42,7 +43,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </remarks>
         protected virtual Drawable CreateHiddenToggleButton() => Empty();
 
-        protected abstract DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null);
+        protected abstract DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, LocalisableString? displayName = null);
 
         /// <summary>
         /// Create the directory item that resolves the parent directory.

@@ -370,8 +370,24 @@ namespace osu.Framework.Graphics.OpenGL
 
             GL.ReadPixels(0, 0, size.Width, size.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(data.Memory.Span));
 
-            var image = Image.LoadPixelData<Rgba32>(data.Memory.Span, size.Width, size.Height);
+            var image = Image.LoadPixelData(data.Memory.Span, size.Width, size.Height);
             image.Mutate(i => i.Flip(FlipMode.Vertical));
+            return image;
+        }
+
+        protected internal override Image<Rgba32> ExtractFrameBufferData(IFrameBuffer frameBuffer)
+        {
+            int width = frameBuffer.Texture.Width;
+            int height = frameBuffer.Texture.Height;
+
+            var data = MemoryAllocator.Default.Allocate<Rgba32>(width * height);
+
+            frameBuffer.Bind();
+            GL.ReadPixels(0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(data.Memory.Span));
+            frameBuffer.Unbind();
+
+            var image = Image.LoadPixelData(data.Memory.Span, width, height);
+
             return image;
         }
 
@@ -399,9 +415,10 @@ namespace osu.Framework.Graphics.OpenGL
         protected override IShader CreateShader(string name, IShaderPart[] parts, ShaderCompilationStore compilationStore)
             => new GLShader(this, name, parts.Cast<GLShaderPart>().ToArray(), compilationStore);
 
-        public override IFrameBuffer CreateFrameBuffer(RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
+        public override IFrameBuffer CreateFrameBuffer(TexturePixelFormat textureFormat = TexturePixelFormat.R8G8B8A8Float, RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
         {
             All glFilteringMode;
+            TextureComponentCount glTextureFormat;
             RenderbufferInternalFormat[]? glFormats = null;
 
             switch (filteringMode)
@@ -416,6 +433,20 @@ namespace osu.Framework.Graphics.OpenGL
 
                 default:
                     throw new ArgumentException($"Unsupported filtering mode: {filteringMode}", nameof(filteringMode));
+            }
+
+            switch (textureFormat)
+            {
+                case TexturePixelFormat.R8G8B8A8Float:
+                    glTextureFormat = TextureComponentCount.Rgba8;
+                    break;
+
+                case TexturePixelFormat.R16Float:
+                    glTextureFormat = TextureComponentCount.R16f;
+                    break;
+
+                default:
+                    throw new ArgumentException($"Unsupported render buffer format: {textureFormat}", nameof(textureFormat));
             }
 
             if (renderBufferFormats != null)
@@ -448,7 +479,7 @@ namespace osu.Framework.Graphics.OpenGL
                 }
             }
 
-            return new GLFrameBuffer(this, glFormats, glFilteringMode);
+            return new GLFrameBuffer(this, glTextureFormat, glFormats, glFilteringMode);
         }
 
         protected override IUniformBuffer<TData> CreateUniformBuffer<TData>()
@@ -476,7 +507,7 @@ namespace osu.Framework.Graphics.OpenGL
                     throw new ArgumentException($"Unsupported filtering mode: {filteringMode}", nameof(filteringMode));
             }
 
-            return new GLTexture(this, width, height, manualMipmaps, glFilteringMode, initialisationColour);
+            return new GLTexture(this, width, height, TextureComponentCount.Rgba8, manualMipmaps, glFilteringMode, initialisationColour);
         }
 
         protected override INativeTexture CreateNativeVideoTexture(int width, int height) => new GLVideoTexture(this, width, height);

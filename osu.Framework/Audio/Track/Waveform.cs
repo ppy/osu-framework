@@ -3,6 +3,7 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -61,7 +62,8 @@ namespace osu.Framework.Audio.Track
         private const float high_max = 12000;
 
         private int channels;
-        private Point[] points = Array.Empty<Point>();
+
+        private Point[] computedPoints = Array.Empty<Point>();
 
         private readonly CancellationTokenSource cancelSource = new CancellationTokenSource();
 
@@ -80,6 +82,8 @@ namespace osu.Framework.Audio.Track
         public Waveform(Stream? data)
         {
             this.data = data;
+
+            var token = cancelSource.Token;
 
             readTask = Task.Run(() =>
             {
@@ -115,9 +119,9 @@ namespace osu.Framework.Audio.Track
                         return;
                     }
 
-                    long length = Bass.ChannelGetLength(decodeStream);
+                    long trackLength = Bass.ChannelGetLength(decodeStream);
 
-                    if (length < 0)
+                    if (trackLength < 0)
                     {
                         logBassError("could not retrieve channel length");
                         return;
@@ -128,33 +132,29 @@ namespace osu.Framework.Audio.Track
 
                     int bytesPerPoint = samplesPerPoint * bytes_per_sample;
 
-                    int pointCount = (int)(length / bytesPerPoint);
+                    // This is only used for preallocating, and not necessarily an accurate count.
+                    int pointCount = (int)(trackLength / bytesPerPoint);
 
-                    points = new Point[pointCount];
+                    List<Point> points = new List<Point>(pointCount);
 
                     // Each iteration pulls in several samples
                     int bytesPerIteration = bytesPerPoint * points_per_iteration;
 
                     sampleBuffer = ArrayPool<float>.Shared.Rent(bytesPerIteration / bytes_per_sample);
 
-                    int pointIndex = 0;
+                    int readLength;
 
-                    // Read sample data
-                    while (length > 0)
+                    // Pass #1: Read sample data and create points.
+                    // This only covers population of amplitude data.
+                    while ((readLength = Bass.ChannelGetData(decodeStream, sampleBuffer, bytesPerIteration)) >= 0)
                     {
-                        length = Bass.ChannelGetData(decodeStream, sampleBuffer, bytesPerIteration);
+                        int samplesRead = readLength / bytes_per_sample;
 
-                        if (length < 0 && Bass.LastError != Errors.Ended)
+                        // Each point may be composed of multiple channels. For simplicity, we take the maximum of any channel (pair).
+                        for (int i = 0; i < samplesRead; i += samplesPerPoint)
                         {
-                            logBassError("could not retrieve sample data");
-                            return;
-                        }
+                            token.ThrowIfCancellationRequested();
 
-                        int samplesRead = (int)(length / bytes_per_sample);
-
-                        // Each point is composed of multiple samples
-                        for (int i = 0; i < samplesRead && pointIndex < pointCount; i += samplesPerPoint)
-                        {
                             // We assume one or more channels.
                             // For non-stereo tracks, we'll use the single track for both amplitudes.
                             // For anything above two tracks we'll use the first and second track.
@@ -176,8 +176,14 @@ namespace osu.Framework.Audio.Track
                             point.AmplitudeLeft = Math.Min(1, point.AmplitudeLeft);
                             point.AmplitudeRight = Math.Min(1, point.AmplitudeRight);
 
-                            points[pointIndex++] = point;
+                            points.Add(point);
                         }
+                    }
+
+                    if (Bass.LastError != Errors.Ended)
+                    {
+                        logBassError("could not retrieve sample data");
+                        return;
                     }
 
                     if (!Bass.ChannelSetPosition(decodeStream, 0))
@@ -186,30 +192,14 @@ namespace osu.Framework.Audio.Track
                         return;
                     }
 
-                    length = Bass.ChannelGetLength(decodeStream);
-
-                    if (length < 0)
-                    {
-                        logBassError("could not retrieve channel length");
-                        return;
-                    }
-
                     // Read FFT data
                     float[] bins = new float[fft_bins];
                     int currentPoint = 0;
                     long currentByte = 0;
 
-                    while (length > 0)
+                    while ((readLength = Bass.ChannelGetData(decodeStream, bins, (int)fft_samples)) >= 0)
                     {
-                        length = Bass.ChannelGetData(decodeStream, bins, (int)fft_samples);
-
-                        if (length < 0 && Bass.LastError != Errors.Ended)
-                        {
-                            logBassError("could not retrieve FFT data");
-                            return;
-                        }
-
-                        currentByte += length;
+                        currentByte += readLength;
 
                         float lowIntensity = computeIntensity(info, bins, low_min, mid_min);
                         float midIntensity = computeIntensity(info, bins, mid_min, high_min);
@@ -218,17 +208,26 @@ namespace osu.Framework.Audio.Track
                         // In general, the FFT function will read more data than the amount of data we have in one point
                         // so we'll be setting intensities for all points whose data fits into the amount read by the FFT
                         // We know that each data point required sampleDataPerPoint amount of data
-                        for (; currentPoint < points.Length && currentPoint * bytesPerPoint < currentByte; currentPoint++)
+                        while (currentPoint < points.Count && currentPoint * bytesPerPoint < currentByte)
                         {
+                            token.ThrowIfCancellationRequested();
+
                             var point = points[currentPoint];
                             point.LowIntensity = lowIntensity;
                             point.MidIntensity = midIntensity;
                             point.HighIntensity = highIntensity;
-                            points[currentPoint] = point;
+                            points[currentPoint++] = point;
                         }
                     }
 
+                    if (Bass.LastError != Errors.Ended)
+                    {
+                        logBassError("could not retrieve FFT data");
+                        return;
+                    }
+
                     channels = info.Channels;
+                    computedPoints = points.ToArray();
                 }
                 finally
                 {
@@ -243,7 +242,7 @@ namespace osu.Framework.Audio.Track
                     if (sampleBuffer != null)
                         ArrayPool<float>.Shared.Return(sampleBuffer);
                 }
-            }, cancelSource.Token);
+            }, token);
 
             void logBassError(string reason) => Logger.Log($"BASS failure while reading waveform: {reason} ({Bass.LastError})");
         }
@@ -281,7 +280,7 @@ namespace osu.Framework.Audio.Track
             {
                 var generatedPoints = new Point[pointCount];
 
-                float pointsPerGeneratedPoint = (float)points.Length / pointCount;
+                float pointsPerGeneratedPoint = (float)computedPoints.Length / pointCount;
 
                 // Determines at which width (relative to the resolution) our smoothing filter is truncated.
                 // Should not effect overall appearance much, except when the value is too small.
@@ -321,16 +320,16 @@ namespace osu.Framework.Audio.Track
 
                     for (int j = startIndex; j < endIndex; j++)
                     {
-                        if (j < 0 || j >= points.Length) continue;
+                        if (j < 0 || j >= computedPoints.Length) continue;
 
                         float weight = filter[Math.Abs(j - startIndex - kernelWidth)];
                         totalWeight += weight;
 
-                        point.AmplitudeLeft += weight * points[j].AmplitudeLeft;
-                        point.AmplitudeRight += weight * points[j].AmplitudeRight;
-                        point.LowIntensity += weight * points[j].LowIntensity;
-                        point.MidIntensity += weight * points[j].MidIntensity;
-                        point.HighIntensity += weight * points[j].HighIntensity;
+                        point.AmplitudeLeft += weight * computedPoints[j].AmplitudeLeft;
+                        point.AmplitudeRight += weight * computedPoints[j].AmplitudeRight;
+                        point.LowIntensity += weight * computedPoints[j].LowIntensity;
+                        point.MidIntensity += weight * computedPoints[j].MidIntensity;
+                        point.HighIntensity += weight * computedPoints[j].HighIntensity;
                     }
 
                     if (totalWeight > 0)
@@ -351,7 +350,7 @@ namespace osu.Framework.Audio.Track
 
                 return new Waveform(null)
                 {
-                    points = generatedPoints,
+                    computedPoints = generatedPoints,
                     channels = channels
                 };
             }, cancellationToken).ConfigureAwait(false);
@@ -368,7 +367,7 @@ namespace osu.Framework.Audio.Track
         public async Task<Point[]> GetPointsAsync()
         {
             await readTask.ConfigureAwait(false);
-            return points;
+            return computedPoints;
         }
 
         /// <summary>
@@ -404,7 +403,6 @@ namespace osu.Framework.Audio.Track
 
             cancelSource.Cancel();
             cancelSource.Dispose();
-            points = Array.Empty<Point>();
 
             // Try disposing the stream again in case the task was not started.
             data?.Dispose();

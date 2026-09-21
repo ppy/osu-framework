@@ -237,6 +237,14 @@ namespace osu.Framework.Graphics
             => t.BlurTo(newBlurSigma, duration, new DefaultEasingFunction(easing));
 
         /// <summary>
+        /// Smoothly adjusts <see cref="IBufferedContainer.GrayscaleStrength"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<T> GrayscaleTo<T>(this TransformSequence<T> t, float newStrength, double duration = 0, Easing easing = Easing.None)
+            where T : class, IBufferedContainer
+            => t.GrayscaleTo(newStrength, duration, new DefaultEasingFunction(easing));
+
+        /// <summary>
         /// Smoothly adjusts <see cref="IFillFlowContainer.Spacing"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
@@ -472,6 +480,15 @@ namespace osu.Framework.Graphics
             where T : class, IBufferedContainer
             where TEasing : IEasingFunction
             => t.Append(o => o.BlurTo(newBlurSigma, duration, easing));
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="IBufferedContainer.GrayscaleStrength"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<T> GrayscaleTo<T, TEasing>(this TransformSequence<T> t, float newStrength, double duration, TEasing easing)
+            where T : class, IBufferedContainer
+            where TEasing : IEasingFunction
+            => t.Append(o => o.GrayscaleTo(newStrength, duration, easing));
 
         /// <summary>
         /// Smoothly adjusts <see cref="IFillFlowContainer.Spacing"/> over time.

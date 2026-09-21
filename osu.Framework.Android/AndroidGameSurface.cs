@@ -46,13 +46,13 @@ namespace osu.Framework.Android
 
         public bool IsSurfaceReady => isSurfaceReady;
 
-        public override void HandlePause()
+        protected override void HandlePause()
         {
             base.HandlePause();
             isSurfaceReady = false;
         }
 
-        public override void HandleResume()
+        protected override void HandleResume()
         {
             base.HandleResume();
             isSurfaceReady = true;

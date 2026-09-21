@@ -103,20 +103,22 @@ namespace osu.Framework.Graphics.UserInterface
                 // discard control/special characters.
                 return false;
 
-            var currentNumberFormat = CultureInfo.CurrentCulture.NumberFormat;
-
-            switch (InputProperties.Type)
+            if (InputProperties.Type.IsNumerical())
             {
-                case TextInputType.Decimal:
-                    return char.IsAsciiDigit(character) || currentNumberFormat.NumberDecimalSeparator.Contains(character);
+                bool validNumericalCharacter = false;
 
-                case TextInputType.Number:
-                case TextInputType.NumericalPassword:
-                    return char.IsAsciiDigit(character);
+                var currentNumberFormat = CultureInfo.CurrentCulture.NumberFormat;
 
-                default:
-                    return true;
+                validNumericalCharacter |= char.IsAsciiDigit(character);
+                validNumericalCharacter |= selectionLeft == 0 && currentNumberFormat.NegativeSign.Contains(character);
+
+                if (InputProperties.Type == TextInputType.Decimal)
+                    validNumericalCharacter |= currentNumberFormat.NumberDecimalSeparator.Contains(character);
+
+                return validNumericalCharacter;
             }
+
+            return true;
         }
 
         private bool readOnly;
@@ -167,7 +169,7 @@ namespace osu.Framework.Graphics.UserInterface
         public event OnCommitHandler OnCommit;
 
         /// <summary>
-        /// Scheduler used for scheduling text input events coming from <see cref="textInput"/>.
+        /// Scheduler used for scheduling text input events, IME composition and result events coming from <see cref="textInput"/>.
         /// </summary>
         /// <remarks>
         /// Used for scheduling text events so that the <see cref="Text"/> is updated on the update thread.
@@ -178,11 +180,6 @@ namespace osu.Framework.Graphics.UserInterface
         ///  - Later in the same update frame, in <see cref="Update"/>. In case there was no associated key event. This is mostly required for mobile platforms.
         /// </remarks>
         private readonly Scheduler textInputScheduler = new Scheduler(() => ThreadSafety.IsUpdateThread, null);
-
-        /// <summary>
-        /// Scheduler used for scheduling IME composition and result events coming from <see cref="textInput"/>.
-        /// </summary>
-        private readonly Scheduler imeCompositionScheduler = new Scheduler(() => ThreadSafety.IsUpdateThread, null);
 
         protected TextBox()
         {
@@ -456,11 +453,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!AllowWordNavigation)
                 return -1;
 
-            int searchPrev = Math.Clamp(selectionEnd - 1, 0, Math.Max(0, Text.Length - 1));
-            while (searchPrev > 0 && text[searchPrev] == ' ')
-                searchPrev--;
-            int lastSpace = text.LastIndexOf(' ', searchPrev);
-            return lastSpace > 0 ? -(selectionEnd - lastSpace - 1) : -selectionEnd;
+            return findNextWord(text, selectionEnd, -1) - selectionEnd;
         }
 
         /// <summary>
@@ -471,11 +464,77 @@ namespace osu.Framework.Graphics.UserInterface
             if (!AllowWordNavigation)
                 return 1;
 
-            int searchNext = Math.Clamp(selectionEnd, 0, Math.Max(0, Text.Length - 1));
-            while (searchNext < Text.Length && text[searchNext] == ' ')
-                searchNext++;
-            int nextSpace = text.IndexOf(' ', searchNext);
-            return (nextSpace >= 0 ? nextSpace : text.Length) - selectionEnd;
+            return findNextWord(text, selectionEnd, 1) - selectionEnd;
+        }
+
+        /// <summary>
+        /// Finds the position of the next word from the current index in a given string.
+        /// </summary>
+        /// <param name="text">The text string.</param>
+        /// <param name="position">The current cursor position in <paramref name="text"/>.</param>
+        /// <param name="direction">The direction in which to find the next word.</param>
+        /// <returns>The index of the next word in <paramref name="text"/> in the range [0, text.Length].</returns>
+        private static int findNextWord(string text, int position, int direction)
+        {
+            Debug.Assert(direction == -1 || direction == 1);
+
+            // When going backwards, the initial position will always be the index of the first character in the next word,
+            // but it should be the index of the character in the last word.
+            if (direction == -1)
+                position -= 1;
+
+            WordTraversalStep currentStep = WordTraversalStep.Whitespace;
+
+            while (true)
+            {
+                if (position < 0)
+                    return 0;
+
+                if (position >= text.Length)
+                    return text.Length;
+
+                char character = text[position];
+
+                switch (currentStep)
+                {
+                    case WordTraversalStep.Whitespace:
+                        if (char.IsWhiteSpace(character))
+                            position += direction;
+                        else if (char.IsLetterOrDigit(character))
+                            currentStep = WordTraversalStep.LetterOrDigit;
+                        else
+                            currentStep = WordTraversalStep.Symbol;
+
+                        continue;
+
+                    case WordTraversalStep.Symbol:
+                        if (char.IsLetterOrDigit(character))
+                            currentStep = WordTraversalStep.LetterOrDigit;
+                        else if (char.IsWhiteSpace(character))
+                            break;
+
+                        position += direction;
+                        continue;
+
+                    case WordTraversalStep.LetterOrDigit:
+                        if (char.IsLetterOrDigit(character))
+                        {
+                            position += direction;
+                            continue;
+                        }
+
+                        break;
+                }
+
+                break;
+            }
+
+            // When going backwards, the final position will always be the the index of the last character of the previous word,
+            // but it should be the index of the first character in the next word.
+            if (direction == -1)
+                position += 1;
+
+            return position;
         }
 
         // Currently only single line is supported and line length and text length are the same.
@@ -535,17 +594,17 @@ namespace osu.Framework.Graphics.UserInterface
             // and then call `onImeResult()`.
             // the composition being inactive and having scheduled tasks shouldn't happen,
             // but the check is here to cover that improbable edge case.
-            if (!ImeCompositionActive && !imeCompositionScheduler.HasPendingTasks)
+            if (!ImeCompositionActive && !textInputScheduler.HasPendingTasks)
                 return;
 
-            imeCompositionScheduler.Add(() => onImeResult(userEvent, false));
+            textInputScheduler.Add(() => onImeResult(userEvent, false));
 
             if (textInputBound)
                 textInput.ResetIme();
 
             // importantly, we want to force-update all pending composition events,
             // so that when we return control to the caller, those events won't mutate text and/or caret position.
-            imeCompositionScheduler.Update();
+            textInputScheduler.Update();
         }
 
         /// <summary>
@@ -555,14 +614,14 @@ namespace osu.Framework.Graphics.UserInterface
         protected void CancelImeComposition()
         {
             // same rationale as above, in `FinalizeImeComposition()`
-            if (!ImeCompositionActive && !imeCompositionScheduler.HasPendingTasks)
+            if (!ImeCompositionActive && !textInputScheduler.HasPendingTasks)
                 return;
 
             if (textInputBound)
                 textInput.ResetIme();
 
-            imeCompositionScheduler.Add(() => onImeComposition(string.Empty, 0, 0, false));
-            imeCompositionScheduler.Update(); // same rationale as above, in `FinalizeImeComposition()`
+            textInputScheduler.Add(() => onImeComposition(string.Empty, 0, 0, false));
+            textInputScheduler.Update(); // same rationale as above, in `FinalizeImeComposition()`
         }
 
         protected override void Dispose(bool isDisposing)
@@ -626,7 +685,6 @@ namespace osu.Framework.Graphics.UserInterface
             // update the schedulers before updating children as it might mutate TextFlow.
             // we want the character drawables to be up-to date for further calculations in `updateCursorAndLayout()`.
             textInputScheduler.Update();
-            imeCompositionScheduler.Update();
         }
 
         protected override void UpdateAfterChildren()
@@ -1246,7 +1304,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             FinalizeImeComposition(true);
 
-            if (ignoreOngoingDragSelection)
+            if (ignoreOngoingDragSelection || tripleClickOngoing)
                 return;
 
             var lastSelectionBounds = getTextSelectionBounds();
@@ -1287,8 +1345,12 @@ namespace osu.Framework.Graphics.UserInterface
             onTextSelectionChanged(doubleClickWord != null ? TextSelectionType.Word : TextSelectionType.Character, lastSelectionBounds);
         }
 
+        private double? lastDoubleClickTime;
+
         protected override bool OnDoubleClick(DoubleClickEvent e)
         {
+            lastDoubleClickTime = Time.Current;
+
             FinalizeImeComposition(true);
 
             var lastSelectionBounds = getTextSelectionBounds();
@@ -1334,6 +1396,8 @@ namespace osu.Framework.Graphics.UserInterface
             return -1;
         }
 
+        private bool tripleClickOngoing;
+
         protected override bool OnMouseDown(MouseDownEvent e)
         {
             if (ReadOnly)
@@ -1342,6 +1406,21 @@ namespace osu.Framework.Graphics.UserInterface
             FinalizeImeComposition(true);
 
             var lastSelectionBounds = getTextSelectionBounds();
+
+            float tripleClickTime = GetContainingInputManager().AsNonNull().GetButtonEventManagerFor(e.Button).DoubleClickTime;
+
+            if (lastDoubleClickTime != null && Time.Current - lastDoubleClickTime < tripleClickTime)
+            {
+                lastDoubleClickTime = null;
+
+                SelectAll();
+
+                onTextSelectionChanged(TextSelectionType.All, lastSelectionBounds);
+
+                tripleClickOngoing = true;
+
+                return true;
+            }
 
             selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
 
@@ -1355,6 +1434,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void OnMouseUp(MouseUpEvent e)
         {
             doubleClickWord = null;
+            tripleClickOngoing = false;
         }
 
         protected override void OnFocusLost(FocusLostEvent e)
@@ -1447,7 +1527,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             textInputBlocking = true;
 
-            InsertString(t);
+            insertString(t);
             OnUserTextAdded(t);
 
             // clear the flag in the next frame if no buttons are pressed/held.
@@ -1464,12 +1544,12 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void handleImeComposition(string composition, int selectionStart, int selectionLength)
         {
-            imeCompositionScheduler.Add(() => onImeComposition(composition, selectionStart, selectionLength, true));
+            textInputScheduler.Add(() => onImeComposition(composition, selectionStart, selectionLength, true));
         }
 
         private void handleImeResult(string result)
         {
-            imeCompositionScheduler.Add(() =>
+            textInputScheduler.Add(() =>
             {
                 onImeComposition(result, result.Length, 0, false);
                 onImeResult(true, true);
@@ -1790,6 +1870,13 @@ namespace osu.Framework.Graphics.UserInterface
             /// All of the text was selected (i.e. via <see cref="PlatformAction.SelectAll"/>).
             /// </summary>
             All
+        }
+
+        private enum WordTraversalStep
+        {
+            Whitespace,
+            LetterOrDigit,
+            Symbol,
         }
     }
 }

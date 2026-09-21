@@ -23,6 +23,18 @@ namespace osu.Framework.Input.Handlers.Tablet
         Bindable<Vector2> AreaSize { get; }
 
         /// <summary>
+        /// The relative position of the output area in the game window.
+        /// Values range from (0,0) for top-left to (1,1) for bottom-right.
+        /// Has no effect when <see cref="OutputAreaSize"/> is (1,1).
+        /// </summary>
+        Bindable<Vector2> OutputAreaOffset { get; }
+
+        /// <summary>
+        /// Relative size of output area inside game window.
+        /// </summary>
+        Bindable<Vector2> OutputAreaSize { get; }
+
+        /// <summary>
         /// Information on the currently connected tablet device. May be null if no tablet is detected.
         /// </summary>
         IBindable<TabletInfo?> Tablet { get; }
@@ -31,6 +43,11 @@ namespace osu.Framework.Input.Handlers.Tablet
         /// The rotation of the tablet area in degrees.
         /// </summary>
         Bindable<float> Rotation { get; }
+
+        /// <summary>
+        /// The minimum pressure percentage required to click.
+        /// </summary>
+        BindableFloat PressureThreshold { get; }
 
         BindableBool Enabled { get; }
     }

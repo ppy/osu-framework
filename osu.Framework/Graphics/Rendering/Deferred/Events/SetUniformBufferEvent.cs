@@ -8,6 +8,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
     internal readonly record struct SetUniformBufferEvent(ResourceReference Name, ResourceReference Buffer)
     {
         public static RenderEvent Create(DeferredRenderer renderer, string name, IUniformBuffer buffer)
-            => RenderEvent.Init(new SetUniformBufferEvent(renderer.Context.Reference(name), renderer.Context.Reference(buffer)));
+            => RenderEvent.Create(new SetUniformBufferEvent(renderer.Context.Reference(name), renderer.Context.Reference(buffer)));
     }
 }

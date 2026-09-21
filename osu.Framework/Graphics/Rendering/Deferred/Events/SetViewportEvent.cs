@@ -8,6 +8,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
     internal readonly record struct SetViewportEvent(RectangleI Viewport)
     {
         public static RenderEvent Create(RectangleI viewport)
-            => RenderEvent.Init(new SetViewportEvent(viewport));
+            => RenderEvent.Create(new SetViewportEvent(viewport));
     }
 }

@@ -10,6 +10,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.Testing;
+using osuTK;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
@@ -34,14 +35,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                             new MenuItem("Sub-item #2", () => { }),
                         }
                     },
-                    new MenuItem("Item #2")
-                    {
-                        Items = new[]
-                        {
-                            new MenuItem("Sub-item #1"),
-                            new MenuItem("Sub-item #2", () => { }),
-                        }
-                    },
+                    new MenuItem("Item #2"),
                 }
             });
         }
@@ -131,6 +125,30 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("mouse handler not activated", () => !actionReceived);
         }
 
+        [Test]
+        public void TestItemsNotClickableDuringFadeOut()
+        {
+            bool item1Clicked = false;
+            bool item2Clicked = false;
+            bool topLevelItemClicked = false;
+
+            AddStep("set item actions", () =>
+            {
+                Menus.GetSubMenu(0).Items[0].Items[0].Action.Value = () => item1Clicked = true;
+                Menus.GetSubMenu(0).Items[0].Items[1].Action.Value = () => item2Clicked = true;
+                Menus.GetSubMenu(0).Items[1].Action.Value = () => topLevelItemClicked = true;
+            });
+
+            AddStep("click item", () => ClickItem(0, 0));
+            AddStep("click item", () => ClickItem(1, 0));
+            AddAssert("menu item 1 activated", () => item1Clicked);
+            AddStep("click item", () => ClickItem(1, 1));
+            AddAssert("menu item 2 not activated", () => !item2Clicked);
+
+            AddStep("click top level item", () => ClickItem(0, 1));
+            AddAssert("top level item not activated", () => !topLevelItemClicked);
+        }
+
         private partial class MouseHandlingLayer : Drawable
         {
             public Action Action { get; set; }
@@ -159,6 +177,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             protected override bool OnKeyDown(KeyDownEvent e)
             {
                 return PressBlocked = base.OnKeyDown(e);
+            }
+
+            protected override void UpdateSize(Vector2 newSize)
+            {
+                Width = newSize.X;
+
+                // I don't know why menu size is reset to zero on closing, but let's just ignore it to make things work.
+                if (newSize.Y > 0)
+                    this.ResizeHeightTo(newSize.Y, 300, Easing.OutQuint);
             }
 
             protected override void AnimateOpen() => this.FadeIn(500);

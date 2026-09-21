@@ -153,7 +153,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnKeyDown(KeyDownEvent e)
         {
             if (!Enabled.Value)
-                return true;
+                return false;
 
             switch (e.Key)
             {
@@ -173,7 +173,7 @@ namespace osu.Framework.Graphics.UserInterface
         public bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
         {
             if (!Enabled.Value)
-                return true;
+                return false;
 
             switch (e.Action)
             {

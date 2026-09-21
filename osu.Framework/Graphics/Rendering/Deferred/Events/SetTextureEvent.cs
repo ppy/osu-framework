@@ -8,6 +8,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Events
     internal readonly record struct SetTextureEvent(ResourceReference Texture, int Unit)
     {
         public static RenderEvent Create(DeferredRenderer renderer, INativeTexture? texture, int unit)
-            => RenderEvent.Init(new SetTextureEvent(renderer.Context.Reference(texture), unit));
+            => RenderEvent.Create(new SetTextureEvent(renderer.Context.Reference(texture), unit));
     }
 }

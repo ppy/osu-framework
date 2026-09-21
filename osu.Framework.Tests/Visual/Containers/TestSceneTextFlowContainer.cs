@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Extensions.Color4Extensions;
@@ -12,6 +10,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
+using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
 
@@ -19,14 +18,15 @@ namespace osu.Framework.Tests.Visual.Containers
 {
     public partial class TestSceneTextFlowContainer : FrameworkTestScene
     {
-        private const string default_text = "Default text\n\nnewline";
+        private const string default_text = "Default text which is long enough such that it will break a line\n\nnewline";
 
-        private TextFlowContainer textContainer;
+        private Container topLevelContainer = null!;
+        private TextFlowContainer textContainer = null!;
 
         [SetUp]
         public void Setup() => Schedule(() =>
         {
-            Child = new Container
+            Child = topLevelContainer = new Container
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
@@ -52,13 +52,15 @@ namespace osu.Framework.Tests.Visual.Containers
         [TestCase(Anchor.TopLeft)]
         [TestCase(Anchor.TopCentre)]
         [TestCase(Anchor.TopRight)]
+        [TestCase(Anchor.CentreLeft)]
+        [TestCase(Anchor.Centre)]
+        [TestCase(Anchor.CentreRight)]
         [TestCase(Anchor.BottomLeft)]
         [TestCase(Anchor.BottomCentre)]
         [TestCase(Anchor.BottomRight)]
         public void TestChangeTextAnchor(Anchor anchor)
         {
             AddStep("change text anchor", () => textContainer.TextAnchor = anchor);
-            AddAssert("children have correct anchors", () => textContainer.Children.All(c => c.Anchor == anchor && c.Origin == anchor));
             AddAssert("children are positioned correctly", () =>
             {
                 string result = string.Concat(textContainer.Children
@@ -67,14 +69,6 @@ namespace osu.Framework.Tests.Visual.Containers
                                                            .Select(c => (c as SpriteText)?.Text.ToString() ?? "\n"));
                 return result == default_text;
             });
-        }
-
-        [Test]
-        public void TestAddTextWithTextAnchor()
-        {
-            AddStep("change text anchor", () => textContainer.TextAnchor = Anchor.TopCentre);
-            AddStep("add text", () => textContainer.AddText("added text"));
-            AddAssert("children have correct anchors", () => textContainer.Children.All(c => c.Anchor == Anchor.TopCentre && c.Origin == Anchor.TopCentre));
         }
 
         [Test]
@@ -90,7 +84,7 @@ namespace osu.Framework.Tests.Visual.Containers
         [Test]
         public void TestPartManagement()
         {
-            ITextPart part = null;
+            ITextPart part = null!;
 
             AddStep("clear text", () => textContainer.Clear());
             assertSpriteTextCount(0);
@@ -129,10 +123,67 @@ namespace osu.Framework.Tests.Visual.Containers
             AddStep("set cjk text", () => textContainer.Text = "日本の桜は世界中から観光客を引きつけています。寿司は美味しい伝統的な日本食です。東京タワーは景色が美しいです。速い新幹線は、便利な交通手段です。富士山は、その美しさと完全な形状で知られています。日本文化は、優雅さと繊細さを象徴しています。抹茶は特別な日本の茶です。着物は、伝統的な日本の衣装で、特別な場面でよく着用されます。");
         }
 
+        [Test]
+        public void TestSizing()
+        {
+            AddStep("set relative width", () =>
+            {
+                topLevelContainer.AutoSizeAxes = textContainer.AutoSizeAxes = Axes.Y;
+                topLevelContainer.RelativeSizeAxes = textContainer.RelativeSizeAxes = Axes.X;
+                topLevelContainer.Width = textContainer.Width = 0.5f;
+            });
+            AddStep("set absolute width", () =>
+            {
+                topLevelContainer.AutoSizeAxes = textContainer.AutoSizeAxes = Axes.Y;
+                topLevelContainer.RelativeSizeAxes = textContainer.RelativeSizeAxes = Axes.None;
+                topLevelContainer.Width = textContainer.Width = 200f;
+            });
+            AddStep("set autosize width", () =>
+            {
+                topLevelContainer.RelativeSizeAxes = textContainer.RelativeSizeAxes = Axes.None;
+                topLevelContainer.AutoSizeAxes = textContainer.AutoSizeAxes = Axes.Both;
+            });
+            AddStep("set autosize width with right anchored text", () =>
+            {
+                topLevelContainer.RelativeSizeAxes = textContainer.RelativeSizeAxes = Axes.None;
+                topLevelContainer.AutoSizeAxes = textContainer.AutoSizeAxes = Axes.Both;
+                textContainer.TextAnchor = Anchor.TopRight;
+            });
+        }
+
+        [Test]
+        public void TestSetTextRepeatedly()
+        {
+            ScheduledDelegate repeat = null!;
+            AddStep("set text repeatedly", () => repeat = Scheduler.AddDelayed(() =>
+            {
+                textContainer.Clear();
+                textContainer.AddParagraph("first paragraph lorem ipsum dolor sit amet and whatever else is needed to break a line");
+                textContainer.AddParagraph(string.Empty);
+                textContainer.AddParagraph("second paragraph lorem ipsum dolor sit amet and whatever else is needed to break a line");
+            }, 50, true));
+            AddStep("cancel", () => repeat.Cancel());
+        }
+
+        [TestCase(Anchor.TopLeft)]
+        [TestCase(Anchor.Centre)]
+        [TestCase(Anchor.BottomRight)]
+        public void TestAlignmentIsCorrectWhenLineBreaksAtLastWordOfParagraph(Anchor textAnchor)
+        {
+            AddStep("set text to break at last word of paragraph", () =>
+            {
+                textContainer.Clear();
+                textContainer.AddParagraph("first paragraph lorem ipsum dolor sit amet");
+                textContainer.AddParagraph(string.Empty);
+                textContainer.AddParagraph("second paragraph lorem ipsum dolor sit ametttttttttttttttttt");
+                textContainer.TextAnchor = textAnchor;
+            });
+        }
+
         private void assertSpriteTextCount(int count)
             => AddAssert($"text flow has {count} sprite texts", () => textContainer.ChildrenOfType<SpriteText>().Count() == count);
 
         private void assertTotalChildCount(int count)
-            => AddAssert($"text flow has {count} children", () => textContainer.Count == count);
+            => AddAssert($"text flow has {count} children", () => textContainer.Children.Count() == count);
     }
 }

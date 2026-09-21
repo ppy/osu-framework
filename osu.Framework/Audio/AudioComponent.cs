@@ -110,7 +110,9 @@ namespace osu.Framework.Audio
 
         #region IDisposable Support
 
-        protected volatile bool IsDisposed;
+        public bool IsDisposed => isDisposed;
+
+        private volatile bool isDisposed;
 
         public void Dispose()
         {
@@ -122,7 +124,7 @@ namespace osu.Framework.Audio
 
         protected virtual void Dispose(bool disposing)
         {
-            IsDisposed = true;
+            isDisposed = true;
         }
 
         #endregion

@@ -6,6 +6,8 @@ using System.IO;
 using NUnit.Framework;
 using osu.Framework.Testing;
 
+// ReSharper disable AccessToDisposedClosure
+
 namespace osu.Framework.Tests.IO
 {
     [TestFixture]
