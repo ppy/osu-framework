@@ -24,6 +24,20 @@ namespace osu.Framework.Input.Handlers.Pen
             Precision = 0.01
         };
 
+        public BindableDouble SensitivityAnchorX { get; } = new BindableDouble(0.5)
+        {
+            MinValue = 0,
+            MaxValue = 1,
+            Precision = 0.01
+        };
+
+        public BindableDouble SensitivityAnchorY { get; } = new BindableDouble(0.5)
+        {
+            MinValue = 0,
+            MaxValue = 1,
+            Precision = 0.01
+        };
+
         public override bool IsActive => true;
 
         private SDL3Window window = null!;
@@ -60,6 +74,9 @@ namespace osu.Framework.Input.Handlers.Pen
         public override void Reset()
         {
             Sensitivity.SetDefault();
+            SensitivityAnchorX.SetDefault();
+            SensitivityAnchorY.SetDefault();
+
             base.Reset();
         }
 
@@ -134,9 +151,13 @@ namespace osu.Framework.Input.Handlers.Pen
         /// <returns>A vector that can be added to a position to apply sensitivity.</returns>
         private Vector2 getSensitivityDelta(Vector2 position, Vector2 size)
         {
-            var centre = size * 0.5f;
-            var relativeToCentre = position - centre;
-            return relativeToCentre * (float)(Sensitivity.Value - 1);
+            var anchor = new Vector2(
+                size.X * (float)SensitivityAnchorX.Value,
+                size.Y * (float)SensitivityAnchorY.Value
+            );
+
+            var relativeToAnchor = position - anchor;
+            return relativeToAnchor * (float)(Sensitivity.Value - 1);
         }
 
         /// <summary>
@@ -149,13 +170,13 @@ namespace osu.Framework.Input.Handlers.Pen
             // SDL pen positions on Android are relative to the window, so avoid converting them to display-relative coordinates.
             if (window.PositionAccurate && RuntimeInfo.OS != RuntimeInfo.Platform.Android)
             {
-                // apply relative to the centre of the current display
+                // apply relative to the configured anchor on the current display
                 var delta = getSensitivityDelta(windowToCurrentDisplay(position / window.Scale), currentDisplaySize()) * window.Scale;
                 return position + delta;
             }
             else
             {
-                // apply relative to the cetre of the window
+                // apply relative to the configured anchor in the window
                 var delta = getSensitivityDelta(position, windowClientSize());
                 return position + delta;
             }
