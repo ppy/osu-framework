@@ -113,7 +113,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
                 colourTarget.Dispose();
 
             if (Framebuffer.IsNotNull())
-                Framebuffer.Dispose();
+                renderer.ScheduleDisposal(static f => f.Dispose(), Framebuffer);
 
             depthTarget?.Dispose();
         }
@@ -123,7 +123,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         ~VeldridFrameBuffer()
         {
-            renderer.ScheduleDisposal(b => b.Dispose(false), this);
+            renderer.ScheduleDisposal(static b => b.Dispose(false), this);
         }
 
         public void Dispose()

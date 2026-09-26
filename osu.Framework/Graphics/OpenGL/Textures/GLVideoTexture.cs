@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             memoryLease?.Dispose();
 
-            Renderer.ScheduleDisposal(v =>
+            Renderer.ScheduleDisposal(static v =>
             {
                 int[]? ids = v.TextureIds;
 

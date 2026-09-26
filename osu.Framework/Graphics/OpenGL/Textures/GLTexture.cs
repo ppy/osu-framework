@@ -149,7 +149,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         protected virtual void Dispose(bool isDisposing)
         {
-            Renderer.ScheduleDisposal(texture =>
+            Renderer.ScheduleDisposal(static texture =>
             {
                 while (texture.tryGetNextUpload(out var upload))
                     upload.Dispose();
