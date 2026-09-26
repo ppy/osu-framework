@@ -16,6 +16,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
+using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
 
@@ -31,6 +32,7 @@ namespace osu.Framework.Graphics.Visualisation
         private readonly Container previewContainer;
         private readonly InteractiveContainer interactiveContainer;
         private readonly TextureInfo textureInfo;
+        private readonly PixelsOutline pixelsOutline;
 
         public TextureInspector()
         {
@@ -114,6 +116,7 @@ namespace osu.Framework.Graphics.Visualisation
                                             {
                                                 RelativeSizeAxes = Axes.Both
                                             },
+                                            pixelsOutline = new PixelsOutline(),
                                             new TextureBorder
                                             {
                                                 RelativeSizeAxes = Axes.Both
@@ -150,15 +153,58 @@ namespace osu.Framework.Graphics.Visualisation
         public void Inspect(Texture texture)
         {
             previewContainer.Size = texture.Size;
+            pixelsOutline.Size = texture.Size;
             preview.Texture = texture;
             interactiveContainer.Fit();
 
             textureInfo.UpdateInfo(texture);
         }
 
+        protected override void Update()
+        {
+            base.Update();
+            pixelsOutline.Alpha = Interpolation.ValueAt(Math.Clamp(interactiveContainer.Zoom, 10f, 15f), 0f, 1f, 10f, 15f);
+        }
+
         protected override void PopIn() => this.ResizeWidthTo(width + padding * 2, 500, Easing.OutQuint);
 
         protected override void PopOut() => this.ResizeWidthTo(0, 500, Easing.OutQuint);
+
+        private partial class PixelsOutline : Box
+        {
+            protected override DrawNode CreateDrawNode() => new PixelsOutlineDrawNode(this);
+
+            private partial class PixelsOutlineDrawNode : SpriteDrawNode
+            {
+                public PixelsOutlineDrawNode(Sprite source)
+                    : base(source)
+                {
+                }
+
+                private Vector2 size;
+
+                public override void ApplyState()
+                {
+                    base.ApplyState();
+                    size = Source.Size;
+                }
+
+                protected override void Blit(IRenderer renderer)
+                {
+                    var col = DrawColourInfo.Colour;
+                    col.ApplyChild(Color4.Gray);
+
+                    float spanX = ScreenSpaceDrawQuad.Width / size.X;
+                    float spanY = ScreenSpaceDrawQuad.Height / size.Y;
+
+                    for (int i = 1; i < size.X; i++)
+                        renderer.DrawQuad(renderer.WhitePixel, new Quad(ScreenSpaceDrawQuad.TopLeft.X + spanX * i, ScreenSpaceDrawQuad.TopLeft.Y, 1, ScreenSpaceDrawQuad.Height), col);
+
+                    for (int i = 1; i < size.Y; i++)
+                        renderer.DrawQuad(renderer.WhitePixel, new Quad(ScreenSpaceDrawQuad.TopLeft.X, ScreenSpaceDrawQuad.TopLeft.Y + spanY * i, ScreenSpaceDrawQuad.Width, 1), col);
+                }
+            }
+        }
 
         private partial class TextureBorder : Box
         {
@@ -173,10 +219,11 @@ namespace osu.Framework.Graphics.Visualisation
 
                 protected override void Blit(IRenderer renderer)
                 {
-                    renderer.DrawQuad(renderer.WhitePixel, new Quad(ScreenSpaceDrawQuad.TopLeft.X, ScreenSpaceDrawQuad.TopLeft.Y, ScreenSpaceDrawQuad.Width, 1), DrawColourInfo.Colour);
-                    renderer.DrawQuad(renderer.WhitePixel, new Quad(ScreenSpaceDrawQuad.TopLeft.X, ScreenSpaceDrawQuad.TopLeft.Y, 1, ScreenSpaceDrawQuad.Height), DrawColourInfo.Colour);
-                    renderer.DrawQuad(renderer.WhitePixel, new Quad(ScreenSpaceDrawQuad.TopRight.X - 1, ScreenSpaceDrawQuad.TopRight.Y, 1, ScreenSpaceDrawQuad.Height), DrawColourInfo.Colour);
-                    renderer.DrawQuad(renderer.WhitePixel, new Quad(ScreenSpaceDrawQuad.BottomLeft.X, ScreenSpaceDrawQuad.BottomLeft.Y - 1, ScreenSpaceDrawQuad.Width, 1), DrawColourInfo.Colour);
+                    const float width = 1;
+                    renderer.DrawQuad(renderer.WhitePixel, new Quad(ScreenSpaceDrawQuad.TopLeft.X, ScreenSpaceDrawQuad.TopLeft.Y - width, ScreenSpaceDrawQuad.Width + width, width), DrawColourInfo.Colour);
+                    renderer.DrawQuad(renderer.WhitePixel, new Quad(ScreenSpaceDrawQuad.TopRight.X, ScreenSpaceDrawQuad.TopRight.Y, width, ScreenSpaceDrawQuad.Height + width), DrawColourInfo.Colour);
+                    renderer.DrawQuad(renderer.WhitePixel, new Quad(ScreenSpaceDrawQuad.BottomLeft.X - width, ScreenSpaceDrawQuad.BottomLeft.Y, ScreenSpaceDrawQuad.Width + width, width), DrawColourInfo.Colour);
+                    renderer.DrawQuad(renderer.WhitePixel, new Quad(ScreenSpaceDrawQuad.TopLeft.X - width, ScreenSpaceDrawQuad.TopLeft.Y - width, width, ScreenSpaceDrawQuad.Height + width), DrawColourInfo.Colour);
                 }
             }
         }
@@ -427,7 +474,7 @@ namespace osu.Framework.Graphics.Visualisation
                 });
             }
 
-            private float zoom = 1f;
+            public float Zoom { get; private set; } = 1f;
 
             public void ResetPosition()
             {
@@ -452,8 +499,8 @@ namespace osu.Framework.Graphics.Visualisation
                 ScalableContent.Anchor = Anchor.TopLeft;
                 ScalableContent.Position = e.MousePosition;
 
-                zoom += (e.ScrollDelta.Y > 0 ? 1 : -1) * zoom * 0.1f;
-                ScalableContent.ScaleTo(zoom, smooth ? 150 : 0, Easing.OutQuint);
+                Zoom += (e.ScrollDelta.Y > 0 ? 1 : -1) * Zoom * 0.1f;
+                ScalableContent.ScaleTo(Zoom, smooth ? 150 : 0, Easing.OutQuint);
                 isFit = false;
 
                 return true;
@@ -463,7 +510,7 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 ScalableContent.ClearTransforms();
 
-                zoom = newZoom;
+                Zoom = newZoom;
 
                 if (mousePosition.HasValue)
                 {
@@ -472,7 +519,7 @@ namespace osu.Framework.Graphics.Visualisation
                     ScalableContent.Position = mousePosition.Value;
                 }
 
-                ScalableContent.ScaleTo(zoom, duration, Easing.OutQuint);
+                ScalableContent.ScaleTo(Zoom, duration, Easing.OutQuint);
                 isFit = false;
             }
 
