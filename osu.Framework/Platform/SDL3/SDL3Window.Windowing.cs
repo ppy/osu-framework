@@ -298,7 +298,12 @@ namespace osu.Framework.Platform.SDL3
         public event Action<IEnumerable<Display>>? DisplaysChanged;
 
         // ReSharper disable once UnusedParameter.Local
-        private unsafe void handleDisplayEvent(SDL_DisplayEvent evtDisplay)
+		private void handleDisplayEvent(SDL_DisplayEvent evtDisplay) => refreshDisplaysAndCurrentDisplay();
+
+		/// <summary>
+		/// Refreshes the available displays and the display associated with the current window.
+		/// </summary>
+		private unsafe void refreshDisplaysAndCurrentDisplay()
 		{
 			fetchDisplays();
 			updateCurrentDisplay(SDL_GetDisplayForWindow(SDLWindowHandle).ThrowIfFailed());
@@ -569,8 +574,7 @@ namespace osu.Framework.Platform.SDL3
 
                 // See https://github.com/libsdl-org/SDL/issues/9585.
                 case SDL_EventType.SDL_EVENT_WINDOW_RESIZED when RuntimeInfo.OS == RuntimeInfo.Platform.Android:
-                    fetchDisplays();
-                    updateCurrentDisplay(SDL_GetDisplayForWindow(SDLWindowHandle).ThrowIfFailed());
+                    refreshDisplaysAndCurrentDisplay();
                     break;
             }
 
