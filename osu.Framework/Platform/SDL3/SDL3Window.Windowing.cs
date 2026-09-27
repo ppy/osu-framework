@@ -444,7 +444,6 @@ namespace osu.Framework.Platform.SDL3
                 return new Rectangle(rect.x, rect.y, rect.w, rect.h);
             }
         }
-
         /// <summary>
         /// Bound to <see cref="FrameworkSetting.SizeFullscreen"/>.
         /// </summary>
@@ -567,6 +566,7 @@ namespace osu.Framework.Platform.SDL3
                 // See https://github.com/libsdl-org/SDL/issues/9585.
                 case SDL_EventType.SDL_EVENT_WINDOW_RESIZED when RuntimeInfo.OS == RuntimeInfo.Platform.Android:
                     fetchDisplays();
+                    updateCurrentDisplay(SDL_GetDisplayForWindow(SDLWindowHandle).ThrowIfFailed());
                     break;
             }
 
@@ -631,19 +631,26 @@ namespace osu.Framework.Platform.SDL3
             var newDisplayID = SDL_GetDisplayForWindow(SDLWindowHandle).ThrowIfFailed();
 
             if (displayID != newDisplayID)
-            {
-                displayID = newDisplayID;
-
-                if (tryGetDisplayIndex(newDisplayID, out int index) && tryGetDisplayFromSDL(index, newDisplayID, out var display))
-                    currentDisplay = display;
-                else
-                    currentDisplay = PrimaryDisplay;
-
-                CurrentDisplayBindable.Value = currentDisplay;
-            }
+                updateCurrentDisplay(newDisplayID);
 
             if (tryGetBorderSize(out var borderSize))
                 BorderSize.Value = borderSize;
+        }
+
+        /// <summary>
+        /// Updates <see cref="currentDisplay"/> and <see cref="CurrentDisplayBindable"/> using the provided SDL display ID.
+        /// </summary>
+        /// <param name="newDisplayID">The SDL display ID to update from.</param>
+        private void updateCurrentDisplay(SDL_DisplayID newDisplayID)
+        {
+            displayID = newDisplayID;
+
+            if (tryGetDisplayIndex(newDisplayID, out int index) && tryGetDisplayFromSDL(index, newDisplayID, out var display))
+                currentDisplay = display;
+            else
+                currentDisplay = PrimaryDisplay;
+
+            CurrentDisplayBindable.Value = currentDisplay;
         }
 
         /// <summary>
