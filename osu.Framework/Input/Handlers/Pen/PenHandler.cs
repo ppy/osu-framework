@@ -104,7 +104,6 @@ namespace osu.Framework.Input.Handlers.Pen
         private void enqueueInput(IInput input)
         {
             PendingInputs.Enqueue(input);
-
             FrameStatistics.Increment(StatisticsCounterType.TabletEvents);
             statistic_total_events.Value++;
         }
