@@ -232,6 +232,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             private readonly SpriteText sizeInfo;
             private readonly SpriteText filteringInfo;
+            private readonly SpriteText pixelFormatInfo;
 
             public TextureInfo()
             {
@@ -257,11 +258,18 @@ namespace osu.Framework.Graphics.Visualisation
                             {
                                 sizeInfo = new SpriteText
                                 {
-                                    Font = new FontUsage(size: 16)
+                                    Font = new FontUsage(size: 16),
+                                    Shadow = true
                                 },
                                 filteringInfo = new SpriteText
                                 {
-                                    Font = new FontUsage(size: 16)
+                                    Font = new FontUsage(size: 16),
+                                    Shadow = true
+                                },
+                                pixelFormatInfo = new SpriteText
+                                {
+                                    Font = new FontUsage(size: 16),
+                                    Shadow = true
                                 }
                             }
                         }
@@ -273,6 +281,7 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 sizeInfo.Text = $"Size: {texture.Width}x{texture.Height}";
                 filteringInfo.Text = $"Filtering mode: {texture.NativeTexture.FilteringMode}";
+                pixelFormatInfo.Text = $"Pixel format: {texture.NativeTexture.PixelFormat}";
             }
         }
 

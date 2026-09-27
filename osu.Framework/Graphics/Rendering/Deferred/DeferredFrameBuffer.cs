@@ -22,19 +22,21 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         private readonly DeferredFrameBufferTexture nativeTexture;
         private readonly DeferredRenderer renderer;
         private readonly PixelFormat[]? formats;
-        private readonly PixelFormat textureFormat;
+        private readonly TexturePixelFormat textureFormat;
+        private readonly PixelFormat nativeTextureFormat;
         private readonly TextureFilteringMode filteringMode;
         private readonly SamplerFilter nativeFilteringMode;
 
         private Vector2I size = Vector2I.One;
 
-        public DeferredFrameBuffer(DeferredRenderer renderer, PixelFormat textureFormat, PixelFormat[]? formats, TextureFilteringMode filteringMode)
+        public DeferredFrameBuffer(DeferredRenderer renderer, TexturePixelFormat textureFormat, PixelFormat[]? formats, TextureFilteringMode filteringMode)
         {
             this.renderer = renderer;
             this.formats = formats;
             this.textureFormat = textureFormat;
-            nativeFilteringMode = filteringMode.ToSamplerFilter();
+            nativeTextureFormat = textureFormat.ToPixelFormat();
             this.filteringMode = filteringMode;
+            nativeFilteringMode = filteringMode.ToSamplerFilter();
 
             nativeTexture = new DeferredFrameBufferTexture(this);
             Texture = renderer.CreateTexture(nativeTexture);
@@ -151,7 +153,7 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                             (uint)resourceSize.Y,
                             1,
                             1,
-                            deferredFrameBuffer.textureFormat,
+                            deferredFrameBuffer.nativeTextureFormat,
                             TextureUsage.Sampled | TextureUsage.RenderTarget)),
                     deferredFrameBuffer.renderer.Factory.CreateSampler(
                         new SamplerDescription(
@@ -243,7 +245,11 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             int INativeTexture.GetByteSize()
                 => deferredFrameBuffer.size.X * deferredFrameBuffer.size.Y * 4;
 
-            TextureFilteringMode INativeTexture.FilteringMode => deferredFrameBuffer.filteringMode;
+            TextureFilteringMode INativeTexture.FilteringMode
+                => deferredFrameBuffer.filteringMode;
+
+            TexturePixelFormat INativeTexture.PixelFormat
+                => deferredFrameBuffer.textureFormat;
 
             private bool isDisposed;
 

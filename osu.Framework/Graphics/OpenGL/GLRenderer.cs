@@ -417,22 +417,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         public override IFrameBuffer CreateFrameBuffer(TexturePixelFormat textureFormat = TexturePixelFormat.R8G8B8A8Float, RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
         {
-            TextureComponentCount glTextureFormat;
             RenderbufferInternalFormat[]? glFormats = null;
-
-            switch (textureFormat)
-            {
-                case TexturePixelFormat.R8G8B8A8Float:
-                    glTextureFormat = TextureComponentCount.Rgba8;
-                    break;
-
-                case TexturePixelFormat.R16Float:
-                    glTextureFormat = TextureComponentCount.R16f;
-                    break;
-
-                default:
-                    throw new ArgumentException($"Unsupported render buffer format: {textureFormat}", nameof(textureFormat));
-            }
 
             if (renderBufferFormats != null)
             {
@@ -464,7 +449,7 @@ namespace osu.Framework.Graphics.OpenGL
                 }
             }
 
-            return new GLFrameBuffer(this, glTextureFormat, glFormats, filteringMode);
+            return new GLFrameBuffer(this, textureFormat, glFormats, filteringMode);
         }
 
         protected override IUniformBuffer<TData> CreateUniformBuffer<TData>()
@@ -475,7 +460,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         protected override INativeTexture CreateNativeTexture(int width, int height, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
                                                               Color4? initialisationColour = null)
-            => new GLTexture(this, width, height, TextureComponentCount.Rgba8, manualMipmaps, filteringMode, initialisationColour);
+            => new GLTexture(this, width, height, TexturePixelFormat.R8G8B8A8Float, manualMipmaps, filteringMode, initialisationColour);
 
         protected override INativeTexture CreateNativeVideoTexture(int width, int height) => new GLVideoTexture(this, width, height);
 

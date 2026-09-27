@@ -28,6 +28,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         IRenderer INativeTexture.Renderer => Renderer;
         TextureFilteringMode INativeTexture.FilteringMode => filteringMode;
+        TexturePixelFormat INativeTexture.PixelFormat => pixelFormat;
 
         public string Identifier
         {
@@ -57,7 +58,8 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         private readonly SamplerFilter nativeFilteringMode;
         private readonly TextureFilteringMode filteringMode;
-        private readonly PixelFormat textureFormat;
+        private readonly PixelFormat nativePixelFormat;
+        private readonly TexturePixelFormat pixelFormat;
         private readonly Color4? initialisationColour;
 
         public ulong BindCount { get; protected set; }
@@ -89,14 +91,15 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
         /// <param name="filteringMode">The filtering mode.</param>
         /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads). If null, no initialisation is provided out-of-the-box.</param>
-        public VeldridTexture(IVeldridRenderer renderer, int width, int height, PixelFormat textureFormat = PixelFormat.R8G8B8A8UNorm, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
+        public VeldridTexture(IVeldridRenderer renderer, int width, int height, TexturePixelFormat textureFormat = TexturePixelFormat.R8G8B8A8Float, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
                               Color4? initialisationColour = null)
         {
             this.manualMipmaps = manualMipmaps;
             this.filteringMode = filteringMode;
             nativeFilteringMode = filteringMode.ToSamplerFilter();
             this.initialisationColour = initialisationColour;
-            this.textureFormat = textureFormat;
+            pixelFormat = textureFormat;
+            nativePixelFormat = textureFormat.ToPixelFormat();
 
             Renderer = renderer;
             Width = width;
@@ -464,7 +467,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 if (texture != null)
                     Renderer.ScheduleDisposal(static t => t.Dispose(), texture);
 
-                var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)CalculateMipmapLevels(Width, Height), 1, textureFormat, Usages);
+                var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)CalculateMipmapLevels(Width, Height), 1, nativePixelFormat, Usages);
                 texture = Renderer.Factory.CreateTexture(ref textureDescription);
 
                 // todo: we may want to look into not having to allocate chunks of zero byte region for initialising textures
