@@ -298,16 +298,16 @@ namespace osu.Framework.Platform.SDL3
         public event Action<IEnumerable<Display>>? DisplaysChanged;
 
         // ReSharper disable once UnusedParameter.Local
-		private void handleDisplayEvent(SDL_DisplayEvent evtDisplay) => refreshDisplaysAndCurrentDisplay();
+        private void handleDisplayEvent(SDL_DisplayEvent evtDisplay) => refreshDisplaysAndCurrentDisplay();
 
-		/// <summary>
-		/// Refreshes the available displays and the display associated with the current window.
-		/// </summary>
-		private unsafe void refreshDisplaysAndCurrentDisplay()
-		{
-			fetchDisplays();
-			updateCurrentDisplay(SDL_GetDisplayForWindow(SDLWindowHandle).ThrowIfFailed());
-		}
+        /// <summary>
+        /// Refreshes the available displays and the display associated with the current window.
+        /// </summary>
+        private unsafe void refreshDisplaysAndCurrentDisplay()
+        {
+            fetchDisplays();
+            updateCurrentDisplay(SDL_GetDisplayForWindow(SDLWindowHandle).ThrowIfFailed());
+        }
 
         /// <summary>
         /// Updates <see cref="Displays"/> with the latest display information reported by SDL.
@@ -453,6 +453,7 @@ namespace osu.Framework.Platform.SDL3
                 return new Rectangle(rect.x, rect.y, rect.w, rect.h);
             }
         }
+
         /// <summary>
         /// Bound to <see cref="FrameworkSetting.SizeFullscreen"/>.
         /// </summary>
