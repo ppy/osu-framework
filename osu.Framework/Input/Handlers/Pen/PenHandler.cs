@@ -167,8 +167,7 @@ namespace osu.Framework.Input.Handlers.Pen
         /// <returns>A pixel position relative to the top-left corner of the window with sensitivity applied.</returns>
         private Vector2 applySensitivity(Vector2 position)
         {
-            // SDL pen positions on Android are relative to the window, so avoid converting them to display-relative coordinates.
-            if (window.PositionAccurate && RuntimeInfo.OS != RuntimeInfo.Platform.Android)
+            if (window.PositionAccurate)
             {
                 // apply relative to the configured anchor on the current display
                 var delta = getSensitivityDelta(windowToCurrentDisplay(position / window.Scale), currentDisplaySize()) * window.Scale;
