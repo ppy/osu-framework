@@ -24,6 +24,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
     internal class GLTexture : INativeTexture
     {
         protected readonly GLRenderer Renderer;
+        private readonly TextureFilteringMode filteringMode;
         private readonly Queue<ITextureUpload> uploadQueue = new Queue<ITextureUpload>();
 
         IRenderer INativeTexture.Renderer => Renderer;
@@ -40,6 +41,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         }
 
         public int MaxSize => Renderer.MaxTextureSize;
+
+        TextureFilteringMode INativeTexture.FilteringMode => filteringMode;
 
         public virtual int Width { get; set; }
         public virtual int Height { get; set; }
@@ -64,6 +67,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public bool BypassTextureUploadQueueing { get; set; }
 
         protected TextureComponentCount InternalFormat { get; private set; }
+        protected All InternalFilteringMode { get; private set; }
         protected PixelFormat PixelFormat { get; private set; }
         protected PixelType PixelType { get; private set; }
 
@@ -73,7 +77,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private readonly List<RectangleI> uploadedRegions = new List<RectangleI>();
 
-        private readonly All filteringMode;
         private readonly Color4? initialisationColour;
 
         /// <summary>
@@ -86,17 +89,35 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
         /// <param name="filteringMode">The filtering mode.</param>
         /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads). If null, no initialisation is provided out-of-the-box.</param>
-        public GLTexture(GLRenderer renderer, int width, int height, TextureComponentCount textureFormat = TextureComponentCount.Rgba8, bool manualMipmaps = false, All filteringMode = All.Linear, Color4? initialisationColour = null)
+        public GLTexture(GLRenderer renderer, int width, int height, TextureComponentCount textureFormat = TextureComponentCount.Rgba8, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear, Color4? initialisationColour = null)
         {
             Renderer = renderer;
             Width = width;
             Height = height;
+            this.filteringMode = filteringMode;
 
             setFormat(textureFormat);
+            setFilteringMode(filteringMode);
 
             this.manualMipmaps = manualMipmaps;
-            this.filteringMode = filteringMode;
             this.initialisationColour = initialisationColour;
+        }
+
+        private void setFilteringMode(TextureFilteringMode filteringMode)
+        {
+            switch (filteringMode)
+            {
+                case TextureFilteringMode.Linear:
+                    InternalFilteringMode = All.Linear;
+                    break;
+
+                case TextureFilteringMode.Nearest:
+                    InternalFilteringMode = All.Nearest;
+                    break;
+
+                default:
+                    throw new ArgumentException($"Unsupported filtering mode: {filteringMode}", nameof(filteringMode));
+            }
         }
 
         private void setFormat(TextureComponentCount internalFormat)
@@ -456,7 +477,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLod, IRenderer.MAX_MIPMAP_LEVELS);
 
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
-                        (int)(manualMipmaps ? filteringMode : filteringMode == All.Linear ? All.LinearMipmapLinear : All.Nearest));
+                        (int)(manualMipmaps ? InternalFilteringMode : InternalFilteringMode == All.Linear ? All.LinearMipmapLinear : All.Nearest));
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)filteringMode);
 
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);

@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             }
         }
 
-        public VeldridFrameBuffer(VeldridRenderer renderer, PixelFormat textureFormat = PixelFormat.R8G8B8A8UNorm, PixelFormat[]? formats = null, SamplerFilter filteringMode = SamplerFilter.MinLinearMagLinearMipLinear)
+        public VeldridFrameBuffer(VeldridRenderer renderer, PixelFormat textureFormat = PixelFormat.R8G8B8A8UNorm, PixelFormat[]? formats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
         {
             // todo: we probably want the arguments separated to "PixelFormat[] colorFormats, PixelFormat depthFormat".
             if (formats?.Length > 1)
@@ -147,7 +147,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         {
             protected override TextureUsage Usages => base.Usages | TextureUsage.RenderTarget;
 
-            public FrameBufferTexture(VeldridRenderer renderer, PixelFormat textureFormat, SamplerFilter filteringMode = SamplerFilter.MinLinearMagLinearMipLinear)
+            public FrameBufferTexture(VeldridRenderer renderer, PixelFormat textureFormat, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
                 : base(renderer, 1, 1, textureFormat, true, filteringMode)
             {
                 BypassTextureUploadQueueing = true;

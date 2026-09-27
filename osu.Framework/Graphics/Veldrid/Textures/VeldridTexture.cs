@@ -27,6 +27,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         private readonly Queue<ITextureUpload> uploadQueue = new Queue<ITextureUpload>();
 
         IRenderer INativeTexture.Renderer => Renderer;
+        TextureFilteringMode INativeTexture.FilteringMode => filteringMode;
 
         public string Identifier
         {
@@ -54,7 +55,8 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         private readonly List<RectangleI> uploadedRegions = new List<RectangleI>();
 
-        private readonly SamplerFilter filteringMode;
+        private readonly SamplerFilter nativeFilteringMode;
+        private readonly TextureFilteringMode filteringMode;
         private readonly PixelFormat textureFormat;
         private readonly Color4? initialisationColour;
 
@@ -87,11 +89,12 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
         /// <param name="filteringMode">The filtering mode.</param>
         /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads). If null, no initialisation is provided out-of-the-box.</param>
-        public VeldridTexture(IVeldridRenderer renderer, int width, int height, PixelFormat textureFormat = PixelFormat.R8G8B8A8UNorm, bool manualMipmaps = false, SamplerFilter filteringMode = SamplerFilter.MinLinearMagLinearMipLinear,
+        public VeldridTexture(IVeldridRenderer renderer, int width, int height, PixelFormat textureFormat = PixelFormat.R8G8B8A8UNorm, bool manualMipmaps = false, TextureFilteringMode filteringMode = TextureFilteringMode.Linear,
                               Color4? initialisationColour = null)
         {
             this.manualMipmaps = manualMipmaps;
             this.filteringMode = filteringMode;
+            nativeFilteringMode = filteringMode.ToSamplerFilter();
             this.initialisationColour = initialisationColour;
             this.textureFormat = textureFormat;
 
@@ -442,7 +445,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
                 AddressModeU = SamplerAddressMode.Clamp,
                 AddressModeV = SamplerAddressMode.Clamp,
                 AddressModeW = SamplerAddressMode.Clamp,
-                Filter = filteringMode,
+                Filter = nativeFilteringMode,
                 MinimumLod = (uint)(MipLevel ?? 0),
                 MaximumLod = (uint)(MipLevel ?? maximumLod),
                 MaximumAnisotropy = 0,

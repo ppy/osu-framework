@@ -15,6 +15,11 @@ namespace osu.Framework.Graphics.Rendering
         IRenderer Renderer { get; }
 
         /// <summary>
+        /// The filtering mode of this texture.
+        /// </summary>
+        internal TextureFilteringMode FilteringMode { get; }
+
+        /// <summary>
         /// An identifier for this texture, to show up in the <see cref="TextureVisualiser"/>.
         /// </summary>
         string Identifier { get; }

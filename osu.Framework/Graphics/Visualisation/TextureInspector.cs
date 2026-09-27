@@ -231,6 +231,7 @@ namespace osu.Framework.Graphics.Visualisation
         private partial class TextureInfo : Container
         {
             private readonly SpriteText sizeInfo;
+            private readonly SpriteText filteringInfo;
 
             public TextureInfo()
             {
@@ -257,6 +258,10 @@ namespace osu.Framework.Graphics.Visualisation
                                 sizeInfo = new SpriteText
                                 {
                                     Font = new FontUsage(size: 16)
+                                },
+                                filteringInfo = new SpriteText
+                                {
+                                    Font = new FontUsage(size: 16)
                                 }
                             }
                         }
@@ -267,6 +272,7 @@ namespace osu.Framework.Graphics.Visualisation
             public void UpdateInfo(Texture texture)
             {
                 sizeInfo.Text = $"Size: {texture.Width}x{texture.Height}";
+                filteringInfo.Text = $"Filtering mode: {texture.NativeTexture.FilteringMode}";
             }
         }
 
