@@ -384,11 +384,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
                 mipLevel = value;
 
-                Renderer.ScheduleDisposal(static tup =>
-                {
-                    tup.sampler?.Dispose();
-                    tup.resourceSet?.Dispose();
-                }, (sampler, resourceSet));
+                Renderer.ScheduleDisposal(sampler, resourceSet);
 
                 sampler = createSampler();
                 resourceSet = null;
@@ -426,7 +422,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         {
             if (texture == null || texture.Width != Width || texture.Height != Height)
             {
-                Renderer.ScheduleDisposal(static t => t?.Dispose(), texture);
+                Renderer.ScheduleDisposal(texture);
 
                 var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)CalculateMipmapLevels(Width, Height), 1, textureFormat, Usages);
                 texture = Renderer.Factory.CreateTexture(ref textureDescription);
@@ -458,12 +454,12 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
             if (sampler == null || maximumUploadedLod > lastMaximumUploadedLod)
             {
-                Renderer.ScheduleDisposal(static s => s?.Dispose(), sampler);
+                Renderer.ScheduleDisposal(sampler);
 
                 sampler = createSampler();
             }
 
-            Renderer.ScheduleDisposal(static r => r?.Dispose(), resourceSet);
+            Renderer.ScheduleDisposal(resourceSet);
 
             resourceSet = null;
         }
