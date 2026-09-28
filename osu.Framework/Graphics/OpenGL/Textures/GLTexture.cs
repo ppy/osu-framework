@@ -511,7 +511,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             while (tryGetNextUpload(out var upload))
                 upload.Dispose();
 
-            Renderer.ScheduleDisposal(GL.DeleteTexture, textureId);
+            if (textureId > 0)
+                Renderer.ScheduleDisposal(GL.DeleteTexture, textureId);
 
             textureId = 0;
             Available = false;

@@ -105,9 +105,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         public void Free()
         {
             memoryLease?.Dispose();
-            stagingBuffer?.Dispose();
 
-            renderer.ScheduleDisposal(buffer);
+            renderer.ScheduleDisposal(buffer, stagingBuffer);
 
             memoryLease = null;
             stagingBuffer = null;
