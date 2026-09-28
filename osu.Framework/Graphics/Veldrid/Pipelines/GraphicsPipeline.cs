@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
         private static readonly GlobalStatistic<int> stat_graphics_pipeline_created = GlobalStatistics.Get<int>(nameof(VeldridRenderer), "Total pipelines created");
 
         private readonly Dictionary<GraphicsPipelineDescription, Pipeline> pipelineCache = new Dictionary<GraphicsPipelineDescription, Pipeline>();
-        private readonly Dictionary<int, VeldridTextureResources> attachedTextures = new Dictionary<int, VeldridTextureResources>();
+        private readonly Dictionary<int, (int offset, IVeldridTexture texture)> attachedTextures = new Dictionary<int, (int offset, IVeldridTexture texture)>();
         private readonly Dictionary<string, IVeldridUniformBuffer> attachedUniformBuffers = new Dictionary<string, IVeldridUniformBuffer>();
         private readonly Dictionary<IVeldridUniformBuffer, uint> uniformBufferOffsets = new Dictionary<IVeldridUniformBuffer, uint>();
 
@@ -204,10 +204,9 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
         /// <param name="texture">The texture.</param>
         public void AttachTexture(int unit, IVeldridTexture texture)
         {
-            var resources = texture.GetResourceList();
-
-            for (int i = 0; i < resources.Count; i++)
-                attachedTextures[unit++] = resources[i];
+            int resourceCount = texture.ResourceCount;
+            for (int i = 0; i < resourceCount; i++)
+                attachedTextures[unit + i] = (unit, texture);
         }
 
         /// <summary>
@@ -276,13 +275,17 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
             Commands.SetPipeline(createPipeline());
 
             // Activate texture resources.
-            foreach (var (unit, texture) in attachedTextures)
+            foreach (var (slot, (offset, texture)) in attachedTextures)
             {
-                var layout = currentShader.GetTextureLayout(unit);
+                var layout = currentShader.GetTextureLayout(slot);
                 if (layout == null)
                     continue;
 
-                Commands.SetGraphicsResourceSet((uint)layout.Set, texture.GetResourceSet(Factory, layout.Layout));
+                ResourceSet? resourceSet = texture.GetResourceSet(slot - offset, layout.Layout);
+                if (resourceSet == null)
+                    continue;
+
+                Commands.SetGraphicsResourceSet((uint)layout.Set, resourceSet);
             }
 
             // Activate uniform buffer resources.

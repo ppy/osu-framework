@@ -116,10 +116,6 @@ namespace osu.Framework.Graphics.Rendering.Dummy
         {
         }
 
-        protected override void DeleteFrameBufferImplementation(IFrameBuffer frameBuffer)
-        {
-        }
-
         public override void DrawVerticesImplementation(PrimitiveTopology topology, int vertexStart, int verticesCount)
         {
         }

@@ -106,8 +106,12 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             currentDrawCount++;
         }
 
+        #region Disposal
+
         public void Dispose()
         {
         }
+
+        #endregion
     }
 }

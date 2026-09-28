@@ -39,6 +39,10 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         public ResourceSet GetResourceSet(ResourceLayout layout) => set ??= renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, buffer));
 
+        #region Disposal
+
+        private bool isDisposed;
+
         ~VeldridUniformBufferStorage()
         {
             Dispose(false);
@@ -50,21 +54,18 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             GC.SuppressFinalize(this);
         }
 
-        protected bool IsDisposed { get; private set; }
-
         protected virtual void Dispose(bool disposing)
         {
-            if (IsDisposed)
+            if (isDisposed)
                 return;
 
-            renderer.ScheduleDisposal(static s =>
-            {
-                s.buffer.Dispose();
-                s.memoryLease.Dispose();
-                s.set?.Dispose();
-            }, this);
+            isDisposed = true;
 
-            IsDisposed = true;
+            memoryLease.Dispose();
+
+            renderer.ScheduleDisposal(buffer, set);
         }
+
+        #endregion
     }
 }

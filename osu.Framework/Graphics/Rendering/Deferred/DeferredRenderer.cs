@@ -78,9 +78,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer)
             => Context.EnqueueEvent(SetFrameBufferEvent.Create(this, frameBuffer));
 
-        protected override void DeleteFrameBufferImplementation(IFrameBuffer frameBuffer)
-            => ((DeferredFrameBuffer)frameBuffer).DeleteResources();
-
         protected override void SetUniformBufferImplementation(string blockName, IUniformBuffer buffer)
             => Context.EnqueueEvent(SetUniformBufferEvent.Create(this, blockName, buffer));
 
@@ -135,7 +132,11 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             => EnqueueTextureUpload(texture);
 
         void IVeldridRenderer.GenerateMipmaps(VeldridTexture texture)
-            => Graphics.Commands.GenerateMipmaps(texture.GetResourceList().Single().Texture);
+        {
+            int resourceCount = texture.ResourceCount;
+            for (int i = 0; i < resourceCount; i++)
+                Graphics.Commands.GenerateMipmaps(texture.GetVeldridTexture(i));
+        }
 
         public void RegisterUniformBufferForReset(IVeldridUniformBuffer veldridUniformBuffer)
             => uniformBufferResetList.Add(veldridUniformBuffer);

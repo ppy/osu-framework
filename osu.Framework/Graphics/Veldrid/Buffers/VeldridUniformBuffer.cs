@@ -102,10 +102,9 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             hasPendingData = false;
         }
 
-        ~VeldridUniformBuffer()
-        {
-            Dispose(false);
-        }
+        #region Disposal
+
+        private bool isDisposed;
 
         public void Dispose()
         {
@@ -113,17 +112,20 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             GC.SuppressFinalize(this);
         }
 
-        protected bool IsDisposed { get; private set; }
-
         protected virtual void Dispose(bool disposing)
         {
-            if (IsDisposed)
+            if (isDisposed)
                 return;
 
-            foreach (var s in storages)
-                s.Dispose();
+            isDisposed = true;
 
-            IsDisposed = true;
+            if (disposing)
+            {
+                foreach (var s in storages)
+                    s.Dispose();
+            }
         }
+
+        #endregion
     }
 }

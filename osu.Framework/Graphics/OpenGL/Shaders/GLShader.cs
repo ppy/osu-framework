@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         public bool IsBound { get; private set; }
 
-        private int programID = -1;
+        private int programID;
 
         private readonly GLShaderPart vertexPart;
         private readonly GLShaderPart fragmentPart;
@@ -68,7 +68,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private void compile()
         {
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
+            ObjectDisposedException.ThrowIf(isDisposed, this);
 
             if (IsLoaded)
                 throw new InvalidOperationException("Attempting to compile an already-compiled shader.");
@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         internal void EnsureShaderCompiled()
         {
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
+            ObjectDisposedException.ThrowIf(isDisposed, this);
 
             if (shaderCompileDelegate.State == RunState.Waiting)
                 shaderCompileDelegate.RunTask();
@@ -94,7 +94,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         public void Bind()
         {
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
+            ObjectDisposedException.ThrowIf(isDisposed, this);
 
             if (IsBound)
                 return;
@@ -123,7 +123,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         public virtual void BindUniformBlock(string blockName, IUniformBuffer buffer)
         {
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
+            ObjectDisposedException.ThrowIf(isDisposed, this);
 
             EnsureShaderCompiled();
 
@@ -191,17 +191,17 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         private protected virtual void DeleteProgram(int id) => GL.DeleteProgram(id);
 
-        public override string ToString() => $@"{name} Shader (Compiled: {programID != -1})";
+        public override string ToString() => $@"{name} Shader (Compiled: {programID != 0})";
 
         public static implicit operator int(GLShader shader) => shader.programID;
 
-        #region IDisposable Support
+        #region Disposal
 
-        protected internal bool IsDisposed { get; private set; }
+        private bool isDisposed;
 
         ~GLShader()
         {
-            renderer.ScheduleDisposal(static s => s.Dispose(false), this);
+            Dispose(false);
         }
 
         public void Dispose()
@@ -212,16 +212,18 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         protected virtual void Dispose(bool disposing)
         {
-            if (IsDisposed)
+            if (isDisposed)
                 return;
 
-            IsDisposed = true;
+            isDisposed = true;
 
             if (shaderCompileDelegate.IsNotNull())
                 shaderCompileDelegate.Cancel();
 
-            if (programID != -1)
-                DeleteProgram(this);
+            if (programID > 0)
+                renderer.ScheduleDisposal(static o => o.shader.DeleteProgram(o.programID), (shader: this, programID));
+
+            programID = 0;
         }
 
         #endregion

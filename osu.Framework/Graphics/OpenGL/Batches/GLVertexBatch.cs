@@ -40,25 +40,6 @@ namespace osu.Framework.Graphics.OpenGL.Batches
             AddAction = Add;
         }
 
-        #region Disposal
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                foreach (GLVertexBuffer<T> vbo in VertexBuffers)
-                    vbo.Dispose();
-            }
-        }
-
-        #endregion
-
         void IVertexBatch.ResetCounters()
         {
             changeBeginIndex = -1;
@@ -124,5 +105,31 @@ namespace osu.Framework.Graphics.OpenGL.Batches
 
             return countToDraw;
         }
+
+        #region Disposal
+
+        private bool isDisposed;
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
+
+            if (disposing)
+            {
+                foreach (GLVertexBuffer<T> vbo in VertexBuffers)
+                    vbo.Dispose();
+            }
+        }
+
+        #endregion
     }
 }

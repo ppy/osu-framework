@@ -24,11 +24,11 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
         private readonly ShaderCompilationStore compilationStore;
         private readonly IVeldridRenderer renderer;
 
-        public Shader[]? Shaders;
+        public Shader[] Shaders = [];
 
         private readonly ScheduledDelegate shaderInitialiseDelegate;
 
-        public bool IsLoaded => Shaders != null;
+        public bool IsLoaded => Shaders.Length > 0;
 
         public bool IsBound { get; private set; }
 
@@ -212,6 +212,8 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
             };
         }
 
+        #region Disposal
+
         private bool isDisposed;
 
         ~VeldridShader()
@@ -232,24 +234,11 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
             isDisposed = true;
 
-            renderer.ScheduleDisposal(static s =>
-            {
-                if (s.Shaders != null)
-                {
-                    for (int i = 0; i < s.Shaders.Length; i++)
-                        s.Shaders[i].Dispose();
-                }
-
-                foreach (var (_, layout) in s.uniformLayouts)
-                    layout.Dispose();
-
-                foreach (var layout in s.textureLayouts)
-                    layout.Dispose();
-
-                s.uniformLayouts.Clear();
-                s.textureLayouts.Clear();
-                s.Shaders = null;
-            }, this);
+            renderer.ScheduleDisposal(Shaders.Cast<IDisposable>().ToArray());
+            renderer.ScheduleDisposal(uniformLayouts.Values.Cast<IDisposable>().ToArray());
+            renderer.ScheduleDisposal(textureLayouts.Cast<IDisposable>().ToArray());
         }
+
+        #endregion
     }
 }

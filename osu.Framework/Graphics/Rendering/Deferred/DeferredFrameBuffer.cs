@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Deferred.Events;
 using osu.Framework.Graphics.Textures;
@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Veldrid.Textures;
 using osuTK;
 using Veldrid;
 using Texture = osu.Framework.Graphics.Textures.Texture;
+using VdTexture = Veldrid.Texture;
 
 namespace osu.Framework.Graphics.Rendering.Deferred
 {
@@ -33,15 +34,12 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             this.textureFormat = textureFormat;
             this.filteringMode = filteringMode;
 
-            nativeTexture = new DeferredFrameBufferTexture(this);
+            nativeTexture = new DeferredFrameBufferTexture(renderer, this);
             Texture = renderer.CreateTexture(nativeTexture);
         }
 
         public void Resize(Vector2I size)
             => nativeTexture.Resize(size);
-
-        public void DeleteResources()
-            => renderer.ScheduleDisposal(static b => b.Dispose(), nativeTexture);
 
         Framebuffer IVeldridFrameBuffer.Framebuffer
             => nativeTexture.Framebuffer;
@@ -65,42 +63,41 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             }
         }
 
-        ~DeferredFrameBuffer()
-        {
-            Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+        #region Disposal
 
         private bool isDisposed;
 
-        protected void Dispose(bool disposing)
+        public void Dispose()
         {
             if (isDisposed)
                 return;
 
-            renderer.DeleteFrameBuffer(this);
             isDisposed = true;
+
+            nativeTexture.Dispose();
         }
+
+        #endregion
 
         private sealed class DeferredFrameBufferTexture : IVeldridTexture
         {
             public bool Available { get; private set; } = true;
 
+            private readonly DeferredRenderer renderer;
             private readonly DeferredFrameBuffer deferredFrameBuffer;
-            private readonly VeldridTextureResources?[] resourcesArray = new VeldridTextureResources?[1];
 
-            private global::Veldrid.Texture? depthTexture;
+            private VdTexture? texture;
+            private Sampler? sampler;
+            private ResourceSet? resourceSet;
+
+            private VdTexture? depthTexture;
             private Framebuffer? framebuffer;
 
             private Vector2I resourceSize = Vector2I.One;
 
-            public DeferredFrameBufferTexture(DeferredFrameBuffer deferredFrameBuffer)
+            public DeferredFrameBufferTexture(DeferredRenderer renderer, DeferredFrameBuffer deferredFrameBuffer)
             {
+                this.renderer = renderer;
                 this.deferredFrameBuffer = deferredFrameBuffer;
             }
 
@@ -109,13 +106,12 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                 if (resourceSize == size)
                     return;
 
-                resources?.Dispose();
-                resources = null;
+                renderer.ScheduleDisposal(texture, sampler, resourceSet, depthTexture, framebuffer);
 
-                depthTexture?.Dispose();
+                texture = null;
+                sampler = null;
+                resourceSet = null;
                 depthTexture = null;
-
-                framebuffer?.Dispose();
                 framebuffer = null;
 
                 resourceSize = size;
@@ -130,10 +126,19 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                 }
             }
 
-            public IReadOnlyList<VeldridTextureResources> GetResourceList()
+            public int ResourceCount
+                => 1;
+
+            public VdTexture GetVeldridTexture(int index)
             {
                 EnsureCreated();
-                return resourcesArray!;
+                return texture.AsNonNull();
+            }
+
+            public ResourceSet GetResourceSet(int index, ResourceLayout layout)
+            {
+                EnsureCreated();
+                return resourceSet ??= renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, texture, sampler));
             }
 
             public void EnsureCreated()
@@ -141,34 +146,33 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                 if (framebuffer != null)
                     return;
 
-                resources = new VeldridTextureResources(
-                    deferredFrameBuffer.renderer,
-                    deferredFrameBuffer.renderer.Factory.CreateTexture(
-                        TextureDescription.Texture2D((uint)resourceSize.X,
-                            (uint)resourceSize.Y,
-                            1,
-                            1,
-                            deferredFrameBuffer.textureFormat,
-                            TextureUsage.Sampled | TextureUsage.RenderTarget)),
-                    deferredFrameBuffer.renderer.Factory.CreateSampler(
-                        new SamplerDescription(
-                            SamplerAddressMode.Clamp,
-                            SamplerAddressMode.Clamp,
-                            SamplerAddressMode.Clamp,
-                            deferredFrameBuffer.filteringMode,
-                            null,
-                            0,
-                            0,
-                            uint.MaxValue,
-                            0,
-                            SamplerBorderColor.TransparentBlack)));
+                texture = deferredFrameBuffer.renderer.Factory.CreateTexture(
+                    TextureDescription.Texture2D((uint)resourceSize.X,
+                        (uint)resourceSize.Y,
+                        1,
+                        1,
+                        deferredFrameBuffer.textureFormat,
+                        TextureUsage.Sampled | TextureUsage.RenderTarget));
+
+                sampler = deferredFrameBuffer.renderer.Factory.CreateSampler(
+                    new SamplerDescription(
+                        SamplerAddressMode.Clamp,
+                        SamplerAddressMode.Clamp,
+                        SamplerAddressMode.Clamp,
+                        deferredFrameBuffer.filteringMode,
+                        null,
+                        0,
+                        0,
+                        uint.MaxValue,
+                        0,
+                        SamplerBorderColor.TransparentBlack));
 
                 if (deferredFrameBuffer.formats?[0] is PixelFormat depth)
                 {
                     depthTexture = deferredFrameBuffer.renderer.Factory.CreateTexture(
                         TextureDescription.Texture2D(
-                            resources.Texture.Width,
-                            resources.Texture.Height,
+                            texture.Width,
+                            texture.Height,
                             1,
                             1,
                             depth,
@@ -177,15 +181,9 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
                 framebuffer = deferredFrameBuffer.renderer.Factory.CreateFramebuffer(new FramebufferDescription
                 {
-                    ColorTargets = new[] { new FramebufferAttachmentDescription(resources.Texture, 0) },
+                    ColorTargets = new[] { new FramebufferAttachmentDescription(texture, 0) },
                     DepthTarget = depthTexture == null ? null : new FramebufferAttachmentDescription(depthTexture, 0)
                 });
-            }
-
-            private VeldridTextureResources? resources
-            {
-                get => resourcesArray[0];
-                set => resourcesArray[0] = value;
             }
 
             IRenderer INativeTexture.Renderer
@@ -240,18 +238,34 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             int INativeTexture.GetByteSize()
                 => deferredFrameBuffer.size.X * deferredFrameBuffer.size.Y * 4;
 
+            #region Disposal
+
             private bool isDisposed;
 
+            ~DeferredFrameBufferTexture()
+            {
+                dispose(false);
+            }
+
             public void Dispose()
+            {
+                dispose(true);
+                GC.SuppressFinalize(this);
+            }
+
+            private void dispose(bool isDisposing)
             {
                 if (isDisposed)
                     return;
 
-                resources?.Dispose();
-                framebuffer?.Dispose();
-                Available = false;
                 isDisposed = true;
+
+                renderer.ScheduleDisposal(texture, sampler, resourceSet, depthTexture, framebuffer);
+
+                Available = false;
             }
+
+            #endregion
         }
     }
 }

@@ -314,6 +314,15 @@ namespace osu.Framework.Graphics.Rendering
                 expensiveOperationQueue.Enqueue(operation);
         }
 
+        public void ScheduleDisposal(params IDisposable?[] targets)
+        {
+            ScheduleDisposal(static arr =>
+            {
+                foreach (IDisposable? target in arr)
+                    target?.Dispose();
+            }, targets);
+        }
+
         public void ScheduleDisposal<T>(Action<T> disposalAction, T target)
         {
             if (IsInitialised)
@@ -939,20 +948,6 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="frameBuffer">The framebuffer to use, or null to use the backbuffer (i.e. main framebuffer).</param>
         protected abstract void SetFrameBufferImplementation(IFrameBuffer? frameBuffer);
 
-        /// <summary>
-        /// Deletes a frame buffer.
-        /// </summary>
-        /// <param name="frameBuffer">The frame buffer to delete.</param>
-        public void DeleteFrameBuffer(IFrameBuffer frameBuffer)
-        {
-            while (FrameBuffer == frameBuffer)
-                UnbindFrameBuffer(frameBuffer);
-
-            DeleteFrameBufferImplementation(frameBuffer);
-        }
-
-        protected abstract void DeleteFrameBufferImplementation(IFrameBuffer frameBuffer);
-
         #endregion
 
         public void DrawVertices(PrimitiveTopology topology, int vertexStart, int verticesCount)
@@ -1105,7 +1100,8 @@ namespace osu.Framework.Graphics.Rendering
 
         #region Factory
 
-        public abstract IFrameBuffer CreateFrameBuffer(TexturePixelFormat textureFormat = TexturePixelFormat.R8G8B8A8Float, RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear);
+        public abstract IFrameBuffer CreateFrameBuffer(TexturePixelFormat textureFormat = TexturePixelFormat.R8G8B8A8Float, RenderBufferFormat[]? renderBufferFormats = null,
+                                                       TextureFilteringMode filteringMode = TextureFilteringMode.Linear);
 
         /// <inheritdoc cref="IRenderer.CreateShaderPart"/>
         protected abstract IShaderPart CreateShaderPart(IShaderStore store, string name, byte[]? rawData, ShaderPartType partType);

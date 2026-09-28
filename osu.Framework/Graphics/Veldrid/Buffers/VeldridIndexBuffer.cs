@@ -61,33 +61,6 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             pipeline.Commands.UpdateBuffer(Buffer, 0, indices);
         }
 
-        #region Disposal
-
-        ~VeldridIndexBuffer()
-        {
-            Dispose(false);
-        }
-
-        private bool isDisposed;
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool isDisposing)
-        {
-            if (isDisposed)
-                return;
-
-            isDisposed = true;
-
-            renderer.ScheduleDisposal(static t => t.Dispose(), this);
-        }
-
-        #endregion
-
         public int TranslateToIndex(int vertexIndex)
         {
             switch (Layout)
@@ -100,5 +73,32 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
                     return 3 * vertexIndex / 2;
             }
         }
+
+        #region Disposal
+
+        private bool isDisposed;
+
+        ~VeldridIndexBuffer()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
+
+            renderer.ScheduleDisposal(Buffer);
+        }
+
+        #endregion
     }
 }

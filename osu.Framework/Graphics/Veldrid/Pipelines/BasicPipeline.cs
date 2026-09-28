@@ -181,9 +181,9 @@ namespace osu.Framework.Graphics.Veldrid.Pipelines
         /// <param name="texture">The texture.</param>
         public void GenerateMipmaps(VeldridTexture texture)
         {
-            var resources = texture.GetResourceList();
-            for (int i = 0; i < resources.Count; i++)
-                Commands.GenerateMipmaps(resources[i].Texture);
+            int resourceCount = texture.ResourceCount;
+            for (int i = 0; i < resourceCount; i++)
+                Commands.GenerateMipmaps(texture.GetVeldridTexture(i));
         }
 
         private readonly record struct ExecutionCompletionFence(Fence Fence, ulong Index);

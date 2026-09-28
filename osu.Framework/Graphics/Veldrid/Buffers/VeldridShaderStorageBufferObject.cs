@@ -20,6 +20,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         private readonly VeldridRenderer renderer;
         private readonly uint elementSize;
 
+        private ResourceSet? resourceSet;
+
         public VeldridShaderStorageBufferObject(VeldridRenderer renderer, int uboSize, int ssboSize)
         {
             Trace.Assert(ThreadSafety.IsDrawThread);
@@ -89,16 +91,38 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         public ResourceSet GetResourceSet(ResourceLayout layout)
         {
             flushChanges();
-            return renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, buffer));
+            return resourceSet ??= renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, buffer));
         }
 
         public void ResetCounters()
         {
         }
 
+        #region Disposal
+
+        private bool isDisposed;
+
+        ~VeldridShaderStorageBufferObject()
+        {
+            Dispose(false);
+        }
+
         public void Dispose()
         {
-            buffer.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
+
+            renderer.ScheduleDisposal(buffer, resourceSet);
+        }
+
+        #endregion
     }
 }

@@ -349,6 +349,14 @@ namespace osu.Framework.Graphics.Rendering
         /// This method can be called concurrently from multiple threads.
         /// By default the disposal will run <see cref="IRenderer.MAX_GPU_QUEUED_FRAMES"/> frames after enqueueing.
         /// </summary>
+        /// <param name="targets">The targets to be disposed.</param>
+        void ScheduleDisposal(params IDisposable?[] targets);
+
+        /// <summary>
+        /// Schedules a new disposal action to be executed at a later point in time.
+        /// This method can be called concurrently from multiple threads.
+        /// By default the disposal will run <see cref="IRenderer.MAX_GPU_QUEUED_FRAMES"/> frames after enqueueing.
+        /// </summary>
         /// <param name="disposalAction">The disposal action to be executed.</param>
         /// <param name="target">The target.</param>
         void ScheduleDisposal<T>(Action<T> disposalAction, T target);
@@ -388,7 +396,8 @@ namespace osu.Framework.Graphics.Rendering
         /// <param name="renderBufferFormats">Any render buffer formats.</param>
         /// <param name="filteringMode">The texture filtering mode.</param>
         /// <returns>The <see cref="IFrameBuffer"/>.</returns>
-        IFrameBuffer CreateFrameBuffer(TexturePixelFormat textureFormat = TexturePixelFormat.R8G8B8A8Float, RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear);
+        IFrameBuffer CreateFrameBuffer(TexturePixelFormat textureFormat = TexturePixelFormat.R8G8B8A8Float, RenderBufferFormat[]? renderBufferFormats = null,
+                                       TextureFilteringMode filteringMode = TextureFilteringMode.Linear);
 
         /// <summary>
         /// Creates a new <see cref="Texture"/>.

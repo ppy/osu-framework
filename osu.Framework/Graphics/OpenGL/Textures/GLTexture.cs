@@ -86,7 +86,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
         /// <param name="filteringMode">The filtering mode.</param>
         /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads). If null, no initialisation is provided out-of-the-box.</param>
-        public GLTexture(GLRenderer renderer, int width, int height, TextureComponentCount textureFormat = TextureComponentCount.Rgba8, bool manualMipmaps = false, All filteringMode = All.Linear, Color4? initialisationColour = null)
+        public GLTexture(GLRenderer renderer, int width, int height, TextureComponentCount textureFormat = TextureComponentCount.Rgba8, bool manualMipmaps = false, All filteringMode = All.Linear,
+                         Color4? initialisationColour = null)
         {
             Renderer = renderer;
             Width = width;
@@ -126,49 +127,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     throw new ArgumentOutOfRangeException(nameof(internalFormat), internalFormat, null);
             }
         }
-
-        #region Disposal
-
-        private bool isDisposed;
-
-        public void Dispose()
-        {
-            if (isDisposed)
-                return;
-
-            isDisposed = true;
-
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        ~GLTexture()
-        {
-            Dispose(false);
-        }
-
-        protected virtual void Dispose(bool isDisposing)
-        {
-            Renderer.ScheduleDisposal(static texture =>
-            {
-                while (texture.tryGetNextUpload(out var upload))
-                    upload.Dispose();
-
-                int disposableId = texture.textureId;
-
-                if (disposableId <= 0)
-                    return;
-
-                GL.DeleteTextures(1, new[] { disposableId });
-
-                texture.memoryLease?.Dispose();
-
-                texture.textureId = 0;
-                texture.Available = false;
-            }, this);
-        }
-
-        #endregion
 
         #region Memory Tracking
 
@@ -525,5 +483,41 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     ref MemoryMarshal.GetReference(pixels.Span));
             }
         }
+
+        #region Disposal
+
+        private bool isDisposed;
+
+        ~GLTexture()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
+
+            memoryLease?.Dispose();
+
+            while (tryGetNextUpload(out var upload))
+                upload.Dispose();
+
+            if (textureId > 0)
+                Renderer.ScheduleDisposal(GL.DeleteTexture, textureId);
+
+            textureId = 0;
+            Available = false;
+        }
+
+        #endregion
     }
 }

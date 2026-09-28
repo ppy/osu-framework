@@ -15,19 +15,16 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     internal class GLFrameBuffer : IFrameBuffer
     {
         public Texture Texture { get; }
+        public int FrameBufferId { get; private set; }
 
         private readonly List<GLRenderBuffer> attachedRenderBuffers = new List<GLRenderBuffer>();
         private readonly GLRenderer renderer;
         private readonly GLTexture glTexture;
 
-        public readonly int FrameBuffer;
-
-        private readonly bool externalTexture;
-
         public GLFrameBuffer(GLRenderer renderer, TextureComponentCount textureFormat, RenderbufferInternalFormat[]? renderBufferFormats = null, All filteringMode = All.Linear)
         {
             this.renderer = renderer;
-            FrameBuffer = GL.GenFramebuffer();
+            FrameBufferId = GL.GenFramebuffer();
 
             Texture = renderer.CreateTexture(glTexture = new FrameBufferTexture(renderer, textureFormat, filteringMode));
 
@@ -43,23 +40,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 foreach (var format in renderBufferFormats)
                     attachedRenderBuffers.Add(new GLRenderBuffer(renderer, format));
             }
-
-            renderer.UnbindFrameBuffer(this);
-        }
-
-        public GLFrameBuffer(GLRenderer renderer, GLTexture glTexture, int level = 0)
-        {
-            this.renderer = renderer;
-            this.glTexture = glTexture;
-
-            FrameBuffer = GL.GenFramebuffer();
-            Texture = renderer.CreateTexture(glTexture);
-
-            externalTexture = true;
-
-            renderer.BindFrameBuffer(this);
-
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, glTexture.TextureId, level);
 
             renderer.UnbindFrameBuffer(this);
         }
@@ -114,9 +94,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         #region Disposal
 
+        private bool isDisposed;
+
         ~GLFrameBuffer()
         {
-            renderer.ScheduleDisposal(static b => b.Dispose(false), this);
+            Dispose(false);
         }
 
         public void Dispose()
@@ -125,22 +107,25 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             GC.SuppressFinalize(this);
         }
 
-        private bool isDisposed;
-
         protected virtual void Dispose(bool disposing)
         {
             if (isDisposed)
                 return;
 
-            if (!externalTexture)
+            isDisposed = true;
+
+            if (disposing)
+            {
                 glTexture.Dispose();
 
-            renderer.DeleteFrameBuffer(this);
+                foreach (var buffer in attachedRenderBuffers)
+                    buffer.Dispose();
+            }
 
-            foreach (var buffer in attachedRenderBuffers)
-                buffer.Dispose();
+            if (FrameBufferId > 0)
+                renderer.ScheduleDisposal(GL.DeleteFramebuffer, FrameBufferId);
 
-            isDisposed = true;
+            FrameBufferId = 0;
         }
 
         #endregion

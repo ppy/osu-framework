@@ -194,7 +194,7 @@ namespace osu.Framework.Graphics.Veldrid.Shaders
 
         public string GetRawText() => header + '\n' + code;
 
-        #region IDisposable Support
+        #region Disposal
 
         public void Dispose()
         {

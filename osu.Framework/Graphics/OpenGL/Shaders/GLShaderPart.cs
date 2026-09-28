@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
         private readonly List<string> shaderCodes = new List<string>();
         private readonly IShaderStore store;
 
-        private int partID = -1;
+        private int partID;
 
         public GLShaderPart(GLRenderer renderer, string name, byte[]? data, ShaderType type, IShaderStore store)
         {
@@ -164,13 +164,13 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         public static implicit operator int(GLShaderPart program) => program.partID;
 
-        #region IDisposable Support
+        #region Disposal
 
-        protected internal bool IsDisposed { get; private set; }
+        private bool isDisposed;
 
         ~GLShaderPart()
         {
-            renderer.ScheduleDisposal(static s => s.Dispose(false), this);
+            Dispose(false);
         }
 
         public void Dispose()
@@ -181,13 +181,15 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!IsDisposed)
-            {
-                IsDisposed = true;
+            if (isDisposed)
+                return;
 
-                if (partID != -1)
-                    GL.DeleteShader(this);
-            }
+            isDisposed = true;
+
+            if (partID > 0)
+                renderer.ScheduleDisposal(GL.DeleteShader, partID);
+
+            partID = 0;
         }
 
         #endregion

@@ -14,9 +14,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         private readonly GLRenderer renderer;
         private readonly RenderbufferInternalFormat format;
-        private readonly int renderBuffer;
         private readonly int sizePerPixel;
 
+        private int renderBufferId;
         private FramebufferAttachment attachment;
 
         public GLRenderBuffer(GLRenderer renderer, RenderbufferInternalFormat format)
@@ -24,9 +24,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             this.renderer = renderer;
             this.format = format;
 
-            renderBuffer = GL.GenRenderbuffer();
+            renderBufferId = GL.GenRenderbuffer();
 
-            GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, renderBuffer);
+            GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, renderBufferId);
 
             // OpenGL docs don't specify that this is required, but seems to be required on some platforms
             // to correctly attach in the GL.FramebufferRenderbuffer() call below
@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             attachment = format.GetAttachmentType();
             sizePerPixel = format.GetBytesPerPixel();
 
-            GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, attachment, RenderbufferTarget.Renderbuffer, renderBuffer);
+            GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, attachment, RenderbufferTarget.Renderbuffer, renderBufferId);
         }
 
         private Vector2 internalSize;
@@ -51,7 +51,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             // Such discard does not exist on non-embedded platforms, so they are only re-initialised when required.
             if (renderer.IsEmbedded || internalSize.X < size.X || internalSize.Y < size.Y)
             {
-                GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, renderBuffer);
+                GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, renderBufferId);
                 GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, format, (int)Math.Ceiling(size.X), (int)Math.Ceiling(size.Y));
 
                 if (!renderer.IsEmbedded)
@@ -75,9 +75,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         #region Disposal
 
+        private bool isDisposed;
+
         ~GLRenderBuffer()
         {
-            renderer.ScheduleDisposal(static b => b.Dispose(false), this);
+            Dispose(false);
         }
 
         public void Dispose()
@@ -86,20 +88,19 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             GC.SuppressFinalize(this);
         }
 
-        private bool isDisposed;
-
         protected virtual void Dispose(bool disposing)
         {
             if (isDisposed)
                 return;
 
-            if (renderBuffer != -1)
-            {
-                memoryLease?.Dispose();
-                GL.DeleteRenderbuffer(renderBuffer);
-            }
-
             isDisposed = true;
+
+            memoryLease?.Dispose();
+
+            if (renderBufferId > 0)
+                renderer.ScheduleDisposal(GL.DeleteRenderbuffer, renderBufferId);
+
+            renderBufferId = 0;
         }
 
         #endregion

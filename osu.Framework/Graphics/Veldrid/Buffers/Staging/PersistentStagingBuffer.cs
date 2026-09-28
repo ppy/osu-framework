@@ -70,10 +70,35 @@ namespace osu.Framework.Graphics.Veldrid.Buffers.Staging
             stagingBufferMap = null;
         }
 
+        #region Disposal
+
+        private bool isDisposed;
+
+        ~PersistentStagingBuffer()
+        {
+            Dispose(false);
+        }
+
         public void Dispose()
         {
-            unmap();
-            stagingBuffer.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
+
+            renderer.ScheduleDisposal(static o =>
+            {
+                o.unmap();
+                o.stagingBuffer.Dispose();
+            }, this);
+        }
+
+        #endregion
     }
 }

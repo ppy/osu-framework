@@ -55,44 +55,51 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             LastUseFrameIndex = renderer.FrameIndex;
         }
 
-        void IVeldridVertexBuffer<T>.UpdateRange(int from, int to) => throw new NotSupportedException("This implementation shares buffer storage with the GPU, no explicit synchronisation is required prior to drawing. See https://developer.apple.com/documentation/metal/mtlstoragemode/mtlstoragemodeshared?language=objc for more information.");
-
-        ~VeldridMetalVertexBuffer()
-        {
-            renderer.ScheduleDisposal(static v => v.Dispose(false), this);
-        }
-
-        public void Dispose()
-        {
-            renderer.ScheduleDisposal(static v => v.Dispose(true), this);
-            GC.SuppressFinalize(this);
-        }
-
-        protected bool IsDisposed { get; private set; }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (IsDisposed)
-                return;
-
-            ((IVertexBuffer)this).Free();
-
-            IsDisposed = true;
-        }
+        void IVeldridVertexBuffer<T>.UpdateRange(int from, int to) => throw new NotSupportedException(
+            "This implementation shares buffer storage with the GPU, no explicit synchronisation is required prior to drawing. See https://developer.apple.com/documentation/metal/mtlstoragemode/mtlstoragemodeshared?language=objc for more information.");
 
         public ulong LastUseFrameIndex { get; private set; }
 
         public bool InUse => LastUseFrameIndex > 0;
 
-        public void Free()
+        public unsafe void Free()
         {
             memoryLease?.Dispose();
-            memoryLease = null;
 
-            sharedBuffer?.Dispose();
+            renderer.ScheduleDisposal(sharedBuffer);
+
             sharedBuffer = null;
+            sharedBufferMemory = null;
+            memoryLease = null;
 
             LastUseFrameIndex = 0;
         }
+
+        #region Disposal
+
+        private bool isDisposed;
+
+        ~VeldridMetalVertexBuffer()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
+
+            ((IVertexBuffer)this).Free();
+        }
+
+        #endregion
     }
 }

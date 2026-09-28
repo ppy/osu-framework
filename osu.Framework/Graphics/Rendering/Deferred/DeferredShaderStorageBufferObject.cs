@@ -59,7 +59,31 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         {
         }
 
+        #region Disposal
+
+        private bool isDisposed;
+
+        ~DeferredShaderStorageBufferObject()
+        {
+            Dispose(false);
+        }
+
         public void Dispose()
-            => buffer.Dispose();
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
+
+            renderer.ScheduleDisposal(buffer);
+        }
+
+        #endregion
     }
 }

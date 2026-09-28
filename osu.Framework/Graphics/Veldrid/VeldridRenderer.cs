@@ -161,9 +161,6 @@ namespace osu.Framework.Graphics.Veldrid
         protected override void SetFrameBufferImplementation(IFrameBuffer? frameBuffer)
             => graphicsPipeline.SetFrameBuffer((VeldridFrameBuffer?)frameBuffer);
 
-        protected override void DeleteFrameBufferImplementation(IFrameBuffer frameBuffer)
-            => ((VeldridFrameBuffer)frameBuffer).DeleteResources(true);
-
         public override void DrawVerticesImplementation(PrimitiveTopology topology, int vertexStart, int verticesCount)
         {
             // normally we would flush/submit all texture upload commands at the end of the frame, since no actual rendering by the GPU will happen until then,
@@ -228,11 +225,11 @@ namespace osu.Framework.Graphics.Veldrid
 
         protected internal Image<Rgba32>? ExtractTexture(VeldridTexture texture)
         {
-            var resource = texture.GetResourceList().FirstOrDefault();
-            if (resource == null)
+            var vdTexture = texture.GetVeldridTexture(0);
+            if (vdTexture == null)
                 return null;
 
-            return veldridDevice.ExtractTexture<Rgba32>(resource.Texture);
+            return veldridDevice.ExtractTexture<Rgba32>(vdTexture);
         }
 
         /// <summary>
@@ -298,7 +295,8 @@ namespace osu.Framework.Graphics.Veldrid
         protected override IShader CreateShader(string name, IShaderPart[] parts, ShaderCompilationStore compilationStore)
             => new VeldridShader(this, name, parts.Cast<VeldridShaderPart>().ToArray(), compilationStore);
 
-        public override IFrameBuffer CreateFrameBuffer(TexturePixelFormat textureFormat = TexturePixelFormat.R8G8B8A8Float, RenderBufferFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
+        public override IFrameBuffer CreateFrameBuffer(TexturePixelFormat textureFormat = TexturePixelFormat.R8G8B8A8Float, RenderBufferFormat[]? renderBufferFormats = null,
+                                                       TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
             => new VeldridFrameBuffer(this, textureFormat.ToPixelFormat(), renderBufferFormats?.ToPixelFormats(), filteringMode.ToSamplerFilter());
 
         protected override IVertexBatch<TVertex> CreateLinearBatch<TVertex>(int size, int maxBuffers, PrimitiveTopology primitiveType)

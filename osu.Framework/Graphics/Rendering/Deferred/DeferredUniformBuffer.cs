@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Rendering.Deferred.Allocation;
 using osu.Framework.Graphics.Rendering.Deferred.Events;
@@ -84,6 +85,10 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             dead_chunks.Clear();
         }
 
+        #region Disposal
+
+        private bool isDisposed;
+
         ~DeferredUniformBuffer()
         {
             Dispose(false);
@@ -95,8 +100,6 @@ namespace osu.Framework.Graphics.Rendering.Deferred
             GC.SuppressFinalize(this);
         }
 
-        private bool isDisposed;
-
         protected virtual void Dispose(bool disposing)
         {
             if (isDisposed)
@@ -104,12 +107,10 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
             isDisposed = true;
 
-            renderer.ScheduleDisposal(static b =>
-            {
-                foreach ((_, ResourceSet set) in b.bufferChunks)
-                    set.Dispose();
-            }, this);
+            renderer.ScheduleDisposal(bufferChunks.Values.OfType<IDisposable>().ToArray());
         }
+
+        #endregion
 
         private readonly record struct ChunkReference
         {

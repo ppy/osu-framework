@@ -3,8 +3,6 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Veldrid.Textures;
 using osuTK;
@@ -22,8 +20,6 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         private readonly VeldridRenderer renderer;
         private readonly PixelFormat? depthFormat;
         private readonly VeldridTexture colourTarget;
-        private readonly bool externalColourTarget;
-        private readonly int mipLevel;
         private Texture? depthTarget;
 
         private Vector2 size = Vector2.One;
@@ -47,7 +43,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             }
         }
 
-        public VeldridFrameBuffer(VeldridRenderer renderer, PixelFormat textureFormat = PixelFormat.R8G8B8A8UNorm, PixelFormat[]? formats = null, SamplerFilter filteringMode = SamplerFilter.MinLinearMagLinearMipLinear)
+        public VeldridFrameBuffer(VeldridRenderer renderer, PixelFormat textureFormat = PixelFormat.R8G8B8A8UNorm, PixelFormat[]? formats = null,
+                                  SamplerFilter filteringMode = SamplerFilter.MinLinearMagLinearMipLinear)
         {
             // todo: we probably want the arguments separated to "PixelFormat[] colorFormats, PixelFormat depthFormat".
             if (formats?.Length > 1)
@@ -63,23 +60,10 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             recreateResources();
         }
 
-        internal VeldridFrameBuffer(VeldridRenderer renderer, VeldridTexture colourTarget, int mipLevel)
-        {
-            this.renderer = renderer;
-            this.colourTarget = colourTarget;
-            this.mipLevel = mipLevel;
-
-            Texture = renderer.CreateTexture(colourTarget);
-            externalColourTarget = true;
-
-            recreateResources();
-        }
-
         [MemberNotNull(nameof(Framebuffer))]
         private void recreateResources()
         {
-            // The texture is created once and resized internally, so it should not be deleted.
-            DeleteResources(false);
+            renderer.ScheduleDisposal(Framebuffer, depthTarget);
 
             if (depthFormat is PixelFormat depth)
             {
@@ -89,7 +73,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
             FramebufferDescription description = new FramebufferDescription
             {
-                ColorTargets = new[] { new FramebufferAttachmentDescription(colourTarget.GetResourceList().Single().Texture, 0, (uint)mipLevel) },
+                ColorTargets = new[] { new FramebufferAttachmentDescription(colourTarget.GetVeldridTexture(0), 0, 0) },
                 DepthTarget = depthTarget == null ? null : new FramebufferAttachmentDescription(depthTarget, 0)
             };
 
@@ -103,27 +87,16 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             }
         }
 
-        /// <summary>
-        /// Deletes the resources of this frame buffer.
-        /// </summary>
-        /// <param name="deleteTexture">Whether the texture should also be deleted.</param>
-        public void DeleteResources(bool deleteTexture)
-        {
-            if (deleteTexture && !externalColourTarget)
-                colourTarget.Dispose();
-
-            if (Framebuffer.IsNotNull())
-                renderer.ScheduleDisposal(static f => f.Dispose(), Framebuffer);
-
-            depthTarget?.Dispose();
-        }
-
         public void Bind() => renderer.BindFrameBuffer(this);
         public void Unbind() => renderer.UnbindFrameBuffer(this);
 
+        #region Disposal
+
+        private bool isDisposed;
+
         ~VeldridFrameBuffer()
         {
-            renderer.ScheduleDisposal(static b => b.Dispose(false), this);
+            Dispose(false);
         }
 
         public void Dispose()
@@ -132,16 +105,20 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             GC.SuppressFinalize(this);
         }
 
-        private bool isDisposed;
-
         protected void Dispose(bool disposing)
         {
             if (isDisposed)
                 return;
 
-            renderer.DeleteFrameBuffer(this);
             isDisposed = true;
+
+            if (disposing)
+                colourTarget.Dispose();
+
+            renderer.ScheduleDisposal(Framebuffer, depthTarget);
         }
+
+        #endregion
 
         private class FrameBufferTexture : VeldridTexture
         {

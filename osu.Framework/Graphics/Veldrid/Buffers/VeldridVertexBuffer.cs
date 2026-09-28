@@ -98,6 +98,27 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             return stagingBuffer!.Data;
         }
 
+        public ulong LastUseFrameIndex { get; private set; }
+
+        public bool InUse => LastUseFrameIndex > 0;
+
+        public void Free()
+        {
+            memoryLease?.Dispose();
+
+            renderer.ScheduleDisposal(buffer, stagingBuffer);
+
+            memoryLease = null;
+            stagingBuffer = null;
+            buffer = null;
+
+            LastUseFrameIndex = 0;
+        }
+
+        #region Disposal
+
+        private bool isDisposed;
+
         ~VeldridVertexBuffer()
         {
             Dispose(false);
@@ -109,41 +130,16 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             GC.SuppressFinalize(this);
         }
 
-        protected bool IsDisposed { get; private set; }
-
         protected virtual void Dispose(bool disposing)
         {
-            if (IsDisposed)
+            if (isDisposed)
                 return;
 
+            isDisposed = true;
+
             ((IVertexBuffer)this).Free();
-
-            IsDisposed = true;
         }
 
-        public ulong LastUseFrameIndex { get; private set; }
-
-        public bool InUse => LastUseFrameIndex > 0;
-
-        public void Free()
-        {
-            if (buffer != null || memoryLease != null || stagingBuffer != null)
-            {
-                // Using a tuple instead of `this`-reference because the object may be reused after free, and so
-                // buffer, memoryLease, and stagingBuffer need to be nulled immediately.
-                renderer.ScheduleDisposal(static t =>
-                {
-                    t.buffer?.Dispose();
-                    t.memoryLease?.Dispose();
-                    t.stagingBuffer?.Dispose();
-                }, (buffer, memoryLease, stagingBuffer));
-            }
-
-            buffer = null;
-            memoryLease = null;
-            stagingBuffer = null;
-
-            LastUseFrameIndex = 0;
-        }
+        #endregion
     }
 }

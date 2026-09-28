@@ -63,28 +63,6 @@ namespace osu.Framework.Graphics.Veldrid.Batches
                 vertexBuffers[i] = new List<IVeldridVertexBuffer<T>>();
         }
 
-        #region Disposal
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                for (int i = 0; i < vertexBuffers.Length; i++)
-                {
-                    foreach (IVeldridVertexBuffer<T> vbo in vertexBuffers[i])
-                        vbo.Dispose();
-                }
-            }
-        }
-
-        #endregion
-
         void IVertexBatch.ResetCounters()
         {
             synchronisationBeginIndex = -1;
@@ -164,5 +142,34 @@ namespace osu.Framework.Graphics.Veldrid.Batches
 
             return countToDraw;
         }
+
+        #region Disposal
+
+        private bool isDisposed;
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected void Dispose(bool disposing)
+        {
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
+
+            if (disposing)
+            {
+                for (int i = 0; i < vertexBuffers.Length; i++)
+                {
+                    foreach (IVeldridVertexBuffer<T> vbo in vertexBuffers[i])
+                        vbo.Dispose();
+                }
+            }
+        }
+
+        #endregion
     }
 }

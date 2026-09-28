@@ -80,25 +80,22 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         #region Disposal
 
-        protected override void Dispose(bool isDisposing)
+        private bool isDisposed;
+
+        protected override void Dispose(bool disposing)
         {
-            base.Dispose(isDisposing);
+            base.Dispose(disposing);
+
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
 
             memoryLease?.Dispose();
 
-            Renderer.ScheduleDisposal(static v =>
-            {
-                int[]? ids = v.TextureIds;
+            Renderer.ScheduleDisposal(static o => GL.DeleteTextures(o.Length, o), TextureIds ?? []);
 
-                if (ids == null)
-                    return;
-
-                for (int i = 0; i < ids.Length; i++)
-                {
-                    if (ids[i] >= 0)
-                        GL.DeleteTextures(1, new[] { ids[i] });
-                }
-            }, this);
+            TextureIds = null;
         }
 
         #endregion

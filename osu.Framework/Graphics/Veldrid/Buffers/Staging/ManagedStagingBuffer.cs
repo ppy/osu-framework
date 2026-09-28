@@ -46,9 +46,31 @@ namespace osu.Framework.Graphics.Veldrid.Buffers.Staging
                 (uint)(count * Unsafe.SizeOf<T>()));
         }
 
+        #region Disposal
+
+        private bool isDisposed;
+
+        ~ManagedStagingBuffer()
+        {
+            Dispose(false);
+        }
+
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
+
             memoryOwner.Dispose();
         }
+
+        #endregion
     }
 }

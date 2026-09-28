@@ -23,7 +23,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         private Memory<T> vertexMemory;
         private IMemoryOwner<T>? memoryOwner;
 
-        private bool isInitialised;
         private int vaoId;
         private int vboId;
 
@@ -72,38 +71,14 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             GLVertexUtils<T>.SetAttributes();
         }
 
-        ~GLVertexBuffer()
-        {
-            Renderer.ScheduleDisposal(static v => v.Dispose(false), this);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected bool IsDisposed { get; private set; }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (IsDisposed)
-                return;
-
-            ((IVertexBuffer)this).Free();
-
-            IsDisposed = true;
-        }
-
         public void Bind(bool forRendering)
         {
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
+            ObjectDisposedException.ThrowIf(isDisposed, this);
 
-            if (!isInitialised)
+            if (vaoId == 0)
             {
                 Renderer.BindVertexArray(vaoId = GL.GenVertexArray());
                 Initialise();
-                isInitialised = true;
             }
             else
                 Renderer.BindVertexArray(vaoId);
@@ -170,19 +145,48 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         void IVertexBuffer.Free()
         {
-            if (isInitialised)
-            {
-                GL.DeleteBuffer(vboId);
-                GL.DeleteVertexArray(vaoId);
-            }
-
             memoryOwner?.Dispose();
+
+            Renderer.ScheduleDisposal(static o =>
+            {
+                if (o.vboId > 0)
+                    GL.DeleteBuffer(o.vboId);
+                if (o.vaoId > 0)
+                    GL.DeleteVertexArray(o.vaoId);
+            }, (vboId, vaoId));
+
+            vboId = 0;
+            vaoId = 0;
             memoryOwner = null;
             vertexMemory = Memory<T>.Empty;
-
             LastUseFrameIndex = 0;
-
-            isInitialised = false;
         }
+
+        #region Disposal
+
+        private bool isDisposed;
+
+        ~GLVertexBuffer()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
+
+            ((IVertexBuffer)this).Free();
+        }
+
+        #endregion
     }
 }

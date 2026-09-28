@@ -32,10 +32,10 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         {
             get
             {
-                if (!Available || resources == null)
+                if (!Available || texture == null)
                     return "-";
 
-                return resources.Texture.Name;
+                return texture.Name;
             }
         }
 
@@ -87,7 +87,8 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
         /// <param name="filteringMode">The filtering mode.</param>
         /// <param name="initialisationColour">The colour to initialise texture levels with (in the case of sub region initial uploads). If null, no initialisation is provided out-of-the-box.</param>
-        public VeldridTexture(IVeldridRenderer renderer, int width, int height, PixelFormat textureFormat = PixelFormat.R8G8B8A8UNorm, bool manualMipmaps = false, SamplerFilter filteringMode = SamplerFilter.MinLinearMagLinearMipLinear,
+        public VeldridTexture(IVeldridRenderer renderer, int width, int height, PixelFormat textureFormat = PixelFormat.R8G8B8A8UNorm, bool manualMipmaps = false,
+                              SamplerFilter filteringMode = SamplerFilter.MinLinearMagLinearMipLinear,
                               Color4? initialisationColour = null)
         {
             this.manualMipmaps = manualMipmaps;
@@ -99,44 +100,6 @@ namespace osu.Framework.Graphics.Veldrid.Textures
             Width = width;
             Height = height;
         }
-
-        #region Disposal
-
-        ~VeldridTexture()
-        {
-            Dispose(false);
-        }
-
-        private bool isDisposed;
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool isDisposing)
-        {
-            if (isDisposed)
-                return;
-
-            isDisposed = true;
-
-            Renderer.ScheduleDisposal(static texture =>
-            {
-                while (texture.tryGetNextUpload(out var upload))
-                    upload.Dispose();
-
-                texture.memoryLease?.Dispose();
-
-                texture.resources?.Dispose();
-                texture.resources = null;
-
-                texture.Available = false;
-            }, this);
-        }
-
-        #endregion
 
         #region Memory Tracking
 
@@ -166,20 +129,21 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         #endregion
 
-        private readonly VeldridTextureResources?[] resourcesArray = new VeldridTextureResources?[1];
+        private Texture? texture;
+        private Sampler? sampler;
+        private ResourceSet? resourceSet;
 
-        private VeldridTextureResources? resources
+        public virtual int ResourceCount => 1;
+
+        public Texture? GetVeldridTexture(int index)
+            => texture;
+
+        public virtual ResourceSet? GetResourceSet(int index, ResourceLayout layout)
         {
-            get => resourcesArray[0];
-            set => resourcesArray[0] = value;
-        }
+            if (texture == null || sampler == null)
+                return null;
 
-        public virtual IReadOnlyList<VeldridTextureResources> GetResourceList()
-        {
-            if (resources == null)
-                return Array.Empty<VeldridTextureResources>();
-
-            return resourcesArray!;
+            return resourceSet ??= Renderer.Factory.CreateResourceSet(new ResourceSetDescription(layout, texture, sampler));
         }
 
         public void FlushUploads()
@@ -370,7 +334,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
             if (uploadedRegions.Count != 0 && !manualMipmaps)
             {
-                Debug.Assert(resources != null);
+                Debug.Assert(texture != null);
                 Renderer.GenerateMipmaps(this);
             }
 
@@ -420,7 +384,10 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
                 mipLevel = value;
 
-                resources?.Sampler = createSampler();
+                Renderer.ScheduleDisposal(sampler, resourceSet);
+
+                sampler = createSampler();
+                resourceSet = null;
             }
         }
 
@@ -453,13 +420,9 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
         protected virtual void DoUpload(ITextureUpload upload)
         {
-            Texture? texture = resources?.Texture;
-            Sampler? sampler = resources?.Sampler;
-
             if (texture == null || texture.Width != Width || texture.Height != Height)
             {
-                if (texture != null)
-                    Renderer.ScheduleDisposal(static t => t.Dispose(), texture);
+                Renderer.ScheduleDisposal(texture);
 
                 var textureDescription = TextureDescription.Texture2D((uint)Width, (uint)Height, (uint)CalculateMipmapLevels(Width, Height), 1, textureFormat, Usages);
                 texture = Renderer.Factory.CreateTexture(ref textureDescription);
@@ -491,13 +454,14 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
             if (sampler == null || maximumUploadedLod > lastMaximumUploadedLod)
             {
-                if (sampler != null)
-                    Renderer.ScheduleDisposal(static s => s.Dispose(), sampler);
+                Renderer.ScheduleDisposal(sampler);
 
                 sampler = createSampler();
             }
 
-            resources = new VeldridTextureResources(Renderer, texture, sampler);
+            Renderer.ScheduleDisposal(resourceSet);
+
+            resourceSet = null;
         }
 
         private unsafe void initialiseLevel(Texture texture, int level, int width, int height)
@@ -522,5 +486,39 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         // todo: should this be limited to MAX_MIPMAP_LEVELS or was that constant supposed to be for automatic mipmap generation only?
         // previous implementation was allocating mip levels all the way to 1x1 size when an ITextureUpload.Level > 0, therefore it's not limited there.
         protected static int CalculateMipmapLevels(int width, int height) => 1 + (int)Math.Floor(Math.Log(Math.Max(width, height), 2));
+
+        #region Disposal
+
+        private bool isDisposed;
+
+        ~VeldridTexture()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool isDisposing)
+        {
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
+
+            memoryLease?.Dispose();
+
+            while (tryGetNextUpload(out var upload))
+                upload.Dispose();
+
+            Renderer.ScheduleDisposal(texture, sampler, resourceSet);
+
+            Available = false;
+        }
+
+        #endregion
     }
 }
