@@ -298,7 +298,16 @@ namespace osu.Framework.Platform.SDL3
         public event Action<IEnumerable<Display>>? DisplaysChanged;
 
         // ReSharper disable once UnusedParameter.Local
-        private void handleDisplayEvent(SDL_DisplayEvent evtDisplay) => fetchDisplays();
+        private void handleDisplayEvent(SDL_DisplayEvent evtDisplay) => refreshDisplaysAndCurrentDisplay();
+
+        /// <summary>
+        /// Refreshes the available displays and the display associated with the current window.
+        /// </summary>
+        private unsafe void refreshDisplaysAndCurrentDisplay()
+        {
+            fetchDisplays();
+            updateCurrentDisplay(SDL_GetDisplayForWindow(SDLWindowHandle).ThrowIfFailed());
+        }
 
         /// <summary>
         /// Updates <see cref="Displays"/> with the latest display information reported by SDL.
@@ -566,7 +575,7 @@ namespace osu.Framework.Platform.SDL3
 
                 // See https://github.com/libsdl-org/SDL/issues/9585.
                 case SDL_EventType.SDL_EVENT_WINDOW_RESIZED when RuntimeInfo.OS == RuntimeInfo.Platform.Android:
-                    fetchDisplays();
+                    refreshDisplaysAndCurrentDisplay();
                     break;
             }
 
@@ -631,19 +640,26 @@ namespace osu.Framework.Platform.SDL3
             var newDisplayID = SDL_GetDisplayForWindow(SDLWindowHandle).ThrowIfFailed();
 
             if (displayID != newDisplayID)
-            {
-                displayID = newDisplayID;
-
-                if (tryGetDisplayIndex(newDisplayID, out int index) && tryGetDisplayFromSDL(index, newDisplayID, out var display))
-                    currentDisplay = display;
-                else
-                    currentDisplay = PrimaryDisplay;
-
-                CurrentDisplayBindable.Value = currentDisplay;
-            }
+                updateCurrentDisplay(newDisplayID);
 
             if (tryGetBorderSize(out var borderSize))
                 BorderSize.Value = borderSize;
+        }
+
+        /// <summary>
+        /// Updates <see cref="currentDisplay"/> and <see cref="CurrentDisplayBindable"/> using the provided SDL display ID.
+        /// </summary>
+        /// <param name="newDisplayID">The SDL display ID to update from.</param>
+        private void updateCurrentDisplay(SDL_DisplayID newDisplayID)
+        {
+            displayID = newDisplayID;
+
+            if (tryGetDisplayIndex(newDisplayID, out int index) && tryGetDisplayFromSDL(index, newDisplayID, out var display))
+                currentDisplay = display;
+            else
+                currentDisplay = PrimaryDisplay;
+
+            CurrentDisplayBindable.Value = currentDisplay;
         }
 
         /// <summary>
