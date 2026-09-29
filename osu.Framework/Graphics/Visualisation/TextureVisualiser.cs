@@ -15,10 +15,12 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
+using osuTK.Input;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -29,12 +31,15 @@ namespace osu.Framework.Graphics.Visualisation
 
         private readonly BindableInt visualisedMipLevel = new BindableInt(-1) { MinValue = -1, MaxValue = IRenderer.MAX_MIPMAP_LEVELS };
 
+        private readonly TextureInspector textureInspector;
+
         [Resolved]
         private IRenderer renderer { get; set; }
 
         public TextureVisualiser()
             : base("Textures", "(Ctrl+F3 to toggle)")
         {
+            MainHorizontalContent.Add(textureInspector = new TextureInspector());
             ScrollContent.Child = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.X,
@@ -119,11 +124,33 @@ namespace osu.Framework.Graphics.Visualisation
             if (target.Any(p => p.Texture == texture))
                 return;
 
-            target.Add(new TexturePanel(texture, visualisedMipLevel));
+            target.Add(new TexturePanel(texture, visualisedMipLevel)
+            {
+                Clicked = () => inspectTexture(texture)
+            });
         });
+
+        private void inspectTexture(Texture texture)
+        {
+            textureInspector.Inspect(texture);
+            textureInspector.Show();
+        }
+
+        protected override bool OnKeyDown(KeyDownEvent e)
+        {
+            if (e.Key == Key.Escape && textureInspector.State.Value == Visibility.Visible)
+            {
+                textureInspector.Hide();
+                return true;
+            }
+
+            return base.OnKeyDown(e);
+        }
 
         private partial class TexturePanel : CompositeDrawable
         {
+            public Action Clicked;
+
             private readonly WeakReference<Texture> textureReference;
 
             public Texture Texture => textureReference.TryGetTarget(out var tex) ? tex : null;
@@ -176,6 +203,13 @@ namespace osu.Framework.Graphics.Visualisation
                 };
             }
 
+            protected override bool OnClick(ClickEvent e)
+            {
+                base.OnClick(e);
+                Clicked?.Invoke();
+                return true;
+            }
+
             protected override void Update()
             {
                 base.Update();
@@ -203,6 +237,7 @@ namespace osu.Framework.Graphics.Visualisation
             private readonly IBindable<int> visualisedMipLevel;
 
             private ulong lastBindCount;
+            private Texture checkerboard;
 
             public float AverageUsagesPerFrame { get; private set; }
 
@@ -210,6 +245,12 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 this.textureReference = textureReference;
                 this.visualisedMipLevel = visualisedMipLevel.GetBoundCopy();
+            }
+
+            [BackgroundDependencyLoader]
+            private void load(TextureStore textures)
+            {
+                checkerboard = textures.Get("Checkerboard");
             }
 
             protected override DrawNode CreateDrawNode() => new UsageBackgroundDrawNode(this);
@@ -229,12 +270,15 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                 }
 
+                private Texture checkerboard;
+
                 public override void ApplyState()
                 {
                     base.ApplyState();
 
                     textureReference = Source.textureReference;
                     visualisedMipLevel = Source.visualisedMipLevel.Value;
+                    checkerboard = Source.checkerboard;
                 }
 
                 protected override void Draw(IRenderer renderer)
@@ -273,8 +317,8 @@ namespace osu.Framework.Graphics.Visualisation
 
                     var shrunkenQuad = ScreenSpaceDrawQuad.AABBFloat.Shrink(border_width);
 
-                    // background
-                    renderer.DrawQuad(Texture, shrunkenQuad, Color4.Black);
+                    // checkerboard background
+                    renderer.DrawQuad(checkerboard, shrunkenQuad, Color4.White);
 
                     float aspect = (float)texture.Width / texture.Height;
 

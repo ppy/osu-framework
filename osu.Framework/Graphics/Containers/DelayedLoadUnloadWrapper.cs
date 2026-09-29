@@ -6,6 +6,7 @@
 using System;
 using osu.Framework.Statistics;
 using System.Diagnostics;
+using System.Threading;
 using osu.Framework.Layout;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
@@ -60,7 +61,7 @@ namespace osu.Framework.Graphics.Containers
             });
         }
 
-        private readonly object disposalLock = new object();
+        private readonly Lock disposalLock = new Lock();
         private bool isDisposed;
 
         protected override void Dispose(bool isDisposing)

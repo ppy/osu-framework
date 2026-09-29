@@ -4,6 +4,7 @@
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using osu.Framework.SourceGeneration.Generators;
 
@@ -16,9 +17,10 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
             (string filename, string content)[] commonSources,
             (string filename, string content)[] sources,
             (string filename, string content)[] commonGenerated,
-            (string filename, string content)[] generated)
+            (string filename, string content)[] generated,
+            OptimizationLevel optimizationLevel = OptimizationLevel.Release)
         {
-            var test = new Test();
+            var test = new Test(optimizationLevel);
 
             foreach (var s in commonSources)
                 test.TestState.Sources.Add((s.filename, SourceText.From(s.content, Encoding.UTF8)));

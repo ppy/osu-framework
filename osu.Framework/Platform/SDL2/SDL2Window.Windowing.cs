@@ -165,6 +165,8 @@ namespace osu.Framework.Platform.SDL2
             }
         }
 
+        public bool PositionAccurate => true;
+
         private bool resizable = true;
 
         /// <summary>
@@ -302,8 +304,18 @@ namespace osu.Framework.Platform.SDL2
         /// </remarks>
         private void fetchDisplays()
         {
-            Displays = getSDLDisplays();
-            DisplaysChanged?.Invoke(Displays);
+            var newDisplays = getSDLDisplays();
+
+            if (newDisplays.Length > 0)
+            {
+                Displays = newDisplays;
+                DisplaysChanged?.Invoke(newDisplays);
+            }
+            else
+            {
+                // keep Displays stale if zero displays are currently detected
+                Logger.Log("Got zero displays from SDL, ignoring.");
+            }
         }
 
         /// <summary>
@@ -328,7 +340,7 @@ namespace osu.Framework.Platform.SDL2
         {
             int numDisplays = SDL_GetNumVideoDisplays();
 
-            if (numDisplays <= 0)
+            if (numDisplays < 0)
                 throw new InvalidOperationException($"Failed to get number of SDL displays. Return code: {numDisplays}. SDL Error: {SDL_GetError()}");
 
             var builder = ImmutableArray.CreateBuilder<Display>(numDisplays);
@@ -386,11 +398,16 @@ namespace osu.Framework.Platform.SDL2
                                          .ToArray();
             }
 
-            display = new Display(displayIndex,
-                SDL_GetDisplayName(displayIndex),
-                new Rectangle(rect.x, rect.y, rect.w, rect.h),
-                new Rectangle(usableBounds.x, usableBounds.y, usableBounds.w, usableBounds.h),
-                displayModes);
+            var bounds = new Rectangle(rect.x, rect.y, rect.w, rect.h);
+            var uBounds = new Rectangle(usableBounds.x, usableBounds.y, usableBounds.w, usableBounds.h);
+
+            if (!bounds.Contains(uBounds))
+            {
+                Logger.Log($"Display at index ({displayIndex}) has usable bounds {uBounds} outside of display bounds {bounds}. Clamping.");
+                uBounds.Intersect(bounds);
+            }
+
+            display = new Display(displayIndex, SDL_GetDisplayName(displayIndex), bounds, uBounds, displayModes);
             return true;
         }
 
@@ -606,14 +623,27 @@ namespace osu.Framework.Platform.SDL2
                 BorderSize.Value = borderSize;
         }
 
+        /// <summary>
+        /// Whether <see cref="SDL_GetWindowBordersSize"/> is supported on this platform.
+        /// </summary>
+        private bool? bordersSizeSupported;
+
         private bool tryGetBorderSize(out MarginPadding borderSize)
         {
-            if (SDL_GetWindowBordersSize(SDLWindowHandle, out int top, out int left, out int bottom, out int right) < 0)
+            if (bordersSizeSupported == false)
             {
                 borderSize = default;
                 return false;
             }
 
+            if (SDL_GetWindowBordersSize(SDLWindowHandle, out int top, out int left, out int bottom, out int right) < 0)
+            {
+                bordersSizeSupported ??= SDL_GetError() != "That operation is not supported";
+                borderSize = default;
+                return false;
+            }
+
+            bordersSizeSupported = true;
             borderSize = new MarginPadding
             {
                 Top = top,
@@ -716,7 +746,7 @@ namespace osu.Framework.Platform.SDL2
                 return true;
             }
 
-            maximized = default;
+            maximized = false;
             return false;
         }
 

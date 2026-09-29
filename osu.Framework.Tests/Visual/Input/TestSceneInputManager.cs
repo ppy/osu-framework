@@ -15,6 +15,7 @@ using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Platform;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Input.Handlers.Pen;
 using osuTK;
 using osuTK.Graphics;
 
@@ -201,6 +202,8 @@ namespace osu.Framework.Tests.Visual.Input
         {
             AddSliderStep("Cursor sensitivity", 0.5, 5, 1, setCursorSensitivityConfig);
             setCursorSensitivityConfig(1);
+            AddSliderStep("Pen sensitivity", 0.5, 5, 1, setPenSensitivityConfig);
+            setPenSensitivityConfig(1);
             AddToggleStep("Toggle relative mode", setRelativeMode);
             AddStep("Set confine to Never", () => setConfineMouseModeConfig(ConfineMouseMode.Never));
             AddStep("Set confine to Fullscreen", () => setConfineMouseModeConfig(ConfineMouseMode.Fullscreen));
@@ -220,24 +223,24 @@ namespace osu.Framework.Tests.Visual.Input
                 AddToggleStep($"{h.Description} enabled", v => h.Enabled.Value = v);
         }
 
+        private void setPenSensitivityConfig(double sensitivity)
+        {
+            var penHandler = host.AvailableInputHandlers.OfType<PenHandler>().FirstOrDefault();
+            penHandler?.Sensitivity.Value = sensitivity;
+        }
+
         private void setCursorSensitivityConfig(double sensitivity)
         {
             var mouseHandler = getMouseHandler();
 
-            if (mouseHandler == null)
-                return;
-
-            mouseHandler.Sensitivity.Value = sensitivity;
+            mouseHandler?.Sensitivity.Value = sensitivity;
         }
 
         private void setRelativeMode(bool enabled)
         {
             var mouseHandler = getMouseHandler();
 
-            if (mouseHandler == null)
-                return;
-
-            mouseHandler.UseRelativeMode.Value = enabled;
+            mouseHandler?.UseRelativeMode.Value = enabled;
         }
 
         private MouseHandler getMouseHandler()
@@ -263,10 +266,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void setCursorConfineRect(bool enabled)
         {
-            if (host.Window == null)
-                return;
-
-            host.Window.CursorConfineRect = enabled
+            host.Window?.CursorConfineRect = enabled
                 ? new RectangleF
                 {
                     X = host.Window.ClientSize.Width / 6f,

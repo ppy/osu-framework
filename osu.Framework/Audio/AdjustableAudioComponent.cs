@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Threading;
 using osu.Framework.Bindables;
 
 namespace osu.Framework.Audio
@@ -10,7 +11,7 @@ namespace osu.Framework.Audio
     /// </summary>
     public class AdjustableAudioComponent : AudioComponent, IAdjustableAudioComponent
     {
-        private static readonly object adjustments_acquisition_lock = new object();
+        private static readonly Lock adjustments_acquisition_lock = new Lock();
 
         private volatile AudioAdjustments? adjustments;
 

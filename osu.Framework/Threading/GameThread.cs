@@ -154,7 +154,7 @@ namespace osu.Framework.Threading
 
         private readonly ManualResetEvent initializedEvent = new ManualResetEvent(false);
 
-        private readonly object startStopLock = new object();
+        private readonly Lock startStopLock = new Lock();
 
         /// <summary>
         /// Whether a pause has been requested.

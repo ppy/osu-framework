@@ -27,8 +27,7 @@ namespace osu.Framework.Platform.Windows
 
         private void initialiseSDL2(GameHost host)
         {
-            // ReSharper disable once ConvertClosureToMethodGroup
-            sdl2Callback = (ptr, wnd, u, param, l) => onWndProcSDL2(ptr, wnd, u, param, l);
+            sdl2Callback = onWndProcSDL2;
 
             Enabled.BindValueChanged(enabled =>
             {

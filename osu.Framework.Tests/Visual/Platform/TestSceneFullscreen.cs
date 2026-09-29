@@ -36,6 +36,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private readonly Dropdown<Display> displaysDropdown;
 
         private IWindow window;
+        private Display display;
         private readonly BindableSize sizeFullscreen = new BindableSize();
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
 
@@ -101,7 +102,11 @@ namespace osu.Framework.Tests.Visual.Platform
             Scheduler.AddOnce(updateDisplays, displays);
         }
 
-        private void updateDisplays(IEnumerable<Display> displays) => displaysDropdown.Items = displays;
+        private void updateDisplays(IEnumerable<Display> displays)
+        {
+            displaysDropdown.Items = displays;
+            display = window.CurrentDisplayBindable.Value;
+        }
 
         [Test]
         public void TestScreenModeSwitch()
@@ -113,26 +118,49 @@ namespace osu.Framework.Tests.Visual.Platform
             }
 
             var initialWindowMode = windowMode.Value;
+            var testSize = new Size(640, 640);
+            var originalWindowPosition = Point.Empty;
 
             // if we support windowed mode, switch to it and test resizing the window
             if (window.SupportedWindowModes.Contains(WindowMode.Windowed))
             {
                 AddStep("change to windowed", () => windowMode.Value = WindowMode.Windowed);
-                AddStep("change window size", () => config.SetValue(FrameworkSetting.WindowedSize, new Size(640, 640)));
+                AddWaitStep("wait some", 10); // for macOS transition animation
+                AddStep("change window size", () => config.SetValue(FrameworkSetting.WindowedSize, testSize));
+
+                AddAssert("check window size", () => window.Size, () => Is.EqualTo(testSize));
+                AddAssert("check client size", () => window.ClientSize, () => Is.EqualTo((testSize * window.Scale).ToSize()));
+                AddStep("store window position", () => originalWindowPosition = window.Position);
             }
 
             // if we support borderless, test that it can be used
             if (window.SupportedWindowModes.Contains(WindowMode.Borderless))
+            {
                 AddStep("change to borderless", () => windowMode.Value = WindowMode.Borderless);
+                AddWaitStep("wait some", 10); // for macOS transition animation
+
+                // Depending on platform and display, borderless windows can either cover the entire display or just the usable area. TODO: tighten the assertion to explicitly distinguish these cases.
+                AddAssert("check window position", () => window.Position, () => Is.EqualTo(display.UsableBounds.Location).Or.EqualTo(display.Bounds.Location));
+                AddAssert("check window size", () => window.Size, () => Is.EqualTo(display.UsableBounds.Size).Or.EqualTo(display.Bounds.Size));
+                AddAssert("check client size", () => window.ClientSize, () => Is.EqualTo((window.Size * window.Scale).ToSize()));
+            }
 
             // if we support fullscreen mode, switch to it and test swapping resolutions
             if (window.SupportedWindowModes.Contains(WindowMode.Fullscreen))
             {
                 AddStep("change to fullscreen", () => windowMode.Value = WindowMode.Fullscreen);
-                AddAssert("window position updated", () => window.Position, () => Is.EqualTo(window.CurrentDisplayBindable.Value.Bounds.Location));
                 testResolution(1920, 1080);
                 testResolution(1280, 960);
                 testResolution(9999, 9999);
+            }
+
+            if (window.SupportedWindowModes.Contains(WindowMode.Windowed))
+            {
+                AddStep("change to windowed", () => windowMode.Value = WindowMode.Windowed);
+                AddWaitStep("wait some", 10); // for macOS transition animation
+                AddAssert("check window size", () => window.Size, () => Is.EqualTo(testSize));
+                AddAssert("check client size", () => window.ClientSize, () => Is.EqualTo((testSize * window.Scale).ToSize()));
+                AddAssert("check window position", () => originalWindowPosition, () => Is.EqualTo(window.Position));
             }
 
             // go back to initial window mode
@@ -214,6 +242,12 @@ namespace osu.Framework.Tests.Visual.Platform
         private void testResolution(int w, int h)
         {
             AddStep($"set to {w}x{h}", () => sizeFullscreen.Value = new Size(w, h));
+            AddWaitStep("wait some", 10); // for macOS transition animation
+
+            AddAssert("check window position", () => window.Position, () => Is.EqualTo(display.Bounds.Location));
+            AddAssert("check window size", () => window.Size, () => Is.EqualTo(display.Bounds.Size));
+            AddAssert("check client size", () => window.ClientSize, () => Is.EqualTo((display.Bounds.Size * window.Scale).ToSize()));
+            AddAssert("check current screen", () => window.CurrentDisplayBindable.Value.Index, () => Is.EqualTo(display.Index));
         }
 
         protected override void Dispose(bool isDisposing)

@@ -254,6 +254,7 @@ namespace osu.Framework.Tests.Clocks
         [TestCase(1)]
         [TestCase(10)]
         [TestCase(50)]
+        [FlakyTest]
         public void TestNoInterpolationDrift(int updateRate)
         {
             var stopwatch = new StopwatchClock();

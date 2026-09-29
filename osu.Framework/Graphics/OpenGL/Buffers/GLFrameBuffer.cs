@@ -24,12 +24,12 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private readonly bool externalTexture;
 
-        public GLFrameBuffer(GLRenderer renderer, RenderbufferInternalFormat[]? renderBufferFormats = null, All filteringMode = All.Linear)
+        public GLFrameBuffer(GLRenderer renderer, TexturePixelFormat textureFormat, RenderbufferInternalFormat[]? renderBufferFormats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
         {
             this.renderer = renderer;
             FrameBuffer = GL.GenFramebuffer();
 
-            Texture = renderer.CreateTexture(glTexture = new FrameBufferTexture(renderer, filteringMode));
+            Texture = renderer.CreateTexture(glTexture = new FrameBufferTexture(renderer, textureFormat, filteringMode));
 
             renderer.BindFrameBuffer(this);
 
@@ -116,7 +116,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         ~GLFrameBuffer()
         {
-            renderer.ScheduleDisposal(b => b.Dispose(false), this);
+            renderer.ScheduleDisposal(static b => b.Dispose(false), this);
         }
 
         public void Dispose()
@@ -147,8 +147,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private class FrameBufferTexture : GLTexture
         {
-            public FrameBufferTexture(GLRenderer renderer, All filteringMode = All.Linear)
-                : base(renderer, 1, 1, true, filteringMode)
+            public FrameBufferTexture(GLRenderer renderer, TexturePixelFormat textureFormat, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
+                : base(renderer, 1, 1, textureFormat, true, filteringMode)
             {
                 BypassTextureUploadQueueing = true;
 

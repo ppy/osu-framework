@@ -6,6 +6,7 @@
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
 
@@ -59,6 +60,32 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddUntilStep("colour is correct", () => colourPicker.Current.Value == Colour4.FromHSV(hue, saturation, value));
+        }
+
+        [Test]
+        public void TestSwatchClickUpdatesCurrent()
+        {
+            ColourPickerWithSwatches colourPicker = null;
+
+            AddStep("create picker", () => Child = colourPicker = new ColourPickerWithSwatches());
+            AddStep("add swatch colours", () => colourPicker.Swatch.Colours.AddRange(new[]
+            {
+                Colour4.Red,
+                Colour4.Green,
+                Colour4.Blue
+            }));
+            AddStep("click first swatch", () => colourPicker.GetSwatch(0).TriggerClick());
+            AddAssert("current is red", () => colourPicker.Current.Value == Colour4.Red);
+            AddAssert("hex code updated", () => this.ChildrenOfType<TextBox>().Single().Text == Colour4.Red.ToHex());
+        }
+
+        private partial class ColourPickerWithSwatches : BasicColourPicker
+        {
+            public BasicSwatchColourPicker Swatch { get; private set; }
+
+            protected override SwatchColourPicker CreateSwatchColourPicker() => Swatch = new BasicSwatchColourPicker();
+
+            public ClickableContainer GetSwatch(int index) => Swatch.ChildrenOfType<ClickableContainer>().ElementAt(index);
         }
     }
 }

@@ -90,6 +90,9 @@ namespace osu.Framework.Input
             switch (Host.Window.WindowMode.Value)
             {
                 case WindowMode.Windowed:
+                    if (!Host.Window.PositionAccurate)
+                        return false;
+
                     windowLocation = Host.Window.Position;
                     break;
 

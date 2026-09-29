@@ -1,18 +1,23 @@
 on: [push, pull_request]
 name: Continuous Integration
 
+permissions:
+  actions: read
+  contents: read
+  security-events: write # for reporting InspectCode issues
+
 jobs:
   inspect-code:
     name: Code Quality
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Install .NET 8.0.x
-        uses: actions/setup-dotnet@v4
+      - name: Install .NET 10.0.x
+        uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: "10.0.x"
 
       - name: Restore Tools
         run: dotnet tool restore
@@ -21,7 +26,7 @@ jobs:
         run: dotnet restore osu-framework.Desktop.slnf
 
       - name: Restore inspectcode cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ github.workspace }}/inspectcode
           key: inspectcode-${{ hashFiles('.config/dotnet-tools.json', '.github/workflows/ci.yml', 'osu-framework.sln*', 'osu-framework*.slnf', '.editorconfig', '.globalconfig', 'CodeAnalysis/*', '**/*.csproj', '**/*.props') }}
@@ -43,10 +48,15 @@ jobs:
           exit $exit_code
 
       - name: InspectCode
-        run: dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --no-build --output="inspectcodereport.xml" --caches-home="inspectcode" --verbosity=WARN
-
-      - name: NVika
-        run: dotnet nvika parsereport "${{github.workspace}}/inspectcodereport.xml" --treatwarningsaserrors
+        uses: JetBrains/ReSharper-InspectCode@v0.11
+        with:
+          # this is WTF tier but if you don't specify *both* of these the defaults assume `build: true`
+          build: false
+          no-build: true
+          tool-version: '2026.2.1'
+          solution: ./osu-framework.Desktop.slnf
+          caches-home: inspectcode
+          verbosity: WARN
 
   test:
     name: Test
@@ -67,17 +77,17 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Install .NET 8.0.x
-        uses: actions/setup-dotnet@v4
+      - name: Install .NET 10.0.x
+        uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: "10.0.x"
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
-          go-version: 1.21.9
+          go-version: 1.26.1
 
       - name: Install httpbin
         run: go install github.com/mccutchen/go-httpbin/v2/cmd/go-httpbin@latest
@@ -96,7 +106,7 @@ jobs:
       # Attempt to upload results even if test fails.
       # https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#always
       - name: Upload Test Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ always() }}
         with:
           name: osu-framework-test-results-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.os.configuration}}
@@ -108,18 +118,18 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup JDK 11
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: microsoft
           java-version: 11
 
-      - name: Install .NET 8.0.x
-        uses: actions/setup-dotnet@v4
+      - name: Install .NET 10.0.x
+        uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: "10.0.x"
 
       - name: Restore .NET workloads
         run: dotnet workload install android
@@ -129,24 +139,22 @@ jobs:
 
   build-only-ios:
     name: Build only (iOS)
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 60
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Install .NET 8.0.x
-        uses: actions/setup-dotnet@v4
+      - name: Install .NET 10.0.x
+        uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: "10.0.x"
 
       - name: Restore .NET workloads
         run: dotnet workload install ios
 
-      # https://github.com/dotnet/macios/issues/19157
-      # https://github.com/actions/runner-images/issues/12758
-      - name: Use Xcode 16.4
-        run: sudo xcode-select -switch /Applications/Xcode_16.4.app
+      - name: Use Xcode 26.6
+        run: sudo xcode-select -switch /Applications/Xcode_26.6.app
 
       - name: Compile
         run: dotnet build -c Debug osu-framework.iOS.slnf
