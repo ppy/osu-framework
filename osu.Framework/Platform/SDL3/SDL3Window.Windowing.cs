@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
@@ -536,14 +537,8 @@ namespace osu.Framework.Platform.SDL3
 
                 case SDL_EventType.SDL_EVENT_WINDOW_RESTORED:
                 case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_GAINED:
-                    Focused = true;
-                    break;
-
                 case SDL_EventType.SDL_EVENT_WINDOW_MINIMIZED:
                 case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST:
-                    Focused = false;
-                    break;
-
                 case SDL_EventType.SDL_EVENT_WINDOW_CLOSE_REQUESTED:
                     break;
             }
@@ -644,6 +639,8 @@ namespace osu.Framework.Platform.SDL3
 
             if (tryGetBorderSize(out var borderSize))
                 BorderSize.Value = borderSize;
+
+            Focused = SDL_GetWindowFlags(SDLWindowHandle).HasFlagFast(SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS);
         }
 
         /// <summary>
