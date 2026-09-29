@@ -123,7 +123,7 @@ namespace osu.Framework.Graphics
 
         public void Dispose()
         {
-            renderer?.ScheduleDisposal(d => d.Dispose(true), this);
+            renderer?.ScheduleDisposal(static d => d.Dispose(true), this);
             GC.SuppressFinalize(this);
         }
 

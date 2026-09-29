@@ -26,6 +26,12 @@ namespace osu.Framework.Graphics.Rendering
         /// </summary>
         const int MAX_DRAW_NODES = 3;
 
+        /// <summary>
+        /// Maximum number of frames that can be queued up in GPU command buffers. Not authoritative, but a safe value to ensure we dispose
+        /// of resources after enough frames have passed to ensure the GPU is no longer using them.
+        /// </summary>
+        const int MAX_GPU_QUEUED_FRAMES = 4;
+
         const int MAX_MIPMAP_LEVELS = 3;
 
         const int VERTICES_PER_TRIANGLE = 4;
@@ -339,10 +345,12 @@ namespace osu.Framework.Graphics.Rendering
         void ScheduleExpensiveOperation(ScheduledDelegate operation);
 
         /// <summary>
-        /// Schedules a disposal action to be run on the next frame.
+        /// Schedules a new disposal action to be executed at a later point in time.
+        /// This method can be called concurrently from multiple threads.
+        /// By default the disposal will run <see cref="IRenderer.MAX_GPU_QUEUED_FRAMES"/> frames after enqueueing.
         /// </summary>
-        /// <param name="disposalAction">The disposal action.</param>
-        /// <param name="target">The target to be disposed.</param>
+        /// <param name="disposalAction">The disposal action to be executed.</param>
+        /// <param name="target">The target.</param>
         void ScheduleDisposal<T>(Action<T> disposalAction, T target);
 
         /// <summary>

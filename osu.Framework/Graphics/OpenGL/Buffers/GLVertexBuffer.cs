@@ -74,7 +74,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         ~GLVertexBuffer()
         {
-            Renderer.ScheduleDisposal(v => v.Dispose(false), this);
+            Renderer.ScheduleDisposal(static v => v.Dispose(false), this);
         }
 
         public void Dispose()
