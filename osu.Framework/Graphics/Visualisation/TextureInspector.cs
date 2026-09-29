@@ -474,12 +474,9 @@ namespace osu.Framework.Graphics.Visualisation
             protected override Container<Drawable> Content => ScalableContent;
 
             protected readonly Container ScalableContent;
-            private readonly bool smooth;
 
-            public InteractiveContainer(bool smooth = true)
+            public InteractiveContainer()
             {
-                this.smooth = smooth;
-
                 RelativeSizeAxes = Axes.Both;
                 AddInternal(ScalableContent = new Container
                 {
@@ -514,8 +511,8 @@ namespace osu.Framework.Graphics.Visualisation
                 ScalableContent.Anchor = Anchor.TopLeft;
                 ScalableContent.Position = e.MousePosition;
 
-                Zoom += (e.ScrollDelta.Y > 0 ? 1 : -1) * Zoom * 0.1f;
-                ScalableContent.ScaleTo(Zoom, smooth ? 150 : 0, Easing.OutQuint);
+                Zoom = Math.Clamp(Zoom + e.ScrollDelta.Y * Zoom * 0.2f, 0.1f, 25);
+                ScalableContent.ScaleTo(Zoom);
                 isFit = false;
 
                 return true;
