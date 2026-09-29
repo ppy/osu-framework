@@ -302,7 +302,7 @@ namespace osu.Framework.Graphics.Veldrid
                             OpenGLNative.glReadPixels(0, 0, texture.Width, texture.Height, GLPixelFormat.Rgba, GLPixelType.UnsignedByte, data);
                     });
 
-                    var glImage = Image.LoadPixelData<Rgba32>(pixelData.Memory.Span, (int)texture.Width, (int)texture.Height);
+                    var glImage = Image.LoadPixelData(pixelData.Memory.Span, (int)texture.Width, (int)texture.Height);
                     glImage.Mutate(i => i.Flip(FlipMode.Vertical));
                     return glImage;
                 }
@@ -338,7 +338,7 @@ namespace osu.Framework.Graphics.Veldrid
 
             // on some backends (Direct3D11, in particular), the staging resource data may contain padding at the end of each row for alignment,
             // which means that for the image width, we cannot use the framebuffer's width raw.
-            using var image = Image.LoadPixelData<TPixel>(span, (int)(resource.RowPitch / Marshal.SizeOf<TPixel>()), (int)height);
+            using var image = Image.LoadPixelData(span, (int)(resource.RowPitch / Marshal.SizeOf<TPixel>()), (int)height);
 
             if (flipVertical)
                 image.Mutate(i => i.Flip(FlipMode.Vertical));

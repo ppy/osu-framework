@@ -29,7 +29,30 @@ namespace osu.Framework.Tests.Visual.Performance
 
         private Bindable<bool> bypassFrontToBack = null!;
 
-        private BufferedContainer buffer = null!;
+        private Container<Drawable> buffer = null!;
+
+        private void recreateBuffer(float renderScale)
+        {
+            buffer.Clear(false);
+
+            if (renderScale < 1f)
+            {
+                base.Content.Child = buffer = new BufferedContainer
+                {
+                    Child = content,
+                    RelativeSizeAxes = Axes.Both,
+                    FrameBufferScale = new Vector2(renderScale),
+                };
+            }
+            else
+            {
+                base.Content.Child = buffer = new Container
+                {
+                    Child = content,
+                    RelativeSizeAxes = Axes.Both,
+                };
+            }
+        }
 
         protected override void LoadComplete()
         {
@@ -37,7 +60,12 @@ namespace osu.Framework.Tests.Visual.Performance
 
             bypassFrontToBack = debugConfig.GetBindable<bool>(DebugSetting.BypassFrontToBackPass);
 
-            base.Content.Child = buffer = new BufferedContainer(pixelSnapping: true)
+            AddLabel("General");
+
+            AddToggleStep("hide content", v => Content.Alpha = v ? 0 : 1);
+            AddToggleStep("enable front to back", v => bypassFrontToBack.Value = !v);
+
+            base.Content.Child = buffer = new Container
             {
                 RelativeSizeAxes = Axes.Both,
                 Child = content = new Container
@@ -48,11 +76,7 @@ namespace osu.Framework.Tests.Visual.Performance
                 },
             };
 
-            AddLabel("General");
-
-            AddToggleStep("hide content", v => Content.Alpha = v ? 0 : 1);
-            AddToggleStep("enable front to back", v => bypassFrontToBack.Value = !v);
-            AddSliderStep("render scale", 0.01f, 1f, 1f, v => buffer.FrameBufferScale = new Vector2(v));
+            AddSliderStep("render scale", 0.01f, 1f, 1f, recreateBuffer);
             AddToggleStep("rotate everything", v => rotation = v);
             AddToggleStep("cycle colour", v => cycleColour = v);
         }

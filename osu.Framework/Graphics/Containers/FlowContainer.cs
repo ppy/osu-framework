@@ -113,7 +113,7 @@ namespace osu.Framework.Graphics.Containers
         public void SetLayoutPosition(Drawable drawable, float newPosition)
         {
             if (!layoutChildren.ContainsKey(drawable))
-                throw new InvalidOperationException($"Cannot change layout position of drawable which is not contained within this {nameof(FlowContainer<T>)}.");
+                throw new InvalidOperationException($"Cannot change layout position of drawable which is not contained within this {nameof(FlowContainer<>)}.");
 
             layoutChildren[drawable] = newPosition;
             InvalidateLayout();
@@ -139,7 +139,7 @@ namespace osu.Framework.Graphics.Containers
         public float GetLayoutPosition(Drawable drawable)
         {
             if (!layoutChildren.TryGetValue(drawable, out float value))
-                throw new InvalidOperationException($"Cannot get layout position of drawable which is not contained within this {nameof(FlowContainer<T>)}.");
+                throw new InvalidOperationException($"Cannot get layout position of drawable which is not contained within this {nameof(FlowContainer<>)}.");
 
             return value;
         }

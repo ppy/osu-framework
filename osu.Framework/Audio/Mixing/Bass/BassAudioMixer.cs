@@ -236,7 +236,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <param name="procedure">The callback function which should be invoked with the sync.</param>
         /// <param name="user">User instance data to pass to the callback function.</param>
         /// <returns>If successful, then the new synchroniser's handle is returned, else 0 is returned. Use <see cref="ManagedBass.Bass.LastError" /> to get the error code.</returns>
-        public int ChannelSetSync(IBassAudioChannel channel, SyncFlags type, long parameter, SyncProcedure procedure, IntPtr user = default)
+        public int ChannelSetSync(IBassAudioChannel channel, SyncFlags type, long parameter, SyncProcedure procedure, IntPtr user = 0)
             => BassMix.ChannelSetSync(channel.Handle, type, parameter, procedure, user);
 
         /// <summary>

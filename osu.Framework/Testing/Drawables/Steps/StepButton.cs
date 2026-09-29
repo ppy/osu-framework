@@ -4,6 +4,7 @@
 using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
@@ -12,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
-    public abstract partial class StepButton : CompositeDrawable
+    public abstract partial class StepButton : CompositeDrawable, IHasTooltip
     {
         public required bool IsSetupStep { get; init; }
         public Action? Action { get; set; }
@@ -44,8 +45,10 @@ namespace osu.Framework.Testing.Drawables.Steps
                 },
                 SpriteText = new SpriteText
                 {
+                    Truncate = true,
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
+                    RelativeSizeAxes = Axes.X,
                     Font = FrameworkFont.Regular.With(size: 14),
                     X = 5,
                     Padding = new MarginPadding(5)
@@ -139,5 +142,7 @@ namespace osu.Framework.Testing.Drawables.Steps
         }
 
         public override string ToString() => $@"""{Text}"" " + base.ToString();
+
+        LocalisableString IHasTooltip.TooltipText => SpriteText.IsTruncated ? Text : string.Empty;
     }
 }

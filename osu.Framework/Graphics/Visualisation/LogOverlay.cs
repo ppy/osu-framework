@@ -115,7 +115,7 @@ namespace osu.Framework.Graphics.Visualisation
         private void setHoldState(bool controlPressed)
         {
             box.Alpha = controlPressed ? 1 : background_alpha;
-            if (clock != null) clock.Rate = controlPressed ? 0 : 1;
+            clock?.Rate = controlPressed ? 0 : 1;
         }
 
         protected override void PopIn()

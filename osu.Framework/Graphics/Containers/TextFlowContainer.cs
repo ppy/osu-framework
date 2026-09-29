@@ -535,9 +535,9 @@ namespace osu.Framework.Graphics.Containers
                         // Things will be accounted for accurately later.
                         // All calls to `spacingFactor()` in the original code thus reduce to returning (0,0).
                         if (c.RelativeAnchorPosition != Vector2.Zero)
-                            throw new InvalidOperationException($"All drawables in a {nameof(TextFlowContainer)} must not specify custom {RelativeAnchorPosition}s. Only (0,0) is supported.");
+                            throw new InvalidOperationException($"All drawables in a {nameof(TextFlowContainer)} must not specify custom {nameof(RelativeAnchorPosition)}s. Only (0,0) is supported.");
                         if (c.RelativeOriginPosition != Vector2.Zero)
-                            throw new InvalidOperationException($"All drawables in a {nameof(TextFlowContainer)} must not specify custom {RelativeOriginPosition}s. Only (0,0) is supported.");
+                            throw new InvalidOperationException($"All drawables in a {nameof(TextFlowContainer)} must not specify custom {nameof(RelativeOriginPosition)}s. Only (0,0) is supported.");
 
                         // Populate running variables with sane initial values.
                         if (i == 0)

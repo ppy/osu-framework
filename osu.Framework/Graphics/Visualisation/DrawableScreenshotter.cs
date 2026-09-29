@@ -52,7 +52,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         public override DrawInfo DrawInfo => Target.DrawInfo;
 
-        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(new[] { RenderBufferFormat.D16 }, pixelSnapping: true, clipToRootNode: true);
+        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(formats: new[] { RenderBufferFormat.D16 }, pixelSnapping: true, clipToRootNode: true);
 
         [Resolved]
         private GameHost host { get; set; } = null!;

@@ -22,7 +22,7 @@ namespace osu.Framework.Bindables
             if (!Validation.IsSupportedBindableNumberType<T>())
             {
                 throw new NotSupportedException(
-                    $"{nameof(BindableNumber<T>)} only accepts the primitive numeric types (except for {typeof(decimal).FullName}) as type arguments. You provided {typeof(T).FullName}.");
+                    $"{nameof(BindableNumber<>)} only accepts the primitive numeric types (except for {typeof(decimal).FullName}) as type arguments. You provided {typeof(T).FullName}.");
             }
 
             precision = DefaultPrecision;

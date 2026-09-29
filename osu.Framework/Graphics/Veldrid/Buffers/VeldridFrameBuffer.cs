@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using osu.Framework.Extensions.ObjectExtensions;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Veldrid.Textures;
 using osuTK;
@@ -47,7 +48,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             }
         }
 
-        public VeldridFrameBuffer(VeldridRenderer renderer, PixelFormat[]? formats = null, SamplerFilter filteringMode = SamplerFilter.MinLinearMagLinearMipLinear)
+        public VeldridFrameBuffer(VeldridRenderer renderer, TexturePixelFormat textureFormat = TexturePixelFormat.R8G8B8A8Float, PixelFormat[]? formats = null, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
         {
             // todo: we probably want the arguments separated to "PixelFormat[] colorFormats, PixelFormat depthFormat".
             if (formats?.Length > 1)
@@ -57,7 +58,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
             depthFormat = formats?[0];
 
-            colourTarget = new FrameBufferTexture(renderer, filteringMode);
+            colourTarget = new FrameBufferTexture(renderer, textureFormat, filteringMode);
             Texture = renderer.CreateTexture(colourTarget);
 
             recreateResources();
@@ -113,7 +114,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
                 colourTarget.Dispose();
 
             if (Framebuffer.IsNotNull())
-                Framebuffer.Dispose();
+                renderer.ScheduleDisposal(static f => f.Dispose(), Framebuffer);
 
             depthTarget?.Dispose();
         }
@@ -123,7 +124,7 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
 
         ~VeldridFrameBuffer()
         {
-            renderer.ScheduleDisposal(b => b.Dispose(false), this);
+            renderer.ScheduleDisposal(static b => b.Dispose(false), this);
         }
 
         public void Dispose()
@@ -147,8 +148,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         {
             protected override TextureUsage Usages => base.Usages | TextureUsage.RenderTarget;
 
-            public FrameBufferTexture(VeldridRenderer renderer, SamplerFilter filteringMode = SamplerFilter.MinLinearMagLinearMipLinear)
-                : base(renderer, 1, 1, true, filteringMode)
+            public FrameBufferTexture(VeldridRenderer renderer, TexturePixelFormat textureFormat, TextureFilteringMode filteringMode = TextureFilteringMode.Linear)
+                : base(renderer, 1, 1, textureFormat, true, filteringMode)
             {
                 BypassTextureUploadQueueing = true;
 

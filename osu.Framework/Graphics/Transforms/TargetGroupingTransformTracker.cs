@@ -368,10 +368,7 @@ namespace osu.Framework.Graphics.Transforms
                 return min;
             }
 
-            if (lastAppliedTransformIndices.TryGetValue(targetMember, out int val))
-                return val;
-
-            return 0;
+            return lastAppliedTransformIndices.GetValueOrDefault(targetMember, 0);
         }
 
         /// <summary>

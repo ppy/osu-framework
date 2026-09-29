@@ -68,8 +68,6 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public Stream ResponseStream { get; private set; }
 
-        public HttpResponseHeaders ResponseHeaders => response.Headers;
-
         /// <summary>
         /// The URL of this request.
         /// </summary>
@@ -140,21 +138,12 @@ namespace osu.Framework.IO.Network
         private bool completed;
 
         private static readonly HttpClient client = new HttpClient(
-            // SocketsHttpHandler causes crash in Android Debug, and seems to have compatibility issue on SSL
-            // Use platform HTTP handler which is invoked by HttpClientHandler for better compatibility and app size
-            RuntimeInfo.OS == RuntimeInfo.Platform.Android
-                ? new HttpClientHandler
-                {
-                    Credentials = CredentialCache.DefaultCredentials,
-                    AutomaticDecompression = DecompressionMethods.All
-                }
-                : new SocketsHttpHandler
-                {
-                    AutomaticDecompression = DecompressionMethods.All,
-                    // Can be replaced by a static HttpClient.DefaultCredentials after net60 everywhere.
-                    Credentials = CredentialCache.DefaultCredentials,
-                    ConnectCallback = onConnect,
-                }
+            new SocketsHttpHandler
+            {
+                AutomaticDecompression = DecompressionMethods.All,
+                DefaultProxyCredentials = RuntimeInfo.OS == RuntimeInfo.Platform.Windows ? CredentialCache.DefaultCredentials : null,
+                ConnectCallback = onConnect,
+            }
         )
         {
             // Timeout is controlled manually through cancellation tokens because
@@ -251,6 +240,19 @@ namespace osu.Framework.IO.Network
                 return null;
             }
         }
+
+        /// <summary>
+        /// The headers in the response received.
+        /// Can be <see langword="null"/> if the request hasn't yet <see cref="Completed"/>, or if it has been <see cref="Aborted"/>.
+        /// </summary>
+        [CanBeNull]
+        public HttpResponseHeaders ResponseHeaders => response?.Headers;
+
+        /// <summary>
+        /// The status code of the response.
+        /// Can be <see langword="null"/> if the request hasn't yet <see cref="Completed"/>, or if it has been <see cref="Aborted"/>.
+        /// </summary>
+        public HttpStatusCode? ResponseStatusCode => response?.StatusCode;
 
         protected virtual Stream CreateOutputStream() => new MemoryStream();
 

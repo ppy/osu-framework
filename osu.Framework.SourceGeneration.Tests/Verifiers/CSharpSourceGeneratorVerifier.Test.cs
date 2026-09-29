@@ -16,13 +16,20 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
     {
         public class Test : CSharpSourceGeneratorTest<EmptySourceGeneratorProvider, DefaultVerifier>
         {
+            private readonly OptimizationLevel optimizationLevel;
+
+            public Test(OptimizationLevel optimizationLevel = OptimizationLevel.Release)
+            {
+                this.optimizationLevel = optimizationLevel;
+            }
+
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.Default;
 
             protected override IEnumerable<Type> GetSourceGenerators() => [typeof(TSourceGenerator)];
 
             protected override CompilationOptions CreateCompilationOptions()
             {
-                return base.CreateCompilationOptions().WithOptimizationLevel(OptimizationLevel.Release);
+                return base.CreateCompilationOptions().WithOptimizationLevel(optimizationLevel);
             }
 
             protected override ParseOptions CreateParseOptions()

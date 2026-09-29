@@ -17,5 +17,11 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <remarks>https://developer.android.com/reference/android/view/Surface.html</remarks>
         IntPtr SurfaceHandle { get; }
+
+        /// <summary>
+        /// Set the desired display time for GLES rendering.
+        /// </summary>
+        /// <remarks>https://developer.android.com/reference/android/opengl/EGLExt</remarks>
+        void SetPresentationTime(long presentationTimeNanos);
     }
 }

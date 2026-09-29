@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         private VeldridTextureResources[]? resourceList;
 
         public VeldridVideoTexture(IVeldridRenderer renderer, int width, int height)
-            : base(renderer, width, height, true)
+            : base(renderer, width, height, manualMipmaps: true)
         {
         }
 
@@ -48,6 +48,7 @@ namespace osu.Framework.Graphics.Veldrid.Textures
 
                     resourceList[i] = new VeldridTextureResources
                     (
+                        Renderer,
                         Renderer.Factory.CreateTexture(TextureDescription.Texture2D((uint)width, (uint)height, 1, 1, PixelFormat.R8UNorm, Usages)),
                         Renderer.Factory.CreateSampler(new SamplerDescription
                         {
@@ -87,18 +88,15 @@ namespace osu.Framework.Graphics.Veldrid.Textures
         {
             base.Dispose(isDisposing);
 
-            Renderer.ScheduleDisposal(texture =>
+            memoryLease?.Dispose();
+
+            if (resourceList != null)
             {
-                texture.memoryLease?.Dispose();
+                foreach (var res in resourceList)
+                    res.Dispose();
+            }
 
-                if (texture.resourceList != null)
-                {
-                    foreach (var res in texture.resourceList)
-                        res.Dispose();
-                }
-
-                texture.resourceList = null;
-            }, this);
+            resourceList = null;
         }
 
         #endregion

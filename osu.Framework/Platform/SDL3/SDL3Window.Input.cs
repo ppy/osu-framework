@@ -51,7 +51,7 @@ namespace osu.Framework.Platform.SDL3
                     throw new InvalidOperationException($"Cannot set {nameof(RelativeMouseMode)} to true when the cursor is not hidden via {nameof(CursorState)}.");
 
                 relativeMouseMode = value;
-                ScheduleCommand(() => SDL_SetWindowRelativeMouseMode(SDLWindowHandle, value));
+                ScheduleCommand(() => SDL_SetWindowRelativeMouseMode(SDLWindowHandle, value).LogErrorIfFailed());
                 updateCursorConfinement();
             }
         }
@@ -69,7 +69,7 @@ namespace osu.Framework.Platform.SDL3
         /// </remarks>
         public bool MouseAutoCapture
         {
-            set => ScheduleCommand(() => SDL_SetHint(SDL_HINT_MOUSE_AUTO_CAPTURE, value ? "1"u8 : "0"u8));
+            set => ScheduleCommand(() => SDL_SetHint(SDL_HINT_MOUSE_AUTO_CAPTURE, value ? "1"u8 : "0"u8).LogErrorIfFailed());
         }
 
         /// <summary>
@@ -97,13 +97,15 @@ namespace osu.Framework.Platform.SDL3
 
         private readonly Dictionary<SDL_JoystickID, SDL3ControllerBindings> controllers = new Dictionary<SDL_JoystickID, SDL3ControllerBindings>();
 
+        private readonly Dictionary<SDL_PenID, TabletPenDeviceType> penDeviceTypes = new Dictionary<SDL_PenID, TabletPenDeviceType>();
+
         private void updateCursorVisibility(bool cursorVisible) =>
             ScheduleCommand(() =>
             {
                 if (cursorVisible)
-                    SDL_ShowCursor();
+                    SDL_ShowCursor().LogErrorIfFailed();
                 else
-                    SDL_HideCursor();
+                    SDL_HideCursor().LogErrorIfFailed();
             });
 
         /// <summary>
@@ -113,7 +115,7 @@ namespace osu.Framework.Platform.SDL3
         {
             bool confined = CursorState.HasFlagFast(CursorState.Confined);
 
-            ScheduleCommand(() => SDL_SetWindowMouseGrab(SDLWindowHandle, confined));
+            ScheduleCommand(() => SDL_SetWindowMouseGrab(SDLWindowHandle, confined).LogErrorIfFailed());
 
             // Don't use SDL_SetWindowMouseRect when relative mode is enabled, as relative mode already confines the OS cursor to the window.
             // This is fine for our use case, as UserInputManager will clamp the mouse position.
@@ -122,12 +124,12 @@ namespace osu.Framework.Platform.SDL3
                 ScheduleCommand(() =>
                 {
                     var rect = ((RectangleI)(CursorConfineRect / Scale)).ToSDLRect();
-                    SDL_SetWindowMouseRect(SDLWindowHandle, &rect);
+                    SDL_SetWindowMouseRect(SDLWindowHandle, &rect).LogErrorIfFailed();
                 });
             }
             else
             {
-                ScheduleCommand(() => SDL_SetWindowMouseRect(SDLWindowHandle, null));
+                ScheduleCommand(() => SDL_SetWindowMouseRect(SDLWindowHandle, null).LogErrorIfFailed());
             }
         }
 
@@ -192,25 +194,25 @@ namespace osu.Framework.Platform.SDL3
 
         public virtual void StartTextInput(TextInputProperties properties) => ScheduleCommand(() =>
         {
-            currentTextInputProperties ??= SDL_CreateProperties();
+            currentTextInputProperties ??= SDL_CreateProperties().ThrowIfFailed();
 
             var props = currentTextInputProperties.Value;
-            SDL_SetNumberProperty(props, SDL_PROP_TEXTINPUT_TYPE_NUMBER, (long)properties.Type.ToSDLTextInputType());
+            SDL_SetNumberProperty(props, SDL_PROP_TEXTINPUT_TYPE_NUMBER, (long)properties.Type.ToSDLTextInputType()).LogErrorIfFailed();
 
             if (!properties.AutoCapitalisation)
-                SDL_SetNumberProperty(props, SDL_PROP_TEXTINPUT_CAPITALIZATION_NUMBER, (long)SDL_Capitalization.SDL_CAPITALIZE_NONE);
+                SDL_SetNumberProperty(props, SDL_PROP_TEXTINPUT_CAPITALIZATION_NUMBER, (long)SDL_Capitalization.SDL_CAPITALIZE_NONE).LogErrorIfFailed();
             else
-                SDL_ClearProperty(props, SDL_PROP_TEXTINPUT_CAPITALIZATION_NUMBER);
+                SDL_ClearProperty(props, SDL_PROP_TEXTINPUT_CAPITALIZATION_NUMBER).LogErrorIfFailed();
 
             if (properties.Type == TextInputType.Code)
-                SDL_SetBooleanProperty(props, SDL_PROP_TEXTINPUT_AUTOCORRECT_BOOLEAN, false);
+                SDL_SetBooleanProperty(props, SDL_PROP_TEXTINPUT_AUTOCORRECT_BOOLEAN, false).LogErrorIfFailed();
             else
-                SDL_ClearProperty(props, SDL_PROP_TEXTINPUT_AUTOCORRECT_BOOLEAN);
+                SDL_ClearProperty(props, SDL_PROP_TEXTINPUT_AUTOCORRECT_BOOLEAN).LogErrorIfFailed();
 
-            SDL_StartTextInputWithProperties(SDLWindowHandle, props);
+            SDL_StartTextInputWithProperties(SDLWindowHandle, props).LogErrorIfFailed();
         });
 
-        public void StopTextInput() => ScheduleCommand(() => SDL_StopTextInput(SDLWindowHandle));
+        public void StopTextInput() => ScheduleCommand(() => SDL_StopTextInput(SDLWindowHandle).LogErrorIfFailed());
 
         /// <summary>
         /// Resets internal state of the platform-native IME.
@@ -218,19 +220,19 @@ namespace osu.Framework.Platform.SDL3
         /// </summary>
         public virtual void ResetIme() => ScheduleCommand(() =>
         {
-            SDL_StopTextInput(SDLWindowHandle);
+            SDL_StopTextInput(SDLWindowHandle).LogErrorIfFailed();
 
             if (currentTextInputProperties is SDL_PropertiesID props)
-                SDL_StartTextInputWithProperties(SDLWindowHandle, props);
+                SDL_StartTextInputWithProperties(SDLWindowHandle, props).LogErrorIfFailed();
             else
-                SDL_StartTextInput(SDLWindowHandle);
+                SDL_StartTextInput(SDLWindowHandle).LogErrorIfFailed();
         });
 
         public void SetTextInputRect(RectangleF rect) => ScheduleCommand(() =>
         {
             // TODO: SDL3 allows apps to set cursor position through the third parameter of SDL_SetTextInputArea.
             var sdlRect = ((RectangleI)(rect / Scale)).ToSDLRect();
-            SDL_SetTextInputArea(SDLWindowHandle, &sdlRect, 0);
+            SDL_SetTextInputArea(SDLWindowHandle, &sdlRect, 0).LogErrorIfFailed();
         });
 
         #region SDL Event Handling
@@ -322,8 +324,7 @@ namespace osu.Framework.Platform.SDL3
                     break;
 
                 case SDL_EventType.SDL_EVENT_GAMEPAD_REMOVED:
-                    SDL_CloseGamepad(controllers[evtCdevice.which].GamepadHandle);
-                    controllers.Remove(evtCdevice.which);
+                    removeJoystick(evtCdevice.which);
                     break;
 
                 case SDL_EventType.SDL_EVENT_GAMEPAD_REMAPPED:
@@ -359,13 +360,25 @@ namespace osu.Framework.Platform.SDL3
             if (controllers.ContainsKey(instanceID))
                 return;
 
-            SDL_Joystick* joystick = SDL_OpenJoystick(instanceID);
+            SDL_Joystick* joystick = SDL3Extensions.LogErrorIfFailed(SDL_OpenJoystick(instanceID));
 
             SDL_Gamepad* controller = null;
             if (SDL_IsGamepad(instanceID))
-                controller = SDL_OpenGamepad(instanceID);
+                controller = SDL3Extensions.LogErrorIfFailed(SDL_OpenGamepad(instanceID));
 
             controllers[instanceID] = new SDL3ControllerBindings(joystick, controller);
+        }
+
+        private void removeJoystick(SDL_JoystickID instanceID)
+        {
+            if (controllers.Remove(instanceID, out var controller))
+            {
+                if (controller.GamepadHandle != null)
+                    SDL_CloseGamepad(controller.GamepadHandle);
+
+                if (controller.JoystickHandle != null)
+                    SDL_CloseJoystick(controller.JoystickHandle);
+            }
         }
 
         /// <summary>
@@ -373,7 +386,7 @@ namespace osu.Framework.Platform.SDL3
         /// </summary>
         private void populateJoysticks()
         {
-            using var joysticks = SDL_GetJoysticks();
+            using var joysticks = SDL_GetJoysticks().LogErrorIfFailed();
 
             if (joysticks == null)
                 return;
@@ -393,12 +406,7 @@ namespace osu.Framework.Platform.SDL3
                     break;
 
                 case SDL_EventType.SDL_EVENT_JOYSTICK_REMOVED:
-                    // if the joystick is already closed, ignore it
-                    if (!controllers.ContainsKey(evtJdevice.which))
-                        break;
-
-                    SDL_CloseJoystick(controllers[evtJdevice.which].JoystickHandle);
-                    controllers.Remove(evtJdevice.which);
+                    removeJoystick(evtJdevice.which);
                     break;
             }
         }
@@ -531,16 +539,67 @@ namespace osu.Framework.Platform.SDL3
 
         private void handleKeymapChangedEvent() => KeymapChanged?.Invoke();
 
-        private static TabletPenDeviceType getPenType(SDL_PenID instanceID) => SDL_GetPenDeviceType(instanceID).ToTabletPenDeviceType();
+        private readonly bool penProximityWorkaround = RuntimeInfo.OS == RuntimeInfo.Platform.Android;
+
+        private bool tryGetPenDeviceType(SDL_PenID penID, out TabletPenDeviceType deviceType)
+        {
+            if (penDeviceTypes.TryGetValue(penID, out deviceType))
+                return true;
+
+            // Workaround for Android: after clicking with a pen, it can send motion and touch events even though we've received SDL_EVENT_PEN_PROXIMITY_OUT.
+            // It's either a bug in Android or SDL.
+            // Instead of ignoring those events, fetch the type and store it.
+            if (penProximityWorkaround)
+            {
+                var sdlType = SDL_GetPenDeviceType(penID);
+
+                if (sdlType == SDL_PenDeviceType.SDL_PEN_DEVICE_TYPE_INVALID)
+                    return false;
+
+                deviceType = sdlType.ToTabletPenDeviceType();
+                penDeviceTypes[penID] = deviceType;
+                return true;
+            }
+
+            return false;
+        }
+
+        private void handlePenProximityEvent(SDL_PenProximityEvent evtPenProximity)
+        {
+            if (evtPenProximity.type == SDL_EventType.SDL_EVENT_PEN_PROXIMITY_IN)
+            {
+                if (!penProximityWorkaround && penDeviceTypes.ContainsKey(evtPenProximity.which))
+                    Logger.Log($"Unexpected SDL_EVENT_PEN_PROXIMITY_IN for pen id={evtPenProximity.which}. Pen already in proximity.", level: LogLevel.Important);
+
+                // On windows, the call to SDL_GetPenDeviceType() can infrequently error out with "Invalid pen instance ID".
+                // This doesn't make sense, as we got the pen ID from an event, so it should be valid.
+                // Hard-code to `Unknown` pen type to avoid the crash. Currently, on windows, all pens are already reported as Unknown.
+                // See https://github.com/ppy/osu-framework/issues/6747 for more information.
+                penDeviceTypes[evtPenProximity.which] = RuntimeInfo.OS == RuntimeInfo.Platform.Windows
+                    ? TabletPenDeviceType.Unknown
+                    : SDL_GetPenDeviceType(evtPenProximity.which).ThrowIfFailed().ToTabletPenDeviceType();
+            }
+            else
+            {
+                if (!penDeviceTypes.Remove(evtPenProximity.which))
+                    Logger.Log($"Unexpected SDL_EVENT_PEN_PROXIMITY_OUT for pen id={evtPenProximity.which}. Pen not in proximity.", level: LogLevel.Important);
+            }
+        }
 
         private void handlePenMotionEvent(SDL_PenMotionEvent evtPenMotion)
         {
-            PenMove?.Invoke(getPenType(evtPenMotion.which), new Vector2(evtPenMotion.x, evtPenMotion.y) * Scale, evtPenMotion.pen_state.HasFlagFast(SDL_PenInputFlags.SDL_PEN_INPUT_DOWN));
+            if (tryGetPenDeviceType(evtPenMotion.which, out var type))
+                PenMove?.Invoke(type, new Vector2(evtPenMotion.x, evtPenMotion.y) * Scale, evtPenMotion.pen_state.HasFlagFast(SDL_PenInputFlags.SDL_PEN_INPUT_DOWN));
+            else
+                Logger.Log($"Unexpected SDL_EVENT_PEN_MOTION for pen id={evtPenMotion.which}. Pen not in proximity.", level: LogLevel.Important);
         }
 
         private void handlePenTouchEvent(SDL_PenTouchEvent evtPenTouch)
         {
-            PenTouch?.Invoke(getPenType(evtPenTouch.which), evtPenTouch.down, new Vector2(evtPenTouch.x, evtPenTouch.y) * Scale);
+            if (tryGetPenDeviceType(evtPenTouch.which, out var type))
+                PenTouch?.Invoke(type, evtPenTouch.down, new Vector2(evtPenTouch.x, evtPenTouch.y) * Scale);
+            else
+                Logger.Log($"Unexpected {evtPenTouch.type} for pen id={evtPenTouch.which}. Pen not in proximity.", level: LogLevel.Important);
         }
 
         /// <summary>

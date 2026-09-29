@@ -35,11 +35,11 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             flow.Add(new SpriteText
             {
-                Text = @"the quick red fox jumps over the lazy brown dog"
+                Text = @"the quick red fox jumps over the lazy brown 子犬🐶"
             });
             flow.Add(new SpriteText
             {
-                Text = @"THE QUICK RED FOX JUMPS OVER THE LAZY BROWN DOG"
+                Text = @"THE QUICK RED FOX JUMPS OVER THE LAZY BROWN 子犬🐶"
             });
             flow.Add(new SpriteText
             {
