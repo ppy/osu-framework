@@ -103,6 +103,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             t.RelativeSizeAxes = Axes.None;
             t.AutoSizeAxes = Axes.Both;
             t.Margin = new MarginPadding(0);
+            t.Padding = new MarginPadding(0);
         });
     }
 }
