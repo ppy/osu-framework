@@ -5,7 +5,7 @@
 // https://en.wikipedia.org/wiki/Ordered_dithering . Bitwise operations are expanded and simplified as
 // far as possible for shader code. The floating point offsets and scales are chosen such that the dither
 // values are in the exclusive range (-0.5 / 255.0, 0.5 / 255.0), meaning that already-quantized values,
-// such as ones coming frum RGBA8 textures, will not be affected at all.
+// such as ones coming from RGBA8 textures, will not be affected at all.
 
 lowp float dither2() {
 	ivec2 p = ivec2(gl_FragCoord.xy) & 3;
