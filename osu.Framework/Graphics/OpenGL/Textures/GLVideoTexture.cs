@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Platform;
@@ -15,7 +16,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public int[]? TextureIds { get; private set; }
 
         public GLVideoTexture(GLRenderer renderer, int width, int height)
-            : base(renderer, width, height, textureFormat: TextureComponentCount.R8, manualMipmaps: true)
+            : base(renderer, width, height, textureFormat: TexturePixelFormat.R8Float, manualMipmaps: true)
         {
         }
 

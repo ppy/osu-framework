@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering.Deferred.Events;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Veldrid;
 using osu.Framework.Graphics.Veldrid.Buffers;
 using osu.Framework.Graphics.Veldrid.Textures;
 using osuTK;
@@ -21,17 +22,21 @@ namespace osu.Framework.Graphics.Rendering.Deferred
         private readonly DeferredFrameBufferTexture nativeTexture;
         private readonly DeferredRenderer renderer;
         private readonly PixelFormat[]? formats;
-        private readonly PixelFormat textureFormat;
-        private readonly SamplerFilter filteringMode;
+        private readonly TexturePixelFormat textureFormat;
+        private readonly PixelFormat nativeTextureFormat;
+        private readonly TextureFilteringMode filteringMode;
+        private readonly SamplerFilter nativeFilteringMode;
 
         private Vector2I size = Vector2I.One;
 
-        public DeferredFrameBuffer(DeferredRenderer renderer, PixelFormat textureFormat, PixelFormat[]? formats, SamplerFilter filteringMode)
+        public DeferredFrameBuffer(DeferredRenderer renderer, TexturePixelFormat textureFormat, PixelFormat[]? formats, TextureFilteringMode filteringMode)
         {
             this.renderer = renderer;
             this.formats = formats;
             this.textureFormat = textureFormat;
+            nativeTextureFormat = textureFormat.ToPixelFormat();
             this.filteringMode = filteringMode;
+            nativeFilteringMode = filteringMode.ToSamplerFilter();
 
             nativeTexture = new DeferredFrameBufferTexture(this);
             Texture = renderer.CreateTexture(nativeTexture);
@@ -148,14 +153,14 @@ namespace osu.Framework.Graphics.Rendering.Deferred
                             (uint)resourceSize.Y,
                             1,
                             1,
-                            deferredFrameBuffer.textureFormat,
+                            deferredFrameBuffer.nativeTextureFormat,
                             TextureUsage.Sampled | TextureUsage.RenderTarget)),
                     deferredFrameBuffer.renderer.Factory.CreateSampler(
                         new SamplerDescription(
                             SamplerAddressMode.Clamp,
                             SamplerAddressMode.Clamp,
                             SamplerAddressMode.Clamp,
-                            deferredFrameBuffer.filteringMode,
+                            deferredFrameBuffer.nativeFilteringMode,
                             null,
                             0,
                             0,
@@ -239,6 +244,12 @@ namespace osu.Framework.Graphics.Rendering.Deferred
 
             int INativeTexture.GetByteSize()
                 => deferredFrameBuffer.size.X * deferredFrameBuffer.size.Y * 4;
+
+            TextureFilteringMode INativeTexture.FilteringMode
+                => deferredFrameBuffer.filteringMode;
+
+            TexturePixelFormat INativeTexture.PixelFormat
+                => deferredFrameBuffer.textureFormat;
 
             private bool isDisposed;
 
