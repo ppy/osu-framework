@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Linq;
 using Android.Content;
 using Android.Runtime;
 using Org.Libsdl.App;
@@ -78,22 +77,28 @@ namespace osu.Framework.Android
             if (window == null || display == null)
                 return;
 
-            var supportedModes = display.GetSupportedModes();
-
-            if (supportedModes == null || supportedModes.Length == 0)
-                return;
-
-            var preferredMode = supportedModes.OrderByDescending(mode => mode.RefreshRate)
-                                              .First();
-
             var attributes = window.Attributes;
 
             if (attributes == null)
                 return;
 
-            attributes.PreferredRefreshRate = enable ? preferredMode.RefreshRate : 0f;
+            float targetRefreshRate = 0f;
 
-            attributes.PreferredDisplayModeId = enable ? preferredMode.ModeId : 0;
+            if (enable)
+            {
+                var supportedModes = display.GetSupportedModes();
+
+                if (supportedModes != null && supportedModes.Length > 0)
+                {
+                    foreach (var mode in supportedModes)
+                    {
+                        if (mode.RefreshRate > targetRefreshRate)
+                            targetRefreshRate = mode.RefreshRate;
+                    }
+                }
+            }
+
+            attributes.PreferredRefreshRate = targetRefreshRate;
 
             if (OperatingSystem.IsAndroidVersionAtLeast(30))
                 window.SetPreferMinimalPostProcessing(enable);
