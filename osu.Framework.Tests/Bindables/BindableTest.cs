@@ -97,7 +97,7 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [TestCaseSource(nameof(getParsingConversionTests))]
-        public void TestParse([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type, object input, object output)
+        public void TestParse(Type type, object input, object output)
         {
             object bindable = Activator.CreateInstance(typeof(Bindable<>).MakeGenericType(type), type == typeof(string) ? "" : Activator.CreateInstance(type));
             Debug.Assert(bindable != null);
