@@ -27,7 +27,7 @@ namespace osu.Framework.iOS
 
         public IOSGameHost Host { get; private set; } = null!;
 
-        public virtual bool FinishedLaunching(UIApplication application, NSDictionary? launchOptions)
+        public virtual bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
         {
             mapLibraryNames();
 
@@ -60,10 +60,10 @@ namespace osu.Framework.iOS
             base.BuildMenu(builder);
 
             // Remove useless menus on iPadOS. This makes it almost match macOS, displaying only "Window" and "Help".
-            removeMenu(builder, UIMenuIdentifier.File.GetConstant());
-            removeMenu(builder, UIMenuIdentifier.Edit.GetConstant());
-            removeMenu(builder, UIMenuIdentifier.Format.GetConstant());
-            removeMenu(builder, UIMenuIdentifier.View.GetConstant());
+            builder.RemoveMenu(UIMenuIdentifier.File.GetConstant());
+            builder.RemoveMenu(UIMenuIdentifier.Edit.GetConstant());
+            builder.RemoveMenu(UIMenuIdentifier.Format.GetConstant());
+            builder.RemoveMenu(UIMenuIdentifier.View.GetConstant());
         }
 
         /// <summary>
@@ -71,11 +71,6 @@ namespace osu.Framework.iOS
         /// </summary>
         protected abstract Game CreateGame();
 
-        private static void removeMenu(IUIMenuBuilder builder, string? menuIdentifier)
-        {
-            if (menuIdentifier != null)
-                builder.RemoveMenu(menuIdentifier);
-        }
 
         private static void mapLibraryNames()
         {
