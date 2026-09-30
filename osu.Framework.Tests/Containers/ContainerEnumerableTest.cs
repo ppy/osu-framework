@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -26,7 +25,7 @@ namespace osu.Framework.Tests.Containers
         [TestCase(typeof(AudioContainer))]
         [TestCase(typeof(AudioContainer<Drawable>))]
         [TestCase(typeof(AudioContainer<Box>))]
-        public void TestAddingContainerAsEnumerableRangeThrows([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type containerType)
+        public void TestAddingContainerAsEnumerableRangeThrows(Type containerType)
         {
             Assert.Throws<InvalidOperationException>(() =>
             {
