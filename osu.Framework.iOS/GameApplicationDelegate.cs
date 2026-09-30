@@ -71,7 +71,6 @@ namespace osu.Framework.iOS
         /// </summary>
         protected abstract Game CreateGame();
 
-
         private static void mapLibraryNames()
         {
             NativeLibrary.SetDllImportResolver(typeof(Bass).Assembly, (_, assembly, path) => NativeLibrary.Load("@rpath/bass.framework/bass", assembly, path));
