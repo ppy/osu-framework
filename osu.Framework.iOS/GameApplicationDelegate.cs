@@ -17,7 +17,7 @@ namespace osu.Framework.iOS
     /// <summary>
     /// Base <see cref="UIApplicationDelegate"/> implementation for osu!framework applications.
     /// </summary>
-    public abstract class GameApplicationDelegate : UIResponder, IUIApplicationDelegate
+    public abstract class GameApplicationDelegate : UIResponder, IUIApplicationDelegate, IUISceneDelegate
     {
         internal event Action<string>? DragDrop;
 
@@ -27,7 +27,12 @@ namespace osu.Framework.iOS
 
         public IOSGameHost Host { get; private set; } = null!;
 
-        public virtual bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
+        public virtual bool FinishedLaunching(UIApplication application, NSDictionary? launchOptions)
+        {
+            return true;
+        }
+
+        public void WillConnect(UIScene scene, UISceneSession session, UISceneConnectionOptions connectionOptions)
         {
             mapLibraryNames();
 
@@ -41,9 +46,12 @@ namespace osu.Framework.iOS
             audioSession.SetCategory(AVAudioSessionCategory.SoloAmbient);
             audioSession.AddObserver(output_volume_observer, output_volume, NSKeyValueObservingOptions.New, 0);
 
+            // This method should never block. Luckily for us, `Host.Run` doesn't block for iOS hosts.
+            //
+            // We probably want to benefit from the newer `SDL.IMainCallbacks` eventually.
+            // See https://www.nuget.org/packages/SDL3-CS for a basic example (documentation does seem scarce).
             Host = new IOSGameHost();
             Host.Run(CreateGame());
-            return true;
         }
 
         public virtual bool OpenUrl(UIApplication app, NSUrl url, NSDictionary options)
