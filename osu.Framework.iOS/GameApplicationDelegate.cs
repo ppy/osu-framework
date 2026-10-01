@@ -68,10 +68,18 @@ namespace osu.Framework.iOS
             base.BuildMenu(builder);
 
             // Remove useless menus on iPadOS. This makes it almost match macOS, displaying only "Window" and "Help".
-            builder.RemoveMenu(UIMenuIdentifier.File.GetConstant());
-            builder.RemoveMenu(UIMenuIdentifier.Edit.GetConstant());
-            builder.RemoveMenu(UIMenuIdentifier.Format.GetConstant());
-            builder.RemoveMenu(UIMenuIdentifier.View.GetConstant());
+            attemptRemove(UIMenuIdentifier.File.GetConstant());
+            attemptRemove(UIMenuIdentifier.Edit.GetConstant());
+            attemptRemove(UIMenuIdentifier.Format.GetConstant());
+            attemptRemove(UIMenuIdentifier.View.GetConstant());
+
+            void attemptRemove(NSString? name)
+            {
+                if (name == null)
+                    return;
+
+                builder.RemoveMenu(name);
+            }
         }
 
         /// <summary>
