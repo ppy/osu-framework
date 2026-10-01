@@ -101,7 +101,7 @@ namespace osu.Framework.Input.Handlers
             if (message.Contains("Searching for tablet"))
                 return;
 
-            logger.Add($"[OTD] {message}", level, exception);
+            logger.Add($"[{this}] {message}", level, exception);
         }
 
         public override string ToString() => GetType().Name;
