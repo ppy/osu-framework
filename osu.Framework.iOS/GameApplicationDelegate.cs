@@ -47,9 +47,6 @@ namespace osu.Framework.iOS
             audioSession.AddObserver(output_volume_observer, output_volume, NSKeyValueObservingOptions.New, 0);
 
             // This method should never block. Luckily for us, `Host.Run` doesn't block for iOS hosts.
-            //
-            // We probably want to benefit from the newer `SDL.IMainCallbacks` eventually.
-            // See https://www.nuget.org/packages/SDL3-CS for a basic example (documentation does seem scarce).
             Host = new IOSGameHost();
             Host.Run(CreateGame());
         }
