@@ -9,9 +9,9 @@ namespace osu.Framework.Input.StateChanges.Events
     public class MousePositionChangeEvent : InputStateChangeEvent
     {
         /// <summary>
-        /// The last mouse position.
+        /// The last mouse position, or null if the event is invalidation of the mouse position state.
         /// </summary>
-        public readonly Vector2 LastPosition;
+        public readonly Vector2? LastPosition;
 
         public MousePositionChangeEvent(InputState state, IInput input, Vector2 lastPosition)
             : base(state, input)
