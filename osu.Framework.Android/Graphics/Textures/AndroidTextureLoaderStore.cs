@@ -3,10 +3,14 @@
 
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using Android.Graphics;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
+using osu.Framework.Logging;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using StbiSharp;
 
 namespace osu.Framework.Android.Graphics.Textures
 {
@@ -17,7 +21,37 @@ namespace osu.Framework.Android.Graphics.Textures
         {
         }
 
+        private static bool stbiNotFound;
+
         protected override Image<TPixel> ImageFromStream<TPixel>(Stream stream)
+        {
+            if (stbiNotFound)
+                return decodeStream<TPixel>(stream);
+
+            long initialPos = stream.Position;
+
+            try
+            {
+                using (var buffer = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<byte>((int)stream.Length))
+                {
+                    stream.ReadExactly(buffer.Memory.Span);
+
+                    using (var stbiImage = Stbi.LoadFromMemory(buffer.Memory.Span, 4))
+                        return Image.LoadPixelData(MemoryMarshal.Cast<byte, TPixel>(stbiImage.Data), stbiImage.Width, stbiImage.Height);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e is DllNotFoundException)
+                    stbiNotFound = true;
+
+                Logger.Log($"Texture could not be loaded via STB; falling back to BitmapFactory: {e.Message}");
+                stream.Position = initialPos;
+                return decodeStream<TPixel>(stream);
+            }
+        }
+
+        private Image<TPixel> decodeStream<TPixel>(Stream stream) where TPixel : unmanaged, IPixel<TPixel>
         {
             using (var bitmap = BitmapFactory.DecodeStream(stream))
             {
