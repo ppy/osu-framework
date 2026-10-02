@@ -17,7 +17,7 @@ namespace osu.Framework.iOS
     /// <summary>
     /// Base <see cref="UIApplicationDelegate"/> implementation for osu!framework applications.
     /// </summary>
-    public abstract class GameApplicationDelegate : UIResponder, IUIApplicationDelegate
+    public abstract class GameApplicationDelegate : UIResponder, IUIApplicationDelegate, IUISceneDelegate
     {
         internal event Action<string>? DragDrop;
 
@@ -27,7 +27,12 @@ namespace osu.Framework.iOS
 
         public IOSGameHost Host { get; private set; } = null!;
 
-        public virtual bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
+        public virtual bool FinishedLaunching(UIApplication application, NSDictionary? launchOptions)
+        {
+            return true;
+        }
+
+        public void WillConnect(UIScene scene, UISceneSession session, UISceneConnectionOptions connectionOptions)
         {
             mapLibraryNames();
 
@@ -41,9 +46,9 @@ namespace osu.Framework.iOS
             audioSession.SetCategory(AVAudioSessionCategory.SoloAmbient);
             audioSession.AddObserver(output_volume_observer, output_volume, NSKeyValueObservingOptions.New, 0);
 
+            // This method should never block. Luckily for us, `Host.Run` doesn't block for iOS hosts.
             Host = new IOSGameHost();
             Host.Run(CreateGame());
-            return true;
         }
 
         public virtual bool OpenUrl(UIApplication app, NSUrl url, NSDictionary options)
@@ -60,10 +65,18 @@ namespace osu.Framework.iOS
             base.BuildMenu(builder);
 
             // Remove useless menus on iPadOS. This makes it almost match macOS, displaying only "Window" and "Help".
-            builder.RemoveMenu(UIMenuIdentifier.File.GetConstant());
-            builder.RemoveMenu(UIMenuIdentifier.Edit.GetConstant());
-            builder.RemoveMenu(UIMenuIdentifier.Format.GetConstant());
-            builder.RemoveMenu(UIMenuIdentifier.View.GetConstant());
+            attemptRemove(UIMenuIdentifier.File.GetConstant());
+            attemptRemove(UIMenuIdentifier.Edit.GetConstant());
+            attemptRemove(UIMenuIdentifier.Format.GetConstant());
+            attemptRemove(UIMenuIdentifier.View.GetConstant());
+
+            void attemptRemove(NSString? name)
+            {
+                if (name == null)
+                    return;
+
+                builder.RemoveMenu(name);
+            }
         }
 
         /// <summary>
