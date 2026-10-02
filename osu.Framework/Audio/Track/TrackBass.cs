@@ -289,7 +289,7 @@ namespace osu.Framework.Audio.Track
 
             setLoopFlag(Looping);
 
-            return bassMixer.ChannelPlay(this);
+            return bassMixer.AddToBassMixAndPlay(this);
         }
 
         public override bool Looping
