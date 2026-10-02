@@ -1,12 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
+using System;
 using Markdig.Extensions.Tables;
 using Markdig.Syntax;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Layout;
 using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Containers.Markdown
@@ -23,13 +23,17 @@ namespace osu.Framework.Graphics.Containers.Markdown
         public float ContentHeight => textFlow.DrawHeight;
         public float MinimumContentWidth => textFlow.MinimumTextWidth;
 
-        private MarkdownTextFlowContainer textFlow;
+        public event Action? InvalidateParentTable;
+
+        private MarkdownTextFlowContainer textFlow = null!;
 
         private readonly TableCell cell;
         private readonly TableColumnDefinition definition;
 
+        private readonly LayoutValue cellLayout = new LayoutValue(Invalidation.DrawSize, InvalidationSource.Child);
+
         [Resolved]
-        private IMarkdownTextFlowComponent parentFlowComponent { get; set; }
+        private IMarkdownTextFlowComponent parentFlowComponent { get; set; } = null!;
 
         public MarkdownTableCell(TableCell cell, TableColumnDefinition definition)
         {
@@ -41,6 +45,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
             BorderThickness = 1.8f;
             BorderColour = Color4.White;
             Masking = true;
+
+            AddLayout(cellLayout);
         }
 
         [BackgroundDependencyLoader]
@@ -76,6 +82,17 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 default:
                     textFlow.TextAnchor = Anchor.CentreLeft;
                     break;
+            }
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            if (!cellLayout.IsValid)
+            {
+                InvalidateParentTable?.Invoke();
+                cellLayout.Validate();
             }
         }
 
