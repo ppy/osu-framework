@@ -1053,11 +1053,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        /// <summary>
-        /// Relative scaling factor around <see cref="OriginPosition"/>.
-        /// </summary>
-        protected virtual Vector2 DrawScale => Scale;
-
         private Vector2 shear = Vector2.Zero;
 
         /// <summary>
@@ -1339,7 +1334,7 @@ namespace osu.Framework.Graphics
         /// Determines whether this Drawable is present based on its <see cref="Alpha"/> value.
         /// Can be forced always on with <see cref="AlwaysPresent"/>.
         /// </summary>
-        public virtual bool IsPresent => AlwaysPresent || (Alpha > visibility_cutoff && DrawScale.X != 0 && DrawScale.Y != 0);
+        public virtual bool IsPresent => AlwaysPresent || (Alpha > visibility_cutoff && Scale.X != 0 && Scale.Y != 0);
 
         private bool alwaysPresent;
 
@@ -1605,12 +1600,11 @@ namespace osu.Framework.Graphics
             DrawInfo di = Parent?.DrawInfo ?? new DrawInfo(null);
 
             Vector2 pos = DrawPosition + AnchorPosition;
-            Vector2 drawScale = DrawScale;
 
             if (Parent != null)
                 pos += Parent.ChildOffset;
 
-            di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
+            di.ApplyTransform(pos, Scale, Rotation, Shear, OriginPosition);
 
             return di;
         }
