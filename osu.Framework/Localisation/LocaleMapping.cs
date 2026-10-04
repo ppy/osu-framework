@@ -18,7 +18,7 @@ namespace osu.Framework.Localisation
         /// <param name="store">The store to be used.</param>
         public LocaleMapping(ILocalisationStore store)
         {
-            Name = store.EffectiveCulture.Name;
+            Name = store.UICulture.Name;
             Storage = store;
         }
 
