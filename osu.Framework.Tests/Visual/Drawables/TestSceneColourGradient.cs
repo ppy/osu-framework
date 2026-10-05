@@ -15,7 +15,7 @@ namespace osu.Framework.Tests.Visual.Drawables
     public partial class TestSceneColourGradient : GridTestScene
     {
         public TestSceneColourGradient()
-            : base(4, 2)
+            : base(4, 1)
         {
             Color4 transparentBlack = new Color4(0, 0, 0, 0);
 
@@ -23,24 +23,10 @@ namespace osu.Framework.Tests.Visual.Drawables
             {
                 new ColourInfo
                 {
-                    TopLeft = Color4.Pink.ToLinear(),
-                    BottomLeft = Color4.Pink.ToLinear(),
-                    TopRight = Color4.SkyBlue.ToLinear(),
-                    BottomRight = Color4.SkyBlue.ToLinear(),
-                },
-                new ColourInfo
-                {
                     TopLeft = Color4.Pink,
                     BottomLeft = Color4.Pink,
                     TopRight = Color4.SkyBlue,
                     BottomRight = Color4.SkyBlue,
-                },
-                new ColourInfo
-                {
-                    TopLeft = Color4.White.ToLinear(),
-                    BottomLeft = Color4.White.ToLinear(),
-                    TopRight = Color4.Black.ToLinear(),
-                    BottomRight = Color4.Black.ToLinear(),
                 },
                 new ColourInfo
                 {
@@ -51,24 +37,10 @@ namespace osu.Framework.Tests.Visual.Drawables
                 },
                 new ColourInfo
                 {
-                    TopLeft = Color4.White.ToLinear(),
-                    BottomLeft = Color4.White.ToLinear(),
-                    TopRight = Color4.Transparent.ToLinear(),
-                    BottomRight = Color4.Transparent.ToLinear(),
-                },
-                new ColourInfo
-                {
                     TopLeft = Color4.White,
                     BottomLeft = Color4.White,
                     TopRight = Color4.Transparent,
                     BottomRight = Color4.Transparent,
-                },
-                new ColourInfo
-                {
-                    TopLeft = Color4.White.ToLinear(),
-                    BottomLeft = Color4.White.ToLinear(),
-                    TopRight = transparentBlack.ToLinear(),
-                    BottomRight = transparentBlack.ToLinear(),
                 },
                 new ColourInfo
                 {
@@ -81,14 +53,10 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             string[] labels =
             {
-                "Colours (Linear)",
-                "Colours (sRGB)",
-                "White to black (Linear brightness gradient)",
-                "White to black (sRGB brightness gradient)",
-                "White to transparent white (Linear brightness gradient)",
-                "White to transparent white (sRGB brightness gradient)",
-                "White to transparent black (Linear brightness gradient)",
-                "White to transparent black (sRGB brightness gradient)",
+                "Colours",
+                "White to black",
+                "White to transparent white",
+                "White to transparent black",
             };
 
             for (int i = 0; i < Rows * Cols; ++i)
