@@ -35,7 +35,7 @@
     <PackageReference Include="OpenTabletDriver" Version="0.6.7" />
     <PackageReference Include="JetBrains.Annotations" Version="2026.2.0" />
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.211" />
-    <PackageReference Include="StbiSharp" Version="1.2.2" />
+    <PackageReference Include="StbiSharp" Version="1.2.3" />
     <PackageReference Include="ppy.SDL2-CS" Version="1.0.741-alpha" />
     <PackageReference Include="ppy.SDL3-CS" Version="2026.1002.1" />
     <PackageReference Include="ppy.osu.Framework.SourceGeneration" Version="2025.1121.1" />

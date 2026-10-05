@@ -2,11 +2,16 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Runtime.InteropServices;
 using Android.Graphics;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
+using osu.Framework.Logging;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using StbiSharp;
 
 namespace osu.Framework.Android.Graphics.Textures
 {
@@ -17,7 +22,50 @@ namespace osu.Framework.Android.Graphics.Textures
         {
         }
 
+        private static bool stbiNotFound;
+
         protected override Image<TPixel> ImageFromStream<TPixel>(Stream stream)
+        {
+            if (loadUsingStbi(stream, out Image<TPixel>? loadPixelData))
+                return loadPixelData;
+
+            return decodeStream<TPixel>(stream);
+        }
+
+        private static bool loadUsingStbi<TPixel>(Stream stream, [NotNullWhen(true)] out Image<TPixel>? image) where TPixel : unmanaged, IPixel<TPixel>
+        {
+            image = null;
+            if (stbiNotFound)
+                return false;
+
+            long initialPos = stream.Position;
+
+            try
+            {
+                using (var buffer = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<byte>((int)stream.Length))
+                {
+                    stream.ReadExactly(buffer.Memory.Span);
+
+                    using (var stbiImage = Stbi.LoadFromMemory(buffer.Memory.Span, 4))
+                    {
+                        image = Image.LoadPixelData(MemoryMarshal.Cast<byte, TPixel>(stbiImage.Data), stbiImage.Width, stbiImage.Height);
+                        return true;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                if (e is DllNotFoundException)
+                    stbiNotFound = true;
+
+                Logger.Log($"Texture could not be loaded via STB; falling back to BitmapFactory: {e.Message}");
+                stream.Position = initialPos;
+            }
+
+            return false;
+        }
+
+        private Image<TPixel> decodeStream<TPixel>(Stream stream) where TPixel : unmanaged, IPixel<TPixel>
         {
             using (var bitmap = BitmapFactory.DecodeStream(stream))
             {
