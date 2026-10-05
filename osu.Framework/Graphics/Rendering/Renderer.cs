@@ -995,24 +995,24 @@ namespace osu.Framework.Graphics.Rendering
                     BorderColour = currentMaskingInfo.BorderThickness > 0
                         ? new Matrix4(
                             // TopLeft
-                            currentMaskingInfo.BorderColour.TopLeft.SRGB.R,
-                            currentMaskingInfo.BorderColour.TopLeft.SRGB.G,
-                            currentMaskingInfo.BorderColour.TopLeft.SRGB.B,
+                            currentMaskingInfo.BorderColour.TopLeft.SRGB.R * currentMaskingInfo.BorderColour.TopLeft.SRGB.A,
+                            currentMaskingInfo.BorderColour.TopLeft.SRGB.G * currentMaskingInfo.BorderColour.TopLeft.SRGB.A,
+                            currentMaskingInfo.BorderColour.TopLeft.SRGB.B * currentMaskingInfo.BorderColour.TopLeft.SRGB.A,
                             currentMaskingInfo.BorderColour.TopLeft.SRGB.A,
                             // BottomLeft
-                            currentMaskingInfo.BorderColour.BottomLeft.SRGB.R,
-                            currentMaskingInfo.BorderColour.BottomLeft.SRGB.G,
-                            currentMaskingInfo.BorderColour.BottomLeft.SRGB.B,
+                            currentMaskingInfo.BorderColour.BottomLeft.SRGB.R * currentMaskingInfo.BorderColour.BottomLeft.SRGB.A,
+                            currentMaskingInfo.BorderColour.BottomLeft.SRGB.G * currentMaskingInfo.BorderColour.BottomLeft.SRGB.A,
+                            currentMaskingInfo.BorderColour.BottomLeft.SRGB.B * currentMaskingInfo.BorderColour.BottomLeft.SRGB.A,
                             currentMaskingInfo.BorderColour.BottomLeft.SRGB.A,
                             // TopRight
-                            currentMaskingInfo.BorderColour.TopRight.SRGB.R,
-                            currentMaskingInfo.BorderColour.TopRight.SRGB.G,
-                            currentMaskingInfo.BorderColour.TopRight.SRGB.B,
+                            currentMaskingInfo.BorderColour.TopRight.SRGB.R * currentMaskingInfo.BorderColour.TopRight.SRGB.A,
+                            currentMaskingInfo.BorderColour.TopRight.SRGB.G * currentMaskingInfo.BorderColour.TopRight.SRGB.A,
+                            currentMaskingInfo.BorderColour.TopRight.SRGB.B * currentMaskingInfo.BorderColour.TopRight.SRGB.A,
                             currentMaskingInfo.BorderColour.TopRight.SRGB.A,
                             // BottomRight
-                            currentMaskingInfo.BorderColour.BottomRight.SRGB.R,
-                            currentMaskingInfo.BorderColour.BottomRight.SRGB.G,
-                            currentMaskingInfo.BorderColour.BottomRight.SRGB.B,
+                            currentMaskingInfo.BorderColour.BottomRight.SRGB.R * currentMaskingInfo.BorderColour.BottomRight.SRGB.A,
+                            currentMaskingInfo.BorderColour.BottomRight.SRGB.G * currentMaskingInfo.BorderColour.BottomRight.SRGB.A,
+                            currentMaskingInfo.BorderColour.BottomRight.SRGB.B * currentMaskingInfo.BorderColour.BottomRight.SRGB.A,
                             currentMaskingInfo.BorderColour.BottomRight.SRGB.A)
                         : globalUniformBuffer.Data.BorderColour,
                     MaskingBlendRange = currentMaskingInfo.BlendRange,

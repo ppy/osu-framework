@@ -61,23 +61,13 @@ lowp vec4 getBorderColour()
     return mix(top, bottom, relativeTexCoord.y);
 }
 
+// This function assumes texel has *premultiplied alpha*. Call premul() on the texel before passing it in if it doesn't.
 lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 {
-	// The rest of the shader assumes that textures have non-premultiplied alpha, so unmultiply. Only when the shader returns will we remultiply.
-	if (g_TextureHasPremultipliedAlpha)
-	{
-		// Technically, fully additive colours can not have their alpha unmultiplied, because it is zero (no opacity). Hence the following
-		// hack: set alpha to a small, but non-zero value, such that it permits unmultiplication and later remultiplication without visibly
-		// affecting blending.
-		texel.a = max(texel.a, 1.0 / 1024.0);
-		texel.rgb = texel.rgb / texel.a;
-	}
-
-	bool isEmissive = v_Colour.a < 0.0;
-	vec4 colour = abs(v_Colour);
+	lowp vec4 contentColour = v_Colour * texel;
 
 	if (!g_IsMasking && v_BlendRange == vec2(0.0))
-		return toEmissive(isEmissive, premul(colour * texel));
+		return contentColour;
 
 	highp float dist = distanceFromRoundedRect(vec2(0.0), g_CornerRadius);
 	lowp float alphaFactor = 1.0;
@@ -92,9 +82,7 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 		// container itself. We can then derive the alpha factor for smooth inner edge effect from that.
 		highp float innerBlendFactor = (g_InnerCornerRadius - g_MaskingBlendRange - innerDist) / v_BlendRange.x;
 		if (innerBlendFactor > 1.0)
-		{
 			return vec4(0.0);
-		}
 
 		// We exponentiate our factor to exactly counteract the later exponentiation by g_AlphaExponent for a smoother inner border.
 		alphaFactor = pow(min(1.0 - innerBlendFactor, 1.0), 1.0 / g_AlphaExponent);
@@ -119,19 +107,22 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 	highp float borderStart = 1.0 + fadeStart - g_BorderThickness;
 	lowp float colourWeight = min(borderStart - dist, 1.0);
 
-	lowp vec4 contentColour = colour * texel;
-
 	if (colourWeight == 1.0)
-		return toEmissive(isEmissive, premul(contentColour) * alphaFactor);
+		return contentColour * alphaFactor;
 
 	lowp vec4 borderColour = getBorderColour();
 
-	if (colourWeight <= 0.0)
-		return toEmissive(isEmissive, premul(borderColour) * alphaFactor);
+	// If content uses additive blending, force border/glow to also use additive blending. Using premultiplied alpha, additive blending/emissiveness
+	// is controlled by alpha being zero while the colour values remain non-zero.
+	if (v_Colour.a == 0.0)
+		borderColour.a = 0.0;
 
-	contentColour.a *= alphaFactor;
-	borderColour.a *= 1.0 - colourWeight;
-	return toEmissive(isEmissive, blend(premul(borderColour), premul(contentColour)));
+	if (colourWeight <= 0.0)
+		return borderColour * alphaFactor;
+
+	contentColour *= alphaFactor;
+	borderColour *= 1.0 - colourWeight;
+	return blend(borderColour, contentColour);
 }
 
 #endif
