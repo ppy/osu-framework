@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Rendering
         /// <summary>
         /// Schedules a new disposal action to be executed at a later point in time.
         /// This method can be called concurrently from multiple threads.
-        /// By default the disposal will run <see cref="IRenderer.MAX_DRAW_NODES"/> frames after enqueueing.
+        /// By default the disposal will run <see cref="IRenderer.MAX_GPU_QUEUED_FRAMES"/> frames after enqueueing.
         /// </summary>
         /// <param name="disposalAction">The disposal action to be executed.</param>
         /// <param name="target">The target.</param>
@@ -87,7 +87,7 @@ namespace osu.Framework.Graphics.Rendering
             {
                 action = disposeAction;
                 this.target = target;
-                RemainingFrameDelay = IRenderer.MAX_DRAW_NODES;
+                RemainingFrameDelay = IRenderer.MAX_GPU_QUEUED_FRAMES;
             }
 
             public void Run() => action(target);

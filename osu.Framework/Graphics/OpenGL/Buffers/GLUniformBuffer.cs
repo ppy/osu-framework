@@ -61,12 +61,12 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         ~GLUniformBuffer()
         {
-            renderer.ScheduleDisposal(b => b.Dispose(false), this);
+            renderer.ScheduleDisposal(static b => b.Dispose(false), this);
         }
 
         public void Dispose()
         {
-            renderer.ScheduleDisposal(v => v.Dispose(true), this);
+            renderer.ScheduleDisposal(static v => v.Dispose(true), this);
             GC.SuppressFinalize(this);
         }
 

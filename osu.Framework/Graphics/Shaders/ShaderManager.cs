@@ -135,7 +135,7 @@ namespace osu.Framework.Graphics.Shaders
 
                 store.Dispose();
 
-                renderer.ScheduleDisposal(s =>
+                renderer.ScheduleDisposal(static s =>
                 {
                     foreach (var shader in s.shaderCache.Values)
                         shader.Dispose();

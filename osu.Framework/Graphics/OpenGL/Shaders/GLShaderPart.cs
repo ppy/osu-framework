@@ -170,7 +170,7 @@ namespace osu.Framework.Graphics.OpenGL.Shaders
 
         ~GLShaderPart()
         {
-            renderer.ScheduleDisposal(s => s.Dispose(false), this);
+            renderer.ScheduleDisposal(static s => s.Dispose(false), this);
         }
 
         public void Dispose()

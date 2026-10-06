@@ -13,6 +13,8 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
     /// </summary>
     internal class VeldridIndexBuffer : IDisposable
     {
+        private readonly IVeldridRenderer renderer;
+
         public const IndexFormat FORMAT = IndexFormat.UInt16;
 
         public DeviceBuffer Buffer { get; }
@@ -23,8 +25,10 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
         /// </summary>
         public int VertexCapacity { get; }
 
-        public VeldridIndexBuffer(BasicPipeline pipeline, VeldridIndexLayout layout, int verticesCount)
+        public VeldridIndexBuffer(IVeldridRenderer renderer, BasicPipeline pipeline, VeldridIndexLayout layout, int verticesCount)
         {
+            this.renderer = renderer;
+
             Layout = layout;
 
             ushort[] indices = new ushort[TranslateToIndex(verticesCount)];
@@ -57,6 +61,33 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
             pipeline.Commands.UpdateBuffer(Buffer, 0, indices);
         }
 
+        #region Disposal
+
+        ~VeldridIndexBuffer()
+        {
+            Dispose(false);
+        }
+
+        private bool isDisposed;
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool isDisposing)
+        {
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
+
+            renderer.ScheduleDisposal(static t => t.Dispose(), this);
+        }
+
+        #endregion
+
         public int TranslateToIndex(int vertexIndex)
         {
             switch (Layout)
@@ -68,11 +99,6 @@ namespace osu.Framework.Graphics.Veldrid.Buffers
                 case VeldridIndexLayout.Quad:
                     return 3 * vertexIndex / 2;
             }
-        }
-
-        public void Dispose()
-        {
-            Buffer.Dispose();
         }
     }
 }
