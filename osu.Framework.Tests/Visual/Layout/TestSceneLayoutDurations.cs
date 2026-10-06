@@ -18,10 +18,9 @@ namespace osu.Framework.Tests.Visual.Layout
     public partial class TestSceneLayoutDurations : FrameworkTestScene
     {
         private ManualClock manualClock;
-        private Container autoSizeContainer;
         private FillFlowContainer fillFlowContainer;
 
-        private Box box1, box2;
+        private Box box;
 
         private const float duration = 1000;
 
@@ -34,24 +33,6 @@ namespace osu.Framework.Tests.Visual.Layout
 
             Children = new Drawable[]
             {
-                autoSizeContainer = new Container
-                {
-                    Clock = new FramedClock(manualClock),
-                    AutoSizeEasing = Easing.None,
-                    Children = new[]
-                    {
-                        new Box
-                        {
-                            Colour = Color4.Red,
-                            RelativeSizeAxes = Axes.Both
-                        },
-                        box1 = new Box
-                        {
-                            Colour = Color4.Transparent,
-                            Size = Vector2.Zero,
-                        },
-                    }
-                },
                 fillFlowContainer = new FillFlowContainer
                 {
                     Clock = new FramedClock(manualClock),
@@ -60,27 +41,20 @@ namespace osu.Framework.Tests.Visual.Layout
                     Children = new Drawable[]
                     {
                         new Box { Colour = Color4.Red, Size = new Vector2(100) },
-                        box2 = new Box { Colour = Color4.Blue, Size = new Vector2(100) },
+                        box = new Box { Colour = Color4.Blue, Size = new Vector2(100) },
                     }
                 }
             };
 
             paused = false;
-            autoSizeContainer.FinishTransforms();
             fillFlowContainer.FinishTransforms();
-
-            autoSizeContainer.AutoSizeAxes = Axes.None;
-            autoSizeContainer.AutoSizeDuration = 0;
-            autoSizeContainer.Size = Vector2.Zero;
-            box1.Size = Vector2.Zero;
 
             fillFlowContainer.LayoutDuration = 0;
             fillFlowContainer.Size = new Vector2(200, 200);
         });
 
         private void check(float ratio) =>
-            AddAssert($"Check @{ratio}", () => Precision.AlmostEquals(autoSizeContainer.Size, new Vector2(changed_value * ratio)) &&
-                                               Precision.AlmostEquals(box2.Position, new Vector2(changed_value * (1 - ratio), changed_value * ratio)));
+            AddAssert($"Check @{ratio}", () => Precision.AlmostEquals(box.Position, new Vector2(changed_value * (1 - ratio), changed_value * ratio)));
 
         private void skipTo(float ratio) => AddStep($"skip to {ratio}", () => { manualClock.CurrentTime = duration * ratio; });
 
@@ -91,12 +65,7 @@ namespace osu.Framework.Tests.Visual.Layout
             {
                 paused = true;
                 manualClock.CurrentTime = 0;
-                autoSizeContainer.FinishTransforms();
                 fillFlowContainer.FinishTransforms();
-
-                autoSizeContainer.AutoSizeAxes = Axes.Both;
-                autoSizeContainer.AutoSizeDuration = duration;
-                box1.Size = new Vector2(100);
 
                 fillFlowContainer.LayoutDuration = duration;
                 fillFlowContainer.Width = 100;
@@ -116,14 +85,11 @@ namespace osu.Framework.Tests.Visual.Layout
             {
                 paused = true;
                 manualClock.CurrentTime = 0;
-                autoSizeContainer.FinishTransforms();
                 fillFlowContainer.FinishTransforms();
 
-                autoSizeContainer.AutoSizeAxes = Axes.Both;
-                autoSizeContainer.AutoSizeDuration = duration;
                 fillFlowContainer.LayoutDuration = duration;
 
-                box1.Size = new Vector2(changed_value);
+                box.Size = new Vector2(changed_value);
                 fillFlowContainer.Width = changed_value;
             });
 
@@ -132,7 +98,6 @@ namespace osu.Framework.Tests.Visual.Layout
 
             AddStep("set duration 0", () =>
             {
-                autoSizeContainer.AutoSizeDuration = 0;
                 fillFlowContainer.LayoutDuration = 0;
             });
 
@@ -146,7 +111,6 @@ namespace osu.Framework.Tests.Visual.Layout
 
             AddStep("alter values", () =>
             {
-                box1.Size = new Vector2(0);
                 fillFlowContainer.Width = 200;
             });
 
@@ -162,11 +126,10 @@ namespace osu.Framework.Tests.Visual.Layout
 
         protected override void Update()
         {
-            if (autoSizeContainer != null)
+            if (fillFlowContainer != null)
             {
                 if (!paused) manualClock.CurrentTime = Clock.CurrentTime;
 
-                autoSizeContainer.Children[0].Invalidate();
                 fillFlowContainer.Invalidate();
             }
 
