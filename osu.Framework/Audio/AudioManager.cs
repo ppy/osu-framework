@@ -317,11 +317,17 @@ namespace osu.Framework.Audio
         /// </remarks>
         /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="SampleStore"/>.</param>
         /// <param name="mixer">The <see cref="AudioMixer"/> to use for samples created by this store. Defaults to the global <see cref="SampleMixer"/>.</param>
-        public ISampleStore GetSampleStore(IResourceStore<byte[]> store = null, AudioMixer mixer = null)
+        public ISampleStore GetSampleStore(IResourceStore<byte[]> store = null, AudioMixer mixer = null, bool applyGlobalSampleVolume = true)
         {
             if (store == null) return globalSampleStore.Value;
 
             SampleStore sm = new SampleStore(store, mixer ?? SampleMixer);
+
+            if (applyGlobalSampleVolume)
+                globalSampleStore.Value.AddItem(sm);
+            else
+                AddItem(sm);
+
             globalSampleStore.Value.AddItem(sm);
             return sm;
         }
