@@ -319,11 +319,11 @@ namespace osu.Framework.Audio
         /// </remarks>
         /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="SampleStore"/>.</param>
         /// <param name="mixer">The <see cref="AudioMixer"/> to use for samples created by this store. Defaults to the global <see cref="SampleMixer"/>.</param>
-        /// <param name="applyGlobalSampleVolume">Whether the game-wide effect volume adjustment should be applied to samples retrieved from the resultant store.</param>
-        public ISampleStore GetSampleStore(IResourceStore<byte[]> store = null, AudioMixer mixer = null, bool applyGlobalSampleVolume = true)
+        /// <param name="applyGlobalAdjustments">Whether the game-wide effect volume adjustment (and any other adjustments applied to <see cref="Samples"/>) should be applied to samples retrieved from the resultant store.</param>
+        public ISampleStore GetSampleStore(IResourceStore<byte[]> store = null, AudioMixer mixer = null, bool applyGlobalAdjustments = true)
         {
             SampleStore sm = new SampleStore(store ?? sampleByteStore, mixer ?? SampleMixer);
-            if (applyGlobalSampleVolume)
+            if (applyGlobalAdjustments)
                 globalSampleStore.Value.AddItem(sm);
             else
                 AddItem(sm);
