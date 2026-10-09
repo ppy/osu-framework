@@ -382,6 +382,30 @@ Here's some more text[^test2] with another footnote!
             });
         }
 
+        [Test]
+        public void TestImageInsideTable()
+        {
+            AddStep("Image Inside Table", () =>
+            {
+                markdownContainer.Text = @"| Avatar | Username |
+| --- | --- |
+| ![peppy!](https://a.ppy.sh/2) | peppy |";
+            });
+
+            AddUntilStep("Wait for image to load", () =>
+            {
+                var image = markdownContainer.ChildrenOfType<MarkdownImage>().First();
+                return image.DrawWidth > 0 && image.DrawHeight > 0;
+            });
+
+            AddAssert("Image is not overflow", () =>
+            {
+                var image = markdownContainer.ChildrenOfType<MarkdownImage>().First();
+                var tableCell = markdownContainer.ChildrenOfType<MarkdownTableCell>().ToArray()[2];
+                return image.DrawWidth <= tableCell.DrawWidth && image.DrawHeight <= tableCell.DrawHeight;
+            });
+        }
+
         private partial class TestMarkdownContainer : MarkdownContainer
         {
             public new string DocumentUrl
