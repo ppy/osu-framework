@@ -22,10 +22,13 @@ layout(location = 0) out vec4 o_Colour;
 void main(void)
 {
 	vec4 colour = texture(sampler2D(m_Texture, m_Sampler), v_TexCoord);
+
 	float gray = dot(colour.rgb, vec3(p_r, p_g, p_b));
 	vec3 blend = mix(colour.rgb, vec3(gray), g_Strength);
 
 	o_Colour = vec4(blend, colour.a);
+	if (!g_TextureHasPremultipliedAlpha)
+		o_Colour.rgb *= o_Colour.a;
 }
 
 #endif

@@ -99,6 +99,14 @@ namespace osu.Framework.Extensions.Color4Extensions
         }
 
         /// <summary>
+        /// Returns a version of the color with premultiplied alpha and additive property folded in.
+        /// </summary>
+        /// <param name="colour">Original colour</param>
+        /// <param name="additive">Whether blending should be additive.</param>
+        public static Color4 PremultiplyAlphaAndApplyAdditive(this Color4 colour, bool additive) =>
+            new Color4(colour.R * colour.A, colour.G * colour.A, colour.B * colour.A, additive ? 0 : colour.A);
+
+        /// <summary>
         /// Returns a lightened version of the colour.
         /// </summary>
         /// <param name="colour">Original colour</param>
