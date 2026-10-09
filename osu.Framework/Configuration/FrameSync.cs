@@ -26,5 +26,7 @@ namespace osu.Framework.Configuration
 
         [Description("Basically unlimited")]
         Unlimited,
+
+        Custom,
     }
 }
