@@ -645,6 +645,11 @@ namespace osu.Framework.Platform.SDL2
 
         internal virtual void SetIconFromImage(Image<Rgba32> iconImage) => setSDLIcon(iconImage);
 
+        public IDisposable CreateTrayIcon(TrayIcon icon)
+        {
+            throw new PlatformNotSupportedException();
+        }
+
         #region Events
 
         /// <summary>
