@@ -382,6 +382,24 @@ Here's some more text[^test2] with another footnote!
             });
         }
 
+        [Test]
+        public void TestNestedInline()
+        {
+            AddStep("Markdown nested inline", () =>
+            {
+                markdownContainer.Text = @"**[bold link text](https://osu.ppy.sh)**
+*[italic link text](https://osu.ppy.sh)*
+[**bold link text**](https://osu.ppy.sh)
+[*italic link text*](https://osu.ppy.sh)
+[**bold and _italic_ link text**](https://osu.ppy.sh)
+[`inline code link text`](https://osu.ppy.sh)
+**`bold inline code`**
+*`italic inline code`*
+_**https://osu.ppy.sh**_
+_**<https://osu.ppy.sh>**_";
+            });
+        }
+
         private partial class TestMarkdownContainer : MarkdownContainer
         {
             public new string DocumentUrl
@@ -414,16 +432,16 @@ Here's some more text[^test2] with another footnote!
 
                 public Action<AutolinkInline> AutoLinkAdded;
 
-                protected override void AddLinkText(string text, LinkInline linkInline)
+                protected override void AddLinkText(LinkInline linkInline)
                 {
-                    base.AddLinkText(text, linkInline);
+                    base.AddLinkText(linkInline);
 
                     UrlAdded?.Invoke(linkInline);
                 }
 
-                protected override void AddAutoLink(AutolinkInline autolinkInline)
+                protected override void AddAutoLink(AutolinkInline autolinkInline, bool bold = false, bool italic = false)
                 {
-                    base.AddAutoLink(autolinkInline);
+                    base.AddAutoLink(autolinkInline, bold, italic);
 
                     AutoLinkAdded?.Invoke(autolinkInline);
                 }
