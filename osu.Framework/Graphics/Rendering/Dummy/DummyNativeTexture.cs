@@ -11,6 +11,8 @@ namespace osu.Framework.Graphics.Rendering.Dummy
     internal class DummyNativeTexture : INativeTexture
     {
         public IRenderer Renderer { get; }
+        public TextureFilteringMode FilteringMode => TextureFilteringMode.Linear;
+        public TexturePixelFormat PixelFormat => TexturePixelFormat.R8G8B8A8Float;
 
         public string Identifier => string.Empty;
         public int MaxSize => 4096; // Sane default for testing purposes.

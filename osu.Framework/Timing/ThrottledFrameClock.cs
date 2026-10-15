@@ -49,23 +49,10 @@ namespace osu.Framework.Timing
 
             base.ProcessFrame();
 
-            if (Throttling)
-            {
-                if (MaximumUpdateHz > 0 && MaximumUpdateHz < double.MaxValue)
-                {
-                    throttle();
-                }
-                else
-                {
-                    // Even when running at unlimited frame-rate, we should call the scheduler
-                    // to give lower-priority background processes a chance to do work.
-                    TimeSlept = sleepAndUpdateCurrent(0);
-                }
-            }
+            if (Throttling && MaximumUpdateHz > 0 && MaximumUpdateHz < double.MaxValue)
+                throttle();
             else
-            {
                 TimeSlept = 0;
-            }
 
             Debug.Assert(TimeSlept <= ElapsedFrameTime);
         }

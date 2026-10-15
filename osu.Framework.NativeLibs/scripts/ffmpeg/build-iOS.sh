@@ -2,7 +2,7 @@
 set -eu
 
 # Minimum iOS version. This should be the same as in osu.Framework.iOS.csproj
-DEPLOYMENT_TARGET="13.4"
+DEPLOYMENT_TARGET="15.0"
 
 pushd "$(dirname "$0")" > /dev/null
 SCRIPT_PATH=$(pwd)

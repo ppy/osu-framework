@@ -2,7 +2,7 @@
 set -eu
 
 # See build-iOS.sh
-DEPLOYMENT_TARGET="13.4"
+DEPLOYMENT_TARGET="15.0"
 
 for arch in "arm64" "simulator-universal"; do
     pushd . > /dev/null

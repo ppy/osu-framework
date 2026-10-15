@@ -104,11 +104,11 @@ namespace osu.Framework.Graphics.Rendering.Deferred.Allocation
             switch (indexLayout)
             {
                 case VeldridIndexLayout.Linear:
-                    indexBuffer ??= new VeldridIndexBuffer(context.Graphics, VeldridIndexLayout.Linear, IRenderer.MAX_VERTICES);
+                    indexBuffer ??= new VeldridIndexBuffer(context.Renderer, context.Graphics, VeldridIndexLayout.Linear, IRenderer.MAX_VERTICES);
                     break;
 
                 case VeldridIndexLayout.Quad:
-                    indexBuffer ??= new VeldridIndexBuffer(context.Graphics, VeldridIndexLayout.Quad, IRenderer.MAX_QUADS * IRenderer.VERTICES_PER_QUAD);
+                    indexBuffer ??= new VeldridIndexBuffer(context.Renderer, context.Graphics, VeldridIndexLayout.Quad, IRenderer.MAX_QUADS * IRenderer.VERTICES_PER_QUAD);
                     break;
 
                 default:

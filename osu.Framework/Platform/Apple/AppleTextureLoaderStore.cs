@@ -21,7 +21,7 @@ namespace osu.Framework.Platform.Apple
         {
         }
 
-        protected unsafe Image<TPixel> ImageFromCGImage<TPixel>(CGImage cgImage)
+        internal static unsafe Image<TPixel> ImageFromCGImage<TPixel>(CGImage cgImage)
             where TPixel : unmanaged, IPixel<TPixel>
         {
             int width = (int)cgImage.Width;

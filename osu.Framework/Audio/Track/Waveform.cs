@@ -54,7 +54,8 @@ namespace osu.Framework.Audio.Track
         private const float high_max = 12000;
 
         private int channels;
-        private Point[] points = Array.Empty<Point>();
+
+        private Point[] computedPoints = Array.Empty<Point>();
 
         private const int sample_rate = 44100;
 
@@ -167,7 +168,7 @@ namespace osu.Framework.Audio.Track
                 }
                 finally
                 {
-                    points = pointArray ?? Array.Empty<Point>();
+                    computedPoints = pointArray ?? Array.Empty<Point>();
 
                     MySoundLibrary.mslDestroyAudioDecoder(&decoder);
                     MySoundLibrary.mslDestroyTrack(track);
@@ -212,7 +213,7 @@ namespace osu.Framework.Audio.Track
             {
                 var generatedPoints = new Point[pointCount];
 
-                float pointsPerGeneratedPoint = (float)points.Length / pointCount;
+                float pointsPerGeneratedPoint = (float)computedPoints.Length / pointCount;
 
                 // Determines at which width (relative to the resolution) our smoothing filter is truncated.
                 // Should not effect overall appearance much, except when the value is too small.
@@ -252,16 +253,16 @@ namespace osu.Framework.Audio.Track
 
                     for (int j = startIndex; j < endIndex; j++)
                     {
-                        if (j < 0 || j >= points.Length) continue;
+                        if (j < 0 || j >= computedPoints.Length) continue;
 
                         float weight = filter[Math.Abs(j - startIndex - kernelWidth)];
                         totalWeight += weight;
 
-                        point.AmplitudeLeft += weight * points[j].AmplitudeLeft;
-                        point.AmplitudeRight += weight * points[j].AmplitudeRight;
-                        point.LowIntensity += weight * points[j].LowIntensity;
-                        point.MidIntensity += weight * points[j].MidIntensity;
-                        point.HighIntensity += weight * points[j].HighIntensity;
+                        point.AmplitudeLeft += weight * computedPoints[j].AmplitudeLeft;
+                        point.AmplitudeRight += weight * computedPoints[j].AmplitudeRight;
+                        point.LowIntensity += weight * computedPoints[j].LowIntensity;
+                        point.MidIntensity += weight * computedPoints[j].MidIntensity;
+                        point.HighIntensity += weight * computedPoints[j].HighIntensity;
                     }
 
                     if (totalWeight > 0)
@@ -282,7 +283,7 @@ namespace osu.Framework.Audio.Track
 
                 return new Waveform(null)
                 {
-                    points = generatedPoints,
+                    computedPoints = generatedPoints,
                     channels = channels
                 };
             }, cancellationToken).ConfigureAwait(false);
@@ -299,7 +300,7 @@ namespace osu.Framework.Audio.Track
         public async Task<Point[]> GetPointsAsync()
         {
             await readTask.ConfigureAwait(false);
-            return points;
+            return computedPoints;
         }
 
         /// <summary>
@@ -335,7 +336,7 @@ namespace osu.Framework.Audio.Track
 
             cancelSource.Cancel();
             cancelSource.Dispose();
-            points = Array.Empty<Point>();
+            computedPoints = Array.Empty<Point>();
 
             // Try disposing the stream again in case the task was not started.
             data?.Dispose();

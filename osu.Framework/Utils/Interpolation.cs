@@ -387,7 +387,7 @@ namespace osu.Framework.Utils
                     val1.X + t * (val2.X - val1.X),
                     val1.Y + t * (val2.Y - val1.Y),
                     val1.Width + t * (val2.Width - val1.Width),
-                    val1.Height + t * (val2.X - val1.Height));
+                    val1.Height + t * (val2.Height - val1.Height));
             }
         }
 

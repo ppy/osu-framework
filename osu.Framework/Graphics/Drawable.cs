@@ -106,7 +106,7 @@ namespace osu.Framework.Graphics
             OnDispose?.Invoke();
             OnDispose = null;
 
-            renderer?.ScheduleDisposal(d =>
+            renderer?.ScheduleDisposal(static d =>
             {
                 for (int i = 0; i < d.drawNodes.Length; i++)
                     d.drawNodes[i]?.Dispose();

@@ -109,7 +109,7 @@ namespace osu.Framework.Graphics.Performance
 
             foreach (var pair in frame.CollectedTimes)
             {
-                if (pair.Key != PerformanceCollectionType.Sleep)
+                if (pair.Key != PerformanceCollectionType.Sleep && pair.Key != PerformanceCollectionType.SwapBuffer)
                     elapsedSinceLastUpdate += pair.Value;
             }
 

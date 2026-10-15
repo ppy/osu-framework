@@ -21,6 +21,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     {
         public float ContentWidth => textFlow.TotalTextWidth;
         public float ContentHeight => textFlow.DrawHeight;
+        public float MinimumContentWidth => textFlow.MinimumTextWidth;
 
         private MarkdownTextFlowContainer textFlow;
 

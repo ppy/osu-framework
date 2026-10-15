@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Rendering;
@@ -110,9 +111,9 @@ namespace osu.Framework.IO.Stores
 
                 try
                 {
-                    Logger.Log($"Loading Font {store.FontName}...", level: LogLevel.Debug);
+                    var sw = Stopwatch.StartNew();
                     await store.LoadFontAsync().ConfigureAwait(false);
-                    Logger.Log($"Loaded Font {store.FontName}!", level: LogLevel.Debug);
+                    Logger.Log($"Loaded font {store.FontName} ({sw.ElapsedMilliseconds} ms)", level: LogLevel.Debug);
                 }
                 catch
                 {

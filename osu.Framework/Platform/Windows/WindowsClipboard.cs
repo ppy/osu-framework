@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using osu.Framework.Graphics.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Bmp;
 
@@ -84,7 +85,7 @@ namespace osu.Framework.Platform.Windows
                 bmp_header_field.CopyTo(buff, 0);
                 bytes.CopyTo(buff, bitmap_file_header_length);
 
-                return Image.Load<TPixel>(buff);
+                return Image.Load<TPixel>(TextureUpload.DECODER_OPTIONS, buff);
             });
         }
 

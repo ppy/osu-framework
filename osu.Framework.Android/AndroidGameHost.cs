@@ -26,6 +26,8 @@ namespace osu.Framework.Android
     {
         private readonly AndroidGameActivity activity;
 
+        private readonly ChoreographerVsyncWaiter vsyncWaiter = new ChoreographerVsyncWaiter();
+
         public AndroidGameHost(AndroidGameActivity activity)
             : base(string.Empty)
         {
@@ -46,6 +48,26 @@ namespace osu.Framework.Android
         {
             if (AndroidGameActivity.Surface.IsSurfaceReady)
                 base.DrawFrame();
+        }
+
+        protected override void Swap()
+        {
+            if (Window.GraphicsSurface.Type == GraphicsSurfaceType.OpenGL
+                && Window.GraphicsSurface is IAndroidGraphicsSurface androidGraphics)
+            {
+                long nowNanoTime = TimeProvider.System.GetTimestamp();
+
+                androidGraphics.SetPresentationTime(nowNanoTime);
+
+                base.Swap();
+
+                if (Renderer.VerticalSync)
+                    vsyncWaiter.WaitForVsync();
+            }
+            else
+            {
+                base.Swap();
+            }
         }
 
         public override bool CanExit => false;
@@ -172,6 +194,16 @@ namespace osu.Framework.Android
         public override bool SuspendToBackground()
         {
             return activity.MoveTaskToBack(true);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                vsyncWaiter.Dispose();
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

@@ -133,6 +133,8 @@ namespace osu.Framework.Audio
         private protected readonly Lazy<TrackStore> AudioGlobalTrackStore;
         private protected readonly Lazy<SampleStore> AudioGlobalSampleStore;
 
+        private protected readonly ResourceStore<byte[]> AudioSampleByteStore;
+
         /// <summary>
         /// Constructs an AudioStore given a track resource store, and a sample resource store.
         /// </summary>
@@ -145,6 +147,7 @@ namespace osu.Framework.Audio
             Prepare();
 
             CurrentAudioThread = audioThread;
+            AudioSampleByteStore = sampleStore;
 
             CurrentAudioThread.RegisterManager(this);
 
@@ -247,7 +250,6 @@ namespace osu.Framework.Audio
 
         /// <summary>
         /// Obtains the <see cref="SampleStore"/> corresponding to a given resource store.
-        /// Returns the global <see cref="SampleStore"/> if no resource store is passed.
         /// </summary>
         /// <remarks>
         /// By default, <c>.wav</c> and <c>.ogg</c> extensions will be automatically appended to lookups on the returned store
@@ -256,12 +258,15 @@ namespace osu.Framework.Audio
         /// </remarks>
         /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="SampleStore"/>.</param>
         /// <param name="mixer">The <see cref="AudioMixer"/> to use for samples created by this store. Defaults to the global <see cref="SampleMixer"/>.</param>
-        public ISampleStore GetSampleStore(IResourceStore<byte[]> store = null, AudioMixer mixer = null)
+        /// <param name="applyGlobalAdjustments">Whether the game-wide effect volume adjustment (and any other adjustments applied to <see cref="Samples"/>) should be applied to samples retrieved from the resultant store.</param>
+        public ISampleStore GetSampleStore(IResourceStore<byte[]> store = null, AudioMixer mixer = null, bool applyGlobalAdjustments = true)
         {
-            if (store == null) return AudioGlobalSampleStore.Value;
+            SampleStore sm = new SampleStore(store ?? AudioSampleByteStore, mixer ?? SampleMixer, GetSampleFactory);
+            if (applyGlobalAdjustments)
+                AudioGlobalSampleStore.Value.AddItem(sm);
+            else
+                AddItem(sm);
 
-            SampleStore sm = new SampleStore(store, mixer ?? SampleMixer, GetSampleFactory);
-            AudioGlobalSampleStore.Value.AddItem(sm);
             return sm;
         }
 
