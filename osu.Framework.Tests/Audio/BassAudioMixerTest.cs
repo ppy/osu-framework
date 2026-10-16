@@ -4,10 +4,12 @@
 #nullable disable
 
 using System;
+using System.Reflection;
 using System.Threading;
 using ManagedBass;
 using ManagedBass.Mix;
 using NUnit.Framework;
+using osu.Framework.Audio;
 using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
@@ -264,6 +266,60 @@ namespace osu.Framework.Tests.Audio
             bass.Update();
 
             Assert.That(secondMixer.ChannelIsActive(track), Is.Not.EqualTo(PlaybackState.Playing));
+        }
+
+        /// Tests a race condition where mixer.Add(track) is called before createMixer.
+        /// Artificially forces the wrong order by manually modifying AudioComponent.pendingActions.
+        /// This actually happens quite frequently when initializing TestSceneAudioMixer.cs.
+        [Test]
+        public void TestRaceConditionAddBeforeCreateMixer()
+        {
+            int trackHandle = getHandle();
+            Assert.That(trackHandle, Is.Not.Zero, "Track should have a BASS handle");
+
+            // Create a mixer but don't register it with the component manager yet
+            var newMixer = new BassAudioMixer(null, bass.Mixer, "Race test mixer");
+            bass.Add(newMixer);
+
+            var enqueueActionMethod = typeof(AudioComponent).GetMethod("EnqueueAction",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            var pendingActionsField = typeof(AudioComponent).GetField("PendingActions",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            var createMixerMethod = typeof(BassAudioMixer).GetMethod("createMixer",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+
+            Assert.That(enqueueActionMethod, Is.Not.Null, "Should be able to find EnqueueAction method");
+            Assert.That(pendingActionsField, Is.Not.Null, "Should be able to find PendingActions field");
+            Assert.That(createMixerMethod, Is.Not.Null, "Should be able to find createMixer method");
+
+            // Clear the pending action queue to remove the auto-queued createMixer from constructor
+            object pendingActions = pendingActionsField!.GetValue(newMixer);
+            Assert.That(pendingActions, Is.Not.Null, "PendingActions should not be null");
+            object newQueue = Activator.CreateInstance(pendingActions.GetType());
+            pendingActionsField.SetValue(newMixer, newQueue);
+
+            // Reconstruct the pending action queue to simulate what happens when mixer.Add(track) is called before the mixer is initialized
+            // 1. track channel added to the BassAudioMixer.pendingChannels, since mixer handle is still null
+            enqueueActionMethod.Invoke(newMixer,
+            [
+                new Action(() =>
+                {
+                    newMixer.Add(track);
+                })
+            ]);
+            // 2. create mixer is called, after which mixer handle will be valid
+            enqueueActionMethod.Invoke(newMixer,
+            [
+                new Action(() => createMixerMethod!.Invoke(newMixer, null))
+            ]);
+            // 3. track channel salvaged from pending channels and added to the mixer by BassAudioMixer.UpdateState
+            bass.Update();
+
+            Assert.That(newMixer.Handle, Is.Not.Zero, "Mixer should be initialized");
+
+            // Now the track should be in the new mixer
+            Assert.That(BassMix.ChannelGetMixer(trackHandle), Is.EqualTo(newMixer.Handle),
+                "Track should be successfully added to the mixer even when Add was called before createMixer");
         }
 
         private int getHandle() => ((IBassAudioChannel)track).Handle;

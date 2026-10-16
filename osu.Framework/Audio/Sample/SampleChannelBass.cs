@@ -183,7 +183,7 @@ namespace osu.Framework.Audio.Sample
             if (relativeFrequencyHandler.IsFrequencyZero)
                 return true;
 
-            return bassMixer.ChannelPlay(this);
+            return bassMixer.AddToBassMixAndPlay(this);
         }
 
         private void stopInternal()
