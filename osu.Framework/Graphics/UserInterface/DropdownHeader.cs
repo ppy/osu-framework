@@ -30,6 +30,22 @@ namespace osu.Framework.Graphics.UserInterface
             set => SearchBar.AlwaysDisplayOnFocus = value;
         }
 
+        /// <summary>
+        /// Whether parent dropdown <see cref="Dropdown{T}"/> should open/close on OnMouseDown event.
+        ///
+        /// If not explicitly set, the value will be resolved to <c>true</c>
+        /// if <see cref="IScrollContainer"/> is <b>not</b> found in the parent tree.
+        /// </summary>
+        public bool ToggleOnMouseDown
+        {
+            get => toggleOnMouseDownOverride ?? resolvedToggleOnMouseDown;
+            set => toggleOnMouseDownOverride = value;
+        }
+
+        private bool? toggleOnMouseDownOverride;
+
+        private bool resolvedToggleOnMouseDown;
+
         protected internal DropdownSearchBar SearchBar { get; }
 
         public Bindable<string> SearchTerm => SearchBar.SearchTerm;
@@ -95,14 +111,14 @@ namespace osu.Framework.Graphics.UserInterface
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
                     RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y
+                    AutoSizeAxes = Axes.Y,
                 },
                 SearchBar = CreateSearchBar(),
-                new ClickHandler
+                new UIEventHandler
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Click = onClick
-                }
+                    UIEventHandle = handleUIEvent
+                },
             };
         }
 
@@ -111,6 +127,10 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
+            // Make dropdown toggleable on MouseDown event when inside a non-scrollable container
+            if (toggleOnMouseDownOverride == null)
+                resolvedToggleOnMouseDown = this.FindClosestParent<IScrollContainer>() == null;
 
             Enabled.BindTo(dropdown.Enabled);
             Enabled.BindValueChanged(_ => updateState(), true);
@@ -135,17 +155,68 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Handles clicks on the header to open/close the menu.
+        /// Handles clicks and mouse events on the header to open/close the menu.
         /// </summary>
-        private bool onClick(ClickEvent e)
+        private bool handleUIEvent(UIEvent e)
         {
             // Allow input to fall through to the search bar (and its contained textbox) if there's any search text.
             if (SearchBar.State.Value == Visibility.Visible && !string.IsNullOrEmpty(SearchTerm.Value))
                 return false;
 
+            switch (e)
+            {
+                case MouseDownEvent mouseDown:
+                    return onMouseDown(mouseDown);
+
+                case ClickEvent click:
+                    return onClick(click);
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Handles clicks on the header to open/close the menu.
+        /// </summary>
+        private bool onClick(ClickEvent e)
+        {
+            // No need to handle dropdown as with this flag it has already been toggled by `onMouseDown` handler
+            if (ToggleOnMouseDown)
+            {
+                // UIEventHandler grows in the parent container, so there might be a situation
+                // when dropdown is opened by clicking outside `SearchBar.textBox`,
+                // which will lose focus and, therefore, close dropdown.
+                // To prevent that, restore focus manually.
+                if (dropdown.MenuState == MenuState.Open)
+                    SearchBar.ObtainFocus();
+
+                return false;
+            }
+
             // Otherwise, the header acts as a button to show/hide the menu.
             dropdown.ToggleMenu();
             return true;
+        }
+
+        /// <summary>
+        /// Handles mouse presses on the header to open/close the menu.
+        /// </summary>
+        private bool onMouseDown(MouseDownEvent e)
+        {
+            // Only proceed with the flag
+            if (!ToggleOnMouseDown)
+                return false;
+
+            // Only allow dropdown to toggle when pressing primary mouse button
+            if (e.Button != MouseButton.Left)
+                return false;
+
+            // Otherwise, the header acts as a button to show/hide the menu.
+            dropdown.ToggleMenu();
+
+            // And importantly, when the menu is closed as a result of the above toggle, block the search bar from receiving input.
+            return dropdown.MenuState == MenuState.Closed;
         }
 
         public override bool HandleNonPositionalInput => IsHovered;
@@ -204,10 +275,11 @@ namespace osu.Framework.Graphics.UserInterface
             LastVisible
         }
 
-        private partial class ClickHandler : Drawable
+        private partial class UIEventHandler : Drawable
         {
-            public required Func<ClickEvent, bool> Click { get; init; }
-            protected override bool OnClick(ClickEvent e) => Click(e);
+            public required Func<UIEvent, bool> UIEventHandle { get; init; }
+
+            protected override bool Handle(UIEvent e) => UIEventHandle(e);
         }
     }
 }
