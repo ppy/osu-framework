@@ -1,6 +1,8 @@
 ﻿#ifndef MASKING_H
 #define MASKING_H
 
+#include "sh_Dither.h"
+
 layout(location = 0) in highp vec2 v_MaskingPosition;
 layout(location = 1) in lowp vec4 v_Colour;
 
@@ -65,7 +67,7 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 {
 	if (!g_IsMasking && v_BlendRange == vec2(0.0))
 	{
-		return v_Colour * texel;
+		return dither(v_Colour * texel);
 	}
 
 	highp float dist = distanceFromRoundedRect(vec2(0.0), g_CornerRadius);
@@ -116,16 +118,16 @@ lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 	lowp vec4 contentColour = v_Colour * texel;
 
 	if (colourWeight == 1.0)
-		return vec4(contentColour.rgb, contentColour.a * alphaFactor);
+		return dither(vec4(contentColour.rgb, contentColour.a * alphaFactor));
 
 	lowp vec4 borderColour = getBorderColour();
 
 	if (colourWeight <= 0.0)
-		return vec4(borderColour.rgb, borderColour.a * alphaFactor);
+		return dither(vec4(borderColour.rgb, borderColour.a * alphaFactor));
 
 	contentColour.a *= alphaFactor;
 	borderColour.a *= 1.0 - colourWeight;
-	return blend(borderColour, contentColour);
+	return dither(blend(borderColour, contentColour));
 }
 
 #endif
