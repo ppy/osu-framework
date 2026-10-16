@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -63,6 +64,12 @@ namespace osu.Framework.Tests.Visual.Audio
             {
                 attemptedLookups.Add(name);
                 return base.Get(name);
+            }
+
+            public override Stream GetStream(string name)
+            {
+                attemptedLookups.Add(name);
+                return base.GetStream(name);
             }
 
             public override Task<byte[]> GetAsync(string name, CancellationToken cancellationToken = default)
