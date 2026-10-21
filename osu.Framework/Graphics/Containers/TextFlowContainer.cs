@@ -194,7 +194,6 @@ namespace osu.Framework.Graphics.Containers
             base.LoadAsyncComplete();
 
             localisationParameters.Value = Localisation.CurrentParameters.Value;
-            RecreateAllParts();
         }
 
         protected override void LoadComplete()
@@ -203,6 +202,7 @@ namespace osu.Framework.Graphics.Containers
 
             localisationParameters.BindValueChanged(_ => partsCache.Invalidate());
             ((IBindable<LocalisationParameters>)localisationParameters).BindTo(Localisation.CurrentParameters);
+            RecreateAllParts();
         }
 
         protected override void Update()
@@ -287,6 +287,26 @@ namespace osu.Framework.Graphics.Containers
 
         protected internal virtual SpriteText CreateSpriteText() => new SpriteText();
 
+        /// <summary>
+        /// Checks whether the width of a <see cref="SpriteText"/> would fit within the bounds of this TextFlowContainer when drawn.
+        /// </summary>
+        /// <param name="spriteText">The <see cref="SpriteText"/> to check.</param>
+        /// <returns>Whether the text fits within the bounds of this TextFlowContainer.</returns>
+        /// <exception cref="InvalidOperationException">If this container's <see cref="RelativeSizeAxes"/> == <see cref="Axes.X"/> and/or it hasn't loaded (Parent == null)</exception>
+        /// <remarks>The <paramref name="spriteText"/> provided will be pre-loaded by being passed into <see cref="CompositeDrawable.LoadComponent{TLoadable}(TLoadable)"/> to get its width.</remarks>
+        public bool TextFitsInFlow(SpriteText spriteText)
+        {
+            if (AutoSizeAxes.HasFlagFast(Axes.X))
+                return true;
+            if (Parent == null)
+                throw new InvalidOperationException($"Cannot invoke {nameof(TextFitsInFlow)} before this {nameof(TextFlowContainer)} has a parent. Consider calling after this container has loaded.");
+            if (Flow.LoadState < LoadState.Ready)
+                throw new InvalidOperationException($"Cannot invoke {nameof(TextFitsInFlow)} before this container's {nameof(InnerFlow)} is ready. Consider calling after this container has loaded.");
+
+            Flow.LoadSpriteTextComponent(spriteText);
+            return spriteText.Width <= Flow.ChildSize.X;
+        }
+
         internal void ApplyDefaultCreationParameters(SpriteText spriteText) => defaultCreationParameters?.Invoke(spriteText);
 
         public void Clear(bool disposeChildren = true)
@@ -347,6 +367,11 @@ namespace osu.Framework.Graphics.Containers
 
         protected partial class InnerFlow : FillFlowContainer
         {
+            protected internal void LoadSpriteTextComponent(SpriteText item)
+            {
+                LoadComponent(item);
+            }
+
             private float firstLineIndent;
 
             /// <summary>
