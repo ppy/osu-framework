@@ -18,11 +18,15 @@ namespace osu.Framework.Audio.Track
     {
         private readonly IResourceStore<byte[]> store;
         private readonly AudioMixer mixer;
+        private readonly GetNewTrackDelegate getNewTrackDelegate;
 
-        internal TrackStore([NotNull] IResourceStore<byte[]> store, [NotNull] AudioMixer mixer)
+        public delegate Track GetNewTrackDelegate(Stream dataStream, string name);
+
+        internal TrackStore([NotNull] IResourceStore<byte[]> store, [NotNull] AudioMixer mixer, [NotNull] GetNewTrackDelegate getNewTrackDelegate)
         {
             this.store = store;
             this.mixer = mixer;
+            this.getNewTrackDelegate = getNewTrackDelegate;
 
             (store as ResourceStore<byte[]>)?.AddExtension(@"mp3");
         }
@@ -47,12 +51,12 @@ namespace osu.Framework.Audio.Track
             if (dataStream == null)
                 return null;
 
-            TrackBass trackBass = new TrackBass(dataStream, name);
+            Track track = getNewTrackDelegate(dataStream, name);
 
-            mixer.Add(trackBass);
-            AddItem(trackBass);
+            mixer.Add(track);
+            AddItem(track);
 
-            return trackBass;
+            return track;
         }
 
         public Task<Track> GetAsync(string name, CancellationToken cancellationToken = default) =>

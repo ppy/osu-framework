@@ -16,9 +16,11 @@ namespace osu.Framework.Audio.Callbacks
     {
         private ObjectHandle<BassCallback> handle;
 
+        protected virtual bool CreateHandle => !RuntimeFeature.IsDynamicCodeCompiled;
+
         protected BassCallback()
         {
-            if (!RuntimeFeature.IsDynamicCodeSupported)
+            if (CreateHandle)
                 handle = new ObjectHandle<BassCallback>(this, GCHandleType.Normal);
         }
 
@@ -35,7 +37,9 @@ namespace osu.Framework.Audio.Callbacks
         {
             if (!disposedValue)
             {
-                handle.Dispose();
+                if (CreateHandle)
+                    handle.Dispose();
+
                 disposedValue = true;
             }
         }
