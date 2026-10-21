@@ -48,6 +48,7 @@ namespace osu.Framework.Android
 
         protected override void HandlePause()
         {
+            setPreferredDisplayMode(false);
             base.HandlePause();
             isSurfaceReady = false;
         }
@@ -55,6 +56,7 @@ namespace osu.Framework.Android
         protected override void HandleResume()
         {
             base.HandleResume();
+            setPreferredDisplayMode(true);
             isSurfaceReady = true;
         }
 
@@ -62,6 +64,46 @@ namespace osu.Framework.Android
         {
             updateSafeArea(insets);
             return base.OnApplyWindowInsets(view, insets);
+        }
+
+        private void setPreferredDisplayMode(bool enable)
+        {
+            if (!OperatingSystem.IsAndroidVersionAtLeast(23))
+                return;
+
+            var window = activity.Window;
+            var display = window?.DecorView?.Display;
+
+            if (window == null || display == null)
+                return;
+
+            var attributes = window.Attributes;
+
+            if (attributes == null)
+                return;
+
+            float targetRefreshRate = 0f;
+
+            if (enable)
+            {
+                var supportedModes = display.GetSupportedModes();
+
+                if (supportedModes != null && supportedModes.Length > 0)
+                {
+                    foreach (var mode in supportedModes)
+                    {
+                        if (mode.RefreshRate > targetRefreshRate)
+                            targetRefreshRate = mode.RefreshRate;
+                    }
+                }
+            }
+
+            attributes.PreferredRefreshRate = targetRefreshRate;
+
+            if (OperatingSystem.IsAndroidVersionAtLeast(30))
+                window.SetPreferMinimalPostProcessing(enable);
+
+            window.Attributes = attributes;
         }
 
         /// <summary>
