@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Rendering
         public UniformBool IsMasking;
         public UniformFloat CornerRadius;
         public UniformFloat CornerExponent;
-        private readonly UniformPadding4 pad2;
+        public UniformBool TextureHasPremultipliedAlpha;
 
         public UniformVector4 MaskingRect;
         public UniformFloat BorderThickness;
