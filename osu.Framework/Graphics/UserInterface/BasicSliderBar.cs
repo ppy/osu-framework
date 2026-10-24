@@ -83,9 +83,9 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected override void UpdateValue(float value)
+        protected override void UpdateValue(float position)
         {
-            SelectionBox.ScaleTo(new Vector2(value, 1), 300, Easing.OutQuint);
+            SelectionBox.ScaleTo(new Vector2(position, 1), 300, Easing.OutQuint);
         }
     }
 }
