@@ -320,7 +320,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             return result == expected;
         });
 
-        private void assertMenuItems(int expectedCount) => AddAssert($"menu contains {expectedCount} item(s)", () => contextMenuContainer.CurrentMenu.Items.Count == expectedCount);
+        private void assertMenuItems(int expectedCount) => AddAssert($"menu contains {expectedCount} item(s)", () => contextMenuContainer.CurrentMenu.Items.Count() == expectedCount);
 
         private partial class BoxWithContextMenu : Box, IHasContextMenu
         {
