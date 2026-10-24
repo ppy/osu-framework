@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -150,9 +151,11 @@ namespace osu.Framework.Logging
         /// <param name="description">The description of the error that should be logged with the exception.</param>
         /// <param name="target">The logging target (file).</param>
         /// <param name="recursive">Whether the inner exceptions of the given exception <paramref name="e"/> should be logged recursively.</param>
-        public static void Error(Exception e, string description, LoggingTarget target = LoggingTarget.Runtime, bool recursive = false)
+        /// <param name="valueChanges">Value changes to be indicated in the logs</param>
+        /// <param name="values">Value to be shown in the logs</param>
+        public static void Error(Exception e, string description, LoggingTarget target = LoggingTarget.Runtime, bool recursive = false, Dictionary<object, object> valueChanges = null, Dictionary<string, object> values = null)
         {
-            error(e, description, target, null, recursive);
+            error(e, description, target, null, recursive, valueChanges: valueChanges, values: values);
         }
 
         /// <summary>
@@ -162,17 +165,29 @@ namespace osu.Framework.Logging
         /// <param name="description">The description of the error that should be logged with the exception.</param>
         /// <param name="name">The logger name (file).</param>
         /// <param name="recursive">Whether the inner exceptions of the given exception <paramref name="e"/> should be logged recursively.</param>
-        public static void Error(Exception e, string description, string name, bool recursive = false)
+        /// <param name="valueChanges">Value changes to be indicated in the logs</param>
+        /// <param name="values">Value to be shown in the logs</param>
+        public static void Error(Exception e, string description, string name, bool recursive = false, Dictionary<object, object> valueChanges = null, Dictionary<string, object> values = null)
         {
-            error(e, description, null, name, recursive);
+            error(e, description, null, name, recursive, valueChanges: valueChanges, values: values);
         }
 
-        private static void error(Exception e, string description, LoggingTarget? target, string name, bool recursive)
+        /// <summary>
+        /// Logs the given exception with the given description to the logger with the given name.
+        /// </summary>
+        /// <param name="e">The exception that should be logged.</param>
+        /// <param name="description">The description of the error that should be logged with the exception.</param>
+        /// <param name="target">The logging target (file).</param>
+        /// <param name="name">The logger name (file).</param>
+        /// <param name="recursive">Whether the inner exceptions of the given exception <paramref name="e"/> should be logged recursively.</param>
+        /// <param name="valueChanges">Value changes to be indicated in the logs</param>
+        /// <param name="values">Value to be shown in the logs</param>
+        private static void error(Exception e, string description, LoggingTarget? target, string name, bool recursive, Dictionary<object, object> valueChanges = null, Dictionary<string, object> values = null)
         {
-            log($@"{description}", target, name, LogLevel.Error, e);
+            log($@"{description}", target, name, LogLevel.Error, e, valueChanges: valueChanges, values: values);
 
             if (recursive && e.InnerException != null)
-                error(e.InnerException, $"{description} (inner)", target, name, true);
+                error(e.InnerException, $"{description} (inner)", target, name, true, valueChanges: valueChanges, values: values);
         }
 
         /// <summary>
@@ -182,9 +197,11 @@ namespace osu.Framework.Logging
         /// <param name="target">The logging target (file).</param>
         /// <param name="level">The verbosity level.</param>
         /// <param name="outputToListeners">Whether the message should be sent to listeners of <see cref="Debug"/> and <see cref="Console"/>. True by default.</param>
-        public static void Log(string message, LoggingTarget target = LoggingTarget.Runtime, LogLevel level = LogLevel.Verbose, bool outputToListeners = true)
+        /// <param name="valueChanges">Value changes to be indicated in the logs</param>
+        /// <param name="values">Value to be shown in the logs</param>
+        public static void Log(string message, LoggingTarget target = LoggingTarget.Runtime, LogLevel level = LogLevel.Verbose, bool outputToListeners = true, Dictionary<object, object> valueChanges = null, Dictionary<string, object> values = null)
         {
-            log(message, target, null, level, outputToListeners: outputToListeners);
+            log(message, target, null, level, outputToListeners: outputToListeners, valueChanges: valueChanges, values: values);
         }
 
         /// <summary>
@@ -194,19 +211,32 @@ namespace osu.Framework.Logging
         /// <param name="name">The logger name (file).</param>
         /// <param name="level">The verbosity level.</param>
         /// <param name="outputToListeners">Whether the message should be sent to listeners of <see cref="Debug"/> and <see cref="Console"/>. True by default.</param>
-        public static void Log(string message, string name, LogLevel level = LogLevel.Verbose, bool outputToListeners = true)
+        /// <param name="valueChanges">Value changes to be indicated in the logs</param>
+        /// <param name="values">Value to be shown in the logs</param>
+        public static void Log(string message, string name, LogLevel level = LogLevel.Verbose, bool outputToListeners = true, Dictionary<object, object> valueChanges = null, Dictionary<string, object> values = null)
         {
-            log(message, null, name, level, outputToListeners: outputToListeners);
+            log(message, null, name, level, outputToListeners: outputToListeners, valueChanges: valueChanges, values: values);
         }
 
-        private static void log(string message, LoggingTarget? target, string loggerName, LogLevel level, Exception exception = null, bool outputToListeners = true)
+        /// <summary>
+        /// Log an arbitrary string to the specified logging target.
+        /// </summary>
+        /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
+        /// <param name="target">The logging target (file).</param>
+        /// <param name="loggerName">The logger name (file).</param>
+        /// <param name="level">The verbosity level.</param>
+        /// <param name="exception">An optional related exception.</param>
+        /// <param name="outputToListeners">Whether the message should be sent to listeners of <see cref="Debug"/> and <see cref="Console"/>. True by default.</param>
+        /// <param name="valueChanges">Value changes to be indicated in the logs</param>
+        /// <param name="values">Value to be shown in the logs</param>
+        private static void log(string message, LoggingTarget? target, string loggerName, LogLevel level, Exception exception = null, bool outputToListeners = true, Dictionary<object, object> valueChanges = null, Dictionary<string, object> values = null)
         {
             try
             {
                 if (target.HasValue)
-                    GetLogger(target.Value).Add(message, level, exception, outputToListeners);
+                    GetLogger(target.Value).Add(message, level, exception, outputToListeners, valueChanges, values);
                 else
-                    GetLogger(loggerName).Add(message, level, exception, outputToListeners);
+                    GetLogger(loggerName).Add(message, level, exception, outputToListeners, valueChanges, values);
             }
             catch
             {
@@ -219,12 +249,14 @@ namespace osu.Framework.Logging
         /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
         /// <param name="target">The logging target (file).</param>
         /// <param name="level">The verbosity level.</param>
-        public static void LogPrint(string message, LoggingTarget target = LoggingTarget.Runtime, LogLevel level = LogLevel.Verbose)
+        /// <param name="valueChanges">Value changes to be indicated in the logs</param>
+        /// <param name="values">Value to be shown in the logs</param>
+        public static void LogPrint(string message, LoggingTarget target = LoggingTarget.Runtime, LogLevel level = LogLevel.Verbose, Dictionary<object, object> valueChanges = null, Dictionary<string, object> values = null)
         {
             if (Enabled && DebugUtils.IsDebugBuild)
                 System.Diagnostics.Debug.Print(message);
 
-            Log(message, target, level);
+            Log(message, target, level, valueChanges: valueChanges, values: values);
         }
 
         /// <summary>
@@ -233,12 +265,14 @@ namespace osu.Framework.Logging
         /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
         /// <param name="name">The logger name (file).</param>
         /// <param name="level">The verbosity level.</param>
-        public static void LogPrint(string message, string name, LogLevel level = LogLevel.Verbose)
+        /// <param name="valueChanges">Value changes to be indicated in the logs</param>
+        /// <param name="values">Value to be shown in the logs</param>
+        public static void LogPrint(string message, string name, LogLevel level = LogLevel.Verbose, Dictionary<object, object> valueChanges = null, Dictionary<string, object> values = null)
         {
             if (Enabled && DebugUtils.IsDebugBuild)
                 System.Diagnostics.Debug.Print(message);
 
-            Log(message, name, level);
+            Log(message, name, level, valueChanges: valueChanges, values: values);
         }
 
         /// <summary>
@@ -270,12 +304,14 @@ namespace osu.Framework.Logging
         /// Logs a new message with the <see cref="LogLevel.Debug"/> and will only be logged if your project is built in the Debug configuration. Please note that the default setting for <see cref="Level"/> is <see cref="LogLevel.Verbose"/> so unless you increase the <see cref="Level"/> to <see cref="LogLevel.Debug"/> messages printed with this method will not appear in the output.
         /// </summary>
         /// <param name="message">The message that should be logged.</param>
-        public void Debug(string message = @"")
+        /// <param name="valueChanges">Value changes to be indicated in the logs</param>
+        /// <param name="values">Value to be shown in the logs</param>
+        public void Debug(string message = @"", Dictionary<object, object> valueChanges = null, Dictionary<string, object> values = null)
         {
             if (!DebugUtils.IsDebugBuild)
                 return;
 
-            Add(message, LogLevel.Debug);
+            Add(message, LogLevel.Debug, valueChanges: valueChanges, values: values);
         }
 
         /// <summary>
@@ -285,14 +321,16 @@ namespace osu.Framework.Logging
         /// <param name="level">The verbosity level.</param>
         /// <param name="exception">An optional related exception.</param>
         /// <param name="outputToListeners">Whether the message should be sent to listeners of <see cref="Debug"/> and <see cref="Console"/>. True by default.</param>
-        public void Add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null, bool outputToListeners = true) =>
-            add(message, level, exception, outputToListeners && OutputToListeners);
+        /// <param name="valueChanges">Value changes to be indicated in the logs</param>
+        /// <param name="values">Value to be shown in the logs</param>
+        public void Add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null, bool outputToListeners = true, Dictionary<object, object> valueChanges = null, Dictionary<string, object> values = null) =>
+            add(message, level, exception, outputToListeners && OutputToListeners, valueChanges, values);
 
         private readonly RollingTime debugOutputRollingTime = new RollingTime(50, 10000);
 
         private readonly Queue<string> pendingFileOutput = new Queue<string>();
 
-        private void add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null, bool outputToListeners = true)
+        private void add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null, bool outputToListeners = true, Dictionary<object, object> valueChanges = null, Dictionary<string, object> values = null)
         {
             if (!Enabled || level < Level)
                 return;
@@ -300,6 +338,23 @@ namespace osu.Framework.Logging
             logCount.Value++;
 
             message = ApplyFilters(message);
+
+            Type callingClass = new StackTrace().GetFrames().Where(sf => sf.HasMethod()).Select(sf => sf.GetMethod()).FirstOrDefault(m => m != null && m.DeclaringType != typeof(Logger))?.DeclaringType;
+
+            if (callingClass != null)
+            {
+                message = $"{callingClass.Name}, {message}";
+            }
+
+            if (valueChanges != null)
+            {
+                message = $"{message}, {string.Join(" ", valueChanges.Select(kvp => $"from: \"{kvp.Key}\" to: \"{kvp.Value}\""))}";
+            }
+
+            if (values != null)
+            {
+                message = $"{message}, {string.Join(" ", values.Select(kvp => $"{kvp.Key}:\"{kvp.Value}\""))}";
+            }
 
             string logOutput = message;
 
