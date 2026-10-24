@@ -32,9 +32,6 @@ namespace osu.Framework.Input.StateChanges
 
             if (Delta != Vector2.Zero)
             {
-                if (!IsPrecise && Delta.X == 0 && state.Keyboard.ShiftPressed)
-                    Delta = new Vector2(Delta.Y, 0);
-
                 var lastScroll = mouse.Scroll;
                 mouse.Scroll += Delta;
                 mouse.LastSource = this;

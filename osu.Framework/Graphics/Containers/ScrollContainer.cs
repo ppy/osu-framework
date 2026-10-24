@@ -401,14 +401,18 @@ namespace osu.Framework.Graphics.Containers
                     return false;
             }
 
-            bool isPrecise = e.IsPrecise;
+            float scrollDeltaFloat = ScrollDirection == Direction.Horizontal
+                ? e.ScrollDelta.X
+                : e.ScrollDelta.Y;
 
-            Vector2 scrollDelta = e.ScrollDelta;
-            float scrollDeltaFloat = scrollDelta.Y;
-            if (ScrollDirection == Direction.Horizontal && scrollDelta.X != 0)
-                scrollDeltaFloat = scrollDelta.X;
+            // Let's assume precision scroll devices have both axes of scroll available.
+            //
+            // Then, for non-precision scroll devices, let's assuming the user's intention when scrolling
+            // is to *scroll*, regardless of the ScrollDirection.
+            if (!e.IsPrecise && scrollDeltaFloat == 0)
+                scrollDeltaFloat = e.ScrollDelta.Y + e.ScrollDelta.X;
 
-            scrollByOffset(ScrollDistance * -scrollDeltaFloat, true, isPrecise ? 0.05 : DistanceDecayScroll);
+            scrollByOffset(ScrollDistance * -scrollDeltaFloat, true, e.IsPrecise ? 0.05 : DistanceDecayScroll);
             return true;
         }
 
