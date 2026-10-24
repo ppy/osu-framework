@@ -964,7 +964,7 @@ namespace osu.Framework.Input
             foreach (var h in InputHandlers)
             {
                 if (h.Enabled.Value && h is INeedsMousePositionFeedback handler)
-                    handler.FeedbackMousePositionChange(mouse.Position, h == mouseSource);
+                    handler.FeedbackMousePositionChange(mouse.Position, mouseSource);
             }
 
             handleMouseMove(state, e.LastPosition);
