@@ -279,6 +279,7 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 AddStep($"deactivate {s}", () => InputManager.EndTouch(new Touch(s, getTouchUpPos(s))));
                 AddAssert("no mouse event received", () => receptors[(int)s].MouseEvents.Count == 0);
+                AddAssert("mouse is still valid", () => InputManager.CurrentState.Mouse.IsPositionValid);
             }
 
             AddStep("deactivate last", () =>
@@ -299,6 +300,7 @@ namespace osu.Framework.Tests.Visual.Input
 
                 return firstReceptor.MouseEvents.Count == 0;
             });
+            AddAssert("mouse is invalidated", () => !InputManager.CurrentState.Mouse.IsPositionValid);
 
             AddAssert("all events dequeued", () => receptors.All(r => r.MouseEvents.Count == 0));
 
