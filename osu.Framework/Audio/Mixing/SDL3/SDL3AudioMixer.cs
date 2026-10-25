@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ManagedBass;
 using mysoundlib_cs;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
@@ -82,6 +83,38 @@ namespace osu.Framework.Audio.Mixing.SDL3
             Handle = IntPtr.Zero;
         }
 
-        public override AudioEffect GetNewEffect(int priority = 0) => new SDL3AudioEffect(act => EnqueueAction(act), this, priority);
+        private readonly Dictionary<IEffectParameter, SDL3AudioEffect> activeEffects = new Dictionary<IEffectParameter, SDL3AudioEffect>();
+
+        public override void AddEffect(IEffectParameter effect, int priority = 0) => EnqueueAction(() =>
+        {
+            if (activeEffects.ContainsKey(effect))
+                return;
+
+            var handle = new SDL3AudioEffect(this, priority)
+            {
+                EffectParameter = effect
+            };
+
+            activeEffects[effect] = handle;
+            handle.Apply();
+        });
+
+        public override void RemoveEffect(IEffectParameter effect) => EnqueueAction(() =>
+        {
+            if (!activeEffects.TryGetValue(effect, out var handle))
+                return;
+
+            handle.Remove();
+            activeEffects.Remove(effect);
+        });
+
+        public override void UpdateEffect(IEffectParameter effect) => EnqueueAction(() =>
+        {
+            if (!activeEffects.TryGetValue(effect, out var handle))
+                return;
+
+            handle.EffectParameter = effect;
+            handle.Apply();
+        });
     }
 }

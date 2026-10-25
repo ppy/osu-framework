@@ -3,28 +3,30 @@
 
 using System;
 using System.Threading;
+using ManagedBass;
 using ManagedBass.Fx;
 using mysoundlib_cs;
 using osu.Framework.Extensions;
 
 namespace osu.Framework.Audio.Mixing.SDL3
 {
-    internal class SDL3AudioEffect : AudioEffect
+    internal class SDL3AudioEffect
     {
         private readonly SDL3AudioMixer mixer;
 
         private volatile IntPtr bqFilter = IntPtr.Zero;
 
-        private readonly Action<Action> enqueueAction;
+        public readonly int Priority;
 
-        public SDL3AudioEffect(Action<Action> enqueueAction, SDL3AudioMixer mixer, int priority = 0)
-            : base(priority)
+        public IEffectParameter? EffectParameter { get; set; }
+
+        public SDL3AudioEffect(SDL3AudioMixer mixer, int priority = 0)
         {
             this.mixer = mixer;
-            this.enqueueAction = enqueueAction;
+            Priority = priority;
         }
 
-        public override void Apply() => enqueueAction(() =>
+        public void Apply()
         {
             if (EffectParameter is BQFParameters bqfp)
             {
@@ -77,12 +79,12 @@ namespace osu.Framework.Audio.Mixing.SDL3
                 else
                     MySoundLibrary.mslUpdateBiquadFilter(mixer.Handle, coeffIntPtr, bqFilter);
             }
-        });
+        }
 
-        public override void Remove() => enqueueAction(() =>
+        public void Remove()
         {
             if (bqFilter != IntPtr.Zero)
                 MySoundLibrary.mslRemoveBiquadFilter(mixer.Handle, Interlocked.Exchange(ref bqFilter, IntPtr.Zero));
-        });
+        }
     }
 }

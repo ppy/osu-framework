@@ -170,11 +170,7 @@ namespace osu.Framework.Tests.Visual.Audio
                 };
 
                 if (effect != null)
-                {
-                    var eff = mixer.GetNewEffect();
-                    eff.EffectParameter = effect;
-                    eff.Apply();
-                }
+                    mixer.AddEffect(effect);
             }
 
             protected override void Update()

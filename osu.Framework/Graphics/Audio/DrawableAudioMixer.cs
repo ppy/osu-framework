@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Diagnostics;
+using ManagedBass;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Mixing;
@@ -43,63 +44,36 @@ namespace osu.Framework.Graphics.Audio
             }
         }
 
-        public AudioEffect GetNewEffect(int priority = 0)
+        public void AddEffect(IEffectParameter effect, int priority = 0)
         {
             if (LoadState < LoadState.Ready)
-                return new LazyAudioEffect(this, priority);
+                Schedule(() => mixer.AddEffect(effect, priority));
             else
             {
                 Debug.Assert(mixer != null);
-                return mixer.GetNewEffect(priority);
+                mixer.AddEffect(effect, priority);
             }
         }
 
-        public class LazyAudioEffect : AudioEffect
+        public void RemoveEffect(IEffectParameter effect)
         {
-            private readonly DrawableAudioMixer parent;
-            private readonly int priority;
-            private AudioEffect effect;
-            private volatile bool applied;
-
-            public LazyAudioEffect(DrawableAudioMixer parent, int priority)
+            if (LoadState < LoadState.Ready)
+                Schedule(() => mixer.RemoveEffect(effect));
+            else
             {
-                this.parent = parent;
-                this.priority = priority;
+                Debug.Assert(mixer != null);
+                mixer.RemoveEffect(effect);
             }
+        }
 
-            private void update()
+        public void UpdateEffect(IEffectParameter effect)
+        {
+            if (LoadState < LoadState.Ready)
+                Schedule(() => mixer.UpdateEffect(effect));
+            else
             {
-                if (effect == null)
-                {
-                    if (parent.LoadState >= LoadState.Ready)
-                    {
-                        effect = parent.mixer.GetNewEffect(priority);
-                    }
-                    else
-                    {
-                        parent.Scheduler.Add(update, true);
-                        return;
-                    }
-                }
-
-                effect.EffectParameter = EffectParameter;
-
-                if (applied)
-                    effect.Apply();
-                else
-                    effect.Remove();
-            }
-
-            public override void Apply()
-            {
-                applied = true;
-                parent.Schedule(update);
-            }
-
-            public override void Remove()
-            {
-                applied = false;
-                parent.Schedule(update);
+                Debug.Assert(mixer != null);
+                mixer.UpdateEffect(effect);
             }
         }
 
