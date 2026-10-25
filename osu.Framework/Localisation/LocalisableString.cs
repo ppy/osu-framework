@@ -2,7 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using System.Text;
 using JetBrains.Annotations;
 
 namespace osu.Framework.Localisation
@@ -46,6 +50,52 @@ namespace osu.Framework.Localisation
         /// </summary>
         /// <param name="interpolation">The interpolated string containing format and arguments.</param>
         public static LocalisableString Interpolate(FormattableString interpolation) => new LocalisableFormattableString(interpolation);
+
+        /// <summary>
+        /// Creates a <see cref="LocalisableString"/> instance constructed via stringifying and concatenating the supplied <paramref name="args"/>.
+        /// </summary>
+        public static LocalisableString Concat(params ReadOnlySpan<object?> args)
+        {
+            var formatBuilder = new StringBuilder();
+
+            for (int i = 0; i < args.Length; ++i)
+            {
+                formatBuilder.Append('{');
+                formatBuilder.Append(i.ToString(CultureInfo.InvariantCulture));
+                formatBuilder.Append('}');
+            }
+
+            return new LocalisableFormattableString(formatBuilder.ToString(), args.ToArray());
+        }
+
+        /// <inheritdoc cref="osu.Framework.Localisation.LocalisableString.Concat(System.ReadOnlySpan{System.Object})"/>
+        public static LocalisableString Concat<T>(IEnumerable<T> args)
+            => Concat(args.Cast<object?>().ToArray());
+
+        /// <summary>
+        /// Creates a <see cref="LocalisableString"/> instance constructed via stringifying and concatenating the supplied <paramref name="args"/>,
+        /// separated by the given <paramref name="separator"/>.
+        /// </summary>
+        public static LocalisableString Join(string separator, params ReadOnlySpan<object?> args)
+        {
+            var formatBuilder = new StringBuilder();
+
+            for (int i = 0; i < args.Length; ++i)
+            {
+                if (i > 0)
+                    formatBuilder.Append(separator);
+
+                formatBuilder.Append('{');
+                formatBuilder.Append(i.ToString(CultureInfo.InvariantCulture));
+                formatBuilder.Append('}');
+            }
+
+            return new LocalisableFormattableString(formatBuilder.ToString(), args.ToArray());
+        }
+
+        /// <inheritdoc cref="osu.Framework.Localisation.LocalisableString.Join(System.String, System.ReadOnlySpan{System.Object})"/>
+        public static LocalisableString Join<T>(string separator, IEnumerable<T> args)
+            => Join(separator, args.Cast<object?>().ToArray());
 
         /// <summary>
         /// Indicates whether the specified <see cref="LocalisableString"/> is <see langword="null"/> or an empty <see langword="string"/>.
