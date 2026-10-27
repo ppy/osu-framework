@@ -21,14 +21,17 @@ namespace osu.Framework.Graphics.Animations
         {
         }
 
-        protected virtual Sprite CreateSprite() => new Sprite
-        {
-            RelativeSizeAxes = Axes.Both,
-            Anchor = Anchor.Centre,
-            Origin = Anchor.Centre,
-        };
+        protected virtual Sprite CreateSprite() => new Sprite();
 
-        public override Drawable CreateContent() => textureHolder = CreateSprite();
+        public override Drawable CreateContent()
+        {
+            textureHolder = CreateSprite();
+            textureHolder.RelativeSizeAxes = Axes.Both;
+            textureHolder.Anchor = Anchor.Centre;
+            textureHolder.Origin = Anchor.Centre;
+
+            return textureHolder;
+        }
 
         protected override void DisplayFrame(Texture content) => textureHolder.Texture = content;
 
