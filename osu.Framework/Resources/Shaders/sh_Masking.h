@@ -68,6 +68,11 @@ lowp vec4 multiplyByVColour(lowp vec4 colour)
 
 lowp vec4 applyRounding(lowp vec4 texel, mediump vec2 texCoord)
 {
+	if (!g_IsMasking && v_BlendRange == vec2(0.0))
+	{
+		return texel;
+	}
+
 	highp float dist = distanceFromRoundedRect(vec2(0.0), g_CornerRadius);
 	lowp float alphaFactor = 1.0;
 
